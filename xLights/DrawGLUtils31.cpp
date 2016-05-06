@@ -204,7 +204,7 @@ public:
         
         LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result));
         LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength));
-        if ( InfoLogLength > 0 ){
+        if (!Result &&  InfoLogLength > 0 ){
             std::vector<char> ProgramErrorMessage(InfoLogLength+1);
             glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
             wxString l = &ProgramErrorMessage[0];
@@ -229,7 +229,7 @@ public:
         
         glGetShaderiv(shaderID, GL_COMPILE_STATUS, &Result);
         glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-        if ( InfoLogLength > 0 ) {
+        if (!Result && InfoLogLength > 0 ) {
             std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
             glGetShaderInfoLog(shaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
             wxString l = &VertexShaderErrorMessage[0];
@@ -369,6 +369,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
         singleColorProgram.Cleanup();
         textureProgram.Cleanup();
         normalProgram.Cleanup();
+        vbNormalProgram.Cleanup();
     }
     
 
@@ -501,6 +502,9 @@ public:
     // Un-optimized that just feeds through the Draw(xlVertexColorAccumulator)
     void InitializeVertexBuffer() {}
     void CleanupVertexBuffer() {}
+    virtual void SetCurrent() override {
+        data.Reset();
+    }
 
     DrawGLUtils::xlVertexColorAccumulator data;
     virtual void addVertex(float x, float y, const xlColor &c) override {
@@ -519,6 +523,7 @@ public:
         data.Reset();
     }
 #else
+    
     template <class T>
     class xlGLArray {
     public:
@@ -546,12 +551,16 @@ public:
         void FlushAndUnmap(int start, int count) {
             LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, id));
             if (mapped) {
-                LOG_GL_ERRORV(glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0 , count*sizePerUnit));
+                if (count) {
+                    LOG_GL_ERRORV(glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0 , count*sizePerUnit));
+                }
                 LOG_GL_ERRORV(glUnmapBuffer(GL_ARRAY_BUFFER));
                 mapped = false;
                 array = nullptr;
             } else {
-                LOG_GL_ERRORV(glBufferData(id, count*sizePerUnit, array, GL_DYNAMIC_DRAW));
+                if (count) {
+                    LOG_GL_ERRORV(glBufferData(id, count*sizePerUnit, array, GL_DYNAMIC_DRAW));
+                }
                 delete [] array;
                 mapped = false;
                 array = nullptr;
@@ -628,10 +637,37 @@ public:
     int superMax;
     int start;
     int curCount;
+    int total;
     xlGLArray<uint8_t> colors;
     xlGLArray<float> vertices;
+    
+    virtual void SetCurrent() override {
+        if (vbNormalProgram.ProgramID == 0) {
+            return;
+        }
+
+        if (start != 0 || max != superMax || superMax < (total + 128) ) {
+            colors.FlushAndUnmap(start, 0);
+            vertices.FlushAndUnmap(start, 0);
+            start = 0;
+            curCount = 0;
+            if (superMax < (total + 128)) {
+                superMax = total + 128;
+                colors.ReInit(superMax);
+                vertices.ReInit(superMax);
+            } else {
+                colors.Remap(0, superMax);
+                vertices.Remap(0, superMax);
+            }
+            total = 0;
+            max = superMax;
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
+    }
+
 
     void InitializeVertexBuffer() {
+        total = 0;
         max = superMax = 1024;
         curCount = 0;
         vbNormalProgram.UseProgram();
@@ -649,6 +685,8 @@ public:
                               (void*)0                          // array buffer offset
                               );
         
+        LOG_GL_ERRORV(glDisableVertexAttribArray(0));
+        LOG_GL_ERRORV(glDisableVertexAttribArray(1));
         start = 0;
     }
     void CleanupVertexBuffer() {
@@ -718,6 +756,7 @@ public:
         } else if (enableCapability != 0) {
             vbNormalProgram.SetRenderType(0);
         }
+        total += curCount;
         start += curCount;
         max -= curCount;
         if (max < 64) {

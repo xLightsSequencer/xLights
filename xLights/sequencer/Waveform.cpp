@@ -268,7 +268,7 @@ void Waveform::renderGL( )
 void Waveform::DrawWaveView(const WaveView &wv)
 {
     int index;
-    LOG_GL_ERRORV(glLineWidth( 1 ));
+    DrawGLUtils::SetLineWidth(1.0);
 
     DrawGLUtils::xlVertexColorAccumulator vac;
     DrawGLUtils::xlVertexAccumulator va;

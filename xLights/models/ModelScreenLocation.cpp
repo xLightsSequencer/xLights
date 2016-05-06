@@ -328,11 +328,11 @@ void BoxedScreenLocation::DrawHandles() const {
 
     LOG_GL_ERRORV(glEnable( GL_LINE_SMOOTH ));
     LOG_GL_ERRORV(glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ));
-    IGNORE_GL_ERRORV(glLineWidth(1.7));
+    DrawGLUtils::SetLineWidth(1.7);
     DrawGLUtils::AddVertex(w1,h1, xlWHITE);
     DrawGLUtils::AddVertex(sx, sy, xlWHITE);
     DrawGLUtils::End(GL_LINES);
-    IGNORE_GL_ERRORV(glLineWidth(1.0));
+    DrawGLUtils::SetLineWidth(1.0);
     LOG_GL_ERRORV(glDisable(GL_LINE_SMOOTH));
 }
 
@@ -923,12 +923,12 @@ void ThreePointScreenLocation::DrawHandles() const {
 
     LOG_GL_ERRORV(glEnable( GL_LINE_SMOOTH ));
     LOG_GL_ERRORV(glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ));
-    IGNORE_GL_ERRORV(glLineWidth(1.7));
+    DrawGLUtils::SetLineWidth(1.7);
     
     DrawGLUtils::AddVertex(sx1, sy1, xlWHITE);
     DrawGLUtils::AddVertex(sx, sy, xlWHITE);
     DrawGLUtils::End(GL_LINES);
-    IGNORE_GL_ERRORV(glLineWidth(1.0));
+    DrawGLUtils::SetLineWidth(1.0);
     LOG_GL_ERRORV(glDisable(GL_LINE_SMOOTH));
 
     DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);

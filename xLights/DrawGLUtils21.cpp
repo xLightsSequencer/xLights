@@ -160,7 +160,7 @@ public:
         
         glGetShaderiv(shad, GL_COMPILE_STATUS, &Result);
         glGetShaderiv(shad, GL_INFO_LOG_LENGTH, &InfoLogLength);
-        if ( InfoLogLength > 0 ) {
+        if (!Result && InfoLogLength > 0 ) {
             std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
             glGetShaderInfoLog(shad, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
             wxString l = &VertexShaderErrorMessage[0];
@@ -185,7 +185,7 @@ public:
         LOG_GL_ERRORV(glLinkProgram(ProgramID));
         glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
         glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-        if ( InfoLogLength > 0 ){
+        if (!Result && InfoLogLength > 0 ){
             std::vector<char> ProgramErrorMessage(InfoLogLength+1);
             glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
             wxString l = &ProgramErrorMessage[0];
@@ -219,7 +219,9 @@ public:
             LOG_GL_ERRORV(glDeleteProgram(ProgramIDtexture));
         }
     }
-    
+    virtual void SetCurrent() override {
+    }
+
     void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) override {
         LOG_GL_ERRORV(glUseProgram(ProgramIDstaticColor));
         SetMVP(ProgramIDstaticColor);

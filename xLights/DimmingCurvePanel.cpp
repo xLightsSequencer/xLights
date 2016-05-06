@@ -72,7 +72,7 @@ void DimmingCurvePanel::render(wxPaintEvent& event) {
 
     va.AddVertex(mWindowWidth-2,2);
     va.AddVertex(2,mWindowHeight-2);
-    LOG_GL_ERRORV(glLineWidth(0.5));
+    DrawGLUtils::SetLineWidth(0.5);
     DrawGLUtils::Draw(va, xlLIGHT_GREY, GL_LINES);
 
 

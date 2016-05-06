@@ -2263,8 +2263,7 @@ void EffectsGrid::DrawLines()
         }
     }
     DrawGLUtils::End(GL_TRIANGLES);
-
-    IGNORE_GL_ERRORV(glLineWidth(0.2));
+    DrawGLUtils::SetLineWidth(0.2);
     for(int row=0;row < mSequenceElements->GetVisibleRowInformationSize();row++)
     {
         y = (row+1)*DEFAULT_ROW_HEADING_HEIGHT;
@@ -2286,7 +2285,7 @@ void EffectsGrid::DrawLines()
     }
 
     DrawGLUtils::End(GL_LINES);
-    IGNORE_GL_ERRORV(glLineWidth(1));
+    DrawGLUtils::SetLineWidth(1.0);
 }
 
 
@@ -2535,10 +2534,10 @@ void EffectsGrid::DrawEffects()
     DrawGLUtils::Draw(lines, *mEffectColor, GL_LINES);
     DrawGLUtils::Draw(selectedLines, *mSelectionColor, GL_LINES);
 
-    IGNORE_GL_ERRORV(glLineWidth(2.0));
+    DrawGLUtils::SetLineWidth(2.0);
     DrawGLUtils::Draw(timingEffLines, xlWHITE, GL_LINES);
     DrawGLUtils::Draw(textBackgrounds, GL_TRIANGLES);
-    IGNORE_GL_ERRORV(glLineWidth(1.0));
+    DrawGLUtils::SetLineWidth(1.0);
     DrawGLUtils::Draw(timingLines, GL_LINES, GL_BLEND);
 
     float factor = translateToBacking(1.0);

@@ -101,7 +101,7 @@ void xlGridCanvas::DrawBaseGrid()
         DrawGLUtils::AddVertex(x,mCellSize, *mGridlineColor);
         DrawGLUtils::AddVertex(x,height+mCellSize, *mGridlineColor);
     }
-    glLineWidth(0.5);
+    DrawGLUtils::SetLineWidth(0.5);
     DrawGLUtils::End(GL_LINES, GL_BLEND);
 }
 

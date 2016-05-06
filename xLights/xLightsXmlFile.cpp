@@ -853,85 +853,96 @@ wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
 		sd = RememberShowDir;
 	}
 
+    wxFileName fnUnix(file, wxPATH_UNIX);
+    wxFileName fnWin(file, wxPATH_WIN);
+    
 	// exit if the file name is not an absolute path with a drive letter at the begginning
 	if (!wxIsAbsolutePath(file) || wxFileExists(file))
 	{
 		return file;
 	}
-	else
-	{
-		wxString sdlc = sd;
-		sdlc.LowerCase();
-		wxString flc = file;
-		flc.LowerCase();
+    
+    wxFileName fn3(sd, fnUnix.GetFullName());
+    if (fn3.Exists()) {
+        return fn3.GetFullName();
+    }
+    wxFileName fn4(sd, fnWin.GetFullName());
+    if (fn4.Exists()) {
+        return fn4.GetFullName();
+    }
+    
+    
+    wxString sdlc = sd;
+    sdlc.LowerCase();
+    wxString flc = file;
+    flc.LowerCase();
 
-		wxString path;
-		wxString fname;
-		wxString ext;
-		wxFileName::SplitPath(sd, &path, &fname, &ext);
-		wxArrayString parts = wxSplit(path, '\\', 0);
-		if (fname == "")
-		{
-			// no subdirectory
-			return file;
-		}
+    wxString path;
+    wxString fname;
+    wxString ext;
+    wxFileName::SplitPath(sd, &path, &fname, &ext);
+    wxArrayString parts = wxSplit(path, '\\', 0);
+    if (fname == "")
+    {
+        // no subdirectory
+        return file;
+    }
 
-		wxString showfolder = fname;
-		wxString sflc = showfolder;
-		sflc.LowerCase();
+    wxString showfolder = fname;
+    wxString sflc = showfolder;
+    sflc.LowerCase();
 
-		if (flc.Contains(sflc))
-		{
-			int offset = flc.Find(sflc) + showfolder.Length();
-			wxString relative = sd + file.SubString(offset, file.Length());
+    if (flc.Contains(sflc))
+    {
+        int offset = flc.Find(sflc) + showfolder.Length();
+        wxString relative = sd + file.SubString(offset, file.Length());
 
-			if (wxFileExists(relative))
-			{
-				logger_base.debug("File location fixed: " + file + " -> " + relative);
-				return relative;
-			}
-		}
+        if (wxFileExists(relative))
+        {
+            logger_base.debug("File location fixed: " + file + " -> " + relative);
+            return relative;
+        }
+    }
 
-		// Disabling this ... untested but even if it does work the scenarios are really not that useful
-		//wxString fpath;
-		//wxString ffname;
-		//wxString fext;
-		//wxFileName::SplitPath(file, &fpath, &ffname, &fext);
-		//wxArrayString fparts = wxSplit(fpath, '\\', '\\');
-		//if (fparts.Count() == 0)
-		//{
-		//	fparts = wxSplit(fpath, '/', '/');
-		//}
+    // Disabling this ... untested but even if it does work the scenarios are really not that useful
+    //wxString fpath;
+    //wxString ffname;
+    //wxString fext;
+    //wxFileName::SplitPath(file, &fpath, &ffname, &fext);
+    //wxArrayString fparts = wxSplit(fpath, '\\', '\\');
+    //if (fparts.Count() == 0)
+    //{
+    //	fparts = wxSplit(fpath, '/', '/');
+    //}
 
-		//int foundindex = -1;
-		//int i = 0;
-		//while (foundindex < 0 && i < fparts.Count())
-		//{
-		//	wxString fpartlc = fparts[i];
-		//	fpartlc.LowerCase();
+    //int foundindex = -1;
+    //int i = 0;
+    //while (foundindex < 0 && i < fparts.Count())
+    //{
+    //	wxString fpartlc = fparts[i];
+    //	fpartlc.LowerCase();
 
-		//	if (fpartlc == sflc)
-		//	{
-		//		foundindex = i;
-		//	}
-		//	i++;
-		//}
+    //	if (fpartlc == sflc)
+    //	{
+    //		foundindex = i;
+    //	}
+    //	i++;
+    //}
 
-		//for (i = fparts.Count() - 1; i > foundindex; i--)
-		//{
-		//	wxString testfile = sd + "/";
-		//	for (int j = foundindex + 1; j <= i; j++)
-		//	{
-		//		testfile = testfile + fparts[j] + "/";
-		//	}
-		//	testfile = testfile + ffname + fext;
+    //for (i = fparts.Count() - 1; i > foundindex; i--)
+    //{
+    //	wxString testfile = sd + "/";
+    //	for (int j = foundindex + 1; j <= i; j++)
+    //	{
+    //		testfile = testfile + fparts[j] + "/";
+    //	}
+    //	testfile = testfile + ffname + fext;
 
-		//	if (wxFileExists(testfile))
-		//	{
-		//		return testfile;
-		//	}
-		//}
-	}
+    //	if (wxFileExists(testfile))
+    //	{
+    //		return testfile;
+    //	}
+    //}
 
 	return file;
 }

@@ -115,7 +115,7 @@ ModelPreview::ModelPreview(wxPanel* parent, std::vector<Model*> &models, bool a,
     virtualHeight = 0;
 }
 ModelPreview::ModelPreview(wxPanel* parent)
-: xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(NULL), allowSelected(false)
+: xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(NULL), allowSelected(false), image(nullptr)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
@@ -123,6 +123,9 @@ ModelPreview::ModelPreview(wxPanel* parent)
 }
 ModelPreview::~ModelPreview()
 {
+    if (image) {
+        delete image;
+    }
 }
 
 void ModelPreview::SetCanvasSize(int width,int height)
@@ -135,6 +138,9 @@ void ModelPreview::SetVirtualCanvasSize(int width, int height) {
 }
 void ModelPreview::InitializePreview(wxString img,int brightness)
 {
+    if (image) {
+        delete image;
+    }
     image = NULL;
     mBackgroundImage = img;
     mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
@@ -168,9 +174,14 @@ void ModelPreview::SetScaleBackgroundImage(bool b) {
 
 void ModelPreview::SetbackgroundImage(wxString img)
 {
-    image = NULL;
-    mBackgroundImage = img;
-    mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
+    if (img != mBackgroundImage) {
+        if (image) {
+            delete image;
+        }
+        image = nullptr;
+        mBackgroundImage = img;
+        mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
+    }
 }
 
 void ModelPreview::SetBackgroundBrightness(int brightness)

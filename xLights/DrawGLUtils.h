@@ -15,7 +15,6 @@ namespace DrawGLUtils
     #define LOG_GL_ERRORV(a) a; DrawGLUtils::LogGLError(__FILE__, __LINE__, #a)
     #define IGNORE_GL_ERRORV(a) a; glGetError()
 
-    
     class xlVertexAccumulator {
     public:
         xlVertexAccumulator() : count(0) {}
@@ -148,7 +147,7 @@ namespace DrawGLUtils
         virtual ~xlGLCacheInfo() {};
         
         virtual bool IsCoreProfile() { return false;}
-        
+        virtual void SetCurrent() = 0;
         virtual void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0) = 0;
@@ -202,6 +201,9 @@ namespace DrawGLUtils
         }
     };
    
+    
+    bool IsCoreProfile();
+    
     void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0);
     void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0);
     void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0);
@@ -211,6 +213,7 @@ namespace DrawGLUtils
     void DrawText(double x, double y, double size, const wxString &text, double factor = 1.0);
     int GetTextWidth(double size, const wxString &text, double factor = 1.0);
     
+    void SetLineWidth(float i);
     
     void DrawPoint(const xlColor &color, double x, double y);
 

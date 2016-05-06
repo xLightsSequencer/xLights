@@ -6,11 +6,7 @@
 #ifdef __WXMAC__
  #include "OpenGL/gl.h"
 #else
-	//#ifdef _MSC_VER
-	//	#include "GL/glut.h"
-	//#else
-		#include <GL/gl.h>
-	//#endif
+ #include <GL/gl.h>
 #endif
 
 #include <wx/bitmap.h>
@@ -60,6 +56,8 @@ public:
     };
     virtual ~OpenGL15Cache() {
     };
+    virtual void SetCurrent() override {
+    }
 
     virtual void addVertex(float x, float y, const xlColor &c) override {
         data.PreAlloc(1);
@@ -202,6 +200,7 @@ DrawGLUtils::xlGLCacheInfo *Create15Cache() {
 }
 void DrawGLUtils::SetCurrentCache(xlGLCacheInfo *c) {
     currentCache = c;
+    currentCache->SetCurrent();
 }
 void DrawGLUtils::DestroyCache(xlGLCacheInfo *cache) {
     if (currentCache == cache) {
@@ -209,6 +208,17 @@ void DrawGLUtils::DestroyCache(xlGLCacheInfo *cache) {
     }
     delete cache;
 }
+bool DrawGLUtils::IsCoreProfile() {
+    return currentCache->IsCoreProfile();
+}
+void DrawGLUtils::SetLineWidth(float i) {
+    if (IsCoreProfile()) {
+        //Core Profile only allows 1.0 widthlines
+        return;
+    }
+    glLineWidth(i);
+}
+
 
 void DrawGLUtils::SetViewport(xlGLCanvas &win, int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) {
     int x, y, x2, y2;
@@ -378,7 +388,7 @@ void DrawGLUtils::DrawCircleUnfilled(const xlColor &color, double cx, double cy,
 {
     static const double inc = PI / 12;
     static const double max = 2 * PI;
-    glLineWidth(width);
+    SetLineWidth(width);
     for(double d = 0; d < max; d += inc) {
         currentCache->addVertex(cos(d) * r + cx, sin(d) * r + cy, color);
     }
@@ -387,7 +397,7 @@ void DrawGLUtils::DrawCircleUnfilled(const xlColor &color, double cx, double cy,
 
 void DrawGLUtils::DrawLine(const xlColor &color, wxByte alpha,int x1, int y1, int x2, int y2, float width)
 {
-    glLineWidth(width);
+    SetLineWidth(width);
     currentCache->ensureSize(4);
     currentCache->addVertex(x1, y1, color);
     currentCache->addVertex(x2, y2, color);
@@ -845,10 +855,10 @@ public:
             widths['e' - ' '] -= 0.5;
             widths['t' - ' '] += 0.5;
         }
-        printf("static FontInfoStruct font%d(font_%d_xpm, %f, %f, %f, {\n", size, size, maxH, maxW, maxD);
-        printf("%f", widths[0]);
+        printf("static FontInfoStruct font%d(font_%d_xpm, %ff, %ff, %ff, {\n", size, size, maxH, maxW, maxD);
+        printf("%ff", widths[0]);
         for (int x = 1; x < widths.size(); x++) {
-            printf(", %f", widths[x]);
+            printf(", %ff", widths[x]);
         }
         printf("});\n");
         */
