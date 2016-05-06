@@ -14,7 +14,9 @@ namespace DrawGLUtils
     #define LOG_GL_ERROR() DrawGLUtils::LogGLError(__FILE__, __LINE__)
     #define LOG_GL_ERRORV(a) a; DrawGLUtils::LogGLError(__FILE__, __LINE__, #a)
     #define IGNORE_GL_ERRORV(a) a; glGetError()
-
+    
+    bool LoadGLFunctions();
+    
     class xlVertexAccumulator {
     public:
         xlVertexAccumulator() : count(0) {}
@@ -28,7 +30,7 @@ namespace DrawGLUtils
             vertices.push_back(y);
             count++;
         }
-        void AddRect(float x1, float y1, float x2, float y2) {
+        void AddLinesRect(float x1, float y1, float x2, float y2) {
             PreAlloc(8);
             AddVertex(x1, y1);
             AddVertex(x1, y2);
@@ -39,7 +41,15 @@ namespace DrawGLUtils
             AddVertex(x2, y1);
             AddVertex(x2, y1);
         }
-
+        void AddRect(float x1, float y1, float x2, float y2) {
+            PreAlloc(6);
+            AddVertex(x1, y1);
+            AddVertex(x1, y2);
+            AddVertex(x2, y2);
+            AddVertex(x2, y2);
+            AddVertex(x2, y1);
+            AddVertex(x1, y1);
+        }
         void Reset() {count = 0; vertices.clear();}
         std::vector<float> vertices;
         unsigned int count;
@@ -85,6 +95,9 @@ namespace DrawGLUtils
             AddVertex(x2, y1, c);
             AddVertex(x1, y1, c);
         }
+        void AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, int offset = 0);
+        void AddHBlendedRectangle(const xlColor &left, const xlColor &right, float x1, float y1, float x2, float y2);
+        
         std::vector<float> vertices;
         std::vector<uint8_t> colors;
         unsigned int count;
@@ -215,8 +228,6 @@ namespace DrawGLUtils
     
     void SetLineWidth(float i);
     
-    void DrawPoint(const xlColor &color, double x, double y);
-
     void DrawCircle(const xlColor &color, double x, double y, double r, int ctransparency = 0, int etransparency = 0);
     void DrawCircleUnfilled(const xlColor &color, double cx, double cy, double r, float width);
 
@@ -238,8 +249,6 @@ namespace DrawGLUtils
     void DrawRectangle(const xlColor &color, bool dashed, int x1, int y1,int x2, int y2);
     void DrawFillRectangle(const xlColor &color, wxByte alpha, int x, int y,int width, int height);
 
-    void DrawHBlendedRectangle(const xlColor &lcolor, const xlColor &rcolor, int x, int y, int x2, int y2, bool flush = true);
-    void DrawHBlendedRectangle(const xlColorVector &colors, int x, int y, int x2, int y2, int offset = 0);
     void CreateOrUpdateTexture(const wxBitmap &bmp48,    //will scale to 64x64 for base
                                const wxBitmap &bmp32,
                                const wxBitmap &bmp16,
@@ -250,7 +259,6 @@ namespace DrawGLUtils
     
     void UpdateTexturePixel(GLuint* texture,double x, double y, xlColor& color, bool hasAlpha);
 
-    void DrawRectangleArray(double y1, double y2, double x, std::vector<double> &xs, std::vector<xlColor> & colors, bool flush = true);
 
     void DrawDisplayList(float xOffset, float yOffset,
                          float width, float height,

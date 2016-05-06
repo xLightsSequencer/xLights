@@ -40,7 +40,7 @@ int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x
         DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList(), bg);
         return e->GetBackgroundDisplayList().iconSize;
     }
-    DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
+    bg.AddHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
     return 2;
 }
 

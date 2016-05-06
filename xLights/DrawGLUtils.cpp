@@ -317,12 +317,6 @@ void DrawGLUtils::End(int type, int enableCapability) {
     currentCache->flush(type, enableCapability);
 }
 
-void DrawGLUtils::DrawPoint(const xlColor &color, double x, double y)
-{
-    currentCache->addVertex(x, y, color);
-    currentCache->flush(GL_POINTS);
-}
-
 void DrawGLUtils::DrawCircle(const xlColor &color, double cx, double cy, double r, int ctransparency, int etransparency)
 {
     xlColor c(color);
@@ -476,39 +470,7 @@ void DrawGLUtils::DrawFillRectangle(const xlColor &color, wxByte alpha, int x, i
     currentCache->flush(GL_TRIANGLES);
 }
 
-void DrawGLUtils::DrawRectangleArray(double y1, double y2, double x, std::vector<double> &xs, std::vector<xlColor> & colors, bool flush) {
-    // each rect is 6 vertices (using GL_TRIANGLES) of x/y
-    currentCache->ensureSize(colors.size() * 6);
-    for (int n = 0; n < xs.size(); n++) {
-        int x2 = xs[n];
-        currentCache->addVertex(x, y1, colors[n]);
-        currentCache->addVertex(x, y2, colors[n]);
-        currentCache->addVertex(x2, y2, colors[n]);
-
-        currentCache->addVertex(x, y1, colors[n]);
-        currentCache->addVertex(x2, y2, colors[n]);
-        currentCache->addVertex(x2, y1, colors[n]);
-        x = x2;
-    }
-    if (flush) {
-        currentCache->flush(GL_TRIANGLES);
-    }
-}
-
-
-void DrawGLUtils::DrawHBlendedRectangle(const xlColor &left, const xlColor &right, int x1, int y1,int x2, int y2, bool flush) {
-    currentCache->addVertex(x1, y1, left);
-    currentCache->addVertex(x1, y2, left);
-    currentCache->addVertex(x2, y2, right);
-
-    currentCache->addVertex(x2, y2, right);
-    currentCache->addVertex(x2, y1, right);
-    currentCache->addVertex(x1, y1, left);
-    if (flush) {
-        currentCache->flush(GL_TRIANGLES);
-    }
-}
-void DrawGLUtils::DrawHBlendedRectangle(const xlColorVector &colors, int x1, int y1,int x2, int y2, int offset) {
+void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, int offset) {
     xlColor start;
     xlColor end;
     int cnt = colors.size();
@@ -517,7 +479,7 @@ void DrawGLUtils::DrawHBlendedRectangle(const xlColorVector &colors, int x1, int
     }
     start = colors[0+offset];
     if (cnt == 1) {
-        DrawGLUtils::DrawHBlendedRectangle(start, start, x1, y1, x2, y2);
+        AddHBlendedRectangle(start, start, x1, y1, x2, y2);
         return;
     }
     int xl = x1;
@@ -528,11 +490,19 @@ void DrawGLUtils::DrawHBlendedRectangle(const xlColorVector &colors, int x1, int
         if (x == (cnt - 1)) {
             xr = x2;
         }
-        DrawGLUtils::DrawHBlendedRectangle(start, end, xl, y1, xr, y2, false);
+        AddHBlendedRectangle(start, end, xl, y1, xr, y2);
         start = end;
         xl = xr;
     }
-    currentCache->flush(GL_TRIANGLES);
+}
+
+void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColor &left, const xlColor &right, float x1, float y1, float x2, float y2) {
+    AddVertex(x1, y1, left);
+    AddVertex(x1, y2, left);
+    AddVertex(x2, y2, right);
+    AddVertex(x2, y2, right);
+    AddVertex(x2, y1, right);
+    AddVertex(x1, y1, left);
 }
 
 

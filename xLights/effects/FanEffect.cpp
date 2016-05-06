@@ -47,11 +47,11 @@ int FanEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int
         int cx1 = x_mid + (i*color_length);
         if( i == (num_colors-1) ) // fix any roundoff error for last color
         {
-            DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i], cx, y1+1, x_mid, y2-1);
-            DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i], cx1, y1+4, x2, y2-4);
+            backgrounds.AddHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i], cx, y1+1, x_mid, y2-1);
+            backgrounds.AddHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i], cx1, y1+4, x2, y2-4);
         } else {
-            DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i+1], cx, y1+1, cx+head_length, y2-1);
-            DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i+1], cx1, y1+4, cx1+color_length, y2-4);
+            backgrounds.AddHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i+1], cx, y1+1, cx+head_length, y2-1);
+            backgrounds.AddHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i+1], cx1, y1+4, cx1+color_length, y2-4);
         }
     }
     return 0;

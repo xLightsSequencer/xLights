@@ -2238,6 +2238,9 @@ void EffectsGrid::DrawLines()
     int y;
     bool isEvenLayer=false;
 
+    DrawGLUtils::xlVertexAccumulator va;
+    va.PreAlloc(mSequenceElements->GetVisibleRowInformationSize() * 6);
+    
     xlColor color(33, 33, 33);
     for(int row=0;row < mSequenceElements->GetVisibleRowInformationSize();row++)
     {
@@ -2251,24 +2254,26 @@ void EffectsGrid::DrawLines()
             {
                 //Element is collapsed only one row should be shaded
                 int h = e->GetCollapsed()?DEFAULT_ROW_HEADING_HEIGHT:DEFAULT_ROW_HEADING_HEIGHT * e->GetEffectLayerCount();
-                DrawGLUtils::AddRectAsTriangles(x1, y, x2, y + h, color);
+                va.AddRect(x1, y, x2, y + h);
             }
             isEvenLayer = !isEvenLayer;
         } else if (ri->strandIndex != -1) {
             if (isEvenLayer)
             {
-                DrawGLUtils::AddRectAsTriangles(x1, y, x2, y + DEFAULT_ROW_HEADING_HEIGHT, color);
+                va.AddRect(x1, y, x2, y + DEFAULT_ROW_HEADING_HEIGHT);
             }
             isEvenLayer = !isEvenLayer;
         }
     }
-    DrawGLUtils::End(GL_TRIANGLES);
+    DrawGLUtils::Draw(va, color, GL_TRIANGLES);
+    va.Reset();
+    
     DrawGLUtils::SetLineWidth(0.2);
     for(int row=0;row < mSequenceElements->GetVisibleRowInformationSize();row++)
     {
         y = (row+1)*DEFAULT_ROW_HEADING_HEIGHT;
-        DrawGLUtils::AddVertex(x1, y, *mGridlineColor);
-        DrawGLUtils::AddVertex(x2, y, *mGridlineColor);
+        va.AddVertex(x1, y);
+        va.AddVertex(x2, y);
     }
 
     // Draw vertical lines
@@ -2279,12 +2284,12 @@ void EffectsGrid::DrawLines()
         // Draw hash marks
         if ((x1+mStartPixelOffset)%(PIXELS_PER_MAJOR_HASH)==0)
         {
-            DrawGLUtils::AddVertex(x1, y1, *mGridlineColor);
-            DrawGLUtils::AddVertex(x1, y2, *mGridlineColor);
+            va.AddVertex(x1, y1);
+            va.AddVertex(x1, y2);
         }
     }
 
-    DrawGLUtils::End(GL_LINES);
+    DrawGLUtils::Draw(va, *mGridlineColor, GL_LINES);
     DrawGLUtils::SetLineWidth(1.0);
 }
 

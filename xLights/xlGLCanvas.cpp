@@ -22,17 +22,14 @@ static wxGLAttributes GetAttributes() {
     return atts;
 }
 
+static bool functionsLoaded = false;
 
 #ifndef __WXMAC__
-static bool functionsLoaded = false;
-extern void LoadGLFunctions();
-
 #ifdef _MSC_VER
     #include "GL\glext.h"
 #else
     #include <GL/glext.h>
 #endif
-extern PFNGLUSEPROGRAMPROC glUseProgram;
 #endif
 
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
@@ -63,12 +60,8 @@ xlGLCanvas::~xlGLCanvas()
     }
 }
 
-#ifdef __WXMSW__
-#define DEBUG_GL
-#endif
+#ifndef __WXOSX__
 
-#ifdef DEBUG_GL
-#include "DrawGLUtils.h"
 static const char * getStringForSource(GLenum source) {
 
     switch(source) {
@@ -124,6 +117,7 @@ static const char * getStringForType(GLenum type) {
             return("");
     }
 }
+
 void CALLBACK DebugLog(GLenum source , GLenum type , GLuint id , GLenum severity ,
                        GLsizei length , const GLchar * message , const GLvoid * userParam)
 {
@@ -174,6 +168,9 @@ void AddDebugLog(xlGLCanvas *c) {
         }
     }
 }
+#else 
+void AddDebugLog(xlGLCanvas *c) {
+}
 #endif
 
 
@@ -186,12 +183,10 @@ void xlGLCanvas::SetCurrentGLContext() {
         CreateGLContext();
     }
     m_context->SetCurrent(*this);
-#ifndef __WXMAC__
     if (!functionsLoaded) {
-        LoadGLFunctions();
+        DrawGLUtils::LoadGLFunctions();
         functionsLoaded = true;
     }
-#endif
     wxConfigBase* config = wxConfigBase::Get();
     int ver = 99;
     config->Read("ForceOpenGLVer", &ver, 99);
@@ -208,9 +203,9 @@ void xlGLCanvas::SetCurrentGLContext() {
                                            (const char *)vend);
         logger_opengl.info(std::string(config.c_str()));
         printf("%s\n", (const char *)config.c_str());
-#ifdef DEBUG_GL
-        AddDebugLog(this);
-#endif
+        if (logger_opengl.isDebugEnabled()) {
+            AddDebugLog(this);
+        }
         if (ver >= 3 && (str[0] > '3' || (str[0] == '3' && str[2] >= '3'))) {
             logger_opengl.info("Try creating 33 Cache");
             cache = Create33Cache(UsesVertexTextureAccumulator(),
@@ -248,11 +243,12 @@ void xlGLCanvas::CreateGLContext() {
 
         if (m_coreProfile && ver >= 3) {
             wxGLContextAttrs atts;
-#ifdef DEBUG_GL
-            atts.PlatformDefaults().OGLVersion(3, 3).CoreProfile().DebugCtx().EndList();
-#else
-            atts.PlatformDefaults().OGLVersion(3, 3).CoreProfile().EndList();
-#endif
+            log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+            if (logger_opengl.isDebugEnabled()) {
+                atts.PlatformDefaults().OGLVersion(3, 3).CoreProfile().ForwardCompatible().DebugCtx().EndList();
+            } else {
+                atts.PlatformDefaults().OGLVersion(3, 3).CoreProfile().EndList();
+            }
             m_context = new wxGLContext(this, nullptr, &atts);
             if (!m_context->IsOK()) {
                 delete m_context;
@@ -262,12 +258,9 @@ void xlGLCanvas::CreateGLContext() {
         if (m_context == nullptr) {
             m_context = new wxGLContext(this);
         }
-#ifndef __WXMAC__
         if (!functionsLoaded) {
-            LoadGLFunctions();
-            functionsLoaded = glUseProgram != nullptr;
+            functionsLoaded = DrawGLUtils::LoadGLFunctions();
         }
-#endif
         if (!m_context->IsOK()) {
             delete m_context;
             m_context = nullptr;

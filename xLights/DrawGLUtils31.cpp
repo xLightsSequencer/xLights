@@ -72,7 +72,7 @@ __GLXextFuncPtr wglGetProcAddress(const char* a) {
 #endif
 
 
-void LoadGLFunctions() {
+bool DrawGLUtils::LoadGLFunctions() {
     glUseProgram = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
     glCreateShader = (PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader");
     glShaderSource = (PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource");
@@ -109,9 +109,11 @@ void LoadGLFunctions() {
     glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointer");
     glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glDisableVertexAttribArray");
     glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)wglGetProcAddress("glGetAttribLocation");
+    return (glUseProgram != nullptr);
 }
 #else
-void LoadGLFunctions() {
+bool DrawGLUtils::LoadGLFunctions() {
+    return true;
 }
 #endif
 
@@ -373,11 +375,19 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
     }
     
 
+#define NO_OPTMIZED_PATH
 public:
     OpenGL33Cache(bool UsesVertexTextureAccumulator,
                   bool UsesVertexColorAccumulator,
                   bool UsesVertexAccumulator,
-                  bool UsesAddVertex) : matrix(nullptr), colors(4), vertices(2) {
+                  bool UsesAddVertex) : matrix(nullptr)
+#ifndef NO_OPTMIZED_PATH
+    , colors(4), vertices(2)
+#endif
+    {
+#ifdef NO_OPTMIZED_PATH
+        UsesVertexColorAccumulator |= UsesAddVertex;
+#endif
         Load33Shaders(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex);
         if (UsesAddVertex) {
             InitializeVertexBuffer();

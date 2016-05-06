@@ -75,12 +75,12 @@ int MorphEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, i
     xlColor end_t;
     GetMorphEffectColors(e, start_h, end_h, start_t, end_t);
     int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
-    DrawGLUtils::DrawHBlendedRectangle(start_h, end_h, x1, y1+1, x_mid, y2-1);
+    backgrounds.AddHBlendedRectangle(start_h, end_h, x1, y1+1, x_mid, y2-1);
     if(e->GetPalette().size() <= 4) {
-        DrawGLUtils::DrawHBlendedRectangle(start_t, end_t, x_mid, y1+4, x2, y2-4);
+        backgrounds.AddHBlendedRectangle(start_t, end_t, x_mid, y1+4, x2, y2-4);
     }
     else {
-        DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x_mid, y1+4, x2, y2-4, 2);
+        backgrounds.AddHBlendedRectangle(e->GetPalette(), x_mid, y1+4, x2, y2-4, 2);
     }
     return 0;
 
