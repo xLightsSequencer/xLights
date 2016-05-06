@@ -924,7 +924,6 @@
 		<Unit filename="vamp-hostsdk/vamp.h" />
 		<Unit filename="wxCheckedListCtrl.cpp" />
 		<Unit filename="wxCheckedListCtrl.h" />
-		<Unit filename="wxNumberCtrl.cpp" />
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />
 		<Unit filename="wxsmith/BarsPanel.wxs" />

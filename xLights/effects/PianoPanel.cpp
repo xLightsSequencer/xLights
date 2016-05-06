@@ -26,6 +26,7 @@
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/filepicker.h>
+#include <wx/valnum.h>
 
 #include "../MIDI/MidiFile.h"
 #include "../xLightsMain.h"
@@ -78,6 +79,19 @@ END_EVENT_TABLE()
 PianoPanel::PianoPanel(wxWindow* parent)
 {
 	_media = NULL;
+
+    wxIntegerValidator<int> _verticalScale(&__verticalScale, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    _verticalScale.SetMin(0);
+    _verticalScale.SetMax(100);
+    wxIntegerValidator<int> _horizontalOffset(&__horizontalOffset, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    _horizontalOffset.SetMin(0);
+    _horizontalOffset.SetMax(100);
+    wxIntegerValidator<int> _midiStartTimeAdjust(&__midiStartTimeAdjust, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    _midiStartTimeAdjust.SetMin(-1000);
+    _midiStartTimeAdjust.SetMax(1000);
+    wxIntegerValidator<int> _midiSpeedAdjust(&__midiSpeedAdjust, wxNUM_VAL_THOUSANDS_SEPARATOR);
+    _midiSpeedAdjust.SetMin(-100);
+    _midiSpeedAdjust.SetMax(100);
 
 	//(*Initialize(PianoPanel)
 	wxFlexGridSizer* FlexGridSizer3;
@@ -141,7 +155,7 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	FlexGridSizer3->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Piano_Scale = new wxSlider(this, IDD_SLIDER_Piano_Scale, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Piano_Scale"));
 	FlexGridSizer3->Add(Slider_Piano_Scale, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Piano_Scale = new wxNumberCtrl(this, ID_TEXTCTRL_Piano_Scale, _("100"), wxDefaultPosition, wxSize(44,24), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Piano_Scale"));
+	TextCtrl_Piano_Scale = new wxTextCtrl(this, ID_TEXTCTRL_Piano_Scale, _("100"), wxDefaultPosition, wxSize(44,24), 0, _verticalScale, _T("ID_TEXTCTRL_Piano_Scale"));
 	FlexGridSizer3->Add(TextCtrl_Piano_Scale, 1, wxALL, 2);
 	BitmapButton_Piano_scale = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_Scale, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_Scale"));
 	BitmapButton_Piano_scale->SetDefault();
@@ -150,7 +164,7 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	FlexGridSizer3->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Piano_XOffset = new wxSlider(this, IDD_SLIDER_Piano_XOffset, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Piano_XOffset"));
 	FlexGridSizer3->Add(Slider_Piano_XOffset, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Piano_XOffset = new wxNumberCtrl(this, ID_TEXTCTRL_Piano_XOffset, _("0"), wxDefaultPosition, wxSize(44,24), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Piano_XOffset"));
+	TextCtrl_Piano_XOffset = new wxTextCtrl(this, ID_TEXTCTRL_Piano_XOffset, _("0"), wxDefaultPosition, wxSize(44,24), 0, _horizontalOffset, _T("ID_TEXTCTRL_Piano_XOffset"));
 	FlexGridSizer3->Add(TextCtrl_Piano_XOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Piano_XOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_XOffset, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_XOffset"));
 	BitmapButton_Piano_XOffset->SetDefault();
@@ -180,7 +194,7 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	FlexGridSizer2->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Piano_MIDI_Start = new wxSlider(this, IDD_SLIDER_Piano_MIDI_Start, 0, -1000, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Piano_MIDI_Start"));
 	FlexGridSizer2->Add(Slider_Piano_MIDI_Start, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Piano_MIDI_Start = new wxNumberCtrl(this, ID_TEXTCTRL_Piano_MIDI_Start, _("0"), wxDefaultPosition, wxSize(44,24), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Piano_MIDI_Start"));
+	TextCtrl_Piano_MIDI_Start = new wxTextCtrl(this, ID_TEXTCTRL_Piano_MIDI_Start, _("0"), wxDefaultPosition, wxSize(44,24), 0, _midiStartTimeAdjust, _T("ID_TEXTCTRL_Piano_MIDI_Start"));
 	FlexGridSizer2->Add(TextCtrl_Piano_MIDI_Start, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Piano_MIDI_Start = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_MIDI_Start, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_MIDI_Start"));
 	BitmapButton_Piano_MIDI_Start->SetDefault();
@@ -189,7 +203,7 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	FlexGridSizer2->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Piano_MIDI_Speed = new wxSlider(this, IDD_SLIDER_Piano_MIDI_Speed, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Piano_MIDI_Speed"));
 	FlexGridSizer2->Add(Slider_Piano_MIDI_Speed, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Piano_MIDI_Speed = new wxNumberCtrl(this, ID_TEXTCTRL_Piano_MIDI_Speed, _("0"), wxDefaultPosition, wxSize(44,24), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Piano_MIDI_Speed"));
+	TextCtrl_Piano_MIDI_Speed = new wxTextCtrl(this, ID_TEXTCTRL_Piano_MIDI_Speed, _("0"), wxDefaultPosition, wxSize(44,24), 0, _midiSpeedAdjust, _T("ID_TEXTCTRL_Piano_MIDI_Speed"));
 	FlexGridSizer2->Add(TextCtrl_Piano_MIDI_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Piano_MIDI_Speed = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_MIDI_Speed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_MIDI_Speed"));
 	BitmapButton_Piano_MIDI_Speed->SetDefault();
@@ -223,20 +237,6 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_Piano_MIDI_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_PIANO");
-
-    // Set the limits of the wxNumberCtrl
-    TextCtrl_Piano_MIDI_Speed->AcceptIntOnly(true);
-    TextCtrl_Piano_MIDI_Speed->SetRange(-100, 100);
-    TextCtrl_Piano_MIDI_Speed->SetInt(0);
-    TextCtrl_Piano_MIDI_Start->AcceptIntOnly(true);
-    TextCtrl_Piano_MIDI_Start->SetRange(-1000,1000);
-    TextCtrl_Piano_MIDI_Start->SetInt(0);
-    TextCtrl_Piano_Scale->AcceptIntOnly(true);
-    TextCtrl_Piano_Scale->SetRange(0,100);
-    TextCtrl_Piano_Scale->SetInt(100);
-    TextCtrl_Piano_XOffset->AcceptIntOnly(true);
-    TextCtrl_Piano_XOffset->SetRange(0, 100);
-    TextCtrl_Piano_XOffset->SetInt(0);
 
 	ValidateWindow();
 	// this is slow so we do it outside of the commonly called ValidateWindow

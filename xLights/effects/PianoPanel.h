@@ -3,8 +3,6 @@
 
 #include <wx/progdlg.h>
 
-#include "../wxNumberCtrl.h"
-
 //(*Headers(PianoPanel)
 #include <wx/panel.h>
 class wxSpinEvent;
@@ -25,7 +23,13 @@ class MidiFile;
 
 class PianoPanel: public wxPanel
 {
-	public:
+    // these are only used for validation
+    int __verticalScale;
+    int __horizontalOffset;
+    int __midiStartTimeAdjust;
+    int __midiSpeedAdjust;
+
+public:
 
 		PianoPanel(wxWindow* parent);
 		virtual ~PianoPanel();
@@ -35,10 +39,11 @@ class PianoPanel: public wxPanel
 
 		//(*Declarations(PianoPanel)
 		wxStaticText* StaticText9;
+		wxTextCtrl* TextCtrl_Piano_XOffset;
 		wxBitmapButton* BitmapButton_Piano_MIDITrack_APPLYLAST;
-		wxNumberCtrl* TextCtrl_Piano_MIDI_Start;
 		wxBitmapButton* BitmapButton_Piano_Type;
 		wxTextCtrl* TextCtrl_Piano_File;
+		wxTextCtrl* TextCtrl_Piano_Scale;
 		wxStaticText* StaticText2;
 		wxSlider* Slider_Piano_Scale;
 		wxStaticText* StaticText_Piano_NumKeys;
@@ -46,12 +51,11 @@ class PianoPanel: public wxPanel
 		wxStaticText* StaticText6;
 		wxBitmapButton* BitmapButton_Piano_StartMIDI;
 		wxSlider* Slider_Piano_MIDI_Speed;
-		wxNumberCtrl* TextCtrl_Piano_MIDI_Speed;
 		wxStaticText* StaticText8;
 		wxSpinCtrl* SpinCtrl_Piano_StartMIDI;
 		wxBitmapButton* BitmapButton_Piano_EndMIDI;
+		wxTextCtrl* TextCtrl_Piano_MIDI_Speed;
 		wxChoice* Choice_Piano_Notes_Source;
-		wxNumberCtrl* TextCtrl_Piano_Scale;
 		wxBitmapButton* BitmapButton_Piano_MIDI_Speed;
 		wxChoice* Choice_Piano_MIDITrack_APPLYLAST;
 		wxStaticText* StaticText1;
@@ -65,11 +69,11 @@ class PianoPanel: public wxPanel
 		wxBitmapButton* BitmapButton_Piano_scale;
 		wxSlider* Slider_Piano_XOffset;
 		wxBitmapButton* BitmapButton_Piano_Notes_Source;
-		wxNumberCtrl* TextCtrl_Piano_XOffset;
 		wxChoice* Choice_Piano_Type;
 		wxSlider* Slider_Piano_MIDI_Start;
 		wxStaticText* StaticText4;
 		wxButton* Button_Piano_File;
+		wxTextCtrl* TextCtrl_Piano_MIDI_Start;
 		wxBitmapButton* BitmapButton_Piano_ShowSharps;
 		//*)
 

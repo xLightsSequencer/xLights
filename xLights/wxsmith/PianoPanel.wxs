@@ -186,9 +186,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Piano_Scale" subclass="wxNumberCtrl" variable="TextCtrl_Piano_Scale" member="yes">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Piano_Scale" variable="TextCtrl_Piano_Scale" member="yes">
 							<value>100</value>
 							<size>44,24</size>
+							<validator>__verticalScale</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL</flag>
@@ -224,9 +225,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Piano_XOffset" subclass="wxNumberCtrl" variable="TextCtrl_Piano_XOffset" member="yes">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Piano_XOffset" variable="TextCtrl_Piano_XOffset" member="yes">
 							<value>0</value>
 							<size>44,24</size>
+							<validator>__horizontalOffset</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -340,9 +342,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Piano_MIDI_Start" subclass="wxNumberCtrl" variable="TextCtrl_Piano_MIDI_Start" member="yes">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Piano_MIDI_Start" variable="TextCtrl_Piano_MIDI_Start" member="yes">
 							<value>0</value>
 							<size>44,24</size>
+							<validator>__midiStartTimeAdjust</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -379,9 +382,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Piano_MIDI_Speed" subclass="wxNumberCtrl" variable="TextCtrl_Piano_MIDI_Speed" member="yes">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Piano_MIDI_Speed" variable="TextCtrl_Piano_MIDI_Speed" member="yes">
 							<value>0</value>
 							<size>44,24</size>
+							<validator>__midiSpeedAdjust</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
