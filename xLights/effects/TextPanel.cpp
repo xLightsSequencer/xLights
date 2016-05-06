@@ -3,21 +3,21 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(TextPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/fontpicker.h>
-#include <wx/sizer.h>
 #include <wx/notebook.h>
-#include <wx/settings.h>
-#include <wx/string.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/bitmap.h>
 #include <wx/slider.h>
+#include <wx/settings.h>
+#include <wx/choice.h>
+#include <wx/bmpbuttn.h>
 #include <wx/intl.h>
 #include <wx/gbsizer.h>
-#include <wx/stattext.h>
-#include <wx/bitmap.h>
-#include <wx/textctrl.h>
-#include <wx/choice.h>
 #include <wx/image.h>
+#include <wx/fontpicker.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(TextPanel)
@@ -136,69 +136,69 @@ END_EVENT_TABLE()
 TextPanel::TextPanel(wxWindow* parent)
 {
 	//(*Initialize(TextPanel)
-	wxFlexGridSizer* FlexGridSizer46;
-	wxFlexGridSizer* FlexGridSizer67;
-	wxTextCtrl* TextCtrl71;
-	wxCheckBox* CheckBox_TextToCenter1;
-	wxFontPickerCtrl* FontPickerCtrl4;
-	wxSlider* Slider37;
-	wxFlexGridSizer* FlexGridSizer25;
-	wxSlider* Slider25;
-	wxTextCtrl* TextCtrl92;
-	wxSlider* Slider39;
-	wxSlider* Slider38;
-	wxStaticText* StaticText163;
-	wxTextCtrl* TextCtrl72;
-	wxFlexGridSizer* FlexGridSizer74;
-	wxTextCtrl* TextCtrl93;
-	wxFlexGridSizer* FlexGridSizer50;
-	wxFlexGridSizer* FlexGridSizer145;
-	wxFlexGridSizer* FlexGridSizer143;
-	wxStaticText* StaticText162;
-	wxFontPickerCtrl* FontPickerCtrl2;
-	wxTextCtrl* TextCtrl91;
-	wxFlexGridSizer* FlexGridSizer29;
-	wxNotebook* Notebook6;
-	wxSlider* Slider35;
-	wxFlexGridSizer* FlexGridSizer48;
-	wxPanel* Panel16;
-	wxCheckBox* CheckBox6;
-	wxNotebook* Notebook_Text1;
-	wxFlexGridSizer* FlexGridSizer122;
-	wxFontPickerCtrl* FontPickerCtrl3;
-	wxSlider* Slider28;
-	wxFlexGridSizer* FlexGridSizer141;
-	wxCheckBox* CheckBox_TextToCenter2;
-	wxStaticText* StaticText214;
-	wxCheckBox* CheckBox_TextToCenter4;
-	wxStaticText* StaticText164;
-	wxTextCtrl* TextCtrl74;
-	wxTextCtrl* TextCtrl12;
-	wxGridBagSizer* GridBagSizer6;
-	wxFlexGridSizer* FlexGridSizer144;
-	wxStaticText* StaticText211;
-	wxSlider* Slider27;
-	wxStaticText* StaticText213;
-	wxFlexGridSizer* FlexGridSizer142;
-	wxFlexGridSizer* FlexGridSizer66;
 	wxSlider* Slider26;
-	wxGridBagSizer* GridBagSizer7;
-	wxFlexGridSizer* FlexGridSizer120;
-	wxStaticText* StaticText212;
-	wxTextCtrl* TextCtrl73;
-	wxFlexGridSizer* FlexGridSizer49;
-	wxFlexGridSizer* FlexGridSizer119;
-	wxTextCtrl* TextCtrl94;
+	wxCheckBox* CheckBox_TextToCenter1;
 	wxCheckBox* CheckBox_TextToCenter3;
-	wxFontPickerCtrl* FontPickerCtrl1;
-	wxFlexGridSizer* FlexGridSizer65;
+	wxStaticText* StaticText213;
 	wxStaticText* StaticText165;
-	wxTextCtrl* TextCtrl13;
+	wxFontPickerCtrl* FontPickerCtrl1;
+	wxTextCtrl* TextCtrl92;
+	wxTextCtrl* TextCtrl74;
+	wxSlider* Slider39;
+	wxFlexGridSizer* FlexGridSizer122;
+	wxSlider* Slider35;
+	wxSlider* Slider28;
+	wxTextCtrl* TextCtrl91;
+	wxCheckBox* CheckBox_TextToCenter4;
+	wxSlider* Slider27;
+	wxNotebook* Notebook6;
+	wxTextCtrl* TextCtrl71;
+	wxFlexGridSizer* FlexGridSizer25;
+	wxFontPickerCtrl* FontPickerCtrl4;
+	wxFlexGridSizer* FlexGridSizer145;
+	wxFontPickerCtrl* FontPickerCtrl3;
+	wxCheckBox* CheckBox6;
+	wxFlexGridSizer* FlexGridSizer66;
 	wxFlexGridSizer* FlexGridSizer69;
-	wxFlexGridSizer* FlexGridSizer131;
+	wxTextCtrl* TextCtrl94;
+	wxStaticText* StaticText163;
+	wxStaticText* StaticText162;
+	wxCheckBox* CheckBox_TextToCenter2;
+	wxTextCtrl* TextCtrl93;
+	wxFlexGridSizer* FlexGridSizer143;
+	wxGridBagSizer* GridBagSizer7;
+	wxFlexGridSizer* FlexGridSizer74;
+	wxFlexGridSizer* FlexGridSizer120;
+	wxPanel* Panel16;
 	wxFlexGridSizer* FlexGridSizer52;
+	wxFlexGridSizer* FlexGridSizer29;
 	wxTextCtrl* TextCtrl14;
+	wxStaticText* StaticText164;
+	wxFlexGridSizer* FlexGridSizer49;
+	wxTextCtrl* TextCtrl13;
+	wxStaticText* StaticText211;
+	wxFlexGridSizer* FlexGridSizer144;
+	wxFlexGridSizer* FlexGridSizer142;
+	wxStaticText* StaticText212;
+	wxFlexGridSizer* FlexGridSizer119;
+	wxTextCtrl* TextCtrl72;
+	wxNotebook* Notebook_Text1;
+	wxSlider* Slider38;
+	wxSlider* Slider37;
+	wxFlexGridSizer* FlexGridSizer50;
+	wxFlexGridSizer* FlexGridSizer141;
+	wxFlexGridSizer* FlexGridSizer131;
+	wxFlexGridSizer* FlexGridSizer46;
+	wxTextCtrl* TextCtrl73;
+	wxFlexGridSizer* FlexGridSizer48;
 	wxFlexGridSizer* FlexGridSizer121;
+	wxGridBagSizer* GridBagSizer6;
+	wxSlider* Slider25;
+	wxFlexGridSizer* FlexGridSizer65;
+	wxTextCtrl* TextCtrl12;
+	wxStaticText* StaticText214;
+	wxFontPickerCtrl* FontPickerCtrl2;
+	wxFlexGridSizer* FlexGridSizer67;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer46 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -314,14 +314,14 @@ TextPanel::TextPanel(wxWindow* parent)
 	FlexGridSizer143->Add(Slider35, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer143->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl91 = new wxTextCtrl(Panel16, IDD_TEXTCTRL_Text_XStart1, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel16,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Text_XStart1"));
-	TextCtrl91->SetMaxLength(3);
+	TextCtrl91->SetMaxLength(4);
 	FlexGridSizer143->Add(TextCtrl91, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer142->Add(FlexGridSizer143, 1, wxALL|wxEXPAND, 5);
 	GridBagSizer6 = new wxGridBagSizer(0, 0);
 	StaticText212 = new wxStaticText(Panel16, wxID_ANY, _("Y"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	GridBagSizer6->Add(StaticText212, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl92 = new wxTextCtrl(Panel16, IDD_TEXTCTRL_Text_YStart1, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel16,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Text_YStart1"));
-	TextCtrl92->SetMaxLength(3);
+	TextCtrl92->SetMaxLength(4);
 	GridBagSizer6->Add(TextCtrl92, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider37 = new wxSlider(Panel16, ID_SLIDER_Text_YStart1, 0, -200, 200, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_Text_YStart1"));
 	GridBagSizer6->Add(Slider37, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -340,14 +340,14 @@ TextPanel::TextPanel(wxWindow* parent)
 	FlexGridSizer145->Add(Slider38, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer145->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl93 = new wxTextCtrl(Panel17, IDD_TEXTCTRL_Text_XEnd1, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel17,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Text_XEnd1"));
-	TextCtrl93->SetMaxLength(3);
+	TextCtrl93->SetMaxLength(4);
 	FlexGridSizer145->Add(TextCtrl93, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer144->Add(FlexGridSizer145, 1, wxALL|wxEXPAND, 5);
 	GridBagSizer7 = new wxGridBagSizer(0, 0);
 	StaticText214 = new wxStaticText(Panel17, wxID_ANY, _("Y"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	GridBagSizer7->Add(StaticText214, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl94 = new wxTextCtrl(Panel17, IDD_TEXTCTRL_Text_YEnd1, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel17,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Text_YEnd1"));
-	TextCtrl94->SetMaxLength(3);
+	TextCtrl94->SetMaxLength(4);
 	GridBagSizer7->Add(TextCtrl94, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider39 = new wxSlider(Panel17, ID_SLIDER_Text_YEnd1, 0, -200, 200, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_Text_YEnd1"));
 	GridBagSizer7->Add(Slider39, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)   Fix numeric entry size for Text effect position text boxes.  Fixes #557.
    -- enh (gil)   Improve Sequence Elements toolbar icon.
 2016.25  May 05, 2016
    -- bug (dkulp) Bunch more fixes to OPENGL calls. Now Radeon cards should work
