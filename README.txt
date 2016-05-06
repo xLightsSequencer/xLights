@@ -8,6 +8,12 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.26  May 06, 2016
+   -- bug (dkulp) Add a bunch more debugging stuff to the OpenGL things
+   -- enh (dkulp) Improve Sequence Elements toolbar icon.
+   -- bug (dkulp) Update to use log properties to create a log file
+   -- bug (dkulp) Bunch of optimizations, more gl error logging, some fixes based on the error log
+   -- bug (dkulp) Minor work on the subbufferpanel
    -- bug (gil)   Fix selected view not displaying in combo box on sequencer grid.  Fixes #562.
    -- enh (gil)   Jump to sequencer tab after creating new sequence.
    -- bug (gil)   Fix numeric entry size for Text effect position text boxes.  Fixes #557.
