@@ -252,6 +252,7 @@ void DisplayElementsPanel::PopulateViews()
 	ListCtrlViews->InsertColumn(1, col1);
 
     mNumViews = 0;
+    int selected_view = 0;
     AddViewToList("Master View", true);
     int view_index = 1;
     for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
@@ -262,9 +263,11 @@ void DisplayElementsPanel::PopulateViews()
         if( isChecked )
         {
             ListCtrlViews->SetChecked(0,false);
+            selected_view = view_index;
         }
         view_index++;
     }
+    MainViewsChoice->SetSelection(selected_view);
 }
 
 void DisplayElementsPanel::PopulateModels()
