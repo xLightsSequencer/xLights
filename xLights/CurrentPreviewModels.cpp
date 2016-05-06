@@ -147,7 +147,7 @@ void CurrentPreviewModels::OnAddButtonClick(wxCommandEvent& event)
 void CurrentPreviewModels::OnRemoveButtonClick(wxCommandEvent& event)
 {
     wxString sel = CheckListBoxCurrentGroups->GetStringSelection();
-    if (wxMessageBox("Are you sure you want to remove the " + sel + "group?", "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+    if (wxMessageBox("Are you sure you want to remove the " + sel + " group?", "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
         mModels.Delete(sel.ToStdString());
         PopulateModelGroups();
     }
@@ -185,7 +185,7 @@ void CurrentPreviewModels::OnRenameButtonClick(wxCommandEvent& event)
     wxTextEntryDialog dlg(this, "Enter new name for group " + sel, "Rename " + sel, sel);
     while (dlg.ShowModal() == wxID_OK) {
         wxString name = dlg.GetValue();
-        
+
         while (mModels.GetModel(name.ToStdString()) != nullptr) {
             wxTextEntryDialog dlg2(this, "Model or Group of name " + name + " already exists. Enter new name for group", "Enter new name for group");
             if (dlg2.ShowModal() == wxID_OK) {
@@ -194,7 +194,7 @@ void CurrentPreviewModels::OnRenameButtonClick(wxCommandEvent& event)
                 return;
             }
         }
-        
+
         mModels.Rename(sel.ToStdString(), name.ToStdString());
         PopulateModelGroups();
     }
