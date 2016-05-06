@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)   Change Render All toolbar icon and make common on Mac.  Fixes #436.
    -- bug (gil)   Fix selected view not displaying in combo box on sequencer grid.  Fixes #562.
    -- enh (gil)   Jump to sequencer tab after creating new sequence.
    -- bug (gil)   Fix numeric entry size for Text effect position text boxes.  Fixes #557.
