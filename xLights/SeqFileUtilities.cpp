@@ -73,6 +73,7 @@ void xLightsFrame::NewSequence()
     Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
     displayElementsPanel->Initialize();
 	SetAudioControls();
+    Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
 }
 
 static wxFileName mapFileName(const wxFileName &orig) {
