@@ -3,17 +3,17 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(SpiralsPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
 #include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(SpiralsPanel)
@@ -50,16 +50,16 @@ END_EVENT_TABLE()
 SpiralsPanel::SpiralsPanel(wxWindow* parent)
 {
 	//(*Initialize(SpiralsPanel)
-	wxTextCtrl* TextCtrl38;
-	wxSlider* Slider_Spirals_Direction;
-	wxFlexGridSizer* FlexGridSizer130;
-	wxFlexGridSizer* FlexGridSizer129;
-	wxSlider* Slider_Spirals_Rotation;
-	wxTextCtrl* TextCtrl39;
-	wxTextCtrl* TextCtrl37;
-	wxStaticText* StaticText36;
 	wxFlexGridSizer* FlexGridSizer45;
+	wxTextCtrl* TextCtrl37;
+	wxFlexGridSizer* FlexGridSizer130;
+	wxTextCtrl* TextCtrl39;
+	wxFlexGridSizer* FlexGridSizer129;
+	wxSlider* Slider_Spirals_Direction;
+	wxStaticText* StaticText36;
+	wxTextCtrl* TextCtrl38;
 	wxTextCtrl* TextCtrl36;
+	wxSlider* Slider_Spirals_Rotation;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer45 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -77,7 +77,7 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 	BitmapButton_SpiralsCount->SetDefault();
 	BitmapButton_SpiralsCount->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer129->Add(BitmapButton_SpiralsCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	StaticText36 = new wxStaticText(this, wxID_ANY, _("Sprial Wraps"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	StaticText36 = new wxStaticText(this, wxID_ANY, _("Spiral Wraps"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer129->Add(StaticText36, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Spirals_Rotation = new wxSlider(this, ID_SLIDER_Spirals_Rotation, 20, -300, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Spirals_Rotation"));
 	Slider_Spirals_Rotation->SetToolTip(_("Number of times a band wraps around the matrix"));

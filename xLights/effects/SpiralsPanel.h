@@ -3,12 +3,12 @@
 
 //(*Headers(SpiralsPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
 //*)
 
 class SpiralsPanel: public wxPanel
@@ -20,22 +20,22 @@ class SpiralsPanel: public wxPanel
 
 		//(*Declarations(SpiralsPanel)
 		wxCheckBox* CheckBox_Spirals_Blend;
-		wxBitmapButton* BitmapButton_SpiralsRotation;
-		wxBitmapButton* BitmapButton_SpiralsDirection;
-		wxBitmapButton* BitmapButton_SpiralsGrow;
-		wxBitmapButton* BitmapButton_SpiralsShrink;
-		wxBitmapButton* BitmapButton_Spirals3D;
-		wxSlider* Slider_Spirals_Thickness;
-		wxBitmapButton* BitmapButton_SpiralsCount;
-		wxStaticText* StaticText34;
-		wxStaticText* StaticText38;
-		wxCheckBox* CheckBox_Spirlas_Shrink;
-		wxStaticText* StaticText40;
-		wxCheckBox* CheckBox_Spirals_Grow;
 		wxCheckBox* CheckBox_Spirals_3D;
-		wxBitmapButton* BitmapButton_SpiralsThickness;
 		wxSlider* Slider_Spirals_Count;
+		wxStaticText* StaticText40;
+		wxBitmapButton* BitmapButton_Spirals3D;
+		wxStaticText* StaticText38;
+		wxBitmapButton* BitmapButton_SpiralsShrink;
+		wxBitmapButton* BitmapButton_SpiralsGrow;
+		wxStaticText* StaticText34;
 		wxBitmapButton* BitmapButton_SpiralsBlend;
+		wxBitmapButton* BitmapButton_SpiralsThickness;
+		wxSlider* Slider_Spirals_Thickness;
+		wxCheckBox* CheckBox_Spirals_Grow;
+		wxBitmapButton* BitmapButton_SpiralsDirection;
+		wxBitmapButton* BitmapButton_SpiralsCount;
+		wxBitmapButton* BitmapButton_SpiralsRotation;
+		wxCheckBox* CheckBox_Spirlas_Shrink;
 		//*)
 
 	protected:
