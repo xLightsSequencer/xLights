@@ -38,7 +38,7 @@
 #define FLAGOFF 500
 #define NODEON 500
 #define NODEOFF 200
-//#define DELAYMSUNTILSAMPLE 100
+#define BLANKFRAMESBEFOREABORT 10
 #define DELAYMSUNTILSAMPLE 0
 
 #pragma region Flicker Free Static Bitmap
@@ -785,7 +785,7 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     xOutput* xout = new xOutput();
     InitialiseOutputs(xout);
 
-    int totaltime = LEADOFF + LEADON + FLAGOFF + FLAGON + FLAGOFF + count * (NODEON + NODEOFF) + FLAGOFF + FLAGON;
+    int totaltime = LEADOFF + LEADON + FLAGOFF + FLAGON + FLAGOFF + count * (NODEON + NODEOFF);
 
     // 3.0 seconds off 0.5 seconds on ... 0.5 seconds off ... 0.5 second on ... 0.5 seconds off
     SetBulbs(nodes, count, startch, -1, LEADOFF, 0, xout);
@@ -807,14 +807,9 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
         SetBulbs(nodes, count, startch, i, NODEOFF, 0, xout);
         UpdateProgress(pd, totaltime);
     }
+    SetBulbs(nodes, count, startch, -1, 0, 0, xout);
 
     pd.Update(100);
-
-    // then turn off for 0.5 seconds ... then on for 0.5 seconds then off
-    SetBulbs(nodes, count, startch, -1, FLAGOFF, 0, xout);
-    UpdateProgress(pd, totaltime);
-    SetBulbs(nodes, count, startch, -1, FLAGON, intensity, xout);
-    SetBulbs(nodes, count, startch, -1, 0, 0, xout);
 
     xout->alloff();
     delete xout;
@@ -993,10 +988,11 @@ void GenerateCustomModelDialog::SetStartFrame(int time)
     _startframetime = time;
     StaticText_StartTime->SetLabel(wxString::Format("%dms", time));
     _startFrame = CreateImageFromFrame(_vr->GetNextFrame(time));
-    _clip = wxRect(0, 0, _startFrame.GetWidth()-1, _startFrame.GetHeight()-1);
+    _startFrame.UnShare();
     _startframebrightness = CalcFrameBrightness(_startFrame);
-    _darkFrame = CreateImageFromFrame(_vr->GetNextFrame(time + LEADON)).ConvertToGreyscale();
     ShowImage(_startFrame);
+    _clip = wxRect(0, 0, _startFrame.GetWidth()-1, _startFrame.GetHeight()-1);
+    _darkFrame = CreateImageFromFrame(_vr->GetNextFrame(time + LEADON)).ConvertToGreyscale();
     log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     logger_gcm.info("Start frame set to time %dms brightness %f.", time, _startframebrightness);
 }
@@ -1116,45 +1112,18 @@ bool GenerateCustomModelDialog::LooksLikeStartFrame(int candidateframe)
 float GenerateCustomModelDialog::CalcFrameBrightness(const wxImage& image)
 {
     wxImage grey = image.ConvertToGreyscale();
-    int w = grey.GetWidth();
-    int h = grey.GetHeight();
-    int w3 = w * 3;
+    int w = image.GetWidth();
+    int h = image.GetHeight();
     unsigned char * data = grey.GetData();
     int64_t total = 0;
-    for (int y = 0; y < h; y++)
+    for (int i = 0; i < w * h * 3; i = i + 3)
     {
-        for (int x = 0; x < w; x++)
-        {
-            total += GetPixel(x,y,w3,data);
-        }
+        total += *(data + i);
     }
 
     return (float)((double)total /
         ((double)w * (double)h) / 255.0);
 }
-
-//#define PIXELBRIGHTNESSTHRESHOLD 235
-//float GenerateCustomModelDialog::CalcFrameBrightness(wxImage& image)
-//{
-//    wxImage grey = image.ConvertToGreyscale();
-//    int w = grey.GetWidth();
-//    int h = grey.GetHeight();
-//    int w3 = w * 3;
-//    unsigned char * data = grey.GetData();
-//    int64_t total = 0;
-//    for (int y = 0; y < h; y++)
-//    {
-//        for (int x = 0; x < w; x++)
-//        {
-//            if (GetPixel(x, y, w3, data) > PIXELBRIGHTNESSTHRESHOLD)
-//            {
-//                total++;
-//            }
-//        }
-//    }
-//
-//    return (float)total;
-//}
 
 // returns the MS of the best start frame - 0.1 MS into what looks like a bright section of the video that lasts about LEADON seconds
 #define EXTRABRIGHTTHRESHOLD 0.2
@@ -1614,45 +1583,58 @@ void GenerateCustomModelDialog::DoBulbIdentify()
             int n = 1;
 
             int sincefound = 0;
-            while (currentTime < _vr->GetLengthMS() && !_warned && sincefound < 100)
+            while (currentTime < _vr->GetLengthMS() && !_warned && sincefound < BLANKFRAMESBEFOREABORT)
             {
                 logger_gcm.info("   Looking for frame at %d.", currentTime);
                 wxImage bwFrame;
                 wxImage grey;
+                int advance = 0;
 
-                while ((!bwFrame.IsOk() || CountWhite(bwFrame) < 50) && currentTime < _vr->GetLengthMS() && sincefound < 100)
+                while ((!bwFrame.IsOk() || CountWhite(bwFrame) < 50) && currentTime < _vr->GetLengthMS() && sincefound < BLANKFRAMESBEFOREABORT)
                 {
                     sincefound++;
                     if (bwFrame.IsOk())
                     {
-                        currentTime += FRAMEMS;
-                        logger_gcm.info("   No frame found so now trying %d.", currentTime);
+                        advance++;
+                        if (advance > 3)
+                        {
+                            logger_gcm.info("   No bulb found so assuming bulb %d is not visible.", n);
+                            advance = 0;
+                            n++;
+                            currentTime = currentTime + (0.9 * (float)(NODEON + NODEOFF) - FRAMEMS);
+                        }
+                        else
+                        {
+                            currentTime += FRAMEMS;
+                            logger_gcm.info("   No frame found so now trying %d.", currentTime);
+                        }
                     }
 
                     wxImage frame = CreateImageFromFrame(_vr->GetNextFrame(currentTime));
                     float brightness = CalcFrameBrightness(frame);
+                    logger_gcm.info("   Frame %d brightness %f.", currentTime, brightness);
 
-                    if (brightness > _startframebrightness * .8)
-                    {
-                        logger_gcm.info("   End found at time %d as brightness (%f) > 80%% of start frame brightness (%f).", currentTime, brightness, _startframebrightness);
-                        // this is our end frame ...
-                        _busy = false;
-                        _biFrame = CreateDetectMask(_startFrame, true, _clip);
-                        ShowImage(_biFrame);
-                        Slider_AdjustBlur->Enable();
-                        Slider_BI_Sensitivity->Enable();
-                        Slider_BI_MinSeparation->Enable();
-                        Slider_BI_Contrast->Enable();
-                        Button_CB_RestoreDefault->Enable();
-                        CheckBox_BI_ManualUpdate->Enable();
-                        CheckBox_BI_IsSteady->Enable();
-                        Button_BI_Update->Enable();
-                        Button_BI_Next->Enable();
-                        Button_BI_Back->Enable();
-                        SetCursor(wxCURSOR_ARROW);
-                        logger_gcm.info("Result: %s.", std::string(TextCtrl_BI_Status->GetValue().c_str()).c_str());
-                        return;
-                    }
+                    //if (brightness > _startframebrightness * .8)
+                    //{
+                    //    logger_gcm.info("   End found at time %d as brightness (%f) > 80%% of start frame brightness (%f).", currentTime, brightness, _startframebrightness);
+                    //    // this is our end frame ...
+                    //    _busy = false;
+                    //    _biFrame = CreateDetectMask(_startFrame, true, _clip);
+                    //    ShowImage(_biFrame);
+                    //    Slider_AdjustBlur->Enable();
+                    //    Slider_BI_Sensitivity->Enable();
+                    //    Slider_BI_MinSeparation->Enable();
+                    //    Slider_BI_Contrast->Enable();
+                    //    Button_CB_RestoreDefault->Enable();
+                    //    CheckBox_BI_ManualUpdate->Enable();
+                    //    CheckBox_BI_IsSteady->Enable();
+                    //    Button_BI_Update->Enable();
+                    //    Button_BI_Next->Enable();
+                    //    Button_BI_Back->Enable();
+                    //    SetCursor(wxCURSOR_ARROW);
+                    //    logger_gcm.info("Result: %s.", std::string(TextCtrl_BI_Status->GetValue().c_str()).c_str());
+                    //    return;
+                    //}
 
                     grey = frame.ConvertToGreyscale();
                     if (CheckBox_BI_IsSteady->GetValue())
@@ -1665,7 +1647,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                     ApplyThreshold(bwFrame, Slider_BI_Sensitivity->GetValue());
                 }
 
-                if (sincefound < 100)
+                if (sincefound < BLANKFRAMESBEFOREABORT)
                 {
                     sincefound = 0;
                     FindLights(bwFrame, n++, grey);
@@ -1673,9 +1655,9 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                 }
             }
 
-            if (sincefound >= 100)
+            if (sincefound >= BLANKFRAMESBEFOREABORT)
             {
-                logger_gcm.info("   Too many frames with no lights spotted. Aborting scan. 100 frames no bulb.");
+                logger_gcm.info("   Too many frames with no lights spotted. Aborting scan.");
                 wxMessageBox("Too many frames with no lights spotted. Aborting scan.");
             }
 
@@ -1994,12 +1976,15 @@ GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3
 
 void GenerateCustomModelDialog::FindLights(wxImage& bwimage, int num, wxImage& greyimage)
 {
+    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+
     wxImage temp = bwimage;
     temp.UnShare(); // we are going to change the data so get out own copy
     int w = temp.GetWidth();
     int w3 = w * 3;
     int h = temp.GetHeight();
     unsigned char * data = temp.GetData();
+    std::list<GCMBulb> found;
 
     for (int y = 0; y < temp.GetHeight(); y++)
     {
@@ -2007,9 +1992,20 @@ void GenerateCustomModelDialog::FindLights(wxImage& bwimage, int num, wxImage& g
         {
             if (GetPixel(x, y, w3, data) > 0)
             {
-                _lights.push_back(FindCenter(x, y, w, h, w3, data, num, greyimage));
+                found.push_back(FindCenter(x, y, w, h, w3, data, num, greyimage));
             }
         }
+    }
+
+    // only add them if we didnt warn the user
+    if (!_warned)
+    {
+        logger_gcm.info("    Node %d found %d bulbs.", num, found.size());
+        _lights.splice(_lights.end(), found);
+    }
+    else
+    {
+        logger_gcm.info("    Node %d found %d bulbs ... but not added.", num, found.size());
     }
 
     _biFrame = CreateDetectMask(_startFrame, true, _clip);
@@ -2557,32 +2553,54 @@ int GenerateCustomModelDialog::GetEdge(int x, int y)
 
 void GenerateCustomModelDialog::ResizeClip(int x, int y)
 {
-    wxSize displaysize = StaticBitmap_Preview->GetSize();
-    float xf = (float)_startFrame.GetWidth() / (float)displaysize.GetWidth() * (float)x;
-    float yf = (float)_startFrame.GetHeight() / (float)displaysize.GetHeight() * (float)y;
     if (_draggingedge == -1)
     {
         return;
     }
-    else if (_draggingedge == 0)
+    else
     {
-        int b = _clip.GetBottom();
-        _clip.SetTop(yf);
-        _clip.SetBottom(b);
-    }
-    else if (_draggingedge == 1)
-    {
-        _clip.SetRight(xf);
-    }
-    else if (_draggingedge == 2)
-    {
-        _clip.SetBottom(yf);
-    }
-    else if (_draggingedge == 3)
-    {
-        int r = _clip.GetRight();
-        _clip.SetLeft(xf);
-        _clip.SetRight(r);
+        wxSize displaysize = StaticBitmap_Preview->GetSize();
+        int w = _startFrame.GetWidth();
+        int h = _startFrame.GetHeight();
+        float xf = (float)w / (float)displaysize.GetWidth() * (float)x;
+        if (xf < 0)
+        {
+            xf = 0;
+        }
+        else if (xf > w-1)
+        {
+            xf = w-1;
+        }
+        float yf = (float)h / (float)displaysize.GetHeight() * (float)y;
+        if (yf < 0)
+        {
+            yf = 0;
+        }
+        else if (yf > h - 1)
+        {
+            yf = h - 1;
+        }
+
+        if (_draggingedge == 0)
+        {
+            int b = _clip.GetBottom();
+            _clip.SetTop(yf);
+            _clip.SetBottom(b);
+        }
+        else if (_draggingedge == 1)
+        {
+            _clip.SetRight(xf);
+        }
+        else if (_draggingedge == 2)
+        {
+            _clip.SetBottom(yf);
+        }
+        else if (_draggingedge == 3)
+        {
+            int r = _clip.GetRight();
+            _clip.SetLeft(xf);
+            _clip.SetRight(r);
+        }
     }
     StaticBitmap_Preview->SetEraseBackground(false);
     _biFrame = CreateDetectMask(_startFrame, true, _clip);
