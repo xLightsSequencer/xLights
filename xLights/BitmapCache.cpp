@@ -286,7 +286,7 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
     } else if ("xlART_UNLINK" == id) {
         return effectBitmaps.get(48, false, id, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm);
     } else if ("xlART_SEQUENCE_ELEMENTS" == id) {
-        return effectBitmaps.get(24, true, id, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm);
+        return effectBitmaps.get(24, false, id, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm);
     } else if ("xlART_PASTE_BY_TIME" == id) {
         return effectBitmaps.get(24, false, id, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm);
     } else if ("xlART_PASTE_BY_CELL" == id) {
