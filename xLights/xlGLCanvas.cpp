@@ -203,10 +203,10 @@ void xlGLCanvas::SetCurrentGLContext() {
                                            (const char *)vend);
         logger_opengl.info(std::string(config.c_str()));
         printf("%s\n", (const char *)config.c_str());
-        if (logger_opengl.isDebugEnabled()) {
-            AddDebugLog(this);
-        }
         if (ver >= 3 && (str[0] > '3' || (str[0] == '3' && str[2] >= '3'))) {
+            if (logger_opengl.isDebugEnabled()) {
+                AddDebugLog(this);
+            }
             logger_opengl.info("Try creating 33 Cache");
             cache = Create33Cache(UsesVertexTextureAccumulator(),
                                   UsesVertexColorAccumulator(),

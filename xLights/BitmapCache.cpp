@@ -292,7 +292,7 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
     } else if ("xlART_PASTE_BY_CELL" == id) {
         return effectBitmaps.get(24, false, id, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm);
     } else if ("xlART_RENDER_ALL" == id) {
-        return effectBitmaps.get(24, false, id, render_all_16_xpm, render_all_24_xpm, render_all_32_xpm, render_all_48_xpm, render_all_64_xpm);
+        return effectBitmaps.get(24, false, id, render_all_24_xpm, render_all_24_xpm, render_all_24_xpm, render_all_24_xpm, render_all_24_xpm);
 #ifndef __WXOSX__
         //don't use these on OSX as the OSX supplied Icons look MUCH better and more inline with expectations on a Mac
     } else if (wxART_FOLDER_OPEN == id) {
@@ -306,8 +306,6 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
     } else if (wxART_FILE_SAVE_AS == id) {
         return effectBitmaps.get(24, false, id, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm);
 #else
-    } else if ("xlART_RENDER_ALL" == id) {
-        return wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FIND_AND_REPLACE")), wxART_OTHER);
     } else if (wxART_TOOLBAR == client) {
         return wxArtProvider::GetBitmap(id, wxART_OTHER);
 #endif
