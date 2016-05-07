@@ -9,8 +9,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
 2016.26  May 06, 2016
+   -- enh (gil)   Change Render All toolbar icon and make common on Mac.  Fixes #436.
    -- bug (dkulp) Add a bunch more debugging stuff to the OpenGL things
-   -- enh (dkulp) Improve Sequence Elements toolbar icon.
+   -- enh (dkulp) Improve Display Elements toolbar icon.
    -- bug (dkulp) Update to use log properties to create a log file
    -- bug (dkulp) Bunch of optimizations, more gl error logging, some fixes based on the error log
    -- bug (dkulp) Minor work on the subbufferpanel

@@ -45,7 +45,12 @@
 #include "../include/paste-by-time-24.xpm"
 #include "../include/paste-by-cell-24.xpm"
 
-#include "../include/green-gear-24.xpm"
+#include "../include/render-all-16.xpm"
+#include "../include/render-all-24.xpm"
+#include "../include/render-all-32.xpm"
+#include "../include/render-all-48.xpm"
+#include "../include/render-all-64.xpm"
+
 #include "../include/select_show_folder-24.xpm"
 #include "../include/save-24.xpm"
 #include "../include/save-as-24.xpm"
@@ -286,10 +291,10 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm);
     } else if ("xlART_PASTE_BY_CELL" == id) {
         return effectBitmaps.get(24, false, id, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm);
+    } else if ("xlART_RENDER_ALL" == id) {
+        return effectBitmaps.get(24, false, id, render_all_16_xpm, render_all_24_xpm, render_all_32_xpm, render_all_48_xpm, render_all_64_xpm);
 #ifndef __WXOSX__
         //don't use these on OSX as the OSX supplied Icons look MUCH better and more inline with expectations on a Mac
-    } else if ("xlART_RENDER_ALL" == id) {
-        return effectBitmaps.get(24, false, id, green_gear_24_xpm, green_gear_24_xpm, green_gear_24_xpm, green_gear_24_xpm, green_gear_24_xpm);
     } else if (wxART_FOLDER_OPEN == id) {
         return effectBitmaps.get(24, false, id, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm);
     } else if (wxART_NEW == id) {

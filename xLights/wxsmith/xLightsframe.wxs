@@ -198,7 +198,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM6" variable="AuiToolBarItemModels" member="no">
 							<bitmap stock_id="xlART_SEQUENCE_ELEMENTS" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Models</shorthelp>
+							<shorthelp>Display Elements</shorthelp>
 							<handler function="ShowHideDisplayElementsWindow" entry="EVT_TOOL" />
 						</object>
 						<label>Models</label>
