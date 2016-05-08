@@ -16,17 +16,19 @@ class VideoReader
 public:
 	VideoReader(std::string filename, int width, int height, bool keepaspectratio);
 	~VideoReader();
-	int GetLengthMS() { return _length; };
+	int GetLengthMS() { return _lengthMS; };
 	void Seek(int timestampMS);
 	AVFrame* GetNextFrame(int timestampMS);
 	bool IsValid() { return _valid; };
 	int GetWidth() { return _width; };
 	int GetHeight() { return _height; };
 	bool AtEnd() { return _atEnd; };
+    int GetPos();
 
 private:
 	bool _valid;
-	int _length;
+    int _lengthMS;
+    int _dtspersec;
 	AVFormatContext* _formatContext;
 	AVCodecContext* _codecContext;
 	AVStream* _videoStream;
@@ -38,8 +40,6 @@ private:
     SwsContext *_swsCtx;
     AVPacket _packet;
 	AVPixelFormat _pixelFmt;
-	int _currentframe;
-	int _lastframe;
 	bool _atEnd;
 };
 #endif // VIDEOREADER_H
