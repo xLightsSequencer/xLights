@@ -853,22 +853,28 @@ wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
 		sd = RememberShowDir;
 	}
 
-    wxFileName fnUnix(file, wxPATH_UNIX);
-    wxFileName fnWin(file, wxPATH_WIN);
-    
+    if (file == "")
+    {
+        return file;
+    }
+
 	// exit if the file name is not an absolute path with a drive letter at the begginning
 	if (!wxIsAbsolutePath(file) || wxFileExists(file))
 	{
 		return file;
 	}
     
+#ifndef __WXMSW__
+    wxFileName fnUnix(file, wxPATH_UNIX);
     wxFileName fn3(sd, fnUnix.GetFullName());
     if (fn3.Exists()) {
-        return fn3.GetFullName();
+        return fn3.GetFullPath();
     }
+#endif
+    wxFileName fnWin(file, wxPATH_WIN);
     wxFileName fn4(sd, fnWin.GetFullName());
     if (fn4.Exists()) {
-        return fn4.GetFullName();
+        return fn4.GetFullPath();
     }
     
     
