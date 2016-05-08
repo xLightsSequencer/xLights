@@ -28,21 +28,21 @@ class MusicPanel: public wxPanel
 		virtual ~MusicPanel();
 
 		//(*Declarations(MusicPanel)
-		wxCheckBox* CheckBox_Music_ScaleNotes;
 		wxSlider* Slider_Music_StartNote;
-		wxBitmapButton* BitmapButton_Music_ScaleNotes;
 		wxTextCtrl* TextCtrl_Music_EndNote;
 		wxBitmapButton* BitmapButton_Music_EndNote;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText6;
 		wxTextCtrl* TextCtrl_Music_StartNote;
 		wxSlider* Slider_Music_Sensitivity;
+		wxChoice* Choice_Music_Scaling;
 		wxStaticText* StaticText11;
 		wxBitmapButton* BitmapButton_Music_Sensitivity;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxBitmapButton* BitmapButton_Music_Bars;
 		wxSlider* Slider_Music_Bars;
+		wxStaticText* StaticText5;
 		wxTextCtrl* TextCtrl_Music_Offset;
 		wxBitmapButton* BitmapButton_Music_Colour;
 		wxChoice* Choice_Music_Type;
@@ -58,6 +58,7 @@ class MusicPanel: public wxPanel
 		wxStaticText* StaticText4;
 		wxSlider* Slider_Music_Offset;
 		wxCheckBox* CheckBox_Music_Fade;
+		wxBitmapButton* BitmapButton_Music_Scaling;
 		wxTextCtrl* TextCtrl_Music_Sensitivity;
 		wxCheckBox* CheckBox_Music_Scale;
 		//*)
@@ -90,8 +91,9 @@ class MusicPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_Music_Offset;
 		static const long ID_CHECKBOX_Music_Scale;
 		static const long ID_BITMAPBUTTON_Music_Scale;
-		static const long ID_CHECKBOX_Music_ScaleNotes;
-		static const long ID_BITMAPBUTTON_Music_ScaleNotes;
+		static const long ID_STATICTEXT5;
+		static const long ID_CHOICE_Music_Scaling;
+		static const long ID_BITMAPBUTTON_Music_Scaling;
 		static const long ID_STATICTEXT6;
 		static const long ID_CHOICE_Music_Colour;
 		static const long ID_BITMAPBUTTON_Music_Colour;

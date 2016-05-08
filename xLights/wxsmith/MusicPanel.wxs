@@ -282,14 +282,22 @@
 						<border>2</border>
 						<option>1</option>
 					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
+							<label>Notes Scaling</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_Music_ScaleNotes" variable="CheckBox_Music_ScaleNotes" member="yes">
-							<label>Scale Notes Independently</label>
+						<object class="wxChoice" name="ID_CHOICE_Music_Scaling" variable="Choice_Music_Scaling" member="yes">
+							<content>
+								<item>None</item>
+								<item>Individual Notes</item>
+								<item>All Notes</item>
+							</content>
+							<selection>2</selection>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -301,7 +309,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Music_ScaleNotes" variable="BitmapButton_Music_ScaleNotes" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Music_Scaling" variable="BitmapButton_Music_Scaling" member="yes">
 							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

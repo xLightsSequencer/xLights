@@ -29,13 +29,43 @@ wxPanel *MusicEffect::CreatePanel(wxWindow *parent) {
 	return new MusicPanel(parent);
 }
 
+bool MusicEffect::needToAdjustSettings(const std::string &version)
+{
+    return IsVersionOlder("2016.27", version);
+}
+
+void MusicEffect::adjustSettings(const std::string &version, Effect *effect)
+{
+    // give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect);
+    }
+
+    SettingsMap &settings = effect->GetSettings();
+    if (settings.Contains("E_CHECKBOX_Music_ScaleNotes"))
+    {
+        bool loop = settings.GetBool("E_CHECKBOX_Music_ScaleNotes", false);
+        if (loop)
+        {
+            settings["E_CHOICE_Music_Scaling"] = "Individual Notes";
+            settings.erase("E_CHECKBOX_Music_ScaleNotes");
+        }
+        else
+        {
+            settings["E_CHOICE_Music_Scaling"] = "All Notes";
+            settings.erase("E_CHECKBOX_Music_ScaleNotes");
+        }
+    }
+}
+
 void MusicEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 	Render(buffer,
            SettingsMap.GetInt("TEXTCTRL_Music_Bars", 6),
 		   SettingsMap.Get("CHOICE_Music_Type", "Collide"),
 		   SettingsMap.GetInt("TEXTCTRL_Music_Sensitivity", 50),
 		   SettingsMap.GetBool("CHECKBOX_Music_Scale", false),
- 		   SettingsMap.GetBool("CHECKBOX_Music_ScaleNotes", false),
+ 		   std::string(SettingsMap.Get("CHOICE_Music_Scaling", "All Notes")),
            SettingsMap.GetInt("TEXTCTRL_Music_Offset", 0),
            SettingsMap.GetInt("TEXTCTRL_Music_StartNote", 0),
            SettingsMap.GetInt("TEXTCTRL_Music_EndNote", 127),   
@@ -112,8 +142,24 @@ public:
     bool _fade;
 	int _offsetx; // skip these many cols at left of model
 	bool _scale; // scale out to fill model horizontally
-    bool _freqRelative; // scale based on maximum volume within frequency ... otherwise scale on maximum volume across all frequencies
+    int _scalenotes;
 };
+
+int MusicEffect::DecodeScaleNotes(const std::string& scalenotes)
+{
+    if (scalenotes == "None")
+    {
+        return 1;
+    }
+    else if (scalenotes == "Individual Notes")
+    {
+        return 2;
+    }
+    else // All Notes
+    {
+        return 3;
+    }
+}
 
 int MusicEffect::DecodeColourTreatment(const std::string& colourtreatment)
 {
@@ -161,7 +207,7 @@ int MusicEffect::DecodeType(const std::string& type)
 void MusicEffect::Render(RenderBuffer &buffer,
     int bars, const std::string& type,
     int sensitivity, bool scale,
-    bool freqrelative, int offsetx,
+    const std::string& scalenotes, int offsetx,
     int startnote, int endnote,
     const std::string& colourtreatment,
     bool fade)
@@ -174,6 +220,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
 
     int nType = DecodeType(type);
     int nTreatment = DecodeColourTreatment(colourtreatment);
+    int nScaleNotes = DecodeScaleNotes(scalenotes);
 
     // Grab our cache
     MusicRenderCache *cache = (MusicRenderCache*)buffer.infoCache[id];
@@ -188,7 +235,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
     int &_offsetx = cache->_offsetx;
     bool &_scale = cache->_scale;
     int &_sensitivity = cache->_sensitivity;
-    bool &_freqRelative = cache->_freqRelative;
+    int &_scalenotes = cache->_scalenotes;
     bool &_fade = cache->_fade;
     int& _colourTreatment = cache->_colourTreatment;
     std::vector<std::list<MusicEvent*>*>& _events = cache->_events;
@@ -199,7 +246,9 @@ void MusicEffect::Render(RenderBuffer &buffer,
     int lightsperbar = 0.5 + (float)(buffer.BufferWi - offsetx) / (float)actualbars;
 
     // Check for config changes which require us to reset
-    if (buffer.needToInit || _bars != bars || _type != nType || _startNote != startnote || _endNote != endnote || _offsetx != offsetx || _scale != scale || _freqRelative != freqrelative || _sensitivity != sensitivity || _colourTreatment != nTreatment || _fade != fade)
+    if (buffer.needToInit || _bars != bars || _type != nType || _startNote != startnote || 
+        _endNote != endnote || _offsetx != offsetx || _scale != scale || 
+        _scalenotes != nScaleNotes || _sensitivity != sensitivity || _colourTreatment != nTreatment || _fade != fade)
     {
         buffer.needToInit = false;
         _bars = bars;
@@ -211,11 +260,11 @@ void MusicEffect::Render(RenderBuffer &buffer,
         _offsetx = offsetx;
         _scale = scale;
         _sensitivity = sensitivity;
-        _freqRelative = freqrelative;
+        _scalenotes = nScaleNotes;
         cache->ClearEvents();
         // We limit bars to the width of the model less the x offset
 
-        CreateEvents(buffer, _events, _startNote, actualendnote, actualbars, _freqRelative, _sensitivity);
+        CreateEvents(buffer, _events, _startNote, actualendnote, actualbars, _scalenotes, _sensitivity);
     }
 
     int per = 1;
@@ -260,7 +309,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
 
 #define MINIMUMEVENTLENGTH 5
 
-void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<MusicEvent*>*>& events, int startNote, int endNote, int bars, bool freqRelative, int sensitivity)
+void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<MusicEvent*>*>& events, int startNote, int endNote, int bars, int scalenotes, int sensitivity)
 {
     // must have media
     if (buffer.GetMedia() == NULL)
@@ -312,7 +361,11 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
     {
         events.push_back(new std::list<MusicEvent*>());
         float notesensitivity;
-        if (freqRelative)
+        if (scalenotes == 1)
+        {
+            notesensitivity = (float)sensitivity / 100.0;
+        }
+        else if (scalenotes == 2)
         {
             notesensitivity = (float)sensitivity / 100.0 * max[b];
         }

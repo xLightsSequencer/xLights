@@ -97,6 +97,15 @@ public:
     const std::string &Get(const char *ckey, const std::string &def) const {
         return Get(std::string(ckey), def);
     }
+    bool Contains(const char* ckey) const {
+        std::string key(ckey);
+        std::map<std::string, std::string>::const_iterator i(find(key));
+        if (i == end()) {
+            return false;
+        }
+        return true;
+    }
+
     std::string Get(const char *ckey, const char *def) const {
         std::string key(ckey);
         std::map<std::string,std::string>::const_iterator i(find(key));
