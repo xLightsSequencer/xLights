@@ -122,6 +122,7 @@ const long GenerateCustomModelDialog::ID_SLIDER_BI_Contrast = wxNewId();
 const long GenerateCustomModelDialog::ID_TEXTCTRL_BI_Contrast = wxNewId();
 const long GenerateCustomModelDialog::ID_CHECKBOX_BI_IsSteady = wxNewId();
 const long GenerateCustomModelDialog::ID_CHECKBOX_BI_ManualUpdate = wxNewId();
+const long GenerateCustomModelDialog::ID_GAUGE1 = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_BI_Update = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_CB_RestoreDefault = wxNewId();
 const long GenerateCustomModelDialog::ID_TEXTCTRL_BI_Status = wxNewId();
@@ -188,7 +189,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	AuiNotebook1 = new wxAuiNotebook(this, ID_AUINOTEBOOK1, wxDefaultPosition, wxSize(1000,500), wxTAB_TRAVERSAL);
+	AuiNotebook1 = new wxAuiNotebook(this, ID_AUINOTEBOOK1, wxDefaultPosition, wxSize(1000,700), wxTAB_TRAVERSAL);
 	Panel_Prepare = new wxPanel(AuiNotebook1, ID_PANEL_Prepare, wxPoint(63,54), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Prepare"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
@@ -333,7 +334,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Panel_BulbIdentify = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_BulbIdentify, wxPoint(176,18), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_BulbIdentify"));
 	FlexGridSizer15 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer15->AddGrowableCol(0);
-	FlexGridSizer15->AddGrowableRow(5);
+	FlexGridSizer15->AddGrowableRow(6);
 	StaticText_BI = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT5, _("The red circles on the image show the bulbs we have identify. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.\n\nClick next when you are happy that all bulbs have been detected."), wxDefaultPosition, wxSize(652,75), 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer15->Add(StaticText_BI, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer16 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -369,6 +370,8 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	CheckBox_BI_ManualUpdate = new wxCheckBox(Panel_BulbIdentify, ID_CHECKBOX_BI_ManualUpdate, _("Manual Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_BI_ManualUpdate"));
 	CheckBox_BI_ManualUpdate->SetValue(true);
 	FlexGridSizer15->Add(CheckBox_BI_ManualUpdate, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Gauge_Progress = new wxGauge(Panel_BulbIdentify, ID_GAUGE1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_GAUGE1"));
+	FlexGridSizer15->Add(Gauge_Progress, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer27 = new wxFlexGridSizer(0, 2, 0, 0);
 	Button_BI_Update = new wxButton(Panel_BulbIdentify, ID_BUTTON_BI_Update, _("Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_BI_Update"));
 	FlexGridSizer27->Add(Button_BI_Update, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1555,6 +1558,8 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         Button_CB_RestoreDefault->Disable();
         Button_BI_Next->Disable();
         Button_BI_Back->Disable();
+        Gauge_Progress->SetValue(0);
+        Gauge_Progress->Show();
         SetCursor(wxCURSOR_WAIT);
         StaticBitmap_Preview->SetEraseBackground(false);
 
@@ -1599,6 +1604,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
             int sincefound = 0;
             while (currentTime < _vr->GetLengthMS() && !_warned && sincefound < BLANKFRAMESBEFOREABORT)
             {
+                Gauge_Progress->SetValue((currentTime * 100) / _vr->GetLengthMS());
                 logger_gcm.info("   Looking for frame at %d.", currentTime);
                 wxImage bwFrame;
                 wxImage grey;
@@ -1677,6 +1683,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         Button_CB_RestoreDefault->Enable();
         Button_BI_Next->Enable();
         Button_BI_Back->Enable();
+        Gauge_Progress->Hide();
         SetCursor(wxCURSOR_ARROW);
         logger_gcm.info("Result: %s.", std::string(TextCtrl_BI_Status->GetValue().c_str()).c_str());
         _busy = false;

@@ -128,14 +128,14 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
     logger_base.info("      Output size: %dx%d", _width, _height);
 }
 
-static int MStoDTS(int ms, int dtspersec)
+static int64_t MStoDTS(int ms, int dtspersec)
 {
-    return (int)((ms * dtspersec) / 1000);
+    return (((int64_t)ms * (int64_t)dtspersec) / (int64_t)1000);
 }
 
-static int DTStoMS(int dts , int dtspersec)
+static int DTStoMS(int64_t dts , int dtspersec)
 {
-    return (int)(((int64_t)1000 * (int64_t)dts) / (int64_t)dtspersec);
+    return (int)(((int64_t)1000 * dts) / (int64_t)dtspersec);
 }
 
 int VideoReader::GetPos()

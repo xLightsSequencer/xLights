@@ -13,7 +13,7 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxAuiNotebook" name="ID_AUINOTEBOOK1" variable="AuiNotebook1" member="yes">
-					<size>1000,500</size>
+					<size>1000,700</size>
 					<style>wxTAB_TRAVERSAL</style>
 					<object class="AuiNotebookPage">
 						<object class="wxPanel" name="ID_PANEL_Prepare" variable="Panel_Prepare" member="yes">
@@ -474,7 +474,7 @@
 																<object class="wxFlexGridSizer" variable="FlexGridSizer15" member="no">
 																	<cols>1</cols>
 																	<growablecols>0</growablecols>
-																	<growablerows>5</growablerows>
+																	<growablerows>6</growablerows>
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText_BI" member="yes">
 																			<label>The red circles on the image show the bulbs we have identify. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.&#x0A;&#x0A;Click next when you are happy that all bulbs have been detected.</label>
@@ -627,6 +627,12 @@
 																			<handler function="OnCheckBox_BI_ManualUpdateClick" entry="EVT_CHECKBOX" />
 																		</object>
 																		<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxGauge" name="ID_GAUGE1" variable="Gauge_Progress" member="yes" />
+																		<flag>wxALL|wxEXPAND</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>

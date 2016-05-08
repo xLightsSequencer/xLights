@@ -18,6 +18,7 @@
 #include <wx/filedlg.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/gauge.h>
 //*)
 
 #ifdef __WXOSX__
@@ -293,6 +294,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxFileDialog* FileDialog1;
 		wxTextCtrl* TextCtrl_BI_Status;
 		wxButton* Button_Back10Frames;
+		wxGauge* Gauge_Progress;
 		wxButton* Button_CV_Back;
 		wxButton* Button_MT_Next;
 		wxTextCtrl* TextCtrl_BC_Blur;
@@ -366,6 +368,7 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_TEXTCTRL_BI_Contrast;
 		static const long ID_CHECKBOX_BI_IsSteady;
 		static const long ID_CHECKBOX_BI_ManualUpdate;
+		static const long ID_GAUGE1;
 		static const long ID_BUTTON_BI_Update;
 		static const long ID_BUTTON_CB_RestoreDefault;
 		static const long ID_TEXTCTRL_BI_Status;
