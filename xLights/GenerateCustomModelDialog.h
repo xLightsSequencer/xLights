@@ -168,9 +168,6 @@ class GenerateCustomModelDialog: public wxDialog
     float _startframebrightness;
     wxImage _startFrame; // the image of the start frame
     wxImage _darkFrame; // an image with no lights on
-    //wxImage _greyFrame;  // the greyscale version of the start frame
-    //wxImage _bwFrame;    // the black and white version of the image after blur & level
-    //wxImage _cbFrame;    // the Circle bulbs image - edges
     wxImage _biFrame;    // the Bulb identify output - essentially a mask
     std::list<GCMBulb> _lights; // our lights
     VideoProcessingStates _state;
@@ -184,9 +181,9 @@ class GenerateCustomModelDialog: public wxDialog
     int _draggingedge;
     wxRect _clip;
     float _overallmaxbrightness;
+    float _overallaveragebrightness;
 
     void UpdateProgress(wxProgressDialog& pd, int totaltime);
-    void ShowFrame(int time);
     wxImage CreateImageFromFrame(AVFrame* frame);
     void ShowImage(const wxImage& image);
     void SwapPage(int oldp, int newp);
@@ -215,11 +212,9 @@ class GenerateCustomModelDialog: public wxDialog
 #pragma region Identify Bulbs Tab
     void ApplyThreshold(wxImage& image, int threshold);
     void DoBulbIdentify();
-    void BITabEntry();
-    //float CalcPoint(wxImage& edge, int x0, int y0, int radius);
-    //std::map<xlPoint, int> CircleDetect(wxImage& mask, wxImage& edge, int radius);
-    //std::list<wxPoint> CircleDetect(wxImage& mask, wxImage& edge, int minr, int maxr);
-    void FindLights(wxImage& bwimage, int num, wxImage& greyimage);
+    void BITabEntry(bool setdefault);
+    void SetBIDefault();
+    void FindLights(wxImage& bwimage, int num, wxImage& greyimage, wxImage& frame);
     wxImage CreateDetectMask(wxImage ref, bool includeimage, wxRect rect);
     void WalkPixels(int x, int y, int w, int h, int w3, unsigned char *data, int& totalX, int& totalY, int& pixelCount);
     GCMBulb FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num, wxImage& grey);
