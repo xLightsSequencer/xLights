@@ -1253,16 +1253,16 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     }
 
     // choose the best threshold to use
-    int first = 0;
-    int last = 0;
-    int curfirst = 0;
-    int curlast = 0;
+    int first = -1;
+    int last = -2;
+    int curfirst = -1;
+    int curlast = -2;
     for (int l = 1; l < 10; l++)
     {
         if (suitable[l])
         {
             curlast = l;
-            if (curfirst == 0)
+            if (curfirst == -1)
             {
                 curfirst = l;
             }
@@ -1274,8 +1274,8 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
                 last = curlast;
                 first = curfirst;
             }
-            curlast = 0;
-            curfirst = 0;
+            curlast = -2;
+            curfirst = -1;
         }
     }
     if (curlast - curfirst > last - first)
@@ -1285,7 +1285,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     }
 
     int bestlevel;
-    if (first == 0)
+    if (first == -1)
     {
         logger_gcm.info("    No great match found.");
         bestlevel = 7;
