@@ -106,10 +106,17 @@ void ModelGroup::Reset() {
         maxx -= minx;
         minx = 0;
     }
-    float midX = (minx + maxx) / 2.0;
-    float midY = (miny + maxy) / 2.0;
+
     bool minimal = layout != "grid";
     
+    float midX = (minx + maxx) / 2.0;
+    float midY = (miny + maxy) / 2.0;
+    if (!minimal) {
+        minx = 0;
+        miny = 0;
+        maxx = std::max(maxx, (float)screenLocation.previewW);
+        maxy = std::max(maxy, (float)screenLocation.previewH);
+    }
     double hscale = gridSize / maxy;
     double wscale = gridSize / maxx;
     if (maxy < gridSize && maxx < gridSize) {
@@ -163,6 +170,10 @@ void ModelGroup::Reset() {
     
     BufferHt++;
     BufferWi++;
+    if (!minimal) {
+        BufferHt = std::max(BufferHt,(int)((float)screenLocation.previewH * hscale));
+        BufferWi = std::max(BufferWi,(int)((float)screenLocation.previewW * wscale));
+    }
 
     screenLocation.SetRenderSize(maxx - nminx + 1, maxy - nminy + 1);
     screenLocation.SetOffset(0.5, 0.5);
