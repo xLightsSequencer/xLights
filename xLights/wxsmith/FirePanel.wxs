@@ -19,12 +19,12 @@
 					<min>10</min>
 					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fire_Height" variable="TextCtrl19" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fire_Height" variable="TextCtrl_Fire_Height" member="yes">
 					<value>50</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
@@ -59,7 +59,7 @@
 				<object class="wxSlider" name="ID_SLIDER_Fire_HueShift" variable="Slider_Fire_HueShift" member="no">
 					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -96,16 +96,16 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="IDD_SLIDER_Fire_GrowthCycles" variable="Slider9" member="no">
+				<object class="wxSlider" name="IDD_SLIDER_Fire_GrowthCycles" variable="Slider_Fire_GrowthCycles" member="yes">
 					<max>200</max>
 					<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL_Fire_GrowthCycles" variable="TextCtrl26" member="no">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Fire_GrowthCycles" variable="TextCtrl_Fire_GrowthCycles" member="yes">
 					<value>0.0</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
@@ -117,6 +117,38 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Fire_GrowFire" variable="BitmapButton_FireGrow" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<default>1</default>
+					<size>13,13</size>
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Fire_GrowWithMusic" variable="CheckBox_Fire_GrowWithMusic" member="yes">
+					<label>Grow with music</label>
+					<handler function="OnCheckBox_Fire_GrowWithMusicClick" entry="EVT_CHECKBOX" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Fire_GrowWithMusic" variable="BitmapButton_Fire_GrowWithMusic" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<default>1</default>
 					<size>13,13</size>

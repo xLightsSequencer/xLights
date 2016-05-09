@@ -4,6 +4,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../AudioManager.h"
 
 #include "../../include/fire-16.xpm"
 #include "../../include/fire-24.xpm"
@@ -131,19 +132,36 @@ void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     int HeightPct = SettingsMap.GetFloat("SLIDER_Fire_Height", 0);
     int HueShift = SettingsMap.GetFloat("SLIDER_Fire_HueShift", 0);
     float cycles = SettingsMap.GetFloat("TEXTCTRL_Fire_GrowthCycles", 0.0);
-    
-    int x,y,i,r,v1,v2,v3,v4,n,new_index;
+    bool withMusic = SettingsMap.GetBool("CHECKBOX_Fire_GrowWithMusic", false);
+
+    int x,y,r,v1,v2,v3,v4,n,new_index;
     HSVValue hsv;
     int loc = GetLocation(SettingsMap.Get("CHOICE_Fire_Location", "Bottom"));
     FireRenderCache *cache = GetCache(buffer, id);
-    
-    //cycles is 0 - 200 representing growth cycle count of 0 - 20
-    if (cycles > 0) {
-        double adjust = buffer.GetEffectTimeIntervalPosition(cycles);
-        adjust = 0.5 - std::abs(adjust - 0.5);
-        HeightPct += adjust * 100;
+
+    if (withMusic)
+    {
+        HeightPct = 10;
+        if (buffer.GetMedia() != NULL)
+        {
+            float f = 0.0;
+            std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            if (pf != NULL)
+            {
+                f = *pf->begin();
+            }
+            HeightPct += 90 * f;
+        }
     }
-    
+    else
+    {
+        //cycles is 0 - 200 representing growth cycle count of 0 - 20
+        if (cycles > 0) {
+            double adjust = buffer.GetEffectTimeIntervalPosition(cycles);
+            adjust = 0.5 - std::abs(adjust - 0.5);
+            HeightPct += adjust * 100;
+        }
+    }
     if (HeightPct<1) HeightPct=1;
     
     
@@ -158,7 +176,7 @@ void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     float mod_state = 4.0;
     if (buffer.needToInit) {
         buffer.needToInit = false;
-        for (i=0; i < cache->FireBuffer.size(); i++) {
+        for (size_t i=0; i < cache->FireBuffer.size(); i++) {
             cache->FireBuffer[i]=0;
         }
     } else {

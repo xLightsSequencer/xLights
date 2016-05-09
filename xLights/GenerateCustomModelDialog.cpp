@@ -1979,7 +1979,7 @@ void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, u
     }
 }
 
-GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num, wxImage& grey)
+GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num, const wxImage& grey)
 {
     int totalX = 0;
     int totalY = 0;
@@ -1989,7 +1989,7 @@ GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3
     return GCMBulb(wxPoint(totalX / pixelCount, totalY / pixelCount), num, GetPixel(totalX / pixelCount, totalY / pixelCount, w3, grey.GetData()));
 }
 
-void GenerateCustomModelDialog::FindLights(wxImage& bwimage, int num, wxImage& greyimage, wxImage& frame)
+void GenerateCustomModelDialog::FindLights(const wxImage& bwimage, int num, const wxImage& greyimage, const wxImage& frame)
 {
     log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
 

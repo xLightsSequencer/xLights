@@ -215,10 +215,10 @@ class GenerateCustomModelDialog: public wxDialog
     void DoBulbIdentify();
     void BITabEntry(bool setdefault);
     void SetBIDefault();
-    void FindLights(wxImage& bwimage, int num, wxImage& greyimage, wxImage& frame);
+    void FindLights(const wxImage& bwimage, int num, const wxImage& greyimage, const wxImage& frame);
     wxImage CreateDetectMask(wxImage ref, bool includeimage, wxRect rect);
     void WalkPixels(int x, int y, int w, int h, int w3, unsigned char *data, int& totalX, int& totalY, int& pixelCount);
-    GCMBulb FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num, wxImage& grey);
+    GCMBulb FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num, const wxImage& grey);
     void SubtractImage(wxImage& from, wxImage& tosubtract);
     void ApplyContrast(wxImage& grey, int contrast);
     int CountWhite(wxImage& image);

@@ -3,28 +3,35 @@
 
 //(*Headers(FirePanel)
 #include <wx/panel.h>
+class wxCheckBox;
 class wxTextCtrl;
-class wxChoice;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
 class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
+class wxChoice;
 //*)
 
 class FirePanel: public wxPanel
 {
+    void ValidateWindow();
 	public:
 
 		FirePanel(wxWindow* parent);
 		virtual ~FirePanel();
 
 		//(*Declarations(FirePanel)
-		wxStaticText* StaticText132;
-		wxBitmapButton* BitmapButton_FireGrow;
-		wxStaticText* StaticText83;
 		wxBitmapButton* BitmapButton_FireWidth;
-		wxBitmapButton* BitmapButton_FireHeight;
+		wxStaticText* StaticText83;
+		wxTextCtrl* TextCtrl_Fire_Height;
+		wxCheckBox* CheckBox_Fire_GrowWithMusic;
+		wxBitmapButton* BitmapButton_FireGrow;
 		wxSlider* Slider_Fire_Height;
+		wxSlider* Slider_Fire_GrowthCycles;
+		wxStaticText* StaticText132;
+		wxTextCtrl* TextCtrl_Fire_GrowthCycles;
+		wxBitmapButton* BitmapButton_Fire_GrowWithMusic;
+		wxBitmapButton* BitmapButton_FireHeight;
 		//*)
 
 	protected:
@@ -41,20 +48,22 @@ class FirePanel: public wxPanel
 		static const long IDD_SLIDER_Fire_GrowthCycles;
 		static const long ID_TEXTCTRL_Fire_GrowthCycles;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Fire_GrowFire;
+		static const long ID_CHECKBOX_Fire_GrowWithMusic;
+		static const long ID_BITMAPBUTTON_Fire_GrowWithMusic;
 		static const long ID_CHOICE_Fire_Location;
 		//*)
 
 	public:
 
 		//(*Handlers(FirePanel)
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
-    void OnLockButtonClick(wxCommandEvent& event);
-
+		void UpdateLinkedSliderFloat(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
+		void UpdateLinkedSlider360(wxCommandEvent& event);
+		void UpdateLinkedTextCtrl(wxScrollEvent& event);
+		void UpdateLinkedSlider(wxCommandEvent& event);
+		void OnLockButtonClick(wxCommandEvent& event);
+		void OnCheckBox_Fire_GrowWithMusicClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
