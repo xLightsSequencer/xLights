@@ -11,6 +11,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keithsw) Fix a bug with filename fixups
    -- enh (keithsw) Cleanup scaling options on Music Effect ... now via a choice - None/Individual Notes/All Notes
    -- enh (keithsw) Sparkles now can optionally grow with music intensity
+   -- enh (keithsw) Strobe effect now can optionally grow with music intensity
    -- enh (keithsw) Fire effect now can optionally grow with music intensity
    -- enh (keithsw) Add timing track export/import. Includes support for Papagayo and Piano timing tracks.
    -- bug (keithsw) Lots of fixes to auto custom model generation

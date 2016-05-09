@@ -3,10 +3,11 @@
 
 //(*Headers(StrobePanel)
 #include <wx/panel.h>
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
+class wxCheckBox;
 class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
 //*)
 
 class StrobePanel: public wxPanel
@@ -19,13 +20,15 @@ class StrobePanel: public wxPanel
 		//(*Declarations(StrobePanel)
 		wxBitmapButton* BitmapButton_StrobeDuration;
 		wxStaticText* StaticText111;
+		wxCheckBox* CheckBox_Strobe_Music;
+		wxStaticText* StaticText110;
 		wxSlider* Slider_Strobe_Type;
-		wxSlider* Slider_Strobe_Duration;
+		wxBitmapButton* BitmapButton_Strobe_Type;
+		wxBitmapButton* BitmapButton_Strobe_Music;
 		wxStaticText* StaticText112;
 		wxBitmapButton* BitmapButton_NumberStrobes;
-		wxStaticText* StaticText110;
-		wxBitmapButton* BitmapButton_Strobe_Type;
 		wxSlider* Slider_Number_Strobes;
+		wxSlider* Slider_Strobe_Duration;
 		//*)
 
 	protected:
@@ -40,19 +43,21 @@ class StrobePanel: public wxPanel
 		static const long ID_STATICTEXT114;
 		static const long ID_SLIDER_Strobe_Type;
 		static const long ID_BITMAPBUTTON50;
+		static const long ID_CHECKBOX_Strobe_Music;
+		static const long ID_BITMAPBUTTON_Strobe_Music;
 		//*)
 
 	public:
 
 		//(*Handlers(StrobePanel)
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
-    void OnLockButtonClick(wxCommandEvent& event);
-
+		void UpdateLinkedSliderFloat(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
+		void UpdateLinkedSlider360(wxCommandEvent& event);
+		void UpdateLinkedTextCtrl(wxScrollEvent& event);
+		void UpdateLinkedSlider(wxCommandEvent& event);
+		void OnLockButtonClick(wxCommandEvent& event);
+		void OnSlider_Strobe_TypeCmdScroll(wxScrollEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

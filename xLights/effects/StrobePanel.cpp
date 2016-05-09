@@ -3,15 +3,16 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(StrobePanel)
-#include <wx/bmpbuttn.h>
 #include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
+#include <wx/checkbox.h>
 #include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(StrobePanel)
@@ -24,6 +25,8 @@ const long StrobePanel::ID_BITMAPBUTTON51 = wxNewId();
 const long StrobePanel::ID_STATICTEXT114 = wxNewId();
 const long StrobePanel::ID_SLIDER_Strobe_Type = wxNewId();
 const long StrobePanel::ID_BITMAPBUTTON50 = wxNewId();
+const long StrobePanel::ID_CHECKBOX_Strobe_Music = wxNewId();
+const long StrobePanel::ID_BITMAPBUTTON_Strobe_Music = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(StrobePanel,wxPanel)
@@ -35,9 +38,10 @@ StrobePanel::StrobePanel(wxWindow* parent)
 {
 	//(*Initialize(StrobePanel)
 	wxFlexGridSizer* FlexGridSizer85;
-	wxFlexGridSizer* FlexGridSizer87;
 	wxFlexGridSizer* FlexGridSizer90;
 	wxFlexGridSizer* FlexGridSizer88;
+	wxFlexGridSizer* FlexGridSizer87;
+	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer85 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -72,6 +76,15 @@ StrobePanel::StrobePanel(wxWindow* parent)
 	BitmapButton_Strobe_Type->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer90->Add(BitmapButton_Strobe_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer85->Add(FlexGridSizer90, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
+	CheckBox_Strobe_Music = new wxCheckBox(this, ID_CHECKBOX_Strobe_Music, _("Reacts to music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Strobe_Music"));
+	CheckBox_Strobe_Music->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Strobe_Music, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Strobe_Music = new wxBitmapButton(this, ID_BITMAPBUTTON_Strobe_Music, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_Strobe_Music"));
+	BitmapButton_Strobe_Music->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer1->Add(BitmapButton_Strobe_Music, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer85->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer85);
 	FlexGridSizer85->Fit(this);
 	FlexGridSizer85->SetSizeHints(this);
@@ -79,6 +92,7 @@ StrobePanel::StrobePanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON49,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrobePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON51,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrobePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON50,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrobePanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_Strobe_Music,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrobePanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_STROBE");
 }
@@ -90,3 +104,6 @@ StrobePanel::~StrobePanel()
 }
 
 PANEL_EVENT_HANDLERS(StrobePanel)
+void StrobePanel::OnSlider_Strobe_TypeCmdScroll(wxScrollEvent& event)
+{
+}
