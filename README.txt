@@ -8,6 +8,11 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- fix (keithsw) Fix a bug with filename fixups
+   -- enh (keithsw) Cleanup scaling options on Music Effect ... now via a choice - None/Individual Notes/All Notes
+   -- enh (keithsw) Fire effect now can optionally grow with music intensity
+   -- enh (keithsw) Add timing track export/import. Includes support for Papagayo and Piano timing tracks.
+   -- bug (keithsw) Lots of fixes to auto custom model generation
 2016.26  May 06, 2016
    -- enh (gil)   Change Render All toolbar icon and make common on Mac.  Fixes #436.
    -- bug (dkulp) Add a bunch more debugging stuff to the OpenGL things
