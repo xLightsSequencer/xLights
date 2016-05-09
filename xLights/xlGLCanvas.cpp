@@ -60,7 +60,7 @@ xlGLCanvas::~xlGLCanvas()
     }
 }
 
-#ifndef __WXOSX__
+#ifdef __WXMSW__
 
 static const char * getStringForSource(GLenum source) {
 

@@ -95,8 +95,11 @@ void TreeModel::SetTreeCoord(long degrees) {
                 double xt=topradius * sin(angle);
                 double yb = ybot - perspective * radius * cos(angle);
                 double yt = ytop - perspective * topradius * cos(angle);
-                double posOnString = (bufferY/(double)(BufferHt-1.0));
-                
+                double posOnString = 0.5;
+                if (BufferHt > 1) {
+                    posOnString = (bufferY/(double)(BufferHt-1.0));
+                }
+
                 Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
                 Nodes[n]->Coords[c].screenY = yb + (yt - yb) * posOnString - ((double)RenderHt)/2.0;
             }
@@ -120,18 +123,29 @@ void TreeModel::SetTreeCoord(long degrees) {
                     double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
                     double h = std::sqrt(RenderHt * RenderHt + (xt - xb)*(xt - xb));
                     
-                    double posOnString = (bufferY/(double)(BufferHt-1.0));
+                    double posOnString = 0.5;
+                    if (BufferHt > 1) {
+                        posOnString = (bufferY/(double)(BufferHt-1.0));
+                    }
+                    
                     double newh = RenderHt * posOnString;
                     Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
                     Nodes[n]->Coords[c].screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
                     
-                    posOnString = ((bufferY - 0.33)/(double)(BufferHt-1.0));
+                    posOnString = 0;
+                    if (BufferHt > 1) {
+                        posOnString = ((bufferY - 0.33)/(double)(BufferHt-1.0));
+                    }
+
                     newh = RenderHt * posOnString;
                     Nodes[n]->Coords.push_back(Nodes[n]->Coords[c]);
                     Nodes[n]->Coords.back().screenX = xb + (xt - xb) * posOnString;
                     Nodes[n]->Coords.back().screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
                     
-                    posOnString = ((bufferY + 0.33)/(double)(BufferHt-1.0));
+                    posOnString = 1;
+                    if (BufferHt > 1) {
+                        posOnString = ((bufferY + 0.33)/(double)(BufferHt-1.0));
+                    }
                     newh = RenderHt * posOnString;
                     Nodes[n]->Coords.push_back(Nodes[n]->Coords[c]);
                     Nodes[n]->Coords.back().screenX = xb + (xt - xb) * posOnString;
@@ -145,7 +159,10 @@ void TreeModel::SetTreeCoord(long degrees) {
                     
                     double xt = (bufferX + offset - BufferWi/2.0) * 0.9;
                     double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
-                    double posOnString = (bufferY/(double)(BufferHt-1.0));
+                    double posOnString = 0.5;
+                    if (BufferHt > 1) {
+                        posOnString = (bufferY/(double)(BufferHt-1.0));
+                    }
                     Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
                     Nodes[n]->Coords[c].screenY = RenderHt * posOnString - ((double)RenderHt)/2.0;
                 }

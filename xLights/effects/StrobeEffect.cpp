@@ -192,16 +192,13 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
 
         it->duration--;  // decrease the frame counter on this strobe, when it gets to zero we no longer will turn it on
 
-        // remove expired strobes
-        if (it->duration == 0)
-        {
+        if (it->duration <= 0) {
             std::list<StrobeClass>::iterator del = it;
             ++it;
-            strobe.remove(*del);
-        }
-        else
-        {
+            strobe.erase(del);
+        } else {
             ++it;
         }
     }
+    
 }
