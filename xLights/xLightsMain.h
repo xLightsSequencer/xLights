@@ -231,6 +231,19 @@ public:
     }
 };
 
+class FPSEvent
+{
+public:
+    wxDateTime when;
+    int frame;
+
+    FPSEvent(int f)
+    {
+        frame = f;
+        when = wxDateTime::UNow();
+    }
+};
+
 class SchedTreeData : public wxTreeItemData
 {
 protected:
@@ -1268,6 +1281,8 @@ private:
     Model *playModel;
     int playType;
     int playStartMS;
+    std::list<FPSEvent> fpsEvents;
+    float _fps;
     int playStartTime;
     int playOffsetTime;
     int playEndTime;

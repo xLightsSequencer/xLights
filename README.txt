@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Add FPS display when playing the sequence
    -- bug (keithsw) Fix a bug with filename fixups
    -- enh (keithsw) Cleanup scaling options on Music Effect ... now via a choice - None/Individual Notes/All Notes
    -- enh (keithsw) Sparkles now can optionally grow with music intensity

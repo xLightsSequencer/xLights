@@ -884,6 +884,7 @@ void xLightsFrame::TogglePlay(wxCommandEvent& event)
 
 void xLightsFrame::StopSequence()
 {
+    _fps = -1;
 	mLoopAudio = false;
     if( playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED )
     {
@@ -897,7 +898,7 @@ void xLightsFrame::StopSequence()
         mainSequencer->PanelTimeLine->PlayStopped();
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
         mainSequencer->PanelEffectGrid->ForceRefresh();
-        mainSequencer->UpdateTimeDisplay(playStartTime);
+        mainSequencer->UpdateTimeDisplay(playStartTime, _fps);
     }
     playType = PLAY_TYPE_STOPPED;
     if( CheckBoxLightOutput->IsChecked() && xout ) {
@@ -913,6 +914,7 @@ void xLightsFrame::StopSequence(wxCommandEvent& event)
 
 void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)
 {
+    _fps = -1;
     if( playType == PLAY_TYPE_EFFECT_PAUSED || playType == PLAY_TYPE_EFFECT ) {
         playStartMS = -1;
     }
@@ -925,12 +927,13 @@ void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)
         mainSequencer->PanelTimeLine->ResetMarkers(0);
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
         mainSequencer->PanelEffectGrid->ForceRefresh();
-        mainSequencer->UpdateTimeDisplay(0);
+        mainSequencer->UpdateTimeDisplay(0, _fps);
     }
 }
 
 void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
 {
+    _fps = -1;
     int limit = mainSequencer->ScrollBarEffectsHorizontal->GetRange();
     mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(limit-1);
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
@@ -940,7 +943,7 @@ void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
     mainSequencer->PanelTimeLine->ResetMarkers(end_ms);
     mainSequencer->PanelWaveForm->UpdatePlayMarker();
     mainSequencer->PanelEffectGrid->ForceRefresh();
-    mainSequencer->UpdateTimeDisplay(end_ms);
+    mainSequencer->UpdateTimeDisplay(end_ms, _fps);
 }
 
 void xLightsFrame::SequenceReplaySection(wxCommandEvent& event)
@@ -1072,6 +1075,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
     // capture start time if necessary
     if (playStartMS == -1) {
         playStartMS = msec;
+        fpsEvents.clear();
     }
 
     // record current time
@@ -1121,12 +1125,25 @@ void xLightsFrame::TimerRgbSeq(long msec)
 				return;
 			}
         }
+
+        fpsEvents.push_back(FPSEvent(curt / SeqData.FrameTime()));
+        while (fpsEvents.size() > 1000 / SeqData.FrameTime())
+        {
+            fpsEvents.pop_front();
+        }
+        if (fpsEvents.size() > 1)
+        {
+            FPSEvent b = fpsEvents.front();
+            FPSEvent e = fpsEvents.back();
+            _fps = (float)((double)fpsEvents.size() * 1000.0) / ((e.when - b.when).GetMilliseconds().ToDouble());
+        }
+
         //wxLongLong ms = wxGetUTCTimeMillis();
         mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time);
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
         mainSequencer->PanelWaveForm->CheckNeedToScroll();
         mainSequencer->PanelEffectGrid->ForceRefresh();
-        mainSequencer->UpdateTimeDisplay(current_play_time);
+        mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
         //wxLongLong me = wxGetUTCTimeMillis();
         //printf("%d\n", (me-ms).GetLo());
     }

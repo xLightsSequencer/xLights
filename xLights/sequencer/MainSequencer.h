@@ -24,7 +24,7 @@ class MainSequencer: public wxPanel
 		virtual ~MainSequencer();
 		void SetSequenceElements(SequenceElements* elements);
         void UpdateEffectGridVerticalScrollBar();
-        void UpdateTimeDisplay(int time_ms);
+        void UpdateTimeDisplay(int time_ms, float fps);
         void SetPlayStatus(int play_type);
         void GetSelectedEffectsData(wxString& copy_data);
         bool CopySelectedEffects();

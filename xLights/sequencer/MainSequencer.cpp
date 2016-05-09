@@ -180,7 +180,7 @@ void MainSequencer::UpdateEffectGridVerticalScrollBar()
     PanelRowHeadings->Refresh();
 }
 
-void MainSequencer::UpdateTimeDisplay(int time_ms)
+void MainSequencer::UpdateTimeDisplay(int time_ms, float fps)
 {
     int time = time_ms >= 0 ? time_ms : 0;
     int msec=time % 1000;
@@ -188,6 +188,10 @@ void MainSequencer::UpdateTimeDisplay(int time_ms)
     int minutes=seconds / 60;
     seconds=seconds % 60;
     wxString play_time = wxString::Format("Time: %d:%02d.%02d",minutes,seconds,msec);
+    if (fps >= 0)
+    {
+        play_time += "\nFPS: " + wxString::Format("%5.1f", fps);
+    }
     StaticText_SeqTime->SetLabel(play_time);
 }
 
@@ -783,7 +787,7 @@ void MainSequencer::TimelineChanged( wxCommandEvent& event)
     TimelineChangeArguments *tla = (TimelineChangeArguments*)(event.GetClientData());
     PanelWaveForm->SetZoomLevel(tla->ZoomLevel);
     PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
-    UpdateTimeDisplay(tla->CurrentTimeMS);
+    UpdateTimeDisplay(tla->CurrentTimeMS, -1);
     PanelTimeLine->Update();
     PanelWaveForm->Refresh();
     PanelWaveForm->Update();
@@ -798,7 +802,7 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
 {
     PanelWaveForm->SetZoomLevel(PanelTimeLine->GetZoomLevel());
     PanelWaveForm->SetStartPixelOffset(PanelTimeLine->GetStartPixelOffset());
-    UpdateTimeDisplay(PanelTimeLine->GetCurrentPlayMarkerMS());
+    UpdateTimeDisplay(PanelTimeLine->GetCurrentPlayMarkerMS(), -1);
 
     //printf("%d\n", PanelTimeLine->GetStartPixelOffset());
     PanelTimeLine->Refresh();
