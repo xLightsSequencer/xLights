@@ -22,7 +22,7 @@ ChangesEnvironment=yes
 ; setting to DisableDirPage no makes it so users can change the installation directory
 DisableDirPage=no   
 AppName=xLights
-AppVersion=2016.26
+AppVersion=2016.27
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights.ico

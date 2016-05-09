@@ -8,6 +8,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.27  May 09, 2016
+   -- bug (dkulp) Fix problems of the model groups that are set to the old default of grid 
+                  as per preview using a buffer significantly smaller than they used to
    -- enh (keithsw) Add FPS display when playing the sequence
    -- bug (keithsw) Fix a bug with filename fixups
    -- enh (keithsw) Cleanup scaling options on Music Effect ... now via a choice - None/Individual Notes/All Notes
