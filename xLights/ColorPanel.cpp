@@ -8,11 +8,11 @@
 
 class xLightsFrame;
 //(*InternalHeaders(ColorPanel)
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/intl.h>
 #include <wx/bitmap.h>
+#include <wx/settings.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 #include "Color.h"
@@ -24,6 +24,8 @@ const long ColorPanel::ID_STATICTEXT24 = wxNewId();
 const long ColorPanel::ID_SLIDER_SparkleFrequency = wxNewId();
 const long ColorPanel::IDD_TEXTCTRL_SparkleFrequency = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON_SLIDER_SparkleFrequency = wxNewId();
+const long ColorPanel::ID_CHECKBOX_MusicSparkles = wxNewId();
+const long ColorPanel::ID_BITMAPBUTTON_MusicSparkles = wxNewId();
 const long ColorPanel::ID_STATICTEXT127 = wxNewId();
 const long ColorPanel::ID_SLIDER_Brightness = wxNewId();
 const long ColorPanel::IDD_TEXTCTRL_Brightness = wxNewId();
@@ -47,13 +49,13 @@ END_EVENT_TABLE()
 ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(ColorPanel)
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxButton* ButtonColor1;
 	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxButton* ButtonColor1;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
@@ -86,6 +88,16 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	BitmapButton_SparkleFrequency->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	BitmapButton_SparkleFrequency->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_SparkleFrequency, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_MusicSparkles = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_MusicSparkles, _("Sparkles reflect music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_MusicSparkles"));
+	CheckBox_MusicSparkles->SetValue(false);
+	FlexGridSizer2->Add(CheckBox_MusicSparkles, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_MusicSparkles = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_MusicSparkles, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_MusicSparkles"));
+	BitmapButton_MusicSparkles->SetDefault();
+	BitmapButton_MusicSparkles->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_MusicSparkles->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
+	FlexGridSizer2->Add(BitmapButton_MusicSparkles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText126 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT127, _("Brightness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT127"));
 	FlexGridSizer2->Add(StaticText126, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Brightness = new wxSlider(ColorScrollWindow, ID_SLIDER_Brightness, 100, 0, 400, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Brightness"));
@@ -139,6 +151,8 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(ID_SLIDER_SparkleFrequency,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrl);
 	Connect(IDD_TEXTCTRL_SparkleFrequency,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
+	Connect(ID_CHECKBOX_MusicSparkles,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_MusicSparklesClick);
+	Connect(ID_BITMAPBUTTON_MusicSparkles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
 	Connect(ID_SLIDER_Brightness,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrl);
 	Connect(IDD_TEXTCTRL_Brightness,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Brightness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
@@ -181,8 +195,9 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
-    
     SetDefaultPalette();
+
+    ValidateWindow();
 }
 
 ColorPanel::~ColorPanel()
@@ -199,7 +214,7 @@ void ColorPanel::SetButtonColor(wxBitmapButton* btn, const std::string& cstr)
     if (lastColors[btn->GetId()] != cstr) {
         lastColors[btn->GetId()] = cstr;
         wxColor c(cstr);
-        
+
         btn->SetBackgroundColour(c);
         btn->SetForegroundColour(c);
 
@@ -230,6 +245,10 @@ wxString ColorPanel::GetRandomColorString() {
     if (Slider_SparkleFrequency->GetValue() != 0) {
         ret+= wxString::Format("C_SLIDER_SparkleFrequency=%d,",Slider_SparkleFrequency->GetValue());
     }
+    if (CheckBox_MusicSparkles->GetValue())
+    {
+        ret += wxString::Format("C_CHECKBOX_MusicSparkles=%d,", CheckBox_MusicSparkles->GetValue());
+    }
     if (Slider_Brightness->GetValue() != 100) {
         ret+= wxString::Format("C_SLIDER_Brightness=%d,",Slider_Brightness->GetValue());
     }
@@ -256,6 +275,10 @@ wxString ColorPanel::GetColorString()
     }
     if (Slider_SparkleFrequency->GetValue() != 0) {
         s+= wxString::Format("C_SLIDER_SparkleFrequency=%d,",Slider_SparkleFrequency->GetValue());
+    }
+    if (CheckBox_MusicSparkles->GetValue())
+    {
+        s += wxString::Format("C_CHECKBOX_MusicSparkles=%d,", CheckBox_MusicSparkles->GetValue());
     }
     if (Slider_Brightness->GetValue() != 100) {
         s+= wxString::Format("C_SLIDER_Brightness=%d,",Slider_Brightness->GetValue());
@@ -297,6 +320,7 @@ void ColorPanel::SetDefaultSettings() {
         (*it)->SetValue(false);
     }
     Slider_SparkleFrequency->SetValue(0);
+    CheckBox_MusicSparkles->SetValue(false);
     Slider_Brightness->SetValue(100);
     Slider_Contrast->SetValue(0);
     txtCtlContrast->SetValue("0");
@@ -361,4 +385,13 @@ void ColorPanel::OnUpdateColorClick(wxCommandEvent& event)
     wxCommandEvent eventEffectUpdated(EVT_EFFECT_PALETTE_UPDATED);
     wxPostEvent(GetParent(), eventEffectUpdated);
     Refresh();
+}
+
+void ColorPanel::OnCheckBox_MusicSparklesClick(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void ColorPanel::ValidateWindow()
+{
 }

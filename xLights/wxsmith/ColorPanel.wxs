@@ -94,6 +94,39 @@
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<option>1</option>
 											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOX_MusicSparkles" variable="CheckBox_MusicSparkles" member="yes">
+													<label>Sparkles reflect music</label>
+													<handler function="OnCheckBox_MusicSparklesClick" entry="EVT_CHECKBOX" />
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_MusicSparkles" variable="BitmapButton_MusicSparkles" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
 											<object class="sizeritem">
 												<object class="wxStaticText" name="ID_STATICTEXT127" variable="StaticText126" member="yes">
 													<label>Brightness</label>

@@ -28,6 +28,7 @@
 #include "models/ModelManager.h"
 #include "models/SingleLineModel.h"
 #include "UtilClasses.h"
+#include "AudioManager.h"
 
 #include <random>
 
@@ -484,9 +485,20 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
             }
 
             // add sparkles
-            if (layers[layer]->sparkle_count > 0 && color != xlBLACK)
+            if ((layers[layer]->music_sparkle_count || layers[layer]->sparkle_count) > 0 && color != xlBLACK)
             {
-                switch (sparkle % (208 - layers[layer]->sparkle_count))
+                int sc = layers[layer]->sparkle_count;
+                if (layers[layer]->music_sparkle_count && layers[layer]->buffer.GetMedia() != NULL)
+                {
+                    float f = 0.0;
+                    std::list<float>* pf = layers[layer]->buffer.GetMedia()->GetFrameData(layers[layer]->buffer.curPeriod, FRAMEDATA_HIGH, "");
+                    if (pf != NULL)
+                    {
+                        f = *pf->begin();
+                    }
+                    sc = (int)((float)sc * f);
+                }
+                switch (sparkle % (208 - sc))
                 {
                 case 1:
                 case 7:
@@ -630,6 +642,7 @@ static const std::string STR_DEFAULT("Default");
 static const std::string STR_EMPTY("");
 
 static const std::string SLIDER_SparkleFrequency("SLIDER_SparkleFrequency");
+static const std::string CHECKBOX_MusicSparkles("CHECKBOX_MusicSparkles");
 static const std::string SLIDER_Brightness("SLIDER_Brightness");
 static const std::string SLIDER_Contrast("SLIDER_Contrast");
 static const std::string STR_NORMAL("Normal");
@@ -695,6 +708,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
     inf->blur = settingsMap.GetInt(SLIDER_EffectBlur, 1);
     inf->sparkle_count = settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
+    inf->music_sparkle_count = settingsMap.GetBool(CHECKBOX_MusicSparkles, false);
 
     inf->brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
     inf->contrast=settingsMap.GetInt(SLIDER_Contrast, 0);

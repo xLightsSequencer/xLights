@@ -2,14 +2,15 @@
 #define COLORPANEL_H
 
 //(*Headers(ColorPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/sizer.h>
-#include <wx/button.h>
-#include <wx/panel.h>
 #include <wx/scrolwin.h>
-#include <wx/slider.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/slider.h>
+#include <wx/panel.h>
+#include <wx/bmpbuttn.h>
+#include <wx/button.h>
 //*)
 
 #include <wx/colordlg.h>
@@ -38,6 +39,7 @@ class ColorPanel: public wxPanel
     
         void SetDefaultPalette();
 private:
+        void ValidateWindow();
         wxColour GetPaletteColor(int idx);
 public:
         void SetButtonColor(wxBitmapButton* btn, const std::string &v);
@@ -45,23 +47,25 @@ public:
 
 		//(*Declarations(ColorPanel)
 		wxStaticText* StaticText22;
-		wxTextCtrl* txtCtlBrightness;
-		wxTextCtrl* txtCtrlSparkleFreq;
-		wxScrolledWindow* ColorScrollWindow;
-		wxStaticText* StaticText126;
-		wxBitmapButton* BitmapButton_normal;
-		wxTextCtrl* txtCtlContrast;
-		wxBitmapButton* BitmapButton_SparkleFrequency;
-		wxSlider* Slider_Contrast;
-		wxSlider* Slider_SparkleFrequency;
 		wxBitmapButton* BitmapButton_Contrast;
-		wxPanel* Panel_Sizer;
-		wxBitmapButton* BitmapButton_random;
-		wxStaticText* StaticText127;
 		wxBitmapButton* BitmapButton_Brightness;
-		wxBitmapButton* BitmapButton_locked;
 		wxFlexGridSizer* FlexGridSizer_Palette;
+		wxBitmapButton* BitmapButton_random;
+		wxBitmapButton* BitmapButton_normal;
+		wxPanel* Panel_Sizer;
+		wxBitmapButton* BitmapButton_SparkleFrequency;
+		wxStaticText* StaticText127;
+		wxTextCtrl* txtCtlBrightness;
+		wxTextCtrl* txtCtlContrast;
+		wxBitmapButton* BitmapButton_locked;
+		wxBitmapButton* BitmapButton_MusicSparkles;
 		wxSlider* Slider_Brightness;
+		wxStaticText* StaticText126;
+		wxSlider* Slider_SparkleFrequency;
+		wxScrolledWindow* ColorScrollWindow;
+		wxTextCtrl* txtCtrlSparkleFreq;
+		wxSlider* Slider_Contrast;
+		wxCheckBox* CheckBox_MusicSparkles;
 		//*)
 
 	protected:
@@ -72,6 +76,8 @@ public:
 		static const long ID_SLIDER_SparkleFrequency;
 		static const long IDD_TEXTCTRL_SparkleFrequency;
 		static const long ID_BITMAPBUTTON_SLIDER_SparkleFrequency;
+		static const long ID_CHECKBOX_MusicSparkles;
+		static const long ID_BITMAPBUTTON_MusicSparkles;
 		static const long ID_STATICTEXT127;
 		static const long ID_SLIDER_Brightness;
 		static const long IDD_TEXTCTRL_Brightness;
@@ -94,15 +100,16 @@ public:
 		void OnButton_PaletteNumberClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnUpdateColorClick(wxCommandEvent& event);
-    
-    
-        void UpdateLinkedSliderFloat(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-        void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-        void UpdateLinkedSlider360(wxCommandEvent& event);
-        void UpdateLinkedTextCtrl(wxScrollEvent& event);
-        void UpdateLinkedSlider(wxCommandEvent& event);
-        void OnLockButtonClick(wxCommandEvent& event);
+
+
+		void UpdateLinkedSliderFloat(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
+		void UpdateLinkedSlider360(wxCommandEvent& event);
+		void UpdateLinkedTextCtrl(wxScrollEvent& event);
+		void UpdateLinkedSlider(wxCommandEvent& event);
+		void OnLockButtonClick(wxCommandEvent& event);
+		void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
 		//*)
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);

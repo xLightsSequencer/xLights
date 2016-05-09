@@ -66,6 +66,7 @@ private:
         LayerInfo(xLightsFrame *frame, bool onlyOnMain) : buffer(frame, onlyOnMain) {
 			blur = 0;
             sparkle_count = 0;
+            music_sparkle_count = false;
             brightness = 0;
             contrast = 0;
             fadeFactor = 0.0;
@@ -87,6 +88,7 @@ private:
         int BufferWi;
         std::vector<NodeBaseClassPtr> Nodes;
         int sparkle_count;
+        bool music_sparkle_count;
 		int blur;
         int brightness;
         int contrast;

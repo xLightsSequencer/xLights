@@ -152,7 +152,7 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
     for (std::map<std::string,std::string>::const_iterator it=mPaletteMap.begin(); it!=mPaletteMap.end(); ++it)
     {
         std::string name = it->first;
-        if (stripPfx && name[1] == '_'  && name[2] == 'S') //only need the slider entries
+        if (stripPfx && name[1] == '_'  && (name[2] == 'S' || name[2] == 'C')) //only need the slider & checkbox entries
         {
             name = name.substr(2);
             target[name] = it->second;
