@@ -1823,6 +1823,124 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
     }
 }
 
+void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
+{
+    wxTextFile f;
+    wxString line;
+    int time;
+
+    for (int i = 0; i < filenames.Count(); ++i)
+    {
+        wxFileName next_file(filenames[i]);
+        next_file.SetPath(dir);
+
+        if (!f.Open(next_file.GetFullPath().c_str()))
+        {
+            wxMessageBox("Failed to open file: " + next_file.GetFullPath());
+            return;
+        }
+
+        std::string filename = next_file.GetName().ToStdString();
+
+        wxArrayString grid_times;
+        wxArrayString timing_options;
+
+        wxXmlDocument input_xml;
+        if (!input_xml.Load(next_file.GetFullPath()))
+        {
+            wxMessageBox("Failed to load XML file: " + next_file.GetFullPath());
+            return;
+        }
+
+        wxXmlNode* e = input_xml.GetRoot();
+
+        if (e->GetName() == "timing")
+        {
+            wxString name = e->GetAttribute("name");
+            wxString v = e->GetAttribute("SourceVersion");
+
+            wxString testname = name;
+            int testnamenum = 1;
+            bool ok = false;
+            do
+            {
+                ok = true;
+                int num_elements = xLightsParent->GetSequenceElements().GetElementCount();
+                for (int i = 0; i < num_elements; ++i)
+                {
+                    Element* element = xLightsParent->GetSequenceElements().GetElement(i);
+                    if (element->GetType() == "timing")
+                    {
+                        if (element->GetName() == testname)
+                        {
+                            testname = name + wxString::Format("%d", testnamenum++);
+                            ok = false;
+                            break;
+                        }
+                    }
+                }
+            } while (!ok);
+            name = testname;
+
+            Element* element;
+            EffectLayer* effectLayer;
+            wxXmlNode* layer;
+            wxXmlNode* timing;
+            if (sequence_loaded)
+            {
+                element = xLightsParent->AddTimingElement(std::string(name.c_str()));
+            }
+            else
+            {
+                AddTimingDisplayElement(name, "1", "0");
+                timing = AddElement(name, "timing");
+            }
+
+            int l = 0;
+            for (wxXmlNode* layers = e->GetChildren(); layers != NULL; layers = layers->GetNext())
+            {
+                if (layers->GetName() == "EffectLayer")
+                {
+                    l++;
+                    if (sequence_loaded)
+                    {
+                        if (l == 1)
+                        {
+                            effectLayer = element->GetEffectLayer(0);
+                        }
+                        else
+                        {
+                            effectLayer = element->AddEffectLayer();
+                        }
+                    }
+                    else
+                    {
+                        layer = AddChildXmlNode(timing, "EffectLayer");
+                    }
+
+                    for (wxXmlNode* effects = layers->GetChildren(); effects != NULL; effects = effects->GetNext())
+                    {
+                        if (effects->GetName() == "Effect")
+                        {
+                            wxString label = effects->GetAttribute("label");
+                            wxString start = effects->GetAttribute("starttime");
+                            wxString end = effects->GetAttribute("endtime");
+                            if (sequence_loaded)
+                            {
+                                effectLayer->AddEffect(0, std::string(label.c_str()), "", "", wxAtoi(start), wxAtoi(end), EFFECT_NOT_SELECTED, false);
+                            }
+                            else
+                            {
+                                AddTimingEffect(layer, std::string(label.c_str()), "0", "0", start, end);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 wxArrayString xLightsXmlFile::GetTimingList(SequenceElements& seq_elements)
 {
     timing_list.Clear();

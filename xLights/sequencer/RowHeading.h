@@ -75,6 +75,7 @@ class RowHeading : public wxWindow
         static const long ID_ROW_MNU_ADD_TIMING_TRACK;
         static const long ID_ROW_MNU_DELETE_TIMING_TRACK;
         static const long ID_ROW_MNU_IMPORT_TIMING_TRACK;
+        static const long ID_ROW_MNU_EXPORT_TIMING_TRACK;
         static const long ID_ROW_MNU_IMPORT_LYRICS;
         static const long ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES;
         static const long ID_ROW_MNU_BREAKDOWN_TIMING_WORDS;

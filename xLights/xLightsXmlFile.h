@@ -101,6 +101,7 @@ class xLightsXmlFile : public wxFileName
         wxArrayString GetTimingList(SequenceElements& seq_elements);
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
+        void ProcessXTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void UpdateVersion();
         void UpdateVersion(const std::string &version);
         void AdjustEffectSettingsForVersion(SequenceElements& elements, xLightsFrame* xLightsParent);

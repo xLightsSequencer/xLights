@@ -34,6 +34,7 @@ const long RowHeading::ID_ROW_MNU_PASTE_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_TIMING_TRACK = wxNewId();
+const long RowHeading::ID_ROW_MNU_EXPORT_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_LYRICS = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_WORDS = wxNewId();
@@ -207,7 +208,8 @@ void RowHeading::rightClick( wxMouseEvent& event)
         mnuLayer = new wxMenu();
         mnuLayer->Append(ID_ROW_MNU_ADD_TIMING_TRACK,"Add Timing Track");
         mnuLayer->Append(ID_ROW_MNU_DELETE_TIMING_TRACK,"Delete Timing Track");
-        mnuLayer->Append(ID_ROW_MNU_IMPORT_TIMING_TRACK,"Import Timing Track");
+        mnuLayer->Append(ID_ROW_MNU_IMPORT_TIMING_TRACK, "Import Timing Track");
+        mnuLayer->Append(ID_ROW_MNU_EXPORT_TIMING_TRACK, "Export Timing Track");
         mnuLayer->AppendSeparator();
         mnuLayer->Append(ID_ROW_MNU_IMPORT_LYRICS,"Import Lyrics");
         mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES,"Breakdown Phrases");
@@ -302,6 +304,29 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
+    }
+    else if (id == ID_ROW_MNU_EXPORT_TIMING_TRACK) {
+        wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, element->GetName(), wxEmptyString, "Timing files (*.xtiming)|*.xtiming", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        if (filename.IsEmpty()) return;
+        wxFile f(filename);
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("Saving to xtiming file %s.", std::string(filename.c_str()).c_str());
+        if (!f.Create(filename, true) || !f.IsOpened())
+        {
+            logger_base.info("Unable to create file %s. Error %d\n", std::string(filename.c_str()).c_str(), f.GetLastError());
+            wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+            return;
+        }
+        wxString name = wxFileName(filename).GetName();
+        wxString td = wxString(mSequenceElements->GetElement(element->GetName())->GetExport().c_str());
+        wxString v = xlights_version_string;
+        f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<timing ");
+        f.Write(wxString::Format("name=\"%s\" ", name));
+        f.Write(wxString::Format("SourceVersion=\"%s\">\n", v));
+        f.Write(td);
+        f.Write("</timing>\n");
+        f.Close();
     } else if(id == ID_ROW_MNU_IMPORT_TIMING_TRACK) {
         wxCommandEvent playEvent(EVT_IMPORT_TIMING);
         wxPostEvent(GetParent(), playEvent);

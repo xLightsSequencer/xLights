@@ -51,6 +51,26 @@ const std::string &Element::GetName() const
     return mName;
 }
 
+std::string Element::GetExport() const
+{
+    std::string res = "";
+
+    for (auto l = mEffectLayers.begin(); l != mEffectLayers.end(); ++l)
+    {
+        res += "   <EffectLayer>\n";
+        for (int i = 0; i < (*l)->GetEffectCount(); i++)
+        {
+            res += "      <Effect label=\""+(*l)->GetEffect(i)->GetEffectName()+
+                              "\" starttime=\"" + std::string(wxString::Format("%d",(*l)->GetEffect(i)->GetStartTimeMS()))+
+                              "\" endtime=\"" + std::string(wxString::Format("%d", (*l)->GetEffect(i)->GetEndTimeMS())) + 
+                              "\" />\n";
+        }
+        res += "   </EffectLayer>\n";
+    }
+
+    return res;
+}
+
 void Element::SetName(const std::string &name)
 {
     mName = name;

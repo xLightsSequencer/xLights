@@ -33,7 +33,8 @@ class Element
     
         SequenceElements *GetSequenceElements() {return parent;}
 
-        const std::string &GetName() const ;
+        std::string GetExport() const;
+        const std::string &GetName() const;
         void SetName(const std::string &name);
 
         bool GetVisible();
