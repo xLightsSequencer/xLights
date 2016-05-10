@@ -6,6 +6,8 @@
 #include "effects/EffectManager.h"
 #include "effects/RenderableEffect.h"
 #include "xLightsXmlFile.h"
+#include <wx/regex.h>
+#include <wx/numdlg.h>
 
 #define string_format wxString::Format
 
@@ -1694,7 +1696,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
     wxString line;
     int time;
 
-    for( int i = 0; i < filenames.Count(); ++i )
+    for (size_t i = 0; i < filenames.Count(); ++i )
     {
         wxFileName next_file(filenames[i]);
         next_file.SetPath(dir);
@@ -1770,7 +1772,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
                         {
                             grid_name = "Unnamed" + grid_id;
                         }
-                        for( int i = 0; i < timing_grids.GetCount(); i++ )
+                        for (size_t i = 0; i < timing_grids.GetCount(); i++ )
                         {
                             if( grid_name == timing_grids[i] )
                             {
@@ -1801,7 +1803,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
 
                                 // process the new timings
                                 int startTime, endTime;
-                                for( int k = 0; k < grid_times.GetCount()-1; ++k )
+                                for (size_t k = 0; k < grid_times.GetCount()-1; ++k )
                                 {
                                     startTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k]),xLightsParent->GetSequenceElements().GetFrequency());
                                     endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k+1]),xLightsParent->GetSequenceElements().GetFrequency());
@@ -1823,13 +1825,38 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
     }
 }
 
+wxString xLightsXmlFile::UniqueTimingName(xLightsFrame* xLightsParent, wxString name)
+{
+    wxString testname = name;
+    int testnamenum = 1;
+    bool ok = false;
+    do
+    {
+        ok = true;
+        int num_elements = xLightsParent->GetSequenceElements().GetElementCount();
+        for (int i = 0; i < num_elements; ++i)
+        {
+            Element* element = xLightsParent->GetSequenceElements().GetElement(i);
+            if (element->GetType() == "timing")
+            {
+                if (element->GetName() == testname)
+                {
+                    testname = name + wxString::Format("_%d", testnamenum++);
+                    ok = false;
+                    break;
+                }
+            }
+        }
+    } while (!ok);
+    return testname;
+}
+
 void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     wxTextFile f;
     wxString line;
-    int time;
 
-    for (int i = 0; i < filenames.Count(); ++i)
+    for (size_t i = 0; i < filenames.Count(); ++i)
     {
         wxFileName next_file(filenames[i]);
         next_file.SetPath(dir);
@@ -1841,9 +1868,6 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
         }
 
         std::string filename = next_file.GetName().ToStdString();
-
-        wxArrayString grid_times;
-        wxArrayString timing_options;
 
         wxXmlDocument input_xml;
         if (!input_xml.Load(next_file.GetFullPath()))
@@ -1859,28 +1883,7 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
             wxString name = e->GetAttribute("name");
             wxString v = e->GetAttribute("SourceVersion");
 
-            wxString testname = name;
-            int testnamenum = 1;
-            bool ok = false;
-            do
-            {
-                ok = true;
-                int num_elements = xLightsParent->GetSequenceElements().GetElementCount();
-                for (int i = 0; i < num_elements; ++i)
-                {
-                    Element* element = xLightsParent->GetSequenceElements().GetElement(i);
-                    if (element->GetType() == "timing")
-                    {
-                        if (element->GetName() == testname)
-                        {
-                            testname = name + wxString::Format("%d", testnamenum++);
-                            ok = false;
-                            break;
-                        }
-                    }
-                }
-            } while (!ok);
-            name = testname;
+            name = UniqueTimingName(xLightsParent, name);
 
             Element* element;
             EffectLayer* effectLayer;
@@ -1932,6 +1935,267 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
                             else
                             {
                                 AddTimingEffect(layer, std::string(label.c_str()), "0", "0", start, end);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void xLightsXmlFile::ProcessError(const wxString& s)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.error(std::string(s.c_str()));
+    wxMessageBox(s);
+}
+
+wxString RemoveTabs(const wxString& s, size_t tabs)
+{
+    wxString res = s;
+
+    for (size_t i = 0; i < tabs; i++)
+    {
+        if (res[0] == '\t')
+        {
+            res = res.SubString(1, res.Length() - 1);
+        }
+    }
+    return res;
+}
+
+void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxTextFile f;
+    wxString line;
+    wxString desc;
+
+    for (size_t i = 0; i < filenames.Count(); ++i)
+    {
+        int linenum = 1;
+        wxFileName next_file(filenames[i]);
+        next_file.SetPath(dir);
+
+        logger_base.info("Loading papagayo file " + std::string(next_file.GetFullPath().c_str()));
+
+        if (!f.Open(next_file.GetFullPath().c_str()))
+        {
+            ProcessError("Failed to open file: " + next_file.GetFullPath());
+            return;
+        }
+
+        line = f.GetFirstLine();
+        if (line.CmpNoCase("lipsync version 1"))
+        {
+            ProcessError(wxString::Format(_("Invalid papagayo file @line %d (header '%s')"), linenum, line.c_str()));
+            return;
+        }
+
+        line = f.GetNextLine(); // filename which we ignore
+        linenum++;
+
+        wxRegEx number("^[0-9]+$");
+        int samppersec = number.Matches(line = f.GetNextLine()) ? wxAtoi(line) : -1;
+        linenum++;
+        if (samppersec < 1)
+        {
+            ProcessError(wxString::Format(_("Invalid file @line %d ('%s' samples per sec)"), linenum, line.c_str()));
+        }
+        int ms = 1000 / samppersec;
+
+        int maxframe = 4 * 60 * samppersec;
+        if (GetMedia() != NULL)
+        {
+            maxframe = GetMedia()->LengthMS() / ms;
+        }
+        int offset = wxGetNumberFromUser("Enter the number of frames to offset the papagayo data by", "", "Offset", 0, 0, maxframe, xLightsParent);
+
+        int numsamp = number.Matches(line = f.GetNextLine()) ? wxAtoi(line) : -1;
+        linenum++;
+        if (numsamp < 1)
+        {
+            ProcessError(wxString::Format(_("Invalid file @line %d ('%s' song samples)"), linenum, line.c_str()));
+        }
+
+        int numvoices = number.Matches(line = f.GetNextLine()) ? wxAtoi(line) : -1;
+        linenum++;
+        if (numvoices < 1)
+        {
+            ProcessError(wxString::Format(_("Invalid file @line %d ('%s' voices)"), linenum, line.c_str()));
+        }
+        logger_base.info("    Voices %d", numvoices);
+
+        for (int v = 1; v <= numvoices; ++v)
+        {
+            wxString name = wxString::Format("Voice %d", v);
+            name = UniqueTimingName(xLightsParent, name);
+            logger_base.info("    Loading voice %d into timing track %s.", v, std::string(name.c_str()));
+
+            wxString voicename = f.GetNextLine();
+            linenum++;
+            if (voicename.empty())
+            {
+                ProcessError(wxString::Format(_("Missing voice# %d of %d"), v, numvoices));
+                return;
+            }
+
+            f.GetNextLine(); //all phrases for voice, "|" delimiter; TODO: do we need to save this?
+            linenum++;
+            desc = wxString::Format(_("voice# %d '%s' @line %d"), v, voicename, linenum);
+
+            int numphrases = number.Matches(line = RemoveTabs(f.GetNextLine(),1)) ? wxAtoi(line) : -1;
+            linenum++;
+            if (numphrases < 0)
+            {
+                ProcessError(wxString::Format(_("Invalid file @line %d ('%s' phrases for %s)"), linenum, line.c_str(), desc.c_str()));
+            }
+
+            Element* element;
+            wxXmlNode* timing, *l1, *l2, *l3;
+            EffectLayer *el1, *el2, *el3;
+
+            if (sequence_loaded)
+            {
+                element = xLightsParent->AddTimingElement(std::string(name.c_str()));
+            }
+            else
+            {
+                AddTimingDisplayElement(name, "1", "0");
+                timing = AddElement(name, "timing");
+            }
+
+            if (sequence_loaded)
+            {
+                el1 = element->GetEffectLayer(0);
+                el2 = element->AddEffectLayer();
+                el3 = element->AddEffectLayer();
+            }
+            else
+            {
+                l1 = AddChildXmlNode(timing, "EffectLayer");
+                l2 = AddChildXmlNode(timing, "EffectLayer");
+                l3 = AddChildXmlNode(timing, "EffectLayer");
+            }
+
+            for (int p = 1; p <= numphrases; ++p)
+            {
+                wxString label = RemoveTabs(f.GetNextLine(), 2);
+                linenum++;
+                if (label == "")
+                {
+                    ProcessError(wxString::Format(_("Missing phrase# %d of %d for %s"), p, numphrases, desc.c_str()));
+                    return;
+                }
+
+                int start = number.Matches(line = RemoveTabs(f.GetNextLine(),2)) ? (offset + wxAtoi(line)) * ms : 0;
+                linenum++;
+
+                int end = number.Matches(line = RemoveTabs(f.GetNextLine(),2)) ? (offset + wxAtoi(line)) * ms : 0;
+                linenum++;
+                desc = wxString::Format(_("voice# %d, phrase %d '%s', start frame %d end frame %d @line %d"), v, p, label.c_str(), start, end, linenum);
+
+                if (sequence_loaded)
+                {
+                    el1->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                }
+                else
+                {
+                    AddTimingEffect(l1, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                }
+
+                int numwords = number.Matches(line = RemoveTabs(f.GetNextLine(),2)) ? wxAtoi(line) : -1;
+                linenum++;
+                if (numwords < 0)
+                {
+                    ProcessError(wxString::Format(_("Invalid file @line %d ('%s' words for %s)"), linenum, line.c_str(), desc.c_str()));
+                }
+
+                for (int w = 1; w <= numwords; ++w)
+                {
+                    line = RemoveTabs(f.GetNextLine(), 3);
+                    linenum++;
+                    int space1 = line.find(' ');
+                    label = line.SubString(0, space1-1);
+                    if (label == "")
+                    {
+                        ProcessError(wxString::Format(_("Missing word# %d of %d for %s"), w, numwords, desc.c_str()));
+                        return;
+                    }
+
+                    int space2 = line.find(' ', space1 + 1);
+                    wxString ss = line.SubString(space1 + 1, space2 - 1);
+                    start = number.Matches(ss) ? (offset + wxAtoi(ss)) * ms : 0;
+                    linenum++;
+
+                    int space3 = line.find(' ', space2 + 1);
+                    ss = line.SubString(space2 + 1, space3 - 1);
+                    end = number.Matches(ss) ? (offset + wxAtoi(ss)) * ms : 0;
+                    linenum++;
+                    desc = wxString::Format(_("voice# %d, phrase# %d, word %d '%s', start frame %d end frame %d @line %d"), v, p, w, label.c_str(), start, end, linenum);
+
+                    if (sequence_loaded)
+                    {
+                        el2->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                    }
+                    else
+                    {
+                        AddTimingEffect(l2, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                    }
+
+                    ss = line.SubString(space3 + 1, line.Length());
+                    int numphonemes = number.Matches(ss) ? wxAtoi(ss) : -1;
+                    linenum++;
+                    if (numphonemes < 0)
+                    {
+                        ProcessError(wxString::Format(_("Invalid file @line %d ('%s' phonemes for %s)"), linenum, line.c_str(), desc.c_str()));
+                    }
+
+                    int outerend = end;
+                    for (int ph = 1; ph <= numphonemes; ++ph)
+                    {
+                        line = RemoveTabs(f.GetNextLine(), 4);
+                        linenum++;
+                        int space1 = line.find(' ');
+
+                        ss = line.SubString(0, space1 - 1);
+                        end = number.Matches(ss) ? (offset + wxAtoi(ss)) * ms : 0;
+                        linenum++;
+
+                        if (ph == 1 && numphonemes != 1)
+                        {
+                            // dont do anything
+                        }
+                        else
+                        {
+                            if (sequence_loaded)
+                            {
+                                el3->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                            }
+                            else
+                            {
+                                AddTimingEffect(l3, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                            }
+                        }
+                        label = line.SubString(space1 + 1, line.Length());
+                        if (label == "")
+                        {
+                            ProcessError(wxString::Format(_("Missing phoneme# %d of %d for %s"), ph, numphonemes, desc.c_str()));
+                            return;
+                        }
+                        start = end;
+
+                        if (ph == numphonemes)
+                        {
+                            end = outerend;
+                            if (sequence_loaded)
+                            {
+                                el3->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                            }
+                            else
+                            {
+                                AddTimingEffect(l3, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
                             }
                         }
                     }
@@ -2200,7 +2464,7 @@ bool xLightsXmlFile::TimingAlreadyExists(const std::string & section, xLightsFra
     {
         timing_list = GetTimingList();
     }
-    for( int i = 0; i < timing_list.size(); ++i )
+    for (size_t i = 0; i < timing_list.size(); ++i )
     {
         if( timing_list[i] == section )
         {
@@ -2228,7 +2492,7 @@ void xLightsXmlFile::AddNewTimingSection(const std::string & filename, xLightsFr
         wxXmlNode*  node = AddElement( filename, "timing" );
         layer = AddChildXmlNode(node, "EffectLayer");
     }
-    for (int k = 0; k < starts.size(); k++) {
+    for (size_t k = 0; k < starts.size(); k++) {
 
         if( sequence_loaded )
         {
@@ -2881,7 +3145,7 @@ void xLightsXmlFile::FixEffectPresets(wxXmlNode* effects_node)
             {
                 wxString settings=ele->GetAttribute("settings");
                 wxArrayString all_efdata = wxSplit(settings, '\n');
-                for( int i = 0; i < all_efdata.size()-1; i++ )
+                for (size_t i = 0; i < all_efdata.size()-1; i++ )
                 {
                     wxArrayString efdata = wxSplit(all_efdata[i], '\t');
                     double time;
