@@ -593,59 +593,6 @@ void adjustMS(int timeMS, int &min, int &max) {
 void EffectsGrid::mouseLeftWindow(wxMouseEvent& event)
 {
     UpdateMousePosition(-1);
-
-    if (event.m_x < 0 && event.m_y >= 0 && event.m_y < getHeight())
-    {
-        // Mouse has exited the window to the left
-        if (mSequenceElements && mResizing)
-        {
-            if (mEffectLayer->GetParentElement()->GetType() == "model")
-            {
-                int stime = mStartResizeTimeMS;
-                int timeMS = mTimeline->GetAbsoluteTimeMSfromPosition(0);
-                int min = stime;
-                int max = stime;
-                adjustMS(timeMS, min, max);
-
-                Effect* effect = mEffectLayer->GetEffect(mResizeEffectIndex);
-                if (effect)
-                {
-                    adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS(), min, max);
-                    adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS(), min, max);
-                    if (mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED && mResizeEffectIndex > 0) {
-                        //also have to re-render the effect to the left
-                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetStartTimeMS(), min, max);
-                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetEndTimeMS(), min, max);
-                    }
-                    else if (mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED
-                        && mResizeEffectIndex < (mEffectLayer->GetEffectCount() - 1)) {
-                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetStartTimeMS(), min, max);
-                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetEndTimeMS(), min, max);
-                    }
-
-                    sendRenderEvent(mEffectLayer->GetParentElement()->GetName(), min, max);
-                    RaisePlayModelEffect(mEffectLayer->GetParentElement(), effect, false);
-                    mResizing = false;
-                    Refresh(false);
-                    mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
-                    mSequenceElements->get_undo_mgr().RemoveUnusedMarkers();
-                }
-            }
-
-            // if dragging an effect endpoint move the selection point with it so it will
-            // focus on that spot if you zoom afterwards.
-            if (mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED)
-            {
-                int selected_time = (int)(mSelectedEffect->GetStartTimeMS());
-                UpdateZoomPosition(selected_time);
-            }
-            else if (mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED)
-            {
-                int selected_time = (int)(mSelectedEffect->GetEndTimeMS());
-                UpdateZoomPosition(selected_time);
-            }
-        }
-    }
 }
 
 int EffectsGrid::GetClippedPositionFromTimeMS(int ms) {
@@ -832,6 +779,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         {
             mResizing = true;
             mResizeEffectIndex = effectIndex;
+            CaptureMouse();
             Refresh(false);
         }
     }
@@ -875,6 +823,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
     bool checkForEmptyCell = false;
     if(mResizing)
     {
+        ReleaseMouse();
         if(mEffectLayer->GetParentElement()->GetType()=="model")
         {
             int stime = mStartResizeTimeMS;
@@ -2293,7 +2242,7 @@ void EffectsGrid::DrawLines()
 
     DrawGLUtils::xlVertexAccumulator va;
     va.PreAlloc(mSequenceElements->GetVisibleRowInformationSize() * 6);
-    
+
     xlColor color(33, 33, 33);
     for(int row=0;row < mSequenceElements->GetVisibleRowInformationSize();row++)
     {
@@ -2320,7 +2269,7 @@ void EffectsGrid::DrawLines()
     }
     DrawGLUtils::Draw(va, color, GL_TRIANGLES);
     va.Reset();
-    
+
     DrawGLUtils::SetLineWidth(0.2);
     for(int row=0;row < mSequenceElements->GetVisibleRowInformationSize();row++)
     {
@@ -2543,7 +2492,7 @@ void EffectsGrid::DrawEffects()
                                 float sz = 1;
                                 float xl = x1+(x/2)-1;
                                 float xr = x1+(x/2)+1;
-                                
+
                                 textures[m_EffectTextures[e->GetEffectIndex()]].AddFullTexture(xl, y-sz, xr, y+sz);
 
                                 lines.AddVertex(xl-0.4,y-sz);
