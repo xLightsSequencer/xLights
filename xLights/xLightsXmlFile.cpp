@@ -1009,7 +1009,7 @@ bool xLightsXmlFile::LoadV3Sequence()
                     element=element->GetNext();
                     labels.push_back(element->GetNodeContent());
                     label_protection.push_back(element->GetAttribute("Protected"));
-                    for( int i = 0; i < models.GetCount(); ++i )
+                    for (size_t i = 0; i < models.GetCount(); ++i )
                     {
                         element=element->GetNext();
                         effects.push_back(element->GetNodeContent());
@@ -1030,23 +1030,23 @@ bool xLightsXmlFile::LoadV3Sequence()
     // load the XML file
     AddTimingDisplayElement( "Imported Timing", "1", "1" );
 
-    for(int i = 0; i < models.GetCount(); ++i)
+    for(size_t i = 0; i < models.GetCount(); ++i)
     {
         AddDisplayElement( models[i], "model", "1", "0", "1" );
     }
 
-    int num_effects = timing.GetCount();
+    size_t num_effects = timing.GetCount();
     int effect_id = 1;
     wxXmlNode* child;
     StringIntMap paletteCache;
 
-    for( int j = 0; j < num_effects; j++ )
+    for( size_t j = 0; j < num_effects; j++ )
     {
         timing[j].ToDouble(&time1);
         timing[j] = string_format("%d", (int)(time1 * 1000.0));
     }
 
-    for(int i = 0; i < models.GetCount(); ++i)
+    for(size_t i = 0; i < models.GetCount(); ++i)
     {
         child = AddElement( models[i], "model" );
         wxXmlNode* layer1 = AddChildXmlNode(child, "EffectLayer");
@@ -1055,7 +1055,7 @@ bool xLightsXmlFile::LoadV3Sequence()
         int time2 = wxAtoi(timing[num_effects-1]);
         time2 += 50;
         last_time = string_format("%d", time2);
-        for(int j = 0; j < num_effects; ++j)
+        for(size_t j = 0; j < num_effects; ++j)
         {
             int next_effect = i+(j*models.GetCount());
             wxString effect_string = effects[next_effect];
@@ -1118,7 +1118,7 @@ bool xLightsXmlFile::LoadV3Sequence()
     // create Imported Timing elements
     child = AddElement( "Imported Timing", "timing" );
     wxXmlNode* layer = AddChildXmlNode(child, "EffectLayer");
-    for(int j = 0; j < num_effects; ++j)
+    for(size_t j = 0; j < num_effects; ++j)
     {
         AddTimingEffect( layer, labels[j], timing_protection[j], "0", timing[j], (j+1<num_effects) ? timing[j+1] : last_time );
     }
@@ -1589,7 +1589,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
     wxString line;
     int r;
 
-    for( int i = 0; i < filenames.Count(); ++i )
+    for( size_t i = 0; i < filenames.Count(); ++i )
     {
         wxFileName next_file(filenames[i]);
         next_file.SetPath(dir);
@@ -1653,7 +1653,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
         }
 
         double time1;
-        for( int j = 0; j < start_times.GetCount(); j++ )
+        for( size_t j = 0; j < start_times.GetCount(); j++ )
         {
             start_times[j].ToDouble(&time1);
             start_times[j] = string_format("%d", (int)(time1 * 1000.0));
@@ -1662,7 +1662,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
         }
 
         int startTime, endTime;
-        for( int k = 0; k < start_times.GetCount(); ++k )
+        for( size_t k = 0; k < start_times.GetCount(); ++k )
         {
             startTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(start_times[k]),GetFrequency());
             endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(end_times[k]),GetFrequency());
@@ -2577,7 +2577,7 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
         }
     }
     if (count > 0) {
-        for( int i = 0; i < elements.GetElementCount(); i++ )  {
+        for( size_t i = 0; i < elements.GetElementCount(); i++ )  {
             Element* elem = elements.GetElement(i);
             if( elem->GetType() == "model" ) {
                 for( int j = 0; j < elem->GetEffectLayerCount(); j++ ) {

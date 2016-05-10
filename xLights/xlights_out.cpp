@@ -992,7 +992,7 @@ void xOutput::SetIntensity (size_t absChNum, wxByte intensity)
 }
 
 void xOutput::SetIntensities(size_t startChannel, unsigned char *buffer, size_t count) {
-    for (int x = 0; x < count; x++) {
+    for (size_t x = 0; x < count; x++) {
         SetIntensity(startChannel + x, buffer[x]);
     }
 }

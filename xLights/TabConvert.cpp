@@ -516,8 +516,8 @@ wxString FRAMECLASS base64_encode()
     unsigned char char_array_3[3];
     unsigned char char_array_4[4];
 
-    for (int channel = 0; channel < SeqData.NumChannels(); channel++) {
-        for (int frame = 0; frame < SeqData.NumFrames(); frame++) {
+    for (size_t channel = 0; channel < SeqData.NumChannels(); channel++) {
+        for (size_t frame = 0; frame < SeqData.NumFrames(); frame++) {
             char_array_3[i++] = SeqData[frame][channel];
             if (i == 3)
             {
@@ -733,7 +733,7 @@ void FRAMECLASS ReadXlightsFile(const wxString& FileName, wxString *mediaFilenam
         else {
             SetMediaFilename(filename);
         }
-        for (int x = 0; x < numch; x++) {
+        for (size_t x = 0; x < numch; x++) {
             readcnt = f.Read(buf, numper);
             if (readcnt < numper)
             {
@@ -836,7 +836,7 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
     f.Write(buf, fixedHeaderLength);
 
 
-    for (long period = 0; period < SeqData.NumFrames(); period++)
+    for (unsigned long period = 0; period < SeqData.NumFrames(); period++)
     {
         for (ch = 0; ch<stepSize; ch++)
         {

@@ -125,7 +125,7 @@ void ArchesModel::InitModel() {
     } else {
         SetNodeCount(NumArches, SegmentsPerArch, rgbOrder);
         if (parm3 > 1) {
-            for (int x = 0; x < Nodes.size(); x++) {
+            for (size_t x = 0; x < Nodes.size(); x++) {
                 Nodes[x]->Coords.resize(parm3);
             }
         }

@@ -12,6 +12,10 @@
 
 class FrameData {
 public:
+    void Zero()
+    {
+        memset(data, 0x00, numChannels);
+    }
     FrameData(unsigned int nc, unsigned char *d) {
         numChannels = nc;
         data = d;

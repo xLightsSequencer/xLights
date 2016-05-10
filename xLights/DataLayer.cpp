@@ -24,7 +24,7 @@ DataLayerSet::~DataLayerSet()
     }
 }
 
-DataLayer* DataLayerSet::GetDataLayer(int index)
+DataLayer* DataLayerSet::GetDataLayer(size_t index)
 {
     if(index < mDataLayers.size())
     {

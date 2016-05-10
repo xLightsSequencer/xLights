@@ -63,12 +63,12 @@ class SequenceElements : public ChangeListener
         Element* AddElement(const std::string &name, const std::string &type,bool visible,bool collapsed,bool active, bool selected);
         Element* AddElement(int index, const std::string &name, const std::string &type,bool visible,bool collapsed,bool active, bool selected);
         Element* GetElement(const std::string &name);
-        Element* GetElement(int index, int view = MASTER_VIEW);
-        int GetElementCount(int view = MASTER_VIEW);
-        Row_Information_Struct* GetVisibleRowInformation(int index);
+        Element* GetElement(size_t index, int view = MASTER_VIEW);
+        size_t GetElementCount(int view = MASTER_VIEW);
+        Row_Information_Struct* GetVisibleRowInformation(size_t index);
         Row_Information_Struct* GetVisibleRowInformationFromRow(int row_number);
         int GetVisibleRowInformationSize();
-        Row_Information_Struct* GetRowInformation(int index);
+        Row_Information_Struct* GetRowInformation(size_t index);
         Row_Information_Struct* GetRowInformationFromRow(int row_number);
         int GetRowInformationSize();
         int GetMaxModelsDisplayed();

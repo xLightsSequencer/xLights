@@ -104,7 +104,7 @@ wxString windows_get_stacktrace(void *data)
             // Print an unknown location:
             // functionNames.push_back("unknown location");
             wxString buffer(wxString::Format("0x%08x" , frame.AddrPC.Offset));
-            for (int x = 1; x < mapLines.GetCount(); x++) {
+            for (size_t x = 1; x < mapLines.GetCount(); x++) {
                 if (wxString(buffer) < mapLines[x]) {
                     buffer += mapLines[x - 1].substr(12).Trim();
                     x = mapLines.GetCount();

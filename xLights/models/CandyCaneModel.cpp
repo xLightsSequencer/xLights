@@ -166,7 +166,7 @@ void CandyCaneModel::InitModel() {
     } else {
         if (parm3 > 1)
 		{
-            for (int x = 0; x < Nodes.size(); x++) 
+            for (size_t x = 0; x < Nodes.size(); x++) 
 			{
                 Nodes[x]->Coords.resize(parm3);
             }
@@ -224,7 +224,7 @@ static void rotate_point(float cx,float cy, float angle, float &x, float &y)
 
 void CandyCaneModel::SetCaneCoord() {
 	int NumCanes = parm1;
-	int SegmentsPerCane = parm2;
+	size_t SegmentsPerCane = parm2;
 	int LightsPerNode = parm3;
     
 	int lightspercane = SegmentsPerCane * LightsPerNode;

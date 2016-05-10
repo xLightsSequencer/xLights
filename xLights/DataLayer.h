@@ -52,7 +52,7 @@ class DataLayerSet
         DataLayerSet();
         virtual ~DataLayerSet();
 
-        DataLayer* GetDataLayer(int index);
+        DataLayer* GetDataLayer(size_t index);
         void RemoveDataLayer(int index);
 
         int GetNumLayers() { return mDataLayers.size(); }

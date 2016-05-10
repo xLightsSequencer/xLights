@@ -37,7 +37,7 @@ void FacesEffect::SetDefaultParameters(Model *cls) {
     if (mSequenceElements == nullptr) {
         return;
     }
-    for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
+    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
         if (mSequenceElements->GetElement(i)->GetEffectLayerCount() == 3
             && mSequenceElements->GetElement(i)->GetType() == "timing") {
             fp->Choice_Faces_TimingTrack->Append(mSequenceElements->GetElement(i)->GetName());
@@ -807,19 +807,19 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             i = "none"; /*RENDER_PICTURE_NONE */
         }        PicturesEffect::Render(buffer, i, picture, 0, 0, 0, 0, 0, 0, 100, 100, true, false, false);  // set for scale to fit
     }
-    for (int t = 0; t < todo.size(); t++) {
+    for (size_t t = 0; t < todo.size(); t++) {
         std::string channels = model_info->faceInfo[definition][todo[t]];
         wxStringTokenizer wtkz(channels, ",");
         while (wtkz.HasMoreTokens()) {
             wxString valstr = wtkz.GetNextToken();
 
             if (type == 0) {
-                for (int n = 0; n < model_info->GetNodeCount(); n++) {
+                for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
                     wxString nn = model_info->GetNodeName(n, true);
                     if (nn == valstr) {
                         std::vector<wxPoint> pts;
                         model_info->GetNodeCoords(n, pts);
-                        for (int x = 0; x < pts.size(); x++) {
+                        for (size_t x = 0; x < pts.size(); x++) {
                             buffer.SetPixel(pts[x].x, pts[x].y, colors[t]);
                         }
                     }
@@ -842,7 +842,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                     std::vector<wxPoint> pts;
                     if (n < model_info->GetNodeCount()) {
                         model_info->GetNodeCoords(n, pts);
-                        for (int x = 0; x < pts.size(); x++) {
+                        for (size_t x = 0; x < pts.size(); x++) {
                             buffer.SetPixel(pts[x].x, pts[x].y, colors[t]);
                         }
                     }

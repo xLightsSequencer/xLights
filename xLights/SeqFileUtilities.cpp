@@ -344,9 +344,8 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
 
 void xLightsFrame::ClearSequenceData()
 {
-    for( int i = 0; i < SeqData.NumFrames(); ++i)
-        for( int j = 0; j < SeqData.NumChannels(); ++j )
-            SeqData[i][j] = 0;
+    for (size_t i = 0; i < SeqData.NumFrames(); ++i)
+        SeqData[i].Zero();
 }
 
 void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
@@ -486,7 +485,7 @@ static EffectLayer* FindOpenLayer(Element* model, int layer_index, int startTime
     }
 
     // need to search for open layer
-    for( int i = 0; i < model->GetEffectLayerCount(); i++ )
+    for( size_t i = 0; i < model->GetEffectLayerCount(); i++ )
     {
         if (i >= reserved.size() || !reserved[i]) {
             layer = model->GetEffectLayer(i);
@@ -518,7 +517,7 @@ public:
         bufLen += ret;
 
         bool needToClose = false;
-        for (int x = 7; x < bufLen; x++) {
+        for (size_t x = 7; x < bufLen; x++) {
             if (buf[x-7] == '<'
                 && buf[x-6] == 'p'
                 && buf[x-5] == 'i'
@@ -799,11 +798,11 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         return;
     }
     int row = 0;
-    for (int m = 0; m < dlg.modelNames.size(); m++) {
+    for (size_t m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
         Model *mc = GetModel(modelName);
         Element * model = nullptr;
-        for (int i=0;i<mSequenceElements.GetElementCount();i++) {
+        for (size_t i=0; i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
                 model = mSequenceElements.GetElement(i);
@@ -2984,11 +2983,11 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
     }
 
     int row = 0;
-    for (int m = 0; m < dlg.modelNames.size(); m++) {
+    for (size_t m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
         Model *mc = GetModel(modelName);
         Element * model = nullptr;
-        for (int i=0;i<mSequenceElements.GetElementCount();i++) {
+        for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
                 model = mSequenceElements.GetElement(i);

@@ -207,7 +207,7 @@ public:
     virtual int GetStrandLength(int strand) const;
 
     virtual int GetNumStrands() const;
-    std::string GetStrandName(int x, bool def = false) const {
+    std::string GetStrandName(size_t x, bool def = false) const {
         if (x < strandNames.size()) {
             return strandNames[x];
         }
@@ -216,7 +216,7 @@ public:
         }
         return "";
     }
-    std::string GetNodeName(int x, bool def = false) const {
+    std::string GetNodeName(size_t x, bool def = false) const {
         if (x < nodeNames.size()) {
             return nodeNames[x];
         }

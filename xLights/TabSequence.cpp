@@ -498,14 +498,20 @@ void xLightsFrame::SaveSequence()
 
     EnableSequenceControls(false);
     wxStopWatch sw; // start a stopwatch timer
-    StatusBar1->SetStatusText(_("Saving ")+xlightsFilename);
-
+    StatusBar1->SetStatusText(_("Saving ")+xlightsFilename+_(" ... Saving xml."));
     CurrentSeqXmlFile->Save(mSequenceElements);
+    StatusBar1->SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
     if (mRenderOnSave) {
+        wxProgressDialog prg("Rendering ...", "", 100, this);
         RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
-        RenderGridToSeqData();
+        prg.Update(10);
+        RenderGridToSeqData(prg);
+        prg.Update(90);
         RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
+        prg.Update(100);
+        prg.Close();
     }
+    StatusBar1->SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
     WriteFalconPiFile(xlightsFilename);
 	DisplayXlightsFilename(xlightsFilename);
     float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
@@ -564,14 +570,19 @@ void xLightsFrame::RenderAll()
     EnableSequenceControls(false);
 	wxYield(); // ensure all controls are disabled.
     wxStopWatch sw; // start a stopwatch timer
+    wxProgressDialog prg("Rendering ...", "", 100, this);
     StatusBar1->SetStatusText(_("Rendering all layers"));
     RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
-    RenderGridToSeqData();
+    prg.Update(10);
+    RenderGridToSeqData(prg);
+    prg.Update(90);
     RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
+    prg.Update(100);
     float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);
     CallAfter(&xLightsFrame::SetStatusText, displayBuff);
 	mRendering = false;
+    prg.Close();
     EnableSequenceControls(true);
 }
 

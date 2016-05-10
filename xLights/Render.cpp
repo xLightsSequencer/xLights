@@ -69,6 +69,10 @@ public:
         std::unique_lock<std::mutex> lock(nextLock);
         return previousFrameDone >= frame;
     }
+    int GetPreviousFrameDone()
+    {
+        return previousFrameDone;
+    }
 protected:
     std::mutex nextLock;
     std::condition_variable nextSignal;
@@ -597,7 +601,7 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     ev->signal.notify_all();
 }
 
-void xLightsFrame::RenderGridToSeqData() {
+void xLightsFrame::RenderGridToSeqData(wxProgressDialog& prg) {
     int numRows = mSequenceElements.GetElementCount();
     if (numRows == 0) {
         //nothing to do....
@@ -609,7 +613,7 @@ void xLightsFrame::RenderGridToSeqData() {
     Element *lastRowEl = NULL;
     AggregatorRenderer aggregator(SeqData.NumFrames());
     int *channelsRendered = new int[SeqData.NumChannels()];
-    for (int x = 0; x < SeqData.NumChannels(); x++) {
+    for (size_t x = 0; x < SeqData.NumChannels(); x++) {
         channelsRendered[x] = -1;
     }
 
@@ -618,7 +622,7 @@ void xLightsFrame::RenderGridToSeqData() {
     aggregator.setNext(&wait);
 
 
-    for (int row = 0; row < mSequenceElements.GetElementCount(); row++) {
+    for (size_t row = 0; row < mSequenceElements.GetElementCount(); row++) {
         Element *rowEl = mSequenceElements.GetElement(row);
         if (rowEl->GetType() == "model" && rowEl != lastRowEl) {
             lastRowEl = rowEl;
@@ -679,7 +683,13 @@ void xLightsFrame::RenderGridToSeqData() {
     }
     if (depsCount > 0 || noDepsCount > 0) {
         //wait to complete
-        while (!wait.checkIfDone(SeqData.NumFrames())) {
+        int frames = SeqData.NumFrames();
+        while (!wait.checkIfDone(frames)) {
+            int done = wait.GetPreviousFrameDone();
+            if (done > 0)
+            {
+                prg.Update(10 + ((80 * done) / frames));
+            }
             wxYield();
         }
     }

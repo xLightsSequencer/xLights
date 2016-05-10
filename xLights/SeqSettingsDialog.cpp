@@ -702,7 +702,7 @@ void SeqSettingsDialog::PopulateTimingGrid()
         timings = xml_file->GetTimingList();
     }
 
-    for(int i = 0; i < timings.GetCount(); ++i)
+    for(size_t i = 0; i < timings.GetCount(); ++i)
     {
         AddTimingCell(timings[i]);
     }

@@ -55,11 +55,11 @@ SequenceElements::~SequenceElements()
 
 void SequenceElements::ClearAllViews()
 {
-    for (int y = 0; y < mAllViews[MASTER_VIEW].size(); y++) {
+    for (size_t y = 0; y < mAllViews[MASTER_VIEW].size(); y++) {
         delete mAllViews[MASTER_VIEW][y];
     }
 
-    for (int x = 0; x < mAllViews.size(); x++) {
+    for (size_t x = 0; x < mAllViews.size(); x++) {
         mAllViews[x].clear();
     }
     mAllViews.clear();
@@ -140,14 +140,14 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
     return NULL;
 }
 
-int SequenceElements::GetElementCount(int view)
+size_t SequenceElements::GetElementCount(int view)
 {
     return mAllViews[view].size();
 }
 
 bool SequenceElements::ElementExists(const std::string &elementName, int view)
 {
-    for(int i=0;i<mAllViews[view].size();i++)
+    for(size_t i=0;i<mAllViews[view].size();i++)
     {
         if(mAllViews[view][i]->GetName() == elementName)
         {
@@ -161,7 +161,7 @@ bool SequenceElements::TimingIsPartOfView(Element* timing, int view)
 {
     std::string view_name = GetViewName(view);
     wxArrayString views = wxSplit(timing->GetViews(),',');
-    for(int v=0;v<views.size();v++)
+    for(size_t v=0;v<views.size();v++)
     {
         if( views[v] == view_name )
         {
@@ -218,7 +218,7 @@ std::string SequenceElements::GetViewModels(const std::string &viewName) const
 
 Element* SequenceElements::GetElement(const std::string &name)
 {
-    for(int i=0;i<mAllViews[MASTER_VIEW].size();i++)
+    for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
     {
         if(name == mAllViews[MASTER_VIEW][i]->GetName())
         {
@@ -228,7 +228,7 @@ Element* SequenceElements::GetElement(const std::string &name)
     return NULL;
 }
 
-Element* SequenceElements::GetElement(int index, int view)
+Element* SequenceElements::GetElement(size_t index, int view)
 {
     if(index < mAllViews[view].size())
     {
@@ -247,7 +247,7 @@ void SequenceElements::DeleteElement(const std::string &name)
         wxString view_models = view->GetAttribute("models");
         wxArrayString all_models = wxSplit(view_models, ',');
         wxArrayString new_models;
-        for( int model = 0; model < all_models.size(); model++ )
+        for(size_t model = 0; model < all_models.size(); model++ )
         {
             if( all_models[model] != name )
             {
@@ -260,9 +260,9 @@ void SequenceElements::DeleteElement(const std::string &name)
     }
 
     // delete element pointer from all views
-    for(int i=0;i<mAllViews.size();i++)
+    for(size_t i=0;i<mAllViews.size();i++)
     {
-        for(int j=0;j<mAllViews[i].size();j++)
+        for(size_t j=0;j<mAllViews[i].size();j++)
         {
             if(name == mAllViews[i][j]->GetName())
             {
@@ -274,7 +274,7 @@ void SequenceElements::DeleteElement(const std::string &name)
     }
 
     // delete contents of pointer
-    for(int j=0;j<mAllViews[MASTER_VIEW].size();j++)
+    for(size_t j=0;j<mAllViews[MASTER_VIEW].size();j++)
     {
         if(name == mAllViews[MASTER_VIEW][j]->GetName())
         {
@@ -289,7 +289,7 @@ void SequenceElements::DeleteElement(const std::string &name)
 void SequenceElements::DeleteElementFromView(const std::string &name, int view)
 {
     // delete element pointer from all views
-    for(int j=0;j<mAllViews[view].size();j++)
+    for(size_t j=0;j<mAllViews[view].size();j++)
     {
         if(name == mAllViews[view][j]->GetName())
         {
@@ -310,7 +310,7 @@ void SequenceElements::DeleteTimingFromView(const std::string &name, int view)
         std::string views = elem->GetViews();
         wxArrayString all_views = wxSplit(views,',');
         int found = -1;
-        for( int j = 0; j < all_views.size(); j++ )
+        for( size_t j = 0; j < all_views.size(); j++ )
         {
             if( all_views[j] == viewName )
             {
@@ -330,9 +330,9 @@ void SequenceElements::DeleteTimingFromView(const std::string &name, int view)
 void SequenceElements::RenameModelInViews(const std::string& old_name, const std::string& new_name)
 {
     // renames models in any views that have been loaded for a sequence
-    for(int view=0; view < mAllViews.size(); view++)
+    for(size_t view=0; view < mAllViews.size(); view++)
     {
-        for(int i=0; i < mAllViews[view].size(); i++)
+        for(size_t i=0; i < mAllViews[view].size(); i++)
         {
             if(mAllViews[view][i]->GetName() == old_name)
             {
@@ -342,7 +342,7 @@ void SequenceElements::RenameModelInViews(const std::string& old_name, const std
     }
 }
 
-Row_Information_Struct* SequenceElements::GetVisibleRowInformation(int index)
+Row_Information_Struct* SequenceElements::GetVisibleRowInformation(size_t index)
 {
     if(index < mVisibleRowInformation.size())
     {
@@ -356,7 +356,7 @@ Row_Information_Struct* SequenceElements::GetVisibleRowInformation(int index)
 
 Row_Information_Struct* SequenceElements::GetVisibleRowInformationFromRow(int row_number)
 {
-    for(int i=0;i<mVisibleRowInformation.size();i++)
+    for(size_t i=0;i<mVisibleRowInformation.size();i++)
     {
         if(row_number == mVisibleRowInformation[i].RowNumber)
         {
@@ -371,7 +371,7 @@ int SequenceElements::GetVisibleRowInformationSize()
     return mVisibleRowInformation.size();
 }
 
-Row_Information_Struct* SequenceElements::GetRowInformation(int index)
+Row_Information_Struct* SequenceElements::GetRowInformation(size_t index)
 {
     if(index < mRowInformation.size())
     {
@@ -385,7 +385,7 @@ Row_Information_Struct* SequenceElements::GetRowInformation(int index)
 
 Row_Information_Struct* SequenceElements::GetRowInformationFromRow(int row_number)
 {
-    for(int i=0;i<mRowInformation.size();i++)
+    for(size_t i=0;i<mRowInformation.size();i++)
     {
         if(row_number == mRowInformation[i].Index)
         {
@@ -636,7 +636,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
         }
     }
 
-    for (int x = 0; x < GetElementCount(); x++) {
+    for (size_t x = 0; x < GetElementCount(); x++) {
         Element *el = GetElement(x);
         if (el->GetEffectLayerCount() == 0) {
             el->AddEffectLayer();
@@ -689,7 +689,7 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
     if(models.length()> 0)
     {
         wxArrayString model=wxSplit(models,',');
-        for(int m=0;m<model.size();m++)
+        for(size_t m=0;m<model.size();m++)
         {
             std::string modelName = model[m].ToStdString();
             if(!ElementExists(modelName) && xframe->AllModels[modelName] != nullptr)
@@ -703,7 +703,7 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
 
 void SequenceElements::SetTimingVisibility(const std::string& name)
 {
-    for(int i=0;i<mAllViews[MASTER_VIEW].size();i++)
+    for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
     {
         Element* elem = mAllViews[MASTER_VIEW][i];
         if( elem->GetType() == "model" )
@@ -718,7 +718,7 @@ void SequenceElements::SetTimingVisibility(const std::string& name)
         {
             elem->SetVisible(false);
             wxArrayString views = wxSplit(elem->GetViews(),',');
-            for(int v=0;v<views.size();v++)
+            for(size_t v=0;v<views.size();v++)
             {
                 std::string viewName = views[v].ToStdString();
                 if( name == viewName )
@@ -742,7 +742,7 @@ void SequenceElements::AddTimingToAllViews(const std::string& timing)
 
 void SequenceElements::AddViewToTimings(std::vector<std::string>& timings, const std::string& name)
 {
-    for( int i = 0; i < timings.size(); i++ )
+    for( size_t i = 0; i < timings.size(); i++ )
     {
         AddTimingToView(timings[i], name);
     }
@@ -756,7 +756,7 @@ void SequenceElements::AddTimingToView(const std::string& timing, const std::str
         std::string views = elem->GetViews();
         wxArrayString all_views = wxSplit(views,',');
         bool found = false;
-        for( int j = 0; j < all_views.size(); j++ )
+        for( size_t j = 0; j < all_views.size(); j++ )
         {
             if( all_views[j] == name )
             {
@@ -780,7 +780,7 @@ void SequenceElements::PopulateView(const std::string &models, int view)
     if(models.length()> 0)
     {
         wxArrayString model=wxSplit(models,',');
-        for(int m=0;m<model.size();m++)
+        for(size_t m=0;m<model.size();m++)
         {
             std::string modelName = model[m].ToStdString();
             Element* elem = GetElement(modelName);
@@ -869,15 +869,15 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
     if (cls->GetDisplayAs() == "ModelGroup" && elem->ShowStrands()) {
         wxString models = cls->GetModelXml()->GetAttribute("models");
         wxArrayString model=wxSplit(models,',');
-        for(int m=0;m<model.size();m++) {
-            for (int x = 0; x < elements.size(); x++) {
+        for(size_t m=0;m<model.size();m++) {
+            for (size_t x = 0; x < elements.size(); x++) {
                 if (elements[x]->GetName() == model[m]) {
                     addModelElement(elements[x], mRowInformation, rowIndex, xframe, elements, true);
                 }
             }
         }
     } else if (elem->ShowStrands()) {
-        for (int s = 0; s < elem->getStrandLayerCount(); s++) {
+        for (size_t s = 0; s < elem->getStrandLayerCount(); s++) {
             StrandLayer * sl = elem->GetStrandLayer(s);
             if (elem->getStrandLayerCount() > 1) {
                 Row_Information_Struct ri;
@@ -969,7 +969,7 @@ void SequenceElements::PopulateRowInformation()
     mRowInformation.clear();
     mTimingRowCount = 0;
 
-    for(int i=0;i<mAllViews[MASTER_VIEW].size();i++)
+    for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
     {
         Element* elem = mAllViews[MASTER_VIEW][i];
 		if (elem != NULL)
@@ -984,7 +984,7 @@ void SequenceElements::PopulateRowInformation()
 		}
     }
 
-    for(int i=0;i<mAllViews[mCurrentView].size();i++)
+    for(size_t i=0;i<mAllViews[mCurrentView].size();i++)
     {
         Element* elem = mAllViews[mCurrentView][i];
 		if (elem != NULL)
@@ -1057,7 +1057,7 @@ int SequenceElements::GetNumberOfTimingRows()
 
 int SequenceElements::GetNumberOfTimingElements() {
     int count = 0;
-    for(int i=0;i<mAllViews[MASTER_VIEW].size();i++)
+    for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
     {
         if(mAllViews[MASTER_VIEW][i]->GetType()=="timing")
         {
@@ -1070,7 +1070,7 @@ int SequenceElements::GetNumberOfTimingElements() {
 
 void SequenceElements::DeactivateAllTimingElements()
 {
-    for(int i=0;i<mAllViews[mCurrentView].size();i++)
+    for(size_t i=0;i<mAllViews[mCurrentView].size();i++)
     {
         if(mAllViews[mCurrentView][i]->GetType()=="timing")
         {
@@ -1213,7 +1213,7 @@ void SequenceElements::MoveElementUp(const std::string &name, int view)
 {
     IncrementChangeCount(nullptr);
 
-    for(int i=0;i<mAllViews[view].size();i++)
+    for(size_t i=0;i<mAllViews[view].size();i++)
     {
         if(name == mAllViews[view][i]->GetName())
         {
@@ -1231,7 +1231,7 @@ void SequenceElements::MoveElementDown(const std::string &name, int view)
 {
     IncrementChangeCount(nullptr);
 
-    for(int i=0;i<mAllViews[view].size();i++)
+    for(size_t i=0;i<mAllViews[view].size();i++)
     {
         if(name == mAllViews[view][i]->GetName())
         {
@@ -1318,7 +1318,7 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
     {
         int phoneme_start_time = start_time;
         double phoneme_interval_ms = (end_time-start_time) / phonemes.Count();
-        for( int i = 0; i < phonemes.Count(); i++ )
+        for (size_t i = 0; i < phonemes.Count(); i++ )
         {
             int phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(start_time+(phoneme_interval_ms*(i + 1)), GetFrequency());
             if( i == phonemes.Count() - 1 || phoneme_end_time > end_time)

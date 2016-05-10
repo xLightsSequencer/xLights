@@ -446,7 +446,7 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
     {
         if( current_view == MASTER_VIEW )
         {
-            for(int i=0;i<dialog.ModelsToAdd.size();i++)
+            for(size_t i=0;i<dialog.ModelsToAdd.size();i++)
             {
                 Element* e = mSequenceElements->AddElement(dialog.ModelsToAdd[i],type,true,false,false,false);
 				if (e != NULL)

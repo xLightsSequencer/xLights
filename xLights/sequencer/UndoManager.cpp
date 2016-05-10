@@ -60,7 +60,7 @@ UndoManager::UndoManager(SequenceElements* parent)
 
 UndoManager::~UndoManager()
 {
-    for( int i = 0; i < mUndoSteps.size(); i++ )
+    for( size_t i = 0; i < mUndoSteps.size(); i++ )
     {
         delete mUndoSteps[i];
     }
