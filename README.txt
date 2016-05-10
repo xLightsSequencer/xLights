@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.28  May 10, 2016
    -- enh (keithsw) Add papagayo timing track import via Timing Track Import context menu
    -- enh (keithsw) Add progress display during rendering all
 2016.27  May 09, 2016
