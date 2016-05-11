@@ -719,6 +719,7 @@ private:
     static const long ID_NOTEBOOK1;
     static const long ID_STATICTEXT6;
     static const long ID_GAUGE1;
+    static const long ID_PANEL5;
     static const long ID_STATICTEXT7;
     static const long ID_PANEL1;
     static const long ID_NEW_SEQUENCE;
@@ -927,9 +928,9 @@ private:
     wxStaticText* StaticText35;
     wxStaticText* StaticText_PgoOutputType;
     wxCheckBox* CheckBox_PgoAutoFade;
+    wxFlexGridSizer* GuageSizer;
     wxPanel* Panel2;
     wxMenuItem* MenuItemSavePlaylists;
-    wxFlexGridSizer* FlexGridSizer1;
     wxPanel* PanelPapagayo;
     wxCheckBox* CheckBox_PgoAutoRest;
     wxButton* ButtonUpdateShow;
@@ -952,6 +953,7 @@ private:
     wxButton* ButtonSaveSchedule;
     wxButton* ButtonAddShow;
     wxButton* Button_CoroGroupDelete;
+    wxGridBagSizer* StatusBarSizer;
     wxMenu* AudioMenu;
     wxTimer Timer1;
     wxFileDialog* FileDialogPgoImage;

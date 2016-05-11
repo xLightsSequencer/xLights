@@ -63,7 +63,7 @@
 #include <wx/string.h>
 //*)
 
-#define TOOLBAR_SAVE_VERSION "0001:"
+#define TOOLBAR_SAVE_VERSION "0002:"
 
 //helper functions
 enum wxbuildinfoformat
@@ -206,6 +206,7 @@ const long xLightsFrame::ID_PANEL7 = wxNewId();
 const long xLightsFrame::ID_NOTEBOOK1 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT6 = wxNewId();
 const long xLightsFrame::ID_GAUGE1 = wxNewId();
+const long xLightsFrame::ID_PANEL5 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT7 = wxNewId();
 const long xLightsFrame::ID_PANEL1 = wxNewId();
 const long xLightsFrame::ID_NEW_SEQUENCE = wxNewId();
@@ -435,6 +436,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer9;
     wxMenuItem* MenuItem22;
+    wxPanel* Panel1;
     wxMenuItem* MenuItem17;
     wxBoxSizer* BoxSizer2;
     wxMenuItem* MenuItem13;
@@ -866,23 +868,27 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Notebook1->AddPage(PanelPapagayo, _("Papagayo"));
     Notebook1->AddPage(PanelSequencer, _("Sequencer"));
     MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).Floatable().PaneBorder(false));
-    AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-    FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
-    FlexGridSizer1->AddGrowableCol(0);
-    FlexGridSizer1->AddGrowableCol(2);
-    FlexGridSizer1->AddGrowableRow(0);
+    AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    StatusBarSizer = new wxGridBagSizer(0, 0);
+    StatusBarSizer->AddGrowableRow(0);
     StatusText = new wxStaticText(AUIStatusBar, ID_STATICTEXT6, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
-    FlexGridSizer1->Add(StatusText, 1, wxALL|wxEXPAND, 5);
-    ProgressBar = new wxGauge(AUIStatusBar, ID_GAUGE1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_GAUGE1"));
-    ProgressBar->SetMinSize(wxDLG_UNIT(AUIStatusBar,wxSize(100,16)));
-    ProgressBar->Hide();
-    FlexGridSizer1->Add(ProgressBar, 1, wxALL, 1);
+    StatusBarSizer->Add(StatusText, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxEXPAND, 2);
+    Panel1 = new wxPanel(AUIStatusBar, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
+    Panel1->SetMinSize(wxDLG_UNIT(AUIStatusBar,wxSize(100,-1)));
+    GuageSizer = new wxFlexGridSizer(1, 1, 0, 0);
+    GuageSizer->AddGrowableCol(0);
+    ProgressBar = new wxGauge(Panel1, ID_GAUGE1, 100, wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(100,-1)), 0, wxDefaultValidator, _T("ID_GAUGE1"));
+    GuageSizer->Add(ProgressBar, 0, wxEXPAND, 0);
+    Panel1->SetSizer(GuageSizer);
+    GuageSizer->Fit(Panel1);
+    GuageSizer->SetSizeHints(Panel1);
+    StatusBarSizer->Add(Panel1, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     FileNameText = new wxStaticText(AUIStatusBar, ID_STATICTEXT7, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-    FlexGridSizer1->Add(FileNameText, 1, wxALL|wxEXPAND, 5);
-    AUIStatusBar->SetSizer(FlexGridSizer1);
-    FlexGridSizer1->Fit(AUIStatusBar);
-    FlexGridSizer1->SetSizeHints(AUIStatusBar);
-    MainAuiManager->AddPane(AUIStatusBar, wxAuiPaneInfo().Name(_T("Status Bar")).DefaultPane().Caption(_("Status bar")).CaptionVisible(false).CloseButton(false).Bottom().DockFixed().Dockable(false).Floatable(false).FloatingPosition(wxPoint(0,0)).FloatingSize(wxSize(0,0)).Movable(false));
+    StatusBarSizer->Add(FileNameText, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxEXPAND, 2);
+    AUIStatusBar->SetSizer(StatusBarSizer);
+    StatusBarSizer->Fit(AUIStatusBar);
+    StatusBarSizer->SetSizeHints(AUIStatusBar);
+    MainAuiManager->AddPane(AUIStatusBar, wxAuiPaneInfo().Name(_T("Status Bar")).DefaultPane().Caption(_("Status bar")).CaptionVisible(false).CloseButton(false).Bottom().DockFixed().Dockable(false).Floatable(false).FloatingPosition(wxPoint(0,0)).FloatingSize(wxSize(0,0)).Movable(false).PaneBorder(false));
     MainAuiManager->Update();
     MenuBar = new wxMenuBar();
     MenuFile = new wxMenu();
@@ -1260,8 +1266,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     mRenderOnSave = true;
     mIconSize = 16;
 
+    StatusBarSizer->AddGrowableCol(0,2);
+    StatusBarSizer->AddGrowableCol(2,1);
     ProgressBar->Hide();
-
     selectedEffectPalette = "";
     selectedEffect = NULL;
     playStartTime = playEndTime = 0;

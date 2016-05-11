@@ -1420,33 +1420,48 @@
 			</object>
 			<object class="AuiManagerItem">
 				<object class="wxPanel" name="ID_PANEL1" variable="AUIStatusBar" member="yes">
-					<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
-						<cols>3</cols>
-						<growablecols>0,2</growablecols>
+					<style>wxNO_BORDER|wxTAB_TRAVERSAL</style>
+					<object class="wxGridBagSizer" variable="StatusBarSizer" member="yes">
 						<growablerows>0</growablerows>
 						<object class="sizeritem">
 							<object class="wxStaticText" name="ID_STATICTEXT6" variable="StatusText" member="yes">
 								<label>Label</label>
 							</object>
+							<col>0</col>
+							<row>0</row>
 							<flag>wxALL|wxEXPAND</flag>
-							<border>5</border>
-							<option>1</option>
+							<border>2</border>
+							<option>2</option>
 						</object>
 						<object class="sizeritem">
-							<object class="wxGauge" name="ID_GAUGE1" variable="ProgressBar" member="yes">
-								<hidden>1</hidden>
-								<minsize>100,16d</minsize>
+							<object class="wxPanel" name="ID_PANEL5" variable="Panel1" member="no">
+								<minsize>100,-1d</minsize>
+								<object class="wxFlexGridSizer" variable="GuageSizer" member="yes">
+									<cols>1</cols>
+									<rows>1</rows>
+									<growablecols>0</growablecols>
+									<object class="sizeritem">
+										<object class="wxGauge" name="ID_GAUGE1" variable="ProgressBar" member="yes">
+											<size>100,-1d</size>
+										</object>
+										<flag>wxEXPAND</flag>
+										<minsize>100,-1d</minsize>
+									</object>
+								</object>
 							</object>
-							<flag>wxALL</flag>
-							<border>1</border>
+							<col>1</col>
+							<row>0</row>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 							<option>1</option>
 						</object>
 						<object class="sizeritem">
 							<object class="wxStaticText" name="ID_STATICTEXT7" variable="FileNameText" member="yes">
 								<label>Label</label>
 							</object>
+							<col>2</col>
+							<row>0</row>
 							<flag>wxALL|wxEXPAND</flag>
-							<border>5</border>
+							<border>2</border>
 							<option>1</option>
 						</object>
 					</object>
@@ -1464,6 +1479,7 @@
 				<floatingposition>0,0</floatingposition>
 				<floatingsize>0,0</floatingsize>
 				<movable>0</movable>
+				<paneborder>0</paneborder>
 				<destroyonclose>0</destroyonclose>
 				<firstadd>0</firstadd>
 			</object>
