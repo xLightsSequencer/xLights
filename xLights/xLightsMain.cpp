@@ -875,13 +875,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     StatusBarSizer->Add(StatusText, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxEXPAND, 2);
     Panel1 = new wxPanel(AUIStatusBar, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
     Panel1->SetMinSize(wxDLG_UNIT(AUIStatusBar,wxSize(100,-1)));
-    GuageSizer = new wxFlexGridSizer(1, 1, 0, 0);
-    GuageSizer->AddGrowableCol(0);
+    GaugeSizer = new wxFlexGridSizer(1, 1, 0, 0);
+    GaugeSizer->AddGrowableCol(0);
     ProgressBar = new wxGauge(Panel1, ID_GAUGE1, 100, wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(100,-1)), 0, wxDefaultValidator, _T("ID_GAUGE1"));
-    GuageSizer->Add(ProgressBar, 0, wxEXPAND, 0);
-    Panel1->SetSizer(GuageSizer);
-    GuageSizer->Fit(Panel1);
-    GuageSizer->SetSizeHints(Panel1);
+    GaugeSizer->Add(ProgressBar, 0, wxEXPAND, 0);
+    Panel1->SetSizer(GaugeSizer);
+    GaugeSizer->Fit(Panel1);
+    GaugeSizer->SetSizeHints(Panel1);
     StatusBarSizer->Add(Panel1, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     FileNameText = new wxStaticText(AUIStatusBar, ID_STATICTEXT7, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     StatusBarSizer->Add(FileNameText, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxEXPAND, 2);
@@ -2011,6 +2011,10 @@ void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
+    if (!QuitMenuItem->IsEnabled()) {
+        return;
+    }
+
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 	logger_base.info("xLights Closing");
 

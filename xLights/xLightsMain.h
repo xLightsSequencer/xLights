@@ -869,6 +869,7 @@ private:
     wxStaticText* StaticText3;
     xlAuiToolBar* PlayToolBar;
     wxMenu* Menu1;
+    wxFlexGridSizer* GaugeSizer;
     wxPanel* PanelSequencer;
     wxButton* ButtonSaveLog;
     wxBitmapButton* BitmapButton_SaveCoroGroup;
@@ -928,7 +929,6 @@ private:
     wxStaticText* StaticText35;
     wxStaticText* StaticText_PgoOutputType;
     wxCheckBox* CheckBox_PgoAutoFade;
-    wxFlexGridSizer* GuageSizer;
     wxPanel* Panel2;
     wxMenuItem* MenuItemSavePlaylists;
     wxPanel* PanelPapagayo;

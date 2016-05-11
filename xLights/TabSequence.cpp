@@ -503,7 +503,7 @@ void xLightsFrame::SaveSequence()
     SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
     if (mRenderOnSave) {
         ProgressBar->Show();
-        GuageSizer->Layout();
+        GaugeSizer->Layout();
         RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
         ProgressBar->SetValue(10);
         RenderGridToSeqData();
@@ -511,7 +511,7 @@ void xLightsFrame::SaveSequence()
         RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
         ProgressBar->SetValue(100);
         ProgressBar->Hide();
-        GuageSizer->Layout();
+        GaugeSizer->Layout();
     }
     SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
     WriteFalconPiFile(xlightsFilename);
@@ -574,7 +574,7 @@ void xLightsFrame::RenderAll()
     wxStopWatch sw; // start a stopwatch timer
 
     ProgressBar->Show();
-    GuageSizer->Layout();
+    GaugeSizer->Layout();
     SetStatusText(_("Rendering all layers"));
     RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
     ProgressBar->SetValue(10);
@@ -588,7 +588,7 @@ void xLightsFrame::RenderAll()
 	mRendering = false;
     EnableSequenceControls(true);
     ProgressBar->Hide();
-    GuageSizer->Layout();
+    GaugeSizer->Layout();
 }
 
 static void enableAllChildControls(wxWindow *parent, bool enable) {
