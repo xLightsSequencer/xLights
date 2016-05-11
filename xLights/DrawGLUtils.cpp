@@ -622,6 +622,7 @@ public:
         switch (size) {
             CASEFONT(10);
             CASEFONT(12);
+            CASEFONT(14);
             CASEFONT(16);
             CASEFONT(18);
             CASEFONT(20);

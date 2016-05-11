@@ -6,13 +6,15 @@
 #include <wx/clipbrd.h>
 
 //(*InternalHeaders(MainSequencer)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
+
+
+#include <wx/dcbuffer.h>
 
 //(*IdInit(MainSequencer)
 const long MainSequencer::ID_CHOICE_VIEW_CHOICE = wxNewId();
-const long MainSequencer::ID_STATICTEXT_Time = wxNewId();
 const long MainSequencer::ID_PANEL1 = wxNewId();
 const long MainSequencer::ID_PANEL3 = wxNewId();
 const long MainSequencer::ID_PANEL6 = wxNewId();
@@ -74,15 +76,82 @@ void MainSequencer::SetHandlers(wxWindow *window)
     }
 }
 
+class TimeDisplayControl : public xlGLCanvas
+{
+public:
+    TimeDisplayControl(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
+                       const wxSize &size=wxDefaultSize, long style=0)
+    : xlGLCanvas(parent, id, pos, size, style, "TimeDisplay") {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        time = "Time: 00:00:00";
+    }
+    virtual ~TimeDisplayControl(){};
+    
+    virtual void SetLabels(const wxString &time, const wxString &fps) {
+        this->fps = fps; this->time = time;
+        renderGL();
+    }
+protected:
+    DECLARE_EVENT_TABLE()
+    void Paint( wxPaintEvent& event ) {
+        renderGL();
+    }
+    
+    virtual bool UsesVertexTextureAccumulator() override {return true;}
+    virtual bool UsesVertexColorAccumulator() override {return false;}
+    virtual bool UsesVertexAccumulator() override {return false;}
+    virtual bool UsesAddVertex() override {return false;}
+    void InitializeGLCanvas() override
+    {
+        if(!IsShownOnScreen()) return;
+        SetCurrentGLContext();
+        xlColor c(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK));
+        LOG_GL_ERRORV(glClearColor(((float)c.Red())/255.0f,
+                                   ((float)c.Green())/255.0f,
+                                   ((float)c.Blue())/255.0f, 1.0f));
+        LOG_GL_ERRORV(glDisable(GL_BLEND));
+        LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
+        LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
+        LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+        mIsInitialized = true;
+    }
+    
+    void renderGL()
+    {
+        if(!mIsInitialized) { InitializeGLCanvas(); }
+        if(!IsShownOnScreen()) return;
+        
+        SetCurrentGLContext();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        if( mWindowResized )
+        {
+            prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+        }
+        static int fs = 14;
+        DrawGLUtils::DrawText(5, 3 + fs, fs, time);
+        DrawGLUtils::DrawText(5, 2 * (3 + fs), fs, fps);
+        
+        SwapBuffers();
+    }
 
+    
+private:
+    wxString time;
+    wxString fps;
+};
+
+BEGIN_EVENT_TABLE(TimeDisplayControl, xlGLCanvas)
+EVT_PAINT(TimeDisplayControl::Paint)
+END_EVENT_TABLE()
 
 MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(MainSequencer)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxStaticText* StaticText1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxStaticText* StaticText1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(3, 3, 0, 0);
@@ -95,8 +164,6 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	ViewChoice = new wxChoice(this, ID_CHOICE_VIEW_CHOICE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_CHOICE"));
 	FlexGridSizer2->Add(ViewChoice, 1, wxBOTTOM|wxLEFT|wxRIGHT, 5);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText_SeqTime = new wxStaticText(this, ID_STATICTEXT_Time, _("Time:"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(70,20)), wxST_NO_AUTORESIZE, _T("ID_STATICTEXT_Time"));
-	FlexGridSizer2->Add(StaticText_SeqTime, 0, wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL|wxFIXED_MINSIZE, 0);
 	FlexGridSizer1->Add(FlexGridSizer2, 0, wxEXPAND, 0);
 	FlexGridSizer4 = new wxFlexGridSizer(2, 0, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
@@ -149,6 +216,13 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
 	//*)
 
+    timeDisplay = new TimeDisplayControl(this, wxID_ANY);
+    FlexGridSizer2->Add(timeDisplay, 1, wxALL|wxEXPAND, 0);
+    FlexGridSizer2->AddGrowableRow(3);
+    FlexGridSizer2->Fit(this);
+    FlexGridSizer2->SetSizeHints(this);
+
+    
     mParent = parent;
     mPlayType = 0;
     SetHandlers(this);
@@ -188,11 +262,12 @@ void MainSequencer::UpdateTimeDisplay(int time_ms, float fps)
     int minutes=seconds / 60;
     seconds=seconds % 60;
     wxString play_time = wxString::Format("Time: %d:%02d.%02d",minutes,seconds,msec);
+    wxString fpsStr;
     if (fps >= 0)
     {
-        play_time += "\nFPS: " + wxString::Format("%5.1f", fps);
+        fpsStr = wxString::Format("FPS: %5.1f",fps);
     }
-    StaticText_SeqTime->SetLabel(play_time);
+    timeDisplay->SetLabels(play_time, fpsStr);
 }
 
 void MainSequencer::SetPlayStatus(int play_type)

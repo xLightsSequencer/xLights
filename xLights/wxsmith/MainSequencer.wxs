@@ -29,15 +29,8 @@
 					<object class="spacer">
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
+						<minsize>-1,3d</minsize>
 						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT_Time" variable="StaticText_SeqTime" member="yes">
-							<label>Time:</label>
-							<size>70,20d</size>
-							<style>wxST_NO_AUTORESIZE</style>
-						</object>
-						<flag>wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL|wxFIXED_MINSIZE</flag>
 					</object>
 				</object>
 				<flag>wxEXPAND</flag>

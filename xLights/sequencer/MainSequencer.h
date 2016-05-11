@@ -16,6 +16,8 @@ wxDECLARE_EVENT(EVT_TOGGLE_PLAY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SCROLL_RIGHT, wxCommandEvent);
 
+class TimeDisplayControl;
+
 class MainSequencer: public wxPanel
 {
 	public:
@@ -44,22 +46,20 @@ class MainSequencer: public wxPanel
 
 		//(*Declarations(MainSequencer)
 		wxScrollBar* ScrollBarEffectsHorizontal;
-		wxScrollBar* ScrollBarEffectsVertical;
-		wxChoice* ViewChoice;
-		EffectsGrid* PanelEffectGrid;
-		wxStaticText* StaticText_SeqTime;
-		RowHeading* PanelRowHeadings;
 		Waveform* PanelWaveForm;
+		EffectsGrid* PanelEffectGrid;
+		wxChoice* ViewChoice;
+		RowHeading* PanelRowHeadings;
+		wxScrollBar* ScrollBarEffectsVertical;
 		TimeLine* PanelTimeLine;
 		//*)
 
         KeyBindingMap keyBindings;
-
+        TimeDisplayControl *timeDisplay;
 	protected:
 
 		//(*Identifiers(MainSequencer)
 		static const long ID_CHOICE_VIEW_CHOICE;
-		static const long ID_STATICTEXT_Time;
 		static const long ID_PANEL1;
 		static const long ID_PANEL3;
 		static const long ID_PANEL6;

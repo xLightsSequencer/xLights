@@ -2031,7 +2031,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
         {
             wxString name = wxString::Format("Voice %d", v);
             name = UniqueTimingName(xLightsParent, name);
-            logger_base.info("    Loading voice %d into timing track %s.", v, std::string(name.c_str()));
+            logger_base.info("    Loading voice %d into timing track %s.", v, (const char *)name.c_str());
 
             wxString voicename = f.GetNextLine();
             linenum++;
