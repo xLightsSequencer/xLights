@@ -1427,10 +1427,6 @@
 						<object class="sizeritem">
 							<object class="wxStaticText" name="ID_STATICTEXT6" variable="StatusText" member="yes">
 								<label>Label</label>
-								<font>
-									<sysfont>wxSYS_OEM_FIXED_FONT</sysfont>
-									<relativesize>0.800000</relativesize>
-								</font>
 							</object>
 							<flag>wxALL|wxEXPAND</flag>
 							<border>5</border>
@@ -1447,10 +1443,6 @@
 						<object class="sizeritem">
 							<object class="wxStaticText" name="ID_STATICTEXT7" variable="FileNameText" member="yes">
 								<label>Label</label>
-								<font>
-									<sysfont>wxSYS_OEM_FIXED_FONT</sysfont>
-									<relativesize>0.800000</relativesize>
-								</font>
 							</object>
 							<flag>wxALL|wxEXPAND</flag>
 							<border>5</border>
@@ -1466,7 +1458,7 @@
 				<pinbutton>0</pinbutton>
 				<closebutton>0</closebutton>
 				<dockdirection>Bottom</dockdirection>
-				<dockabledirection>.TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false)</dockabledirection>
+				<dockabledirection>.Dockable(false)</dockabledirection>
 				<floatable>0</floatable>
 				<floatingposition>0,0</floatingposition>
 				<floatingsize>0,0</floatingsize>
