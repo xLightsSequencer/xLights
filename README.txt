@@ -7,8 +7,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
----------------------------------
+---------------------------------http://vimeo.com/166087291
 2016.28  May 10, 2016
+   -- bug (gil) Better fix for effects dragging past zero. This fixes dragging a timing mark to zero seconds.
    -- enh (keithsw) Add papagayo timing track import via Timing Track Import context menu
    -- enh (keithsw) Add progress display during rendering all
 2016.27  May 09, 2016
