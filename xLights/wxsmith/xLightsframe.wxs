@@ -1420,7 +1420,7 @@
 			</object>
 			<object class="AuiManagerItem">
 				<object class="wxPanel" name="ID_PANEL1" variable="AUIStatusBar" member="yes">
-					<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+					<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
 						<cols>3</cols>
 						<growablecols>0,2</growablecols>
 						<growablerows>0</growablerows>
@@ -1434,10 +1434,11 @@
 						</object>
 						<object class="sizeritem">
 							<object class="wxGauge" name="ID_GAUGE1" variable="ProgressBar" member="yes">
-								<minsize>100,0d</minsize>
+								<hidden>1</hidden>
+								<minsize>100,16d</minsize>
 							</object>
-							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-							<border>3</border>
+							<flag>wxALL</flag>
+							<border>1</border>
 							<option>1</option>
 						</object>
 						<object class="sizeritem">

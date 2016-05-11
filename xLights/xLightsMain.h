@@ -929,6 +929,7 @@ private:
     wxCheckBox* CheckBox_PgoAutoFade;
     wxPanel* Panel2;
     wxMenuItem* MenuItemSavePlaylists;
+    wxFlexGridSizer* FlexGridSizer1;
     wxPanel* PanelPapagayo;
     wxCheckBox* CheckBox_PgoAutoRest;
     wxButton* ButtonUpdateShow;

@@ -502,14 +502,16 @@ void xLightsFrame::SaveSequence()
     CurrentSeqXmlFile->Save(mSequenceElements);
     SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
     if (mRenderOnSave) {
-        wxProgressDialog prg("Rendering ...", "", 100, this);
+        ProgressBar->Show();
+        FlexGridSizer1->Layout();
         RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
-        prg.Update(10);
+        ProgressBar->SetValue(10);
         RenderGridToSeqData();
-        prg.Update(90);
+        ProgressBar->SetValue(90);
         RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
-        prg.Update(100);
-        prg.Close();
+        ProgressBar->SetValue(100);
+        ProgressBar->Hide();
+        FlexGridSizer1->Layout();
     }
     SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
     WriteFalconPiFile(xlightsFilename);
@@ -571,8 +573,8 @@ void xLightsFrame::RenderAll()
 	wxYield(); // ensure all controls are disabled.
     wxStopWatch sw; // start a stopwatch timer
 
-    ProgressBar->Enable();
-
+    ProgressBar->Show();
+    FlexGridSizer1->Layout();
     SetStatusText(_("Rendering all layers"));
     RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
     ProgressBar->SetValue(10);
@@ -585,9 +587,8 @@ void xLightsFrame::RenderAll()
     CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
 	mRendering = false;
     EnableSequenceControls(true);
-    
-    ProgressBar->SetValue(0);
-    ProgressBar->Disable();
+    ProgressBar->Hide();
+    FlexGridSizer1->Layout();
 }
 
 static void enableAllChildControls(wxWindow *parent, bool enable) {

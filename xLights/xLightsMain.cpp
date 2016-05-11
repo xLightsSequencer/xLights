@@ -463,7 +463,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxFlexGridSizer* FlexGridSizer50;
     wxStaticBoxSizer* StaticBoxSizer1;
     wxMenuItem* MenuItem21;
-    wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer43;
     wxMenu* Menu2;
     wxFlexGridSizer* FlexGridSizerPapagayo;
@@ -875,8 +874,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     StatusText = new wxStaticText(AUIStatusBar, ID_STATICTEXT6, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
     FlexGridSizer1->Add(StatusText, 1, wxALL|wxEXPAND, 5);
     ProgressBar = new wxGauge(AUIStatusBar, ID_GAUGE1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_GAUGE1"));
-    ProgressBar->SetMinSize(wxDLG_UNIT(AUIStatusBar,wxSize(100,0)));
-    FlexGridSizer1->Add(ProgressBar, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
+    ProgressBar->SetMinSize(wxDLG_UNIT(AUIStatusBar,wxSize(100,16)));
+    ProgressBar->Hide();
+    FlexGridSizer1->Add(ProgressBar, 1, wxALL, 1);
     FileNameText = new wxStaticText(AUIStatusBar, ID_STATICTEXT7, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     FlexGridSizer1->Add(FileNameText, 1, wxALL|wxEXPAND, 5);
     AUIStatusBar->SetSizer(FlexGridSizer1);
@@ -1259,6 +1259,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     mResetToolbars = false;
     mRenderOnSave = true;
     mIconSize = 16;
+
+    ProgressBar->Hide();
 
     selectedEffectPalette = "";
     selectedEffect = NULL;
