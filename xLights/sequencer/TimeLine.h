@@ -96,7 +96,7 @@ class TimeLine : public wxWindow
         void MoveToLeft(int numberOfPixels);
         void MoveToRight(int numberOfPixels);
         void RaiseChangeTimeline();
-        void CheckNeedToScrollToPlayStart();
+        void CheckNeedToScrollToPlayStart(bool paused = false);
         const static int ZoomLevelValues[];
 
 

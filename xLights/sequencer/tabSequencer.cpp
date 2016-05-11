@@ -760,7 +760,7 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
         playType = PLAY_TYPE_MODEL_PAUSED;
     }
     else if (playType == PLAY_TYPE_MODEL_PAUSED) {
-        mainSequencer->PanelTimeLine->CheckNeedToScrollToPlayStart();
+        mainSequencer->PanelTimeLine->CheckNeedToScrollToPlayStart(true);
         playType = PLAY_TYPE_MODEL;
     }
     else if (playType == PLAY_TYPE_EFFECT_PAUSED) {
@@ -1145,7 +1145,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
         mainSequencer->PanelWaveForm->CheckNeedToScroll();
         mainSequencer->PanelEffectGrid->ForceRefresh();
-        
+
         /*
         int frame = curt / SeqData.FrameTime();
         if ((frame % 10) == 0) {

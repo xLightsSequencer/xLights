@@ -7,13 +7,14 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
----------------------------------http://vimeo.com/166087291
+---------------------------------
+   -- bug (gil)     Fix jumping back to start briefly after an unpause.  Fixes #565.
 2016.28  May 10, 2016
    -- bug (gil) Better fix for effects dragging past zero. This fixes dragging a timing mark to zero seconds.
    -- enh (keithsw) Add papagayo timing track import via Timing Track Import context menu
    -- enh (keithsw) Add progress display during rendering all
 2016.27  May 09, 2016
-   -- bug (dkulp) Fix problems of the model groups that are set to the old default of grid 
+   -- bug (dkulp) Fix problems of the model groups that are set to the old default of grid
                   as per preview using a buffer significantly smaller than they used to
    -- enh (keithsw) Add FPS display when playing the sequence
    -- bug (keithsw) Fix a bug with filename fixups

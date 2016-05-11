@@ -105,16 +105,18 @@ TimeLine::~TimeLine()
 {
 }
 
-void TimeLine::CheckNeedToScrollToPlayStart()
+void TimeLine::CheckNeedToScrollToPlayStart(bool paused)
 {
+    int marker = paused ? mCurrentPlayMarker : mCurrentPlayMarkerStart;
     int StartTime;
     int EndTime;
     GetViewableTimeRange(StartTime, EndTime);
     int scroll_start = GetPositionFromTimeMS(StartTime);
     int scroll_end = GetPositionFromTimeMS(EndTime);
-    if(mCurrentPlayMarkerStart < scroll_start || mCurrentPlayMarkerStart > scroll_end)
+    if(marker < scroll_start || marker > scroll_end)
     {
-        int new_start_time = mCurrentPlayMarkerStartMS - 1000;
+        int markerMS = paused ? mCurrentPlayMarkerMS : mCurrentPlayMarkerStartMS;
+        int new_start_time = markerMS - 1000;
         if( new_start_time < 0 )
         {
             new_start_time = 0;
