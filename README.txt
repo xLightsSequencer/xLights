@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Mark the sequence dirty when sequence duration is changed to prompt for save on exit.  Fixes #563.
    -- bug (gil)     Fix jumping back to start briefly after an unpause.  Fixes #565.
 2016.28  May 10, 2016
    -- bug (gil) Better fix for effects dragging past zero. This fixes dragging a timing mark to zero seconds.
