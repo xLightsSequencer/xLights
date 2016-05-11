@@ -120,7 +120,9 @@ void* JobPoolWorker::Entry()
         if (job) {
             // Call user's implementation for processing request
             ProcessJob(job);
-            delete job;
+            if (job->DeleteWhenComplete()) {
+                delete job;
+            }
             job = NULL;
         } else {
             std::unique_lock<std::mutex> mutLock(*lock);

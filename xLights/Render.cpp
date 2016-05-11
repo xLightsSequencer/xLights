@@ -145,7 +145,7 @@ public:
 class RenderJob: public Job, public NextRenderer {
 public:
     RenderJob(Element *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false, bool clear = false)
-        : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe) {
+        : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), deleteWhenComplete(false) {
         if (row != NULL) {
             name = row->GetName();
             mainBuffer = new PixelBufferClass(xframe, false);
@@ -185,6 +185,13 @@ public:
         if (mainBuffer != NULL) {
             delete mainBuffer;
         }
+    }
+    
+    virtual bool DeleteWhenComplete() override {
+        return deleteWhenComplete;
+    }
+    void SetDeleteWhenComplete() {
+        deleteWhenComplete = true;
     }
     void SetGenericStatus(const wxString &msg, int frame) {
         statusType = 4;
@@ -237,7 +244,7 @@ public:
         statusMsgChars = st;
         statusType = 8;
     }
-    std::string GetStatus() {
+    std::string GetStatus() override {
         return GetwxStatus().ToStdString();
     }
     wxString GetwxStatus() {
@@ -296,7 +303,7 @@ public:
         endFrame = end;
     }
 
-    virtual void Process() {
+    virtual void Process() override {
         log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         SetGenericStatus("Initializing rendering thread for %s\n", 0);
 		logger_base.info("Initializing rendering thread.");
@@ -567,6 +574,7 @@ private:
     SequenceData *seqData;
     bool clearAllFrames;
     RenderEvent renderEvent;
+    bool deleteWhenComplete;
 
     //stuff for handling the status;
     wxString statusMsg;
@@ -685,16 +693,47 @@ void xLightsFrame::RenderGridToSeqData() {
         //wait to complete
         int frames = SeqData.NumFrames();
         while (!wait.checkIfDone(frames)) {
-            int done = wait.GetPreviousFrameDone();
-            if (done > 0)
-            {
-                ProgressBar->SetValue(10 + ((80 * done) / frames));
+            int countModels = 0;
+            int countFrames = 0;
+            
+            
+            for (int row = 0; row < noDepsCount; row++) {
+                if (noDepJobs[row]) {
+                    countModels++;
+                    int i = noDepJobs[row]->GetPreviousFrameDone();
+                    countFrames +=  i > frames ? frames : i;
+                }
+            }
+            for (int row = 0; row < depsCount; row++) {
+                if (depJobs[row]) {
+                    countModels++;
+                    int i = depJobs[row]->GetPreviousFrameDone();
+                    countFrames +=  i > frames ? frames : i;
+                }
+            }
+            countFrames += wait.GetPreviousFrameDone();
+            countFrames -= frames;
+            if (countFrames > 0) {
+                int pct = (countFrames * 80) / (countModels * frames);
+                ProgressBar->SetValue(10 + pct);
             }
             wxYield();
         }
     }
 
     delete []channelsRendered;
+    
+    for (int row = 0; row < noDepsCount; row++) {
+        if (noDepJobs[row]) {
+            delete noDepJobs[row];
+        }
+    }
+    for (int row = 0; row < depsCount; row++) {
+        if (depJobs[row]) {
+            delete depJobs[row];
+        }
+    }
+    
     delete []depJobs;
     delete []noDepJobs;
     RenderDone();
@@ -708,6 +747,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
     Element * el = mSequenceElements.GetElement(model);
     if( el->GetType() != "timing") {
         job = new RenderJob(el, SeqData, this, false, clear);
+        job->SetDeleteWhenComplete();
         if (job->getBuffer() == nullptr) {
             delete job;
             return;
@@ -793,9 +833,8 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
                 job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
             }
         }
-        delete job;
     }
-
+    delete job;
 
 
     if (Out3 == "Lcb") {

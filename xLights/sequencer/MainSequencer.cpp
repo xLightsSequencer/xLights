@@ -81,7 +81,7 @@ class TimeDisplayControl : public xlGLCanvas
 public:
     TimeDisplayControl(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                        const wxSize &size=wxDefaultSize, long style=0)
-    : xlGLCanvas(parent, id, pos, size, style, "TimeDisplay") {
+    : xlGLCanvas(parent, id, pos, size, style, "TimeDisplay", true) {
         SetBackgroundStyle(wxBG_STYLE_PAINT);
         time = "Time: 00:00:00";
     }

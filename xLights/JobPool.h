@@ -20,6 +20,8 @@ public:
     virtual ~Job() {};
     virtual void Process() = 0;
     virtual std::string GetStatus() = 0;
+    
+    virtual bool DeleteWhenComplete() = 0;
 };
 
 

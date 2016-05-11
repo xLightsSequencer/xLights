@@ -34,8 +34,9 @@ private:
 public:
 	AudioScanJob(AudioManager* audio);
 	virtual ~AudioScanJob() {};
-	virtual void Process();
-	virtual std::string GetStatus() { return _status; }
+	virtual void Process() override;
+	virtual std::string GetStatus() override { return _status; }
+    virtual bool DeleteWhenComplete() override { return true; }
 };
 
 class xLightsVamp
