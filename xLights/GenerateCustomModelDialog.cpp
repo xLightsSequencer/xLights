@@ -28,7 +28,8 @@
 #define PAGE_CHOOSEVIDEO 1
 #define PAGE_STARTFRAME 2
 #define PAGE_BULBIDENTIFY 3
-#define PAGE_REVIEWMODEL 4
+#define PAGE_MANUALIDENTIFY 4
+#define PAGE_REVIEWMODEL 5
 
 #define STARTSCANSECS 15
 #define FRAMEMS 50
@@ -95,6 +96,7 @@ const long GenerateCustomModelDialog::ID_STATICTEXT10 = wxNewId();
 const long GenerateCustomModelDialog::ID_TEXTCTRL_GCM_Filename = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_GCM_SelectFile = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_CV_Back = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON_CV_Manual = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_CV_Next = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_ChooseVideo = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT3 = wxNewId();
@@ -105,6 +107,7 @@ const long GenerateCustomModelDialog::ID_BUTTON_Forward10Frames = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT_StartFrameOk = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT_StartTime = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_SF_Back = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON6 = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_SF_Next = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_StartFrame = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT5 = wxNewId();
@@ -129,6 +132,14 @@ const long GenerateCustomModelDialog::ID_TEXTCTRL_BI_Status = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_BI_Back = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_BI_Next = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_BulbIdentify = wxNewId();
+const long GenerateCustomModelDialog::ID_STATICTEXT11 = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON3 = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON1 = wxNewId();
+const long GenerateCustomModelDialog::ID_STATICTEXT4 = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON2 = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON4 = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON5 = wxNewId();
+const long GenerateCustomModelDialog::ID_PANEL2 = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT9 = wxNewId();
 const long GenerateCustomModelDialog::ID_GRID_CM_Result = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_Shrink = wxNewId();
@@ -152,6 +163,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
     _busy = false;
 
 	//(*Initialize(GenerateCustomModelDialog)
+	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer16;
 	wxFlexGridSizer* FlexGridSizer24;
 	wxFlexGridSizer* FlexGridSizer23;
@@ -164,6 +176,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	wxFlexGridSizer* FlexGridSizer25;
 	wxFlexGridSizer* FlexGridSizer22;
 	wxStaticText* StaticText8;
+	wxFlexGridSizer* FlexGridSizer9;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText3;
@@ -172,15 +185,18 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	wxFlexGridSizer* FlexGridSizer15;
 	wxStaticText* StaticText7;
 	wxFlexGridSizer* FlexGridSizer18;
+	wxFlexGridSizer* FlexGridSizer8;
 	wxFlexGridSizer* FlexGridSizer21;
 	wxFlexGridSizer* FlexGridSizer14;
 	wxFlexGridSizer* FlexGridSizer20;
+	wxFlexGridSizer* FlexGridSizer13;
 	wxFlexGridSizer* FlexGridSizer12;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer17;
 	wxStaticText* StaticText4;
+	wxFlexGridSizer* FlexGridSizer28;
 	wxFlexGridSizer* FlexGridSizer26;
 
 	Create(parent, id, _("Generate Custom Models"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
@@ -293,7 +309,9 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer23 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_CV_Back = new wxButton(Panel_ChooseVideo, ID_BUTTON_CV_Back, _("Back"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CV_Back"));
 	FlexGridSizer23->Add(Button_CV_Back, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_CV_Next = new wxButton(Panel_ChooseVideo, ID_BUTTON_CV_Next, _("Next"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CV_Next"));
+	Button_CV_Manual = new wxButton(Panel_ChooseVideo, ID_BUTTON_CV_Manual, _("Manual"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CV_Manual"));
+	FlexGridSizer23->Add(Button_CV_Manual, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_CV_Next = new wxButton(Panel_ChooseVideo, ID_BUTTON_CV_Next, _("Automatic"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CV_Next"));
 	FlexGridSizer23->Add(Button_CV_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer21->Add(FlexGridSizer23, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_ChooseVideo->SetSizer(FlexGridSizer21);
@@ -325,7 +343,9 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_SF_Back = new wxButton(Panel_StartFrame, ID_BUTTON_SF_Back, _("Back"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SF_Back"));
 	FlexGridSizer12->Add(Button_SF_Back, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_SF_Next = new wxButton(Panel_StartFrame, ID_BUTTON_SF_Next, _("Next"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SF_Next"));
+	Button_SF_Manual = new wxButton(Panel_StartFrame, ID_BUTTON6, _("Manual"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
+	FlexGridSizer12->Add(Button_SF_Manual, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_SF_Next = new wxButton(Panel_StartFrame, ID_BUTTON_SF_Next, _("Automatic"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SF_Next"));
 	FlexGridSizer12->Add(Button_SF_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer10->Add(FlexGridSizer12, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_StartFrame->SetSizer(FlexGridSizer10);
@@ -389,6 +409,36 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Panel_BulbIdentify->SetSizer(FlexGridSizer15);
 	FlexGridSizer15->Fit(Panel_BulbIdentify);
 	FlexGridSizer15->SetSizeHints(Panel_BulbIdentify);
+	Panel2 = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL2, wxPoint(482,20), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer4->AddGrowableCol(0);
+	FlexGridSizer4->AddGrowableRow(4);
+	StaticText15 = new wxStaticText(Panel2, ID_STATICTEXT11, _("Click the image to place bulbs."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
+	FlexGridSizer4->Add(StaticText15, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
+	Button_MI_PriorFrame = new wxButton(Panel2, ID_BUTTON3, _("Prior Frame"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	FlexGridSizer8->Add(Button_MI_PriorFrame, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_MI_NextFrame = new wxButton(Panel2, ID_BUTTON1, _("Next Frame"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer8->Add(Button_MI_NextFrame, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer28 = new wxFlexGridSizer(0, 3, 0, 0);
+	StaticText12 = new wxStaticText(Panel2, ID_STATICTEXT4, _("Current Number: "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer28->Add(StaticText12, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer4->Add(FlexGridSizer28, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
+	FlexGridSizer9 = new wxFlexGridSizer(0, 3, 0, 0);
+	Button_MI_UndoBulb = new wxButton(Panel2, ID_BUTTON2, _("Undo Bulb"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	FlexGridSizer9->Add(Button_MI_UndoBulb, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(FlexGridSizer9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer13 = new wxFlexGridSizer(0, 2, 0, 0);
+	Button_MI_Back = new wxButton(Panel2, ID_BUTTON4, _("Back"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	FlexGridSizer13->Add(Button_MI_Back, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_MI_Next = new wxButton(Panel2, ID_BUTTON5, _("Next"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	FlexGridSizer13->Add(Button_MI_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(FlexGridSizer13, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Panel2->SetSizer(FlexGridSizer4);
+	FlexGridSizer4->Fit(Panel2);
+	FlexGridSizer4->SetSizeHints(Panel2);
 	Panel_CustomModel = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_CustomModel, wxPoint(259,19), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_CustomModel"));
 	FlexGridSizer18 = new wxFlexGridSizer(4, 1, 0, 0);
 	FlexGridSizer18->AddGrowableCol(0);
@@ -420,6 +470,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	AuiNotebook_ProcessSettings->AddPage(Panel_ChooseVideo, _("Choose Media"));
 	AuiNotebook_ProcessSettings->AddPage(Panel_StartFrame, _("Start Frame"));
 	AuiNotebook_ProcessSettings->AddPage(Panel_BulbIdentify, _("Bulb Identify"));
+	AuiNotebook_ProcessSettings->AddPage(Panel2, _("Manual Identify"));
 	AuiNotebook_ProcessSettings->AddPage(Panel_CustomModel, _("Custom Model"));
 	FlexGridSizer7->Add(AuiNotebook_ProcessSettings, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer5->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
@@ -440,12 +491,14 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Connect(ID_TEXTCTRL_GCM_Filename,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnTextCtrl_GCM_FilenameText);
 	Connect(ID_BUTTON_GCM_SelectFile,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_GCM_SelectFileClick);
 	Connect(ID_BUTTON_CV_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_CV_BackClick);
+	Connect(ID_BUTTON_CV_Manual,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_CV_ManualClick);
 	Connect(ID_BUTTON_CV_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_CV_NextClick);
 	Connect(ID_BUTTON_Back1Frame,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_Back1FrameClick);
 	Connect(ID_BUTTON_Forward1Frame,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_Forward1FrameClick);
 	Connect(ID_BUTTON_Back10Frames,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_Back10FramesClick);
 	Connect(ID_BUTTON_Forward10Frames,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_Forward10FramesClick);
 	Connect(ID_BUTTON_SF_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_SF_BackClick);
+	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_SF_ManualClick);
 	Connect(ID_BUTTON_SF_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_SF_NextClick);
 	Connect(ID_SLIDER_AdjustBlur,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScrollChanged);
 	Connect(ID_SLIDER_AdjustBlur,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScroll);
@@ -461,6 +514,11 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Connect(ID_BUTTON_CB_RestoreDefault,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BI_RestoreDefaultClick);
 	Connect(ID_BUTTON_BI_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BI_BackClick);
 	Connect(ID_BUTTON_BI_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BI_NextClick);
+	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MI_PriorFrameClick);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MI_NextFrameClick);
+	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MI_UndoBulbClick);
+	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MI_BackClick);
+	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MI_NextClick);
 	Connect(ID_BUTTON_Shrink,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_ShrinkClick);
 	Connect(ID_BUTTON_Grow,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_GrowClick);
 	Connect(ID_BUTTON_CM_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_CM_BackClick);
@@ -487,6 +545,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
     StaticBitmap_Preview->Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&GenerateCustomModelDialog::OnStaticBitmapLeftUp, 0, this);
     StaticBitmap_Preview->Connect(wxEVT_MOTION, (wxObjectEventFunction)&GenerateCustomModelDialog::OnStaticBitmapMouseMove, 0, this);
     StaticBitmap_Preview->Connect(wxEVT_LEAVE_WINDOW, (wxObjectEventFunction)&GenerateCustomModelDialog::OnStaticBitmapMouseLeave, 0, this);
+    StaticBitmap_Preview->Connect(wxEVT_ENTER_WINDOW, (wxObjectEventFunction)&GenerateCustomModelDialog::OnStaticBitmapMouseEnter, 0, this);
 
     _vr = NULL;
     _draggingedge = -1;
@@ -524,11 +583,13 @@ void GenerateCustomModelDialog::ValidateWindow()
         {
             TextCtrl_GCM_Filename->SetBackgroundColour(*wxWHITE);
             Button_CV_Next->Enable();
+            Button_CV_Manual->Enable();
         }
         else
         {
             TextCtrl_GCM_Filename->SetBackgroundColour(*wxRED);
             Button_CV_Next->Disable();
+            Button_CV_Manual->Disable();
         }
         Button_GCM_SelectFile->Enable();
     }
@@ -571,8 +632,18 @@ wxImage GenerateCustomModelDialog::CreateImageFromFrame(AVFrame* frame)
     }
     else
     {
-        wxImage img(_startFrame.GetWidth(), _startFrame.GetHeight(), true);
-        return img;
+        log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+        logger_gcm.info("Video returned no frame.");
+        if (_startFrame.IsOk())
+        {
+            wxImage img(_startFrame.GetWidth(), _startFrame.GetHeight(), true);
+            return img;
+        }
+        else
+        {
+            wxImage img(800, 600, true);
+            return img;
+        }
     }
 }
 
@@ -862,6 +933,10 @@ void GenerateCustomModelDialog::OnAuiNotebook_ProcessSettingsPageChanging(wxAuiN
     {
         event.Veto();
     }
+    else if (_state == VideoProcessingStates::IDENTIFYING_MANUAL && page != PAGE_MANUALIDENTIFY)
+    {
+        event.Veto();
+    }
     else if (_state == VideoProcessingStates::REVIEW_CUSTOM_MODEL && page != PAGE_REVIEWMODEL)
     {
         event.Veto();
@@ -928,8 +1003,20 @@ void GenerateCustomModelDialog::CVTabEntry()
 {
     Button_CV_Next->Enable();
     Button_CV_Back->Enable();
+    if (RadioBox2->GetSelection() == 2)
+    {
+        Button_CV_Manual->Show();
+        Button_CV_Manual->Enable();
+        Button_CV_Next->SetLabel("Automatic");
+    }
+    else
+    {
+        Button_CV_Manual->Hide();
+        Button_CV_Next->SetLabel("Next");
+    }
     Button_GCM_SelectFile->Enable();
     TextCtrl_GCM_Filename->Enable();
+    _manual = false;
 
     if (RadioBox2->GetSelection() == 2)
     {
@@ -999,6 +1086,7 @@ void GenerateCustomModelDialog::SetStartFrame(int time)
 
 void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
 {
+    Button_CV_Manual->Disable();
     Button_CV_Next->Disable();
     Button_GCM_SelectFile->Disable();
     Button_CV_Back->Disable();
@@ -1070,12 +1158,14 @@ void GenerateCustomModelDialog::DoStartFrameIdentify()
 void GenerateCustomModelDialog::SFTabEntry()
 {
     _state = VideoProcessingStates::FINDING_START_FRAME;
+    _manual = false;
     ShowImage(_startFrame);
     Button_Back10Frames->Enable();
     Button_Back1Frame->Enable();
     Button_Forward10Frames->Enable();
     Button_Forward1Frame->Enable();
     Button_SF_Next->Enable();
+    Button_SF_Manual->Enable();
     Button_SF_Back->Enable();
     ValidateWindow();
 }
@@ -1166,8 +1256,8 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     _overallmaxbrightness = 0.0;
     std::map<int, int> levelmaxlen;
     std::map<int, int> levelmaxstart;
-    float level = 0.1;
-    for (int i = 0; i < 9; i++)
+    float level = 0.1f;
+    for (size_t i = 0; i < 9; i++)
     {
         int maxrunlength = 0;
         int currunlength = 0;
@@ -1177,7 +1267,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
         float curmaxbrightness = 0.0;
 
         auto it = framebrightness.begin();
-        for (int j = 0; j < framebrightness.size(); j++)
+        for (size_t j = 0; j < framebrightness.size(); j++)
         {
             if (*it > level)
             {
@@ -1220,7 +1310,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
         levelmaxlen[(int)(level*10.0)] = maxrunlength;
         levelmaxstart[(int)(level*10.0)] = maxrunstart;
         logger_gcm.info("   For level %f maxrunstarts at %dms and goes for %dms with max brightness %f.", level, maxrunstart * FRAMEMS, maxrunlength * FRAMEMS, maxrunbrightness);
-        level += 0.1;
+        level += 0.1f;
     }
 
     // look for thresholds that are close to LEADON long
@@ -1440,6 +1530,7 @@ void GenerateCustomModelDialog::OnButton_SF_NextClick(wxCommandEvent& event)
     Button_Forward10Frames->Disable();
     Button_Forward1Frame->Disable();
     Button_SF_Next->Disable();
+    Button_SF_Manual->Disable();
     Button_SF_Back->Disable();
 
     CheckBox_BI_ManualUpdate->SetValue(true);
@@ -2249,13 +2340,13 @@ wxSize GenerateCustomModelDialog::CalcSize()
 
     _trim = CalcTrim(_lights);
 
-    float best = 1.0;
-    float curr = 0.9;
+    float best = 1.0f;
+    float curr = 0.9f;
 
     while (curr > 0 && TestScale(_lights, _lights.begin(), curr, _trim))
     {
         best = curr;
-        curr = curr - 0.1;
+        curr = curr - 0.1f;
     }
     float start = curr;
     curr = curr - 0.01;
@@ -2412,8 +2503,16 @@ void GenerateCustomModelDialog::DoGenerateCustomModel()
 
 void GenerateCustomModelDialog::OnButton_CM_BackClick(wxCommandEvent& event)
 {
-    BITabEntry(false);
-    SwapPage(PAGE_REVIEWMODEL, PAGE_BULBIDENTIFY);
+    if (_manual)
+    {
+        MITabEntry(false);
+        SwapPage(PAGE_REVIEWMODEL, PAGE_MANUALIDENTIFY);
+    }
+    else
+    {
+        BITabEntry(false);
+        SwapPage(PAGE_REVIEWMODEL, PAGE_BULBIDENTIFY);
+    }
 }
 
 wxString GenerateCustomModelDialog::CreateCustomModelData()
@@ -2660,6 +2759,23 @@ void GenerateCustomModelDialog::OnStaticBitmapLeftUp(wxMouseEvent& event)
         _draggingedge = -1;
         SetCursor(wxCURSOR_ARROW);
     }
+    else if (_state == VideoProcessingStates::IDENTIFYING_MANUAL)
+    {
+        wxSize displaysize = StaticBitmap_Preview->GetSize();
+        int w = _startFrame.GetWidth();
+        int h = _startFrame.GetHeight();
+        float xf = (float)w / (float)displaysize.GetWidth() * (float)event.GetX();
+        float yf = (float)h / (float)displaysize.GetHeight() * (float)event.GetY();
+        if (xf < 0 || xf >= w || yf < 0 || yf >= h)
+        {
+            // outside image bounds
+            return;
+        }
+        _lights.push_back(GCMBulb(wxPoint(xf, yf), _MI_CurrentNode, 255));
+        _biFrame = CreateManualMask(_MI_CurrentFrame);
+        ShowImage(_biFrame);
+        MIValidateWindow();
+    }
 }
 
 
@@ -2673,6 +2789,18 @@ void GenerateCustomModelDialog::OnStaticBitmapMouseLeave(wxMouseEvent& event)
         }
         _draggingedge = -1;
         SetCursor(wxCURSOR_ARROW);
+    }
+    else if (_state == VideoProcessingStates::IDENTIFYING_MANUAL)
+    {
+        SetCursor(wxCURSOR_ARROW);
+    }
+}
+
+void GenerateCustomModelDialog::OnStaticBitmapMouseEnter(wxMouseEvent& event)
+{
+    if (_state == VideoProcessingStates::IDENTIFYING_MANUAL)
+    {
+        SetCursor(wxCURSOR_CROSS);
     }
 }
 
@@ -2703,8 +2831,208 @@ void GenerateCustomModelDialog::OnStaticBitmapMouseMove(wxMouseEvent& event)
     }
 }
 
+void GenerateCustomModelDialog::AdvanceFrame()
+{
+    _MI_CurrentTime += (NODEON + NODEOFF);
+    if (_MI_CurrentTime > _vr->GetLengthMS())
+    {
+        _MI_CurrentTime -= (NODEON + NODEOFF);
+    }
+    _MI_CurrentFrame = CreateImageFromFrame(_vr->GetNextFrame(_MI_CurrentTime)).Copy();
+}
 
+void GenerateCustomModelDialog::ReverseFrame()
+{
+    _MI_CurrentTime -= ((float)(NODEON + NODEOFF));
+    if (_MI_CurrentTime < _startframetime + LEADON + FLAGOFF + FLAGON + FLAGOFF + (NODEON / 2))
+    {
+        _MI_CurrentTime = _startframetime + LEADON + FLAGOFF + FLAGON + FLAGOFF + (NODEON / 2);
+    }
+    _MI_CurrentFrame = CreateImageFromFrame(_vr->GetNextFrame(_MI_CurrentTime)).Copy();
+}
 
+void GenerateCustomModelDialog::OnButton_MI_PriorFrameClick(wxCommandEvent& event)
+{
+    if (_MI_CurrentNode > 1)
+    {
+        while (_lights.size() > 0 && _lights.back().GetNum() == _MI_CurrentNode)
+        {
+            _lights.pop_back();
+        }
+        _MI_CurrentNode--;
+        StaticText12->SetLabel("Current: " + wxString::Format("%d", _MI_CurrentNode));
+        ReverseFrame();
+    }
+    _biFrame = CreateManualMask(_MI_CurrentFrame);
+    ShowImage(_biFrame);
+    MIValidateWindow();
+}
 
+void GenerateCustomModelDialog::OnButton_MI_NextFrameClick(wxCommandEvent& event)
+{
+    _MI_CurrentNode++;
+    StaticText12->SetLabel("Current: " + wxString::Format("%d", _MI_CurrentNode));
+    AdvanceFrame();
+    _biFrame = CreateManualMask(_MI_CurrentFrame);
+    ShowImage(_biFrame);
+    MIValidateWindow();
+}
 
+void GenerateCustomModelDialog::OnButton_MI_UndoBulbClick(wxCommandEvent& event)
+{
+    if (_lights.size() > 0 && _lights.back().GetNum() == _MI_CurrentNode)
+    {
+        _lights.pop_back();
+    }
+    _biFrame = CreateManualMask(_MI_CurrentFrame);
+    ShowImage(_biFrame);
+    MIValidateWindow();
+}
 
+void GenerateCustomModelDialog::OnButton_MI_BackClick(wxCommandEvent& event)
+{
+    if (RadioBox2->GetSelection() == 2)
+    {
+        CVTabEntry();
+        SwapPage(PAGE_MANUALIDENTIFY, PAGE_CHOOSEVIDEO);
+    }
+    else
+    {
+        SFTabEntry();
+        SwapPage(PAGE_MANUALIDENTIFY, PAGE_STARTFRAME);
+    }
+}
+
+void GenerateCustomModelDialog::OnButton_MI_NextClick(wxCommandEvent& event)
+{
+    DoGenerateCustomModel();
+    CMTabEntry();
+    SwapPage(PAGE_MANUALIDENTIFY, PAGE_REVIEWMODEL);
+}
+
+void GenerateCustomModelDialog::MITabEntry(bool erase)
+{
+    if (erase)
+    {
+        _lights.clear();
+        _MI_CurrentNode = 1;
+    }
+    _state = VideoProcessingStates::IDENTIFYING_MANUAL;
+
+    if (RadioBox2->GetSelection() == 2)
+    {
+        Button_MI_NextFrame->Hide();
+        Button_MI_PriorFrame->Hide();
+        // static bitmap
+        _MI_CurrentFrame = _startFrame;
+        StaticText12->Hide();
+    }
+    else
+    {
+        Button_MI_NextFrame->Show();
+        Button_MI_PriorFrame->Show();
+        StaticText12->Show();
+        StaticText12->SetLabel("Current: " + wxString::Format("%d", _MI_CurrentNode));
+        _MI_CurrentTime = _startframetime + LEADON + FLAGOFF + FLAGON + FLAGOFF + (NODEON / 2) - (NODEON + NODEOFF) + (_MI_CurrentNode - 1) * (NODEON + NODEOFF);
+
+        // video ... need to move to first frame
+        AdvanceFrame();
+    }
+    _biFrame = CreateManualMask(_MI_CurrentFrame);
+    ShowImage(_biFrame);
+    MIValidateWindow();
+}
+
+void GenerateCustomModelDialog::OnButton_CV_ManualClick(wxCommandEvent& event)
+{
+    Button_CV_Manual->Disable();
+    Button_CV_Next->Disable();
+    Button_GCM_SelectFile->Disable();
+    Button_CV_Back->Disable();
+    TextCtrl_GCM_Filename->Disable();
+    _manual = true;
+
+    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    logger_gcm.info("File: %s.", std::string(TextCtrl_GCM_Filename->GetValue().c_str()).c_str());
+
+    MITabEntry(true);
+    SwapPage(PAGE_CHOOSEVIDEO, PAGE_MANUALIDENTIFY);
+    ValidateWindow();
+}
+
+wxImage GenerateCustomModelDialog::CreateManualMask(wxImage ref)
+{
+    wxBitmap bmp(ref.GetWidth(), ref.GetHeight());
+    wxMemoryDC dc(bmp);
+
+    dc.DrawBitmap(ref, wxPoint(0, 0), false);
+
+    wxSize displaysize = StaticBitmap_Preview->GetSize();
+    float factor = std::max((float)_startFrame.GetWidth() / (float)displaysize.GetWidth(),
+        (float)_startFrame.GetHeight() / (float)displaysize.GetHeight());
+
+    // now red so they are easy to see
+    for (auto c = _lights.begin(); c != _lights.end(); c++)
+    {
+        c->Draw(dc, factor);
+    }
+
+    return bmp.ConvertToImage();
+}
+
+void GenerateCustomModelDialog::OnButton_SF_ManualClick(wxCommandEvent& event)
+{
+    Button_Back10Frames->Disable();
+    Button_Back1Frame->Disable();
+    Button_Forward10Frames->Disable();
+    Button_Forward1Frame->Disable();
+    Button_SF_Next->Disable();
+    Button_SF_Manual->Disable();
+    Button_SF_Back->Disable();
+    _manual = true;
+
+    _biFrame = _startFrame.Copy();
+
+    MITabEntry(true);
+    SwapPage(PAGE_STARTFRAME, PAGE_MANUALIDENTIFY);
+    ValidateWindow();
+}
+
+void GenerateCustomModelDialog::MIValidateWindow()
+{
+    if (_MI_CurrentNode == 1)
+    {
+        Button_MI_PriorFrame->Disable();
+    }
+    else
+    {
+        Button_MI_PriorFrame->Enable();
+    }
+    if (_lights.size() == 0)
+    {
+        Button_MI_Next->Disable();
+    }
+    else
+    {
+        Button_MI_Next->Enable();
+    }
+    if (_lights.size() > 0 && _lights.back().GetNum() == _MI_CurrentNode)
+    {
+        Button_MI_UndoBulb->Enable();
+    }
+    else
+    {
+        Button_MI_UndoBulb->Disable();
+    }
+    if (RadioBox2->GetSelection() != 2)
+    {
+        if (_MI_CurrentTime + NODEON + NODEOFF > _vr->GetLengthMS())
+        {
+            Button_MI_NextFrame->Disable();
+        }
+        else
+        {
+            Button_MI_NextFrame->Enable();
+        }
+    }
+}

@@ -161,6 +161,7 @@ class GenerateCustomModelDialog: public wxDialog
         FINDING_START_FRAME,
         CIRCLING_BULBS,
         IDENTIFYING_BULBS,
+        IDENTIFYING_MANUAL,
         REVIEW_CUSTOM_MODEL
     };
 
@@ -183,6 +184,10 @@ class GenerateCustomModelDialog: public wxDialog
     wxRect _clip;
     float _overallmaxbrightness;
     float _overallaveragebrightness;
+    bool _manual = false;
+    int _MI_CurrentNode;
+    wxImage _MI_CurrentFrame;
+    int _MI_CurrentTime;
 
     void UpdateProgress(wxProgressDialog& pd, int totaltime);
     wxImage CreateImageFromFrame(AVFrame* frame);
@@ -237,7 +242,11 @@ class GenerateCustomModelDialog: public wxDialog
     wxSize CalcSize();
     void DoGenerateCustomModel();
     void RemoveClippedLights(std::list<GCMBulb>& lights, wxRect& clip);
-
+    void MITabEntry(bool erase);
+    wxImage CreateManualMask(wxImage ref);
+    void AdvanceFrame();
+    void ReverseFrame();
+    void MIValidateWindow();
 #pragma endregion Generate Tab
 
     void ValidateWindow();
@@ -275,6 +284,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxSlider* Slider_BI_MinSeparation;
 		wxButton* Button_BI_Back;
 		wxButton* Button_SF_Back;
+		wxButton* Button_MI_Back;
 		wxButton* Button_Back1Frame;
 		wxStaticText* StaticText13;
 		wxButton* Button_CB_RestoreDefault;
@@ -288,12 +298,14 @@ class GenerateCustomModelDialog: public wxDialog
 		wxGrid* Grid_CM_Result;
 		wxStaticText* StaticText_BI_Slider;
 		wxButton* Button_PCM_Run;
+		wxButton* Button_MI_Next;
 		wxButton* Button_CV_Next;
 		wxPanel* Panel1;
 		wxSpinCtrl* SpinCtrl_NC_Count;
 		wxFileDialog* FileDialog1;
 		wxTextCtrl* TextCtrl_BI_Status;
 		wxButton* Button_Back10Frames;
+		wxButton* Button_SF_Manual;
 		wxGauge* Gauge_Progress;
 		wxButton* Button_CV_Back;
 		wxButton* Button_MT_Next;
@@ -303,17 +315,24 @@ class GenerateCustomModelDialog: public wxDialog
 		wxTextCtrl* TextCtrl_GCM_Filename;
 		wxPanel* Panel_ChooseVideo;
 		wxCheckBox* CheckBox_BI_ManualUpdate;
+		wxButton* Button_MI_UndoBulb;
 		wxSlider* Slider_AdjustBlur;
 		wxButton* Button_GCM_SelectFile;
 		wxPanel* Panel_Generate;
+		wxButton* Button_MI_NextFrame;
 		wxAuiNotebook* AuiNotebook1;
 		wxButton* Button_SF_Next;
 		wxStaticText* StaticText_StartFrameOk;
 		wxPanel* Panel_CustomModel;
 		wxButton* Button_BI_Next;
 		wxCheckBox* CheckBox_BI_IsSteady;
+		wxStaticText* StaticText15;
+		wxButton* Button_CV_Manual;
 		wxRadioBox* RadioBox1;
+		wxStaticText* StaticText12;
+		wxPanel* Panel2;
 		wxPanel* Panel_Prepare;
+		wxButton* Button_MI_PriorFrame;
 		wxSlider* Slider_BI_Sensitivity;
 		wxPanel* Panel_StartFrame;
 		wxButton* Button_Grow;
@@ -341,6 +360,7 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_TEXTCTRL_GCM_Filename;
 		static const long ID_BUTTON_GCM_SelectFile;
 		static const long ID_BUTTON_CV_Back;
+		static const long ID_BUTTON_CV_Manual;
 		static const long ID_BUTTON_CV_Next;
 		static const long ID_PANEL_ChooseVideo;
 		static const long ID_STATICTEXT3;
@@ -351,6 +371,7 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_STATICTEXT_StartFrameOk;
 		static const long ID_STATICTEXT_StartTime;
 		static const long ID_BUTTON_SF_Back;
+		static const long ID_BUTTON6;
 		static const long ID_BUTTON_SF_Next;
 		static const long ID_PANEL_StartFrame;
 		static const long ID_STATICTEXT5;
@@ -375,6 +396,14 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_BUTTON_BI_Back;
 		static const long ID_BUTTON_BI_Next;
 		static const long ID_PANEL_BulbIdentify;
+		static const long ID_STATICTEXT11;
+		static const long ID_BUTTON3;
+		static const long ID_BUTTON1;
+		static const long ID_STATICTEXT4;
+		static const long ID_BUTTON2;
+		static const long ID_BUTTON4;
+		static const long ID_BUTTON5;
+		static const long ID_PANEL2;
 		static const long ID_STATICTEXT9;
 		static const long ID_GRID_CM_Result;
 		static const long ID_BUTTON_Shrink;
@@ -434,12 +463,20 @@ class GenerateCustomModelDialog: public wxDialog
 		void OnButton1Click(wxCommandEvent& event);
 		void OnCheckBox_BI_ManualUpdateClick(wxCommandEvent& event);
 		void OnButton_BI_UpdateClick(wxCommandEvent& event);
+		void OnButton_MI_PriorFrameClick(wxCommandEvent& event);
+		void OnButton_MI_NextFrameClick(wxCommandEvent& event);
+		void OnButton_MI_UndoBulbClick(wxCommandEvent& event);
+		void OnButton_MI_BackClick(wxCommandEvent& event);
+		void OnButton_MI_NextClick(wxCommandEvent& event);
+		void OnButton_CV_ManualClick(wxCommandEvent& event);
+		void OnButton_SF_ManualClick(wxCommandEvent& event);
 		//*)
 
         void OnStaticBitmapLeftUp(wxMouseEvent& event);
         void OnStaticBitmapLeftDown(wxMouseEvent& event);
         void OnStaticBitmapMouseMove(wxMouseEvent& event);
         void OnStaticBitmapMouseLeave(wxMouseEvent& event);
+        void OnStaticBitmapMouseEnter(wxMouseEvent& event);
 
         DECLARE_EVENT_TABLE()
 };
