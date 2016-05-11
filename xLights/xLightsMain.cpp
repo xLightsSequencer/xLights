@@ -204,6 +204,10 @@ const long xLightsFrame::ID_BUTTON6 = wxNewId();
 const long xLightsFrame::ID_PANEL4 = wxNewId();
 const long xLightsFrame::ID_PANEL7 = wxNewId();
 const long xLightsFrame::ID_NOTEBOOK1 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT6 = wxNewId();
+const long xLightsFrame::ID_GAUGE1 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT7 = wxNewId();
+const long xLightsFrame::ID_PANEL1 = wxNewId();
 const long xLightsFrame::ID_NEW_SEQUENCE = wxNewId();
 const long xLightsFrame::ID_OPEN_SEQUENCE = wxNewId();
 const long xLightsFrame::IS_SAVE_SEQ = wxNewId();
@@ -275,7 +279,6 @@ const long xLightsFrame::ID_MENU_OPENGL_1 = wxNewId();
 const long xLightsFrame::ID_MENUITEM19 = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
-const long xLightsFrame::ID_STATUSBAR1 = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
 const long xLightsFrame::ID_MESSAGEDIALOG1 = wxNewId();
 //*)
@@ -460,6 +463,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxFlexGridSizer* FlexGridSizer50;
     wxStaticBoxSizer* StaticBoxSizer1;
     wxMenuItem* MenuItem21;
+    wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer43;
     wxMenu* Menu2;
     wxFlexGridSizer* FlexGridSizerPapagayo;
@@ -507,7 +511,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     EditToolBar->AddTool(ID_PASTE_BY_TIME, _("Paste By Time"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PASTE_BY_TIME")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Paste By Time"), wxEmptyString, NULL);
     EditToolBar->AddTool(ID_PASTE_BY_CELL, _("Paste By Cell"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PASTE_BY_CELL")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Paste By Cell"), wxEmptyString, NULL);
     EditToolBar->Realize();
-    MainAuiManager->AddPane(EditToolBar, wxAuiPaneInfo().Name(_T("Edit Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Top().Gripper());
+    MainAuiManager->AddPane(EditToolBar, wxAuiPaneInfo().Name(_T("Edit Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(5).Top().Gripper());
     ViewToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_VIEW, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     ViewToolBar->AddTool(wxID_ZOOM_IN, _("Zoom In"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_ZOOM_IN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Zoom In"), wxEmptyString, NULL);
     ViewToolBar->AddTool(wxID_ZOOM_OUT, _("Zoom Out"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_ZOOM_OUT")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Zoom Out"), wxEmptyString, NULL);
@@ -863,6 +867,30 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Notebook1->AddPage(PanelPapagayo, _("Papagayo"));
     Notebook1->AddPage(PanelSequencer, _("Sequencer"));
     MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).Floatable().PaneBorder(false));
+    AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer1->AddGrowableCol(0);
+    FlexGridSizer1->AddGrowableCol(2);
+    FlexGridSizer1->AddGrowableRow(0);
+    StatusText = new wxStaticText(AUIStatusBar, ID_STATICTEXT6, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+    wxFont StatusTextFont = wxSystemSettings::GetFont(wxSYS_OEM_FIXED_FONT);
+    if ( !StatusTextFont.Ok() ) StatusTextFont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    StatusTextFont.SetPointSize((int)(StatusTextFont.GetPointSize() * 0.800000));
+    StatusText->SetFont(StatusTextFont);
+    FlexGridSizer1->Add(StatusText, 1, wxALL|wxEXPAND, 5);
+    ProgressBar = new wxGauge(AUIStatusBar, ID_GAUGE1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_GAUGE1"));
+    ProgressBar->SetMinSize(wxDLG_UNIT(AUIStatusBar,wxSize(100,0)));
+    FlexGridSizer1->Add(ProgressBar, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
+    FileNameText = new wxStaticText(AUIStatusBar, ID_STATICTEXT7, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+    wxFont FileNameTextFont = wxSystemSettings::GetFont(wxSYS_OEM_FIXED_FONT);
+    if ( !FileNameTextFont.Ok() ) FileNameTextFont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    FileNameTextFont.SetPointSize((int)(FileNameTextFont.GetPointSize() * 0.800000));
+    FileNameText->SetFont(FileNameTextFont);
+    FlexGridSizer1->Add(FileNameText, 1, wxALL|wxEXPAND, 5);
+    AUIStatusBar->SetSizer(FlexGridSizer1);
+    FlexGridSizer1->Fit(AUIStatusBar);
+    FlexGridSizer1->SetSizeHints(AUIStatusBar);
+    MainAuiManager->AddPane(AUIStatusBar, wxAuiPaneInfo().Name(_T("Status Bar")).DefaultPane().Caption(_("Status bar")).CaptionVisible(false).CloseButton(false).Bottom().DockFixed().TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false).Floatable(false).FloatingPosition(wxPoint(0,0)).FloatingSize(wxSize(0,0)).Movable(false));
     MainAuiManager->Update();
     MenuBar = new wxMenuBar();
     MenuFile = new wxMenu();
@@ -1064,12 +1092,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuHelp->Append(MenuItem2);
     MenuBar->Append(MenuHelp, _("&Help"));
     SetMenuBar(MenuBar);
-    StatusBar1 = new wxStatusBar(this, ID_STATUSBAR1, 0, _T("ID_STATUSBAR1"));
-    int __wxStatusBarWidths_1[2] = { -50, -35 };
-    int __wxStatusBarStyles_1[2] = { wxSB_NORMAL, wxSB_NORMAL };
-    StatusBar1->SetFieldsCount(2,__wxStatusBarWidths_1);
-    StatusBar1->SetStatusStyles(2,__wxStatusBarStyles_1);
-    SetStatusBar(StatusBar1);
     DirDialog1 = new wxDirDialog(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
     Timer1.SetOwner(this, ID_TIMER1);
     MessageDialog1 = new wxMessageDialog(this, _("Hello"), _("Message"), wxOK|wxCANCEL, wxDefaultPosition);
@@ -1590,7 +1612,7 @@ void xLightsFrame::SetPlayMode(play_modes newmode)
     switch (newmode)
     {
     case play_off:
-        StatusBar1->SetStatusText(_("Playback: off"));
+        SetStatusText(_("Playback: off"));
         break;
     default:
         break;
@@ -1756,7 +1778,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     }
     else
     {
-        StatusBar1->SetStatusText(_(""));
+        SetStatusText(_(""));
     }
 
     if (pagenum == PREVIEWTAB)
@@ -1957,7 +1979,7 @@ void xLightsFrame::OnButtonGracefulStopClick(wxCommandEvent& event)
     else if (basic.IsRunning())
     {
         SecondsRemaining = 0;
-        StatusBar1->SetStatusText(_("Finishing playlist"));
+        SetStatusText(_("Finishing playlist"));
         heartbeat("exit", true); //tell fido about graceful exit -DJ
     }
     else
@@ -2076,7 +2098,7 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
             srcDir.GetNext(&fname);
             continue;
         }
-        StatusBar1->SetStatusText("Copying File \""+srcFile.GetFullPath());
+        SetStatusText("Copying File \""+srcFile.GetFullPath());
         success = wxCopyFile(srcDirName+fname,
                              targetDirName+wxFileName::GetPathSeparator()+fname);
         if (!success)
@@ -2086,7 +2108,7 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
         }
         cont = srcDir.GetNext(&fname);
     }
-    StatusBar1->SetStatusText("All xml files backed up.");
+    SetStatusText("All xml files backed up.");
 }
 
 

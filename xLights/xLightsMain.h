@@ -32,7 +32,7 @@
 #include <wx/dirdlg.h>
 #include <wx/frame.h>
 #include <wx/timer.h>
-#include <wx/statusbr.h>
+#include <wx/gauge.h>
 //*)
 
 #include <wx/config.h>
@@ -336,7 +336,7 @@ public:
 	bool SaveEffectsFile();
     void MarkEffectsFileDirty() { UnsavedRgbEffectsChanges=true; }
     void CheckUnsavedChanges();
-    void SetStatusText(const wxString &msg);
+    void SetStatusText(const wxString &msg, int section = 0);
 	std::string GetChannelToControllerMapping(long channel);
 
     enum LAYER_OPTIONS_e
@@ -717,6 +717,10 @@ private:
     static const long ID_PANEL4;
     static const long ID_PANEL7;
     static const long ID_NOTEBOOK1;
+    static const long ID_STATICTEXT6;
+    static const long ID_GAUGE1;
+    static const long ID_STATICTEXT7;
+    static const long ID_PANEL1;
     static const long ID_NEW_SEQUENCE;
     static const long ID_OPEN_SEQUENCE;
     static const long IS_SAVE_SEQ;
@@ -788,7 +792,6 @@ private:
     static const long ID_MENUITEM19;
     static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
-    static const long ID_STATUSBAR1;
     static const long ID_TIMER1;
     static const long ID_MESSAGEDIALOG1;
     //*)
@@ -854,6 +857,7 @@ private:
     wxMenuItem* MenuItem_File_Close_Sequence;
     wxStaticText* StaticTextShowStart;
     wxMenu* MenuItem39;
+    wxPanel* AUIStatusBar;
     xlAuiToolBar* ViewToolBar;
     wxMenuItem* MenuItem37;
     wxStaticText* StaticText1;
@@ -899,7 +903,6 @@ private:
     wxListCtrl* GridNetwork;
     wxStaticText* ShowDirectoryLabel;
     wxPanel* PanelCal;
-    wxStatusBar* StatusBar1;
     wxMenu* MenuFile;
     wxDirDialog* DirDialog1;
     wxAuiNotebook* Notebook1;
@@ -907,6 +910,7 @@ private:
     wxButton* ButtonDeleteShow;
     wxSplitterWindow* SplitterWindow3;
     wxButton* ButtonShowDatesChange;
+    wxStaticText* StatusText;
     wxTextCtrl* TextCtrl_PgoMaxRest;
     wxMenuItem* MenuItem_File_SaveAs_Sequence;
     xlAuiToolBar* MainToolBar;
@@ -930,6 +934,7 @@ private:
     wxButton* ButtonUpdateShow;
     wxMessageDialog* MessageDialog1;
     wxMenu* GridSpacingMenu;
+    wxStaticText* FileNameText;
     wxStaticText* StaticText25;
     wxMenuItem* MenuItem16;
     wxMenuItem* MenuItem34;
@@ -941,6 +946,7 @@ private:
     wxStaticText* StaticText4;
     wxMenu* MenuItem18;
     wxMenu* MenuItem1;
+    wxGauge* ProgressBar;
     xlAuiToolBar* EffectsToolBar;
     wxButton* ButtonSaveSchedule;
     wxButton* ButtonAddShow;
@@ -1182,7 +1188,7 @@ private:
 public:
     bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
     Model *GetModel(const std::string& name);
-    void RenderGridToSeqData(wxProgressDialog& prg);
+    void RenderGridToSeqData();
     bool RenderEffectFromMap(Effect *effect, int layer, int period, const SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false, RenderEvent *event = NULL);

@@ -19,8 +19,12 @@ void FRAMECLASS ConversionError(const wxString& msg)
 {
     wxMessageBox(msg, wxString("Error"), wxOK | wxICON_EXCLAMATION);
 }
-void FRAMECLASS SetStatusText(const wxString &msg) {
-    StatusBar1->SetStatusText(msg);
+void FRAMECLASS SetStatusText(const wxString &msg, int section) {
+    if (section) {
+        FileNameText->SetLabel(msg);
+    } else {
+        StatusText->SetLabel(msg);
+    }
 }
 
 void FRAMECLASS ConversionInit()

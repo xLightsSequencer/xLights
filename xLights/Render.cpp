@@ -500,7 +500,7 @@ public:
             //let the next know we're done
             SetGenericStatus("%s: Notifying next renderer of final frame\n", 0);
             next->setPreviousFrameDone(END_OF_RENDER_FRAME);
-            xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()));
+            xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()), 0);
 
         } else {
             xLights->CallAfter(&xLightsFrame::RenderDone);
@@ -601,7 +601,7 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     ev->signal.notify_all();
 }
 
-void xLightsFrame::RenderGridToSeqData(wxProgressDialog& prg) {
+void xLightsFrame::RenderGridToSeqData() {
     int numRows = mSequenceElements.GetElementCount();
     if (numRows == 0) {
         //nothing to do....
@@ -688,7 +688,7 @@ void xLightsFrame::RenderGridToSeqData(wxProgressDialog& prg) {
             int done = wait.GetPreviousFrameDone();
             if (done > 0)
             {
-                prg.Update(10 + ((80 * done) / frames));
+                ProgressBar->SetValue(10 + ((80 * done) / frames));
             }
             wxYield();
         }
@@ -763,7 +763,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     oName.SetPath( CurrentDir );
     wxString fullpath;
 
-    StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
+    SetStatusText(_("Starting Export for ") + format + "-" + Out3);
     wxYield();
 
     Element * el = mSequenceElements.GetElement(model);
@@ -821,7 +821,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         fullpath=oName.GetFullPath();
         WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels());
     }
-    StatusBar1->SetStatusText(_("Finished writing model: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
+    SetStatusText(_("Finished writing model: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
 
     delete data;
     EnableSequenceControls(true);

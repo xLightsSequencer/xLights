@@ -16,7 +16,7 @@
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 {
     xlightsFilename=filename;
-    StatusBar1->SetStatusText(filename, 1);
+    FileNameText->SetLabel(filename);
 }
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
@@ -217,7 +217,7 @@ void xLightsFrame::LoadEffectsFile()
     CheckForAndCreateDefaultPerpective();
     perspectivePanel->SetPerspectives(PerspectivesNode);
     float elapsedTime = sw.Time()/1000.0; //msec => sec
-    StatusBar1->SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), filename, elapsedTime));
+    SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), filename, elapsedTime));
 }
 
 // returns true on success
@@ -498,25 +498,25 @@ void xLightsFrame::SaveSequence()
 
     EnableSequenceControls(false);
     wxStopWatch sw; // start a stopwatch timer
-    StatusBar1->SetStatusText(_("Saving ")+xlightsFilename+_(" ... Saving xml."));
+    SetStatusText(_("Saving ")+xlightsFilename+_(" ... Saving xml."));
     CurrentSeqXmlFile->Save(mSequenceElements);
-    StatusBar1->SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
+    SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
     if (mRenderOnSave) {
         wxProgressDialog prg("Rendering ...", "", 100, this);
         RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
         prg.Update(10);
-        RenderGridToSeqData(prg);
+        RenderGridToSeqData();
         prg.Update(90);
         RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
         prg.Update(100);
         prg.Close();
     }
-    StatusBar1->SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
+    SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
     WriteFalconPiFile(xlightsFilename);
 	DisplayXlightsFilename(xlightsFilename);
     float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
-    CallAfter(&xLightsFrame::SetStatusText, displayBuff);
+    CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
     EnableSequenceControls(true);
     mSavedChangeCount = mSequenceElements.GetChangeCount();
 }
@@ -570,20 +570,24 @@ void xLightsFrame::RenderAll()
     EnableSequenceControls(false);
 	wxYield(); // ensure all controls are disabled.
     wxStopWatch sw; // start a stopwatch timer
-    wxProgressDialog prg("Rendering ...", "", 100, this);
-    StatusBar1->SetStatusText(_("Rendering all layers"));
+
+    ProgressBar->Enable();
+
+    SetStatusText(_("Rendering all layers"));
     RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
-    prg.Update(10);
-    RenderGridToSeqData(prg);
-    prg.Update(90);
+    ProgressBar->SetValue(10);
+    RenderGridToSeqData();
+    ProgressBar->SetValue(90);
     RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
-    prg.Update(100);
+    ProgressBar->SetValue(100);
     float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);
-    CallAfter(&xLightsFrame::SetStatusText, displayBuff);
+    CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
 	mRendering = false;
-    prg.Close();
     EnableSequenceControls(true);
+    
+    ProgressBar->SetValue(0);
+    ProgressBar->Disable();
 }
 
 static void enableAllChildControls(wxWindow *parent, bool enable) {

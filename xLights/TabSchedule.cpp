@@ -46,7 +46,7 @@ void xLightsFrame::StartScript(const char *scriptname)
 {
     //AuiToolBar1->EnableTool(ID_AUITOOLBARITEM_STOP, true);
     wxString wxname(scriptname, wxConvUTF8);
-    StatusBar1->SetStatusText(_("Playing playlist: ")+wxname);
+    SetStatusText(_("Playing playlist: ")+wxname);
 }
 
 void xLightsFrame::EndScript(const char *scriptname)
@@ -333,7 +333,7 @@ void xLightsFrame::CheckSchedule()
     long SecPastMidnight=n.GetHour()*60*60 + n.GetMinute()*60 + n.GetSecond();
     if (LastSecPastMidnight == SecPastMidnight) return;
     wxString CurrentMoDay = n.Format("%m%d");
-    //StatusBar1->SetStatusText(_("OnSchedTimer: ") + n.FormatISOTime());
+    //SetStatusText(_("OnSchedTimer: ") + n.FormatISOTime());
 
     if (basic.IsRunning())
     {
@@ -345,19 +345,19 @@ void xLightsFrame::CheckSchedule()
         int minutes=(SecondsRemaining + 59) / 60;  // round up
         if (minutes > 60)
         {
-            StatusBar1->SetStatusText(_("Show will end at: ") + strEndTime, 1);
+            SetStatusText(_("Show will end at: ") + strEndTime, 1);
         }
         else if (minutes > 1)
         {
-            StatusBar1->SetStatusText(wxString::Format(_("Show will end in %d minutes"),minutes), 1);
+            SetStatusText(wxString::Format(_("Show will end in %d minutes"),minutes), 1);
         }
         else if (SecondsRemaining > 0)
         {
-            StatusBar1->SetStatusText(wxString::Format(_("Show will end in about %ld seconds"),SecondsRemaining), 1);
+            SetStatusText(wxString::Format(_("Show will end in about %ld seconds"),SecondsRemaining), 1);
         }
         else
         {
-            StatusBar1->SetStatusText(_("Finishing playlist: ") + Playlist, 1);
+            SetStatusText(_("Finishing playlist: ") + Playlist, 1);
         }
 
     }
@@ -393,7 +393,7 @@ void xLightsFrame::CheckSchedule()
             }
             if (i >= cnt)
             {
-                StatusBar1->SetStatusText(_("No show scheduled for today"), 1);
+                SetStatusText(_("No show scheduled for today"), 1);
                 return;
             }
             do
@@ -414,7 +414,7 @@ void xLightsFrame::CheckSchedule()
             while (i < cnt && ShowEvents[i].StartsWith(CurrentMoDay));
             if (!MoreShowsToday)
             {
-                StatusBar1->SetStatusText(_("No more shows scheduled for today"), 1);
+                SetStatusText(_("No more shows scheduled for today"), 1);
                 SetPlayMode(play_off);
                 return;
             }
@@ -428,11 +428,11 @@ void xLightsFrame::CheckSchedule()
                 SecondsRemaining=StartTimeSec - SecPastMidnight;
                 if (SecondsRemaining >= 3600)
                 {
-                    StatusBar1->SetStatusText(_("Next show will start at: ") + strStartTime, 1);
+                    SetStatusText(_("Next show will start at: ") + strStartTime, 1);
                 }
                 else
                 {
-                    StatusBar1->SetStatusText(wxString::Format(_("Next show starts in %d:%02d"),int(SecondsRemaining/60),int(SecondsRemaining%60)), 1);
+                    SetStatusText(wxString::Format(_("Next show starts in %d:%02d"),int(SecondsRemaining/60),int(SecondsRemaining%60)), 1);
                 }
             }
             else if (SecPastMidnight < EndTimeSec)
@@ -459,7 +459,7 @@ void xLightsFrame::CheckSchedule()
                 }
                 else
                 {
-                    StatusBar1->SetStatusText(_("ERROR: cannot find playlist ") + Playlist, 1);
+                    SetStatusText(_("ERROR: cannot find playlist ") + Playlist, 1);
                 }
             }
             else
@@ -743,7 +743,7 @@ void xLightsFrame::OnButtonPlayItemClick(wxCommandEvent& event)
 {
     if (basic.IsRunning())
     {
-        StatusBar1->SetStatusText(_("A playlist is already running!"));
+        SetStatusText(_("A playlist is already running!"));
         return;
     }
     int baseid=1000*Notebook1->GetSelection();
@@ -760,7 +760,7 @@ void xLightsFrame::OnButtonPlayItemClick(wxCommandEvent& event)
     // ignore delay value
     if (Play(filename,0))
     {
-        StatusBar1->SetStatusText(_("Playing: ") + filename);
+        SetStatusText(_("Playing: ") + filename);
         PlayerDlg->ShowPlayerControls(wxMEDIACTRLPLAYERCONTROLS_DEFAULT);
         PlayerDlg->ShowFullScreen(false, 0);
         PlayerDlg->Show();
@@ -1130,7 +1130,7 @@ void xLightsFrame::SaveScheduleFile()
     if (doc.Save(FileName))
     {
         UnsavedPlaylistChanges=false;
-        StatusBar1->SetStatusText(_("File saved successfully"));
+        SetStatusText(_("File saved successfully"));
     }
     else
     {
@@ -1288,7 +1288,7 @@ void xLightsFrame::RunPlaylist(int nbidx, wxString& script)
 void xLightsFrame::SendToLogAndStatusBar(const wxString& msg)
 {
     TextCtrlLog->AppendText(msg + "\n");
-    StatusBar1->SetStatusText(msg);
+    SetStatusText(msg);
 }
 
 wxString xLightsFrame::OnOffString(bool b)
@@ -1414,11 +1414,11 @@ void xLightsFrame::OnButtonSaveLogClick(wxCommandEvent& event)
     {
         if (TextCtrlLog->SaveFile( filedlg.GetPath() ))
         {
-            StatusBar1->SetStatusText(_("Log saved successfully to: ")+filename);
+            SetStatusText(_("Log saved successfully to: ")+filename);
         }
         else
         {
-            StatusBar1->SetStatusText(_("An error occurred while saving: ")+filename);
+            SetStatusText(_("An error occurred while saving: ")+filename);
         }
     }
 }
@@ -1747,12 +1747,12 @@ void xLightsFrame::CheckRunSchedule()
     if (CheckBoxRunSchedule->IsChecked())
     {
         ForceScheduleCheck();
-        StatusBar1->SetStatusText(_("Starting scheduler"), 1);
+        SetStatusText(_("Starting scheduler"), 1);
         heartbeat("schedule start", true); //tell fido to start watching -DJ
     }
     else
     {
-        StatusBar1->SetStatusText(_("Scheduler not running"), 1);
+        SetStatusText(_("Scheduler not running"), 1);
         heartbeat("schedule stop", true); //tell fido to stop watching -DJ
     }
 }

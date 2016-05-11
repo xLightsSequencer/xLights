@@ -1417,6 +1417,62 @@
 				<destroyonclose>0</destroyonclose>
 				<firstadd>0</firstadd>
 			</object>
+			<object class="AuiManagerItem">
+				<object class="wxPanel" name="ID_PANEL1" variable="AUIStatusBar" member="yes">
+					<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+						<cols>3</cols>
+						<growablecols>0,2</growablecols>
+						<growablerows>0</growablerows>
+						<object class="sizeritem">
+							<object class="wxStaticText" name="ID_STATICTEXT6" variable="StatusText" member="yes">
+								<label>Label</label>
+								<font>
+									<sysfont>wxSYS_OEM_FIXED_FONT</sysfont>
+									<relativesize>0.800000</relativesize>
+								</font>
+							</object>
+							<flag>wxALL|wxEXPAND</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxGauge" name="ID_GAUGE1" variable="ProgressBar" member="yes">
+								<minsize>100,0d</minsize>
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>3</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxStaticText" name="ID_STATICTEXT7" variable="FileNameText" member="yes">
+								<label>Label</label>
+								<font>
+									<sysfont>wxSYS_OEM_FIXED_FONT</sysfont>
+									<relativesize>0.800000</relativesize>
+								</font>
+							</object>
+							<flag>wxALL|wxEXPAND</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+					</object>
+				</object>
+				<name>Status Bar</name>
+				<caption>Status bar</caption>
+				<captionvisible>0</captionvisible>
+				<minimizebutton>0</minimizebutton>
+				<maximizebutton>0</maximizebutton>
+				<pinbutton>0</pinbutton>
+				<closebutton>0</closebutton>
+				<dockdirection>Bottom</dockdirection>
+				<dockabledirection>.TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false)</dockabledirection>
+				<floatable>0</floatable>
+				<floatingposition>0,0</floatingposition>
+				<floatingsize>0,0</floatingsize>
+				<movable>0</movable>
+				<destroyonclose>0</destroyonclose>
+				<firstadd>0</firstadd>
+			</object>
 		</object>
 		<object class="wxMenuBar" variable="MenuBar" member="yes">
 			<object class="wxMenu" variable="MenuFile" member="yes">
@@ -1821,11 +1877,6 @@
 					<handler function="OnAbout" entry="EVT_MENU" />
 				</object>
 			</object>
-		</object>
-		<object class="wxStatusBar" name="ID_STATUSBAR1" variable="StatusBar1" member="yes">
-			<fields>2</fields>
-			<widths>-50,-35</widths>
-			<styles>wxSB_NORMAL,wxSB_NORMAL</styles>
 		</object>
 		<object class="wxDirDialog" variable="DirDialog1" member="yes">
 			<message>Select Show Directory</message>

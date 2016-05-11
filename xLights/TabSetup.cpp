@@ -212,8 +212,8 @@ void xLightsFrame::SetDir(const wxString& newdir)
     EnableSequenceControls(true);
 
     Notebook1->ChangeSelection(SETUPTAB);
-    StatusBar1->SetStatusText("", 0);
-    StatusBar1->SetStatusText(newdir, 1);
+    SetStatusText("");
+    FileNameText->SetLabel(newdir);
 }
 
 std::string xLightsFrame::GetChannelToControllerMapping(long channel)

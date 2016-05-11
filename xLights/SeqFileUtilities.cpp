@@ -268,12 +268,12 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         }
         else if( !loaded_xml )
         {
-            StatusBar1->SetStatusText(wxString::Format("Failed to load: '%s'.", filename));
+            SetStatusText(wxString::Format("Failed to load: '%s'.", filename));
             return;
         }
 
         float elapsedTime = sw.Time()/1000.0; //msec => sec
-        StatusBar1->SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
+        SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
         EnableSequenceControls(true);
         Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
     }
@@ -314,8 +314,8 @@ bool xLightsFrame::CloseSequence()
     mainSequencer->PanelWaveForm->CloseMedia();
     SeqData.init(0,0,50);
     EnableSequenceControls(true);  // let it re-evaluate menu state
-    StatusBar1->SetStatusText("");
-    StatusBar1->SetStatusText(CurrentDir, 1);
+    SetStatusText("");
+    SetStatusText(CurrentDir, 1);
     sPreview1->Refresh();
     sPreview2->Refresh();
     return true;
@@ -741,7 +741,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     ImportXLights(se, elements);
 
     float elapsedTime = sw.Time()/1000.0; //msec => sec
-    StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
 void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements,
                                  bool allowAllModels, bool clearSrc) {
@@ -1277,7 +1277,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
 
 
     float elapsedTime = sw.Time()/1000.0; //msec => sec
-    StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
 
 void xLightsFrame::ImportHLS(const wxFileName &filename)
@@ -1429,7 +1429,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
 
 
     float elapsedTime = sw.Time()/1000.0; //msec => sec
-    StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
 
 void xLightsFrame::ImportLMS(const wxFileName &filename) {
@@ -1443,7 +1443,7 @@ void xLightsFrame::ImportLMS(const wxFileName &filename) {
     if( !input_xml.Load(fin) )  return;
     ImportLMS(input_xml);
     float elapsedTime = sw.Time()/1000.0; //msec => sec
-    StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
 
 void AdjustAllTimings(wxXmlNode *input_xml, int offset) {
@@ -1543,7 +1543,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
         ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, flip_y, dlg.ImageResizeChoice->GetSelection(), modelSize);
     }
     float elapsedTime = sw.Time()/1000.0; //msec => sec
-    StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
 
 bool findRGB(wxXmlNode *e, wxXmlNode *chan, wxXmlNode *&rchannel, wxXmlNode *&gchannel, wxXmlNode *&bchannel) {
@@ -3026,6 +3026,6 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
     }
 
     float elapsedTime = sw.Time()/1000.0; //msec => sec
-    StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
 

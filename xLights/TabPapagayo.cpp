@@ -1068,7 +1068,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 //            std::vector<WordInfo>& words = phrase_it->words;
             for (auto word_it = phrase_it->words.begin(); word_it != phrase_it->words.end(); ++word_it)
             {
-                StatusBar1->SetStatusText(wxString::Format("Writing pgo xml: voice [%d/%d] '%s', phrase[%d/%d] '%s', word[%d/%d] '%s'", voice_it - voices.begin(), voices.size(), voice_it->name.c_str(), phrase_it - voice_it->phrases.begin(), voice_it->phrases.size(), phrase_it->name.c_str(), word_it - phrase_it->words.begin(), phrase_it->words.size(), word_it->name.c_str()));
+                SetStatusText(wxString::Format("Writing pgo xml: voice [%d/%d] '%s', phrase[%d/%d] '%s', word[%d/%d] '%s'", voice_it - voices.begin(), voices.size(), voice_it->name.c_str(), phrase_it - voice_it->phrases.begin(), voice_it->phrases.size(), phrase_it->name.c_str(), word_it - phrase_it->words.begin(), phrase_it->words.size(), word_it->name.c_str()));
                 IFDEBUG(debug_msg += wxString::Format(_("\t\tword[%d/%d] '%s'\n"), word_it - phrase_it->words.begin(), phrase_it->words.size(), word_it->name.c_str()));
 //              std::vector<PhonemeInfo>& phonemes = word_it->phonemes;
                 for (auto phoneme_it = word_it->phonemes.begin(); phoneme_it != word_it->phonemes.end(); ++phoneme_it)
@@ -1087,7 +1087,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
             }
         }
     }
-    StatusBar1->SetStatusText(wxString::Format("Pgo xml entries written: %d", numwr));
+    SetStatusText(wxString::Format("Pgo xml entries written: %d", numwr));
     debug(10, "wrote pgo xml: %d entries", numwr);
     if (pgofile_status) write_pgo_footer(f); //, voices.size()); //,filename);
     debug(10, "output file still open? %d, last err: %d", f.IsOpened(), f.GetLastError());
@@ -1334,7 +1334,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
         }
     debug(10, "auto-fades detected: %d", numfade);
     if (rest_min_delay || fade_delay)
-        StatusBar1->SetStatusText(StatusBar1->GetStatusText() + wxString::Format(wxT(", fades: %d, rests: %d"), numfade, need_rest.size()));
+        SetStatusText(StatusText->GetLabel() + wxString::Format(wxT(", fades: %d, rests: %d"), numfade, need_rest.size()));
     wxString fxname, fxparams;
 #if 0 //sample xml effect strings:
     <td Protected="0">Color Wash,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_SLIDER_ColorWash_Count=1,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>
@@ -1938,7 +1938,7 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename, int frame_offset /
     PapagayoFileInfo.file.Close();
 
     if (!warnings.empty()) wxMessageBox(warnings, _("Papagayo Warning"));
-    StatusBar1->SetStatusText(wxString::Format(wxT("Pgo voices loaded: %d, phrases: %d, words: %d, syllables: %d"), total_voices, total_phrases, total_words, total_syllables));
+    SetStatusText(wxString::Format(wxT("Pgo voices loaded: %d, phrases: %d, words: %d, syllables: %d"), total_voices, total_phrases, total_words, total_syllables));
     debug(3, "file loaded %s, first label = '%s', first model = '%s'", (const char*)warnings.c_str(), (const char*)GridCoroFaces->GetColLabelValue(0).c_str(), (const char*)GridCoroFaces->GetCellValue(Model_Row, 0).c_str());
 }
 
@@ -2191,7 +2191,7 @@ bool xLightsFrame::LoadPgoSettings(void)
 //    debug(10, "set selection hint on model row");
 
 //    wxMessageBox(wxString::Format(_("load settings: %d active models, %d inactive models, choice %d of %d"), xLightsFrame::PreviewModels.end() - xLightsFrame::PreviewModels.begin(), xLightsFrame::OtherModels.end() - xLightsFrame::OtherModels.begin(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount()), wxT("Debug info"));
-    StatusBar1->SetStatusText(wxString::Format(_("Loaded pgo settings: %ld active models, %ld inactive models, choice %d of %u"), xLightsFrame::PreviewModels.size(), xLightsFrame::AllModels.size() - xLightsFrame::PreviewModels.size(),
+    SetStatusText(wxString::Format(_("Loaded pgo settings: %ld active models, %ld inactive models, choice %d of %u"), xLightsFrame::PreviewModels.size(), xLightsFrame::AllModels.size() - xLightsFrame::PreviewModels.size(),
         Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount()));
     debug(10, "loaded pgo settings: %ld active models, %ld inactive models, grp choice %d of %u", xLightsFrame::PreviewModels.size(), xLightsFrame::OtherModels.size(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount());
     return true;
