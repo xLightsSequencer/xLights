@@ -123,11 +123,9 @@ unsigned int ModelManager::GetLastChannel() const {
 
 void ModelManager::RecalcStartChannels() const {
     int countValid = 0;
-    while (countValid != models.size()) {
-        for (auto it = models.begin(); it != models.end(); it++) {
-            it->second->SetFromXml(it->second->GetModelXml());
-            countValid += it->second->CouldComputeStartChannel ? 1 : 0;
-        }
+    for (auto it = models.begin(); it != models.end(); it++) {
+        it->second->SetFromXml(it->second->GetModelXml());
+        countValid += it->second->CouldComputeStartChannel ? 1 : 0;
     }
     while (countValid != models.size()) {
         int newCountValid = 0;
