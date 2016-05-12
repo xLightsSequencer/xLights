@@ -1139,12 +1139,12 @@ void xLightsFrame::TimerRgbSeq(long msec)
         }
 
         //static wxLongLong ms = wxGetUTCTimeMillis();
-        mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time);
         mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
-
-        mainSequencer->PanelWaveForm->UpdatePlayMarker();
-        mainSequencer->PanelWaveForm->CheckNeedToScroll();
-        mainSequencer->PanelEffectGrid->ForceRefresh();
+        if (mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time)) {
+            mainSequencer->PanelWaveForm->UpdatePlayMarker();
+            mainSequencer->PanelWaveForm->CheckNeedToScroll();
+            mainSequencer->PanelEffectGrid->ForceRefresh();
+        }
 
         /*
         int frame = curt / SeqData.FrameTime();

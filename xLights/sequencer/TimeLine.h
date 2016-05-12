@@ -33,7 +33,7 @@ class TimeLine : public wxWindow
         void SetStartTimeMS(int time);
         float GetStartTimeMS();
 
-        void SetPlayMarkerMS(int ms);
+        bool SetPlayMarkerMS(int ms);
         int GetPlayMarker();
 
         void SetZoomMarkerMS(int ms);

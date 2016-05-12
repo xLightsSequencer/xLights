@@ -146,16 +146,27 @@ void TimeLine::SetSequenceEnd(int ms)
     Update();
 }
 
-void TimeLine::SetPlayMarkerMS(int ms)
+bool TimeLine::SetPlayMarkerMS(int ms)
 {
     mCurrentPlayMarkerMS = ms;
+    bool changed = false;
     if( ms < mStartTimeMS ) {
+        if (mCurrentPlayMarker != -1) {
+            changed = true;
+        }
         mCurrentPlayMarker = -1;
     } else {
-        mCurrentPlayMarker = GetPositionFromTimeMS(ms);
+        int i = GetPositionFromTimeMS(ms);
+        if (mCurrentPlayMarker != i) {
+            changed = true;
+        }
+        mCurrentPlayMarker = i;
     }
-    wxClientDC dc(this);
-    render(dc);
+    if (changed) {
+        wxClientDC dc(this);
+        render(dc);
+    }
+    return changed;
 }
 
 void TimeLine::SetZoomMarkerMS(int ms)
