@@ -1338,7 +1338,7 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
 		else if (name.StartsWith("ID_NOTEBOOK"))
 		{
 			wxNotebook* ctrl = (wxNotebook*)CtrlWin;
-			for (int z = 0; z < ctrl->GetPageCount(); z++)
+			for (size_t z = 0; z < ctrl->GetPageCount(); z++)
 			{
 				if (value == ctrl->GetPageText(z))
 				{
@@ -1681,7 +1681,7 @@ void xLightsFrame::ExecuteImportTimingElement(wxCommandEvent &command) {
 
 void xLightsFrame::ImportTimingElement()
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Timing file(s)", wxEmptyString, wxEmptyString, "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Text files (*.txt)|*.txt|LOR (*.lms)|*.lms|LOR (*.las)|*.las", wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
+    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Timing file(s)", wxEmptyString, wxEmptyString, "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Text files (*.txt)|*.txt|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq", wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
     wxString fDir;
     if (OpenDialog->ShowModal() == wxID_OK)
     {
@@ -1702,6 +1702,10 @@ void xLightsFrame::ImportTimingElement()
             else if (file1.GetExt().Lower() == "pgo")
             {
                 CurrentSeqXmlFile->ProcessPapagayo(fDir, filenames, this);
+            }
+            else if (file1.GetExt().Lower() == "msq")
+            {
+                CurrentSeqXmlFile->ProcessLSPTiming(fDir, filenames, this);
             }
             else
             {
@@ -1753,7 +1757,7 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
     int startTime = 0;
     xlColor lastColor(xlBLACK);
 
-    for (int x = 0; x < colors.size()-3; x++) {
+    for (size_t x = 0; x < colors.size()-3; x++) {
         if (colors[x] != colors[x + 1]) {
             int len = RampLenColor(x, colors);
             if (len >= 3) {
@@ -1786,7 +1790,7 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
         }
     }
 
-    for (int x = 0; x < colors.size(); x++) {
+    for (size_t x = 0; x < colors.size(); x++) {
         if (lastColor != colors[x]) {
             int time = x * frameTime;
             if (lastColor != xlBLACK) {
@@ -1811,7 +1815,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
     xlColorVector colors;
     PixelBufferClass ncls(this, true);
     Model *model = GetModel(el->GetName());
-    for (int f = 0; f < SeqData.NumFrames(); f++) {
+    for (size_t f = 0; f < SeqData.NumFrames(); f++) {
         model->SetNodeChannelValues(0, &SeqData[f][model->NodeStartChannel(0)]);
         xlColor c = model->GetNodeColor(0);
         colors.push_back(c);

@@ -8,6 +8,8 @@
 #include "xLightsXmlFile.h"
 #include <wx/regex.h>
 #include <wx/numdlg.h>
+#include <wx/zipstrm.h>
+#include <wx/wfstream.h>
 
 #define string_format wxString::Format
 
@@ -2203,6 +2205,116 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
             }
         }
     }
+}
+
+void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxTextFile f;
+    wxString line;
+    wxString desc;
+
+    xLightsParent->SetCursor(wxCURSOR_WAIT);
+
+    for (size_t i = 0; i < filenames.Count(); ++i)
+    {
+        int linenum = 1;
+        wxFileName next_file(filenames[i]);
+        next_file.SetPath(dir);
+
+        logger_base.info("Decompressing LSP file " + std::string(next_file.GetFullPath().c_str()));
+
+        wxFileInputStream fin(next_file.GetFullPath());
+        wxZipInputStream zin(fin);
+        wxZipEntry *ent = zin.GetNextEntry();
+
+        wxXmlDocument seq_xml;
+
+        while (ent != nullptr)
+        {
+            if (ent->GetName() == "Sequence")
+            {
+                logger_base.info("Extracting timing tracks from " + std::string(next_file.GetFullPath().c_str()) + "/" + std::string(ent->GetName().c_str()));
+                seq_xml.Load(zin);
+
+                wxXmlNode* e = seq_xml.GetRoot();
+
+                if (e->GetName() == "MusicalSequence")
+                {
+                    for (wxXmlNode* tts = e->GetChildren(); tts != NULL; tts = tts->GetNext())
+                    {
+                        if (tts->GetName() == "TimingTracks")
+                        {
+                            for (wxXmlNode* t = tts->GetChildren(); t != NULL; t = t->GetNext())
+                            {
+                                if (t->GetName() == "Track")
+                                {
+                                    wxString name = UniqueTimingName(xLightsParent, next_file.GetName());
+                                    logger_base.info("  Track: " + std::string(name.c_str()));
+                                    Element* element = NULL;
+                                    EffectLayer* effectLayer;
+                                    wxXmlNode* layer;
+                                    wxXmlNode* timing = NULL;
+                                    for (wxXmlNode* is = t->GetChildren(); is != NULL; is = is->GetNext())
+                                    {
+                                        if (is->GetName() == "Name")
+                                        {
+                                            // I would love to be able to extract the name here but I dont have an example to work from
+                                            // If I did I could include it in the timing track name
+                                            if (sequence_loaded)
+                                            {
+                                                element = xLightsParent->AddTimingElement(std::string(name.c_str()));
+                                                effectLayer = element->GetEffectLayer(0);
+                                            }
+                                            else
+                                            {
+                                                AddTimingDisplayElement(name, "1", "0");
+                                                timing = AddElement(name, "timing");
+                                                layer = AddChildXmlNode(timing, "EffectLayer");
+                                            }
+                                        }
+                                        else if (is->GetName() == "Intervals")
+                                        {
+                                            if (element == NULL && timing == NULL)
+                                            {
+                                                ProcessError("Timing track name not found in LSP file.");
+                                                return;
+                                            }
+
+                                            int last = 0;
+                                            for (wxXmlNode* ti = is->GetChildren(); ti != NULL; ti = ti->GetNext())
+                                            {
+                                                if (ti->GetName() == "TimeInterval")
+                                                {
+                                                    if (ti->GetAttribute("eff") == "7")
+                                                    {
+                                                        int start = last;
+                                                        int end = (int)(wxAtof(ti->GetAttribute("pos")) * 50.0 / 4410.0);
+                                                        wxString label = "";
+                                                        if (sequence_loaded)
+                                                        {
+                                                            effectLayer->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                                                        }
+                                                        else
+                                                        {
+                                                            AddTimingEffect(layer, std::string(label.c_str()), "0", "0", wxString::Format("%d",start), wxString::Format("%d",end));
+                                                        }
+                                                        last = end;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            ent = zin.GetNextEntry();
+        }
+    }
+    xLightsParent->SetCursor(wxCURSOR_ARROW);
 }
 
 wxArrayString xLightsXmlFile::GetTimingList(SequenceElements& seq_elements)
