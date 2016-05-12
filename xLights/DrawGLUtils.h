@@ -34,12 +34,12 @@ namespace DrawGLUtils
             PreAlloc(8);
             AddVertex(x1, y1);
             AddVertex(x1, y2);
-            AddVertex(x2, y1);
+            AddVertex(x1, y2);
             AddVertex(x2, y2);
             AddVertex(x2, y2);
-            AddVertex(x2, y2);
             AddVertex(x2, y1);
             AddVertex(x2, y1);
+            AddVertex(x1, y1);
         }
         void AddRect(float x1, float y1, float x2, float y2) {
             PreAlloc(6);

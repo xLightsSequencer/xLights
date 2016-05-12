@@ -2473,14 +2473,7 @@ void EffectsGrid::DrawEffects()
                                 linesRight->AddVertex((x1+x2)/2.0+sz,y);
                                 linesRight->AddVertex(x2,y);
 
-                                lines.AddVertex(xl-0.4,y-sz);
-                                lines.AddVertex(xr+0.4,y-sz);
-                                lines.AddVertex(xl-0.4,y+sz);
-                                lines.AddVertex(xr+0.4,y+sz);
-                                lines.AddVertex(xl-0.4,y+sz+0.25);
-                                lines.AddVertex(xl-0.4,y-sz);
-                                lines.AddVertex(xr+0.4,y+sz+0.25);
-                                lines.AddVertex(xr+0.4,y-sz);
+                                lines.AddLinesRect(xl-0.4, y-sz, xr + 0.4, y + sz);
                             }
                             else if (x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT)
                             {
@@ -2495,14 +2488,7 @@ void EffectsGrid::DrawEffects()
 
                                 textures[m_EffectTextures[e->GetEffectIndex()]].AddFullTexture(xl, y-sz, xr, y+sz);
 
-                                lines.AddVertex(xl-0.4,y-sz);
-                                lines.AddVertex(xr+0.4,y-sz);
-                                lines.AddVertex(xl-0.4,y+sz);
-                                lines.AddVertex(xr+0.4,y+sz);
-                                lines.AddVertex(xl-0.4,y+sz+0.25);
-                                lines.AddVertex(xl-0.4,y-sz);
-                                lines.AddVertex(xr+0.4,y+sz+0.25);
-                                lines.AddVertex(xr+0.4,y-sz);
+                                lines.AddLinesRect(xl-0.4, y-sz, xr + 0.4, y + sz);
                             }
                             else
                             {
