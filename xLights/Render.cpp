@@ -715,7 +715,11 @@ void xLightsFrame::RenderGridToSeqData() {
             countFrames -= frames;
             if (countFrames > 0) {
                 int pct = (countFrames * 80) / (countModels * frames);
-                ProgressBar->SetValue(10 + pct);
+                static int lastVal = 0;
+                if (lastVal != pct) {
+                    ProgressBar->SetValue(10 + pct);
+                    lastVal = pct;
+                }
             }
             wxYield();
         }
