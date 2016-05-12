@@ -292,6 +292,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxRadioBox* RadioBox2;
 		wxAuiNotebook* AuiNotebook_ProcessSettings;
 		wxButton* Button_BI_Update;
+		wxFlexGridSizer* FlexGridSizer5;
 		wxSlider* Slider_Intensity;
 		wxStaticText* StaticText_BI;
 		wxStaticText* StaticText11;
@@ -318,6 +319,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxButton* Button_MI_UndoBulb;
 		wxSlider* Slider_AdjustBlur;
 		wxButton* Button_GCM_SelectFile;
+		wxFlexGridSizer* FlexGridSizer14;
 		wxPanel* Panel_Generate;
 		wxButton* Button_MI_NextFrame;
 		wxAuiNotebook* AuiNotebook1;

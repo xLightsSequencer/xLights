@@ -13,7 +13,7 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxAuiNotebook" name="ID_AUINOTEBOOK1" variable="AuiNotebook1" member="yes">
-					<size>1000,700</size>
+					<size>1200,700</size>
 					<style>wxTAB_TRAVERSAL</style>
 					<object class="AuiNotebookPage">
 						<object class="wxPanel" name="ID_PANEL_Prepare" variable="Panel_Prepare" member="yes">
@@ -183,12 +183,12 @@
 								<growablecols>0</growablecols>
 								<growablerows>0</growablerows>
 								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="yes">
 										<cols>2</cols>
 										<growablecols>1</growablecols>
 										<growablerows>0</growablerows>
 										<object class="sizeritem">
-											<object class="wxFlexGridSizer" variable="FlexGridSizer14" member="no">
+											<object class="wxFlexGridSizer" variable="FlexGridSizer14" member="yes">
 												<cols>1</cols>
 												<rows>2</rows>
 												<growablecols>0</growablecols>

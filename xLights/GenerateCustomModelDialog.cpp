@@ -18,8 +18,8 @@
 #include "xLightsMain.h"
 #include <log4cpp/Category.hh>
 
-#define GCM_DISPLAYIMAGEWIDTH 400
-#define GCM_DISPLAYIMAGEHEIGHT 300
+#define GCM_DISPLAYIMAGEWIDTH 800
+#define GCM_DISPLAYIMAGEHEIGHT 600
 
 #define PAGE_PREPARE 0
 #define PAGE_GENERATE 1
@@ -172,7 +172,6 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	wxFlexGridSizer* FlexGridSizer3;
 	wxStaticText* StaticText6;
 	wxFlexGridSizer* FlexGridSizer27;
-	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer25;
 	wxFlexGridSizer* FlexGridSizer22;
 	wxStaticText* StaticText8;
@@ -187,7 +186,6 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	wxFlexGridSizer* FlexGridSizer18;
 	wxFlexGridSizer* FlexGridSizer8;
 	wxFlexGridSizer* FlexGridSizer21;
-	wxFlexGridSizer* FlexGridSizer14;
 	wxFlexGridSizer* FlexGridSizer20;
 	wxFlexGridSizer* FlexGridSizer13;
 	wxFlexGridSizer* FlexGridSizer12;
@@ -205,7 +203,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	AuiNotebook1 = new wxAuiNotebook(this, ID_AUINOTEBOOK1, wxDefaultPosition, wxSize(1000,700), wxTAB_TRAVERSAL);
+	AuiNotebook1 = new wxAuiNotebook(this, ID_AUINOTEBOOK1, wxDefaultPosition, wxSize(1200,700), wxTAB_TRAVERSAL);
 	Panel_Prepare = new wxPanel(AuiNotebook1, ID_PANEL_Prepare, wxPoint(63,54), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Prepare"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
@@ -531,7 +529,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 
     StaticBitmap_Preview = new MyGenericStaticBitmap(Panel_Generate, ID_STATICBITMAP_Preview, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER, _T("ID_STATICBITMAP_Preview"));
     StaticBitmap_Preview->SetScaleMode(wxStaticBitmapBase::ScaleMode::Scale_AspectFit);
-    StaticBitmap_Preview->SetSizeHints(wxSize(400, 300), wxSize(400, 300));
+    StaticBitmap_Preview->SetSizeHints(wxSize(800, 600), wxSize(800, 600));
     StaticBitmap_Preview->SetBitmap(_displaybmp);
     FlexGridSizer14->Insert(0, StaticBitmap_Preview, 1, wxALL | wxEXPAND, 2);
     FlexGridSizer14->Layout();
@@ -651,7 +649,8 @@ void GenerateCustomModelDialog::ShowImage(const wxImage& image)
 {
     if (image.IsOk())
     {
-        _displaybmp = image.Scale(GCM_DISPLAYIMAGEWIDTH, GCM_DISPLAYIMAGEHEIGHT, wxImageResizeQuality::wxIMAGE_QUALITY_HIGH);
+        wxSize s = StaticBitmap_Preview->GetSize();
+        _displaybmp = image.Scale(s.GetWidth() , s.GetHeight(), wxImageResizeQuality::wxIMAGE_QUALITY_HIGH);
     }
     StaticBitmap_Preview->SetBitmap(_displaybmp);
     wxYield();
