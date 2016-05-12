@@ -260,11 +260,11 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
         displayElementsPanel->Initialize();
+        Timer1.Start(SeqData.FrameTime());
 
         if( loaded_fseq )
         {
             UpdatePreview();
-            Timer1.Start(SeqData.FrameTime());
         }
         else if( !loaded_xml )
         {

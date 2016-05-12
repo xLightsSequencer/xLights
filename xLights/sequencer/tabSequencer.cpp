@@ -1138,7 +1138,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
             _fps = (float)((double)fpsEvents.size() * 1000.0) / ((e.when - b.when).GetMilliseconds().ToDouble());
         }
 
-        //wxLongLong ms = wxGetUTCTimeMillis();
+        //static wxLongLong ms = wxGetUTCTimeMillis();
         mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time);
         mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
 
@@ -1153,7 +1153,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
         }
         */
         //wxLongLong me = wxGetUTCTimeMillis();
-        //printf("%d\n", (me-ms).GetLo());
+        //printf("%d     %d    %d\n", (me-ms).GetLo(), SeqData.FrameTime(), Timer1.GetInterval());
+        //ms = me;
     }
 
     if (selectedEffect != NULL && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
@@ -1201,7 +1202,6 @@ void xLightsFrame::TimerRgbSeq(long msec)
             return;
         }
     }
-
     int frame = curt / SeqData.FrameTime();
     //have the frame, copy from SeqData
     if (playModel != nullptr) {

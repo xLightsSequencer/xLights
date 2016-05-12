@@ -2678,7 +2678,7 @@ void EffectsGrid::DrawTimingEffects(int row)
 
 void EffectsGrid::render( wxPaintEvent& evt )
 {
-    wxClientDC dc(this);
+    wxPaintDC dc(this);
     Draw();
 }
 

@@ -215,7 +215,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     mPointSize = pointSize;
     mIsDrawing = true;
     SetCurrentGLContext();
-    wxClientDC dc(this);
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     if( mWindowResized )
     {
