@@ -325,6 +325,7 @@
     <ClCompile Include="RenameTextDialog.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="RenderBuffer.cpp" />
+    <ClCompile Include="RenderProgressDialog.cpp" />
     <ClCompile Include="ResizeImageDialog.cpp" />
     <ClCompile Include="SaveChangesDialog.cpp" />
     <ClCompile Include="SeqElementMismatchDialog.cpp" />
@@ -551,6 +552,7 @@
     <ClInclude Include="RenameTextDialog.h" />
     <ClInclude Include="RenderBuffer.h" />
     <ClInclude Include="RenderCommandEvent.h" />
+    <ClInclude Include="RenderProgressDialog.h" />
     <ClInclude Include="ResizeImageDialog.h" />
     <ClInclude Include="SaveChangesDialog.h" />
     <ClInclude Include="SeqElementMismatchDialog.h" />

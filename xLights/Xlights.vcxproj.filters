@@ -756,6 +756,9 @@
     <ClCompile Include="SubBufferPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RenderProgressDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1440,6 +1443,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SubBufferPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderProgressDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

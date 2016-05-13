@@ -2207,6 +2207,78 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
     }
 }
 
+wxString DecodeLSPTTColour(int att)
+{
+    if (att < 2) {
+        return "";
+    }
+    else if (att < 4) {
+        return "R";
+    }
+    else if (att < 8) {
+        return "G";
+    }
+    else if (att < 16) {
+        return "B";
+    }
+    else if (att < 32) {
+        return "Y";
+    }
+    else if (att < 64) {
+        return "Pink";
+    }
+    else if (att < 256) {
+        return "O";
+    }
+    else if (att < 512) {
+        return "Gold";
+    }
+    else if (att < 892) {
+        return "White";
+    }
+    else if (att == 892) {
+        return "All";
+    }
+    else if (att == 1024) {
+        return "System";
+    }
+
+    return wxString::Format("%d", att);
+}
+
+wxString NormaliseLSPAtt(int att)
+{
+    if (att < 2) {
+        return "0";
+    }
+    else if (att < 4) {
+        return "2";
+    }
+    else if (att < 8) {
+        return "4";
+    }
+    else if (att < 16) {
+        return "8";
+    }
+    else if (att < 32) {
+        return "16";
+    }
+    else if (att < 64) {
+        return "32";
+    }
+    else if (att < 256) {
+        return "64";
+    }
+    else if (att < 512) {
+        return "256";
+    }
+    else if (att < 892) {
+        return "512";
+    }
+
+    return wxString::Format("%d", att);
+}
+
 void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2247,59 +2319,54 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
                         {
                             for (wxXmlNode* t = tts->GetChildren(); t != NULL; t = t->GetNext())
                             {
-                                if (t->GetName() == "Track")
-                                {
+                                if (t->GetName() == "Track") {
                                     wxString name = UniqueTimingName(xLightsParent, next_file.GetName());
                                     logger_base.info("  Track: " + std::string(name.c_str()));
                                     Element* element = NULL;
                                     EffectLayer* effectLayer;
                                     wxXmlNode* layer;
                                     wxXmlNode* timing = NULL;
-                                    for (wxXmlNode* is = t->GetChildren(); is != NULL; is = is->GetNext())
-                                    {
-                                        if (is->GetName() == "Name")
-                                        {
-                                            // I would love to be able to extract the name here but I dont have an example to work from
-                                            // If I did I could include it in the timing track name
-                                            if (sequence_loaded)
-                                            {
-                                                element = xLightsParent->AddTimingElement(std::string(name.c_str()));
-                                                effectLayer = element->GetEffectLayer(0);
+                                    for (wxXmlNode* is = t->GetChildren(); is != NULL; is = is->GetNext()) {
+                                        if (is->GetName() == "Intervals") {
+                                            std::list<wxString> atts;
+                                            for (wxXmlNode* ti = is->GetChildren(); ti != NULL; ti = ti->GetNext()) {
+                                                if (ti->GetName() == "TimeInterval") {
+                                                    if (ti->GetAttribute("eff") == "7") {
+                                                        atts.push_back(NormaliseLSPAtt(wxAtoi(ti->GetAttribute("att"))));
+                                                    }
+                                                }
                                             }
-                                            else
-                                            {
-                                                AddTimingDisplayElement(name, "1", "0");
-                                                timing = AddElement(name, "timing");
-                                                layer = AddChildXmlNode(timing, "EffectLayer");
-                                            }
-                                        }
-                                        else if (is->GetName() == "Intervals")
-                                        {
-                                            if (element == NULL && timing == NULL)
-                                            {
-                                                ProcessError("Timing track name not found in LSP file.");
-                                                return;
-                                            }
+                                            atts.sort();
+                                            atts.unique();
 
-                                            int last = 0;
-                                            for (wxXmlNode* ti = is->GetChildren(); ti != NULL; ti = ti->GetNext())
-                                            {
-                                                if (ti->GetName() == "TimeInterval")
-                                                {
-                                                    if (ti->GetAttribute("eff") == "7")
-                                                    {
-                                                        int start = last;
-                                                        int end = (int)(wxAtof(ti->GetAttribute("pos")) * 50.0 / 4410.0);
-                                                        wxString label = "";
-                                                        if (sequence_loaded)
-                                                        {
-                                                            effectLayer->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                                            for (auto it = atts.begin(); it != atts.end(); it++) {
+                                                wxString tname = DecodeLSPTTColour(wxAtoi(*it)) + "-" + name;
+                                                logger_base.info("  Adding timing track " + std::string(tname.c_str()) + "(" + std::string(it->c_str()) + ")");
+                                                if (sequence_loaded) {
+                                                    element = xLightsParent->AddTimingElement(std::string(tname.c_str()));
+                                                    effectLayer = element->GetEffectLayer(0);
+                                                }
+                                                else {
+                                                    AddTimingDisplayElement(tname, "1", "0");
+                                                    timing = AddElement(tname, "timing");
+                                                    layer = AddChildXmlNode(timing, "EffectLayer");
+                                                }
+
+                                                int last = 0;
+                                                for (wxXmlNode* ti = is->GetChildren(); ti != NULL; ti = ti->GetNext()) {
+                                                    if (ti->GetName() == "TimeInterval") {
+                                                        if (ti->GetAttribute("eff") == "7" && ti->GetAttribute("att") == *it) {
+                                                            int start = last;
+                                                            int end = TimeLine::RoundToMultipleOfPeriod((int)(wxAtof(ti->GetAttribute("pos")) * 50.0 / 4410.0), GetFrequency());
+                                                            wxString label = "";
+                                                            if (sequence_loaded) {
+                                                                effectLayer->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                                                            }
+                                                            else {
+                                                                AddTimingEffect(layer, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                                                            }
+                                                            last = end;
                                                         }
-                                                        else
-                                                        {
-                                                            AddTimingEffect(layer, std::string(label.c_str()), "0", "0", wxString::Format("%d",start), wxString::Format("%d",end));
-                                                        }
-                                                        last = end;
                                                     }
                                                 }
                                             }
