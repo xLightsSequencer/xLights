@@ -12,6 +12,7 @@
 #include "models/ModelGroup.h"
 #include "BufferPanel.h"
 #include "LayoutPanel.h"
+#include "RenderProgressDialog.h"
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 {
@@ -565,7 +566,11 @@ void xLightsFrame::SaveAsSequence()
     CurrentSeqXmlFile->SetFullName(oName.GetFullName());
     SaveSequence();
 }
-
+void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent &evt) {
+    if (renderProgressDialog) {
+        renderProgressDialog->Show();
+    }
+}
 void xLightsFrame::RenderAll()
 {
 	mRendering = true;

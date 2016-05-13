@@ -14,6 +14,7 @@
 #include <map>
 #include <memory>
 #include "effects/RenderableEffect.h"
+#include "RenderProgressDialog.h"
 
 #define END_OF_RENDER_FRAME INT_MAX
 
@@ -145,7 +146,8 @@ public:
 class RenderJob: public Job, public NextRenderer {
 public:
     RenderJob(Element *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false, bool clear = false)
-        : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), deleteWhenComplete(false) {
+        : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), deleteWhenComplete(false),
+            gauge(nullptr), currentFrame(0) {
         if (row != NULL) {
             name = row->GetName();
             mainBuffer = new PixelBufferClass(xframe, false);
@@ -185,6 +187,14 @@ public:
         if (mainBuffer != NULL) {
             delete mainBuffer;
         }
+    }
+    
+    wxGauge *GetGauge() const { return gauge;}
+    void SetGauge(wxGauge *g) { gauge = g;}
+    int GetCurrentFrame() const { return currentFrame;}
+    
+    const std::string &GetName() const {
+        return name;
     }
     
     virtual bool DeleteWhenComplete() override {
@@ -364,6 +374,7 @@ public:
             }
 
             for (int frame = startFrame; frame < endFrame; frame++) {
+                currentFrame = frame;
                 SetGenericStatus("%s: Starting frame %d\n", frame);
 
                 if (next == nullptr &&
@@ -585,7 +596,10 @@ private:
     volatile int statusLayer;
     volatile int statusStrand;
     volatile int statusNode;
-
+    
+    wxGauge *gauge;
+    int currentFrame;
+    
     std::map<int, PixelBufferClassPtr> strandBuffers;
     std::map<SNPair, PixelBufferClassPtr> nodeBuffers;
 };
@@ -679,16 +693,38 @@ void xLightsFrame::RenderGridToSeqData() {
 
         }
     }
+    
+    renderProgressDialog = new RenderProgressDialog(this);
     for (int row = 0; row < noDepsCount; row++) {
         if (noDepJobs[row]) {
             jobPool.PushJob(noDepJobs[row]);
+            
+            wxStaticText *label = new wxStaticText(renderProgressDialog->scrolledWindow, wxID_ANY, noDepJobs[row]->GetName());
+            renderProgressDialog->scrolledWindowSizer->Add(label);
+            wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 100);
+            renderProgressDialog->scrolledWindowSizer->Add(g);
+            g->SetValue(0);
+            g->SetMinSize(wxSize(100, -1));
+            noDepJobs[row]->SetGauge(g);
         }
     }
     for (int row = 0; row < depsCount; row++) {
         if (depJobs[row]) {
             jobPool.PushJob(depJobs[row]);
+            wxStaticText *label = new wxStaticText(renderProgressDialog->scrolledWindow, wxID_ANY, depJobs[row]->GetName());
+            renderProgressDialog->scrolledWindowSizer->Add(label);
+            wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 100);
+            renderProgressDialog->scrolledWindowSizer->Add(g);
+            g->SetValue(0);
+            g->SetMinSize(wxSize(100, -1));
+            depJobs[row]->SetGauge(g);
         }
     }
+    renderProgressDialog->SetSize(250, 400);
+    renderProgressDialog->scrolledWindow->SetSizer(renderProgressDialog->scrolledWindowSizer);
+    renderProgressDialog->scrolledWindow->FitInside();
+    renderProgressDialog->scrolledWindow->SetScrollRate(5, 5);
+    
     if (depsCount > 0 || noDepsCount > 0) {
         //wait to complete
         int frames = SeqData.NumFrames();
@@ -700,19 +736,21 @@ void xLightsFrame::RenderGridToSeqData() {
             for (int row = 0; row < noDepsCount; row++) {
                 if (noDepJobs[row]) {
                     countModels++;
-                    int i = noDepJobs[row]->GetPreviousFrameDone();
-                    countFrames +=  i > frames ? frames : i;
+                    int i = noDepJobs[row]->GetCurrentFrame();
+                    if (i > frames) i = frames;
+                    noDepJobs[row]->GetGauge()->SetValue((100 * i)/frames);
+                    countFrames += i;
                 }
             }
             for (int row = 0; row < depsCount; row++) {
                 if (depJobs[row]) {
                     countModels++;
-                    int i = depJobs[row]->GetPreviousFrameDone();
-                    countFrames +=  i > frames ? frames : i;
+                    int i = depJobs[row]->GetCurrentFrame();
+                    if (i > frames) i = frames;
+                    countFrames += i;
+                    depJobs[row]->GetGauge()->SetValue((100 * i)/frames);
                 }
             }
-            countFrames += wait.GetPreviousFrameDone();
-            countFrames -= frames;
             if (countFrames > 0) {
                 int pct = (countFrames * 80) / (countModels * frames);
                 static int lastVal = 0;
@@ -737,7 +775,8 @@ void xLightsFrame::RenderGridToSeqData() {
             delete depJobs[row];
         }
     }
-    
+    delete renderProgressDialog;
+    renderProgressDialog = nullptr;
     delete []depJobs;
     delete []noDepJobs;
     RenderDone();

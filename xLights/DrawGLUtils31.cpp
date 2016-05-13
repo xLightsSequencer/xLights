@@ -143,14 +143,20 @@ public:
         LOG_GL_ERRORV(glUniform1i(RenderTypeID, i));
     }
     void BindBuffer(int idx, void *data, int sz) {
+        BindBuffer(idx, buffers[idx], data, sz);
+    }
+    void BindBuffer(int idx, GLuint bufId, void *data, int sz) {
         LOG_GL_ERRORV(glEnableVertexAttribArray(idx));
-        LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[idx]));
-        LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sz, data, GL_DYNAMIC_DRAW));
+        LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, bufId));
+        LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sz, data, GL_STATIC_DRAW));
     }
     void UnbindBuffer(int idx) {
+        UnbindBuffer(idx, buffers[idx]);
+    }
+    void UnbindBuffer(int idx, GLuint bufId) {
         LOG_GL_ERRORV(glDisableVertexAttribArray(idx));
-        LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[idx]));
-        LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW));
+        //LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, bufId));
+        //LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STATIC_DRAW));
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
     }
     
@@ -375,19 +381,13 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
     }
     
 
-#define NO_OPTMIZED_PATH
 public:
     OpenGL33Cache(bool UsesVertexTextureAccumulator,
                   bool UsesVertexColorAccumulator,
                   bool UsesVertexAccumulator,
-                  bool UsesAddVertex) : matrix(nullptr)
-#ifndef NO_OPTMIZED_PATH
-    , colors(4), vertices(2)
-#endif
+                  bool UsesAddVertex) : matrix(nullptr), numBuffers(0)
     {
-#ifdef NO_OPTMIZED_PATH
         UsesVertexColorAccumulator |= UsesAddVertex;
-#endif
         Load33Shaders(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex);
         if (UsesAddVertex) {
             InitializeVertexBuffer();
@@ -441,16 +441,27 @@ public:
     }
 
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
+        Draw(va, type, enableCapability, -1);
+    }
+    void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability, int bufIdx) {
         if (va.count == 0) {
             return;
         }
         normalProgram.UseProgram();
         normalProgram.SetMatrix(*matrix);
 
-        normalProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat));
+        if (bufIdx == -1) {
+            normalProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat));
+        } else {
+            normalProgram.BindBuffer(0, bufferIds[bufIdx], &va.vertices[0], va.count*2*sizeof(GLfloat));
+        }
         LOG_GL_ERRORV(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
-        normalProgram.BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
+        if (bufIdx == -1) {
+            normalProgram.BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
+        } else {
+            normalProgram.BindBuffer(1, bufferIds[bufIdx + 1], &va.colors[0], va.count*4*sizeof(GLubyte));
+        }
         LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
 
         float ps = 2.0;
@@ -475,8 +486,13 @@ public:
             normalProgram.SetRenderType(0);
         }
         
-        normalProgram.UnbindBuffer(0);
-        normalProgram.UnbindBuffer(1);
+        if (bufIdx == -1) {
+            normalProgram.UnbindBuffer(0);
+            normalProgram.UnbindBuffer(1);
+        } else {
+            normalProgram.UnbindBuffer(0, bufferIds[bufIdx]);
+            normalProgram.UnbindBuffer(1, bufferIds[bufIdx + 1]);
+        }
     }
     void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability) override {
         if (va.count == 0) {
@@ -508,14 +524,27 @@ public:
         textureProgram.UnbindBuffer(0);
         textureProgram.UnbindBuffer(1);
     }
-#ifdef NO_OPTMIZED_PATH
+
     // Un-optimized that just feeds through the Draw(xlVertexColorAccumulator)
-    void InitializeVertexBuffer() {}
-    void CleanupVertexBuffer() {}
+    void InitializeVertexBuffer() {
+        numBuffers = 24;
+        bufferIds = new GLuint[numBuffers];
+        curBufferIdx = 0;
+        glGenBuffers(numBuffers, bufferIds);
+    }
+    void CleanupVertexBuffer() {
+        if (numBuffers) {
+            glDeleteBuffers(numBuffers, bufferIds);
+            delete [] bufferIds;
+        }
+    }
     virtual void SetCurrent() override {
         data.Reset();
     }
 
+    int numBuffers;
+    int curBufferIdx;
+    GLuint *bufferIds;
     DrawGLUtils::xlVertexColorAccumulator data;
     virtual void addVertex(float x, float y, const xlColor &c) override {
         data.PreAlloc(1);
@@ -529,260 +558,13 @@ public:
     }
     
     void flush(int type, int enableCapability) override {
-        Draw(data, type, enableCapability);
+        Draw(data, type, enableCapability, curBufferIdx);
+        curBufferIdx += 2;
+        if (curBufferIdx == numBuffers) {
+            curBufferIdx = 0;
+        }
         data.Reset();
     }
-#else
-    
-    template <class T>
-    class xlGLArray {
-    public:
-        xlGLArray(int sz) : mapped(false), array(nullptr), id(-1), size(sz), sizePerUnit(sz * sizeof(T)) {};
-        ~xlGLArray() {
-            if (!mapped && array) {
-                delete [] array;
-            }
-        }
-        void Init(int max, GLuint bufId) {
-            id = bufId;
-            ReInit(max);
-        }
-        void CleanUp() {
-            if (id != -1) {
-                LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, id));
-                if (mapped) {
-                    LOG_GL_ERRORV(glUnmapBuffer(GL_ARRAY_BUFFER));
-                    mapped = false;
-                    array = nullptr;
-                }
-            }
-        }
-        
-        void FlushAndUnmap(int start, int count) {
-            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, id));
-            if (mapped) {
-                if (count) {
-                    LOG_GL_ERRORV(glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0 , count*sizePerUnit));
-                }
-                LOG_GL_ERRORV(glUnmapBuffer(GL_ARRAY_BUFFER));
-                mapped = false;
-                array = nullptr;
-            } else {
-                if (count) {
-                    LOG_GL_ERRORV(glBufferData(id, count*sizePerUnit, array, GL_DYNAMIC_DRAW));
-                }
-                delete [] array;
-                mapped = false;
-                array = nullptr;
-            }
-        }
-        
-        void Remap(int start, int max) {
-            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, id));
-            LOG_GL_ERRORV(array = (T*)glMapBufferRange(GL_ARRAY_BUFFER, sizePerUnit*start, sizePerUnit*max,
-                                                       GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
-            if (array) {
-                mapped = true;
-            } else {
-                mapped = false;
-                array = new T[max * size];
-            }
-        }
-        
-        void ReInit(int max) {
-            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, id));
-            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, max*sizePerUnit, nullptr, GL_DYNAMIC_DRAW));
-            LOG_GL_ERRORV(array = (T*)glMapBufferRange(GL_ARRAY_BUFFER, 0, max*sizePerUnit,
-                                                       GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT));
-            if (array) {
-                mapped = true;
-            } else {
-                mapped = false;
-                array = new T[max * size];
-            }
-        }
-        
-        void Resize(int start, int curCount, int newmax) {
-            if (mapped) {
-                FlushAndUnmap(start, curCount);
-                
-                T *tmpv = nullptr;
-                if (curCount) {
-                    LOG_GL_ERRORV(T *m = (T*)glMapBufferRange(GL_ARRAY_BUFFER, sizePerUnit*start,  sizePerUnit*curCount, GL_MAP_READ_BIT));
-                    if (m) {
-                        tmpv = new T[curCount * size];
-                        memcpy(tmpv, m, curCount*sizePerUnit);
-                        LOG_GL_ERRORV(glUnmapBuffer(GL_ARRAY_BUFFER));
-                    }
-                }
-                ReInit(newmax);
-                if (tmpv) {
-                    memcpy(array, tmpv, curCount*sizePerUnit);
-                    delete [] tmpv;
-                }
-            } else {
-                if (array) {
-                    T *ar = new T[size * newmax];
-                    memcpy(ar, &array[start * size], curCount*sizePerUnit);
-                    delete [] array;
-                    array = ar;
-                } else {
-                    array = new T[size * newmax];
-                }
-            }
-        }
-        
-        T &operator[](int idx) {
-            return array[idx];
-        }
-        
-        int sizePerUnit;
-        int size;
-        GLuint id;
-        bool mapped;
-        T *array;
-    };
-    
-    int max;
-    int superMax;
-    int start;
-    int curCount;
-    int total;
-    xlGLArray<uint8_t> colors;
-    xlGLArray<float> vertices;
-    
-    virtual void SetCurrent() override {
-        if (vbNormalProgram.ProgramID == 0) {
-            return;
-        }
-
-        if (start != 0 || max != superMax || superMax < (total + 128) ) {
-            colors.FlushAndUnmap(start, 0);
-            vertices.FlushAndUnmap(start, 0);
-            start = 0;
-            curCount = 0;
-            if (superMax < (total + 128)) {
-                superMax = total + 128;
-                colors.ReInit(superMax);
-                vertices.ReInit(superMax);
-            } else {
-                colors.Remap(0, superMax);
-                vertices.Remap(0, superMax);
-            }
-            total = 0;
-            max = superMax;
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-        }
-    }
-
-
-    void InitializeVertexBuffer() {
-        total = 0;
-        max = superMax = 1024;
-        curCount = 0;
-        vbNormalProgram.UseProgram();
-        LOG_GL_ERRORV(glEnableVertexAttribArray(0));
-        vertices.Init(max, vbNormalProgram.GetBufferID(0));
-        
-        // 2nd attribute buffer : colors
-        LOG_GL_ERRORV(glEnableVertexAttribArray(1));
-        colors.Init(max, vbNormalProgram.GetBufferID(1));
-        glVertexAttribPointer(1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-                              4,                                // size
-                              GL_UNSIGNED_BYTE,                 // type
-                              GL_TRUE,                          // normalized?
-                              0,                                // stride
-                              (void*)0                          // array buffer offset
-                              );
-        
-        LOG_GL_ERRORV(glDisableVertexAttribArray(0));
-        LOG_GL_ERRORV(glDisableVertexAttribArray(1));
-        start = 0;
-    }
-    void CleanupVertexBuffer() {
-        vertices.CleanUp();
-        colors.CleanUp();
-    }
-
-    virtual void addVertex(float x, float y, const xlColor &c) override {
-        ensureSize(1);
-        vertices[curCount * 2] = x;
-        vertices[curCount * 2 + 1] = y;
-
-        colors[curCount*4] = c.Red();
-        colors[curCount*4 + 1] = c.Green();
-        colors[curCount*4 + 2] = c.Blue();
-        colors[curCount*4 + 3] = c.Alpha();
-        curCount++;
-    }
-    virtual void ensureSize(unsigned int s) override {
-        int size = curCount + s;
-        if (size > max) {
-            superMax = std::max(superMax, size);
-            max = superMax;
-            vertices.Resize(start, curCount, max);
-            colors.Resize(start, curCount, max);
-            if (curCount) {
-                //so I can put a breakpoint
-                start = 0;
-            }
-            start = 0;
-        }
-    }
-    virtual unsigned int vertexCount() override {
-        return curCount;
-    }
-
-    void flush(int type, int enableCapability) override {
-        vbNormalProgram.UseProgram();
-        vbNormalProgram.SetMatrix(*matrix);
-
-        vertices.FlushAndUnmap(start, curCount);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
-        LOG_GL_ERRORV(glEnableVertexAttribArray(0));
-
-        colors.FlushAndUnmap(start, curCount);
-        glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 );
-        LOG_GL_ERRORV(glEnableVertexAttribArray(1));
-        
-        float ps;
-        if (type == GL_POINTS && enableCapability == 0x0B10) {
-            //POINT_SMOOTH, removed in OpenGL3.x
-            ps = vbNormalProgram.CalcSmoothPointParams();
-            vbNormalProgram.SetRenderType(1);
-        } else {
-            if (enableCapability > 0) {
-                glEnable(enableCapability);
-            } else if (enableCapability != 0) {
-                vbNormalProgram.SetRenderType(enableCapability);
-            }
-        }
-        LOG_GL_ERRORV(glDrawArrays(type, start, curCount));
-        if (type == GL_POINTS && enableCapability == 0x0B10) {
-            glPointSize(ps);
-            vbNormalProgram.SetRenderType(0);
-        } else if (enableCapability > 0) {
-            glDisable(enableCapability);
-        } else if (enableCapability != 0) {
-            vbNormalProgram.SetRenderType(0);
-        }
-        total += curCount;
-        start += curCount;
-        max -= curCount;
-        if (max < 64) {
-            max = superMax;
-            start = 0;
-            vertices.ReInit(max);
-            colors.ReInit(max);
-        } else {
-            vertices.Remap(start, max);
-            colors.Remap(start, max);
-        }
-        curCount = 0;
-        LOG_GL_ERRORV(glDisableVertexAttribArray(0));
-        LOG_GL_ERRORV(glDisableVertexAttribArray(1));
-    }
-#endif
     
     void DrawTexture(GLuint* texture,
                      float x, float y, float x2, float y2,

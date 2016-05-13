@@ -209,6 +209,7 @@ class RenderEvent;
 class wxDebugReportCompress;
 class BufferPanel;
 class LayoutPanel;
+class RenderProgressDialog;
 
 class xlAuiToolBar : public wxAuiToolBar {
 public:
@@ -1020,6 +1021,9 @@ private:
     bool SaveNetworksFile();
     void SaveFPPUniverses(std::string path);
 
+    
+    void OnProgressBarDoubleClick(wxMouseEvent& event);
+    RenderProgressDialog *renderProgressDialog;
     // test
     //void SetTestCheckboxes(bool NewValue);
     //void GetCheckedItems(wxArrayInt& chArray);
