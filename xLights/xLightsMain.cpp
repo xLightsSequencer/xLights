@@ -1271,7 +1271,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     StatusBarSizer->AddGrowableCol(0,2);
     StatusBarSizer->AddGrowableCol(2,1);
-    ProgressBar->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&xLightsFrame::OnProgressBarDoubleClick, nullptr, this);
+    ProgressBar->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&xLightsFrame::OnProgressBarDoubleClick, nullptr, this);
     ProgressBar->Hide();
     renderProgressDialog = nullptr;
     selectedEffectPalette = "";
