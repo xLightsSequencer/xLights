@@ -1854,7 +1854,6 @@
 					<label>OpenGL</label>
 					<object class="wxMenuItem" name="ID_MENU_OPENGL_AUTO" variable="MenuItem40" member="yes">
 						<label>Auto Detect</label>
-						<checked>1</checked>
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
 						<checkable>1</checkable>
 					</object>

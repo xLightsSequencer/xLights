@@ -1075,7 +1075,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     OpenGLMenu = new wxMenu();
     MenuItem40 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_AUTO, _("Auto Detect"), wxEmptyString, wxITEM_CHECK);
     OpenGLMenu->Append(MenuItem40);
-    MenuItem40->Check(true);
     MenuItem41 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_3, _("3.x"), wxEmptyString, wxITEM_CHECK);
     OpenGLMenu->Append(MenuItem41);
     MenuItem42 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_2, _("2.x"), wxEmptyString, wxITEM_CHECK);
@@ -2993,6 +2992,11 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
 void xLightsFrame::OnMenuOpenGLSelected(wxCommandEvent& event)
 {
     wxConfigBase* config = wxConfigBase::Get();
+    OpenGLMenu->Check(ID_MENU_OPENGL_AUTO, false);
+    OpenGLMenu->Check(ID_MENU_OPENGL_3, false);
+    OpenGLMenu->Check(ID_MENU_OPENGL_2, false);
+    OpenGLMenu->Check(ID_MENU_OPENGL_1, false);
+
     if (event.GetId() == ID_MENU_OPENGL_AUTO) {
         config->Write("ForceOpenGLVer", 99);
     } else if (event.GetId() == ID_MENU_OPENGL_3) {
@@ -3002,5 +3006,6 @@ void xLightsFrame::OnMenuOpenGLSelected(wxCommandEvent& event)
     } else if (event.GetId() == ID_MENU_OPENGL_1) {
         config->Write("ForceOpenGLVer", 1);
     }
+    OpenGLMenu->Check(event.GetId(), true);
     wxMessageBox("OpenGL changes require a restart\n");
 }
