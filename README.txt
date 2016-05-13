@@ -9,6 +9,11 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- enh (gil)     Highlight Model row when effects are selected.  Fixes #145.
+   -- enh (dkulp)   Changing timing panel to OpenGL - Mac now can support up to 60fps
+   -- bug (dkulp)   Loading XML sequence with no fseq not setting the timer to the appropriate MS time
+   -- enh (dkulp)   If changing OpenGL verison, auto-package/submit logs to dkulp for analysis
+   -- enh (dkulp)   Click on progress meter brings up dialog showing progress of each model
+   -- enh (dkulp)   Progress meter on status bar for rendering
    -- enh (gil)     Fix copy/paste for single effect so it fills cells selected when paste by cell.
    -- enh (gil)     Add automatic channel placement in custom models with mouse clicks.
    -- enh (gil)     Add ability to lighten the custom model background image.
