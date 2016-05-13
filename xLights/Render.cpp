@@ -45,15 +45,25 @@ class NextRenderer {
 public:
     NextRenderer() : nextLock(), nextSignal() {
         previousFrameDone = -1;
-        next = NULL;
     }
-    virtual ~NextRenderer() {}
-    void setNext(NextRenderer *n) {
-        next = n;
+    virtual ~NextRenderer() {
     }
-    NextRenderer *getNext() {
-        return next;
+    bool addNext(NextRenderer *n) {
+        for (auto i = next.begin(); i < next.end(); i++) {
+            if (*i == n) return false;
+        }
+        next.push_back(n);
+        return true;
     }
+    bool HasNext() {
+        return !next.empty();
+    }
+    void FrameDone(int frame) {
+        for (auto i = next.begin(); i < next.end(); i++) {
+            (*i)->setPreviousFrameDone(frame);
+        }
+    }
+    
     virtual void setPreviousFrameDone(int i) {
         std::unique_lock<std::mutex> lock(nextLock);
         previousFrameDone = i;
@@ -78,7 +88,8 @@ protected:
     std::mutex nextLock;
     std::condition_variable nextSignal;
     volatile long previousFrameDone;
-    NextRenderer *next;
+private:
+    std::vector<NextRenderer *> next;
 };
 
 class AggregatorRenderer: public NextRenderer {
@@ -96,7 +107,14 @@ public:
     void incNumAggregated() {
         max++;
     }
+    int getNumAggregated() {
+        return max;
+    }
     virtual void setPreviousFrameDone(int frame) {
+        if (max <= 1) {
+            FrameDone(frame);
+            return;
+        }
         int idx = frame;
         if (idx == END_OF_RENDER_FRAME) {
             idx = finalFrame;
@@ -108,9 +126,7 @@ public:
             data[idx]++;
             if (data[idx] == max) {
                 previousFrameDone = frame;
-                if (next != NULL) {
-                    next->setPreviousFrameDone(previousFrameDone);
-                }
+                FrameDone(previousFrameDone);
             }
         }
     }
@@ -377,7 +393,7 @@ public:
                 currentFrame = frame;
                 SetGenericStatus("%s: Starting frame %d\n", frame);
 
-                if (next == nullptr &&
+                if (HasNext() &&
                         (origChangeCount != rowToRender->getChangeCount()
                          || rowToRender->GetWaitCount())) {
                     //we're bailing out but make sure this range is reconsidered
@@ -497,9 +513,9 @@ public:
                         }
                     }
                 }
-                if (next) {
+                if (HasNext()) {
                     SetGenericStatus("%s: Notifying next renderer of frame %d done\n", frame);
-                    next->setPreviousFrameDone(frame);
+                    FrameDone(frame);
                 }
             }
         } catch ( std::exception &ex) {
@@ -509,7 +525,7 @@ public:
             printf("Caught an unknown exception\n");
 			logger_base.error("Caught an unknown exception on rendering thread.");
 		}
-        if (next) {
+        if (HasNext()) {
             //make sure the previous has told us we're at the end.  If we return before waiting, the previous
             //may try sending the END_OF_RENDER_FRAME to us and we'll have been deleted
             SetGenericStatus("%s: Waiting on previous renderer for final frame\n", 0);
@@ -517,12 +533,12 @@ public:
 
             //let the next know we're done
             SetGenericStatus("%s: Notifying next renderer of final frame\n", 0);
-            next->setPreviousFrameDone(END_OF_RENDER_FRAME);
+            FrameDone(END_OF_RENDER_FRAME);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()), 0);
-
         } else {
             xLights->CallAfter(&xLightsFrame::RenderDone);
         }
+        currentFrame = END_OF_RENDER_FRAME;
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
 		logger_base.info("Rendering thread exiting.");
 	}
@@ -629,20 +645,15 @@ void xLightsFrame::RenderGridToSeqData() {
         //nothing to do....
         return;
     }
-    RenderJob **noDepJobs = new RenderJob*[numRows];
-    RenderJob **depJobs = new RenderJob*[numRows];
-    NextRenderer wait;
+    RenderJob **jobs = new RenderJob*[numRows];
+    AggregatorRenderer **aggregators = new AggregatorRenderer*[numRows];
+    std::vector<std::set<int>> channelMaps(SeqData.NumChannels());
     Element *lastRowEl = NULL;
-    AggregatorRenderer aggregator(SeqData.NumFrames());
-    int *channelsRendered = new int[SeqData.NumChannels()];
-    for (size_t x = 0; x < SeqData.NumChannels(); x++) {
-        channelsRendered[x] = -1;
+
+    for (size_t row = 0; row < mSequenceElements.GetElementCount(); row++) {
+        jobs[row] = nullptr;
+        aggregators[row] = new AggregatorRenderer(SeqData.NumFrames());
     }
-
-    int noDepsCount = 0;
-    int depsCount = 0;
-    aggregator.setNext(&wait);
-
 
     for (size_t row = 0; row < mSequenceElements.GetElementCount(); row++) {
         Element *rowEl = mSequenceElements.GetElement(row);
@@ -651,73 +662,51 @@ void xLightsFrame::RenderGridToSeqData() {
             RenderJob *job = new RenderJob(rowEl, SeqData, this);
             job->setRenderRange(0, SeqData.NumFrames());
 
-            bool hasDep = false;
             PixelBufferClass *buffer = job->getBuffer();
             if (buffer == nullptr) {
                 delete job;
                 continue;
             }
+            
+            jobs[row] = job;
+            aggregators[row]->addNext(job);
             size_t cn = buffer->GetChanCountPerNode();
             for (int node = 0; node < buffer->GetNodeCount(); node++) {
                 int start = buffer->NodeStartChannel(node);
                 for (int c = 0; c < cn; c++) {
                     int cnum = start + c;
                     if (cnum < SeqData.NumChannels()) {
-                        if (channelsRendered[cnum] >= 0
-                                && channelsRendered[cnum] != row) {
-                            hasDep = true;
-                        } else {
-                            channelsRendered[cnum] = row;
+                        for (auto i = channelMaps[cnum].begin(); i != channelMaps[cnum].end(); i++) {
+                            int idx = *i;
+                            if (idx != row) {
+                                if (jobs[idx]->addNext(aggregators[row])) {
+                                    aggregators[row]->incNumAggregated();
+                                }
+                            }
                         }
+                        channelMaps[cnum].insert(row);
                     }
                 }
             }
-            if (!hasDep) {
-                //does not depend on anything above it, reorder to the beginning and let it render at full
-                //speed with no waits
-                noDepJobs[noDepsCount] = job;
-                noDepsCount++;
-                job->setPreviousFrameDone(END_OF_RENDER_FRAME);
-                job->setNext(&aggregator);
-                aggregator.incNumAggregated();
-            } else {
-                depJobs[depsCount] = job;
-                job->setNext(&wait);
-                if (depsCount > 0) {
-                    depJobs[depsCount - 1]->setNext(depJobs[depsCount]);
-                } else {
-                    aggregator.setNext(job);
-                }
-                depsCount++;
-            }
-
         }
     }
+    channelMaps.clear();
     
     renderProgressDialog = new RenderProgressDialog(this);
-    for (int row = 0; row < noDepsCount; row++) {
-        if (noDepJobs[row]) {
-            jobPool.PushJob(noDepJobs[row]);
+    for (size_t row = 0; row < mSequenceElements.GetElementCount(); row++) {
+        if (jobs[row]) {
+            if (aggregators[row]->getNumAggregated() == 0) {
+                jobs[row]->setPreviousFrameDone(END_OF_RENDER_FRAME);
+            }
+            jobPool.PushJob(jobs[row]);
             
-            wxStaticText *label = new wxStaticText(renderProgressDialog->scrolledWindow, wxID_ANY, noDepJobs[row]->GetName());
+            wxStaticText *label = new wxStaticText(renderProgressDialog->scrolledWindow, wxID_ANY, jobs[row]->GetName());
             renderProgressDialog->scrolledWindowSizer->Add(label,1, wxALL |wxEXPAND,3);
             wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 99);
             g->SetValue(0);
             g->SetMinSize(wxSize(100, -1));
             renderProgressDialog->scrolledWindowSizer->Add(g, 1, wxALL |wxEXPAND,3);
-            noDepJobs[row]->SetGauge(g);
-        }
-    }
-    for (int row = 0; row < depsCount; row++) {
-        if (depJobs[row]) {
-            jobPool.PushJob(depJobs[row]);
-            wxStaticText *label = new wxStaticText(renderProgressDialog->scrolledWindow, wxID_ANY, depJobs[row]->GetName());
-            renderProgressDialog->scrolledWindowSizer->Add(label,1, wxALL |wxEXPAND,3);
-            wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 99);
-            g->SetValue(0);
-            g->SetMinSize(wxSize(100, -1));
-            renderProgressDialog->scrolledWindowSizer->Add(g, 1, wxALL |wxEXPAND,3);
-            depJobs[row]->SetGauge(g);
+            jobs[row]->SetGauge(g);
         }
     }
     renderProgressDialog->SetSize(250, 400);
@@ -725,60 +714,47 @@ void xLightsFrame::RenderGridToSeqData() {
     renderProgressDialog->scrolledWindow->FitInside();
     renderProgressDialog->scrolledWindow->SetScrollRate(5, 5);
     
-    if (depsCount > 0 || noDepsCount > 0) {
-        //wait to complete
-        int frames = SeqData.NumFrames();
-        while (!wait.checkIfDone(frames)) {
-            int countModels = 0;
-            int countFrames = 0;
-            
-            
-            for (int row = 0; row < noDepsCount; row++) {
-                if (noDepJobs[row]) {
-                    countModels++;
-                    int i = noDepJobs[row]->GetCurrentFrame();
-                    if (i > frames) i = frames;
-                    noDepJobs[row]->GetGauge()->SetValue((100 * i)/frames);
-                    countFrames += i;
-                }
-            }
-            for (int row = 0; row < depsCount; row++) {
-                if (depJobs[row]) {
-                    countModels++;
-                    int i = depJobs[row]->GetCurrentFrame();
-                    if (i > frames) i = frames;
-                    countFrames += i;
-                    depJobs[row]->GetGauge()->SetValue((100 * i)/frames);
-                }
-            }
-            if (countFrames > 0) {
-                int pct = (countFrames * 80) / (countModels * frames);
-                static int lastVal = 0;
-                if (lastVal != pct) {
-                    ProgressBar->SetValue(10 + pct);
-                    lastVal = pct;
-                }
-            }
-            wxYield();
-        }
-    }
+    bool done = false;
+    int frames = SeqData.NumFrames();
 
-    delete []channelsRendered;
-    
-    for (int row = 0; row < noDepsCount; row++) {
-        if (noDepJobs[row]) {
-            delete noDepJobs[row];
+    while (!done) {
+        done = true;
+        int countModels = 0;
+        int countFrames = 0;
+        for (size_t row = 0; row < mSequenceElements.GetElementCount(); row++) {
+            if (jobs[row]) {
+                int i = jobs[row]->GetCurrentFrame();
+                if (i >= frames) {
+                    i = frames;
+                } else {
+                    done = false;
+                }
+                countModels++;
+                jobs[row]->GetGauge()->SetValue((100 * i)/frames);
+                countFrames += i;
+            }
         }
+        if (countFrames > 0) {
+            int pct = (countFrames * 80) / (countModels * frames);
+            static int lastVal = 0;
+            if (lastVal != pct) {
+                ProgressBar->SetValue(10 + pct);
+                lastVal = pct;
+            }
+        }
+
+        wxYield();
     }
-    for (int row = 0; row < depsCount; row++) {
-        if (depJobs[row]) {
-            delete depJobs[row];
+    for (size_t row = 0; row < mSequenceElements.GetElementCount(); row++) {
+        if (jobs[row]) {
+            delete jobs[row];
         }
+        delete aggregators[row];
     }
     delete renderProgressDialog;
     renderProgressDialog = nullptr;
-    delete []depJobs;
-    delete []noDepJobs;
+    delete []jobs;
+    delete []aggregators;
     RenderDone();
 }
 void xLightsFrame::RenderDone() {
@@ -858,7 +834,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     if (command.GetInt()) {
         job->setRenderRange(0, SeqData.NumFrames());
         job->setPreviousFrameDone(END_OF_RENDER_FRAME);
-        job->setNext(&wait);
+        job->addNext(&wait);
         jobPool.PushJob(job);
         //wait to complete
         while (!wait.checkIfDone(SeqData.NumFrames())) {
