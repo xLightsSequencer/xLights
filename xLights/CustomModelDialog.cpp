@@ -55,6 +55,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
   next_channel(1)
 {
 	//(*Initialize(CustomModelDialog)
+	wxStaticBoxSizer* StaticBoxSizer2;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxStaticText* StaticText2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -76,7 +77,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Sizer1->AddGrowableRow(0);
 	Sizer2 = new wxFlexGridSizer(5, 1, 0, 0);
 	Sizer2->AddGrowableCol(0);
-	Sizer2->AddGrowableRow(2);
+	Sizer2->AddGrowableRow(3);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	StaticText1 = new wxStaticText(this, wxID_ANY, _("Width"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -107,6 +108,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Button_CustomModelZoomOut->SetToolTip(_("Zoom Out"));
 	FlexGridSizer5->Add(Button_CustomModelZoomOut, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer5, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Background Image"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
 	SliderCustomLightness = new wxSlider(this, ID_SLIDER_CUSTOM_LIGHTNESS, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_CUSTOM_LIGHTNESS"));
@@ -115,8 +117,9 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	BitmapButtonCustomBkgrd->SetDefault();
 	BitmapButtonCustomBkgrd->SetMinSize(wxSize(24,-1));
 	FlexGridSizer1->Add(BitmapButtonCustomBkgrd, 1, wxTOP|wxBOTTOM|wxRIGHT, 5);
-	Sizer2->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
-	StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Auto Numbering"));
+	StaticBoxSizer2->Add(FlexGridSizer1, 1, wxEXPAND, 5);
+	Sizer2->Add(StaticBoxSizer2, 1, wxEXPAND, 5);
+	StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, this, _("Auto Numbering"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
 	CheckBoxAutoNumber = new wxCheckBox(this, ID_CHECKBOX_AUTO_NUMBER, _("Active"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_AUTO_NUMBER"));
@@ -134,7 +137,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer4->Add(SpinCtrlNextChannel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxEXPAND, 5);
 	StaticBoxSizer1->Add(FlexGridSizer3, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Sizer2->Add(StaticBoxSizer1, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
+	Sizer2->Add(StaticBoxSizer1, 1, wxALIGN_LEFT, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
