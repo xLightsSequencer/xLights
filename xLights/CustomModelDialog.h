@@ -6,12 +6,14 @@
 class wxGrid;
 class wxSpinEvent;
 class wxStdDialogButtonSizer;
+class wxCheckBox;
 class wxStaticText;
 class wxSlider;
 class wxBitmapButton;
 class wxFlexGridSizer;
 class wxSpinCtrl;
 class wxButton;
+class wxStaticBoxSizer;
 class wxGridEvent;
 //*)
 
@@ -49,7 +51,10 @@ class CustomModelDialog: public wxDialog
 		virtual ~CustomModelDialog();
 
 		//(*Declarations(CustomModelDialog)
+		wxCheckBox* CheckBoxAutoNumber;
+		wxCheckBox* CheckBoxAutoIncrement;
 		wxBitmapButton* BitmapButtonCustomBkgrd;
+		wxSpinCtrl* SpinCtrlNextChannel;
 		wxButton* Button_CustomModelZoomIn;
 		wxGrid* GridCustom;
 		wxBitmapButton* BitmapButtonCustomPaste;
@@ -81,6 +86,9 @@ class CustomModelDialog: public wxDialog
 		static const long ID_BUTTON_CustomModelZoomOut;
 		static const long ID_SLIDER_CUSTOM_LIGHTNESS;
 		static const long ID_BITMAPBUTTON_CUSTOM_BKGRD;
+		static const long ID_CHECKBOX_AUTO_NUMBER;
+		static const long ID_CHECKBOX_AUTO_INCREMENT;
+		static const long ID_SPINCTRL_NEXT_CHANNEL;
 		static const long ID_GRID_Custom;
 		//*)
 
@@ -89,6 +97,9 @@ class CustomModelDialog: public wxDialog
 		wxModelGridCellRenderer* renderer;
         bool bkgrd_active;
         int lightness;
+        bool autonumber;
+        bool autoincrement;
+        int next_channel;
 
 	public:
 
@@ -105,6 +116,10 @@ class CustomModelDialog: public wxDialog
 		void OnPaint(wxPaintEvent& event);
 		void OnBitmapButtonCustomBkgrdClick(wxCommandEvent& event);
 		void OnSliderCustomLightnessCmdSliderUpdated(wxScrollEvent& event);
+		void OnCheckBoxAutoNumberClick(wxCommandEvent& event);
+		void OnCheckBoxAutoIncrementClick(wxCommandEvent& event);
+		void OnSpinCtrlNextChannelChange(wxSpinEvent& event);
+		void OnGridCustomCellLeftClick(wxGridEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

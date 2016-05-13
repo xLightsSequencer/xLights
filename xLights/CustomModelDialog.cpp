@@ -9,6 +9,7 @@
 #include <wx/artprov.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/checkbox.h>
 #include <wx/bitmap.h>
 #include <wx/spinctrl.h>
 #include <wx/slider.h>
@@ -32,6 +33,9 @@ const long CustomModelDialog::ID_BUTTON_CustomModelZoomIn = wxNewId();
 const long CustomModelDialog::ID_BUTTON_CustomModelZoomOut = wxNewId();
 const long CustomModelDialog::ID_SLIDER_CUSTOM_LIGHTNESS = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_BKGRD = wxNewId();
+const long CustomModelDialog::ID_CHECKBOX_AUTO_NUMBER = wxNewId();
+const long CustomModelDialog::ID_CHECKBOX_AUTO_INCREMENT = wxNewId();
+const long CustomModelDialog::ID_SPINCTRL_NEXT_CHANNEL = wxNewId();
 const long CustomModelDialog::ID_GRID_Custom = wxNewId();
 //*)
 
@@ -45,14 +49,22 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
   bkg_image(nullptr),
   renderer(nullptr),
   bkgrd_active(true),
-  lightness(80)
+  lightness(80),
+  autonumber(false),
+  autoincrement(false),
+  next_channel(1)
 {
 	//(*Initialize(CustomModelDialog)
+	wxFlexGridSizer* FlexGridSizer4;
 	wxStaticText* StaticText2;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* Sizer2;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText1;
+	wxStaticText* StaticText3;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxStaticBoxSizer* StaticBoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
@@ -62,7 +74,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Sizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	Sizer1->AddGrowableCol(1);
 	Sizer1->AddGrowableRow(0);
-	Sizer2 = new wxFlexGridSizer(4, 1, 0, 0);
+	Sizer2 = new wxFlexGridSizer(5, 1, 0, 0);
 	Sizer2->AddGrowableCol(0);
 	Sizer2->AddGrowableRow(2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -104,6 +116,25 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	BitmapButtonCustomBkgrd->SetMinSize(wxSize(24,-1));
 	FlexGridSizer1->Add(BitmapButtonCustomBkgrd, 1, wxTOP|wxBOTTOM|wxRIGHT, 5);
 	Sizer2->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
+	StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Auto Numbering"));
+	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
+	CheckBoxAutoNumber = new wxCheckBox(this, ID_CHECKBOX_AUTO_NUMBER, _("Active"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_AUTO_NUMBER"));
+	CheckBoxAutoNumber->SetValue(false);
+	FlexGridSizer6->Add(CheckBoxAutoNumber, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBoxAutoIncrement = new wxCheckBox(this, ID_CHECKBOX_AUTO_INCREMENT, _("Auto Increment"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_AUTO_INCREMENT"));
+	CheckBoxAutoIncrement->SetValue(false);
+	FlexGridSizer6->Add(CheckBoxAutoIncrement, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(FlexGridSizer6, 1, wxEXPAND, 5);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
+	StaticText3 = new wxStaticText(this, wxID_ANY, _("Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer4->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrlNextChannel = new wxSpinCtrl(this, ID_SPINCTRL_NEXT_CHANNEL, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 9999999, 1, _T("ID_SPINCTRL_NEXT_CHANNEL"));
+	SpinCtrlNextChannel->SetValue(_T("1"));
+	FlexGridSizer4->Add(SpinCtrlNextChannel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(FlexGridSizer4, 1, wxEXPAND, 5);
+	StaticBoxSizer1->Add(FlexGridSizer3, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Sizer2->Add(StaticBoxSizer1, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
@@ -134,6 +165,10 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_BUTTON_CustomModelZoomOut,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_CustomModelZoomOutClick);
 	Connect(ID_SLIDER_CUSTOM_LIGHTNESS,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnSliderCustomLightnessCmdSliderUpdated);
 	Connect(ID_BITMAPBUTTON_CUSTOM_BKGRD,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomBkgrdClick);
+	Connect(ID_CHECKBOX_AUTO_NUMBER,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnCheckBoxAutoNumberClick);
+	Connect(ID_CHECKBOX_AUTO_INCREMENT,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnCheckBoxAutoIncrementClick);
+	Connect(ID_SPINCTRL_NEXT_CHANNEL,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnSpinCtrlNextChannelChange);
+	Connect(ID_GRID_Custom,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellLeftClick);
 	//*)
     Connect(ID_GRID_Custom,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellChange);
 }
@@ -461,7 +496,9 @@ wxModelGridCellRenderer::wxModelGridCellRenderer(wxImage* image_, wxGrid& grid)
 void wxModelGridCellRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected)
 {
     // erase only this cells background
-    wxGridCellRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+    if( !isSelected ) {
+        wxGridCellRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+    }
 
     // draw bitmap slice
     if( image != nullptr && draw_picture )
@@ -474,6 +511,11 @@ void wxModelGridCellRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc,
                 dc.DrawBitmap(bmp.GetSubBitmap(rect), rect.x, rect.y);
             }
         }
+    }
+
+    // draw selection color over image if needed
+    if( isSelected ) {
+        wxGridCellRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
     }
 
     // draw the text
@@ -531,4 +573,31 @@ void wxModelGridCellRenderer::DetermineGridSize(wxGrid& grid)
     for (int r = 0; r < grid.GetNumberRows(); ++r) {
         height += int(1.5 * (float)font.GetPixelSize().y);
     }
+}
+
+void CustomModelDialog::OnCheckBoxAutoNumberClick(wxCommandEvent& event)
+{
+    autonumber = CheckBoxAutoNumber->GetValue();
+}
+
+void CustomModelDialog::OnCheckBoxAutoIncrementClick(wxCommandEvent& event)
+{
+    autoincrement = CheckBoxAutoIncrement->GetValue();
+}
+
+void CustomModelDialog::OnSpinCtrlNextChannelChange(wxSpinEvent& event)
+{
+    next_channel = SpinCtrlNextChannel->GetValue();
+}
+
+void CustomModelDialog::OnGridCustomCellLeftClick(wxGridEvent& event)
+{
+    if( autonumber ) {
+        GridCustom->SetCellValue(event.GetRow(), event.GetCol(), wxString::Format("%d", next_channel) );
+        if( autoincrement ) {
+            next_channel++;
+            SpinCtrlNextChannel->SetValue(next_channel);
+        }
+    }
+    event.Skip();
 }

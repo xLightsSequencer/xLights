@@ -14,7 +14,7 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="Sizer2" member="no">
 					<cols>1</cols>
-					<rows>4</rows>
+					<rows>5</rows>
 					<growablecols>0</growablecols>
 					<growablerows>2</growablerows>
 					<object class="sizeritem">
@@ -151,6 +151,75 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxStaticBoxSizer" variable="StaticBoxSizer1" member="no">
+							<label>Auto Numbering</label>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+									<cols>1</cols>
+									<object class="sizeritem">
+										<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+											<cols>3</cols>
+											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOX_AUTO_NUMBER" variable="CheckBoxAutoNumber" member="yes">
+													<label>Active</label>
+													<handler function="OnCheckBoxAutoNumberClick" entry="EVT_CHECKBOX" />
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOX_AUTO_INCREMENT" variable="CheckBoxAutoIncrement" member="yes">
+													<label>Auto Increment</label>
+													<handler function="OnCheckBoxAutoIncrementClick" entry="EVT_CHECKBOX" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+										</object>
+										<flag>wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+											<cols>2</cols>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="wxID_ANY" variable="StaticText3" member="no">
+													<label>Channel</label>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxSpinCtrl" name="ID_SPINCTRL_NEXT_CHANNEL" variable="SpinCtrlNextChannel" member="yes">
+													<value>1</value>
+													<min>1</min>
+													<max>9999999</max>
+													<handler function="OnSpinCtrlNextChannelChange" entry="EVT_SPINCTRL" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+										</object>
+										<flag>wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxStdDialogButtonSizer" variable="StdDialogButtonSizer1" member="no">
 							<object class="button">
 								<object class="wxButton" name="wxID_OK">
@@ -180,6 +249,7 @@
 					<labelcolwidth>30</labelcolwidth>
 					<defaultcolsize>30</defaultcolsize>
 					<style>wxVSCROLL|wxHSCROLL</style>
+					<handler function="OnGridCustomCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
 				</object>
 				<flag>wxEXPAND</flag>
 			</object>
