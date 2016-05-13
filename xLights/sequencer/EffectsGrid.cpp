@@ -1623,7 +1623,7 @@ void EffectsGrid::Paste(const wxString &data) {
 
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
     if (mPartialCellSelected || OneCellSelected()) {
-        if( (number_of_timings + number_of_effects) > 1 || paste_by_cell)  // multi-effect paste or pasting by cell
+        if( (number_of_timings + number_of_effects) > 1 )  // multi-effect paste
         {
             wxArrayString eff1data = wxSplit(all_efdata[1], '\t');
             int drop_time_offset, new_start_time, new_end_time, column_start_time;
@@ -1827,48 +1827,19 @@ void EffectsGrid::Paste(const wxString &data) {
                 if( col1 > col2 ) {
                     std::swap(col1, col2);
                 }
-                EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
-                if( paste_by_cell && contains_cell_info )
-                {
-                    bool found_selected_start_column = tel->HitTestEffectByTime(mDropStartTimeMS+1, selected_start_column);
-                    if( !found_selected_start_column )
-                    {
-                        wxMessageBox("Unable to find a selected timing start location for Paste By Cell.", "Paste Warning!", wxICON_WARNING | wxOK );
-                        return;
-                    }
-                }
                 for( int row = row1; row <= row2; row++ )
                 {
-                    EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-                    if( paste_by_cell && contains_cell_info )
+                    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+                    start_time = tel->GetEffect(col1)->GetStartTimeMS();
+                    end_time = tel->GetEffect(col2)->GetEndTimeMS();
+                    if( !paste_by_cell )  // use original effect length if paste by time
                     {
-                        int eff_start_column = wxAtoi(efdata[7]);
-                        int eff_end_column = wxAtoi(efdata[8]);
-                        int eff_start_pct = wxAtoi(efdata[9]);
-                        int eff_end_pct = wxAtoi(efdata[10]);
-                        int column_offset = selected_start_column - start_column;
-                        eff_start_column += column_offset;
-                        eff_end_column += column_offset;
-                        Effect* te_start = tel->GetEffect(eff_start_column);
-                        Effect* te_end = tel->GetEffect(eff_end_column);
-                        if( te_start == nullptr || te_end == nullptr )
-                        {
-                            break;
-                        }
-                        start_time = te_start->GetStartTimeMS() + (((te_start->GetEndTimeMS() - te_start->GetStartTimeMS()) * eff_start_pct) / 100);
-                        end_time = te_end->GetStartTimeMS() + (((te_end->GetEndTimeMS() - te_end->GetStartTimeMS()) * eff_end_pct) / 100);
-                    }
-                    else
-                    {
-                        //start_time = tel->GetEffect(col1)->GetStartTimeMS();
-                        //end_time = tel->GetEffect(col2)->GetEndTimeMS();
-                        start_time = mDropStartTimeMS;
                         int drop_time_offset = wxAtoi(efdata[3]);
-                        drop_time_offset = start_time - drop_time_offset;
+                        drop_time_offset = mDropStartTimeMS - drop_time_offset;
                         end_time = wxAtoi(efdata[4]);
                         end_time += drop_time_offset;
                     }
-
+                    EffectLayer* el = mSequenceElements->GetEffectLayer(row);
                     if( el->GetRangeIsClearMS(start_time, end_time) )
                     {
                         int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
