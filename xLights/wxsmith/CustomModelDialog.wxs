@@ -14,7 +14,7 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="Sizer2" member="no">
 					<cols>1</cols>
-					<rows>3</rows>
+					<rows>4</rows>
 					<growablecols>0</growablecols>
 					<growablerows>2</growablerows>
 					<object class="sizeritem">
@@ -119,6 +119,34 @@
 							</object>
 						</object>
 						<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+							<cols>2</cols>
+							<growablecols>1</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_CUSTOM_LIGHTNESS" variable="SliderCustomLightness" member="yes">
+									<handler function="OnSliderCustomLightnessCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxTOP|wxBOTTOM|wxLEFT|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_BKGRD" variable="BitmapButtonCustomBkgrd" member="yes">
+									<bitmap stock_id="wxART_FIND" />
+									<default>1</default>
+									<minsize>24,-1</minsize>
+									<handler function="OnBitmapButtonCustomBkgrdClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxTOP|wxBOTTOM|wxRIGHT</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

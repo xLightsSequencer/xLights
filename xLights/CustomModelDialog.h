@@ -7,6 +7,7 @@ class wxGrid;
 class wxSpinEvent;
 class wxStdDialogButtonSizer;
 class wxStaticText;
+class wxSlider;
 class wxBitmapButton;
 class wxFlexGridSizer;
 class wxSpinCtrl;
@@ -27,7 +28,7 @@ public:
 
     virtual void Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected) wxOVERRIDE;
 
-    void UpdateSize(wxGrid& grid, bool draw_picture_);
+    void UpdateSize(wxGrid& grid, bool draw_picture_, int lightness_);
     void CreateImage();
     void DetermineGridSize(wxGrid& grid);
 
@@ -37,6 +38,7 @@ private:
     int width;
     int height;
     bool draw_picture;
+    int lightness;
 };
 
 class CustomModelDialog: public wxDialog
@@ -53,6 +55,7 @@ class CustomModelDialog: public wxDialog
 		wxBitmapButton* BitmapButtonCustomPaste;
 		wxBitmapButton* BitmapButtonCustomCopy;
 		wxSpinCtrl* HeightSpin;
+		wxSlider* SliderCustomLightness;
 		wxBitmapButton* BitmapButtonCustomCut;
 		wxButton* Button_CustomModelZoomOut;
 		wxFlexGridSizer* Sizer1;
@@ -76,6 +79,7 @@ class CustomModelDialog: public wxDialog
 		static const long ID_BITMAPBUTTON_CUSTOM_PASTE;
 		static const long ID_BUTTON_CustomModelZoomIn;
 		static const long ID_BUTTON_CustomModelZoomOut;
+		static const long ID_SLIDER_CUSTOM_LIGHTNESS;
 		static const long ID_BITMAPBUTTON_CUSTOM_BKGRD;
 		static const long ID_GRID_Custom;
 		//*)
@@ -84,6 +88,7 @@ class CustomModelDialog: public wxDialog
 		wxImage* bkg_image;
 		wxModelGridCellRenderer* renderer;
         bool bkgrd_active;
+        int lightness;
 
 	public:
 
@@ -99,6 +104,7 @@ class CustomModelDialog: public wxDialog
 		void OnGridCustomCellChange(wxGridEvent& event);
 		void OnPaint(wxPaintEvent& event);
 		void OnBitmapButtonCustomBkgrdClick(wxCommandEvent& event);
+		void OnSliderCustomLightnessCmdSliderUpdated(wxScrollEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

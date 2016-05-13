@@ -11,6 +11,7 @@
 #include <wx/stattext.h>
 #include <wx/bitmap.h>
 #include <wx/spinctrl.h>
+#include <wx/slider.h>
 #include <wx/grid.h>
 #include <wx/bmpbuttn.h>
 #include <wx/intl.h>
@@ -29,6 +30,7 @@ const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_COPY = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_PASTE = wxNewId();
 const long CustomModelDialog::ID_BUTTON_CustomModelZoomIn = wxNewId();
 const long CustomModelDialog::ID_BUTTON_CustomModelZoomOut = wxNewId();
+const long CustomModelDialog::ID_SLIDER_CUSTOM_LIGHTNESS = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_BKGRD = wxNewId();
 const long CustomModelDialog::ID_GRID_Custom = wxNewId();
 //*)
@@ -42,7 +44,8 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 : background_image(""),
   bkg_image(nullptr),
   renderer(nullptr),
-  bkgrd_active(true)
+  bkgrd_active(true),
+  lightness(80)
 {
 	//(*Initialize(CustomModelDialog)
 	wxStaticText* StaticText2;
@@ -50,6 +53,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText1;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Custom Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
@@ -58,7 +62,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Sizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	Sizer1->AddGrowableCol(1);
 	Sizer1->AddGrowableRow(0);
-	Sizer2 = new wxFlexGridSizer(3, 1, 0, 0);
+	Sizer2 = new wxFlexGridSizer(4, 1, 0, 0);
 	Sizer2->AddGrowableCol(0);
 	Sizer2->AddGrowableRow(2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -90,10 +94,16 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Button_CustomModelZoomOut->SetMinSize(wxSize(24,-1));
 	Button_CustomModelZoomOut->SetToolTip(_("Zoom Out"));
 	FlexGridSizer5->Add(Button_CustomModelZoomOut, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Sizer2->Add(FlexGridSizer5, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer1->AddGrowableCol(1);
+	SliderCustomLightness = new wxSlider(this, ID_SLIDER_CUSTOM_LIGHTNESS, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_CUSTOM_LIGHTNESS"));
+	FlexGridSizer1->Add(SliderCustomLightness, 1, wxTOP|wxBOTTOM|wxLEFT|wxEXPAND, 5);
 	BitmapButtonCustomBkgrd = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_BKGRD, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FIND")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_BKGRD"));
 	BitmapButtonCustomBkgrd->SetDefault();
-	FlexGridSizer5->Add(BitmapButtonCustomBkgrd, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Sizer2->Add(FlexGridSizer5, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButtonCustomBkgrd->SetMinSize(wxSize(24,-1));
+	FlexGridSizer1->Add(BitmapButtonCustomBkgrd, 1, wxTOP|wxBOTTOM|wxRIGHT, 5);
+	Sizer2->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
@@ -122,6 +132,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_CUSTOM_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomPasteClick);
 	Connect(ID_BUTTON_CustomModelZoomIn,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_CustomModelZoomInClick);
 	Connect(ID_BUTTON_CustomModelZoomOut,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_CustomModelZoomOutClick);
+	Connect(ID_SLIDER_CUSTOM_LIGHTNESS,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnSliderCustomLightnessCmdSliderUpdated);
 	Connect(ID_BITMAPBUTTON_CUSTOM_BKGRD,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomBkgrdClick);
 	//*)
     Connect(ID_GRID_Custom,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellChange);
@@ -139,6 +150,8 @@ CustomModelDialog::~CustomModelDialog()
 
 void CustomModelDialog::Setup(CustomModel *m) {
     background_image = m->GetCustomBackground();
+    lightness = m->GetCustomLightness();
+    SliderCustomLightness->SetValue(lightness);
     std::string data = m->GetCustomData();
     if (data == "") {
         ResizeCustomGrid();
@@ -217,6 +230,7 @@ void CustomModelDialog::Save(CustomModel *m) {
         }
     }
     m->SetCustomData(customChannelData);
+    m->SetCustomLightness(lightness);
 }
 
 
@@ -419,7 +433,7 @@ void CustomModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
 
 void CustomModelDialog::UpdateBackground()
 {
-    if( renderer != nullptr ) renderer->UpdateSize(*GridCustom, bkgrd_active);
+    if( renderer != nullptr ) renderer->UpdateSize(*GridCustom, bkgrd_active, lightness);
 }
 
 void CustomModelDialog::OnBitmapButtonCustomBkgrdClick(wxCommandEvent& event)
@@ -429,11 +443,19 @@ void CustomModelDialog::OnBitmapButtonCustomBkgrdClick(wxCommandEvent& event)
     UpdateBackground();
 }
 
+void CustomModelDialog::OnSliderCustomLightnessCmdSliderUpdated(wxScrollEvent& event)
+{
+    lightness = SliderCustomLightness->GetValue();
+    UpdateBackground();
+    Refresh();
+}
+
 wxModelGridCellRenderer::wxModelGridCellRenderer(wxImage* image_, wxGrid& grid)
 : image(image_),
-  draw_picture(true)
+  draw_picture(true),
+  lightness(0)
 {
-    UpdateSize(grid, true);
+    UpdateSize(grid, true, lightness);
 }
 
 void wxModelGridCellRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected)
@@ -459,9 +481,10 @@ void wxModelGridCellRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc,
     grid.DrawTextRectangle(dc, grid.GetCellValue(row, col), rect,  wxALIGN_CENTRE,  wxALIGN_CENTRE);
 }
 
-void wxModelGridCellRenderer::UpdateSize(wxGrid& grid, bool draw_picture_)
+void wxModelGridCellRenderer::UpdateSize(wxGrid& grid, bool draw_picture_, int lightness_)
 {
     draw_picture = draw_picture_;
+    lightness = lightness_;
     DetermineGridSize(grid);
     CreateImage();
 }
@@ -471,13 +494,28 @@ void wxModelGridCellRenderer::CreateImage()
     if( image != nullptr )
     {
         wxImage img(*image);
-        img.Rescale(width, height);
-        /*img.SetAlpha();
-        for(wxCoord x=0; x<width; x++) {
-            for(wxCoord y=0; y<height; y++) {
-                img.SetAlpha(x, y, 128);
+
+        unsigned char red, green, blue;
+        for(int x = 0; x < img.GetWidth(); x++)
+        {
+            for(int y = 0; y < img.GetHeight(); y++)
+            {
+                red = img.GetRed(x,y);
+                green = img.GetGreen(x,y);
+                blue = img.GetBlue(x,y);
+                xlColor pixel(red, green, blue);
+                HSLValue hsl(pixel);
+
+               if (lightness > 0.0)
+                    hsl.lightness = lightness/100.0 * (1.0 - hsl.lightness) + hsl.lightness;
+                else if (lightness < 0.0)
+                    hsl.lightness *= (1.0 + lightness/100.0);
+
+                pixel.fromHSL(hsl);
+                img.SetRGB(x,y,pixel.red,pixel.green,pixel.blue);
             }
-        }*/
+        }
+        img.Rescale(width, height);
         bmp = wxBitmap(img);
     }
 }

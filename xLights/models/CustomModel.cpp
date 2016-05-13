@@ -120,6 +120,20 @@ void CustomModel::SetCustomData(const std::string &data) {
     SetFromXml(ModelXml, zeroBased);
 }
 
+long CustomModel::GetCustomLightness() const
+{
+    long lightness;
+    ModelXml->GetAttribute("CustomBkgLightness", "0").ToLong(&lightness);
+    return lightness;
+}
+
+void CustomModel::SetCustomLightness(long lightness)
+{
+    ModelXml->DeleteAttribute("CustomBkgLightness");
+    ModelXml->AddAttribute("CustomBkgLightness", wxString::Format("%d", lightness));
+    SetFromXml(ModelXml, zeroBased);
+}
+
 void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) {
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
     int maxval=GetCustomMaxChannel(customModel);

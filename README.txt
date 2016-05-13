@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Add ability to lighten the custom model background image.
    -- enh (gil)     Add ability to place a background image on a custom model grid.  Fixes #5.
    -- enh (keithsw) Add Manual Custom Model building assisted by image/video.
    -- enh (keithsw) Add LSP timing track import

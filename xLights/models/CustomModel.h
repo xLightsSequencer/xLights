@@ -3,7 +3,6 @@
 
 #include "Model.h"
 
-
 class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
@@ -25,6 +24,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetCustomData(const std::string &data);
 
         std::string GetCustomBackground() const {return custom_background;}
+        long GetCustomLightness() const;
+        void SetCustomLightness(long lightness);
 
     protected:
         virtual void InitModel() override;

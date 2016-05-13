@@ -24,6 +24,19 @@ public:
     double value;
 };
 
+class HSLValue
+{
+public:
+    HSLValue(double h=0.0, double s=0.0, double l=0.0)
+        : hue(h), saturation(s), lightness(l) {}
+    HSLValue(const xlColor &c);
+    HSLValue& operator=(const xlColor& hsl);
+
+    double hue;
+    double saturation;
+    double lightness;
+};
+
 class xlColor {
 public:
     uint8_t red;
@@ -103,6 +116,10 @@ public:
         fromHSV(hsv);
         return *this;
     }
+    xlColor&operator=(const HSLValue& hsl) {
+        fromHSL(hsl);
+        return *this;
+    }
 
 
     HSVValue asHSV() const {
@@ -112,6 +129,14 @@ public:
     }
     void fromHSV(const HSVValue &v);
     void toHSV(HSVValue &v) const;
+
+    HSLValue asHSL() const {
+        HSLValue v;
+        toHSL(v);
+        return v;
+    }
+    void fromHSL(const HSLValue &v);
+    void toHSL(HSLValue &v) const;
 
 
 
