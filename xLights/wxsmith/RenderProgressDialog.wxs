@@ -11,7 +11,7 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="scrolledWindow" member="yes">
-					<style>wxVSCROLL|wxALWAYS_SHOW_SB</style>
+					<style>wxVSCROLL</style>
 					<object class="wxFlexGridSizer" variable="scrolledWindowSizer" member="yes">
 						<cols>2</cols>
 						<growablecols>1</growablecols>

@@ -700,11 +700,11 @@ void xLightsFrame::RenderGridToSeqData() {
             jobPool.PushJob(noDepJobs[row]);
             
             wxStaticText *label = new wxStaticText(renderProgressDialog->scrolledWindow, wxID_ANY, noDepJobs[row]->GetName());
-            renderProgressDialog->scrolledWindowSizer->Add(label);
-            wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 100);
-            renderProgressDialog->scrolledWindowSizer->Add(g);
+            renderProgressDialog->scrolledWindowSizer->Add(label,1, wxALL |wxEXPAND,3);
+            wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 99);
             g->SetValue(0);
             g->SetMinSize(wxSize(100, -1));
+            renderProgressDialog->scrolledWindowSizer->Add(g, 1, wxALL |wxEXPAND,3);
             noDepJobs[row]->SetGauge(g);
         }
     }
@@ -712,11 +712,11 @@ void xLightsFrame::RenderGridToSeqData() {
         if (depJobs[row]) {
             jobPool.PushJob(depJobs[row]);
             wxStaticText *label = new wxStaticText(renderProgressDialog->scrolledWindow, wxID_ANY, depJobs[row]->GetName());
-            renderProgressDialog->scrolledWindowSizer->Add(label);
-            wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 100);
-            renderProgressDialog->scrolledWindowSizer->Add(g);
+            renderProgressDialog->scrolledWindowSizer->Add(label,1, wxALL |wxEXPAND,3);
+            wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 99);
             g->SetValue(0);
             g->SetMinSize(wxSize(100, -1));
+            renderProgressDialog->scrolledWindowSizer->Add(g, 1, wxALL |wxEXPAND,3);
             depJobs[row]->SetGauge(g);
         }
     }

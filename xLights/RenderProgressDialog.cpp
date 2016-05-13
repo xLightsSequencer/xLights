@@ -27,7 +27,7 @@ RenderProgressDialog::RenderProgressDialog(wxWindow* parent)
 	FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	scrolledWindow = new wxScrolledWindow(this, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxALWAYS_SHOW_SB, _T("ID_SCROLLEDWINDOW1"));
+	scrolledWindow = new wxScrolledWindow(this, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_SCROLLEDWINDOW1"));
 	scrolledWindowSizer = new wxFlexGridSizer(0, 2, 0, 0);
 	scrolledWindowSizer->AddGrowableCol(1);
 	scrolledWindow->SetSizer(scrolledWindowSizer);
