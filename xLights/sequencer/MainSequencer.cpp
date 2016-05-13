@@ -129,8 +129,8 @@ protected:
             prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
         }
         static int fs = 14;
-        DrawGLUtils::DrawText(5, 3 + fs, fs, time);
-        DrawGLUtils::DrawText(5, 2 * (3 + fs), fs, fps);
+        DrawGLUtils::DrawText(5, 3 + fs, fs, time, GetContentScaleFactor());
+        DrawGLUtils::DrawText(5, 2 * (3 + fs), fs, fps, GetContentScaleFactor());
         
         SwapBuffers();
     }

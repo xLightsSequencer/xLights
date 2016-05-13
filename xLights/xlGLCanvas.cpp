@@ -251,6 +251,7 @@ void xlGLCanvas::CreateGLContext() {
             }
             m_context = new wxGLContext(this, nullptr, &atts);
             if (!m_context->IsOK()) {
+                logger_opengl.debug("Could not create a valid CoreProfile context");
                 delete m_context;
                 m_context = nullptr;
             }

@@ -18,6 +18,8 @@
 #include <wx/valnum.h>
 #include <wx/clipbrd.h>
 #include <wx/debugrpt.h>
+#include <wx/protocol/http.h>
+#include <wx/textctrl.h>
 #include "xLightsApp.h" //global app run-time flags
 #include "heartbeat.h" //DJ
 #include "SeqSettingsDialog.h"
@@ -1070,16 +1072,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem7->Append(MenuItemEffectAssistToggleMode);
     MenuItemEffectAssistToggleMode->Check(true);
     MenuSettings->Append(ID_MENUITEM_EFFECT_ASSIST, _("Effect Assist Window"), MenuItem7, wxEmptyString);
-    MenuItem39 = new wxMenu();
-    MenuItem40 = new wxMenuItem(MenuItem39, ID_MENU_OPENGL_AUTO, _("Auto Detect"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem39->Append(MenuItem40);
-    MenuItem41 = new wxMenuItem(MenuItem39, ID_MENU_OPENGL_3, _("3.x"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem39->Append(MenuItem41);
-    MenuItem42 = new wxMenuItem(MenuItem39, ID_MENU_OPENGL_2, _("2.x"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem39->Append(MenuItem42);
-    MenuItem43 = new wxMenuItem(MenuItem39, ID_MENU_OPENGL_1, _("1.x"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem39->Append(MenuItem43);
-    MenuSettings->Append(ID_MENUITEM19, _("OpenGL"), MenuItem39, wxEmptyString);
+    OpenGLMenu = new wxMenu();
+    MenuItem40 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_AUTO, _("Auto Detect"), wxEmptyString, wxITEM_CHECK);
+    OpenGLMenu->Append(MenuItem40);
+    MenuItem40->Check(true);
+    MenuItem41 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_3, _("3.x"), wxEmptyString, wxITEM_CHECK);
+    OpenGLMenu->Append(MenuItem41);
+    MenuItem42 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_2, _("2.x"), wxEmptyString, wxITEM_CHECK);
+    OpenGLMenu->Append(MenuItem42);
+    MenuItem43 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_1, _("1.x"), wxEmptyString, wxITEM_CHECK);
+    OpenGLMenu->Append(MenuItem43);
+    MenuSettings->Append(ID_MENUITEM19, _("OpenGL"), OpenGLMenu, wxEmptyString);
     MenuItem13 = new wxMenuItem(MenuSettings, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(MenuItem13);
     MenuBar->Append(MenuSettings, _("&Settings"));
@@ -1416,7 +1419,34 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     }
     wxCommandEvent event(wxEVT_NULL, isid);
     SetToolIconSize(event);
-
+    
+    int glVer = 99;
+    config->Read("ForceOpenGLVer", &glVer, 99);
+    if (glVer != 99) {
+        int lastGlVer;
+        config->Read("LastOpenGLVer", &lastGlVer, 0);
+        if (lastGlVer == 0) {
+            config->Write("ForceOpenGLVer", 99);
+            glVer = 99;
+        } else if (glVer != lastGlVer) {
+            CallAfter(&xLightsFrame::MaybePackageAndSendDebugFiles);
+        }
+    }
+    config->Write("LastOpenGLVer", glVer);
+    switch (glVer) {
+        case 1:
+            OpenGLMenu->Check(ID_MENU_OPENGL_1, true);
+            break;
+        case 2:
+            OpenGLMenu->Check(ID_MENU_OPENGL_2, true);
+            break;
+        case 3:
+            OpenGLMenu->Check(ID_MENU_OPENGL_3, true);
+            break;
+        default:
+            OpenGLMenu->Check(ID_MENU_OPENGL_AUTO, true);
+            break;
+    }
     config->Read("xLightsGridSpacing", &mGridSpacing, 16);
     if (mGridSpacing != 16)
     {
@@ -2840,6 +2870,63 @@ void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
     SetFocus();
 }
 
+void xLightsFrame::MaybePackageAndSendDebugFiles() {
+    wxString message = "You forced the OpenGL setting to a non-default value.  Is it OK to send the debug logs to the developers for analysis?";
+    wxMessageDialog dlg(this, message, "Send Debug Files",wxYES_NO|wxCENTRE);
+    if (dlg.ShowModal() == wxID_YES) {
+        wxTextEntryDialog ted(this, "Can you briefly describe what wasn't working?\n"
+                              "Also include who you are (email, forum username, etc..)", "Additional Information", "",
+                              wxTE_MULTILINE|wxOK|wxCENTER);
+        ted.SetSize(400, 400);
+        ted.ShowModal();
+        
+        wxDebugReportCompress report;
+        report.SetCompressedFileBaseName("xlights_debug");
+        report.SetCompressedFileDirectory(wxFileName::GetTempDir());
+        report.AddText("description", ted.GetValue(), "description");
+        AddDebugFilesToReport(report);
+        report.Process();
+        
+        wxHTTP http;
+        http.Connect("dankulp.com");
+        
+        
+        const char *bound = "--------------------------b29a7c2fe47b9481";
+        int i = wxGetUTCTimeMillis().GetLo();
+        i &= 0xFFFFFFF;
+        wxString fn = wxString::Format("xlights_%d.zip", i);
+        const char *ct = "Content-Type: application/octet-stream\n";
+        std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
+        
+        wxMemoryBuffer memBuff;
+        memBuff.AppendData(bound, strlen(bound));
+        memBuff.AppendData("\n", 1);
+        memBuff.AppendData(ct, strlen(ct));
+        memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
+        
+        
+        wxFile f_in(wxFileName::GetTempDir() + "/xlights_debug.zip");
+        wxFileOffset fLen=f_in.Length();
+        void* tmp=memBuff.GetAppendBuf(fLen);
+        size_t iRead=f_in.Read(tmp, fLen);
+        memBuff.UngetAppendBuf(iRead);
+        f_in.Close();
+        
+        memBuff.AppendData("\n", 1);
+        memBuff.AppendData(bound, strlen(bound));
+        memBuff.AppendData("--\n", 3);
+        
+        http.SetMethod("POST");
+        http.SetPostBuffer("multipart/form-data; boundary=------------------------b29a7c2fe47b9481", memBuff);
+        wxInputStream * is = http.GetInputStream("/oglUpload/index.php");
+        char buf[1024];
+        is->Read(buf, 1024);
+        //printf("%s\n", buf);
+        delete is;
+        http.Close();
+        wxRemoveFile(wxFileName::GetTempDir() + "/xlights_debug.zip");
+    }
+}
 void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
 {
     wxFileDialog fd(this, "Zip file to create.", CurrentDir, "xLightsProblem.zip", "zip file(*.zip)|*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -2849,6 +2936,12 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     wxDebugReportCompress report;
     report.SetCompressedFileBaseName(wxFileName(fd.GetFilename()).GetName());
     report.SetCompressedFileDirectory(fd.GetDirectory());
+    AddDebugFilesToReport(report);
+    
+    report.Process();
+}
+void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
+    
 
     wxFileName fn(CurrentDir, "xlights_networks.xml");
     if (fn.Exists()) {
@@ -2866,8 +2959,10 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     std::string filename = std::string(dir.c_str()) + "/xLights_l4cpp.log";
 #endif
 #ifdef __WXOSX_MAC__
-    wxGetEnv("user.home", &dir);
-    std::string filename = std::string(dir.c_str()) + "/Library/Logs/xLights_l4cpp.log";
+    wxFileName home;
+    home.AssignHomeDir();
+    dir = home.GetFullPath();
+    std::string filename = dir.ToStdString() + "/Library/Logs/xLights_l4cpp.log";
 #endif
 #ifdef __LINUX__
     std::string filename = "/tmp/xLights_l4cpp.log";
@@ -2890,8 +2985,7 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
             report.AddFile(GetSeqXmlFileName(), fn.GetName());
         }
     }
-
-    report.Process();
+    report.AddAll(wxDebugReport::Context_Current);
 }
 
 void xLightsFrame::OnMenuOpenGLSelected(wxCommandEvent& event)

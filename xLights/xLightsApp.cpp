@@ -310,7 +310,9 @@ void handleCrash(void *data) {
     std::string filename = std::string(dir.c_str()) + "/xLights_l4cpp.log";
 #endif
 #ifdef __WXOSX_MAC__
-    wxGetEnv("user.home", &dir);
+    wxFileName home;
+    home.AssignHomeDir();
+    dir = home.GetFullPath();
     std::string filename = std::string(dir.c_str()) + "/Library/Logs/xLights_l4cpp.log";
 #endif
 #ifdef __LINUX__

@@ -105,6 +105,7 @@
 class EffectTreeDialog;
 class ConvertDialog;
 class ConvertLogDialog;
+class wxDebugReport;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -603,7 +604,8 @@ private:
 	void ResetAllSequencerWindows();
 	void SetEffectAssistWindowState(bool show);
     void UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect);
-
+    void MaybePackageAndSendDebugFiles();
+    void AddDebugFilesToReport(wxDebugReport &report);
 //    void ConnectOnChar(wxWindow* pclComponent);
 
     //(*Identifiers(xLightsFrame)
@@ -857,7 +859,6 @@ private:
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItem_File_Close_Sequence;
     wxStaticText* StaticTextShowStart;
-    wxMenu* MenuItem39;
     wxPanel* AUIStatusBar;
     xlAuiToolBar* ViewToolBar;
     wxMenuItem* MenuItem37;
@@ -912,6 +913,7 @@ private:
     wxButton* ButtonDeleteShow;
     wxSplitterWindow* SplitterWindow3;
     wxButton* ButtonShowDatesChange;
+    wxMenu* OpenGLMenu;
     wxStaticText* StatusText;
     wxTextCtrl* TextCtrl_PgoMaxRest;
     wxMenuItem* MenuItem_File_SaveAs_Sequence;
