@@ -563,6 +563,8 @@
 		<Unit filename="Render.cpp" />
 		<Unit filename="RenderBuffer.cpp" />
 		<Unit filename="RenderBuffer.h" />
+		<Unit filename="RenderProgressDialog.cpp" />
+		<Unit filename="RenderProgressDialog.h" />
 		<Unit filename="ResizeImageDialog.cpp" />
 		<Unit filename="ResizeImageDialog.h" />
 		<Unit filename="RgbEffects.h" />
@@ -982,6 +984,7 @@
 		<Unit filename="wxsmith/PlayerFrame.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
 		<Unit filename="wxsmith/RenameTextDialog.wxs" />
+		<Unit filename="wxsmith/RenderProgressDialog.wxs" />
 		<Unit filename="wxsmith/ResizeImageDialog.wxs" />
 		<Unit filename="wxsmith/RipplePanel.wxs" />
 		<Unit filename="wxsmith/SaveChangesDialog.wxs" />
@@ -1136,6 +1139,7 @@
 					<wxDialog wxs="wxsmith/ConvertDialog.wxs" src="ConvertDialog.cpp" hdr="ConvertDialog.h" fwddecl="0" i18n="1" name="ConvertDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ConvertLogDialog.wxs" src="ConvertLogDialog.cpp" hdr="ConvertLogDialog.h" fwddecl="0" i18n="1" name="ConvertLogDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/GenerateCustomModelDialog.wxs" src="GenerateCustomModelDialog.cpp" hdr="GenerateCustomModelDialog.h" fwddecl="0" i18n="1" name="GenerateCustomModelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/RenderProgressDialog.wxs" src="RenderProgressDialog.cpp" hdr="RenderProgressDialog.h" fwddecl="1" i18n="1" name="RenderProgressDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
