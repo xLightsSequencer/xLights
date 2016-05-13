@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Highlight Model row when effects are selected.  Fixes #145.
    -- enh (gil)     Fix copy/paste for single effect so it fills cells selected when paste by cell.
    -- enh (gil)     Add automatic channel placement in custom models with mouse clicks.
    -- enh (gil)     Add ability to lighten the custom model background image.

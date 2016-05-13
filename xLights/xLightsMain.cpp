@@ -309,6 +309,7 @@ wxDEFINE_EVENT(EVT_MOUSE_POSITION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SELECTED_ROW_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EFFECT_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UNSELECTED_EFFECT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
@@ -347,6 +348,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_ROW_HEADINGS_CHANGED, xLightsFrame::RowHeadingsChanged)
     EVT_COMMAND(wxID_ANY, EVT_WINDOW_RESIZED, xLightsFrame::WindowResized)
     EVT_COMMAND(wxID_ANY, EVT_SELECTED_EFFECT_CHANGED, xLightsFrame::SelectedEffectChanged)
+    EVT_COMMAND(wxID_ANY, EVT_SELECTED_ROW_CHANGED, xLightsFrame::SelectedRowChanged)
     EVT_COMMAND(wxID_ANY, EVT_EFFECT_CHANGED, xLightsFrame::EffectChanged)
     EVT_COMMAND(wxID_ANY, EVT_UNSELECTED_EFFECT, xLightsFrame::UnselectedEffect)
     EVT_COMMAND(wxID_ANY, EVT_EFFECT_DROPPED, xLightsFrame::EffectDroppedOnGrid)
@@ -1420,7 +1422,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     }
     wxCommandEvent event(wxEVT_NULL, isid);
     SetToolIconSize(event);
-    
+
     int glVer = 99;
     config->Read("ForceOpenGLVer", &glVer, 99);
     if (glVer != 99) {
@@ -2880,43 +2882,43 @@ void xLightsFrame::MaybePackageAndSendDebugFiles() {
                               wxTE_MULTILINE|wxOK|wxCENTER);
         ted.SetSize(400, 400);
         ted.ShowModal();
-        
+
         wxDebugReportCompress report;
         report.SetCompressedFileBaseName("xlights_debug");
         report.SetCompressedFileDirectory(wxFileName::GetTempDir());
         report.AddText("description", ted.GetValue(), "description");
         AddDebugFilesToReport(report);
         report.Process();
-        
+
         wxHTTP http;
         http.Connect("dankulp.com");
-        
-        
+
+
         const char *bound = "--------------------------b29a7c2fe47b9481";
         int i = wxGetUTCTimeMillis().GetLo();
         i &= 0xFFFFFFF;
         wxString fn = wxString::Format("xlights_%d.zip", i);
         const char *ct = "Content-Type: application/octet-stream\n";
         std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
-        
+
         wxMemoryBuffer memBuff;
         memBuff.AppendData(bound, strlen(bound));
         memBuff.AppendData("\n", 1);
         memBuff.AppendData(ct, strlen(ct));
         memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
-        
-        
+
+
         wxFile f_in(wxFileName::GetTempDir() + "/xlights_debug.zip");
         wxFileOffset fLen=f_in.Length();
         void* tmp=memBuff.GetAppendBuf(fLen);
         size_t iRead=f_in.Read(tmp, fLen);
         memBuff.UngetAppendBuf(iRead);
         f_in.Close();
-        
+
         memBuff.AppendData("\n", 1);
         memBuff.AppendData(bound, strlen(bound));
         memBuff.AppendData("--\n", 3);
-        
+
         http.SetMethod("POST");
         http.SetPostBuffer("multipart/form-data; boundary=------------------------b29a7c2fe47b9481", memBuff);
         wxInputStream * is = http.GetInputStream("/oglUpload/index.php");
@@ -2938,11 +2940,11 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     report.SetCompressedFileBaseName(wxFileName(fd.GetFilename()).GetName());
     report.SetCompressedFileDirectory(fd.GetDirectory());
     AddDebugFilesToReport(report);
-    
+
     report.Process();
 }
 void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
-    
+
 
     wxFileName fn(CurrentDir, "xlights_networks.xml");
     if (fn.Exists()) {

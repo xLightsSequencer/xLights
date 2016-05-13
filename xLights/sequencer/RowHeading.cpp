@@ -467,6 +467,13 @@ bool RowHeading::HitTestTimingActive(int row,int x, bool* IsActive)
     }
 }
 
+void RowHeading::SetSelectedRow(int row_number)
+{
+    mSequenceElements->UnSelectAllElements();
+    mSelectedRow = row_number;
+    Refresh(false);
+}
+
 int RowHeading::GetMaxRows()
 {
     int max = (int)(getHeight()/DEFAULT_ROW_HEADING_HEIGHT);

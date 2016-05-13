@@ -600,6 +600,12 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->SetFocus();
 }
 
+void xLightsFrame::SelectedRowChanged(wxCommandEvent& event)
+{
+    mainSequencer->PanelRowHeadings->SetSelectedRow(event.GetInt());
+    playModel = GetModel(event.GetString().ToStdString());
+}
+
 void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 {
     int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
