@@ -12,7 +12,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual int GetStrandLength(int strand) const override;
         virtual int MapToNodeIndex(int strand, int node) const override;
-    
+
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
@@ -23,6 +23,9 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         std::string GetCustomData() const;
         void SetCustomData(const std::string &data);
+
+        std::string GetCustomBackground() const {return custom_background;}
+
     protected:
         virtual void InitModel() override;
         virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
@@ -30,6 +33,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
     private:
         int GetCustomMaxChannel(const std::string& customModel);
         void InitCustomMatrix(const std::string& customModel);
+
+        std::string custom_background;
 };
 
 #endif // CUSTOMMODEL_H

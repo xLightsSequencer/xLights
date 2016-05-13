@@ -65,9 +65,19 @@ protected:
 void CustomModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     wxPGProperty *p = grid->Append(new CustomModelProperty(this, "Model Data", "CustomData", CLICK_TO_EDIT));
     grid->LimitPropertyEditing(p);
+    p = grid->Append(new wxImageFileProperty("Background Image",
+                                             "CustomBkgImage",
+                                             custom_background));
 }
 int CustomModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("CustomData" == event.GetPropertyName()) {
+        return 3;
+    }
+    else if ("CustomBkgImage" == event.GetPropertyName()) {
+        custom_background = event.GetValue().GetString();
+        ModelXml->DeleteAttribute("CustomBkgImage");
+        ModelXml->AddAttribute("CustomBkgImage", custom_background);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     }
     return Model::OnPropertyGridChange(grid, event);
@@ -87,6 +97,7 @@ void CustomModel::InitModel() {
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
     InitCustomMatrix(customModel);
     CopyBufCoord2ScreenCoord();
+    custom_background = ModelXml->GetAttribute("CustomBkgImage").ToStdString();
 }
 
 void CustomModel::SetCustomWidth(long w) {
@@ -109,7 +120,6 @@ void CustomModel::SetCustomData(const std::string &data) {
     SetFromXml(ModelXml, zeroBased);
 }
 
-
 void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) {
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
     int maxval=GetCustomMaxChannel(customModel);
@@ -129,7 +139,7 @@ int CustomModel::GetCustomMaxChannel(const std::string& customModel) {
     wxArrayString cols;
     long val,maxval=0;
     wxString valstr;
-    
+
     wxArrayString rows=wxSplit(customModel,';');
     for(size_t row=0; row < rows.size(); row++) {
         cols=wxSplit(rows[row],',');
@@ -149,11 +159,11 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
     long idx;
     int width=1;
     std::vector<int> nodemap;
-    
+
     wxArrayString rows=wxSplit(customModel,';');
     int height=rows.size();
     int cpn = -1;
-   
+
     for(size_t row=0; row < rows.size(); row++) {
         cols=wxSplit(rows[row],',');
         if (cols.size() > width) width=cols.size();
@@ -161,13 +171,13 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
             value=cols[col];
             if (!value.IsEmpty() && value != "0") {
                 value.ToLong(&idx);
-                
+
                 // increase nodemap size if necessary
                 if (idx > nodemap.size()) {
                     nodemap.resize(idx, -1);
                 }
                 idx--;  // adjust to 0-based
-                
+
                 // is node already defined in map?
                 if (nodemap[idx] < 0) {
                     // unmapped - so add a node
@@ -199,6 +209,6 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
     for (int x = 0; x < Nodes.size(); x++) {
         Nodes[x]->SetName(GetNodeName(Nodes[x]->StringNum));
     }
-    
+
     SetBufferSize(height,width);
 }

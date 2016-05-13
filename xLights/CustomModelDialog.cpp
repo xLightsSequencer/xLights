@@ -3,7 +3,7 @@
 
 #include <wx/msgdlg.h>
 #include <wx/clipbrd.h>
-
+#include <wx/graphics.h>
 
 //(*InternalHeaders(CustomModelDialog)
 #include <wx/artprov.h>
@@ -29,6 +29,7 @@ const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_COPY = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_PASTE = wxNewId();
 const long CustomModelDialog::ID_BUTTON_CustomModelZoomIn = wxNewId();
 const long CustomModelDialog::ID_BUTTON_CustomModelZoomOut = wxNewId();
+const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_BKGRD = wxNewId();
 const long CustomModelDialog::ID_GRID_Custom = wxNewId();
 //*)
 
@@ -38,6 +39,10 @@ BEGIN_EVENT_TABLE(CustomModelDialog,wxDialog)
 END_EVENT_TABLE()
 
 CustomModelDialog::CustomModelDialog(wxWindow* parent)
+: background_image(""),
+  bkg_image(nullptr),
+  renderer(nullptr),
+  bkgrd_active(true)
 {
 	//(*Initialize(CustomModelDialog)
 	wxStaticText* StaticText2;
@@ -85,6 +90,9 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Button_CustomModelZoomOut->SetMinSize(wxSize(24,-1));
 	Button_CustomModelZoomOut->SetToolTip(_("Zoom Out"));
 	FlexGridSizer5->Add(Button_CustomModelZoomOut, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButtonCustomBkgrd = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_BKGRD, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FIND")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_BKGRD"));
+	BitmapButtonCustomBkgrd->SetDefault();
+	FlexGridSizer5->Add(BitmapButtonCustomBkgrd, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer5, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
@@ -114,6 +122,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_CUSTOM_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomPasteClick);
 	Connect(ID_BUTTON_CustomModelZoomIn,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_CustomModelZoomInClick);
 	Connect(ID_BUTTON_CustomModelZoomOut,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_CustomModelZoomOutClick);
+	Connect(ID_BITMAPBUTTON_CUSTOM_BKGRD,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomBkgrdClick);
 	//*)
     Connect(ID_GRID_Custom,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellChange);
 }
@@ -122,13 +131,24 @@ CustomModelDialog::~CustomModelDialog()
 {
 	//(*Destroy(CustomModelDialog)
 	//*)
+
+	if( bkg_image != nullptr ) {
+        delete bkg_image;
+    }
 }
 
 void CustomModelDialog::Setup(CustomModel *m) {
+    background_image = m->GetCustomBackground();
     std::string data = m->GetCustomData();
     if (data == "") {
         ResizeCustomGrid();
         return;
+    }
+
+    if( background_image != "" ) {
+        bkg_image = new wxImage(background_image);
+        renderer = new wxModelGridCellRenderer(bkg_image, *GridCustom);
+        GridCustom->SetDefaultRenderer(renderer);
     }
 
     wxArrayString cols;
@@ -149,8 +169,8 @@ void CustomModelDialog::Setup(CustomModel *m) {
     }
     WidthSpin->SetValue(GridCustom->GetNumberCols());
     HeightSpin->SetValue(GridCustom->GetNumberRows());
-    
-    
+
+
     wxFont font = GridCustom->GetDefaultCellFont();
     GridCustom->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
     GridCustom->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
@@ -161,6 +181,7 @@ void CustomModelDialog::Setup(CustomModel *m) {
     font = GridCustom->GetLabelFont();
     GridCustom->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
     //Sizer1->Fit(this);
+    UpdateBackground();
     Sizer1->Layout();
     Layout();
 }
@@ -176,6 +197,7 @@ void CustomModelDialog::ResizeCustomGrid()
     if (deltaRows > 0) GridCustom->AppendRows(deltaRows);
     if (deltaCols < 0) GridCustom->DeleteCols(numCols,-deltaCols);
     if (deltaRows < 0) GridCustom->DeleteRows(numRows,-deltaRows);
+    UpdateBackground();
 }
 
 void CustomModelDialog::Save(CustomModel *m) {
@@ -208,7 +230,6 @@ void CustomModelDialog::OnHeightSpinChange(wxSpinEvent& event)
     ResizeCustomGrid();
 }
 
-
 void CustomModelDialog::OnButton_CustomModelZoomInClick(wxCommandEvent& event)
 {
     GridCustom->BeginBatch();
@@ -223,6 +244,7 @@ void CustomModelDialog::OnButton_CustomModelZoomInClick(wxCommandEvent& event)
     for (int r = 0; r < GridCustom->GetNumberRows(); ++r)
         GridCustom->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 5/4);
     GridCustom->EndBatch();
+    UpdateBackground();
 }
 
 void CustomModelDialog::OnButton_CustomModelZoomOutClick(wxCommandEvent& event)
@@ -241,6 +263,7 @@ void CustomModelDialog::OnButton_CustomModelZoomOutClick(wxCommandEvent& event)
     for (int r = 0; r < GridCustom->GetNumberRows(); ++r)
         GridCustom->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 4/5);
     GridCustom->EndBatch();
+    UpdateBackground();
 }
 
 void CustomModelDialog::OnButtonCustomModelHelpClick(wxCommandEvent& event)
@@ -256,7 +279,6 @@ void CustomModelDialog::OnGridCustomCellChange(wxGridEvent& event)
 wxString GetOSXFormattedClipboardData();
 #endif
 
-
 void CustomModelDialog::OnBitmapButtonCustomCutClick(wxCommandEvent& event)
 {
     CutOrCopyToClipboard(true);
@@ -270,7 +292,7 @@ void CustomModelDialog::CutOrCopyToClipboard(bool IsCut) {
     int i,k;
     wxString copy_data;
     bool something_in_this_line;
-    
+
     for (i=0; i< GridCustom->GetNumberRows(); i++)        // step through all lines
     {
         something_in_this_line = false;             // nothing found yet
@@ -295,7 +317,7 @@ void CustomModelDialog::CutOrCopyToClipboard(bool IsCut) {
             }
         }
     }
-    
+
     if (wxTheClipboard->Open())
     {
         if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data)))
@@ -318,20 +340,20 @@ void CustomModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     wxArrayString fields;
     int i,k,fieldnum;
     long val;
-    
+
 #ifdef __WXOSX__
     //wxDF_TEXT gets a very strange formatted string from the clipboard if using Numbers
     //native ObjectC code can get the proper tab formatted version.
     copy_data = GetOSXFormattedClipboardData();
 #endif
-    
+
     if (copy_data == "") {
         if (wxTheClipboard->Open())
         {
             if (wxTheClipboard->IsSupported(wxDF_TEXT))
             {
                 wxTextDataObject data;
-                
+
                 if (wxTheClipboard->GetData(data))
                 {
                     copy_data = data.GetText();
@@ -353,18 +375,18 @@ void CustomModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
             return;
         }
     }
-    
+
     i = GridCustom->GetGridCursorRow();
     k = GridCustom->GetGridCursorCol();
     int numrows=GridCustom->GetNumberRows();
     int numcols=GridCustom->GetNumberCols();
     bool errflag=false;
     wxString errdetails; //-DJ
-    
+
     copy_data.Replace("\r\r", "\n");
     copy_data.Replace("\r\n", "\n");
     copy_data.Replace("\r", "\n");
-    
+
     do
     {
         cur_line = copy_data.BeforeFirst('\n');
@@ -395,3 +417,80 @@ void CustomModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     }
 }
 
+void CustomModelDialog::UpdateBackground()
+{
+    if( renderer != nullptr ) renderer->UpdateSize(*GridCustom, bkgrd_active);
+}
+
+void CustomModelDialog::OnBitmapButtonCustomBkgrdClick(wxCommandEvent& event)
+{
+    bkgrd_active = !bkgrd_active;
+    GridCustom->Refresh();
+    UpdateBackground();
+}
+
+wxModelGridCellRenderer::wxModelGridCellRenderer(wxImage* image_, wxGrid& grid)
+: image(image_),
+  draw_picture(true)
+{
+    UpdateSize(grid, true);
+}
+
+void wxModelGridCellRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected)
+{
+    // erase only this cells background
+    wxGridCellRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+
+    // draw bitmap slice
+    if( image != nullptr && draw_picture )
+    {
+        if( bmp.IsOk() )
+        {
+            if( (rect.x + rect.width ) <= bmp.GetWidth() &&
+                (rect.y + rect.height) <= bmp.GetHeight() )
+            {
+                dc.DrawBitmap(bmp.GetSubBitmap(rect), rect.x, rect.y);
+            }
+        }
+    }
+
+    // draw the text
+    SetTextColoursAndFont(grid, attr, dc, isSelected);
+    grid.DrawTextRectangle(dc, grid.GetCellValue(row, col), rect,  wxALIGN_CENTRE,  wxALIGN_CENTRE);
+}
+
+void wxModelGridCellRenderer::UpdateSize(wxGrid& grid, bool draw_picture_)
+{
+    draw_picture = draw_picture_;
+    DetermineGridSize(grid);
+    CreateImage();
+}
+
+void wxModelGridCellRenderer::CreateImage()
+{
+    if( image != nullptr )
+    {
+        wxImage img(*image);
+        img.Rescale(width, height);
+        /*img.SetAlpha();
+        for(wxCoord x=0; x<width; x++) {
+            for(wxCoord y=0; y<height; y++) {
+                img.SetAlpha(x, y, 128);
+            }
+        }*/
+        bmp = wxBitmap(img);
+    }
+}
+
+void wxModelGridCellRenderer::DetermineGridSize(wxGrid& grid)
+{
+    wxFont font = grid.GetDefaultCellFont();
+    width = 0;
+    height = 0;
+    for (int c = 0; c < grid.GetNumberCols(); ++c) {
+        width += 2 * font.GetPixelSize().y;
+    }
+    for (int r = 0; r < grid.GetNumberRows(); ++r) {
+        height += int(1.5 * (float)font.GetPixelSize().y);
+    }
+}

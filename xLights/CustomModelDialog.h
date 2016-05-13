@@ -14,7 +14,30 @@ class wxButton;
 class wxGridEvent;
 //*)
 
+#include <wx/wx.h>
+#include <wx/grid.h>
+#include <wx/renderer.h>
+
 class CustomModel;
+
+class wxModelGridCellRenderer : public wxGridCellStringRenderer
+{
+public:
+    wxModelGridCellRenderer(wxImage* image_, wxGrid& grid);
+
+    virtual void Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected) wxOVERRIDE;
+
+    void UpdateSize(wxGrid& grid, bool draw_picture_);
+    void CreateImage();
+    void DetermineGridSize(wxGrid& grid);
+
+private:
+    wxImage* image;
+    wxBitmap bmp;
+    int width;
+    int height;
+    bool draw_picture;
+};
 
 class CustomModelDialog: public wxDialog
 {
@@ -24,6 +47,7 @@ class CustomModelDialog: public wxDialog
 		virtual ~CustomModelDialog();
 
 		//(*Declarations(CustomModelDialog)
+		wxBitmapButton* BitmapButtonCustomBkgrd;
 		wxButton* Button_CustomModelZoomIn;
 		wxGrid* GridCustom;
 		wxBitmapButton* BitmapButtonCustomPaste;
@@ -34,13 +58,15 @@ class CustomModelDialog: public wxDialog
 		wxFlexGridSizer* Sizer1;
 		wxSpinCtrl* WidthSpin;
 		//*)
-    
-    
+
+
         void Setup(CustomModel *m);
         void Save(CustomModel *m);
         void ResizeCustomGrid();
+
 	protected:
         void CutOrCopyToClipboard(bool isCut);
+        void UpdateBackground();
 
 		//(*Identifiers(CustomModelDialog)
 		static const long ID_SPINCTRL1;
@@ -50,8 +76,14 @@ class CustomModelDialog: public wxDialog
 		static const long ID_BITMAPBUTTON_CUSTOM_PASTE;
 		static const long ID_BUTTON_CustomModelZoomIn;
 		static const long ID_BUTTON_CustomModelZoomOut;
+		static const long ID_BITMAPBUTTON_CUSTOM_BKGRD;
 		static const long ID_GRID_Custom;
 		//*)
+
+		std::string background_image;
+		wxImage* bkg_image;
+		wxModelGridCellRenderer* renderer;
+        bool bkgrd_active;
 
 	public:
 
@@ -65,6 +97,8 @@ class CustomModelDialog: public wxDialog
 		void OnButton_CustomModelZoomOutClick(wxCommandEvent& event);
 		void OnButtonCustomModelHelpClick(wxCommandEvent& event);
 		void OnGridCustomCellChange(wxGridEvent& event);
+		void OnPaint(wxPaintEvent& event);
+		void OnBitmapButtonCustomBkgrdClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
