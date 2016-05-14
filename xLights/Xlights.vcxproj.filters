@@ -558,9 +558,6 @@
     <ClCompile Include="TabConvert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TabPapagayo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TabPreview.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

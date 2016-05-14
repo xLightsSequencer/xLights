@@ -23,9 +23,7 @@
 #include <wx/splitter.h>
 #include <wx/aui/aui.h>
 #include <wx/panel.h>
-#include <wx/grid.h>
 #include <wx/filedlg.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
 #include <wx/gbsizer.h>
 #include <wx/button.h>
@@ -43,7 +41,7 @@
 #include <wx/fontdlg.h>
 #include <wx/dir.h>
 #include <unordered_map> //-DJ
-
+#include <wx/grid.h>
 
 #ifdef LINUX
 #include <unistd.h>
@@ -114,8 +112,8 @@ class wxDebugReport;
 #define SETUPTAB 0
 #define PREVIEWTAB 1
 #define SCHEDULETAB 2
-#define PAPAGAYOTAB 3
-#define NEWSEQUENCER 4
+//#define PAPAGAYOTAB 3
+#define NEWSEQUENCER 3
 
 #define FixedPages 5
 
@@ -501,7 +499,7 @@ private:
     void OnNotebook2PageChanged(wxNotebookEvent& event);
     void OnButtonStartPapagayoClick(wxCommandEvent& event);
     void OnButton_pgo_filenameClick(wxCommandEvent& event);
-    //    void OnButton_papagayo_output_sequenceClick(wxCommandEvent& event);
+    void OnButton_papagayo_output_sequenceClick(wxCommandEvent& event);
     void OnButton_papagayo_output_sequenceClick1(wxCommandEvent& event);
     void OnTextCtrl1Text(wxCommandEvent& event);
     void OnTextCtrl20Text(wxCommandEvent& event);
@@ -683,42 +681,6 @@ private:
     static const long ID_PANEL2;
     static const long ID_SPLITTERWINDOW1;
     static const long ID_PANEL_CAL;
-    static const long ID_STATICTEXT26;
-    static const long ID_SPLITTERWINDOW3;
-    static const long ID_STATICTEXT28;
-    static const long ID_BUTTON5;
-    static const long ID_TEXTCTRL1;
-    static const long ID_BUTTON_PgoStitch;
-    static const long ID_STATICTEXT30;
-    static const long ID_BUTTON22;
-    static const long ID_TEXTCTRL67;
-    static const long ID_STATICTEXT71;
-    static const long ID_STATICTEXT36;
-    static const long ID_CHOICE_PgoOutputType;
-    static const long ID_STATICTEXT_PgoOutputType;
-    static const long ID_STATICTEXT37;
-    static const long ID_STATICTEXT46;
-    static const long ID_STATICTEXT38;
-    static const long ID_CHOICE_PgoGroupName;
-    static const long ID_BITMAPBUTTON_SaveCoroGroup;
-    static const long ID_BUTTON_CoroGroupDelete;
-    static const long ID_BUTTON_CoroGroupClear;
-    static const long ID_BUTTON_PgoCopyVoices;
-    static const long ID_GRID_COROFACES;
-    static const long ID_CHECKBOX_PgoAutoReset;
-    static const long ID_TEXTCTRL_PgoMinRest;
-    static const long ID_STATICTEXT27;
-    static const long ID_TEXTCTRL_PgoMaxRest;
-    static const long ID_STATICTEXT34;
-    static const long ID_CHECKBOX_CoroEyesRandomBlink;
-    static const long ID_CHECKBOX_PgoAutoFade;
-    static const long ID_TEXTCTRL_PgoAutoFade;
-    static const long ID_STATICTEXT35;
-    static const long ID_CHECKBOX_CoroEyesRandomLR;
-    static const long ID_CHECKBOX_CoroPictureScaled;
-    static const long ID_STATICTEXT70;
-    static const long ID_BUTTON6;
-    static const long ID_PANEL4;
     static const long ID_PANEL7;
     static const long ID_NOTEBOOK1;
     static const long ID_STATICTEXT6;
@@ -820,8 +782,6 @@ private:
 
     //(*Declarations(xLightsFrame)
     xlAuiToolBar* OutputToolBar;
-    wxChoice* Choice_PgoOutputType;
-    wxButton* Button_pgo_filename;
     wxButton* ButtonAddE131;
     wxMenuItem* MenuItemViewSavePerspective;
     wxMenuItem* QuitMenuItem;
@@ -830,33 +790,24 @@ private:
     wxMenuItem* MenuItemGridNodeValuesOff;
     wxCheckBox* CheckBoxRunSchedule;
     wxMenuItem* MenuItem40;
-    wxCheckBox* CheckBox_CoroEyesRandomLR;
     wxButton* ButtonClearLog;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
     wxMenu* ToolIconSizeMenu;
     wxMenuItem* MenuItem_File_Open_Sequence;
     wxAuiManager* m_mgr;
-    wxStaticText* StaticText33;
-    wxTextCtrl* TextCtrl_PgoAutoFade;
     wxStaticText* StaticText2;
-    wxTextCtrl* TextCtrl_pgo_filename;
     wxAuiManager* MainAuiManager;
     wxMenuItem* MenuItemRenderCanvasMode;
-    wxButton* Button_PgoStitch;
     wxStaticText* StaticTextShowEnd;
-    wxButton* Button_papagayo_output_sequence;
     wxMenuItem* MenuItemGridNodeValuesOn;
     wxMenu* MenuItem15;
     wxMenu* Menu3;
-    wxStaticText* StaticText26;
     wxTextCtrl* TextCtrlLog;
     wxMenu* MenuItemRenderMode;
     wxButton* Button_Change_Media_Dir;
     wxMenuItem* MenuItemRefresh;
     wxMenuItem* MenuItem_File_Save_Sequence;
     wxMenuItem* MenuItem36;
-    wxTextCtrl* TextCtrl_papagayo_output_filename;
-    wxStaticText* StaticText32;
     wxButton* ButtonNetworkDeleteAll;
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItem_File_Close_Sequence;
@@ -866,7 +817,6 @@ private:
     wxMenuItem* MenuItem37;
     wxStaticText* StaticText1;
     wxMenuItem* MenuItem32;
-    wxStaticText* StaticText27;
     wxMenuItem* MenuItem_ViewZoomIn;
     wxPanel* PanelPreview;
     wxStaticText* StaticText3;
@@ -875,19 +825,12 @@ private:
     wxFlexGridSizer* GaugeSizer;
     wxPanel* PanelSequencer;
     wxButton* ButtonSaveLog;
-    wxBitmapButton* BitmapButton_SaveCoroGroup;
     wxMenuItem* MenuItem42;
-    wxButton* ButtonStartPapagayo;
-    wxStaticText* StaticText67;
-    wxChoice* Choice_PgoGroupName;
     wxPanel* Panel3;
     wxMenuItem* MenuItemEffectAssistAlwaysOn;
     wxMenu* MenuItem7;
     wxButton* ButtonAddDongle;
     wxMenuItem* MenuItem_ViewZoomOut;
-    wxButton* Button_CoroGroupClear;
-    wxCheckBox* CheckBox_CoroPictureScaled;
-    wxStaticText* StaticText24;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
     wxMenuItem* MenuItemBackup;
     xlAuiToolBar* WindowMgmtToolbar;
@@ -903,7 +846,6 @@ private:
     wxButton* ButtonNetworkDelete;
     wxBitmapButton* BitmapButton_Link_Dirs;
     wxMenuItem* MenuItemEffectAssistAlwaysOff;
-    wxStaticText* StaticText34;
     wxTreeCtrl* ListBoxSched;
     wxListCtrl* GridNetwork;
     wxStaticText* ShowDirectoryLabel;
@@ -913,42 +855,29 @@ private:
     wxAuiNotebook* Notebook1;
     wxMenuItem* MenuItem35;
     wxButton* ButtonDeleteShow;
-    wxSplitterWindow* SplitterWindow3;
     wxButton* ButtonShowDatesChange;
     wxMenu* OpenGLMenu;
     wxStaticText* StatusText;
-    wxTextCtrl* TextCtrl_PgoMaxRest;
     wxMenuItem* MenuItem_File_SaveAs_Sequence;
     xlAuiToolBar* MainToolBar;
     wxMenuItem* MenuItemEffectAssistToggleMode;
-    wxButton* Button_PgoCopyVoices;
-    wxStaticText* StaticText43;
     wxStaticText* MediaDirectoryLabel;
     wxMenuItem* mRenderOnSaveMenuItem;
     wxMenuItem* MenuItem41;
     wxPanel* PanelSetup;
-    wxTextCtrl* TextCtrl_PgoMinRest;
-    wxStaticText* StaticText68;
     wxButton* ButtonSaveSetup;
-    wxStaticText* StaticText35;
-    wxStaticText* StaticText_PgoOutputType;
-    wxCheckBox* CheckBox_PgoAutoFade;
     wxPanel* Panel2;
     wxMenuItem* MenuItemSavePlaylists;
-    wxPanel* PanelPapagayo;
-    wxCheckBox* CheckBox_PgoAutoRest;
     wxButton* ButtonUpdateShow;
     wxMessageDialog* MessageDialog1;
     wxMenu* GridSpacingMenu;
     wxStaticText* FileNameText;
-    wxStaticText* StaticText25;
     wxMenuItem* MenuItem16;
     wxMenuItem* MenuItem34;
     wxSplitterWindow* SplitterWindow1;
     wxMenuItem* MenuItem43;
     wxMenuItem* MenuItemEffectAssistWindow;
     wxMenuItem* ActionTestMenuItem;
-    wxStaticText* StaticText36;
     wxStaticText* StaticText4;
     wxMenu* MenuItem18;
     wxMenu* MenuItem1;
@@ -956,7 +885,6 @@ private:
     xlAuiToolBar* EffectsToolBar;
     wxButton* ButtonSaveSchedule;
     wxButton* ButtonAddShow;
-    wxButton* Button_CoroGroupDelete;
     wxGridBagSizer* StatusBarSizer;
     wxMenu* AudioMenu;
     wxTimer Timer1;
@@ -964,8 +892,6 @@ private:
     xlAuiToolBar* EditToolBar;
     wxMenuItem* MenuItemGridIconBackgroundOff;
     wxMenuBar* MenuBar;
-    wxCheckBox* CheckBox_CoroEyesRandomBlink;
-    wxGrid* GridCoroFaces;
     //*)
 
     AUIToolbarButtonWrapper *CheckBoxLightOutput;

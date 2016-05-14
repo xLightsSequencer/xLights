@@ -593,7 +593,6 @@
 		<Unit filename="SuperStarImportDialog.cpp" />
 		<Unit filename="SuperStarImportDialog.h" />
 		<Unit filename="TabConvert.cpp" />
-		<Unit filename="TabPapagayo.cpp" />
 		<Unit filename="TabPreview.cpp" />
 		<Unit filename="TabSchedule.cpp">
 			<Option compile="0" />
