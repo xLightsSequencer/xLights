@@ -910,7 +910,11 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDia
             new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
             FileConverter::ReadConductorFile(conv_params);
         }
-        else if( full_name.GetExt() == "iseq" || full_name.GetExt() == "fseq")
+        else if( full_name.GetExt() == "fseq")
+        {
+            FileConverter::ReadFalconFile(conv_params);
+        }
+        else if( full_name.GetExt() == "iseq" )
         {
             // we read only the header to fill in the channel count info
             conv_params.read_mode = ConvertParameters::READ_MODE_HEADER_ONLY;
@@ -958,39 +962,41 @@ void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)
     if( full_name.GetExt() == "lms" || full_name.GetExt() == "las")
     {
         FileConverter::ReadLorFile(conv_params);
-        FileConverter::WriteFalconPiFile( conv_params );
     }
     else if( full_name.GetExt() == "xseq" )
     {
         FileConverter::ReadXlightsFile(conv_params);
-        FileConverter::WriteFalconPiFile( conv_params );
     }
     else if( full_name.GetExt() == "hlsIdata" )
     {
         FileConverter::ReadHLSFile(conv_params);
-        FileConverter::WriteFalconPiFile( conv_params );
     }
     else if( full_name.GetExt() == "vix" )
     {
         FileConverter::ReadVixFile(conv_params);
-        FileConverter::WriteFalconPiFile( conv_params );
     }
     else if( full_name.GetExt() == "gled" )
     {
         FileConverter::ReadGlediatorFile(conv_params);
-        FileConverter::WriteFalconPiFile( conv_params );
     }
     else if( full_name.GetExt() == "seq" )
     {
         FileConverter::ReadConductorFile(conv_params);
-        FileConverter::WriteFalconPiFile( conv_params );
     }
-    else if( full_name.GetExt() == "iseq" || full_name.GetExt() == "fseq")
+    else if( full_name.GetExt() == "fseq")
+    {
+        FileConverter::ReadFalconFile(conv_params);
+    }
+    else if( full_name.GetExt() == "iseq" )
     {
         // we read only the header to fill in the channel count info
         conv_params.read_mode = ConvertParameters::READ_MODE_HEADER_ONLY;
         conv_params.media_filename = nullptr;
         FileConverter::ReadFalconFile(conv_params);
+    }
+    if( full_name.GetExt() != "iseq" )
+    {
+        FileConverter::WriteFalconPiFile( conv_params );
     }
     //TreeCtrl_Data_Layers->SetItemText(branch_num_channels, wxString::Format("Number of Channels: %d", new_data_layer->GetNumChannels()));  FIXME update in case channel number changes
     Button_Close->Enable(true);

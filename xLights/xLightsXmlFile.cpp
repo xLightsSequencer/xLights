@@ -2210,7 +2210,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
 wxString DecodeLSPTTColour(int att)
 {
     if (att < 2) {
-        return "";
+        return "x";
     }
     else if (att < 4) {
         return "R";
@@ -2225,19 +2225,22 @@ wxString DecodeLSPTTColour(int att)
         return "Y";
     }
     else if (att < 64) {
-        return "Pink";
+        return "P";
     }
     else if (att < 256) {
         return "O";
     }
     else if (att < 512) {
-        return "Gold";
+        return "Go";
     }
     else if (att < 892) {
-        return "White";
+        return "W";
     }
-    else if (att == 892) {
+    else if (att == 894) {
         return "All";
+    }
+    else if (att < 1024) {
+        return "Hidden";
     }
     else if (att == 1024) {
         return "System";
@@ -2274,6 +2277,12 @@ wxString NormaliseLSPAtt(int att)
     }
     else if (att < 892) {
         return "512";
+    }
+    else if (att = 894) {
+        return "894";
+    }
+    else if (att < 1024) {
+        return "1023";
     }
 
     return wxString::Format("%d", att);
@@ -2353,19 +2362,42 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
                                                 }
 
                                                 int last = 0;
+                                                bool sevenfound = false;
+                                                bool fourfound = false;
                                                 for (wxXmlNode* ti = is->GetChildren(); ti != NULL; ti = ti->GetNext()) {
                                                     if (ti->GetName() == "TimeInterval") {
-                                                        if (ti->GetAttribute("eff") == "7" && ti->GetAttribute("att") == *it) {
+                                                        if (ti->GetAttribute("eff") == "7" && NormaliseLSPAtt(wxAtoi(ti->GetAttribute("att"))) == *it) {
+                                                            sevenfound = true;
                                                             int start = last;
                                                             int end = TimeLine::RoundToMultipleOfPeriod((int)(wxAtof(ti->GetAttribute("pos")) * 50.0 / 4410.0), GetFrequency());
-                                                            wxString label = "";
-                                                            if (sequence_loaded) {
-                                                                effectLayer->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                                                            if (start != end)
+                                                            {
+                                                                wxString label = "";
+                                                                if (sequence_loaded) {
+                                                                    effectLayer->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                                                                }
+                                                                else {
+                                                                    AddTimingEffect(layer, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                                                                }
+                                                                last = end;
                                                             }
-                                                            else {
-                                                                AddTimingEffect(layer, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                                                        }
+                                                        // we take the only the first 4 after we have found 7s
+                                                        else if (ti->GetAttribute("eff") == "4" && sevenfound && !fourfound && NormaliseLSPAtt(wxAtoi(ti->GetAttribute("att"))) == *it) {
+                                                            fourfound = true;
+                                                            int start = last;
+                                                            int end = TimeLine::RoundToMultipleOfPeriod((int)(wxAtof(ti->GetAttribute("pos")) * 50.0 / 4410.0), GetFrequency());
+                                                            if (start != end)
+                                                            {
+                                                                wxString label = "";
+                                                                if (sequence_loaded) {
+                                                                    effectLayer->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                                                                }
+                                                                else {
+                                                                    AddTimingEffect(layer, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                                                                }
+                                                                last = end;
                                                             }
-                                                            last = end;
                                                         }
                                                     }
                                                 }

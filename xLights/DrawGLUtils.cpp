@@ -525,8 +525,8 @@ void DrawGLUtils::DrawDisplayList(float xOffset, float yOffset,
 static void addMipMap(GLuint* texture, const wxImage &l_Image, int &level) {
     if (l_Image.IsOk() == true)
     {
-        glTexImage2D(GL_TEXTURE_2D, level, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
-                     0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData());
+        LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, level, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
+                                   0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData()));
         int err = glGetError();
         if (err == GL_NO_ERROR) {
             level++;
@@ -545,10 +545,10 @@ void DrawGLUtils::CreateOrUpdateTexture(const wxBitmap &bmp48,
                                         GLuint* texture)
 {
     int level = 0;
-    glGenTextures(1,texture);
-    glBindTexture(GL_TEXTURE_2D, *texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+    LOG_GL_ERRORV(glGenTextures(1,texture));
+    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, *texture));
+    LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST));
     addMipMap(texture, bmp48.ConvertToImage().Rescale(64, 64, wxIMAGE_QUALITY_HIGH), level);
     addMipMap(texture, bmp32.ConvertToImage(), level);
     addMipMap(texture, bmp16.ConvertToImage(), level);
@@ -575,11 +575,15 @@ void DrawGLUtils::UpdateTexturePixel(GLuint* texture, double x, double y, xlColo
     if( hasAlpha ) {
         imageData[3] = color.alpha;
     }
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D,*texture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, hasAlpha ?  GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, imageData);
+    if (!DrawGLUtils::IsCoreProfile()) {
+        LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
+    }
+    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D,*texture));
+    LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, hasAlpha ?  GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, imageData));
     delete [] imageData;
-    glDisable(GL_TEXTURE_2D);
+    if (!DrawGLUtils::IsCoreProfile()) {
+        LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+    }
 }
 
 

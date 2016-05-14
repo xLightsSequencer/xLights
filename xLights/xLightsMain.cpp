@@ -23,6 +23,7 @@
 #include "xLightsApp.h" //global app run-time flags
 #include "heartbeat.h" //DJ
 #include "SeqSettingsDialog.h"
+#include <wx/grid.h>
 
 #include "RenderCommandEvent.h"
 #include "BitmapCache.h"
@@ -168,42 +169,6 @@ const long xLightsFrame::ID_BUTTON_SAVELOG = wxNewId();
 const long xLightsFrame::ID_PANEL2 = wxNewId();
 const long xLightsFrame::ID_SPLITTERWINDOW1 = wxNewId();
 const long xLightsFrame::ID_PANEL_CAL = wxNewId();
-const long xLightsFrame::ID_STATICTEXT26 = wxNewId();
-const long xLightsFrame::ID_SPLITTERWINDOW3 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT28 = wxNewId();
-const long xLightsFrame::ID_BUTTON5 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL1 = wxNewId();
-const long xLightsFrame::ID_BUTTON_PgoStitch = wxNewId();
-const long xLightsFrame::ID_STATICTEXT30 = wxNewId();
-const long xLightsFrame::ID_BUTTON22 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL67 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT71 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT36 = wxNewId();
-const long xLightsFrame::ID_CHOICE_PgoOutputType = wxNewId();
-const long xLightsFrame::ID_STATICTEXT_PgoOutputType = wxNewId();
-const long xLightsFrame::ID_STATICTEXT37 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT46 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT38 = wxNewId();
-const long xLightsFrame::ID_CHOICE_PgoGroupName = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON_SaveCoroGroup = wxNewId();
-const long xLightsFrame::ID_BUTTON_CoroGroupDelete = wxNewId();
-const long xLightsFrame::ID_BUTTON_CoroGroupClear = wxNewId();
-const long xLightsFrame::ID_BUTTON_PgoCopyVoices = wxNewId();
-const long xLightsFrame::ID_GRID_COROFACES = wxNewId();
-const long xLightsFrame::ID_CHECKBOX_PgoAutoReset = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL_PgoMinRest = wxNewId();
-const long xLightsFrame::ID_STATICTEXT27 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL_PgoMaxRest = wxNewId();
-const long xLightsFrame::ID_STATICTEXT34 = wxNewId();
-const long xLightsFrame::ID_CHECKBOX_CoroEyesRandomBlink = wxNewId();
-const long xLightsFrame::ID_CHECKBOX_PgoAutoFade = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL_PgoAutoFade = wxNewId();
-const long xLightsFrame::ID_STATICTEXT35 = wxNewId();
-const long xLightsFrame::ID_CHECKBOX_CoroEyesRandomLR = wxNewId();
-const long xLightsFrame::ID_CHECKBOX_CoroPictureScaled = wxNewId();
-const long xLightsFrame::ID_STATICTEXT70 = wxNewId();
-const long xLightsFrame::ID_BUTTON6 = wxNewId();
-const long xLightsFrame::ID_PANEL4 = wxNewId();
 const long xLightsFrame::ID_PANEL7 = wxNewId();
 const long xLightsFrame::ID_NOTEBOOK1 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT6 = wxNewId();
@@ -418,18 +383,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenu* MenuHelp;
     wxMenuItem* MenuItem8;
     wxFlexGridSizer* FlexGridSizer4;
-    wxFlexGridSizer* FlexGridSizer47;
-    wxFlexGridSizer* FlexGridSizer54;
     wxFlexGridSizer* FlexGridSizerSetup;
     wxMenuItem* MenuItem26;
     wxMenuItem* MenuItemCustomScript;
     wxMenuItem* MenuItem25;
-    wxBoxSizer* BoxSizer8;
     wxMenuItem* MenuItem5;
     wxMenuItem* MenuItem2;
     wxMenuItem* MenuItemAddList;
     wxGridBagSizer* GridBagSizer1;
-    wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer27;
     wxMenuItem* MenuItem4;
     wxMenuItem* MenuItem14;
@@ -437,7 +398,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenuItem* MenuItem11;
     wxMenuItem* MenuItem29;
     wxStaticText* StaticText38;
-    wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer9;
     wxMenuItem* MenuItem22;
     wxPanel* Panel1;
@@ -448,30 +408,24 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenuItem* MenuItem10;
     wxFlexGridSizer* FlexGridSizerCal;
     wxMenu* MenuItem_Grid_Icon_Backgrounds;
-    wxFlexGridSizer* FlexGridSizer55;
     wxMenuItem* MenuItemDelList;
     wxMenuItem* MenuItem12;
     wxMenuItem* MenuItem24;
     wxMenuItem* MenuItem27;
     wxFlexGridSizer* FlexGridSizerNetworks;
-    wxFlexGridSizer* FlexGridSizer57;
     wxFlexGridSizer* FlexGridSizer29;
     wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
     wxMenuItem* MenuItem28;
-    wxFlexGridSizer* FlexGridSizer8;
     wxMenuItem* MenuItemDisplayElements;
     wxMenuItem* MenuItem6;
     wxMenuItem* MenuItem23;
     wxStaticText* StaticText28;
     wxBoxSizer* BoxSizer1;
     wxMenuItem* MenuItemRenameList;
-    wxFlexGridSizer* FlexGridSizer50;
     wxStaticBoxSizer* StaticBoxSizer1;
     wxMenuItem* MenuItem21;
-    wxFlexGridSizer* FlexGridSizer43;
     wxMenu* Menu2;
-    wxFlexGridSizer* FlexGridSizerPapagayo;
     wxMenuItem* MenuItem9;
     wxMenuItem* MenuItem30;
     wxFlexGridSizer* FlexGridSizer28;
@@ -687,189 +641,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     PanelCal->SetSizer(FlexGridSizerCal);
     FlexGridSizerCal->Fit(PanelCal);
     FlexGridSizerCal->SetSizeHints(PanelCal);
-    PanelPapagayo = new wxPanel(Notebook1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
-    FlexGridSizerPapagayo = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizerPapagayo->AddGrowableCol(0);
-    FlexGridSizerPapagayo->AddGrowableRow(0);
-    FlexGridSizer43 = new wxFlexGridSizer(0, 1, 0, 0);
-    StaticText24 = new wxStaticText(PanelPapagayo, ID_STATICTEXT26, _(" Convert Papagayo file into an xLights Sequence\n\n Download v1.3.5.3 from nutcracker123.com/nutcracker/releases/papagayoMOD_1.3.5.3_win32.rar"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT26"));
-    wxFont StaticText24Font(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,_T("Arial"),wxFONTENCODING_DEFAULT);
-    StaticText24->SetFont(StaticText24Font);
-    FlexGridSizer43->Add(StaticText24, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    SplitterWindow3 = new wxSplitterWindow(PanelPapagayo, ID_SPLITTERWINDOW3, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW3"));
-    SplitterWindow3->SetMinSize(wxSize(10,10));
-    SplitterWindow3->SetMinimumPaneSize(10);
-    SplitterWindow3->SetSashGravity(0.5);
-    FlexGridSizer43->Add(SplitterWindow3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer56 = new wxFlexGridSizer(0, 2, 0, 0);
-    StaticText26 = new wxStaticText(PanelPapagayo, ID_STATICTEXT28, _("1)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT28"));
-    wxFont StaticText26Font(14,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText26->SetFont(StaticText26Font);
-    FlexGridSizer56->Add(StaticText26, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer47 = new wxFlexGridSizer(0, 3, 0, 0);
-    Button_pgo_filename = new wxButton(PanelPapagayo, ID_BUTTON5, _("Select Papagayo Input File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    Button_pgo_filename->SetBackgroundColour(wxColour(224,224,224));
-    FlexGridSizer47->Add(Button_pgo_filename, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_pgo_filename = new wxTextCtrl(PanelPapagayo, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(236,23), 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-    TextCtrl_pgo_filename->SetToolTip(_("Papagayo input file contains voices and phonemes."));
-    FlexGridSizer47->Add(TextCtrl_pgo_filename, 1, wxALL|wxEXPAND, 5);
-    Button_PgoStitch = new wxButton(PanelPapagayo, ID_BUTTON_PgoStitch, _("+"), wxDefaultPosition, wxSize(29,23), 0, wxDefaultValidator, _T("ID_BUTTON_PgoStitch"));
-    Button_PgoStitch->SetToolTip(_("Stitch Papagayo file"));
-    FlexGridSizer47->Add(Button_PgoStitch, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer56->Add(FlexGridSizer47, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText27 = new wxStaticText(PanelPapagayo, ID_STATICTEXT30, _("2)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT30"));
-    wxFont StaticText27Font(14,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText27->SetFont(StaticText27Font);
-    FlexGridSizer56->Add(StaticText27, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer54 = new wxFlexGridSizer(0, 3, 0, 0);
-    Button_papagayo_output_sequence = new wxButton(PanelPapagayo, ID_BUTTON22, _("Select Sequencer Output File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON22"));
-    Button_papagayo_output_sequence->SetBackgroundColour(wxColour(224,224,224));
-    FlexGridSizer54->Add(Button_papagayo_output_sequence, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_papagayo_output_filename = new wxTextCtrl(PanelPapagayo, ID_TEXTCTRL67, wxEmptyString, wxDefaultPosition, wxDLG_UNIT(PanelPapagayo,wxSize(150,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL67"));
-    TextCtrl_papagayo_output_filename->SetToolTip(_("Sequence output will contain the generated effects."));
-    FlexGridSizer54->Add(TextCtrl_papagayo_output_filename, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer56->Add(FlexGridSizer54, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText68 = new wxStaticText(PanelPapagayo, ID_STATICTEXT71, _("3)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT71"));
-    wxFont StaticText68Font(14,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText68->SetFont(StaticText68Font);
-    FlexGridSizer56->Add(StaticText68, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer57 = new wxFlexGridSizer(0, 3, 0, 0);
-    StaticText34 = new wxStaticText(PanelPapagayo, ID_STATICTEXT36, _("Choose output type:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT36"));
-    FlexGridSizer57->Add(StaticText34, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_PgoOutputType = new wxChoice(PanelPapagayo, ID_CHOICE_PgoOutputType, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PgoOutputType"));
-    Choice_PgoOutputType->Append(_("(choose)"));
-    Choice_PgoOutputType->Append(_("Auto-faces"));
-    Choice_PgoOutputType->Append(_("Coro faces"));
-    Choice_PgoOutputType->Append(_("Image faces"));
-    Choice_PgoOutputType->Append(_("Movie faces"));
-    Choice_PgoOutputType->SetToolTip(_("Output type determines the effects used to generate the sequence."));
-    FlexGridSizer57->Add(Choice_PgoOutputType, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText_PgoOutputType = new wxStaticText(PanelPapagayo, ID_STATICTEXT_PgoOutputType, _("(explanation)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PgoOutputType"));
-    FlexGridSizer57->Add(StaticText_PgoOutputType, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer56->Add(FlexGridSizer57, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText35 = new wxStaticText(PanelPapagayo, ID_STATICTEXT37, _("4)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT37"));
-    wxFont StaticText35Font(14,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText35->SetFont(StaticText35Font);
-    FlexGridSizer56->Add(StaticText35, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText43 = new wxStaticText(PanelPapagayo, ID_STATICTEXT46, _("In the grid below, configure how phonemes and face parts are rendered.\nPresets allow settings to be saved and reused again later."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT46"));
-    wxFont StaticText43Font(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText43->SetFont(StaticText43Font);
-    FlexGridSizer56->Add(StaticText43, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer56->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer50 = new wxFlexGridSizer(0, 8, 0, 0);
-    StaticText36 = new wxStaticText(PanelPapagayo, ID_STATICTEXT38, _("Preset Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT38"));
-    FlexGridSizer50->Add(StaticText36, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_PgoGroupName = new wxChoice(PanelPapagayo, ID_CHOICE_PgoGroupName, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_PgoGroupName"));
-    Choice_PgoGroupName->SetToolTip(_("Presets allow multiple groups of settings to be saved.  Choose an existing Preset or create a new one."));
-    FlexGridSizer50->Add(Choice_PgoGroupName, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_SaveCoroGroup = new wxBitmapButton(PanelPapagayo, ID_BITMAPBUTTON_SaveCoroGroup, save_xpm, wxDefaultPosition, wxSize(53,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SaveCoroGroup"));
-    BitmapButton_SaveCoroGroup->SetDefault();
-    BitmapButton_SaveCoroGroup->SetToolTip(_("Named Presets can be saved and reused again later."));
-    FlexGridSizer50->Add(BitmapButton_SaveCoroGroup, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_CoroGroupDelete = new wxButton(PanelPapagayo, ID_BUTTON_CoroGroupDelete, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CoroGroupDelete"));
-    Button_CoroGroupDelete->SetToolTip(_("Delete current Preset."));
-    FlexGridSizer50->Add(Button_CoroGroupDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    Button_CoroGroupClear = new wxButton(PanelPapagayo, ID_BUTTON_CoroGroupClear, _("Clear Grid"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CoroGroupClear"));
-    Button_CoroGroupClear->SetToolTip(_("Clear all grid values."));
-    FlexGridSizer50->Add(Button_CoroGroupClear, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    Button_PgoCopyVoices = new wxButton(PanelPapagayo, ID_BUTTON_PgoCopyVoices, _("Copy First"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PgoCopyVoices"));
-    Button_PgoCopyVoices->SetToolTip(_("Copy first Voice values to other columns."));
-    FlexGridSizer50->Add(Button_PgoCopyVoices, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer56->Add(FlexGridSizer50, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer56->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BoxSizer8 = new wxBoxSizer(wxHORIZONTAL);
-    GridCoroFaces = new wxGrid(PanelPapagayo, ID_GRID_COROFACES, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID_COROFACES"));
-    GridCoroFaces->CreateGrid(18,4);
-    GridCoroFaces->SetMinSize(wxSize(-1,200));
-    GridCoroFaces->EnableEditing(true);
-    GridCoroFaces->EnableGridLines(true);
-    GridCoroFaces->SetColLabelSize(20);
-    GridCoroFaces->SetRowLabelSize(100);
-    GridCoroFaces->SetDefaultColSize(110, true);
-    GridCoroFaces->SetColLabelValue(0, _("Voice 1"));
-    GridCoroFaces->SetColLabelValue(1, _("Voice 2"));
-    GridCoroFaces->SetColLabelValue(2, _("Voice 3"));
-    GridCoroFaces->SetColLabelValue(3, _("Voice 4"));
-    GridCoroFaces->SetRowLabelValue(0, _("Model Name"));
-    GridCoroFaces->SetRowLabelValue(1, _("Face Outline"));
-    GridCoroFaces->SetRowLabelValue(2, _("Mouth - AI"));
-    GridCoroFaces->SetRowLabelValue(3, _("Mouth - E"));
-    GridCoroFaces->SetRowLabelValue(4, _("Mouth - etc"));
-    GridCoroFaces->SetRowLabelValue(5, _("Mouth - FV"));
-    GridCoroFaces->SetRowLabelValue(6, _("Mouth - L"));
-    GridCoroFaces->SetRowLabelValue(7, _("Mouth - MBP"));
-    GridCoroFaces->SetRowLabelValue(8, _("Mouth - O"));
-    GridCoroFaces->SetRowLabelValue(9, _("Mouth - rest"));
-    GridCoroFaces->SetRowLabelValue(10, _("Mouth - U"));
-    GridCoroFaces->SetRowLabelValue(11, _("Mouth - WQ"));
-    GridCoroFaces->SetRowLabelValue(12, _("Eyes - Open"));
-    GridCoroFaces->SetRowLabelValue(13, _("Eyes - Closed"));
-    GridCoroFaces->SetRowLabelValue(14, _("Eyes - Left"));
-    GridCoroFaces->SetRowLabelValue(15, _("Eyes - Right"));
-    GridCoroFaces->SetRowLabelValue(16, _("Eyes - Up"));
-    GridCoroFaces->SetRowLabelValue(17, _("Eyes - Down"));
-    GridCoroFaces->SetDefaultCellFont( GridCoroFaces->GetFont() );
-    GridCoroFaces->SetDefaultCellTextColour( GridCoroFaces->GetForegroundColour() );
-    BoxSizer8->Add(GridCoroFaces, 1, wxALL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer56->Add(BoxSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer56->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer55 = new wxFlexGridSizer(0, 3, 0, 0);
-    CheckBox_PgoAutoRest = new wxCheckBox(PanelPapagayo, ID_CHECKBOX_PgoAutoReset, _("Insert Rests. Minimum gap:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_PgoAutoReset"));
-    CheckBox_PgoAutoRest->SetValue(false);
-    FlexGridSizer55->Add(CheckBox_PgoAutoRest, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer3 = new wxFlexGridSizer(0, 4, 0, 0);
-    TextCtrl_PgoMinRest = new wxTextCtrl(PanelPapagayo, ID_TEXTCTRL_PgoMinRest, _(".2"), wxDefaultPosition, wxDLG_UNIT(PanelPapagayo,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_PgoMinRest"));
-    TextCtrl_PgoMinRest->SetToolTip(_("Minimum gap size to insert Rest into."));
-    FlexGridSizer3->Add(TextCtrl_PgoMinRest, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText25 = new wxStaticText(PanelPapagayo, ID_STATICTEXT27, _("max:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT27"));
-    FlexGridSizer3->Add(StaticText25, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_PgoMaxRest = new wxTextCtrl(PanelPapagayo, ID_TEXTCTRL_PgoMaxRest, _(".4"), wxDefaultPosition, wxDLG_UNIT(PanelPapagayo,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_PgoMaxRest"));
-    TextCtrl_PgoMaxRest->SetToolTip(_("Maximum gap size to insert Rest into."));
-    FlexGridSizer3->Add(TextCtrl_PgoMaxRest, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText32 = new wxStaticText(PanelPapagayo, ID_STATICTEXT34, _("sec.        "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT34"));
-    FlexGridSizer3->Add(StaticText32, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer55->Add(FlexGridSizer3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
-    CheckBox_CoroEyesRandomBlink = new wxCheckBox(PanelPapagayo, ID_CHECKBOX_CoroEyesRandomBlink, _("Eyes random blink"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CoroEyesRandomBlink"));
-    CheckBox_CoroEyesRandomBlink->SetValue(false);
-    FlexGridSizer55->Add(CheckBox_CoroEyesRandomBlink, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    CheckBox_PgoAutoFade = new wxCheckBox(PanelPapagayo, ID_CHECKBOX_PgoAutoFade, _("Auto-fade each face after:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_PgoAutoFade"));
-    CheckBox_PgoAutoFade->SetValue(false);
-    FlexGridSizer55->Add(CheckBox_PgoAutoFade, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer8 = new wxFlexGridSizer(0, 3, 0, 0);
-    TextCtrl_PgoAutoFade = new wxTextCtrl(PanelPapagayo, ID_TEXTCTRL_PgoAutoFade, _("1.5"), wxDefaultPosition, wxDLG_UNIT(PanelPapagayo,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_PgoAutoFade"));
-    TextCtrl_PgoAutoFade->SetToolTip(_("Fade after this length of inactivity."));
-    FlexGridSizer8->Add(TextCtrl_PgoAutoFade, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText33 = new wxStaticText(PanelPapagayo, ID_STATICTEXT35, _("sec.        "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT35"));
-    FlexGridSizer8->Add(StaticText33, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer55->Add(FlexGridSizer8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
-    CheckBox_CoroEyesRandomLR = new wxCheckBox(PanelPapagayo, ID_CHECKBOX_CoroEyesRandomLR, _("Eyes random left/right"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CoroEyesRandomLR"));
-    CheckBox_CoroEyesRandomLR->SetValue(false);
-    FlexGridSizer55->Add(CheckBox_CoroEyesRandomLR, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer55->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer55->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    CheckBox_CoroPictureScaled = new wxCheckBox(PanelPapagayo, ID_CHECKBOX_CoroPictureScaled, _("Scaled pictures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CoroPictureScaled"));
-    CheckBox_CoroPictureScaled->SetValue(false);
-    FlexGridSizer55->Add(CheckBox_CoroPictureScaled, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer56->Add(FlexGridSizer55, 0, wxALL|wxEXPAND, 2);
-    StaticText67 = new wxStaticText(PanelPapagayo, ID_STATICTEXT70, _("5)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT70"));
-    wxFont StaticText67Font(14,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText67->SetFont(StaticText67Font);
-    FlexGridSizer56->Add(StaticText67, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonStartPapagayo = new wxButton(PanelPapagayo, ID_BUTTON6, _("Click to Create new Sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
-    wxFont ButtonStartPapagayoFont(12,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    ButtonStartPapagayo->SetFont(ButtonStartPapagayoFont);
-    FlexGridSizer56->Add(ButtonStartPapagayo, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer43->Add(FlexGridSizer56, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizerPapagayo->Add(FlexGridSizer43, 1, wxALL|wxEXPAND, 2);
-    PanelPapagayo->SetSizer(FlexGridSizerPapagayo);
-    FlexGridSizerPapagayo->Fit(PanelPapagayo);
-    FlexGridSizerPapagayo->SetSizeHints(PanelPapagayo);
     PanelSequencer = new wxPanel(Notebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("ID_PANEL7"));
     m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT);
     Notebook1->AddPage(PanelSetup, _("Setup"), true);
     Notebook1->AddPage(PanelPreview, _("Layout"));
     Notebook1->AddPage(PanelCal, _("Schedule"));
-    Notebook1->AddPage(PanelPapagayo, _("Papagayo"));
     Notebook1->AddPage(PanelSequencer, _("Sequencer"));
     MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).Floatable().PaneBorder(false));
     AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
@@ -1151,21 +927,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_BUTTON_SHOW_DATES_CHANGE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonShowDatesChangeClick);
     Connect(ID_BUTTON_CLEARLOG,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonClearLogClick);
     Connect(ID_BUTTON_SAVELOG,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveLogClick);
-    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_pgo_filenameClick);
-    Connect(ID_BUTTON_PgoStitch,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PgoStitchClick);
-    Connect(ID_BUTTON22,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_papagayo_output_sequenceClick1);
-    Connect(ID_CHOICE_PgoOutputType,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnChoice_PgoOutputTypeSelect);
-    Connect(ID_CHOICE_PgoGroupName,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnChoice_PgoGroupNameSelect);
-    Connect(ID_BITMAPBUTTON_SaveCoroGroup,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButton_SaveCoroGroupClick);
-    Connect(ID_BUTTON_CoroGroupDelete,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_CoroGroupDeleteClick);
-    Connect(ID_BUTTON_CoroGroupClear,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_CoroGroupClearClick);
-    Connect(ID_BUTTON_PgoCopyVoices,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PgoCopyVoicesClick);
-    Connect(ID_GRID_COROFACES,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGridCoroFacesLabelLeftClick);
-    Connect(ID_GRID_COROFACES,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGridCoroFacesCellSelect);
-    Connect(ID_TEXTCTRL_PgoMinRest,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl_PgoMinRestText);
-    Connect(ID_TEXTCTRL_PgoMaxRest,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl_PgoMaxRestText);
-    Connect(ID_TEXTCTRL_PgoAutoFade,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl_PgoAutoFadeText);
-    Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartPapagayoClick);
     m_mgr->Connect(wxEVT_AUI_PANE_CLOSE,(wxObjectEventFunction)&xLightsFrame::OnPaneClose,0,this);
     PanelSequencer->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint,0,this);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
@@ -1714,10 +1475,10 @@ void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
         caption=_("Sequencer Tab");
         msg=_("The Sequencer tab can be used to create RGB sequences. First, create a model of your RGB display element(s) by clicking on the Models button. Then try the different effects and settings until you create something you like. You can save the settings as a preset by clicking the New Preset button. From then on, that preset will be available in the presets drop-down list. You can combine effects by creating a second effect in the Effect 2 area, then choosing a Layering Method. To create a series of effects that will be used in a sequence, click the open file icon to open an xLights (.xseq) sequence. Choose which display elements/models you will use in this sequence. Then click the insert rows icon and type in the start time in seconds when that effect should begin. Rows will automatically sort by start time. To add an effect to the sequence, click on the grid cell in the desired display model column and the desired start time row, then click the Update button. When you are done creating effects for the sequence, click the save icon and the xLights sequence will be updated with the effects you stored in the grid.");
         break;
-    case PAPAGAYOTAB:
-        caption=_("Papagayo Tab");
-        msg=_("The Papagayo tab can be used to create animated faces from a Papagayo file. There are four different types faces that you can create. \n1) Automatic, scaled faces for matrix and megatrees. \n2) You provide 10 images of the Phonemes, they will be selected for you. \n3) You provide moth , eyes and a backgroudn image. A mp4 movie will be created. \n4) You assign channels for each of the 10 Phonemes. This method matches standard coro singing faces ");
-        break;
+    //case PAPAGAYOTAB:
+    //    caption=_("Papagayo Tab");
+    //    msg=_("The Papagayo tab can be used to create animated faces from a Papagayo file. There are four different types faces that you can create. \n1) Automatic, scaled faces for matrix and megatrees. \n2) You provide 10 images of the Phonemes, they will be selected for you. \n3) You provide moth , eyes and a backgroudn image. A mp4 movie will be created. \n4) You assign channels for each of the 10 Phonemes. This method matches standard coro singing faces ");
+    //    break;
     default:
         // playlist
         caption=_("Playlist Tab");
@@ -1737,7 +1498,7 @@ void xLightsFrame::ResetAllSequencerWindows()
 {
 	wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
 	bool update = false;
-	for (int x = 0; x < info.size(); x++)
+	for (size_t x = 0; x < info.size(); x++)
 	{
 		if (info[x].IsFloating() && info[x].IsShown())
 		{
@@ -1757,7 +1518,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     bool update = false;
     if (show)
     {
-        for (int x = 0; x < info.size(); x++)
+        for (size_t x = 0; x < info.size(); x++)
         {
             if (x < savedPaneShown.size() && info[x].IsFloating() && !info[x].IsShown()
                     && savedPaneShown[x])
@@ -1771,7 +1532,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     else
     {
         savedPaneShown.resize(info.size());
-        for (int x = 0; x < info.size(); x++)
+        for (size_t x = 0; x < info.size(); x++)
         {
             savedPaneShown[x] = info[x].IsShown();
             if (info[x].IsFloating() && info[x].IsShown())
@@ -1819,10 +1580,10 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     {
         UpdatePreview();
     }
-    if (pagenum == PAPAGAYOTAB)
-    {
-        InitPapagayoTab(event.GetOldSelection() != PAPAGAYOTAB); //populate choice lists with model names, etc.
-    }
+    //if (pagenum == PAPAGAYOTAB)
+    //{
+    //    InitPapagayoTab(event.GetOldSelection() != PAPAGAYOTAB); //populate choice lists with model names, etc.
+    //}
 }
 
 
@@ -2483,7 +2244,7 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
 
     mIconSize = size;
 
-    for (int x = 0; x < EffectsToolBar->GetToolCount(); x++)
+    for (size_t x = 0; x < EffectsToolBar->GetToolCount(); x++)
     {
         EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetSizeHints(size, size, size, size);
         EffectsToolBar->FindToolByIndex(x)->SetMinSize(EffectsToolBar->FindToolByIndex(x)->GetWindow()->GetMinSize());
@@ -2495,7 +2256,7 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
     MainAuiManager->Update();
 
     const wxWindowList& lst =effectPalettePanel->GetChildren();
-    for (int x = 0; x < lst.size(); x++)
+    for (size_t x = 0; x < lst.size(); x++)
     {
         lst[x]->SetSizeHints(size, size, size, size);
     }

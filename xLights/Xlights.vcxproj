@@ -354,7 +354,6 @@
     <ClCompile Include="SubBufferPanel.cpp" />
     <ClCompile Include="SuperStarImportDialog.cpp" />
     <ClCompile Include="TabConvert.cpp" />
-    <ClCompile Include="TabPapagayo.cpp" />
     <ClCompile Include="TabPreview.cpp" />
     <ClCompile Include="TabSequence.cpp" />
     <ClCompile Include="TabSetup.cpp" />

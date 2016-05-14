@@ -18,6 +18,12 @@ class xlGridCanvasMorph : public xlGridCanvas
         virtual void SetEffect(Effect* effect_);
         virtual void ForceRefresh();
 
+    
+        virtual bool UsesVertexTextureAccumulator() {return true;}
+        virtual bool UsesVertexColorAccumulator() {return true;}
+        virtual bool UsesVertexAccumulator() {return true;}
+        virtual bool UsesAddVertex() {return false;}
+
     protected:
         virtual void InitializeGLCanvas();
 
