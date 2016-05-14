@@ -7,7 +7,7 @@ BEGIN_EVENT_TABLE(xlGridCanvas, xlGLCanvas)
 END_EVENT_TABLE()
 
 xlGridCanvas::xlGridCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name)
-    : xlGLCanvas(parent, id, pos, size, style, name),
+    : xlGLCanvas(parent, id, pos, size, style, name, true),
       mEffect(nullptr),
       mModel(nullptr),
       mGridlineColor(new xlColor(0,153,153)),
@@ -85,23 +85,24 @@ int xlGridCanvas::calcPercentFromCell(int value, int base)
 void xlGridCanvas::DrawBaseGrid()
 {
     //*mGridlineColor = xlCYAN;
-
+    DrawGLUtils::xlVertexAccumulator va;
+    
     int height = mCellSize * mRows;
     int width = mCellSize * mColumns;
-    DrawGLUtils::PreAlloc((mRows + mColumns + 2) * 2);
+    va.PreAlloc((mRows + mColumns + 2) * 2);
     for(int row = 0; row <= mRows; row++ )
     {
         int y = mCellSize*(row+1);
-        DrawGLUtils::AddVertex(mCellSize, y, *mGridlineColor);
-        DrawGLUtils::AddVertex(width+mCellSize,y, *mGridlineColor);
+        va.AddVertex(mCellSize, y);
+        va.AddVertex(width+mCellSize,y);
     }
     for(int col = 0; col <= mColumns; col++ )
     {
         int x = mCellSize*(col+1);
-        DrawGLUtils::AddVertex(x,mCellSize, *mGridlineColor);
-        DrawGLUtils::AddVertex(x,height+mCellSize, *mGridlineColor);
+        va.AddVertex(x,mCellSize);
+        va.AddVertex(x,height+mCellSize);
     }
     DrawGLUtils::SetLineWidth(0.5);
-    DrawGLUtils::End(GL_LINES, GL_BLEND);
+    DrawGLUtils::Draw(va, *mGridlineColor, GL_LINES, GL_BLEND);
 }
 

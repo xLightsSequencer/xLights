@@ -31,13 +31,11 @@ void xlGridCanvasEmpty::InitializeGLCanvas()
     if(!IsShownOnScreen()) return;
     SetCurrentGLContext();
 
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
-    glDisable(GL_TEXTURE_2D);   // textures
-    glEnable(GL_COLOR_MATERIAL);
-    glEnable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
+    LOG_GL_ERRORV(glEnable(GL_BLEND));
+    LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
+    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     mIsInitialized = true;
 }
@@ -49,8 +47,7 @@ void xlGridCanvasEmpty::render( wxPaintEvent& event )
 
     SetCurrentGLContext();
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    wxPaintDC(this);
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     if( mWindowResized )
     {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
@@ -68,9 +65,12 @@ void xlGridCanvasEmpty::render( wxPaintEvent& event )
 void xlGridCanvasEmpty::DrawEmptyEffect()
 {
     xlColor redLine = xlRED;
-    glEnable(GL_BLEND);
-    DrawGLUtils::DrawLine(redLine,255,0,0,mWindowWidth,mWindowHeight,5);
-    DrawGLUtils::DrawLine(redLine,255,mWindowWidth,0,0,mWindowHeight,5);
-    glDisable(GL_BLEND);
+    DrawGLUtils::xlVertexAccumulator va;
+    va.PreAlloc(8);
+    va.AddVertex(0,0);
+    va.AddVertex(mWindowWidth,mWindowHeight);
+    va.AddVertex(0,mWindowHeight);
+    va.AddVertex(mWindowWidth,0);
+    DrawGLUtils::Draw(va, redLine, GL_LINES, GL_BLEND);
 }
 

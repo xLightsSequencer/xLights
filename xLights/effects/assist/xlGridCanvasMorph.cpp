@@ -330,13 +330,11 @@ void xlGridCanvasMorph::InitializeGLCanvas()
     if(!IsShownOnScreen()) return;
     SetCurrentGLContext();
 
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
-    glDisable(GL_TEXTURE_2D);   // textures
-    glEnable(GL_COLOR_MATERIAL);
-    glEnable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
+    LOG_GL_ERRORV(glEnable(GL_BLEND));
+    LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
+    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     CreateCornerTextures();
     mIsInitialized = true;
@@ -349,8 +347,7 @@ void xlGridCanvasMorph::render( wxPaintEvent& event )
 
     SetCurrentGLContext();
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    wxPaintDC(this);
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     if( mWindowResized )
     {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
@@ -423,18 +420,30 @@ void xlGridCanvasMorph::DrawMorphEffect()
     }
     xlColor yellowLine = xlYELLOW;
     xlColor redLine = xlRED;
-    glEnable(GL_BLEND);
+    
+    
+    DrawGLUtils::xlVertexColorAccumulator va;
+    va.PreAlloc(8);
+
+    DrawGLUtils::SetLineWidth(0.5);
     if( !mMorphStartLinked )
     {
-        DrawGLUtils::DrawLine(redLine,255,x1a,y1a,x1b,y1b,0.5);
+        va.AddVertex(x1a,y1a,redLine);
+        va.AddVertex(x1b,y1b,redLine);
     }
     if( !mMorphEndLinked )
     {
-        DrawGLUtils::DrawLine(redLine,255,x2a,y2a,x2b,y2b,0.5);
+        va.AddVertex(x2a,y2a,redLine);
+        va.AddVertex(x2b,y2b,redLine);
     }
-    DrawGLUtils::DrawLine(yellowLine,255,x1a,y1a,x2a,y2a,0.5);
-    DrawGLUtils::DrawLine(yellowLine,255,x1b,y1b,x2b,y2b,0.5);
-    glDisable(GL_BLEND);
+    va.AddVertex(x1a,y1a,yellowLine);
+    va.AddVertex(x2a,y2a,yellowLine);
+    va.AddVertex(x1b,y1b,yellowLine);
+    va.AddVertex(x2b,y2b,yellowLine);
+    LOG_GL_ERRORV(glEnable( GL_LINE_SMOOTH ));
+    LOG_GL_ERRORV(glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ));
+    DrawGLUtils::Draw(va, GL_LINES, GL_BLEND);
+    LOG_GL_ERRORV(glDisable( GL_LINE_SMOOTH ));
 
     // draw the corners
     int corner_size = std::max(mMinCornerSize, mCellSize);
