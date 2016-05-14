@@ -938,6 +938,14 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
         UpdatePreview();
     }
     if (newModel != nullptr) {
+        if (selectedButton->GetModelType() == "Import Custom")
+        {
+            ImportCustomModel(newModel);
+            if (selectedButton->GetState() == 1)
+            {
+                _lastCustomModel = "";
+            }
+        }
         CreateUndoPoint("All", "", "");
         newModel->UpdateXmlWithScale();
         xlights->AllModels.AddModel(newModel);
@@ -1452,14 +1460,6 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) {
     }
     Model* m = xlights->AllModels.CreateDefaultModel(t, startChannel);
 
-    if (type == "Import Custom")
-    {
-        ImportCustomModel(m);
-        if (selectedButton->GetState() == 1)
-        {
-            _lastCustomModel = "";
-        }
-    }
     return m;
 }
 void LayoutPanel::OnChar(wxKeyEvent& event) {
