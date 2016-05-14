@@ -386,6 +386,7 @@
     <ClCompile Include="xLightsApp.cpp" />
     <ClCompile Include="XlightsDrawable.cpp" />
     <ClCompile Include="xLightsMain.cpp" />
+    <ClCompile Include="xLightsTimer.cpp" />
     <ClCompile Include="xLightsXmlFile.cpp" />
     <ClCompile Include="xlights_out.cpp" />
     <ClCompile Include="xlSlider.cpp" />
@@ -617,6 +618,7 @@
     <ClInclude Include="xLightsApp.h" />
     <ClInclude Include="XlightsDrawable.h" />
     <ClInclude Include="xLightsMain.h" />
+    <ClInclude Include="xLightsTimer.h" />
     <ClInclude Include="xLightsXmlFile.h" />
     <ClInclude Include="xlights_out.h" />
     <ClInclude Include="xlSlider.h" />

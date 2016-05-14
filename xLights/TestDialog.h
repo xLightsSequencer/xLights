@@ -23,6 +23,7 @@
 #include <wx/timer.h>
 //*)
 
+#include "xLightsTimer.h"
 #include <string>
 #include <list>
 #include "models/ModelManager.h"
@@ -168,6 +169,7 @@ class TestDialog: public wxDialog
 		wxRadioButton* RadioButton_RGBCycle_ABCAll;
 		wxPanel* Panel1;
 		wxStaticText* StaticText1;
+		xLightsTimer Timer1;
 		wxSlider* Slider_RGB_H_G;
 		wxStaticText* StaticText3;
 		wxRadioButton* RadioButton_Standard_Shimmer;
@@ -201,7 +203,6 @@ class TestDialog: public wxDialog
 		wxPanel* Panel_Standard;
 		wxRadioButton* RadioButton_Standard_Alternate;
 		wxRadioButton* RadioButton_Standard_Off;
-		wxTimer Timer1;
 		wxButton* Button_Load;
 		//*)
 

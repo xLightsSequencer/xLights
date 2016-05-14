@@ -92,12 +92,9 @@
 #include "DisplayElementsPanel.h"
 #include "effects/EffectManager.h"
 #include "models/ModelManager.h"
-
+#include "xLightsTimer.h"
 #include "wx/aui/aui.h"
-
-
 #include "JobPool.h"
-
 #include <log4cpp/Category.hh>
 
 class EffectTreeDialog;
@@ -819,6 +816,7 @@ private:
     wxMenuItem* MenuItem32;
     wxMenuItem* MenuItem_ViewZoomIn;
     wxPanel* PanelPreview;
+    xLightsTimer Timer1;
     wxStaticText* StaticText3;
     xlAuiToolBar* PlayToolBar;
     wxMenu* Menu1;
@@ -887,7 +885,6 @@ private:
     wxButton* ButtonAddShow;
     wxGridBagSizer* StatusBarSizer;
     wxMenu* AudioMenu;
-    wxTimer Timer1;
     wxFileDialog* FileDialogPgoImage;
     xlAuiToolBar* EditToolBar;
     wxMenuItem* MenuItemGridIconBackgroundOff;

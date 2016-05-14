@@ -18,7 +18,7 @@
 #define OUTBUFF 32768
 
 #include <wx/event.h>
-#include <wx/timer.h>
+#include "../xLightsTimer.h"
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/settings.h>
