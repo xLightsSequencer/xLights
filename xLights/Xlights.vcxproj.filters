@@ -756,6 +756,9 @@
     <ClCompile Include="RenderProgressDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="xLightsTimer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1443,6 +1446,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RenderProgressDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xLightsTimer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

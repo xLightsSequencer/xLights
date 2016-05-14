@@ -661,7 +661,7 @@
 				<option>1</option>
 			</object>
 		</object>
-		<object class="wxTimer" name="ID_TIMER1" variable="Timer1" member="yes">
+		<object class="wxTimer" name="ID_TIMER1" subclass="xLightsTimer" variable="Timer1" member="yes">
 			<handler function="OnTimer1Trigger" entry="EVT_TIMER" />
 		</object>
 	</object>
