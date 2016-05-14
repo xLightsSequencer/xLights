@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (keithsw) Fix prompt for custom model import so it happens after you size the custom model
    -- enh (keithsw) Remove Papagayo tab
    -- bug (gil)     Fix FSEQ filetype data layer import.
    -- enh (gil)     Highlight Model row when effects are selected.  Fixes #145.
