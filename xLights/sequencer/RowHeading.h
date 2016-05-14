@@ -24,6 +24,7 @@ class RowHeading : public wxWindow
         virtual ~RowHeading();
 
         void SetSequenceElements(SequenceElements* elements);
+        void SetSelectedRow(int row_number);
         static const xlColor* GetTimingColor(int index);
         int getWidth();
         int getHeight();

@@ -768,6 +768,10 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
                 mSelectedEffect = selectedEffect;
                 RaiseSelectedEffectChanged(mSelectedEffect, false);
                 RaisePlayModelEffect(element,mSelectedEffect,false);
+                wxCommandEvent eventRowChanged(EVT_SELECTED_ROW_CHANGED);
+                eventRowChanged.SetInt(mSelectedRow);
+                eventRowChanged.SetString(element->GetName());
+                wxPostEvent(GetParent(), eventRowChanged);
             }
         }
         Refresh(false);

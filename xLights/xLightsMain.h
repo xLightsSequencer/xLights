@@ -131,6 +131,7 @@ wxDECLARE_EVENT(EVT_MOUSE_POSITION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SELECTED_ROW_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UNSELECTED_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
@@ -1364,6 +1365,7 @@ private:
     void TimeSelected( wxCommandEvent& event);
     void MousePositionUpdated( wxCommandEvent& event);
     void SelectedEffectChanged( wxCommandEvent& event);
+    void SelectedRowChanged( wxCommandEvent& event);
     void EffectChanged( wxCommandEvent& event);
     void UnselectedEffect( wxCommandEvent& event);
     void EffectDroppedOnGrid(wxCommandEvent& event);
