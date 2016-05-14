@@ -30,6 +30,7 @@ bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*
     _t = new xlTimerThread(GetOwner(), time, _oneshot, this);
     if (_t == NULL) return false;
     _t->Create();
+    _t->SetPriority(WXTHREAD_DEFAULT_PRIORITY + 1); // run it with slightly higher priority to ensure events are generated in a timely manner
     _t->Run();
     return true;
 }
@@ -59,6 +60,7 @@ wxThread::ExitCode xlTimerThread::Entry()
     bool stop = _stop;
     int fudgefactor = _fudgefactor;
     bool oneshot = _oneshot;
+    wxEvtHandler* parent = m_pParent;
     critsect.Leave();
     while (!stop)
     {
@@ -70,8 +72,9 @@ wxThread::ExitCode xlTimerThread::Entry()
         {
             stop = true;
         }
+        parent = m_pParent;
         critsect.Leave();
-        if (!stop && m_pParent != NULL)
+        if (!stop && parent != NULL)
         {
             _timer->Notify();
         }
