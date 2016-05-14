@@ -2209,80 +2209,30 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
 
 wxString DecodeLSPTTColour(int att)
 {
-    if (att < 2) {
+    switch (att)
+    {
+    case 1:
         return "x";
-    }
-    else if (att < 4) {
+    case 2: 
         return "R";
-    }
-    else if (att < 8) {
+    case 4:
         return "G";
-    }
-    else if (att < 16) {
+    case 8:
         return "B";
-    }
-    else if (att < 32) {
+    case 16:
         return "Y";
-    }
-    else if (att < 64) {
+    case 32:
         return "P";
-    }
-    else if (att < 256) {
+    case 64:
         return "O";
-    }
-    else if (att < 512) {
+    case 128:
+        return "z";
+    case 256:
         return "Go";
-    }
-    else if (att < 892) {
+    case 512:
         return "W";
-    }
-    else if (att == 894) {
-        return "All";
-    }
-    else if (att < 1024) {
-        return "Hidden";
-    }
-    else if (att == 1024) {
+    case 1024:
         return "System";
-    }
-
-    return wxString::Format("%d", att);
-}
-
-wxString NormaliseLSPAtt(int att)
-{
-    if (att < 2) {
-        return "0";
-    }
-    else if (att < 4) {
-        return "2";
-    }
-    else if (att < 8) {
-        return "4";
-    }
-    else if (att < 16) {
-        return "8";
-    }
-    else if (att < 32) {
-        return "16";
-    }
-    else if (att < 64) {
-        return "32";
-    }
-    else if (att < 256) {
-        return "64";
-    }
-    else if (att < 512) {
-        return "256";
-    }
-    else if (att < 892) {
-        return "512";
-    }
-    else if (att = 894) {
-        return "894";
-    }
-    else if (att < 1024) {
-        return "1023";
     }
 
     return wxString::Format("%d", att);
@@ -2335,72 +2285,75 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
                                     EffectLayer* effectLayer;
                                     wxXmlNode* layer;
                                     wxXmlNode* timing = NULL;
+                                    int present = 0;
                                     for (wxXmlNode* is = t->GetChildren(); is != NULL; is = is->GetNext()) {
                                         if (is->GetName() == "Intervals") {
                                             std::list<wxString> atts;
                                             for (wxXmlNode* ti = is->GetChildren(); ti != NULL; ti = ti->GetNext()) {
                                                 if (ti->GetName() == "TimeInterval") {
                                                     if (ti->GetAttribute("eff") == "7") {
-                                                        atts.push_back(NormaliseLSPAtt(wxAtoi(ti->GetAttribute("att"))));
+                                                        present |= wxAtoi(ti->GetAttribute("att"));
                                                     }
                                                 }
                                             }
-                                            atts.sort();
-                                            atts.unique();
 
-                                            for (auto it = atts.begin(); it != atts.end(); it++) {
-                                                wxString tname = DecodeLSPTTColour(wxAtoi(*it)) + "-" + name;
-                                                logger_base.info("  Adding timing track " + std::string(tname.c_str()) + "(" + std::string(it->c_str()) + ")");
-                                                if (sequence_loaded) {
-                                                    element = xLightsParent->AddTimingElement(std::string(tname.c_str()));
-                                                    effectLayer = element->GetEffectLayer(0);
-                                                }
-                                                else {
-                                                    AddTimingDisplayElement(tname, "1", "0");
-                                                    timing = AddElement(tname, "timing");
-                                                    layer = AddChildXmlNode(timing, "EffectLayer");
-                                                }
+                                            int mask = 1;
+                                            for (size_t i = 0; i < 10; i++) {
+                                                if (present & mask) {
+                                                    wxString tname = DecodeLSPTTColour(mask) + "-" + name;
+                                                    logger_base.info("  Adding timing track " + std::string(tname.c_str()) + "(" + std::string(wxString::Format("%d",mask).c_str()) + ")");
+                                                    if (sequence_loaded) {
+                                                        element = xLightsParent->AddTimingElement(std::string(tname.c_str()));
+                                                        effectLayer = element->GetEffectLayer(0);
+                                                    }
+                                                    else {
+                                                        AddTimingDisplayElement(tname, "1", "0");
+                                                        timing = AddElement(tname, "timing");
+                                                        layer = AddChildXmlNode(timing, "EffectLayer");
+                                                    }
 
-                                                int last = 0;
-                                                bool sevenfound = false;
-                                                bool fourfound = false;
-                                                for (wxXmlNode* ti = is->GetChildren(); ti != NULL; ti = ti->GetNext()) {
-                                                    if (ti->GetName() == "TimeInterval") {
-                                                        if (ti->GetAttribute("eff") == "7" && NormaliseLSPAtt(wxAtoi(ti->GetAttribute("att"))) == *it) {
-                                                            sevenfound = true;
-                                                            int start = last;
-                                                            int end = TimeLine::RoundToMultipleOfPeriod((int)(wxAtof(ti->GetAttribute("pos")) * 50.0 / 4410.0), GetFrequency());
-                                                            if (start != end)
-                                                            {
-                                                                wxString label = "";
-                                                                if (sequence_loaded) {
-                                                                    effectLayer->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                                                    int last = 0;
+                                                    bool sevenfound = false;
+                                                    bool fourfound = false;
+                                                    for (wxXmlNode* ti = is->GetChildren(); ti != NULL; ti = ti->GetNext()) {
+                                                        if (ti->GetName() == "TimeInterval") {
+                                                            if (ti->GetAttribute("eff") == "7" && (wxAtoi(ti->GetAttribute("att")) & mask)) {
+                                                                sevenfound = true;
+                                                                int start = last;
+                                                                int end = TimeLine::RoundToMultipleOfPeriod((int)(wxAtof(ti->GetAttribute("pos")) * 50.0 / 4410.0), GetFrequency());
+                                                                if (start != end)
+                                                                {
+                                                                    wxString label = "";
+                                                                    if (sequence_loaded) {
+                                                                        effectLayer->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                                                                    }
+                                                                    else {
+                                                                        AddTimingEffect(layer, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                                                                    }
+                                                                    last = end;
                                                                 }
-                                                                else {
-                                                                    AddTimingEffect(layer, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
-                                                                }
-                                                                last = end;
                                                             }
-                                                        }
-                                                        // we take the only the first 4 after we have found 7s
-                                                        else if (ti->GetAttribute("eff") == "4" && sevenfound && !fourfound && NormaliseLSPAtt(wxAtoi(ti->GetAttribute("att"))) == *it) {
-                                                            fourfound = true;
-                                                            int start = last;
-                                                            int end = TimeLine::RoundToMultipleOfPeriod((int)(wxAtof(ti->GetAttribute("pos")) * 50.0 / 4410.0), GetFrequency());
-                                                            if (start != end)
-                                                            {
-                                                                wxString label = "";
-                                                                if (sequence_loaded) {
-                                                                    effectLayer->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                                                            // we take the only the first 4 after we have found 7s
+                                                            else if (ti->GetAttribute("eff") == "4" && sevenfound && !fourfound && (wxAtoi(ti->GetAttribute("att")) & mask)) {
+                                                                fourfound = true;
+                                                                int start = last;
+                                                                int end = TimeLine::RoundToMultipleOfPeriod((int)(wxAtof(ti->GetAttribute("pos")) * 50.0 / 4410.0), GetFrequency());
+                                                                if (start != end)
+                                                                {
+                                                                    wxString label = "";
+                                                                    if (sequence_loaded) {
+                                                                        effectLayer->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                                                                    }
+                                                                    else {
+                                                                        AddTimingEffect(layer, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                                                                    }
+                                                                    last = end;
                                                                 }
-                                                                else {
-                                                                    AddTimingEffect(layer, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
-                                                                }
-                                                                last = end;
                                                             }
                                                         }
                                                     }
                                                 }
+                                                mask = mask << 1;
                                             }
                                         }
                                     }
