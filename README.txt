@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix FSEQ filetype data layer import.
    -- enh (gil)     Highlight Model row when effects are selected.  Fixes #145.
    -- enh (dkulp)   Changing timing panel to OpenGL - Mac now can support up to 60fps
    -- bug (dkulp)   Loading XML sequence with no fseq not setting the timer to the appropriate MS time
