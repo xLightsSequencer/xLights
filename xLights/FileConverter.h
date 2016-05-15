@@ -20,7 +20,8 @@ public:
         READ_MODE_HEADER_ONLY,  // use this mode to read only the header info from the file
         READ_MODE_LOAD_MAIN,    // use this mode to load the file into the main sequencer
         READ_MODE_NORMAL,       // use this mode to read data into provided sequence data object
-        READ_MODE_IGNORE_BLACK  // use this mode to read data into provided sequence data object ignoring any black pixels
+        READ_MODE_IGNORE_BLACK, // use this mode to read data into provided sequence data object ignoring any black pixels
+        READ_MODE_IMPORT        // use this mode to read data into provided sequence data object during import
     };
 
     const wxString inp_filename;

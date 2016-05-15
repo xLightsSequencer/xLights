@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Correction to FSEQ data layer import.  Should only reset sequence data on import not on render.
 2016.29  May 14, 2016
    -- bug (keithsw) Fix prompt for custom model import so it happens after you size the custom model
    -- enh (keithsw) Remove Papagayo tab

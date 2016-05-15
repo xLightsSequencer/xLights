@@ -1674,7 +1674,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     }
 
     if(params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ||
-       params.read_mode == ConvertParameters::READ_MODE_NORMAL )
+       params.read_mode == ConvertParameters::READ_MODE_IMPORT )
     {
         params.seq_data.init(numChannels, falconPeriods, seqStepTime);
     }
