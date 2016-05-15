@@ -76,9 +76,8 @@ wxThread::ExitCode xlTimerThread::Entry()
         critsect.Leave();
         if (!stop && parent != NULL)
         {
-             wxTimerEvent *event = new wxTimerEvent(_timer);
+             wxTimerEvent *event = new wxTimerEvent(*_timer);
             _timer->GetOwner()->QueueEvent(event);
-            //_timer->Notify();
         }
     }
     return 0;
