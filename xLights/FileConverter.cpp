@@ -1139,7 +1139,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
                                                            ChannelNames[channels].c_str(),
                                                            origName.c_str(),
                                                            o2.c_str()), false);
-                        for (long newper = 0; newper < params.seq_data.NumFrames(); newper++)
+                        for (unsigned long newper = 0; newper < params.seq_data.NumFrames(); newper++)
                         {
                             long intensity;
                             intensity = strtoul(Data.substr(newper * 3, 2).c_str(), NULL, 16);
@@ -1388,7 +1388,7 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
 
     int min = 999999;
     int max = 0;
-    for (int x = 0; x < VixChannels.size(); x++)
+    for (size_t x = 0; x < VixChannels.size(); x++)
     {
         int i = VixChannels[x];
         if (i > max)
@@ -1424,16 +1424,15 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
     params.seq_data.init(numChannels, VixNumPeriods, VixEventPeriod);
 
     // reorder channels according to output number, scale so that max intensity is 255
-    int newper,intensity;
-    size_t ch;
-    for (ch=0; ch < params.seq_data.NumChannels(); ch++)
+    int intensity;
+    for (size_t ch=0; ch < params.seq_data.NumChannels(); ch++)
     {
         OutputChannel = VixChannels[ch] - min;
         if (ch < VixChannelNames.size())
         {
             ChannelNames[OutputChannel] = VixChannelNames[ch];
         }
-        for (newper=0; newper < params.seq_data.NumFrames(); newper++)
+        for (size_t newper=0; newper < params.seq_data.NumFrames(); newper++)
         {
             intensity=VixSeqData[ch*VixNumPeriods+newper];
             if (MaxIntensity != 255)
@@ -1465,7 +1464,7 @@ void FileConverter::ReadGlediatorFile(ConvertParameters& params)
     wxArrayInt ChannelColors;
 
     size_t fileLength;
-    int j,period,x_width=32,y_height=32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
+    int period,x_width=32,y_height=32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
     //wxString filename=string_format(wxString("01 - Carol of the Bells.mp3")); // hard code a mp3 file for now
     size_t readcnt;
 
@@ -1494,7 +1493,7 @@ void FileConverter::ReadGlediatorFile(ConvertParameters& params)
     period = 0;
     while((readcnt=f.Read(frameBuffer,params.seq_data.NumChannels())))   // Read one period of channels
     {
-        for(j=0; j<readcnt; j++)   // Loop thru all channel.s
+        for(size_t j=0; j<readcnt; j++)   // Loop thru all channel.s
         {
             params.seq_data[period][j] = frameBuffer[j];
         }
@@ -1814,7 +1813,7 @@ void FileConverter::WriteFalconPiFile( ConvertParameters& params )
     f.Write(buf,fixedHeaderLength);
 
 
-    for (long period=0; period < params.seq_data.NumFrames(); period++)
+    for (unsigned long period=0; period < params.seq_data.NumFrames(); period++)
     {
         for(ch=0; ch<stepSize; ch++)
         {

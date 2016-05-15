@@ -34,6 +34,7 @@ class Element
         SequenceElements *GetSequenceElements() {return parent;}
 
         std::string GetExport() const;
+        std::string GetPapagayoExport(int ms) const;
         const std::string &GetName() const;
         void SetName(const std::string &name);
 

@@ -307,26 +307,53 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     }
     else if (id == ID_ROW_MNU_EXPORT_TIMING_TRACK) {
         wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, element->GetName(), wxEmptyString, "Timing files (*.xtiming)|*.xtiming", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-        if (filename.IsEmpty()) return;
-        wxFile f(filename);
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Saving to xtiming file %s.", std::string(filename.c_str()).c_str());
-        if (!f.Create(filename, true) || !f.IsOpened())
+        wxString filetypes;
+        if (mSequenceElements->GetElement(element->GetName())->GetEffectLayerCount() == 3)
         {
-            logger_base.info("Unable to create file %s. Error %d\n", std::string(filename.c_str()).c_str(), f.GetLastError());
-            wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
-            return;
+            filetypes = "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo";
         }
-        wxString name = wxFileName(filename).GetName();
-        wxString td = wxString(mSequenceElements->GetElement(element->GetName())->GetExport().c_str());
-        wxString v = xlights_version_string;
-        f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<timing ");
-        f.Write(wxString::Format("name=\"%s\" ", name));
-        f.Write(wxString::Format("SourceVersion=\"%s\">\n", v));
-        f.Write(td);
-        f.Write("</timing>\n");
-        f.Close();
+        else
+        {
+            filetypes = "Timing files (*.xtiming)|*.xtiming";
+        }
+        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, element->GetName(), wxEmptyString, filetypes, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        if (filename.IsEmpty()) return;
+        wxFileName fn(filename);
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        if (fn.GetExt().Lower() == ".xtiming")
+        {
+            wxFile f(filename);
+            logger_base.info("Saving to xtiming file %s.", std::string(filename.c_str()).c_str());
+            if (!f.Create(filename, true) || !f.IsOpened())
+            {
+                logger_base.info("Unable to create file %s. Error %d\n", std::string(filename.c_str()).c_str(), f.GetLastError());
+                wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+                return;
+            }
+            wxString name = wxFileName(filename).GetName();
+            wxString td = wxString(mSequenceElements->GetElement(element->GetName())->GetExport().c_str());
+            wxString v = xlights_version_string;
+            f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<timing ");
+            f.Write(wxString::Format("name=\"%s\" ", name));
+            f.Write(wxString::Format("SourceVersion=\"%s\">\n", v));
+            f.Write(td);
+            f.Write("</timing>\n");
+            f.Close();
+        }
+        else if (fn.GetExt().Lower() == "pgo")
+        {
+            wxFile f(filename);
+            logger_base.info("Saving to papagayo file %s.", std::string(filename.c_str()).c_str());
+            if (!f.Create(filename, true) || !f.IsOpened())
+            {
+                logger_base.info("Unable to create file %s. Error %d\n", std::string(filename.c_str()).c_str(), f.GetLastError());
+                wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+                return;
+            }
+            wxString td = wxString(mSequenceElements->GetElement(element->GetName())->GetPapagayoExport(mSequenceElements->GetFrequency()).c_str());
+            f.Write(td);
+            f.Close();
+        }
     } else if(id == ID_ROW_MNU_IMPORT_TIMING_TRACK) {
         wxCommandEvent playEvent(EVT_IMPORT_TIMING);
         wxPostEvent(GetParent(), playEvent);
