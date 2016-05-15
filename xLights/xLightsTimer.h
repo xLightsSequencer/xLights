@@ -4,7 +4,8 @@
 #include <wx/timer.h>
 
 #ifdef __WXMSW__
-#define XLUSETIMER
+#define xLightsTimer wxTimer
+//#define XLUSETIMER
 #else
 #define xLightsTimer wxTimer
 #endif
