@@ -2091,9 +2091,11 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                     return;
                 }
 
+                //int start = number.Matches(line = RemoveTabs(f.GetNextLine(), 2)) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(line)) * ms, GetFrequency()) : 0;
                 int start = number.Matches(line = RemoveTabs(f.GetNextLine(),2)) ? (offset + wxAtoi(line)) * ms : 0;
                 linenum++;
 
+                //int end = number.Matches(line = RemoveTabs(f.GetNextLine(), 2)) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(line)) * ms, GetFrequency()) : 0;
                 int end = number.Matches(line = RemoveTabs(f.GetNextLine(),2)) ? (offset + wxAtoi(line)) * ms : 0;
                 linenum++;
                 desc = wxString::Format(_("voice# %d, phrase %d '%s', start frame %d end frame %d @line %d"), v, p, label.c_str(), start, end, linenum);
@@ -2128,11 +2130,13 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
 
                     int space2 = line.find(' ', space1 + 1);
                     wxString ss = line.SubString(space1 + 1, space2 - 1);
+                    //start = number.Matches(ss) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(ss)) * ms, GetFrequency()) : 0;
                     start = number.Matches(ss) ? (offset + wxAtoi(ss)) * ms : 0;
                     linenum++;
 
                     int space3 = line.find(' ', space2 + 1);
                     ss = line.SubString(space2 + 1, space3 - 1);
+                    //end = number.Matches(ss) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(ss)) * ms, GetFrequency()) : 0;
                     end = number.Matches(ss) ? (offset + wxAtoi(ss)) * ms : 0;
                     linenum++;
                     desc = wxString::Format(_("voice# %d, phrase# %d, word %d '%s', start frame %d end frame %d @line %d"), v, p, w, label.c_str(), start, end, linenum);
@@ -2162,10 +2166,11 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                         int space1 = line.find(' ');
 
                         ss = line.SubString(0, space1 - 1);
+                        //end = number.Matches(ss) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(ss)) * ms, GetFrequency()) : 0;
                         end = number.Matches(ss) ? (offset + wxAtoi(ss)) * ms : 0;
                         linenum++;
 
-                        if (ph == 1 && numphonemes != 1)
+                        if (ph == 1)
                         {
                             // dont do anything
                         }
