@@ -2658,15 +2658,11 @@ void EffectsGrid::Draw()
             mTimeline->RecalcEndTime();  // force a recalc of the Timeline end time so that timing effect positions will calculate correct during redraw
         }
     }
-    LOG_GL_ERROR();
 
     if( mSequenceElements )
     {
-        LOG_GL_ERROR();
         DrawLines();
-        LOG_GL_ERROR();
         DrawEffects();
-        LOG_GL_ERROR();
         DrawPlayMarker();
     }
 

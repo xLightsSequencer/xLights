@@ -38,6 +38,7 @@ class xLightsTimer :
     bool _oneshot;
 public:
     xLightsTimer();
+    virtual ~xLightsTimer() {};
     void Stop();
     bool Start(int time = -1, bool oneShot = wxTIMER_CONTINUOUS);
     int GetInterval();

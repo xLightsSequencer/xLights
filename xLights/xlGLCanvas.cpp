@@ -179,14 +179,18 @@ DrawGLUtils::xlGLCacheInfo *Create21Cache();
 DrawGLUtils::xlGLCacheInfo *Create15Cache();
 
 void xlGLCanvas::SetCurrentGLContext() {
+    glGetError();
     if (m_context == nullptr) {
         CreateGLContext();
     }
+    LOG_GL_ERROR();
     m_context->SetCurrent(*this);
+    LOG_GL_ERROR();
     if (!functionsLoaded) {
         DrawGLUtils::LoadGLFunctions();
         functionsLoaded = true;
     }
+    LOG_GL_ERROR();
     wxConfigBase* config = wxConfigBase::Get();
     int ver = 99;
     config->Read("ForceOpenGLVer", &ver, 99);
@@ -225,7 +229,9 @@ void xlGLCanvas::SetCurrentGLContext() {
             logger_opengl.error("All attempts at cache creation have failed.");
         }
     }
+    LOG_GL_ERROR();
     DrawGLUtils::SetCurrentCache(cache);
+    LOG_GL_ERROR();
 }
 
 

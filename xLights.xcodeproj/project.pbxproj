@@ -82,7 +82,6 @@
 		675DE26B1B53381800A9BB44 /* xlColorPickerFields.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE25D1B53381800A9BB44 /* xlColorPickerFields.cpp */; };
 		675DE26F1B53381800A9BB44 /* xlSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2651B53381800A9BB44 /* xlSlider.cpp */; };
 		676013E51B9D34F7001179FA /* SaveChangesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676013E41B9D34F7001179FA /* SaveChangesDialog.cpp */; };
-		6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6760BF121953BAD700704AEA /* TabPapagayo.cpp */; };
 		6761F5F51C4EA041009780DA /* AssistPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5EB1C4EA041009780DA /* AssistPanel.cpp */; };
 		6761F5F61C4EA041009780DA /* PicturesAssistPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5ED1C4EA041009780DA /* PicturesAssistPanel.cpp */; };
 		6761F5F71C4EA041009780DA /* xlGridCanvasEmpty.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5EF1C4EA041009780DA /* xlGridCanvasEmpty.cpp */; };
@@ -92,6 +91,7 @@
 		67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E721AD2BF3F0022667B /* BitmapCache.cpp */; };
 		6764010C1C8FBFC30079A4CF /* LayoutPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */; };
 		67653D5C1CA589830026A30B /* ModelScreenLocation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */; };
+		6767C51A1CE7EC3B003B3F6E /* xLightsTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6767C5181CE7EC3B003B3F6E /* xLightsTimer.cpp */; };
 		67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */; };
 		67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F191A069BBE0030D020 /* PreviewModels.cpp */; };
 		67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1E1A0729220030D020 /* ModelPreview.cpp */; };
@@ -466,7 +466,6 @@
 		675DE2651B53381800A9BB44 /* xlSlider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlSlider.cpp; sourceTree = "<group>"; };
 		675DE2661B53381800A9BB44 /* xlSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlSlider.h; sourceTree = "<group>"; };
 		676013E41B9D34F7001179FA /* SaveChangesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SaveChangesDialog.cpp; sourceTree = "<group>"; };
-		6760BF121953BAD700704AEA /* TabPapagayo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = TabPapagayo.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		6761F5EB1C4EA041009780DA /* AssistPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AssistPanel.cpp; path = effects/assist/AssistPanel.cpp; sourceTree = "<group>"; };
 		6761F5EC1C4EA041009780DA /* AssistPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AssistPanel.h; path = effects/assist/AssistPanel.h; sourceTree = "<group>"; };
 		6761F5ED1C4EA041009780DA /* PicturesAssistPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PicturesAssistPanel.cpp; path = effects/assist/PicturesAssistPanel.cpp; sourceTree = "<group>"; };
@@ -484,6 +483,8 @@
 		6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutPanel.cpp; sourceTree = "<group>"; };
 		67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelScreenLocation.cpp; path = models/ModelScreenLocation.cpp; sourceTree = "<group>"; };
 		67653D5B1CA589830026A30B /* ModelScreenLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelScreenLocation.h; path = models/ModelScreenLocation.h; sourceTree = "<group>"; };
+		6767C5181CE7EC3B003B3F6E /* xLightsTimer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsTimer.cpp; sourceTree = "<group>"; };
+		6767C5191CE7EC3B003B3F6E /* xLightsTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsTimer.h; sourceTree = "<group>"; };
 		67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CurrentPreviewModels.cpp; sourceTree = "<group>"; };
 		67694F191A069BBE0030D020 /* PreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreviewModels.cpp; sourceTree = "<group>"; };
 		67694F1E1A0729220030D020 /* ModelPreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPreview.cpp; sourceTree = "<group>"; };
@@ -1285,6 +1286,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6767C5181CE7EC3B003B3F6E /* xLightsTimer.cpp */,
+				6767C5191CE7EC3B003B3F6E /* xLightsTimer.h */,
 				6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */,
 				6701999E1CE5A03200AE9B7E /* RenderProgressDialog.h */,
 				6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */,
@@ -1379,7 +1382,6 @@
 				6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */,
 				67DB97371B05744100FC5ADC /* SuperStarImportDialog.cpp */,
 				67C7969017B5791700CEE775 /* TabConvert.cpp */,
-				6760BF121953BAD700704AEA /* TabPapagayo.cpp */,
 				673E425717F0D23E00F4BC76 /* TabPreview.cpp */,
 				67E491B317C45BAF00FE40EA /* TabSequence.cpp */,
 				6784F9261A5653670018EC0C /* tabSequencer.cpp */,
@@ -1642,6 +1644,7 @@
 				670C828B1C45C48B000AA5D8 /* Model.cpp in Sources */,
 				67B2CF711C39D98A003C17CA /* DMXPanel.cpp in Sources */,
 				677421DD1A6A8FF30082DA5B /* RenameTextDialog.cpp in Sources */,
+				6767C51A1CE7EC3B003B3F6E /* xLightsTimer.cpp in Sources */,
 				67B845071A9C0E7500564051 /* ModelViewSelector.cpp in Sources */,
 				67B2CF8B1C39D98A003C17CA /* TextPanel.cpp in Sources */,
 				67B2CF731C39D98A003C17CA /* FanPanel.cpp in Sources */,
@@ -1782,7 +1785,6 @@
 				673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */,
 				67B2CFE71C3A186A003C17CA /* MorphEffect.cpp in Sources */,
 				670E473F1C62A901008F4C60 /* ModelGroup.cpp in Sources */,
-				6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */,
 				6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */,
 				67B2CFEC1C3A186A003C17CA /* GlediatorEffect.cpp in Sources */,
 				6784F92D1A5653670018EC0C /* RowHeading.cpp in Sources */,
