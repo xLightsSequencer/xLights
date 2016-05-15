@@ -1061,7 +1061,7 @@
 					<handler function="OnMenu_GenerateCustomModelSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MENUITEM18" variable="MenuItem38" member="yes">
-					<label>&amp;Package Problem FIles</label>
+					<label>&amp;Package Log FIles</label>
 					<help>Packages up current configuration, logs and sequence for reporting a problem to development team.</help>
 					<handler function="OnMenuItemPackageDebugFiles" entry="EVT_MENU" />
 				</object>

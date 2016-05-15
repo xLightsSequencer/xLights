@@ -721,7 +721,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1->Append(MenuItemConvert);
     Menu_GenerateCustomModel = new wxMenuItem(Menu1, ID_MENUITEM_GenerateCustomModel, _("&Generate Custom Model"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(Menu_GenerateCustomModel);
-    MenuItem38 = new wxMenuItem(Menu1, ID_MENUITEM18, _("&Package Problem FIles"), _("Packages up current configuration, logs and sequence for reporting a problem to development team."), wxITEM_NORMAL);
+    MenuItem38 = new wxMenuItem(Menu1, ID_MENUITEM18, _("&Package Log FIles"), _("Packages up current configuration, logs and sequence for reporting a problem to development team."), wxITEM_NORMAL);
     Menu1->Append(MenuItem38);
     MenuBar->Append(Menu1, _("&Tools"));
     MenuPlaylist = new wxMenu();
