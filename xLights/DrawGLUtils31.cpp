@@ -64,6 +64,7 @@ PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
 PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
+PFNGLPOINTPARAMETERFPROC glPointParameterf;
 
 #ifdef LINUX // conversion function from glx to wgl calls
 __GLXextFuncPtr wglGetProcAddress(const char* a) {
@@ -109,6 +110,7 @@ bool DrawGLUtils::LoadGLFunctions() {
     glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointer");
     glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glDisableVertexAttribArray");
     glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)wglGetProcAddress("glGetAttribLocation");
+    glPointParameterf = (PFNGLPOINTPARAMETERFPROC)wglGetProcAddress("glPointParameterf");
     return (glUseProgram != nullptr);
 }
 #else
