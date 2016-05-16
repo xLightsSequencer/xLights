@@ -8,9 +8,11 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.30  May 16, 2016
    -- enh (keithsw) PGO export for those LOR etc users that would like to use xlights to create their PGO files.
    -- enh (keithsw) Add scrubbing to audio (hold control key and left mouse button on waveform)
    -- bug (gil)     Correction to FSEQ data layer import.  Should only reset sequence data on import not on render.
+   -- bug (dkulp)   Fix for OpenGL on Intel graphics card. Intel 2.1 has issues with POINT_SPRITE
 2016.29  May 14, 2016
    -- bug (keithsw) Fix prompt for custom model import so it happens after you size the custom model
    -- enh (keithsw) Remove Papagayo tab
