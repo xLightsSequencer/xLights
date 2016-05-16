@@ -31,7 +31,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 
 	if (avformat_find_stream_info(_formatContext, NULL) < 0)
 	{
-        logger_base.error("Error finding the stream info in " + filename);
+        logger_base.error("VideoReader: Error finding the stream info in " + filename);
 		return;
 	}
 
@@ -40,7 +40,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	_streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &cdc, 0);
 	if (_streamIndex < 0)
 	{
-        logger_base.error("Could not find any video stream in " + filename);
+        logger_base.error("VideoReader: Could not find any video stream in " + filename);
 		return;
 	}
 
@@ -52,7 +52,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
     _codecContext->thread_count = 1;
 	if (avcodec_open2(_codecContext, cdc, NULL) != 0)
 	{
-        logger_base.error("Couldn't open the context with the decoder in " + filename);
+        logger_base.error("VideoReader: Couldn't open the context with the decoder in " + filename);
 		return;
 	}
 
@@ -60,6 +60,12 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 
 	if (keepaspectratio)
 	{
+        if (_codecContext->width == 0 || _codecContext->height == 0)
+        {
+            logger_base.error("VideoReader: Invalid input reader dimensions (%d,%d) %s", _codecContext->width, _codecContext->height, filename.c_str());
+            return;
+        }
+
 		// if > 0 then video will be shrunk
 		// if < 0 then video will be stretched
 		float shrink = std::min((float)maxwidth / (float)_codecContext->width, (float)maxheight / (float)_codecContext->height);
@@ -75,25 +81,52 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	// get the video length in MS
 	// Use the number of frames as the best possible way to calculate length
 	int lastframe = _videoStream->nb_frames;
-    _dtspersec = (int)(((int64_t)_videoStream->duration * (int64_t)_videoStream->avg_frame_rate.num ) / ((int64_t)lastframe * (int64_t)_videoStream->avg_frame_rate.den));
+    if (lastframe == 0 || _videoStream->avg_frame_rate.den == 0)
+    {
+        logger_base.warn("VideoReader: dtspersec calc error _videoStream->nb_frames %d and _videoStream->avg_frame_rate.den %d cannot be zero. %s", _videoStream->nb_frames, _videoStream->avg_frame_rate.den, filename.c_str());
+        logger_base.warn("VideoReader: Video seeking will only work back to the start of the video.");
+        _dtspersec = 1;
+    }
+    else
+    {
+        _dtspersec = (int)(((int64_t)_videoStream->duration * (int64_t)_videoStream->avg_frame_rate.num) / ((int64_t)lastframe * (int64_t)_videoStream->avg_frame_rate.den));
+    }
+
     if (lastframe > 0)
 	{
-		_lengthMS = (int)(((uint64_t)lastframe * (uint64_t)_videoStream->avg_frame_rate.den * 1000) / (uint64_t)_videoStream->avg_frame_rate.num);
+        if (_videoStream->avg_frame_rate.num != 0)
+        {
+            _lengthMS = (int)(((uint64_t)lastframe * (uint64_t)_videoStream->avg_frame_rate.den * 1000) / (uint64_t)_videoStream->avg_frame_rate.num);
+        }
+        else
+        {
+            logger_base.info("VideoReader: _videoStream->avg_frame_rate.num = 0");
+        }
     }
 
 	// If it does not look right try to base if off the duration
 	if (_lengthMS <= 0 || lastframe <= 0)
 	{
-		_lengthMS = (int)((uint64_t)_formatContext->duration * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)_videoStream->avg_frame_rate.den);
-        lastframe = _lengthMS  * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)(_videoStream->avg_frame_rate.den) / 1000;
+        if (_videoStream->avg_frame_rate.den != 0)
+        {
+            _lengthMS = (int)((uint64_t)_formatContext->duration * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)_videoStream->avg_frame_rate.den);
+            lastframe = _lengthMS  * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)(_videoStream->avg_frame_rate.den) / 1000;
+        }
+        else
+        {
+            logger_base.info("VideoReader: _videoStream->avg_frame_rate.den = 0");
+        }
     }
 
 	// If it still doesnt look right
 	if (_lengthMS <= 0 || lastframe <= 0)
 	{
-		// This seems to work for .asf, .mkv, .flv
-		_lengthMS = _formatContext->duration / 1000;
-		lastframe = _lengthMS  * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)(_videoStream->avg_frame_rate.den) / 1000;
+        if (_videoStream->avg_frame_rate.den != 0)
+        {
+            // This seems to work for .asf, .mkv, .flv
+            _lengthMS = _formatContext->duration / 1000;
+            lastframe = _lengthMS  * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)(_videoStream->avg_frame_rate.den) / 1000;
+        }
     }
 
 	if (_lengthMS <= 0 || lastframe <= 0)
