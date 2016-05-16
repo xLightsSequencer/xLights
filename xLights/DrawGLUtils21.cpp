@@ -148,6 +148,9 @@ public:
         LOG_GL_ERRORV(MatrixIDc = glGetUniformLocation(ProgramIDcolors, "MVP"));
         LOG_GL_ERRORV(MatrixIDsc = glGetUniformLocation(ProgramIDstaticColor, "MVP"));
         LOG_GL_ERRORV(MatrixIDt = glGetUniformLocation(ProgramIDcolors, "MVP"));
+        
+        
+        isIntel = wxString(glGetString(GL_VENDOR)).Contains("Intel");
     }
     
     GLuint CompileShader(GLenum type, const char *text) {
@@ -276,7 +279,7 @@ public:
         
         float ps = 2.0;
         if (enableCapability != 0) {
-            if (enableCapability == GL_POINT_SMOOTH) {
+            if (enableCapability == GL_POINT_SMOOTH && !isIntel) {
                 glEnable(enableCapability);
                 GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
                 glUniform1i(cid, 1);
@@ -289,7 +292,7 @@ public:
         }
         glDrawArrays(type, 0, va.count);
         if (enableCapability > 0) {
-            if (enableCapability == GL_POINT_SMOOTH || enableCapability == GL_POINT_SPRITE) {
+            if (!isIntel && (enableCapability == GL_POINT_SMOOTH || enableCapability == GL_POINT_SPRITE)) {
                 GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
                 glUniform1i(cid, 0);
                 LOG_GL_ERRORV(glPointSize(ps));
@@ -440,6 +443,8 @@ protected:
     GLuint MatrixIDt;
 
     std::stack<glm::mat4*> matrixStack;
+    
+    bool isIntel;
 
     glm::mat4 *matrix;
 };
