@@ -14,6 +14,10 @@ ICON_SIZES      = 16x16 32x32 64x64 256x256
 SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary
 PATH            := $(CURDIR)/wxWidgets-3.1.0:$(PATH)
 
+ifndef XLIGHTS_COMPILE_THREADS
+	XLIGHTS_COMPILE_THREADS=4
+endif
+
 SUBDIRS         = xLights
 
 all: wxwidgets31 makefile subdirs
@@ -23,7 +27,7 @@ all: wxwidgets31 makefile subdirs
 subdirs: $(SUBDIRS)
 
 $(SUBDIRS): FORCE
-	@${MAKE} -C $@ -f xLights.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_release
+	@${MAKE} -j ${XLIGHTS_COMPILE_THREADS} -C $@ -f xLights.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_release
 
 
 #############################################################################
@@ -36,7 +40,7 @@ wxwidgets31: FORCE
 		fi; \
 		cd wxWidgets-3.1.0;\
 			CXXFLAGS="-std=gnu++14" ./configure --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest; \
-			${MAKE} -j4 ;\
+			${MAKE} -j ${XLIGHTS_COMPILE_THREADS} ;\
 	fi
 
 #############################################################################
@@ -52,7 +56,7 @@ clean: $(addsuffix _clean,$(SUBDIRS))
 
 $(addsuffix _clean,$(SUBDIRS)):
 	@${MAKE} -C $(subst _clean,,$@) -f xLights.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" clean
-	
+
 
 #############################################################################
 
