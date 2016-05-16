@@ -16,6 +16,8 @@ PATH            := $(CURDIR)/wxWidgets-3.1.0:$(PATH)
 
 SUBDIRS         = xLights
 
+.NOTPARALLEL:
+
 all: wxwidgets31 makefile subdirs
 
 #############################################################################
@@ -36,7 +38,7 @@ wxwidgets31: FORCE
 		fi; \
 		cd wxWidgets-3.1.0;\
 			CXXFLAGS="-std=gnu++14" ./configure --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest; \
-			${MAKE} -j4 ;\
+			${MAKE} ;\
 	fi
 
 #############################################################################
