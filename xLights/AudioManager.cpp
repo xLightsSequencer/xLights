@@ -9,12 +9,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include "kiss_fft/tools/kiss_fftr.h"
-#ifdef __WXMSW__
-//#include "wx/msw/debughlp.h"
-//wxString s;
-//s.Printf("%f -> %f", val, db);
-//wxDbgHelpDLL::LogError(s);
-#endif
 #include <log4cpp/Category.hh>
 
 using namespace Vamp;
@@ -23,7 +17,8 @@ using namespace Vamp;
 
 Uint64  __audio_len;
 Uint8  *__audio_pos;
-float __playbackrate = 1.0;
+float __playbackrate = 1.0f;
+
 void  fill_audio(void *udata, Uint8 *stream, int len)
 {
 	//SDL 2.0
@@ -42,37 +37,68 @@ void  fill_audio(void *udata, Uint8 *stream, int len)
 }
 void AudioManager::Seek(int pos)
 {
+    _lastscrubpos = 0;
 	if (pos < 0 || pos > _lengthMS)
 	{
 		return;
 	}
-	__audio_len = _pcmdatasize - (Uint64)pos * _rate * 2 * 2 / 1000; // (((Uint64)pos * (Uint64)_pcmdatasize) / (Uint64)_lengthMS);
+	__audio_len = _pcmdatasize - (Uint64)pos * _rate * 2 * 2 / 1000;
 	// ensure it is aligned to 4 byte boundary as 2 channels with 2 bytes per channel is how the data is organised
 	__audio_len -= __audio_len % 4;
 	__audio_pos = _pcmdata + (_pcmdatasize - __audio_len);
 }
 void AudioManager::Pause()
 {
+    _lastscrubpos = 0;
 	SDL_PauseAudio(1);
 	_media_state = MEDIAPLAYINGSTATE::PAUSED;
 }
+
+void AudioManager::Play(int posms, int lenms)
+{
+    if (posms < 0 || posms > _lengthMS)
+    {
+        return;
+    }
+
+    // dont scrub back
+    if (posms <= _lastscrubpos)
+    {
+        _lastscrubpos = posms;
+        return;
+    }
+    _lastscrubpos = posms;
+
+    __audio_len = lenms * _rate * 2 * 2 / 1000;
+    __audio_len -= __audio_len % 4;
+    __audio_pos = _pcmdata + ((Uint64)posms * _rate * 2 * 2 / 1000);
+    SDL_PauseAudio(0);
+    _media_state = MEDIAPLAYINGSTATE::PLAYING;
+}
+
 void AudioManager::Play()
 {
+    _lastscrubpos = 0;
 	SDL_PauseAudio(0);
 	_media_state = MEDIAPLAYINGSTATE::PLAYING;
 }
+
 void AudioManager::Stop()
 {
+    _lastscrubpos = 0;
 	SDL_PauseAudio(1);
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
 }
+
 void AudioManager::SetGlobalPlaybackRate(float rate)
 {
 	__playbackrate = rate;
 }
+
 void AudioManager::SetPlaybackRate(float rate)
 {
-	MEDIAPLAYINGSTATE state = GetPlayingState();
+    _lastscrubpos = 0;
+    MEDIAPLAYINGSTATE state = GetPlayingState();
 	if (state == MEDIAPLAYINGSTATE::PLAYING)
 	{
 		Stop();
@@ -110,18 +136,6 @@ void AudioManager::SetPlaybackRate(float rate)
 MEDIAPLAYINGSTATE AudioManager::GetPlayingState()
 {
     return _media_state;
-    /*
-	switch (SDL_GetAudioStatus())
-	{
-	case SDL_AUDIO_PAUSED:
-		return MEDIAPLAYINGSTATE::PAUSED;
-	case SDL_AUDIO_PLAYING:
-		return MEDIAPLAYINGSTATE::PLAYING;
-	}
-
-	// assume stopped
-	return MEDIAPLAYINGSTATE::STOPPED;
-	*/
 }
 
 // return where in the file we are up to playing
@@ -145,6 +159,7 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
 	_pcmdata = NULL;
 	_polyphonicTranscriptionDone = false;
+    _lastscrubpos = 0;
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions
 	_extra = std::max(step, block) + 1;
@@ -338,7 +353,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
             Vamp::Plugin::FeatureSet features = pt->getRemainingFeatures();
             logger_pianodata.debug("Polyphonic Transcription result retrieved.");
             logger_pianodata.debug("Start,Duration,CalcStart,CalcEnd,midinote");
-            for (int j = 0; j < features[0].size(); j++)
+            for (size_t j = 0; j < features[0].size(); j++)
             {
                 if (j % 10 == 0)
                 {
@@ -372,7 +387,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
             {
                 logger_pianodata.debug("Piano data calculated:");
                 logger_pianodata.debug("Time MS, Keys");
-                for (int i = 0; i < _frameData.size(); i++)
+                for (size_t i = 0; i < _frameData.size(); i++)
                 {
                     int ms = i * _intervalMS;
                     std::string keys = "";
@@ -1369,7 +1384,7 @@ void xLightsVamp::ProcessFeatures(Vamp::Plugin::FeatureList &feature, std::vecto
 {
 	bool hadDuration = true;
 
-	for (int x = 0; x < feature.size(); x++)
+	for (size_t x = 0; x < feature.size(); x++)
 	{
 		int start = feature[x].timestamp.msec() + feature[x].timestamp.sec * 1000;
 		starts.push_back(start);
@@ -1405,7 +1420,7 @@ void xLightsVamp::LoadPlugins(AudioManager* paudio)
 
 	Vamp::HostExt::PluginLoader::PluginKeyList pluginList = _loader->listPlugins();
 
-	for (int x = 0; x < pluginList.size(); x++)
+	for (size_t x = 0; x < pluginList.size(); x++)
 	{
 		Vamp::Plugin *p = _loader->loadPlugin(pluginList[x], paudio->GetRate());
 		if (p == nullptr)

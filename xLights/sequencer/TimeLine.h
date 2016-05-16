@@ -68,6 +68,7 @@ class TimeLine : public wxWindow
         void ZoomOut();
 
         int TimePerMajorTickInMS();
+        int PixelsPerMajorTick() { return PIXELS_PER_MAJOR_HASH; };
         void GetViewableTimeRange(int &StartTime, int &EndTime);
 
         void GetPositionsFromTimeRange(int startTimeMS,int endTimeMS,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2, int& x3, int& x4);

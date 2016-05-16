@@ -179,6 +179,13 @@ void Waveform::mouseMoved( wxMouseEvent& event)
     }
     int mouseTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
     UpdateMousePosition(mouseTimeMS);
+
+    // Scrubbing
+    if (_media != NULL && event.LeftIsDown() && event.ControlDown())
+    {
+        int msperpixel = std::max(1000 / GetTimeFrequency(), mTimeline->TimePerMajorTickInMS() / mTimeline->PixelsPerMajorTick());
+        _media->Play(mouseTimeMS, msperpixel);
+    }
 }
 
 void Waveform::mouseWheelMoved(wxMouseEvent& event)
@@ -267,7 +274,6 @@ void Waveform::renderGL( )
 
 void Waveform::DrawWaveView(const WaveView &wv)
 {
-    int index;
     DrawGLUtils::SetLineWidth(1.0);
 
     DrawGLUtils::xlVertexColorAccumulator vac;
@@ -314,7 +320,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
     {
         xlColor c(130,178,207,255);
 
-        int max = std::min(mWindowWidth, (int)wv.MinMaxs.size());
+        int max = std::min(mWindowWidth, wv.MinMaxs.size());
         if (mStartPixelOffset != wv.lastRenderStart || max != wv.lastRenderSize) {
             wv.background.Reset();
             wv.outline.Reset();
@@ -324,9 +330,9 @@ void Waveform::DrawWaveView(const WaveView &wv)
             std::vector<double> vertexes;
             vertexes.resize((mWindowWidth + 2));
             
-            for (int x=0;x<mWindowWidth && (x)<wv.MinMaxs.size();x++)
+            for (size_t x=0;x<mWindowWidth && (x)<wv.MinMaxs.size();x++)
             {
-                index = x+mStartPixelOffset;
+                size_t index = x+mStartPixelOffset;
                 if (index >= 0 && index < wv.MinMaxs.size())
                 {
                     double y1 = ((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
@@ -341,7 +347,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
                 }
             }
             for(int x=mWindowWidth;x >= 0 ; x--) {
-                if (x<wv.MinMaxs.size()) {
+                if (x<(int)wv.MinMaxs.size()) {
                     wv.outline.AddVertex(x, vertexes[x]);
                 }
             }
@@ -390,7 +396,7 @@ void Waveform::SetZoomLevel(int level)
     if(!mIsInitialized){return;}
 
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
-    for(int i=0;i<views.size();i++)
+    for(size_t i=0;i<views.size();i++)
     {
         if(views[i].GetZoomLevel() == mZoomLevel)
         {
