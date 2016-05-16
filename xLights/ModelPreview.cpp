@@ -229,7 +229,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     currentPixelScaleFactor = 1.0;
     if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
         && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
-        DrawGLUtils::Translate(0,-mWindowHeight,0);
+        int i = (int)mWindowHeight;
+        DrawGLUtils::Translate(0,-i,0);
         double scaleh= double(mWindowHeight) / double(virtualHeight);
         double scalew = double(mWindowWidth) / double(virtualWidth);
         DrawGLUtils::Scale(scalew, scaleh, 1.0);
@@ -241,7 +242,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
         DrawGLUtils::DrawFillRectangle(xlBLACK, 255, 0, 0, virtualWidth, virtualHeight);
     } else if (virtualWidth == 0 && virtualHeight == 0) {
-        DrawGLUtils::Translate(0, -mWindowHeight, 0);
+        int i = (int)mWindowHeight;
+        DrawGLUtils::Translate(0, -i, 0);
     } else {
         DrawGLUtils::Translate(0, -virtualHeight, 0);
         DrawGLUtils::DrawFillRectangle(xlBLACK, 255, 0, 0, virtualWidth, virtualHeight);

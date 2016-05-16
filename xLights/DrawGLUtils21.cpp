@@ -151,6 +151,7 @@ public:
         
         
         isIntel = wxString(glGetString(GL_VENDOR)).Contains("Intel");
+        //isIntel = true;
     }
     
     GLuint CompileShader(GLenum type, const char *text) {
@@ -279,24 +280,35 @@ public:
         
         float ps = 2.0;
         if (enableCapability != 0) {
-            if (enableCapability == GL_POINT_SMOOTH && !isIntel) {
-                glEnable(enableCapability);
-                GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
-                glUniform1i(cid, 1);
-                ps = CalcSmoothPointParams();
-                LOG_GL_ERRORV(glEnable(GL_POINT_SPRITE));
-                LOG_GL_ERRORV(glTexEnvi(GL_POINT_SPRITE_ARB,GL_COORD_REPLACE_ARB ,GL_FALSE));
+            if (enableCapability == GL_POINT_SMOOTH) {
+                if (isIntel) {
+                    LOG_GL_ERRORV(glEnable(enableCapability));
+                    LOG_GL_ERRORV(glPointParameterf(GL_POINT_SIZE_MIN, 0.0f));
+                    LOG_GL_ERRORV(glPointParameterf(GL_POINT_SIZE_MAX, 35.0f));
+                    LOG_GL_ERRORV(glPointParameterf(GL_POINT_FADE_THRESHOLD_SIZE, 35.0f));
+                } else {
+                    LOG_GL_ERRORV(glEnable(enableCapability));
+                    GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
+                    glUniform1i(cid, 1);
+                    ps = CalcSmoothPointParams();
+                    LOG_GL_ERRORV(glEnable(GL_POINT_SPRITE));
+                    LOG_GL_ERRORV(glTexEnvi(GL_POINT_SPRITE_ARB,GL_COORD_REPLACE_ARB ,GL_FALSE));
+                }
             } else {
-                glEnable(enableCapability);
+                LOG_GL_ERRORV(glEnable(enableCapability));
             }
         }
-        glDrawArrays(type, 0, va.count);
+        LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
         if (enableCapability > 0) {
-            if (!isIntel && (enableCapability == GL_POINT_SMOOTH || enableCapability == GL_POINT_SPRITE)) {
-                GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
-                glUniform1i(cid, 0);
-                LOG_GL_ERRORV(glPointSize(ps));
-                LOG_GL_ERRORV(glDisable(GL_POINT_SPRITE));
+            if (enableCapability == GL_POINT_SMOOTH || enableCapability == GL_POINT_SPRITE) {
+                if (isIntel) {
+                    glDisable(enableCapability);
+                } else {
+                    GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
+                    glUniform1i(cid, 0);
+                    LOG_GL_ERRORV(glPointSize(ps));
+                    LOG_GL_ERRORV(glDisable(GL_POINT_SPRITE));
+                }
             }
             glDisable(enableCapability);
         }
