@@ -328,11 +328,11 @@ void BoxedScreenLocation::DrawHandles() const {
 
     LOG_GL_ERRORV(glEnable( GL_LINE_SMOOTH ));
     LOG_GL_ERRORV(glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ));
-    DrawGLUtils::SetLineWidth(1.7);
+    DrawGLUtils::SetLineWidth(1.7f);
     DrawGLUtils::AddVertex(w1,h1, xlWHITE);
     DrawGLUtils::AddVertex(sx, sy, xlWHITE);
     DrawGLUtils::End(GL_LINES);
-    DrawGLUtils::SetLineWidth(1.0);
+    DrawGLUtils::SetLineWidth(1.0f);
     LOG_GL_ERRORV(glDisable(GL_LINE_SMOOTH));
 }
 
@@ -432,7 +432,7 @@ void BoxedScreenLocation::SetBottom(int y) {
 }
 
 TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(2),
-    x1(0.4), y1(0.4), x2(0.6), y2(0.6),
+    x1(0.4f), y1(0.4f), x2(0.6f), y2(0.6f),
     old(nullptr), matrix(nullptr), minMaxSet(false) {
 }
 TwoPointScreenLocation::~TwoPointScreenLocation() {
@@ -469,15 +469,15 @@ void TwoPointScreenLocation::PrepareToDraw() const {
     float y1p = y1 * (float)previewH;
     float y2p = y2 * (float)previewH;
 
-    float angle = M_PI/2;
+    float angle = (float)M_PI/2.0f;
     if (x2 != x1) {
         float slope = (y2p - y1p)/(x2p - x1p);
         angle = std::atan(slope);
         if (x1 > x2) {
-            angle += M_PI;
+            angle += (float)M_PI;
         }
     } else if (y2 < y1) {
-        angle += M_PI;
+        angle += (float)M_PI;
     }
     float scale = std::sqrt((y2p - y1p)*(y2p - y1p) + (x2p - x1p)*(x2p - x1p));
     scale /= RenderWi;
@@ -554,7 +554,7 @@ bool TwoPointScreenLocation::HitTest(int sx,int sy) const {
 }
 
 wxCursor TwoPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) const {
-    for (int h = 0; h < mHandlePosition.size(); h++) {
+    for (size_t h = 0; h < mHandlePosition.size(); h++) {
         if (x>mHandlePosition[h].x && x<mHandlePosition[h].x+RECT_HANDLE_WIDTH &&
             y>mHandlePosition[h].y && y<mHandlePosition[h].y+RECT_HANDLE_WIDTH) {
             handle = h;
@@ -864,11 +864,11 @@ void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface
 int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("ModelHeight" == event.GetPropertyName()) {
         height = event.GetValue().GetDouble();
-        if (std::abs(height) < 0.01) {
-            if (height < 0) {
-                height = -0.01;
+        if (std::abs(height) < 0.01f) {
+            if (height < 0.0f) {
+                height = -0.01f;
             } else {
-                height = 0.01;
+                height = 0.01f;
             }
         }
         return 3;
@@ -923,12 +923,12 @@ void ThreePointScreenLocation::DrawHandles() const {
 
     LOG_GL_ERRORV(glEnable( GL_LINE_SMOOTH ));
     LOG_GL_ERRORV(glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ));
-    DrawGLUtils::SetLineWidth(1.7);
+    DrawGLUtils::SetLineWidth(1.7f);
     
     DrawGLUtils::AddVertex(sx1, sy1, xlWHITE);
     DrawGLUtils::AddVertex(sx, sy, xlWHITE);
     DrawGLUtils::End(GL_LINES);
-    DrawGLUtils::SetLineWidth(1.0);
+    DrawGLUtils::SetLineWidth(1.0f);
     LOG_GL_ERRORV(glDisable(GL_LINE_SMOOTH));
 
     DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
@@ -944,32 +944,32 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
         if (!minMaxSet) {
             max = RenderHt;
         }
-        if (max < 0.01) {
-            max = 0.01;
+        if (max < 0.01f) {
+            max = 0.01f;
         }
         float newy = v.y;
         if (supportsAngle) {
-            float newx = v.x - RenderWi/2.0;
+            float newx = v.x - RenderWi/2.0f;
             float nheight = std::sqrt(newy*newy + newx*newx);
             height = nheight / RenderHt;
             float newa = std::atan2(newy, newx) - M_PI/2;
             angle = toDegrees(newa);
         } else if (supportsShear) {
             height = height * newy / max;
-            shear -= (v.x - (RenderWi / 2.0)) / RenderWi;
-            if (shear < -3) {
-                shear = -3;
-            } else if (shear > 3) {
-                shear = 3;
+            shear -= (v.x - (RenderWi / 2.0f)) / RenderWi;
+            if (shear < -3.0f) {
+                shear = -3.0f;
+            } else if (shear > 3.0f) {
+                shear = 3.0f;
             }
         } else {
             height = height * newy / max;
         }
-        if (std::abs(height) < 0.01) {
-            if (height < 0) {
-                height = -0.01;
+        if (std::abs(height) < 0.01f) {
+            if (height < 0.0f) {
+                height = -0.01f;
             } else {
-                height = 0.01;
+                height = 0.01f;
             }
         }
         return 1;

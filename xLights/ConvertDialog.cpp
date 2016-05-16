@@ -1586,7 +1586,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
     for (network = 0; network < lorUnitSizes.size(); network++)
     {
         cnt = 0;
-        for (int u = 0; u < lorUnitSizes[network].size(); u++)
+        for (size_t u = 0; u < lorUnitSizes[network].size(); u++)
         {
             cnt += lorUnitSizes[network][u];
         }
@@ -1595,7 +1595,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
     for (network = 1; network < dmxUnitSizes.size(); network++)
     {
         cnt = 0;
-        for (int u = 0; u < dmxUnitSizes[network].size(); u++)
+        for (size_t u = 0; u < dmxUnitSizes[network].size(); u++)
         {
             if (cnt < dmxUnitSizes[network][u]) {
                 cnt = dmxUnitSizes[network][u];

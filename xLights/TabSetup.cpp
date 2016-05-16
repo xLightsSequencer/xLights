@@ -345,8 +345,8 @@ void xLightsFrame::UpdateNetworkList()
 void xLightsFrame::UpdateChannelNames()
 {
     wxString FormatSpec,RGBFormatSpec;
-    int ChannelNum,ChanPerNode,NodeNum,AbsoluteNodeNum;
-    size_t NodeCount,n,c;
+    int NodeNum,AbsoluteNodeNum;
+    size_t ChannelNum, NodeCount,n,c, ChanPerNode;
 
     ChNames.clear();
     ChNames.resize(NetInfo.GetTotChannels());

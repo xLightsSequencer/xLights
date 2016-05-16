@@ -26,8 +26,8 @@ class xlGLCanvas
     protected:
       	DECLARE_EVENT_TABLE()
 
-        int mWindowWidth;
-        int mWindowHeight;
+        size_t mWindowWidth;
+        size_t mWindowHeight;
         int mWindowResized;
         bool mIsInitialized;
 

@@ -80,7 +80,7 @@ protected:
 public:
     xOutput();
     ~xOutput();
-    void EnableOutput(int network, bool en = true);
+    void EnableOutput(size_t network, bool en = true);
     size_t NetworkCount();
     size_t addnetwork (const wxString& NetworkType, int chcount, const wxString& portname, int baudrate, int count, bool enabled);
     int GetChannelCount(size_t netnum);

@@ -1374,7 +1374,7 @@ void EffectsGrid::OldPaste(const wxString &data) {
 				int start_row = wxAtoi(eff1data[5]);
 				int drop_row_offset = drop_row - start_row;
 				mSequenceElements->get_undo_mgr().CreateUndoStep();
-				for (int i = 0; i < all_efdata.size() - 1; i++)
+				for (size_t i = 0; i < all_efdata.size() - 1; i++)
 				{
 					wxArrayString efdata = wxSplit(all_efdata[i], '\t');
 					if (efdata.size() < 7) {
@@ -1677,7 +1677,7 @@ void EffectsGrid::Paste(const wxString &data) {
             }
 
             mSequenceElements->get_undo_mgr().CreateUndoStep();
-            for (int i = 1; i < all_efdata.size() - 1; i++)
+            for (size_t i = 1; i < all_efdata.size() - 1; i++)
             {
                 wxArrayString efdata = wxSplit(all_efdata[i], '\t');
                 if (efdata.size() < 7) {
@@ -2219,7 +2219,7 @@ void EffectsGrid::DrawLines()
     va.PreAlloc(mSequenceElements->GetVisibleRowInformationSize() * 6);
 
     xlColor color(33, 33, 33);
-    for(int row=0;row < mSequenceElements->GetVisibleRowInformationSize();row++)
+    for(size_t row=0; row < mSequenceElements->GetVisibleRowInformationSize(); row++)
     {
         Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
         Element* e = ri->element;
@@ -2245,8 +2245,8 @@ void EffectsGrid::DrawLines()
     DrawGLUtils::Draw(va, color, GL_TRIANGLES);
     va.Reset();
 
-    DrawGLUtils::SetLineWidth(0.2);
-    for(int row=0;row < mSequenceElements->GetVisibleRowInformationSize();row++)
+    DrawGLUtils::SetLineWidth(0.2f);
+    for(size_t row=0;row < mSequenceElements->GetVisibleRowInformationSize();row++)
     {
         y = (row+1)*DEFAULT_ROW_HEADING_HEIGHT;
         va.AddVertex(x1, y);
@@ -2256,7 +2256,7 @@ void EffectsGrid::DrawLines()
     // Draw vertical lines
     int y1 = 0;
     int y2 = mWindowHeight-1;
-    for(int x1=0;x1<mWindowWidth;x1++)
+    for(size_t x1=0;x1<mWindowWidth;x1++)
     {
         // Draw hash marks
         if ((x1+mStartPixelOffset)%(PIXELS_PER_MAJOR_HASH)==0)
@@ -2267,7 +2267,7 @@ void EffectsGrid::DrawLines()
     }
 
     DrawGLUtils::Draw(va, *mGridlineColor, GL_LINES);
-    DrawGLUtils::SetLineWidth(1.0);
+    DrawGLUtils::SetLineWidth(1.0f);
 }
 
 

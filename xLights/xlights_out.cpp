@@ -894,7 +894,7 @@ size_t xOutput::NetworkCount()
     return networks.GetCount();
 }
 
-void xOutput::EnableOutput(int network, bool en) {
+void xOutput::EnableOutput(size_t network, bool en) {
     if (network < networks.GetCount()) {
         networks[network]->SetEnabled(en);
     }
