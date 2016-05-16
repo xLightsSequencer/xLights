@@ -37,7 +37,6 @@ void  fill_audio(void *udata, Uint8 *stream, int len)
 }
 void AudioManager::Seek(int pos)
 {
-    _lastscrubpos = 0;
 	if (pos < 0 || pos > _lengthMS)
 	{
 		return;
@@ -49,7 +48,6 @@ void AudioManager::Seek(int pos)
 }
 void AudioManager::Pause()
 {
-    _lastscrubpos = 0;
 	SDL_PauseAudio(1);
 	_media_state = MEDIAPLAYINGSTATE::PAUSED;
 }
@@ -61,14 +59,6 @@ void AudioManager::Play(int posms, int lenms)
         return;
     }
 
-    // dont scrub back
-    if (posms <= _lastscrubpos)
-    {
-        _lastscrubpos = posms;
-        return;
-    }
-    _lastscrubpos = posms;
-
     __audio_len = lenms * _rate * 2 * 2 / 1000;
     __audio_len -= __audio_len % 4;
     __audio_pos = _pcmdata + ((Uint64)posms * _rate * 2 * 2 / 1000);
@@ -78,14 +68,12 @@ void AudioManager::Play(int posms, int lenms)
 
 void AudioManager::Play()
 {
-    _lastscrubpos = 0;
 	SDL_PauseAudio(0);
 	_media_state = MEDIAPLAYINGSTATE::PLAYING;
 }
 
 void AudioManager::Stop()
 {
-    _lastscrubpos = 0;
 	SDL_PauseAudio(1);
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
 }
@@ -97,7 +85,6 @@ void AudioManager::SetGlobalPlaybackRate(float rate)
 
 void AudioManager::SetPlaybackRate(float rate)
 {
-    _lastscrubpos = 0;
     MEDIAPLAYINGSTATE state = GetPlayingState();
 	if (state == MEDIAPLAYINGSTATE::PLAYING)
 	{
@@ -159,7 +146,6 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
 	_pcmdata = NULL;
 	_polyphonicTranscriptionDone = false;
-    _lastscrubpos = 0;
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions
 	_extra = std::max(step, block) + 1;

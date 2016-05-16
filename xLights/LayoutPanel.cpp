@@ -511,7 +511,7 @@ void LayoutPanel::UpdateModelList(bool addGroups) {
 }
 void LayoutPanel::UnSelectAllModels()
 {
-    for (int i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
         modelPreview->GetModels()[i]->Selected = false;
         modelPreview->GetModels()[i]->GroupSelected = false;
@@ -753,7 +753,7 @@ void LayoutPanel::OnListBoxElementListColumnClick(wxListEvent& event)
 
 int LayoutPanel::FindModelsClicked(int x,int y,std::vector<int> &found)
 {
-    for (int i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->HitTest(modelPreview,x,y))
         {
@@ -796,7 +796,7 @@ bool LayoutPanel::SelectSingleModel(int x,int y)
 }
 void LayoutPanel::SelectAllInBoundingRect()
 {
-    for (int i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->IsContained(modelPreview,m_bound_start_x,m_bound_start_y,
                                          m_bound_end_x,m_bound_end_y))
@@ -843,7 +843,7 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
 
 void LayoutPanel::SetSelectedModelToGroupSelected()
 {
-    for (int i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->Selected)
         {
@@ -1021,7 +1021,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         modelPreview->GetVirtualCanvasSize(wi, ht);
         if (wi > 0 && ht > 0)
         {
-            for (int i=0; i<modelPreview->GetModels().size(); i++)
+            for (size_t i=0; i<modelPreview->GetModels().size(); i++)
             {
                 if(modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected)
                 {
@@ -1291,7 +1291,7 @@ void LayoutPanel::PreviewModelAlignTops()
         return;
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     int top = modelPreview->GetModels()[selectedindex]->GetTop(modelPreview);
-    for (int i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
@@ -1308,7 +1308,7 @@ void LayoutPanel::PreviewModelAlignBottoms()
         return;
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     int bottom = modelPreview->GetModels()[selectedindex]->GetBottom(modelPreview);
-    for (int i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
@@ -1325,7 +1325,7 @@ void LayoutPanel::PreviewModelAlignLeft()
         return;
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     int left = modelPreview->GetModels()[selectedindex]->GetLeft(modelPreview);
-    for (int i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
@@ -1342,7 +1342,7 @@ void LayoutPanel::PreviewModelAlignRight()
         return;
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     int right = modelPreview->GetModels()[selectedindex]->GetRight(modelPreview);
-    for (int i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
@@ -1359,7 +1359,7 @@ void LayoutPanel::PreviewModelAlignHCenter()
         return;
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float center = modelPreview->GetModels()[selectedindex]->GetHcenterOffset();
-    for (int i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
@@ -1376,7 +1376,7 @@ void LayoutPanel::PreviewModelAlignVCenter()
         return;
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float center = modelPreview->GetModels()[selectedindex]->GetVcenterOffset();
-    for (int i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
@@ -1389,7 +1389,7 @@ void LayoutPanel::PreviewModelAlignVCenter()
 
 int LayoutPanel::GetSelectedModelIndex()
 {
-    for (int i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->Selected)
         {
@@ -1401,7 +1401,7 @@ int LayoutPanel::GetSelectedModelIndex()
 int LayoutPanel::ModelsSelectedCount()
 {
     int selectedModelCount=0;
-    for (int i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected)
         {

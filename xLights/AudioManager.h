@@ -101,7 +101,6 @@ class AudioManager
 	float *_data[2]; // audio data
 	Uint8* _pcmdata;
 	Uint64 _pcmdatasize;
-    int _lastscrubpos;
 	SDL_AudioSpec wanted_spec;
 	std::string _title;
 	std::string _artist;
