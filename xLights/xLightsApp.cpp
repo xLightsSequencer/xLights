@@ -161,10 +161,10 @@ void InitialiseLogging(bool fromMain)
             }
             catch (log4cpp::ConfigureFailure& e) {
                 // ignore config failure ... but logging wont work
-                printf("%s\n", e.what());
+                printf("Log issue:  %s\n", e.what());
             }
             catch (const std::exception& ex) {
-                printf("%s\n", ex.what());
+                printf("Log issue: %s\n", ex.what());
             }
         }
     }
