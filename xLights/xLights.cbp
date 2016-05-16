@@ -610,6 +610,8 @@
 		<Unit filename="TopEffectsPanel.h" />
 		<Unit filename="VAMPPluginDialog.cpp" />
 		<Unit filename="VAMPPluginDialog.h" />
+		<Unit filename="ValueCurveDialog.cpp" />
+		<Unit filename="ValueCurveDialog.h" />
 		<Unit filename="VideoReader.cpp" />
 		<Unit filename="VideoReader.h" />
 		<Unit filename="ViewsDialog.cpp" />
@@ -1012,6 +1014,7 @@
 		<Unit filename="wxsmith/TwinklePanel.wxs" />
 		<Unit filename="wxsmith/VAMPPluginDialog.wxs" />
 		<Unit filename="wxsmith/VUMeterPanel.wxs" />
+		<Unit filename="wxsmith/ValueCurveDialog.wxs" />
 		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/WavePanel.wxs" />
@@ -1144,6 +1147,7 @@
 					<wxDialog wxs="wxsmith/ConvertLogDialog.wxs" src="ConvertLogDialog.cpp" hdr="ConvertLogDialog.h" fwddecl="0" i18n="1" name="ConvertLogDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/GenerateCustomModelDialog.wxs" src="GenerateCustomModelDialog.cpp" hdr="GenerateCustomModelDialog.h" fwddecl="0" i18n="1" name="GenerateCustomModelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/RenderProgressDialog.wxs" src="RenderProgressDialog.cpp" hdr="RenderProgressDialog.h" fwddecl="1" i18n="1" name="RenderProgressDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ValueCurveDialog.wxs" src="ValueCurveDialog.cpp" hdr="ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
