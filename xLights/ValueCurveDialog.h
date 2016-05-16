@@ -12,22 +12,34 @@
 #include <wx/dialog.h>
 //*)
 
+class ValueCurve;
+
 class ValueCurveDialog: public wxDialog
 {
-	public:
+    // these are only used for validation
+    int __p1;
+    int __p2;
+    int __p3;
+    ValueCurve* _vc;
+    float _grabbedPoint;
+    void ValidateWindow();
+    public:
 
-		ValueCurveDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ValueCurveDialog();
 
 		//(*Declarations(ValueCurveDialog)
+		wxTextCtrl* TextCtrl_Parameter3;
 		wxSlider* Slider_Parameter2;
 		wxButton* Button_Ok;
 		wxStaticText* StaticText2;
 		wxPanel* Panel_Graph;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Parameter2;
 		wxStaticText* StaticText_BottomValue;
 		wxButton* Button_Cancel;
+		wxSlider* Slider_Parameter3;
 		wxStaticText* StaticText_TopValue;
 		wxChoice* Choice1;
 		wxSlider* Slider_Parameter1;
@@ -47,6 +59,9 @@ class ValueCurveDialog: public wxDialog
 		static const long ID_STATICTEXT2;
 		static const long IDD_SLIDER_Parameter2;
 		static const long ID_TEXTCTRL_Parameter2;
+		static const long ID_STATICTEXT5;
+		static const long IDD_SLIDER_Parameter3;
+		static const long ID_TEXTCTRL_Parameter3;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -64,6 +79,7 @@ class ValueCurveDialog: public wxDialog
 		void OnTextCtrl_Parameter2Text(wxCommandEvent& event);
 		void OnSlider_Parameter1CmdSliderUpdated(wxScrollEvent& event);
 		void OnSlider_Parameter2CmdSliderUpdated(wxScrollEvent& event);
+		void OnPanel_GraphPaint(wxPaintEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

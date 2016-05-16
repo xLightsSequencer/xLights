@@ -762,6 +762,12 @@
     <ClCompile Include="xLightsImportChannelMapDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ValueCurveDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ValueCurve.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1458,6 +1464,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="xLightsImportChannelMapDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ValueCurveDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ValueCurve.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

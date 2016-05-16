@@ -49,6 +49,7 @@
 								<object class="wxPanel" name="ID_PANEL1" variable="Panel_Graph" member="yes">
 									<minsize>200,100</minsize>
 									<style>wxSIMPLE_BORDER|wxTAB_TRAVERSAL</style>
+									<handler function="OnPanel_GraphPaint" entry="EVT_PAINT" />
 									<handler function="OnPanel_GraphLeftDown" entry="EVT_LEFT_DOWN" />
 									<handler function="OnPanel_GraphLeftUp" entry="EVT_LEFT_UP" />
 									<handler function="OnPanel_GraphMouseMove" entry="EVT_MOTION" />
@@ -81,8 +82,7 @@
 						<object class="wxChoice" name="ID_CHOICE1" variable="Choice1" member="yes">
 							<content>
 								<item>Flat</item>
-								<item>Ramp Up</item>
-								<item>Ramp Down</item>
+								<item>Ramp</item>
 								<item>Ramp Up/Down</item>
 								<item>Saw Tooth</item>
 								<item>Parabolic Down</item>
@@ -123,6 +123,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Parameter1" variable="TextCtrl_Parameter1" member="yes">
 							<value>0</value>
 							<size>40,24</size>
+							<validator>__p1validator</validator>
 							<handler function="OnTextCtrl_Parameter1Text" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -149,6 +150,34 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Parameter2" variable="TextCtrl_Parameter2" member="yes">
 							<value>0</value>
 							<size>40,24</size>
+							<validator>__p2validator</validator>
+							<handler function="OnTextCtrl_Parameter2Text" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText3" member="yes">
+							<label>Parameter 3</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_Parameter3" variable="Slider_Parameter3" member="yes">
+							<handler function="OnSlider_Parameter2CmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Parameter3" variable="TextCtrl_Parameter3" member="yes">
+							<value>0</value>
+							<size>40,24</size>
+							<validator>__p3validator</validator>
 							<handler function="OnTextCtrl_Parameter2Text" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

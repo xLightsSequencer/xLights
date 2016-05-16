@@ -361,6 +361,8 @@
     <ClCompile Include="TimingPanel.cpp" />
     <ClCompile Include="tmGridCell.cpp" />
     <ClCompile Include="TopEffectsPanel.cpp" />
+    <ClCompile Include="ValueCurve.cpp" />
+    <ClCompile Include="ValueCurveDialog.cpp" />
     <ClCompile Include="vamp-hostsdk\acsymbols.c" />
     <ClCompile Include="vamp-hostsdk\FFT.cpp" />
     <ClCompile Include="vamp-hostsdk\FFTimpl.cpp" />
@@ -586,6 +588,8 @@
     <ClInclude Include="tmGridCell.h" />
     <ClInclude Include="TopEffectsPanel.h" />
     <ClInclude Include="UtilClasses.h" />
+    <ClInclude Include="ValueCurve.h" />
+    <ClInclude Include="ValueCurveDialog.h" />
     <ClInclude Include="vamp-hostsdk\Files.h" />
     <ClInclude Include="vamp-hostsdk\host-c.h" />
     <ClInclude Include="vamp-hostsdk\hostguard.h" />
