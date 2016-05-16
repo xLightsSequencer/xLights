@@ -8,6 +8,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.31  May 16, 2016
+   -- bug (dkulp)   Fix for Model window not displaying
 2016.30  May 16, 2016
    -- enh (keithsw) PGO export for those LOR etc users that would like to use xlights to create their PGO files.
    -- enh (keithsw) Add scrubbing to audio (hold control key and left mouse button on waveform)
