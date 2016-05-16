@@ -67,7 +67,7 @@ class SequenceElements : public ChangeListener
         size_t GetElementCount(int view = MASTER_VIEW);
         Row_Information_Struct* GetVisibleRowInformation(size_t index);
         Row_Information_Struct* GetVisibleRowInformationFromRow(int row_number);
-        int GetVisibleRowInformationSize();
+        size_t GetVisibleRowInformationSize();
         Row_Information_Struct* GetRowInformation(size_t index);
         Row_Information_Struct* GetRowInformationFromRow(int row_number);
         int GetRowInformationSize();

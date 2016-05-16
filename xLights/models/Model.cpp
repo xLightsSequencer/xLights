@@ -656,7 +656,7 @@ bool Model::ModelRenamed(const std::string &oldName, const std::string &newName)
         }
     }
     
-    for (int i=0; i<stringStartChan.size(); i++) {
+    for (size_t i=0; i<stringStartChan.size(); i++) {
         std::string tempstr = StartChanAttrName(i);
         if (ModelXml->HasAttribute(tempstr)) {
             sc = ModelXml->GetAttribute(tempstr, "1").ToStdString();
@@ -1020,25 +1020,25 @@ void Model::ApplyTransform(const std::string &type,
     if (type == "None") {
         return;
     } else if (type == "Rotate 180") {
-        for (int x = 0; x < newNodes.size(); x++) {
+        for (size_t x = 0; x < newNodes.size(); x++) {
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 SetCoords(*it2, bufferWi - it2->bufX - 1, bufferHi - it2->bufY - 1);
             }
         }
     } else if (type == "Flip Vertical") {
-        for (int x = 0; x < newNodes.size(); x++) {
+        for (size_t x = 0; x < newNodes.size(); x++) {
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 SetCoords(*it2, it2->bufX, bufferHi - it2->bufY - 1);
             }
         }
     } else if (type == "Flip Horizontal") {
-        for (int x = 0; x < newNodes.size(); x++) {
+        for (size_t x = 0; x < newNodes.size(); x++) {
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 SetCoords(*it2, bufferWi - it2->bufX - 1, it2->bufY);
             }
         }
     } else if (type == "Rotate CW 90") {
-        for (int x = 0; x < newNodes.size(); x++) {
+        for (size_t x = 0; x < newNodes.size(); x++) {
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 SetCoords(*it2, bufferHi - it2->bufY - 1, it2->bufX);
             }

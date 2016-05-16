@@ -366,7 +366,7 @@ Row_Information_Struct* SequenceElements::GetVisibleRowInformationFromRow(int ro
     return NULL;
 }
 
-int SequenceElements::GetVisibleRowInformationSize()
+size_t SequenceElements::GetVisibleRowInformationSize()
 {
     return mVisibleRowInformation.size();
 }
@@ -1117,7 +1117,7 @@ int SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow,
 
 void SequenceElements::UnSelectAllEffects()
 {
-    for(int i=0;i<mRowInformation.size();i++)
+    for(size_t i=0;i<mRowInformation.size();i++)
     {
         EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
         effectLayer->UnSelectAllEffects();
@@ -1126,7 +1126,7 @@ void SequenceElements::UnSelectAllEffects()
 
 void SequenceElements::UnSelectAllElements()
 {
-    for(int i=0;i<mAllViews[mCurrentView].size();i++)
+    for(size_t i=0;i<mAllViews[mCurrentView].size();i++)
     {
         mAllViews[mCurrentView][i]->SetSelected(false);
     }
@@ -1183,7 +1183,7 @@ int SequenceElements::GetFirstVisibleModelRow()
 
 void SequenceElements::SetVisibilityForAllModels(bool visibility, int view)
 {
-    for(int i=0;i<GetElementCount(view);i++)
+    for(size_t i=0;i<GetElementCount(view);i++)
     {
         Element * e = GetElement(i, view);
         e->SetVisible(visibility);

@@ -10,6 +10,12 @@
 #ifndef XLIGHTSAPP_H
 #define XLIGHTSAPP_H
 
+#ifdef _MSC_VER
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#endif
+
 #include <wx/app.h>
 #include <wx/cmdline.h>
 

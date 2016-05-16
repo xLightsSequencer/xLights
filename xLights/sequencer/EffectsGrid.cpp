@@ -2277,7 +2277,7 @@ void EffectsGrid::DrawPlayMarker()
     int play_pos = mTimeline->GetPlayMarker();
     if( play_pos > 0 )
     {
-        DrawGLUtils::DrawLine(play_line,255,play_pos,0,play_pos,GetSize().y,.2);
+        DrawGLUtils::DrawLine(play_line,255,play_pos,0,play_pos,GetSize().y,0.2f);
     }
 }
 
@@ -2336,7 +2336,7 @@ void EffectsGrid::DrawEffects()
                 PixelBufferClass ncls(xlights, true);
                 ncls.InitNodeBuffer(*xlights->GetModel(ri->element->GetName()), ri->strandIndex, ri->nodeIndex, seqData->FrameTime());
                 xlColor lastColor;
-                for (int f = 0; f < seqData->NumFrames(); f++) {
+                for (size_t f = 0; f < seqData->NumFrames(); f++) {
                     ncls.SetNodeChannelValues(0, (*seqData)[f][ncls.NodeStartChannel(0)]);
                     xlColor c = ncls.GetNodeColor(0);
                     if (f == 0) {
@@ -2356,7 +2356,7 @@ void EffectsGrid::DrawEffects()
                 float y1 = (row*DEFAULT_ROW_HEADING_HEIGHT)+3;
                 float y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-3;
                 float x =  mTimeline->GetPositionFromTimeMS(0);
-                for (int n = 0; n < xs.size(); n++) {
+                for (size_t n = 0; n < xs.size(); n++) {
                     int x2 = xs[n];
                     if (x2 >= 0) {
                         backgrounds.AddRect(x, y1, x2, y2, colors[n]);
@@ -2729,7 +2729,7 @@ void EffectsGrid::CreateEffectIconTextures()
 
 void EffectsGrid::DeleteEffectIconTextures()
 {
-    for (int x = 0; x < m_EffectTextures.size(); x++) {
+    for (size_t x = 0; x < m_EffectTextures.size(); x++) {
         glDeleteTextures(1,&m_EffectTextures[x]);
     }
     m_EffectTextures.clear();
