@@ -332,7 +332,8 @@ void Waveform::DrawWaveView(const WaveView &wv)
             
             for (size_t x=0;x<mWindowWidth && (x)<wv.MinMaxs.size();x++)
             {
-                size_t index = x+mStartPixelOffset;
+                int index = x;
+                index += mStartPixelOffset;
                 if (index >= 0 && index < wv.MinMaxs.size())
                 {
                     double y1 = ((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));

@@ -2704,6 +2704,37 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
 
     report.Process();
 }
+
+static void AddLogFile(const wxString &CurrentDir, const wxString &fileName, wxDebugReport &report) {
+    wxString dir;
+#ifdef __WXMSW__
+    wxGetEnv("APPDATA", &dir);
+    wxString filename = dir + "/" + fileName;
+#endif
+#ifdef __WXOSX_MAC__
+    wxFileName home;
+    home.AssignHomeDir();
+    dir = home.GetFullPath();
+    wxString filename = dir + "/Library/Logs/" + fileName;
+#endif
+#ifdef __LINUX__
+    wxString filename = "/tmp/" + fileName;
+#endif
+    if (wxFile::Exists(filename))
+    {
+        report.AddFile(filename, fileName);
+    }
+    else if (wxFile::Exists(wxFileName(CurrentDir, fileName).GetFullPath()))
+    {
+        report.AddFile(wxFileName(CurrentDir, fileName).GetFullPath(), fileName);
+    }
+    else if (wxFile::Exists(wxFileName(wxGetCwd(), fileName).GetFullPath()))
+    {
+        report.AddFile(wxFileName(wxGetCwd(), fileName).GetFullPath(), fileName);
+    }
+
+}
+
 void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
 
 
@@ -2715,34 +2746,10 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
         report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
     }
 
+    AddLogFile(CurrentDir, "xLights_l4cpp.log", report);
+    //if the rolled log exists, add it to just in case it has the information we need
+    AddLogFile(CurrentDir, "xLights_l4cpp.log.1", report);
 
-
-    wxString dir;
-#ifdef __WXMSW__
-    wxGetEnv("APPDATA", &dir);
-    std::string filename = std::string(dir.c_str()) + "/xLights_l4cpp.log";
-#endif
-#ifdef __WXOSX_MAC__
-    wxFileName home;
-    home.AssignHomeDir();
-    dir = home.GetFullPath();
-    std::string filename = dir.ToStdString() + "/Library/Logs/xLights_l4cpp.log";
-#endif
-#ifdef __LINUX__
-    std::string filename = "/tmp/xLights_l4cpp.log";
-#endif
-    if (wxFile::Exists(filename))
-    {
-        report.AddFile(filename, "xLights_l4cpp.log");
-    }
-    else if (wxFile::Exists(wxFileName(CurrentDir, "xLights_l4cpp.log").GetFullPath()))
-    {
-        report.AddFile(wxFileName(CurrentDir, "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
-    }
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath()))
-    {
-        report.AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
-    }
     if (GetSeqXmlFileName() != "") {
         wxFileName fn(GetSeqXmlFileName());
         if (fn.Exists() && !fn.IsDir()) {

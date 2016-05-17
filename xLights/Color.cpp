@@ -180,8 +180,6 @@ double Hue2RGB(double v1, double v2, double H) {
 }
 
 static void fromHSL(xlColor & rgb, const HSLValue &hsl) {
-    double red, green, blue;
-
     if(hsl.saturation == 0) {
       rgb.red = (int)(hsl.lightness * 255.0);
       rgb.green = rgb.red;

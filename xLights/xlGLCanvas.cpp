@@ -10,6 +10,7 @@ END_EVENT_TABLE()
 
 #include <wx/log.h>
 #include <wx/config.h>
+#include <wx/msgdlg.h> 
 #include <log4cpp/Category.hh>
 
 static wxGLAttributes GetAttributes() {
@@ -178,6 +179,11 @@ DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool);
 DrawGLUtils::xlGLCacheInfo *Create21Cache();
 DrawGLUtils::xlGLCacheInfo *Create15Cache();
 
+void xlGLCanvas::DisplayWarning(const wxString &msg) {
+    wxMessageBox(msg, "Graphics Driver Problem", wxOK|wxCENTRE|wxICON_WARNING, this);
+}
+
+
 void xlGLCanvas::SetCurrentGLContext() {
     glGetError();
     if (m_context == nullptr) {
@@ -205,6 +211,15 @@ void xlGLCanvas::SetCurrentGLContext() {
                                            (const char *)str,
                                            (const char *)rend,
                                            (const char *)vend);
+        
+        if (wxString(rend) == "GDI Generic"
+            || wxString(vend).Contains("Microsoft")) {
+            wxString msg = wxString::Format("Generic non-accelerated graphics driver detected (%s - %s). Performance will be poor.  "
+                                           "Please install updated video drivers for your video card.",
+                                           vend, rend);
+            CallAfter(&xlGLCanvas::DisplayWarning, msg);
+        }
+        
         logger_opengl.info(std::string(config.c_str()));
         printf("%s\n", (const char *)config.c_str());
         if (ver >= 3 && (str[0] > '3' || (str[0] == '3' && str[2] >= '3'))) {

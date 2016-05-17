@@ -2254,7 +2254,6 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
 
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
-        int linenum = 1;
         wxFileName next_file(filenames[i]);
         next_file.SetPath(dir);
 

@@ -75,9 +75,7 @@ std::string  Element::GetPapagayoExport(int fps) const
     EffectLayer* l1 = *l++;
     int l1count = l1->GetEffectCount();
     EffectLayer* l2 = *l++;
-    int l2count = l2->GetEffectCount();
     EffectLayer* l3 = *l;
-    int l3count = l3->GetEffectCount();
 
     std::string res = "lipsync version 1\nxlights.wav\n";
     wxString samppersec = wxString::Format("%d", fps);

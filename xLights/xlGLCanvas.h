@@ -23,6 +23,7 @@ class xlGLCanvas
 
         double translateToBacking(double x);
 
+        void DisplayWarning(const wxString &msg);
     protected:
       	DECLARE_EVENT_TABLE()
 
