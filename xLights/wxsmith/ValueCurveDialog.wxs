@@ -45,20 +45,6 @@
 							<cols>2</cols>
 							<growablecols>0</growablecols>
 							<growablerows>0</growablerows>
-							<object class="sizeritem">
-								<object class="wxPanel" name="ID_PANEL1" variable="Panel_Graph" member="yes">
-									<minsize>200,100</minsize>
-									<style>wxSIMPLE_BORDER|wxTAB_TRAVERSAL</style>
-									<handler function="OnPanel_GraphPaint" entry="EVT_PAINT" />
-									<handler function="OnPanel_GraphLeftDown" entry="EVT_LEFT_DOWN" />
-									<handler function="OnPanel_GraphLeftUp" entry="EVT_LEFT_UP" />
-									<handler function="OnPanel_GraphMouseMove" entry="EVT_MOTION" />
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>2</border>
-								<minsize>200,100</minsize>
-								<option>1</option>
-							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -167,7 +153,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Parameter3" variable="Slider_Parameter3" member="yes">
-							<handler function="OnSlider_Parameter2CmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+							<handler function="OnSlider_Parameter3CmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -178,7 +164,7 @@
 							<value>0</value>
 							<size>40,24</size>
 							<validator>__p3validator</validator>
-							<handler function="OnTextCtrl_Parameter2Text" entry="EVT_TEXT" />
+							<handler function="OnTextCtrl_Parameter3Text" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>

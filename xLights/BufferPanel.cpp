@@ -1,17 +1,20 @@
 #include "BufferPanel.h"
 
 //(*InternalHeaders(BufferPanel)
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/intl.h>
 #include <wx/bitmap.h>
+#include <wx/settings.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 #include <vector>
 #include "models/Model.h"
 #include "effects/EffectPanelUtils.h"
 #include "../include/padlock16x16-blue.xpm" //-DJ
+#include "../include/valuecurveselected.xpm"
+#include "../include/valuecurvenotselected.xpm"
+#include "ValueCurveDialog.h"
 
 #include "SubBufferPanel.h"
 
@@ -22,6 +25,7 @@ const long BufferPanel::ID_CHOICE_BufferTransform = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_CHOICE_BufferTransform = wxNewId();
 const long BufferPanel::ID_STATICTEXT2 = wxNewId();
 const long BufferPanel::ID_SLIDER_EffectBlur = wxNewId();
+const long BufferPanel::ID_VALUECURVE_Blur = wxNewId();
 const long BufferPanel::IDD_TEXTCTRL_EffectBlur = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_SLIDER_EffectBlur = wxNewId();
 const long BufferPanel::ID_CHECKBOX_OverlayBkg = wxNewId();
@@ -37,15 +41,17 @@ END_EVENT_TABLE()
 
 BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _vcBlur = new ValueCurve("E_VALUECURVE_Blur", 1.0f, 15.0f);
+
 	//(*Initialize(BufferPanel)
-	wxBitmapButton* BitmapButtonBufferStyle;
-	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxStaticText* StaticText4;
 	wxStaticText* StaticText2;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxBitmapButton* BitmapButton1;
+	wxBitmapButton* BitmapButtonBufferStyle;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxStaticText* StaticText4;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
@@ -85,10 +91,12 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Sizer2->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText5 = new wxStaticText(BufferScrollWindow, ID_STATICTEXT2, _("Blur"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	Sizer2->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer6->AddGrowableCol(0);
 	Slider_EffectBlur = new wxSlider(BufferScrollWindow, ID_SLIDER_EffectBlur, 1, 1, 15, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_EffectBlur"));
 	FlexGridSizer6->Add(Slider_EffectBlur, 1, wxALL|wxEXPAND, 1);
+	BitmapButton_Blur = new wxBitmapButton(BufferScrollWindow, ID_VALUECURVE_Blur, wxBitmap(wxImage(_T("C:\\Users\\keith\\Documents\\xLights\\include\\valuecurvenotselected.xpm"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_VALUECURVE_Blur"));
+	FlexGridSizer6->Add(BitmapButton_Blur, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_EffectBlur = new wxTextCtrl(BufferScrollWindow, IDD_TEXTCTRL_EffectBlur, _("1"), wxDefaultPosition, wxDLG_UNIT(BufferScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_EffectBlur"));
 	TextCtrl_EffectBlur->SetMaxLength(2);
 	FlexGridSizer6->Add(TextCtrl_EffectBlur, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -126,14 +134,15 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 
 	Connect(ID_BITMAPBUTTON_CHOICE_BufferStyle,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_BufferTransform,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_EffectBlur,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BufferPanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_EffectBlur,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BufferPanel::OnSlider_EffectBlurCmdSliderUpdated);
+	Connect(ID_VALUECURVE_Blur,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnBitmapButton_BlurClick);
 	Connect(IDD_TEXTCTRL_EffectBlur,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&BufferPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_EffectBlur,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_OverlayBkg,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&BufferPanel::OnResize,0,this);
 	//*)
-    
-    
+
+
     subBufferPanel = new SubBufferPanel(BufferScrollWindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
     SubBufferPanelSizer->Add(subBufferPanel, 1, wxALL|wxEXPAND, 2);
 }
@@ -142,6 +151,7 @@ BufferPanel::~BufferPanel()
 {
 	//(*Destroy(BufferPanel)
 	//*)
+    delete _vcBlur;
 }
 
 
@@ -152,6 +162,10 @@ wxString BufferPanel::GetBufferString() {
     // Blur
     if (Slider_EffectBlur->GetValue() > 1) {
         s += wxString::Format("B_SLIDER_EffectBlur=%d,",Slider_EffectBlur->GetValue());
+    }
+    if (_vcBlur->IsActive())
+    {
+        s += wxString(_vcBlur->Serialise().c_str());
     }
     // Persistent
     if (CheckBox_OverlayBkg->GetValue()) {
@@ -167,7 +181,7 @@ wxString BufferPanel::GetBufferString() {
         s += BufferTransform->GetStringSelection();
         s += ",";
     }
-    
+
     wxString subB = subBufferPanel->GetValue();
     if (subB.size() > 0) {
         s += "B_CUSTOM_SubBuffer=";
@@ -196,6 +210,7 @@ void BufferPanel::SetDefaultControls(const Model *model) {
     TextCtrl_EffectBlur->SetValue("1");
     BufferStyleChoice->SetSelection(0);
     BufferTransform->SetSelection(0);
+    _vcBlur->SetActive(false);
     wxSizeEvent evt;
     OnResize(evt);
 }
@@ -216,4 +231,33 @@ void BufferPanel::OnResize(wxSizeEvent& event)
     BufferScrollWindow->FitInside();
     BufferScrollWindow->SetScrollRate(5, 5);
     BufferScrollWindow->Refresh();
+}
+
+void BufferPanel::OnBitmapButton_BlurClick(wxCommandEvent& event)
+{
+    _vcBlur->ToggleActive();
+
+    if (_vcBlur->IsActive())
+    {
+        wxBitmap bmp(valuecurveselected_24);
+        BitmapButton_Blur->SetBitmap(bmp);
+        Slider_EffectBlur->Disable();
+        TextCtrl_EffectBlur->Disable();
+        ValueCurveDialog vcd(this, _vcBlur);
+        vcd.ShowModal();
+    }
+    else
+    {
+        wxBitmap bmp(valuecurvenotselected_24);
+        BitmapButton_Blur->SetBitmap(bmp);
+        Slider_EffectBlur->Enable();
+        TextCtrl_EffectBlur->Enable();
+    }
+}
+
+void BufferPanel::OnSlider_EffectBlurCmdSliderUpdated(wxScrollEvent& event)
+{
+    UpdateLinkedTextCtrl(event);
+
+    _vcBlur->SetParameter1(Slider_EffectBlur->GetValue());
 }

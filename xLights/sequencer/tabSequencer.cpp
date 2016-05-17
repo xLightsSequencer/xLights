@@ -1373,7 +1373,17 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
             xlCustomControl *custom = dynamic_cast<xlCustomControl *>(CtrlWin);
             custom->SetValue(value.ToStdString());
         }
-		else
+        else if (name.StartsWith("ID_VALUECURVE"))
+        {
+            // ignore these we will handle them in the calling funcion
+            wxBitmapButton *vcb = dynamic_cast<wxBitmapButton *>(CtrlWin);
+            if (vcb->GetRefData() != NULL)
+            {
+                ValueCurve* vc = dynamic_cast<ValueCurve*>(vcb->GetRefData());
+                vc->SetSerialisedValue(std::string(name.c_str()), value.ToStdString());
+            }
+        }
+        else
 		{
 			wxMessageBox("Unknown type: " + name, "Internal Error");
 		}

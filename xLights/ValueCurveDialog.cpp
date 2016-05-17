@@ -5,14 +5,42 @@
 #include <wx/string.h>
 //*)
 
-#include <wx/dcclient.h>
+#include <wx/dcbuffer.h>
 #include <wx/valnum.h>
 #include "ValueCurve.h"
+
+BEGIN_EVENT_TABLE(ValueCurvePanel, wxWindow)
+EVT_MOTION(ValueCurvePanel::mouseMoved)
+EVT_LEFT_DOWN(ValueCurvePanel::mouseLeftDown)
+EVT_LEFT_UP(ValueCurvePanel::mouseLeftUp)
+EVT_PAINT(ValueCurvePanel::Paint)
+END_EVENT_TABLE()
+
+ValueCurvePanel::ValueCurvePanel(wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
+    : wxWindow(parent, id, pos, size, style, "ID_VCP"), xlCustomControl()
+{
+    Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&ValueCurvePanel::mouseLeftDown, 0, this);
+    Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&ValueCurvePanel::mouseLeftUp, 0, this);
+    Connect(wxEVT_MOTION, (wxObjectEventFunction)&ValueCurvePanel::mouseMoved, 0, this);
+    Connect(wxEVT_PAINT, (wxObjectEventFunction)&ValueCurvePanel::Paint, 0, this);
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
+    _grabbedPoint = -1;
+}
+
+void ValueCurvePanel::Convert(float &x, float &y, wxMouseEvent& event) {
+    wxSize size = GetSize();
+    float startX = 0.0; // size.GetWidth() / 10.0;
+    float startY = 0.0; // size.GetHeight() / 10.0;
+    float bw = size.GetWidth(); //  *0.8;
+    float bh = size.GetHeight(); //  *0.8;
+
+    x = (event.GetX() - startX) / bw;
+    y = 100.0 - (event.GetY() - startY) / bh;
+}
 
 //(*IdInit(ValueCurveDialog)
 const long ValueCurveDialog::ID_STATICTEXT3 = wxNewId();
 const long ValueCurveDialog::ID_STATICTEXT4 = wxNewId();
-const long ValueCurveDialog::ID_PANEL1 = wxNewId();
 const long ValueCurveDialog::ID_CHOICE1 = wxNewId();
 const long ValueCurveDialog::ID_STATICTEXT1 = wxNewId();
 const long ValueCurveDialog::IDD_SLIDER_Parameter1 = wxNewId();
@@ -35,7 +63,10 @@ END_EVENT_TABLE()
 ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _vc = vc;
-    _grabbedPoint = -1;
+    _vcp = new ValueCurvePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
+    _vcp->SetMinSize(wxSize(200, 100));
+    _vcp->SetValue(_vc);
+
     wxIntegerValidator<int> _p1validator(&__p1, wxNUM_VAL_THOUSANDS_SEPARATOR);
     _p1validator.SetMin(0);
     _p1validator.SetMax(100);
@@ -73,9 +104,6 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer4->AddGrowableCol(0);
     FlexGridSizer4->AddGrowableRow(0);
-    Panel_Graph = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-    Panel_Graph->SetMinSize(wxSize(200,100));
-    FlexGridSizer4->Add(Panel_Graph, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer6->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer1->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -122,21 +150,26 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
-    Panel_Graph->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ValueCurveDialog::OnPanel_GraphPaint,0,this);
-    Panel_Graph->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&ValueCurveDialog::OnPanel_GraphLeftDown,0,this);
-    Panel_Graph->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&ValueCurveDialog::OnPanel_GraphLeftUp,0,this);
-    Panel_Graph->Connect(wxEVT_MOTION,(wxObjectEventFunction)&ValueCurveDialog::OnPanel_GraphMouseMove,0,this);
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ValueCurveDialog::OnChoice1Select);
     Connect(IDD_SLIDER_Parameter1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter1CmdSliderUpdated);
     Connect(ID_TEXTCTRL_Parameter1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter1Text);
     Connect(IDD_SLIDER_Parameter2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter2CmdSliderUpdated);
     Connect(ID_TEXTCTRL_Parameter2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter2Text);
-    Connect(IDD_SLIDER_Parameter3,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter2CmdSliderUpdated);
-    Connect(ID_TEXTCTRL_Parameter3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter2Text);
+    Connect(IDD_SLIDER_Parameter3,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Parameter3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter3Text);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_OkClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_CancelClick);
     //*)
 
+    FlexGridSizer4->Add(_vcp, 1, wxALL | wxEXPAND, 2);
+    _backup = *_vc;
+    Slider_Parameter1->SetValue(_vc->GetParameter1());
+    Slider_Parameter2->SetValue(_vc->GetParameter2());
+    Slider_Parameter3->SetValue(_vc->GetParameter3());
+    TextCtrl_Parameter1->SetValue(wxString::Format("%d", (int)_vc->GetParameter1()));
+    TextCtrl_Parameter2->SetValue(wxString::Format("%d", (int)_vc->GetParameter2()));
+    TextCtrl_Parameter3->SetValue(wxString::Format("%d", (int)_vc->GetParameter3()));
+    Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
     ValidateWindow();
 }
 
@@ -154,20 +187,26 @@ void ValueCurveDialog::OnButton_OkClick(wxCommandEvent& event)
 
 void ValueCurveDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
+    *_vc = _backup;
     EndDialog(wxCANCEL);
 }
 
 void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
 {
+    _vcp->SetType(std::string(Choice1->GetStringSelection().c_str()));
+    _vc->SetType(std::string(Choice1->GetStringSelection().c_str()));
+    _vcp->Update();
     ValidateWindow();
 }
 
 #pragma region Mouse Control
-void ValueCurveDialog::OnPanel_GraphLeftDown(wxMouseEvent& event)
+void ValueCurvePanel::mouseLeftDown(wxMouseEvent& event)
 {
-    if (Choice1->GetStringSelection() == "Custom")
+    if (_type == "Custom")
     {
-        _grabbedPoint = Panel_Graph->GetSize().GetWidth() / event.GetX();
+        float x, y;
+        Convert(x, y, event);
+        _grabbedPoint = GetSize().GetWidth() / x;
         if (_grabbedPoint < 0.0f)
         {
             _grabbedPoint = 0.0f;
@@ -179,23 +218,25 @@ void ValueCurveDialog::OnPanel_GraphLeftDown(wxMouseEvent& event)
         CaptureMouse();
     }
 }
-void ValueCurveDialog::OnPanel_GraphLeftUp(wxMouseEvent& event)
+void ValueCurvePanel::mouseLeftUp(wxMouseEvent& event)
 {
-    if (Choice1->GetStringSelection() == "Custom")
+    if (_type == "Custom")
     {
         _grabbedPoint = -1;
         ReleaseMouse();
+        Update();
     }
 }
 
-void ValueCurveDialog::OnPanel_GraphMouseMove(wxMouseEvent& event)
+void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
 {
-    if (Choice1->GetStringSelection() == "Custom" && _grabbedPoint >= 0)
+    if (_type == "Custom" && _grabbedPoint >= 0)
     {
-        float y = 0.0f;
-        if (event.GetY() > 0)
+        float x, y;
+        Convert(x, y, event);
+        if (y > 0)
         {
-            y = Panel_Graph->GetSize().GetHeight() / event.GetY();
+            y = GetSize().GetHeight() / y;
             if (y < 0.0f)
             {
                 y = 0.0f;
@@ -207,6 +248,7 @@ void ValueCurveDialog::OnPanel_GraphMouseMove(wxMouseEvent& event)
         }
 
         _vc->SetValueAt(_grabbedPoint, y);
+        Update();
     }
 }
 #pragma endregion Mouse Control
@@ -215,45 +257,74 @@ void ValueCurveDialog::OnPanel_GraphMouseMove(wxMouseEvent& event)
 void ValueCurveDialog::OnTextCtrl_Parameter1Text(wxCommandEvent& event)
 {
     Slider_Parameter1->SetValue(wxAtoi(TextCtrl_Parameter1->GetValue()));
+    _vc->SetParameter1(Slider_Parameter1->GetValue());
+    _vcp->Update();
 }
 
 void ValueCurveDialog::OnTextCtrl_Parameter2Text(wxCommandEvent& event)
 {
     Slider_Parameter2->SetValue(wxAtoi(TextCtrl_Parameter2->GetValue()));
+    _vc->SetParameter2(Slider_Parameter2->GetValue());
+    _vcp->Update();
 }
 
 void ValueCurveDialog::OnSlider_Parameter1CmdSliderUpdated(wxScrollEvent& event)
 {
     TextCtrl_Parameter1->SetValue(wxString::Format("%d", Slider_Parameter1->GetValue()));
+    _vc->SetParameter1(Slider_Parameter1->GetValue());
+    _vcp->Update();
 }
 
 void ValueCurveDialog::OnSlider_Parameter2CmdSliderUpdated(wxScrollEvent& event)
 {
     TextCtrl_Parameter2->SetValue(wxString::Format("%d", Slider_Parameter2->GetValue()));
+    _vc->SetParameter2(Slider_Parameter2->GetValue());
+    _vcp->Update();
+}
+void ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event)
+{
+    TextCtrl_Parameter3->SetValue(wxString::Format("%d", Slider_Parameter3->GetValue()));
+    _vc->SetParameter3(Slider_Parameter3->GetValue());
+    _vcp->Update();
+}
+
+void ValueCurveDialog::OnTextCtrl_Parameter3Text(wxCommandEvent& event)
+{
+    Slider_Parameter3->SetValue(wxAtoi(TextCtrl_Parameter3->GetValue()));
+    _vc->SetParameter3(Slider_Parameter3->GetValue());
+    _vcp->Update();
 }
 #pragma endregion Sliders and TextCtrls
 
-void ValueCurveDialog::OnPanel_GraphPaint(wxPaintEvent& event)
+void ValueCurvePanel::Paint(wxPaintEvent& event)
 {
+    //wxAutoBufferedPaintDC pdc(this);
     wxPaintDC pdc(this);
     pdc.Clear();
-    pdc.SetPen(wxPen(*wxBLACK, 2, wxPENSTYLE_LONG_DASH));
-    float p1y = _vc->GetValueAt(0);
-    float p1x = 0.0f;
-    int w = Panel_Graph->GetSize().GetWidth();
-    int h = Panel_Graph->GetSize().GetHeight();
-    for (float p = 1.0f / (float)w; p <= 1.0f; p += 1.0f / (float)Panel_Graph->GetSize().GetWidth())
+    pdc.SetPen(*wxLIGHT_GREY_PEN);
+    pdc.SetBrush(*wxLIGHT_GREY_BRUSH);
+    int w = GetSize().GetWidth();
+    int h = GetSize().GetHeight();
+    pdc.DrawRectangle(0, 0, w, h);
+    pdc.SetBrush(wxNullBrush);
+    if (_vc != NULL)
     {
-        float p2y = _vc->GetValueAt(p);
-        pdc.DrawLine(p1x * w, p1y * h, p * w, p2y * h);
-        p1x = p;
-        p1y = p2y;
-    }
-    std::list<vcSortablePoint> pts = _vc->GetPoints();
-    pdc.SetPen(wxPen(*wxRED, 2, wxPENSTYLE_SOLID));
-    for (auto it = pts.begin(); it != pts.end(); it++)
-    {
-        pdc.DrawRectangle(it->x - 2, it->y - 2, 5, 5);
+        pdc.SetPen(wxPen(*wxBLACK, 2, wxPENSTYLE_LONG_DASH));
+        float p1y = _vc->GetValueAt(0);
+        float p1x = 0.0f;
+        for (float p = 1.0f / (float)w; p <= 1.0f; p += 1.0f / (float)GetSize().GetWidth())
+        {
+            float p2y = _vc->GetValueAt(p);
+            pdc.DrawLine(p1x * w, p1y * h, p * w, p2y * h);
+            p1x = p;
+            p1y = p2y;
+        }
+        std::list<vcSortablePoint> pts = _vc->GetPoints();
+        pdc.SetPen(wxPen(*wxRED, 2, wxPENSTYLE_SOLID));
+        for (auto it = pts.begin(); it != pts.end(); it++)
+        {
+            pdc.DrawRectangle(it->x - 2, it->y - 2, 5, 5);
+        }
     }
 }
 
@@ -298,3 +369,5 @@ void ValueCurveDialog::ValidateWindow()
         TextCtrl_Parameter3->Enable();
     }
 }
+
+

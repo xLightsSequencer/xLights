@@ -6,13 +6,36 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/slider.h>
-#include <wx/panel.h>
 #include <wx/choice.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
 //*)
 
-class ValueCurve;
+#include "xlCustomControl.h"
+#include "ValueCurve.h"
+
+class ValueCurvePanel : public wxWindow, public xlCustomControl
+{
+    ValueCurve *_vc;
+    float _grabbedPoint;
+    std::string _type;
+
+public:
+    ValueCurvePanel(wxWindow* parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition,
+        const wxSize &size = wxDefaultSize, long style = 0);
+    void SetValue(ValueCurve* vc) { _vc = vc; }
+    void SetType(std::string type) { _type = type; }
+    virtual void SetValue(const std::string &val) override {};
+
+protected:
+    DECLARE_EVENT_TABLE()
+
+    void mouseLeftDown(wxMouseEvent& event);
+    void mouseLeftUp(wxMouseEvent& event);
+    void mouseMoved(wxMouseEvent& event);
+    void Paint(wxPaintEvent& event);
+    void Convert(float &x, float &y, wxMouseEvent& event);
+};
 
 class ValueCurveDialog: public wxDialog
 {
@@ -21,9 +44,10 @@ class ValueCurveDialog: public wxDialog
     int __p2;
     int __p3;
     ValueCurve* _vc;
-    float _grabbedPoint;
+    ValueCurve _backup;
     void ValidateWindow();
-    public:
+    ValueCurvePanel* _vcp;
+public:
 
 		ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ValueCurveDialog();
@@ -33,7 +57,6 @@ class ValueCurveDialog: public wxDialog
 		wxSlider* Slider_Parameter2;
 		wxButton* Button_Ok;
 		wxStaticText* StaticText2;
-		wxPanel* Panel_Graph;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Parameter2;
@@ -51,7 +74,6 @@ class ValueCurveDialog: public wxDialog
 		//(*Identifiers(ValueCurveDialog)
 		static const long ID_STATICTEXT3;
 		static const long ID_STATICTEXT4;
-		static const long ID_PANEL1;
 		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT1;
 		static const long IDD_SLIDER_Parameter1;
@@ -80,6 +102,8 @@ class ValueCurveDialog: public wxDialog
 		void OnSlider_Parameter1CmdSliderUpdated(wxScrollEvent& event);
 		void OnSlider_Parameter2CmdSliderUpdated(wxScrollEvent& event);
 		void OnPanel_GraphPaint(wxPaintEvent& event);
+		void OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event);
+		void OnTextCtrl_Parameter3Text(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

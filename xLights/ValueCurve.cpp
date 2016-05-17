@@ -100,30 +100,27 @@ void ValueCurve::RenderType()
     }
     _values.sort();
 }
-ValueCurve::ValueCurve(float min, float max, float parameter1, float parameter2, float parameter3)
+ValueCurve::ValueCurve(const std::string& id, float min, float max, float parameter1, float parameter2, float parameter3)
 {
+    _id = id;
     _min = min;
     _max = max;
     _parameter1 = parameter1;
     _parameter2 = parameter2;
     _parameter3 = parameter3;
-}
-ValueCurve::ValueCurve(std::string s)
-{
-    ValueCurve();
-    Deserialise(s);
+    _active = false;
 }
 std::string ValueCurve::Serialise()
 {
     std::string res = "";
 
-    res += "vcType=" + _type + ",";
-    res += "vcMin=" + std::string(wxString::Format("%f", _min).c_str()) + ",";
-    res += "vcMax=" + std::string(wxString::Format("%f", _max).c_str()) + ",";
-    res += "vcP1=" + std::string(wxString::Format("%f", _parameter1).c_str()) + ",";
-    res += "vcP2=" + std::string(wxString::Format("%f", _parameter2).c_str()) + ",";
-    res += "vcP3=" + std::string(wxString::Format("%f", _parameter3).c_str()) + ",";
-    res += "vcValues=";
+    res += _id + "_Type=" + _type + ",";
+    res += _id + "_Min=" + std::string(wxString::Format("%f", _min).c_str()) + ",";
+    res += _id + "_Max=" + std::string(wxString::Format("%f", _max).c_str()) + ",";
+    res += _id + "_P1=" + std::string(wxString::Format("%f", _parameter1).c_str()) + ",";
+    res += _id + "_P2=" + std::string(wxString::Format("%f", _parameter2).c_str()) + ",";
+    res += _id + "_P3=" + std::string(wxString::Format("%f", _parameter3).c_str()) + ",";
+    res += _id + "_Values=";
     for (auto it = _values.begin(); it != _values.end(); ++it)
     {
         res += "" + std::string(wxString::Format("%f", it->x).c_str()) + ":" + std::string(wxString::Format("%f", it->y).c_str());
@@ -148,49 +145,50 @@ std::list<std::string> tokenise(std::string in, char token)
     return res;
 }
 
-void ValueCurve::Deserialise(std::string s)
+bool vcEndsWith(const std::string& in, const std::string& what)
+{
+    return (in.find_last_of(what) == (in.length() - what.length()));
+}
+
+void ValueCurve::SetSerialisedValue(std::string k, std::string s)
 {
     _values.clear();
-    std::list<std::string> settings = tokenise(s, ',');
-
-    for (auto setting = settings.begin(); setting != settings.end(); setting++)
-    {
-        std::list<std::string> setab = tokenise(*setting, '=');
-        if (setab.front() == "vcType")
+        if (vcEndsWith(k, "_Type"))
         {
-            _type = setab.back();
+            _type = s;
         }
-        else if (setab.front() == "vcMin")
+        else if (vcEndsWith(k, "_Min"))
         {
-            _min = wxAtof(wxString(setab.back().c_str()));
+            _min = wxAtof(wxString(s.c_str()));
         }
-        else if (setab.front() == "vcMax")
+        else if (vcEndsWith(k, "_Max"))
         {
-            _max = wxAtof(wxString(setab.back().c_str()));
+            _max = wxAtof(wxString(s.c_str()));
         }
-        else if (setab.front() == "vcP1")
+        else if (vcEndsWith(k, "_P1"))
         {
-            _parameter1 = wxAtof(wxString(setab.back().c_str()));
+            _parameter1 = wxAtof(wxString(s.c_str()));
         }
-        else if (setab.front() == "vcP2")
+        else if (vcEndsWith(k, "_P2"))
         {
-            _parameter2 = wxAtof(wxString(setab.back().c_str()));
+            _parameter2 = wxAtof(wxString(s.c_str()));
         }
-        else if (setab.front() == "vcP3")
+        else if (vcEndsWith(k, "_P3"))
         {
-            _parameter3 = wxAtof(wxString(setab.back().c_str()));
+            _parameter3 = wxAtof(wxString(s.c_str()));
         }
-        else if (setab.front() == "vcValues")
+        else if (vcEndsWith(k, "_Values"))
         {
-            std::list<std::string> points = tokenise(setab.back(), ';');
+            std::list<std::string> points = tokenise(s, ';');
             for (auto p = points.begin(); p != points.end(); p++)
             {
                 std::list<std::string> xy = tokenise(*p, ':');
                 _values.push_back(vcSortablePoint(wxAtof(wxString(xy.front().c_str())), wxAtof(wxString(xy.back().c_str()))));
             }
         }
-    }
+    
     _values.sort();
+    _active = true;
 }
 
 void ValueCurve::SetType(std::string type)
@@ -202,6 +200,7 @@ void ValueCurve::SetType(std::string type)
 float ValueCurve::GetValueAt(float offset)
 {
     if (_values.size() == 0) return 1.0f;
+    if (!_active) return 1.0f;
 
     vcSortablePoint last = _values.front();
     auto it = _values.begin();
