@@ -385,6 +385,7 @@
     <ClCompile Include="xlGridCanvas.cpp" />
     <ClCompile Include="xLightsApp.cpp" />
     <ClCompile Include="XlightsDrawable.cpp" />
+    <ClCompile Include="xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="xLightsMain.cpp" />
     <ClCompile Include="xLightsTimer.cpp" />
     <ClCompile Include="xLightsXmlFile.cpp" />
@@ -613,10 +614,12 @@
     <ClInclude Include="xlColorCanvas.h" />
     <ClInclude Include="xlColorPicker.h" />
     <ClInclude Include="xlColorPickerFields.h" />
+    <ClInclude Include="xlCustomControl.h" />
     <ClInclude Include="xlGLCanvas.h" />
     <ClInclude Include="xlGridCanvas.h" />
     <ClInclude Include="xLightsApp.h" />
     <ClInclude Include="XlightsDrawable.h" />
+    <ClInclude Include="xLightsImportChannelMapDialog.h" />
     <ClInclude Include="xLightsMain.h" />
     <ClInclude Include="xLightsTimer.h" />
     <ClInclude Include="xLightsXmlFile.h" />

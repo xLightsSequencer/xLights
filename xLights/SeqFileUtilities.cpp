@@ -4,6 +4,7 @@
 #include "DataLayer.h"
 
 #include "LMSImportChannelMapDialog.h"
+#include "xLightsImportChannelMapDialog.h"
 #include "SuperStarImportDialog.h"
 #include "SaveChangesDialog.h"
 #include "ConvertLogDialog.h"
@@ -746,7 +747,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
 void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements,
                                  bool allowAllModels, bool clearSrc) {
     std::map<std::string, EffectLayer *> layerMap;
-    LMSImportChannelMapDialog dlg(this);
+    xLightsImportChannelMapDialog dlg(this);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<EffectLayer *> mapped;
@@ -760,41 +761,14 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         if (hasEffects) {
             dlg.channelNames.push_back(el->GetName());
         }
-        for (int s = 0; s < el->getStrandLayerCount(); s++) {
-            StrandLayer *sl = el->GetStrandLayer(s, true);
-            std::string strandName = sl->GetName();
-            if (strandName == "") {
-                strandName = wxString::Format("Strand %d", (s + 1));
-            }
-            if (sl->GetEffectCount() > 0) {
-                std::string name = sl->GetName();
-                dlg.channelNames.push_back(el->GetName() + "/" + strandName);
-                layerMap[el->GetName() + "/" + strandName] = sl;
-            }
-            for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
-                NodeLayer *nl = sl->GetNodeLayer(n, true);
-                if (nl->GetEffectCount() > 0) {
-                    std::string nodeName = nl->GetName();
-                    if (nodeName == "") {
-                        nodeName = wxString::Format("Node %d", (n + 1));
-                    }
-                    dlg.channelNames.push_back(el->GetName() + "/" + strandName + "/" + nodeName);
-                    layerMap[el->GetName() + "/" + strandName + "/" + nodeName] = nl;
-                }
-            }
-        }
     }
 
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
     dlg.channelNames.insert(dlg.channelNames.begin(), "");
 
-    dlg.MapByStrand->Hide();
-    dlg.Init(allowAllModels);
-    // no color colum so remove it and expand the 3rd colum into its space
-    dlg.ChannelMapGrid->SetColSize(3, dlg.ChannelMapGrid->GetColSize(3) + dlg.ChannelMapGrid->GetColSize(4));
-    dlg.ChannelMapGrid->DeleteCols(4, 1);
+    bool ok = dlg.Init(allowAllModels);
 
-    if (dlg.ShowModal() != wxID_OK) {
+    if (!ok || dlg.ShowModal() != wxID_OK) {
         return;
     }
     int row = 0;
@@ -808,8 +782,8 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 model = mSequenceElements.GetElement(i);
             }
         }
-        if (dlg.ChannelMapGrid->GetCellValue(row, 3) != "") {
-            MapXLightsEffects(model, dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(), se, layerMap, mapped);
+        if (dlg.ChannelMapGrid->GetCellValue(row, 1) != "") {
+            MapXLightsEffects(model, dlg.ChannelMapGrid->GetCellValue(row, 1).ToStdString(), se, layerMap, mapped);
         }
         row++;
 
@@ -817,14 +791,14 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             StrandLayer *sl = model->GetStrandLayer(str, true);
 
             if( sl != nullptr ) {
-                if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                    MapXLightsStrandEffects(sl, dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(), layerMap, se, mapped);
+                if ("" != dlg.ChannelMapGrid->GetCellValue(row, 1)) {
+                    MapXLightsStrandEffects(sl, dlg.ChannelMapGrid->GetCellValue(row, 1).ToStdString(), layerMap, se, mapped);
                 }
                 row++;
                 for (int n = 0; n < mc->GetStrandLength(str); n++) {
-                    if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
+                    if ("" != dlg.ChannelMapGrid->GetCellValue(row, 1)) {
                         NodeLayer *nl = sl->GetNodeLayer(n, true);
-                        MapXLightsStrandEffects(nl, dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(), layerMap, se, mapped);
+                        MapXLightsStrandEffects(nl, dlg.ChannelMapGrid->GetCellValue(row, 1).ToStdString(), layerMap, se, mapped);
                     }
                     row++;
                 }
