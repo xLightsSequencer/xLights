@@ -389,13 +389,13 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     } else if (event.GetPropertyName() == "ModelPixelTransparency") {
         transparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
-        ModelXml->AddAttribute("Transparency", wxString::Format("%d", pixelStyle));
+        ModelXml->AddAttribute("Transparency", wxString::Format("%d", transparency));
         IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelPixelBlackTransparency") {
         blackTransparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("BlackTransparency");
-        ModelXml->AddAttribute("BlackTransparency", wxString::Format("%d", pixelStyle));
+        ModelXml->AddAttribute("BlackTransparency", wxString::Format("%d", blackTransparency));
         IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelStrandNodeNames") {

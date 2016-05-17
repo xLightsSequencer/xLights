@@ -268,6 +268,24 @@ public:
         return ps;
     }
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
+        if (isIntel && enableCapability == GL_POINT_SMOOTH) {
+            LOG_GL_ERRORV(glUseProgram(0));
+            glPushMatrix();
+            glLoadMatrixf(glm::value_ptr(*matrix));
+            glEnable(enableCapability);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_COLOR_ARRAY);
+            
+            glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]);
+            glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]);
+            glDrawArrays(type, 0, va.count);
+            
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_COLOR_ARRAY);
+            glPopMatrix();
+            glDisable(enableCapability);
+            return;
+        }
         LOG_GL_ERRORV(glUseProgram(ProgramIDcolors));
         SetMVP(ProgramIDcolors);
         
@@ -282,19 +300,13 @@ public:
         float ps = 2.0;
         if (enableCapability != 0) {
             if (enableCapability == GL_POINT_SMOOTH) {
-                if (isIntel) {
-                    LOG_GL_ERRORV(glEnable(enableCapability));
-                    LOG_GL_ERRORV(glPointParameterf(GL_POINT_SIZE_MIN, 0.0f));
-                    LOG_GL_ERRORV(glPointParameterf(GL_POINT_SIZE_MAX, 35.0f));
-                    LOG_GL_ERRORV(glPointParameterf(GL_POINT_FADE_THRESHOLD_SIZE, 35.0f));
-                } else {
-                    LOG_GL_ERRORV(glEnable(enableCapability));
-                    GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
-                    glUniform1i(cid, 1);
-                    ps = CalcSmoothPointParams();
-                    LOG_GL_ERRORV(glEnable(GL_POINT_SPRITE));
-                    LOG_GL_ERRORV(glTexEnvi(GL_POINT_SPRITE_ARB,GL_COORD_REPLACE_ARB ,GL_FALSE));
-                }
+                //LOG_GL_ERRORV(glEnable(enableCapability));
+                GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
+                glUniform1i(cid, 1);
+                ps = CalcSmoothPointParams();
+                LOG_GL_ERRORV(glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                LOG_GL_ERRORV(glEnable(GL_POINT_SPRITE));
+                LOG_GL_ERRORV(glTexEnvi(GL_POINT_SPRITE_ARB,GL_COORD_REPLACE_ARB ,GL_FALSE));
             } else {
                 LOG_GL_ERRORV(glEnable(enableCapability));
             }
@@ -302,16 +314,14 @@ public:
         LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
         if (enableCapability > 0) {
             if (enableCapability == GL_POINT_SMOOTH || enableCapability == GL_POINT_SPRITE) {
-                if (isIntel) {
-                    glDisable(enableCapability);
-                } else {
-                    GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
-                    glUniform1i(cid, 0);
-                    LOG_GL_ERRORV(glPointSize(ps));
-                    LOG_GL_ERRORV(glDisable(GL_POINT_SPRITE));
-                }
+                GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
+                glUniform1i(cid, 0);
+                LOG_GL_ERRORV(glPointSize(ps));
+                LOG_GL_ERRORV(glDisable(GL_POINT_SPRITE));
+                LOG_GL_ERRORV(glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
+            } else {
+                glDisable(enableCapability);
             }
-            glDisable(enableCapability);
         }
         LOG_GL_ERRORV(glDisableVertexAttribArray(cattrib));
         LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
@@ -391,7 +401,6 @@ public:
         }
         glm::mat4 m = glm::ortho((float)topleft_x, (float)bottomright_x, (float)bottomright_y, (float)topleft_y);
         matrix = new glm::mat4(m);
-        LOG_GL_ERRORV(glUniformMatrix4fv(MatrixIDc, 1, GL_FALSE, glm::value_ptr(*matrix)));
     }
     void PushMatrix() override {
         matrixStack.push(matrix);
@@ -404,7 +413,6 @@ public:
             }
             matrix = matrixStack.top();
             matrixStack.pop();
-            LOG_GL_ERRORV(glUniformMatrix4fv(MatrixIDc, 1, GL_FALSE, glm::value_ptr(*matrix)));
         }
     }
     void Translate(float x, float y, float z) override {
@@ -416,7 +424,6 @@ public:
             glm::mat4 tm = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
             matrix = new glm::mat4(tm);
         }
-        LOG_GL_ERRORV(glUniformMatrix4fv(MatrixIDc, 1, GL_FALSE, glm::value_ptr(*matrix)));
     }
     void Rotate(float angle, float x, float y, float z) override {
         if (matrix) {
@@ -429,7 +436,6 @@ public:
             glm::mat4 tm = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(x, y, z));
             matrix = new glm::mat4(tm);
         }
-        LOG_GL_ERRORV(glUniformMatrix4fv(MatrixIDc, 1, GL_FALSE, glm::value_ptr(*matrix)));
     }
     void Scale(float w, float h, float z) override {
         if (matrix) {
@@ -440,7 +446,6 @@ public:
             glm::mat4 tm = glm::scale(glm::mat4(1.0f), glm::vec3(w, h, z));
             matrix = new glm::mat4(tm);
         }
-        LOG_GL_ERRORV(glUniformMatrix4fv(MatrixIDc, 1, GL_FALSE, glm::value_ptr(*matrix)));
     }
 
 
