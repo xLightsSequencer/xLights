@@ -8,8 +8,8 @@
 #include "DrawGLUtils.h"
 #include <log4cpp/Category.hh>
 
-GLuint* loadImage(wxString path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
-                  bool &scaledW, bool &scaledH, bool &hasAlpha)
+GLuint loadImage(wxString path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
+                 bool &scaledW, bool &scaledH, bool &hasAlpha)
 {
     // check the file exists
     if(!wxFileExists(path))
@@ -26,18 +26,19 @@ GLuint* loadImage(wxString path, int &imageWidth, int &imageHeight, int &texture
 
 }
 
-GLuint* loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
+GLuint loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
                   bool &scaledW, bool &scaledH, bool &hasAlpha)
 {
 
-	GLuint* ID=new GLuint[1];
+	GLuint ID = 0;
     if (!DrawGLUtils::IsCoreProfile()) {
         LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
     }
     int maxSize = 0;
     LOG_GL_ERRORV(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize));
-	LOG_GL_ERRORV(glGenTextures( 1, &ID[0] ));
-    LOG_GL_ERRORV(glBindTexture( GL_TEXTURE_2D, *ID ));
+	LOG_GL_ERRORV(glGenTextures( 1, &ID ));
+    LOG_GL_ERRORV(glActiveTexture( GL_TEXTURE0 ));
+    LOG_GL_ERRORV(glBindTexture( GL_TEXTURE_2D, ID ));
 
 
 

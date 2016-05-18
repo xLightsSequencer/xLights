@@ -176,7 +176,7 @@ namespace DrawGLUtils
         virtual void Translate(float x, float y, float z) = 0;
         virtual void Rotate(float angle, float x, float y, float z) = 0;
         virtual void Scale(float w, float h, float z) = 0;
-        virtual void DrawTexture(GLuint* texture,
+        virtual void DrawTexture(GLuint texture,
                                  float x, float y, float x2, float y2,
                                  float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0) = 0;
         
@@ -252,12 +252,12 @@ namespace DrawGLUtils
     void CreateOrUpdateTexture(const wxBitmap &bmp48,    //will scale to 64x64 for base
                                const wxBitmap &bmp32,
                                const wxBitmap &bmp16,
-                               GLuint* texture);
-    void DrawTexture(GLuint* texture,
+                               GLuint *texture);
+    void DrawTexture(GLuint texture,
                      float x, float y, float x2, float y2,
                      float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0);
     
-    void UpdateTexturePixel(GLuint* texture,double x, double y, xlColor& color, bool hasAlpha);
+    void UpdateTexturePixel(GLuint texture,double x, double y, xlColor& color, bool hasAlpha);
 
 
     void DrawDisplayList(float xOffset, float yOffset,

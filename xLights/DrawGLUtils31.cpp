@@ -568,10 +568,10 @@ public:
         data.Reset();
     }
     
-    void DrawTexture(GLuint* texture,
+    void DrawTexture(GLuint texture,
                      float x, float y, float x2, float y2,
                      float tx, float ty, float tx2, float ty2) override {
-        DrawGLUtils::xlVertexTextureAccumulator va(*texture);
+        DrawGLUtils::xlVertexTextureAccumulator va(texture);
         va.PreAlloc(12);
         va.AddVertex(x, y, tx, ty);
         va.AddVertex(x2, y, tx2, ty);

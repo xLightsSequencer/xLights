@@ -449,21 +449,21 @@ void xlGridCanvasMorph::DrawMorphEffect()
     int corner_size = std::max(mMinCornerSize, mCellSize);
     if( mMorphEndLinked )
     {
-        DrawGLUtils::DrawTexture(&mCornerTextures[5], x2a-corner_size/2, y2a-corner_size/2, x2a+corner_size/2, y2a+corner_size/2);
+        DrawGLUtils::DrawTexture(mCornerTextures[5], x2a-corner_size/2, y2a-corner_size/2, x2a+corner_size/2, y2a+corner_size/2);
     }
     else
     {
-        DrawGLUtils::DrawTexture(&mCornerTextures[3], x2b-corner_size/2, y2b-corner_size/2, x2b+corner_size/2, y2b+corner_size/2);
-        DrawGLUtils::DrawTexture(&mCornerTextures[2], x2a-corner_size/2, y2a-corner_size/2, x2a+corner_size/2, y2a+corner_size/2);
+        DrawGLUtils::DrawTexture(mCornerTextures[3], x2b-corner_size/2, y2b-corner_size/2, x2b+corner_size/2, y2b+corner_size/2);
+        DrawGLUtils::DrawTexture(mCornerTextures[2], x2a-corner_size/2, y2a-corner_size/2, x2a+corner_size/2, y2a+corner_size/2);
     }
     if( mMorphStartLinked )
     {
-        DrawGLUtils::DrawTexture(&mCornerTextures[4], x1a-corner_size/2, y1a-corner_size/2, x1a+corner_size/2, y1a+corner_size/2);
+        DrawGLUtils::DrawTexture(mCornerTextures[4], x1a-corner_size/2, y1a-corner_size/2, x1a+corner_size/2, y1a+corner_size/2);
     }
     else
     {
-        DrawGLUtils::DrawTexture(&mCornerTextures[1], x1b-corner_size/2, y1b-corner_size/2, x1b+corner_size/2, y1b+corner_size/2);
-        DrawGLUtils::DrawTexture(&mCornerTextures[0], x1a-corner_size/2, y1a-corner_size/2, x1a+corner_size/2, y1a+corner_size/2);
+        DrawGLUtils::DrawTexture(mCornerTextures[1], x1b-corner_size/2, y1b-corner_size/2, x1b+corner_size/2, y1b+corner_size/2);
+        DrawGLUtils::DrawTexture(mCornerTextures[0], x1a-corner_size/2, y1a-corner_size/2, x1a+corner_size/2, y1a+corner_size/2);
     }
 }
 

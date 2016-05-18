@@ -2,16 +2,16 @@
 #include "Image.h"
 #include "Image_Loader.h"
 
-Image::Image()
+Image::Image() : ID(0)
 {
 }
 
-Image::Image(wxString path)
+Image::Image(wxString path) : ID(0)
 {
     load(path);
 }
 
-Image::Image(wxImage &img)
+Image::Image(wxImage &img) : ID(0)
 {
     load(img);
 }
@@ -46,12 +46,10 @@ void Image::load(wxImage &img)
         tex_coord_y = (float)height/(float)textureHeight;
     }
 }
-GLuint* Image::getID()
-{
-    return ID;
-}
 
 Image::~Image()
 {
-    glDeleteTextures (1, ID);
+    if (ID != 0) {
+        glDeleteTextures(1, &ID);
+    }
 }

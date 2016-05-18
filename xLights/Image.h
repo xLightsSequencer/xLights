@@ -18,7 +18,7 @@
 
 class Image
 {
-    GLuint* ID;
+    GLuint ID;
 
 public:
 
@@ -36,8 +36,8 @@ public:
     bool mAlpha;
     float tex_coord_x, tex_coord_y;
 
-    GLuint* getID();
-    bool hasAlpha() { return mAlpha; }
+    GLuint getID() const { return ID; }
+    bool hasAlpha() const { return mAlpha; }
     Image();
     Image(wxString path);
     Image(wxImage &path);

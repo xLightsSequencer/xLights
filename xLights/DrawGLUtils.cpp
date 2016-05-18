@@ -171,11 +171,11 @@ public:
         glScalef(w, h, z);
     }
 
-    void DrawTexture(GLuint* texture, float x, float y, float x2, float y2,
+    void DrawTexture(GLuint texture, float x, float y, float x2, float y2,
                      float tx, float ty, float tx2, float ty2) override {
 
 
-        DrawGLUtils::xlVertexTextureAccumulator va(*texture);
+        DrawGLUtils::xlVertexTextureAccumulator va(texture);
         va.PreAlloc(6);
 
         va.AddVertex(x - 0.4, y, tx, ty);
@@ -522,7 +522,7 @@ void DrawGLUtils::DrawDisplayList(float xOffset, float yOffset,
 }
 
 
-static void addMipMap(GLuint* texture, const wxImage &l_Image, int &level) {
+static void addMipMap(const wxImage &l_Image, int &level) {
     if (l_Image.IsOk() == true)
     {
         LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, level, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
@@ -542,30 +542,30 @@ static void addMipMap(GLuint* texture, const wxImage &l_Image, int &level) {
 void DrawGLUtils::CreateOrUpdateTexture(const wxBitmap &bmp48,
                                         const wxBitmap &bmp32,
                                         const wxBitmap &bmp16,
-                                        GLuint* texture)
+                                        GLuint *texture)
 {
     int level = 0;
     LOG_GL_ERRORV(glGenTextures(1,texture));
     LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, *texture));
     LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST));
-    addMipMap(texture, bmp48.ConvertToImage().Rescale(64, 64, wxIMAGE_QUALITY_HIGH), level);
-    addMipMap(texture, bmp32.ConvertToImage(), level);
-    addMipMap(texture, bmp16.ConvertToImage(), level);
-    addMipMap(texture, bmp16.ConvertToImage().Rescale(8, 8, wxIMAGE_QUALITY_HIGH), level);
-    addMipMap(texture, bmp16.ConvertToImage().Rescale(4, 4, wxIMAGE_QUALITY_HIGH), level);
-    addMipMap(texture, bmp16.ConvertToImage().Rescale(2, 2, wxIMAGE_QUALITY_HIGH), level);
-    addMipMap(texture, bmp16.ConvertToImage().Rescale(1, 1, wxIMAGE_QUALITY_HIGH), level);
+    addMipMap(bmp48.ConvertToImage().Rescale(64, 64, wxIMAGE_QUALITY_HIGH), level);
+    addMipMap(bmp32.ConvertToImage(), level);
+    addMipMap(bmp16.ConvertToImage(), level);
+    addMipMap(bmp16.ConvertToImage().Rescale(8, 8, wxIMAGE_QUALITY_HIGH), level);
+    addMipMap(bmp16.ConvertToImage().Rescale(4, 4, wxIMAGE_QUALITY_HIGH), level);
+    addMipMap(bmp16.ConvertToImage().Rescale(2, 2, wxIMAGE_QUALITY_HIGH), level);
+    addMipMap(bmp16.ConvertToImage().Rescale(1, 1, wxIMAGE_QUALITY_HIGH), level);
 }
 
-void DrawGLUtils::DrawTexture(GLuint* texture,
+void DrawGLUtils::DrawTexture(GLuint texture,
                          float x, float y, float x2, float y2,
                          float tx, float ty, float tx2, float ty2)
 {
     currentCache->DrawTexture(texture, x, y, x2, y2, tx, ty, tx2, ty2);
 }
 
-void DrawGLUtils::UpdateTexturePixel(GLuint* texture, double x, double y, xlColor& color, bool hasAlpha)
+void DrawGLUtils::UpdateTexturePixel(GLuint texture, double x, double y, xlColor& color, bool hasAlpha)
 {
     int bytesPerPixel = hasAlpha ?  4 : 3;
     GLubyte *imageData=new GLubyte[bytesPerPixel];
@@ -578,7 +578,7 @@ void DrawGLUtils::UpdateTexturePixel(GLuint* texture, double x, double y, xlColo
     if (!DrawGLUtils::IsCoreProfile()) {
         LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
     }
-    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D,*texture));
+    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D,texture));
     LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, hasAlpha ?  GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, imageData));
     delete [] imageData;
     if (!DrawGLUtils::IsCoreProfile()) {
@@ -669,7 +669,7 @@ public:
             }
         }
         image.load(cimg);
-        id = *image.getID();
+        id = image.getID();
     }
     void ForceCreate(int size) {
         wxString faceName = "Gil Sans";

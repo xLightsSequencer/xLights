@@ -268,7 +268,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
                 scalew = 1.0;
             }
         }
-        DrawGLUtils::xlVertexTextureAccumulator va(*image->getID());
+        DrawGLUtils::xlVertexTextureAccumulator va(image->getID());
         va.PreAlloc(6);
         float tx1 = 0;
         float tx2 = image->tex_coord_x;
