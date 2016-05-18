@@ -3,7 +3,12 @@
 #include "xLightsTimer.h"
 #include <wx/thread.h>
 
+#ifndef __WXOSX__
+#define USE_THREADED_TIMER
+#endif
 
+
+#ifdef USE_THREADED_TIMER
 
 class xlTimerThread : public wxThread
 {
@@ -19,7 +24,6 @@ private:
     wxTimer* _timer;
     virtual ExitCode Entry();
 };
-
 
 #pragma region xlTimerTimer
 xLightsTimer::xLightsTimer()
@@ -120,3 +124,11 @@ void xlTimerThread::SetFudgeFactor(int ff)
     _fudgefactor = ff;
     critsect.Leave();
 }
+#else 
+xLightsTimer::xLightsTimer() {}
+xLightsTimer::~xLightsTimer() {}
+void xLightsTimer::Stop() {wxTimer::Stop();}
+bool xLightsTimer::Start(int time, bool oneShot) {return wxTimer::Start(time, oneShot);};
+void xLightsTimer::Notify() {wxTimer::Notify();}
+void xLightsTimer::DoSendTimer() {};
+#endif
