@@ -37,7 +37,6 @@ GLuint loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureWi
     int maxSize = 0;
     LOG_GL_ERRORV(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize));
 	LOG_GL_ERRORV(glGenTextures( 1, &ID ));
-    LOG_GL_ERRORV(glActiveTexture( GL_TEXTURE0 ));
     LOG_GL_ERRORV(glBindTexture( GL_TEXTURE_2D, ID ));
 
 
