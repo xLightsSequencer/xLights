@@ -613,7 +613,7 @@ public:
 #define NUMLINES 6
 #define NUMCHARS 16
 
-#define CASEFONT(x) case x: Load(font##x); break;
+#define CASEFONT(x) case x: Load(font##x); return true;
 
 class FontTexture {
 public:
@@ -622,7 +622,7 @@ public:
 
     bool Valid() { return id != 0;}
     
-    void Create(int size) {
+    bool Create(int size) {
         switch (size) {
             CASEFONT(10);
             CASEFONT(12);
@@ -637,9 +637,12 @@ public:
             CASEFONT(56);
             CASEFONT(88);
             default:
+                return false;
+            /*default:
                 printf("No FONT!!!! %d\n", size);
                 ForceCreate(size);
                 break;
+             */
         }
     }
     void Load(const FontInfoStruct &fi) {
@@ -948,15 +951,33 @@ public:
 };
 static std::map<unsigned int, FontTexture> FONTS;
 
-void DrawGLUtils::DrawText(double x, double y, double size, const wxString &text, double factor) {
+static int FindFont(double size, double factor) {
     int tsize = size * factor;
+    while (!FONTS[tsize].Valid() && tsize > 0) {
+        if (FONTS[tsize].Create(tsize)) {
+            return tsize;
+        }
+        tsize--;
+    }
+    tsize = size * factor;
+    while (!FONTS[tsize].Valid() && tsize <= 88) {
+        if (FONTS[tsize].Create(tsize)) {
+            return tsize;
+        }
+        tsize++;
+    }
+    return tsize;
+}
+
+void DrawGLUtils::DrawText(double x, double y, double size, const wxString &text, double factor) {
+    int tsize = FindFont(size, factor);
     if (!FONTS[tsize].Valid()) {
         FONTS[tsize].Create(tsize);
     }
     FONTS[tsize].Draw(x, y, text, factor);
 }
 int DrawGLUtils::GetTextWidth(double size, const wxString &text, double factor) {
-    int tsize = size * factor;
+    int tsize = FindFont(size, factor);
     if (!FONTS[tsize].Valid()) {
         FONTS[tsize].Create(tsize);
     }
@@ -964,18 +985,10 @@ int DrawGLUtils::GetTextWidth(double size, const wxString &text, double factor) 
 }
 
 void DrawGLUtils::Draw(DrawGLUtils::xlVertexTextAccumulator &va, int size, float factor, int enableCapability) {
-    int tsize = size * factor;
+    int tsize = FindFont(size, factor);
     if (!FONTS[tsize].Valid()) {
         FONTS[tsize].Create(tsize);
     }
-    /*
-    if (tsize == 10 || tsize == 12) {
-        for (int i = 0; i < va.count; i++) {
-            
-        }
-        return;
-    }
-     */
     DrawGLUtils::xlVertexTextureAccumulator vat;
     for (int x = 0; x < va.count; x++) {
         FONTS[tsize].Populate(va.vertices[x*2], va.vertices[x*2 + 1], va.text[x], factor, vat);

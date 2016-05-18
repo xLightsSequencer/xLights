@@ -1,11 +1,39 @@
-#include "xLightsTimer.h"
 
-#ifdef XLUSETIMER
+
+#include "xLightsTimer.h"
+#include <wx/thread.h>
+
+
+
+class xlTimerThread : public wxThread
+{
+public:
+    xlTimerThread(int interval, bool oneshot, wxTimer* timer);
+    void Stop();
+    void SetFudgeFactor(int ff);
+private:
+    bool _oneshot;
+    bool _stop;
+    int _interval;
+    int _fudgefactor;
+    wxTimer* _timer;
+    virtual ExitCode Entry();
+};
+
 
 #pragma region xlTimerTimer
 xLightsTimer::xLightsTimer()
 {
     _t = NULL;
+    pending = false;
+}
+xLightsTimer::~xLightsTimer()
+{
+    if (_t != NULL)
+    {
+        _t->Stop();
+        _t = NULL; // while it may not exit immediately it will exit and kill itself
+    }
 }
 void xLightsTimer::Stop()
 {
@@ -15,32 +43,38 @@ void xLightsTimer::Stop()
         _t = NULL; // while it may not exit immediately it will exit and kill itself
     }
 }
-int xLightsTimer::GetInterval()
-{
-    return _time;
-}
 bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*/)
 {
     Stop();
-    if (time != -1)
-    {
-        _time = time;
-    }
-    _oneshot = oneShot;
-    _t = new xlTimerThread(GetOwner(), time, _oneshot, this);
+    _t = new xlTimerThread(time, oneShot, this);
     if (_t == NULL) return false;
     _t->Create();
     _t->SetPriority(WXTHREAD_DEFAULT_PRIORITY + 1); // run it with slightly higher priority to ensure events are generated in a timely manner
     _t->Run();
     return true;
 }
-#pragma endregion xlTimerTimer
 
-#pragma region xlTimerThread
+void xLightsTimer::DoSendTimer() {
+    if (!pending) {
+        return;
+    }
+    wxTimer::Notify();
+    //reset pending to false AFTER sending the event so if sending takes to long, it results in a skipped frame instead of
+    //infinite number of CallAfters consuming the CPU
+    pending = false;
+}
+void xLightsTimer::Notify() {
+    pending = true;
+    CallAfter(&xLightsTimer::DoSendTimer);
+}
+
+
+
+
 
 static wxCriticalSection critsect;
 
-xlTimerThread::xlTimerThread(wxEvtHandler* pParent, int interval, bool oneshot, wxTimer* timer)
+xlTimerThread::xlTimerThread(int interval, bool oneshot, wxTimer* timer)
 {
     _stop = false;
     _fudgefactor = 0;
@@ -60,7 +94,6 @@ wxThread::ExitCode xlTimerThread::Entry()
     bool stop = _stop;
     int fudgefactor = _fudgefactor;
     bool oneshot = _oneshot;
-    wxEvtHandler* parent = m_pParent;
     critsect.Leave();
     while (!stop)
     {
@@ -68,17 +101,15 @@ wxThread::ExitCode xlTimerThread::Entry()
         critsect.Enter();
         stop = _stop;
         fudgefactor = _fudgefactor;
+        if (!stop)
+        {
+            _timer->Notify();
+        }
         if (oneshot)
         {
             stop = true;
         }
-        parent = m_pParent;
         critsect.Leave();
-        if (!stop && parent != NULL)
-        {
-             wxTimerEvent *event = new wxTimerEvent(*_timer);
-            _timer->GetOwner()->QueueEvent(event);
-        }
     }
     return 0;
 }
@@ -89,6 +120,3 @@ void xlTimerThread::SetFudgeFactor(int ff)
     _fudgefactor = ff;
     critsect.Leave();
 }
-#pragma endregion xlTimerThread
-
-#endif
