@@ -61,8 +61,14 @@ xlGLCanvas::~xlGLCanvas()
     }
 }
 
-#ifdef __WXMSW__
 
+
+#ifdef __WXMSW__
+//   #define USE_DEBUG_GLCONTEXT
+#endif
+
+
+#ifdef USE_DEBUG_GLCONTEXT
 static const char * getStringForSource(GLenum source) {
 
     switch(source) {
@@ -265,11 +271,13 @@ void xlGLCanvas::CreateGLContext() {
         if (m_coreProfile && ver >= 3) {
             wxGLContextAttrs atts;
             log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+            atts.PlatformDefaults().OGLVersion(3, 3).CoreProfile();
+#if USE_DEBUG_GLCONTEXT
             if (logger_opengl.isDebugEnabled()) {
-                atts.PlatformDefaults().OGLVersion(3, 3).CoreProfile().ForwardCompatible().DebugCtx().EndList();
-            } else {
-                atts.PlatformDefaults().OGLVersion(3, 3).CoreProfile().EndList();
+                atts.ForwardCompatible().DebugCtx().EndList();
             }
+#endif
+            atts.EndList();
             m_context = new wxGLContext(this, nullptr, &atts);
             if (!m_context->IsOK()) {
                 logger_opengl.debug("Could not create a valid CoreProfile context");
