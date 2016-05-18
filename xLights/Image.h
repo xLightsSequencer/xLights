@@ -37,6 +37,7 @@ public:
     float tex_coord_x, tex_coord_y;
 
     GLuint getID() const { return ID; }
+    void setID(GLuint i) { ID = i; }
     bool hasAlpha() const { return mAlpha; }
     Image();
     Image(wxString path);

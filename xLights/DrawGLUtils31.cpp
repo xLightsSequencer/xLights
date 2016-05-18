@@ -523,6 +523,9 @@ public:
         if (enableCapability > 0) {
             LOG_GL_ERRORV(glDisable(enableCapability));
         }
+        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
+        LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
+        
         textureProgram.UnbindBuffer(0);
         textureProgram.UnbindBuffer(1);
     }
@@ -541,6 +544,7 @@ public:
         }
     }
     virtual void SetCurrent() override {
+        DrawGLUtils::xlGLCacheInfo::SetCurrent();
         data.Reset();
     }
 

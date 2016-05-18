@@ -224,8 +224,6 @@ public:
             LOG_GL_ERRORV(glDeleteProgram(ProgramIDtexture));
         }
     }
-    virtual void SetCurrent() override {
-    }
 
     void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) override {
         LOG_GL_ERRORV(glUseProgram(ProgramIDstaticColor));

@@ -44,10 +44,11 @@ class xlGLCanvas
         virtual bool UsesVertexColorAccumulator() {return true;}
         virtual bool UsesVertexAccumulator() {return true;}
         virtual bool UsesAddVertex() {return true;}
+
+        DrawGLUtils::xlGLCacheInfo *cache;
     private:
         wxGLContext* m_context;
         bool m_coreProfile;
-        DrawGLUtils::xlGLCacheInfo *cache;
 };
 
 #endif // XLGLCANVAS_H

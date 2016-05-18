@@ -4,6 +4,7 @@
 
 #include <mutex>
 #include <vector>
+#include <map>
 #include "wx/glcanvas.h"
 #include "Color.h"
 
@@ -156,11 +157,11 @@ namespace DrawGLUtils
 
     class xlGLCacheInfo {
     public:
-        xlGLCacheInfo() {};
-        virtual ~xlGLCacheInfo() {};
+        xlGLCacheInfo();
+        virtual ~xlGLCacheInfo();
         
         virtual bool IsCoreProfile() { return false;}
-        virtual void SetCurrent() = 0;
+        virtual void SetCurrent();
         virtual void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0) = 0;
@@ -180,6 +181,13 @@ namespace DrawGLUtils
                                  float x, float y, float x2, float y2,
                                  float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0) = 0;
         
+        GLuint GetTextureId(int i);
+        void SetTextureId(int i, GLuint id) {textures[i] = id;}
+        bool HasTextureId(int i);
+        void AddTextureToDelete(GLuint i) { deleteTextures.push_back(i); }
+        protected:
+            std::vector<GLuint> deleteTextures;
+            std::map<int, GLuint> textures;
     };
     
     xlGLCacheInfo *CreateCache();
@@ -216,6 +224,7 @@ namespace DrawGLUtils
    
     
     bool IsCoreProfile();
+    int NextTextureIdx();
     
     void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0);
     void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0);

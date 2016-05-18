@@ -113,6 +113,8 @@ ModelPreview::ModelPreview(wxPanel* parent, std::vector<Model*> &models, bool a,
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
     virtualHeight = 0;
+    image = nullptr;
+    sprite = nullptr;
 }
 ModelPreview::ModelPreview(wxPanel* parent)
 : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(NULL), allowSelected(false), image(nullptr)
@@ -120,11 +122,20 @@ ModelPreview::ModelPreview(wxPanel* parent)
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
     virtualHeight = 0;
+    image = nullptr;
+    sprite = nullptr;
 }
 ModelPreview::~ModelPreview()
 {
     if (image) {
+        if (cache) {
+            cache->AddTextureToDelete(image->getID());
+            image->setID(0);
+        }
         delete image;
+    }
+    if (sprite) {
+        delete sprite;
     }
 }
 
@@ -139,9 +150,17 @@ void ModelPreview::SetVirtualCanvasSize(int width, int height) {
 void ModelPreview::InitializePreview(wxString img,int brightness)
 {
     if (image) {
+        if (cache) {
+            cache->AddTextureToDelete(image->getID());
+            image->setID(0);
+        }
         delete image;
+        image = nullptr;
     }
-    image = NULL;
+    if (sprite) {
+        delete sprite;
+        sprite = nullptr;
+    }
     mBackgroundImage = img;
     mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
     mBackgroundBrightness = brightness;
@@ -176,9 +195,17 @@ void ModelPreview::SetbackgroundImage(wxString img)
 {
     if (img != mBackgroundImage) {
         if (image) {
+            if (cache) {
+                cache->AddTextureToDelete(image->getID());
+                image->setID(0);
+            }
             delete image;
+            image = nullptr;
         }
-        image = nullptr;
+        if (sprite) {
+            delete sprite;
+            sprite = nullptr;
+        }
         mBackgroundImage = img;
         mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
     }
@@ -283,14 +310,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         int i = mBackgroundBrightness * 255 / 100;
         va.alpha = i;
         DrawGLUtils::Draw(va, GL_TRIANGLES, 0);
-        
-        /*
-        if (mBackgroundBrightness < 100) {
-            int b = (100 - mBackgroundBrightness) * 255;
-            b /= 100;
-            DrawGLUtils::DrawFillRectangle(xlBLACK, b, 0, 0, virtualWidth, virtualHeight);
-        }
-         */
     }
     return true;
 }

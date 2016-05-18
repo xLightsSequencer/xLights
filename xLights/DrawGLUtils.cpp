@@ -14,6 +14,7 @@
 #include "osxMacUtils.h"
 #include <wx/graphics.h>
 #include <wx/dcgraph.h>
+#include "Image_Loader.h"
 
 #include <map>
 #include "Image.h"
@@ -46,6 +47,35 @@ void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
     }
 }
 
+DrawGLUtils::xlGLCacheInfo::xlGLCacheInfo() {
+}
+DrawGLUtils::xlGLCacheInfo::~xlGLCacheInfo() {
+    if (!deleteTextures.empty()) {
+        glDeleteTextures(deleteTextures.size(), &deleteTextures[0]);
+        deleteTextures.clear();
+    }
+    for (auto it = textures.begin(); it != textures.end(); it++) {
+        glDeleteTextures(1, &it->second);
+    }
+}
+
+GLuint DrawGLUtils::xlGLCacheInfo::GetTextureId(int i) {
+    GLuint id = textures[i];
+    if (id == 0) {
+        glGenTextures(1, &id);
+        textures[i] = id;
+    }
+    return id;
+}
+bool DrawGLUtils::xlGLCacheInfo::HasTextureId(int i) {
+    return textures.find(i) != textures.end();
+}
+void DrawGLUtils::xlGLCacheInfo::SetCurrent() {
+    if (!deleteTextures.empty()) {
+        glDeleteTextures(deleteTextures.size(), &deleteTextures[0]);
+        deleteTextures.clear();
+    }
+}
 
 class OpenGL15Cache : public DrawGLUtils::xlGLCacheInfo {
 public:
@@ -56,8 +86,6 @@ public:
     };
     virtual ~OpenGL15Cache() {
     };
-    virtual void SetCurrent() override {
-    }
 
     virtual void addVertex(float x, float y, const xlColor &c) override {
         data.PreAlloc(1);
@@ -586,6 +614,11 @@ void DrawGLUtils::UpdateTexturePixel(GLuint texture, double x, double y, xlColor
     }
 }
 
+static int TEXTURE_IDX = 1;
+int DrawGLUtils::NextTextureIdx() {
+    TEXTURE_IDX++;
+    return TEXTURE_IDX;
+}
 
 class FontInfoStruct {
 public:
@@ -617,10 +650,10 @@ public:
 
 class FontTexture {
 public:
-    FontTexture() { id = 0;};
+    FontTexture() { fontIdx = DrawGLUtils::NextTextureIdx();};
     ~FontTexture() {};
 
-    bool Valid() { return id != 0;}
+    bool Valid() { return currentCache->HasTextureId(fontIdx);}
     
     bool Create(int size) {
         switch (size) {
@@ -668,8 +701,11 @@ public:
                 }
             }
         }
-        image.load(cimg);
-        id = image.getID();
+        
+        bool scaledW, scaledH, mAlpha;
+        int width, height;
+        GLuint id = loadImage(&cimg, width, height, textureWidth, textureHeight, scaledW, scaledH, mAlpha);
+        currentCache->SetTextureId(fontIdx, id);
     }
     void ForceCreate(int size) {
         wxString faceName = "Gil Sans";
@@ -846,7 +882,7 @@ public:
     }
     void Populate(float x, float yBase, const wxString &text, float factor, DrawGLUtils::xlVertexTextureAccumulator &va) {
         va.PreAlloc(6 * text.Length());
-        va.id = id;
+        va.id = currentCache->GetTextureId(fontIdx);
         //DrawGLUtils::DrawLine(xlBLUE, 255, x, yBase, x+3, yBase, 1);
         //DrawGLUtils::DrawLine(xlBLUE, 255, x, yBase - (float(maxH) + 2) / factor, x+3, yBase - (float(maxH) + 2) / factor, 1);
         for (int idx = 0; idx < text.Length(); idx++) {
@@ -869,7 +905,7 @@ public:
                 
                 float x2 = x + float(widths[ch - ' ']) / factor;
                 
-                float ty2 = image.textureHeight - 3 - (line * (maxH + 5));
+                float ty2 = textureHeight - 3 - (line * (maxH + 5));
                 float ty = ty2 - maxH;
                 
                 float y = yBase;
@@ -880,18 +916,18 @@ public:
                 }
                  */
                 
-                tx /= image.textureWidth;
-                tx2 /= image.textureWidth;
+                tx /= textureWidth;
+                tx2 /= textureWidth;
                 
-                ty2 /= image.textureHeight;
-                ty /= image.textureHeight;
+                ty2 /= textureHeight;
+                ty /= textureHeight;
                 
                 //samples need to be from the MIDDLE of the pixel
-                ty -= 0.5 / image.textureHeight;
-                ty2 += 0.75 / image.textureHeight;
+                ty -= 0.5 / textureHeight;
+                ty2 += 0.75 / textureHeight;
                 
-                tx += 0.5 / image.textureWidth;
-                tx2 += 1.0 / image.textureWidth;
+                tx += 0.5 / textureWidth;
+                tx2 += 1.0 / textureWidth;
                 
                 y += 0.25/factor;
                 y2 -= 0.75/factor;
@@ -928,7 +964,7 @@ public:
     void Draw(float x, float yBase, const wxString &text, float factor) {
         LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
         LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-        DrawGLUtils::xlVertexTextureAccumulator va(id);
+        DrawGLUtils::xlVertexTextureAccumulator va(currentCache->GetTextureId(fontIdx));
         Populate(x, yBase, text, factor, va);
         DrawGLUtils::Draw(va, GL_TRIANGLES, GL_BLEND);
     }
@@ -944,10 +980,11 @@ public:
         return w / factor;
     }
     
-    Image image;
     float maxD, maxW, maxH;
     std::vector<float> widths;
-    GLuint id;
+    int fontIdx;
+
+    int textureWidth, textureHeight;
 };
 static std::map<unsigned int, FontTexture> FONTS;
 
