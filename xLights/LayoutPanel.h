@@ -23,6 +23,8 @@ class wxMouseEvent;
 class wxPropertyGrid;
 class wxPropertyGridEvent;
 class NewModelBitmapButton;
+class wxImageFileProperty;
+
 
 #include <vector>
 
@@ -187,6 +189,9 @@ class LayoutPanel: public wxPanel
         ModelPreview *modelPreview;
         void UpdateModelList(bool addGroups = true);
     
+    
+    private:
+        wxImageFileProperty *backgroundProperty;
 };
 
 #endif
