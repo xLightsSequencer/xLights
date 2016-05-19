@@ -71,6 +71,10 @@ class TendrilEffect : public RenderableEffect
 					const std::string& movement, int tunemovement, int movementSpeed, int thickness,
                     float friction, float dampening,
                     float tension, int trails, int length, int xoffset, int yoffset);
+#ifdef LINUX
+        virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override { return false;}
+#endif
+
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
 		virtual bool needToAdjustSettings(const std::string &version) override;
