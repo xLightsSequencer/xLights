@@ -48,10 +48,10 @@ void SubBufferPanel::SetValue(const std::string &val) {
     Refresh();
 }
 std::string SubBufferPanel::GetValue() {
-    if (std::abs(x1) > 0.01
-        || std::abs(y1) > 0.01
-        || std::abs(100.0 - x2) < 0.01
-        || std::abs(100.0 - y2) < 0.01) {
+    if (std::abs(x1) > 0.001
+        || std::abs(y1) > 0.001
+        || std::abs(100.0 - x2) > 0.001
+        || std::abs(100.0 - y2) > 0.001) {
         return wxString::Format("%.2fx%.2fx%.2fx%.2fx", x1, y1, x2, y2).ToStdString();
     }
     return "";
