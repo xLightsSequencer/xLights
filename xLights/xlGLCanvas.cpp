@@ -153,29 +153,27 @@ void AddDebugLog(xlGLCanvas *c) {
     PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKARBPROC)wglGetProcAddress("glDebugMessageCallbackARB");
     PFNGLDEBUGMESSAGECONTROLARBPROC glDebugMessageControlARB = (PFNGLDEBUGMESSAGECONTROLARBPROC)wglGetProcAddress("glDebugMessageControlARB");
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    if (glDebugMessageCallbackARB != nullptr) {
-        logger_opengl.info("Did not find debug callback ARB, attempting 4.3");
+    if (glDebugMessageCallbackARB == nullptr) {
+        logger_opengl.debug("Did not find debug callback ARB, attempting 4.3");
         glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKARBPROC)wglGetProcAddress("glDebugMessageCallback");
         glDebugMessageControlARB = (PFNGLDEBUGMESSAGECONTROLARBPROC)wglGetProcAddress("glDebugMessageControl");
     }
+    
     if (glDebugMessageCallbackARB != nullptr) {
-        logger_opengl.info("Adding debug callback.  %X", glDebugMessageControlARB);
+        logger_opengl.debug("Adding debug callback.  %X", glDebugMessageControlARB);
         LOG_GL_ERRORV(glDebugMessageCallbackARB(DebugLog, c));
         if (glDebugMessageControlARB != nullptr) {
             GLuint unusedIds = 0;
             glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unusedIds, GL_TRUE);
         }
-    } else {
-        PFNGLDEBUGMESSAGECALLBACKAMDPROC glDebugMessageCallbackAMD = (PFNGLDEBUGMESSAGECALLBACKAMDPROC)wglGetProcAddress("glDebugMessageCallbackAMD");
-        if (glDebugMessageCallbackARB != nullptr) {
-            logger_opengl.info("Adding AMD debug callback");
-            LOG_GL_ERRORV(glDebugMessageCallbackAMD(DebugLogAMD, c));
-        } else {
-            logger_opengl.info("Cannot add debug callback");
-        }
+    }
+    PFNGLDEBUGMESSAGECALLBACKAMDPROC glDebugMessageCallbackAMD = (PFNGLDEBUGMESSAGECALLBACKAMDPROC)wglGetProcAddress("glDebugMessageCallbackAMD");
+    if (glDebugMessageCallbackARB != nullptr) {
+        logger_opengl.debug("Adding AMD debug callback");
+        LOG_GL_ERRORV(glDebugMessageCallbackAMD(DebugLogAMD, c));
     }
 }
-#else 
+#else
 void AddDebugLog(xlGLCanvas *c) {
 }
 #endif
@@ -272,24 +270,31 @@ void xlGLCanvas::CreateGLContext() {
             wxGLContextAttrs atts;
             log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
             atts.PlatformDefaults().OGLVersion(3, 3).CoreProfile();
-#if USE_DEBUG_GLCONTEXT
+#ifdef USE_DEBUG_GLCONTEXT
             if (logger_opengl.isDebugEnabled()) {
                 atts.ForwardCompatible().DebugCtx().EndList();
             }
 #endif
             atts.EndList();
+            glGetError();
             m_context = new wxGLContext(this, nullptr, &atts);
             if (!m_context->IsOK()) {
                 logger_opengl.debug("Could not create a valid CoreProfile context");
                 delete m_context;
                 m_context = nullptr;
+            } else {
+                LOG_GL_ERROR();
             }
         }
         if (m_context == nullptr) {
+            glGetError();
             m_context = new wxGLContext(this);
+            LOG_GL_ERROR();
         }
         if (!functionsLoaded) {
+            LOG_GL_ERROR();
             functionsLoaded = DrawGLUtils::LoadGLFunctions();
+            glGetError(); // likely a function not there
         }
         if (!m_context->IsOK()) {
             delete m_context;

@@ -17,8 +17,8 @@ public:
     void Stop();
     void SetFudgeFactor(int ff);
 private:
+    std::atomic<bool> _stop;
     bool _oneshot;
-    bool _stop;
     int _interval;
     int _fudgefactor;
     wxTimer* _timer;
@@ -73,11 +73,6 @@ void xLightsTimer::Notify() {
 }
 
 
-
-
-
-static wxCriticalSection critsect;
-
 xlTimerThread::xlTimerThread(int interval, bool oneshot, wxTimer* timer)
 {
     _stop = false;
@@ -88,24 +83,19 @@ xlTimerThread::xlTimerThread(int interval, bool oneshot, wxTimer* timer)
 }
 void xlTimerThread::Stop()
 {
-    critsect.Enter();
     _stop = true;
-    critsect.Leave();
 }
 wxThread::ExitCode xlTimerThread::Entry()
 {
-    critsect.Enter();
     bool stop = _stop;
     int fudgefactor = _fudgefactor;
     bool oneshot = _oneshot;
-    critsect.Leave();
     while (!stop)
     {
         wxMilliSleep(std::max(1, _interval + fudgefactor));
-        critsect.Enter();
         stop = _stop;
         fudgefactor = _fudgefactor;
-        if (!stop)
+        if (oneshot || !stop)
         {
             _timer->Notify();
         }
@@ -113,16 +103,13 @@ wxThread::ExitCode xlTimerThread::Entry()
         {
             stop = true;
         }
-        critsect.Leave();
     }
     return 0;
 }
 
 void xlTimerThread::SetFudgeFactor(int ff)
 {
-    critsect.Enter();
     _fudgefactor = ff;
-    critsect.Leave();
 }
 #else 
 xLightsTimer::xLightsTimer() {}
