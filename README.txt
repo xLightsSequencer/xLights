@@ -8,6 +8,23 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.32  May 19, 2016
+   -- bug (dkulp) Bug where subbuffer might not get written out correctly (and written out when not needed)
+   -- enh (dkulp) Optimization to not load the background image for every single mouse click on the Layout panel
+   -- bug (dkulp) Use atomics instead of crit section
+   -- bug (dkulp) Don't create the debug context by default anymore...
+   -- bug (dkulp) Better management of TextureID's - Fixes #576
+   -- bug (dkulp) Don't use the pointers for the textures
+   -- bug (dkulp) Use the standard timer on OSX, it works fine and no need to have the extra thread
+   -- enh (dkulp) Display a warning if GDI driver detected
+   -- enh (dkulp) Add the .1 log as well just incase the rolling stuff rolled the important lines
+   -- bug (dkulp) Remove some unused vars
+   -- enh (dkulp) Use non-shader method for smooth points on Intel
+   -- bug (dkulp) Fix setting transparency and black transparency
+   -- enh (keithsw) VideoReader ... more protection for possible divide by zero errors. 
+            Includes logging of any problems found.
+   -- bug (keithsw) Make logs 1MB as originally intended. These should zip to well under 50% when sent to us.
+   -- bug (chrisD) Force TendrilEffect and TextEffect on foreground thread under Linux
 2016.31  May 16, 2016
    -- bug (dkulp)   Fix for Model window not displaying
 2016.30  May 16, 2016
