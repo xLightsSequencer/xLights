@@ -300,7 +300,7 @@ void xLightsFrame::CheckForValidModels()
                                 mSequenceElements.DeleteElement(name);
                                 break;
                             case 2:
-                                ImportXLights(mSequenceElements, std::vector<Element *> {el}, true, true);
+                                ImportXLights(mSequenceElements, std::vector<Element *> {el}, wxFileName(), true, true);
                                 //relo
                                 x++;
                                 break;
@@ -982,7 +982,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
     std::string palette;
     std::string effectText = GetEffectTextFromWindows(palette);
-    for(int i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++)
+    for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++)
     {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
         if(element->GetType() == "model" || element->GetType() == "timing")
@@ -1017,7 +1017,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
     int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
     std::string effectName = EffectsPanel1->EffectChoicebook->GetPageText(EffectsPanel1->EffectChoicebook->GetSelection()).ToStdString();
 
-    for(int i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++)
+    for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++)
     {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
         if(element->GetType() == "model" || element->GetType() == "timing")

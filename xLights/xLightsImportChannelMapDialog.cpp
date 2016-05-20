@@ -12,10 +12,163 @@
 #include <wx/string.h>
 //*)
 
+xLightsImportTreeModel::xLightsImportTreeModel()
+{
+    m_root = new xLightsImportModelNode(NULL, "ROOT", "");
+}
+
+wxString xLightsImportTreeModel::GetModel(const wxDataViewItem &item) const
+{
+    xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
+    if (!node)      // happens if item.IsOk()==false
+        return wxEmptyString;
+
+    return node->_model;
+}
+
+wxString xLightsImportTreeModel::GetStrand(const wxDataViewItem &item) const
+{
+    xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
+    if (!node)      // happens if item.IsOk()==false
+        return wxEmptyString;
+
+    return node->_strand;
+}
+
+wxString xLightsImportTreeModel::GetMapping(const wxDataViewItem &item) const
+{
+    xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
+    if (!node)      // happens if item.IsOk()==false
+        return wxEmptyString;
+
+    return node->_mapping;
+}
+
+void xLightsImportTreeModel::Delete(const wxDataViewItem &item)
+{
+    xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
+    if (!node)      // happens if item.IsOk()==false
+        return;
+
+    wxDataViewItem parent(node->GetParent());
+    if (!parent.IsOk())
+    {
+        wxASSERT(node == m_root);
+
+        // don't make the control completely empty:
+        wxLogError("Cannot remove the root item!");
+        return;
+    }
+
+    // first remove the node from the parent's array of children;
+    // NOTE: xLightsImportModelNodePtrArray is only an array of _pointers_
+    //       thus removing the node from it doesn't result in freeing it
+    node->GetParent()->GetChildren().Remove(node);
+
+    // free the node
+    delete node;
+
+    // notify control
+    ItemDeleted(parent, item);
+}
+
+void xLightsImportTreeModel::GetValue(wxVariant &variant,
+    const wxDataViewItem &item, unsigned int col) const
+{
+    wxASSERT(item.IsOk());
+
+    xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
+    xLightsImportModelNode *parent = node->GetParent();
+    switch (col)
+    {
+    case 0:
+        if (parent == NULL)
+        {
+            variant = wxVariant(wxDataViewIconText("Models"));
+        }
+        else if (parent->_model == "ROOT")
+        {
+            variant = wxVariant(wxDataViewIconText(node->_model));
+        }
+        else
+        {
+            variant = wxVariant(wxDataViewIconText(node->_strand));
+        }
+        break;
+    case 1:
+        variant = wxVariant(wxDataViewIconText(node->_mapping));
+        break;
+    default:
+        wxLogError("xLightsImportTreeModel::GetValue: wrong column %d", col);
+    }
+}
+
+bool xLightsImportTreeModel::SetValue(const wxVariant &variant,
+    const wxDataViewItem &item, unsigned int col)
+{
+    wxASSERT(item.IsOk());
+
+    xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
+    if (col == 1)
+    {
+        node->_mapping = variant.GetString();
+        return true;
+    }
+    return false;
+}
+
+wxDataViewItem xLightsImportTreeModel::GetParent(const wxDataViewItem &item) const
+{
+    // the invisible root node has no parent
+    if (!item.IsOk())
+        return wxDataViewItem(0);
+
+    xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
+
+    if (node == m_root)
+        return wxDataViewItem(0);
+
+    return wxDataViewItem((void*)node->GetParent());
+}
+
+bool xLightsImportTreeModel::IsContainer(const wxDataViewItem &item) const
+{
+    // the invisble root node can have children
+    if (!item.IsOk())
+        return true;
+
+    xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
+    return node->IsContainer();
+}
+
+unsigned int xLightsImportTreeModel::GetChildren(const wxDataViewItem &parent,
+    wxDataViewItemArray &array) const
+{
+    xLightsImportModelNode *node = (xLightsImportModelNode*)parent.GetID();
+    if (!node)
+    {
+        array.Add(wxDataViewItem((void*)m_root));
+        return 1;
+    }
+
+    if (node->GetChildCount() == 0)
+    {
+        return 0;
+    }
+
+    unsigned int count = node->GetChildren().GetCount();
+    for (unsigned int pos = 0; pos < count; pos++)
+    {
+        xLightsImportModelNode *child = node->GetChildren().Item(pos);
+        array.Add(wxDataViewItem((void*)child));
+    }
+
+    return count;
+}
+
+const long xLightsImportChannelMapDialog::ID_TREELISTCTRL1 = wxNewId();
+
 //(*IdInit(xLightsImportChannelMapDialog)
-const long xLightsImportChannelMapDialog::ID_CHOICE1 = wxNewId();
-const long xLightsImportChannelMapDialog::ID_BUTTON_ADDMODEL = wxNewId();
-const long xLightsImportChannelMapDialog::ID_GRID1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON4 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON1 = wxNewId();
@@ -27,14 +180,10 @@ BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-
-#ifndef wxEVT_GRID_CELL_CHANGE
-//until CodeBlocks is updated to wxWidgets 3.x
-#define wxEVT_GRID_CELL_CHANGE wxEVT_GRID_CELL_CHANGED
-#endif
-
-xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _filename = filename;
+
 	//(*Initialize(xLightsImportChannelMapDialog)
 	wxButton* Button01;
 	wxButton* Button02;
@@ -43,24 +192,10 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent,wx
 	SetMaxSize(wxDLG_UNIT(parent,wxSize(-1,500)));
 	Sizer = new wxFlexGridSizer(0, 1, 0, 0);
 	Sizer->AddGrowableCol(0);
-	Sizer->AddGrowableRow(2);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
-	ModelsChoice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-	FlexGridSizer1->Add(ModelsChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	AddModelButton = new wxButton(this, ID_BUTTON_ADDMODEL, _("Add Model For Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADDMODEL"));
-	FlexGridSizer1->Add(AddModelButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Sizer->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Sizer->AddGrowableRow(0);
 	SizerMap = new wxFlexGridSizer(0, 1, 0, 0);
-	ChannelMapGrid = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_GRID1"));
-	ChannelMapGrid->CreateGrid(18,2);
-	ChannelMapGrid->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,440)));
-	ChannelMapGrid->EnableEditing(true);
-	ChannelMapGrid->EnableGridLines(true);
-	ChannelMapGrid->SetColLabelValue(0, _("Model"));
-	ChannelMapGrid->SetColLabelValue(1, _("Map To"));
-	ChannelMapGrid->SetDefaultCellFont( ChannelMapGrid->GetFont() );
-	ChannelMapGrid->SetDefaultCellTextColour( ChannelMapGrid->GetForegroundColour() );
-	SizerMap->Add(ChannelMapGrid, 1, wxALL|wxEXPAND, 5);
+	SizerMap->AddGrowableCol(0);
+	SizerMap->AddGrowableRow(0);
 	Sizer->Add(SizerMap, 0, wxEXPAND, 0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 5, 0, 0);
 	FlexGridSizer2->AddGrowableCol(2);
@@ -78,17 +213,32 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent,wx
 	Sizer->Fit(this);
 	Sizer->SetSizeHints(this);
 
-	Connect(ID_BUTTON_ADDMODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnAddModelButtonClick);
-	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnChannelMapGridCellLeftClick);
-	Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnChannelMapGridCellChange);
-	Connect(ID_GRID1,wxEVT_GRID_EDITOR_HIDDEN,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnChannelMapGridEditorHidden);
-	Connect(ID_GRID1,wxEVT_GRID_EDITOR_SHOWN,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnChannelMapGridEditorShown);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_OkClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnResize);
 	//*)
+
+    dataModel = new xLightsImportTreeModel();
+
+    TreeListCtrl_Mapping = new wxDataViewTreeCtrl(this, ID_TREELISTCTRL1, wxDefaultPosition, wxDefaultSize, wxDV_ROW_LINES, wxDefaultValidator);
+    TreeListCtrl_Mapping->AssociateModel(dataModel);
+    //TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT), 0, 80, wxALIGN_LEFT));
+    //TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewChoiceRenderer(_importModels, wxDATAVIEW_CELL_EDITABLE, wxALIGN_LEFT), 1, 80, wxALIGN_LEFT));
+    TreeListCtrl_Mapping->SetMinSize(wxSize(0, 300));
+    SizerMap->Add(TreeListCtrl_Mapping, 1, wxALL | wxEXPAND, 5);
+    SizerMap->Layout();
+    SetSize(500, 500);
+    Layout();
+
+    //Connect(ID_TREELISTCTRL1, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTreeListCtrlItemActivated);
+    //Connect(ID_TREELISTCTRL1, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTreeListCtrlItemActivated);
+
+    if (_filename != "")
+    {
+        SetLabel(GetLabel() + " - " + _filename.GetFullName());
+    }
 
     _dirty = false;
 }
@@ -97,6 +247,7 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 {
 	//(*Destroy(xLightsImportChannelMapDialog)
 	//*)
+    delete dataModel;
 }
 
 static wxArrayString Convert(const std::vector<std::string> arr) {
@@ -107,103 +258,54 @@ static wxArrayString Convert(const std::vector<std::string> arr) {
     return ret;
 }
 
-bool xLightsImportChannelMapDialog::Init(bool allModels) {
-    allowAddModels = allModels;
-    if (allModels) {
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
-            ModelsChoice->Append(it->first);
-        }
-    } else {
-        for (size_t i=0;i<mSequenceElements->GetElementCount();i++) {
-            if (mSequenceElements->GetElement(i)->GetType() == "model") {
-                ModelsChoice->Append(mSequenceElements->GetElement(i)->GetName());
-            }
-        }
-    }
-
-    if (ModelsChoice->GetCount() == 0)
+bool xLightsImportChannelMapDialog::Init() {
+    if (channelNames.size() == 0)
     {
         wxMessageBox("No models to import to. Add some models to the rows of the effects grid.");
         return false;
     }
 
-    wxGridCellAttr *ca = new wxGridCellAttr();
-    ca->SetKind(wxGridCellAttr::wxAttrKind::Col);
-    ca->SetReadOnly();
-    ChannelMapGrid->SetColAttr(0, ca);
-    ca = new wxGridCellAttr();
-    ca->SetKind(wxGridCellAttr::wxAttrKind::Col);
-    //ca->SetReadOnly();
-    ChannelMapGrid->SetColAttr(1, ca);
+    // load the tree
+    for (auto it = channelNames.begin(); it != channelNames.end(); it++)
+    {
+        if ((*it).find('/') != std::string::npos)
+        {
+        }
+        else
+        {
+            _importModels.push_back(*it);
+        }
+    }
 
-    int sz = ChannelMapGrid->GetColSize(0);
-    ChannelMapGrid->SetColSize(0, sz * 2.5);
-    ChannelMapGrid->SetColSize(1, sz * 2.5);
+    xLightsImportModelNode* last;
+    int ms = 0;
+    for (size_t i = 0; i<mSequenceElements->GetElementCount(); i++) {
+        if (mSequenceElements->GetElement(i)->GetType() == "model") {
+            Element* e = mSequenceElements->GetElement(i);
+            last = new xLightsImportModelNode(dataModel->GetRoot(), e->GetName(), "");
+            dataModel->GetRoot()->Insert(last, ms++);
+            Model *m = xlights->GetModel(e->GetName());
+            for (int s = 0; s < m->GetNumStrands(); s++) {
+                wxString sn = m->GetStrandName(s);
+                if ("" == sn) {
+                    sn = wxString::Format("Strand %d", s + 1);
+                }
+                last->Insert(new xLightsImportModelNode(last, e->GetName(), sn, ""), s);
+            }
+        }
+    }
 
-    ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
-    ChannelMapGrid->SetRowLabelSize(0);
-    wxGridCellChoiceEditor *editor = new wxGridCellChoiceEditor(Convert(channelNames));
-    ChannelMapGrid->SetDefaultEditor(editor);
     return true;
 }
 
-void xLightsImportChannelMapDialog::AddModel(Model &cls) {
-    ChannelMapGrid->BeginBatch();
-    int i = ChannelMapGrid->GetNumberRows();
-    ChannelMapGrid->AppendRows(1);
-    ChannelMapGrid->SetCellValue(i, 0, cls.name);
-    i++;
-    ChannelMapGrid->EndBatch();
-}
-
-void xLightsImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
-{
-    std::string name = ModelsChoice->GetStringSelection().ToStdString();
-    if (name == "") {
-        return;
-    }
-    ModelsChoice->Delete(ModelsChoice->GetSelection());
-    Element * model = nullptr;
-    for (size_t i=0;i<mSequenceElements->GetElementCount();i++) {
-        if (mSequenceElements->GetElement(i)->GetType() == "model"
-            && name == mSequenceElements->GetElement(i)->GetName()) {
-            model = mSequenceElements->GetElement(i);
-            break;
-        }
-    }
-    if (model == nullptr && allowAddModels) {
-        model = mSequenceElements->AddElement(name, "model", false, false, false, false);
-        model->AddEffectLayer();
-    }
-    if (model == nullptr) {
-        return;
-    }
-    modelNames.push_back(name);
-    Model *cls = xlights->GetModel(name);
-    AddModel(*cls);
-    Refresh();
-}
-
-void xLightsImportChannelMapDialog::OnChannelMapGridCellChange(wxGridEvent& event)
-{
-    _dirty = true;
-    int row = event.GetRow();
-    int col = event.GetCol();
-    std::string s = ChannelMapGrid->GetCellValue(row, col).ToStdString();
-    ChannelMapGrid->Refresh();
-}
-
-void xLightsImportChannelMapDialog::OnChannelMapGridEditorShown(wxGridEvent& event)
-{
-    ModelsChoice->Enable(false);
-    AddModelButton->Enable(false);
-}
-
-void xLightsImportChannelMapDialog::OnChannelMapGridEditorHidden(wxGridEvent& event)
-{
-    ModelsChoice->Enable(true);
-    AddModelButton->Enable(true);
-}
+//void xLightsImportChannelMapDialog::OnChannelMapGridCellChange(wxGridEvent& event)
+//{
+//    _dirty = true;
+//    int row = event.GetRow();
+//    int col = event.GetCol();
+//    std::string s = ChannelMapGrid->GetCellValue(row, col).ToStdString();
+//    ChannelMapGrid->Refresh();
+//}
 
 wxString xLightsImportChannelMapDialog::FindTab(wxString &line) {
     for (size_t x = 0; x < line.size(); x++) {
@@ -215,8 +317,48 @@ wxString xLightsImportChannelMapDialog::FindTab(wxString &line) {
     }
     return line;
 }
+
+int CountTabs(wxString& line)
+{
+    int count = 0;
+    for (size_t x = 0; x < line.size(); x++) {
+        if (line[x] == '\t') {
+            count++;
+        }
+    }
+    return count;
+}
+
+xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::string model, std::string strand)
+{
+    for (size_t i = 0; i < dataModel->GetRoot()->GetChildCount(); i++)
+    {
+        xLightsImportModelNode* m = dataModel->GetRoot()->GetNthChild(i);
+        if (m->_model.ToStdString() == model)
+        {
+            if (strand == "")
+            {
+                return m;
+            }
+            else
+            {
+                for (size_t j = 0; j < m->GetChildCount(); j++)
+                {
+                    xLightsImportModelNode* s = m->GetNthChild(j);
+                    if (s->_strand.ToStdString() == strand)
+                    {
+                        return s;
+                    }
+                }
+            }
+        }
+    }
+    return NULL;
+}
+
 void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 {
+    bool strandwarning = false;
     if (_dirty)
     {
         if (wxMessageBox("Are you sure you want to lose your changes?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO)
@@ -227,10 +369,6 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
     wxFileDialog dlg(this);
     if (dlg.ShowModal() == wxID_OK) {
-        for (size_t x = 0; x <  modelNames.size(); x++) {
-            ModelsChoice->Append(modelNames[x]);
-        }
-        ChannelMapGrid->BeginBatch();
         wxFileInputStream input(dlg.GetPath());
         wxTextInputStream text(input, "\t");
         text.ReadLine(); // map by strand ... ignore this
@@ -238,48 +376,66 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
         modelNames.clear();
         for (int x = 0; x < count; x++) {
             std::string mn = text.ReadLine().ToStdString();
-            int idx = ModelsChoice->FindString(mn);
-            if (idx == wxNOT_FOUND) {
+            if (TreeContainsModel(mn) == NULL) {
                 wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model.", "", wxICON_WARNING | wxOK , this);
             } else {
-                ModelsChoice->Delete(idx);
                 modelNames.push_back(mn);
             }
         }
         wxString line = text.ReadLine();
-        int r = 0;
         while (line != "") {
+            wxString model;
+            wxString strand;
+            wxString node;
+            wxString mapping;
+            xlColor color;
 
-            wxString model = FindTab(line);
-            wxString strand = FindTab(line);
-            wxString node = FindTab(line);
-            wxString mapping = FindTab(line);
-            xlColor color(FindTab(line));
-
-            Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
-            if (modelEl == nullptr && allowAddModels) {
-                modelEl = mSequenceElements->AddElement(model.ToStdString(), "model", false, false, false, false);
-                modelEl->AddEffectLayer();
+            if (CountTabs(line) == 4)
+            {
+                model = FindTab(line);
+                strand = FindTab(line);
+                node = FindTab(line);
+                mapping = FindTab(line);
+                color = xlColor(FindTab(line));
             }
+            else
+            {
+                model = FindTab(line);
+                strand = FindTab(line);
+                mapping = FindTab(line);
+            }
+            Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
+            //if (modelEl == nullptr) {
+            //    modelEl = mSequenceElements->AddElement(model.ToStdString(), "model", false, false, false, false);
+            //    modelEl->AddEffectLayer();
+            //}
             if (modelEl != nullptr) {
-                while (model != ChannelMapGrid->GetCellValue(r, 0)
-                       && r < ChannelMapGrid->GetNumberRows()) {
-                    r++;
-                }
+                xLightsImportModelNode* mi = TreeContainsModel(model.ToStdString());
+                xLightsImportModelNode* msi = TreeContainsModel(model.ToStdString(), strand.ToStdString());
 
-                if (model != ChannelMapGrid->GetCellValue(r, 0)
-                    || strand != ChannelMapGrid->GetCellValue(r, 1)
-                    || node !=  ChannelMapGrid->GetCellValue(r, 2)) {
-                    wxMessageBox(model + "/"+strand+"/"+node+ " not found.  Has the models changed?", "", wxICON_WARNING | wxOK , this);
-                } else {
-                    ChannelMapGrid->SetCellValue(r, 3, mapping);
-                    ChannelMapGrid->SetCellBackgroundColour(r, 4, color.asWxColor());
+                if (mi == NULL || (msi == NULL && strand != ""))
+                {
+                    if (!strandwarning)
+                    {
+                        if (wxMessageBox(model + "/" + strand + " not found.  Has the models changed? Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxID_NO)
+                        {
+                            strandwarning = true;
+                        }
+                    }
+                } else 
+                {
+                    if (msi != NULL)
+                    {
+                        msi->_mapping = mapping;
+                    }
+                    else
+                    {
+                        mi->_mapping = mapping;
+                    }
                 }
-                r++;
             }
             line = text.ReadLine();
         }
-        ChannelMapGrid->EndBatch();
         _dirty = false;
     }
 }
@@ -291,16 +447,29 @@ void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
         wxFileOutputStream output(dlg.GetPath());
         wxTextOutputStream text(output);
         text.WriteString("false\n");
-        text.WriteString(wxString::Format("%d\n", modelNames.size()));
-        for (size_t x = 0; x <  modelNames.size(); x++) {
-            text.WriteString(modelNames[x] + "\n");
+        int modelcount = dataModel->GetRoot()->GetChildCount();
+        text.WriteString(wxString::Format("%d\n", modelcount));
+        for (size_t i = 0; i < dataModel->GetRoot()->GetChildCount(); i++)
+        {
+            xLightsImportModelNode* m = dataModel->GetRoot()->GetNthChild(i);
+            text.WriteString(m->_model + "\n");
         }
-        for (int x = 0; x < ChannelMapGrid->GetNumberRows(); x++) {
-            wxColor wxc = ChannelMapGrid->GetCellBackgroundColour(x, 4);
-            xlColor c(wxc);
-            text.WriteString(ChannelMapGrid->GetCellValue(x, 0)
-                             + "\t" + ChannelMapGrid->GetCellValue(x, 1)
-                             + "\n");
+        for (size_t i = 0; i < dataModel->GetRoot()->GetChildCount(); i++)
+        {
+            xLightsImportModelNode* m = dataModel->GetRoot()->GetNthChild(i);
+            wxString mn = m->_model;
+            text.WriteString(mn
+                + "\t" +
+                +"\t" + m->_mapping
+                + "\n");
+            for (size_t j = 0; j < m->GetChildCount(); j++)
+            {
+                xLightsImportModelNode* s = m->GetNthChild(j);
+                text.WriteString(mn
+                    + "\t" + s->_strand
+                    + "\t" + s->_mapping
+                    + "\n");
+            }
         }
         _dirty = false;
     }
@@ -312,26 +481,24 @@ void xLightsImportChannelMapDialog::OnResize(wxSizeEvent& event)
     s.SetWidth(s.GetWidth()-15);
     s.SetHeight(s.GetHeight()-75);
 
-    wxSize s1 = FlexGridSizer1->GetSize();
     wxSize s2 = FlexGridSizer2->GetSize();
 
-    s.SetHeight(s.GetHeight()-s1.GetHeight()-s2.GetHeight());
+    s.SetHeight(s.GetHeight()-s2.GetHeight());
 
-    ChannelMapGrid->SetSize(s);
-    ChannelMapGrid->SetMinSize(s);
-    ChannelMapGrid->SetMaxSize(s);
+    TreeListCtrl_Mapping->SetSize(s);
+    TreeListCtrl_Mapping->SetMinSize(s);
+    TreeListCtrl_Mapping->SetMaxSize(s);
 
-    ChannelMapGrid->FitInside();
-    ChannelMapGrid->Refresh();
+    TreeListCtrl_Mapping->FitInside();
+    TreeListCtrl_Mapping->Refresh();
     Layout();
 }
 
-void xLightsImportChannelMapDialog::OnChannelMapGridCellLeftClick(wxGridEvent& event)
-{
-    //ChannelMapGrid->SetCellEditor(event.GetRow(), event.GetCol(), ChannelMapGrid->GetDefaultEditor());
-    ChannelMapGrid->SetGridCursor(event.GetRow(), event.GetCol());
-    event.Skip();
-}
+//void xLightsImportChannelMapDialog::OnChannelMapGridCellLeftClick(wxGridEvent& event)
+//{
+//    ChannelMapGrid->SetGridCursor(event.GetRow(), event.GetCol());
+//    event.Skip();
+//}
 
 void xLightsImportChannelMapDialog::OnButton_OkClick(wxCommandEvent& event)
 {

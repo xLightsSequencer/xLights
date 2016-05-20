@@ -739,15 +739,15 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
         Element *el = se.GetElement(e);
         elements.push_back(el);
     }
-    ImportXLights(se, elements);
+    ImportXLights(se, elements, filename);
 
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
-void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements,
+void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
                                  bool allowAllModels, bool clearSrc) {
     std::map<std::string, EffectLayer *> layerMap;
-    xLightsImportChannelMapDialog dlg(this);
+    xLightsImportChannelMapDialog dlg(this, filename);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<EffectLayer *> mapped;
@@ -761,48 +761,59 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         if (hasEffects) {
             dlg.channelNames.push_back(el->GetName());
         }
+        for (int s = 0; s < el->getStrandLayerCount(); s++) {
+            StrandLayer *sl = el->GetStrandLayer(s, true);
+            std::string strandName = sl->GetName();
+            if (strandName == "") {
+                strandName = wxString::Format("Strand %d", (s + 1));
+            }
+            if (sl->GetEffectCount() > 0) {
+                std::string name = sl->GetName();
+                dlg.channelNames.push_back(el->GetName() + "/" + strandName);
+                layerMap[el->GetName() + "/" + strandName] = sl;
+            }
+        }
     }
 
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
     dlg.channelNames.insert(dlg.channelNames.begin(), "");
 
-    bool ok = dlg.Init(allowAllModels);
+    bool ok = dlg.Init();
 
     if (!ok || dlg.ShowModal() != wxID_OK) {
         return;
     }
     int row = 0;
-    for (size_t m = 0; m < dlg.modelNames.size(); m++) {
-        std::string modelName = dlg.modelNames[m];
+    for (int i = 0; i < dlg.dataModel->GetRoot()->GetChildCount(); i++)
+    {
+        xLightsImportModelNode* m = dlg.dataModel->GetRoot()->GetNthChild(i);
+        std::string modelName = m->_model;
         Model *mc = GetModel(modelName);
         Element * model = nullptr;
-        for (size_t i=0; i<mSequenceElements.GetElementCount();i++) {
-            if (mSequenceElements.GetElement(i)->GetType() == "model"
-                && modelName == mSequenceElements.GetElement(i)->GetName()) {
-                model = mSequenceElements.GetElement(i);
+        for (size_t x=0; x<mSequenceElements.GetElementCount();x++) {
+            if (mSequenceElements.GetElement(x)->GetType() == "model"
+                && modelName == mSequenceElements.GetElement(x)->GetName()) {
+                model = mSequenceElements.GetElement(x);
+                break;
             }
         }
-        if (dlg.ChannelMapGrid->GetCellValue(row, 1) != "") {
-            MapXLightsEffects(model, dlg.ChannelMapGrid->GetCellValue(row, 1).ToStdString(), se, layerMap, mapped);
-        }
+        if (m->_mapping != "") {
+            MapXLightsEffects(model, m->_mapping.ToStdString(), se, layerMap, mapped);        }
         row++;
 
-        for (int str = 0; str < mc->GetNumStrands(); str++) {
+        int str = 0;
+        for (int j = 0; j < m->GetChildCount(); j++)
+        {
+            xLightsImportModelNode* s = m->GetNthChild(j);
             StrandLayer *sl = model->GetStrandLayer(str, true);
 
             if( sl != nullptr ) {
-                if ("" != dlg.ChannelMapGrid->GetCellValue(row, 1)) {
-                    MapXLightsStrandEffects(sl, dlg.ChannelMapGrid->GetCellValue(row, 1).ToStdString(), layerMap, se, mapped);
+                if ("" != s->_strand) {
+                    MapXLightsStrandEffects(sl, s->_strand.ToStdString(), layerMap, se, mapped);
                 }
                 row++;
-                for (int n = 0; n < mc->GetStrandLength(str); n++) {
-                    if ("" != dlg.ChannelMapGrid->GetCellValue(row, 1)) {
-                        NodeLayer *nl = sl->GetNodeLayer(n, true);
-                        MapXLightsStrandEffects(nl, dlg.ChannelMapGrid->GetCellValue(row, 1).ToStdString(), layerMap, se, mapped);
-                    }
-                    row++;
-                }
             }
+            str++;
         }
     }
     if (clearSrc) {
@@ -810,7 +821,6 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             (*it)->RemoveAllEffects();
         }
     }
-
 }
 
 void MapToStrandName(const std::string &name, std::vector<std::string> &strands) {

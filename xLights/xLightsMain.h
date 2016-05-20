@@ -380,7 +380,7 @@ public:
     wxString GetThreadStatusReport();
 	void SetAudioControls();
     void ImportXLights(const wxFileName &filename);
-    void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements,
+    void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
         bool allowAllModels = false, bool clearSrc = false);
     void ImportVix(const wxFileName &filename);
     void ImportHLS(const wxFileName &filename);
