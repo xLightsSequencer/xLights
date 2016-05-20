@@ -117,7 +117,7 @@ class wxDebugReport;
 //#define PAPAGAYOTAB 3
 #define NEWSEQUENCER 3
 
-#define FixedPages 5
+#define FixedPages 4
 
 #define TEXT_ENTRY_TIMING           0
 #define TEXT_ENTRY_EFFECT           1
