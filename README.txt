@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)   Fix node layout for custom models. Fixes #574.
 2016.32  May 19, 2016
    -- bug (dkulp) Bug where subbuffer might not get written out correctly (and written out when not needed)
    -- enh (dkulp) Optimization to not load the background image for every single mouse click on the Layout panel
@@ -21,7 +22,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Remove some unused vars
    -- enh (dkulp) Use non-shader method for smooth points on Intel
    -- bug (dkulp) Fix setting transparency and black transparency
-   -- enh (keithsw) VideoReader ... more protection for possible divide by zero errors. 
+   -- enh (keithsw) VideoReader ... more protection for possible divide by zero errors.
             Includes logging of any problems found.
    -- bug (keithsw) Make logs 1MB as originally intended. These should zip to well under 50% when sent to us.
    -- bug (chrisD) Force TendrilEffect and TextEffect on foreground thread under Linux

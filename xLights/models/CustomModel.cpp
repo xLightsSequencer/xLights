@@ -226,3 +226,55 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
 
     SetBufferSize(height,width);
 }
+
+std::string CustomModel::ChannelLayoutHtml() {
+    size_t NodeCount=GetNodeCount();
+    size_t i,idx;
+    int n,x,y,s;
+    wxString bgcolor;
+    std::vector<int> chmap;
+    chmap.resize(BufferHt * BufferWi,0);
+    std::string direction="n/a";
+
+    std::string html = "<html><body><table border=0>";
+    html+="<tr><td>Name:</td><td>"+name+"</td></tr>";
+    html+="<tr><td>Display As:</td><td>"+DisplayAs+"</td></tr>";
+    html+="<tr><td>String Type:</td><td>"+StringType+"</td></tr>";
+    html+="<tr><td>Start Corner:</td><td>"+direction+"</td></tr>";
+    html+=wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>",NodeCount);
+    html+=wxString::Format("<tr><td>Height:</td><td>%d</td></tr>",BufferHt);
+    html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
+
+    int Ibufx,Ibufy;
+
+    std::string data = GetCustomData();
+    if (data == "") {
+            html+="<tr><td>No custom data</td></tr>";
+    }
+
+    wxArrayString cols;
+    wxArrayString rows=wxSplit(data, ';');
+    for(size_t row=0; row < rows.size(); row++)
+    {
+        html+="<tr>";
+        cols=wxSplit(rows[row],',');
+        for(size_t col=0; col < cols.size(); col++)
+        {
+            wxString value=cols[col];
+            if (!value.IsEmpty() && value != "0")
+            {
+                bgcolor="#ADD8E6"; //"#90EE90"
+                html+=wxString::Format("<td bgcolor='"+bgcolor+"'>n%s</td>",value);
+            }
+            else
+            {
+                html+="<td>&nbsp&nbsp&nbsp</td>";
+            }
+        }
+        html+="</tr>";
+    }
+    html+="</table></body></html>";
+    return html;
+}
+
+

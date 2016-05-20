@@ -27,6 +27,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         long GetCustomLightness() const;
         void SetCustomLightness(long lightness);
 
+        virtual std::string ChannelLayoutHtml();
+
     protected:
         virtual void InitModel() override;
         virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;

@@ -28,15 +28,15 @@ public:
     Model(const ModelManager &manger);
     virtual ~Model();
 
-    
+
     std::string name;
     xlColor customColor;
     DimmingCurve *modelDimmingCurve;
-    
+
     static void ParseFaceInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &faceInfo);
     static void WriteFaceInfo(wxXmlNode *fiNode, const std::map<std::string, std::map<std::string, std::string> > &faceInfo);
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
-    
+
     virtual const std::vector<std::string> &GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
     virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const;
     virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
@@ -45,9 +45,9 @@ public:
     const ModelManager &GetModelManager() const {
         return modelManager;
     }
-    
+
     static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
-    
+
     virtual bool StrandsZigZagOnString() const { return false;};
     int GetDefaultBufferWi() const {return BufferWi;}
     int GetDefaultBufferHt() const {return BufferHt;}
@@ -59,7 +59,7 @@ public:
     virtual void OnPropertyGridChanging(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
     /**
      * Returns a combination of:
-     *     0x0001  -  Refresh displays 
+     *     0x0001  -  Refresh displays
      *     0x0002  -  Mark settings as "dirty"/"changed"
      *     0x0004  -  Rebuild the property grid
      *     0x0008  -  Rebuild the model list
@@ -73,32 +73,32 @@ protected:
                         int &bufferWi, int &bufferHi) const;
     void AdjustForTransform(const std::string &transform,
                             int &bufferWi, int &bufferHi) const;
-    
+
     int BufferHt,BufferWi;  // size of the default buffer
     std::vector<NodeBaseClassPtr> Nodes;
 
     const ModelManager &modelManager;
-    
+
     NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder);
-    
-    
+
+
     virtual void InitModel();
     virtual int CalcCannelsPerString();
     virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
 
-    
+
     void SetBufferSize(int NewHt, int NewWi);
     void SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::string &rgbOrder);
     void CopyBufCoord2ScreenCoord();
-    
+
     void SetLineCoord();
     std::string GetNextName();
-    
+
     int pixelStyle;  //0 - default, 1 - smooth, 2 - circle
     int pixelSize = 2;
     int transparency = 0;
     int blackTransparency = 0;
-    
+
     int StrobeRate;      // 0=no strobing
     bool zeroBased;
     bool isMyDisplay;
@@ -117,16 +117,16 @@ protected:
     bool isBotToTop;
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame, Candy Cane
-    
+
     unsigned long changeCount;
 public:
     void IncrementChangeCount() { ++changeCount;};
     unsigned long GetChangeCount() const { return changeCount; }
-    
+
     std::string rgbOrder;
     bool SingleNode;     // true for dumb strings and single channel strings
     bool SingleChannel;  // true for traditional single-color strings
-    
+
     bool MyDisplay;
     bool Selected=false;
     bool GroupSelected=false;
@@ -151,9 +151,9 @@ public:
     int GetNumberFromChannelString(const std::string &sc, bool &valid) const;
     void DisplayModelOnWindow(ModelPreview* preview, const xlColor *color =  NULL, bool allowSelected = true);
     void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
-    
+
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
-    
+
     bool HitTest(ModelPreview* preview,int x,int y);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
     void SetMinMaxModelScreenCoordinates(ModelPreview* preview);
@@ -163,19 +163,19 @@ public:
     int NodesPerString();
     wxCursor CheckIfOverHandles(int &handle, wxCoord x,wxCoord y);
     wxCursor InitializeLocation(int &handle, wxCoord x,wxCoord y);
-    
+
     int NodeStartChannel(size_t nodenum) const;
     const std::string &NodeType(size_t nodenum) const;
     virtual int MapToNodeIndex(int strand, int node) const;
     void SetModelStartChan(const std::string &start_channel);
     int ChannelStringToNumber(std::string channel);
-    
+
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
     xlColor GetNodeColor(size_t nodenum) const;
     wxChar GetChannelColorLetter(wxByte chidx);
-    
-    std::string ChannelLayoutHtml();
+
+    virtual std::string ChannelLayoutHtml();
     //    int FindChannelAt(int x, int y);
     //    wxSize GetChannelCoords(std::vector<std::vector<int>>& chxy, bool shrink); //for pgo RenderFaces
     bool IsCustom(void);
@@ -184,26 +184,26 @@ public:
     //    int FindChannelAtXY(int x, int y, const wxString& model);
     std::string GetNodeXY(const std::string& nodenumstr);
     std::string GetNodeXY(int nodeinx);
-    
+
     void GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts);
-    
+
     void SetTop(ModelPreview* preview,int y);
     void SetBottom(ModelPreview* preview,int y);
     void SetLeft(ModelPreview* preview,int x);
     void SetRight(ModelPreview* preview,int x);
     void SetHcenterOffset(float offset);
     void SetVcenterOffset(float offset);
-    
+
     int GetTop(ModelPreview* preview);
     int GetBottom(ModelPreview* preview);
     int GetLeft(ModelPreview* preview);
     int GetRight(ModelPreview* preview);
     float GetHcenterOffset();
     float GetVcenterOffset();
-    
+
     bool GetIsLtoR() const {return IsLtoR;}
     bool GetIsBtoT() const {return isBotToTop;}
-    
+
     virtual int GetStrandLength(int strand) const;
 
     virtual int GetNumStrands() const;
@@ -251,7 +251,7 @@ public:
         return GetNodeChannelCount(StrType) == 1;
     }
     static int GetNodeChannelCount(const std::string & nodeType);
-    
+
 };
 
 template <class ScreenLocation>
