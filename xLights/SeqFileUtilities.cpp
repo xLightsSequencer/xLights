@@ -754,23 +754,26 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
 
     for (auto it = elements.begin(); it != elements.end(); it++) {
         Element *el = *it;
-        bool hasEffects = false;
-        for (int l = 0; l < el->GetEffectLayerCount(); l++) {
-            hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
-        }
-        if (hasEffects) {
-            dlg.channelNames.push_back(el->GetName());
-        }
-        for (int s = 0; s < el->getStrandLayerCount(); s++) {
-            StrandLayer *sl = el->GetStrandLayer(s, true);
-            std::string strandName = sl->GetName();
-            if (strandName == "") {
-                strandName = wxString::Format("Strand %d", (s + 1));
+        if (el->GetType() == "model")
+        {
+            bool hasEffects = false;
+            for (int l = 0; l < el->GetEffectLayerCount(); l++) {
+                hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
             }
-            if (sl->GetEffectCount() > 0) {
-                std::string name = sl->GetName();
-                dlg.channelNames.push_back(el->GetName() + "/" + strandName);
-                layerMap[el->GetName() + "/" + strandName] = sl;
+            if (hasEffects) {
+                dlg.channelNames.push_back(el->GetName());
+            }
+            for (int s = 0; s < el->getStrandLayerCount(); s++) {
+                StrandLayer *sl = el->GetStrandLayer(s, true);
+                std::string strandName = sl->GetName();
+                if (strandName == "") {
+                    strandName = wxString::Format("Strand %d", (s + 1));
+                }
+                if (sl->GetEffectCount() > 0) {
+                    std::string name = sl->GetName();
+                    dlg.channelNames.push_back(el->GetName() + "/" + strandName);
+                    layerMap[el->GetName() + "/" + strandName] = sl;
+                }
             }
         }
     }
