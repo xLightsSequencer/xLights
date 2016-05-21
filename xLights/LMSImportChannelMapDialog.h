@@ -2,20 +2,22 @@
 #define LMSIMPORTCHANNELMAPDIALOG_H
 
 //(*Headers(LMSImportChannelMapDialog)
-#include <wx/grid.h>
-#include <wx/spinctrl.h>
-#include <wx/checkbox.h>
-#include <wx/dialog.h>
 #include <wx/sizer.h>
-#include <wx/button.h>
-#include <wx/panel.h>
 #include <wx/stattext.h>
+#include <wx/checkbox.h>
+#include <wx/spinctrl.h>
+#include <wx/panel.h>
+#include <wx/grid.h>
 #include <wx/choice.h>
+#include <wx/button.h>
+#include <wx/dialog.h>
 //*)
 
 #include <map>
 #include <vector>
 #include "Color.h"
+
+#include <wx/filename.h>
 
 class SequenceElements;
 class xLightsFrame;
@@ -23,24 +25,28 @@ class Model;
 
 class LMSImportChannelMapDialog: public wxDialog
 {
-	public:
+        wxFileName _filename;
+        bool _dirty;
+    public:
    
-		LMSImportChannelMapDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		LMSImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~LMSImportChannelMapDialog();
     
         void Init(bool allModels = false);
 
 		//(*Declarations(LMSImportChannelMapDialog)
-		wxFlexGridSizer* SizerMap;
-		wxFlexGridSizer* FlexGridSizer1;
-		wxFlexGridSizer* FlexGridSizer2;
 		wxSpinCtrl* TimeAdjustSpinCtrl;
-		wxCheckBox* MapByStrand;
-		wxFlexGridSizer* Sizer;
-		wxButton* AddModelButton;
+		wxButton* Button_Ok;
+		wxGrid* ChannelMapGrid;
 		wxChoice* ModelsChoice;
 		wxPanel* TimeAdjustPanel;
-		wxGrid* ChannelMapGrid;
+		wxFlexGridSizer* Sizer;
+		wxFlexGridSizer* FlexGridSizer2;
+		wxButton* Button_Cancel;
+		wxCheckBox* MapByStrand;
+		wxFlexGridSizer* FlexGridSizer1;
+		wxFlexGridSizer* SizerMap;
+		wxButton* AddModelButton;
 		//*)
 
         SequenceElements *mSequenceElements;
@@ -59,6 +65,8 @@ class LMSImportChannelMapDialog: public wxDialog
 		static const long ID_PANEL1;
 		static const long ID_CHECKBOX1;
 		static const long ID_GRID1;
+		static const long ID_BUTTON3;
+		static const long ID_BUTTON4;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -79,7 +87,9 @@ class LMSImportChannelMapDialog: public wxDialog
 		void LoadMapping(wxCommandEvent& event);
 		void SaveMapping(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
-		//*)
+        void OnButton_OkClick(wxCommandEvent& event);
+        void OnButton_CancelClick(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

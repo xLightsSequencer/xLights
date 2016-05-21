@@ -5,10 +5,11 @@
 
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
+#include <wx/msgdlg.h>
 
 //(*InternalHeaders(LMSImportChannelMapDialog)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(LMSImportChannelMapDialog)
@@ -18,6 +19,8 @@ const long LMSImportChannelMapDialog::ID_SPINCTRL1 = wxNewId();
 const long LMSImportChannelMapDialog::ID_PANEL1 = wxNewId();
 const long LMSImportChannelMapDialog::ID_CHECKBOX1 = wxNewId();
 const long LMSImportChannelMapDialog::ID_GRID1 = wxNewId();
+const long LMSImportChannelMapDialog::ID_BUTTON3 = wxNewId();
+const long LMSImportChannelMapDialog::ID_BUTTON4 = wxNewId();
 const long LMSImportChannelMapDialog::ID_BUTTON1 = wxNewId();
 const long LMSImportChannelMapDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -33,14 +36,15 @@ END_EVENT_TABLE()
 #define wxEVT_GRID_CELL_CHANGE wxEVT_GRID_CELL_CHANGED
 #endif
 
-LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent, const wxFileName &filename,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _filename = filename;
+
 	//(*Initialize(LMSImportChannelMapDialog)
 	wxButton* Button01;
-	wxButton* Button02;
-	wxStaticText* StaticText1;
 	wxFlexGridSizer* FlexGridSizer3;
-	wxStdDialogButtonSizer* StdDialogButtonSizer1;
+	wxStaticText* StaticText1;
+	wxButton* Button02;
 
 	Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
 	SetMaxSize(wxDLG_UNIT(parent,wxSize(-1,500)));
@@ -84,12 +88,10 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	SizerMap->Add(ChannelMapGrid, 1, wxALL|wxEXPAND, 5);
 	Sizer->Add(SizerMap, 0, wxEXPAND, 0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 5, 0, 0);
-	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
-	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
-	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
-	StdDialogButtonSizer1->Realize();
-	FlexGridSizer2->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Ok = new wxButton(this, ID_BUTTON3, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	FlexGridSizer2->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Cancel = new wxButton(this, ID_BUTTON4, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	FlexGridSizer2->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button01 = new wxButton(this, ID_BUTTON1, _("Load Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer2->Add(Button01, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -106,10 +108,19 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnChannelMapGridCellChange);
 	Connect(ID_GRID1,wxEVT_GRID_EDITOR_HIDDEN,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnChannelMapGridEditorHidden);
 	Connect(ID_GRID1,wxEVT_GRID_EDITOR_SHOWN,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnChannelMapGridEditorShown);
+	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnButton_OkClick);
+	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnButton_CancelClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LMSImportChannelMapDialog::LoadMapping);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LMSImportChannelMapDialog::SaveMapping);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnResize);
 	//*)
+
+    if (_filename != "")
+    {
+        SetLabel(GetLabel() + " - " + _filename.GetFullName());
+    }
+
+    _dirty = false;
 }
 
 LMSImportChannelMapDialog::~LMSImportChannelMapDialog()
@@ -141,7 +152,7 @@ void LMSImportChannelMapDialog::Init(bool allModels) {
     }
     int sz = ChannelMapGrid->GetColSize(3);
     ChannelMapGrid->DeleteCols(5, 4);
-    
+
     wxGridCellAttr *ca = new wxGridCellAttr();
     ca->SetKind(wxGridCellAttr::wxAttrKind::Col);
     ca->SetReadOnly();
@@ -259,6 +270,7 @@ void LMSImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
     Model *cls = xlights->GetModel(name);
     AddModel(*cls);
     Refresh();
+    _dirty = true;
 }
 
 void LMSImportChannelMapDialog::OnChannelMapGridCellChange(wxGridEvent& event)
@@ -269,6 +281,7 @@ void LMSImportChannelMapDialog::OnChannelMapGridCellChange(wxGridEvent& event)
     ChannelMapGrid->SetCellBackgroundColour(row, 4, channelColors[s].asWxColor());
     MapByStrand->Enable(false);
     ChannelMapGrid->Refresh();
+    _dirty = true;
 }
 
 void LMSImportChannelMapDialog::OnChannelMapGridCellLeftDClick(wxGridEvent& event)
@@ -281,6 +294,7 @@ void LMSImportChannelMapDialog::OnChannelMapGridCellLeftDClick(wxGridEvent& even
         dlg.ShowModal();
         ChannelMapGrid->SetCellBackgroundColour(event.GetRow(), 4, dlg.GetColourData().GetColour());
         ChannelMapGrid->Refresh();
+        _dirty = true;
     }
 }
 
@@ -310,6 +324,15 @@ wxString FindTab(wxString &line) {
 }
 void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 {
+    bool strandwarning = false;
+    if (_dirty)
+    {
+        if (wxMessageBox("Are you sure you dont want to save your changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO)
+        {
+            return;
+        }
+    }
+
     wxFileDialog dlg(this);
     if (dlg.ShowModal() == wxID_OK) {
         for (size_t x = 0; x <  modelNames.size(); x++) {
@@ -360,7 +383,13 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                 if (model != ChannelMapGrid->GetCellValue(r, 0)
                     || strand != ChannelMapGrid->GetCellValue(r, 1)
                     || node !=  ChannelMapGrid->GetCellValue(r, 2)) {
-                    wxMessageBox(model + "/"+strand+"/"+node+ " not found.  Has the models changed?", "", wxICON_WARNING | wxOK , this);
+                    if (!strandwarning)
+                    {
+                        if (wxMessageBox(model + "/" + strand + "/" + node + " not found.  Has the models changed? Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxID_NO)
+                        {
+                            strandwarning = true;
+                        }
+                    }
                 } else {
                     ChannelMapGrid->SetCellValue(r, 3, mapping);
                     ChannelMapGrid->SetCellBackgroundColour(r, 4, color.asWxColor());
@@ -370,6 +399,7 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             line = text.ReadLine();
         }
         ChannelMapGrid->EndBatch();
+        _dirty = false;
     }
 }
 
@@ -393,7 +423,7 @@ void LMSImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
                              + "\t" + ChannelMapGrid->GetCellValue(x, 3)
                              + "\t" + c + "\n");
         }
-
+        _dirty = false;
     }
 }
 
@@ -415,4 +445,36 @@ void LMSImportChannelMapDialog::OnResize(wxSizeEvent& event)
     ChannelMapGrid->FitInside();
     ChannelMapGrid->Refresh();
     Layout();
+}
+
+void LMSImportChannelMapDialog::OnButton_OkClick(wxCommandEvent& event)
+{
+    if (_dirty)
+    {
+        if (wxMessageBox("Are you sure you dont want to save your changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES)
+        {
+            EndDialog(wxID_OK);
+        }
+
+    }
+    else
+    {
+        EndDialog(wxID_OK);
+    }
+}
+
+void LMSImportChannelMapDialog::OnButton_CancelClick(wxCommandEvent& event)
+{
+    if (_dirty)
+    {
+        if (wxMessageBox("Are you sure you dont want to save your changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES)
+        {
+            EndDialog(wxID_CANCEL);
+        }
+
+    }
+    else
+    {
+        EndDialog(wxID_CANCEL);
+    }
 }

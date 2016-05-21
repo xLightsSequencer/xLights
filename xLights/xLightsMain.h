@@ -394,7 +394,7 @@ private:
     bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size,
                          int x_offset, int y_offset, bool flip_y,
                          int imageResizeType, const wxSize &modelSize);
-    bool ImportLMS(wxXmlDocument &doc);
+    bool ImportLMS(wxXmlDocument &doc, const wxFileName &filename);
 
     //(*Handlers(xLightsFrame)
     void OnQuit(wxCommandEvent& event);

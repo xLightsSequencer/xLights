@@ -1063,7 +1063,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     int frameTime = 50;
 
 
-    LMSImportChannelMapDialog dlg(this);
+    LMSImportChannelMapDialog dlg(this, filename);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
 
@@ -1278,7 +1278,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
 
     if( !input_xml.Load(fin) )  return;
 
-    LMSImportChannelMapDialog dlg(this);
+    LMSImportChannelMapDialog dlg(this, filename);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
 
@@ -1428,7 +1428,7 @@ void xLightsFrame::ImportLMS(const wxFileName &filename) {
     wxFileInputStream fin(xml_doc);
 
     if( !input_xml.Load(fin) )  return;
-    ImportLMS(input_xml);
+    ImportLMS(input_xml, filename);
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
@@ -1826,9 +1826,9 @@ bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxX
     }
     return true;
 }
-bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
+bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filename)
 {
-    LMSImportChannelMapDialog dlg(this);
+    LMSImportChannelMapDialog dlg(this, filename);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.TimeAdjustPanel->Show();
     dlg.xlights = this;
@@ -2893,7 +2893,7 @@ void MapLSPStrand(StrandLayer *layer, wxXmlNode *node, const wxColor &c) {
 void xLightsFrame::ImportLSP(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
 
-    LMSImportChannelMapDialog dlg(this);
+    LMSImportChannelMapDialog dlg(this, filename);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
 
