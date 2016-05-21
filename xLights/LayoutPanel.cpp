@@ -60,6 +60,7 @@ const long LayoutPanel::ID_PREVIEW_ALIGN_V_CENTER = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_H_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
+const long LayoutPanel::ID_MNU_DELETE_MODEL = wxNewId();
 
 class NewModelBitmapButton : public wxBitmapButton
 {
@@ -181,6 +182,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnViewChoiceSelect);
 	Connect(ID_BUTTON_SELECT_MODEL_GROUPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonSelectModelGroupsClick);
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListItemSelect);
+	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListItemRClick);
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListColumnClick);
 	Connect(ID_SPLITTERWINDOW1,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnModelSplitterSashPosChanged);
 	Connect(ID_CHECKBOXOVERLAP,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBoxOverlapClick);
@@ -520,7 +522,7 @@ void LayoutPanel::UpdateModelList(bool addGroups) {
     }
     modelPreview->SetModels(models);
     UpdatePreview();
-    
+
 }
 void LayoutPanel::UnSelectAllModels()
 {
@@ -1245,7 +1247,7 @@ void LayoutPanel::ImportCustomModel(Model* newModel)
             newModel->SetProperty("NodeNames", nn);
             wxString newname = name;
             int cnt = 1;
-            while (xlights->AllModels[std::string(newname.c_str())] != nullptr) 
+            while (xlights->AllModels[std::string(newname.c_str())] != nullptr)
             {
                 newname = name + "-" + wxString::Format("%d", cnt++);
             }
@@ -1519,7 +1521,7 @@ void LayoutPanel::OnChar(wxKeyEvent& event) {
 void LayoutPanel::OnCharHook(wxKeyEvent& event) {
 
     wxChar uc = event.GetKeyCode();
-    
+
     switch(uc) {
 #ifdef __WXMSW__
         case 'z':
@@ -1868,5 +1870,20 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     }
 }
 
+void LayoutPanel::OnListBoxElementListItemRClick(wxListEvent& event)
+{
+    wxMenu *mnuLayer = new wxMenu();
+    mnuLayer->Append(ID_MNU_DELETE_MODEL,"Delete");
+    mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnLayerPopup, NULL, this);
+    PopupMenu(mnuLayer);
+}
 
+void LayoutPanel::OnLayerPopup(wxCommandEvent& event)
+{
+    int id = event.GetId();
+    if(id == ID_MNU_DELETE_MODEL)
+    {
+        DeleteSelectedModel();
+    }
+}
 

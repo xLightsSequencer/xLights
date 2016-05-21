@@ -94,15 +94,16 @@ class LayoutPanel: public wxPanel
 		void OnButtonSavePreviewClick(wxCommandEvent& event);
 		void OnListBoxElementListItemSelect(wxListEvent& event);
 		void OnListBoxElementListColumnClick(wxListEvent& event);
-        void OnListBoxElementItemChecked(wxListEvent& event);
+		void OnListBoxElementItemChecked(wxListEvent& event);
 		void OnPropertyGridChange(wxPropertyGridEvent& event);
 		void OnPropertyGridChanging(wxPropertyGridEvent& event);
 		void OnModelSplitterSashPosChanged(wxSplitterEvent& event);
 		void OnSplitterWindowSashPosChanged(wxSplitterEvent& event);
 		void OnViewChoiceSelect(wxCommandEvent& event);
-        void OnNewModelTypeButtonClicked(wxCommandEvent& event);
-        void OnCharHook(wxKeyEvent& event);
-        void OnChar(wxKeyEvent& event);
+		void OnNewModelTypeButtonClicked(wxCommandEvent& event);
+		void OnCharHook(wxKeyEvent& event);
+		void OnChar(wxKeyEvent& event);
+		void OnListBoxElementListItemRClick(wxListEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
@@ -142,7 +143,7 @@ class LayoutPanel: public wxPanel
         void PreviewModelAlignVCenter();
         Model *CreateNewModel(const std::string &type);
 
-    
+
         bool m_dragging;
         bool m_creating_bound_rect;
         int m_bound_start_x;
@@ -154,7 +155,7 @@ class LayoutPanel: public wxPanel
         int m_previous_mouse_x, m_previous_mouse_y;
         int mPointSize;
         int mHitTestNextSelectModelIndex;
-    
+
         wxPropertyGrid *propertyEditor;
         bool updatingProperty;
         Model *selectedModel;
@@ -170,9 +171,9 @@ class LayoutPanel: public wxPanel
         NewModelBitmapButton *selectedButton;
         wxString _lastCustomModel;
         Model *newModel;
-    
+
         std::string lastModelName;
-    
+
         class UndoStep {
         public:
             std::string type;
@@ -188,10 +189,15 @@ class LayoutPanel: public wxPanel
         xLightsFrame *xlights;
         ModelPreview *modelPreview;
         void UpdateModelList(bool addGroups = true);
-    
-    
+
+
     private:
         wxImageFileProperty *backgroundProperty;
+
+        static const long ID_MNU_DELETE_MODEL;
+        void OnLayerPopup(wxCommandEvent& event);
+
+
 };
 
 #endif

@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)   Add right-click delete model option in layout list.
    -- bug (gil)   Fix node layout for custom models. Fixes #574.
 2016.32  May 19, 2016
    -- bug (dkulp) Bug where subbuffer might not get written out correctly (and written out when not needed)
