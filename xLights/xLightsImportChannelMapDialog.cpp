@@ -347,7 +347,7 @@ wxDataViewItem* xLightsImportChannelMapDialog::FindItem(std::string model, std::
 {
     wxDataViewItemArray models;
     dataModel->GetChildren(wxDataViewItem(0), models);
-    for (int i = 0; i < models.size(); i++)
+    for (size_t i = 0; i < models.size(); i++)
     {
         if (((xLightsImportModelNode*)models[i].GetID())->_model == model)
         {
@@ -359,7 +359,7 @@ wxDataViewItem* xLightsImportChannelMapDialog::FindItem(std::string model, std::
             {
                 wxDataViewItemArray strands;
                 dataModel->GetChildren(models[i], strands);
-                for (int j = 0; j < strands.size(); j++)
+                for (size_t j = 0; j < strands.size(); j++)
                 {
                     if (((xLightsImportModelNode*)strands[j].GetID())->_strand == strand)
                     {
@@ -489,11 +489,11 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
         // expand all models that have strands that have a value
         wxDataViewItemArray models;
         dataModel->GetChildren(wxDataViewItem(0), models);
-        for (int i = 0; i < models.size(); i++)
+        for (size_t i = 0; i < models.size(); i++)
         {
             wxDataViewItemArray strands;
             dataModel->GetChildren(models[i], strands);
-            for (int j = 0; j < strands.size(); j++)
+            for (size_t j = 0; j < strands.size(); j++)
             {
                 if (((xLightsImportModelNode*)strands[j].GetID())->_mapping != "")
                 {
