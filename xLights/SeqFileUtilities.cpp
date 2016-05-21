@@ -784,9 +784,9 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         return;
     }
     int row = 0;
-    for (int i = 0; i < dlg.dataModel->GetRoot()->GetChildCount(); i++)
+    for (int i = 0; i < dlg.dataModel->GetChildCount(); i++)
     {
-        xLightsImportModelNode* m = dlg.dataModel->GetRoot()->GetNthChild(i);
+        xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
         std::string modelName = m->_model;
         Model *mc = GetModel(modelName);
         Element * model = nullptr;

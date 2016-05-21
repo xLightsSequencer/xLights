@@ -14,7 +14,6 @@
 
 xLightsImportTreeModel::xLightsImportTreeModel()
 {
-    m_root = new xLightsImportModelNode(NULL, "ROOT", "");
 }
 
 wxString xLightsImportTreeModel::GetModel(const wxDataViewItem &item) const
@@ -51,19 +50,13 @@ void xLightsImportTreeModel::Delete(const wxDataViewItem &item)
         return;
 
     wxDataViewItem parent(node->GetParent());
-    if (!parent.IsOk())
-    {
-        wxASSERT(node == m_root);
-
-        // don't make the control completely empty:
-        wxLogError("Cannot remove the root item!");
-        return;
-    }
-
     // first remove the node from the parent's array of children;
     // NOTE: xLightsImportModelNodePtrArray is only an array of _pointers_
     //       thus removing the node from it doesn't result in freeing it
-    node->GetParent()->GetChildren().Remove(node);
+    if (node->GetParent() != NULL)
+    {
+        node->GetParent()->GetChildren().Remove(node);
+    }
 
     // free the node
     delete node;
@@ -83,10 +76,6 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
     {
     case 0:
         if (parent == NULL)
-        {
-            variant = wxVariant(wxDataViewIconText("Models"));
-        }
-        else if (parent->_model == "ROOT")
         {
             variant = wxVariant(wxDataViewIconText(node->_model));
         }
@@ -125,7 +114,7 @@ wxDataViewItem xLightsImportTreeModel::GetParent(const wxDataViewItem &item) con
 
     xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
 
-    if (node == m_root)
+    if (node->GetParent() == NULL)
         return wxDataViewItem(0);
 
     return wxDataViewItem((void*)node->GetParent());
@@ -144,25 +133,31 @@ bool xLightsImportTreeModel::IsContainer(const wxDataViewItem &item) const
 unsigned int xLightsImportTreeModel::GetChildren(const wxDataViewItem &parent,
     wxDataViewItemArray &array) const
 {
+    unsigned int count = 0;
     xLightsImportModelNode *node = (xLightsImportModelNode*)parent.GetID();
     if (!node)
     {
-        array.Add(wxDataViewItem((void*)m_root));
-        return 1;
+        count = m_children.size();
+        for (unsigned int pos = 0; pos < count; pos++)
+        {
+            xLightsImportModelNode *child = m_children.Item(pos);
+            array.Add(wxDataViewItem((void*)child));
+        }
     }
-
-    if (node->GetChildCount() == 0)
+    else
     {
-        return 0;
-    }
+        if (node->GetChildCount() == 0)
+        {
+            return 0;
+        }
 
-    unsigned int count = node->GetChildren().GetCount();
-    for (unsigned int pos = 0; pos < count; pos++)
-    {
-        xLightsImportModelNode *child = node->GetChildren().Item(pos);
-        array.Add(wxDataViewItem((void*)child));
+        count = node->GetChildren().GetCount();
+        for (unsigned int pos = 0; pos < count; pos++)
+        {
+            xLightsImportModelNode *child = node->GetChildren().Item(pos);
+            array.Add(wxDataViewItem((void*)child));
+        }
     }
-
     return count;
 }
 
@@ -282,8 +277,8 @@ bool xLightsImportChannelMapDialog::Init() {
     for (size_t i = 0; i<mSequenceElements->GetElementCount(); i++) {
         if (mSequenceElements->GetElement(i)->GetType() == "model") {
             Element* e = mSequenceElements->GetElement(i);
-            last = new xLightsImportModelNode(dataModel->GetRoot(), e->GetName(), "");
-            dataModel->GetRoot()->Insert(last, ms++);
+            last = new xLightsImportModelNode(NULL, e->GetName(), "");
+            dataModel->Insert(last, ms++);
             Model *m = xlights->GetModel(e->GetName());
             for (int s = 0; s < m->GetNumStrands(); s++) {
                 wxString sn = m->GetStrandName(s);
@@ -331,9 +326,9 @@ int CountTabs(wxString& line)
 
 xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::string model, std::string strand)
 {
-    for (size_t i = 0; i < dataModel->GetRoot()->GetChildCount(); i++)
+    for (size_t i = 0; i < dataModel->GetChildCount(); i++)
     {
-        xLightsImportModelNode* m = dataModel->GetRoot()->GetNthChild(i);
+        xLightsImportModelNode* m = dataModel->GetNthChild(i);
         if (m->_model.ToStdString() == model)
         {
             if (strand == "")
@@ -447,16 +442,16 @@ void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
         wxFileOutputStream output(dlg.GetPath());
         wxTextOutputStream text(output);
         text.WriteString("false\n");
-        int modelcount = dataModel->GetRoot()->GetChildCount();
+        int modelcount = dataModel->GetChildCount();
         text.WriteString(wxString::Format("%d\n", modelcount));
-        for (size_t i = 0; i < dataModel->GetRoot()->GetChildCount(); i++)
+        for (size_t i = 0; i < dataModel->GetChildCount(); i++)
         {
-            xLightsImportModelNode* m = dataModel->GetRoot()->GetNthChild(i);
+            xLightsImportModelNode* m = dataModel->GetNthChild(i);
             text.WriteString(m->_model + "\n");
         }
-        for (size_t i = 0; i < dataModel->GetRoot()->GetChildCount(); i++)
+        for (size_t i = 0; i < dataModel->GetChildCount(); i++)
         {
-            xLightsImportModelNode* m = dataModel->GetRoot()->GetNthChild(i);
+            xLightsImportModelNode* m = dataModel->GetNthChild(i);
             wxString mn = m->_model;
             text.WriteString(mn
                 + "\t" +

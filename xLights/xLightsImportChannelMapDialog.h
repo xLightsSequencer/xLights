@@ -122,12 +122,39 @@ public:
     xLightsImportTreeModel();
     ~xLightsImportTreeModel()
     {
-        delete m_root;
+        // free all our children nodes
+        size_t count = m_children.GetCount();
+        for (size_t i = 0; i < count; i++)
+        {
+            xLightsImportModelNode *child = m_children[i];
+            delete child;
+        }
     }
 
     // helper method for wxLog
 
-    xLightsImportModelNode* GetRoot() { return m_root; }
+    void Insert(xLightsImportModelNode* child, unsigned int n)
+    {
+        m_children.Insert(child, n);
+        ItemAdded(wxDataViewItem(0), wxDataViewItem(child));
+    }
+    void Append(xLightsImportModelNode* child)
+    {
+        m_children.Add(child);
+        ItemAdded(wxDataViewItem(0), wxDataViewItem(child));
+    }
+    unsigned int GetChildCount() const
+    {
+        return m_children.GetCount();
+    }
+    xLightsImportModelNodePtrArray& GetChildren()
+    {
+        return m_children;
+    }
+    xLightsImportModelNode* GetNthChild(unsigned int n)
+    {
+        return m_children.Item(n);
+    }
     wxString GetModel(const wxDataViewItem &item) const;
     wxString GetStrand(const wxDataViewItem &item) const;
     wxString GetMapping(const wxDataViewItem &item) const;
@@ -153,7 +180,7 @@ public:
         wxDataViewItemArray &array) const wxOVERRIDE;
 
 private:
-    xLightsImportModelNode*   m_root;
+    xLightsImportModelNodePtrArray   m_children;
 };
 
 class xLightsImportChannelMapDialog: public wxDialog
