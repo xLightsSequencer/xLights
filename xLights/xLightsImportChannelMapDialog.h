@@ -17,6 +17,7 @@
 #include "Color.h"
 #include <wx/arrstr.h>
 #include <wx/filename.h>
+#include <wx/choice.h>
 
 class SequenceElements;
 class xLightsFrame;
@@ -25,12 +26,12 @@ class Model;
 class xLightsImportModelNode;
 WX_DEFINE_ARRAY_PTR(xLightsImportModelNode*, xLightsImportModelNodePtrArray);
 
-class xLightsImportModelNode
+class xLightsImportModelNode : wxDataViewTreeStoreNode
 {
 public:
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model, const wxString &strand,
-        const wxString &mapping)
+        const wxString &mapping) : wxDataViewTreeStoreNode(parent, "XXX")
     {
         m_parent = parent;
 
@@ -38,12 +39,12 @@ public:
         _strand = strand;
         _mapping = mapping;
 
-        _container = false;
+        m_container = false;
     }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model,
-        const wxString &mapping)
+        const wxString &mapping) : wxDataViewTreeStoreNode(parent, "XXX")
     {
         m_parent = parent;
 
@@ -51,7 +52,7 @@ public:
         _strand = "";
         _mapping = mapping;
 
-        _container = true;
+        m_container = true;
     }
 
     ~xLightsImportModelNode()
@@ -65,9 +66,9 @@ public:
         }
     }
 
-    bool IsContainer() const
+    bool IsContainer() wxOVERRIDE
     {
-        return _container;
+        return m_container;
     }
 
     xLightsImportModelNode* GetParent()
@@ -82,15 +83,15 @@ public:
     {
         return m_children.Item(n);
     }
-    void Insert(xLightsImportModelNode* child, unsigned int n)
+    void Insert(xLightsImportModelNode* child, unsigned int n)  
     {
         m_children.Insert(child, n);
     }
-    void Append(xLightsImportModelNode* child)
+    void Append(xLightsImportModelNode* child) 
     {
         m_children.Add(child);
     }
-    unsigned int GetChildCount() const
+    unsigned int GetChildCount() const 
     {
         return m_children.GetCount();
     }
@@ -109,7 +110,7 @@ public:     // public to avoid getters/setters
     // doesn't work with wxGTK when MyMusicTreeModel::AddToClassical is called
     // AND the classical node was removed (a new node temporary without children
     // would be added to the control)
-    bool _container;
+    bool m_container;
 
 private:
     xLightsImportModelNode          *m_parent;
@@ -163,7 +164,10 @@ public:
     {
         return 2;
     }
-
+    virtual bool HasContainerColumns(const wxDataViewItem &item) const wxOVERRIDE
+    {
+        return true;
+    }
     virtual wxString GetColumnType(unsigned int col) const wxOVERRIDE
     {
         return wxT("string");
@@ -186,10 +190,13 @@ private:
 class xLightsImportChannelMapDialog: public wxDialog
 {
     xLightsImportModelNode* TreeContainsModel(std::string model, std::string strand = "");
-    void OnTreeListCtrlItemActivated(wxTreeListEvent& event);
-    void OnTreeListCtrlItemChanged(wxTreeListEvent& event);
+    wxDataViewItem* FindItem(std::string model, std::string strand = "");
+    void OnSelectionChanged(wxDataViewEvent& event);
+    void OnValueChanged(wxDataViewEvent& event);
+    void OnItemActivated(wxDataViewEvent& event);
     wxArrayString _importModels;
-    wxDataViewTreeCtrl* TreeListCtrl_Mapping;
+    //wxDataViewTreeCtrl* TreeListCtrl_Mapping;
+    wxDataViewCtrl* TreeListCtrl_Mapping;
     bool _dirty;
     wxFileName _filename;
 
@@ -215,6 +222,7 @@ class xLightsImportChannelMapDialog: public wxDialog
         std::vector<std::string> channelNames;
         std::vector<std::string> modelNames;
         static const long ID_TREELISTCTRL1;
+        static const long ID_CHOICE;
 protected:
 
 		//(*Identifiers(xLightsImportChannelMapDialog)

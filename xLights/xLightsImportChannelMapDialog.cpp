@@ -2,10 +2,12 @@
 #include "sequencer/SequenceElements.h"
 #include "xLightsMain.h"
 #include "models/Model.h"
+#include <log4cpp/Category.hh>
 
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 #include <wx/msgdlg.h>
+#include <wx/choice.h>
 
 //(*InternalHeaders(xLightsImportChannelMapDialog)
 #include <wx/intl.h>
@@ -77,15 +79,17 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
     case 0:
         if (parent == NULL)
         {
-            variant = wxVariant(wxDataViewIconText(node->_model));
+            //variant = wxVariant(wxDataViewIconText(node->_model));
+            variant = wxVariant(node->_model);
         }
         else
         {
-            variant = wxVariant(wxDataViewIconText(node->_strand));
+            //variant = wxVariant(wxDataViewIconText(node->_strand));
+            variant = wxVariant(node->_strand);
         }
         break;
     case 1:
-        variant = wxVariant(wxDataViewIconText(node->_mapping));
+        variant = wxVariant(node->_mapping);
         break;
     default:
         wxLogError("xLightsImportTreeModel::GetValue: wrong column %d", col);
@@ -162,6 +166,7 @@ unsigned int xLightsImportTreeModel::GetChildren(const wxDataViewItem &parent,
 }
 
 const long xLightsImportChannelMapDialog::ID_TREELISTCTRL1 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_CHOICE = wxNewId();
 
 //(*IdInit(xLightsImportChannelMapDialog)
 const long xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
@@ -215,21 +220,6 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnResize);
 	//*)
 
-    dataModel = new xLightsImportTreeModel();
-
-    TreeListCtrl_Mapping = new wxDataViewTreeCtrl(this, ID_TREELISTCTRL1, wxDefaultPosition, wxDefaultSize, wxDV_ROW_LINES, wxDefaultValidator);
-    TreeListCtrl_Mapping->AssociateModel(dataModel);
-    //TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT), 0, 80, wxALIGN_LEFT));
-    //TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewChoiceRenderer(_importModels, wxDATAVIEW_CELL_EDITABLE, wxALIGN_LEFT), 1, 80, wxALIGN_LEFT));
-    TreeListCtrl_Mapping->SetMinSize(wxSize(0, 300));
-    SizerMap->Add(TreeListCtrl_Mapping, 1, wxALL | wxEXPAND, 5);
-    SizerMap->Layout();
-    SetSize(500, 500);
-    Layout();
-
-    //Connect(ID_TREELISTCTRL1, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTreeListCtrlItemActivated);
-    //Connect(ID_TREELISTCTRL1, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTreeListCtrlItemActivated);
-
     if (_filename != "")
     {
         SetLabel(GetLabel() + " - " + _filename.GetFullName());
@@ -242,7 +232,7 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 {
 	//(*Destroy(xLightsImportChannelMapDialog)
 	//*)
-    delete dataModel;
+    //delete dataModel;
 }
 
 static wxArrayString Convert(const std::vector<std::string> arr) {
@@ -268,9 +258,25 @@ bool xLightsImportChannelMapDialog::Init() {
         }
         else
         {
-            _importModels.push_back(*it);
+            _importModels.push_back(wxString(it->c_str()));
         }
     }
+
+    dataModel = new xLightsImportTreeModel();
+
+    TreeListCtrl_Mapping = new wxDataViewCtrl(this, ID_TREELISTCTRL1, wxDefaultPosition, wxDefaultSize, wxDV_HORIZ_RULES | wxDV_VERT_RULES, wxDefaultValidator);
+    TreeListCtrl_Mapping->AssociateModel(dataModel);
+    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewChoiceRenderer(_importModels, wxDATAVIEW_CELL_EDITABLE, wxALIGN_LEFT), 1, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+    TreeListCtrl_Mapping->SetMinSize(wxSize(0, 300));
+    SizerMap->Add(TreeListCtrl_Mapping, 1, wxALL | wxEXPAND, 5);
+    SizerMap->Layout();
+    SetSize(500, 500);
+    Layout();
+
+    Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_SELECTION_CHANGED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnSelectionChanged);
+    //Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_ACTIVATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnItemActivated);
+    Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnValueChanged);
 
     xLightsImportModelNode* last;
     int ms = 0;
@@ -293,14 +299,27 @@ bool xLightsImportChannelMapDialog::Init() {
     return true;
 }
 
-//void xLightsImportChannelMapDialog::OnChannelMapGridCellChange(wxGridEvent& event)
-//{
-//    _dirty = true;
-//    int row = event.GetRow();
-//    int col = event.GetCol();
-//    std::string s = ChannelMapGrid->GetCellValue(row, col).ToStdString();
-//    ChannelMapGrid->Refresh();
-//}
+void xLightsImportChannelMapDialog::OnItemActivated(wxDataViewEvent& event)
+{
+}
+
+void xLightsImportChannelMapDialog::OnSelectionChanged(wxDataViewEvent& event)
+{
+    if (event.GetItem().IsOk())
+    {
+        // I am pretty sure this doesnt do anything
+        // What I am trying to do is single click activate the choice box.
+        wxRect r = TreeListCtrl_Mapping->GetItemRect(event.GetItem(), TreeListCtrl_Mapping->GetColumn(1));
+        TreeListCtrl_Mapping->GetColumn(1)->GetRenderer()->ActivateCell(r, dataModel, event.GetItem(), 1, NULL);
+
+        // This also does not work and causes left behind choice boxes which then generate exceptions
+        //TreeListCtrl_Mapping->EditItem(event.GetItem(), TreeListCtrl_Mapping->GetColumn(1));
+    }
+}
+void xLightsImportChannelMapDialog::OnValueChanged(wxDataViewEvent& event)
+{
+    _dirty = true;
+}
 
 wxString xLightsImportChannelMapDialog::FindTab(wxString &line) {
     for (size_t x = 0; x < line.size(); x++) {
@@ -322,6 +341,36 @@ int CountTabs(wxString& line)
         }
     }
     return count;
+}
+
+wxDataViewItem* xLightsImportChannelMapDialog::FindItem(std::string model, std::string strand)
+{
+    wxDataViewItemArray models;
+    dataModel->GetChildren(wxDataViewItem(0), models);
+    for (int i = 0; i < models.size(); i++)
+    {
+        if (((xLightsImportModelNode*)models[i].GetID())->_model == model)
+        {
+            if (strand == "")
+            {
+                return &models[i];
+            }
+            else
+            {
+                wxDataViewItemArray strands;
+                dataModel->GetChildren(models[i], strands);
+                for (int j = 0; j < strands.size(); j++)
+                {
+                    if (((xLightsImportModelNode*)strands[j].GetID())->_strand == strand)
+                    {
+                        return &strands[j];
+                    }
+                }
+            }
+        }
+    }
+
+    return NULL;
 }
 
 xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::string model, std::string strand)
@@ -356,7 +405,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
     bool strandwarning = false;
     if (_dirty)
     {
-        if (wxMessageBox("Are you sure you want to lose your changes?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO)
+        if (wxMessageBox("Are you sure you dont want to save your changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO)
         {
             return;
         }
@@ -421,17 +470,38 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                 {
                     if (msi != NULL)
                     {
+                        wxDataViewItem* item = FindItem(model.ToStdString(), strand.ToStdString());
                         msi->_mapping = mapping;
+                        dataModel->ValueChanged(*item, 1);
                     }
                     else
                     {
+                        wxDataViewItem* item = FindItem(model.ToStdString());
                         mi->_mapping = mapping;
+                        dataModel->ValueChanged(*item, 1);
                     }
                 }
             }
             line = text.ReadLine();
         }
         _dirty = false;
+
+        // expand all models that have strands that have a value
+        wxDataViewItemArray models;
+        dataModel->GetChildren(wxDataViewItem(0), models);
+        for (int i = 0; i < models.size(); i++)
+        {
+            wxDataViewItemArray strands;
+            dataModel->GetChildren(models[i], strands);
+            for (int j = 0; j < strands.size(); j++)
+            {
+                if (((xLightsImportModelNode*)strands[j].GetID())->_mapping != "")
+                {
+                    TreeListCtrl_Mapping->Expand(models[i]);
+                    break;
+                }
+            }
+        }
     }
 }
 
@@ -489,17 +559,11 @@ void xLightsImportChannelMapDialog::OnResize(wxSizeEvent& event)
     Layout();
 }
 
-//void xLightsImportChannelMapDialog::OnChannelMapGridCellLeftClick(wxGridEvent& event)
-//{
-//    ChannelMapGrid->SetGridCursor(event.GetRow(), event.GetCol());
-//    event.Skip();
-//}
-
 void xLightsImportChannelMapDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     if (_dirty)
     {
-        if (wxMessageBox("Are you sure you want to lose your changes?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES)
+        if (wxMessageBox("Are you sure you dont want to save your changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES)
         {
             EndDialog(wxID_OK);
         }
@@ -515,7 +579,7 @@ void xLightsImportChannelMapDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
     if (_dirty)
     {
-        if (wxMessageBox("Are you sure you want to lose your changes?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES)
+        if (wxMessageBox("Are you sure you dont want to save your changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES)
         {
             EndDialog(wxID_CANCEL);
         }
