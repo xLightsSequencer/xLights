@@ -163,10 +163,6 @@ wxString BufferPanel::GetBufferString() {
     if (Slider_EffectBlur->GetValue() > 1) {
         s += wxString::Format("B_SLIDER_EffectBlur=%d,",Slider_EffectBlur->GetValue());
     }
-    if (_vcBlur->IsActive())
-    {
-        s += wxString(_vcBlur->Serialise().c_str());
-    }
     // Persistent
     if (CheckBox_OverlayBkg->GetValue()) {
         s += "B_CHECKBOX_OverlayBkg=1,";
@@ -187,6 +183,17 @@ wxString BufferPanel::GetBufferString() {
         s += "B_CUSTOM_SubBuffer=";
         s += subB;
         s += ",";
+    }
+
+    if (_vcBlur->IsActive())
+    {
+        wxString blurVC = wxString(_vcBlur->Serialise().c_str());
+        if (blurVC.size() > 0)
+        {
+            s += "B_CUSTOM_BlurValueCurve=";
+            s += blurVC;
+            s += ",";
+        }
     }
     return s;
 }
@@ -210,6 +217,7 @@ void BufferPanel::SetDefaultControls(const Model *model) {
     TextCtrl_EffectBlur->SetValue("1");
     BufferStyleChoice->SetSelection(0);
     BufferTransform->SetSelection(0);
+    _vcBlur->SetDefault();
     _vcBlur->SetActive(false);
     wxSizeEvent evt;
     OnResize(evt);

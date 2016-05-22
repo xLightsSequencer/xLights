@@ -29,6 +29,7 @@
 #include "models/Model.h"
 #include "models/SingleLineModel.h"
 #include "RenderBuffer.h"
+#include "ValueCurve.h"
 
 /**
  * \brief enumeration of the different techniques used in layering effects
@@ -84,8 +85,10 @@ private:
         std::string bufferType;
         std::string bufferTransform;
         std::string subBuffer;
+        std::string blurValueCurve;
         int BufferHt;
         int BufferWi;
+        ValueCurve BlurValueCurve;
         std::vector<NodeBaseClassPtr> Nodes;
         int sparkle_count;
         bool music_sparkle_count;

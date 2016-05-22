@@ -82,6 +82,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
         layers[x]->bufferType = "Default";
         layers[x]->bufferTransform = "None";
         layers[x]->subBuffer = "";
+        layers[x]->blurValueCurve = "";
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi);
     }
 }
@@ -638,6 +639,7 @@ static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
 static const std::string CHOICE_BufferTransform("CHOICE_BufferTransform");
 static const std::string CUSTOM_SubBuffer("CUSTOM_SubBuffer");
+static const std::string CUSTOM_BlurValueCurve("CUSTOM_BlurValueCurve");
 static const std::string STR_DEFAULT("Default");
 static const std::string STR_EMPTY("");
 
@@ -656,6 +658,14 @@ static const std::string SLIDER_Out_Transition_Adjust("SLIDER_Out_Transition_Adj
 static const std::string CHECKBOX_In_Transition_Reverse("CHECKBOX_In_Transition_Reverse");
 static const std::string CHECKBOX_Out_Transition_Reverse("CHECKBOX_Out_Transition_Reverse");
 
+void ComputeBlurValueCurve(const std::string& blurValueCurve, ValueCurve& BlurValueCurve)
+{
+    if (blurValueCurve == STR_EMPTY) {
+        return;
+    }
+
+    BlurValueCurve.Deserialise(blurValueCurve);
+}
 
 void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) {
     if (subBuffer == STR_EMPTY) {
@@ -722,15 +732,18 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     const std::string &type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
     const std::string &subBuffer = settingsMap.Get(CUSTOM_SubBuffer, STR_EMPTY);
-    
-    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer)
+    const std::string &blurValueCurve = settingsMap.Get(CUSTOM_BlurValueCurve, STR_EMPTY);
+
+    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve)
     {
         inf->Nodes.clear();
         model->InitRenderBufferNodes(type, transform, inf->Nodes, inf->BufferWi, inf->BufferHt);
         ComputeSubBuffer(subBuffer, inf->Nodes, inf->BufferWi, inf->BufferHt);
+        ComputeBlurValueCurve(blurValueCurve, inf->BlurValueCurve);
         inf->bufferType = type;
         inf->bufferTransform = transform;
         inf->subBuffer = subBuffer;
+        inf->blurValueCurve = blurValueCurve;
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi);
     }
 }

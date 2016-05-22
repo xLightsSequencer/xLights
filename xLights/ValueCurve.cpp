@@ -1,6 +1,8 @@
 #include "ValueCurve.h"
 #include <sstream>
 #include <iostream>
+#include <wx/wx.h>
+#include <wx/string.h>
 
 void ValueCurve::RenderType()
 {
@@ -133,16 +135,37 @@ ValueCurve::ValueCurve(const std::string& id, float min, float max, float parame
     _parameter3 = parameter3;
     _active = false;
 }
+
+void ValueCurve::SetDefault()
+{
+    _parameter1 = 0;
+    _parameter2 = 0;
+    _parameter3 = 0;
+    _active = false;
+}
+
+void ValueCurve::Deserialise(std::string s)
+{
+    wxArrayString v = wxSplit(wxString(s.c_str()), '|');
+    for (auto vs = v.begin(); vs != v.end(); vs++)
+    {
+        wxArrayString v1 = wxSplit(*vs, '=');
+        if (v1.size() == 2)
+        {
+            SetSerialisedValue(v1[0].ToStdString(), v1[1].ToStdString());
+        }
+    }
+}
 std::string ValueCurve::Serialise()
 {
     std::string res = "";
 
-    res += _id + "_Type=" + _type + ",";
-    res += _id + "_Min=" + std::string(wxString::Format("%f", _min).c_str()) + ",";
-    res += _id + "_Max=" + std::string(wxString::Format("%f", _max).c_str()) + ",";
-    res += _id + "_P1=" + std::string(wxString::Format("%f", _parameter1).c_str()) + ",";
-    res += _id + "_P2=" + std::string(wxString::Format("%f", _parameter2).c_str()) + ",";
-    res += _id + "_P3=" + std::string(wxString::Format("%f", _parameter3).c_str()) + ",";
+    res += _id + "_Type=" + _type + "|";
+    res += _id + "_Min=" + std::string(wxString::Format("%f", _min).c_str()) + "|";
+    res += _id + "_Max=" + std::string(wxString::Format("%f", _max).c_str()) + "|";
+    res += _id + "_P1=" + std::string(wxString::Format("%f", _parameter1).c_str()) + "|";
+    res += _id + "_P2=" + std::string(wxString::Format("%f", _parameter2).c_str()) + "|";
+    res += _id + "_P3=" + std::string(wxString::Format("%f", _parameter3).c_str()) + "|";
     if (_type == "Custom")
     {
         res += _id + "_Values=";
@@ -154,7 +177,6 @@ std::string ValueCurve::Serialise()
                 res += ";";
             }
         }
-        res += ",";
     }
     return res;
 }

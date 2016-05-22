@@ -58,12 +58,14 @@ class ValueCurve
     bool _active;
 
     void RenderType();
+    void SetSerialisedValue(std::string k, std::string s);
 
 public:
     ValueCurve() { ValueCurve(""); };
     ValueCurve(const std::string& id, float min = 0.0f, float max = 100.0f, float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f);
+    void SetDefault();
     std::string Serialise();
-    void SetSerialisedValue(std::string k, std::string s);
+    void Deserialise(std::string s);
     void SetType(std::string type);
     float GetMax() { return _max; }
     float GetMin() { return _min; }
