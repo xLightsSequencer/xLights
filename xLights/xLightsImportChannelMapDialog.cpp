@@ -305,16 +305,16 @@ void xLightsImportChannelMapDialog::OnItemActivated(wxDataViewEvent& event)
 
 void xLightsImportChannelMapDialog::OnSelectionChanged(wxDataViewEvent& event)
 {
-    if (event.GetItem().IsOk())
-    {
+    //if (event.GetItem().IsOk())
+    //{
         // I am pretty sure this doesnt do anything
         // What I am trying to do is single click activate the choice box.
-        wxRect r = TreeListCtrl_Mapping->GetItemRect(event.GetItem(), TreeListCtrl_Mapping->GetColumn(1));
+        //wxRect r = TreeListCtrl_Mapping->GetItemRect(event.GetItem(), TreeListCtrl_Mapping->GetColumn(1));
         //TreeListCtrl_Mapping->GetColumn(1)->GetRenderer()->ActivateCell(r, dataModel, event.GetItem(), 1, NULL);
 
         // This also does not work and causes left behind choice boxes which then generate exceptions
         //TreeListCtrl_Mapping->EditItem(event.GetItem(), TreeListCtrl_Mapping->GetColumn(1));
-    }
+    //}
 }
 void xLightsImportChannelMapDialog::OnValueChanged(wxDataViewEvent& event)
 {
