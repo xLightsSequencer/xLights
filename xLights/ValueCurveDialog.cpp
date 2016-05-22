@@ -113,28 +113,30 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     Choice1->SetSelection( Choice1->Append(_("Flat")) );
     Choice1->Append(_("Ramp"));
     Choice1->Append(_("Ramp Up/Down"));
+    Choice1->Append(_("Ramp Up/Down Hold"));
     Choice1->Append(_("Saw Tooth"));
     Choice1->Append(_("Parabolic Down"));
     Choice1->Append(_("Parabolic Up"));
     Choice1->Append(_("Logarithmic Up"));
     Choice1->Append(_("Logarithmic Down"));
+    Choice1->Append(_("Sine"));
     Choice1->Append(_("Custom"));
     FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Parameter 1"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    StaticText_P1 = new wxStaticText(this, ID_STATICTEXT1, _("Parameter 1"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    FlexGridSizer2->Add(StaticText_P1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Parameter1 = new wxSlider(this, IDD_SLIDER_Parameter1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Parameter1"));
     FlexGridSizer2->Add(Slider_Parameter1, 1, wxALL|wxEXPAND, 2);
     TextCtrl_Parameter1 = new wxTextCtrl(this, ID_TEXTCTRL_Parameter1, _("0"), wxDefaultPosition, wxSize(40,24), 0, _p1validator, _T("ID_TEXTCTRL_Parameter1"));
     FlexGridSizer2->Add(TextCtrl_Parameter1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Parameter 2"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    StaticText_P2 = new wxStaticText(this, ID_STATICTEXT2, _("Parameter 2"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    FlexGridSizer2->Add(StaticText_P2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Parameter2 = new wxSlider(this, IDD_SLIDER_Parameter2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Parameter2"));
     FlexGridSizer2->Add(Slider_Parameter2, 1, wxALL|wxEXPAND, 2);
     TextCtrl_Parameter2 = new wxTextCtrl(this, ID_TEXTCTRL_Parameter2, _("0"), wxDefaultPosition, wxSize(40,24), 0, _p2validator, _T("ID_TEXTCTRL_Parameter2"));
     FlexGridSizer2->Add(TextCtrl_Parameter2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText3 = new wxStaticText(this, ID_STATICTEXT5, _("Parameter 3"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-    FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    StaticText_P3 = new wxStaticText(this, ID_STATICTEXT5, _("Parameter 3"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+    FlexGridSizer2->Add(StaticText_P3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Parameter3 = new wxSlider(this, IDD_SLIDER_Parameter3, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Parameter3"));
     FlexGridSizer2->Add(Slider_Parameter3, 1, wxALL|wxEXPAND, 2);
     TextCtrl_Parameter3 = new wxTextCtrl(this, ID_TEXTCTRL_Parameter3, _("0"), wxDefaultPosition, wxSize(40,24), 0, _p3validator, _T("ID_TEXTCTRL_Parameter3"));
@@ -367,6 +369,72 @@ void ValueCurveDialog::ValidateWindow()
         TextCtrl_Parameter2->Enable();
         Slider_Parameter3->Enable();
         TextCtrl_Parameter3->Enable();
+    }
+    if (type == "Flat")
+    {
+        StaticText_P1->SetLabel("Level");
+        StaticText_P2->SetLabel("N/A");
+        StaticText_P3->SetLabel("N/A");
+    }
+    else if (type == "Ramp")
+    {
+        StaticText_P1->SetLabel("Start Level");
+        StaticText_P2->SetLabel("End Level");
+        StaticText_P3->SetLabel("N/A");
+    }
+    else if (type == "Ramp Up/Down")
+    {
+        StaticText_P1->SetLabel("Start Level");
+        StaticText_P2->SetLabel("Mid Level");
+        StaticText_P3->SetLabel("End Level");
+    }
+    else if (type == "Ramp Up/Down Hold")
+    {
+        StaticText_P1->SetLabel("Start/End Level");
+        StaticText_P2->SetLabel("Mid Level");
+        StaticText_P3->SetLabel("Mid Level Time");
+    }
+    else if (type == "Saw Tooth")
+    {
+        StaticText_P1->SetLabel("Start Level");
+        StaticText_P2->SetLabel("End Level");
+        StaticText_P3->SetLabel("Cycles");
+    }
+    else if (type == "Parabolic Down")
+    {
+        StaticText_P1->SetLabel("A");
+        StaticText_P2->SetLabel("B");
+        StaticText_P3->SetLabel("N/A");
+    }
+    else if (type == "Parabolic Up")
+    {
+        StaticText_P1->SetLabel("A");
+        StaticText_P2->SetLabel("B");
+        StaticText_P3->SetLabel("C");
+    }
+    else if (type == "Logarithmic Up")
+    {
+        StaticText_P1->SetLabel("Rate");
+        StaticText_P2->SetLabel("N/A");
+        StaticText_P3->SetLabel("N/A");
+    }
+    else if (type == "Logarithmic Down")
+    {
+        StaticText_P1->SetLabel("Rate");
+        StaticText_P2->SetLabel("N/A");
+        StaticText_P3->SetLabel("N/A");
+    }
+    else if (type == "Sine")
+    {
+        StaticText_P1->SetLabel("Start");
+        StaticText_P2->SetLabel("Amplitude");
+        StaticText_P3->SetLabel("Cycles");
+    }
+    else if (type == "Custom")
+    {
+        StaticText_P1->SetLabel("N/A");
+        StaticText_P2->SetLabel("N/A");
+        StaticText_P3->SetLabel("N/A");
     }
 }
 

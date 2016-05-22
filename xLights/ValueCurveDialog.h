@@ -53,16 +53,16 @@ public:
 		virtual ~ValueCurveDialog();
 
 		//(*Declarations(ValueCurveDialog)
+		wxStaticText* StaticText_P3;
 		wxTextCtrl* TextCtrl_Parameter3;
 		wxSlider* Slider_Parameter2;
 		wxButton* Button_Ok;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
+		wxStaticText* StaticText_P2;
 		wxTextCtrl* TextCtrl_Parameter2;
 		wxStaticText* StaticText_BottomValue;
 		wxButton* Button_Cancel;
 		wxSlider* Slider_Parameter3;
+		wxStaticText* StaticText_P1;
 		wxStaticText* StaticText_TopValue;
 		wxChoice* Choice1;
 		wxSlider* Slider_Parameter1;

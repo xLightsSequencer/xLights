@@ -26,6 +26,13 @@ void ValueCurve::RenderType()
             _values.push_back(vcSortablePoint(0.5f, _parameter2));
             _values.push_back(vcSortablePoint(1.0f, _parameter3));
         }
+        else if (_type == "Ramp Up/Down Hold")
+        {
+            _values.push_back(vcSortablePoint(0.0f, _parameter1));
+            _values.push_back(vcSortablePoint(0.5f - ((0.5f * (float)_parameter3) / 100.0), _parameter2));
+            _values.push_back(vcSortablePoint(0.5f + ((0.5f * (float)_parameter3) / 100.0), _parameter2));
+            _values.push_back(vcSortablePoint(1.0f, _parameter1));
+        }
         else if (_type == "Saw Tooth")
         {
             int count = _parameter3;
@@ -73,6 +80,7 @@ void ValueCurve::RenderType()
         }
         else if (_type == "Logarithmic Up")
         {
+            // p1 rate
             int a = _parameter1;
             if (_parameter1 == 0)
             {
@@ -86,6 +94,7 @@ void ValueCurve::RenderType()
         }
         else if (_type == "Logarithmic Down")
         {
+            // p1 rate
             int a = _parameter1;
             if (_parameter1 == 0)
             {
@@ -95,6 +104,20 @@ void ValueCurve::RenderType()
             for (float i = 0.0f; i <= 1.0f; i += 0.05f)
             {
                 _values.push_back(vcSortablePoint(i, 1.0f + -1 * exp2(a * i - 1.0f)));
+            }
+        }
+        else if (_type == "Sine")
+        {
+            // p1 - offset in cycle
+            // p2 - maxy
+            // p3 - cycles
+            // one cycle = 2* PI
+            static const double pi2 = 6.283185307;
+            float maxx = pi2 * std::max((float)_parameter3/10.0f, 0.1f);
+            for (float i = 0.0f; i < 1.0f; i += 0.01f)
+            {
+                float r = i * maxx + (((float)_parameter1 * pi2) / 100.0f);
+                _values.push_back(vcSortablePoint(i, (sin(r) * (std::max((float)_parameter2,1.0f) / 100.0f)) + 0.5f));
             }
         }
     }
@@ -120,17 +143,19 @@ std::string ValueCurve::Serialise()
     res += _id + "_P1=" + std::string(wxString::Format("%f", _parameter1).c_str()) + ",";
     res += _id + "_P2=" + std::string(wxString::Format("%f", _parameter2).c_str()) + ",";
     res += _id + "_P3=" + std::string(wxString::Format("%f", _parameter3).c_str()) + ",";
-    res += _id + "_Values=";
-    for (auto it = _values.begin(); it != _values.end(); ++it)
+    if (_type == "Custom")
     {
-        res += "" + std::string(wxString::Format("%f", it->x).c_str()) + ":" + std::string(wxString::Format("%f", it->y).c_str());
-        if (!(*it == _values.back()))
+        res += _id + "_Values=";
+        for (auto it = _values.begin(); it != _values.end(); ++it)
         {
-            res += ";";
+            res += "" + std::string(wxString::Format("%f", it->x).c_str()) + ":" + std::string(wxString::Format("%f", it->y).c_str());
+            if (!(*it == _values.back()))
+            {
+                res += ";";
+            }
         }
+        res += ",";
     }
-    res += ",";
-
     return res;
 }
 

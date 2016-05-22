@@ -70,11 +70,13 @@
 								<item>Flat</item>
 								<item>Ramp</item>
 								<item>Ramp Up/Down</item>
+								<item>Ramp Up/Down Hold</item>
 								<item>Saw Tooth</item>
 								<item>Parabolic Down</item>
 								<item>Parabolic Up</item>
 								<item>Logarithmic Up</item>
 								<item>Logarithmic Down</item>
+								<item>Sine</item>
 								<item>Custom</item>
 							</content>
 							<selection>0</selection>
@@ -90,7 +92,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText_P1" member="yes">
 							<label>Parameter 1</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -117,7 +119,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText_P2" member="yes">
 							<label>Parameter 2</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -144,7 +146,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText3" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText_P3" member="yes">
 							<label>Parameter 3</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
