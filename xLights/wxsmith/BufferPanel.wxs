@@ -63,19 +63,38 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxChoice" name="ID_CHOICE_BufferTransform" variable="BufferTransform" member="yes">
-													<content>
-														<item>None</item>
-														<item>Rotate CC 90</item>
-														<item>Rotate CW 90</item>
-														<item>Rotate 180</item>
-														<item>Flip Vertical</item>
-														<item>Flip Horizontal</item>
-													</content>
-													<selection>0</selection>
+												<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+													<cols>3</cols>
+													<object class="sizeritem">
+														<object class="wxChoice" name="ID_CHOICE_BufferTransform" variable="BufferTransform" member="yes">
+															<content>
+																<item>None</item>
+																<item>Rotate CC 90</item>
+																<item>Rotate CW 90</item>
+																<item>Rotate 180</item>
+																<item>Flip Vertical</item>
+																<item>Flip Horizontal</item>
+																<item>Roto-Zoom</item>
+															</content>
+															<selection>0</selection>
+															<handler function="OnBufferTransformSelect" entry="EVT_CHOICE" />
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON1" variable="Button_Properties" member="yes">
+															<label>Properties ...</label>
+															<handler function="OnButton_PropertiesClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
 												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">

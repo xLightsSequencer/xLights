@@ -11,6 +11,7 @@
 #include <wx/panel.h>
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
+#include <wx/button.h>
 //*)
 
 #include "ValueCurve.h"
@@ -25,7 +26,12 @@ class BufferPanel: public wxPanel
     void ValidateWindow();
     void OnVCChanged(wxCommandEvent& event);
 
-	public:
+    int _zooms;
+    int _rotations;
+    int _zoommaximum;
+    int _xcenter;
+    int _ycenter;
+public:
 
 		BufferPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~BufferPanel();
@@ -37,6 +43,7 @@ class BufferPanel: public wxPanel
 		//(*Declarations(BufferPanel)
 		wxScrolledWindow* BufferScrollWindow;
 		wxBitmapButton* BitmapButton_EffectBlur;
+		wxButton* Button_Properties;
 		wxChoice* BufferStyleChoice;
 		wxFlexGridSizer* Sizer2;
 		wxPanel* Panel_Sizer;
@@ -57,6 +64,7 @@ class BufferPanel: public wxPanel
 		static const long ID_CHOICE_BufferStyle;
 		static const long ID_BITMAPBUTTON_CHOICE_BufferStyle;
 		static const long ID_CHOICE_BufferTransform;
+		static const long ID_BUTTON1;
 		static const long ID_BITMAPBUTTON_CHOICE_BufferTransform;
 		static const long ID_STATICTEXT2;
 		static const long ID_SLIDER_EffectBlur;
@@ -82,6 +90,8 @@ class BufferPanel: public wxPanel
 		void OnResize(wxSizeEvent& event);
 		void OnBitmapButton_BlurClick(wxCommandEvent& event);
 		void OnSlider_EffectBlurCmdSliderUpdated(wxScrollEvent& event);
+		void OnBufferTransformSelect(wxCommandEvent& event);
+		void OnButton_PropertiesClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
