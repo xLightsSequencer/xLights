@@ -32,7 +32,6 @@
 #define MY_DISPLAY_GROUP 1
 
 //(*IdInit(LayoutPanel)
-const long LayoutPanel::ID_BUTTON_SELECT_MODEL_GROUPS = wxNewId();
 const long LayoutPanel::ID_CHECKLISTBOX_MODEL_GROUPS = wxNewId();
 const long LayoutPanel::ID_LISTBOX_ELEMENT_LIST = wxNewId();
 const long LayoutPanel::ID_SPLITTERWINDOW3 = wxNewId();
@@ -66,6 +65,8 @@ const long LayoutPanel::ID_PREVIEW_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_H_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL = wxNewId();
+const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
+const long LayoutPanel::ID_MNU_RENAME_MODEL_GROUP = wxNewId();
 
 class NewModelBitmapButton : public wxBitmapButton
 {
@@ -141,8 +142,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	LeftPanelSizer->AddGrowableRow(1);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonSelectModelGroups = new wxButton(LeftPanel, ID_BUTTON_SELECT_MODEL_GROUPS, _("Model Groups"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_MODEL_GROUPS"));
-	FlexGridSizer1->Add(ButtonSelectModelGroups, 1, wxALL, 2);
 	LeftPanelSizer->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 1);
 	ModelSplitter = new wxSplitterWindow(LeftPanel, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
 	ModelSplitter->SetMinSize(wxSize(50,50));
@@ -184,8 +183,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	FlexGridSizerPreview->Fit(this);
 	FlexGridSizerPreview->SetSizeHints(this);
 
-	Connect(ID_BUTTON_SELECT_MODEL_GROUPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonSelectModelGroupsClick);
 	Connect(ID_CHECKLISTBOX_MODEL_GROUPS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnListBoxModelGroupsItemSelect);
+	Connect(ID_CHECKLISTBOX_MODEL_GROUPS,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxModelGroupsItemRClick);
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListItemSelect);
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListItemRClick);
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListColumnClick);
@@ -942,9 +941,14 @@ void LayoutPanel::SetSelectedModelToGroupSelected()
     }
 }
 
-
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
+    if( !mPropGridActive ) {
+        ModelSplitter->ReplaceWindow(model_grp_panel, propertyEditor);
+        model_grp_panel->Hide();
+        propertyEditor->Show();
+        mPropGridActive = true;
+    }
     modelPreview->SetFocus();
     int y = event.GetY();
     if (event.ControlDown())
@@ -1942,16 +1946,79 @@ void LayoutPanel::OnListBoxElementListItemRClick(wxListEvent& event)
 {
     wxMenu *mnuLayer = new wxMenu();
     mnuLayer->Append(ID_MNU_DELETE_MODEL,"Delete");
-    mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnLayerPopup, NULL, this);
+    mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelPopup, NULL, this);
     PopupMenu(mnuLayer);
 }
 
-void LayoutPanel::OnLayerPopup(wxCommandEvent& event)
+void LayoutPanel::OnModelPopup(wxCommandEvent& event)
 {
     int id = event.GetId();
     if(id == ID_MNU_DELETE_MODEL)
     {
         DeleteSelectedModel();
+    }
+}
+
+void LayoutPanel::OnListBoxModelGroupsItemRClick(wxListEvent& event)
+{
+    int index = (int)event.GetItem().GetId();
+    if( index > MY_DISPLAY_GROUP ) {
+        wxMenu *mnuLayer = new wxMenu();
+        mnuLayer->Append(ID_MNU_DELETE_MODEL_GROUP,"Delete");
+        mnuLayer->Append(ID_MNU_RENAME_MODEL_GROUP,"Rename");
+        mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelGroupPopup, NULL, this);
+        PopupMenu(mnuLayer);
+    }
+}
+
+void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
+{
+    int id = event.GetId();
+    if(id == ID_MNU_DELETE_MODEL_GROUP)
+    {
+        long item = -1;
+        item = ListBoxModelGroups->GetNextItem( -1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        if( item != -1 ) {
+            wxString name = ListBoxModelGroups->GetItemText(item, 1);
+            if (wxMessageBox("Are you sure you want to remove the " + name + " group?", "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+                xlights->AllModels.Delete(name.ToStdString());
+                selectedModel = nullptr;
+                UnSelectAllModels();
+                if( !mPropGridActive ) {
+                    ModelSplitter->ReplaceWindow(model_grp_panel, propertyEditor);
+                    model_grp_panel->Hide();
+                    propertyEditor->Show();
+                    mPropGridActive = true;
+                }
+                xlights->UpdateModelsList();
+                xlights->UnsavedRgbEffectsChanges = true;
+            }
+        }
+    }
+    else if(id == ID_MNU_RENAME_MODEL_GROUP)
+    {
+        long item = -1;
+        item = ListBoxModelGroups->GetNextItem( -1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        if( item != -1 ) {
+            wxString sel = ListBoxModelGroups->GetItemText(item, 1);
+            wxTextEntryDialog dlg(this, "Enter new name for group " + sel, "Rename " + sel, sel);
+            if (dlg.ShowModal() == wxID_OK) {
+                wxString name = dlg.GetValue();
+
+                while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr) {
+                    wxTextEntryDialog dlg2(this, "Model or Group of name " + name + " already exists. Enter new name for group", "Enter new name for group");
+                    if (dlg2.ShowModal() == wxID_OK) {
+                        name = dlg2.GetValue();
+                    } else {
+                        return;
+                    }
+                }
+                xlights->AllModels.Rename(sel.ToStdString(), name.ToStdString());
+                xlights->UpdateModelsList();
+                xlights->UnsavedRgbEffectsChanges = true;
+                model_grp_panel->UpdatePanel(name.ToStdString());
+            }
+        }
     }
 }
 
@@ -1994,4 +2061,3 @@ void LayoutPanel::DeselectModelList()
       ListBoxElementList->SetItemState( item, 0, -1 );
    }
 }
-

@@ -43,7 +43,6 @@ class LayoutPanel: public wxPanel
 		//(*Declarations(LayoutPanel)
 		wxFlexGridSizer* ToolSizer;
 		wxListView* ListBoxElementList;
-		wxButton* ButtonSelectModelGroups;
 		wxCheckedListCtrl* ListBoxModelGroups;
 		wxSplitterWindow* SplitterWindow2;
 		wxPanel* LeftPanel;
@@ -59,7 +58,6 @@ class LayoutPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(LayoutPanel)
-		static const long ID_BUTTON_SELECT_MODEL_GROUPS;
 		static const long ID_CHECKLISTBOX_MODEL_GROUPS;
 		static const long ID_LISTBOX_ELEMENT_LIST;
 		static const long ID_SPLITTERWINDOW3;
@@ -113,6 +111,7 @@ class LayoutPanel: public wxPanel
 		void OnListBoxModelGroupsItemSelect(wxListEvent& event);
 		void OnListBoxModelGroupsItemFocused(wxListEvent& event);
 		void OnListBoxModelGroupsItemActivated(wxListEvent& event);
+		void OnListBoxModelGroupsItemRClick(wxListEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
@@ -212,9 +211,10 @@ class LayoutPanel: public wxPanel
         wxImageFileProperty *backgroundProperty;
 
         static const long ID_MNU_DELETE_MODEL;
-        void OnLayerPopup(wxCommandEvent& event);
-
-
+        static const long ID_MNU_DELETE_MODEL_GROUP;
+        static const long ID_MNU_RENAME_MODEL_GROUP;
+        void OnModelPopup(wxCommandEvent& event);
+        void OnModelGroupPopup(wxCommandEvent& event);
 };
 
 #endif

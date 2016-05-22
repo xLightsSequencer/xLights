@@ -27,15 +27,6 @@
 										<border>5</border>
 										<option>1</option>
 									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_SELECT_MODEL_GROUPS" variable="ButtonSelectModelGroups" member="yes">
-											<label>Model Groups</label>
-											<handler function="OnButtonSelectModelGroupsClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL</flag>
-										<border>2</border>
-										<option>1</option>
-									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>1</border>
@@ -52,6 +43,7 @@
 										<object class="wxListCtrl" name="ID_CHECKLISTBOX_MODEL_GROUPS" subclass="wxCheckedListCtrl" variable="ListBoxModelGroups" member="yes">
 											<style>wxLC_REPORT</style>
 											<handler function="OnListBoxModelGroupsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+											<handler function="OnListBoxModelGroupsItemRClick" entry="EVT_LIST_ITEM_RIGHT_CLICK" />
 										</object>
 										<object class="wxListView" name="ID_LISTBOX_ELEMENT_LIST" variable="ListBoxElementList" member="yes">
 											<pos>50,7</pos>

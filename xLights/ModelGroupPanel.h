@@ -28,10 +28,12 @@ class ModelGroupPanel: public wxPanel
 		wxStaticText* StaticText2;
 		wxChoice* ChoiceModelLayoutType;
 		wxButton* Button_SaveGroupChanges;
+		wxStaticText* LabelModelGroupName;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxStaticText* GridSizeLabel;
 		wxSpinCtrl* SizeSpinCtrl;
+		wxStaticText* StaticText5;
 		wxListBox* ListBoxModelsInGroup;
 		wxListBox* ListBoxAddToModelGroup;
 		//*)
@@ -39,6 +41,8 @@ class ModelGroupPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(ModelGroupPanel)
+		static const long ID_STATICTEXT5;
+		static const long ID_STATICTEXT6;
 		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL1;

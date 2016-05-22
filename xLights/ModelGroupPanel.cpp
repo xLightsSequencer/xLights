@@ -14,6 +14,8 @@
 #include <wx/xml/xml.h>
 
 //(*IdInit(ModelGroupPanel)
+const long ModelGroupPanel::ID_STATICTEXT5 = wxNewId();
+const long ModelGroupPanel::ID_STATICTEXT6 = wxNewId();
 const long ModelGroupPanel::ID_CHOICE1 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT4 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL1 = wxNewId();
@@ -51,7 +53,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFr
 	wxFlexGridSizer* FlexGridSizer11;
 	wxStaticText* StaticText4;
 
-	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
+	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -59,6 +61,10 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFr
 	FlexGridSizer3->AddGrowableRow(1);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer6->AddGrowableCol(1);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Model Group Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	FlexGridSizer6->Add(StaticText5, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	LabelModelGroupName = new wxStaticText(this, ID_STATICTEXT6, _("<group name>"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	FlexGridSizer6->Add(LabelModelGroupName, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText4 = new wxStaticText(this, wxID_ANY, _("Default Layout Mode:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer6->Add(StaticText4, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	ChoiceModelLayoutType = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
@@ -145,6 +151,7 @@ ModelGroupPanel::~ModelGroupPanel()
 void ModelGroupPanel::UpdatePanel(const std::string group)
 {
     mGroup = group;
+    LabelModelGroupName->SetLabel(group);
     Button_SaveGroupChanges->Hide();
     ListBoxModelsInGroup->Clear();
     ListBoxAddToModelGroup->Clear();
