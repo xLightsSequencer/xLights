@@ -66,6 +66,26 @@ public:
         }
     }
 
+    bool HasMapping()
+    {
+        if (_mapping != "")
+        {
+            return true;
+        }
+        else
+        {
+            for (size_t i = 0; i < m_children.size(); i++)
+            {
+                xLightsImportModelNode* c = GetNthChild(i);
+                if (c->HasMapping())
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     bool IsContainer() wxOVERRIDE
     {
         return m_container;
@@ -148,11 +168,24 @@ public:
     {
         return m_children.GetCount();
     }
+    unsigned int GetMappedChildCount() const
+    {
+        size_t count = 0;
+        for (size_t i = 0; i < m_children.size(); i++)
+        {
+            xLightsImportModelNode* c = GetNthChild(i);
+            if (c->HasMapping())
+            {
+                count++;
+            }
+        }
+        return count;
+    }
     xLightsImportModelNodePtrArray& GetChildren()
     {
         return m_children;
     }
-    xLightsImportModelNode* GetNthChild(unsigned int n)
+    xLightsImportModelNode* GetNthChild(unsigned int n) const
     {
         return m_children.Item(n);
     }
@@ -220,7 +253,7 @@ class xLightsImportChannelMapDialog: public wxDialog
         xLightsFrame * xlights;
     
         std::vector<std::string> channelNames;
-        std::vector<std::string> modelNames;
+        //std::vector<std::string> modelNames;
         static const long ID_TREELISTCTRL1;
         static const long ID_CHOICE;
 protected:

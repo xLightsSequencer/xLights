@@ -718,7 +718,7 @@ void MapXLightsEffects(Element *target, const std::string &name, SequenceElement
         while (target->GetEffectLayerCount() < srcEl->GetEffectLayerCount()) {
             target->AddEffectLayer();
         }
-        for (int x = 0; x < srcEl->GetEffectLayerCount(); x++) {
+        for (size_t x = 0; x < srcEl->GetEffectLayerCount(); x++) {
             MapXLightsEffects(target->GetEffectLayer(x), srcEl->GetEffectLayer(x), mapped);
         }
     }
@@ -735,7 +735,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     se.LoadSequencerFile(xlf, GetShowDirectory());
 
     std::vector<Element *> elements;
-    for (int e = 0; e < se.GetElementCount(); e++) {
+    for (size_t e = 0; e < se.GetElementCount(); e++) {
         Element *el = se.GetElement(e);
         elements.push_back(el);
     }
@@ -757,13 +757,13 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         if (el->GetType() == "model")
         {
             bool hasEffects = false;
-            for (int l = 0; l < el->GetEffectLayerCount(); l++) {
+            for (size_t l = 0; l < el->GetEffectLayerCount(); l++) {
                 hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
             }
             if (hasEffects) {
                 dlg.channelNames.push_back(el->GetName());
             }
-            for (int s = 0; s < el->getStrandLayerCount(); s++) {
+            for (size_t s = 0; s < el->getStrandLayerCount(); s++) {
                 StrandLayer *sl = el->GetStrandLayer(s, true);
                 std::string strandName = sl->GetName();
                 if (strandName == "") {
@@ -787,7 +787,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         return;
     }
     int row = 0;
-    for (int i = 0; i < dlg.dataModel->GetChildCount(); i++)
+    for (size_t i = 0; i < dlg.dataModel->GetChildCount(); i++)
     {
         xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();
@@ -805,7 +805,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         row++;
 
         int str = 0;
-        for (int j = 0; j < m->GetChildCount(); j++)
+        for (size_t j = 0; j < m->GetChildCount(); j++)
         {
             xLightsImportModelNode* s = m->GetNthChild(j);
             StrandLayer *sl = model->GetStrandLayer(str, true);
@@ -1220,11 +1220,11 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     }
 
     int row = 0;
-    for (int m = 0; m < dlg.modelNames.size(); m++) {
+    for (size_t m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
         Model *mc = GetModel(modelName);
         Element * model = nullptr;
-        for (int i=0;i<mSequenceElements.GetElementCount();i++) {
+        for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
                 model = mSequenceElements.GetElement(i);
@@ -1353,11 +1353,11 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
     }
 
     int row = 0;
-    for (int m = 0; m < dlg.modelNames.size(); m++) {
+    for (size_t m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
         Model *mc = GetModel(modelName);
         Element * model = nullptr;
-        for (int i=0;i<mSequenceElements.GetElementCount();i++) {
+        for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
                 model = mSequenceElements.GetElement(i);
@@ -1471,7 +1471,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
 {
     SuperStarImportDialog dlg(this);
 
-    for(int i=0;i<mSequenceElements.GetElementCount();i++) {
+    for(size_t i=0;i<mSequenceElements.GetElementCount();i++) {
         if(mSequenceElements.GetElement(i)->GetType()== "model") {
             dlg.ChoiceSuperStarImportModel->Append(mSequenceElements.GetElement(i)->GetName());
         }
@@ -1508,7 +1508,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
 
     Element* model = nullptr;
 
-    for(int i=0;i<mSequenceElements.GetElementCount();i++) {
+    for(size_t i=0;i<mSequenceElements.GetElementCount();i++) {
         if(mSequenceElements.GetElement(i)->GetType()== "model") {
             model = mSequenceElements.GetElement(i);
             if( model->GetName() == model_name ) {
@@ -1701,11 +1701,11 @@ void LoadRGBData(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *rc
         bchannel = bchannel->GetNext();
     }
     //have the data, now need to split it so common start/end times
-    for (int x = 0; x < red.size() || x < green.size() || x < blue.size(); x++) {
+    for (size_t x = 0; x < red.size() || x < green.size() || x < blue.size(); x++) {
         UnifyData(x, red, green, blue);
     }
 
-    for (int x = 0; x < red.size() || x < green.size() || x < blue.size(); x++) {
+    for (size_t x = 0; x < red.size() || x < green.size() || x < blue.size(); x++) {
         xlColor sc, ec;
         bool isShimmer = GetRGBEffectData(red[x], green[x], blue[x], sc, ec);
 
@@ -1885,11 +1885,11 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
     }
 
     int row = 0;
-    for (int m = 0; m < dlg.modelNames.size(); m++) {
+    for (size_t m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
         Model *mc = GetModel(modelName);
         Element * model = nullptr;
-        for (int i=0;i<mSequenceElements.GetElementCount();i++) {
+        for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
                 model = mSequenceElements.GetElement(i);

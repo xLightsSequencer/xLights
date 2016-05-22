@@ -61,7 +61,7 @@ class Element
 
         EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
         EffectLayer* GetEffectLayer(int index);
-        int GetEffectLayerCount();
+        size_t GetEffectLayerCount();
 
 
         EffectLayer* AddEffectLayer();

@@ -261,7 +261,7 @@ void Element::RemoveEffectLayer(int index)
     IncrementChangeCount(-1, -1);
 }
 
-int Element::GetEffectLayerCount()
+size_t Element::GetEffectLayerCount()
 {
     return mEffectLayers.size();
 }

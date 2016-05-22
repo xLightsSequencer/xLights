@@ -403,6 +403,7 @@ xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::st
 void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 {
     bool strandwarning = false;
+    bool modelwarning = false;
     if (_dirty)
     {
         if (wxMessageBox("Are you sure you dont want to save your changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO)
@@ -417,13 +418,20 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
         wxTextInputStream text(input, "\t");
         text.ReadLine(); // map by strand ... ignore this
         int count = wxAtoi(text.ReadLine());
-        modelNames.clear();
+        //modelNames.clear();
         for (int x = 0; x < count; x++) {
             std::string mn = text.ReadLine().ToStdString();
             if (TreeContainsModel(mn) == NULL) {
-                wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model.", "", wxICON_WARNING | wxOK , this);
+                //wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model.", "", wxICON_WARNING | wxOK , this);
+                if (!modelwarning)
+                {
+                    if (wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model. Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
+                    {
+                        modelwarning = true;
+                    }
+                }
             } else {
-                modelNames.push_back(mn);
+                //modelNames.push_back(mn);
             }
         }
         wxString line = text.ReadLine();
@@ -461,7 +469,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                 {
                     if (!strandwarning)
                     {
-                        if (wxMessageBox(model + "/" + strand + " not found.  Has the models changed? Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxID_NO)
+                        if (wxMessageBox(model + "/" + strand + " not found.  Has the models changed? Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
                         {
                             strandwarning = true;
                         }
@@ -512,28 +520,34 @@ void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
         wxFileOutputStream output(dlg.GetPath());
         wxTextOutputStream text(output);
         text.WriteString("false\n");
-        int modelcount = dataModel->GetChildCount();
+        int modelcount = dataModel->GetMappedChildCount();
         text.WriteString(wxString::Format("%d\n", modelcount));
         for (size_t i = 0; i < dataModel->GetChildCount(); i++)
         {
             xLightsImportModelNode* m = dataModel->GetNthChild(i);
-            text.WriteString(m->_model + "\n");
+            if (m->HasMapping())
+            {
+                text.WriteString(m->_model + "\n");
+            }
         }
         for (size_t i = 0; i < dataModel->GetChildCount(); i++)
         {
             xLightsImportModelNode* m = dataModel->GetNthChild(i);
-            wxString mn = m->_model;
-            text.WriteString(mn
-                + "\t" +
-                +"\t" + m->_mapping
-                + "\n");
-            for (size_t j = 0; j < m->GetChildCount(); j++)
+            if (m->HasMapping())
             {
-                xLightsImportModelNode* s = m->GetNthChild(j);
+                wxString mn = m->_model;
                 text.WriteString(mn
-                    + "\t" + s->_strand
-                    + "\t" + s->_mapping
+                    + "\t" +
+                    +"\t" + m->_mapping
                     + "\n");
+                for (size_t j = 0; j < m->GetChildCount(); j++)
+                {
+                    xLightsImportModelNode* s = m->GetNthChild(j);
+                    text.WriteString(mn
+                        + "\t" + s->_strand
+                        + "\t" + s->_mapping
+                        + "\n");
+                }
             }
         }
         _dirty = false;

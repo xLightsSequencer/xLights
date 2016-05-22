@@ -325,6 +325,7 @@ wxString FindTab(wxString &line) {
 void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 {
     bool strandwarning = false;
+    bool modelwarning = false;
     if (_dirty)
     {
         if (wxMessageBox("Are you sure you dont want to save your changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO)
@@ -348,7 +349,14 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             std::string mn = text.ReadLine().ToStdString();
             int idx = ModelsChoice->FindString(mn);
             if (idx == wxNOT_FOUND) {
-                wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model.", "", wxICON_WARNING | wxOK , this);
+                //wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model.", "", wxICON_WARNING | wxOK , this);
+                if (!modelwarning)
+                {
+                    if (wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model. Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
+                    {
+                        modelwarning = true;
+                    }
+                }
             } else {
                 ModelsChoice->Delete(idx);
                 modelNames.push_back(mn);
@@ -385,7 +393,7 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                     || node !=  ChannelMapGrid->GetCellValue(r, 2)) {
                     if (!strandwarning)
                     {
-                        if (wxMessageBox(model + "/" + strand + "/" + node + " not found.  Has the models changed? Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxID_NO)
+                        if (wxMessageBox(model + "/" + strand + "/" + node + " not found.  Has the models changed? Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
                         {
                             strandwarning = true;
                         }
