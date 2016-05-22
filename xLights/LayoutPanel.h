@@ -6,18 +6,20 @@
 class wxSplitterWindow;
 class wxCheckBox;
 class wxSplitterEvent;
-class wxStaticText;
+class wxListCtrl;
 class wxListView;
 class wxFlexGridSizer;
 class wxButton;
-class wxChoice;
 //*)
+
+#include "wxCheckedListCtrl.h"
 
 #include <vector>
 
 class xLightsFrame;
 class ModelPreview;
 class Model;
+class ModelGroup;
 class wxListEvent;
 class wxMouseEvent;
 class wxPropertyGrid;
@@ -25,6 +27,7 @@ class wxPropertyGridEvent;
 class NewModelBitmapButton;
 class wxImageFileProperty;
 
+wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
 
 #include <vector>
 
@@ -40,13 +43,14 @@ class LayoutPanel: public wxPanel
 		wxFlexGridSizer* ToolSizer;
 		wxListView* ListBoxElementList;
 		wxButton* ButtonSelectModelGroups;
+		wxCheckedListCtrl* ListBoxModelGroups;
 		wxSplitterWindow* SplitterWindow2;
 		wxPanel* LeftPanel;
-		wxChoice* ViewChoice;
 		wxCheckBox* CheckBoxOverlap;
 		wxPanel* SecondPanel;
 		wxButton* ButtonSavePreview;
 		wxFlexGridSizer* PreviewGLSizer;
+		wxSplitterWindow* GroupSplitter;
 		wxSplitterWindow* ModelSplitter;
 		wxPanel* PreviewGLPanel;
 		//*)
@@ -54,9 +58,10 @@ class LayoutPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(LayoutPanel)
-		static const long ID_CHOICE1;
 		static const long ID_BUTTON_SELECT_MODEL_GROUPS;
+		static const long ID_CHECKLISTBOX_MODEL_GROUPS;
 		static const long ID_LISTBOX_ELEMENT_LIST;
+		static const long ID_SPLITTERWINDOW3;
 		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
 		static const long ID_CHECKBOXOVERLAP;
@@ -125,6 +130,8 @@ class LayoutPanel: public wxPanel
         void ExportCustomModel();
         void ImportCustomModel(Model* model);
         void AddModelButton(const std::string &type, const char *imageData[]);
+        void UpdateModelGroupList();
+        void ModelGroupChecked(wxCommandEvent& event);
 
         bool SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);
@@ -155,6 +162,9 @@ class LayoutPanel: public wxPanel
         int m_previous_mouse_x, m_previous_mouse_y;
         int mPointSize;
         int mHitTestNextSelectModelIndex;
+        int mNumGroups;
+        bool mUpdateModelGroupList;
+        bool mGroupDefault;
 
         wxPropertyGrid *propertyEditor;
         bool updatingProperty;
@@ -188,8 +198,8 @@ class LayoutPanel: public wxPanel
     public:
         xLightsFrame *xlights;
         ModelPreview *modelPreview;
-        void UpdateModelList(bool addGroups = true);
-
+        void UpdateModelList();
+        void AddModelGroupItem(wxString name, ModelGroup *grp, bool selected);
 
     private:
         wxImageFileProperty *backgroundProperty;

@@ -48,7 +48,7 @@ void ModelGroup::Reset() {
     name = ModelXml->GetAttribute("name").ToStdString();
     DisplayAs = "ModelGroup";
     StringType = "RGB Nodes";
-    
+
     int gridSize = wxAtoi(ModelXml->GetAttribute("GridSize", "400"));
     std::string layout = ModelXml->GetAttribute("layout", "grid").ToStdString();
     defaultBufferStyle = layout;
@@ -74,7 +74,7 @@ void ModelGroup::Reset() {
             c->InitRenderBufferNodes("Per Preview No Offset", "None", Nodes, bw, bh);
         }
     }
-    
+
     //now have all the nodes for all the models
     float minx = 99999;
     float maxx = -1;
@@ -108,7 +108,7 @@ void ModelGroup::Reset() {
     }
 
     bool minimal = layout != "grid";
-    
+
     float midX = (minx + maxx) / 2.0;
     float midY = (miny + maxy) / 2.0;
     if (!minimal) {
@@ -143,7 +143,7 @@ void ModelGroup::Reset() {
     float nminy = 999999;
     BufferHt = 0;
     BufferWi = 0;
-    
+
     for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
         for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); coord++) {
             if (minimal) {
@@ -167,7 +167,7 @@ void ModelGroup::Reset() {
             BufferWi = std::max(BufferWi, (int)coord->bufX);
         }
     }
-    
+
     BufferHt++;
     BufferWi++;
     if (!minimal) {
@@ -177,7 +177,7 @@ void ModelGroup::Reset() {
 
     screenLocation.SetRenderSize(maxx - nminx + 1, maxy - nminy + 1);
     screenLocation.SetOffset(0.5, 0.5);
-    
+
     SetMinMaxModelScreenCoordinates(screenLocation.previewW, screenLocation.previewH);
 }
 
@@ -254,7 +254,7 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
     int maxStrandLen = 0;
     int maxNodes = 0;
     int total = 0;
-    
+
     int maxWid = 0;
     int maxHi = 0;
     for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
@@ -271,7 +271,7 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
                     maxStrandLen = m->GetStrandLength(x);
                 }
             }
-            
+
             maxWid = std::max(maxWid, m->GetDefaultBufferWi());
             maxHi = std::max(maxHi, m->GetDefaultBufferHt());
         }
@@ -445,4 +445,11 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
     } else {
         Model::InitRenderBufferNodes(type, transform, Nodes, BufferWi, BufferHi);
     }
+}
+
+void ModelGroup::SetSelected(bool select)
+{
+    wxString sSelected = select?"1":"0";
+    ModelXml->DeleteAttribute("selected");
+    ModelXml->AddAttribute("selected",sSelected);
 }

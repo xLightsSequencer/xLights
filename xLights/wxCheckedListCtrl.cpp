@@ -38,6 +38,7 @@ void wxCheckedListCtrl::OnMouseEvent(wxMouseEvent& event)
          SetChecked(item, !IsChecked(item));
         wxCommandEvent eventChecked(EVT_LISTITEM_CHECKED);
         eventChecked.SetClientData((wxClientData*)GetItemData(item));
+        eventChecked.SetClientObject((wxClientData*)item);
         wxPostEvent(GetParent(), eventChecked);
      }
      else

@@ -1,8 +1,8 @@
 #include "ModelViewSelector.h"
 
 //(*InternalHeaders(ModelViewSelector)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(ModelViewSelector)
@@ -23,11 +23,11 @@ END_EVENT_TABLE()
 ModelViewSelector::ModelViewSelector(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(ModelViewSelector)
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, _("Add Models"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
 	SetMinSize(wxSize(200,250));
