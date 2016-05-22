@@ -255,9 +255,12 @@ bool xLightsImportChannelMapDialog::Init() {
     {
         if ((*it).find('/') != std::string::npos)
         {
+			// strands
+            _importModels.push_back(wxString(it->c_str()));
         }
         else
         {
+			// models
             _importModels.push_back(wxString(it->c_str()));
         }
     }
