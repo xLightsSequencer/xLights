@@ -20,6 +20,7 @@ class xLightsFrame;
 class ModelPreview;
 class Model;
 class ModelGroup;
+class ModelGroupPanel;
 class wxListEvent;
 class wxMouseEvent;
 class wxPropertyGrid;
@@ -109,6 +110,9 @@ class LayoutPanel: public wxPanel
 		void OnCharHook(wxKeyEvent& event);
 		void OnChar(wxKeyEvent& event);
 		void OnListBoxElementListItemRClick(wxListEvent& event);
+		void OnListBoxModelGroupsItemSelect(wxListEvent& event);
+		void OnListBoxModelGroupsItemFocused(wxListEvent& event);
+		void OnListBoxModelGroupsItemActivated(wxListEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
@@ -132,6 +136,8 @@ class LayoutPanel: public wxPanel
         void AddModelButton(const std::string &type, const char *imageData[]);
         void UpdateModelGroupList();
         void ModelGroupChecked(wxCommandEvent& event);
+        void DeselectModelGroupList();
+        void DeselectModelList();
 
         bool SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);
@@ -163,8 +169,8 @@ class LayoutPanel: public wxPanel
         int mPointSize;
         int mHitTestNextSelectModelIndex;
         int mNumGroups;
-        bool mUpdateModelGroupList;
         bool mGroupDefault;
+        bool mPropGridActive;
 
         wxPropertyGrid *propertyEditor;
         bool updatingProperty;
@@ -181,6 +187,7 @@ class LayoutPanel: public wxPanel
         NewModelBitmapButton *selectedButton;
         wxString _lastCustomModel;
         Model *newModel;
+        ModelGroupPanel *model_grp_panel;
 
         std::string lastModelName;
 
@@ -198,7 +205,7 @@ class LayoutPanel: public wxPanel
     public:
         xLightsFrame *xlights;
         ModelPreview *modelPreview;
-        void UpdateModelList();
+        void UpdateModelList(bool update_groups = true);
         void AddModelGroupItem(wxString name, ModelGroup *grp, bool selected);
 
     private:

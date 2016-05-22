@@ -21,6 +21,7 @@
 #include "DrawGLUtils.h"
 #include "ChannelLayoutDialog.h"
 #include "models/ModelGroup.h"
+#include "ModelGroupPanel.h"
 
 #include "../include/eye-16.xpm"
 #include "../include/eye-16_gray.xpm"
@@ -113,8 +114,8 @@ private:
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
-    colSizesSet(false), updatingProperty(false), mNumGroups(0), mUpdateModelGroupList(true),
-    mGroupDefault(true)
+    colSizesSet(false), updatingProperty(false), mNumGroups(0),
+    mGroupDefault(true), mPropGridActive(true)
 {
     backgroundProperty = nullptr;
     _lastCustomModel = "";
@@ -184,6 +185,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	FlexGridSizerPreview->SetSizeHints(this);
 
 	Connect(ID_BUTTON_SELECT_MODEL_GROUPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonSelectModelGroupsClick);
+	Connect(ID_CHECKLISTBOX_MODEL_GROUPS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnListBoxModelGroupsItemSelect);
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListItemSelect);
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListItemRClick);
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListColumnClick);
@@ -287,6 +289,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     modelPreview->Connect(wxID_ANY, wxEVT_CHAR, wxKeyEventHandler(LayoutPanel::OnChar),0,this);
 
     ListBoxModelGroups->SetImages((char**)eye_16,(char**)eye_16_gray);
+    model_grp_panel = new ModelGroupPanel(ModelSplitter, xlights->AllModels, xlights);
+    model_grp_panel->Hide();
 }
 
 void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
@@ -343,7 +347,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                     lastModelName = event.GetValue().GetString().ToStdString();
                 }
                 if (xlights->RenameModel(selectedModel->name, event.GetValue().GetString().ToStdString())) {
-                    CallAfter(&LayoutPanel::UpdateModelList);
+                    CallAfter(&LayoutPanel::UpdateModelList, true);
                     CallAfter(&LayoutPanel::UnSelectAllModels);
                 }
             }
@@ -442,7 +446,7 @@ void LayoutPanel::refreshModelList() {
 #endif
     }
 }
-void LayoutPanel::UpdateModelList() {
+void LayoutPanel::UpdateModelList(bool update_groups) {
     UnSelectAllModels();
     ListBoxElementList->DeleteAllItems();
 
@@ -489,11 +493,10 @@ void LayoutPanel::UpdateModelList() {
 #endif
     }
 
-    if( mUpdateModelGroupList ) {
+    if( update_groups ) {
         UpdateModelGroupList();
     }
 
-    mUpdateModelGroupList = true;
     ListBoxElementList->SortItems(MyCompareFunction,0);
     if (!colSizesSet) {
         ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE_USEHEADER);
@@ -557,12 +560,10 @@ void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
 
     if( index == ALL_MODELS_GROUP ) {
         ListBoxModelGroups->SetChecked(MY_DISPLAY_GROUP, false);
-        mUpdateModelGroupList = false;
-        xlights->UpdateModelsList();
+        xlights->UpdateModelsList(false);
     } else if( index == MY_DISPLAY_GROUP ) {
         ListBoxModelGroups->SetChecked(ALL_MODELS_GROUP, false);
-        mUpdateModelGroupList = false;
-        xlights->UpdateModelsList();
+        xlights->UpdateModelsList(false);
     } else {
         ListBoxModelGroups->SetChecked(MY_DISPLAY_GROUP, false);
         ListBoxModelGroups->SetChecked(ALL_MODELS_GROUP, false);
@@ -573,8 +574,8 @@ void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
                 if( it->first == name ) {
                     ModelGroup *grp = (ModelGroup*)model;
                     grp->SetSelected(checked);
-                    mUpdateModelGroupList = false;
-                    xlights->UpdateModelsList();
+
+                    xlights->UpdateModelsList(false);
                     xlights->UnsavedRgbEffectsChanges = true;
                     break;
                 }
@@ -760,6 +761,13 @@ void LayoutPanel::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
 
 void LayoutPanel::OnListBoxElementListItemSelect(wxListEvent& event)
 {
+    if( !mPropGridActive ) {
+        DeselectModelGroupList();
+        ModelSplitter->ReplaceWindow(model_grp_panel, propertyEditor );
+        propertyEditor->Show();
+        model_grp_panel->Hide();
+        mPropGridActive = true;
+    }
     int sel = ListBoxElementList->GetFirstSelected();
     if (sel == wxNOT_FOUND)
     {
@@ -1945,5 +1953,45 @@ void LayoutPanel::OnLayerPopup(wxCommandEvent& event)
     {
         DeleteSelectedModel();
     }
+}
+
+void LayoutPanel::OnListBoxModelGroupsItemSelect(wxListEvent& event)
+{
+    wxListItem li = event.GetItem();
+    if( li.GetId() > MY_DISPLAY_GROUP ) {
+        if( mPropGridActive ) {
+            DeselectModelList();
+            ModelSplitter->ReplaceWindow(propertyEditor, model_grp_panel);
+            propertyEditor->Hide();
+            model_grp_panel->Show();
+            mPropGridActive = false;
+        }
+        std::string name = ListBoxModelGroups->GetItemText(li, 1).ToStdString();
+        model_grp_panel->UpdatePanel(name);
+    }
+}
+
+void LayoutPanel::DeselectModelGroupList()
+{
+   long item = -1;
+   while( 1 )
+   {
+      item = ListBoxModelGroups->GetNextItem( -1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+      if( item == -1 )
+         break;
+      ListBoxModelGroups->SetItemState( item, 0, -1 );
+   }
+}
+
+void LayoutPanel::DeselectModelList()
+{
+   long item = -1;
+   while( 1 )
+   {
+      item = ListBoxElementList->GetNextItem( -1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+      if( item == -1 )
+         break;
+      ListBoxElementList->SetItemState( item, 0, -1 );
+   }
 }
 

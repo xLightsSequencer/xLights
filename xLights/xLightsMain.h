@@ -1256,7 +1256,7 @@ public:
     void SetPreviewBackgroundImage(const wxString &filename);
     void SetPreviewBackgroundBrightness(int i);
     void UpdatePreview();
-    void UpdateModelsList();
+    void UpdateModelsList(bool update_groups = true);
     void RowHeadingsChanged( wxCommandEvent& event);
     int GetTotalChannels() { return _totalChannels; };
 
