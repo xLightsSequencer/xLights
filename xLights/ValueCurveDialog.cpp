@@ -63,9 +63,6 @@ END_EVENT_TABLE()
 ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _vc = vc;
-    _vcp = new ValueCurvePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
-    _vcp->SetMinSize(wxSize(200, 100));
-    _vcp->SetValue(_vc);
 
     wxIntegerValidator<int> _p1validator(&__p1, wxNUM_VAL_THOUSANDS_SEPARATOR);
     _p1validator.SetMin(0);
@@ -163,8 +160,15 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_CancelClick);
     //*)
 
+    _vcp = new ValueCurvePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
+    _vcp->SetMinSize(wxSize(200, 100));
+    _vcp->SetValue(_vc);
     FlexGridSizer4->Add(_vcp, 1, wxALL | wxEXPAND, 2);
+    Layout();
+    Fit();
+
     _backup = *_vc;
+
     Slider_Parameter1->SetValue(_vc->GetParameter1());
     Slider_Parameter2->SetValue(_vc->GetParameter2());
     Slider_Parameter3->SetValue(_vc->GetParameter3());
@@ -172,6 +176,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     TextCtrl_Parameter2->SetValue(wxString::Format("%d", (int)_vc->GetParameter2()));
     TextCtrl_Parameter3->SetValue(wxString::Format("%d", (int)_vc->GetParameter3()));
     Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
+    Choice1->SetFocus();
     ValidateWindow();
 }
 
@@ -197,7 +202,7 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
 {
     _vcp->SetType(std::string(Choice1->GetStringSelection().c_str()));
     _vc->SetType(std::string(Choice1->GetStringSelection().c_str()));
-    _vcp->Update();
+    _vcp->Refresh();
     ValidateWindow();
 }
 
@@ -260,68 +265,70 @@ void ValueCurveDialog::OnTextCtrl_Parameter1Text(wxCommandEvent& event)
 {
     Slider_Parameter1->SetValue(wxAtoi(TextCtrl_Parameter1->GetValue()));
     _vc->SetParameter1(Slider_Parameter1->GetValue());
-    _vcp->Update();
+    _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnTextCtrl_Parameter2Text(wxCommandEvent& event)
 {
     Slider_Parameter2->SetValue(wxAtoi(TextCtrl_Parameter2->GetValue()));
     _vc->SetParameter2(Slider_Parameter2->GetValue());
-    _vcp->Update();
+    _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnSlider_Parameter1CmdSliderUpdated(wxScrollEvent& event)
 {
     TextCtrl_Parameter1->SetValue(wxString::Format("%d", Slider_Parameter1->GetValue()));
     _vc->SetParameter1(Slider_Parameter1->GetValue());
-    _vcp->Update();
+    _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnSlider_Parameter2CmdSliderUpdated(wxScrollEvent& event)
 {
     TextCtrl_Parameter2->SetValue(wxString::Format("%d", Slider_Parameter2->GetValue()));
     _vc->SetParameter2(Slider_Parameter2->GetValue());
-    _vcp->Update();
+    _vcp->Refresh();
 }
 void ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event)
 {
     TextCtrl_Parameter3->SetValue(wxString::Format("%d", Slider_Parameter3->GetValue()));
     _vc->SetParameter3(Slider_Parameter3->GetValue());
-    _vcp->Update();
+    _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnTextCtrl_Parameter3Text(wxCommandEvent& event)
 {
     Slider_Parameter3->SetValue(wxAtoi(TextCtrl_Parameter3->GetValue()));
     _vc->SetParameter3(Slider_Parameter3->GetValue());
-    _vcp->Update();
+    _vcp->Refresh();
 }
 #pragma endregion Sliders and TextCtrls
 
 void ValueCurvePanel::Paint(wxPaintEvent& event)
 {
-    //wxAutoBufferedPaintDC pdc(this);
-    wxPaintDC pdc(this);
-    pdc.Clear();
-    pdc.SetPen(*wxLIGHT_GREY_PEN);
-    pdc.SetBrush(*wxLIGHT_GREY_BRUSH);
-    int w = GetSize().GetWidth();
-    int h = GetSize().GetHeight();
-    pdc.DrawRectangle(0, 0, w, h);
-    pdc.SetBrush(wxNullBrush);
+    //wxPaintDC pdc(this);
+    wxAutoBufferedPaintDC pdc(this);
+    pdc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
+    pdc.SetBrush(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
+    wxSize size = GetSize();
+    float w = size.GetWidth();
+    float h = size.GetHeight();
+    pdc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
+
+    pdc.SetBrush(*wxTRANSPARENT_BRUSH);
     if (_vc != NULL)
     {
-        pdc.SetPen(wxPen(*wxBLACK, 2, wxPENSTYLE_LONG_DASH));
-        float p1y = _vc->GetValueAt(0);
-        float p1x = 0.0f;
-        for (float p = 1.0f / (float)w; p <= 1.0f; p += 1.0f / (float)GetSize().GetWidth())
-        {
-            float p2y = _vc->GetValueAt(p);
-            pdc.DrawLine(p1x * w, p1y * h, p * w, p2y * h);
-            p1x = p;
-            p1y = p2y;
-        }
+        pdc.SetPen(wxPen(*wxGREEN, 3, wxPENSTYLE_LONG_DASH));
         std::list<vcSortablePoint> pts = _vc->GetPoints();
+
+        if (pts.size() > 1)
+        {
+            std::list<vcSortablePoint>::iterator last = pts.begin();
+            for (auto p = pts.begin()++; p != pts.end(); p++)
+            {
+                pdc.DrawLine(last->x * w, last->y * h, p->x * w, p->y * h);
+                last = p;
+            }
+        }
         pdc.SetPen(wxPen(*wxRED, 2, wxPENSTYLE_SOLID));
         for (auto it = pts.begin(); it != pts.end(); it++)
         {

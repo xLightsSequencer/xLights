@@ -16,16 +16,15 @@
 
 class ValueCurvePanel : public wxWindow, public xlCustomControl
 {
-    ValueCurve *_vc;
-    float _grabbedPoint;
-    std::string _type;
-
 public:
     ValueCurvePanel(wxWindow* parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition,
         const wxSize &size = wxDefaultSize, long style = 0);
+    virtual ~ValueCurvePanel() {};
+    virtual void SetValue(const std::string &val) override {};
     void SetValue(ValueCurve* vc) { _vc = vc; }
     void SetType(std::string type) { _type = type; }
-    virtual void SetValue(const std::string &val) override {};
+    //void SetDefaults();
+    //std::string GetValue();
 
 protected:
     DECLARE_EVENT_TABLE()
@@ -34,7 +33,11 @@ protected:
     void mouseLeftUp(wxMouseEvent& event);
     void mouseMoved(wxMouseEvent& event);
     void Paint(wxPaintEvent& event);
+private:
     void Convert(float &x, float &y, wxMouseEvent& event);
+    ValueCurve *_vc;
+    float _grabbedPoint;
+    std::string _type;
 };
 
 class ValueCurveDialog: public wxDialog
