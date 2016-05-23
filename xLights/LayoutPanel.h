@@ -111,7 +111,6 @@ class LayoutPanel: public wxPanel
 		void OnListBoxModelGroupsItemSelect(wxListEvent& event);
 		void OnListBoxModelGroupsItemFocused(wxListEvent& event);
 		void OnListBoxModelGroupsItemActivated(wxListEvent& event);
-		void OnListBoxModelGroupsItemRClick(wxListEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
@@ -213,8 +212,10 @@ class LayoutPanel: public wxPanel
         static const long ID_MNU_DELETE_MODEL;
         static const long ID_MNU_DELETE_MODEL_GROUP;
         static const long ID_MNU_RENAME_MODEL_GROUP;
+        static const long ID_MNU_ADD_MODEL_GROUP;
         void OnModelPopup(wxCommandEvent& event);
         void OnModelGroupPopup(wxCommandEvent& event);
+		void OnModelGroupRightDown(wxMouseEvent& event);
 };
 
 #endif
