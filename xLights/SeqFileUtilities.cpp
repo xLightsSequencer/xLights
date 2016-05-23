@@ -774,6 +774,17 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     dlg.channelNames.push_back(el->GetName() + "/" + strandName);
                     layerMap[el->GetName() + "/" + strandName] = sl;
                 }
+                for (size_t n = 0; n < sl->GetNodeLayerCount(); n++) {
+                    NodeLayer *nl = sl->GetNodeLayer(n, true);
+                    if (nl->GetEffectCount() > 0) {
+                        std::string nodeName = nl->GetName();
+                        if (nodeName == "") {
+                            nodeName = wxString::Format("Node %d", (n + 1));
+                        }
+                        dlg.channelNames.push_back(el->GetName() + "/" + strandName + "/" + nodeName);
+                        layerMap[el->GetName() + "/" + strandName + "/" + nodeName] = nl;
+                    }
+                }
             }
         }
     }
@@ -815,6 +826,20 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     MapXLightsStrandEffects(sl, s->_mapping.ToStdString(), layerMap, se, mapped);
                 }
                 row++;
+                int node = 0;
+                for (size_t k = 0; k < s->GetChildCount(); k++)
+                {
+                    xLightsImportModelNode* n = s->GetNthChild(k);
+                    NodeLayer *nl = sl->GetNodeLayer(node, true);
+
+                    if (nl != nullptr) {
+                        if ("" != n->_mapping) {
+                            MapXLightsStrandEffects(nl, n->_mapping.ToStdString(), layerMap, se, mapped);
+                        }
+                        row++;
+                    }
+                    node++;
+                }
             }
             str++;
         }
