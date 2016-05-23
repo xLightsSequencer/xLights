@@ -811,8 +811,8 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             StrandLayer *sl = model->GetStrandLayer(str, true);
 
             if( sl != nullptr ) {
-                if ("" != s->_strand) {
-                    MapXLightsStrandEffects(sl, s->_strand.ToStdString(), layerMap, se, mapped);
+                if ("" != s->_mapping) {
+                    MapXLightsStrandEffects(sl, s->_mapping.ToStdString(), layerMap, se, mapped);
                 }
                 row++;
             }
