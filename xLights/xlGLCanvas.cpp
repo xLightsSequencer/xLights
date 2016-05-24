@@ -191,21 +191,18 @@ void xlGLCanvas::DisplayWarning(const wxString &msg) {
 void xlGLCanvas::SetCurrentGLContext() {
     glGetError();
     if (m_context == nullptr) {
-        CreateGLContext();
+        LOG_GL_ERRORV(CreateGLContext());
     }
-    LOG_GL_ERROR();
-    m_context->SetCurrent(*this);
-    LOG_GL_ERROR();
+    LOG_GL_ERRORV(m_context->SetCurrent(*this));
     if (!functionsLoaded) {
-        DrawGLUtils::LoadGLFunctions();
+        LOG_GL_ERRORV(DrawGLUtils::LoadGLFunctions());
         functionsLoaded = true;
     }
-    LOG_GL_ERROR();
-    wxConfigBase* config = wxConfigBase::Get();
-    int ver = 99;
-    config->Read("ForceOpenGLVer", &ver, 99);
-    
     if (cache == nullptr) {
+        wxConfigBase* config = wxConfigBase::Get();
+        int ver = 99;
+        config->Read("ForceOpenGLVer", &ver, 99);
+
         log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         const GLubyte* str = glGetString(GL_VERSION);
         const GLubyte* rend = glGetString(GL_RENDERER);
@@ -238,26 +235,24 @@ void xlGLCanvas::SetCurrentGLContext() {
                 AddDebugLog(this);
             }
             logger_opengl.info("Try creating 33 Cache");
-            cache = Create33Cache(UsesVertexTextureAccumulator(),
+            LOG_GL_ERRORV(cache = Create33Cache(UsesVertexTextureAccumulator(),
                                   UsesVertexColorAccumulator(),
                                   UsesVertexAccumulator(),
-                                  UsesAddVertex());
+                                  UsesAddVertex()));
         }
         if (cache == nullptr && ver >=2 && str[0] >= '2') {
             logger_opengl.info("Try creating 21 Cache");
-            cache = Create21Cache();
+            LOG_GL_ERRORV(cache = Create21Cache());
         }
         if (cache == nullptr) {
             logger_opengl.info("Try creating 15 Cache");
-            cache = Create15Cache();
+            LOG_GL_ERRORV(cache = Create15Cache());
         }
         if (cache == nullptr) {
             logger_opengl.error("All attempts at cache creation have failed.");
         }
     }
-    LOG_GL_ERROR();
-    DrawGLUtils::SetCurrentCache(cache);
-    LOG_GL_ERROR();
+    LOG_GL_ERRORV(DrawGLUtils::SetCurrentCache(cache));
 }
 
 
@@ -271,9 +266,10 @@ void xlGLCanvas::CreateGLContext() {
         wxConfigBase* config = wxConfigBase::Get();
         int ver = 99;
         config->Read("ForceOpenGLVer", &ver, 99);
+        
+        static bool supportsCoreProfile = true;
 
-
-        if (m_coreProfile && ver >= 3) {
+        if (supportsCoreProfile && m_coreProfile && ver >= 3) {
             wxGLContextAttrs atts;
             log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
             atts.PlatformDefaults().OGLVersion(3, 3).CoreProfile();
@@ -284,25 +280,26 @@ void xlGLCanvas::CreateGLContext() {
 #endif
             atts.EndList();
             glGetError();
-            m_context = new wxGLContext(this, nullptr, &atts);
+            LOG_GL_ERRORV(m_context = new wxGLContext(this, nullptr, &atts));
             if (!m_context->IsOK()) {
                 logger_opengl.debug("Could not create a valid CoreProfile context");
-                delete m_context;
+                LOG_GL_ERRORV(delete m_context);
                 m_context = nullptr;
+                supportsCoreProfile = false;
             } else {
                 LOG_GL_ERROR();
                 const GLubyte* rend = glGetString(GL_RENDERER);
                 if (wxString(rend) == "GDI Generic") {
                     //no way 3.x is going to work, software rendered, flip to 1.x
-                    delete m_context;
+                    LOG_GL_ERRORV(delete m_context);
                     m_context = nullptr;
+                    supportsCoreProfile = false;
                 }
             }
         }
         if (m_context == nullptr) {
             glGetError();
-            m_context = new wxGLContext(this);
-            LOG_GL_ERROR();
+            LOG_GL_ERRORV(m_context = new wxGLContext(this));
         }
         if (!functionsLoaded) {
             LOG_GL_ERROR();
@@ -310,7 +307,7 @@ void xlGLCanvas::CreateGLContext() {
             glGetError(); // likely a function not there
         }
         if (!m_context->IsOK()) {
-            delete m_context;
+            LOG_GL_ERRORV(delete m_context);
             m_context = nullptr;
         }
         wxLog::SetLogLevel(cur);
