@@ -25,24 +25,27 @@ const double PI  =3.141592653589793238463;
 static DrawGLUtils::xlGLCacheInfo *currentCache;
 
 
-#define DO_LOG_GL_MSG(a, ...) logger_opengl.info(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
+#define DO_LOG_GL_MSG(a, ...) logger_opengl.debug(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
 
 void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
-    int er = glGetError();
-    if (er) {
-        static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-        const char *f2 = file + strlen(file);
-        while (f2 > file && *f2 != '\\' && *f2 != '/') {
-            f2--;
-        }
-        if (*f2 == '\\' || *f2 == '/') {
-            f2++;
-        }
-        
-        if (msg) {
-            DO_LOG_GL_MSG("%s/%d - %s:   %X", f2, line, msg, er);
-        } else {
-            DO_LOG_GL_MSG("%s/%d:   %X", f2, line, er);
+    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+    static bool isDebugEnabled = logger_opengl.isDebugEnabled();
+    if (isDebugEnabled) {
+        int er = glGetError();
+        if (er) {
+            const char *f2 = file + strlen(file);
+            while (f2 > file && *f2 != '\\' && *f2 != '/') {
+                f2--;
+            }
+            if (*f2 == '\\' || *f2 == '/') {
+                f2++;
+            }
+            
+            if (msg) {
+                DO_LOG_GL_MSG("%s/%d - %s:   %X", f2, line, msg, er);
+            } else {
+                DO_LOG_GL_MSG("%s/%d:   %X", f2, line, er);
+            }
         }
     }
 }

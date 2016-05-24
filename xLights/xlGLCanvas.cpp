@@ -210,7 +210,7 @@ void xlGLCanvas::SetCurrentGLContext() {
         const GLubyte* str = glGetString(GL_VERSION);
         const GLubyte* rend = glGetString(GL_RENDERER);
         const GLubyte* vend = glGetString(GL_VENDOR);
-        wxString config = wxString::Format("%s - glVer:  %s  (%s)(%s)",
+        wxString configs = wxString::Format("%s - glVer:  %s  (%s)(%s)",
                                            (const char *)GetName().c_str(),
                                            (const char *)str,
                                            (const char *)rend,
@@ -218,14 +218,21 @@ void xlGLCanvas::SetCurrentGLContext() {
         
         if (wxString(rend) == "GDI Generic"
             || wxString(vend).Contains("Microsoft")) {
+            
+            bool warned;
+            config->Read("GDI-Warned", &warned, false);
+            config->Write("GDI-Warned", true);
+            
             wxString msg = wxString::Format("Generic non-accelerated graphics driver detected (%s - %s). Performance will be poor.  "
                                            "Please install updated video drivers for your video card.",
                                            vend, rend);
             CallAfter(&xlGLCanvas::DisplayWarning, msg);
+            //need to use 1.x
+            ver = 1;
         }
         
-        logger_opengl.info(std::string(config.c_str()));
-        printf("%s\n", (const char *)config.c_str());
+        logger_opengl.info(std::string(configs.c_str()));
+        printf("%s\n", (const char *)configs.c_str());
         if (ver >= 3 && (str[0] > '3' || (str[0] == '3' && str[2] >= '3'))) {
             if (logger_opengl.isDebugEnabled()) {
                 AddDebugLog(this);
@@ -284,6 +291,12 @@ void xlGLCanvas::CreateGLContext() {
                 m_context = nullptr;
             } else {
                 LOG_GL_ERROR();
+                const GLubyte* rend = glGetString(GL_RENDERER);
+                if (wxString(rend) == "GDI Generic") {
+                    //no way 3.x is going to work, software rendered, flip to 1.x
+                    delete m_context;
+                    m_context = nullptr;
+                }
             }
         }
         if (m_context == nullptr) {

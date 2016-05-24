@@ -2200,8 +2200,9 @@ void EffectsGrid::InitializeGLCanvas()
 {
     if(!IsShownOnScreen() || xlights == nullptr) return;
     SetCurrentGLContext();
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black Background
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // Black Background
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     CreateEffectIconTextures();
     mIsInitialized = true;
@@ -2512,7 +2513,6 @@ void EffectsGrid::DrawEffects()
     int toffset;
     float fontSize = ComputeFontSize(toffset, factor);
 
-    LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
     DrawGLUtils::Draw(texts, fontSize, factor, GL_BLEND);
     DrawGLUtils::Draw(selectedBoxes, GL_TRIANGLES, GL_BLEND);
@@ -2707,9 +2707,9 @@ void EffectsGrid::DrawSelectedCells()
             int end_y = last_row*DEFAULT_ROW_HEADING_HEIGHT;
             xlColor highlight_color;
             highlight_color = *RowHeading::GetTimingColor(mSequenceElements->GetVisibleRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
-            glEnable(GL_BLEND);
+            LOG_GL_ERRORV(glEnable(GL_BLEND));
             DrawGLUtils::DrawFillRectangle(highlight_color,80,start_x,start_y,end_x-start_x,end_y-start_y+DEFAULT_ROW_HEADING_HEIGHT);
-            glDisable(GL_BLEND);
+            LOG_GL_ERRORV(glDisable(GL_BLEND));
         }
     }
 }
