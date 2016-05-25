@@ -1,0 +1,32 @@
+#ifndef VALUECURVEBUTTON_H
+#define VALUECURVEBUTTON_H
+
+#include <wx/bmpbuttn.h>
+#include "ValueCurve.h"
+
+wxDECLARE_EVENT(EVT_VC_CHANGED, wxCommandEvent);
+
+class ValueCurveButton :
+    public wxBitmapButton
+{
+    ValueCurve* _vc;
+    void NotifyChange();
+
+public:
+    ValueCurveButton(wxWindow *parent,
+        wxWindowID id,
+        const wxBitmap& bitmap,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxBU_AUTODRAW,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxButtonNameStr);
+    ~ValueCurveButton();
+    virtual void SetValue(const wxString& value);
+    void SetLimits(float min, float max);
+    ValueCurve* GetValue();
+    void ToggleActive();
+    void UpdateState();
+};
+
+#endif

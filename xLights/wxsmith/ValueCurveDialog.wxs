@@ -77,6 +77,7 @@
 								<item>Logarithmic Up</item>
 								<item>Logarithmic Down</item>
 								<item>Sine</item>
+								<item>Abs Sine</item>
 								<item>Custom</item>
 							</content>
 							<selection>0</selection>
@@ -93,7 +94,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText_P1" member="yes">
-							<label>Parameter 1</label>
+							<label>XXXXXXXXXXXXXXX</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -169,6 +170,34 @@
 							<handler function="OnTextCtrl_Parameter3Text" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText_P4" member="yes">
+							<label>Label</label>
+							<size>121,16</size>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Parameter4" variable="Slider_Parameter4" member="yes">
+							<handler function="OnSlider_Parameter4CmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Parameter4" variable="TextCtrl_Parameter4" member="yes">
+							<value>0</value>
+							<size>40,24</size>
+							<validator>__p4validator</validator>
+							<handler function="OnTextCtrl_Parameter4Text" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>

@@ -1373,6 +1373,11 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
             xlCustomControl *custom = dynamic_cast<xlCustomControl *>(CtrlWin);
             custom->SetValue(value.ToStdString());
         }
+        else if (name.StartsWith("ID_VALUECURVE"))
+        {
+            ValueCurveButton *vcb = dynamic_cast<ValueCurveButton *>(CtrlWin);
+            vcb->SetValue(value.ToStdString());
+        }
         else
 		{
 			wxMessageBox("Unknown type: " + name, "Internal Error");

@@ -515,8 +515,6 @@
 		<Unit filename="KeyBindings.h" />
 		<Unit filename="LMSImportChannelMapDialog.cpp" />
 		<Unit filename="LMSImportChannelMapDialog.h" />
-		<Unit filename="xLightsImportChannelMapDialog.cpp" />
-		<Unit filename="xLightsImportChannelMapDialog.h" />
 		<Unit filename="LayoutPanel.cpp" />
 		<Unit filename="LayoutPanel.h" />
 		<Unit filename="LorConvertDialog.cpp" />
@@ -610,6 +608,10 @@
 		<Unit filename="TopEffectsPanel.h" />
 		<Unit filename="VAMPPluginDialog.cpp" />
 		<Unit filename="VAMPPluginDialog.h" />
+		<Unit filename="ValueCurve.cpp" />
+		<Unit filename="ValueCurve.h" />
+		<Unit filename="ValueCurveButton.cpp" />
+		<Unit filename="ValueCurveButton.h" />
 		<Unit filename="ValueCurveDialog.cpp" />
 		<Unit filename="ValueCurveDialog.h" />
 		<Unit filename="VideoReader.cpp" />
@@ -958,7 +960,6 @@
 		<Unit filename="wxsmith/GenerateCustomModelDialog.wxs" />
 		<Unit filename="wxsmith/GlediatorPanel.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
-		<Unit filename="wxsmith/xLightsImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
@@ -1018,6 +1019,7 @@
 		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/WavePanel.wxs" />
+		<Unit filename="wxsmith/xLightsImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/xLightsframe.wxs" />
 		<Unit filename="wxsmith/xlColorPickerFields.wxs" />
 		<Unit filename="xLightsApp.cpp" />
@@ -1026,6 +1028,8 @@
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
+		<Unit filename="xLightsImportChannelMapDialog.cpp" />
+		<Unit filename="xLightsImportChannelMapDialog.h" />
 		<Unit filename="xLightsMain.cpp" />
 		<Unit filename="xLightsMain.h" />
 		<Unit filename="xLightsTimer.cpp" />

@@ -14,6 +14,7 @@
 //*)
 
 #include "ValueCurve.h"
+#include "ValueCurveButton.h"
 #include <string>
 
 class Model;
@@ -21,7 +22,8 @@ class SubBufferPanel;
 
 class BufferPanel: public wxPanel
 {
-    ValueCurve *_vcBlur;
+    void ValidateWindow();
+    void OnVCChanged(wxCommandEvent& event);
 
 	public:
 
@@ -43,7 +45,7 @@ class BufferPanel: public wxPanel
 		wxChoice* BufferTransform;
 		wxStaticText* StaticText5;
 		wxTextCtrl* TextCtrl_EffectBlur;
-		wxBitmapButton* BitmapButton_Blur;
+		ValueCurveButton* BitmapButton_Blur;
 		wxCheckBox* CheckBox_OverlayBkg;
 		wxSlider* Slider_EffectBlur;
 		//*)

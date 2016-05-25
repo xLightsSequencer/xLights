@@ -23,8 +23,9 @@ public:
     virtual void SetValue(const std::string &val) override {};
     void SetValue(ValueCurve* vc) { _vc = vc; }
     void SetType(std::string type) { _type = type; }
-    //void SetDefaults();
-    //std::string GetValue();
+    void Delete();
+    void Undo();
+    void SaveUndo(float x, float y);
 
 protected:
     DECLARE_EVENT_TABLE()
@@ -33,11 +34,13 @@ protected:
     void mouseLeftUp(wxMouseEvent& event);
     void mouseMoved(wxMouseEvent& event);
     void Paint(wxPaintEvent& event);
+    void mouseCaptureLost(wxMouseCaptureLostEvent& event);
 private:
     void Convert(float &x, float &y, wxMouseEvent& event);
     ValueCurve *_vc;
     float _grabbedPoint;
     std::string _type;
+    std::list<wxRealPoint> _undo;
 };
 
 class ValueCurveDialog: public wxDialog
@@ -46,6 +49,7 @@ class ValueCurveDialog: public wxDialog
     int __p1;
     int __p2;
     int __p3;
+    int __p4;
     ValueCurve* _vc;
     ValueCurve _backup;
     void ValidateWindow();
@@ -67,9 +71,12 @@ public:
 		wxSlider* Slider_Parameter3;
 		wxStaticText* StaticText_P1;
 		wxStaticText* StaticText_TopValue;
+		wxStaticText* StaticText_P4;
+		wxSlider* Slider_Parameter4;
 		wxChoice* Choice1;
 		wxSlider* Slider_Parameter1;
 		wxTextCtrl* TextCtrl_Parameter1;
+		wxTextCtrl* TextCtrl_Parameter4;
 		//*)
 
 	protected:
@@ -87,6 +94,9 @@ public:
 		static const long ID_STATICTEXT5;
 		static const long IDD_SLIDER_Parameter3;
 		static const long ID_TEXTCTRL_Parameter3;
+		static const long ID_STATICTEXT6;
+		static const long ID_SLIDER_Parameter4;
+		static const long ID_TEXTCTRL_Parameter4;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -107,6 +117,9 @@ public:
 		void OnPanel_GraphPaint(wxPaintEvent& event);
 		void OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_Parameter3Text(wxCommandEvent& event);
+		void OnChar(wxKeyEvent& event);
+		void OnSlider_Parameter4CmdSliderUpdated(wxScrollEvent& event);
+		void OnTextCtrl_Parameter4Text(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

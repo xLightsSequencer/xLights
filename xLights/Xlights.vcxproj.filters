@@ -768,6 +768,9 @@
     <ClCompile Include="ValueCurve.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ValueCurveButton.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1470,6 +1473,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ValueCurve.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ValueCurveButton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

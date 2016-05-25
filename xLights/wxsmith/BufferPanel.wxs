@@ -116,7 +116,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_VALUECURVE_Blur" variable="BitmapButton_Blur" member="yes">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_Blur" subclass="ValueCurveButton" variable="BitmapButton_Blur" member="yes">
 															<bitmap>C:\Users\keith\Documents\xLights\include\valuecurvenotselected.xpm</bitmap>
 															<handler function="OnBitmapButton_BlurClick" entry="EVT_BUTTON" />
 														</object>

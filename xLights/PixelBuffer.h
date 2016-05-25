@@ -140,7 +140,7 @@ private:
     xlColor mixColors(const wxCoord &x, const wxCoord &y, const xlColor &c0, const xlColor &c1, int layer);
     void SetDimmingCurve(DimmingCurve *value);
     void reset(int layers, int timing);
-	void Blur(LayerInfo* layer);
+	void Blur(LayerInfo* layer, float offset);
 
     std::string modelName;
     std::string lastBufferType;
