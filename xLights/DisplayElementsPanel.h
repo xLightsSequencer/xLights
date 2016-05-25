@@ -16,6 +16,7 @@
 #include "SequenceData.h"
 
 class wxChoice;
+class xLightsFrame;
 
 wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
@@ -25,7 +26,7 @@ class DisplayElementsPanel: public wxPanel
 {
 	public:
 
-		DisplayElementsPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		DisplayElementsPanel(xLightsFrame *frame, wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~DisplayElementsPanel();
 
         void SetViewChoice(wxChoice *ch);
@@ -58,6 +59,7 @@ class DisplayElementsPanel: public wxPanel
 
 
          wxChoice *MainViewsChoice;
+        xLightsFrame *xlFrame;
 	protected:
 
 		//(*Identifiers(DisplayElementsPanel)

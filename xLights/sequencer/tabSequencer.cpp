@@ -76,7 +76,7 @@ void xLightsFrame::CreateSequencer()
     effectPalettePanel = new EffectIconPanel(effectManager, PanelSequencer);
 
     // DisplayElements Panel
-    displayElementsPanel = new DisplayElementsPanel(PanelSequencer);
+    displayElementsPanel = new DisplayElementsPanel(this, PanelSequencer);
     displayElementsPanel->SetViewChoice(mainSequencer->ViewChoice);
     displayElementsPanel->Fit();
 
@@ -1431,9 +1431,11 @@ std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette)
 
 void xLightsFrame::ForceSequencerRefresh(wxCommandEvent& event)
 {
+    ForceSequencerRefresh();
+}
+void xLightsFrame::ForceSequencerRefresh()
+{
     mSequenceElements.PopulateRowInformation();
-    mainSequencer->PanelRowHeadings->Refresh();
-    mainSequencer->PanelEffectGrid->ForceRefresh();
     ResizeMainSequencer();
 }
 

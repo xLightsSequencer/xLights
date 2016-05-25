@@ -5,6 +5,7 @@
 #include "../include/eye-16_gray.xpm"
 #include "ModelViewSelector.h"
 #include "sequencer/Element.h"
+#include "xLightsMain.h"
 
 #define TIMING_IMAGE 2
 #define MODEL_IMAGE 3
@@ -38,7 +39,8 @@ BEGIN_EVENT_TABLE(DisplayElementsPanel,wxPanel)
     EVT_COMMAND(wxID_ANY, EVT_LISTITEM_CHECKED, DisplayElementsPanel::ListItemChecked)
 END_EVENT_TABLE()
 
-DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+DisplayElementsPanel::DisplayElementsPanel(xLightsFrame *fr,
+                                           wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size) : xlFrame(fr)
 {
 	//(*Initialize(DisplayElementsPanel)
 	wxFlexGridSizer* FlexGridSizer4;
@@ -363,8 +365,7 @@ int DisplayElementsPanel::GetViewIndex(const wxString& name)
 
 void DisplayElementsPanel::OnLeftUp(wxMouseEvent& event)
 {
-    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-    wxPostEvent(GetParent(), eventForceRefresh);
+    xlFrame->ForceSequencerRefresh();
 }
 
 void DisplayElementsPanel::OnButtonAddViewsClick(wxCommandEvent& event)
@@ -497,8 +498,7 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
         PopulateModels();
 
         // Update Grid
-        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-        wxPostEvent(GetParent(), eventForceRefresh);
+        xlFrame->ForceSequencerRefresh();
     }
 }
 
@@ -519,8 +519,7 @@ void DisplayElementsPanel::ListItemChecked(wxCommandEvent& event)
     }
     MarkViewsChanged();
     // Update Grid
-    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-    wxPostEvent(GetParent(), eventForceRefresh);
+    xlFrame->ForceSequencerRefresh();
 }
 
 
@@ -530,8 +529,7 @@ void DisplayElementsPanel::OnButtonShowAllClick(wxCommandEvent& event)
     mSequenceElements->SetVisibilityForAllModels(true, mSequenceElements->GetCurrentView());
     MarkViewsChanged();
     PopulateModels();
-    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-    wxPostEvent(GetParent(), eventForceRefresh);
+    xlFrame->ForceSequencerRefresh();
 }
 
 void DisplayElementsPanel::OnButtonHideAllClick(wxCommandEvent& event)
@@ -540,8 +538,7 @@ void DisplayElementsPanel::OnButtonHideAllClick(wxCommandEvent& event)
     mSequenceElements->SetVisibilityForAllModels(false, mSequenceElements->GetCurrentView());
     MarkViewsChanged();
     PopulateModels();
-    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-    wxPostEvent(GetParent(), eventForceRefresh);
+    xlFrame->ForceSequencerRefresh();
 }
 
 void DisplayElementsPanel::OnButtonDeleteModelsClick(wxCommandEvent& event)
@@ -602,8 +599,7 @@ void DisplayElementsPanel::OnButtonDeleteModelsClick(wxCommandEvent& event)
         UpdateModelsForSelectedView();
     }
     MarkViewsChanged();
-    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-    wxPostEvent(GetParent(), eventForceRefresh);
+    xlFrame->ForceSequencerRefresh();
 }
 
 int DisplayElementsPanel::GetFirstModelIndex()
@@ -661,8 +657,7 @@ void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
     {
         MarkViewsChanged();
         UpdateModelsForSelectedView();
-        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-        wxPostEvent(GetParent(), eventForceRefresh);
+        xlFrame->ForceSequencerRefresh();
         for( long i = 0; i < selected_list.size(); i++ )
         {
             ListCtrlModels->SetItemState(selected_list[i]-1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
@@ -719,8 +714,7 @@ void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
     {
         MarkViewsChanged();
         UpdateModelsForSelectedView();
-        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-        wxPostEvent(GetParent(), eventForceRefresh);
+        xlFrame->ForceSequencerRefresh();
         for( long i = 0; i < selected_list.size(); i++ )
         {
             ListCtrlModels->SetItemState(selected_list[i]+1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
@@ -807,6 +801,6 @@ void DisplayElementsPanel::SelectView(const std::string& name)
     PopulateModels();
     ListCtrlViews->SetChecked(mSequenceElements->GetCurrentView(),true);
     MainViewsChoice->SetSelection(MainViewsChoice->FindString(name));
-    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-    wxPostEvent(GetParent(), eventForceRefresh);
+    
+    xlFrame->ForceSequencerRefresh();
 }

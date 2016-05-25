@@ -1259,6 +1259,7 @@ public:
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
     int GetTotalChannels() { return _totalChannels; };
+    void ForceSequencerRefresh();
 
 private:
 
