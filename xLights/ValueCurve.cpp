@@ -102,7 +102,7 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter2 - 50.0) / 50.0 + log(a*i)+1.0f)));
+            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter2 - 50.0) / 50.0 + log(a + a*i)+1.0f)));
         }
     }
     else if (_type == "Logarithmic Down")
@@ -147,7 +147,7 @@ void ValueCurve::RenderType()
         {
             if (i > 1.0) i = 1.0;
             float r = i * maxx + (((float)_parameter1 * pi2) / 100.0f);
-            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter4 - 50.0) / 50.0 + (abs(sin(r) * (std::max((float)_parameter2, 1.0f) / 100.0f))))));
+            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter4 - 50.0) / 50.0 + (std::abs(sin(r) * (std::max((float)_parameter2, 1.0f) / 100.0f))))));
         }
     }
     _values.sort();

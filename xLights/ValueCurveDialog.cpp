@@ -520,7 +520,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else if (type == "Saw Tooth")
+    else if (type == "Saw Tooth" || type == "Ramp Up/Down Hold" || type == "Ramp Up/Down")
     {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
@@ -581,7 +581,7 @@ void ValueCurveDialog::ValidateWindow()
     {
         StaticText_P1->SetLabel("Slope");
         StaticText_P2->SetLabel("Low");
-        StaticText_P3->SetLabel("Vertical Offset");
+        StaticText_P3->SetLabel("N/A");
         StaticText_P4->SetLabel("N/A");
     }
     else if (type == "Parabolic Up")
