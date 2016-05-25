@@ -182,8 +182,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_CancelClick);
     //*)
 
-    Connect(wxID_ANY, wxEVT_KEY_DOWN, (wxObjectEventFunction)&ValueCurveDialog::OnChar, 0, this);
-    Connect(wxID_ANY, wxEVT_CHAR, (wxObjectEventFunction)&ValueCurveDialog::OnChar, 0, this);
+    Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ValueCurveDialog::OnChar), (wxObject*)NULL, this);
 
     _vcp = new ValueCurvePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
     _vcp->SetMinSize(wxSize(200, 100));
@@ -264,6 +263,18 @@ void ValueCurvePanel::SaveUndo(float x, float y)
     _undo.push_back(p);
 }
 
+void ValueCurvePanel::SaveUndoSelected()
+{
+    if (_vc->IsSetPoint(_grabbedPoint))
+    {
+        SaveUndo(_grabbedPoint, _vc->GetValueAt(_grabbedPoint));
+    }
+    else
+    {
+        SaveUndo(_grabbedPoint, -1.0f);
+    }
+}
+
 void ValueCurvePanel::mouseLeftDown(wxMouseEvent& event)
 {
     if (_type == "Custom")
@@ -280,14 +291,7 @@ void ValueCurvePanel::mouseLeftDown(wxMouseEvent& event)
             _grabbedPoint = 1.0f;
         }
         _grabbedPoint = NormaliseGrabbedPoint(_grabbedPoint);
-        if (_vc->IsSetPoint(_grabbedPoint))
-        {
-            SaveUndo(_grabbedPoint, _vc->GetValueAt(_grabbedPoint));
-        }
-        else
-        {
-            SaveUndo(_grabbedPoint, -1.0f);
-        }
+        SaveUndoSelected();
         CaptureMouse();
         Refresh();
     }
@@ -326,6 +330,7 @@ void ValueCurvePanel::Delete()
     if (_grabbedPoint >= 0)
     {
         _vc->DeletePoint(_grabbedPoint);
+        _grabbedPoint = -1;
         Refresh();
     }
 }
@@ -625,14 +630,15 @@ void ValueCurveDialog::ValidateWindow()
 
 void ValueCurveDialog::OnChar(wxKeyEvent& event)
 {
-    if (event.GetKeyCode() == VK_DELETE)
+    wxChar uc = event.GetUnicodeKey();
+    if (uc == WXK_DELETE)
     {
+        _vcp->SaveUndoSelected();
         _vcp->Delete();
     }
-    else if (event.GetKeyCode() == 'Z' && event.ControlDown())
+    else if ((uc == 'Z' || uc == 'z') && event.ControlDown())
     {
         _vcp->Undo();
     }
+    Refresh();
 }
-
-//TODO Test delete and undo

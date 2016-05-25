@@ -26,6 +26,7 @@ public:
     void Delete();
     void Undo();
     void SaveUndo(float x, float y);
+    void SaveUndoSelected();
 
 protected:
     DECLARE_EVENT_TABLE()
