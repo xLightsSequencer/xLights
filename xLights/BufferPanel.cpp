@@ -268,7 +268,6 @@ void BufferPanel::OnResize(wxSizeEvent& event)
     BufferScrollWindow->Refresh();
 }
 
-<<<<<<< HEAD
 void BufferPanel::OnBitmapButton_BlurClick(wxCommandEvent& event)
 {
     BitmapButton_Blur->ToggleActive();
