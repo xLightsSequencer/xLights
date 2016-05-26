@@ -198,7 +198,7 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         int idx = (buffer.curPeriod - buffer.curEffStartPer) * 12;
         buffer.SetDisplayListVRect(effect, idx, x1, 0.0, x2, 0.5,
                                    xlBLACK, orig);
-        buffer.SetDisplayListVRect(effect, idx, x1, 0.5, x2, 1.0,
+        buffer.SetDisplayListVRect(effect, idx + 6, x1, 0.5, x2, 1.0,
                                    orig, xlBLACK);
     } else {
         effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);

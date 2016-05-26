@@ -229,8 +229,6 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
 
 std::string CustomModel::ChannelLayoutHtml() {
     size_t NodeCount=GetNodeCount();
-    size_t i,idx;
-    int n,x,y,s;
     wxString bgcolor;
     std::vector<int> chmap;
     chmap.resize(BufferHt * BufferWi,0);
@@ -244,8 +242,6 @@ std::string CustomModel::ChannelLayoutHtml() {
     html+=wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>",NodeCount);
     html+=wxString::Format("<tr><td>Height:</td><td>%d</td></tr>",BufferHt);
     html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
-
-    int Ibufx,Ibufy;
 
     std::string data = GetCustomData();
     if (data == "") {

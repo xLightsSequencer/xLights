@@ -12,6 +12,7 @@
 #include "models/Model.h"
 #include "effects/EffectPanelUtils.h"
 #include "../include/padlock16x16-blue.xpm" //-DJ
+#include "../include/valuecurvenotselected.xpm"
 #include "ValueCurveDialog.h"
 #include "SubBufferPanel.h"
 
@@ -90,7 +91,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer6->AddGrowableCol(0);
 	Slider_EffectBlur = new wxSlider(BufferScrollWindow, ID_SLIDER_EffectBlur, 1, 1, 15, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_EffectBlur"));
 	FlexGridSizer6->Add(Slider_EffectBlur, 1, wxALL|wxEXPAND, 1);
-	BitmapButton_Blur = new ValueCurveButton(BufferScrollWindow, ID_VALUECURVE_Blur, wxBitmap(wxImage(_T("C:\\Users\\keith\\Documents\\xLights\\include\\valuecurvenotselected.xpm"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_VALUECURVE_Blur"));
+	BitmapButton_Blur = new ValueCurveButton(BufferScrollWindow, ID_VALUECURVE_Blur, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_VALUECURVE_Blur"));
 	FlexGridSizer6->Add(BitmapButton_Blur, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_EffectBlur = new wxTextCtrl(BufferScrollWindow, IDD_TEXTCTRL_EffectBlur, _("1"), wxDefaultPosition, wxDLG_UNIT(BufferScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_EffectBlur"));
 	TextCtrl_EffectBlur->SetMaxLength(2);

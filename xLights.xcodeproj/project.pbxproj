@@ -32,6 +32,9 @@
 		671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */; };
 		67229EDE1C95DDF000D34024 /* TestDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67229EDD1C95DDF000D34024 /* TestDialog.cpp */; };
 		67276C481CB424B300A245CA /* DrawGLUtils31.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67276C471CB424B300A245CA /* DrawGLUtils31.cpp */; };
+		67278C7E1CF74A01000DCFFB /* ValueCurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67278C781CF74A01000DCFFB /* ValueCurve.cpp */; };
+		67278C7F1CF74A01000DCFFB /* ValueCurveButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67278C7A1CF74A01000DCFFB /* ValueCurveButton.cpp */; };
+		67278C801CF74A01000DCFFB /* ValueCurveDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67278C7C1CF74A01000DCFFB /* ValueCurveDialog.cpp */; };
 		672BD4F41C207D2E008F8B36 /* libwx_baseu_xml-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4E41C207D2E008F8B36 /* libwx_baseu_xml-3.1.dylib */; };
 		672BD4F51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4E51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.1.dylib */; };
 		672BD4F61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4E61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.1.dylib */; };
@@ -360,6 +363,12 @@
 		67229EDC1C95DDF000D34024 /* TestDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestDialog.h; sourceTree = "<group>"; };
 		67229EDD1C95DDF000D34024 /* TestDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestDialog.cpp; sourceTree = "<group>"; };
 		67276C471CB424B300A245CA /* DrawGLUtils31.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils31.cpp; sourceTree = "<group>"; };
+		67278C781CF74A01000DCFFB /* ValueCurve.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ValueCurve.cpp; sourceTree = "<group>"; };
+		67278C791CF74A01000DCFFB /* ValueCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ValueCurve.h; sourceTree = "<group>"; };
+		67278C7A1CF74A01000DCFFB /* ValueCurveButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ValueCurveButton.cpp; sourceTree = "<group>"; };
+		67278C7B1CF74A01000DCFFB /* ValueCurveButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ValueCurveButton.h; sourceTree = "<group>"; };
+		67278C7C1CF74A01000DCFFB /* ValueCurveDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ValueCurveDialog.cpp; sourceTree = "<group>"; };
+		67278C7D1CF74A01000DCFFB /* ValueCurveDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ValueCurveDialog.h; sourceTree = "<group>"; };
 		672BD4E41C207D2E008F8B36 /* libwx_baseu_xml-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_xml-3.1.dylib"; path = "/opt/local/libdbg/libwx_baseu_xml-3.1.dylib"; sourceTree = "<group>"; };
 		672BD4E51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_aui-3.1.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_aui-3.1.dylib"; sourceTree = "<group>"; };
 		672BD4E61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_gl-3.1.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_gl-3.1.dylib"; sourceTree = "<group>"; };
@@ -1289,6 +1298,12 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67278C781CF74A01000DCFFB /* ValueCurve.cpp */,
+				67278C791CF74A01000DCFFB /* ValueCurve.h */,
+				67278C7A1CF74A01000DCFFB /* ValueCurveButton.cpp */,
+				67278C7B1CF74A01000DCFFB /* ValueCurveButton.h */,
+				67278C7C1CF74A01000DCFFB /* ValueCurveDialog.cpp */,
+				67278C7D1CF74A01000DCFFB /* ValueCurveDialog.h */,
 				679240781CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp */,
 				679240791CF15B37000E4D91 /* xLightsImportChannelMapDialog.h */,
 				6767C5181CE7EC3B003B3F6E /* xLightsTimer.cpp */,
@@ -1616,6 +1631,7 @@
 				673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */,
 				676D0F7F1C72BEBD009C66FC /* kiss_fftndr.c in Sources */,
 				67A61A2617B51C0F008E95BB /* AddShowDialog.cpp in Sources */,
+				67278C7E1CF74A01000DCFFB /* ValueCurve.cpp in Sources */,
 				67AAF8FD1B642E6C00585431 /* LyricsDialog.cpp in Sources */,
 				67B2CFF21C3A186A003C17CA /* FacesEffect.cpp in Sources */,
 				679BD33D1C3757F6000539FE /* EffectManager.cpp in Sources */,
@@ -1733,6 +1749,7 @@
 				672E62B01C4D2FCF006A4966 /* TendrilEffect.cpp in Sources */,
 				67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */,
 				67B2CF8C1C39D98A003C17CA /* TreePanel.cpp in Sources */,
+				67278C801CF74A01000DCFFB /* ValueCurveDialog.cpp in Sources */,
 				67B2CFDF1C3A186A003C17CA /* SingleStrandEffect.cpp in Sources */,
 				6781B1D91AF407A300A75E59 /* LMSImportChannelMapDialog.cpp in Sources */,
 				67B7971B1A5AE343008D5921 /* TimingPanel.cpp in Sources */,
@@ -1809,6 +1826,7 @@
 				675DE26B1B53381800A9BB44 /* xlColorPickerFields.cpp in Sources */,
 				679BD3371C37555C000539FE /* BarsPanel.cpp in Sources */,
 				672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */,
+				67278C7F1CF74A01000DCFFB /* ValueCurveButton.cpp in Sources */,
 				67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */,
 				67B2CF851C39D98A003C17CA /* SingleStrandPanel.cpp in Sources */,
 				67A61A5417B51C0F008E95BB /* ShowDatesDialog.cpp in Sources */,

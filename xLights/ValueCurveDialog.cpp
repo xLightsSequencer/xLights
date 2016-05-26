@@ -7,6 +7,7 @@
 
 #include <wx/dcbuffer.h>
 #include <wx/valnum.h>
+#include <wx/settings.h>
 #include "ValueCurve.h"
 #include <log4cpp/Category.hh>
 

@@ -15,31 +15,31 @@ public:
         x = xx;
         y = yy;
     }
-    bool operator==(const vcSortablePoint& r)
+    bool operator==(const vcSortablePoint& r) const
     {
         return x == r.x;
     }
-    bool operator==(const float r)
+    bool operator==(const float r) const
     {
         return x == r;
     }
-    bool operator<(const vcSortablePoint& r)
+    bool operator<(const vcSortablePoint& r) const
     {
         return x < r.x;
     }
-    bool operator<(const float r)
+    bool operator<(const float r) const
     {
         return x < r;
     }
-    bool operator<=(const vcSortablePoint& r)
+    bool operator<=(const vcSortablePoint& r) const
     {
         return x <= r.x;
     }
-    bool operator<=(const float r)
+    bool operator<=(const float r) const
     {
         return x <= r;
     }
-    bool operator>(const vcSortablePoint& r)
+    bool operator>(const vcSortablePoint& r) const
     {
         return x > r.x;
     }

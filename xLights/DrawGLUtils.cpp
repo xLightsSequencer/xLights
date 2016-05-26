@@ -171,6 +171,7 @@ public:
             LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
             LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
         } else {
+            LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
             LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
         }
         
