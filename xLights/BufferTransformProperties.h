@@ -9,6 +9,7 @@
 #include <wx/button.h>
 #include <wx/dialog.h>
 //*)
+#include "RotoZoom.h"
 
 class BufferTransformProperties: public wxDialog
 {
@@ -18,20 +19,10 @@ class BufferTransformProperties: public wxDialog
     int __zoommaximum;
     int __xcenter;
     int __ycenter;
+    RotoZoomParms* _parms;
+
     public:
-
-        size_t GetRotations();
-        size_t GetZooms();
-        int GetZoomMaximum();
-        int GetXCenter();
-        int GetYCenter();
-        void SetRotations(size_t rotations);
-        void SetZooms(size_t zooms);
-        void SetZoomMaximum(int zoommaximum);
-        void SetXCenter(int xcenter);
-        void SetYCenter(int ycenter);
-
-		BufferTransformProperties(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		BufferTransformProperties(wxWindow* parent, RotoZoomParms* parms, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~BufferTransformProperties();
 
 		//(*Declarations(BufferTransformProperties)

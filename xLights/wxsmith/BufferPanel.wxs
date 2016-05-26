@@ -84,7 +84,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON1" variable="Button_Properties" member="yes">
+														<object class="wxButton" name="ID_CUSTOM_RotoZoom" subclass="RotoZoomButton" variable="Button_Properties" member="yes">
 															<label>Properties ...</label>
 															<handler function="OnButton_PropertiesClick" entry="EVT_BUTTON" />
 														</object>

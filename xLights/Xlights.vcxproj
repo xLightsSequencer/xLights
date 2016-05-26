@@ -328,6 +328,7 @@
     <ClCompile Include="RenderBuffer.cpp" />
     <ClCompile Include="RenderProgressDialog.cpp" />
     <ClCompile Include="ResizeImageDialog.cpp" />
+    <ClCompile Include="RotoZoom.cpp" />
     <ClCompile Include="SaveChangesDialog.cpp" />
     <ClCompile Include="SeqElementMismatchDialog.cpp" />
     <ClCompile Include="SeqExportDialog.cpp" />
@@ -560,6 +561,7 @@
     <ClInclude Include="RenderCommandEvent.h" />
     <ClInclude Include="RenderProgressDialog.h" />
     <ClInclude Include="ResizeImageDialog.h" />
+    <ClInclude Include="RotoZoom.h" />
     <ClInclude Include="SaveChangesDialog.h" />
     <ClInclude Include="SeqElementMismatchDialog.h" />
     <ClInclude Include="SeqExportDialog.h" />

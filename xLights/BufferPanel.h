@@ -17,9 +17,47 @@
 #include "ValueCurve.h"
 #include "ValueCurveButton.h"
 #include <string>
+#include "RotoZoom.h"
 
 class Model;
 class SubBufferPanel;
+
+class RotoZoomButton :
+    public wxButton
+{
+    RotoZoomParms* _parms;
+public:
+    RotoZoomButton(wxWindow *parent,
+        wxWindowID id,
+        const wxString& label = wxEmptyString,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxBU_AUTODRAW,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxButtonNameStr) : wxButton(parent, id, label, pos, size, style, validator, name)
+    {
+        _parms = new RotoZoomParms(name.ToStdString());
+    }
+    ~RotoZoomButton()
+    {
+        if (_parms != NULL)
+        {
+            delete _parms;
+        }
+    }
+    virtual void SetValue(const std::string &val)
+    {
+        SetValue(wxString(val.c_str()));
+    }
+    virtual void SetValue(const wxString& value)
+    {
+        _parms->Deserialise(value.ToStdString());
+    }
+    RotoZoomParms* GetValue()
+    {
+        return _parms;
+    }
+};
 
 class BufferPanel: public wxPanel
 {
@@ -43,7 +81,6 @@ public:
 		//(*Declarations(BufferPanel)
 		wxScrolledWindow* BufferScrollWindow;
 		wxBitmapButton* BitmapButton_EffectBlur;
-		wxButton* Button_Properties;
 		wxChoice* BufferStyleChoice;
 		wxFlexGridSizer* Sizer2;
 		wxPanel* Panel_Sizer;
@@ -51,6 +88,7 @@ public:
 		wxBitmapButton* BitmapButton_OverlayBkg;
 		wxChoice* BufferTransform;
 		wxStaticText* StaticText5;
+		RotoZoomButton* Button_Properties;
 		wxTextCtrl* TextCtrl_EffectBlur;
 		ValueCurveButton* BitmapButton_Blur;
 		wxCheckBox* CheckBox_OverlayBkg;
@@ -64,7 +102,7 @@ public:
 		static const long ID_CHOICE_BufferStyle;
 		static const long ID_BITMAPBUTTON_CHOICE_BufferStyle;
 		static const long ID_CHOICE_BufferTransform;
-		static const long ID_BUTTON1;
+		static const long ID_CUSTOM_RotoZoom;
 		static const long ID_BITMAPBUTTON_CHOICE_BufferTransform;
 		static const long ID_STATICTEXT2;
 		static const long ID_SLIDER_EffectBlur;

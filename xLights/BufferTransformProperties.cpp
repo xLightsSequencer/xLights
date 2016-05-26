@@ -32,8 +32,14 @@ BEGIN_EVENT_TABLE(BufferTransformProperties,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-BufferTransformProperties::BufferTransformProperties(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+BufferTransformProperties::BufferTransformProperties(wxWindow* parent,RotoZoomParms* parms, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    __rotations = parms->GetRotations();
+    __zooms = parms->GetZooms();
+    __zoommaximum = parms->GetZoomMaximum();
+    __xcenter = parms->GetXCenter();
+    __ycenter = parms->GetYCenter();
+    _parms = parms;
     wxIntegerValidator<int> _rotations(&__rotations, wxNUM_VAL_THOUSANDS_SEPARATOR);
     _rotations.SetMin(0);
     _rotations.SetMax(20);
@@ -59,7 +65,7 @@ BufferTransformProperties::BufferTransformProperties(wxWindow* parent,wxWindowID
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer1->AddGrowableCol(1);
+	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Rotations"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
@@ -95,7 +101,7 @@ BufferTransformProperties::BufferTransformProperties(wxWindow* parent,wxWindowID
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer3->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
@@ -129,6 +135,7 @@ BufferTransformProperties::~BufferTransformProperties()
 
 void BufferTransformProperties::OnButton_OkClick(wxCommandEvent& event)
 {
+    _parms->ApplySettings(Slider_Rotations->GetValue(), Slider_Zooms->GetValue(), Slider_ZoomMaximum->GetValue(), Slider_XCenter->GetValue(), Slider_YCenter->GetValue());
     EndDialog(wxOK);
 }
 
@@ -185,45 +192,4 @@ void BufferTransformProperties::OnTextCtrl_XCenterText(wxCommandEvent& event)
 void BufferTransformProperties::OnTextCtrl_YCenterText(wxCommandEvent& event)
 {
     Slider_YCenter->SetValue(wxAtoi(TextCtrl_YCenter->GetValue()));
-}
-
-size_t BufferTransformProperties::GetRotations()
-{
-    return Slider_Rotations->GetValue();
-}
-size_t BufferTransformProperties::GetZooms()
-{
-    return Slider_Zooms->GetValue();
-}
-int BufferTransformProperties::GetZoomMaximum()
-{
-    return Slider_ZoomMaximum->GetValue();
-}
-int BufferTransformProperties::GetXCenter()
-{
-    return Slider_XCenter->GetValue();
-}
-int BufferTransformProperties::GetYCenter()
-{
-    return Slider_YCenter->GetValue();
-}
-void BufferTransformProperties::SetRotations(size_t rotations)
-{
-    Slider_Rotations->SetValue(rotations);
-}
-void BufferTransformProperties::SetZooms(size_t zooms)
-{
-    Slider_Zooms->SetValue(zooms);
-}
-void BufferTransformProperties::SetZoomMaximum(int zoommaximum)
-{
-    Slider_ZoomMaximum->SetValue(zoommaximum);
-}
-void BufferTransformProperties::SetXCenter(int xcenter)
-{
-    Slider_XCenter->SetValue(xcenter);
-}
-void BufferTransformProperties::SetYCenter(int ycenter)
-{
-    Slider_YCenter->SetValue(ycenter);
 }

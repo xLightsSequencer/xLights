@@ -190,6 +190,7 @@ class NCCDLLEXPORT RenderBuffer {
 public:
     RenderBuffer(xLightsFrame *frame, bool onlyOnMain);
     ~RenderBuffer();
+    RenderBuffer(RenderBuffer& buffer);
     void InitBuffer(int newBufferHt, int newBufferWi);
 	AudioManager* GetMedia();
 

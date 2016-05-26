@@ -991,3 +991,14 @@ double RenderBuffer::GetStepAngle(int width, int height)
     }
     return step;
 }
+
+// create a copy of the buffer suitable only for copying out pixel data
+RenderBuffer::RenderBuffer(RenderBuffer& buffer)
+{
+    BufferHt = buffer.BufferHt;
+    BufferWi = buffer.BufferWi;
+
+    pixels = buffer.pixels;
+    textDrawingContext = NULL;
+    pathDrawingContext = NULL;
+}

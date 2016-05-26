@@ -29,6 +29,7 @@
 #include "models/SingleLineModel.h"
 #include "UtilClasses.h"
 #include "AudioManager.h"
+#include "RotoZoom.h"
 
 #include <random>
 
@@ -83,6 +84,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
         layers[x]->bufferTransform = "None";
         layers[x]->subBuffer = "";
         layers[x]->blurValueCurve = "";
+        layers[x]->rotoZoom = "";
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi);
     }
 }
@@ -597,6 +599,7 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
     }
 
     xlColor c;
+    RenderBuffer orig(layer->buffer);
     for (int x = 0; x < layer->BufferWi; x++)
     {
         for (int y = 0; y < layer->BufferHt; y++)
@@ -614,7 +617,7 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
                     {
                         if (j >=0 && j < layer->BufferHt)
                         {
-                            layer->buffer.GetPixel(i, j, c);
+                            orig.GetPixel(i, j, c);
                             r += c.Red();
                             g += c.Green();
                             b += c.Blue();
@@ -647,6 +650,7 @@ static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
 static const std::string CHOICE_BufferTransform("CHOICE_BufferTransform");
 static const std::string CUSTOM_SubBuffer("CUSTOM_SubBuffer");
+static const std::string CUSTOM_RotoZoom("CUSTOM_RotoZoom");
 static const std::string VALUECURVE_Blur("VALUECURVE_Blur");
 static const std::string STR_DEFAULT("Default");
 static const std::string STR_EMPTY("");
@@ -674,6 +678,16 @@ void ComputeBlurValueCurve(const std::string& blurValueCurve, ValueCurve& BlurVa
     }
 
     BlurValueCurve.Deserialise(blurValueCurve);
+}
+
+void ComputeRotoZoom(const std::string& rotoZoom, RotoZoomParms& RotoZoom, wxSize size)
+{
+    if (rotoZoom == STR_EMPTY) {
+        RotoZoom.SetDefault(size);
+        return;
+    }
+
+    RotoZoom.Deserialise(rotoZoom);
 }
 
 void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) {
@@ -742,17 +756,20 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
     const std::string &subBuffer = settingsMap.Get(CUSTOM_SubBuffer, STR_EMPTY);
     const std::string &blurValueCurve = settingsMap.Get(VALUECURVE_Blur, STR_EMPTY);
+    const std::string &rotoZoom = settingsMap.Get(CUSTOM_RotoZoom, STR_EMPTY);
 
-    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve)
+    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve || inf->rotoZoom != rotoZoom)
     {
         inf->Nodes.clear();
         model->InitRenderBufferNodes(type, transform, inf->Nodes, inf->BufferWi, inf->BufferHt);
         ComputeSubBuffer(subBuffer, inf->Nodes, inf->BufferWi, inf->BufferHt);
         ComputeBlurValueCurve(blurValueCurve, inf->BlurValueCurve);
+        ComputeRotoZoom(rotoZoom, inf->RotoZoom, wxSize(inf->BufferWi, inf->BufferHt));
         inf->bufferType = type;
         inf->bufferTransform = transform;
         inf->subBuffer = subBuffer;
         inf->blurValueCurve = blurValueCurve;
+        inf->rotoZoom = rotoZoom;
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi);
     }
 }
@@ -790,6 +807,22 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
     }
 }
 
+void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
+{
+    xlColor c;
+    RenderBuffer orig(layer->buffer);
+    layer->buffer.Clear(xlBLACK);
+    for (int x = 0; x < layer->BufferWi; x++)
+    {
+        for (int y = 0; y < layer->BufferHt; y++)
+        {
+            orig.GetPixel(x, y, c);
+            wxPoint p = layer->RotoZoom.GetTransform(x, y, offset);
+            layer->buffer.SetPixel(p.x, p.y, c);
+        }
+    }
+}
+
 void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers)
 {
     xlColor color;
@@ -805,6 +838,12 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             int effStartPer, effEndPer;
             layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
             Blur(layers[layer], ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer));
+        }
+        if (layers[layer]->RotoZoom.IsActive())
+        {
+            int effStartPer, effEndPer;
+            layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
+            RotoZoom(layers[layer], ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer));
         }
     }
 
