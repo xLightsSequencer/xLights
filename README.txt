@@ -8,7 +8,12 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-   -- enh (keithsw) General import improvements: filename in title bar, warnings if you have not saved mapping and the ability to suppress excessive error messages.
+2016.33  May 25, 2016
+   -- bug (dkulp) Maybe fix #571?   Don't post the event, call directly.  
+   -- bug (dkulp) don't draw the grid and then immediately refresh anyway.
+   -- bug (dkulp) Log a few more opengl things, Force GDI driver down to 1.x
+   -- enh (keithsw) General import improvements: filename in title bar, warnings 
+             if you have not saved mapping and the ability to suppress excessive error messages.
    -- enh (keithsw) Improved xLights sequence import.
    -- enh (gil)   Add right-click delete model option in layout list.
    -- bug (gil)   Fix node layout for custom models. Fixes #574.
