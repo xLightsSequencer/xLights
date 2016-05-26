@@ -2578,20 +2578,25 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + (std::string)endc
                             + ",C_CHECKBOX_Palette2=1";
 
-                        std::string settings = "";
+                    
+                        
+                        std::string settings = "B_CUSTOM_SubBuffer=";
                         std::string val = wxString::Format("%d", rect.x).ToStdString();
                         if( !CalcBoundedPercentage(val, num_columns, false, x_offset) ) continue;
-                        settings += ",E_SLIDER_ColorWash_X1=" + val;
-                        val = wxString::Format("%d", rect.width);
-                        if( !CalcBoundedPercentage(val, num_columns, false, x_offset) ) continue;
-                        settings += ",E_SLIDER_ColorWash_X2=" + val;
+                        settings += val;
+                        settings += "x";
                         val = wxString::Format("%d", rect.y);
                         if( !CalcBoundedPercentage(val, num_rows, true, y_offset) ) continue;
-                        settings += ",E_SLIDER_ColorWash_Y1=" + val;
+                        settings += val;
+                        settings += "x";
+                        val = wxString::Format("%d", rect.width);
+                        if( !CalcBoundedPercentage(val, num_columns, false, x_offset) ) continue;
+                        settings += val;
+                        settings += "x";
                         val = wxString::Format("%d", rect.height);
-                        if( !CalcBoundedPercentage(val, num_rows, true, y_offset) ) continue;
-                        settings += ",E_SLIDER_ColorWash_Y2=" + val;
-                        settings += ",E_CHECKBOX_ColorWash_EntireModel=0";
+                        if( !CalcBoundedPercentage(val, num_columns, false, x_offset) ) continue;
+                        settings += val;
+
 
                         layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
                     } else if (isPartOfModel) {

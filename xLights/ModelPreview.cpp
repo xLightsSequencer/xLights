@@ -149,20 +149,22 @@ void ModelPreview::SetVirtualCanvasSize(int width, int height) {
 }
 void ModelPreview::InitializePreview(wxString img,int brightness)
 {
-    if (image) {
-        if (cache) {
-            cache->AddTextureToDelete(image->getID());
-            image->setID(0);
+    if (img != mBackgroundImage) {
+        if (image) {
+            if (cache) {
+                cache->AddTextureToDelete(image->getID());
+                image->setID(0);
+            }
+            delete image;
+            image = nullptr;
         }
-        delete image;
-        image = nullptr;
+        if (sprite) {
+            delete sprite;
+            sprite = nullptr;
+        }
+        mBackgroundImage = img;
+        mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
     }
-    if (sprite) {
-        delete sprite;
-        sprite = nullptr;
-    }
-    mBackgroundImage = img;
-    mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
     mBackgroundBrightness = brightness;
 }
 

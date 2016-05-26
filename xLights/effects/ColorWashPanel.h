@@ -3,15 +3,12 @@
 
 //(*Headers(ColorWashPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxNotebook;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxGridBagSizer;
-class wxNotebookEvent;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
 //*)
 
 class ColorWashPanel: public wxPanel
@@ -23,21 +20,15 @@ class ColorWashPanel: public wxPanel
 
 		//(*Declarations(ColorWashPanel)
 		wxCheckBox* ShimmerCheckBox;
-		wxSlider* SliderCycles;
-		wxSlider* C2SliderX;
-		wxCheckBox* CircularPaletteCheckBox;
-		wxSlider* C1SliderY;
-		wxSlider* C1SliderX;
-		wxCheckBox* VFadeCheckBox;
 		wxBitmapButton* BitmapButton_ColorWashVFade;
+		wxCheckBox* CircularPaletteCheckBox;
 		wxCheckBox* HFadeCheckBox;
-		wxNotebook* CornersNotebook;
-		wxCheckBox* EntireModelCheckbox;
-		wxStaticText* StaticText5;
 		wxTextCtrl* CyclesTextCtrl;
 		wxBitmapButton* BitmapButton_ColorWashHFade;
+		wxStaticText* StaticText5;
+		wxCheckBox* VFadeCheckBox;
+		wxSlider* SliderCycles;
 		wxBitmapButton* BitmapButton_ColorWashCount;
-		wxSlider* C2SliderY;
 		//*)
 
 
@@ -50,20 +41,8 @@ class ColorWashPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade;
 		static const long ID_CHECKBOX_ColorWash_HFade;
 		static const long ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade;
-		static const long ID_CHECKBOX_ColorWash_EntireModel;
 		static const long ID_CHECKBOX_ColorWash_Shimmer;
 		static const long ID_CHECKBOX_ColorWash_CircularPalette;
-		static const long ID_SLIDER_ColorWash_X1;
-		static const long IDD_TEXTCTRL_ColorWash_X1;
-		static const long IDD_TEXTCTRL_ColorWash_Y1;
-		static const long ID_SLIDER_ColorWash_Y1;
-		static const long ID_PANEL46;
-		static const long ID_SLIDER_ColorWash_X2;
-		static const long IDD_TEXTCTRL_ColorWash_X2;
-		static const long IDD_TEXTCTRL_ColorWash_Y2;
-		static const long ID_SLIDER_ColorWash_Y2;
-		static const long ID_PANEL47;
-		static const long IDD_NOTEBOOK_ColorWashRect;
 		//*)
 
     
@@ -76,7 +55,6 @@ class ColorWashPanel: public wxPanel
     void UpdateLinkedSlider(wxCommandEvent& event);
     void OnLockButtonClick(wxCommandEvent& event);
     
-    void OnColorWashEntireModelClicked(wxCommandEvent& event);
 
 		//*)
 

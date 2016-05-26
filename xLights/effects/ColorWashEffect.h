@@ -17,6 +17,9 @@ class ColorWashEffect : public RenderableEffect
     
         virtual std::string GetEffectString() override;
 
+        virtual bool needToAdjustSettings(const std::string &version) override;
+        virtual void adjustSettings(const std::string &version, Effect *effect) override;
+
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:

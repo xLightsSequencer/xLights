@@ -14,11 +14,6 @@
 static const std::string CHECKBOX_ColorWash_HFade("CHECKBOX_ColorWash_HFade");
 static const std::string CHECKBOX_ColorWash_VFade("CHECKBOX_ColorWash_VFade");
 static const std::string TEXTCTRL_ColorWash_Cycles("TEXTCTRL_ColorWash_Cycles");
-static const std::string CHECKBOX_ColorWash_EntireModel("CHECKBOX_ColorWash_EntireModel");
-static const std::string SLIDER_ColorWash_X1("SLIDER_ColorWash_X1");
-static const std::string SLIDER_ColorWash_Y1("SLIDER_ColorWash_Y1");
-static const std::string SLIDER_ColorWash_X2("SLIDER_ColorWash_X2");
-static const std::string SLIDER_ColorWash_Y2("SLIDER_ColorWash_Y2");
 static const std::string CHECKBOX_ColorWash_Shimmer("CHECKBOX_ColorWash_Shimmer");
 static const std::string CHECKBOX_ColorWash_CircularPalette("CHECKBOX_ColorWash_CircularPalette");
 
@@ -50,16 +45,10 @@ void ColorWashEffect::SetDefaultParameters(Model *cls) {
         return;
     }
     p->CyclesTextCtrl->SetValue("1.0");
-    SetCheckBoxValue(p->EntireModelCheckbox, true);
     SetCheckBoxValue(p->HFadeCheckBox, false);
     SetCheckBoxValue(p->VFadeCheckBox, false);
     SetCheckBoxValue(p->ShimmerCheckBox, false);
     SetCheckBoxValue(p->CircularPaletteCheckBox, false);
-    SetSliderValue(p->C1SliderX, 0);
-    SetSliderValue(p->C1SliderY, 0);
-    SetSliderValue(p->C2SliderX, 100);
-    SetSliderValue(p->C2SliderY, 100);
-    p->CornersNotebook->Enable(false);
 }
 
 std::string ColorWashEffect::GetEffectString() {
@@ -82,29 +71,6 @@ std::string ColorWashEffect::GetEffectString() {
     if (p->CircularPaletteCheckBox->GetValue()) {
         ret << "E_CHECKBOX_ColorWash_CircularPalette=1,";
     }
-    if (!p->EntireModelCheckbox->GetValue()) {
-        ret << "E_CHECKBOX_ColorWash_EntireModel=0,";
-        if (p->C1SliderX->GetValue() != 0) {
-            ret << "E_SLIDER_ColorWash_X1=";
-            ret << p->C1SliderX->GetValue();
-            ret << ",";
-        }
-        if (p->C1SliderY->GetValue() != 0) {
-            ret << "E_SLIDER_ColorWash_Y1=";
-            ret << p->C1SliderY->GetValue();
-            ret << ",";
-        }
-        if (p->C2SliderX->GetValue() != 0) {
-            ret << "E_SLIDER_ColorWash_X2=";
-            ret << p->C2SliderX->GetValue();
-            ret << ",";
-        }
-        if (p->C2SliderY->GetValue() != 0) {
-            ret << "E_SLIDER_ColorWash_Y2=";
-            ret << p->C2SliderY->GetValue();
-            ret << ",";
-        }
-    }
     return ret.str();
 }
 
@@ -114,16 +80,37 @@ wxPanel *ColorWashEffect::CreatePanel(wxWindow *parent) {
     return new ColorWashPanel(parent);
 }
 
+bool ColorWashEffect::needToAdjustSettings(const std::string &version) {
+    return IsVersionOlder("2016.34", version) || RenderableEffect::needToAdjustSettings(version);
+}
+void ColorWashEffect::adjustSettings(const std::string &version, Effect *effect) {
+    RenderableEffect::adjustSettings(version, effect);
+    if (!effect->GetSettings().GetBool("E_CHECKBOX_ColorWash_EntireModel", true) ) {
+        float x1 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_X1", 0);
+        float y1 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_Y1", 0);
+        float x2 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_X2", 100);
+        float y2 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_Y2", 100);
+        if (std::abs(x1) > 0.001f
+            || std::abs(y1) > 0.001f
+            || std::abs(100.0f - x2) > 0.001f
+            || std::abs(100.0f - y2) > 0.001f) {
+            std::string val = wxString::Format("%.2fx%.2fx%.2fx%.2f", x1, y1, x2, y2).ToStdString();
+            effect->GetSettings()["B_CUSTOM_SubBuffer"] = val;
+        }
+    }
+    effect->GetSettings().erase("E_CHECKBOX_ColorWash_EntireModel");
+    effect->GetSettings().erase("E_SLIDER_ColorWash_X1");
+    effect->GetSettings().erase("E_SLIDER_ColorWash_X2");
+    effect->GetSettings().erase("E_SLIDER_ColorWash_Y1");
+    effect->GetSettings().erase("E_SLIDER_ColorWash_Y2");
+}
+
+
 
 void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     bool HorizFade = SettingsMap.GetBool(CHECKBOX_ColorWash_HFade);
     bool VertFade = SettingsMap.GetBool(CHECKBOX_ColorWash_VFade);
     float cycles = SettingsMap.GetDouble(TEXTCTRL_ColorWash_Cycles, 1.0);
-    bool EntireModel = SettingsMap.GetBool(CHECKBOX_ColorWash_EntireModel, true);
-    int x1 = SettingsMap.GetInt(SLIDER_ColorWash_X1, 0);
-    int y1 = SettingsMap.GetInt(SLIDER_ColorWash_Y1, 0);
-    int x2 = SettingsMap.GetInt(SLIDER_ColorWash_X2, 100);
-    int y2 = SettingsMap.GetInt(SLIDER_ColorWash_Y2, 100);
     bool shimmer = SettingsMap.GetBool(CHECKBOX_ColorWash_Shimmer);
     bool circularPalette = SettingsMap.GetBool(CHECKBOX_ColorWash_CircularPalette);
     
@@ -139,20 +126,6 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     int endX = buffer.BufferWi - 1;
     int endY = buffer.BufferHt - 1;
     
-    if (!EntireModel) {
-        startX = std::min(x1, x2);
-        endX = std::max(x1, x2);
-        startY = std::min(y1, y2);
-        endY = std::max(y1, y2);
-        startX = std::round(double(buffer.BufferWi - 0.5) * (double)startX / 100.0);
-        endX = std::round(double(buffer.BufferWi - 0.5) * (double)endX / 100.0);
-        startY = std::round(double(buffer.BufferHt - 0.5) * (double)startY / 100.0);
-        endY = std::round(double(buffer.BufferHt - 0.5) * (double)endY / 100.0);
-        startX = std::max(startX, 0);
-        endX = std::min(endX, buffer.BufferWi - 1);
-        startY = std::max(startY, 0);
-        endY = std::min(endY, buffer.BufferHt - 1);
-    }
     int tot = buffer.curPeriod - buffer.curEffStartPer;
     if (!shimmer || (tot % 2) == 0) {
         double HalfHt=double(endY - startY)/2.0;
