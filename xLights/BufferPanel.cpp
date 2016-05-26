@@ -13,7 +13,6 @@
 #include "effects/EffectPanelUtils.h"
 #include "../include/padlock16x16-blue.xpm" //-DJ
 #include "ValueCurveDialog.h"
-
 #include "SubBufferPanel.h"
 
 //(*IdInit(BufferPanel)
@@ -39,8 +38,6 @@ END_EVENT_TABLE()
 
 BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
-    //_vcBlur = new ValueCurve("B_VALUECURVE_Blur", 1.0f, 15.0f);
-
 	//(*Initialize(BufferPanel)
 	wxFlexGridSizer* FlexGridSizer4;
 	wxStaticText* StaticText2;
@@ -164,10 +161,6 @@ PANEL_EVENT_HANDLERS(BufferPanel)
 
 wxString BufferPanel::GetBufferString() {
     wxString s;
-    // Blur
-    if (Slider_EffectBlur->GetValue() > 1) {
-        s += wxString::Format("B_SLIDER_EffectBlur=%d,",Slider_EffectBlur->GetValue());
-    }
     // Persistent
     if (CheckBox_OverlayBkg->GetValue()) {
         s += "B_CHECKBOX_OverlayBkg=1,";
@@ -198,6 +191,13 @@ wxString BufferPanel::GetBufferString() {
             s += "B_VALUECURVE_Blur=";
             s += blurVC;
             s += ",";
+        }
+    }
+    else
+    {
+        // Blur
+        if (Slider_EffectBlur->GetValue() > 1) {
+            s += wxString::Format("B_SLIDER_EffectBlur=%d,", Slider_EffectBlur->GetValue());
         }
     }
     return s;

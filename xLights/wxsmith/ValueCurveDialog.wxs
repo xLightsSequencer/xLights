@@ -76,6 +76,8 @@
 								<item>Parabolic Up</item>
 								<item>Logarithmic Up</item>
 								<item>Logarithmic Down</item>
+								<item>Exponential Up</item>
+								<item>Exponential Down</item>
 								<item>Sine</item>
 								<item>Abs Sine</item>
 								<item>Custom</item>

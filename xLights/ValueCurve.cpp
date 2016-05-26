@@ -120,6 +120,36 @@ void ValueCurve::RenderType()
             _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter2 - 50.0) / 50.0 + 1.5f + -1 * exp2(a * i - 1.0f))));
         }
     }
+    else if (_type == "Exponential Up")
+    {
+        // p1 rate
+        float a = (float)_parameter1 / 10.0f;
+        if (_parameter1 == 0)
+        {
+            a = 0.1f;
+        }
+        // y = 1.0+ -2^(ax-1.0);
+        for (double i = 0.0; i <= 1.01; i += 0.05)
+        {
+            if (i > 1.0) i = 1.0;
+            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter2 - 50.0) / 50.0 + exp(a * i))));
+        }
+    }
+    else if (_type == "Exponential Down")
+    {
+        // p1 rate
+        float a = (float)_parameter1 / 10.0f;
+        if (_parameter1 == 0)
+        {
+            a = 0.1f;
+        }
+        // y = 1.0+ -2^(ax-1.0);
+        for (double i = 0.0; i <= 1.01; i += 0.05)
+        {
+            if (i > 1.0) i = 1.0;
+            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter2 - 50.0) / 50.0 + 1.0 - exp(a * i))));
+        }
+    }
     else if (_type == "Sine")
     {
         // p1 - offset in cycle

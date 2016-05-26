@@ -129,6 +129,8 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     Choice1->Append(_("Parabolic Up"));
     Choice1->Append(_("Logarithmic Up"));
     Choice1->Append(_("Logarithmic Down"));
+    Choice1->Append(_("Exponential Up"));
+    Choice1->Append(_("Exponential Down"));
     Choice1->Append(_("Sine"));
     Choice1->Append(_("Abs Sine"));
     Choice1->Append(_("Custom"));
@@ -509,7 +511,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else if (type == "Ramp" || type == "Parabolic Down" || type == "Parabolic Up" || type == "Logarithmic Up" || type == "Logarithmic Down")
+    else if (type == "Ramp" || type == "Parabolic Down" || type == "Parabolic Up" || type == "Logarithmic Up" || type == "Logarithmic Down" || type == "Exponential Up" || type == "Exponential Down")
     {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
@@ -599,6 +601,13 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P4->SetLabel("N/A");
     }
     else if (type == "Logarithmic Down")
+    {
+        StaticText_P1->SetLabel("Rate");
+        StaticText_P2->SetLabel("Vertical Offset");
+        StaticText_P3->SetLabel("N/A");
+        StaticText_P4->SetLabel("N/A");
+    }
+    else if (type == "Exponential Up" || type == "Exponential Down")
     {
         StaticText_P1->SetLabel("Rate");
         StaticText_P2->SetLabel("Vertical Offset");
