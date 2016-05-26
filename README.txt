@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Blur Value Curve Added
 2016.33  May 25, 2016
    -- bug (dkulp) Maybe fix #571?   Don't post the event, call directly.  
    -- bug (dkulp) don't draw the grid and then immediately refresh anyway.
