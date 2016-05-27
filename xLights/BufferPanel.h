@@ -11,21 +11,65 @@
 #include <wx/panel.h>
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
+#include <wx/button.h>
 //*)
 
 #include "ValueCurve.h"
 #include "ValueCurveButton.h"
 #include <string>
+#include "RotoZoom.h"
 
 class Model;
 class SubBufferPanel;
+
+class RotoZoomButton :
+    public wxButton
+{
+    RotoZoomParms* _parms;
+public:
+    RotoZoomButton(wxWindow *parent,
+        wxWindowID id,
+        const wxString& label = wxEmptyString,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxBU_AUTODRAW,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxButtonNameStr) : wxButton(parent, id, label, pos, size, style, validator, name)
+    {
+        _parms = new RotoZoomParms(name.ToStdString());
+    }
+    ~RotoZoomButton()
+    {
+        if (_parms != NULL)
+        {
+            delete _parms;
+        }
+    }
+    virtual void SetValue(const std::string &val)
+    {
+        SetValue(wxString(val.c_str()));
+    }
+    virtual void SetValue(const wxString& value)
+    {
+        _parms->Deserialise(value.ToStdString());
+    }
+    RotoZoomParms* GetValue()
+    {
+        return _parms;
+    }
+};
 
 class BufferPanel: public wxPanel
 {
     void ValidateWindow();
     void OnVCChanged(wxCommandEvent& event);
 
-	public:
+    int _zooms;
+    int _rotations;
+    int _zoommaximum;
+    int _xcenter;
+    int _ycenter;
+public:
 
 		BufferPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~BufferPanel();
@@ -44,6 +88,7 @@ class BufferPanel: public wxPanel
 		wxBitmapButton* BitmapButton_OverlayBkg;
 		wxChoice* BufferTransform;
 		wxStaticText* StaticText5;
+		RotoZoomButton* Button_Properties;
 		wxTextCtrl* TextCtrl_EffectBlur;
 		ValueCurveButton* BitmapButton_Blur;
 		wxCheckBox* CheckBox_OverlayBkg;
@@ -57,6 +102,7 @@ class BufferPanel: public wxPanel
 		static const long ID_CHOICE_BufferStyle;
 		static const long ID_BITMAPBUTTON_CHOICE_BufferStyle;
 		static const long ID_CHOICE_BufferTransform;
+		static const long ID_CUSTOM_RotoZoom;
 		static const long ID_BITMAPBUTTON_CHOICE_BufferTransform;
 		static const long ID_STATICTEXT2;
 		static const long ID_SLIDER_EffectBlur;
@@ -82,6 +128,8 @@ class BufferPanel: public wxPanel
 		void OnResize(wxSizeEvent& event);
 		void OnBitmapButton_BlurClick(wxCommandEvent& event);
 		void OnSlider_EffectBlurCmdSliderUpdated(wxScrollEvent& event);
+		void OnBufferTransformSelect(wxCommandEvent& event);
+		void OnButton_PropertiesClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

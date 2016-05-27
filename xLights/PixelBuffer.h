@@ -30,6 +30,7 @@
 #include "models/SingleLineModel.h"
 #include "RenderBuffer.h"
 #include "ValueCurve.h"
+#include "RotoZoom.h"
 
 /**
  * \brief enumeration of the different techniques used in layering effects
@@ -86,9 +87,11 @@ private:
         std::string bufferTransform;
         std::string subBuffer;
         std::string blurValueCurve;
+        std::string rotoZoom;
         int BufferHt;
         int BufferWi;
         ValueCurve BlurValueCurve;
+        RotoZoomParms RotoZoom;
         std::vector<NodeBaseClassPtr> Nodes;
         int sparkle_count;
         bool music_sparkle_count;
@@ -141,6 +144,7 @@ private:
     void SetDimmingCurve(DimmingCurve *value);
     void reset(int layers, int timing);
 	void Blur(LayerInfo* layer, float offset);
+    void RotoZoom(LayerInfo* layer, float offset);
 
     std::string modelName;
     std::string lastBufferType;

@@ -2,16 +2,16 @@
 #define TIMINGPANEL_H
 
 //(*Headers(TimingPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
 #include <wx/scrolwin.h>
-#include <wx/slider.h>
+#include <wx/notebook.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/slider.h>
+#include <wx/panel.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
 //*)
 
 class Model;
@@ -26,29 +26,29 @@ class TimingPanel: public wxPanel
         wxString GetTimingString();
 
 		//(*Declarations(TimingPanel)
-		wxTextCtrl* TextCtrl_Out_Adjust;
-		wxSlider* Slider_Out_Adjust;
 		wxChoice* Choice_In_Transition_Type;
-		wxSlider* Slider_EffectLayerMix;
-		wxTextCtrl* TextCtrl_In_Adjust;
-		wxTextCtrl* TextCtrl_Fadeout;
 		wxStaticText* InAdjustmentText;
-		wxPanel* Panel_Sizer;
-		wxStaticText* OutAdjustmentText;
-		wxSlider* Slider_In_Adjust;
-		wxChoice* Choice_Out_Transition_Type;
-		wxCheckBox* CheckBox_Out_Reverse;
-		wxTextCtrl* TextCtrl_Fadein;
-		wxTextCtrl* txtCtlEffectMix;
-		wxStaticText* StaticText4;
-		wxCheckBox* CheckBox_LayerMorph;
-		wxStaticText* StaticText2;
+		wxTextCtrl* TextCtrl_In_Adjust;
 		wxNotebook* Notebook1;
-		wxBitmapButton* BitmapButton_EffectLayerMix;
-		wxChoice* Choice_LayerMethod;
-		wxCheckBox* CheckBox_In_Reverse;
-		wxScrolledWindow* ScrolledWindowTiming;
+		wxStaticText* StaticText2;
+		wxTextCtrl* TextCtrl_Out_Adjust;
+		wxPanel* Panel_Sizer;
+		wxTextCtrl* TextCtrl_Fadein;
+		wxSlider* Slider_EffectLayerMix;
+		wxCheckBox* CheckBox_Out_Reverse;
 		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
+		wxCheckBox* CheckBox_LayerMorph;
+		wxStaticText* OutAdjustmentText;
+		wxChoice* Choice_Out_Transition_Type;
+		wxChoice* Choice_LayerMethod;
+		wxBitmapButton* BitmapButton_EffectLayerMix;
+		wxCheckBox* CheckBox_In_Reverse;
+		wxTextCtrl* TextCtrl_Fadeout;
+		wxScrolledWindow* ScrolledWindowTiming;
+		wxSlider* Slider_Out_Adjust;
+		wxStaticText* StaticText4;
+		wxTextCtrl* txtCtlEffectMix;
+		wxSlider* Slider_In_Adjust;
 		//*)
     
     

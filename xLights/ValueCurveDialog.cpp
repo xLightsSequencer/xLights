@@ -363,88 +363,86 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
 void ValueCurveDialog::OnTextCtrl_Parameter1Text(wxCommandEvent& event)
 {
     int i = wxAtoi(TextCtrl_Parameter1->GetValue());
-    if (i != (int)_vc->GetParameter1())
+    __p1 = i;
+    if (Slider_Parameter1->GetValue() != i)
     {
-        _vc->SetParameter1(i);
-        Slider_Parameter1->SetValue(_vc->GetParameter1());
-        _vcp->Refresh();
+        Slider_Parameter1->SetValue(i);
     }
+    _vc->SetParameter1(i);
+    _vcp->Refresh();
 }
 void ValueCurveDialog::OnSlider_Parameter1CmdSliderUpdated(wxScrollEvent& event)
 {
     int i = Slider_Parameter1->GetValue();
-    if (i != (int)_vc->GetParameter1())
-    {
-        _vc->SetParameter1(i);
-        TextCtrl_Parameter1->SetValue(wxString::Format("%d", (int)_vc->GetParameter1()));
-        _vcp->Refresh();
-    }
+    __p1 = i;
+    TextCtrl_Parameter1->SetValue(wxString::Format("%d", i));
+    _vc->SetParameter1(i);
+    _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnTextCtrl_Parameter2Text(wxCommandEvent& event)
 {
     int i = wxAtoi(TextCtrl_Parameter2->GetValue());
-    if (i != (int)_vc->GetParameter2())
+    __p2 = i;
+    if (Slider_Parameter2->GetValue() != i)
     {
-        _vc->SetParameter1(i);
         Slider_Parameter2->SetValue(_vc->GetParameter2());
-        _vcp->Refresh();
     }
+    _vc->SetParameter2(i);
+    _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnSlider_Parameter2CmdSliderUpdated(wxScrollEvent& event)
 {
     int i = Slider_Parameter2->GetValue();
-    if (i != (int)_vc->GetParameter2())
-    {
-        _vc->SetParameter2(i);
-        TextCtrl_Parameter2->SetValue(wxString::Format("%d", (int)_vc->GetParameter2()));
-        _vcp->Refresh();
-    }
-}
-
-void ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event)
-{
-    int i = Slider_Parameter3->GetValue();
-    if (i != (int)_vc->GetParameter3())
-    {
-        _vc->SetParameter3(i);
-        TextCtrl_Parameter3->SetValue(wxString::Format("%d", (int)_vc->GetParameter3()));
-        _vcp->Refresh();
-    }
+    __p2 = i;
+    TextCtrl_Parameter2->SetValue(wxString::Format("%d", i));
+    _vc->SetParameter2(i);
+    _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnTextCtrl_Parameter3Text(wxCommandEvent& event)
 {
     int i = wxAtoi(TextCtrl_Parameter3->GetValue());
-    if (i != (int)_vc->GetParameter3())
+    __p3 = i;
+    if (Slider_Parameter3->GetValue() != i)
     {
-        _vc->SetParameter3(i);
-        Slider_Parameter3->SetValue(_vc->GetParameter3());
-        _vcp->Refresh();
+        Slider_Parameter3->SetValue(i);
     }
+    _vc->SetParameter3(i);
+    _vcp->Refresh();
 }
-void ValueCurveDialog::OnSlider_Parameter4CmdSliderUpdated(wxScrollEvent& event)
+
+void ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event)
 {
-    int i = Slider_Parameter4->GetValue();
-    if (i != (int)_vc->GetParameter4())
-    {
-        _vc->SetParameter4(i);
-        TextCtrl_Parameter4->SetValue(wxString::Format("%d", (int)_vc->GetParameter4()));
-        _vcp->Refresh();
-    }
+    int i = Slider_Parameter3->GetValue();
+    __p3 = i;
+    TextCtrl_Parameter3->SetValue(wxString::Format("%d", i));
+    _vc->SetParameter3(i);
+    _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnTextCtrl_Parameter4Text(wxCommandEvent& event)
 {
     int i = wxAtoi(TextCtrl_Parameter4->GetValue());
-    if (i != (int)_vc->GetParameter4())
+    __p4 = i;
+    if (Slider_Parameter4->GetValue() != i)
     {
-        _vc->SetParameter4(i);
-        Slider_Parameter4->SetValue(_vc->GetParameter4());
-        _vcp->Refresh();
+        Slider_Parameter4->SetValue(i);
     }
+    _vc->SetParameter4(i);
+    _vcp->Refresh();
 }
+
+void ValueCurveDialog::OnSlider_Parameter4CmdSliderUpdated(wxScrollEvent& event)
+{
+    int i = Slider_Parameter4->GetValue();
+    __p4 = i;
+    TextCtrl_Parameter4->SetValue(wxString::Format("%d", i));
+    _vc->SetParameter4(i);
+    _vcp->Refresh();
+}
+
 #pragma endregion Sliders and TextCtrls
 
 void ValueCurvePanel::Paint(wxPaintEvent& event)

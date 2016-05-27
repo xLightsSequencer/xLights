@@ -1392,5 +1392,9 @@
 			<wildcard>jpeg image(*.jpg)|*.jpg|&#x0A;png image(*.png)|*.png</wildcard>
 			<style>wxFD_OPEN|wxFD_FILE_MUST_EXIST</style>
 		</object>
+		<object class="wxTimer" name="ID_TIMER2" variable="Timer_AutoSave" member="yes">
+			<interval>180000</interval>
+			<handler function="OnTimer_AutoSaveTrigger" entry="EVT_TIMER" />
+		</object>
 	</object>
 </wxsmith>

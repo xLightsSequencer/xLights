@@ -15,11 +15,13 @@
 #include "../include/valuecurvenotselected.xpm"
 #include "ValueCurveDialog.h"
 #include "SubBufferPanel.h"
+#include "BufferTransformProperties.h"
 
 //(*IdInit(BufferPanel)
 const long BufferPanel::ID_CHOICE_BufferStyle = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_CHOICE_BufferStyle = wxNewId();
 const long BufferPanel::ID_CHOICE_BufferTransform = wxNewId();
+const long BufferPanel::ID_CUSTOM_RotoZoom = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_CHOICE_BufferTransform = wxNewId();
 const long BufferPanel::ID_STATICTEXT2 = wxNewId();
 const long BufferPanel::ID_SLIDER_EffectBlur = wxNewId();
@@ -43,6 +45,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	wxFlexGridSizer* FlexGridSizer4;
 	wxStaticText* StaticText2;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxBitmapButton* BitmapButton1;
 	wxBitmapButton* BitmapButtonBufferStyle;
 	wxFlexGridSizer* FlexGridSizer6;
@@ -72,6 +75,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Sizer2->Add(BitmapButtonBufferStyle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(BufferScrollWindow, wxID_ANY, _("Transformation"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	Sizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	BufferTransform = new wxChoice(BufferScrollWindow, ID_CHOICE_BufferTransform, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_BufferTransform"));
 	BufferTransform->SetSelection( BufferTransform->Append(_("None")) );
 	BufferTransform->Append(_("Rotate CC 90"));
@@ -79,7 +83,11 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BufferTransform->Append(_("Rotate 180"));
 	BufferTransform->Append(_("Flip Vertical"));
 	BufferTransform->Append(_("Flip Horizontal"));
-	Sizer2->Add(BufferTransform, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	BufferTransform->Append(_("Roto-Zoom"));
+	FlexGridSizer2->Add(BufferTransform, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Button_Properties = new RotoZoomButton(BufferScrollWindow, ID_CUSTOM_RotoZoom, _("Properties ..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CUSTOM_RotoZoom"));
+	FlexGridSizer2->Add(Button_Properties, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Sizer2->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton1 = new wxBitmapButton(BufferScrollWindow, ID_BITMAPBUTTON_CHOICE_BufferTransform, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferTransform"));
 	BitmapButton1->SetDefault();
 	BitmapButton1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -129,6 +137,8 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_CHOICE_BufferStyle,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
+	Connect(ID_CHOICE_BufferTransform,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BufferPanel::OnBufferTransformSelect);
+	Connect(ID_CUSTOM_RotoZoom,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnButton_PropertiesClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_BufferTransform,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
 	Connect(ID_SLIDER_EffectBlur,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BufferPanel::OnSlider_EffectBlurCmdSliderUpdated);
 	Connect(ID_VALUECURVE_Blur,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnBitmapButton_BlurClick);
@@ -154,7 +164,6 @@ BufferPanel::~BufferPanel()
 {
 	//(*Destroy(BufferPanel)
 	//*)
-    //delete _vcBlur;
 }
 
 
@@ -175,6 +184,17 @@ wxString BufferPanel::GetBufferString() {
         s += "B_CHOICE_BufferTransform=";
         s += BufferTransform->GetStringSelection();
         s += ",";
+    }
+
+    if (BufferTransform->GetStringSelection() == "Roto-Zoom" && Button_Properties->GetValue()->IsActive())
+    {
+        wxString rz = Button_Properties->GetValue()->Serialise();
+        if (rz.size() > 0)
+        {
+            s += "B_CUSTOM_RotoZoom=";
+            s += rz;
+            s += ",";
+        }
     }
 
     wxString subB = subBufferPanel->GetValue();
@@ -271,11 +291,41 @@ void BufferPanel::ValidateWindow()
         Slider_EffectBlur->Enable();
         TextCtrl_EffectBlur->Enable();
     }
+
+    if (BufferTransform->GetStringSelection() == "Roto-Zoom")
+    {
+        Button_Properties->Enable();
+    }
+    else
+    {
+        Button_Properties->Disable();
+    }
 }
 
 void BufferPanel::OnSlider_EffectBlurCmdSliderUpdated(wxScrollEvent& event)
 {
     UpdateLinkedTextCtrl(event);
+    if (BitmapButton_Blur->GetValue()->GetType() == "Flat")
+    {
+        BitmapButton_Blur->GetValue()->SetParameter1(Slider_EffectBlur->GetValue());
+    }
+}
 
-    BitmapButton_Blur->GetValue()->SetParameter1(Slider_EffectBlur->GetValue());
+void BufferPanel::OnBufferTransformSelect(wxCommandEvent& event)
+{
+    if (BufferTransform->GetStringSelection() == "Roto-Zoom")
+    {
+        Button_Properties->GetValue()->SetActive(true);
+    }
+    else
+    {
+        Button_Properties->GetValue()->SetActive(false);
+    }
+    ValidateWindow();
+}
+
+void BufferPanel::OnButton_PropertiesClick(wxCommandEvent& event)
+{
+    BufferTransformProperties dlg(this, Button_Properties->GetValue());
+    dlg.ShowModal();
 }

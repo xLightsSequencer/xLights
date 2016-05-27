@@ -249,6 +249,7 @@ const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
 const long xLightsFrame::ID_MESSAGEDIALOG1 = wxNewId();
+const long xLightsFrame::ID_TIMER2 = wxNewId();
 //*)
 
 // For new sequencer
@@ -874,6 +875,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Timer1.SetOwner(this, ID_TIMER1);
     MessageDialog1 = new wxMessageDialog(this, _("Hello"), _("Message"), wxOK|wxCANCEL, wxDefaultPosition);
     FileDialogPgoImage = new wxFileDialog(this, _("Select phoneme image file"), wxEmptyString, wxEmptyString, _("jpeg image(*.jpg)|*.jpg|\npng image(*.png)|*.png"), wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
+    Timer_AutoSave.SetOwner(this, ID_TIMER2);
+    Timer_AutoSave.Start(180000, false);
 
     Connect(ID_AUITOOLBAR_OPENSHOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_AUITOOLBAR_NEWSEQUENCE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNewSequenceClick);
@@ -998,6 +1001,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
+    Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer_AutoSaveTrigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
@@ -1309,6 +1313,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     }
 
 	SetAudioControls();
+
+    // Autosave every 3 mins
+    Timer_AutoSave.Start(180 * 1000);
 
     logger_base.debug("xLightsFrame construction complete.");
 }
@@ -1841,6 +1848,7 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
     wxFileName newDirH;
     wxDateTime curTime(cur);
 
+    SaveWorking();
 
 //  first make sure there is a Backup sub directory
     wxString newDirBackup = CurrentDir+wxFileName::GetPathSeparator()+"Backup";
@@ -2778,4 +2786,46 @@ void xLightsFrame::OnMenuOpenGLSelected(wxCommandEvent& event)
     }
     OpenGLMenu->Check(event.GetId(), true);
     wxMessageBox("OpenGL changes require a restart\n");
+}
+
+void xLightsFrame::SaveWorking()
+{
+    // dont save if no file in existence
+    if (CurrentSeqXmlFile == NULL) return;
+
+    // dont save if currently saving
+    if (!saveLock.try_lock()) return;
+
+    wxString p = CurrentSeqXmlFile->GetPath();
+    wxString fn = CurrentSeqXmlFile->GetFullName();
+    wxString tmp;
+
+    if (fn == "")
+    {
+        tmp = p + "/" + "__.working.xml";
+    }
+    else
+    {
+        wxFileName fnp(fn);
+        tmp = p + "/" + fnp.GetName() + ".working." + fnp.GetExt();
+    }
+    wxFileName ftmp(tmp);
+
+    CurrentSeqXmlFile->SetPath(ftmp.GetPath());
+    CurrentSeqXmlFile->SetFullName(ftmp.GetFullName());
+
+    CurrentSeqXmlFile->Save(mSequenceElements);
+
+    CurrentSeqXmlFile->SetPath(p);
+    CurrentSeqXmlFile->SetFullName(fn);
+
+    saveLock.unlock();
+}
+
+void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
+{
+    // dont save if currently playing
+    if (playType == PLAY_TYPE_MODEL) return;
+
+    SaveWorking();
 }

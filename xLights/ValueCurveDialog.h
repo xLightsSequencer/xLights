@@ -55,7 +55,8 @@ class ValueCurveDialog: public wxDialog
     ValueCurve _backup;
     void ValidateWindow();
     ValueCurvePanel* _vcp;
-public:
+
+    public:
 
 		ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ValueCurveDialog();

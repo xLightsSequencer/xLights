@@ -157,6 +157,7 @@
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
     <ClCompile Include="BufferPanel.cpp" />
+    <ClCompile Include="BufferTransformProperties.cpp" />
     <ClCompile Include="ChannelLayoutDialog.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="ColorPanel.cpp" />
@@ -327,6 +328,7 @@
     <ClCompile Include="RenderBuffer.cpp" />
     <ClCompile Include="RenderProgressDialog.cpp" />
     <ClCompile Include="ResizeImageDialog.cpp" />
+    <ClCompile Include="RotoZoom.cpp" />
     <ClCompile Include="SaveChangesDialog.cpp" />
     <ClCompile Include="SeqElementMismatchDialog.cpp" />
     <ClCompile Include="SeqExportDialog.cpp" />
@@ -400,6 +402,7 @@
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
     <ClInclude Include="BufferPanel.h" />
+    <ClInclude Include="BufferTransformProperties.h" />
     <ClInclude Include="ChannelLayoutDialog.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="ColorPanel.h" />
@@ -558,6 +561,7 @@
     <ClInclude Include="RenderCommandEvent.h" />
     <ClInclude Include="RenderProgressDialog.h" />
     <ClInclude Include="ResizeImageDialog.h" />
+    <ClInclude Include="RotoZoom.h" />
     <ClInclude Include="SaveChangesDialog.h" />
     <ClInclude Include="SeqElementMismatchDialog.h" />
     <ClInclude Include="SeqExportDialog.h" />

@@ -18,11 +18,6 @@
 #include "../effects/RenderableEffect.h"
 #include "../xlCustomControl.h"
 
-#define PLAY_TYPE_STOPPED 0
-#define PLAY_TYPE_EFFECT 1
-#define PLAY_TYPE_MODEL  2
-#define PLAY_TYPE_EFFECT_PAUSED 3
-#define PLAY_TYPE_MODEL_PAUSED  4
 
 
 
@@ -1132,16 +1127,23 @@ void xLightsFrame::TimerRgbSeq(long msec)
 			}
         }
 
-        fpsEvents.push_back(FPSEvent(curt / SeqData.FrameTime()));
-        while (fpsEvents.size() > 1000 / SeqData.FrameTime())
+        int frame = curt / SeqData.FrameTime();
+        fpsEvents.push_back(FPSEvent(frame));
+        size_t fpsSize = fpsEvents.size();
+        while (fpsSize > (2000 / SeqData.FrameTime()))
         {
             fpsEvents.pop_front();
+            fpsSize--;
         }
-        if (fpsEvents.size() > 1)
+        if (!fpsEvents.empty())
         {
             FPSEvent b = fpsEvents.front();
             FPSEvent e = fpsEvents.back();
-            _fps = (float)((double)fpsEvents.size() * 1000.0) / ((e.when - b.when).GetMilliseconds().ToDouble());
+            _fps = (float)((double)(fpsSize-1) * 1000.0) / ((e.when - b.when).GetMilliseconds().ToDouble());
+            if ((frame % 200) == 0) {
+                static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+                logger_opengl.debug("Play fps  %f   (%d ms)", _fps, SeqData.FrameTime());
+            }
         }
 
         //static wxLongLong ms = wxGetUTCTimeMillis();
@@ -1152,12 +1154,6 @@ void xLightsFrame::TimerRgbSeq(long msec)
             mainSequencer->PanelEffectGrid->ForceRefresh();
         }
 
-        /*
-        int frame = curt / SeqData.FrameTime();
-        if ((frame % 10) == 0) {
-            mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
-        }
-        */
         //wxLongLong me = wxGetUTCTimeMillis();
         //printf("%d     %d    %d\n", (me-ms).GetLo(), SeqData.FrameTime(), Timer1.GetInterval());
         //ms = me;
@@ -1371,7 +1367,16 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
         else if (name.StartsWith("ID_CUSTOM"))
         {
             xlCustomControl *custom = dynamic_cast<xlCustomControl *>(CtrlWin);
-            custom->SetValue(value.ToStdString());
+            if (custom != NULL)
+            {
+                custom->SetValue(value.ToStdString());
+            }
+            else
+            {
+                // sneaky for roto zoom
+                RotoZoomButton* custom2 = dynamic_cast<RotoZoomButton *>(CtrlWin);
+                custom2->SetValue(value);
+            }
         }
         else if (name.StartsWith("ID_VALUECURVE"))
         {
