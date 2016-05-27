@@ -1,4 +1,4 @@
-
+#include "../xLightsMain.h"
 #include "MainSequencer.h"
 #include "../RenderCommandEvent.h"
 #include "TimeLine.h"
@@ -9,7 +9,6 @@
 #include <wx/string.h>
 #include <wx/intl.h>
 //*)
-
 
 #include <wx/dcbuffer.h>
 
@@ -35,13 +34,6 @@ BEGIN_EVENT_TABLE(MainSequencer,wxPanel)
     EVT_COMMAND(wxID_ANY, EVT_TIME_LINE_CHANGED, MainSequencer::TimelineChanged)
 
 END_EVENT_TABLE()
-
-// FIXME consider moving to common header to avoid duplicates
-#define PLAY_TYPE_STOPPED 0
-#define PLAY_TYPE_EFFECT 1
-#define PLAY_TYPE_MODEL  2
-#define PLAY_TYPE_EFFECT_PAUSED 3
-#define PLAY_TYPE_MODEL_PAUSED  4
 
 void MainSequencer::SetHandlers(wxWindow *window)
 {

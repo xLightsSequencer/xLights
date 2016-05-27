@@ -459,6 +459,8 @@ void xLightsFrame::SaveSequence()
     wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
     wxPostEvent(this, playEvent);
 
+    saveLock.lock();
+
     if (xlightsFilename.IsEmpty())
     {
         wxString NewFilename;
@@ -475,6 +477,7 @@ void xLightsFrame::SaveSequence()
         {
             if (fd.ShowModal() != wxID_OK)
             {
+                saveLock.unlock();
                 return;
             }
             // validate inputs
@@ -501,8 +504,8 @@ void xLightsFrame::SaveSequence()
     wxStopWatch sw; // start a stopwatch timer
     SetStatusText(_("Saving ")+xlightsFilename+_(" ... Saving xml."));
     CurrentSeqXmlFile->Save(mSequenceElements);
-    SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
     if (mRenderOnSave) {
+        SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
         ProgressBar->Show();
         GaugeSizer->Layout();
         RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
@@ -522,6 +525,7 @@ void xLightsFrame::SaveSequence()
     CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
     EnableSequenceControls(true);
     mSavedChangeCount = mSequenceElements.GetChangeCount();
+    saveLock.unlock();
 }
 
 void xLightsFrame::SaveAsSequence()

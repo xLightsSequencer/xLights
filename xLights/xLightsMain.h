@@ -114,8 +114,13 @@ class wxDebugReport;
 #define SETUPTAB 0
 #define PREVIEWTAB 1
 #define SCHEDULETAB 2
-//#define PAPAGAYOTAB 3
 #define NEWSEQUENCER 3
+
+#define PLAY_TYPE_STOPPED 0
+#define PLAY_TYPE_EFFECT 1
+#define PLAY_TYPE_MODEL  2
+#define PLAY_TYPE_EFFECT_PAUSED 3
+#define PLAY_TYPE_MODEL_PAUSED  4
 
 #define FixedPages 4
 
@@ -318,6 +323,7 @@ public:
     long SecondsRemaining, EndTimeSec;
     int TxOverflowCnt, TxOverflowTotal;
     xOutput* xout;
+    std::mutex saveLock;
 
     PhonemeDictionary dictionary;
 
@@ -592,6 +598,7 @@ private:
     void OnPaneClose(wxAuiManagerEvent& event);
     void OnMenuItemPackageDebugFiles(wxCommandEvent& event);
     void OnMenuOpenGLSelected(wxCommandEvent& event);
+    void OnTimer_AutoSaveTrigger(wxTimerEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -763,6 +770,7 @@ private:
     static const long idMenuHelpContent;
     static const long ID_TIMER1;
     static const long ID_MESSAGEDIALOG1;
+    static const long ID_TIMER2;
     //*)
 
     static const long ID_PANEL_EFFECTS1;
@@ -864,6 +872,7 @@ private:
     wxMenuItem* MenuItem_File_SaveAs_Sequence;
     xlAuiToolBar* MainToolBar;
     wxMenuItem* MenuItemEffectAssistToggleMode;
+    wxTimer Timer_AutoSave;
     wxStaticText* MediaDirectoryLabel;
     wxMenuItem* mRenderOnSaveMenuItem;
     wxMenuItem* MenuItem41;

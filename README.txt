@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Add autosave to .working.xml files ... saves every 3 minutes as long as the sequence is not playing
    -- enh (keithsw) Roto-Zoom added to transforms
    -- enh (keithsw) Blur Value Curve Added
 2016.33  May 25, 2016

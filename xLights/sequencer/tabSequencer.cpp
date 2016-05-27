@@ -18,11 +18,6 @@
 #include "../effects/RenderableEffect.h"
 #include "../xlCustomControl.h"
 
-#define PLAY_TYPE_STOPPED 0
-#define PLAY_TYPE_EFFECT 1
-#define PLAY_TYPE_MODEL  2
-#define PLAY_TYPE_EFFECT_PAUSED 3
-#define PLAY_TYPE_MODEL_PAUSED  4
 
 
 
