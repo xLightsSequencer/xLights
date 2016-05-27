@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Roto-Zoom added to transforms
    -- enh (keithsw) Blur Value Curve Added
 2016.33  May 25, 2016
    -- bug (dkulp) Maybe fix #571?   Don't post the event, call directly.  
