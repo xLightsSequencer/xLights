@@ -2,35 +2,30 @@
 #include <wx/wx.h>
 #include <wx/string.h>
 
-bool rzEndsWith(const wxString& in, const wxString& what)
-{
-    return in.EndsWith(what);
-}
-
 void RotoZoomParms::SetSerialisedValue(std::string k, std::string s)
 {
     wxString kk = wxString(k.c_str());
-    if (rzEndsWith(kk, "_Id"))
+    if (kk == "Id")
     {
         _id = s;
     }
-    else if (rzEndsWith(kk, "_Rotations"))
+    else if (kk == "Rots")
     {
         _rotations = wxAtof(wxString(s.c_str()));
     }
-    else if (rzEndsWith(kk, "_Zooms"))
+    else if (kk == "Zooms")
     {
         _zooms = wxAtof(wxString(s.c_str()));
     }
-    else if (rzEndsWith(kk, "_ZoomMaximum"))
+    else if (kk == "ZMax")
     {
         _zoommaximum = wxAtof(wxString(s.c_str()));
     }
-    else if (rzEndsWith(kk, "_XCenter"))
+    else if (kk == "X")
     {
         _xcenter = wxAtoi(wxString(s.c_str()));
     }
-    else if (rzEndsWith(kk, "_YCenter"))
+    else if (kk == "Y")
     {
         _ycenter = wxAtoi(wxString(s.c_str()));
     }
@@ -68,12 +63,27 @@ std::string RotoZoomParms::Serialise()
 
     if (IsActive())
     {
-        res += _id + "_Id=" + _id + "|";
-        res += _id + "_Rotations=" + std::string(wxString::Format("%f", _rotations).c_str()) + "|";
-        res += _id + "_Zooms=" + std::string(wxString::Format("%f", _zooms).c_str()) + "|";
-        res += _id + "_ZoomMaximum=" + std::string(wxString::Format("%f", _zoommaximum).c_str()) + "|";
-        res += _id + "_XCenter=" + std::string(wxString::Format("%d", _xcenter).c_str()) + "|";
-        res += _id + "_YCenter=" + std::string(wxString::Format("%d", _ycenter).c_str()) + "|";
+        res += "Id=" + _id + "|";
+        if (_rotations != 10.0f)
+        {
+            res += "Rots=" + std::string(wxString::Format("%.2f", _rotations).c_str()) + "|";
+        }
+        if (_zooms != 10.0f)
+        {
+            res += "Zooms=" + std::string(wxString::Format("%.2f", _zooms).c_str()) + "|";
+        }
+        if (_zoommaximum != 20.0f)
+        {
+            res += "ZMax=" + std::string(wxString::Format("%.2f", _zoommaximum).c_str()) + "|";
+        }
+        if (_xcenter != 50)
+        {
+            res += "X=" + std::string(wxString::Format("%d", _xcenter).c_str()) + "|";
+        }
+        if (_ycenter != 50)
+        {
+            res += "Y=" + std::string(wxString::Format("%d", _ycenter).c_str()) + "|";
+        }
     }
     return res;
 }
@@ -87,6 +97,11 @@ void RotoZoomParms::Deserialise(std::string s)
     else
     {
         _active = true;
+        _rotations = 10.0f;
+        _zooms = 10.0f;
+        _zoommaximum = 20.0f;
+        _xcenter = 50;
+        _ycenter = 50;
         wxArrayString v = wxSplit(wxString(s.c_str()), '|');
         for (auto vs = v.begin(); vs != v.end(); vs++)
         {
@@ -99,21 +114,30 @@ void RotoZoomParms::Deserialise(std::string s)
     }
 }
 
-wxPoint RotoZoomParms::GetTransform(int x, int y, float offset)
+wxPoint RotoZoomParms::GetTransform(float x, float y, float offset, wxSize size)
 {
     float PI_2 = 6.283185307179586476925286766559f;
     float angle = PI_2 * _rotations / 10.0f * offset;
-    float scale = sin(PI_2 * (_zooms / 10.0f) * offset) * _zoommaximum / 5.0f;
-
-    if (scale < 0.3f)
+    float scale = 1.0f;
+    
+    if (_zooms != 0)
     {
-        scale = 0.3f;
+        scale = (sin(PI_2 * (_zooms / 10.0f) * offset) + 1.0f) / 2.0f * _zoommaximum / 10.0f;
+        if (scale < 0.3f)
+        {
+            scale = 0.3f;
+        }
     }
 
-    float u = cos(-angle) * (x + _xcenter) * (1.0f / scale)
-        + sin(-angle) * (y + _ycenter) * (1.0f / scale);
-    float v = -sin(-angle) * (x + _xcenter) * (1.0f / scale)
-        + cos(-angle) * (y + _ycenter) * (1.0f / scale);
+    float xoff = (_xcenter * size.GetWidth()) / 100.0;
+    float yoff = (_ycenter * size.GetHeight()) / 100.0;
+    float c = cos(-angle);
+    float s = sin(-angle);
+
+    float u = xoff + c * (x - xoff) * scale //(1.0f / scale)
+        + s * (y - yoff) * scale; //(1.0f / scale);
+    float v = yoff + -s * (x - xoff) * scale //(1.0f / scale)
+        + c * (y - yoff) * scale; //(1.0f / scale);
 
     return wxPoint(u, v);
 }

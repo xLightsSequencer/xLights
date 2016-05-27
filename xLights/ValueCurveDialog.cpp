@@ -388,7 +388,7 @@ void ValueCurveDialog::OnTextCtrl_Parameter2Text(wxCommandEvent& event)
     {
         Slider_Parameter2->SetValue(_vc->GetParameter2());
     }
-    _vc->SetParameter1(i);
+    _vc->SetParameter2(i);
     _vcp->Refresh();
 }
 

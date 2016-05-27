@@ -570,6 +570,8 @@
 		<Unit filename="ResizeImageDialog.cpp" />
 		<Unit filename="ResizeImageDialog.h" />
 		<Unit filename="RgbEffects.h" />
+		<Unit filename="RotoZoom.cpp" />
+		<Unit filename="RotoZoom.h" />
 		<Unit filename="SOIL.h" />
 		<Unit filename="SaveChangesDialog.cpp" />
 		<Unit filename="SaveChangesDialog.h" />

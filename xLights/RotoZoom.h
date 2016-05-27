@@ -24,13 +24,13 @@ public:
     float GetXCenter() { return _xcenter; }
     float GetYCenter() { return _ycenter; }
     RotoZoomParms() { RotoZoomParms(""); };
-    RotoZoomParms(const std::string& id, float rotations = 1.0f, float zooms = 1.0f, float zoommaximum = 2.0f, int x=1, int y=1);
+    RotoZoomParms(const std::string& id, float rotations = 10.0f, float zooms = 10.0f, float zoommaximum = 20.0f, int x=50, int y=50);
     void ApplySettings(float rotations, float zooms, float zoommaximum, int x, int y);
     void SetDefault(wxSize size);
     std::string Serialise();
     bool IsOk() { return _id != ""; }
     void Deserialise(std::string s);
-    wxPoint GetTransform(int x, int y, float offset);
+    wxPoint GetTransform(float x, float y, float offset, wxSize size);
     void SetActive(bool a) { _active = a; }
     bool IsActive() { return IsOk() && _active; }
     void ToggleActive() { _active = !_active; }

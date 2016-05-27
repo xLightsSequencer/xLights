@@ -291,6 +291,15 @@ void BufferPanel::ValidateWindow()
         Slider_EffectBlur->Enable();
         TextCtrl_EffectBlur->Enable();
     }
+
+    if (BufferTransform->GetStringSelection() == "Roto-Zoom")
+    {
+        Button_Properties->Enable();
+    }
+    else
+    {
+        Button_Properties->Disable();
+    }
 }
 
 void BufferPanel::OnSlider_EffectBlurCmdSliderUpdated(wxScrollEvent& event)
@@ -307,13 +316,12 @@ void BufferPanel::OnBufferTransformSelect(wxCommandEvent& event)
     if (BufferTransform->GetStringSelection() == "Roto-Zoom")
     {
         Button_Properties->GetValue()->SetActive(true);
-        Button_Properties->Enable();
     }
     else
     {
         Button_Properties->GetValue()->SetActive(false);
-        Button_Properties->Disable();
     }
+    ValidateWindow();
 }
 
 void BufferPanel::OnButton_PropertiesClick(wxCommandEvent& event)

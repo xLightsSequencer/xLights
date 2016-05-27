@@ -810,6 +810,7 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
 {
     xlColor c;
+    wxSize size(layer->BufferWi, layer->BufferHt);
     RenderBuffer orig(layer->buffer);
     layer->buffer.Clear(xlBLACK);
     for (int x = 0; x < layer->BufferWi; x++)
@@ -817,8 +818,11 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
         for (int y = 0; y < layer->BufferHt; y++)
         {
             orig.GetPixel(x, y, c);
-            wxPoint p = layer->RotoZoom.GetTransform(x, y, offset);
-            layer->buffer.SetPixel(p.x, p.y, c);
+            for (int i = 0; i < 3; i++)
+            {
+                wxPoint p = layer->RotoZoom.GetTransform((float)x + ((float)i * 0.33), y, offset, size);
+                layer->buffer.SetPixel(p.x, p.y, c);
+            }
         }
     }
 }
