@@ -28,7 +28,6 @@ const long ModelGroupPanel::ID_BITMAPBUTTON2 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT1 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT2 = wxNewId();
 const long ModelGroupPanel::ID_LISTBOX_MODELS_IN_GROUP = wxNewId();
-const long ModelGroupPanel::ID_BUTTON1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ModelGroupPanel,wxPanel)
@@ -122,11 +121,6 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFr
 	ListBoxModelsInGroup->SetMinSize(wxDLG_UNIT(this,wxSize(75,65)));
 	FlexGridSizer9->Add(ListBoxModelsInGroup, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer12->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer12->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer12->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_SaveGroupChanges = new wxButton(this, ID_BUTTON1, _("Save Group Changes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	Button_SaveGroupChanges->SetBackgroundColour(wxColour(255,108,108));
-	FlexGridSizer12->Add(Button_SaveGroupChanges, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer1->Add(FlexGridSizer3, 0, wxEXPAND, 0);
 	SetSizer(FlexGridSizer1);
@@ -138,7 +132,6 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFr
 	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonRemoveFromModelGroupClick);
 	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonUpClick);
 	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonDownClick);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButton_SaveGroupChangesClick);
 	//*)
 }
 
@@ -152,7 +145,6 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
 {
     mGroup = group;
     LabelModelGroupName->SetLabel(group);
-    Button_SaveGroupChanges->Hide();
     ListBoxModelsInGroup->Clear();
     ListBoxAddToModelGroup->Clear();
     ChoiceModelLayoutType->SetSelection(1);
@@ -214,7 +206,7 @@ void ModelGroupPanel::OnButtonAddToModelGroupClick(wxCommandEvent& event)
     {
         ListBoxAddToModelGroup->SetSelection(ListBoxAddToModelGroup->GetCount()-1,TRUE);
     }
-    Button_SaveGroupChanges->Show();
+    SaveGroupChanges();
 }
 
 void ModelGroupPanel::OnButtonRemoveFromModelGroupClick(wxCommandEvent& event)
@@ -233,7 +225,7 @@ void ModelGroupPanel::OnButtonRemoveFromModelGroupClick(wxCommandEvent& event)
     {
         ListBoxModelsInGroup->SetSelection(ListBoxModelsInGroup->GetCount()-1,TRUE);
     }
-    Button_SaveGroupChanges->Show();
+    SaveGroupChanges();
 }
 
 void ModelGroupPanel::OnButtonUpClick(wxCommandEvent& event)
@@ -245,7 +237,7 @@ void ModelGroupPanel::OnButtonUpClick(wxCommandEvent& event)
         ListBoxModelsInGroup->Delete(selectedIndex);
         ListBoxModelsInGroup->Insert(v, selectedIndex - 1);
         ListBoxModelsInGroup->SetSelection(selectedIndex - 1);
-        Button_SaveGroupChanges->Show();
+        SaveGroupChanges();
     }
 }
 
@@ -258,13 +250,12 @@ void ModelGroupPanel::OnButtonDownClick(wxCommandEvent& event)
         ListBoxModelsInGroup->Delete(selectedIndex);
         ListBoxModelsInGroup->Insert(v, selectedIndex + 1);
         ListBoxModelsInGroup->SetSelection(selectedIndex + 1);
-        Button_SaveGroupChanges->Show();
+        SaveGroupChanges();
     }
 }
 
-void ModelGroupPanel::OnButton_SaveGroupChangesClick(wxCommandEvent& event)
+void ModelGroupPanel::SaveGroupChanges()
 {
-    Button_SaveGroupChanges->Hide();
     ModelGroup *g = (ModelGroup*)mModels[mGroup];
     wxXmlNode *e = g->GetModelXml();
 

@@ -9,7 +9,6 @@
 #include <wx/panel.h>
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/button.h>
 //*)
 
 class ModelManager;
@@ -27,7 +26,6 @@ class ModelGroupPanel: public wxPanel
 		//(*Declarations(ModelGroupPanel)
 		wxStaticText* StaticText2;
 		wxChoice* ChoiceModelLayoutType;
-		wxButton* Button_SaveGroupChanges;
 		wxStaticText* LabelModelGroupName;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
@@ -55,13 +53,13 @@ class ModelGroupPanel: public wxPanel
 		static const long ID_STATICTEXT1;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTBOX_MODELS_IN_GROUP;
-		static const long ID_BUTTON1;
 		//*)
 
 	private:
         xLightsFrame *xlights;
         ModelManager &mModels;
         std::string mGroup;
+        void SaveGroupChanges();
 
 		//(*Handlers(ModelGroupPanel)
 		void OnButtonAddToModelGroupClick(wxCommandEvent& event);
@@ -71,7 +69,6 @@ class ModelGroupPanel: public wxPanel
 		void OnChoiceModelLayoutTypeSelect(wxCommandEvent& event);
 		void OnPaint(wxPaintEvent& event);
 		void OnPaint1(wxPaintEvent& event);
-		void OnButton_SaveGroupChangesClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -206,26 +206,6 @@
 								<border>5</border>
 								<option>1</option>
 							</object>
-							<object class="spacer">
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="spacer">
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxButton" name="ID_BUTTON1" variable="Button_SaveGroupChanges" member="yes">
-									<label>Save Group Changes</label>
-									<bg>#FF6C6C</bg>
-									<handler function="OnButton_SaveGroupChangesClick" entry="EVT_BUTTON" />
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<option>1</option>
