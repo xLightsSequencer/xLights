@@ -84,45 +84,40 @@
 							<cols>3</cols>
 							<rows>2</rows>
 							<growablecols>0,2</growablecols>
-							<growablerows>0</growablerows>
+							<growablerows>1</growablerows>
 							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
-									<cols>1</cols>
-									<rows>2</rows>
-									<growablecols>0</growablecols>
-									<growablerows>1</growablerows>
-									<object class="sizeritem">
-										<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
-											<label>Add to Group:</label>
-										</object>
-										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxListBox" name="ID_LISTBOX_ADD_TO_MODEL_GROUP" variable="ListBoxAddToModelGroup" member="yes">
-											<default>-1</default>
-											<minsize>75,65d</minsize>
-											<style>wxLB_SORT|wxVSCROLL|wxHSCROLL</style>
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
+								<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+									<label>Add to Group:</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="spacer">
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+									<label>Models in Group:</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxListBox" name="ID_LISTBOX_ADD_TO_MODEL_GROUP" variable="ListBoxAddToModelGroup" member="yes">
+									<default>-1</default>
+									<minsize>75,65d</minsize>
+									<style>wxLB_SORT|wxVSCROLL|wxHSCROLL</style>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
+								<border>2</border>
+								<option>3</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
 									<cols>1</cols>
-									<object class="spacer">
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-										<size>-1,10d</size>
-									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="BitmapButton4" member="no">
 											<bitmap stock_id="wxART_GO_FORWARD" stock_client="wxART_TOOLBAR" />
@@ -179,32 +174,14 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
-									<cols>1</cols>
-									<growablecols>0</growablecols>
-									<growablerows>1</growablerows>
-									<object class="sizeritem">
-										<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
-											<label>Models in Group:</label>
-										</object>
-										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxListBox" name="ID_LISTBOX_MODELS_IN_GROUP" variable="ListBoxModelsInGroup" member="yes">
-											<default>-1</default>
-											<minsize>75,65d</minsize>
-											<style>wxVSCROLL|wxHSCROLL</style>
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
+								<object class="wxListBox" name="ID_LISTBOX_MODELS_IN_GROUP" variable="ListBoxModelsInGroup" member="yes">
+									<default>-1</default>
+									<minsize>75,65d</minsize>
+									<style>wxVSCROLL|wxHSCROLL</style>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
+								<border>2</border>
+								<option>3</option>
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

@@ -20,13 +20,13 @@ const long ModelGroupPanel::ID_CHOICE1 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT4 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL1 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT3 = wxNewId();
+const long ModelGroupPanel::ID_STATICTEXT2 = wxNewId();
 const long ModelGroupPanel::ID_LISTBOX_ADD_TO_MODEL_GROUP = wxNewId();
 const long ModelGroupPanel::ID_BITMAPBUTTON4 = wxNewId();
 const long ModelGroupPanel::ID_BITMAPBUTTON3 = wxNewId();
 const long ModelGroupPanel::ID_BITMAPBUTTON1 = wxNewId();
 const long ModelGroupPanel::ID_BITMAPBUTTON2 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT1 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT2 = wxNewId();
 const long ModelGroupPanel::ID_LISTBOX_MODELS_IN_GROUP = wxNewId();
 //*)
 
@@ -39,9 +39,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFr
 :   xlights(xl), mModels(Models)
 {
 	//(*Initialize(ModelGroupPanel)
-	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer9;
 	wxBitmapButton* BitmapButton2;
 	wxBitmapButton* BitmapButton1;
 	wxBitmapButton* BitmapButton4;
@@ -86,25 +84,22 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFr
 	FlexGridSizer12 = new wxFlexGridSizer(2, 3, 0, 0);
 	FlexGridSizer12->AddGrowableCol(0);
 	FlexGridSizer12->AddGrowableCol(2);
-	FlexGridSizer12->AddGrowableRow(0);
-	FlexGridSizer10 = new wxFlexGridSizer(2, 1, 0, 0);
-	FlexGridSizer10->AddGrowableCol(0);
-	FlexGridSizer10->AddGrowableRow(1);
+	FlexGridSizer12->AddGrowableRow(1);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Add to Group:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-	FlexGridSizer10->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer12->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer12->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Models in Group:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer12->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	ListBoxAddToModelGroup = new wxListBox(this, ID_LISTBOX_ADD_TO_MODEL_GROUP, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SORT|wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_LISTBOX_ADD_TO_MODEL_GROUP"));
 	ListBoxAddToModelGroup->SetMinSize(wxDLG_UNIT(this,wxSize(75,65)));
-	FlexGridSizer10->Add(ListBoxAddToModelGroup, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer12->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer12->Add(ListBoxAddToModelGroup, 3, wxALL|wxEXPAND, 2);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);
-	wxSize __SpacerSize_1 = wxDLG_UNIT(this,wxSize(-1,10));
-	FlexGridSizer11->Add(__SpacerSize_1.GetWidth(),__SpacerSize_1.GetHeight(),1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton4 = new wxBitmapButton(this, ID_BITMAPBUTTON4, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_FORWARD")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
 	FlexGridSizer11->Add(BitmapButton4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
 	BitmapButton3 = new wxBitmapButton(this, ID_BITMAPBUTTON3, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_BACK")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
 	FlexGridSizer11->Add(BitmapButton3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-	wxSize __SpacerSize_2 = wxDLG_UNIT(this,wxSize(-1,7));
-	FlexGridSizer11->Add(__SpacerSize_2.GetWidth(),__SpacerSize_2.GetHeight(),1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	wxSize __SpacerSize_1 = wxDLG_UNIT(this,wxSize(-1,7));
+	FlexGridSizer11->Add(__SpacerSize_1.GetWidth(),__SpacerSize_1.GetHeight(),1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton1 = new wxBitmapButton(this, ID_BITMAPBUTTON1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_UP")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
 	FlexGridSizer11->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
 	BitmapButton2 = new wxBitmapButton(this, ID_BITMAPBUTTON2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_DOWN")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
@@ -112,15 +107,9 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFr
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer11->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer12->Add(FlexGridSizer11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer9->AddGrowableCol(0);
-	FlexGridSizer9->AddGrowableRow(1);
-	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Models in Group:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-	FlexGridSizer9->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ListBoxModelsInGroup = new wxListBox(this, ID_LISTBOX_MODELS_IN_GROUP, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_LISTBOX_MODELS_IN_GROUP"));
 	ListBoxModelsInGroup->SetMinSize(wxDLG_UNIT(this,wxSize(75,65)));
-	FlexGridSizer9->Add(ListBoxModelsInGroup, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer12->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer12->Add(ListBoxModelsInGroup, 3, wxALL|wxEXPAND, 2);
 	FlexGridSizer3->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer1->Add(FlexGridSizer3, 0, wxEXPAND, 0);
 	SetSizer(FlexGridSizer1);

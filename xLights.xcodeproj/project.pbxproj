@@ -35,6 +35,7 @@
 		67278C7E1CF74A01000DCFFB /* ValueCurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67278C781CF74A01000DCFFB /* ValueCurve.cpp */; };
 		67278C7F1CF74A01000DCFFB /* ValueCurveButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67278C7A1CF74A01000DCFFB /* ValueCurveButton.cpp */; };
 		67278C801CF74A01000DCFFB /* ValueCurveDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67278C7C1CF74A01000DCFFB /* ValueCurveDialog.cpp */; };
+		67278C831CF87537000DCFFB /* ModelGroupPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67278C811CF87537000DCFFB /* ModelGroupPanel.cpp */; };
 		672BD4F41C207D2E008F8B36 /* libwx_baseu_xml-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4E41C207D2E008F8B36 /* libwx_baseu_xml-3.1.dylib */; };
 		672BD4F51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4E51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.1.dylib */; };
 		672BD4F61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4E61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.1.dylib */; };
@@ -48,6 +49,8 @@
 		672E62B11C4D2FCF006A4966 /* TendrilPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E62AE1C4D2FCF006A4966 /* TendrilPanel.cpp */; };
 		672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */; };
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
+		673643011CF8C5C800D5649B /* BufferTransformProperties.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673642FD1CF8C5C800D5649B /* BufferTransformProperties.cpp */; };
+		673643021CF8C5C800D5649B /* RotoZoom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673642FF1CF8C5C800D5649B /* RotoZoom.cpp */; };
 		673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C45561C79570B00FDED47 /* BufferPanel.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		67402E871B4230360047EDC1 /* NullOutputDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67402E851B4230360047EDC1 /* NullOutputDialog.cpp */; };
@@ -369,6 +372,8 @@
 		67278C7B1CF74A01000DCFFB /* ValueCurveButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ValueCurveButton.h; sourceTree = "<group>"; };
 		67278C7C1CF74A01000DCFFB /* ValueCurveDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ValueCurveDialog.cpp; sourceTree = "<group>"; };
 		67278C7D1CF74A01000DCFFB /* ValueCurveDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ValueCurveDialog.h; sourceTree = "<group>"; };
+		67278C811CF87537000DCFFB /* ModelGroupPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelGroupPanel.cpp; sourceTree = "<group>"; };
+		67278C821CF87537000DCFFB /* ModelGroupPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelGroupPanel.h; sourceTree = "<group>"; };
 		672BD4E41C207D2E008F8B36 /* libwx_baseu_xml-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_xml-3.1.dylib"; path = "/opt/local/libdbg/libwx_baseu_xml-3.1.dylib"; sourceTree = "<group>"; };
 		672BD4E51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_aui-3.1.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_aui-3.1.dylib"; sourceTree = "<group>"; };
 		672BD4E61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_gl-3.1.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_gl-3.1.dylib"; sourceTree = "<group>"; };
@@ -409,6 +414,10 @@
 		672F95221A7A6619005FF8BF /* PreviewModels.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreviewModels.h; sourceTree = "<group>"; };
 		672F95231A7A6619005FF8BF /* ViewsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewsDialog.h; sourceTree = "<group>"; };
 		672F95251A7A6619005FF8BF /* XlightsDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XlightsDrawable.h; sourceTree = "<group>"; };
+		673642FD1CF8C5C800D5649B /* BufferTransformProperties.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BufferTransformProperties.cpp; sourceTree = "<group>"; };
+		673642FE1CF8C5C800D5649B /* BufferTransformProperties.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BufferTransformProperties.h; sourceTree = "<group>"; };
+		673642FF1CF8C5C800D5649B /* RotoZoom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RotoZoom.cpp; sourceTree = "<group>"; };
+		673643001CF8C5C800D5649B /* RotoZoom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RotoZoom.h; sourceTree = "<group>"; };
 		673C45551C79570B00FDED47 /* BufferPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BufferPanel.h; sourceTree = "<group>"; };
 		673C45561C79570B00FDED47 /* BufferPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BufferPanel.cpp; sourceTree = "<group>"; };
 		673E425717F0D23E00F4BC76 /* TabPreview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabPreview.cpp; sourceTree = "<group>"; };
@@ -1298,6 +1307,12 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				673642FD1CF8C5C800D5649B /* BufferTransformProperties.cpp */,
+				673642FE1CF8C5C800D5649B /* BufferTransformProperties.h */,
+				673642FF1CF8C5C800D5649B /* RotoZoom.cpp */,
+				673643001CF8C5C800D5649B /* RotoZoom.h */,
+				67278C811CF87537000DCFFB /* ModelGroupPanel.cpp */,
+				67278C821CF87537000DCFFB /* ModelGroupPanel.h */,
 				67278C781CF74A01000DCFFB /* ValueCurve.cpp */,
 				67278C791CF74A01000DCFFB /* ValueCurve.h */,
 				67278C7A1CF74A01000DCFFB /* ValueCurveButton.cpp */,
@@ -1621,6 +1636,7 @@
 				67B845061A9C0E7500564051 /* DisplayElementsPanel.cpp in Sources */,
 				67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */,
 				67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */,
+				673643011CF8C5C800D5649B /* BufferTransformProperties.cpp in Sources */,
 				67B2CFD81C3A186A003C17CA /* SpiralsEffect.cpp in Sources */,
 				67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */,
 				67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */,
@@ -1661,6 +1677,7 @@
 				67B2CFD71C3A186A003C17CA /* SnowstormEffect.cpp in Sources */,
 				67B2CF871C39D98A003C17CA /* SnowstormPanel.cpp in Sources */,
 				67DAFDDD1CA1A63C004B3237 /* MidiEvent.cpp in Sources */,
+				673643021CF8C5C800D5649B /* RotoZoom.cpp in Sources */,
 				67ACBAB21C63D84500BFA7D6 /* CustomModel.cpp in Sources */,
 				670C828B1C45C48B000AA5D8 /* Model.cpp in Sources */,
 				67B2CF711C39D98A003C17CA /* DMXPanel.cpp in Sources */,
@@ -1753,6 +1770,7 @@
 				67B2CFDF1C3A186A003C17CA /* SingleStrandEffect.cpp in Sources */,
 				6781B1D91AF407A300A75E59 /* LMSImportChannelMapDialog.cpp in Sources */,
 				67B7971B1A5AE343008D5921 /* TimingPanel.cpp in Sources */,
+				67278C831CF87537000DCFFB /* ModelGroupPanel.cpp in Sources */,
 				67B2CFDA1C3A186A003C17CA /* StrobeEffect.cpp in Sources */,
 				67B2CFE21C3A186A003C17CA /* RippleEffect.cpp in Sources */,
 				6792407A1CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp in Sources */,

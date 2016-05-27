@@ -45,13 +45,13 @@ class ModelGroupPanel: public wxPanel
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT3;
+		static const long ID_STATICTEXT2;
 		static const long ID_LISTBOX_ADD_TO_MODEL_GROUP;
 		static const long ID_BITMAPBUTTON4;
 		static const long ID_BITMAPBUTTON3;
 		static const long ID_BITMAPBUTTON1;
 		static const long ID_BITMAPBUTTON2;
 		static const long ID_STATICTEXT1;
-		static const long ID_STATICTEXT2;
 		static const long ID_LISTBOX_MODELS_IN_GROUP;
 		//*)
 

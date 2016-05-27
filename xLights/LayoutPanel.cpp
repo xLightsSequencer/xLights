@@ -550,7 +550,7 @@ void LayoutPanel::UpdateModelGroupList()
 
 void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
 {
-    int index = (int)event.GetClientObject();
+    int index = (size_t)event.GetClientObject();
     bool checked = ListBoxModelGroups->IsChecked(index);
     wxString name = ListBoxModelGroups->GetItemText(index, 1);
 
@@ -2048,6 +2048,8 @@ void LayoutPanel::OnListBoxModelGroupsItemSelect(wxListEvent& event)
         }
         std::string name = ListBoxModelGroups->GetItemText(li, 1).ToStdString();
         model_grp_panel->UpdatePanel(name);
+    } else {
+        
     }
 }
 
