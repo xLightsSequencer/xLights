@@ -219,6 +219,12 @@ void ValueCurve::Deserialise(std::string s)
     else
     {
         _active = true;
+        _values.clear();
+        _type = "Flat";
+        _parameter1 = 0.0f;
+        _parameter2 = 0.0f;
+        _parameter3 = 0.0f;
+        _parameter4 = 0.0f;
         wxArrayString v = wxSplit(wxString(s.c_str()), '|');
         for (auto vs = v.begin(); vs != v.end(); vs++)
         {
@@ -237,20 +243,35 @@ std::string ValueCurve::Serialise()
 
     if (IsActive())
     {
-        res += _id + "_Id=" + _id + "|";
-        res += _id + "_Type=" + _type + "|";
-        res += _id + "_Min=" + std::string(wxString::Format("%f", _min).c_str()) + "|";
-        res += _id + "_Max=" + std::string(wxString::Format("%f", _max).c_str()) + "|";
-        res += _id + "_P1=" + std::string(wxString::Format("%f", _parameter1).c_str()) + "|";
-        res += _id + "_P2=" + std::string(wxString::Format("%f", _parameter2).c_str()) + "|";
-        res += _id + "_P3=" + std::string(wxString::Format("%f", _parameter3).c_str()) + "|";
-        res += _id + "_P4=" + std::string(wxString::Format("%f", _parameter4).c_str()) + "|";
+        res += "Id=" + _id + "|";
+        if (_type != "Flat")
+        {
+            res += "Type=" + _type + "|";
+        }
+        res += "Min=" + std::string(wxString::Format("%.2f", _min).c_str()) + "|";
+        res += "Max=" + std::string(wxString::Format("%.2f", _max).c_str()) + "|";
+        if (_parameter1 != 0)
+        {
+            res += "P1=" + std::string(wxString::Format("%.2f", _parameter1).c_str()) + "|";
+        }
+        if (_parameter2 != 0)
+        {
+            res += "P2=" + std::string(wxString::Format("%.2f", _parameter2).c_str()) + "|";
+        }
+        if (_parameter3 != 0)
+        {
+            res += "P3=" + std::string(wxString::Format("%.2f", _parameter3).c_str()) + "|";
+        }
+        if (_parameter4 != 0)
+        {
+            res += "P4=" + std::string(wxString::Format("%.2f", _parameter4).c_str()) + "|";
+        }
         if (_type == "Custom")
         {
-            res += _id + "_Values=";
+            res += "Values=";
             for (auto it = _values.begin(); it != _values.end(); ++it)
             {
-                res += "" + std::string(wxString::Format("%f", it->x).c_str()) + ":" + std::string(wxString::Format("%f", it->y).c_str());
+                res += "" + std::string(wxString::Format("%.2f", it->x).c_str()) + ":" + std::string(wxString::Format("%.2f", it->y).c_str());
                 if (!(*it == _values.back()))
                 {
                     res += ";";
@@ -261,64 +282,48 @@ std::string ValueCurve::Serialise()
     return res;
 }
 
-std::list<std::string> tokenise(std::string in, char token)
-{
-    std::list<std::string> res;
-    std::istringstream f(in);
-    std::string s;
-    while (getline(f, s, token)) {
-        res.push_back(s);
-    }
-    return res;
-}
-
-bool vcEndsWith(const wxString& in, const wxString& what)
-{
-    return in.EndsWith(what);
-}
-
 void ValueCurve::SetSerialisedValue(std::string k, std::string s)
 {
     wxString kk = wxString(k.c_str());
-    _values.clear();
-    if (vcEndsWith(kk, "_Id"))
+    if (kk == "Id")
     {
         _id = s;
     }
-    else if (vcEndsWith(kk, "_Type"))
+    else if (kk == "Type")
     {
         _type = s;
     }
-    else if (vcEndsWith(kk, "_Min"))
+    else if (kk == "Min")
         {
             _min = wxAtof(wxString(s.c_str()));
         }
-        else if (vcEndsWith(kk, "_Max"))
+        else if (kk == "Max")
         {
             _max = wxAtof(wxString(s.c_str()));
         }
-        else if (vcEndsWith(kk, "_P1"))
+        else if (kk == "P1")
         {
             _parameter1 = wxAtof(wxString(s.c_str()));
         }
-        else if (vcEndsWith(kk, "_P2"))
+        else if (kk == "P2")
         {
             _parameter2 = wxAtof(wxString(s.c_str()));
         }
-        else if (vcEndsWith(kk, "_P3"))
+        else if (kk == "P3")
         {
             _parameter3 = wxAtof(wxString(s.c_str()));
         }
-        else if (vcEndsWith(kk, "_P4"))
+        else if (kk == "P4")
         {
             _parameter4 = wxAtof(wxString(s.c_str()));
         }
-        else if (vcEndsWith(kk, "_Values"))
+        else if (kk == "Values")
         {
-            std::list<std::string> points = tokenise(s, ';');
+            wxArrayString points = wxSplit(s, ';');
+
             for (auto p = points.begin(); p != points.end(); p++)
             {
-                std::list<std::string> xy = tokenise(*p, ':');
+                wxArrayString xy = wxSplit(*p, ':');
                 _values.push_back(vcSortablePoint(wxAtof(wxString(xy.front().c_str())), wxAtof(wxString(xy.back().c_str()))));
             }
         }
