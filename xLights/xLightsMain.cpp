@@ -1848,6 +1848,7 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
     wxFileName newDirH;
     wxDateTime curTime(cur);
 
+    SaveWorking();
 
 //  first make sure there is a Backup sub directory
     wxString newDirBackup = CurrentDir+wxFileName::GetPathSeparator()+"Backup";
@@ -2787,13 +2788,10 @@ void xLightsFrame::OnMenuOpenGLSelected(wxCommandEvent& event)
     wxMessageBox("OpenGL changes require a restart\n");
 }
 
-void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
+void xLightsFrame::SaveWorking()
 {
     // dont save if no file in existence
     if (CurrentSeqXmlFile == NULL) return;
-
-    // dont save if currently playing
-    if (playType == PLAY_TYPE_MODEL) return;
 
     // dont save if currently saving
     if (!saveLock.try_lock()) return;
@@ -2822,4 +2820,12 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
     CurrentSeqXmlFile->SetFullName(fn);
 
     saveLock.unlock();
+}
+
+void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
+{
+    // dont save if currently playing
+    if (playType == PLAY_TYPE_MODEL) return;
+
+    SaveWorking();
 }

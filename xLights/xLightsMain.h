@@ -393,6 +393,7 @@ public:
     void ImportLMS(const wxFileName &filename);
     void ImportLSP(const wxFileName &filename);
     void ImportSuperStar(const wxFileName &filename);
+    void SaveWorking();
 
     EffectManager &GetEffectManager() { return effectManager; }
 
