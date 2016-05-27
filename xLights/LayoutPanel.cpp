@@ -560,6 +560,11 @@ void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
     bool checked = ListBoxModelGroups->IsChecked(index);
     wxString name = ListBoxModelGroups->GetItemText(index, 1);
 
+    if( index != mSelectedGroup ) {
+        DeselectModelGroupList();
+        ListBoxModelGroups->SetItemState( index, wxLIST_STATE_SELECTED, -1 );
+        mSelectedGroup = index;
+    }
     if( index == ALL_MODELS_GROUP ) {
         ListBoxModelGroups->SetChecked(MY_DISPLAY_GROUP, false);
         xlights->UpdateModelsList(false);
@@ -737,30 +742,6 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
     xlights->SetStatusText(_("Preview layout saved"));
 }
 
-
-void LayoutPanel::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
-{
-    CreateUndoPoint("All", "", "", "");
-    CurrentPreviewModels dialog(this,xlights->ModelGroupsNode,xlights->AllModels);
-    dialog.ShowModal();
-
-    for (wxXmlNode *node = xlights->ModelGroupsNode->GetChildren(); node != nullptr; node = node->GetNext()) {
-        wxString oldName = node->GetAttribute("oldName", "");
-        node->DeleteAttribute("oldName");
-        if (oldName != "") {
-            Element* elem_to_rename = xlights->GetSequenceElements().GetElement(oldName.ToStdString());
-            if( elem_to_rename != NULL ) {
-                elem_to_rename->SetName(node->GetAttribute("name").ToStdString());
-            }
-        }
-    }
-
-    xlights->UnsavedRgbEffectsChanges=true;
-    xlights->UpdateModelsList();
-    UpdatePreview();
-    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-    xlights->RowHeadingsChanged(eventRowHeaderChanged);
-}
 
 void LayoutPanel::OnListBoxElementListItemSelect(wxListEvent& event)
 {
@@ -2049,6 +2030,7 @@ void LayoutPanel::OnListBoxModelGroupsItemSelect(wxListEvent& event)
     UnSelectAllModels(false);
     DeselectModelList();
     wxListItem li = event.GetItem();
+    mSelectedGroup = li.GetId();
     if( li.GetId() > MY_DISPLAY_GROUP ) {
         std::string name = ListBoxModelGroups->GetItemText(li, 1).ToStdString();
         model_grp_panel->UpdatePanel(name);

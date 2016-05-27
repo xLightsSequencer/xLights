@@ -96,7 +96,6 @@ class LayoutPanel: public wxPanel
 		void OnPreviewRightDown(wxMouseEvent& event);
 		void OnPreviewMouseMove(wxMouseEvent& event);
 		void OnPreviewModelPopup(wxCommandEvent &event);
-		void OnButtonSelectModelGroupsClick(wxCommandEvent& event);
 		void OnCheckBoxOverlapClick(wxCommandEvent& event);
 		void OnButtonSavePreviewClick(wxCommandEvent& event);
 		void OnListBoxElementListItemSelect(wxListEvent& event);
@@ -171,6 +170,7 @@ class LayoutPanel: public wxPanel
         int mNumGroups;
         bool mGroupDefault;
         bool mPropGridActive;
+        int mSelectedGroup;
 
         wxPropertyGrid *propertyEditor;
         bool updatingProperty;
