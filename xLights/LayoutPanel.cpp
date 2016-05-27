@@ -658,6 +658,7 @@ void LayoutPanel::SetupPropGrid(Model *model) {
 
 void LayoutPanel::SelectModel(const std::string & name)
 {
+    DeselectModelGroupList();
     modelPreview->SetFocus();
     int foundStart = 0;
     int foundEnd = 0;
@@ -1007,6 +1008,8 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 
         if(!event.wxKeyboardState::ControlDown())
         {
+            DeselectModelGroupList();
+            DeselectModelList();
             UnSelectAllModels();
         }
 
@@ -2043,19 +2046,26 @@ void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
 
 void LayoutPanel::OnListBoxModelGroupsItemSelect(wxListEvent& event)
 {
+    UnSelectAllModels(false);
+    DeselectModelList();
     wxListItem li = event.GetItem();
     if( li.GetId() > MY_DISPLAY_GROUP ) {
         std::string name = ListBoxModelGroups->GetItemText(li, 1).ToStdString();
         model_grp_panel->UpdatePanel(name);
         if( mPropGridActive ) {
-            DeselectModelList();
             ModelSplitter->ReplaceWindow(propertyEditor, ModelGroupWindow);
             propertyEditor->Hide();
             ModelGroupWindow->Show();
             mPropGridActive = false;
         }
     } else {
-        
+        if( !mPropGridActive ) {
+            ModelSplitter->ReplaceWindow(ModelGroupWindow, propertyEditor);
+            ModelGroupWindow->Hide();
+            propertyEditor->Show();
+            mPropGridActive = true;
+        }
+        resetPropertyGrid();
     }
 }
 
