@@ -445,7 +445,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         }
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
-        return 3;
+        return 3 | ((event.GetPropertyName() == "ModelStringType" ) ? 0x0008 : 0);
     } else if (event.GetPropertyName() == "ModelStartChannel" || event.GetPropertyName() == "ModelIndividualStartChannels.ModelStartChannel") {
         ModelXml->DeleteAttribute("StartChannel");
         ModelXml->AddAttribute("StartChannel", event.GetValue().GetString());

@@ -340,7 +340,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 }
                 if (xlights->RenameModel(selectedModel->name, event.GetValue().GetString().ToStdString())) {
                     CallAfter(&LayoutPanel::UpdateModelList, false);
-                    CallAfter(&LayoutPanel::UnSelectAllModels);
+                    CallAfter(&LayoutPanel::UnSelectAllModels, true);
                 }
             }
         } else {
@@ -525,7 +525,7 @@ void LayoutPanel::UpdateModelList(bool addGroups) {
     UpdatePreview();
 
 }
-void LayoutPanel::UnSelectAllModels()
+void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 {
     for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
@@ -535,7 +535,7 @@ void LayoutPanel::UnSelectAllModels()
     UpdatePreview();
     selectedModel = nullptr;
 
-    if (!updatingProperty) {
+    if (!updatingProperty && addBkgProps) {
         propertyEditor->Freeze();
         clearPropGrid();
         if (backgroundProperty != nullptr && backgroundProperty->GetValue().GetString() != modelPreview->GetBackgroundImage()) {
@@ -710,6 +710,7 @@ void LayoutPanel::OnListBoxElementListItemSelect(wxListEvent& event)
         return;
     }
     std::string name = ListBoxElementList->GetItemText(sel).ToStdString();
+    UnSelectAllModels(false);
     SelectModel(name);
 
     for (int i = 0; i < ListBoxElementList->GetItemCount(); i++)

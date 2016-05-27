@@ -117,7 +117,7 @@ class LayoutPanel: public wxPanel
     public:
         void UpdatePreview();
         void SelectModel(const std::string & name);
-        void UnSelectAllModels();
+        void UnSelectAllModels(bool addBkgProps = true);
         void SetupPropGrid(Model *model);
 
     protected:

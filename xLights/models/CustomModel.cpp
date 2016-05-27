@@ -71,7 +71,7 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 }
 int CustomModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("CustomData" == event.GetPropertyName()) {
-        return 3;
+        return 3 | 0x0008;
     }
     else if ("CustomBkgImage" == event.GetPropertyName()) {
         custom_background = event.GetValue().GetString();

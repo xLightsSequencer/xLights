@@ -716,6 +716,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         }
     }
 
+    int colorOffset = 0;
     xlColor color;
     buffer.palette.GetColor(0, color); //use first color for mouth; user must make sure it matches model node type
 
@@ -723,19 +724,22 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
 
     std::vector<std::string> todo;
     std::vector<xlColor> colors;
-    todo.push_back("Mouth-" + phoneme);
-    if (customColor) {
-        std::string cname = model_info->faceInfo[definition][ "Mouth-" + phoneme + "-Color"];
-        if (cname == "") {
-            colors.push_back(xlWHITE);
+    if (phoneme != "(off)") {
+        todo.push_back("Mouth-" + phoneme);
+        colorOffset = 1;
+        if (customColor) {
+            std::string cname = model_info->faceInfo[definition][ "Mouth-" + phoneme + "-Color"];
+            if (cname == "") {
+                colors.push_back(xlWHITE);
+            } else {
+                colors.push_back(xlColor(cname));
+            }
         } else {
-            colors.push_back(xlColor(cname));
+            colors.push_back(color);
         }
-    } else {
-        colors.push_back(color);
     }
-    if (buffer.palette.Size() > 1) {
-        buffer.palette.GetColor(1, color); //use second color for eyes; user must make sure it matches model node type
+    if (buffer.palette.Size() > colorOffset) {
+        buffer.palette.GetColor(colorOffset, color); //use second color for eyes; user must make sure it matches model node type
     }
     if (eyes == "Open" || eyes == "Auto") {
         todo.push_back("Eyes-Open");
@@ -766,8 +770,8 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     if (eyes == "(off)") {
         //no eyes
     }
-    if (buffer.palette.Size() > 2) {
-        buffer.palette.GetColor(2, color); //use third color for outline; user must make sure it matches model node type
+    if (buffer.palette.Size() > (1 + colorOffset)) {
+        buffer.palette.GetColor((1 + colorOffset), color); //use third color for outline; user must make sure it matches model node type
     }
     if (face_outline) {
         todo.insert(todo.begin(), "FaceOutline");
