@@ -76,7 +76,7 @@ void xLightsFrame::CreateSequencer()
     effectPalettePanel = new EffectIconPanel(effectManager, PanelSequencer);
 
     // DisplayElements Panel
-    displayElementsPanel = new DisplayElementsPanel(PanelSequencer);
+    displayElementsPanel = new DisplayElementsPanel(this, PanelSequencer);
     displayElementsPanel->SetViewChoice(mainSequencer->ViewChoice);
     displayElementsPanel->Fit();
 
@@ -1373,7 +1373,12 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
             xlCustomControl *custom = dynamic_cast<xlCustomControl *>(CtrlWin);
             custom->SetValue(value.ToStdString());
         }
-		else
+        else if (name.StartsWith("ID_VALUECURVE"))
+        {
+            ValueCurveButton *vcb = dynamic_cast<ValueCurveButton *>(CtrlWin);
+            vcb->SetValue(value.ToStdString());
+        }
+        else
 		{
 			wxMessageBox("Unknown type: " + name, "Internal Error");
 		}
@@ -1431,9 +1436,11 @@ std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette)
 
 void xLightsFrame::ForceSequencerRefresh(wxCommandEvent& event)
 {
+    ForceSequencerRefresh();
+}
+void xLightsFrame::ForceSequencerRefresh()
+{
     mSequenceElements.PopulateRowInformation();
-    mainSequencer->PanelRowHeadings->Refresh();
-    mainSequencer->PanelEffectGrid->ForceRefresh();
     ResizeMainSequencer();
 }
 

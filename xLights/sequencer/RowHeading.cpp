@@ -320,7 +320,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (filename.IsEmpty()) return;
         wxFileName fn(filename);
         log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        if (fn.GetExt().Lower() == ".xtiming")
+        if (fn.GetExt().Lower() == "xtiming")
         {
             wxFile f(filename);
             logger_base.info("Saving to xtiming file %s.", std::string(filename.c_str()).c_str());

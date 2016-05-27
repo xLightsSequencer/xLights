@@ -774,6 +774,17 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     dlg.channelNames.push_back(el->GetName() + "/" + strandName);
                     layerMap[el->GetName() + "/" + strandName] = sl;
                 }
+                for (size_t n = 0; n < sl->GetNodeLayerCount(); n++) {
+                    NodeLayer *nl = sl->GetNodeLayer(n, true);
+                    if (nl->GetEffectCount() > 0) {
+                        std::string nodeName = nl->GetName();
+                        if (nodeName == "") {
+                            nodeName = wxString::Format("Node %d", (n + 1));
+                        }
+                        dlg.channelNames.push_back(el->GetName() + "/" + strandName + "/" + nodeName);
+                        layerMap[el->GetName() + "/" + strandName + "/" + nodeName] = nl;
+                    }
+                }
             }
         }
     }
@@ -815,6 +826,20 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     MapXLightsStrandEffects(sl, s->_mapping.ToStdString(), layerMap, se, mapped);
                 }
                 row++;
+                int node = 0;
+                for (size_t k = 0; k < s->GetChildCount(); k++)
+                {
+                    xLightsImportModelNode* n = s->GetNthChild(k);
+                    NodeLayer *nl = sl->GetNodeLayer(node, true);
+
+                    if (nl != nullptr) {
+                        if ("" != n->_mapping) {
+                            MapXLightsStrandEffects(nl, n->_mapping.ToStdString(), layerMap, se, mapped);
+                        }
+                        row++;
+                    }
+                    node++;
+                }
             }
             str++;
         }
@@ -2553,20 +2578,25 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + (std::string)endc
                             + ",C_CHECKBOX_Palette2=1";
 
-                        std::string settings = "";
+                    
+                        
+                        std::string settings = "B_CUSTOM_SubBuffer=";
                         std::string val = wxString::Format("%d", rect.x).ToStdString();
                         if( !CalcBoundedPercentage(val, num_columns, false, x_offset) ) continue;
-                        settings += ",E_SLIDER_ColorWash_X1=" + val;
-                        val = wxString::Format("%d", rect.width);
-                        if( !CalcBoundedPercentage(val, num_columns, false, x_offset) ) continue;
-                        settings += ",E_SLIDER_ColorWash_X2=" + val;
+                        settings += val;
+                        settings += "x";
                         val = wxString::Format("%d", rect.y);
                         if( !CalcBoundedPercentage(val, num_rows, true, y_offset) ) continue;
-                        settings += ",E_SLIDER_ColorWash_Y1=" + val;
+                        settings += val;
+                        settings += "x";
+                        val = wxString::Format("%d", rect.width);
+                        if( !CalcBoundedPercentage(val, num_columns, false, x_offset) ) continue;
+                        settings += val;
+                        settings += "x";
                         val = wxString::Format("%d", rect.height);
-                        if( !CalcBoundedPercentage(val, num_rows, true, y_offset) ) continue;
-                        settings += ",E_SLIDER_ColorWash_Y2=" + val;
-                        settings += ",E_CHECKBOX_ColorWash_EntireModel=0";
+                        if( !CalcBoundedPercentage(val, num_columns, false, x_offset) ) continue;
+                        settings += val;
+
 
                         layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
                     } else if (isPartOfModel) {

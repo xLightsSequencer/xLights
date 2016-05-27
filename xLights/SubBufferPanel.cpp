@@ -52,7 +52,7 @@ std::string SubBufferPanel::GetValue() {
         || std::abs(y1) > 0.001
         || std::abs(100.0 - x2) > 0.001
         || std::abs(100.0 - y2) > 0.001) {
-        return wxString::Format("%.2fx%.2fx%.2fx%.2fx", x1, y1, x2, y2).ToStdString();
+        return wxString::Format("%.2fx%.2fx%.2fx%.2f", x1, y1, x2, y2).ToStdString();
     }
     return "";
 }

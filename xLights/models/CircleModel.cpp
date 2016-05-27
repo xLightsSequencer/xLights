@@ -168,12 +168,12 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         AdjustStringProperties(grid, parm1);
-        return 3;
+        return 3 | 0x0008;
     } else if ("CircleLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return 3 | 0x0008;
     } else if ("CircleCenterPercent" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));

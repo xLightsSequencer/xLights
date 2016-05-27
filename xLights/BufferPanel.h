@@ -2,22 +2,29 @@
 #define BUFFERPANEL_H
 
 //(*Headers(BufferPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
-#include <wx/panel.h>
 #include <wx/scrolwin.h>
-#include <wx/slider.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/slider.h>
+#include <wx/panel.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
 //*)
+
+#include "ValueCurve.h"
+#include "ValueCurveButton.h"
+#include <string>
 
 class Model;
 class SubBufferPanel;
 
 class BufferPanel: public wxPanel
 {
+    void ValidateWindow();
+    void OnVCChanged(wxCommandEvent& event);
+
 	public:
 
 		BufferPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
@@ -28,18 +35,19 @@ class BufferPanel: public wxPanel
 
     
 		//(*Declarations(BufferPanel)
-		wxFlexGridSizer* Sizer2;
-		wxTextCtrl* TextCtrl_EffectBlur;
-		wxChoice* BufferStyleChoice;
-		wxBitmapButton* BitmapButton_EffectBlur;
-		wxPanel* Panel_Sizer;
-		wxChoice* BufferTransform;
-		wxFlexGridSizer* SubBufferPanelSizer;
 		wxScrolledWindow* BufferScrollWindow;
-		wxCheckBox* CheckBox_OverlayBkg;
-		wxStaticText* StaticText5;
-		wxSlider* Slider_EffectBlur;
+		wxBitmapButton* BitmapButton_EffectBlur;
+		wxChoice* BufferStyleChoice;
+		wxFlexGridSizer* Sizer2;
+		wxPanel* Panel_Sizer;
+		wxFlexGridSizer* SubBufferPanelSizer;
 		wxBitmapButton* BitmapButton_OverlayBkg;
+		wxChoice* BufferTransform;
+		wxStaticText* StaticText5;
+		wxTextCtrl* TextCtrl_EffectBlur;
+		ValueCurveButton* BitmapButton_Blur;
+		wxCheckBox* CheckBox_OverlayBkg;
+		wxSlider* Slider_EffectBlur;
 		//*)
 
         SubBufferPanel *subBufferPanel;
@@ -52,6 +60,7 @@ class BufferPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_CHOICE_BufferTransform;
 		static const long ID_STATICTEXT2;
 		static const long ID_SLIDER_EffectBlur;
+		static const long ID_VALUECURVE_Blur;
 		static const long IDD_TEXTCTRL_EffectBlur;
 		static const long ID_BITMAPBUTTON_SLIDER_EffectBlur;
 		static const long ID_CHECKBOX_OverlayBkg;
@@ -71,6 +80,8 @@ class BufferPanel: public wxPanel
 		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
+		void OnBitmapButton_BlurClick(wxCommandEvent& event);
+		void OnSlider_EffectBlurCmdSliderUpdated(wxScrollEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

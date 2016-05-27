@@ -36,6 +36,15 @@ wxString xLightsImportTreeModel::GetStrand(const wxDataViewItem &item) const
     return node->_strand;
 }
 
+wxString xLightsImportTreeModel::GetNode(const wxDataViewItem &item) const
+{
+    xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
+    if (!node)      // happens if item.IsOk()==false
+        return wxEmptyString;
+
+    return node->_node;
+}
+
 wxString xLightsImportTreeModel::GetMapping(const wxDataViewItem &item) const
 {
     xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
@@ -82,10 +91,14 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
             //variant = wxVariant(wxDataViewIconText(node->_model));
             variant = wxVariant(node->_model);
         }
-        else
+        else if (node->GetChildCount() != 0)
         {
             //variant = wxVariant(wxDataViewIconText(node->_strand));
             variant = wxVariant(node->_strand);
+        }
+        else
+        {
+            variant = wxVariant(node->_node);
         }
         break;
     case 1:
@@ -163,6 +176,15 @@ unsigned int xLightsImportTreeModel::GetChildren(const wxDataViewItem &parent,
         }
     }
     return count;
+}
+
+void xLightsImportTreeModel::ClearMapping()
+{
+    size_t count = m_children.size();
+    for (size_t i = 0; i < count; i++)
+    {
+        GetNthChild(i)->ClearMapping();
+    }
 }
 
 const long xLightsImportChannelMapDialog::ID_TREELISTCTRL1 = wxNewId();
@@ -243,6 +265,17 @@ static wxArrayString Convert(const std::vector<std::string> arr) {
     return ret;
 }
 
+int CountChar(wxString& line, char c)
+{
+    int count = 0;
+    for (size_t x = 0; x < line.size(); x++) {
+        if (line[x] == c) {
+            count++;
+        }
+    }
+    return count;
+}
+
 bool xLightsImportChannelMapDialog::Init() {
     if (channelNames.size() == 0)
     {
@@ -253,16 +286,7 @@ bool xLightsImportChannelMapDialog::Init() {
     // load the tree
     for (auto it = channelNames.begin(); it != channelNames.end(); it++)
     {
-        if ((*it).find('/') != std::string::npos)
-        {
-			// strands
-            _importModels.push_back(wxString(it->c_str()));
-        }
-        else
-        {
-			// models
-            _importModels.push_back(wxString(it->c_str()));
-        }
+        _importModels.push_back(wxString(it->c_str()));
     }
 
     dataModel = new xLightsImportTreeModel();
@@ -281,20 +305,31 @@ bool xLightsImportChannelMapDialog::Init() {
     //Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_ACTIVATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnItemActivated);
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnValueChanged);
 
-    xLightsImportModelNode* last;
+    xLightsImportModelNode* lastmodel;
     int ms = 0;
     for (size_t i = 0; i<mSequenceElements->GetElementCount(); i++) {
         if (mSequenceElements->GetElement(i)->GetType() == "model") {
             Element* e = mSequenceElements->GetElement(i);
-            last = new xLightsImportModelNode(NULL, e->GetName(), "");
-            dataModel->Insert(last, ms++);
+            lastmodel = new xLightsImportModelNode(NULL, e->GetName(), "");
+            dataModel->Insert(lastmodel, ms++);
             Model *m = xlights->GetModel(e->GetName());
             for (int s = 0; s < m->GetNumStrands(); s++) {
                 wxString sn = m->GetStrandName(s);
                 if ("" == sn) {
                     sn = wxString::Format("Strand %d", s + 1);
                 }
-                last->Insert(new xLightsImportModelNode(last, e->GetName(), sn, ""), s);
+                xLightsImportModelNode* laststrand = new xLightsImportModelNode(lastmodel, e->GetName(), sn, "");
+                lastmodel->Insert(laststrand, s);
+                for (int n = 0; n < m->GetStrandLength(s); n++)
+                {
+                    wxString nn = m->GetNodeName(n);
+                    if ("" == nn)
+                    {
+                        nn = wxString::Format("Node %d", n + 1);
+                    }
+                    xLightsImportModelNode* lastnode = new xLightsImportModelNode(laststrand, e->GetName(), sn, nn, "");
+                    laststrand->Insert(lastnode, n);
+                }
             }
         }
     }
@@ -335,24 +370,14 @@ wxString xLightsImportChannelMapDialog::FindTab(wxString &line) {
     return line;
 }
 
-int CountTabs(wxString& line)
-{
-    int count = 0;
-    for (size_t x = 0; x < line.size(); x++) {
-        if (line[x] == '\t') {
-            count++;
-        }
-    }
-    return count;
-}
-
-wxDataViewItem* xLightsImportChannelMapDialog::FindItem(std::string model, std::string strand)
+wxDataViewItem* xLightsImportChannelMapDialog::FindItem(std::string model, std::string strand, std::string node)
 {
     wxDataViewItemArray models;
     dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); i++)
     {
-        if (((xLightsImportModelNode*)models[i].GetID())->_model == model)
+        xLightsImportModelNode* amodel = (xLightsImportModelNode*)models[i].GetID();
+        if (amodel->_model == model)
         {
             if (strand == "")
             {
@@ -364,9 +389,26 @@ wxDataViewItem* xLightsImportChannelMapDialog::FindItem(std::string model, std::
                 dataModel->GetChildren(models[i], strands);
                 for (size_t j = 0; j < strands.size(); j++)
                 {
-                    if (((xLightsImportModelNode*)strands[j].GetID())->_strand == strand)
+                    xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
+                    if (astrand->_strand == strand)
                     {
-                        return &strands[j];
+                        if (node == "")
+                        {
+                            return &strands[j];
+                        }
+                        else
+                        {
+                            wxDataViewItemArray nodes;
+                            dataModel->GetChildren(strands[j], nodes);
+                            for (size_t k = 0; k < nodes.size(); k++)
+                            {
+                                xLightsImportModelNode* anode = (xLightsImportModelNode*)nodes[k].GetID();
+                                if (anode->_node == node)
+                                {
+                                    return &nodes[j];
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -376,7 +418,7 @@ wxDataViewItem* xLightsImportChannelMapDialog::FindItem(std::string model, std::
     return NULL;
 }
 
-xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::string model, std::string strand)
+xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::string model, std::string strand, std::string node)
 {
     for (size_t i = 0; i < dataModel->GetChildCount(); i++)
     {
@@ -394,7 +436,21 @@ xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::st
                     xLightsImportModelNode* s = m->GetNthChild(j);
                     if (s->_strand.ToStdString() == strand)
                     {
-                        return s;
+                        if (node == "")
+                        {
+                            return s;
+                        }
+                        else
+                        {
+                            for (size_t k = 0; k < s->GetChildCount(); k++)
+                            {
+                                xLightsImportModelNode* n = s->GetNthChild(k);
+                                if (n->_node.ToStdString() == node)
+                                {
+                                    return n;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -417,15 +473,14 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
     wxFileDialog dlg(this);
     if (dlg.ShowModal() == wxID_OK) {
+        dataModel->ClearMapping();
         wxFileInputStream input(dlg.GetPath());
         wxTextInputStream text(input, "\t");
         text.ReadLine(); // map by strand ... ignore this
         int count = wxAtoi(text.ReadLine());
-        //modelNames.clear();
         for (int x = 0; x < count; x++) {
             std::string mn = text.ReadLine().ToStdString();
             if (TreeContainsModel(mn) == NULL) {
-                //wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model.", "", wxICON_WARNING | wxOK , this);
                 if (!modelwarning)
                 {
                     if (wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model. Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
@@ -433,8 +488,6 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                         modelwarning = true;
                     }
                 }
-            } else {
-                //modelNames.push_back(mn);
             }
         }
         wxString line = text.ReadLine();
@@ -445,7 +498,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             wxString mapping;
             xlColor color;
 
-            if (CountTabs(line) == 4)
+            if (CountChar(line, '\t') == 4)
             {
                 model = FindTab(line);
                 strand = FindTab(line);
@@ -457,6 +510,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             {
                 model = FindTab(line);
                 strand = FindTab(line);
+                node = FindTab(line);
                 mapping = FindTab(line);
             }
             Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
@@ -467,19 +521,26 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             if (modelEl != nullptr) {
                 xLightsImportModelNode* mi = TreeContainsModel(model.ToStdString());
                 xLightsImportModelNode* msi = TreeContainsModel(model.ToStdString(), strand.ToStdString());
+                xLightsImportModelNode* mni = TreeContainsModel(model.ToStdString(), strand.ToStdString(), node.ToStdString());
 
-                if (mi == NULL || (msi == NULL && strand != ""))
+                if (mi == NULL || (msi == NULL && strand != "") || (mni == NULL && node != ""))
                 {
                     if (!strandwarning)
                     {
-                        if (wxMessageBox(model + "/" + strand + " not found.  Has the models changed? Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
+                        if (wxMessageBox(model + "/" + strand + "/" + node + " not found.  Has the models changed? Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
                         {
                             strandwarning = true;
                         }
                     }
                 } else 
                 {
-                    if (msi != NULL)
+                    if (mni != NULL)
+                    {
+                        wxDataViewItem* item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
+                        mni->_mapping = mapping;
+                        dataModel->ValueChanged(*item, 1);
+                    }
+                    else if (msi != NULL)
                     {
                         wxDataViewItem* item = FindItem(model.ToStdString(), strand.ToStdString());
                         msi->_mapping = mapping;
@@ -506,10 +567,20 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             dataModel->GetChildren(models[i], strands);
             for (size_t j = 0; j < strands.size(); j++)
             {
-                if (((xLightsImportModelNode*)strands[j].GetID())->_mapping != "")
+                xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
+                if (astrand->HasMapping())
                 {
                     TreeListCtrl_Mapping->Expand(models[i]);
-                    break;
+                }
+                wxDataViewItemArray nodes;
+                dataModel->GetChildren(strands[j], nodes);
+                for (size_t k = 0; k < nodes.size(); k++)
+                {
+                    xLightsImportModelNode* anode = (xLightsImportModelNode*)nodes[k].GetID();
+                    if (anode->_mapping != "")
+                    {
+                        TreeListCtrl_Mapping->Expand(strands[j]);
+                    }
                 }
             }
         }
@@ -541,15 +612,32 @@ void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
                 wxString mn = m->_model;
                 text.WriteString(mn
                     + "\t" +
+                    + "\t" +
                     +"\t" + m->_mapping
                     + "\n");
                 for (size_t j = 0; j < m->GetChildCount(); j++)
                 {
                     xLightsImportModelNode* s = m->GetNthChild(j);
-                    text.WriteString(mn
-                        + "\t" + s->_strand
-                        + "\t" + s->_mapping
-                        + "\n");
+                    if (s->HasMapping())
+                    {
+                        text.WriteString(mn
+                            + "\t" + s->_strand
+                            + "\t" +
+                            +"\t" + s->_mapping
+                            + "\n");
+                        for (size_t k = 0; k < s->GetChildCount(); k++)
+                        {
+                            xLightsImportModelNode* n = s->GetNthChild(k);
+                            if (n->HasMapping())
+                            {
+                                text.WriteString(mn
+                                    + "\t" + n->_strand
+                                    + "\t" + n->_node
+                                    + "\t" + n->_mapping
+                                    + "\n");
+                            }
+                        }
+                    }
                 }
             }
         }

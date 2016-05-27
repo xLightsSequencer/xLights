@@ -93,12 +93,12 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return 3 | 0x0008;
     } else if ("IciclesLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return 3 | 0x0008;
     } else if ("IciclesDrops" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DropPattern");
         ModelXml->AddAttribute("DropPattern", event.GetPropertyValue().GetString());

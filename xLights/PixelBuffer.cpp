@@ -82,6 +82,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
         layers[x]->bufferType = "Default";
         layers[x]->bufferTransform = "None";
         layers[x]->subBuffer = "";
+        layers[x]->blurValueCurve = "";
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi);
     }
 }
@@ -485,7 +486,7 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
             }
 
             // add sparkles
-            if ((layers[layer]->music_sparkle_count || layers[layer]->sparkle_count) > 0 && color != xlBLACK)
+            if ((layers[layer]->music_sparkle_count > 0 || layers[layer]->sparkle_count > 0) && color != xlBLACK)
             {
                 int sc = layers[layer]->sparkle_count;
                 if (layers[layer]->music_sparkle_count && layers[layer]->buffer.GetMedia() != NULL)
@@ -571,9 +572,17 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
     }
 }
 
-void PixelBufferClass::Blur(LayerInfo* layer)
+void PixelBufferClass::Blur(LayerInfo* layer, float offset)
 {
-    int b = layer->blur;
+    int b = 0;
+    if (layer->BlurValueCurve.IsActive())
+    {
+        b = (int)layer->BlurValueCurve.GetOutputValueAt(offset);
+    }
+    else
+    {
+        b = layer->blur;
+    }
     int d = 0;
     int u = 0;
     if (b % 2 == 0)
@@ -638,6 +647,7 @@ static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
 static const std::string CHOICE_BufferTransform("CHOICE_BufferTransform");
 static const std::string CUSTOM_SubBuffer("CUSTOM_SubBuffer");
+static const std::string VALUECURVE_Blur("VALUECURVE_Blur");
 static const std::string STR_DEFAULT("Default");
 static const std::string STR_EMPTY("");
 
@@ -656,6 +666,15 @@ static const std::string SLIDER_Out_Transition_Adjust("SLIDER_Out_Transition_Adj
 static const std::string CHECKBOX_In_Transition_Reverse("CHECKBOX_In_Transition_Reverse");
 static const std::string CHECKBOX_Out_Transition_Reverse("CHECKBOX_Out_Transition_Reverse");
 
+void ComputeBlurValueCurve(const std::string& blurValueCurve, ValueCurve& BlurValueCurve)
+{
+    if (blurValueCurve == STR_EMPTY) {
+        BlurValueCurve.SetDefault();
+        return;
+    }
+
+    BlurValueCurve.Deserialise(blurValueCurve);
+}
 
 void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) {
     if (subBuffer == STR_EMPTY) {
@@ -679,7 +698,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
     y1 /= 100.0;
     y2 /= 100.0;
     
-    for (int x = 0; x < newNodes.size(); x++) {
+    for (size_t x = 0; x < newNodes.size(); x++) {
         for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
             it2->bufX -= x1;
             it2->bufY -= y1;
@@ -722,15 +741,18 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     const std::string &type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
     const std::string &subBuffer = settingsMap.Get(CUSTOM_SubBuffer, STR_EMPTY);
-    
-    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer)
+    const std::string &blurValueCurve = settingsMap.Get(VALUECURVE_Blur, STR_EMPTY);
+
+    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve)
     {
         inf->Nodes.clear();
         model->InitRenderBufferNodes(type, transform, inf->Nodes, inf->BufferWi, inf->BufferHt);
         ComputeSubBuffer(subBuffer, inf->Nodes, inf->BufferWi, inf->BufferHt);
+        ComputeBlurValueCurve(blurValueCurve, inf->BlurValueCurve);
         inf->bufferType = type;
         inf->bufferTransform = transform;
         inf->subBuffer = subBuffer;
+        inf->blurValueCurve = blurValueCurve;
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi);
     }
 }
@@ -754,13 +776,13 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 }
 void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 {
-    for (int n = 0; n < layers[layer]->Nodes.size(); n++)
+    for (size_t n = 0; n < layers[layer]->Nodes.size(); n++)
     {
         int start = NodeStartChannel(n);
         SetNodeChannelValues(n, &fdata[start]);
         xlColor color;
         layers[layer]->Nodes[n]->GetColor(color);
-        for (int x = 0; x < layers[layer]->Nodes[n]->Coords.size(); x++)
+        for (size_t x = 0; x < layers[layer]->Nodes[n]->Coords.size(); x++)
         {
             layers[layer]->buffer.SetPixel(layers[layer]->Nodes[n]->Coords[x].bufX,
                                            layers[layer]->Nodes[n]->Coords[x].bufY, color);
@@ -778,9 +800,11 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
     for (int layer = 0; layer < numLayers; layer++)
     {
         // do gausian blur
-        if (layers[layer]->blur > 1)
+        if (layers[layer]->BlurValueCurve.IsActive() || layers[layer]->blur > 1)
         {
-            Blur(layers[layer]);
+            int effStartPer, effEndPer;
+            layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
+            Blur(layers[layer], ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer));
         }
     }
 
@@ -793,7 +817,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
         if( layers[ii]->fadeInSteps > 0 || layers[ii]->fadeOutSteps > 0)
         {
             int effStartPer, effEndPer;
-            layers[ii]->buffer.GetEffectPeriods( effStartPer, effEndPer);
+            layers[ii]->buffer.GetEffectPeriods(effStartPer, effEndPer);
             if (EffectPeriod < (effStartPer)+layers[ii]->fadeInSteps)
             {
                 curStep = EffectPeriod - effStartPer + 1;
@@ -850,6 +874,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
 
             // Apply dimming curve
             DimmingCurve *curve = layers[0]->Nodes[i]->model->modelDimmingCurve;
+            wxASSERT(layers[0]->Nodes[i]->model != NULL);
             if (curve != nullptr)
             {
                 curve->apply(color);
@@ -1097,8 +1122,8 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
         startradians = startradians - currentradians;
         currentradians = tmp;
         if (startradians < 0) {
-            startradians += 2.0 * M_PI;
-            currentradians += 2.0 * M_PI;
+            startradians += 2.0f * M_PI;
+            currentradians += 2.0f * M_PI;
         }
     } else {
         currentradians = startradians + currentradians;
@@ -1120,10 +1145,10 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
             }
             if (radianspixel < 0)
             {
-                radianspixel += 2 * M_PI;
+                radianspixel += 2.0f * M_PI;
             }
-            if (currentradians > 2 * M_PI && radianspixel < startradians) {
-                radianspixel += 2 * M_PI;
+            if (currentradians > 2.0f * M_PI && radianspixel < startradians) {
+                radianspixel += 2.0f * M_PI;
             }
             
             bool s_lt_p = radianspixel > startradians;

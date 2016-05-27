@@ -25,24 +25,27 @@ const double PI  =3.141592653589793238463;
 static DrawGLUtils::xlGLCacheInfo *currentCache;
 
 
-#define DO_LOG_GL_MSG(a, ...) logger_opengl.info(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
+#define DO_LOG_GL_MSG(a, ...) logger_opengl.debug(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
 
 void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
-    int er = glGetError();
-    if (er) {
-        static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-        const char *f2 = file + strlen(file);
-        while (f2 > file && *f2 != '\\' && *f2 != '/') {
-            f2--;
-        }
-        if (*f2 == '\\' || *f2 == '/') {
-            f2++;
-        }
-        
-        if (msg) {
-            DO_LOG_GL_MSG("%s/%d - %s:   %X", f2, line, msg, er);
-        } else {
-            DO_LOG_GL_MSG("%s/%d:   %X", f2, line, er);
+    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+    static bool isDebugEnabled = logger_opengl.isDebugEnabled();
+    if (isDebugEnabled) {
+        int er = glGetError();
+        if (er) {
+            const char *f2 = file + strlen(file);
+            while (f2 > file && *f2 != '\\' && *f2 != '/') {
+                f2--;
+            }
+            if (*f2 == '\\' || *f2 == '/') {
+                f2++;
+            }
+            
+            if (msg) {
+                DO_LOG_GL_MSG("%s/%d - %s:   %X", f2, line, msg, er);
+            } else {
+                DO_LOG_GL_MSG("%s/%d:   %X", f2, line, er);
+            }
         }
     }
 }
@@ -62,7 +65,7 @@ DrawGLUtils::xlGLCacheInfo::~xlGLCacheInfo() {
 GLuint DrawGLUtils::xlGLCacheInfo::GetTextureId(int i) {
     GLuint id = textures[i];
     if (id == 0) {
-        glGenTextures(1, &id);
+        LOG_GL_ERRORV(glGenTextures(1, &id));
         textures[i] = id;
     }
     return id;
@@ -72,7 +75,7 @@ bool DrawGLUtils::xlGLCacheInfo::HasTextureId(int i) {
 }
 void DrawGLUtils::xlGLCacheInfo::SetCurrent() {
     if (!deleteTextures.empty()) {
-        glDeleteTextures(deleteTextures.size(), &deleteTextures[0]);
+        LOG_GL_ERRORV(glDeleteTextures(deleteTextures.size(), &deleteTextures[0]));
         deleteTextures.clear();
     }
 }
@@ -104,49 +107,57 @@ public:
 
 
     void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) override {
-        if (enableCapability != 0) {
-            glEnable(enableCapability);
+        if (va.count == 0) {
+            return;
         }
-        glColor4ub(color.Red(), color.Green(), color.Blue(), color.Alpha());
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]);
-        glDrawArrays(type, 0, va.count);
-
-        glDisableClientState(GL_VERTEX_ARRAY);
         if (enableCapability != 0) {
-            glDisable(enableCapability);
+            LOG_GL_ERRORV(glEnable(enableCapability));
+        }
+        LOG_GL_ERRORV(glColor4ub(color.Red(), color.Green(), color.Blue(), color.Alpha()));
+        LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
+        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
+        LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+        LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
+        if (enableCapability != 0) {
+            LOG_GL_ERRORV(glDisable(enableCapability));
         }
     }
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
-        if (enableCapability != 0) {
-            glEnable(enableCapability);
+        if (va.count == 0) {
+            return;
         }
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_COLOR_ARRAY);
-
-        glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]);
-        glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]);
-        glDrawArrays(type, 0, va.count);
-
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_COLOR_ARRAY);
         if (enableCapability != 0) {
-            glDisable(enableCapability);
+            LOG_GL_ERRORV(glEnable(enableCapability));
+        }
+        LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
+        LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+
+        LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
+        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
+        LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+
+        LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
+        LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+        if (enableCapability != 0) {
+            LOG_GL_ERRORV(glDisable(enableCapability));
         }
     }
     void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability)  override {
+        if (va.count == 0) {
+            return;
+        }
         if (enableCapability != 0) {
-            glEnable(enableCapability);
+            LOG_GL_ERRORV(glEnable(enableCapability));
         }
 
-        glBindTexture(GL_TEXTURE_2D, va.id);
-        glEnable(GL_TEXTURE_2D);
+        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, va.id));
+        LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
 
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
+        LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 
-        glTexCoordPointer(2, GL_FLOAT, 0, &va.tvertices[0]);
-        glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]);
+        LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, &va.tvertices[0]));
+        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
         
         if (va.alpha != 255) {
             float intensity = va.alpha;
@@ -156,47 +167,48 @@ public:
             } else if (intensity < 0) {
                 intensity = 0;
             }
-            glColor4f(1.0, 1.0, 1.0, intensity);
-            glDrawArrays(type, 0, va.count);
-            glColor4f(1.0, 1.0, 1.0, 1.0);
+            LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, intensity));
+            LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+            LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
         } else {
-            glDrawArrays(type, 0, va.count);
+            LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
+            LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
         }
         
         
 
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
+        LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
         if (enableCapability != 0) {
-            glDisable(enableCapability);
+            LOG_GL_ERRORV(glDisable(enableCapability));
         }
-        glDisable(GL_TEXTURE_2D);
+        LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
     }
 
 
     virtual void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
+        LOG_GL_ERRORV(glMatrixMode(GL_PROJECTION));
+        LOG_GL_ERRORV(glLoadIdentity());
 
-        glOrtho(topleft_x, bottomright_x, bottomright_y, topleft_y, -1, 1);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
+        LOG_GL_ERRORV(glOrtho(topleft_x, bottomright_x, bottomright_y, topleft_y, -1, 1));
+        LOG_GL_ERRORV(glMatrixMode(GL_MODELVIEW));
+        LOG_GL_ERRORV(glLoadIdentity());
     }
 
     void PushMatrix() override {
-        glPushMatrix();
+        LOG_GL_ERRORV(glPushMatrix());
     }
     void PopMatrix() override {
-        glPopMatrix();
+        LOG_GL_ERRORV(glPopMatrix());
     }
     void Translate(float x, float y, float z) override {
-        glTranslatef(x, y, z);
+        LOG_GL_ERRORV(glTranslatef(x, y, z));
     }
     void Rotate(float angle, float x, float y, float z) override {
-        glRotatef(angle, x, y, z);
+        LOG_GL_ERRORV(glRotatef(angle, x, y, z));
     }
     void Scale(float w, float h, float z) override {
-        glScalef(w, h, z);
+        LOG_GL_ERRORV(glScalef(w, h, z));
     }
 
     void DrawTexture(GLuint texture, float x, float y, float x2, float y2,
@@ -244,7 +256,7 @@ void DrawGLUtils::SetLineWidth(float i) {
         //Core Profile only allows 1.0 widthlines
         return;
     }
-    glLineWidth(i);
+    LOG_GL_ERRORV(glLineWidth(i));
 }
 
 
@@ -962,7 +974,6 @@ public:
 
     }
     void Draw(float x, float yBase, const wxString &text, float factor) {
-        LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
         LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         DrawGLUtils::xlVertexTextureAccumulator va(currentCache->GetTextureId(fontIdx));
         Populate(x, yBase, text, factor, va);

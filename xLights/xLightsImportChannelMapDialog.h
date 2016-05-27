@@ -30,6 +30,20 @@ class xLightsImportModelNode : wxDataViewTreeStoreNode
 {
 public:
     xLightsImportModelNode(xLightsImportModelNode* parent,
+        const wxString &model, const wxString &strand, const wxString &node,
+        const wxString &mapping) : wxDataViewTreeStoreNode(parent, "XXX")
+    {
+        m_parent = parent;
+
+        _model = model;
+        _strand = strand;
+        _node = node;
+        _mapping = mapping;
+
+        m_container = false;
+    }
+
+    xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model, const wxString &strand,
         const wxString &mapping) : wxDataViewTreeStoreNode(parent, "XXX")
     {
@@ -37,9 +51,10 @@ public:
 
         _model = model;
         _strand = strand;
+        _node = "";
         _mapping = mapping;
 
-        m_container = false;
+        m_container = true;
     }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
@@ -50,6 +65,7 @@ public:
 
         _model = model;
         _strand = "";
+        _node = "";
         _mapping = mapping;
 
         m_container = true;
@@ -63,6 +79,16 @@ public:
         {
             xLightsImportModelNode *child = m_children[i];
             delete child;
+        }
+    }
+
+    void ClearMapping()
+    {
+        _mapping = "";
+        size_t count = m_children.GetCount();
+        for (size_t i = 0; i < count; i++)
+        {
+            GetNthChild(i)->ClearMapping();
         }
     }
 
@@ -119,6 +145,7 @@ public:
 public:     // public to avoid getters/setters
     wxString                _model;
     wxString                _strand;
+    wxString                _node;
     wxString                _mapping;
 
     // TODO/FIXME:
@@ -164,6 +191,7 @@ public:
         m_children.Add(child);
         ItemAdded(wxDataViewItem(0), wxDataViewItem(child));
     }
+    void ClearMapping();
     unsigned int GetChildCount() const
     {
         return m_children.GetCount();
@@ -191,6 +219,7 @@ public:
     }
     wxString GetModel(const wxDataViewItem &item) const;
     wxString GetStrand(const wxDataViewItem &item) const;
+    wxString GetNode(const wxDataViewItem &item) const;
     wxString GetMapping(const wxDataViewItem &item) const;
     void Delete(const wxDataViewItem &item);
     virtual unsigned int GetColumnCount() const wxOVERRIDE
@@ -222,13 +251,12 @@ private:
 
 class xLightsImportChannelMapDialog: public wxDialog
 {
-    xLightsImportModelNode* TreeContainsModel(std::string model, std::string strand = "");
-    wxDataViewItem* FindItem(std::string model, std::string strand = "");
+    xLightsImportModelNode* TreeContainsModel(std::string model, std::string strand = "", std::string node = "");
+    wxDataViewItem* FindItem(std::string model, std::string strand = "", std::string node = "");
     void OnSelectionChanged(wxDataViewEvent& event);
     void OnValueChanged(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);
     wxArrayString _importModels;
-    //wxDataViewTreeCtrl* TreeListCtrl_Mapping;
     wxDataViewCtrl* TreeListCtrl_Mapping;
     bool _dirty;
     wxFileName _filename;
@@ -253,7 +281,6 @@ class xLightsImportChannelMapDialog: public wxDialog
         xLightsFrame * xlights;
     
         std::vector<std::string> channelNames;
-        //std::vector<std::string> modelNames;
         static const long ID_TREELISTCTRL1;
         static const long ID_CHOICE;
 protected:
@@ -269,8 +296,6 @@ protected:
         wxString FindTab(wxString &line);
 
 		//(*Handlers(xLightsImportChannelMapDialog)
-		void OnMapByStrandClick(wxCommandEvent& event);
-		void OnAddModelButtonClick(wxCommandEvent& event);
 		void LoadMapping(wxCommandEvent& event);
 		void SaveMapping(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);

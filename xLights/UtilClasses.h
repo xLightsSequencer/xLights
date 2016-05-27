@@ -114,6 +114,10 @@ public:
         }
         return i->second;
     }
+    void erase(const char *ckey) {
+        std::string key(ckey);
+        std::map<std::string,std::string>::erase(key);
+    }
 
 
     void Parse(const std::string &str) {

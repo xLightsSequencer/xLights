@@ -226,6 +226,9 @@ public:
     }
 
     void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) override {
+        if (va.count == 0) {
+            return;
+        }
         LOG_GL_ERRORV(glUseProgram(ProgramIDstaticColor));
         SetMVP(ProgramIDstaticColor);
 
@@ -266,22 +269,25 @@ public:
         return ps;
     }
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
+        if (va.count == 0) {
+            return;
+        }
         if (isIntel && enableCapability == GL_POINT_SMOOTH) {
             LOG_GL_ERRORV(glUseProgram(0));
-            glPushMatrix();
-            glLoadMatrixf(glm::value_ptr(*matrix));
-            glEnable(enableCapability);
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
+            LOG_GL_ERRORV(glPushMatrix());
+            LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(*matrix)));
+            LOG_GL_ERRORV(glEnable(enableCapability));
+            LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
+            LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
             
-            glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]);
-            glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]);
-            glDrawArrays(type, 0, va.count);
+            LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
+            LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
+            LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
             
-            glDisableClientState(GL_VERTEX_ARRAY);
-            glDisableClientState(GL_COLOR_ARRAY);
-            glPopMatrix();
-            glDisable(enableCapability);
+            LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
+            LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+            LOG_GL_ERRORV(glPopMatrix());
+            LOG_GL_ERRORV(glDisable(enableCapability));
             return;
         }
         LOG_GL_ERRORV(glUseProgram(ProgramIDcolors));
@@ -325,6 +331,9 @@ public:
         LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
     }
     void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability) override {
+        if (va.count == 0) {
+            return;
+        }
         LOG_GL_ERRORV(glUseProgram(ProgramIDtexture));
         SetMVP(ProgramIDtexture);
         

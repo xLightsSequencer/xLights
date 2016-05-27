@@ -102,17 +102,26 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
-													<cols>2</cols>
+													<cols>3</cols>
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_EffectBlur" variable="Slider_EffectBlur" member="yes">
 															<value>1</value>
 															<min>1</min>
 															<max>15</max>
-															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+															<handler function="OnSlider_EffectBlurCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
 														<border>1</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_Blur" subclass="ValueCurveButton" variable="BitmapButton_Blur" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<handler function="OnBitmapButton_BlurClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
