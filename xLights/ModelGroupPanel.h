@@ -29,6 +29,7 @@ class ModelGroupPanel: public wxPanel
 		wxStaticText* LabelModelGroupName;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
+		wxFlexGridSizer* Panel_Sizer;
 		wxStaticText* GridSizeLabel;
 		wxSpinCtrl* SizeSpinCtrl;
 		wxStaticText* StaticText5;

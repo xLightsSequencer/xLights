@@ -2,7 +2,7 @@
 <wxsmith>
 	<object class="wxPanel" name="ModelGroupPanel">
 		<id_arg>0</id_arg>
-		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+		<object class="wxFlexGridSizer" variable="Panel_Sizer" member="yes">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
 			<object class="sizeritem">

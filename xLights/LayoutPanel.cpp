@@ -142,7 +142,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	LeftPanelSizer->AddGrowableRow(0);
 	ModelSplitter = new wxSplitterWindow(LeftPanel, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
 	ModelSplitter->SetMinSize(wxSize(50,50));
-	ModelSplitter->SetMinimumPaneSize(50);
+	ModelSplitter->SetMinimumPaneSize(100);
 	ModelSplitter->SetSashGravity(0.5);
 	GroupSplitter = new wxSplitterWindow(ModelSplitter, ID_SPLITTERWINDOW3, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW3"));
 	GroupSplitter->SetMinSize(wxSize(50,50));
@@ -285,8 +285,14 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 
     ListBoxModelGroups->SetImages((char**)eye_16,(char**)eye_16_gray);
     ListBoxModelGroups->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnModelGroupRightDown,0,this);
-    model_grp_panel = new ModelGroupPanel(ModelSplitter, xlights->AllModels, xlights);
-    model_grp_panel->Hide();
+
+    ModelGroupWindow = new wxScrolledWindow(ModelSplitter);
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    ModelGroupWindow->SetSizer(sizer);
+    model_grp_panel = new ModelGroupPanel(ModelGroupWindow, xlights->AllModels, xlights);
+    sizer->Add( model_grp_panel, 1, wxEXPAND | wxALL, 1 );
+    ModelGroupWindow->SetScrollRate(5,5);
+    ModelGroupWindow->Hide();
 }
 
 void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
@@ -759,9 +765,9 @@ void LayoutPanel::OnListBoxElementListItemSelect(wxListEvent& event)
 {
     if( !mPropGridActive ) {
         DeselectModelGroupList();
-        ModelSplitter->ReplaceWindow(model_grp_panel, propertyEditor );
+        ModelSplitter->ReplaceWindow(ModelGroupWindow, propertyEditor );
         propertyEditor->Show();
-        model_grp_panel->Hide();
+        ModelGroupWindow->Hide();
         mPropGridActive = true;
     }
     int sel = ListBoxElementList->GetFirstSelected();
@@ -942,8 +948,8 @@ void LayoutPanel::SetSelectedModelToGroupSelected()
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
     if( !mPropGridActive ) {
-        ModelSplitter->ReplaceWindow(model_grp_panel, propertyEditor);
-        model_grp_panel->Hide();
+        ModelSplitter->ReplaceWindow(ModelGroupWindow, propertyEditor);
+        ModelGroupWindow->Hide();
         propertyEditor->Show();
         mPropGridActive = true;
     }
@@ -1965,8 +1971,8 @@ void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
                 selectedModel = nullptr;
                 UnSelectAllModels();
                 if( !mPropGridActive ) {
-                    ModelSplitter->ReplaceWindow(model_grp_panel, propertyEditor);
-                    model_grp_panel->Hide();
+                    ModelSplitter->ReplaceWindow(ModelGroupWindow, propertyEditor);
+                    ModelGroupWindow->Hide();
                     propertyEditor->Show();
                     mPropGridActive = true;
                 }
@@ -2026,9 +2032,9 @@ void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
             xlights->UnsavedRgbEffectsChanges = true;
             model_grp_panel->UpdatePanel(name.ToStdString());
             if( mPropGridActive ) {
-                ModelSplitter->ReplaceWindow(propertyEditor, model_grp_panel);
+                ModelSplitter->ReplaceWindow(propertyEditor, ModelGroupWindow);
                 propertyEditor->Hide();
-                model_grp_panel->Show();
+                ModelGroupWindow->Show();
                 mPropGridActive = false;
             }
         }
@@ -2039,15 +2045,15 @@ void LayoutPanel::OnListBoxModelGroupsItemSelect(wxListEvent& event)
 {
     wxListItem li = event.GetItem();
     if( li.GetId() > MY_DISPLAY_GROUP ) {
-        if( mPropGridActive ) {
-            DeselectModelList();
-            ModelSplitter->ReplaceWindow(propertyEditor, model_grp_panel);
-            propertyEditor->Hide();
-            model_grp_panel->Show();
-            mPropGridActive = false;
-        }
         std::string name = ListBoxModelGroups->GetItemText(li, 1).ToStdString();
         model_grp_panel->UpdatePanel(name);
+        if( mPropGridActive ) {
+            DeselectModelList();
+            ModelSplitter->ReplaceWindow(propertyEditor, ModelGroupWindow);
+            propertyEditor->Hide();
+            ModelGroupWindow->Show();
+            mPropGridActive = false;
+        }
     } else {
         
     }

@@ -46,13 +46,12 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFr
 	wxFlexGridSizer* FlexGridSizer12;
 	wxBitmapButton* BitmapButton3;
 	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer11;
 	wxStaticText* StaticText4;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
-	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer1->AddGrowableCol(0);
+	Panel_Sizer = new wxFlexGridSizer(0, 1, 0, 0);
+	Panel_Sizer->AddGrowableCol(0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(1);
@@ -111,10 +110,10 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFr
 	ListBoxModelsInGroup->SetMinSize(wxDLG_UNIT(this,wxSize(75,65)));
 	FlexGridSizer12->Add(ListBoxModelsInGroup, 3, wxALL|wxEXPAND, 2);
 	FlexGridSizer3->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer1->Add(FlexGridSizer3, 0, wxEXPAND, 0);
-	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
+	Panel_Sizer->Add(FlexGridSizer3, 0, wxEXPAND, 0);
+	SetSizer(Panel_Sizer);
+	Panel_Sizer->Fit(this);
+	Panel_Sizer->SetSizeHints(this);
 
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoiceModelLayoutTypeSelect);
 	Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonAddToModelGroupClick);
@@ -173,6 +172,9 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
     OnChoiceModelLayoutTypeSelect(evt);
 
     SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
+
+	Panel_Sizer->Fit(this);
+	Panel_Sizer->SetSizeHints(this);
 }
 
 void ModelGroupPanel::OnChoiceModelLayoutTypeSelect(wxCommandEvent& event)

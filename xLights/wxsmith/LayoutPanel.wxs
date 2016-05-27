@@ -21,7 +21,7 @@
 							<growablerows>0</growablerows>
 							<object class="sizeritem">
 								<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="ModelSplitter" member="yes">
-									<minsize>50</minsize>
+									<minsize>100</minsize>
 									<minsize>50,50</minsize>
 									<handler function="OnModelSplitterSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
 									<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW3" variable="GroupSplitter" member="yes">

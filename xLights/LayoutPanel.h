@@ -27,6 +27,7 @@ class wxPropertyGrid;
 class wxPropertyGridEvent;
 class NewModelBitmapButton;
 class wxImageFileProperty;
+class wxScrolledWindow;
 
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
 
@@ -54,6 +55,8 @@ class LayoutPanel: public wxPanel
 		wxSplitterWindow* ModelSplitter;
 		wxPanel* PreviewGLPanel;
 		//*)
+
+		wxScrolledWindow* ModelGroupWindow;
 
 	protected:
 
