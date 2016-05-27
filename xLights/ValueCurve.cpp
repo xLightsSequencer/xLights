@@ -252,26 +252,26 @@ std::string ValueCurve::Serialise()
         res += "Max=" + std::string(wxString::Format("%.2f", _max).c_str()) + "|";
         if (_parameter1 != 0)
         {
-            res += "P1=" + std::string(wxString::Format("%.2f", _parameter1).c_str()) + "|";
+            res += "P1=" + std::string(wxString::Format("%d", (int)_parameter1).c_str()) + "|";
         }
         if (_parameter2 != 0)
         {
-            res += "P2=" + std::string(wxString::Format("%.2f", _parameter2).c_str()) + "|";
+            res += "P2=" + std::string(wxString::Format("%d", (int)_parameter2).c_str()) + "|";
         }
         if (_parameter3 != 0)
         {
-            res += "P3=" + std::string(wxString::Format("%.2f", _parameter3).c_str()) + "|";
+            res += "P3=" + std::string(wxString::Format("%d", (int)_parameter3).c_str()) + "|";
         }
         if (_parameter4 != 0)
         {
-            res += "P4=" + std::string(wxString::Format("%.2f", _parameter4).c_str()) + "|";
+            res += "P4=" + std::string(wxString::Format("%d", (int)_parameter4).c_str()) + "|";
         }
         if (_type == "Custom")
         {
             res += "Values=";
             for (auto it = _values.begin(); it != _values.end(); ++it)
             {
-                res += "" + std::string(wxString::Format("%.2f", it->x).c_str()) + ":" + std::string(wxString::Format("%.2f", it->y).c_str());
+                res += std::string(wxString::Format("%.2f", it->x).c_str()) + ":" + std::string(wxString::Format("%.2f", it->y).c_str());
                 if (!(*it == _values.back()))
                 {
                     res += ";";
@@ -303,19 +303,19 @@ void ValueCurve::SetSerialisedValue(std::string k, std::string s)
         }
         else if (kk == "P1")
         {
-            _parameter1 = wxAtof(wxString(s.c_str()));
+            _parameter1 = (float)wxAtoi(wxString(s.c_str()));
         }
         else if (kk == "P2")
         {
-            _parameter2 = wxAtof(wxString(s.c_str()));
+            _parameter2 = (float)wxAtoi(wxString(s.c_str()));
         }
         else if (kk == "P3")
         {
-            _parameter3 = wxAtof(wxString(s.c_str()));
+            _parameter3 = (float)wxAtoi(wxString(s.c_str()));
         }
         else if (kk == "P4")
         {
-            _parameter4 = wxAtof(wxString(s.c_str()));
+            _parameter4 = (float)wxAtoi(wxString(s.c_str()));
         }
         else if (kk == "Values")
         {

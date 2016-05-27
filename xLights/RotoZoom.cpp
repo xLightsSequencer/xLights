@@ -11,15 +11,15 @@ void RotoZoomParms::SetSerialisedValue(std::string k, std::string s)
     }
     else if (kk == "Rots")
     {
-        _rotations = wxAtof(wxString(s.c_str()));
+        _rotations = (float)wxAtoi(wxString(s.c_str()));
     }
     else if (kk == "Zooms")
     {
-        _zooms = wxAtof(wxString(s.c_str()));
+        _zooms = (float)wxAtoi(wxString(s.c_str()));
     }
     else if (kk == "ZMax")
     {
-        _zoommaximum = wxAtof(wxString(s.c_str()));
+        _zoommaximum = (float)wxAtoi(wxString(s.c_str()));
     }
     else if (kk == "X")
     {
@@ -66,15 +66,15 @@ std::string RotoZoomParms::Serialise()
         res += "Id=" + _id + "|";
         if (_rotations != 10.0f)
         {
-            res += "Rots=" + std::string(wxString::Format("%.2f", _rotations).c_str()) + "|";
+            res += "Rots=" + std::string(wxString::Format("%d", (int)_rotations).c_str()) + "|";
         }
         if (_zooms != 10.0f)
         {
-            res += "Zooms=" + std::string(wxString::Format("%.2f", _zooms).c_str()) + "|";
+            res += "Zooms=" + std::string(wxString::Format("%d", (int)_zooms).c_str()) + "|";
         }
         if (_zoommaximum != 20.0f)
         {
-            res += "ZMax=" + std::string(wxString::Format("%.2f", _zoommaximum).c_str()) + "|";
+            res += "ZMax=" + std::string(wxString::Format("%d", (int)_zoommaximum).c_str()) + "|";
         }
         if (_xcenter != 50)
         {
