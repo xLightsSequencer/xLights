@@ -515,8 +515,6 @@
 		<Unit filename="KeyBindings.h" />
 		<Unit filename="LMSImportChannelMapDialog.cpp" />
 		<Unit filename="LMSImportChannelMapDialog.h" />
-		<Unit filename="xLightsImportChannelMapDialog.cpp" />
-		<Unit filename="xLightsImportChannelMapDialog.h" />
 		<Unit filename="LayoutPanel.cpp" />
 		<Unit filename="LayoutPanel.h" />
 		<Unit filename="LorConvertDialog.cpp" />
@@ -532,6 +530,8 @@
 		<Unit filename="ModelDimmingCurveDialog.h" />
 		<Unit filename="ModelFaceDialog.cpp" />
 		<Unit filename="ModelFaceDialog.h" />
+		<Unit filename="ModelGroupPanel.cpp" />
+		<Unit filename="ModelGroupPanel.h" />
 		<Unit filename="ModelPreview.cpp" />
 		<Unit filename="ModelPreview.h" />
 		<Unit filename="ModelViewSelector.cpp" />
@@ -956,7 +956,6 @@
 		<Unit filename="wxsmith/GenerateCustomModelDialog.wxs" />
 		<Unit filename="wxsmith/GlediatorPanel.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
-		<Unit filename="wxsmith/xLightsImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
@@ -967,6 +966,7 @@
 		<Unit filename="wxsmith/MeteorsPanel.wxs" />
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
+		<Unit filename="wxsmith/ModelGroupPanel.wxs" />
 		<Unit filename="wxsmith/ModelViewSelector.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
 		<Unit filename="wxsmith/MusicPanel.wxs" />
@@ -1015,6 +1015,7 @@
 		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/WavePanel.wxs" />
+		<Unit filename="wxsmith/xLightsImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/xLightsframe.wxs" />
 		<Unit filename="wxsmith/xlColorPickerFields.wxs" />
 		<Unit filename="xLightsApp.cpp" />
@@ -1023,6 +1024,8 @@
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
+		<Unit filename="xLightsImportChannelMapDialog.cpp" />
+		<Unit filename="xLightsImportChannelMapDialog.h" />
 		<Unit filename="xLightsMain.cpp" />
 		<Unit filename="xLightsMain.h" />
 		<Unit filename="xLightsTimer.cpp" />
@@ -1144,6 +1147,7 @@
 					<wxDialog wxs="wxsmith/ConvertLogDialog.wxs" src="ConvertLogDialog.cpp" hdr="ConvertLogDialog.h" fwddecl="0" i18n="1" name="ConvertLogDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/GenerateCustomModelDialog.wxs" src="GenerateCustomModelDialog.cpp" hdr="GenerateCustomModelDialog.h" fwddecl="0" i18n="1" name="GenerateCustomModelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/RenderProgressDialog.wxs" src="RenderProgressDialog.cpp" hdr="RenderProgressDialog.h" fwddecl="1" i18n="1" name="RenderProgressDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/ModelGroupPanel.wxs" src="ModelGroupPanel.cpp" hdr="ModelGroupPanel.h" fwddecl="0" i18n="1" name="ModelGroupPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
