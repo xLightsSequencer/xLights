@@ -103,7 +103,6 @@ class LayoutPanel: public wxPanel
 		void OnPropertyGridChanging(wxPropertyGridEvent& event);
 		void OnModelSplitterSashPosChanged(wxSplitterEvent& event);
 		void OnSplitterWindowSashPosChanged(wxSplitterEvent& event);
-		void OnViewChoiceSelect(wxCommandEvent& event);
 		void OnNewModelTypeButtonClicked(wxCommandEvent& event);
 		void OnCharHook(wxKeyEvent& event);
 		void OnChar(wxKeyEvent& event);

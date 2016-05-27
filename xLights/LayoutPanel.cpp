@@ -127,7 +127,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	wxFlexGridSizer* LeftPanelSizer;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizerPreview;
-	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizerPreview = new wxFlexGridSizer(1, 1, 0, 0);
@@ -140,10 +139,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	LeftPanel = new wxPanel(SplitterWindow2, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
 	LeftPanelSizer = new wxFlexGridSizer(0, 1, 0, 0);
 	LeftPanelSizer->AddGrowableCol(0);
-	LeftPanelSizer->AddGrowableRow(1);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	LeftPanelSizer->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 1);
+	LeftPanelSizer->AddGrowableRow(0);
 	ModelSplitter = new wxSplitterWindow(LeftPanel, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
 	ModelSplitter->SetMinSize(wxSize(50,50));
 	ModelSplitter->SetMinimumPaneSize(50);
@@ -1518,12 +1514,6 @@ void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutMainSplitterSash", event.GetSashPosition());
 }
-
-void LayoutPanel::OnViewChoiceSelect(wxCommandEvent& event)
-{
-    UpdateModelList();
-}
-
 
 void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
     for (auto it = buttons.begin(); it != buttons.end(); it++) {
