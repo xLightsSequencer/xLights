@@ -565,6 +565,10 @@ void LayoutPanel::UpdateModelGroupList()
             AddModelGroupItem(it->first, grp, grp->IsSelected());
         }
     }
+
+    if( mSelectedGroup > MY_DISPLAY_GROUP ) {
+        ListBoxModelGroups->SetItemState( mSelectedGroup, wxLIST_STATE_SELECTED, -1 );
+    }
 }
 
 void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
@@ -676,7 +680,6 @@ void LayoutPanel::SetupPropGrid(Model *model) {
 
 void LayoutPanel::SelectModel(const std::string & name)
 {
-    DeselectModelGroupList();
     modelPreview->SetFocus();
     int foundStart = 0;
     int foundEnd = 0;
@@ -759,7 +762,6 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
 void LayoutPanel::OnListBoxElementListItemSelect(wxListEvent& event)
 {
     if( !mPropGridActive ) {
-        DeselectModelGroupList();
         ModelSplitter->ReplaceWindow(ModelGroupWindow, propertyEditor );
         propertyEditor->Show();
         ModelGroupWindow->Hide();
@@ -1002,7 +1004,6 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 
         if(!event.wxKeyboardState::ControlDown())
         {
-            DeselectModelGroupList();
             DeselectModelList();
             UnSelectAllModels();
         }
@@ -1044,13 +1045,18 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
         newModel->UpdateXmlWithScale();
         xlights->AllModels.AddModel(newModel);
 
-        /* TODO:  Add this capability back in with my group display method
-        if (ViewChoice->GetSelection() > 2) {
-            ModelGroup *grp = (ModelGroup*)xlights->AllModels[ViewChoice->GetStringSelection().ToStdString()];
+        if (mSelectedGroup > MY_DISPLAY_GROUP) {
+            wxString sel = ListBoxModelGroups->GetItemText(mSelectedGroup, 1);
+            ModelGroup *grp = (ModelGroup*)xlights->AllModels[sel.ToStdString()];
             if (grp != nullptr) {
                 grp->AddModel(newModel->name);
+                model_grp_panel->UpdatePanel(sel.ToStdString());
+                if( !ListBoxModelGroups->IsChecked(mSelectedGroup)) {
+                    std::string msg = "Model was added to selected group which is currently hidden!\n";
+                    wxMessageBox(msg);
+                }
             }
-        }*/
+        }
 
         m_over_handle = -1;
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
@@ -1966,6 +1972,7 @@ void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
             if (wxMessageBox("Are you sure you want to remove the " + name + " group?", "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
                 xlights->AllModels.Delete(name.ToStdString());
                 selectedModel = nullptr;
+                mSelectedGroup = -1;
                 UnSelectAllModels();
                 if( !mPropGridActive ) {
                     ModelSplitter->ReplaceWindow(ModelGroupWindow, propertyEditor);
@@ -2097,6 +2104,7 @@ void LayoutPanel::OnModelGroupRightDown(wxMouseEvent& event)
     long index = ListBoxModelGroups->HitTest(pos,flags,NULL); // got to use it at last
     mnuLayer->Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
     if(index > MY_DISPLAY_GROUP ) {
+        mSelectedGroup = index;
         ListBoxModelGroups->SetItemState( index, wxLIST_STATE_SELECTED, -1 );
         mnuLayer->Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
         mnuLayer->Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
