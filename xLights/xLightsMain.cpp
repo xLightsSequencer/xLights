@@ -2794,7 +2794,8 @@ void xLightsFrame::SaveWorking()
     if (CurrentSeqXmlFile == NULL) return;
 
     // dont save if currently saving
-    if (!saveLock.try_lock()) return;
+    std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
+    if (!lock.owns_lock()) return;
 
     wxString p = CurrentSeqXmlFile->GetPath();
     wxString fn = CurrentSeqXmlFile->GetFullName();
@@ -2818,8 +2819,6 @@ void xLightsFrame::SaveWorking()
 
     CurrentSeqXmlFile->SetPath(p);
     CurrentSeqXmlFile->SetFullName(fn);
-
-    saveLock.unlock();
 }
 
 void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)

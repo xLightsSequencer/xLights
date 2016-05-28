@@ -488,7 +488,7 @@ void xLightsFrame::SaveSequence()
     wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
     wxPostEvent(this, playEvent);
 
-    saveLock.lock();
+    std::unique_lock<std::mutex> lock(saveLock);
 
     if (xlightsFilename.IsEmpty())
     {
@@ -506,7 +506,6 @@ void xLightsFrame::SaveSequence()
         {
             if (fd.ShowModal() != wxID_OK)
             {
-                saveLock.unlock();
                 return;
             }
             // validate inputs
@@ -554,7 +553,6 @@ void xLightsFrame::SaveSequence()
     CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
     EnableSequenceControls(true);
     mSavedChangeCount = mSequenceElements.GetChangeCount();
-    saveLock.unlock();
 }
 
 void xLightsFrame::SaveAsSequence()
