@@ -543,12 +543,16 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Enable();
         TextCtrl_Parameter4->Enable();
     }
+
     if (type == "Flat")
     {
         StaticText_P1->SetLabel("Level");
         StaticText_P2->SetLabel("N/A");
         StaticText_P3->SetLabel("N/A");
         StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter2(0);
+        _vc->SetParameter3(0);
+        _vc->SetParameter4(0);
     }
     else if (type == "Ramp")
     {
@@ -556,6 +560,8 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P2->SetLabel("End Level");
         StaticText_P3->SetLabel("N/A");
         StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter3(0);
+        _vc->SetParameter4(0);
     }
     else if (type == "Ramp Up/Down")
     {
@@ -563,6 +569,7 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P2->SetLabel("Mid Level");
         StaticText_P3->SetLabel("End Level");
         StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter4(0);
     }
     else if (type == "Ramp Up/Down Hold")
     {
@@ -570,6 +577,7 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P2->SetLabel("Mid Level");
         StaticText_P3->SetLabel("Mid Level Time");
         StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter4(0);
     }
     else if (type == "Saw Tooth")
     {
@@ -577,6 +585,7 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P2->SetLabel("End Level");
         StaticText_P3->SetLabel("Cycles");
         StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter4(0);
     }
     else if (type == "Parabolic Down")
     {
@@ -584,6 +593,8 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P2->SetLabel("Low");
         StaticText_P3->SetLabel("N/A");
         StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter3(0);
+        _vc->SetParameter4(0);
     }
     else if (type == "Parabolic Up")
     {
@@ -591,6 +602,8 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P2->SetLabel("High");
         StaticText_P3->SetLabel("N/A");
         StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter3(0);
+        _vc->SetParameter4(0);
     }
     else if (type == "Logarithmic Up")
     {
@@ -598,6 +611,8 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P2->SetLabel("Vertical Offset");
         StaticText_P3->SetLabel("N/A");
         StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter3(0);
+        _vc->SetParameter4(0);
     }
     else if (type == "Logarithmic Down")
     {
@@ -605,6 +620,8 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P2->SetLabel("Vertical Offset");
         StaticText_P3->SetLabel("N/A");
         StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter3(0);
+        _vc->SetParameter4(0);
     }
     else if (type == "Exponential Up" || type == "Exponential Down")
     {
@@ -612,6 +629,8 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P2->SetLabel("Vertical Offset");
         StaticText_P3->SetLabel("N/A");
         StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter3(0);
+        _vc->SetParameter4(0);
     }
     else if (type == "Sine")
     {
@@ -633,6 +652,10 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P2->SetLabel("N/A");
         StaticText_P3->SetLabel("N/A");
         StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter1(0);
+        _vc->SetParameter2(0);
+        _vc->SetParameter3(0);
+        _vc->SetParameter4(0);
     }
 }
 
