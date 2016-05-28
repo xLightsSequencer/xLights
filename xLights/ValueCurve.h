@@ -93,6 +93,7 @@ public:
     float GetParameter4() { return _parameter4; }
     std::string GetType() { return _type; }
     std::list<vcSortablePoint> GetPoints() { return _values; }
+    void RemoveExcessCustomPoints();
 };
 
 #endif

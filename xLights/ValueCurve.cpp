@@ -268,6 +268,7 @@ std::string ValueCurve::Serialise()
         }
         if (_type == "Custom")
         {
+            RemoveExcessCustomPoints();
             res += "Values=";
             for (auto it = _values.begin(); it != _values.end(); ++it)
             {
@@ -405,6 +406,35 @@ void ValueCurve::DeletePoint(float offset)
         }
     }
 }
+
+void ValueCurve::RemoveExcessCustomPoints()
+{
+    // go through list and remove middle points where 3 in a row have the same value
+    auto it1 = _values.begin();
+    auto it2 = it1;
+    it2++;
+    auto it3 = it2;
+    it3++;
+
+    while (it1 != _values.end() && it2 != _values.end() && it3 != _values.end())
+    {
+        if (it1->y == it2->y && it2->y == it3->y)
+        {
+            _values.remove(*it2);
+            it2 = it1;
+            it2++;
+            it3 = it2;
+            it3++;
+        }
+        else
+        {
+            it1++;
+            it2++;
+            it3++;
+        }
+    }
+}
+
 void ValueCurve::SetValueAt(float offset, float value)
 {
     auto it = _values.begin();
