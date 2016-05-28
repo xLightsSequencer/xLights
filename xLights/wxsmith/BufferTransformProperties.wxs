@@ -23,7 +23,9 @@
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Rotations" variable="Slider_Rotations" member="yes">
 							<value>10</value>
+							<min>-200</min>
 							<max>200</max>
+							<minsize>200,-1</minsize>
 							<handler function="OnSlider_RotationsCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -32,8 +34,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Rotations" member="yes">
-							<value>10</value>
-							<size>36,24</size>
+							<value>1.0</value>
+							<size>44,24</size>
 							<validator>__rotations</validator>
 							<handler function="OnTextCtrl_RotationsText" entry="EVT_TEXT" />
 						</object>
@@ -60,8 +62,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Zooms" variable="TextCtrl_Zooms" member="yes">
-							<value>10</value>
-							<size>36,24</size>
+							<value>1.0</value>
+							<size>44,24</size>
 							<validator>__zooms</validator>
 							<handler function="OnTextCtrl_ZoomsText" entry="EVT_TEXT" />
 						</object>
@@ -87,8 +89,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL4" variable="TextCtrl_Start" member="yes">
-							<value>0</value>
-							<size>36,24</size>
+							<value>0.00</value>
+							<size>44,24</size>
 							<validator>__start</validator>
 							<handler function="OnTextCtrl_StartText" entry="EVT_TEXT" />
 						</object>
@@ -116,8 +118,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_ZoomMinimum" member="yes">
-							<value>10</value>
-							<size>36,24</size>
+							<value>1.0</value>
+							<size>44,24</size>
 							<validator>__zoomminimum</validator>
 							<handler function="OnTextCtrl_ZoomMinimumText" entry="EVT_TEXT" />
 						</object>
@@ -146,8 +148,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_ZoomMaximum" variable="TextCtrl_ZoomMaximum" member="yes">
-							<value>20</value>
-							<size>36,24</size>
+							<value>2.0</value>
+							<size>44,24</size>
 							<validator>__zoommaximum</validator>
 							<handler function="OnTextCtrl_ZoomMaximumText" entry="EVT_TEXT" />
 						</object>
@@ -175,7 +177,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_XCenter" variable="TextCtrl_XCenter" member="yes">
 							<value>50</value>
-							<size>36,24</size>
+							<size>44,24</size>
 							<validator>__xcenter</validator>
 							<handler function="OnTextCtrl_XCenterText" entry="EVT_TEXT" />
 						</object>
@@ -203,7 +205,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_YCenter" variable="TextCtrl_YCenter" member="yes">
 							<value>50</value>
-							<size>36,24</size>
+							<size>44,24</size>
 							<validator>__ycenter</validator>
 							<handler function="OnTextCtrl_YCenterText" entry="EVT_TEXT" />
 						</object>
@@ -234,7 +236,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_Quality" member="yes">
 							<value>1</value>
-							<size>36,24</size>
+							<size>44,24</size>
 							<validator>__quality</validator>
 							<tooltip>Keep qiality as low as possible as this can signigicantly impact render time.</tooltip>
 							<handler function="OnTextCtrl_QualityText" entry="EVT_TEXT" />

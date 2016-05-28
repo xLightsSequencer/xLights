@@ -16,11 +16,11 @@ class BufferTransformProperties: public wxDialog
     RotoZoomParms _backup;
 
     // these are only used for validation
-    int __rotations;
-    int __zooms;
-    int __start;
-    int __zoomminimum;
-    int __zoommaximum;
+    float __rotations;
+    float __zooms;
+    float __start;
+    float __zoomminimum;
+    float __zoommaximum;
     int __quality;
     int __xcenter;
     int __ycenter;

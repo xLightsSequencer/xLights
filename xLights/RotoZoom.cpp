@@ -152,7 +152,7 @@ wxPoint RotoZoomParms::GetTransform(float x, float y, float offset, wxSize size)
 {
     const float PI_2 = 6.283185307f;
     float start = PI_2 * (float)_start / 100.0;
-    float angle = PI_2 * _rotations / 10.0f * offset;
+    float angle = PI_2 * -_rotations / 10.0f * offset;
     float scale = 1.0f;
     float spread = (_zoommaximum - _zoomminimum) / 10.0f;
     
