@@ -60,7 +60,7 @@ void ModelPreview::render( wxPaintEvent& event )
     //SetCurrentGLContext();
     //wxPaintDC(this);
     //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
+
     if(!StartDrawing(mPointSize)) return;
     Render();
     EndDrawing();
@@ -70,7 +70,9 @@ void ModelPreview::Render() {
     if (PreviewModels != NULL) {
         for (int i=0; i<PreviewModels->size(); i++) {
 			const xlColor *color = &xlLIGHT_GREY;
-			if (((*PreviewModels)[i])->Selected) {
+			if (((*PreviewModels)[i])->Hidden) {
+                color = &xlMAGENTA;
+			} else if (((*PreviewModels)[i])->Selected) {
 				color = &xlYELLOW;
 			} else if (((*PreviewModels)[i])->GroupSelected) {
 				color = &xlYELLOW;
@@ -304,11 +306,11 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         va.AddVertex(0, 0, tx1, -0.5/(image->textureHeight));
         va.AddVertex(virtualWidth * scalew, 0, tx2, -0.5/(image->textureHeight));
         va.AddVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
-        
+
         va.AddVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
         va.AddVertex(virtualWidth * scalew, 0, tx2, -0.5/(image->textureHeight));
         va.AddVertex(virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
-        
+
         int i = mBackgroundBrightness * 255 / 100;
         va.alpha = i;
         DrawGLUtils::Draw(va, GL_TRIANGLES, 0);
