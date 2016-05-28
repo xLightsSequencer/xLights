@@ -25,6 +25,7 @@ class MeteorsPanel: public wxPanel
 		wxSlider* Slider_Meteors_YOffset;
 		wxBitmapButton* BitmapButton_MeteorsEffect;
 		wxStaticText* StaticText2;
+		wxCheckBox* CheckBox_FadeWithDistance;
 		wxChoice* Choice_Meteors_Effect;
 		wxBitmapButton* BitmapButton_Meteors_YOffset;
 		wxSlider* Slider_Meteors_Length;
@@ -44,6 +45,7 @@ class MeteorsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_Meteors_XOffset;
 		wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
 		wxBitmapButton* BitmapButton_MeteorsLength;
+		wxBitmapButton* BitmapButton_FadeWithDistance;
 		//*)
 
 	protected:
@@ -79,6 +81,8 @@ class MeteorsPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_Meteors_YOffset;
 		static const long ID_CHECKBOX_Meteors_UseMusic;
 		static const long ID_BITMAPBUTTON_Meteors_UseMusic;
+		static const long ID_CHECKBOX_FadeWithDistance;
+		static const long ID_BITMAPBUTTON_FadeWithDistance;
 		//*)
 
 	public:

@@ -48,6 +48,8 @@ const long MeteorsPanel::ID_TEXTCTRL_Meteors_YOffset = wxNewId();
 const long MeteorsPanel::ID_BITMAPBUTTON_Meteors_YOffset = wxNewId();
 const long MeteorsPanel::ID_CHECKBOX_Meteors_UseMusic = wxNewId();
 const long MeteorsPanel::ID_BITMAPBUTTON_Meteors_UseMusic = wxNewId();
+const long MeteorsPanel::ID_CHECKBOX_FadeWithDistance = wxNewId();
+const long MeteorsPanel::ID_BITMAPBUTTON_FadeWithDistance = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(MeteorsPanel,wxPanel)
@@ -171,6 +173,15 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	BitmapButton_Meteors_UseMusic->SetDefault();
 	BitmapButton_Meteors_UseMusic->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer41->Add(BitmapButton_Meteors_UseMusic, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer41->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_FadeWithDistance = new wxCheckBox(this, ID_CHECKBOX_FadeWithDistance, _("Fade with distance"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FadeWithDistance"));
+	CheckBox_FadeWithDistance->SetValue(false);
+	FlexGridSizer41->Add(CheckBox_FadeWithDistance, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer41->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_FadeWithDistance = new wxBitmapButton(this, ID_BITMAPBUTTON_FadeWithDistance, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_FadeWithDistance"));
+	BitmapButton_FadeWithDistance->SetDefault();
+	BitmapButton_FadeWithDistance->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer41->Add(BitmapButton_FadeWithDistance, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	SetSizer(FlexGridSizer41);
 	FlexGridSizer41->Fit(this);
 	FlexGridSizer41->SetSizeHints(this);
@@ -196,6 +207,7 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	Connect(ID_TEXTCTRL_Meteors_YOffset,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&MeteorsPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_Meteors_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_Meteors_UseMusic,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_FadeWithDistance,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_METEORS");
 
@@ -217,11 +229,13 @@ void MeteorsPanel::ValidateWindow()
     {
         Slider_Meteors_XOffset->Enable();
         Slider_Meteors_YOffset->Enable();
+        CheckBox_FadeWithDistance->Enable();
     }
     else
     {
         Slider_Meteors_XOffset->Disable();
         Slider_Meteors_YOffset->Disable();
+        CheckBox_FadeWithDistance->Disable();
     }
 }
 void MeteorsPanel::OnChoice_Meteors_EffectSelect(wxCommandEvent& event)
