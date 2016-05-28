@@ -116,8 +116,8 @@ private:
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
-    colSizesSet(false), updatingProperty(false), mNumGroups(0),
-    mGroupDefault(true), mPropGridActive(true)
+    colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
+    mDisplayAllModels(false), mDisplayMyDisplay(false)
 {
     backgroundProperty = nullptr;
     _lastCustomModel = "";
@@ -184,6 +184,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListItemSelect);
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListItemRClick);
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListColumnClick);
+	Connect(ID_SPLITTERWINDOW3,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnGroupSplitterSashPosChanged);
 	Connect(ID_SPLITTERWINDOW1,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnModelSplitterSashPosChanged);
 	Connect(ID_CHECKBOXOVERLAP,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBoxOverlapClick);
 	Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonSavePreviewClick);
@@ -233,6 +234,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     propertyEditor->SetValidationFailureBehavior(wxPG_VFB_MARK_CELL | wxPG_VFB_BEEP);
 
     wxConfigBase* config = wxConfigBase::Get();
+    int gsp = config->Read("LayoutModelGroupSplitterSash", -1);
     int msp = config->Read("LayoutModelSplitterSash", -1);
     int sp = config->Read("LayoutMainSplitterSash", -1);
     if (sp != -1) {
@@ -243,7 +245,17 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
         ModelSplitter->SetSashGravity(0.0);
         ModelSplitter->SetSashPosition(msp);
     }
+    if (gsp != -1) {
+        GroupSplitter->SetSashGravity(0.0);
+        GroupSplitter->SetSashPosition(gsp);
+    }
 
+    int sel = config->Read("LayoutGroupSelections", -1);
+    if( sel == ALL_MODELS_GROUP ) {
+        mDisplayAllModels = true;
+    } else if( sel == MY_DISPLAY_GROUP ) {
+        mDisplayMyDisplay = true;
+    }
 
     wxListItem elementCol;
     elementCol.SetText(_T("Element Name"));
@@ -467,14 +479,14 @@ void LayoutPanel::UpdateModelList(bool update_groups) {
 
     std::vector<Model *> models;
     bool enableCheckboxes = false;
-    if( !mGroupDefault && ListBoxModelGroups->IsChecked(ALL_MODELS_GROUP) ) {
+    if( mDisplayAllModels ) {
         enableCheckboxes = true;
         for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
             if (it->second->GetDisplayAs() != "ModelGroup") {
                 models.push_back(it->second);
             }
         }
-    } else if( !mGroupDefault && ListBoxModelGroups->IsChecked(MY_DISPLAY_GROUP) ) {
+    } else if( mDisplayMyDisplay ) {
         for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
             if (it->second->GetDisplayAs() != "ModelGroup" && it->second->IsMyDisplay()) {
                 models.push_back(it->second);
@@ -485,7 +497,6 @@ void LayoutPanel::UpdateModelList(bool update_groups) {
             models.push_back(*it);
         }
     }
-    mGroupDefault = false;
 
 #if wxCHECK_VERSION(3, 1, 0)
     ListBoxElementList->EnableCheckboxes(enableCheckboxes);
@@ -571,13 +582,11 @@ void LayoutPanel::UpdateModelGroupList()
         ListBoxModelGroups->SetItemState( mSelectedGroup, wxLIST_STATE_SELECTED, -1 );
     }
 
-    // re-select top two options if needed
-    wxConfigBase* config = wxConfigBase::Get();
-    int sel = config->Read("LayoutGroupSelections", -1);
-    if( sel == ALL_MODELS_GROUP || sel == MY_DISPLAY_GROUP ) {
-        ListBoxModelGroups->SetChecked( sel, true );
+    if( mDisplayAllModels ) {
+        ListBoxModelGroups->SetChecked(ALL_MODELS_GROUP, true);
+    } else if( mDisplayMyDisplay ) {
+        ListBoxModelGroups->SetChecked(MY_DISPLAY_GROUP, true);
     }
-
 }
 
 void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
@@ -594,13 +603,20 @@ void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
         ListBoxModelGroups->SetItemState( index, wxLIST_STATE_SELECTED, -1 );
         mSelectedGroup = index;
     }
+
     if( index == ALL_MODELS_GROUP ) {
+        mDisplayAllModels = true;
+        mDisplayMyDisplay = false;
         ListBoxModelGroups->SetChecked(MY_DISPLAY_GROUP, false);
         xlights->UpdateModelsList(false);
     } else if( index == MY_DISPLAY_GROUP ) {
+        mDisplayAllModels = false;
+        mDisplayMyDisplay = true;
         ListBoxModelGroups->SetChecked(ALL_MODELS_GROUP, false);
         xlights->UpdateModelsList(false);
     } else {
+        mDisplayAllModels = false;
+        mDisplayMyDisplay = false;
         ListBoxModelGroups->SetChecked(MY_DISPLAY_GROUP, false);
         ListBoxModelGroups->SetChecked(ALL_MODELS_GROUP, false);
 
@@ -1063,9 +1079,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
             if (grp != nullptr) {
                 grp->AddModel(newModel->name);
                 model_grp_panel->UpdatePanel(sel.ToStdString());
-                if( !(ListBoxModelGroups->IsChecked(mSelectedGroup) ||
-                      ListBoxModelGroups->IsChecked(ALL_MODELS_GROUP) ||
-                      ListBoxModelGroups->IsChecked(MY_DISPLAY_GROUP)) ) {
+                if( !(ListBoxModelGroups->IsChecked(mSelectedGroup) || mDisplayAllModels || mDisplayMyDisplay) ) {
                     std::string msg = "Model was added to selected group which is currently hidden!\n";
                     wxMessageBox(msg);
                 }
@@ -1536,6 +1550,12 @@ void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)
 {
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutMainSplitterSash", event.GetSashPosition());
+}
+
+void LayoutPanel::OnGroupSplitterSashPosChanged(wxSplitterEvent& event)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("LayoutModelGroupSplitterSash", event.GetSashPosition());
 }
 
 void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
@@ -2126,4 +2146,3 @@ void LayoutPanel::OnModelGroupRightDown(wxMouseEvent& event)
     mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelGroupPopup, NULL, this);
     PopupMenu(mnuLayer);
 }
-

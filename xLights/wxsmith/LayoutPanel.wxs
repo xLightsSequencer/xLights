@@ -22,11 +22,12 @@
 							<object class="sizeritem">
 								<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="ModelSplitter" member="yes">
 									<minsize>100</minsize>
-									<minsize>50,50</minsize>
+									<minsize>100,100</minsize>
 									<handler function="OnModelSplitterSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
 									<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW3" variable="GroupSplitter" member="yes">
 										<minsize>50</minsize>
 										<minsize>50,50</minsize>
+										<handler function="OnGroupSplitterSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
 										<object class="wxListCtrl" name="ID_CHECKLISTBOX_MODEL_GROUPS" subclass="wxCheckedListCtrl" variable="ListBoxModelGroups" member="yes">
 											<style>wxLC_REPORT</style>
 											<handler function="OnListBoxModelGroupsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
