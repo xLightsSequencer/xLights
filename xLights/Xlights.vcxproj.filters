@@ -777,6 +777,9 @@
     <ClCompile Include="RotoZoom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ModelGroupPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1488,6 +1491,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RotoZoom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelGroupPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

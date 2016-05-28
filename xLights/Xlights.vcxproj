@@ -291,6 +291,7 @@
     <ClCompile Include="MIDI\MidiMessage.cpp" />
     <ClCompile Include="ModelDimmingCurveDialog.cpp" />
     <ClCompile Include="ModelFaceDialog.cpp" />
+    <ClCompile Include="ModelGroupPanel.cpp" />
     <ClCompile Include="ModelPreview.cpp" />
     <ClCompile Include="models\ArchesModel.cpp" />
     <ClCompile Include="models\CandyCaneModel.cpp" />
@@ -523,6 +524,7 @@
     <ClInclude Include="LyricsDialog.h" />
     <ClInclude Include="ModelDimmingCurveDialog.h" />
     <ClInclude Include="ModelFaceDialog.h" />
+    <ClInclude Include="ModelGroupPanel.h" />
     <ClInclude Include="ModelPreview.h" />
     <ClInclude Include="models\ArchesModel.h" />
     <ClInclude Include="models\CandyCaneModel.h" />

@@ -813,15 +813,20 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
     wxSize size(layer->BufferWi, layer->BufferHt);
     RenderBuffer orig(layer->buffer);
     layer->buffer.Clear(xlBLACK);
+    int q = layer->RotoZoom.GetQuality();
+    float inc = 1.0 / (float)q;
     for (int x = 0; x < layer->BufferWi; x++)
     {
-        for (int y = 0; y < layer->BufferHt; y++)
+        for (int i = 0; i < q; i++)
         {
-            orig.GetPixel(x, y, c);
-            for (int i = 0; i < 3; i++)
+            for (int y = 0; y < layer->BufferHt; y++)
             {
-                wxPoint p = layer->RotoZoom.GetTransform((float)x + ((float)i * 0.33), y, offset, size);
-                layer->buffer.SetPixel(p.x, p.y, c);
+                orig.GetPixel(x, y, c);
+                for (int j = 0; j < q; j++)
+                {
+                    wxPoint p = layer->RotoZoom.GetTransform((float)x + ((float)i * inc), (float)y + ((float)j * inc), offset, size);
+                    layer->buffer.SetPixel(p.x, p.y, c);
+                }
             }
         }
     }

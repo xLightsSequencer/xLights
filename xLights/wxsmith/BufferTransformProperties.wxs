@@ -17,7 +17,7 @@
 							<label>Rotations</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -27,7 +27,7 @@
 							<handler function="OnSlider_RotationsCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -46,7 +46,7 @@
 							<label>Zooms</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -55,7 +55,7 @@
 							<handler function="OnSlider_ZoomsCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -70,22 +70,78 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText8" member="yes">
+							<label>Start</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER3" variable="Slider_Start" member="yes">
+							<handler function="OnSlider_StartCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL4" variable="TextCtrl_Start" member="yes">
+							<value>0</value>
+							<size>36,24</size>
+							<validator>__start</validator>
+							<handler function="OnTextCtrl_StartText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
+							<label>Zoom Minimum</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER2" variable="Slider_ZoomMinimum" member="yes">
+							<value>1</value>
+							<max>10</max>
+							<handler function="OnSlider_ZoomMinimumCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_ZoomMinimum" member="yes">
+							<value>10</value>
+							<size>36,24</size>
+							<validator>__zoomminimum</validator>
+							<handler function="OnTextCtrl_ZoomMinimumText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
 							<label>Zoom Maximum</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_ZoomMaximum" variable="Slider_ZoomMaximum" member="yes">
 							<value>20</value>
-							<min>3</min>
+							<min>10</min>
 							<max>30</max>
 							<handler function="OnSlider_ZoomMaximumCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -104,7 +160,7 @@
 							<label>X Center</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -113,7 +169,7 @@
 							<handler function="OnSlider_XCenterCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -132,7 +188,7 @@
 							<label>Y Center</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -141,7 +197,7 @@
 							<handler function="OnSlider_YCenterCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -153,6 +209,38 @@
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+							<label>Quality</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER1" variable="Slider_Quality" member="yes">
+							<value>1</value>
+							<min>1</min>
+							<max>10</max>
+							<tooltip>Keep qiality as low as possible as this can signigicantly impact render time.</tooltip>
+							<handler function="OnSlider_QualityCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_Quality" member="yes">
+							<value>1</value>
+							<size>36,24</size>
+							<validator>__quality</validator>
+							<tooltip>Keep qiality as low as possible as this can signigicantly impact render time.</tooltip>
+							<handler function="OnTextCtrl_QualityText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
 						<option>1</option>
 					</object>
 				</object>
