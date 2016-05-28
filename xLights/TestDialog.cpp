@@ -672,7 +672,10 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	_starttime = wxDateTime::UNow();
 	DisableSleepModes();
 
-	Timer1.Start(50, wxTIMER_CONTINUOUS);
+    if (CheckBox_OutputToLights->IsChecked())
+    {
+        Timer1.Start(50, wxTIMER_CONTINUOUS);
+    }
 }
 
 // Destructor
@@ -2353,13 +2356,17 @@ void TestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 			_xout = new xOutput();
 			InitialiseOutputs();
 		}
-	}
+        Timer1.Start(50, wxTIMER_CONTINUOUS);
+    }
 	else
 	{
-		if (_xout)
+        Timer1.Stop();
+        if (_xout)
 		{
 			_xout->alloff();
-			delete _xout;
+            wxTimerEvent ev;
+            OnTimer1Trigger(ev);
+            delete _xout;
 			_xout = NULL;
 		}
 	}
