@@ -596,7 +596,7 @@ void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
     wxString name = ListBoxModelGroups->GetItemText(index, 1);
 
     wxConfigBase* config = wxConfigBase::Get();
-    config->Write("LayoutGroupSelections", index );
+    config->Write("LayoutGroupSelections", checked ? index : -1 );
 
     if( index != mSelectedGroup ) {
         DeselectModelGroupList();
@@ -605,13 +605,13 @@ void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
     }
 
     if( index == ALL_MODELS_GROUP ) {
-        mDisplayAllModels = true;
+        mDisplayAllModels = checked;
         mDisplayMyDisplay = false;
         ListBoxModelGroups->SetChecked(MY_DISPLAY_GROUP, false);
         xlights->UpdateModelsList(false);
     } else if( index == MY_DISPLAY_GROUP ) {
         mDisplayAllModels = false;
-        mDisplayMyDisplay = true;
+        mDisplayMyDisplay = checked;
         ListBoxModelGroups->SetChecked(ALL_MODELS_GROUP, false);
         xlights->UpdateModelsList(false);
     } else {
