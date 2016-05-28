@@ -566,9 +566,18 @@ void LayoutPanel::UpdateModelGroupList()
         }
     }
 
+    // re-select active group after the list is rebuilt
     if( mSelectedGroup > MY_DISPLAY_GROUP ) {
         ListBoxModelGroups->SetItemState( mSelectedGroup, wxLIST_STATE_SELECTED, -1 );
     }
+
+    // re-select top two options if needed
+    wxConfigBase* config = wxConfigBase::Get();
+    int sel = config->Read("LayoutGroupSelections", -1);
+    if( sel == ALL_MODELS_GROUP || sel == MY_DISPLAY_GROUP ) {
+        ListBoxModelGroups->SetChecked( sel, true );
+    }
+
 }
 
 void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
@@ -576,6 +585,9 @@ void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
     int index = (size_t)event.GetClientObject();
     bool checked = ListBoxModelGroups->IsChecked(index);
     wxString name = ListBoxModelGroups->GetItemText(index, 1);
+
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("LayoutGroupSelections", index );
 
     if( index != mSelectedGroup ) {
         DeselectModelGroupList();
@@ -1051,7 +1063,9 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
             if (grp != nullptr) {
                 grp->AddModel(newModel->name);
                 model_grp_panel->UpdatePanel(sel.ToStdString());
-                if( !ListBoxModelGroups->IsChecked(mSelectedGroup)) {
+                if( !(ListBoxModelGroups->IsChecked(mSelectedGroup) ||
+                      ListBoxModelGroups->IsChecked(ALL_MODELS_GROUP) ||
+                      ListBoxModelGroups->IsChecked(MY_DISPLAY_GROUP)) ) {
                     std::string msg = "Model was added to selected group which is currently hidden!\n";
                     wxMessageBox(msg);
                 }
