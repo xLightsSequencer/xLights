@@ -368,7 +368,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX_FadeWithDistance" variable="CheckBox_FadeWithDistance" member="yes">
-					<label>Fade with distance</label>
+					<label>Starfield simulation</label>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>

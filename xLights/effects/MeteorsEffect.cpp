@@ -12,9 +12,6 @@
 #include "../../include/meteors-48.xpm"
 #include "../../include/meteors-64.xpm"
 
-
-
-
 MeteorsEffect::MeteorsEffect(int id) : RenderableEffect(id, "Meteors", meteors_16, meteors_24, meteors_32, meteors_48, meteors_64)
 {
     //ctor
@@ -570,6 +567,15 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, 
     for (MeteorRadialList::iterator it=cache->meteorsRadial.begin(); it!=cache->meteorsRadial.end(); ++it)
     {
         n++;
+
+        float hdistance = 1.0f;
+        if (fadeWithDistance)
+        {
+            float x = it->x;
+            float y = it->y;
+            hdistance = std::max(0.1f, sqrt((x - (float)centerX) * (x - (float)centerX) + (y - (float)centerY) * (y - (float)centerY)) / (float)maxdiag);
+        }
+
         for(int ph=0; ph<=TailLength; ph++)
         {
             switch (ColorScheme)
@@ -612,8 +618,8 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, 
             }
         }
         
-        it->x -= it->dx*mspeed;
-        it->y -= it->dy*mspeed;
+        it->x -= it->dx*mspeed * hdistance;
+        it->y -= it->dy*mspeed * hdistance;
         it->cnt++;
     }
     
@@ -703,6 +709,15 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
     for (MeteorRadialList::iterator it=cache->meteorsRadial.begin(); it!=cache->meteorsRadial.end(); ++it)
     {
         n++;
+
+        float hdistance = 1.0f;
+        if (fadeWithDistance)
+        {
+            float x = it->x;
+            float y = it->y;
+            hdistance = std::max(0.1f, sqrt((x - (float)centerX) * (x - (float)centerX) + (y - (float)centerY) * (y - (float)centerY)) / (float)maxdiag);
+        }
+
         for(int ph=0; ph<=TailLength; ph++)
         {
             //if (ph >= it->cnt) continue;
@@ -744,8 +759,8 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
             }
         }
         
-        it->x += it->dx*mspeed;
-        it->y += it->dy*mspeed;
+        it->x += it->dx*mspeed * hdistance;
+        it->y += it->dy*mspeed * hdistance;
         it->cnt++;
     }
     

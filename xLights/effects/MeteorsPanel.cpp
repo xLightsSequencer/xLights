@@ -173,11 +173,11 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	BitmapButton_Meteors_UseMusic->SetDefault();
 	BitmapButton_Meteors_UseMusic->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer41->Add(BitmapButton_Meteors_UseMusic, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer41->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_FadeWithDistance = new wxCheckBox(this, ID_CHECKBOX_FadeWithDistance, _("Fade with distance"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FadeWithDistance"));
+	FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_FadeWithDistance = new wxCheckBox(this, ID_CHECKBOX_FadeWithDistance, _("Starfield simulation"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FadeWithDistance"));
 	CheckBox_FadeWithDistance->SetValue(false);
 	FlexGridSizer41->Add(CheckBox_FadeWithDistance, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer41->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_FadeWithDistance = new wxBitmapButton(this, ID_BITMAPBUTTON_FadeWithDistance, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_FadeWithDistance"));
 	BitmapButton_FadeWithDistance->SetDefault();
 	BitmapButton_FadeWithDistance->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
