@@ -288,4 +288,5 @@ void ModelGroupPanel::SaveGroupChanges()
     g->Reset();
     xlights->UpdateModelsList(false);
     xlights->UnsavedRgbEffectsChanges = true;
+    xlights->UpdatePreview();
 }

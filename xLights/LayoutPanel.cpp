@@ -141,7 +141,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	LeftPanelSizer->AddGrowableCol(0);
 	LeftPanelSizer->AddGrowableRow(0);
 	ModelSplitter = new wxSplitterWindow(LeftPanel, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	ModelSplitter->SetMinSize(wxSize(50,50));
+	ModelSplitter->SetMinSize(wxSize(100,100));
 	ModelSplitter->SetMinimumPaneSize(100);
 	ModelSplitter->SetSashGravity(0.5);
 	GroupSplitter = new wxSplitterWindow(ModelSplitter, ID_SPLITTERWINDOW3, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW3"));
@@ -293,6 +293,14 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     sizer->Add( model_grp_panel, 1, wxEXPAND | wxALL, 1 );
     ModelGroupWindow->SetScrollRate(5,5);
     ModelGroupWindow->Hide();
+
+    mDefaultSaveBtnColor = ButtonSavePreview->GetBackgroundColour();
+}
+
+void LayoutPanel::MarkEffectsFileDirty()
+{
+    xlights->UnsavedRgbEffectsChanges = true;
+    ButtonSavePreview->SetBackgroundColour(wxColour(255,108,108));
 }
 
 void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
@@ -359,7 +367,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 xlights->UpdatePreview();
             }
             if (i & 0x0002) {
-                xlights->UnsavedRgbEffectsChanges = true;
+                MarkEffectsFileDirty();
             }
             if (i & 0x0004) {
                 CallAfter(&LayoutPanel::resetPropertyGrid);
@@ -395,6 +403,11 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
 
 void LayoutPanel::UpdatePreview()
 {
+    if( xlights->UnsavedRgbEffectsChanges ) {
+        ButtonSavePreview->SetBackgroundColour(wxColour(255,108,108));
+    } else {
+        ButtonSavePreview->SetBackgroundColour(mDefaultSaveBtnColor);
+    }
     if(!modelPreview->StartDrawing(mPointSize)) return;
     if(m_creating_bound_rect)
     {
@@ -583,7 +596,7 @@ void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
                     grp->SetSelected(checked);
 
                     xlights->UpdateModelsList(false);
-                    xlights->UnsavedRgbEffectsChanges = true;
+                    MarkEffectsFileDirty();
                     break;
                 }
             }
@@ -740,8 +753,8 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
     }
     xlights->SaveEffectsFile();
     xlights->SetStatusText(_("Preview layout saved"));
+    ButtonSavePreview->SetBackgroundColour(mDefaultSaveBtnColor);
 }
-
 
 void LayoutPanel::OnListBoxElementListItemSelect(wxListEvent& event)
 {
@@ -812,7 +825,7 @@ void LayoutPanel::OnListBoxElementItemChecked(wxListEvent& event) {
         CreateUndoPoint("ModelProperty", event.GetLabel().ToStdString(), "ModelMyDisplay", xlights->AllModels[event.GetLabel().ToStdString()]->IsMyDisplay()?"true":"false");
 
         xlights->AllModels[event.GetLabel().ToStdString()]->SetMyDisplay(ListBoxElementList->IsItemChecked(event.GetIndex()));
-        xlights->UnsavedRgbEffectsChanges = true;
+        MarkEffectsFileDirty();
         resetPropertyGrid();
     }
 #endif
@@ -1093,7 +1106,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         y = modelPreview->GetVirtualCanvasHeight() - y;
         m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetPosition().x, y);
         SetupPropGrid(m);
-        xlights->UnsavedRgbEffectsChanges = true;
+        MarkEffectsFileDirty();
         UpdatePreview();
     }
     else if (m_dragging && event.Dragging())
@@ -1112,7 +1125,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                     modelPreview->GetModels()[i]->AddOffset(delta_x/wi, delta_y/ht);
                     modelPreview->GetModels()[i]->UpdateXmlWithScale();
                     SetupPropGrid(modelPreview->GetModels()[i]);
-                    xlights->UnsavedRgbEffectsChanges = true;
+                    MarkEffectsFileDirty();
                 }
             }
         }
@@ -1313,7 +1326,7 @@ void LayoutPanel::ImportCustomModel(Model* newModel)
             }
             newModel->SetProperty("name", newname, true);
 
-            xlights->UnsavedRgbEffectsChanges = true;
+            MarkEffectsFileDirty();
         }
         else
         {
@@ -1564,7 +1577,7 @@ void LayoutPanel::OnChar(wxKeyEvent& event) {
                 selectedModel->AddOffset(xpct, ypct);
                 selectedModel->UpdateXmlWithScale();
                 SetupPropGrid(selectedModel);
-                xlights->UnsavedRgbEffectsChanges = true;
+                MarkEffectsFileDirty();
                 UpdatePreview();
             }
             break;
@@ -1662,7 +1675,7 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
                 selectedModel->AddOffset(xpct, ypct);
                 selectedModel->UpdateXmlWithScale();
                 SetupPropGrid(selectedModel);
-                xlights->UnsavedRgbEffectsChanges = true;
+                MarkEffectsFileDirty();
                 UpdatePreview();
             }
             break;
@@ -1677,7 +1690,7 @@ void LayoutPanel::DeleteSelectedModel() {
     xlights->AllModels.Delete(selectedModel->name);
     selectedModel = nullptr;
     xlights->UpdateModelsList();
-    xlights->UnsavedRgbEffectsChanges = true;
+    MarkEffectsFileDirty();
 }
 
 void LayoutPanel::DoCopy(wxCommandEvent& event) {
@@ -1751,7 +1764,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
             lastModelName = name;
 
             xlights->UpdateModelsList();
-            xlights->UnsavedRgbEffectsChanges = true;
+            MarkEffectsFileDirty();
             wxTheClipboard->Close();
             SelectModel(name);
         }
@@ -1834,7 +1847,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             }
 
             xlights->UpdateModelsList();
-            xlights->UnsavedRgbEffectsChanges = true;
+            MarkEffectsFileDirty();
             if (undoBuffer[sz].model != "") {
                 SelectModel(undoBuffer[sz].model);
             }
@@ -1847,7 +1860,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->RenameModel(newName, origName);
 
             xlights->UpdateModelsList();
-            xlights->UnsavedRgbEffectsChanges = true;
+            MarkEffectsFileDirty();
             SelectModel(origName);
         }
         modelPreview->SetFocus();
@@ -1856,7 +1869,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
     }
 }
 void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data) {
-    xlights->UnsavedRgbEffectsChanges = true;
+    MarkEffectsFileDirty();
     int idx = undoBuffer.size();
 
     //printf("%s   %s   %s  %s\n", type.c_str(), model.c_str(), key.c_str(), data.c_str());
@@ -1961,7 +1974,7 @@ void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
                     mPropGridActive = true;
                 }
                 xlights->UpdateModelsList();
-                xlights->UnsavedRgbEffectsChanges = true;
+                MarkEffectsFileDirty();
             }
         }
     }
@@ -1985,7 +1998,7 @@ void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
                 }
                 xlights->AllModels.Rename(sel.ToStdString(), name.ToStdString());
                 xlights->UpdateModelsList();
-                xlights->UnsavedRgbEffectsChanges = true;
+                MarkEffectsFileDirty();
                 model_grp_panel->UpdatePanel(name.ToStdString());
             }
         }
@@ -2013,7 +2026,7 @@ void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
 
             xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
             xlights->UpdateModelsList();
-            xlights->UnsavedRgbEffectsChanges = true;
+            MarkEffectsFileDirty();
             model_grp_panel->UpdatePanel(name.ToStdString());
             if( mPropGridActive ) {
                 ModelSplitter->ReplaceWindow(propertyEditor, ModelGroupWindow);

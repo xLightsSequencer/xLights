@@ -137,6 +137,7 @@ class LayoutPanel: public wxPanel
         void ModelGroupChecked(wxCommandEvent& event);
         void DeselectModelGroupList();
         void DeselectModelList();
+        void MarkEffectsFileDirty();
 
         bool SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);
@@ -171,6 +172,7 @@ class LayoutPanel: public wxPanel
         bool mGroupDefault;
         bool mPropGridActive;
         int mSelectedGroup;
+        wxColour mDefaultSaveBtnColor;
 
         wxPropertyGrid *propertyEditor;
         bool updatingProperty;
