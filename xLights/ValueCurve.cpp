@@ -132,7 +132,7 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter2 - 50.0) / 50.0 + exp(a * i))));
+            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter2 - 50.0) / 50.0 + (exp(a*i) - 1.0) / (exp(a) - 1.0))));
         }
     }
     else if (_type == "Exponential Down")
@@ -147,7 +147,7 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter2 - 50.0) / 50.0 + 1.0 - exp(a * i))));
+            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter2 - 50.0) / 50.0 + 1.0 - (exp(a*i) - 1.0) / (exp(a) - 1.0))));
         }
     }
     else if (_type == "Sine")

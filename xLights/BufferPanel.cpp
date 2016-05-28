@@ -150,6 +150,8 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&BufferPanel::OnVCChanged, 0, this);
 
+    BitmapButton_Blur->GetValue()->SetLimits(1, 15);
+
     subBufferPanel = new SubBufferPanel(BufferScrollWindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
     SubBufferPanelSizer->Add(subBufferPanel, 1, wxALL|wxEXPAND, 2);
     ValidateWindow();

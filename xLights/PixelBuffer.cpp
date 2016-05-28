@@ -585,6 +585,8 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
     {
         b = layer->blur;
     }
+    wxASSERT(b <= 15);
+
     int d = 0;
     int u = 0;
     if (b % 2 == 0)
