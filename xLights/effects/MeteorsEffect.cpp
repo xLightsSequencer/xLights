@@ -63,13 +63,13 @@ static inline int GetMeteorColorScheme(const std::string &color) {
     } else if (color == "Palette") {
         return 2;
     }
-    
+
     return 0;
 }
 
 class MeteorClass {
 public:
-    
+
     int x,y;
     HSVValue hsv;
     int h; //variable length; only used for icicle drip -DJ
@@ -78,7 +78,7 @@ public:
 // for radial meteor effect
 class MeteorRadialClass {
 public:
-    
+
     double x,y,dx,dy;
     int cnt;
     HSVValue hsv;
@@ -91,7 +91,7 @@ class MeteorsRenderCache : public EffectRenderCache {
 public:
     MeteorsRenderCache() {};
     virtual ~MeteorsRenderCache() {};
-    
+
     int effectState;
     MeteorList meteors;
     MeteorRadialList meteorsRadial;
@@ -113,7 +113,7 @@ void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     int Length = SettingsMap.GetInt("SLIDER_Meteors_Length", 1);
     int SwirlIntensity = SettingsMap.GetInt("SLIDER_Meteors_Swirl_Intensity", 1);
     int mSpeed = SettingsMap.GetInt("SLIDER_Meteors_Speed", 10);
-    
+
     int MeteorsEffect = GetMeteorEffect(SettingsMap["CHOICE_Meteors_Effect"]);
     int ColorScheme = GetMeteorColorScheme(SettingsMap["CHOICE_Meteors_Type"]);
     int xoffset = SettingsMap.GetInt("TEXTCTRL_Meteors_XOffset", 0);
@@ -147,7 +147,7 @@ void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     //example: if mSpeed is 10, the speeds for the first few frames would be:  2, 3, 2...
     int mspeed = cache->effectState / 4;
     cache->effectState -= mspeed * 4;
-    
+
     switch (MeteorsEffect) {
         case METEORS_DOWN: //0:
         case METEORS_UP: //1:
@@ -185,7 +185,7 @@ public:
     MeteorHasExpiredX(int t)
     : TailLength(t)
     {}
-    
+
     // operator() is what's called when you do MeteorHasExpired()
     bool operator()(const MeteorClass& obj)
     {
@@ -196,7 +196,7 @@ public:
 void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer &buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed)
 {
     double swirl_phase;
-    
+
     MeteorClass m;
     HSVValue hsv,hsv0,hsv1;
     buffer.palette.GetHSV(0,hsv0);
@@ -204,17 +204,17 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer &buffer, int ColorSchem
     size_t colorcnt=buffer.GetColorCount();
     int TailLength=(buffer.BufferWi < 10) ? Length / 10 : buffer.BufferWi * Length / 100;
     if (TailLength < 1) TailLength=1;
-    
+
     MeteorsRenderCache *cache = GetCache(buffer, id);
 
     // create new meteors
-    
+
     for(int i=0; i<buffer.BufferHt; i++)
     {
         if (rand() % 200 < Count) {
             m.x=buffer.BufferWi - 1;
             m.y=i;
-            
+
             switch (ColorScheme)
             {
                 case 1:
@@ -227,9 +227,9 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer &buffer, int ColorSchem
             cache->meteors.push_back(m);
         }
     }
-    
+
     // render meteors
-    
+
     int x,y,dy,n=0;
     for (MeteorList::iterator it=cache->meteors.begin(); it!=cache->meteors.end(); ++it)
     {
@@ -247,15 +247,15 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer &buffer, int ColorSchem
                     hsv=it->hsv;
                     break;
             }
-            
+
             swirl_phase=double(it->x)/5.0+double(n)/100.0;
-            
+
             dy=int(double(SwirlIntensity*buffer.BufferHt)/80.0*buffer.sin(swirl_phase));
-            
+
             x=it->x+ph;
             y=it->y+dy;
             if (MeteorsEffect==3) x=buffer.BufferWi-x;
-            
+
             if (buffer.allowAlpha) {
                 xlColor c(hsv);
                 c.alpha = 255.0 * (1.0 - double(ph)/TailLength);
@@ -265,10 +265,10 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer &buffer, int ColorSchem
                 buffer.SetPixel(x,y,hsv);
             }
         }
-        
+
         it->x -= mspeed;
     }
-    
+
     // delete old meteors
     cache->meteors.remove_if(MeteorHasExpiredX(TailLength));
 }
@@ -286,7 +286,7 @@ public:
     MeteorHasExpiredY(int t)
     : TailLength(t)
     {}
-    
+
     // operator() is what's called when you do MeteorHasExpired()
     bool operator()(const MeteorClass& obj)
     {
@@ -306,7 +306,7 @@ public:
 void MeteorsEffect::RenderMeteorsVertical(RenderBuffer &buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed)
 {
     double swirl_phase;
-    
+
     MeteorClass m;
     HSVValue hsv,hsv0,hsv1;
     buffer.palette.GetHSV(0,hsv0);
@@ -317,13 +317,13 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer &buffer, int ColorScheme,
     MeteorsRenderCache *cache = GetCache(buffer, id);
 
     // create new meteors
-    
+
     for(int i=0; i<buffer.BufferWi; i++)
     {
         if (rand() % 200 < Count) {
             m.x=i;
             m.y=buffer.BufferHt - 1;
-            
+
             switch (ColorScheme)
             {
                 case 1:
@@ -336,9 +336,9 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer &buffer, int ColorScheme,
             cache->meteors.push_back(m);
         }
     }
-    
+
     // render meteors
-    
+
     int x,y,dx,n=0;
     for (MeteorList::iterator it=cache->meteors.begin(); it!=cache->meteors.end(); ++it)
     {
@@ -356,7 +356,7 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer &buffer, int ColorScheme,
                     hsv=it->hsv;
                     break;
             }
-            
+
             // we adjust x axis with some sine function if swirl1 or swirl2
             // swirling more than 25% of the buffer width doesn't look good
             swirl_phase=double(it->y)/5.0+double(n)/100.0;
@@ -364,7 +364,7 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer &buffer, int ColorScheme,
             x=it->x+dx;
             y=it->y+ph;
             if (MeteorsEffect==1) y=buffer.BufferHt-y;
-            
+
             if (buffer.allowAlpha) {
                 xlColor c(hsv);
                 c.alpha = 255.0 * (1.0 - double(ph)/TailLength);
@@ -374,10 +374,10 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer &buffer, int ColorScheme,
                 buffer.SetPixel(x,y,hsv);
             }
         }
-        
+
         it->y -= mspeed;
     }
-    
+
     // delete old meteors
     cache->meteors.remove_if(MeteorHasExpiredY(TailLength));
 }
@@ -390,7 +390,7 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int 
     double swirl_phase;
     bool want_bkg = (Length < 0);
     if (want_bkg) Length = -Length; //kludge; too lazy to add another parameter ;)
-    
+
     MeteorClass m;
     HSVValue hsv,hsv0,hsv1;
     buffer.palette.GetHSV(0,hsv0);
@@ -401,7 +401,7 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int 
     MeteorsRenderCache *cache = GetCache(buffer, id);
 
     // create new meteors
-    
+
     for(int i=0; i<buffer.BufferWi; i++)
     {
         if (rand() % 200 < Count) {
@@ -409,7 +409,7 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int 
             m.y=buffer.BufferHt - 1;
             //            m.h = TailLength;
             m.h = (rand() % (2 * buffer.BufferHt))/3; //somewhat variable length -DJ
-            
+
             switch (ColorScheme)
             {
                 case 1:
@@ -422,9 +422,9 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int 
             cache->meteors.push_back(m);
         }
     }
-    
+
     // render meteors
-    
+
     //draw some dim icicles for bkg:
     if (want_bkg)
     {
@@ -433,13 +433,13 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int 
         //        m.hue = 240;
         //        m.hsv.saturation = 0.5;
         //        m.hsv.value = 1.0;
-        
+
         int ystaggered[] = {0, 5, 1, 2, 4};
         for (int x = 0; x < buffer.BufferWi; x += 3)
             for (int y = 0; y < buffer.BufferHt; y += 3)
                 buffer.SetPixel(x, y + ystaggered[(x/3) % numents(ystaggered)], m.hsv);
     }
-    
+
     int x,y,dx,n=0;
     for (MeteorList::iterator it=cache->meteors.begin(); it!=cache->meteors.end(); ++it)
     {
@@ -462,22 +462,22 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int 
 #endif
             if (!ph || (ph <= it->h - it->y)) hsv = it->hsv; //only make the end of the drip colored
             else { hsv.value = .4; hsv.hue = hsv.saturation = 0; } //white icicle
-            
+
             // we adjust x axis with some sine function if swirl1 or swirl2
             // swirling more than 25% of the buffer width doesn't look good
             swirl_phase=double(it->y)/5.0+double(n)/100.0;
             dx=int(double(SwirlIntensity*buffer.BufferWi)/80.0*buffer.sin(swirl_phase));
-            
+
             x=it->x+dx;
             y=it->y+ph;
             if (MeteorsEffect==1) y=buffer.BufferHt-y;
             if (y < it->h) continue; //variable length icicle drips -DJ
             buffer.SetPixel(x,y,hsv);
         }
-        
+
         it->y -= mspeed;
     }
-    
+
     // delete old meteors
     //    meteors.remove_if(MeteorHasExpiredY(TailLength));
     cache->meteors.remove_if(IcicleHasExpired());
@@ -495,7 +495,7 @@ class MeteorHasExpiredImplode
 public:
     MeteorHasExpiredImplode(int centerX, int centerY)
     { cx=centerX; cy=centerY; }
-    
+
     // operator() is what's called when you do MeteorHasExpired()
     bool operator()(const MeteorRadialClass& obj)
     {
@@ -527,9 +527,9 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, 
     if (TailLength < 1) TailLength=1;
     int MinDimension = buffer.BufferHt < buffer.BufferWi ? buffer.BufferHt : buffer.BufferWi;
     MeteorsRenderCache *cache = GetCache(buffer, id);
-    
+
     // create new meteors
-    
+
     m.cnt=1;
     for(int i=0; i<MinDimension; i++)
     {
@@ -560,9 +560,9 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, 
             cache->meteorsRadial.push_back(m);
         }
     }
-    
+
     // render meteors
-    
+
     int x,y,n=0;
     for (MeteorRadialList::iterator it=cache->meteorsRadial.begin(); it!=cache->meteorsRadial.end(); ++it)
     {
@@ -573,7 +573,7 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, 
         {
             float x = it->x;
             float y = it->y;
-            hdistance = std::max(0.1f, sqrt((x - (float)centerX) * (x - (float)centerX) + (y - (float)centerY) * (y - (float)centerY)) / (float)maxdiag);
+            hdistance = std::max(0.1f, (float)sqrt((x - (float)centerX) * (x - (float)centerX) + (y - (float)centerY) * (y - (float)centerY)) / (float)maxdiag);
         }
 
         for(int ph=0; ph<=TailLength; ph++)
@@ -590,10 +590,10 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, 
                     break;
             }
             // if we were to swirl, it would need to alter the angle here
-            
+
             x=int(it->x-it->dx*double(ph));
             y=int(it->y-it->dy*double(ph));
-            
+
             // the next line cannot test for exact center! Some lines miss by 1 because of rounding.
             if ((abs(y - centerY) < 2) && (abs(x - centerX) < 2)) break;
 
@@ -617,12 +617,12 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, 
                 buffer.SetPixel(x,y,hsv);
             }
         }
-        
+
         it->x -= it->dx*mspeed * hdistance;
         it->y -= it->dy*mspeed * hdistance;
         it->cnt++;
     }
-    
+
     // delete old meteors
     cache->meteorsRadial.remove_if(MeteorHasExpiredImplode(buffer.BufferWi/2+truexoffset,buffer.BufferHt/2+trueyoffset));
 }
@@ -639,7 +639,7 @@ class MeteorHasExpiredExplode
 public:
     MeteorHasExpiredExplode(int h, int w)
     { ht=h; wi=w; }
-    
+
     // operator() is what's called when you do MeteorHasExpired()
     bool operator()(const MeteorRadialClass& obj)
     {
@@ -673,7 +673,7 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
     MeteorsRenderCache *cache = GetCache(buffer, id);
 
     // create new meteors
-    
+
     m.x=buffer.BufferWi/2+truexoffset;
     m.y=buffer.BufferHt/2+trueyoffset;
     m.cnt=1;
@@ -689,7 +689,7 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
             }
             m.dx=buffer.cos(angle);
             m.dy=buffer.sin(angle);
-            
+
             switch (ColorScheme)
             {
                 case 1:
@@ -702,9 +702,9 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
             cache->meteorsRadial.push_back(m);
         }
     }
-    
+
     // render meteors
-    
+
     int x,y,n=0;
     for (MeteorRadialList::iterator it=cache->meteorsRadial.begin(); it!=cache->meteorsRadial.end(); ++it)
     {
@@ -715,7 +715,7 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
         {
             float x = it->x;
             float y = it->y;
-            hdistance = std::max(0.1f, sqrt((x - (float)centerX) * (x - (float)centerX) + (y - (float)centerY) * (y - (float)centerY)) / (float)maxdiag);
+            hdistance = std::max(0.1f, (float)sqrt((x - (float)centerX) * (x - (float)centerX) + (y - (float)centerY) * (y - (float)centerY)) / (float)maxdiag);
         }
 
         for(int ph=0; ph<=TailLength; ph++)
@@ -732,9 +732,9 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
                     hsv=it->hsv;
                     break;
             }
-            
+
             // if we were to swirl, it would need to alter the angle here
-            
+
             x=int(it->x+it->dx*double(ph));
             y=int(it->y+it->dy*double(ph));
 
@@ -748,7 +748,7 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
                 }
                 hsv.value *= double(distance) / maxdiag;
             }
-            
+
             if (buffer.allowAlpha) {
                 xlColor c(hsv);
                 c.alpha = 255.0 * (double(ph)/TailLength);
@@ -758,12 +758,12 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
                 buffer.SetPixel(x,y,hsv);
             }
         }
-        
+
         it->x += it->dx*mspeed * hdistance;
         it->y += it->dy*mspeed * hdistance;
         it->cnt++;
     }
-    
+
     // delete old meteors
     cache->meteorsRadial.remove_if(MeteorHasExpiredExplode(buffer.BufferHt,buffer.BufferWi));
 }
