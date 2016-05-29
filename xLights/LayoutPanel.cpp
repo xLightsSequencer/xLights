@@ -1407,7 +1407,9 @@ void LayoutPanel::ExportCustomModel()
     f.Write(wxString::Format("Antialias=\"%s\" ", a));
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
-    f.Write(wxString::Format("CustomModel=\"%s\" ", cm));
+    f.Write("CustomModel=\"");
+    f.Write(cm);
+    f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(" />\n");
     f.Close();
