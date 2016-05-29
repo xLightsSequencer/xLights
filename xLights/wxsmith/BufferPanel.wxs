@@ -63,41 +63,24 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-													<cols>2</cols>
-													<object class="sizeritem">
-														<object class="wxChoice" name="ID_CHOICE_BufferTransform" variable="BufferTransform" member="yes">
-															<content>
-																<item>None</item>
-																<item>Rotate CC 90</item>
-																<item>Rotate CW 90</item>
-																<item>Rotate 180</item>
-																<item>Flip Vertical</item>
-																<item>Flip Horizontal</item>
-																<item>Roto-Zoom</item>
-															</content>
-															<selection>0</selection>
-															<handler function="OnBufferTransformSelect" entry="EVT_CHOICE" />
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxButton" name="ID_CUSTOM_RotoZoom" subclass="RotoZoomButton" variable="Button_Properties" member="yes">
-															<label>Properties ...</label>
-															<handler function="OnButton_PropertiesClick" entry="EVT_BUTTON" />
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
+												<object class="wxChoice" name="ID_CHOICE_BufferTransform" variable="BufferTransform" member="yes">
+													<content>
+														<item>None</item>
+														<item>Rotate CC 90</item>
+														<item>Rotate CW 90</item>
+														<item>Rotate 180</item>
+														<item>Flip Vertical</item>
+														<item>Flip Horizontal</item>
+													</content>
+													<selection>0</selection>
+													<handler function="OnBufferTransformSelect" entry="EVT_CHOICE" />
 												</object>
-												<flag>wxALL|wxEXPAND</flag>
+												<flag>wxALL</flag>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_BufferTransform" variable="BitmapButton1" member="no">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_BufferTransform" variable="BitmapButton_BufferTransform" member="no">
 													<bitmap code="padlock16x16_blue_xpm" />
 													<default>1</default>
 													<size>13,13</size>
@@ -169,6 +152,359 @@
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+													<label>Rotation</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+													<cols>3</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Rotation" variable="Slider_Rotation" member="yes">
+															<handler function="OnSlider_RotationCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_Rotation" subclass="ValueCurveButton" variable="BitmapButton_VCRotation" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<handler function="OnBitmapButton_RotationClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Rotation" variable="TextCtrl_Rotation" member="yes">
+															<value>0</value>
+															<maxlength>3</maxlength>
+															<size>20,-1d</size>
+															<validator>__rotation</validator>
+															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Rotation" variable="BitmapButton_Rotation" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+													<label>Rotations</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+													<cols>3</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Rotations" variable="Slider_Rotations" member="yes">
+															<max>200</max>
+															<handler function="OnSlider_RotationsCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_Rotations" subclass="ValueCurveButton" variable="BitmapButton_VCRotations" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<handler function="OnBitmapButton_VCRotationsClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Rotations" variable="TextCtrl_Rotations" member="yes">
+															<value>0.0</value>
+															<size>20,-1d</size>
+															<validator>__rotations</validator>
+															<handler function="OnTextCtrl_RotationsText" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Rotations" variable="BitmapButton_Rotations" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText8" member="yes">
+													<label>Pivot Point X</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
+													<cols>3</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_PivotPointX" variable="Slider_PivotPointX" member="yes">
+															<value>50</value>
+															<handler function="OnSlider_PivotPointXCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_PivotPointX" subclass="ValueCurveButton" variable="BitmapButton_VCPivotPointX" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<handler function="OnBitmapButton_VCPivotPointXClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_PivotPointX" variable="TextCtrl_PivotPointX" member="yes">
+															<value>50</value>
+															<size>20,-1d</size>
+															<validator>__pivotpointx</validator>
+															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_PivotPointX" variable="BitmapButton_PivotPointX" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText9" member="yes">
+													<label>Pivot Point Y</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
+													<cols>3</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_PivotPointY" variable="Slider_PivotPointY" member="yes">
+															<value>50</value>
+															<handler function="OnSlider_PivotPointYCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_PivotPointY" subclass="ValueCurveButton" variable="BitmapButton_VCPivotPointY" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<handler function="OnBitmapButton_VCPivotPointYClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_PivotPointY" variable="TextCtrl_PivotPointY" member="yes">
+															<value>50</value>
+															<size>20,-1d</size>
+															<validator>__pivotpointy</validator>
+															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_PivotPointY" variable="BitmapButton_PivotPointY" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText6" member="yes">
+													<label>Zoom</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+													<cols>3</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Zoom" variable="Slider_Zoom" member="yes">
+															<max>30</max>
+															<handler function="OnSlider_ZoomCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_Zoom" subclass="ValueCurveButton" variable="BitmapButton_VCZoom" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<handler function="OnBitmapButton_ZoomClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Zoom" variable="TextCtrl_Zoom" member="yes">
+															<value>0.0</value>
+															<size>20,-1d</size>
+															<validator>__zoom</validator>
+															<handler function="OnTextCtrl_ZoomText" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Zoom" variable="BitmapButton_Zoom" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText7" member="yes">
+													<label>Zoom Quality</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
+													<cols>2</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_ZoomQuality" variable="Slider_ZoomQuality" member="yes">
+															<value>1</value>
+															<min>1</min>
+															<max>10</max>
+															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_ZoomQuality" variable="TextCtrl_ZoomQuality" member="yes">
+															<value>1</value>
+															<size>20,-1d</size>
+															<validator>__zoomquality</validator>
+															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_ZoomQuality" variable="BitmapButton_ZoomQuality" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">

@@ -1367,16 +1367,7 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
         else if (name.StartsWith("ID_CUSTOM"))
         {
             xlCustomControl *custom = dynamic_cast<xlCustomControl *>(CtrlWin);
-            if (custom != NULL)
-            {
-                custom->SetValue(value.ToStdString());
-            }
-            else
-            {
-                // sneaky for roto zoom
-                RotoZoomButton* custom2 = dynamic_cast<RotoZoomButton *>(CtrlWin);
-                custom2->SetValue(value);
-            }
+            custom->SetValue(value.ToStdString());
         }
         else if (name.StartsWith("ID_VALUECURVE"))
         {

@@ -458,8 +458,6 @@
 		<Unit filename="BitmapCache.cpp" />
 		<Unit filename="BufferPanel.cpp" />
 		<Unit filename="BufferPanel.h" />
-		<Unit filename="BufferTransformProperties.cpp" />
-		<Unit filename="BufferTransformProperties.h" />
 		<Unit filename="ChannelLayoutDialog.cpp" />
 		<Unit filename="ChannelLayoutDialog.h" />
 		<Unit filename="Color.cpp" />
@@ -572,8 +570,6 @@
 		<Unit filename="ResizeImageDialog.cpp" />
 		<Unit filename="ResizeImageDialog.h" />
 		<Unit filename="RgbEffects.h" />
-		<Unit filename="RotoZoom.cpp" />
-		<Unit filename="RotoZoom.h" />
 		<Unit filename="SOIL.h" />
 		<Unit filename="SaveChangesDialog.cpp" />
 		<Unit filename="SaveChangesDialog.h" />
@@ -941,7 +937,6 @@
 		<Unit filename="wxsmith/AssistPanel.wxs" />
 		<Unit filename="wxsmith/BarsPanel.wxs" />
 		<Unit filename="wxsmith/BufferPanel.wxs" />
-		<Unit filename="wxsmith/BufferTransformProperties.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
@@ -1160,7 +1155,6 @@
 					<wxDialog wxs="wxsmith/GenerateCustomModelDialog.wxs" src="GenerateCustomModelDialog.cpp" hdr="GenerateCustomModelDialog.h" fwddecl="0" i18n="1" name="GenerateCustomModelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/RenderProgressDialog.wxs" src="RenderProgressDialog.cpp" hdr="RenderProgressDialog.h" fwddecl="1" i18n="1" name="RenderProgressDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ValueCurveDialog.wxs" src="ValueCurveDialog.cpp" hdr="ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/BufferTransformProperties.wxs" src="BufferTransformProperties.cpp" hdr="BufferTransformProperties.h" fwddecl="0" i18n="1" name="BufferTransformProperties" language="CPP" />
 					<wxPanel wxs="wxsmith/ModelGroupPanel.wxs" src="ModelGroupPanel.cpp" hdr="ModelGroupPanel.h" fwddecl="0" i18n="1" name="ModelGroupPanel" language="CPP" />
 				</resources>
 			</wxsmith>

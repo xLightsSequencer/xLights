@@ -10,7 +10,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- enh (keithsw) Add starfield option to meteors implode/explode look more like a starfield
    -- enh (keithsw) Add autosave to .working.xml files ... saves every 3 minutes as long as the sequence is not playing
-   -- enh (keithsw) Roto-Zoom added to transforms
+   -- enh (keithsw) Zoom and rotate added to buffer panel including value curves for most parameters
    -- enh (keithsw) Blur Value Curve Added
 2016.33  May 25, 2016
    -- bug (dkulp) Maybe fix #571?   Don't post the event, call directly.  
