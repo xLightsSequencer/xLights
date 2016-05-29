@@ -1869,11 +1869,12 @@ wxString GenerateCustomModelDialog::GetMultiBulbNodes()
 {
     wxString res;
     int current = -1;
+    int last = -2;
     for (auto it = _lights.begin(); it != _lights.end(); it++)
     {
         if (!it->isSupressed())
         {
-            if (it->GetNum() == current)
+            if (it->GetNum() == current && it->GetNum() != last)
             {
                 // this is ok ... a second bulb for this node
                 if (res != "")
@@ -1881,7 +1882,7 @@ wxString GenerateCustomModelDialog::GetMultiBulbNodes()
                     res += ", ";
                 }
                 res += wxString::Format("%d", it->GetNum());
-                current++;
+                last = it->GetNum();
             }
             else if (it->GetNum() > current)
             {
