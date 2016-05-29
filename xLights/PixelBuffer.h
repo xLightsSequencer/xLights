@@ -30,7 +30,6 @@
 #include "models/SingleLineModel.h"
 #include "RenderBuffer.h"
 #include "ValueCurve.h"
-#include "RotoZoom.h"
 
 /**
  * \brief enumeration of the different techniques used in layering effects
@@ -67,6 +66,12 @@ private:
     public:
         LayerInfo(xLightsFrame *frame, bool onlyOnMain) : buffer(frame, onlyOnMain) {
 			blur = 0;
+            rotation = 0.0f;
+            rotations = 0;
+            zoom = 1.0f;
+            zoomquality = 1;
+            pivotpointx = 50;
+            pivotpointy = 50;
             sparkle_count = 0;
             music_sparkle_count = false;
             brightness = 0;
@@ -87,15 +92,30 @@ private:
         std::string bufferTransform;
         std::string subBuffer;
         std::string blurValueCurve;
+        std::string rotationValueCurve;
+        std::string zoomValueCurve;
+        std::string rotationsValueCurve;
+        std::string pivotpointxValueCurve;
+        std::string pivotpointyValueCurve;
         std::string rotoZoom;
         int BufferHt;
         int BufferWi;
         ValueCurve BlurValueCurve;
-        RotoZoomParms RotoZoom;
+        ValueCurve RotationValueCurve;
+        ValueCurve ZoomValueCurve;
+        ValueCurve RotationsValueCurve;
+        ValueCurve PivotPointXValueCurve;
+        ValueCurve PivotPointYValueCurve;
         std::vector<NodeBaseClassPtr> Nodes;
         int sparkle_count;
         bool music_sparkle_count;
 		int blur;
+        int rotation;
+        float rotations;
+        float zoom;
+        int zoomquality;
+        int pivotpointx;
+        int pivotpointy;
         int brightness;
         int contrast;
         double fadeFactor;

@@ -29,7 +29,7 @@
 #include "models/SingleLineModel.h"
 #include "UtilClasses.h"
 #include "AudioManager.h"
-#include "RotoZoom.h"
+#include <log4cpp/Category.hh>
 
 #include <random>
 
@@ -84,7 +84,11 @@ void PixelBufferClass::reset(int nlayers, int timing)
         layers[x]->bufferTransform = "None";
         layers[x]->subBuffer = "";
         layers[x]->blurValueCurve = "";
-        layers[x]->rotoZoom = "";
+        layers[x]->rotationValueCurve = "";
+        layers[x]->zoomValueCurve = "";
+        layers[x]->rotationsValueCurve = "";
+        layers[x]->pivotpointxValueCurve = "";
+        layers[x]->pivotpointyValueCurve = "";
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi);
     }
 }
@@ -488,7 +492,7 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
             }
 
             // add sparkles
-            if ((layers[layer]->music_sparkle_count > 0 || layers[layer]->sparkle_count > 0) && color != xlBLACK)
+            if ((layers[layer]->music_sparkle_count || layers[layer]->sparkle_count > 0) && color != xlBLACK)
             {
                 int sc = layers[layer]->sparkle_count;
                 if (layers[layer]->music_sparkle_count && layers[layer]->buffer.GetMedia() != NULL)
@@ -647,13 +651,23 @@ static const std::string CHECKBOX_LayerMorph("CHECKBOX_LayerMorph");
 static const std::string TEXTCTRL_Fadein("TEXTCTRL_Fadein");
 static const std::string TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
 static const std::string SLIDER_EffectBlur("SLIDER_EffectBlur");
+static const std::string SLIDER_Zoom("SLIDER_Zoom");
+static const std::string SLIDER_Rotation("SLIDER_Rotation");
+static const std::string SLIDER_Rotations("SLIDER_Rotations");
+static const std::string SLIDER_ZoomQuality("SLIDER_ZoomQuality");
+static const std::string SLIDER_PivotPointX("SLIDER_PivotPointX");
+static const std::string SLIDER_PivotPointY("SLIDER_PivotPointY");
 
 static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
 static const std::string CHOICE_BufferTransform("CHOICE_BufferTransform");
 static const std::string CUSTOM_SubBuffer("CUSTOM_SubBuffer");
-static const std::string CUSTOM_RotoZoom("CUSTOM_RotoZoom");
 static const std::string VALUECURVE_Blur("VALUECURVE_Blur");
+static const std::string VALUECURVE_Zoom("VALUECURVE_Zoom");
+static const std::string VALUECURVE_Rotation("VALUECURVE_Rotation");
+static const std::string VALUECURVE_Rotations("VALUECURVE_Rotations");
+static const std::string VALUECURVE_PivotPointX("VALUECURVE_PivotPointX");
+static const std::string VALUECURVE_PivotPointY("VALUECURVE_PivotPointY");
 static const std::string STR_DEFAULT("Default");
 static const std::string STR_EMPTY("");
 
@@ -682,14 +696,54 @@ void ComputeBlurValueCurve(const std::string& blurValueCurve, ValueCurve& BlurVa
     BlurValueCurve.Deserialise(blurValueCurve);
 }
 
-void ComputeRotoZoom(const std::string& rotoZoom, RotoZoomParms& RotoZoom, wxSize size)
+void ComputeZoomValueCurve(const std::string& zoomValueCurve, ValueCurve& ZoomValueCurve)
 {
-    if (rotoZoom == STR_EMPTY) {
-        RotoZoom.SetDefault(size);
+    if (zoomValueCurve == STR_EMPTY) {
+        ZoomValueCurve.SetDefault();
         return;
     }
 
-    RotoZoom.Deserialise(rotoZoom);
+    ZoomValueCurve.Deserialise(zoomValueCurve);
+}
+
+void ComputeRotationValueCurve(const std::string& rotationValueCurve, ValueCurve& RotationValueCurve)
+{
+    if (rotationValueCurve == STR_EMPTY) {
+        RotationValueCurve.SetDefault();
+        return;
+    }
+
+    RotationValueCurve.Deserialise(rotationValueCurve);
+}
+
+void ComputeRotationsValueCurve(const std::string& rotationsValueCurve, ValueCurve& RotationsValueCurve)
+{
+    if (rotationsValueCurve == STR_EMPTY) {
+        RotationsValueCurve.SetDefault();
+        return;
+    }
+
+    RotationsValueCurve.Deserialise(rotationsValueCurve);
+}
+
+void ComputePivotPointXValueCurve(const std::string& pivotpointxValueCurve, ValueCurve& PivotPointXValueCurve)
+{
+    if (pivotpointxValueCurve == STR_EMPTY) {
+        PivotPointXValueCurve.SetDefault();
+        return;
+    }
+
+    PivotPointXValueCurve.Deserialise(pivotpointxValueCurve);
+}
+
+void ComputePivotPointYValueCurve(const std::string& pivotpointyValueCurve, ValueCurve& PivotPointYValueCurve)
+{
+    if (pivotpointyValueCurve == STR_EMPTY) {
+        PivotPointYValueCurve.SetDefault();
+        return;
+    }
+
+    PivotPointYValueCurve.Deserialise(pivotpointyValueCurve);
 }
 
 void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) {
@@ -742,6 +796,12 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->outTransitionReverse = settingsMap.GetBool(CHECKBOX_Out_Transition_Reverse);
 
     inf->blur = settingsMap.GetInt(SLIDER_EffectBlur, 1);
+    inf->rotation = settingsMap.GetInt(SLIDER_Rotation, 0);
+    inf->rotations = (float)settingsMap.GetInt(SLIDER_Rotations, 0) / 10.0f;
+    inf->zoom = (float)settingsMap.GetInt(SLIDER_Zoom, 10) / 10.0f;
+    inf->zoomquality = settingsMap.GetInt(SLIDER_ZoomQuality, 1);
+    inf->pivotpointx = settingsMap.GetInt(SLIDER_PivotPointX, 50);
+    inf->pivotpointy = settingsMap.GetInt(SLIDER_PivotPointY, 50);
     inf->sparkle_count = settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
     inf->music_sparkle_count = settingsMap.GetBool(CHECKBOX_MusicSparkles, false);
 
@@ -758,20 +818,32 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
     const std::string &subBuffer = settingsMap.Get(CUSTOM_SubBuffer, STR_EMPTY);
     const std::string &blurValueCurve = settingsMap.Get(VALUECURVE_Blur, STR_EMPTY);
-    const std::string &rotoZoom = settingsMap.Get(CUSTOM_RotoZoom, STR_EMPTY);
+    const std::string &rotationValueCurve = settingsMap.Get(VALUECURVE_Rotation, STR_EMPTY);
+    const std::string &zoomValueCurve = settingsMap.Get(VALUECURVE_Zoom, STR_EMPTY);
+    const std::string &rotationsValueCurve = settingsMap.Get(VALUECURVE_Rotations, STR_EMPTY);
+    const std::string &pivotpointxValueCurve = settingsMap.Get(VALUECURVE_PivotPointX, STR_EMPTY);
+    const std::string &pivotpointyValueCurve = settingsMap.Get(VALUECURVE_PivotPointY, STR_EMPTY);
 
-    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve || inf->rotoZoom != rotoZoom)
+    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve || inf->zoomValueCurve != zoomValueCurve || inf->rotationValueCurve != rotationValueCurve || inf->rotationsValueCurve != rotationsValueCurve || inf->pivotpointxValueCurve != pivotpointxValueCurve || inf->pivotpointyValueCurve != pivotpointyValueCurve)
     {
         inf->Nodes.clear();
         model->InitRenderBufferNodes(type, transform, inf->Nodes, inf->BufferWi, inf->BufferHt);
         ComputeSubBuffer(subBuffer, inf->Nodes, inf->BufferWi, inf->BufferHt);
         ComputeBlurValueCurve(blurValueCurve, inf->BlurValueCurve);
-        ComputeRotoZoom(rotoZoom, inf->RotoZoom, wxSize(inf->BufferWi, inf->BufferHt));
+        ComputeRotationValueCurve(rotationValueCurve, inf->RotationValueCurve);
+        ComputeZoomValueCurve(zoomValueCurve, inf->ZoomValueCurve);
+        ComputeRotationsValueCurve(rotationsValueCurve, inf->RotationsValueCurve);
+        ComputePivotPointXValueCurve(pivotpointxValueCurve, inf->PivotPointXValueCurve);
+        ComputePivotPointYValueCurve(pivotpointyValueCurve, inf->PivotPointYValueCurve);
         inf->bufferType = type;
         inf->bufferTransform = transform;
         inf->subBuffer = subBuffer;
         inf->blurValueCurve = blurValueCurve;
-        inf->rotoZoom = rotoZoom;
+        inf->zoomValueCurve = zoomValueCurve;
+        inf->rotationValueCurve = rotationValueCurve;
+        inf->rotationsValueCurve = rotationsValueCurve;
+        inf->pivotpointxValueCurve = pivotpointxValueCurve;
+        inf->pivotpointyValueCurve = pivotpointyValueCurve;
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi);
     }
 }
@@ -811,23 +883,85 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 
 void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
 {
+    const float PI_2 = 6.283185307f;
     xlColor c;
-    wxSize size(layer->BufferWi, layer->BufferHt);
     RenderBuffer orig(layer->buffer);
-    layer->buffer.Clear(xlBLACK);
-    int q = layer->RotoZoom.GetQuality();
-    float inc = 1.0 / (float)q;
-    for (int x = 0; x < layer->BufferWi; x++)
+    int q = layer->zoomquality;
+    int cx = layer->pivotpointx;
+    if (layer->PivotPointXValueCurve.IsActive())
     {
-        for (int i = 0; i < q; i++)
+        cx = layer->PivotPointXValueCurve.GetOutputValueAt(offset);
+    }
+    int cy = layer->pivotpointy;
+    if (layer->PivotPointYValueCurve.IsActive())
+    {
+        cy = layer->PivotPointYValueCurve.GetOutputValueAt(offset);
+    }
+    float inc = 1.0 / (float)q;
+
+    float rotations = layer->rotations;
+    if (layer->RotationsValueCurve.IsActive())
+    {
+        rotations = layer->RotationsValueCurve.GetOutputValueAt(offset);
+    }
+
+    float rotationoffset = offset;
+    float offsetperrotation = 1.0f;
+    if (rotations > 0)
+    {
+        offsetperrotation = 1.0f / rotations;
+    }
+    while (rotationoffset > offsetperrotation)
+    {
+        rotationoffset -= offsetperrotation;
+    }
+    rotationoffset *= rotations;
+
+    float rotation = (float)layer->rotation / 100.0;
+    if (rotations > 0)
+    {
+        if (layer->RotationValueCurve.IsActive())
         {
-            for (int y = 0; y < layer->BufferHt; y++)
+            rotation = layer->RotationValueCurve.GetValueAt(rotationoffset);
+        }
+    }
+    float angle = PI_2 * -rotation;
+    float xoff = (cx * layer->buffer.BufferWi) / 100.0;
+    float yoff = (cy * layer->BufferHt) / 100.0;
+    float anglecos = cos(-angle);
+    float anglesin = sin(-angle);
+
+    float zoom = layer->zoom;
+    if (layer->ZoomValueCurve.IsActive())
+    {
+        zoom = layer->ZoomValueCurve.GetOutputValueAt(offset);
+    }
+
+    if (rotation != 0.0 || zoom != 1.0)
+    {
+        layer->buffer.Clear(xlBLACK);
+        for (int x = 0; x < layer->BufferWi; x++)
+        {
+            for (int i = 0; i < q; i++)
             {
-                orig.GetPixel(x, y, c);
-                for (int j = 0; j < q; j++)
+                for (int y = 0; y < layer->BufferHt; y++)
                 {
-                    wxPoint p = layer->RotoZoom.GetTransform((float)x + ((float)i * inc), (float)y + ((float)j * inc), offset, size);
-                    layer->buffer.SetPixel(p.x, p.y, c);
+                    orig.GetPixel(x, y, c);
+                    for (int j = 0; j < q; j++)
+                    {
+                        float xx = (float)x + ((float)i * inc) - xoff;
+                        float yy = (float)y + ((float)j * inc) - yoff;
+                        float u = xoff + anglecos * xx * zoom + anglesin * yy * zoom;
+                        if (u >= 0 && u < layer->BufferWi)
+                        {
+                            float v = yoff + -anglesin * xx * zoom + anglecos * yy * zoom;
+
+                            if (v >= 0 && v < layer->BufferHt)
+                            {
+                                layer->buffer.SetPixel(u, v, c);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -843,19 +977,17 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
     // blur all the layers if necessary ... before the merge?
     for (int layer = 0; layer < numLayers; layer++)
     {
+        int effStartPer, effEndPer;
+        layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
+        float offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
+        offset = std::min(offset, 1.0f);
+
         // do gausian blur
         if (layers[layer]->BlurValueCurve.IsActive() || layers[layer]->blur > 1)
         {
-            int effStartPer, effEndPer;
-            layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
-            Blur(layers[layer], ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer));
+            Blur(layers[layer], offset);
         }
-        if (layers[layer]->RotoZoom.IsActive())
-        {
-            int effStartPer, effEndPer;
-            layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
-            RotoZoom(layers[layer], ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer));
-        }
+        RotoZoom(layers[layer], offset);
     }
 
     for(int ii=0; ii < numLayers; ii++)
@@ -1172,8 +1304,8 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
         startradians = startradians - currentradians;
         currentradians = tmp;
         if (startradians < 0) {
-            startradians += 2.0f * M_PI;
-            currentradians += 2.0f * M_PI;
+            startradians += 2.0f * (float)M_PI;
+            currentradians += 2.0f * (float)M_PI;
         }
     } else {
         currentradians = startradians + currentradians;
@@ -1195,10 +1327,10 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
             }
             if (radianspixel < 0)
             {
-                radianspixel += 2.0f * M_PI;
+                radianspixel += 2.0f * (float)M_PI;
             }
-            if (currentradians > 2.0f * M_PI && radianspixel < startradians) {
-                radianspixel += 2.0f * M_PI;
+            if (currentradians > 2.0f * (float)M_PI && radianspixel < startradians) {
+                radianspixel += 2.0f * (float)M_PI;
             }
             
             bool s_lt_p = radianspixel > startradians;
@@ -1399,7 +1531,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
         int blind = y / per;
         for (int x = 0; x < BufferWi; x++) {
             int xpos = x;
-            if (blind % 2 == out) {
+            if ((blind % 2 == 1) == out) {
                 xpos = BufferWi - x - 1;
             }
             mask[xpos * BufferHt + y] = x <= step ? m2 : m1;
