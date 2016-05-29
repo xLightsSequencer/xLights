@@ -2113,7 +2113,6 @@ void GenerateCustomModelDialog::FindLights(const wxImage& bwimage, int num, cons
         logger_gcm.info("    Node %d found %d bulbs ... but not added.", num, found.size());
     }
 
-    //_biFrame = CreateDetectMask(_startFrame, true, _clip);
     _biFrame = CreateDetectMask(frame, true, _clip);
     ShowImage(_biFrame);
 }
@@ -2348,6 +2347,7 @@ wxSize GenerateCustomModelDialog::CalcSize()
         best = curr;
         curr = curr - 0.1f;
     }
+    curr = best;
     float start = curr;
     curr = curr - 0.01;
     while (curr > start && TestScale(_lights, _lights.begin(), curr, _trim))
