@@ -15,7 +15,7 @@
 #include "../include/valuecurvenotselected.xpm"
 #include "ValueCurveDialog.h"
 #include "SubBufferPanel.h"
-#include "BufferTransformProperties.h"
+//#include "BufferTransformProperties.h"
 
 //(*IdInit(BufferPanel)
 const long BufferPanel::ID_CHOICE_BufferStyle = wxNewId();
@@ -151,6 +151,8 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&BufferPanel::OnVCChanged, 0, this);
 
     BitmapButton_Blur->GetValue()->SetLimits(1, 15);
+    BitmapButton_Rotation->GetValue()->SetLimits(0, 100);
+    BitmapButton_Zoom->GetValue()->SetLimits(0, 300);
 
     subBufferPanel = new SubBufferPanel(BufferScrollWindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
     SubBufferPanelSizer->Add(subBufferPanel, 1, wxALL|wxEXPAND, 2);
@@ -223,6 +225,45 @@ wxString BufferPanel::GetBufferString() {
             s += wxString::Format("B_SLIDER_EffectBlur=%d,", Slider_EffectBlur->GetValue());
         }
     }
+    if (BitmapButton_Rotation->GetValue()->IsActive())
+    {
+        wxString rotationVC = wxString(BitmapButton_Rotation->GetValue()->Serialise().c_str());
+        if (rotationVC.size() > 0)
+        {
+            s += "B_VALUECURVE_Rotation=";
+            s += rotationVC;
+            s += ",";
+        }
+    }
+    else
+    {
+        // Blur
+        if (Slider_EffectRotation->GetValue() > 0) {
+            s += wxString::Format("B_SLIDER_EffectRotation=%d,", Slider_EffectRotation->GetValue());
+        }
+    }
+    if (BitmapButton_Zoom->GetValue()->IsActive())
+    {
+        wxString zoomVC = wxString(BitmapButton_Zoom->GetValue()->Serialise().c_str());
+        if (zoomVC.size() > 0)
+        {
+            s += "B_VALUECURVE_Zoom=";
+            s += zoomVC;
+            s += ",";
+        }
+    }
+    else
+    {
+        if (Slider_EffectZoom->GetValue() != 10) {
+            s += wxString::Format("B_SLIDER_EffectZoom=%d,", Slider_EffectBlur->GetValue());
+        }
+    }
+    if (Slider_EffectRotations->GetValue() != 0) {
+        s += wxString::Format("B_SLIDER_EffectRotations=%d,", Slider_EffectRotations->GetValue());
+    }
+    if (Slider_EffectZoomQuality->GetValue() != 1) {
+        s += wxString::Format("B_SLIDER_ZoomQuality=%d,", Slider_EffectZoomQuality->GetValue());
+    }
     return s;
 }
 
@@ -247,6 +288,18 @@ void BufferPanel::SetDefaultControls(const Model *model) {
     BufferTransform->SetSelection(0);
     BitmapButton_Blur->GetValue()->SetDefault(1.0f, 15.0f);
     BitmapButton_Blur->UpdateState();
+    Slider_EffectRotation->SetValue(0);
+    TextCtrl_EffectRotation->SetValue("0.00");
+    BitmapButton_Rotation->GetValue()->SetDefault(0.0f, 1.0f);
+    BitmapButton_Rotation->UpdateState();
+    Slider_EffectZoom->SetValue(1);
+    TextCtrl_EffectZoom->SetValue("1");
+    BitmapButton_Zoom->GetValue()->SetDefault(0.0f, 3.0f);
+    BitmapButton_Zoom->UpdateState();
+    Slider_EffectRotations->SetValue(0);
+    TextCtrl_EffectRotations->SetValue("0.0");
+    Slider_EffectZoomQuality->SetValue(1);
+    TextCtrl_EffectZoomQuality->SetValue("1");
     ValidateWindow();
     wxSizeEvent evt;
     OnResize(evt);
@@ -281,6 +334,28 @@ void BufferPanel::OnBitmapButton_BlurClick(wxCommandEvent& event)
     }
 }
 
+void BufferPanel::OnBitmapButton_RotationClick(wxCommandEvent& event)
+{
+    BitmapButton_Rotation->ToggleActive();
+    ValidateWindow();
+    if (BitmapButton_Rotation->GetValue()->IsActive())
+    {
+        ValueCurveDialog vcd(this, BitmapButton_Rotation->GetValue());
+        vcd.ShowModal();
+    }
+}
+
+void BufferPanel::OnBitmapButton_ZoomClick(wxCommandEvent& event)
+{
+    BitmapButton_Zoom->ToggleActive();
+    ValidateWindow();
+    if (BitmapButton_Zoom->GetValue()->IsActive())
+    {
+        ValueCurveDialog vcd(this, BitmapButton_Rotation->GetValue());
+        vcd.ShowModal();
+    }
+}
+
 void BufferPanel::ValidateWindow()
 {
     if (BitmapButton_Blur->GetValue()->IsActive())
@@ -294,13 +369,26 @@ void BufferPanel::ValidateWindow()
         TextCtrl_EffectBlur->Enable();
     }
 
-    if (BufferTransform->GetStringSelection() == "Roto-Zoom")
+    if (BitmapButton_Rotation->GetValue()->IsActive())
     {
-        Button_Properties->Enable();
+        Slider_EffectRotation->Disable();
+        TextCtrl_EffectRotation->Disable();
     }
     else
     {
-        Button_Properties->Disable();
+        Slider_EffectRotation->Enable();
+        TextCtrl_Effectotation->Enable();
+    }
+
+    if (BitmapButton_Zoom->GetValue()->IsActive())
+    {
+        Slider_EffectZoom->Disable();
+        TextCtrl_EffectZoom->Disable();
+    }
+    else
+    {
+        Slider_EffectZoom->Enable();
+        TextCtrl_EffectZoom->Enable();
     }
 }
 
@@ -313,21 +401,25 @@ void BufferPanel::OnSlider_EffectBlurCmdSliderUpdated(wxScrollEvent& event)
     }
 }
 
-void BufferPanel::OnBufferTransformSelect(wxCommandEvent& event)
+void BufferPanel::OnSlider_EffectRotationCmdSliderUpdated(wxScrollEvent& event)
 {
-    if (BufferTransform->GetStringSelection() == "Roto-Zoom")
+    UpdateLinkedTextCtrl(event);
+    if (BitmapButton_Rotation->GetValue()->GetType() == "Flat")
     {
-        Button_Properties->GetValue()->SetActive(true);
+        BitmapButton_Rotation->GetValue()->SetParameter1(Slider_EffectRotation->GetValue());
     }
-    else
-    {
-        Button_Properties->GetValue()->SetActive(false);
-    }
-    ValidateWindow();
 }
 
-void BufferPanel::OnButton_PropertiesClick(wxCommandEvent& event)
+void BufferPanel::OnSlider_EffectZoomCmdSliderUpdated(wxScrollEvent& event)
 {
-    BufferTransformProperties dlg(this, Button_Properties->GetValue());
-    dlg.ShowModal();
+    UpdateLinkedTextCtrl(event);
+    if (BitmapButton_Zoom->GetValue()->GetType() == "Flat")
+    {
+        BitmapButton_Zoom->GetValue()->SetParameter1(Slider_EffectZoom->GetValue());
+    }
+}
+
+void BufferPanel::OnBufferTransformSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

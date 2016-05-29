@@ -17,58 +17,58 @@
 #include "ValueCurve.h"
 #include "ValueCurveButton.h"
 #include <string>
-#include "RotoZoom.h"
+//#include "RotoZoom.h"
 
 class Model;
 class SubBufferPanel;
 
-class RotoZoomButton :
-    public wxButton
-{
-    RotoZoomParms* _parms;
-public:
-    RotoZoomButton(wxWindow *parent,
-        wxWindowID id,
-        const wxString& label = wxEmptyString,
-        const wxPoint& pos = wxDefaultPosition,
-        const wxSize& size = wxDefaultSize,
-        long style = wxBU_AUTODRAW,
-        const wxValidator& validator = wxDefaultValidator,
-        const wxString& name = wxButtonNameStr) : wxButton(parent, id, label, pos, size, style, validator, name)
-    {
-        _parms = new RotoZoomParms(name.ToStdString());
-    }
-    ~RotoZoomButton()
-    {
-        if (_parms != NULL)
-        {
-            delete _parms;
-        }
-    }
-    virtual void SetValue(const std::string &val)
-    {
-        SetValue(wxString(val.c_str()));
-    }
-    virtual void SetValue(const wxString& value)
-    {
-        _parms->Deserialise(value.ToStdString());
-    }
-    RotoZoomParms* GetValue()
-    {
-        return _parms;
-    }
-};
+//class RotoZoomButton :
+//    public wxButton
+//{
+//    RotoZoomParms* _parms;
+//public:
+//    RotoZoomButton(wxWindow *parent,
+//        wxWindowID id,
+//        const wxString& label = wxEmptyString,
+//        const wxPoint& pos = wxDefaultPosition,
+//        const wxSize& size = wxDefaultSize,
+//        long style = wxBU_AUTODRAW,
+//        const wxValidator& validator = wxDefaultValidator,
+//        const wxString& name = wxButtonNameStr) : wxButton(parent, id, label, pos, size, style, validator, name)
+//    {
+//        _parms = new RotoZoomParms(name.ToStdString());
+//    }
+//    ~RotoZoomButton()
+//    {
+//        if (_parms != NULL)
+//        {
+//            delete _parms;
+//        }
+//    }
+//    virtual void SetValue(const std::string &val)
+//    {
+//        SetValue(wxString(val.c_str()));
+//    }
+//    virtual void SetValue(const wxString& value)
+//    {
+//        _parms->Deserialise(value.ToStdString());
+//    }
+//    RotoZoomParms* GetValue()
+//    {
+//        return _parms;
+//    }
+//};
 
 class BufferPanel: public wxPanel
 {
     void ValidateWindow();
     void OnVCChanged(wxCommandEvent& event);
 
-    int _zooms;
-    int _rotations;
-    int _zoommaximum;
-    int _xcenter;
-    int _ycenter;
+    //int _zooms;
+    //int _rotations;
+    //int _zoommaximum;
+    //int _xcenter;
+    //int _ycenter;
 public:
 
 		BufferPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
