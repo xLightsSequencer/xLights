@@ -181,6 +181,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	FlexGridSizerPreview->SetSizeHints(this);
 
 	Connect(ID_CHECKLISTBOX_MODEL_GROUPS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnListBoxModelGroupsItemSelect);
+	Connect(ID_CHECKLISTBOX_MODEL_GROUPS,wxEVT_COMMAND_LIST_ITEM_DESELECTED,(wxObjectEventFunction)&LayoutPanel::OnListBoxModelGroupsItemDeselect);
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListItemSelect);
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListItemRClick);
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListColumnClick);
@@ -549,6 +550,7 @@ void LayoutPanel::AddModelGroupItem(wxString name, ModelGroup *grp, bool selecte
 void LayoutPanel::UpdateModelGroupList()
 {
     ListBoxModelGroups->ClearAll();
+    mNumGroupsFiltered = 0;
 
 	wxListItem col0;
 	col0.SetId(0);
@@ -574,6 +576,9 @@ void LayoutPanel::UpdateModelGroupList()
         if (model->GetDisplayAs() == "ModelGroup") {
             ModelGroup *grp = (ModelGroup*)model;
             AddModelGroupItem(it->first, grp, grp->IsSelected());
+            if( grp->IsSelected() ) {
+                mNumGroupsFiltered++;
+            }
         }
     }
 
@@ -615,6 +620,9 @@ void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
         ListBoxModelGroups->SetChecked(ALL_MODELS_GROUP, false);
         xlights->UpdateModelsList(false);
     } else {
+        if( !checked ) {
+            mNumGroupsFiltered--;
+        }
         mDisplayAllModels = false;
         mDisplayMyDisplay = false;
         ListBoxModelGroups->SetChecked(MY_DISPLAY_GROUP, false);
@@ -1079,11 +1087,14 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
             if (grp != nullptr) {
                 grp->AddModel(newModel->name);
                 model_grp_panel->UpdatePanel(sel.ToStdString());
-                if( !(ListBoxModelGroups->IsChecked(mSelectedGroup) || mDisplayAllModels || mDisplayMyDisplay) ) {
-                    std::string msg = "Model was added to selected group which is currently hidden!\n";
+                if( !ListBoxModelGroups->IsChecked(mSelectedGroup) && !mDisplayAllModels && !mDisplayMyDisplay && mNumGroupsFiltered > 0 ) {
+                    std::string msg = wxString::Format("Model was added to selected group (%s) which is currently hidden!\n", grp->name).ToStdString();
                     wxMessageBox(msg);
                 }
             }
+        } else if( !mDisplayAllModels && !mDisplayMyDisplay && mNumGroupsFiltered > 0 ) {
+            std::string msg = "Model was added but group filtering prevents it from being visible!\n";
+            wxMessageBox(msg);
         }
 
         m_over_handle = -1;
@@ -2105,6 +2116,11 @@ void LayoutPanel::OnListBoxModelGroupsItemSelect(wxListEvent& event)
         }
         resetPropertyGrid();
     }
+}
+
+void LayoutPanel::OnListBoxModelGroupsItemDeselect(wxListEvent& event)
+{
+    mSelectedGroup = -1;
 }
 
 void LayoutPanel::DeselectModelGroupList()

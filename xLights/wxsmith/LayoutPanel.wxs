@@ -31,6 +31,7 @@
 										<object class="wxListCtrl" name="ID_CHECKLISTBOX_MODEL_GROUPS" subclass="wxCheckedListCtrl" variable="ListBoxModelGroups" member="yes">
 											<style>wxLC_REPORT</style>
 											<handler function="OnListBoxModelGroupsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+											<handler function="OnListBoxModelGroupsItemDeselect" entry="EVT_LIST_ITEM_DESELECTED" />
 										</object>
 										<object class="wxListView" name="ID_LISTBOX_ELEMENT_LIST" variable="ListBoxElementList" member="yes">
 											<pos>50,7</pos>

@@ -113,6 +113,7 @@ class LayoutPanel: public wxPanel
 		void OnListBoxModelGroupsItemFocused(wxListEvent& event);
 		void OnListBoxModelGroupsItemActivated(wxListEvent& event);
 		void OnGroupSplitterSashPosChanged(wxSplitterEvent& event);
+		void OnListBoxModelGroupsItemDeselect(wxListEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
@@ -174,6 +175,7 @@ class LayoutPanel: public wxPanel
         bool mDisplayMyDisplay;
         bool mPropGridActive;
         int mSelectedGroup;
+        int mNumGroupsFiltered;
         wxColour mDefaultSaveBtnColor;
 
         wxPropertyGrid *propertyEditor;
