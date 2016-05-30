@@ -7,6 +7,8 @@
 
 ArchesModel::ArchesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), arc(180)
 {
+    screenLocation.SetModelHandleHeight(true);
+    screenLocation.SetSupportsAngle(true);
     SetFromXml(node, zeroBased);
 }
 
@@ -26,12 +28,12 @@ void ArchesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
-    
+
     p = grid->Append(new wxUIntProperty("Nodes Per Arch", "ArchesNodes", parm2));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
-    
+
     p = grid->Append(new wxUIntProperty("Lights Per Node", "ArchesLights", parm3));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 250);
@@ -39,6 +41,11 @@ void ArchesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxUIntProperty("Arc Degrees", "ArchesArc", arc));
     p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 180);
+    p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxIntProperty("Arch Tilt", "ArchesSkew", screenLocation.GetAngle()));
+    p->SetAttribute("Min", -180 );
     p->SetAttribute("Max", 180);
     p->SetEditor("SpinCtrl");
 
@@ -64,6 +71,11 @@ int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     } else if ("ArchesArc" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("arc");
         ModelXml->AddAttribute("arc", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("ArchesSkew" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("Angle");
+        ModelXml->AddAttribute("Angle", wxString::Format("%d", event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("ArchesStart" == event.GetPropertyName()) {
@@ -92,7 +104,7 @@ void ArchesModel::InitRenderBufferNodes(const std::string &type,  const std::str
     if (type == "Single Line") {
         BufferHi = 1;
         BufferWi = GetNodeCount();
-        
+
         int NumArches=parm1;
         int SegmentsPerArch=parm2;
         int cur = 0;
@@ -118,7 +130,12 @@ void ArchesModel::InitModel() {
     int SegmentsPerArch=parm2;
     arc = wxAtoi(ModelXml->GetAttribute("arc", "180"));
 
-    
+    if (ModelXml->HasAttribute("ArchesSkew")) {
+        ModelXml->DeleteAttribute("ArchesSkew");
+        int skew = wxAtoi(ModelXml->GetAttribute("ArchesSkew", "0"));
+        screenLocation.SetAngle(skew);
+    }
+
     SetBufferSize(NumArches,SegmentsPerArch);
     if (SingleNode) {
         SetNodeCount(NumArches * SegmentsPerArch, parm3,rgbOrder);
@@ -131,7 +148,7 @@ void ArchesModel::InitModel() {
         }
     }
     screenLocation.SetRenderSize(SegmentsPerArch, NumArches);
-    
+
     for (int y=0; y < NumArches; y++) {
         for(int x=0; x<SegmentsPerArch; x++) {
             int idx = y * SegmentsPerArch + x;
@@ -158,6 +175,25 @@ int ArchesModel::CalcCannelsPerString() {
 inline double toRadians(long degrees) {
     return 2.0*M_PI*double(degrees)/360.0;
 }
+
+static void rotate_point(float cx,float cy, float angle, float &x, float &y)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+
+    // translate point back to origin:
+    x -= cx;
+    y -= cy;
+
+    // rotate point
+    float xnew = x * c - y * s;
+    float ynew = x * s + y * c;
+
+    // translate point back:
+    x = xnew + cx;
+    y = ynew + cy;
+}
+
 void ArchesModel::SetArchCoord() {
     double xoffset,x,y;
     size_t NodeCount=GetNodeCount();
@@ -166,11 +202,12 @@ void ArchesModel::SetArchCoord() {
     midpt /= 2.0;
     double total = toRadians(arc);
     double start = (M_PI - total) / 2.0;
-    
+    float skew_angle = toRadians(screenLocation.GetAngle());
+
     double angle=-M_PI/2.0 + start;
     x=midpt*sin(angle)*2.0+parm2*parm3;
     double width = parm2*parm3*2 - x;
-    
+
     double minY = 999999;
     for(size_t n=0; n<NodeCount; n++) {
         xoffset=Nodes[n]->StringNum*width;
@@ -180,7 +217,10 @@ void ArchesModel::SetArchCoord() {
             x=xoffset + midpt*sin(angle)*2.0+parm2*parm3;
             y=(parm2*parm3)*cos(angle);
             Nodes[n]->Coords[c].screenX=x;
-            Nodes[n]->Coords[c].screenY=y;
+            Nodes[n]->Coords[c].screenY=y * screenLocation.GetHeight();
+            rotate_point(x, 0, skew_angle,
+                        Nodes[n]->Coords[c].screenX,
+                        Nodes[n]->Coords[c].screenY);
             minY = std::min(minY, y);
         }
     }

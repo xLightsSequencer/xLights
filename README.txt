@@ -8,15 +8,16 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Add tilt parameter to the Arch model to allow better 3D perspective.  Fixes #250.
    -- enh (keithsw) Add starfield option to meteors implode/explode look more like a starfield
    -- enh (keithsw) Add autosave to .working.xml files ... saves every 3 minutes as long as the sequence is not playing
    -- enh (keithsw) Zoom and rotate added to buffer panel including value curves for most parameters
    -- enh (keithsw) Blur Value Curve Added
 2016.33  May 25, 2016
-   -- bug (dkulp) Maybe fix #571?   Don't post the event, call directly.  
+   -- bug (dkulp) Maybe fix #571?   Don't post the event, call directly.
    -- bug (dkulp) don't draw the grid and then immediately refresh anyway.
    -- bug (dkulp) Log a few more opengl things, Force GDI driver down to 1.x
-   -- enh (keithsw) General import improvements: filename in title bar, warnings 
+   -- enh (keithsw) General import improvements: filename in title bar, warnings
              if you have not saved mapping and the ability to suppress excessive error messages.
    -- enh (keithsw) Improved xLights sequence import.
    -- enh (gil)   Add right-click delete model option in layout list.
