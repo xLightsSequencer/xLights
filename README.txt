@@ -8,6 +8,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Restructure how model groups are handled by providing a panel for them and allowing the
+                    members of the group to be managed in the property grid area.
    -- enh (gil)     Add tilt parameter to the Arch model to allow better 3D perspective.  Fixes #250.
    -- enh (keithsw) Add starfield option to meteors implode/explode look more like a starfield
    -- enh (keithsw) Add autosave to .working.xml files ... saves every 3 minutes as long as the sequence is not playing
