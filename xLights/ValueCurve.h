@@ -57,6 +57,7 @@ class ValueCurve
     float _parameter3;
     float _parameter4;
     bool _active;
+    bool _wrap;
 
     void RenderType();
     void SetSerialisedValue(std::string k, std::string s);
@@ -65,8 +66,8 @@ class ValueCurve
 
 public:
     ValueCurve() { ValueCurve(""); };
-    ValueCurve(const std::string& id, float min = 0.0f, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f);
-    void SetDefault(float min = 0.0f, float max = 100.0f);
+    ValueCurve(const std::string& id, float min = 0.0f, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false);
+    void SetDefault(float min = -9.1234f, float max = -9.1234f);
     std::string Serialise();
     bool IsOk() { return _id != ""; }
     void Deserialise(std::string s);
@@ -87,10 +88,12 @@ public:
     void SetParameter2(float parameter2) { _parameter2 = SafeParameter(2, parameter2); RenderType(); }
     void SetParameter3(float parameter3) { _parameter3 = SafeParameter(3, parameter3); RenderType(); }
     void SetParameter4(float parameter4) { _parameter4 = SafeParameter(4, parameter4); RenderType(); }
+    void SetWrap(bool wrap) { _wrap = wrap; RenderType(); }
     float GetParameter1() { return _parameter1; }
     float GetParameter2() { return _parameter2; }
     float GetParameter3() { return _parameter3; }
     float GetParameter4() { return _parameter4; }
+    bool GetWrap() { return _wrap; }
     std::string GetType() { return _type; }
     std::list<vcSortablePoint> GetPoints() { return _values; }
     void RemoveExcessCustomPoints();

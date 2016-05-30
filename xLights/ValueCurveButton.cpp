@@ -25,6 +25,12 @@ ValueCurveButton::~ValueCurveButton()
     }
 }
 
+void ValueCurveButton::SetActive(bool active)
+{
+    _vc->SetActive(active);
+    UpdateState();
+}
+
 void ValueCurveButton::ToggleActive()
 {
     _vc->ToggleActive();

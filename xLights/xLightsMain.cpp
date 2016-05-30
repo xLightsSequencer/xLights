@@ -375,6 +375,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
     _fps = -1;
+    mCurrentPerpective = NULL;
 
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 

@@ -26,6 +26,7 @@ public:
     void SetLimits(float min, float max);
     ValueCurve* GetValue();
     void ToggleActive();
+    void SetActive(bool active);
     void UpdateState();
 };
 

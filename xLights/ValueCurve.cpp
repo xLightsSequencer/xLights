@@ -71,7 +71,19 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            _values.push_back(vcSortablePoint(i, Safe01(a * (i - 0.5f) * (i - 0.5f) + (float)_parameter2 / 100.0)));
+            float y = a * (i - 0.5f) * (i - 0.5f) + (float)_parameter2 / 100.0;
+            if (_wrap)
+            {
+                while (y > 1.0f)
+                {
+                    y -= 1.0f;
+                }
+                while (y < 0.0f)
+                {
+                    y += 1.0f;
+                }
+            }
+            _values.push_back(vcSortablePoint(i, Safe01(y)));
         }
     }
     else if (_type == "Parabolic Up")
@@ -87,7 +99,19 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            _values.push_back(vcSortablePoint(i, Safe01(a * (i - 0.5f) * (i - 0.5f) + (float)_parameter2 / 100.0)));
+            float y = a * (i - 0.5f) * (i - 0.5f) + (float)_parameter2 / 100.0;
+            if (_wrap)
+            {
+                while (y > 1.0f)
+                {
+                    y -= 1.0f;
+                }
+                while (y < 0.0f)
+                {
+                    y += 1.0f;
+                }
+            }
+            _values.push_back(vcSortablePoint(i, Safe01(y)));
         }
     }
     else if (_type == "Logarithmic Up")
@@ -102,7 +126,19 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter2 - 50.0) / 50.0 + log(a + a*i)+1.0f)));
+            float y = ((float)_parameter2 - 50.0) / 50.0 + log(a + a*i) + 1.0f;
+            if (_wrap)
+            {
+                while (y > 1.0f)
+                {
+                    y -= 1.0f;
+                }
+                while (y < 0.0f)
+                {
+                    y += 1.0f;
+                }
+            }
+            _values.push_back(vcSortablePoint(i, Safe01(y)));
         }
     }
     else if (_type == "Logarithmic Down")
@@ -117,7 +153,19 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter2 - 50.0) / 50.0 + 1.5f + -1 * exp2(a * i - 1.0f))));
+            float y = ((float)_parameter2 - 50.0) / 50.0 + 1.5f + -1 * exp2(a * i - 1.0f);
+            if (_wrap)
+            {
+                while (y > 1.0f)
+                {
+                    y -= 1.0f;
+                }
+                while (y < 0.0f)
+                {
+                    y += 1.0f;
+                }
+            }
+            _values.push_back(vcSortablePoint(i, Safe01(y)));
         }
     }
     else if (_type == "Exponential Up")
@@ -132,7 +180,19 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter2 - 50.0) / 50.0 + (exp(a*i) - 1.0) / (exp(a) - 1.0))));
+            float y = ((float)_parameter2 - 50.0) / 50.0 + (exp(a*i) - 1.0) / (exp(a) - 1.0);
+            if (_wrap)
+            {
+                while (y > 1.0f)
+                {
+                    y -= 1.0f;
+                }
+                while (y < 0.0f)
+                {
+                    y += 1.0f;
+                }
+            }
+            _values.push_back(vcSortablePoint(i, Safe01(y)));
         }
     }
     else if (_type == "Exponential Down")
@@ -147,7 +207,19 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter2 - 50.0) / 50.0 + 1.0 - (exp(a*i) - 1.0) / (exp(a) - 1.0))));
+            float y = ((float)_parameter2 - 50.0) / 50.0 + 1.0 - (exp(a*i) - 1.0) / (exp(a) - 1.0);
+            if (_wrap)
+            {
+                while (y > 1.0f)
+                {
+                    y -= 1.0f;
+                }
+                while (y < 0.0f)
+                {
+                    y += 1.0f;
+                }
+            }
+            _values.push_back(vcSortablePoint(i, Safe01(y)));
         }
     }
     else if (_type == "Sine")
@@ -162,7 +234,19 @@ void ValueCurve::RenderType()
         {
             if (i > 1.0) i = 1.0;
             float r = i * maxx + (((float)_parameter1 * pi2) / 100.0f);
-            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter4 - 50.0) / 50.0 + (sin(r) * (std::max((float)_parameter2, 1.0f) / 200.0f)) + 0.5f)));
+            float y = ((float)_parameter4 - 50.0) / 50.0 + (sin(r) * (std::max((float)_parameter2, 1.0f) / 200.0f)) + 0.5f;
+            if (_wrap)
+            {
+                while (y > 1.0f)
+                {
+                    y -= 1.0f;
+                }
+                while (y < 0.0f)
+                {
+                    y += 1.0f;
+                }
+            }
+            _values.push_back(vcSortablePoint(i, Safe01(y)));
         }
     }
     else if (_type == "Abs Sine")
@@ -177,18 +261,31 @@ void ValueCurve::RenderType()
         {
             if (i > 1.0) i = 1.0;
             float r = i * maxx + (((float)_parameter1 * pi2) / 100.0f);
-            _values.push_back(vcSortablePoint(i, Safe01(((float)_parameter4 - 50.0) / 50.0 + (std::abs(sin(r) * (std::max((float)_parameter2, 1.0f) / 100.0f))))));
+            float y = ((float)_parameter4 - 50.0) / 50.0 + (std::abs(sin(r) * (std::max((float)_parameter2, 1.0f) / 100.0f)));
+            if (_wrap)
+            {
+                while (y > 1.0f)
+                {
+                    y -= 1.0f;
+                }
+                while (y < 0.0f)
+                {
+                    y += 1.0f;
+                }
+            }
+            _values.push_back(vcSortablePoint(i, Safe01(y)));
         }
     }
     _values.sort();
 }
 
-ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::string type, float parameter1, float parameter2, float parameter3, float parameter4)
+ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::string type, float parameter1, float parameter2, float parameter3, float parameter4, bool wrap)
 {
     _type = type;
     _id = id;
     _min = min;
     _max = max;
+    _wrap = wrap;
     _parameter1 = SafeParameter(1, parameter1);
     _parameter2 = SafeParameter(2, parameter2);
     _parameter3 = SafeParameter(3, parameter3);
@@ -200,13 +297,20 @@ ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::s
 void ValueCurve::SetDefault(float min, float max)
 {
     _type = "Flat";
-    _min = min;
-    _max = max;
+    if (min != -9.1234f)
+    {
+        _min = min;
+    }
+    if (max != -9.1234f)
+    {
+        _max = max;
+    }
     _parameter1 = SafeParameter(1, 0);
     _parameter2 = SafeParameter(2, 0);
     _parameter3 = SafeParameter(3, 0);
     _parameter4 = SafeParameter(4, 0);
     _active = false;
+    _wrap = false;
     RenderType();
 }
 
@@ -225,6 +329,7 @@ void ValueCurve::Deserialise(std::string s)
         _parameter2 = 0.0f;
         _parameter3 = 0.0f;
         _parameter4 = 0.0f;
+        _wrap = false;
         wxArrayString v = wxSplit(wxString(s.c_str()), '|');
         for (auto vs = v.begin(); vs != v.end(); vs++)
         {
@@ -266,6 +371,10 @@ std::string ValueCurve::Serialise()
         {
             res += "P4=" + std::string(wxString::Format("%d", (int)_parameter4).c_str()) + "|";
         }
+        if (_wrap)
+        {
+            res += "WRAP=TRUE|";
+        }
         if (_type == "Custom")
         {
             RemoveExcessCustomPoints();
@@ -305,6 +414,10 @@ void ValueCurve::SetSerialisedValue(std::string k, std::string s)
         else if (kk == "P1")
         {
             _parameter1 = (float)wxAtoi(wxString(s.c_str()));
+        }
+        else if (kk == "WRAP")
+        {
+            _wrap = true;
         }
         else if (kk == "P2")
         {

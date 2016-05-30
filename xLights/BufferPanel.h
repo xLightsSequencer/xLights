@@ -7,6 +7,7 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
+#include <wx/aui/aui.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/choice.h>
@@ -43,22 +44,24 @@ public:
 
     
 		//(*Declarations(BufferPanel)
-		wxScrolledWindow* BufferScrollWindow;
+		wxStaticText* StaticText10;
 		wxStaticText* StaticText9;
 		wxBitmapButton* BitmapButton_EffectBlur;
 		wxBitmapButton* BitmapButton_Zoom;
 		wxSlider* Slider_Zoom;
 		wxBitmapButton* BitmapButton_Rotation;
 		wxTextCtrl* TextCtrl_Rotation;
+		wxScrolledWindow* ScrolledWindow1;
 		wxStaticText* StaticText6;
 		wxSlider* Slider_PivotPointY;
 		wxChoice* BufferStyleChoice;
-		wxFlexGridSizer* Sizer2;
 		wxTextCtrl* TextCtrl_Rotations;
-		wxPanel* Panel_Sizer;
 		wxFlexGridSizer* SubBufferPanelSizer;
+		wxFlexGridSizer* BufferSizer;
 		wxStaticText* StaticText8;
+		wxStaticText* StaticText11;
 		wxBitmapButton* BitmapButton_OverlayBkg;
+		wxPanel* Panel1;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxSlider* Slider_PivotPointX;
@@ -73,16 +76,22 @@ public:
 		wxTextCtrl* TextCtrl_Zoom;
 		wxTextCtrl* TextCtrl_EffectBlur;
 		ValueCurveButton* BitmapButton_VCRotation;
+		wxScrolledWindow* ScrolledWindow2;
+		wxChoice* Choice_Preset;
 		wxSlider* Slider_Rotation;
+		wxAuiNotebook* AuiNotebook1;
 		ValueCurveButton* BitmapButton_VCZoom;
 		ValueCurveButton* BitmapButton_Blur;
 		wxTextCtrl* TextCtrl_PivotPointY;
 		wxSlider* Slider_Rotations;
+		wxPanel* Panel2;
 		wxCheckBox* CheckBox_OverlayBkg;
+		wxFlexGridSizer* RotoZoomSizer;
 		ValueCurveButton* BitmapButton_VCPivotPointX;
 		wxBitmapButton* BitmapButton_PivotPointX;
 		wxBitmapButton* BitmapButton_ZoomQuality;
 		ValueCurveButton* BitmapButton_VCRotations;
+		wxFlexGridSizer* FullBufferSizer;
 		wxBitmapButton* BitmapButton_PivotPointY;
 		wxSlider* Slider_EffectBlur;
 		//*)
@@ -100,6 +109,13 @@ public:
 		static const long ID_VALUECURVE_Blur;
 		static const long IDD_TEXTCTRL_EffectBlur;
 		static const long ID_BITMAPBUTTON_SLIDER_EffectBlur;
+		static const long ID_CHECKBOX_OverlayBkg;
+		static const long ID_BITMAPBUTTON_OverlayBkg;
+		static const long ID_STATICTEXT8;
+		static const long ID_SCROLLEDWINDOW1;
+		static const long ID_PANEL2;
+		static const long ID_STATICTEXT9;
+		static const long ID_CHOICE_Preset;
 		static const long ID_STATICTEXT1;
 		static const long ID_SLIDER_Rotation;
 		static const long ID_VALUECURVE_Rotation;
@@ -129,10 +145,9 @@ public:
 		static const long ID_SLIDER_ZoomQuality;
 		static const long IDD_TEXTCTRL_ZoomQuality;
 		static const long ID_BITMAPBUTTON_ZoomQuality;
-		static const long ID_CHECKBOX_OverlayBkg;
-		static const long ID_BITMAPBUTTON_OverlayBkg;
-		static const long ID_SCROLLED_ColorScroll;
-		static const long ID_PANEL1;
+		static const long ID_SCROLLEDWINDOW2;
+		static const long ID_PANEL3;
+		static const long ID_AUINOTEBOOK1;
 		//*)
 
 	private:
@@ -162,6 +177,7 @@ public:
 		void OnBitmapButton_VCRotationsClick(wxCommandEvent& event);
 		void OnBitmapButton_VCPivotPointXClick(wxCommandEvent& event);
 		void OnBitmapButton_VCPivotPointYClick(wxCommandEvent& event);
+		void OnChoice_PresetSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

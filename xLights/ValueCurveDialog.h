@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/slider.h>
 #include <wx/choice.h>
 #include <wx/button.h>
@@ -75,6 +76,7 @@ class ValueCurveDialog: public wxDialog
 		wxStaticText* StaticText_TopValue;
 		wxStaticText* StaticText_P4;
 		wxSlider* Slider_Parameter4;
+		wxCheckBox* CheckBox_WrapValues;
 		wxChoice* Choice1;
 		wxSlider* Slider_Parameter1;
 		wxTextCtrl* TextCtrl_Parameter1;
@@ -99,6 +101,7 @@ class ValueCurveDialog: public wxDialog
 		static const long ID_STATICTEXT6;
 		static const long ID_SLIDER_Parameter4;
 		static const long ID_TEXTCTRL_Parameter4;
+		static const long ID_CHECKBOX_WrapValues;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -122,6 +125,7 @@ class ValueCurveDialog: public wxDialog
 		void OnChar(wxKeyEvent& event);
 		void OnSlider_Parameter4CmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_Parameter4Text(wxCommandEvent& event);
+		void OnCheckBox_WrapValuesClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
