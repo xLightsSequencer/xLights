@@ -620,7 +620,9 @@ void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
         ListBoxModelGroups->SetChecked(ALL_MODELS_GROUP, false);
         xlights->UpdateModelsList(false);
     } else {
-        if( !checked ) {
+        if( checked ) {
+            mNumGroupsFiltered++;
+        } else {
             mNumGroupsFiltered--;
         }
         mDisplayAllModels = false;
