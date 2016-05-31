@@ -619,6 +619,7 @@ void BufferPanel::OnBitmapButton_BlurClick(wxCommandEvent& event)
     {
         ValueCurveDialog vcd(this, BitmapButton_Blur->GetValue());
         vcd.ShowModal();
+        BitmapButton_Blur->UpdateState();
     }
 }
 
@@ -630,6 +631,7 @@ void BufferPanel::OnBitmapButton_RotationClick(wxCommandEvent& event)
     {
         ValueCurveDialog vcd(this, BitmapButton_VCRotation->GetValue());
         vcd.ShowModal();
+        BitmapButton_VCRotation->UpdateState();
     }
 }
 
@@ -641,6 +643,7 @@ void BufferPanel::OnBitmapButton_ZoomClick(wxCommandEvent& event)
     {
         ValueCurveDialog vcd(this, BitmapButton_VCZoom->GetValue());
         vcd.ShowModal();
+        BitmapButton_VCZoom->UpdateState();
     }
 }
 
@@ -652,6 +655,7 @@ void BufferPanel::OnBitmapButton_VCRotationsClick(wxCommandEvent& event)
     {
         ValueCurveDialog vcd(this, BitmapButton_VCRotations->GetValue());
         vcd.ShowModal();
+        BitmapButton_VCRotations->UpdateState();
     }
 }
 
@@ -663,6 +667,7 @@ void BufferPanel::OnBitmapButton_VCPivotPointXClick(wxCommandEvent& event)
     {
         ValueCurveDialog vcd(this, BitmapButton_VCPivotPointX->GetValue());
         vcd.ShowModal();
+        BitmapButton_VCPivotPointX->UpdateState();
     }
 }
 
@@ -674,6 +679,7 @@ void BufferPanel::OnBitmapButton_VCPivotPointYClick(wxCommandEvent& event)
     {
         ValueCurveDialog vcd(this, BitmapButton_VCPivotPointY->GetValue());
         vcd.ShowModal();
+        BitmapButton_VCPivotPointY->UpdateState();
     }
 }
 

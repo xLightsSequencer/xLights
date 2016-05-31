@@ -12,6 +12,8 @@ class ValueCurveButton :
     ValueCurve* _vc;
     void NotifyChange();
 
+    
+    void RenderNewBitmap();
 public:
     ValueCurveButton(wxWindow *parent,
         wxWindowID id,
