@@ -117,7 +117,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
-    mDisplayAllModels(false), mDisplayMyDisplay(false)
+    mDisplayAllModels(false), mDisplayMyDisplay(false), mSelectedGroup(-1)
 {
     backgroundProperty = nullptr;
     _lastCustomModel = "";
@@ -310,10 +310,28 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     mDefaultSaveBtnColor = ButtonSavePreview->GetBackgroundColour();
 }
 
+void LayoutPanel::SetDirtyHiLight(bool dirty) {
+#ifdef __WXOSX__
+    if (dirty) {
+        ButtonSavePreview->SetForegroundColour(wxColour(255,0,0));
+        ButtonSavePreview->SetBackgroundColour(wxColour(255,0,0));
+    } else {
+        ButtonSavePreview->SetForegroundColour(*wxBLACK);
+        ButtonSavePreview->SetBackgroundColour(mDefaultSaveBtnColor);
+    }
+#else
+    if (dirty) {
+        ButtonSavePreview->SetBackgroundColour(wxColour(255,108,108));
+    } else {
+        ButtonSavePreview->SetBackgroundColour(mDefaultSaveBtnColor);
+    }
+#endif
+}
+
 void LayoutPanel::MarkEffectsFileDirty()
 {
     xlights->UnsavedRgbEffectsChanges = true;
-    ButtonSavePreview->SetBackgroundColour(wxColour(255,108,108));
+    SetDirtyHiLight(true);
 }
 
 void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
@@ -416,11 +434,7 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
 
 void LayoutPanel::UpdatePreview()
 {
-    if( xlights->UnsavedRgbEffectsChanges ) {
-        ButtonSavePreview->SetBackgroundColour(wxColour(255,108,108));
-    } else {
-        ButtonSavePreview->SetBackgroundColour(mDefaultSaveBtnColor);
-    }
+    SetDirtyHiLight(xlights->UnsavedRgbEffectsChanges);
     if(!modelPreview->StartDrawing(mPointSize)) return;
     if(m_creating_bound_rect)
     {
@@ -794,7 +808,7 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
     }
     xlights->SaveEffectsFile();
     xlights->SetStatusText(_("Preview layout saved"));
-    ButtonSavePreview->SetBackgroundColour(mDefaultSaveBtnColor);
+    SetDirtyHiLight(false);
 }
 
 void LayoutPanel::OnListBoxElementListItemSelect(wxListEvent& event)

@@ -140,6 +140,7 @@ class LayoutPanel: public wxPanel
         void DeselectModelGroupList();
         void DeselectModelList();
         void MarkEffectsFileDirty();
+        void SetDirtyHiLight(bool dirty);
 
         bool SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);

@@ -15,6 +15,7 @@ class SubBufferPanel : public wxWindow, public xlCustomControl
         virtual void SetValue(const std::string &val) override;
         std::string GetValue();
         void SetDefaults();
+        bool ShouldInheritColours() const override {return true;}
     protected:
         DECLARE_EVENT_TABLE()
 

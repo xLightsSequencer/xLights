@@ -24,6 +24,7 @@ SubBufferPanel::SubBufferPanel(wxPanel* parent, wxWindowID id,
     x2 = y2 = 100.0;
     draggingHandle = -1;
     SetBackgroundStyle(wxBG_STYLE_PAINT);
+    InheritAttributes();
 }
 SubBufferPanel::~SubBufferPanel()
 {
@@ -156,9 +157,8 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
 }
 void SubBufferPanel::Paint( wxPaintEvent& event ) {
     wxAutoBufferedPaintDC dc(this);
-    
-    dc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT)));
-    dc.SetBrush(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT)));
+    dc.SetPen(wxPen(GetBackgroundColour()));
+    dc.SetBrush(wxBrush(GetBackgroundColour()));
     wxSize size = GetSize();
     dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
     if (IsEnabled()) {

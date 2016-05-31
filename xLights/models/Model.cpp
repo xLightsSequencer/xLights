@@ -339,7 +339,6 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     }
 
     p = grid->Append(new wxPropertyCategory("Appearance", "ModelAppearance"));
-    p->Enable(false);
     sp = grid->AppendIn(p, new wxUIntProperty("Pixel Size", "ModelPixelSize", pixelSize));
     sp->SetAttribute("Min", 1);
     sp->SetAttribute("Max", 300);
