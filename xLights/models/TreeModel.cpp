@@ -44,7 +44,7 @@ void TreeModel::InitModel() {
         treeType = 2;
         degrees = -1;
     }
-    rotation = wxAtoi(ModelXml->GetAttribute("TreeRotation", "3"));
+    rotation = wxAtof(ModelXml->GetAttribute("TreeRotation", "3"));
     spiralRotations = wxAtof(ModelXml->GetAttribute("TreeSpiralRotations", "0.0"));
     botTopRatio = wxAtof(ModelXml->GetAttribute("TreeBottomTopRatio", "6.0"));
     perspective = wxAtof(ModelXml->GetAttribute("TreePerspective", "0.2"));
@@ -52,7 +52,7 @@ void TreeModel::InitModel() {
     DisplayAs = "Tree";
 }
 
-inline double toRadians(long degrees) {
+inline double toRadians(float degrees) {
     return 2.0*M_PI*double(degrees)/360.0;
 }
 // initialize screen coordinates for tree
@@ -205,22 +205,22 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         return 3;
     } else if (event.GetPropertyName() == "TreeRotation") {
         ModelXml->DeleteAttribute("TreeRotation");
-        ModelXml->AddAttribute("TreeRotation", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("TreeRotation", wxString::Format("%f", (float)event.GetPropertyValue().GetDouble()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if (event.GetPropertyName() == "TreeSpiralRotations") {
         ModelXml->DeleteAttribute("TreeSpiralRotations");
-        ModelXml->AddAttribute("TreeSpiralRotations", wxString::Format("%f", event.GetPropertyValue().GetDouble()));
+        ModelXml->AddAttribute("TreeSpiralRotations", wxString::Format("%f", (float)event.GetPropertyValue().GetDouble()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if (event.GetPropertyName() == "TreeBottomTopRatio") {
         ModelXml->DeleteAttribute("TreeBottomTopRatio");
-        ModelXml->AddAttribute("TreeBottomTopRatio", wxString::Format("%f", event.GetPropertyValue().GetDouble()));
+        ModelXml->AddAttribute("TreeBottomTopRatio", wxString::Format("%f", (float)event.GetPropertyValue().GetDouble()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if (event.GetPropertyName() == "TreePerspective") {
         ModelXml->DeleteAttribute("TreePerspective");
-        ModelXml->AddAttribute("TreePerspective", wxString::Format("%f", event.GetPropertyValue().GetDouble()/10.0));
+        ModelXml->AddAttribute("TreePerspective", wxString::Format("%f", (float)(event.GetPropertyValue().GetDouble()/10.0)));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }
@@ -245,7 +245,8 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p = grid->Append(new wxFloatProperty("Rotation", "TreeRotation", treeType == 0 ? rotation : 3));
     p->SetAttribute("Min", "-360");
     p->SetAttribute("Max", "360");
-    p->SetAttribute("Precision", 1);
+    p->SetAttribute("Precision", 2);
+    p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
     
@@ -259,7 +260,8 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p = grid->Append(new wxFloatProperty("Bottom/Top Ratio", "TreeBottomTopRatio", treeType == 0 ? botTopRatio : 6.0));
     p->SetAttribute("Min", "1");
     p->SetAttribute("Max", "50");
-    p->SetAttribute("Precision", 1);
+    p->SetAttribute("Step", 0.5);
+    p->SetAttribute("Precision", 2);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
     p = grid->Append(new wxFloatProperty("Perspective", "TreePerspective", treeType == 0 ? perspective*10 : 2));
