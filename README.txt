@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix crash when delete key was hit in Layout with no model selected.  Fixes #533.
    -- enh (gil)     Restructure how model groups are handled by providing a panel for them and allowing the
                     members of the group to be managed in the property grid area.
    -- enh (gil)     Add tilt parameter to the Arch model to allow better 3D perspective.  Fixes #250.

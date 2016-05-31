@@ -1741,11 +1741,13 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
     }
 }
 void LayoutPanel::DeleteSelectedModel() {
-    CreateUndoPoint("All", selectedModel->name);
-    xlights->AllModels.Delete(selectedModel->name);
-    selectedModel = nullptr;
-    xlights->UpdateModelsList();
-    MarkEffectsFileDirty();
+    if( selectedModel != nullptr ) {
+        CreateUndoPoint("All", selectedModel->name);
+        xlights->AllModels.Delete(selectedModel->name);
+        selectedModel = nullptr;
+        xlights->UpdateModelsList();
+        MarkEffectsFileDirty();
+    }
 }
 
 void LayoutPanel::DoCopy(wxCommandEvent& event) {
