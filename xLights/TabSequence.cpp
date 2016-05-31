@@ -171,7 +171,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
             }
         }
     }
-
+    SetPreviewBackgroundImage(mBackgroundImage);
+    
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
     SetPreviewBackgroundBrightness(mBackgroundBrightness);
 

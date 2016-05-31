@@ -269,7 +269,8 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     wxPGProperty *p;
     wxPGProperty *sp;
 
-    grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
+    p = grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
+    p->GetCell(0).SetFgCol(*wxBLACK);
 
     AddTypeProperties(grid);
 
@@ -310,12 +311,13 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     p = grid->Append(new wxBoolProperty("In My Display", "ModelMyDisplay", IsMyDisplay()));
     p->SetAttribute("UseCheckbox", true);
 
-    grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
+    p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
+    p->GetCell(0).SetFgCol(*wxBLACK);
     int i = NODE_TYPES.Index(StringType);
     if (i == wxNOT_FOUND) {
         i = NODE_TYPES.size() - 1;
     }
-    p = grid->Append(new wxEnumProperty("String Type", "ModelStringType", NODE_TYPES, wxArrayInt(), i));
+    grid->AppendIn(p, new wxEnumProperty("String Type", "ModelStringType", NODE_TYPES, wxArrayInt(), i));
     if (i == NODE_TYPES.size() - 1)  {
         //get the color
         wxColor v;
@@ -332,13 +334,14 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         } else if (StringType[0] == '#') {
             v = xlColor(StringType).asWxColor();
         }
-        sp = grid->Append(new wxColourProperty("Color", "ModelStringColor", v));
+        sp = grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", v));
     } else {
-        sp = grid->Append(new wxColourProperty("Color", "ModelStringColor", *wxRED));
+        sp = grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", *wxRED));
         sp->Enable(false);
     }
 
     p = grid->Append(new wxPropertyCategory("Appearance", "ModelAppearance"));
+    p->GetCell(0).SetFgCol(*wxBLACK);
     sp = grid->AppendIn(p, new wxUIntProperty("Pixel Size", "ModelPixelSize", pixelSize));
     sp->SetAttribute("Min", 1);
     sp->SetAttribute("Max", 300);

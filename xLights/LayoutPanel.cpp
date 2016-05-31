@@ -711,6 +711,8 @@ void LayoutPanel::SetupPropGrid(Model *model) {
     model->AddProperties(propertyEditor);
 
     wxPGProperty *p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));
+    p2->GetCell(0).SetFgCol(*wxBLACK);
+
     model->AddSizeLocationProperties(propertyEditor);
     if (!sizeVisible) {
         propertyEditor->Collapse(p2);

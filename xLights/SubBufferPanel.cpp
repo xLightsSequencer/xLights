@@ -157,8 +157,8 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
 }
 void SubBufferPanel::Paint( wxPaintEvent& event ) {
     wxAutoBufferedPaintDC dc(this);
-    dc.SetPen(wxPen(GetBackgroundColour()));
-    dc.SetBrush(wxBrush(GetBackgroundColour()));
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
     wxSize size = GetSize();
     dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
     if (IsEnabled()) {
