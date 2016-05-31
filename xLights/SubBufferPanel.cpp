@@ -156,8 +156,9 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
 }
 void SubBufferPanel::Paint( wxPaintEvent& event ) {
     wxAutoBufferedPaintDC dc(this);
-    dc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
-    dc.SetBrush(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
+    
+    dc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT)));
+    dc.SetBrush(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT)));
     wxSize size = GetSize();
     dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
     if (IsEnabled()) {

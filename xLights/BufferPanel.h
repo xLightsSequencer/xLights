@@ -3,11 +3,11 @@
 
 //(*Headers(BufferPanel)
 #include <wx/scrolwin.h>
+#include <wx/notebook.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
-#include <wx/aui/aui.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/choice.h>
@@ -44,26 +44,19 @@ public:
 
     
 		//(*Declarations(BufferPanel)
-		wxStaticText* StaticText10;
-		wxStaticText* StaticText9;
 		wxBitmapButton* BitmapButton_EffectBlur;
 		wxBitmapButton* BitmapButton_Zoom;
+		wxNotebook* Notebook1;
 		wxSlider* Slider_Zoom;
 		wxBitmapButton* BitmapButton_Rotation;
 		wxTextCtrl* TextCtrl_Rotation;
 		wxScrolledWindow* ScrolledWindow1;
-		wxStaticText* StaticText6;
 		wxSlider* Slider_PivotPointY;
 		wxChoice* BufferStyleChoice;
 		wxTextCtrl* TextCtrl_Rotations;
 		wxFlexGridSizer* SubBufferPanelSizer;
 		wxFlexGridSizer* BufferSizer;
-		wxStaticText* StaticText8;
-		wxStaticText* StaticText11;
 		wxBitmapButton* BitmapButton_OverlayBkg;
-		wxPanel* Panel1;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
 		wxSlider* Slider_PivotPointX;
 		wxTextCtrl* TextCtrl_PivotPointX;
 		wxChoice* BufferTransform;
@@ -71,7 +64,6 @@ public:
 		wxTextCtrl* TextCtrl_ZoomQuality;
 		wxSlider* Slider_ZoomQuality;
 		wxStaticText* StaticText5;
-		wxStaticText* StaticText7;
 		ValueCurveButton* BitmapButton_VCPivotPointY;
 		wxTextCtrl* TextCtrl_Zoom;
 		wxTextCtrl* TextCtrl_EffectBlur;
@@ -79,12 +71,10 @@ public:
 		wxScrolledWindow* ScrolledWindow2;
 		wxChoice* Choice_Preset;
 		wxSlider* Slider_Rotation;
-		wxAuiNotebook* AuiNotebook1;
 		ValueCurveButton* BitmapButton_VCZoom;
 		ValueCurveButton* BitmapButton_Blur;
 		wxTextCtrl* TextCtrl_PivotPointY;
 		wxSlider* Slider_Rotations;
-		wxPanel* Panel2;
 		wxCheckBox* CheckBox_OverlayBkg;
 		wxFlexGridSizer* RotoZoomSizer;
 		ValueCurveButton* BitmapButton_VCPivotPointX;
@@ -111,43 +101,35 @@ public:
 		static const long ID_BITMAPBUTTON_SLIDER_EffectBlur;
 		static const long ID_CHECKBOX_OverlayBkg;
 		static const long ID_BITMAPBUTTON_OverlayBkg;
-		static const long ID_STATICTEXT8;
 		static const long ID_SCROLLEDWINDOW1;
-		static const long ID_PANEL2;
-		static const long ID_STATICTEXT9;
+		static const long ID_PANEL1;
 		static const long ID_CHOICE_Preset;
-		static const long ID_STATICTEXT1;
 		static const long ID_SLIDER_Rotation;
 		static const long ID_VALUECURVE_Rotation;
 		static const long IDD_TEXTCTRL_Rotation;
 		static const long ID_BITMAPBUTTON_Rotation;
-		static const long ID_STATICTEXT3;
 		static const long ID_SLIDER_Rotations;
 		static const long ID_VALUECURVE_Rotations;
 		static const long IDD_TEXTCTRL_Rotations;
 		static const long ID_BITMAPBUTTON_Rotations;
-		static const long ID_STATICTEXT6;
 		static const long ID_SLIDER_PivotPointX;
 		static const long ID_VALUECURVE_PivotPointX;
 		static const long IDD_TEXTCTRL_PivotPointX;
 		static const long ID_BITMAPBUTTON_PivotPointX;
-		static const long ID_STATICTEXT7;
 		static const long ID_SLIDER_PivotPointY;
 		static const long ID_VALUECURVE_PivotPointY;
 		static const long IDD_TEXTCTRL_PivotPointY;
 		static const long ID_BITMAPBUTTON_PivotPointY;
-		static const long ID_STATICTEXT4;
 		static const long ID_SLIDER_Zoom;
 		static const long ID_VALUECURVE_Zoom;
 		static const long IDD_TEXTCTRL_Zoom;
 		static const long ID_BITMAPBUTTON_Zoom;
-		static const long ID_STATICTEXT5;
 		static const long ID_SLIDER_ZoomQuality;
 		static const long IDD_TEXTCTRL_ZoomQuality;
 		static const long ID_BITMAPBUTTON_ZoomQuality;
 		static const long ID_SCROLLEDWINDOW2;
-		static const long ID_PANEL3;
-		static const long ID_AUINOTEBOOK1;
+		static const long ID_PANEL4;
+		static const long ID_NOTEBOOK1;
 		//*)
 
 	private:

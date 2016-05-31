@@ -9,11 +9,9 @@
 			<growablecols>0</growablecols>
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
-				<object class="wxAuiNotebook" name="ID_AUINOTEBOOK1" variable="AuiNotebook1" member="yes">
-					<style>wxAUI_NB_SCROLL_BUTTONS|wxTAB_TRAVERSAL</style>
-					<object class="AuiNotebookPage">
-						<object class="wxPanel" name="ID_PANEL2" variable="Panel1" member="yes">
-							<pos>60,55</pos>
+				<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
+					<object class="notebookpage">
+						<object class="wxPanel" name="ID_PANEL1" variable="Panel3" member="no">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
 								<cols>1</cols>
 								<growablecols>0</growablecols>
@@ -22,6 +20,7 @@
 									<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="ScrolledWindow1" member="yes">
 										<object class="wxFlexGridSizer" variable="FullBufferSizer" member="yes">
 											<cols>1</cols>
+											<rows>2</rows>
 											<growablecols>0</growablecols>
 											<growablerows>1</growablerows>
 											<object class="sizeritem">
@@ -121,15 +120,15 @@
 																	<handler function="OnSlider_EffectBlurCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																</object>
 																<flag>wxALL|wxEXPAND</flag>
-																<border>1</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
 																<object class="wxBitmapButton" name="ID_VALUECURVE_Blur" subclass="ValueCurveButton" variable="BitmapButton_Blur" member="yes">
 																	<bitmap code="valuecurvenotselected_24" />
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																	<handler function="OnBitmapButton_BlurClick" entry="EVT_BUTTON" />
 																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
@@ -191,7 +190,6 @@
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -203,22 +201,6 @@
 												<flag>wxALL|wxEXPAND</flag>
 												<option>1</option>
 											</object>
-											<object class="sizeritem">
-												<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-													<cols>3</cols>
-													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText10" member="yes">
-															<label></label>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
@@ -228,9 +210,8 @@
 						</object>
 						<label>Buffer</label>
 					</object>
-					<object class="AuiNotebookPage">
-						<object class="wxPanel" name="ID_PANEL3" variable="Panel2" member="yes">
-							<pos>89,10</pos>
+					<object class="notebookpage">
+						<object class="wxPanel" name="ID_PANEL4" variable="Panel4" member="no">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer15" member="no">
 								<cols>1</cols>
 								<growablecols>0</growablecols>
@@ -241,7 +222,7 @@
 											<cols>3</cols>
 											<growablecols>1</growablecols>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText11" member="yes">
+												<object class="wxStaticText" name="wxID_ANY" variable="StaticText11" member="no">
 													<label>Preset</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -263,7 +244,7 @@
 													<selection>0</selection>
 													<handler function="OnChoice_PresetSelect" entry="EVT_CHOICE" />
 												</object>
-												<flag>wxALL|wxEXPAND</flag>
+												<flag>wxALL</flag>
 												<border>2</border>
 												<option>1</option>
 											</object>
@@ -273,7 +254,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+												<object class="wxStaticText" name="wxID_ANY" variable="StaticText1" member="no">
 													<label>Rotation</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -295,9 +276,10 @@
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Rotation" subclass="ValueCurveButton" variable="BitmapButton_VCRotation" member="yes">
 															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_RotationClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -315,7 +297,6 @@
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -333,7 +314,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+												<object class="wxStaticText" name="wxID_ANY" variable="StaticText3" member="no">
 													<label>Rotations</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -356,9 +337,10 @@
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Rotations" subclass="ValueCurveButton" variable="BitmapButton_VCRotations" member="yes">
 															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_VCRotationsClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -375,7 +357,6 @@
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -393,7 +374,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText8" member="yes">
+												<object class="wxStaticText" name="wxID_ANY" variable="StaticText8" member="no">
 													<label>Pivot Point X</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -416,9 +397,10 @@
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_PivotPointX" subclass="ValueCurveButton" variable="BitmapButton_VCPivotPointX" member="yes">
 															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_VCPivotPointXClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -435,7 +417,6 @@
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -453,7 +434,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText9" member="yes">
+												<object class="wxStaticText" name="wxID_ANY" variable="StaticText9" member="no">
 													<label>Pivot Point Y</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -476,9 +457,10 @@
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_PivotPointY" subclass="ValueCurveButton" variable="BitmapButton_VCPivotPointY" member="yes">
 															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_VCPivotPointYClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -495,7 +477,6 @@
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -513,7 +494,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText6" member="yes">
+												<object class="wxStaticText" name="wxID_ANY" variable="StaticText6" member="no">
 													<label>Zoom</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -536,9 +517,10 @@
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Zoom" subclass="ValueCurveButton" variable="BitmapButton_VCZoom" member="yes">
 															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_ZoomClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -555,7 +537,6 @@
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -573,7 +554,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText7" member="yes">
+												<object class="wxStaticText" name="wxID_ANY" variable="StaticText7" member="no">
 													<label>Zoom Quality</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -608,7 +589,6 @@
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -627,7 +607,7 @@
 											</object>
 										</object>
 									</object>
-									<flag>wxALL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
