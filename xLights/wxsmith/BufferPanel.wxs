@@ -257,6 +257,7 @@
 														<item>Explode</item>
 														<item>Collapse</item>
 														<item>Explode + Spin CW</item>
+														<item>Spin CW Accelerate</item>
 														<item>Shake</item>
 													</content>
 													<selection>0</selection>

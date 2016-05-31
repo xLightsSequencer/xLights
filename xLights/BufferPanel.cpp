@@ -221,6 +221,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_Preset->Append(_("Explode"));
 	Choice_Preset->Append(_("Collapse"));
 	Choice_Preset->Append(_("Explode + Spin CW"));
+	Choice_Preset->Append(_("Spin CW Accelerate"));
 	Choice_Preset->Append(_("Shake"));
 	RotoZoomSizer->Add(Choice_Preset, 1, wxALL|wxEXPAND, 2);
 	RotoZoomSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -606,6 +607,8 @@ void BufferPanel::OnResize(wxSizeEvent& event)
     FullBufferSizer->Layout();
     RotoZoomSizer->Layout();
 
+    s.DecBy(12, 12);
+
     ScrolledWindow1->SetSize(s);
     ScrolledWindow1->SetMinSize(s);
     ScrolledWindow1->SetMaxSize(s);
@@ -925,6 +928,8 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
     }
     else if (preset == "Shake")
     {
+        Slider_Rotations->SetValue(10);
+        TextCtrl_Rotations->SetValue("1.0");
         BitmapButton_VCRotation->GetValue()->SetType("Sine");
         BitmapButton_VCRotation->GetValue()->SetParameter1(0);
         BitmapButton_VCRotation->GetValue()->SetParameter2(10);
@@ -932,6 +937,19 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
         BitmapButton_VCRotation->GetValue()->SetParameter4(25);
         BitmapButton_VCRotation->GetValue()->SetWrap(true);
         BitmapButton_VCRotation->SetActive(true);
+        Slider_ZoomQuality->SetValue(2);
+        TextCtrl_ZoomQuality->SetValue("2");
+    }
+    else if (preset == "Spin CW Accelerate")
+    {
+        BitmapButton_VCRotation->GetValue()->SetType("Ramp");
+        BitmapButton_VCRotation->GetValue()->SetParameter1(0);
+        BitmapButton_VCRotation->GetValue()->SetParameter2(100);
+        BitmapButton_VCRotation->SetActive(true);
+        BitmapButton_VCRotations->GetValue()->SetType("Ramp");
+        BitmapButton_VCRotations->GetValue()->SetParameter1(0);
+        BitmapButton_VCRotations->GetValue()->SetParameter2(50);
+        BitmapButton_VCRotations->SetActive(true);
         Slider_ZoomQuality->SetValue(2);
         TextCtrl_ZoomQuality->SetValue("2");
     }
