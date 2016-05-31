@@ -22,26 +22,26 @@ void ValueCurve::RenderType()
     }
     if (_type == "Flat")
     {
-        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0));
-        _values.push_back(vcSortablePoint(1.0f, (float)_parameter1 / 100.0));
+        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0, false));
+        _values.push_back(vcSortablePoint(1.0f, (float)_parameter1 / 100.0, false));
     }
     else if (_type == "Ramp")
     {
-        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0));
-        _values.push_back(vcSortablePoint(1.0f, (float)_parameter2 / 100.0));
+        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0, false));
+        _values.push_back(vcSortablePoint(1.0f, (float)_parameter2 / 100.0, false));
     }
     else if (_type == "Ramp Up/Down")
     {
-        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0));
-        _values.push_back(vcSortablePoint(0.5f, (float)_parameter2 / 100.0));
-        _values.push_back(vcSortablePoint(1.0f, (float)_parameter3 / 100.0));
+        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0, false));
+        _values.push_back(vcSortablePoint(0.5f, (float)_parameter2 / 100.0, false));
+        _values.push_back(vcSortablePoint(1.0f, (float)_parameter3 / 100.0, false));
     }
     else if (_type == "Ramp Up/Down Hold")
     {
-        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0));
-        _values.push_back(vcSortablePoint(0.5f - ((0.5f * (float)_parameter3) / 100.0), (float)_parameter2 / 100.0));
-        _values.push_back(vcSortablePoint(0.5f + ((0.5f * (float)_parameter3) / 100.0), (float)_parameter2 / 100.0));
-        _values.push_back(vcSortablePoint(1.0f, (float)_parameter1 / 100.0));
+        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0, false));
+        _values.push_back(vcSortablePoint(0.5f - ((0.5f * (float)_parameter3) / 100.0), (float)_parameter2 / 100.0, false));
+        _values.push_back(vcSortablePoint(0.5f + ((0.5f * (float)_parameter3) / 100.0), (float)_parameter2 / 100.0, false));
+        _values.push_back(vcSortablePoint(1.0f, (float)_parameter1 / 100.0, false));
     }
     else if (_type == "Saw Tooth")
     {
@@ -51,11 +51,11 @@ void ValueCurve::RenderType()
             count = 1;
         }
         float per = 1.0f / count;
-        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0));
+        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0, false));
         for (int i = 0; i < count; i++)
         {
-            _values.push_back(vcSortablePoint(i * per + per / 2.0f, (float)_parameter2 / 100.0));
-            _values.push_back(vcSortablePoint((i + 1) * per, (float)_parameter1 / 100.0));
+            _values.push_back(vcSortablePoint(i * per + per / 2.0f, (float)_parameter2 / 100.0, false));
+            _values.push_back(vcSortablePoint((i + 1) * per, (float)_parameter1 / 100.0, false));
         }
     }
     else if (_type == "Parabolic Down")
@@ -72,18 +72,23 @@ void ValueCurve::RenderType()
         {
             if (i > 1.0) i = 1.0;
             float y = a * (i - 0.5f) * (i - 0.5f) + (float)_parameter2 / 100.0;
+            bool wrapped = false;
             if (_wrap)
             {
                 while (y > 1.0f)
                 {
+                    wrapped = true;
                     y -= 1.0f;
                 }
                 while (y < 0.0f)
                 {
+                    wrapped = true;
                     y += 1.0f;
                 }
             }
-            _values.push_back(vcSortablePoint(i, Safe01(y)));
+            bool lastwrapped = false;
+            if (_values.size() > 0) _values.back().IsWrapped();
+            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Parabolic Up")
@@ -100,18 +105,23 @@ void ValueCurve::RenderType()
         {
             if (i > 1.0) i = 1.0;
             float y = a * (i - 0.5f) * (i - 0.5f) + (float)_parameter2 / 100.0;
+            bool wrapped = false;
             if (_wrap)
             {
                 while (y > 1.0f)
                 {
+                    wrapped = true;
                     y -= 1.0f;
                 }
                 while (y < 0.0f)
                 {
+                    wrapped = true;
                     y += 1.0f;
                 }
             }
-            _values.push_back(vcSortablePoint(i, Safe01(y)));
+            bool lastwrapped = false;
+            if (_values.size() > 0) _values.back().IsWrapped();
+            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Logarithmic Up")
@@ -127,18 +137,23 @@ void ValueCurve::RenderType()
         {
             if (i > 1.0) i = 1.0;
             float y = ((float)_parameter2 - 50.0) / 50.0 + log(a + a*i) + 1.0f;
+            bool wrapped = false;
             if (_wrap)
             {
                 while (y > 1.0f)
                 {
+                    wrapped = true;
                     y -= 1.0f;
                 }
                 while (y < 0.0f)
                 {
+                    wrapped = true;
                     y += 1.0f;
                 }
             }
-            _values.push_back(vcSortablePoint(i, Safe01(y)));
+            bool lastwrapped = false;
+            if (_values.size() > 0) _values.back().IsWrapped();
+            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Logarithmic Down")
@@ -154,18 +169,23 @@ void ValueCurve::RenderType()
         {
             if (i > 1.0) i = 1.0;
             float y = ((float)_parameter2 - 50.0) / 50.0 + 1.5f + -1 * exp2(a * i - 1.0f);
+            bool wrapped = false;
             if (_wrap)
             {
                 while (y > 1.0f)
                 {
+                    wrapped = true;
                     y -= 1.0f;
                 }
                 while (y < 0.0f)
                 {
+                    wrapped = true;
                     y += 1.0f;
                 }
             }
-            _values.push_back(vcSortablePoint(i, Safe01(y)));
+            bool lastwrapped = false;
+            if (_values.size() > 0) _values.back().IsWrapped();
+            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Exponential Up")
@@ -181,18 +201,23 @@ void ValueCurve::RenderType()
         {
             if (i > 1.0) i = 1.0;
             float y = ((float)_parameter2 - 50.0) / 50.0 + (exp(a*i) - 1.0) / (exp(a) - 1.0);
+            bool wrapped = false;
             if (_wrap)
             {
                 while (y > 1.0f)
                 {
+                    wrapped = true;
                     y -= 1.0f;
                 }
                 while (y < 0.0f)
                 {
+                    wrapped = true;
                     y += 1.0f;
                 }
             }
-            _values.push_back(vcSortablePoint(i, Safe01(y)));
+            bool lastwrapped = false;
+            if (_values.size() > 0) _values.back().IsWrapped();
+            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Exponential Down")
@@ -208,18 +233,23 @@ void ValueCurve::RenderType()
         {
             if (i > 1.0) i = 1.0;
             float y = ((float)_parameter2 - 50.0) / 50.0 + 1.0 - (exp(a*i) - 1.0) / (exp(a) - 1.0);
+            bool wrapped = false;
             if (_wrap)
             {
                 while (y > 1.0f)
                 {
+                    wrapped = true;
                     y -= 1.0f;
                 }
                 while (y < 0.0f)
                 {
+                    wrapped = true;
                     y += 1.0f;
                 }
             }
-            _values.push_back(vcSortablePoint(i, Safe01(y)));
+            bool lastwrapped = false;
+            if (_values.size() > 0) _values.back().IsWrapped();
+            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Sine")
@@ -235,18 +265,23 @@ void ValueCurve::RenderType()
             if (i > 1.0) i = 1.0;
             float r = i * maxx + (((float)_parameter1 * pi2) / 100.0f);
             float y = ((float)_parameter4 - 50.0) / 50.0 + (sin(r) * (std::max((float)_parameter2, 1.0f) / 200.0f)) + 0.5f;
+            bool wrapped = false;
             if (_wrap)
             {
                 while (y > 1.0f)
                 {
+                    wrapped = true;
                     y -= 1.0f;
                 }
                 while (y < 0.0f)
                 {
+                    wrapped = true;
                     y += 1.0f;
                 }
             }
-            _values.push_back(vcSortablePoint(i, Safe01(y)));
+            bool lastwrapped = false;
+            if (_values.size() > 0) _values.back().IsWrapped();
+            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Abs Sine")
@@ -262,18 +297,23 @@ void ValueCurve::RenderType()
             if (i > 1.0) i = 1.0;
             float r = i * maxx + (((float)_parameter1 * pi2) / 100.0f);
             float y = ((float)_parameter4 - 50.0) / 50.0 + (std::abs(sin(r) * (std::max((float)_parameter2, 1.0f) / 100.0f)));
+            bool wrapped = false;
             if (_wrap)
             {
                 while (y > 1.0f)
                 {
                     y -= 1.0f;
+                    wrapped = true;
                 }
                 while (y < 0.0f)
                 {
+                    wrapped = true;
                     y += 1.0f;
                 }
             }
-            _values.push_back(vcSortablePoint(i, Safe01(y)));
+            bool lastwrapped = false;
+            if (_values.size() > 0) _values.back().IsWrapped();
+            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
         }
     }
     _values.sort();
@@ -438,7 +478,7 @@ void ValueCurve::SetSerialisedValue(std::string k, std::string s)
             for (auto p = points.begin(); p != points.end(); p++)
             {
                 wxArrayString xy = wxSplit(*p, ':');
-                _values.push_back(vcSortablePoint(wxAtof(wxString(xy.front().c_str())), wxAtof(wxString(xy.back().c_str()))));
+                _values.push_back(vcSortablePoint(wxAtof(wxString(xy.front().c_str())), wxAtof(wxString(xy.back().c_str())), false));
             }
         }
     
@@ -484,7 +524,14 @@ float ValueCurve::GetValueAt(float offset)
     }
     else
     {
-        return last.y + (it->y - last.y) * (offset - last.x) / (it->x - last.x);
+        if (it->IsWrapped())
+        {
+            return it->y;
+        }
+        else
+        {
+            return last.y + (it->y - last.y) * (offset - last.x) / (it->x - last.x);
+        }
     }
 }
 
@@ -560,6 +607,21 @@ void ValueCurve::SetValueAt(float offset, float value)
         }
         it++;
     }
-    _values.push_back(vcSortablePoint(offset, value));
+    _values.push_back(vcSortablePoint(offset, value, false));
     _values.sort();
+}
+
+void ValueCurve::SetWrap(bool wrap) 
+{ 
+    _wrap = wrap; 
+
+    if (!_wrap)
+    {
+        for (auto it = _values.begin(); it != _values.end(); it++)
+        {
+            it->ClearWrap();
+        }
+    }
+
+    RenderType(); 
 }

@@ -10,11 +10,15 @@ class vcSortablePoint
 public:
     float x;
     float y;
-    vcSortablePoint(float xx, float yy)
+    bool wrapped;
+    vcSortablePoint(float xx, float yy, bool wrap)
     {
         x = xx;
         y = yy;
+        wrapped = wrap;
     }
+    void ClearWrap() { wrapped = false; }
+    bool IsWrapped() { return wrapped; }
     bool operator==(const vcSortablePoint& r) const
     {
         return x == r.x;
@@ -88,7 +92,7 @@ public:
     void SetParameter2(float parameter2) { _parameter2 = SafeParameter(2, parameter2); RenderType(); }
     void SetParameter3(float parameter3) { _parameter3 = SafeParameter(3, parameter3); RenderType(); }
     void SetParameter4(float parameter4) { _parameter4 = SafeParameter(4, parameter4); RenderType(); }
-    void SetWrap(bool wrap) { _wrap = wrap; RenderType(); }
+    void SetWrap(bool wrap);
     float GetParameter1() { return _parameter1; }
     float GetParameter2() { return _parameter2; }
     float GetParameter3() { return _parameter3; }

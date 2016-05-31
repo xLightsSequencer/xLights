@@ -221,6 +221,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_Preset->Append(_("Explode"));
 	Choice_Preset->Append(_("Collapse"));
 	Choice_Preset->Append(_("Explode + Spin CW"));
+	Choice_Preset->Append(_("Shake"));
 	RotoZoomSizer->Add(Choice_Preset, 1, wxALL|wxEXPAND, 2);
 	RotoZoomSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(ScrolledWindow2, ID_STATICTEXT1, _("Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
@@ -851,11 +852,17 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
     wxString preset = Choice_Preset->GetStringSelection();
 
     Slider_Zoom->SetValue(10);
+    TextCtrl_Zoom->SetValue("1.0");
     Slider_PivotPointX->SetValue(50);
+    TextCtrl_PivotPointX->SetValue("50");
     Slider_PivotPointY->SetValue(50);
+    TextCtrl_PivotPointY->SetValue("50");
     Slider_Rotation->SetValue(0);
+    TextCtrl_Rotation->SetValue("0");
     Slider_Rotations->SetValue(0);
+    TextCtrl_Rotations->SetValue("0.0");
     Slider_ZoomQuality->SetValue(1);
+    TextCtrl_ZoomQuality->SetValue("1");
     BitmapButton_VCPivotPointX->GetValue()->SetDefault();
     BitmapButton_VCPivotPointY->GetValue()->SetDefault();
     BitmapButton_VCZoom->GetValue()->SetDefault();
@@ -870,6 +877,7 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
     if (preset == "1 Rev CW")
     {
         Slider_Rotations->SetValue(10);
+        TextCtrl_Rotations->SetValue("1.0");
         BitmapButton_VCRotation->GetValue()->SetType("Ramp");
         BitmapButton_VCRotation->GetValue()->SetParameter1(0);
         BitmapButton_VCRotation->GetValue()->SetParameter2(100);
@@ -879,6 +887,7 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
     else if (preset == "1 Rev CCW")
     {
         Slider_Rotations->SetValue(10);
+        TextCtrl_Rotations->SetValue("1.0");
         BitmapButton_VCRotation->GetValue()->SetType("Ramp");
         BitmapButton_VCRotation->GetValue()->SetParameter1(100);
         BitmapButton_VCRotation->GetValue()->SetParameter2(0);
@@ -906,22 +915,25 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
         BitmapButton_VCZoom->GetValue()->SetParameter2(33);
         BitmapButton_VCZoom->SetActive(true);
         Slider_Rotations->SetValue(10);
+        TextCtrl_Rotations->SetValue("1.0");
         BitmapButton_VCRotation->GetValue()->SetType("Ramp");
         BitmapButton_VCRotation->GetValue()->SetParameter1(0);
         BitmapButton_VCRotation->GetValue()->SetParameter2(100);
         BitmapButton_VCRotation->SetActive(true);
         Slider_ZoomQuality->SetValue(2);
+        TextCtrl_ZoomQuality->SetValue("2");
     }
     else if (preset == "Shake")
     {
         BitmapButton_VCRotation->GetValue()->SetType("Sine");
         BitmapButton_VCRotation->GetValue()->SetParameter1(0);
-        BitmapButton_VCRotation->GetValue()->SetParameter2(22);
+        BitmapButton_VCRotation->GetValue()->SetParameter2(10);
         BitmapButton_VCRotation->GetValue()->SetParameter3(50);
         BitmapButton_VCRotation->GetValue()->SetParameter4(25);
         BitmapButton_VCRotation->GetValue()->SetWrap(true);
         BitmapButton_VCRotation->SetActive(true);
         Slider_ZoomQuality->SetValue(2);
+        TextCtrl_ZoomQuality->SetValue("2");
     }
     Choice_Preset->SetStringSelection("");
     ValidateWindow();

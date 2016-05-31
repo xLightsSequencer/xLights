@@ -513,7 +513,14 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
             std::list<vcSortablePoint>::iterator last = pts.begin();
             for (auto p = pts.begin()++; p != pts.end(); p++)
             {
-                pdc.DrawLine(last->x * w, h - last->y * h, p->x * w, h - p->y * h);
+                if (last->IsWrapped() == p->IsWrapped())
+                {
+                    pdc.DrawLine(last->x * w, h - last->y * h, p->x * w, h - p->y * h);
+                }
+                else
+                {
+                    pdc.DrawLine(last->x * w, h - p->y * h, p->x * w, h - p->y * h);
+                }
                 last = p;
             }
         }
