@@ -203,6 +203,44 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
 
     _backup = *_vc;
 
+    wxString sMin = "";
+    float min = _vc->GetMin();
+    int min0 = min;
+    int min1 = min * 10;
+    int min2 = min * 100;
+    if ((float)min2 / 100 != (float)min1 / 10)
+    {
+        sMin = wxString::Format("%.2f", min);
+    }
+    else if ((float)min1 / 10 != (float)min0)
+    {
+        sMin = wxString::Format("%.1f", min);
+    }
+    else
+    {
+        sMin = wxString::Format("%d", min0);
+    }
+    wxString sMax = "";
+    float max = _vc->GetMax();
+    int max0 = max;
+    int max1 = max * 10;
+    int max2 = max * 100;
+    if ((float)max2 / 100 != (float)max1 / 10)
+    {
+        sMax = wxString::Format("%.2f", max);
+    }
+    else if ((float)max1 / 10 != (float)max0)
+    {
+        sMax = wxString::Format("%.1f", max);
+    }
+    else
+    {
+        sMax = wxString::Format("%d", max0);
+    }
+
+    StaticText_BottomValue->SetLabel(sMin);
+    StaticText_TopValue->SetLabel(sMax);
+
     CheckBox_WrapValues->SetValue(_vc->GetWrap());
     Slider_Parameter1->SetValue((int)_vc->GetParameter1());
     Slider_Parameter2->SetValue((int)_vc->GetParameter2());
