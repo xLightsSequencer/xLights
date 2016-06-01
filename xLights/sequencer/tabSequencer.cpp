@@ -1042,6 +1042,63 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->ForceRefresh();
 }
 
+
+void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
+{
+    if (CurrentSeqXmlFile == NULL) {
+        return;
+    }
+    if (Notebook1->GetSelection() != NEWSEQUENCER) {
+        return;
+    }
+    
+    if (selectedEffect != NULL && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
+        std::string palette;
+        std::string effectText = GetEffectTextFromWindows(palette);
+        if (effectText != selectedEffectString
+            || palette != selectedEffectPalette) {
+            
+            int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
+            wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
+            if (name !=  selectedEffect->GetEffectName()) {
+                selectedEffect->SetEffectName(name.ToStdString());
+                selectedEffect->SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
+            }
+            
+            EffectLayer* el = selectedEffect->GetParentEffectLayer();
+            Element *elem = el->GetParentElement();
+            
+            //check for undo capture
+            if( selectedEffectName != selectedEffect->GetEffectName() )
+            {
+                mSequenceElements.get_undo_mgr().CreateUndoStep();
+                mSequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetName(), el->GetIndex(), selectedEffect->GetID(), selectedEffectString, selectedEffectPalette );
+            }
+            
+            selectedEffect->SetSettings(effectText);
+            selectedEffect->SetPalette(palette);
+            
+            selectedEffectName = selectedEffect->GetEffectName();
+            selectedEffectString = effectText;
+            selectedEffectPalette = palette;
+            
+            playStartTime = selectedEffect->GetStartTimeMS();
+            playEndTime = selectedEffect->GetEndTimeMS();
+            playStartMS = -1;
+            
+            // Update if effect has been modified
+            if( m_mgr->GetPane("EffectAssist").IsShown() )
+            {
+                sEffectAssist->ForceRefresh();
+            }
+            
+            RenderEffectForModel(elem->GetName(),playStartTime,playEndTime);
+            mainSequencer->PanelEffectGrid->ForceRefresh();
+            return;
+        }
+    }
+}
+
 void xLightsFrame::TimerRgbSeq(long msec)
 {
     //check if there are models that depend on timing tracks or similar that need to be rendered
@@ -1159,51 +1216,6 @@ void xLightsFrame::TimerRgbSeq(long msec)
         //ms = me;
     }
 
-    if (selectedEffect != NULL && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
-        std::string palette;
-        std::string effectText = GetEffectTextFromWindows(palette);
-        if (effectText != selectedEffectString
-            || palette != selectedEffectPalette) {
-
-            int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
-            wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
-            if (name !=  selectedEffect->GetEffectName()) {
-                selectedEffect->SetEffectName(name.ToStdString());
-                selectedEffect->SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
-            }
-
-            EffectLayer* el = selectedEffect->GetParentEffectLayer();
-            Element *elem = el->GetParentElement();
-
-            //check for undo capture
-            if( selectedEffectName != selectedEffect->GetEffectName() )
-            {
-                mSequenceElements.get_undo_mgr().CreateUndoStep();
-                mSequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetName(), el->GetIndex(), selectedEffect->GetID(), selectedEffectString, selectedEffectPalette );
-            }
-
-            selectedEffect->SetSettings(effectText);
-            selectedEffect->SetPalette(palette);
-
-            selectedEffectName = selectedEffect->GetEffectName();
-            selectedEffectString = effectText;
-            selectedEffectPalette = palette;
-
-            playStartTime = selectedEffect->GetStartTimeMS();
-            playEndTime = selectedEffect->GetEndTimeMS();
-            playStartMS = -1;
-
-            // Update if effect has been modified
-            if( m_mgr->GetPane("EffectAssist").IsShown() )
-            {
-                sEffectAssist->ForceRefresh();
-            }
-
-            RenderEffectForModel(elem->GetName(),playStartTime,playEndTime);
-            mainSequencer->PanelEffectGrid->ForceRefresh();
-            return;
-        }
-    }
     int frame = curt / SeqData.FrameTime();
     //have the frame, copy from SeqData
     if (playModel != nullptr) {

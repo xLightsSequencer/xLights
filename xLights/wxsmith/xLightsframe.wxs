@@ -1340,22 +1340,50 @@
 					<object class="wxMenuItem" name="ID_MENU_OPENGL_AUTO" variable="MenuItem40" member="yes">
 						<label>Auto Detect</label>
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
-						<checkable>1</checkable>
+						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MENU_OPENGL_3" variable="MenuItem41" member="yes">
 						<label>3.x</label>
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
-						<checkable>1</checkable>
+						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MENU_OPENGL_2" variable="MenuItem42" member="yes">
 						<label>2.x</label>
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
-						<checkable>1</checkable>
+						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MENU_OPENGL_1" variable="MenuItem43" member="yes">
 						<label>1.x</label>
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
-						<checkable>1</checkable>
+						<radio>1</radio>
+					</object>
+				</object>
+				<object class="wxMenu" name="ID_MENUITEM20" variable="AutoSaveMenu" member="yes">
+					<label>Auto Save</label>
+					<object class="wxMenuItem" name="ID_MENUITEM_AUTOSAVE_0" variable="MenuItem44" member="no">
+						<label>Disabled</label>
+						<handler function="AutoSaveIntervalSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_AUTOSAVE_3" variable="MenuItem45" member="no">
+						<label>3 Minutes</label>
+						<handler function="AutoSaveIntervalSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_AUTOSAVE_10" variable="MenuItem46" member="no">
+						<label>10 Minutes</label>
+						<handler function="AutoSaveIntervalSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_AUTOSAVE_15" variable="MenuItem47" member="no">
+						<label>15 Minutes</label>
+						<handler function="AutoSaveIntervalSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_AUTOSAVE_30" variable="MenuItem48" member="no">
+						<label>30 Minutes</label>
+						<handler function="AutoSaveIntervalSelected" entry="EVT_MENU" />
+						<radio>1</radio>
 					</object>
 				</object>
 				<object class="wxMenuItem" name="ID_MENUITEM5" variable="MenuItem13" member="no">
@@ -1383,18 +1411,11 @@
 		<object class="wxTimer" name="ID_TIMER1" subclass="xLightsTimer" variable="Timer1" member="yes">
 			<handler function="OnTimer1Trigger" entry="EVT_TIMER" />
 		</object>
-		<object class="wxMessageDialog" name="ID_MESSAGEDIALOG1" variable="MessageDialog1" member="yes">
-			<caption>Message</caption>
-			<message>Hello</message>
-		</object>
-		<object class="wxFileDialog" variable="FileDialogPgoImage" member="yes">
-			<message>Select phoneme image file</message>
-			<wildcard>jpeg image(*.jpg)|*.jpg|&#x0A;png image(*.png)|*.png</wildcard>
-			<style>wxFD_OPEN|wxFD_FILE_MUST_EXIST</style>
-		</object>
 		<object class="wxTimer" name="ID_TIMER2" variable="Timer_AutoSave" member="yes">
-			<interval>180000</interval>
 			<handler function="OnTimer_AutoSaveTrigger" entry="EVT_TIMER" />
+		</object>
+		<object class="wxTimer" name="ID_TIMER_EFFECT_SETTINGS" variable="EffectSettingsTimer" member="yes">
+			<handler function="OnEffectSettingsTimerTrigger" entry="EVT_TIMER" />
 		</object>
 	</object>
 </wxsmith>

@@ -261,11 +261,17 @@ const long xLightsFrame::ID_MENU_OPENGL_3 = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_2 = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_1 = wxNewId();
 const long xLightsFrame::ID_MENUITEM19 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_AUTOSAVE_0 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_AUTOSAVE_3 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_AUTOSAVE_10 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_AUTOSAVE_15 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_AUTOSAVE_30 = wxNewId();
+const long xLightsFrame::ID_MENUITEM20 = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
-const long xLightsFrame::ID_MESSAGEDIALOG1 = wxNewId();
 const long xLightsFrame::ID_TIMER2 = wxNewId();
+const long xLightsFrame::ID_TIMER_EFFECT_SETTINGS = wxNewId();
 //*)
 
 // For new sequencer
@@ -410,6 +416,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenuItem* MenuItemAddList;
     wxGridBagSizer* GridBagSizer1;
     wxFlexGridSizer* FlexGridSizer27;
+    wxMenuItem* MenuItem46;
     wxMenuItem* MenuItem4;
     wxMenuItem* MenuItem14;
     wxFlexGridSizer* FlexGridSizer5;
@@ -430,6 +437,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenuItem* MenuItem12;
     wxMenuItem* MenuItem24;
     wxMenuItem* MenuItem27;
+    wxMenuItem* MenuItem44;
     wxFlexGridSizer* FlexGridSizerNetworks;
     wxFlexGridSizer* FlexGridSizer29;
     wxMenuItem* MenuItem20;
@@ -445,7 +453,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenuItem* MenuItem21;
     wxMenu* Menu2;
     wxMenuItem* MenuItem9;
+    wxMenuItem* MenuItem45;
+    wxMenuItem* MenuItem47;
     wxMenuItem* MenuItem30;
+    wxMenuItem* MenuItem48;
     wxFlexGridSizer* FlexGridSizer28;
     wxMenu* MenuPlaylist;
     wxMenu* Menu5;
@@ -869,15 +880,27 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItemEffectAssistToggleMode->Check(true);
     MenuSettings->Append(ID_MENUITEM_EFFECT_ASSIST, _("Effect Assist Window"), MenuItem7, wxEmptyString);
     OpenGLMenu = new wxMenu();
-    MenuItem40 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_AUTO, _("Auto Detect"), wxEmptyString, wxITEM_CHECK);
+    MenuItem40 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_AUTO, _("Auto Detect"), wxEmptyString, wxITEM_RADIO);
     OpenGLMenu->Append(MenuItem40);
-    MenuItem41 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_3, _("3.x"), wxEmptyString, wxITEM_CHECK);
+    MenuItem41 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_3, _("3.x"), wxEmptyString, wxITEM_RADIO);
     OpenGLMenu->Append(MenuItem41);
-    MenuItem42 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_2, _("2.x"), wxEmptyString, wxITEM_CHECK);
+    MenuItem42 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_2, _("2.x"), wxEmptyString, wxITEM_RADIO);
     OpenGLMenu->Append(MenuItem42);
-    MenuItem43 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_1, _("1.x"), wxEmptyString, wxITEM_CHECK);
+    MenuItem43 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_1, _("1.x"), wxEmptyString, wxITEM_RADIO);
     OpenGLMenu->Append(MenuItem43);
     MenuSettings->Append(ID_MENUITEM19, _("OpenGL"), OpenGLMenu, wxEmptyString);
+    AutoSaveMenu = new wxMenu();
+    MenuItem44 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_0, _("Disabled"), wxEmptyString, wxITEM_RADIO);
+    AutoSaveMenu->Append(MenuItem44);
+    MenuItem45 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_3, _("3 Minutes"), wxEmptyString, wxITEM_RADIO);
+    AutoSaveMenu->Append(MenuItem45);
+    MenuItem46 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_10, _("10 Minutes"), wxEmptyString, wxITEM_RADIO);
+    AutoSaveMenu->Append(MenuItem46);
+    MenuItem47 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_15, _("15 Minutes"), wxEmptyString, wxITEM_RADIO);
+    AutoSaveMenu->Append(MenuItem47);
+    MenuItem48 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_30, _("30 Minutes"), wxEmptyString, wxITEM_RADIO);
+    AutoSaveMenu->Append(MenuItem48);
+    MenuSettings->Append(ID_MENUITEM20, _("Auto Save"), AutoSaveMenu, wxEmptyString);
     MenuItem13 = new wxMenuItem(MenuSettings, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(MenuItem13);
     MenuBar->Append(MenuSettings, _("&Settings"));
@@ -890,10 +913,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     SetMenuBar(MenuBar);
     DirDialog1 = new wxDirDialog(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
     Timer1.SetOwner(this, ID_TIMER1);
-    MessageDialog1 = new wxMessageDialog(this, _("Hello"), _("Message"), wxOK|wxCANCEL, wxDefaultPosition);
-    FileDialogPgoImage = new wxFileDialog(this, _("Select phoneme image file"), wxEmptyString, wxEmptyString, _("jpeg image(*.jpg)|*.jpg|\npng image(*.png)|*.png"), wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     Timer_AutoSave.SetOwner(this, ID_TIMER2);
-    Timer_AutoSave.Start(180000, false);
+    EffectSettingsTimer.SetOwner(this, ID_TIMER_EFFECT_SETTINGS);
 
     Connect(ID_AUITOOLBAR_OPENSHOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_AUITOOLBAR_NEWSEQUENCE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNewSequenceClick);
@@ -1014,11 +1035,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENU_OPENGL_3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENU_OPENGL_2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENU_OPENGL_1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
+    Connect(ID_MENUITEM_AUTOSAVE_0,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
+    Connect(ID_MENUITEM_AUTOSAVE_3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
+    Connect(ID_MENUITEM_AUTOSAVE_10,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
+    Connect(ID_MENUITEM_AUTOSAVE_15,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
+    Connect(ID_MENUITEM_AUTOSAVE_30,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer_AutoSaveTrigger);
+    Connect(ID_TIMER_EFFECT_SETTINGS,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnEffectSettingsTimerTrigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
@@ -1205,6 +1232,26 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxCommandEvent event(wxEVT_NULL, isid);
     SetToolIconSize(event);
 
+    config->Read("AutoSaveInterval", &AutoSaveInterval, 3);
+    id = ID_MENUITEM_AUTOSAVE_0;
+    switch (AutoSaveInterval) {
+        case 3:
+            id = ID_MENUITEM_AUTOSAVE_3;
+            break;
+        case 10:
+            id = ID_MENUITEM_AUTOSAVE_10;
+            break;
+        case 15:
+            id = ID_MENUITEM_AUTOSAVE_15;
+            break;
+        case 30:
+            id = ID_MENUITEM_AUTOSAVE_30;
+            break;
+    }
+    wxCommandEvent asEvent(wxEVT_NULL, id);
+    AutoSaveIntervalSelected(asEvent);
+
+
     int glVer = 99;
     config->Read("ForceOpenGLVer", &glVer, 99);
     if (glVer != 99) {
@@ -1331,14 +1378,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
 	SetAudioControls();
 
-    // Autosave every 3 mins
-    Timer_AutoSave.Start(180 * 1000);
-
     logger_base.debug("xLightsFrame construction complete.");
 }
 
 xLightsFrame::~xLightsFrame()
 {
+    Timer_AutoSave.Stop();
     Timer1.Stop();
     selectedEffect = NULL;
 
@@ -1593,25 +1638,21 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     {
         modelPreview->InitializePreview(mBackgroundImage,mBackgroundBrightness);
         modelPreview->SetScaleBackgroundImage(mScaleBackgroundImage);
+        UpdatePreview();
+        SetStatusText(_(""));
+        EffectSettingsTimer.Stop();
     }
     else if (pagenum == NEWSEQUENCER)
     {
         InitSequencer();
         ShowHideAllSequencerWindows(true);
+        EffectSettingsTimer.Start(50);
     }
     else
     {
         SetStatusText(_(""));
+        EffectSettingsTimer.Stop();
     }
-
-    if (pagenum == PREVIEWTAB)
-    {
-        UpdatePreview();
-    }
-    //if (pagenum == PAPAGAYOTAB)
-    //{
-    //    InitPapagayoTab(event.GetOldSelection() != PAPAGAYOTAB); //populate choice lists with model names, etc.
-    //}
 }
 
 
@@ -2838,7 +2879,37 @@ void xLightsFrame::SaveWorking()
 void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
 {
     // dont save if currently playing
-    if (playType == PLAY_TYPE_MODEL) return;
-
-    SaveWorking();
+    if (playType != PLAY_TYPE_MODEL) {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        wxStopWatch sw;
+        SaveWorking();
+        logger_base.debug("AutoSave took %d ms.", sw.Time());
+    }
+    if (AutoSaveInterval > 0) {
+        Timer_AutoSave.StartOnce(AutoSaveInterval * 60000);
+    }
 }
+
+void xLightsFrame::AutoSaveIntervalSelected(wxCommandEvent& event)
+{
+    wxString v = AutoSaveMenu->GetLabel(event.GetId());
+    AutoSaveMenu->Check(event.GetId(), true);
+    int nasi = -1;
+    if (v == "Disabled") {
+        nasi = -1;
+        Timer_AutoSave.Stop();
+    } else {
+        nasi = wxAtoi(v);
+    }
+    if (nasi != AutoSaveInterval) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write("AutoSaveInterval", nasi);
+        AutoSaveInterval = nasi;
+    }
+    if (AutoSaveInterval > 0) {
+        Timer_AutoSave.StartOnce(AutoSaveInterval * 60000);
+    } else {
+        Timer_AutoSave.Stop();
+    }
+}
+

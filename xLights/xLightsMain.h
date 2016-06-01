@@ -23,12 +23,10 @@
 #include <wx/stattext.h>
 #include <wx/menu.h>
 #include <wx/textctrl.h>
-#include <wx/msgdlg.h>
 #include <wx/checkbox.h>
 #include <wx/splitter.h>
 #include <wx/aui/aui.h>
 #include <wx/panel.h>
-#include <wx/filedlg.h>
 #include <wx/bmpbuttn.h>
 #include <wx/gbsizer.h>
 #include <wx/button.h>
@@ -507,28 +505,14 @@ private:
     void OnBitmapButton_LayerMorphClick(wxCommandEvent& event);
     void OnNotebook2PageChanged(wxNotebookEvent& event);
     void OnButtonStartPapagayoClick(wxCommandEvent& event);
-    void OnButton_pgo_filenameClick(wxCommandEvent& event);
-    void OnButton_papagayo_output_sequenceClick(wxCommandEvent& event);
-    void OnButton_papagayo_output_sequenceClick1(wxCommandEvent& event);
     void OnTextCtrl1Text(wxCommandEvent& event);
     void OnTextCtrl20Text(wxCommandEvent& event);
-    void OnButtonPgoImageClick(wxCommandEvent& event);
     void OntxtCtrlSparkleFreqText(wxCommandEvent& event);
     void OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event);
     void OnBitmapButton_OpenCoroGroupClick(wxCommandEvent& event);
     void OnButton_CoroGroupDeleteClick(wxCommandEvent& event);
-    void OnChoice_PgoGroupNameSelect(wxCommandEvent& event);
     void OnButton_CoroGroupClearClick(wxCommandEvent& event);
     void OnGridCoroFacesCellSelect(wxGridEvent& event);
-    void OnNotebookPgoParmsPageChanged(wxNotebookEvent& event);
-    void OnTimer2Trigger(wxTimerEvent& event);
-    void OnButton_PgoStitchClick(wxCommandEvent& event);
-    void OnCheckBox_AutoFadePgoAllClick(wxCommandEvent& event);
-    void OnChoice_PgoOutputTypeSelect(wxCommandEvent& event);
-    void OnButton_PgoCopyVoicesClick(wxCommandEvent& event);
-    void OnTextCtrl_PgoMinRestText(wxCommandEvent& event);
-    void OnTextCtrl_PgoMaxRestText(wxCommandEvent& event);
-    void OnTextCtrl_PgoAutoFadeText(wxCommandEvent& event);
     void OnbtEditViewsClick(wxCommandEvent& event);
     void OnChoice_ViewsSelect(wxCommandEvent& event);
     void OnButtonBuildCustomModelClick(wxCommandEvent& event);
@@ -600,6 +584,8 @@ private:
     void OnMenuItemPackageDebugFiles(wxCommandEvent& event);
     void OnMenuOpenGLSelected(wxCommandEvent& event);
     void OnTimer_AutoSaveTrigger(wxTimerEvent& event);
+    void AutoSaveIntervalSelected(wxCommandEvent& event);
+    void OnEffectSettingsTimerTrigger(wxTimerEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -767,11 +753,17 @@ private:
     static const long ID_MENU_OPENGL_2;
     static const long ID_MENU_OPENGL_1;
     static const long ID_MENUITEM19;
+    static const long ID_MENUITEM_AUTOSAVE_0;
+    static const long ID_MENUITEM_AUTOSAVE_3;
+    static const long ID_MENUITEM_AUTOSAVE_10;
+    static const long ID_MENUITEM_AUTOSAVE_15;
+    static const long ID_MENUITEM_AUTOSAVE_30;
+    static const long ID_MENUITEM20;
     static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
     static const long ID_TIMER1;
-    static const long ID_MESSAGEDIALOG1;
     static const long ID_TIMER2;
+    static const long ID_TIMER_EFFECT_SETTINGS;
     //*)
 
     static const long ID_PANEL_EFFECTS1;
@@ -820,6 +812,7 @@ private:
     wxMenuItem* MenuItem_File_Save_Sequence;
     wxMenuItem* MenuItem36;
     wxButton* ButtonNetworkDeleteAll;
+    wxTimer EffectSettingsTimer;
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItem_File_Close_Sequence;
     wxStaticText* StaticTextShowStart;
@@ -853,6 +846,7 @@ private:
     wxMenuItem* MenuItemConvert;
     wxButton* ButtonNetworkChange;
     wxButton* ButtonAddNull;
+    wxMenu* AutoSaveMenu;
     wxMenuItem* Menu_Settings_Sequence;
     wxMenu* MenuSettings;
     wxButton* ButtonNetworkDelete;
@@ -882,7 +876,6 @@ private:
     wxPanel* Panel2;
     wxMenuItem* MenuItemSavePlaylists;
     wxButton* ButtonUpdateShow;
-    wxMessageDialog* MessageDialog1;
     wxMenu* GridSpacingMenu;
     wxStaticText* FileNameText;
     wxMenuItem* MenuItem16;
@@ -900,7 +893,6 @@ private:
     wxButton* ButtonAddShow;
     wxGridBagSizer* StatusBarSizer;
     wxMenu* AudioMenu;
-    wxFileDialog* FileDialogPgoImage;
     xlAuiToolBar* EditToolBar;
     wxMenuItem* MenuItemGridIconBackgroundOff;
     wxMenuBar* MenuBar;
@@ -1032,15 +1024,6 @@ private:
     wxXmlNode* SelectModelToExport();
 
     JobPool jobPool;
-
-//  papagayo
-    void PapagayoError(const wxString& msg);
-    //void AutoFace();
-    int write_pgo_header(wxFile& f); //, int MaxVoices);
-    void write_pgo_footer(wxFile& f); //, int MaxVoices);
-//    void AutoFace(wxFile& f, int MaxVoices,int start_frame,int end_frame,const wxString& phoneme, const wxString& word);
-    void AutoFace(wxFile& f, int start_frame, void* voice_ptr, void* phrase_ptr, void* word_ptr, void* phoneme_ptr);
-
 
     // schedule
     wxDateTime ShowStartDate,ShowEndDate;
@@ -1191,19 +1174,13 @@ protected:
     void StopNow(void);
     void PlayRgbSequence(void);
     bool IsValidEffectString(wxString& s);
-    void LoadPapagayoFile(const wxString& filename, int frame_offset = 0);
-    void InitPapagayoTab(bool tab_changed);
-    bool LoadPgoSettings(void);
-    bool SavePgoSettings(void);
     bool GetGroupName(wxString& grpname);
-    void PgoGridCellSelect(int row, int col, int where);
     void SetSelectedModelToGroupSelected();
     void ShowModelProperties();
     void SetModelAsPartOfDisplay(wxString& model);
     unsigned int GetMaxNumChannels();
 
 
-    wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;
@@ -1231,6 +1208,7 @@ private:
     bool mGridNodeValues;
     int mEffectAssistMode;
 	bool mRendering;
+    int AutoSaveInterval;
 
     Model *playModel;
     int playType;
