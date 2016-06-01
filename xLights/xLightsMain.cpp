@@ -68,6 +68,22 @@
 
 #define TOOLBAR_SAVE_VERSION "0002:"
 
+#ifdef __WXOSX__
+#include "osxMacUtils.h"
+AppNapSuspender sleepData;
+void EnableSleepModes()
+{
+    sleepData.resume();
+}
+void DisableSleepModes()
+{
+    sleepData.suspend();
+}
+#else
+void EnableSleepModes() {}
+void DisableSleepModes() {}
+#endif
+
 //helper functions
 enum wxbuildinfoformat
 {
@@ -1498,8 +1514,12 @@ void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
 
 void xLightsFrame::AllLightsOff()
 {
-    //TestButtonsOff();
-    if (xout) xout->alloff();
+    if (xout)
+    {
+        xout->alloff();
+        wxTimerEvent ev;
+        OnTimer1Trigger(ev);
+    }
 }
 
 void xLightsFrame::ResetAllSequencerWindows()
@@ -1597,26 +1617,18 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
 
 void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event)
 {
-    AllLightsOff();
+    wxCriticalSectionLocker locker(gs_xoutCriticalSection);
+    if (xout)
+    {
+        CheckBoxLightOutput->SetValue(false);
+        AllLightsOff();
+        EnableSleepModes();
+        CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")), wxART_TOOLBAR));
+        delete xout;
+        xout = 0;
+        EnableNetworkChanges();
+    }
 }
-
-#ifdef __WXOSX__
-
-#include "osxMacUtils.h"
-AppNapSuspender sleepData;
-void EnableSleepModes()
-{
-    sleepData.resume();
-}
-void DisableSleepModes()
-{
-    sleepData.suspend();
-}
-#else
-void EnableSleepModes() {}
-void DisableSleepModes() {}
-#endif
-
 
 bool xLightsFrame::EnableOutputs()
 {
@@ -1709,6 +1721,7 @@ bool xLightsFrame::EnableOutputs()
     }
     else if (!CheckBoxLightOutput->IsChecked() && xout)
     {
+        AllLightsOff();
         EnableSleepModes();
         CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR));
         delete xout;
