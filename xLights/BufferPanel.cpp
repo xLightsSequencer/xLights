@@ -762,7 +762,7 @@ void BufferPanel::OnSlider_EffectBlurCmdSliderUpdated(wxScrollEvent& event)
     UpdateLinkedTextCtrl(event);
     if (BitmapButton_Blur->GetValue()->GetType() == "Flat")
     {
-        BitmapButton_Blur->GetValue()->SetParameter1(Slider_EffectBlur->GetValue());
+        BitmapButton_Blur->GetValue()->SetUnscaledParameter1(Slider_EffectBlur->GetValue());
     }
 }
 
@@ -771,7 +771,7 @@ void BufferPanel::OnSlider_RotationCmdSliderUpdated(wxScrollEvent& event)
     UpdateLinkedTextCtrl(event);
     if (BitmapButton_VCRotation->GetValue()->GetType() == "Flat")
     {
-        BitmapButton_VCRotation->GetValue()->SetParameter1(Slider_Rotation->GetValue());
+        BitmapButton_VCRotation->GetValue()->SetUnscaledParameter1(Slider_Rotation->GetValue());
     }
 }
 
@@ -780,7 +780,7 @@ void BufferPanel::OnSlider_PivotPointXCmdSliderUpdated(wxScrollEvent& event)
     UpdateLinkedTextCtrl(event);
     if (BitmapButton_VCPivotPointX->GetValue()->GetType() == "Flat")
     {
-        BitmapButton_VCPivotPointX->GetValue()->SetParameter1(Slider_PivotPointX->GetValue());
+        BitmapButton_VCPivotPointX->GetValue()->SetUnscaledParameter1(Slider_PivotPointX->GetValue());
     }
 }
 
@@ -789,7 +789,7 @@ void BufferPanel::OnSlider_PivotPointYCmdSliderUpdated(wxScrollEvent& event)
     UpdateLinkedTextCtrl(event);
     if (BitmapButton_VCPivotPointY->GetValue()->GetType() == "Flat")
     {
-        BitmapButton_VCPivotPointY->GetValue()->SetParameter1(Slider_PivotPointY->GetValue());
+        BitmapButton_VCPivotPointY->GetValue()->SetUnscaledParameter1(Slider_PivotPointY->GetValue());
     }
 }
 
@@ -801,7 +801,7 @@ void BufferPanel::OnSlider_RotationsCmdSliderUpdated(wxScrollEvent& event)
     TextCtrl_Rotations->SetValue(txt);
     if (BitmapButton_VCRotations->GetValue()->GetType() == "Flat")
     {
-        BitmapButton_VCRotations->GetValue()->SetParameter1(i);
+        BitmapButton_VCRotations->GetValue()->SetUnscaledParameter1(i);
     }
 }
 
@@ -824,7 +824,7 @@ void BufferPanel::OnSlider_ZoomCmdSliderUpdated(wxScrollEvent& event)
     TextCtrl_Zoom->SetValue(txt);
     if (BitmapButton_VCZoom->GetValue()->GetType() == "Flat")
     {
-        BitmapButton_VCZoom->GetValue()->SetParameter1(i);
+        BitmapButton_VCZoom->GetValue()->SetUnscaledParameter1(i);
     }
 }
 

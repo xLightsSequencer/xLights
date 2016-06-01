@@ -84,6 +84,9 @@ class ShockwavePanel: public wxPanel
     void UpdateLinkedTextCtrl(wxScrollEvent& event);
     void UpdateLinkedSlider(wxCommandEvent& event);
     void OnLockButtonClick(wxCommandEvent& event);
+    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+    void OnVCButtonClick(wxCommandEvent& event);
 
 		//*)
 

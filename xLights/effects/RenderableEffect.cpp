@@ -9,6 +9,7 @@
 #include <wx/spinctrl.h>
 
 #include <sstream>
+#include "../ValueCurveButton.h"
 
 RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data16,
@@ -181,6 +182,14 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
         {
             wxSlider* ctrl=(wxSlider*)ChildWin;
             s+=AttrName+ "=" + wxString::Format("%d",ctrl->GetValue()) + ",";
+        }
+        else if (ChildName.StartsWith("ID_VALUECURVE"))
+        {
+            ValueCurveButton* ctrl = (ValueCurveButton*)ChildWin;
+            if (ctrl->GetValue()->IsActive())
+            {
+                s += AttrName + "=" + ctrl->GetValue()->Serialise() + ",";
+            }
         }
         else if (ChildName.StartsWith("ID_TEXTCTRL"))
         {
@@ -634,6 +643,36 @@ void RenderableEffect::SetCheckBoxValue(wxCheckBox *c, bool b) {
     c->ProcessWindowEvent(evt);
 }
 
+double RenderableEffect::GetValueCurveDouble(wxString name, double def, const SettingsMap &SettingsMap, float offset)
+{
+    double res = SettingsMap.GetDouble("TEXTCTRL_" + name, def);
+
+    wxString vc = SettingsMap.Get("VALUECURVE_" + name, "");
+    if (vc != "")
+    {
+        ValueCurve valc(vc.ToStdString());
+        res = valc.GetOutputValueAt(offset);
+    }
+
+    return res;
+}
+int RenderableEffect::GetValueCurveInt(wxString name, int def, const SettingsMap &SettingsMap, float offset)
+{
+    int res = SettingsMap.GetInt("SLIDER_" + name, def);
+    //if (res == def)
+    //{
+    //    res = SettingsMap.GetInt("TEXTCTRL_" + name, def);
+    //}
+
+    wxString vc = SettingsMap.Get("VALUECURVE_" + name, "");
+    if (vc != "")
+    {
+        ValueCurve valc(vc.ToStdString());
+        res = valc.GetOutputValueAt(offset);
+    }
+
+    return res;
+}
 
 
 

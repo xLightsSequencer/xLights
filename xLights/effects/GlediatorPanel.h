@@ -43,6 +43,9 @@ class GlediatorPanel: public wxPanel
     void UpdateLinkedSlider(wxCommandEvent& event);
     void OnLockButtonClick(wxCommandEvent& event);
     void OnButton_Glediator_FilenameClick(wxCommandEvent& event);
+    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+    void OnVCButtonClick(wxCommandEvent& event);
 
 		//*)
 

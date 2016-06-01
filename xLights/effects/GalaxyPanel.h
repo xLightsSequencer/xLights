@@ -112,6 +112,9 @@ class GalaxyPanel: public wxPanel
     void OnCheckBox_Galaxy_End_Radius_x10Click(wxCommandEvent& event);
     void OnCheckBox_Galaxy_End_Width_x10Click(wxCommandEvent& event);
     void OnCheckBox_Galaxy_Revs_x2Click(wxCommandEvent& event);
+    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+    void OnVCButtonClick(wxCommandEvent& event);
 
 		//*)
 

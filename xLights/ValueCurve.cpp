@@ -4,6 +4,12 @@
 #include <wx/wx.h>
 #include <wx/string.h>
 
+void ValueCurve::SetUnscaledParameter1(float v)
+{
+    _parameter1 = SafeParameter(1, v * 100.0 / _max);
+    RenderType();
+}
+
 float ValueCurve::SafeParameter(size_t p, float v)
 {
     return std::min(100.0f, std::max(0.0f, v));
@@ -354,11 +360,23 @@ void ValueCurve::SetDefault(float min, float max)
     RenderType();
 }
 
-void ValueCurve::Deserialise(std::string s)
+ValueCurve::ValueCurve(const std::string& s)
+{
+    Deserialise(s);
+}
+
+void ValueCurve::Deserialise(const std::string& s)
 {
     if (s == "")
     {
+        SetDefault(0, 100);
         _active = false;
+    }
+    else if (s.find('|') == std::string::npos)
+    {
+        SetDefault(0, 100);
+        _active = false;
+        _id = s;
     }
     else
     {

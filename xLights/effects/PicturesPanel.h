@@ -83,6 +83,9 @@ class PicturesPanel: public wxPanel
     void UpdateLinkedSlider(wxCommandEvent& event);
     void OnLockButtonClick(wxCommandEvent& event);
     void OnChoicePicturesDirectionSelect(wxCommandEvent& event);
+    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+    void OnVCButtonClick(wxCommandEvent& event);
 
 		//*)
 

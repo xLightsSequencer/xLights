@@ -160,7 +160,10 @@ public:
 		void OnBitmapButton_VCPivotPointXClick(wxCommandEvent& event);
 		void OnBitmapButton_VCPivotPointYClick(wxCommandEvent& event);
 		void OnChoice_PresetSelect(wxCommandEvent& event);
-		//*)
+        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+        void OnVCButtonClick(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

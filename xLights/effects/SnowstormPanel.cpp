@@ -3,15 +3,15 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(SnowstormPanel)
-#include <wx/bmpbuttn.h>
 #include <wx/sizer.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(SnowstormPanel)
@@ -35,12 +35,12 @@ END_EVENT_TABLE()
 SnowstormPanel::SnowstormPanel(wxWindow* parent)
 {
 	//(*Initialize(SnowstormPanel)
+	wxStaticText* StaticText180;
+	wxTextCtrl* TextCtrl55;
+	wxFlexGridSizer* FlexGridSizer44;
 	wxTextCtrl* TextCtrl54;
 	wxSlider* Slider20;
-	wxTextCtrl* TextCtrl55;
 	wxTextCtrl* TextCtrl53;
-	wxFlexGridSizer* FlexGridSizer44;
-	wxStaticText* StaticText180;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer44 = new wxFlexGridSizer(0, 4, 0, 0);

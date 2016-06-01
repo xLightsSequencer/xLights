@@ -96,7 +96,10 @@ class MeteorsPanel: public wxPanel
 		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnChoice_Meteors_EffectSelect(wxCommandEvent& event);
-		//*)
+        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+        void OnVCButtonClick(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 

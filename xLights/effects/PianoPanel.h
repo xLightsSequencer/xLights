@@ -147,7 +147,10 @@ public:
 		void OnChoice_Piano_Notes_SourceSelect(wxCommandEvent& event);
 		void OnTextCtrl_Piano_FileText(wxCommandEvent& event);
 		void OnButton_Piano_FileClick(wxCommandEvent& event);
-		//*)
+        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+        void OnVCButtonClick(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 		void MIDIExtraValidateWindow();

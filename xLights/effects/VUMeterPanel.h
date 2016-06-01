@@ -125,12 +125,15 @@ class VUMeterPanel: public wxPanel
 		void UpdateLinkedTextCtrl(wxScrollEvent& event);
 		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
-		void OnChoiceVUMeterDirectionSelect(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+        void OnChoiceVUMeterDirectionSelect(wxCommandEvent& event);
 		void OnTextCtrl1Text(wxCommandEvent& event);
 		void OnChoice_VUMeter_TypeSelect(wxCommandEvent& event);
 		void OnSlider_VUMeter_StartNoteCmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_VUMeter_StartNoteText(wxCommandEvent& event);
-		//*)
+        void OnVCButtonClick(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 

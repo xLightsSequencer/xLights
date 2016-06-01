@@ -58,7 +58,10 @@ class StrobePanel: public wxPanel
 		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnSlider_Strobe_TypeCmdScroll(wxScrollEvent& event);
-		//*)
+        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+        void OnVCButtonClick(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

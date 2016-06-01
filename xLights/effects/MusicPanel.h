@@ -111,12 +111,15 @@ class MusicPanel: public wxPanel
 		void UpdateLinkedTextCtrl(wxScrollEvent& event);
 		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
-		void OnChoiceMusicDirectionSelect(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+        void OnChoiceMusicDirectionSelect(wxCommandEvent& event);
 		void OnTextCtrl1Text(wxCommandEvent& event);
 		void OnChoice_Music_TypeSelect(wxCommandEvent& event);
 		void OnSlider_Music_StartNoteCmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_Music_StartNoteText(wxCommandEvent& event);
-		//*)
+        void OnVCButtonClick(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 

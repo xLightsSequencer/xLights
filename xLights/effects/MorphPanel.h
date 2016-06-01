@@ -150,7 +150,10 @@ class MorphPanel: public wxPanel
     void UpdateLinkedTextCtrl(wxScrollEvent& event);
     void UpdateLinkedSlider(wxCommandEvent& event);
     void OnLockButtonClick(wxCommandEvent& event);
-    
+    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+    void OnVCButtonClick(wxCommandEvent& event);
+
     void OnCheckBox_Morph_Start_LinkClick(wxCommandEvent& event);
     void OnCheckBox_Morph_End_LinkClick(wxCommandEvent& event);
     void OnChoice_Morph_QuickSetSelect(wxCommandEvent& event);

@@ -80,7 +80,10 @@ class VideoPanel: public wxPanel
 		void UpdateLinkedTextCtrl(wxScrollEvent& event);
 		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
-		void OnChoiceVideoDirectionSelect(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+        void OnVCButtonClick(wxCommandEvent& event);
+        void OnChoiceVideoDirectionSelect(wxCommandEvent& event);
 		void OnTextCtrl1Text(wxCommandEvent& event);
 		void OnSlider_Video_StarttimeCmdSliderUpdated(wxScrollEvent& event);
 		void OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event);

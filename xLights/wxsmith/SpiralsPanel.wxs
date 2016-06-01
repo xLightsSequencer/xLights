@@ -18,11 +18,29 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Spirals_Count" variable="Slider_Spirals_Count" member="yes">
-							<value>1</value>
-							<min>1</min>
-							<max>5</max>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+							<cols>2</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_Spirals_Count" variable="Slider_Spirals_Count" member="yes">
+									<value>1</value>
+									<min>1</min>
+									<max>5</max>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Spirals_Count" subclass="ValueCurveButton" variable="BitmapButton_VCSpiralsCount" member="yes">
+									<bitmap code="valuecurvenotselected_24" />
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -61,12 +79,30 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Spirals_Rotation" variable="Slider_Spirals_Rotation" member="no">
-							<value>20</value>
-							<min>-300</min>
-							<max>300</max>
-							<tooltip>Number of times a band wraps around the matrix</tooltip>
-							<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+							<cols>2</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_Spirals_Rotation" variable="Slider_Spirals_Rotation" member="no">
+									<value>20</value>
+									<min>-300</min>
+									<max>300</max>
+									<tooltip>Number of times a band wraps around the matrix</tooltip>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Spirals_Rotation" subclass="ValueCurveButton" variable="BitmapButton_VCSpirals_Rotation" member="yes">
+									<bitmap code="valuecurvenotselected_24" />
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -105,9 +141,28 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Spirals_Thickness" variable="Slider_Spirals_Thickness" member="yes">
-							<value>50</value>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+							<cols>2</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_Spirals_Thickness" variable="Slider_Spirals_Thickness" member="yes">
+									<value>50</value>
+									<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Spirals_Thickness" subclass="ValueCurveButton" variable="BitmapButton_VCSpirals_Thickness" member="yes">
+									<bitmap code="valuecurvenotselected_24" />
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -146,14 +201,33 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Spirals_Movement" variable="Slider_Spirals_Direction" member="no">
-							<value>10</value>
-							<min>-200</min>
-							<max>200</max>
-							<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+							<cols>2</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="IDD_SLIDER_Spirals_Movement" variable="Slider_Spirals_Direction" member="no">
+									<value>10</value>
+									<min>-200</min>
+									<max>200</max>
+									<handler function="UpdateLinkedTextCtrlFloatVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Spirals_Movement" subclass="ValueCurveButton" variable="BitmapButton_VCSpirals_Movement" member="yes">
+									<bitmap code="valuecurvenotselected_24" />
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">

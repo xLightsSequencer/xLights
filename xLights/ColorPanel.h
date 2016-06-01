@@ -115,10 +115,13 @@ public:
 		void UpdateLinkedTextCtrl(wxScrollEvent& event);
 		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
-		void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+        void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
 		void OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& event);
 		void OnBitmapButton_VCBrightnessClick(wxCommandEvent& event);
-		//*)
+        void OnVCButtonClick(wxCommandEvent& event);
+        //*)
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
         wxColourData colorData;

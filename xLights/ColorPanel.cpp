@@ -443,7 +443,7 @@ void ColorPanel::OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& event)
     UpdateLinkedTextCtrl(event);
     if (BitmapButton_VCBrightness->GetValue()->GetType() == "Flat")
     {
-        BitmapButton_VCBrightness->GetValue()->SetParameter1(Slider_Brightness->GetValue());
+        BitmapButton_VCBrightness->GetValue()->SetUnscaledParameter1(Slider_Brightness->GetValue());
     }
 }
 

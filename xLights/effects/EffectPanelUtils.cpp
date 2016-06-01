@@ -20,7 +20,9 @@
 #include <wx/choicebk.h>
 
 #include "../BitmapCache.h"
-
+#include "../ValueCurveButton.h"
+#include "../ValueCurveDialog.h"
+#include <wx/valnum.h>
 
 std::map<std::string, bool> EffectPanelUtils::buttonStates;
 
@@ -92,6 +94,31 @@ void EffectPanelUtils::UpdateLinkedTextCtrl(wxScrollEvent& event)
     txt->ChangeValue(wxString::Format("%d",slider->GetValue()));
 }
 
+void EffectPanelUtils::UpdateLinkedTextCtrlVC(wxScrollEvent& event)
+{
+    UpdateLinkedTextCtrl(event);
+    wxSlider * slider = (wxSlider*)event.GetEventObject();
+    wxString name = slider->GetName();
+    if (name.Contains("ID_")) {
+        name.Replace("ID_SLIDER_", "ID_VALUECURVE_");
+    }
+    else {
+        name.Replace("IDD_SLIDER_", "ID_VALUECURVE_");
+    }
+    ValueCurveButton* vc = (ValueCurveButton*)slider->GetParent()->FindWindowByName(name);
+    
+    if (vc != NULL)
+    {
+        if (vc->GetValue()->GetType() == "Flat")
+        {
+            vc->GetValue()->SetUnscaledParameter1(slider->GetValue());
+        }
+    }
+    else
+    {
+        wxASSERT("Value curve button not found: " + name);
+    }
+}
 
 void EffectPanelUtils::UpdateLinkedSlider360(wxCommandEvent& event)
 {
@@ -147,6 +174,32 @@ void EffectPanelUtils::UpdateLinkedTextCtrlFloat(wxScrollEvent& event)
     txt->ChangeValue(wxString::Format("%0.1f",slider->GetValue()/10.0));
 }
 
+void EffectPanelUtils::UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event)
+{
+    UpdateLinkedTextCtrlFloat(event);
+    wxSlider * slider = (wxSlider*)event.GetEventObject();
+    wxString name = slider->GetName();
+    if (name.Contains("ID_")) {
+        name.Replace("ID_SLIDER_", "ID_VALUECURVE_");
+    }
+    else {
+        name.Replace("IDD_SLIDER_", "ID_VALUECURVE_");
+    }
+    ValueCurveButton* vc = (ValueCurveButton*)slider->GetParent()->FindWindowByName(name);
+
+    if (vc != NULL)
+    {
+        if (vc->GetValue()->GetType() == "Flat")
+        {
+            vc->GetValue()->SetUnscaledParameter1(slider->GetValue());
+        }
+    }
+    else
+    {
+        wxASSERT("Value curve button not found: " + name);
+    }
+}
+
 void EffectPanelUtils::UpdateLinkedSliderFloat(wxCommandEvent& event)
 {
     wxTextCtrl * txt = (wxTextCtrl*)event.GetEventObject();
@@ -187,5 +240,74 @@ void EffectPanelUtils::enableControlsByName(wxWindow *window, const wxString &na
     w = window->FindWindowByName(name);
     if (w != nullptr) {
         w->Enable(enable);
+    }
+}
+
+void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
+{
+    ValueCurveButton * vc = (ValueCurveButton*)event.GetEventObject();
+
+    wxString name = vc->GetName();
+    name.Replace("IDD_VALUECURVE_", "ID_SLIDER_");
+    name.Replace("ID_VALUECURVE_", "ID_SLIDER_");
+    wxSlider *slider = (wxSlider*)vc->GetParent()->FindWindowByName(name);
+    if (slider == NULL || (void*)slider == (void*)vc)
+    {
+        name = vc->GetName();
+        name.Replace("IDD_VALUECURVE_", "IDD_SLIDER_");
+        name.Replace("ID_VALUECURVE_", "IDD_SLIDER_");
+        slider = (wxSlider*)vc->GetParent()->FindWindowByName(name);
+    }
+
+    name = vc->GetName();
+    name.Replace("IDD_VALUECURVE_", "ID_TEXTCTRL_");
+    name.Replace("ID_VALUECURVE_", "ID_TEXTCTRL_");
+    wxTextCtrl *txt = (wxTextCtrl*)vc->GetParent()->FindWindowByName(name);
+    if (txt == NULL || (void*)txt == (void*)vc)
+    {
+        name = vc->GetName();
+        name.Replace("IDD_VALUECURVE_", "IDD_TEXTCTRL_");
+        name.Replace("ID_VALUECURVE_", "IDD_TEXTCTRL_");
+        txt = (wxTextCtrl*)vc->GetParent()->FindWindowByName(name);
+    }
+
+    vc->ToggleActive();
+    if (vc->GetValue()->IsActive())
+    {
+        ValueCurveDialog vcd(vc->GetParent(), vc->GetValue());
+        if (vcd.ShowModal() == wxOK)
+        {
+            if (slider != NULL)
+            {
+                slider->Disable();
+            }
+            if (txt != NULL)
+            {
+                txt->Disable();
+            }
+        }
+        else
+        {
+            if (slider != NULL)
+            {
+                slider->Enable();
+            }
+            if (txt != NULL)
+            {
+                txt->Enable();
+            }
+        }
+        vc->UpdateState();
+    }
+    else
+    {
+        if (slider != NULL)
+        {
+            slider->Enable();
+        }
+        if (txt != NULL)
+        {
+            txt->Enable();
+        }
     }
 }
