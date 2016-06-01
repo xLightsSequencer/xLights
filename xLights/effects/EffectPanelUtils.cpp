@@ -296,6 +296,7 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
             {
                 txt->Enable();
             }
+            vc->SetActive(false);
         }
         vc->UpdateState();
     }
