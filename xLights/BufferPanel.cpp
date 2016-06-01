@@ -13,7 +13,6 @@
 #include "models/Model.h"
 #include "effects/EffectPanelUtils.h"
 #include "../include/padlock16x16-blue.xpm" //-DJ
-#include "../include/valuecurvenotselected.xpm"
 #include "ValueCurveDialog.h"
 #include "SubBufferPanel.h"
 //#include "BufferTransformProperties.h"

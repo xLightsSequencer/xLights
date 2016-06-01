@@ -1,6 +1,5 @@
 #include "ValueCurveButton.h"
 #include "../include/valuecurveselected.xpm"
-#include "../include/valuecurvenotselected.xpm"
 
 
 #include <wx/dcmemory.h>

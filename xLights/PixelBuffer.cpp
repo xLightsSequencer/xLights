@@ -83,6 +83,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
         layers[x]->bufferType = "Default";
         layers[x]->bufferTransform = "None";
         layers[x]->subBuffer = "";
+        layers[x]->brightnessValueCurve = "";
         layers[x]->blurValueCurve = "";
         layers[x]->rotationValueCurve = "";
         layers[x]->zoomValueCurve = "";
@@ -466,7 +467,7 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
 }
 
 
-void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers)
+void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod)
 {
 
     unsigned short &sparkle = layers[0]->Nodes[node]->sparkle;
@@ -478,6 +479,11 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
     {
         if (validLayers[layer])
         {
+            int effStartPer, effEndPer;
+            layers[0]->buffer.GetEffectPeriods(effStartPer, effEndPer);
+            float offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
+            offset = std::min(offset, 1.0f);
+
             int x = layers[layer]->Nodes[node]->Coords[0].bufX;
             int y = layers[layer]->Nodes[node]->Coords[0].bufY;
 
@@ -526,10 +532,19 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                 }
                 sparkle++;
             }
-            if (layers[layer]->brightness != 100 || layers[layer]->contrast != 0)
+            int b = 0;
+            if (layers[layer]->BrightnessValueCurve.IsActive())
+            {
+                b = (int)layers[layer]->BrightnessValueCurve.GetOutputValueAt(offset);
+            }
+            else
+            {
+                b = layers[layer]->brightness;
+            }
+            if (b != 100 || layers[layer]->contrast != 0)
             {
                 hsv = color.asHSV();
-                hsv.value = hsv.value * ((double)layers[layer]->brightness/(double)100);
+                hsv.value = hsv.value * ((double)b/(double)100);
 
                 // Apply Contrast
                 if (hsv.value< 0.5)
@@ -663,6 +678,7 @@ static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
 static const std::string CHOICE_BufferTransform("CHOICE_BufferTransform");
 static const std::string CUSTOM_SubBuffer("CUSTOM_SubBuffer");
 static const std::string VALUECURVE_Blur("VALUECURVE_Blur");
+static const std::string VALUECURVE_Brightness("VALUECURVE_Brightness");
 static const std::string VALUECURVE_Zoom("VALUECURVE_Zoom");
 static const std::string VALUECURVE_Rotation("VALUECURVE_Rotation");
 static const std::string VALUECURVE_Rotations("VALUECURVE_Rotations");
@@ -686,64 +702,14 @@ static const std::string SLIDER_Out_Transition_Adjust("SLIDER_Out_Transition_Adj
 static const std::string CHECKBOX_In_Transition_Reverse("CHECKBOX_In_Transition_Reverse");
 static const std::string CHECKBOX_Out_Transition_Reverse("CHECKBOX_Out_Transition_Reverse");
 
-void ComputeBlurValueCurve(const std::string& blurValueCurve, ValueCurve& BlurValueCurve)
+void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve)
 {
-    if (blurValueCurve == STR_EMPTY) {
-        BlurValueCurve.SetDefault();
+    if (valueCurve == STR_EMPTY) {
+        theValueCurve.SetDefault();
         return;
     }
 
-    BlurValueCurve.Deserialise(blurValueCurve);
-}
-
-void ComputeZoomValueCurve(const std::string& zoomValueCurve, ValueCurve& ZoomValueCurve)
-{
-    if (zoomValueCurve == STR_EMPTY) {
-        ZoomValueCurve.SetDefault();
-        return;
-    }
-
-    ZoomValueCurve.Deserialise(zoomValueCurve);
-}
-
-void ComputeRotationValueCurve(const std::string& rotationValueCurve, ValueCurve& RotationValueCurve)
-{
-    if (rotationValueCurve == STR_EMPTY) {
-        RotationValueCurve.SetDefault();
-        return;
-    }
-
-    RotationValueCurve.Deserialise(rotationValueCurve);
-}
-
-void ComputeRotationsValueCurve(const std::string& rotationsValueCurve, ValueCurve& RotationsValueCurve)
-{
-    if (rotationsValueCurve == STR_EMPTY) {
-        RotationsValueCurve.SetDefault();
-        return;
-    }
-
-    RotationsValueCurve.Deserialise(rotationsValueCurve);
-}
-
-void ComputePivotPointXValueCurve(const std::string& pivotpointxValueCurve, ValueCurve& PivotPointXValueCurve)
-{
-    if (pivotpointxValueCurve == STR_EMPTY) {
-        PivotPointXValueCurve.SetDefault();
-        return;
-    }
-
-    PivotPointXValueCurve.Deserialise(pivotpointxValueCurve);
-}
-
-void ComputePivotPointYValueCurve(const std::string& pivotpointyValueCurve, ValueCurve& PivotPointYValueCurve)
-{
-    if (pivotpointyValueCurve == STR_EMPTY) {
-        PivotPointYValueCurve.SetDefault();
-        return;
-    }
-
-    PivotPointYValueCurve.Deserialise(pivotpointyValueCurve);
+    theValueCurve.Deserialise(valueCurve);
 }
 
 void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) {
@@ -818,27 +784,30 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
     const std::string &subBuffer = settingsMap.Get(CUSTOM_SubBuffer, STR_EMPTY);
     const std::string &blurValueCurve = settingsMap.Get(VALUECURVE_Blur, STR_EMPTY);
+    const std::string &brightnessValueCurve = settingsMap.Get(VALUECURVE_Brightness, STR_EMPTY);
     const std::string &rotationValueCurve = settingsMap.Get(VALUECURVE_Rotation, STR_EMPTY);
     const std::string &zoomValueCurve = settingsMap.Get(VALUECURVE_Zoom, STR_EMPTY);
     const std::string &rotationsValueCurve = settingsMap.Get(VALUECURVE_Rotations, STR_EMPTY);
     const std::string &pivotpointxValueCurve = settingsMap.Get(VALUECURVE_PivotPointX, STR_EMPTY);
     const std::string &pivotpointyValueCurve = settingsMap.Get(VALUECURVE_PivotPointY, STR_EMPTY);
 
-    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve || inf->zoomValueCurve != zoomValueCurve || inf->rotationValueCurve != rotationValueCurve || inf->rotationsValueCurve != rotationsValueCurve || inf->pivotpointxValueCurve != pivotpointxValueCurve || inf->pivotpointyValueCurve != pivotpointyValueCurve)
+    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve || inf->zoomValueCurve != zoomValueCurve || inf->rotationValueCurve != rotationValueCurve || inf->rotationsValueCurve != rotationsValueCurve || inf->pivotpointxValueCurve != pivotpointxValueCurve || inf->pivotpointyValueCurve != pivotpointyValueCurve || inf->brightnessValueCurve != brightnessValueCurve)
     {
         inf->Nodes.clear();
         model->InitRenderBufferNodes(type, transform, inf->Nodes, inf->BufferWi, inf->BufferHt);
         ComputeSubBuffer(subBuffer, inf->Nodes, inf->BufferWi, inf->BufferHt);
-        ComputeBlurValueCurve(blurValueCurve, inf->BlurValueCurve);
-        ComputeRotationValueCurve(rotationValueCurve, inf->RotationValueCurve);
-        ComputeZoomValueCurve(zoomValueCurve, inf->ZoomValueCurve);
-        ComputeRotationsValueCurve(rotationsValueCurve, inf->RotationsValueCurve);
-        ComputePivotPointXValueCurve(pivotpointxValueCurve, inf->PivotPointXValueCurve);
-        ComputePivotPointYValueCurve(pivotpointyValueCurve, inf->PivotPointYValueCurve);
+        ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
+        ComputeValueCurve(blurValueCurve, inf->BlurValueCurve);
+        ComputeValueCurve(rotationValueCurve, inf->RotationValueCurve);
+        ComputeValueCurve(zoomValueCurve, inf->ZoomValueCurve);
+        ComputeValueCurve(rotationsValueCurve, inf->RotationsValueCurve);
+        ComputeValueCurve(pivotpointxValueCurve, inf->PivotPointXValueCurve);
+        ComputeValueCurve(pivotpointyValueCurve, inf->PivotPointYValueCurve);
         inf->bufferType = type;
         inf->bufferTransform = transform;
         inf->subBuffer = subBuffer;
         inf->blurValueCurve = blurValueCurve;
+        inf->brightnessValueCurve = brightnessValueCurve;
         inf->zoomValueCurve = zoomValueCurve;
         inf->rotationValueCurve = rotationValueCurve;
         inf->rotationsValueCurve = rotationsValueCurve;
@@ -1052,7 +1021,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             // get blend of two effects
             GetMixedColor(i,
                           color,
-                          validLayers);
+                          validLayers, EffectPeriod);
 
             // Apply dimming curve
             DimmingCurve *curve = layers[0]->Nodes[i]->model->modelDimmingCurve;

@@ -92,6 +92,7 @@ private:
         std::string bufferTransform;
         std::string subBuffer;
         std::string blurValueCurve;
+        std::string brightnessValueCurve;
         std::string rotationValueCurve;
         std::string zoomValueCurve;
         std::string rotationsValueCurve;
@@ -101,6 +102,7 @@ private:
         int BufferHt;
         int BufferWi;
         ValueCurve BlurValueCurve;
+        ValueCurve BrightnessValueCurve;
         ValueCurve RotationValueCurve;
         ValueCurve ZoomValueCurve;
         ValueCurve RotationsValueCurve;
@@ -159,7 +161,7 @@ private:
 
     int CurrentLayer;
 
-    void GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers);
+    void GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod);
     xlColor mixColors(const wxCoord &x, const wxCoord &y, const xlColor &c0, const xlColor &c1, int layer);
     void SetDimmingCurve(DimmingCurve *value);
     void reset(int layers, int timing);

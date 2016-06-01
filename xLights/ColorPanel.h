@@ -16,6 +16,9 @@
 #include <wx/colordlg.h>
 #include <wx/checkbox.h>
 #include <unordered_map>
+#include "ValueCurveButton.h"
+#include "ValueCurveDialog.h"
+#include "ValueCurve.h"
 
 #include <vector>
 #include <map>
@@ -24,7 +27,10 @@ wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 
 class ColorPanel: public wxPanel
 {
-	public:
+    void OnVCChanged(wxCommandEvent& event);
+
+    int __brightness;
+public:
 
 		ColorPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ColorPanel();
@@ -63,6 +69,7 @@ public:
 		wxStaticText* StaticText126;
 		wxSlider* Slider_SparkleFrequency;
 		wxScrolledWindow* ColorScrollWindow;
+		ValueCurveButton* BitmapButton_VCBrightness;
 		wxTextCtrl* txtCtrlSparkleFreq;
 		wxSlider* Slider_Contrast;
 		wxCheckBox* CheckBox_MusicSparkles;
@@ -80,6 +87,7 @@ public:
 		static const long ID_BITMAPBUTTON_MusicSparkles;
 		static const long ID_STATICTEXT127;
 		static const long ID_SLIDER_Brightness;
+		static const long ID_VALUECURVE_Brightness;
 		static const long IDD_TEXTCTRL_Brightness;
 		static const long ID_BITMAPBUTTON_SLIDER_Brightness;
 		static const long ID_STATICTEXT128;
@@ -100,8 +108,6 @@ public:
 		void OnButton_PaletteNumberClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnUpdateColorClick(wxCommandEvent& event);
-
-
 		void UpdateLinkedSliderFloat(wxCommandEvent& event);
 		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
 		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
@@ -110,6 +116,8 @@ public:
 		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
+		void OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& event);
+		void OnBitmapButton_VCBrightnessClick(wxCommandEvent& event);
 		//*)
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
