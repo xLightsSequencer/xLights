@@ -233,6 +233,7 @@
 												<object class="wxChoice" name="ID_CHOICE_Preset" variable="Choice_Preset" member="yes">
 													<content>
 														<item></item>
+														<item>None - Reset</item>
 														<item>1 Rev CW</item>
 														<item>1 Rev CCW</item>
 														<item>Explode</item>

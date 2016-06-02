@@ -211,6 +211,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	RotoZoomSizer->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Preset = new wxChoice(ScrolledWindow2, ID_CHOICE_Preset, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Preset"));
 	Choice_Preset->SetSelection( Choice_Preset->Append(wxEmptyString) );
+	Choice_Preset->Append(_("None - Reset"));
 	Choice_Preset->Append(_("1 Rev CW"));
 	Choice_Preset->Append(_("1 Rev CCW"));
 	Choice_Preset->Append(_("Explode"));
@@ -867,7 +868,11 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
     BitmapButton_VCRotation->SetActive(false);
     BitmapButton_VCRotations->SetActive(false);
 
-    if (preset == "1 Rev CW")
+    if (preset == "None - Reset")
+    {
+        // dont do anything
+    }
+    else if (preset == "1 Rev CW")
     {
         Slider_Rotations->SetValue(10);
         TextCtrl_Rotations->SetValue("1.0");
