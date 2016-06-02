@@ -1614,6 +1614,12 @@ sequencer/Waveform.h: xlGLCanvas.h AudioManager.h
 
 TopEffectsPanel.h: sequencer/DragEffectBitmapButton.h
 
+ColorPanel.h: ValueCurveButton.h ValueCurveDialog.h ValueCurve.h
+
+ValueCurveButton.h: ValueCurve.h ../include/valuecurvenotselected.xpm
+
+ValueCurveDialog.h: xlCustomControl.h ValueCurve.h
+
 EffectIconPanel.h: sequencer/DragEffectBitmapButton.h
 
 DisplayElementsPanel.h: wxCheckedListCtrl.h sequencer/SequenceElements.h SequenceData.h
@@ -1667,8 +1673,6 @@ sequencer/Waveform.cpp: xLightsTimer.h sequencer/Waveform.h sequencer/TimeLine.h
 sequencer/tabSequencer.cpp: xLightsMain.h sequencer/SequenceElements.h TopEffectsPanel.h EffectIconPanel.h sequencer/Element.h sequencer/Effect.h BufferPanel.h SeqSettingsDialog.h DisplayElementsPanel.h effects/RenderableEffect.h xlCustomControl.h
 
 BufferPanel.h: ValueCurve.h ValueCurveButton.h
-
-ValueCurveButton.h: ValueCurve.h
 
 SeqSettingsDialog.h: xLightsMain.h xLightsXmlFile.h tmGridCell.h FlickerFreeBitmapButton.h
 
@@ -1749,6 +1753,8 @@ effects/SnowstormPanel.cpp: effects/SnowstormPanel.h ../include/padlock16x16-blu
 effects/SpiralsEffect.cpp: effects/SpiralsEffect.h effects/SpiralsPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/spirals-16.xpm ../include/spirals-24.xpm ../include/spirals-32.xpm ../include/spirals-48.xpm ../include/spirals-64.xpm
 
 effects/SpiralsEffect.h: effects/RenderableEffect.h
+
+effects/SpiralsPanel.h: ValueCurveButton.h
 
 effects/SpiralsPanel.cpp: effects/SpiralsPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
@@ -1950,9 +1956,7 @@ AudioManager.cpp: AudioManager.h xLightsXmlFile.h
 
 BitmapCache.cpp: BitmapCache.h ../include/padlock16x16-blue.xpm ../include/padlock16x16-red.xpm ../include/stop_sign_24.xpm ../include/output_lights_24.xpm ../include/output_lights_off_16.xpm ../include/output_lights_off_24.xpm ../include/output_lights_off_32.xpm ../include/output_lights_off_48.xpm ../include/output_lights_off_64.xpm ../include/output_lights_on_16.xpm ../include/output_lights_on_24.xpm ../include/output_lights_on_32.xpm ../include/output_lights_on_48.xpm ../include/output_lights_on_64.xpm ../include/effects.xpm ../include/colors.xpm ../include/layers.xpm ../include/layers2.xpm ../include/effsettings.xpm ../include/model_preview_24.xpm ../include/house_preview_24.xpm ../include/lights_off_24.xpm ../include/graceful_stop_24.xpm ../include/zoom-out-24.xpm ../include/zoom-in-24.xpm ../include/settings-24.xpm ../include/paste-by-time-24.xpm ../include/paste-by-cell-24.xpm ../include/render-all-16.xpm ../include/render-all-24.xpm ../include/render-all-32.xpm ../include/render-all-48.xpm ../include/render-all-64.xpm ../include/select_show_folder-24.xpm ../include/save-24.xpm ../include/save-as-24.xpm ../include/folder.xpm ../include/file_new-24.xpm ../include/stop-24.xpm ../include/stop-24_off.xpm ../include/trash-24.xpm ../include/search-24.xpm ../include/replay-24.xpm ../include/play-24.xpm ../include/play-24_off.xpm ../include/pause-24.xpm ../include/pause-24_off.xpm ../include/move-24.xpm ../include/home-24.xpm ../include/gears-24.xpm ../include/forward-24.xpm ../include/forward-24_off.xpm ../include/eye-open-24.xpm ../include/backward-24.xpm ../include/backward-24_off.xpm ../include/link-48.xpm ../include/unlink-48.xpm ../include/sequence_elements-24.xpm ../include/point_1a-64.xpm ../include/point_1b-64.xpm ../include/point_2a-64.xpm ../include/point_2b-64.xpm ../include/point_1ab-64.xpm ../include/point_2ab-64.xpm ../include/papagayo-16.xpm ../include/papagayo-64.xpm ../include/model-16.xpm ../include/model-64.xpm
 
-BufferPanel.cpp: BufferPanel.h models/Model.h effects/EffectPanelUtils.h ../include/padlock16x16-blue.xpm ../include/valuecurvenotselected.xpm ValueCurveDialog.h SubBufferPanel.h
-
-ValueCurveDialog.h: xlCustomControl.h ValueCurve.h
+BufferPanel.cpp: BufferPanel.h models/Model.h effects/EffectPanelUtils.h ../include/padlock16x16-blue.xpm ValueCurveDialog.h SubBufferPanel.h
 
 ChannelLayoutDialog.cpp: ChannelLayoutDialog.h
 
@@ -2058,7 +2062,7 @@ effects/PlasmaEffect.h: effects/RenderableEffect.h
 
 effects/PlasmaPanel.cpp: effects/PlasmaPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
-effects/RenderableEffect.cpp: effects/RenderableEffect.h sequencer/Effect.h effects/EffectManager.h effects/assist/xlGridCanvasEmpty.h
+effects/RenderableEffect.cpp: effects/RenderableEffect.h sequencer/Effect.h effects/EffectManager.h effects/assist/xlGridCanvasEmpty.h ValueCurveButton.h
 
 effects/RippleEffect.cpp: effects/RippleEffect.h effects/RipplePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/ripple-16.xpm ../include/ripple-24.xpm ../include/ripple-32.xpm ../include/ripple-48.xpm ../include/ripple-64.xpm
 
@@ -2148,7 +2152,7 @@ VAMPPluginDialog.cpp: VAMPPluginDialog.h
 
 ValueCurve.cpp: ValueCurve.h
 
-ValueCurveButton.cpp: ValueCurveButton.h ../include/valuecurveselected.xpm ../include/valuecurvenotselected.xpm
+ValueCurveButton.cpp: ValueCurveButton.h ../include/valuecurveselected.xpm
 
 ValueCurveDialog.cpp: ValueCurveDialog.h ValueCurve.h
 
@@ -2164,7 +2168,7 @@ effects/FanEffect.h: effects/RenderableEffect.h
 
 effects/FanPanel.cpp: effects/FanPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
-effects/EffectPanelUtils.cpp: effects/EffectPanelUtils.h BitmapCache.h
+effects/EffectPanelUtils.cpp: effects/EffectPanelUtils.h BitmapCache.h ValueCurveButton.h ValueCurveDialog.h
 
 effects/FireEffect.cpp: effects/FireEffect.h effects/FirePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h ../include/fire-16.xpm ../include/fire-24.xpm ../include/fire-32.xpm ../include/fire-48.xpm ../include/fire-64.xpm
 
