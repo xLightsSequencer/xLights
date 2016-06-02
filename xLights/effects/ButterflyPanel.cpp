@@ -3,17 +3,17 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(ButterflyPanel)
-#include <wx/bmpbuttn.h>
 #include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(ButterflyPanel)
@@ -23,12 +23,15 @@ const long ButterflyPanel::ID_SLIDER_Butterfly_Style = wxNewId();
 const long ButterflyPanel::IDD_TEXTCTRL_Butterfly_Style = wxNewId();
 const long ButterflyPanel::ID_BITMAPBUTTON_SLIDER_Butterfly_Style = wxNewId();
 const long ButterflyPanel::ID_SLIDER_Butterfly_Chunks = wxNewId();
+const long ButterflyPanel::ID_VALUECURVE_Butterfly_Chunks = wxNewId();
 const long ButterflyPanel::IDD_TEXTCTRL_Butterfly_Chunks = wxNewId();
 const long ButterflyPanel::ID_BITMAPBUTTON_SLIDER_Butterfly_Chunks = wxNewId();
 const long ButterflyPanel::ID_SLIDER_Butterfly_Skip = wxNewId();
+const long ButterflyPanel::ID_VALUECURVE__Butterfly_Skip = wxNewId();
 const long ButterflyPanel::IDD_TEXTCTRL_Butterfly_Skip = wxNewId();
 const long ButterflyPanel::ID_BITMAPBUTTON15 = wxNewId();
 const long ButterflyPanel::ID_SLIDER_Butterfly_Speed = wxNewId();
+const long ButterflyPanel::ID_VALUECURVE_Butterfly_Speed = wxNewId();
 const long ButterflyPanel::IDD_TEXTCTRL_Butterfly_Speed = wxNewId();
 const long ButterflyPanel::ID_BITMAPBUTTON_SLIDER_Butterfly_Skip = wxNewId();
 const long ButterflyPanel::ID_CHOICE_Butterfly_Direction = wxNewId();
@@ -43,29 +46,32 @@ END_EVENT_TABLE()
 ButterflyPanel::ButterflyPanel(wxWindow* parent)
 {
 	//(*Initialize(ButterflyPanel)
-	wxBitmapButton* BitmapButton8;
-	wxBitmapButton* BitmapButton_ButterflySkip;
-	wxStaticText* StaticText175;
-	wxSlider* Slider8;
-	wxStaticText* StaticText28;
-	wxBitmapButton* BitmapButton_ButterflyChunks;
-	wxBitmapButton* BitmapButton_ButterflyStyle;
-	wxTextCtrl* TextCtrl18;
 	wxChoice* Choice_Butterfly_Colors;
+	wxStaticText* StaticText175;
+	wxBitmapButton* BitmapButton_ButterflyStyle;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxTextCtrl* TextCtrl16;
+	wxStaticText* StaticText26;
+	wxSlider* Slider_Butterfly_Chunks;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxStaticText* StaticText58;
+	wxStaticText* StaticText27;
+	wxBitmapButton* BitmapButton8;
+	wxBitmapButton* BitmapButton1;
+	wxBitmapButton* BitmapButton_ButterflySkip;
+	wxTextCtrl* TextCtrl18;
+	wxTextCtrl* TextCtrl17;
+	wxBitmapButton* BitmapButton_ButterflyColors;
+	wxStaticText* StaticText28;
+	wxSlider* Slider8;
 	wxTextCtrl* TextCtrl25;
 	wxChoice* Choice_Butterfly_Direction;
-	wxBitmapButton* BitmapButton_ButterflyColors;
-	wxSlider* Slider_Butterfly_Chunks;
-	wxTextCtrl* TextCtrl16;
-	wxStaticText* StaticText27;
-	wxSlider* Slider_Butterfly_Style;
-	wxStaticText* StaticText26;
 	wxFlexGridSizer* FlexGridSizer36;
-	wxSlider* Slider_Butterfly_Skip;
-	wxStaticText* StaticText58;
-	wxBitmapButton* BitmapButton1;
+	wxSlider* Slider_Butterfly_Style;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxStaticText* StaticText25;
-	wxTextCtrl* TextCtrl17;
+	wxBitmapButton* BitmapButton_ButterflyChunks;
+	wxSlider* Slider_Butterfly_Skip;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer36 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -94,8 +100,13 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	FlexGridSizer36->Add(BitmapButton_ButterflyStyle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText27 = new wxStaticText(this, wxID_ANY, _("Bkgrd Chunks"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer36->Add(StaticText27, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
 	Slider_Butterfly_Chunks = new wxSlider(this, ID_SLIDER_Butterfly_Chunks, 1, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Butterfly_Chunks"));
-	FlexGridSizer36->Add(Slider_Butterfly_Chunks, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer1->Add(Slider_Butterfly_Chunks, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Butterfly_Chunks = new ValueCurveButton(this, ID_VALUECURVE_Butterfly_Chunks, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Butterfly_Chunks"));
+	FlexGridSizer1->Add(BitmapButton_Butterfly_Chunks, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer36->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
 	TextCtrl17 = new wxTextCtrl(this, IDD_TEXTCTRL_Butterfly_Chunks, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Butterfly_Chunks"));
 	TextCtrl17->SetMaxLength(2);
 	FlexGridSizer36->Add(TextCtrl17, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -105,8 +116,13 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	FlexGridSizer36->Add(BitmapButton_ButterflyChunks, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText28 = new wxStaticText(this, wxID_ANY, _("Bkgrd Skip"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer36->Add(StaticText28, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer2->AddGrowableCol(0);
 	Slider_Butterfly_Skip = new wxSlider(this, ID_SLIDER_Butterfly_Skip, 2, 2, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Butterfly_Skip"));
-	FlexGridSizer36->Add(Slider_Butterfly_Skip, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer2->Add(Slider_Butterfly_Skip, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Butterfly_Skip = new ValueCurveButton(this, ID_VALUECURVE__Butterfly_Skip, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE__Butterfly_Skip"));
+	FlexGridSizer2->Add(BitmapButton_Butterfly_Skip, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer36->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
 	TextCtrl18 = new wxTextCtrl(this, IDD_TEXTCTRL_Butterfly_Skip, _("2"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Butterfly_Skip"));
 	TextCtrl18->SetMaxLength(2);
 	FlexGridSizer36->Add(TextCtrl18, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -116,8 +132,13 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	FlexGridSizer36->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText175 = new wxStaticText(this, wxID_ANY, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer36->Add(StaticText175, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer3->AddGrowableCol(0);
 	Slider8 = new wxSlider(this, ID_SLIDER_Butterfly_Speed, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Butterfly_Speed"));
-	FlexGridSizer36->Add(Slider8, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer3->Add(Slider8, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Butterfly_Speed = new ValueCurveButton(this, ID_VALUECURVE_Butterfly_Speed, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Butterfly_Speed"));
+	FlexGridSizer3->Add(BitmapButton_Butterfly_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer36->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	TextCtrl25 = new wxTextCtrl(this, IDD_TEXTCTRL_Butterfly_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Butterfly_Speed"));
 	TextCtrl25->SetMaxLength(3);
 	FlexGridSizer36->Add(TextCtrl25, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -143,17 +164,24 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	Connect(ID_SLIDER_Butterfly_Style,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedTextCtrl);
 	Connect(IDD_TEXTCTRL_Butterfly_Style,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Butterfly_Style,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButterflyPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Butterfly_Chunks,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Butterfly_Chunks,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Butterfly_Chunks,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButterflyPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Butterfly_Chunks,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Butterfly_Chunks,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButterflyPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Butterfly_Skip,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Butterfly_Skip,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE__Butterfly_Skip,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButterflyPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Butterfly_Skip,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON15,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButterflyPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Butterfly_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Butterfly_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Butterfly_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButterflyPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Butterfly_Speed,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Butterfly_Skip,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButterflyPanel::OnLockButtonClick);
 	//*)
-    
+
+    BitmapButton_Butterfly_Speed->GetValue()->SetLimits(0, 100);
+    BitmapButton_Butterfly_Skip->GetValue()->SetLimits(2, 10);
+    BitmapButton_Butterfly_Chunks->GetValue()->SetLimits(1, 10);
+
     SetName("ID_PANEL_BUTTERFLY");
 }
 

@@ -50,10 +50,15 @@ static inline int GetButterflyColorScheme(const std::string &color) {
 
 void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
+    float oset = (float)buffer.curPeriod / ((float)buffer.curEffEndPer - (float)buffer.curEffStartPer);
+    int Chunks = GetValueCurveInt("Butterfly_Chunks", 0, SettingsMap, oset);
+    int Skip = GetValueCurveInt("Butterfly_Skip", 0, SettingsMap, oset);
+    int butterFlySpeed = GetValueCurveInt("Butterfly_Speed", 10, SettingsMap, oset);
+
     int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 0);
-    int Chunks = SettingsMap.GetInt("SLIDER_Butterfly_Chunks", 0);
-    int Skip = SettingsMap.GetInt("SLIDER_Butterfly_Skip", 0);
-    int butterFlySpeed = SettingsMap.GetInt("SLIDER_Butterfly_Speed", 10);
+    //int Chunks = SettingsMap.GetInt("SLIDER_Butterfly_Chunks", 0);
+    //int Skip = SettingsMap.GetInt("SLIDER_Butterfly_Skip", 0);
+    //int butterFlySpeed = SettingsMap.GetInt("SLIDER_Butterfly_Speed", 10);
     int ColorScheme = GetButterflyColorScheme(SettingsMap["CHOICE_Butterfly_Colors"]);
     int ButterflyDirection = SettingsMap["CHOICE_Butterfly_Direction"] == "Reverse" ? 1 : 0;
     

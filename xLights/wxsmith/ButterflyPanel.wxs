@@ -58,7 +58,7 @@
 					<max>10</max>
 					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -95,13 +95,32 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Butterfly_Chunks" variable="Slider_Butterfly_Chunks" member="no">
-					<value>1</value>
-					<min>1</min>
-					<max>10</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+				<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Butterfly_Chunks" variable="Slider_Butterfly_Chunks" member="no">
+							<value>1</value>
+							<min>1</min>
+							<max>10</max>
+							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Butterfly_Chunks" subclass="ValueCurveButton" variable="BitmapButton_Butterfly_Chunks" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -138,13 +157,32 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Butterfly_Skip" variable="Slider_Butterfly_Skip" member="no">
-					<value>2</value>
-					<min>2</min>
-					<max>10</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Butterfly_Skip" variable="Slider_Butterfly_Skip" member="no">
+							<value>2</value>
+							<min>2</min>
+							<max>10</max>
+							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE__Butterfly_Skip" subclass="ValueCurveButton" variable="BitmapButton_Butterfly_Skip" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -181,11 +219,30 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Butterfly_Speed" variable="Slider8" member="no">
-					<value>10</value>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Butterfly_Speed" variable="Slider8" member="no">
+							<value>10</value>
+							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Butterfly_Speed" subclass="ValueCurveButton" variable="BitmapButton_Butterfly_Speed" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
