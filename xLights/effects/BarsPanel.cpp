@@ -23,9 +23,11 @@
 
 //(*IdInit(BarsPanel)
 const long BarsPanel::ID_SLIDER_Bars_BarCount = wxNewId();
+const long BarsPanel::ID_VALUECURVE_Bars_BarCount = wxNewId();
 const long BarsPanel::IDD_TEXTCTRL_Bars_BarCount = wxNewId();
 const long BarsPanel::ID_BITMAPBUTTON_SLIDER_Bars_BarCount = wxNewId();
 const long BarsPanel::IDD_SLIDER_Bars_Cycles = wxNewId();
+const long BarsPanel::ID_VALUECURVE_Bars_Cycles = wxNewId();
 const long BarsPanel::ID_TEXTCTRL_Bars_Cycles = wxNewId();
 const long BarsPanel::ID_CHOICE_Bars_Direction = wxNewId();
 const long BarsPanel::ID_BITMAPBUTTON_CHOICE_Bars_Direction = wxNewId();
@@ -69,10 +71,12 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	FlexGridSizer35->AddGrowableCol(1);
 	StaticText23 = new wxStaticText(this, wxID_ANY, _("Palette Rep"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer35->Add(StaticText23, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer123 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer123 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer123->AddGrowableCol(0);
 	Slider_Bars_BarCount = new wxSlider(this, ID_SLIDER_Bars_BarCount, 1, 1, 5, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Bars_BarCount"));
 	FlexGridSizer123->Add(Slider_Bars_BarCount, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Bars_BarCount = new ValueCurveButton(this, ID_VALUECURVE_Bars_BarCount, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Bars_BarCount"));
+	FlexGridSizer123->Add(BitmapButton_Bars_BarCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl15 = new wxTextCtrl(this, IDD_TEXTCTRL_Bars_BarCount, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Bars_BarCount"));
 	TextCtrl15->SetMaxLength(1);
 	FlexGridSizer123->Add(TextCtrl15, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -83,10 +87,12 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	FlexGridSizer35->Add(BitmapButton_PaletteRep, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText177 = new wxStaticText(this, wxID_ANY, _("Cycles"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer35->Add(StaticText177, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer70 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer70 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer70->AddGrowableCol(0);
 	Slider13 = new wxSlider(this, IDD_SLIDER_Bars_Cycles, 10, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Bars_Cycles"));
 	FlexGridSizer70->Add(Slider13, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Bars_Cycles = new ValueCurveButton(this, ID_VALUECURVE_Bars_Cycles, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Bars_Cycles"));
+	FlexGridSizer70->Add(BitmapButton_Bars_Cycles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl35 = new wxTextCtrl(this, ID_TEXTCTRL_Bars_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Bars_Cycles"));
 	TextCtrl35->SetMaxLength(4);
 	FlexGridSizer70->Add(TextCtrl35, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -142,18 +148,23 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	FlexGridSizer35->Fit(this);
 	FlexGridSizer35->SetSizeHints(this);
 
-	Connect(ID_SLIDER_Bars_BarCount,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Bars_BarCount,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Bars_BarCount,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Bars_BarCount,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Bars_BarCount,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
-	Connect(IDD_SLIDER_Bars_Cycles,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedTextCtrlFloat);
+	Connect(IDD_SLIDER_Bars_Cycles,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedTextCtrlFloatVC);
+	Connect(ID_VALUECURVE_Bars_Cycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnVCButtonClick);
 	Connect(ID_TEXTCTRL_Bars_Cycles,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedSliderFloat);
 	Connect(ID_BITMAPBUTTON_CHOICE_Bars_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_Gradient,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
 	//*)
-    
+
     SetName("ID_PANEL_BARS");
+
+    BitmapButton_Bars_BarCount->GetValue()->SetLimits(1, 5);
+    BitmapButton_Bars_Cycles->GetValue()->SetLimits(0, 300);
 }
 
 BarsPanel::~BarsPanel()

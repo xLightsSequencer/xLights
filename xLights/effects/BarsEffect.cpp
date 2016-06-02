@@ -58,13 +58,18 @@ static inline int GetDirection(const std::string & DirectionString) {
 
 void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
-    int PaletteRepeat = SettingsMap.GetInt("SLIDER_Bars_BarCount", 1);
+    float offset = (float)buffer.curPeriod / ((float)buffer.curEffEndPer - (float)buffer.curEffStartPer);
+    int PaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset);
+    double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset);
+
+
+    //int PaletteRepeat = SettingsMap.GetInt("SLIDER_Bars_BarCount", 1);
     int Direction = GetDirection(SettingsMap["CHOICE_Bars_Direction"]);
 
     bool Highlight = SettingsMap.GetBool("CHECKBOX_Bars_Highlight");
     bool Show3D = SettingsMap.GetBool("CHECKBOX_Bars_3D");
     bool Gradient = SettingsMap.GetBool("CHECKBOX_Bars_Gradient");
-    double cycles = SettingsMap.GetDouble("TEXTCTRL_Bars_Cycles", 1.0);
+    //double cycles = SettingsMap.GetDouble("TEXTCTRL_Bars_Cycles", 1.0);
 
     int x,y,n,ColorIdx;
     HSVValue hsv;

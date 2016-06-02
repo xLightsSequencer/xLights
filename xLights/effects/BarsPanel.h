@@ -12,6 +12,8 @@ class wxFlexGridSizer;
 class wxChoice;
 //*)
 
+#include "../ValueCurveButton.h"
+
 class BarsPanel: public wxPanel
 {
 	public:
@@ -20,17 +22,21 @@ class BarsPanel: public wxPanel
 		virtual ~BarsPanel();
 
 		//(*Declarations(BarsPanel)
+		ValueCurveButton* BitmapButton_Bars_BarCount;
 		wxSlider* Slider_Bars_BarCount;
 		wxChoice* Choice_Bars_Direction;
+		ValueCurveButton* BitmapButton_Bars_Cycles;
 		//*)
 
 	protected:
 
 		//(*Identifiers(BarsPanel)
 		static const long ID_SLIDER_Bars_BarCount;
+		static const long ID_VALUECURVE_Bars_BarCount;
 		static const long IDD_TEXTCTRL_Bars_BarCount;
 		static const long ID_BITMAPBUTTON_SLIDER_Bars_BarCount;
 		static const long IDD_SLIDER_Bars_Cycles;
+		static const long ID_VALUECURVE_Bars_Cycles;
 		static const long ID_TEXTCTRL_Bars_Cycles;
 		static const long ID_CHOICE_Bars_Direction;
 		static const long ID_BITMAPBUTTON_CHOICE_Bars_Direction;

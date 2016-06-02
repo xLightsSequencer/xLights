@@ -25,21 +25,21 @@ class TendrilNode
 class ATendril
 {
     float _friction;
-	int _size;
+	size_t _size;
 	float _dampening;
 	float _tension;
 	float _spring;
 	xlColor _colour;
-	int _thickness;
-	int _width;
-	int _height;
+	size_t _thickness;
+	size_t _width;
+	size_t _height;
 
     std::list<TendrilNode*> _nodes;
 
 	public:
 
 	~ATendril();
-	ATendril(float friction, int size, float dampening, float tension, float spring, wxPoint* start, xlColor colour, int thickness, int maxx, int maxy);
+	ATendril(float friction, size_t size, float dampening, float tension, float spring, wxPoint* start, xlColor colour, size_t thickness, size_t maxx, size_t maxy);
 	void Update(wxPoint* target);
 	void Draw(PathDrawingContext* gc);
 	wxPoint* LastLocation();

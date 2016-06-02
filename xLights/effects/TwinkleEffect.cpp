@@ -96,7 +96,7 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         }
     }
     
-    for (int x = 0; x < strobe.size(); x++) {
+    for (size_t x = 0; x < strobe.size(); x++) {
         strobe[x].duration++;
         if (strobe[x].duration < 0) {
             continue;

@@ -99,7 +99,7 @@ ATendril::~ATendril()
 	}
 }
 
-ATendril::ATendril(float friction, int size, float dampening, float tension, float spring, wxPoint* start, xlColor colour, int thickness, int maxx, int maxy)
+ATendril::ATendril(float friction, size_t size, float dampening, float tension, float spring, wxPoint* start, xlColor colour, size_t thickness, size_t maxx, size_t maxy)
 {
     _width = maxx;
     _height = maxy;
@@ -118,12 +118,12 @@ ATendril::ATendril(float friction, int size, float dampening, float tension, flo
 	{
 		_colour = colour;
 	}
-	_dampening = 0.25;
+	_dampening = 0.25f;
 	if (dampening >= 0)
 	{
 		_dampening = dampening;
 	}
-	_tension = 0.98;
+	_tension = 0.98f;
 	if (tension >= 0)
 	{
 		_tension = tension;
@@ -133,7 +133,7 @@ ATendril::ATendril(float friction, int size, float dampening, float tension, flo
 	{
 		_spring = spring;
 	}
-	_friction = 0.5;
+	_friction = 0.5f;
 	if (friction >= 0)
 	{
 		_friction = friction + ((float)rand())/(float)RAND_MAX * 0.01f - 0.005f;
@@ -144,7 +144,7 @@ ATendril::ATendril(float friction, int size, float dampening, float tension, flo
 	}
 
     _nodes.clear();
-	for (int i = 0; i < _size; i++)
+	for (size_t i = 0; i < _size; i++)
 	{
 		TendrilNode* node = new TendrilNode(start->x, start->y);
 		if (node != NULL)
@@ -473,29 +473,29 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 {
     buffer.pathDrawingContext->Clear();
 
-    if (friction < 0.4)
+    if (friction < 0.4f)
     {
-        friction = 0.4;
+        friction = 0.4f;
     }
-    if (friction > 0.6)
+    if (friction > 0.6f)
     {
-        friction = 0.6;
+        friction = 0.6f;
     }
-    if (dampening < 0)
+    if (dampening < 0.0f)
     {
-        dampening = 0;
+        dampening = 0.0f;
     }
-    if (dampening > 0.5)
+    if (dampening > 0.5f)
     {
-        dampening = 0.5;
+        dampening = 0.5f;
     }
-    if (tension < 0.96)
+    if (tension < 0.96f)
     {
-        tension = 0.96;
+        tension = 0.96f;
     }
-    if (tension > 0.999)
+    if (tension > 0.999f)
     {
-        tension = 0.999;
+        tension = 0.999f;
     }
     TendrilRenderCache *cache = (TendrilRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -800,7 +800,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 		case 6:
 		{
             // line movement based on music
-            float f = 0.1;
+            float f = 0.1f;
 			if (buffer.GetMedia() != NULL)
 			{
 				std::list<float>* p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
@@ -825,7 +825,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 		case 7:
 		{
             // circle movement based on music
-            float f = 0.1;
+            float f = 0.1f;
 			if (buffer.GetMedia() != NULL)
 			{
 				std::list<float>* p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");

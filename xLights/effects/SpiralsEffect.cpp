@@ -27,13 +27,9 @@ wxPanel *SpiralsEffect::CreatePanel(wxWindow *parent) {
 
 void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = (float)buffer.curPeriod / ((float)buffer.curEffEndPer - (float)buffer.curEffStartPer);
-    //int PaletteRepeat = SettingsMap.GetInt("SLIDER_Spirals_Count", 0);
     int PaletteRepeat = GetValueCurveInt("Spirals_Count", 0, SettingsMap, offset);
-    //float Movement = SettingsMap.GetDouble("TEXTCTRL_Spirals_Movement", 1.0);
     float Movement = GetValueCurveDouble("Spirals_Movement", 1.0, SettingsMap, offset);
-    //int Rotation = SettingsMap.GetInt("SLIDER_Spirals_Rotation", 0);
     int Rotation = GetValueCurveInt("Spirals_Rotation", 0, SettingsMap, offset);
-    //int Thickness = SettingsMap.GetInt("SLIDER_Spirals_Thickness", 0);
     int Thickness = GetValueCurveInt("Spirals_Thickness", 0, SettingsMap, offset);
     bool Blend = SettingsMap.GetBool("CHECKBOX_Spirals_Blend");
     bool Show3D = SettingsMap.GetBool("CHECKBOX_Spirals_3D");
