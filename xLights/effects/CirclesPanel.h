@@ -3,13 +3,15 @@
 
 //(*Headers(CirclesPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
 //*)
+
+#include "../ValueCurveButton.h"
 
 class CirclesPanel: public wxPanel
 {
@@ -19,27 +21,30 @@ class CirclesPanel: public wxPanel
 		virtual ~CirclesPanel();
 
 		//(*Declarations(CirclesPanel)
-		wxBitmapButton* BitmapButton2;
-		wxCheckBox* CheckBox_Circles_Radial;
-		wxBitmapButton* BitmapButton_CirclesBounce;
+		wxCheckBox* CheckBox_Circles_Radial_3D;
+		ValueCurveButton* BitmapButton_Circles_Size;
+		wxCheckBox* CheckBox_Circles_Linear_Fade;
 		wxStaticText* StaticText137;
-		wxBitmapButton* BitmapButton_CirclesRadial3D;
-		wxBitmapButton* BitmapButton_Circles_Linear_Fade;
 		wxBitmapButton* BitmapButton_CirclesSize;
 		wxBitmapButton* BitmapButton_CirclesRadial;
-		wxStaticText* StaticText136;
-		wxCheckBox* CheckBox_Circles_Bubbles;
-		wxCheckBox* CheckBox_Circles_Random_m;
-		wxBitmapButton* BitmapButton_CirclesCount;
-		wxCheckBox* CheckBox_Circles_Bounce;
-		wxCheckBox* CheckBox_Circles_Linear_Fade;
-		wxBitmapButton* BitmapButton_CirclesPlasma;
+		ValueCurveButton* BitmapButton_Circles_Speed;
+		wxBitmapButton* BitmapButton2;
 		wxBitmapButton* BitmapButton_CirclesCollide;
-		wxBitmapButton* BitmapButton_CirclesBubbles;
-		wxCheckBox* CheckBox_Circles_Radial_3D;
-		wxCheckBox* CheckBox_Circles_Collide;
 		wxBitmapButton* BitmapButton_RandomMotion;
+		wxStaticText* StaticText136;
+		wxCheckBox* CheckBox_Circles_Collide;
 		wxCheckBox* CheckBox_Circles_Plasma;
+		wxCheckBox* CheckBox_Circles_Bounce;
+		wxBitmapButton* BitmapButton_CirclesBounce;
+		wxBitmapButton* BitmapButton_CirclesBubbles;
+		wxCheckBox* CheckBox_Circles_Radial;
+		wxBitmapButton* BitmapButton_CirclesCount;
+		wxBitmapButton* BitmapButton_Circles_Linear_Fade;
+		wxBitmapButton* BitmapButton_CirclesRadial3D;
+		ValueCurveButton* BitmapButton_Circles_Count;
+		wxCheckBox* CheckBox_Circles_Random_m;
+		wxBitmapButton* BitmapButton_CirclesPlasma;
+		wxCheckBox* CheckBox_Circles_Bubbles;
 		//*)
 
 	protected:
@@ -47,13 +52,16 @@ class CirclesPanel: public wxPanel
 		//(*Identifiers(CirclesPanel)
 		static const long ID_STATICTEXT137;
 		static const long ID_SLIDER_Circles_Count;
+		static const long ID_VALUECURVE_Circles_Count;
 		static const long IDD_TEXTCTRL_Circles_Count;
 		static const long ID_BITMAPBUTTON_SLIDER_Circles_Count;
 		static const long ID_STATICTEXT138;
 		static const long ID_SLIDER_Circles_Size;
+		static const long ID_VALUECURVE_Circles_Size;
 		static const long IDD_TEXTCTRL_Circles_Size;
 		static const long ID_BITMAPBUTTON_SLIDER_Circles_Size;
 		static const long ID_SLIDER_Circles_Speed;
+		static const long ID_VALUECURVE_Circles_Speed;
 		static const long IDD_TEXTCTRL_Circles_Speed;
 		static const long ID_BITMAPBUTTON21;
 		static const long ID_CHECKBOX_Circles_Bounce;

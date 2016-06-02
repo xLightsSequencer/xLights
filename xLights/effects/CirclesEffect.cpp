@@ -36,10 +36,14 @@ public:
     float _radius;
     float _t;
     float dir;
+    float _angle;
+    float _spd;
     HSVValue hsvcolor;
     
     void Reset(float x, float y, float speed, float angle, float radius, HSVValue color)
     {
+        _angle = angle;
+        _spd = speed;
         _x=x;
         _y=y;
         _dx=speed*cos(angle);
@@ -128,10 +132,15 @@ public:
 
 
 void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    
-    int number = SettingsMap.GetInt("SLIDER_Circles_Count", 1);
+ 
+    float oset = (float)buffer.curPeriod / ((float)buffer.curEffEndPer - (float)buffer.curEffStartPer);
+    int number = GetValueCurveInt("Circles_Count", 1, SettingsMap, oset);
+    int circleSpeed = GetValueCurveInt("Circles_Speed", 10, SettingsMap, oset);
+    int radius = GetValueCurveInt("Circles_Size", 1, SettingsMap, oset);
+
+    //int number = SettingsMap.GetInt("SLIDER_Circles_Count", 1);
     bool plasma = SettingsMap.GetBool("CHECKBOX_Circles_Plasma");
-    int circleSpeed = SettingsMap.GetInt("SLIDER_Circles_Speed", 10);
+    //int circleSpeed = SettingsMap.GetInt("SLIDER_Circles_Speed", 10);
     bool radial = SettingsMap.GetBool("CHECKBOX_Circles_Radial");
     bool radial_3D = SettingsMap.GetBool("CHECKBOX_Circles_Radial_3D");
     int start_x = buffer.BufferWi/2;
@@ -141,7 +150,7 @@ void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     bool random = SettingsMap.GetBool("CHECKBOX_Circles_Random_m");
     bool collide = SettingsMap.GetBool("CHECKBOX_Circles_Collide");
     bool bounce = SettingsMap.GetBool("CHECKBOX_Circles_Bounce");
-    int radius = SettingsMap.GetInt("SLIDER_Circles_Size", 1);
+    //int radius = SettingsMap.GetInt("SLIDER_Circles_Size", 1);
     
     CirclesRenderCache *cache = (CirclesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -171,16 +180,26 @@ void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     
     if ( 0 == effectState || radius != effectObjects[ii]._radius || number != cache->numBalls || cache->metaType != plasma)
     {
-        cache->numBalls = number;
         for(ii=0; ii<number; ii++)
         {
-            start_x = rand()%(buffer.BufferWi);
-            start_y = rand()%(buffer.BufferHt);
-            colorIdx = ii%colorCnt;
-            buffer.palette.GetHSV(colorIdx, hsv);
-            spd = rand()%3 + 1;
-            angle = rand()%2?rand()%90:-rand()%90;
-            effectObjects[ii].Reset((float) start_x, (float) start_y, spd, angle, (float)radius, hsv);
+            if (ii >= cache->numBalls)
+            {
+                start_x = rand() % (buffer.BufferWi);
+                start_y = rand() % (buffer.BufferHt);
+                colorIdx = ii%colorCnt;
+                buffer.palette.GetHSV(colorIdx, hsv);
+                angle = rand() % 2 ? rand() % 90 : -rand() % 90;
+                spd = rand() % 3 + 1;
+            }
+            else
+            {
+                start_x = effectObjects[ii]._x;
+                start_y = effectObjects[ii]._y;
+                hsv = effectObjects[ii].hsvcolor;
+                angle = effectObjects[ii]._angle;
+                spd = effectObjects[ii]._spd;
+            }
+            effectObjects[ii].Reset((float)start_x, (float)start_y, spd, angle, (float)radius, hsv);
             if (bubbles) //keep bubbles going mostly up
             {
                 angle = 90 + rand() % 45 - 22.5; //+/- 22.5 degrees from 90 degrees
@@ -189,6 +208,7 @@ void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
                 effectObjects[ii]._dy = spd * sin(angle);
             }
         }
+        cache->numBalls = number;
         cache->metaType=plasma;
     }
     else

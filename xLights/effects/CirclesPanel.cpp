@@ -3,29 +3,32 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(CirclesPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
 #include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(CirclesPanel)
 const long CirclesPanel::ID_STATICTEXT137 = wxNewId();
 const long CirclesPanel::ID_SLIDER_Circles_Count = wxNewId();
+const long CirclesPanel::ID_VALUECURVE_Circles_Count = wxNewId();
 const long CirclesPanel::IDD_TEXTCTRL_Circles_Count = wxNewId();
 const long CirclesPanel::ID_BITMAPBUTTON_SLIDER_Circles_Count = wxNewId();
 const long CirclesPanel::ID_STATICTEXT138 = wxNewId();
 const long CirclesPanel::ID_SLIDER_Circles_Size = wxNewId();
+const long CirclesPanel::ID_VALUECURVE_Circles_Size = wxNewId();
 const long CirclesPanel::IDD_TEXTCTRL_Circles_Size = wxNewId();
 const long CirclesPanel::ID_BITMAPBUTTON_SLIDER_Circles_Size = wxNewId();
 const long CirclesPanel::ID_SLIDER_Circles_Speed = wxNewId();
+const long CirclesPanel::ID_VALUECURVE_Circles_Speed = wxNewId();
 const long CirclesPanel::IDD_TEXTCTRL_Circles_Speed = wxNewId();
 const long CirclesPanel::ID_BITMAPBUTTON21 = wxNewId();
 const long CirclesPanel::ID_CHECKBOX_Circles_Bounce = wxNewId();
@@ -54,38 +57,40 @@ END_EVENT_TABLE()
 CirclesPanel::CirclesPanel(wxWindow* parent)
 {
 	//(*Initialize(CirclesPanel)
-	wxFlexGridSizer* FlexGridSizer15;
-	wxTextCtrl* TextCtrl27;
-	wxFlexGridSizer* FlexGridSizer17;
-	wxFlexGridSizer* FlexGridSizer11;
-	wxSlider* Slider_Circles_Size;
 	wxTextCtrl* TextCtrl28;
-	wxFlexGridSizer* FlexGridSizer14;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer22;
-	wxFlexGridSizer* FlexGridSizer80;
-	wxFlexGridSizer* FlexGridSizer16;
-	wxSlider* Slider_Circles_Count;
 	wxFlexGridSizer* FlexGridSizer91;
-	wxFlexGridSizer* FlexGridSizer13;
+	wxSlider* Slider_Circles_Size;
+	wxFlexGridSizer* FlexGridSizer16;
 	wxSlider* Slider10;
-	wxFlexGridSizer* FlexGridSizer18;
-	wxFlexGridSizer* FlexGridSizer12;
-	wxTextCtrl* TextCtrl29;
-	wxFlexGridSizer* FlexGridSizer107;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer80;
+	wxTextCtrl* TextCtrl27;
+	wxFlexGridSizer* FlexGridSizer22;
 	wxStaticText* StaticText31;
+	wxSlider* Slider_Circles_Count;
+	wxFlexGridSizer* FlexGridSizer15;
+	wxFlexGridSizer* FlexGridSizer18;
+	wxFlexGridSizer* FlexGridSizer14;
+	wxTextCtrl* TextCtrl29;
+	wxFlexGridSizer* FlexGridSizer13;
+	wxFlexGridSizer* FlexGridSizer12;
+	wxFlexGridSizer* FlexGridSizer107;
+	wxFlexGridSizer* FlexGridSizer11;
+	wxFlexGridSizer* FlexGridSizer17;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer80 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer80->AddGrowableCol(0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	FlexGridSizer17 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer17 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer17->AddGrowableCol(1);
 	StaticText136 = new wxStaticText(this, ID_STATICTEXT137, _("Number of Circles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT137"));
 	FlexGridSizer17->Add(StaticText136, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Circles_Count = new wxSlider(this, ID_SLIDER_Circles_Count, 3, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Circles_Count"));
 	FlexGridSizer17->Add(Slider_Circles_Count, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Circles_Count = new ValueCurveButton(this, ID_VALUECURVE_Circles_Count, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Circles_Count"));
+	FlexGridSizer17->Add(BitmapButton_Circles_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl27 = new wxTextCtrl(this, IDD_TEXTCTRL_Circles_Count, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Circles_Count"));
 	TextCtrl27->SetMaxLength(2);
 	FlexGridSizer17->Add(TextCtrl27, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -94,12 +99,14 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	BitmapButton_CirclesCount->SetDefault();
 	BitmapButton_CirclesCount->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton_CirclesCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer18 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer18 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer18->AddGrowableCol(1);
 	StaticText137 = new wxStaticText(this, ID_STATICTEXT138, _("Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT138"));
 	FlexGridSizer18->Add(StaticText137, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Circles_Size = new wxSlider(this, ID_SLIDER_Circles_Size, 5, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Circles_Size"));
 	FlexGridSizer18->Add(Slider_Circles_Size, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Circles_Size = new ValueCurveButton(this, ID_VALUECURVE_Circles_Size, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Circles_Size"));
+	FlexGridSizer18->Add(BitmapButton_Circles_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl28 = new wxTextCtrl(this, IDD_TEXTCTRL_Circles_Size, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Circles_Size"));
 	TextCtrl28->SetMaxLength(2);
 	FlexGridSizer18->Add(TextCtrl28, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -108,12 +115,14 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	BitmapButton_CirclesSize->SetDefault();
 	BitmapButton_CirclesSize->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton_CirclesSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer22 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer22 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer22->AddGrowableCol(1);
 	StaticText31 = new wxStaticText(this, wxID_ANY, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer22->Add(StaticText31, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider10 = new wxSlider(this, ID_SLIDER_Circles_Speed, 10, 1, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Circles_Speed"));
 	FlexGridSizer22->Add(Slider10, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Circles_Speed = new ValueCurveButton(this, ID_VALUECURVE_Circles_Speed, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Circles_Speed"));
+	FlexGridSizer22->Add(BitmapButton_Circles_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl29 = new wxTextCtrl(this, IDD_TEXTCTRL_Circles_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Circles_Speed"));
 	TextCtrl29->SetMaxLength(2);
 	FlexGridSizer22->Add(TextCtrl29, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -203,13 +212,16 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	FlexGridSizer80->Fit(this);
 	FlexGridSizer80->SetSizeHints(this);
 
-	Connect(ID_SLIDER_Circles_Count,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&CirclesPanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Circles_Count,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&CirclesPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Circles_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Circles_Count,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&CirclesPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Circles_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Circles_Size,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&CirclesPanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Circles_Size,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&CirclesPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Circles_Size,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Circles_Size,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&CirclesPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Circles_Size,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Circles_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&CirclesPanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Circles_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&CirclesPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Circles_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Circles_Speed,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&CirclesPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON21,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Bounce,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
@@ -221,6 +233,10 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Linear_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
 	//*)
+
+    BitmapButton_Circles_Count->GetValue()->SetLimits(1, 10);
+    BitmapButton_Circles_Size->GetValue()->SetLimits(1, 20);
+    BitmapButton_Circles_Speed->GetValue()->SetLimits(1, 30);
 
     SetName("ID_PANEL_CIRCLES");
 }
