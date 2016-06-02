@@ -1,11 +1,11 @@
 #include "BufferPanel.h"
 
 //(*InternalHeaders(BufferPanel)
-#include <wx/bitmap.h>
 #include <wx/settings.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
 //*)
 
 #include <wx/valnum.h>
@@ -97,29 +97,29 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     _blur.SetMax(15);
 
 	//(*Initialize(BufferPanel)
-	wxStaticText* StaticText9;
-	wxStaticText* StaticText2;
+	wxBitmapButton* BitmapButtonBufferStyle;
+	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer15;
+	wxFlexGridSizer* FlexGridSizer11;
+	wxBitmapButton* BitmapButton_BufferTransform;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxStaticText* StaticText1;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxStaticText* StaticText3;
 	wxPanel* Panel4;
+	wxStaticText* StaticText8;
+	wxPanel* Panel3;
+	wxStaticText* StaticText7;
+	wxStaticText* StaticText4;
 	wxFlexGridSizer* FlexGridSizer10;
+	wxStaticText* StaticText2;
 	wxStaticText* StaticText6;
 	wxFlexGridSizer* FlexGridSizer5;
-	wxStaticText* StaticText8;
+	wxStaticText* StaticText9;
 	wxStaticText* StaticText11;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxStaticText* StaticText1;
-	wxStaticText* StaticText3;
-	wxFlexGridSizer* FlexGridSizer7;
-	wxBitmapButton* BitmapButtonBufferStyle;
-	wxPanel* Panel3;
-	wxFlexGridSizer* FlexGridSizer15;
-	wxStaticText* StaticText7;
-	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer11;
-	wxStaticText* StaticText4;
-	wxBitmapButton* BitmapButton_BufferTransform;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);

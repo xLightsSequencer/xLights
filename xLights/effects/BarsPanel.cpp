@@ -5,18 +5,18 @@
 
 
 //(*InternalHeaders(BarsPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 
@@ -47,24 +47,24 @@ END_EVENT_TABLE()
 BarsPanel::BarsPanel(wxWindow* parent)
 {
 	//(*Initialize(BarsPanel)
-	wxStaticText* StaticText177;
-	wxFlexGridSizer* FlexGridSizer70;
 	wxBitmapButton* BitmapButton_Gradient;
-	wxFlexGridSizer* FlexGridSizer10;
-	wxBitmapButton* BitmapButton_3D;
-	wxCheckBox* CheckBox_Bars_Highlight;
-	wxBitmapButton* BitmapButton_Direction;
-	wxFlexGridSizer* FlexGridSizer123;
-	wxStaticText* StaticText23;
 	wxStaticText* StaticText24;
-	wxSlider* Slider13;
-	wxTextCtrl* TextCtrl15;
-	wxBitmapButton* BitmapButton_Highlight;
-	wxFlexGridSizer* FlexGridSizer35;
-	wxCheckBox* CheckBox_Bars_3D;
-	wxBitmapButton* BitmapButton_PaletteRep;
-	wxTextCtrl* TextCtrl35;
 	wxCheckBox* CheckBox_Bars_Gradient;
+	wxCheckBox* CheckBox_Bars_3D;
+	wxTextCtrl* TextCtrl35;
+	wxCheckBox* CheckBox_Bars_Highlight;
+	wxFlexGridSizer* FlexGridSizer123;
+	wxBitmapButton* BitmapButton_3D;
+	wxSlider* Slider13;
+	wxStaticText* StaticText23;
+	wxBitmapButton* BitmapButton_Highlight;
+	wxBitmapButton* BitmapButton_Direction;
+	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer70;
+	wxTextCtrl* TextCtrl15;
+	wxBitmapButton* BitmapButton_PaletteRep;
+	wxFlexGridSizer* FlexGridSizer35;
+	wxStaticText* StaticText177;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer35 = new wxFlexGridSizer(0, 3, wxDLG_UNIT(this,wxSize(0,0)).GetWidth(), 0);
@@ -76,10 +76,10 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	Slider_Bars_BarCount = new wxSlider(this, ID_SLIDER_Bars_BarCount, 1, 1, 5, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Bars_BarCount"));
 	FlexGridSizer123->Add(Slider_Bars_BarCount, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Bars_BarCount = new ValueCurveButton(this, ID_VALUECURVE_Bars_BarCount, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Bars_BarCount"));
-	FlexGridSizer123->Add(BitmapButton_Bars_BarCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer123->Add(BitmapButton_Bars_BarCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	TextCtrl15 = new wxTextCtrl(this, IDD_TEXTCTRL_Bars_BarCount, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Bars_BarCount"));
 	TextCtrl15->SetMaxLength(1);
-	FlexGridSizer123->Add(TextCtrl15, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer123->Add(TextCtrl15, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer35->Add(FlexGridSizer123, 1, wxALL|wxEXPAND, 0);
 	BitmapButton_PaletteRep = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Bars_BarCount, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Bars_BarCount"));
 	BitmapButton_PaletteRep->SetDefault();
@@ -92,10 +92,10 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	Slider13 = new wxSlider(this, IDD_SLIDER_Bars_Cycles, 10, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Bars_Cycles"));
 	FlexGridSizer70->Add(Slider13, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Bars_Cycles = new ValueCurveButton(this, ID_VALUECURVE_Bars_Cycles, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Bars_Cycles"));
-	FlexGridSizer70->Add(BitmapButton_Bars_Cycles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer70->Add(BitmapButton_Bars_Cycles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	TextCtrl35 = new wxTextCtrl(this, ID_TEXTCTRL_Bars_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Bars_Cycles"));
 	TextCtrl35->SetMaxLength(4);
-	FlexGridSizer70->Add(TextCtrl35, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer70->Add(TextCtrl35, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer35->Add(FlexGridSizer70, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer35->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText24 = new wxStaticText(this, wxID_ANY, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));

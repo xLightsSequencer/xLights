@@ -23,8 +23,7 @@ SubBufferPanel::SubBufferPanel(wxPanel* parent, wxWindowID id,
     x1 = y1 = 0.0;
     x2 = y2 = 100.0;
     draggingHandle = -1;
-    //SetBackgroundStyle(wxBG_STYLE_PAINT);
-    InheritAttributes();
+    SetBackgroundStyle(wxBG_STYLE_SYSTEM);
 }
 SubBufferPanel::~SubBufferPanel()
 {
@@ -157,6 +156,10 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
 }
 void SubBufferPanel::Paint( wxPaintEvent& event ) {
     wxPaintDC dc(this);
+    if (!IsShownOnScreen()) {
+        return;
+    }
+    
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     wxSize size = GetSize();

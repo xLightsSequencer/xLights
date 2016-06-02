@@ -3,17 +3,17 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(ButterflyPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(ButterflyPanel)
@@ -46,32 +46,32 @@ END_EVENT_TABLE()
 ButterflyPanel::ButterflyPanel(wxWindow* parent)
 {
 	//(*Initialize(ButterflyPanel)
-	wxChoice* Choice_Butterfly_Colors;
-	wxStaticText* StaticText175;
-	wxBitmapButton* BitmapButton_ButterflyStyle;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxTextCtrl* TextCtrl16;
-	wxStaticText* StaticText26;
-	wxSlider* Slider_Butterfly_Chunks;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxStaticText* StaticText58;
-	wxStaticText* StaticText27;
 	wxBitmapButton* BitmapButton8;
-	wxBitmapButton* BitmapButton1;
 	wxBitmapButton* BitmapButton_ButterflySkip;
-	wxTextCtrl* TextCtrl18;
-	wxTextCtrl* TextCtrl17;
-	wxBitmapButton* BitmapButton_ButterflyColors;
-	wxStaticText* StaticText28;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxStaticText* StaticText175;
 	wxSlider* Slider8;
+	wxStaticText* StaticText28;
+	wxBitmapButton* BitmapButton_ButterflyChunks;
+	wxBitmapButton* BitmapButton_ButterflyStyle;
+	wxTextCtrl* TextCtrl18;
+	wxChoice* Choice_Butterfly_Colors;
 	wxTextCtrl* TextCtrl25;
 	wxChoice* Choice_Butterfly_Direction;
-	wxFlexGridSizer* FlexGridSizer36;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxBitmapButton* BitmapButton_ButterflyColors;
+	wxSlider* Slider_Butterfly_Chunks;
+	wxTextCtrl* TextCtrl16;
+	wxStaticText* StaticText27;
 	wxSlider* Slider_Butterfly_Style;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxStaticText* StaticText25;
-	wxBitmapButton* BitmapButton_ButterflyChunks;
+	wxStaticText* StaticText26;
+	wxFlexGridSizer* FlexGridSizer36;
 	wxSlider* Slider_Butterfly_Skip;
+	wxStaticText* StaticText58;
+	wxBitmapButton* BitmapButton1;
+	wxStaticText* StaticText25;
+	wxTextCtrl* TextCtrl17;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer36 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -93,7 +93,7 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	FlexGridSizer36->Add(Slider_Butterfly_Style, 1, wxALL|wxEXPAND, 2);
 	TextCtrl16 = new wxTextCtrl(this, IDD_TEXTCTRL_Butterfly_Style, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Butterfly_Style"));
 	TextCtrl16->SetMaxLength(1);
-	FlexGridSizer36->Add(TextCtrl16, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer36->Add(TextCtrl16, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_ButterflyStyle = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Butterfly_Style, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Butterfly_Style"));
 	BitmapButton_ButterflyStyle->SetDefault();
 	BitmapButton_ButterflyStyle->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -105,11 +105,11 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	Slider_Butterfly_Chunks = new wxSlider(this, ID_SLIDER_Butterfly_Chunks, 1, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Butterfly_Chunks"));
 	FlexGridSizer1->Add(Slider_Butterfly_Chunks, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Butterfly_Chunks = new ValueCurveButton(this, ID_VALUECURVE_Butterfly_Chunks, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Butterfly_Chunks"));
-	FlexGridSizer1->Add(BitmapButton_Butterfly_Chunks, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer36->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer1->Add(BitmapButton_Butterfly_Chunks, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer36->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	TextCtrl17 = new wxTextCtrl(this, IDD_TEXTCTRL_Butterfly_Chunks, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Butterfly_Chunks"));
 	TextCtrl17->SetMaxLength(2);
-	FlexGridSizer36->Add(TextCtrl17, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer36->Add(TextCtrl17, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_ButterflyChunks = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Butterfly_Chunks, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Butterfly_Chunks"));
 	BitmapButton_ButterflyChunks->SetDefault();
 	BitmapButton_ButterflyChunks->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -121,11 +121,11 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	Slider_Butterfly_Skip = new wxSlider(this, ID_SLIDER_Butterfly_Skip, 2, 2, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Butterfly_Skip"));
 	FlexGridSizer2->Add(Slider_Butterfly_Skip, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Butterfly_Skip = new ValueCurveButton(this, ID_VALUECURVE__Butterfly_Skip, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE__Butterfly_Skip"));
-	FlexGridSizer2->Add(BitmapButton_Butterfly_Skip, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer36->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer2->Add(BitmapButton_Butterfly_Skip, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer36->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	TextCtrl18 = new wxTextCtrl(this, IDD_TEXTCTRL_Butterfly_Skip, _("2"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Butterfly_Skip"));
 	TextCtrl18->SetMaxLength(2);
-	FlexGridSizer36->Add(TextCtrl18, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer36->Add(TextCtrl18, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton1 = new wxBitmapButton(this, ID_BITMAPBUTTON15, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON15"));
 	BitmapButton1->SetDefault();
 	BitmapButton1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -137,8 +137,8 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	Slider8 = new wxSlider(this, ID_SLIDER_Butterfly_Speed, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Butterfly_Speed"));
 	FlexGridSizer3->Add(Slider8, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Butterfly_Speed = new ValueCurveButton(this, ID_VALUECURVE_Butterfly_Speed, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Butterfly_Speed"));
-	FlexGridSizer3->Add(BitmapButton_Butterfly_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer36->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer3->Add(BitmapButton_Butterfly_Speed, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer36->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
 	TextCtrl25 = new wxTextCtrl(this, IDD_TEXTCTRL_Butterfly_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Butterfly_Speed"));
 	TextCtrl25->SetMaxLength(3);
 	FlexGridSizer36->Add(TextCtrl25, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -151,7 +151,7 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	Choice_Butterfly_Direction = new wxChoice(this, ID_CHOICE_Butterfly_Direction, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Butterfly_Direction"));
 	Choice_Butterfly_Direction->SetSelection( Choice_Butterfly_Direction->Append(_("Normal")) );
 	Choice_Butterfly_Direction->Append(_("Reverse"));
-	FlexGridSizer36->Add(Choice_Butterfly_Direction, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer36->Add(Choice_Butterfly_Direction, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer36->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton8 = new wxBitmapButton(this, ID_BITMAPBUTTON9, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON9"));
 	BitmapButton8->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));

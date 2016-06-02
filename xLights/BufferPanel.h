@@ -2,16 +2,16 @@
 #define BUFFERPANEL_H
 
 //(*Headers(BufferPanel)
-#include <wx/scrolwin.h>
-#include <wx/notebook.h>
+#include <wx/bmpbuttn.h>
+#include <wx/checkbox.h>
 #include <wx/sizer.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/scrolwin.h>
+#include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
 #include <wx/choice.h>
-#include <wx/bmpbuttn.h>
 //*)
 
 #include "ValueCurve.h"
@@ -44,46 +44,46 @@ public:
 
     
 		//(*Declarations(BufferPanel)
-		wxBitmapButton* BitmapButton_EffectBlur;
+		ValueCurveButton* BitmapButton_VCZoom;
 		wxBitmapButton* BitmapButton_Zoom;
-		wxNotebook* Notebook1;
-		wxSlider* Slider_Zoom;
-		wxBitmapButton* BitmapButton_Rotation;
-		wxTextCtrl* TextCtrl_Rotation;
+		wxSlider* Slider_Rotation;
+		ValueCurveButton* BitmapButton_VCPivotPointX;
 		wxScrolledWindow* ScrolledWindow1;
+		wxSlider* Slider_PivotPointX;
 		wxSlider* Slider_PivotPointY;
+		wxTextCtrl* TextCtrl_PivotPointX;
+		wxBitmapButton* BitmapButton_ZoomQuality;
+		wxTextCtrl* TextCtrl_EffectBlur;
+		wxSlider* Slider_Rotations;
+		wxTextCtrl* TextCtrl_ZoomQuality;
 		wxChoice* BufferStyleChoice;
+		ValueCurveButton* BitmapButton_VCRotations;
+		wxSlider* Slider_ZoomQuality;
+		wxTextCtrl* TextCtrl_Zoom;
+		wxFlexGridSizer* BufferSizer;
+		wxBitmapButton* BitmapButton_EffectBlur;
+		wxSlider* Slider_Zoom;
+		ValueCurveButton* BitmapButton_Blur;
+		wxBitmapButton* BitmapButton_Rotation;
+		wxBitmapButton* BitmapButton_PivotPointY;
+		wxChoice* BufferTransform;
+		wxFlexGridSizer* RotoZoomSizer;
 		wxTextCtrl* TextCtrl_Rotations;
 		wxFlexGridSizer* SubBufferPanelSizer;
-		wxFlexGridSizer* BufferSizer;
-		wxBitmapButton* BitmapButton_OverlayBkg;
-		wxSlider* Slider_PivotPointX;
-		wxTextCtrl* TextCtrl_PivotPointX;
-		wxChoice* BufferTransform;
-		wxBitmapButton* BitmapButton_Rotations;
-		wxTextCtrl* TextCtrl_ZoomQuality;
-		wxSlider* Slider_ZoomQuality;
-		wxStaticText* StaticText5;
-		ValueCurveButton* BitmapButton_VCPivotPointY;
-		wxTextCtrl* TextCtrl_Zoom;
-		wxTextCtrl* TextCtrl_EffectBlur;
-		ValueCurveButton* BitmapButton_VCRotation;
 		wxScrolledWindow* ScrolledWindow2;
-		wxChoice* Choice_Preset;
-		wxSlider* Slider_Rotation;
-		ValueCurveButton* BitmapButton_VCZoom;
-		ValueCurveButton* BitmapButton_Blur;
-		wxTextCtrl* TextCtrl_PivotPointY;
-		wxSlider* Slider_Rotations;
 		wxCheckBox* CheckBox_OverlayBkg;
-		wxFlexGridSizer* RotoZoomSizer;
-		ValueCurveButton* BitmapButton_VCPivotPointX;
-		wxBitmapButton* BitmapButton_PivotPointX;
-		wxBitmapButton* BitmapButton_ZoomQuality;
-		ValueCurveButton* BitmapButton_VCRotations;
-		wxFlexGridSizer* FullBufferSizer;
-		wxBitmapButton* BitmapButton_PivotPointY;
+		wxStaticText* StaticText5;
+		wxNotebook* Notebook1;
+		wxTextCtrl* TextCtrl_Rotation;
+		ValueCurveButton* BitmapButton_VCPivotPointY;
 		wxSlider* Slider_EffectBlur;
+		wxBitmapButton* BitmapButton_PivotPointX;
+		wxTextCtrl* TextCtrl_PivotPointY;
+		ValueCurveButton* BitmapButton_VCRotation;
+		wxChoice* Choice_Preset;
+		wxFlexGridSizer* FullBufferSizer;
+		wxBitmapButton* BitmapButton_OverlayBkg;
+		wxBitmapButton* BitmapButton_Rotations;
 		//*)
 
         SubBufferPanel *subBufferPanel;

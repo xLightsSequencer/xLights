@@ -96,7 +96,7 @@
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -110,7 +110,7 @@
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -152,15 +152,14 @@
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Brightness" subclass="ValueCurveButton" variable="BitmapButton_VCBrightness" member="yes">
 															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_VCBrightnessClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<option>1</option>
 													</object>
 												</object>
-												<flag>wxALL|wxEXPAND</flag>
-												<border>2</border>
+												<flag>wxEXPAND</flag>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">

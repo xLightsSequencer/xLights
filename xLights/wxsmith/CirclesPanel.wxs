@@ -38,8 +38,7 @@
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>2</border>
+								<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -55,7 +54,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -100,8 +98,7 @@
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>2</border>
+								<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -117,7 +114,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -142,7 +138,7 @@
 									<label>Speed</label>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -162,8 +158,7 @@
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>2</border>
+								<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -179,7 +174,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>1</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -203,12 +197,11 @@
 									<label>Bounce</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>1</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -232,12 +225,11 @@
 									<label>Radial</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>1</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -261,12 +253,11 @@
 									<label>Plasma</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>1</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -290,12 +281,11 @@
 									<label>Radial 3D</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>1</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -317,14 +307,14 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Bubbles" variable="CheckBox_Circles_Bubbles" member="yes">
 									<label>Bubbles</label>
+									<handler function="OnCheckBox_Circles_BubblesClick" entry="EVT_CHECKBOX" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>1</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -349,12 +339,11 @@
 									<hidden>1</hidden>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>1</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -380,12 +369,11 @@
 									<hidden>1</hidden>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>1</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -410,12 +398,11 @@
 									<label>Linear Fade</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>1</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">

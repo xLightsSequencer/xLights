@@ -4,11 +4,11 @@
 //(*Headers(ButterflyPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 #include "../ValueCurveButton.h"
@@ -21,9 +21,9 @@ class ButterflyPanel: public wxPanel
 		virtual ~ButterflyPanel();
 
 		//(*Declarations(ButterflyPanel)
-		ValueCurveButton* BitmapButton_Butterfly_Skip;
 		ValueCurveButton* BitmapButton_Butterfly_Speed;
 		ValueCurveButton* BitmapButton_Butterfly_Chunks;
+		ValueCurveButton* BitmapButton_Butterfly_Skip;
 		//*)
 
 	protected:

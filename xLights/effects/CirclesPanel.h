@@ -85,17 +85,17 @@ class CirclesPanel: public wxPanel
 	public:
 
 		//(*Handlers(CirclesPanel)
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
-    void OnLockButtonClick(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-
+		void UpdateLinkedSliderFloat(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
+		void UpdateLinkedSlider360(wxCommandEvent& event);
+		void UpdateLinkedTextCtrl(wxScrollEvent& event);
+		void UpdateLinkedSlider(wxCommandEvent& event);
+		void OnLockButtonClick(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+		void OnVCButtonClick(wxCommandEvent& event);
+		void OnCheckBox_Circles_BubblesClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

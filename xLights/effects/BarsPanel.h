@@ -3,13 +3,13 @@
 
 //(*Headers(BarsPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 #include "../ValueCurveButton.h"
@@ -22,10 +22,10 @@ class BarsPanel: public wxPanel
 		virtual ~BarsPanel();
 
 		//(*Declarations(BarsPanel)
-		ValueCurveButton* BitmapButton_Bars_BarCount;
-		wxSlider* Slider_Bars_BarCount;
 		wxChoice* Choice_Bars_Direction;
 		ValueCurveButton* BitmapButton_Bars_Cycles;
+		wxSlider* Slider_Bars_BarCount;
+		ValueCurveButton* BitmapButton_Bars_BarCount;
 		//*)
 
 	protected:

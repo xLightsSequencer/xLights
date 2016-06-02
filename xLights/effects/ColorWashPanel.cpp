@@ -3,17 +3,17 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(ColorWashPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(ColorWashPanel)
@@ -37,11 +37,11 @@ END_EVENT_TABLE()
 ColorWashPanel::ColorWashPanel(wxWindow* parent)
 {
 	//(*Initialize(ColorWashPanel)
-	wxFlexGridSizer* FlexGridSizer37;
-	wxFlexGridSizer* FlexGridSizer9;
 	wxFlexGridSizer* FlexGridSizer124;
-	wxFlexGridSizer* FlexGridSizer114;
 	wxFlexGridSizer* FlexGridSizer75;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxFlexGridSizer* FlexGridSizer37;
+	wxFlexGridSizer* FlexGridSizer114;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer37 = new wxFlexGridSizer(0, 1, 0, 0);
