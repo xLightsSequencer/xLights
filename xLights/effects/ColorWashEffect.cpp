@@ -84,7 +84,9 @@ bool ColorWashEffect::needToAdjustSettings(const std::string &version) {
     return IsVersionOlder("2016.34", version) || RenderableEffect::needToAdjustSettings(version);
 }
 void ColorWashEffect::adjustSettings(const std::string &version, Effect *effect) {
-    RenderableEffect::adjustSettings(version, effect);
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect);
+    }
     if (!effect->GetSettings().GetBool("E_CHECKBOX_ColorWash_EntireModel", true) ) {
         float x1 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_X1", 0);
         float y1 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_Y1", 0);
