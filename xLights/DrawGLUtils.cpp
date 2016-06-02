@@ -545,6 +545,40 @@ void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColor &
     AddVertex(x1, y1, left);
 }
 
+void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float x, float y, float radius, const xlColor &color) {
+    AddTrianglesCircle(x, y, radius, color, color);
+}
+void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float cy, float radius, const xlColor &center, const xlColor &edge) {
+    int num_segments = radius;
+    if (num_segments < 16) {
+        num_segments = 16;
+    }
+    PreAlloc(num_segments * 3);
+    float theta = 2 * 3.1415926 / float(num_segments);
+    float tangetial_factor = tanf(theta);//calculate the tangential factor
+    float radial_factor = cosf(theta);//calculate the radial factor
+    
+    float x = radius;//we start at angle = 0
+    float y = 0;
+    
+    for(int ii = 0; ii < num_segments; ii++) {
+        AddVertex(x + cx, y + cy, edge);
+        //calculate the tangential vector
+        //remember, the radial vector is (x, y)
+        //to get the tangential vector we flip those coordinates and negate one of them
+        float tx = -y;
+        float ty = x;
+        
+        //add the tangential vector
+        x += tx * tangetial_factor;
+        y += ty * tangetial_factor;
+        x *= radial_factor;
+        y *= radial_factor;
+        AddVertex(x + cx, y + cy, edge);
+        AddVertex(cx, cy, center);
+    }
+}
+
 
 void DrawGLUtils::DrawDisplayList(float xOffset, float yOffset,
                                   float width, float height,

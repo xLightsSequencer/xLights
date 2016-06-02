@@ -27,7 +27,7 @@ const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Pre
 
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), isMyDisplay(false), ModelXml(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
-    StrobeRate(0), changeCount(0), modelManager(manager), CouldComputeStartChannel(false)
+    StrobeRate(0), changeCount(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0)
 {
 }
 
@@ -1508,6 +1508,15 @@ wxCursor Model::InitializeLocation(int &handle, wxCoord x,wxCoord y) {
     return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes);
 }
 
+static void ApplyTransparency(xlColor &color, int transparency) {
+    if (transparency) {
+        double t = 100.0 - transparency;
+        t *= 2.55;
+        transparency = t;
+        color.alpha = transparency > 255 ? 255 : (transparency < 0 ? 0 : transparency);
+    }
+}
+
 // display model using colors stored in each node
 // used when preview is running
 void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool allowSelected) {
@@ -1522,16 +1531,27 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
     //preview->GetSize(&w, &h);
     preview->GetVirtualCanvasSize(w, h);
 
-    if (pixelSize != 2) {
-        LOG_GL_ERRORV(glPointSize(preview->calcPixelSize(pixelSize)));
-    }
     GetModelScreenLocation().PrepareToDraw();
     
     int vcount = 0;
     for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
         vcount += it->get()->Coords.size();
     }
-    DrawGLUtils::PreAlloc(vcount);
+    
+    DrawGLUtils::xlVertexColorAccumulator va;
+    
+    if (pixelStyle > 1) {
+        int f = pixelSize;
+        if (pixelSize < 16) {
+            f = 16;
+        }
+        va.PreAlloc(vcount * f * 3);
+    } else {
+        va.PreAlloc(vcount);
+        if (pixelSize != 2) {
+            LOG_GL_ERRORV(glPointSize(preview->calcPixelSize(pixelSize)));
+        }
+    }
 
     bool started = false;
     int first = 0; int last = NodeCount;
@@ -1579,24 +1599,27 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
 
             if (pixelStyle < 2) {
                 started = true;
-                DrawGLUtils::AddVertex(sx,sy,color, color == xlBLACK ? blackTransparency : transparency);
+                xlColor c(color);
+                ApplyTransparency(c, color == xlBLACK ? blackTransparency : transparency);
+                va.AddVertex(sx, sy, c);
             } else {
-                int trans = transparency;
-                if (color == xlBLACK) {
-                    trans = blackTransparency;
-                }
-                DrawGLUtils::DrawCircle(color, sx, sy, pixelSize / 2,
-                                        trans, pixelStyle == 2 ? transparency : 100);
+                xlColor ccolor(color);
+                xlColor ecolor(color);
+                int trans = color == xlBLACK ? blackTransparency : transparency;
+                ApplyTransparency(ccolor, trans);
+                ApplyTransparency(ecolor, pixelStyle == 2 ? trans : 100);
+                va.AddTrianglesCircle(sx, sy, ((float)pixelSize) / 2.0f, ccolor, ecolor);
             }
         }
     }
-    if (started) {
-        DrawGLUtils::End(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0);
+    if (pixelStyle > 1) {
+        DrawGLUtils::Draw(va, GL_TRIANGLES);
+    } else {
+        DrawGLUtils::Draw(va, GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0);
+        if (pixelSize != 2) {
+            LOG_GL_ERRORV(glPointSize(preview->calcPixelSize(2)));
+        }
     }
-    if (pixelSize != 2) {
-        LOG_GL_ERRORV(glPointSize(preview->calcPixelSize(2)));
-    }
-
 
     if (Selected && c != NULL && allowSelected) {
         GetModelScreenLocation().DrawHandles();
@@ -1637,9 +1660,12 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
             vcount += it->get()->Coords.size();
         }
-        DrawGLUtils::PreAlloc(vcount);
+        DrawGLUtils::xlVertexColorAccumulator va;
+        if (vcount > maxVertexCount) {
+            maxVertexCount = vcount;
+        }
+        va.PreAlloc(maxVertexCount);
         double sx,sy;
-        bool started = false;
         int first = 0; int last = NodeCount;
         int buffFirst = -1; int buffLast = -1;
         bool left = true;
@@ -1695,10 +1721,17 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
 
                 if (lastPixelStyle != Nodes[n]->model->pixelStyle
                     || lastPixelSize != Nodes[n]->model->pixelSize) {
-
-                    if (started) {
-                        DrawGLUtils::End(GL_POINTS, lastPixelStyle == 1 ? GL_POINT_SMOOTH : 0);
-                        started = false;
+                    
+                    if (va.count && (lastPixelStyle < 2 || Nodes[n]->model->pixelStyle < 2)) {
+                        if (lastPixelStyle > 1) {
+                            DrawGLUtils::Draw(va, GL_TRIANGLES);
+                        } else {
+                            DrawGLUtils::Draw(va, GL_POINTS, lastPixelStyle == 1 ? GL_POINT_SMOOTH : 0);
+                        }
+                        if (va.count > maxVertexCount) {
+                            maxVertexCount = va.count;
+                        }
+                        va.Reset();
                     }
                     lastPixelStyle = Nodes[n]->model->pixelStyle;
 
@@ -1710,21 +1743,30 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
 
 
                 if (lastPixelStyle < 2) {
-                    DrawGLUtils::AddVertex((sx*scale)+(w/2), newsy, color, color == xlBLACK ?
-                                           Nodes[n]->model->blackTransparency : Nodes[n]->model->transparency);
-                    started = true;
+                    xlColor c(color);
+                    ApplyTransparency(c, color == xlBLACK ? Nodes[n]->model->blackTransparency
+                                                        : Nodes[n]->model->transparency);
+
+                    va.AddVertex((sx*scale)+(w/2), newsy, c);
                 } else {
-                    int trans = Nodes[n]->model->transparency;
-                    if (color == xlBLACK) {
-                        trans = Nodes[n]->model->blackTransparency;
-                    }
-                    DrawGLUtils::DrawCircle(color, (sx*scale)+(w/2), newsy, lastPixelSize*pointScale,
-                                            trans, lastPixelStyle == 2 ? Nodes[n]->model->transparency : 100);
+                    xlColor ccolor(color);
+                    xlColor ecolor(color);
+                    int trans = color == xlBLACK ? Nodes[n]->model->blackTransparency : Nodes[n]->model->transparency;
+                    ApplyTransparency(ccolor, trans);
+                    ApplyTransparency(ecolor, lastPixelStyle == 2 ? trans : 100);
+                    va.AddTrianglesCircle((sx*scale)+(w/2), newsy, lastPixelSize*pointScale, ccolor, ecolor);
                 }
             }
         }
-        if (started) {
-            DrawGLUtils::End(GL_POINTS, lastPixelStyle == 1 ? GL_POINT_SMOOTH : 0);
+        if (va.count) {
+            if (va.count > maxVertexCount) {
+                maxVertexCount = va.count;
+            }
+            if (lastPixelStyle > 1) {
+                DrawGLUtils::Draw(va, GL_TRIANGLES);
+            } else {
+                DrawGLUtils::Draw(va, GL_POINTS, lastPixelStyle == 1 ? GL_POINT_SMOOTH : 0);
+            }
         }
         preview->EndDrawing();
         if (lastPixelSize != 2) {

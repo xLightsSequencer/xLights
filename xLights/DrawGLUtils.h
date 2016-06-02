@@ -98,6 +98,8 @@ namespace DrawGLUtils
         }
         void AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, int offset = 0);
         void AddHBlendedRectangle(const xlColor &left, const xlColor &right, float x1, float y1, float x2, float y2);
+        void AddTrianglesCircle(float x, float y, float radius, const xlColor &color);
+        void AddTrianglesCircle(float x, float y, float radius, const xlColor &center, const xlColor &edge);
         
         std::vector<float> vertices;
         std::vector<uint8_t> colors;

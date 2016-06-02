@@ -120,8 +120,15 @@ bool DrawGLUtils::LoadGLFunctions() {
 #endif
 
 class ShaderProgram {
+    class BufferInfo {
+    public:
+        size_t currentSize = 0;
+        size_t currentPos = 0;
+        bool valid = true;
+    };
+    
 public:
-    ShaderProgram() : ProgramID(0), buffers(nullptr), numBuffers(0) {}
+    ShaderProgram() : ProgramID(0), buffers(nullptr), numBuffers(0), bufferInfo(nullptr), buffersValid(false) {}
     
     void Cleanup() {
         if (ProgramID != 0) {
@@ -130,8 +137,21 @@ public:
             LOG_GL_ERRORV(glDeleteProgram(ProgramID));
             delete [] buffers;
             LOG_GL_ERRORV(glDeleteVertexArrays(1, &VertexArrayID));
+            delete [] bufferInfo;
         }
     }
+    void Reset() {
+        for (int x = 0; x < numBuffers; x++) {
+            if (bufferInfo[x].currentPos > bufferInfo[x].currentSize || !buffersValid) {
+                bufferInfo[x].currentSize = std::max(bufferInfo[x].currentPos, bufferInfo[x].currentSize);
+                LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[x]));
+                LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, bufferInfo[x].currentSize, nullptr, GL_STREAM_DRAW));
+            }
+            bufferInfo[x].currentPos = 0;
+        }
+        buffersValid = true;
+    }
+    
     GLuint GetBufferID(int idx) {
         return buffers[idx];
     }
@@ -144,21 +164,25 @@ public:
     void SetRenderType(int i) {
         LOG_GL_ERRORV(glUniform1i(RenderTypeID, i));
     }
-    void BindBuffer(int idx, void *data, int sz) {
-        BindBuffer(idx, buffers[idx], data, sz);
+    int BindBuffer(int idx, void *data, int sz) {
+        return BindBuffer(idx, buffers[idx], data, sz);
     }
-    void BindBuffer(int idx, GLuint bufId, void *data, int sz) {
+    int BindBuffer(int idx, GLuint bufId, void *data, int sz) {
         LOG_GL_ERRORV(glEnableVertexAttribArray(idx));
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, bufId));
-        LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sz, data, GL_STATIC_DRAW));
+        int i = bufferInfo[idx].currentPos;
+        if (!buffersValid || bufId != buffers[idx] || ((bufferInfo[idx].currentPos + sz) > bufferInfo[idx].currentSize)) {
+            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sz, data, GL_STATIC_DRAW));
+            buffersValid = false;
+            i = 0;
+        } else {
+            LOG_GL_ERRORV(glBufferSubData(GL_ARRAY_BUFFER, bufferInfo[idx].currentPos, sz, data));
+        }
+        bufferInfo[idx].currentPos += sz;
+        return i;
     }
     void UnbindBuffer(int idx) {
-        UnbindBuffer(idx, buffers[idx]);
-    }
-    void UnbindBuffer(int idx, GLuint bufId) {
         LOG_GL_ERRORV(glDisableVertexAttribArray(idx));
-        //LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, bufId));
-        //LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STATIC_DRAW));
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
     }
     
@@ -180,6 +204,7 @@ public:
         
         numBuffers = numBuf;
         buffers = new GLuint[numBuffers];
+        bufferInfo = new BufferInfo[numBuffers];
         LOG_GL_ERRORV(glGenVertexArrays(1, &VertexArrayID));
         LOG_GL_ERRORV(glGenBuffers(numBuffers, buffers));
         LOG_GL_ERRORV(glBindVertexArray(VertexArrayID));
@@ -251,18 +276,20 @@ public:
             }
         }
     }
-
     
     GLuint ProgramID;
     GLuint VertexArrayID;
-    
-    GLuint *buffers;
-    size_t numBuffers;
     
     GLuint MatrixID;
     GLuint PointSmoothMinID;
     GLuint PointSmoothMaxID;
     GLuint RenderTypeID;
+    
+    GLuint *buffers;
+    BufferInfo *bufferInfo;
+    size_t numBuffers;
+    bool buffersValid;
+    
 };
 
 
@@ -387,13 +414,10 @@ public:
     OpenGL33Cache(bool UsesVertexTextureAccumulator,
                   bool UsesVertexColorAccumulator,
                   bool UsesVertexAccumulator,
-                  bool UsesAddVertex) : matrix(nullptr), numBuffers(0)
+                  bool UsesAddVertex) : matrix(nullptr)
     {
         UsesVertexColorAccumulator |= UsesAddVertex;
         Load33Shaders(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex);
-        if (UsesAddVertex) {
-            InitializeVertexBuffer();
-        }
     }
     ~OpenGL33Cache() {
         if (matrix) {
@@ -403,7 +427,6 @@ public:
             delete matrixStack.top();
             matrixStack.pop();
         }
-        CleanupVertexBuffer();
         Release33Shaders();
     }
 
@@ -415,7 +438,7 @@ public:
         }
         singleColorProgram.UseProgram();
         singleColorProgram.SetMatrix(*matrix);
-        singleColorProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat));
+        int offset0 = singleColorProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat)) / (2*sizeof(GLfloat));
         LOG_GL_ERRORV(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
         LOG_GL_ERRORV(GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor"));
@@ -433,7 +456,7 @@ public:
         } else if (enableCapability > 0) {
             LOG_GL_ERRORV(glEnable(enableCapability));
         }
-        LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+        LOG_GL_ERRORV(glDrawArrays(type, offset0, va.count));
         if (type == GL_POINTS && enableCapability == 0x0B10) {
             singleColorProgram.SetRenderType(0);
         } else if (enableCapability > 0) {
@@ -443,27 +466,16 @@ public:
     }
 
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
-        Draw(va, type, enableCapability, -1);
-    }
-    void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability, int bufIdx) {
         if (va.count == 0) {
             return;
         }
         normalProgram.UseProgram();
         normalProgram.SetMatrix(*matrix);
 
-        if (bufIdx == -1) {
-            normalProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat));
-        } else {
-            normalProgram.BindBuffer(0, bufferIds[bufIdx], &va.vertices[0], va.count*2*sizeof(GLfloat));
-        }
+        int offset0 = normalProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat))/ (2*sizeof(GLfloat));
         LOG_GL_ERRORV(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
-        if (bufIdx == -1) {
-            normalProgram.BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
-        } else {
-            normalProgram.BindBuffer(1, bufferIds[bufIdx + 1], &va.colors[0], va.count*4*sizeof(GLubyte));
-        }
+        normalProgram.BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
         LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
 
         float ps = 2.0;
@@ -478,7 +490,7 @@ public:
                 normalProgram.SetRenderType(enableCapability);
             }
         }
-        LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+        LOG_GL_ERRORV(glDrawArrays(type, offset0, va.count));
         if (type == GL_POINTS && enableCapability == 0x0B10) {
             normalProgram.SetRenderType(0);
             LOG_GL_ERRORV(glPointSize(ps));
@@ -488,13 +500,8 @@ public:
             normalProgram.SetRenderType(0);
         }
         
-        if (bufIdx == -1) {
-            normalProgram.UnbindBuffer(0);
-            normalProgram.UnbindBuffer(1);
-        } else {
-            normalProgram.UnbindBuffer(0, bufferIds[bufIdx]);
-            normalProgram.UnbindBuffer(1, bufferIds[bufIdx + 1]);
-        }
+        normalProgram.UnbindBuffer(0);
+        normalProgram.UnbindBuffer(1);
     }
     void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability) override {
         if (va.count == 0) {
@@ -503,7 +510,7 @@ public:
         textureProgram.UseProgram();
         textureProgram.SetMatrix(*matrix);
 
-        textureProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat));
+        int offset0 = textureProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat)) / (2*sizeof(GLfloat));
         LOG_GL_ERRORV(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
         textureProgram.BindBuffer(1, &va.tvertices[0], va.count*2*sizeof(GLfloat));
@@ -519,7 +526,7 @@ public:
         if (enableCapability > 0) {
             LOG_GL_ERRORV(glEnable(enableCapability));
         }
-        LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+        LOG_GL_ERRORV(glDrawArrays(type, offset0, va.count));
         if (enableCapability > 0) {
             LOG_GL_ERRORV(glDisable(enableCapability));
         }
@@ -530,27 +537,16 @@ public:
         textureProgram.UnbindBuffer(1);
     }
 
-    // Un-optimized that just feeds through the Draw(xlVertexColorAccumulator)
-    void InitializeVertexBuffer() {
-        numBuffers = 24;
-        bufferIds = new GLuint[numBuffers];
-        curBufferIdx = 0;
-        glGenBuffers(numBuffers, bufferIds);
-    }
-    void CleanupVertexBuffer() {
-        if (numBuffers) {
-            glDeleteBuffers(numBuffers, bufferIds);
-            delete [] bufferIds;
-        }
-    }
     virtual void SetCurrent() override {
         DrawGLUtils::xlGLCacheInfo::SetCurrent();
         data.Reset();
+        
+        textureProgram.Reset();
+        singleColorProgram.Reset();
+        normalProgram.Reset();
+        vbNormalProgram.Reset();
     }
 
-    int numBuffers;
-    int curBufferIdx;
-    GLuint *bufferIds;
     DrawGLUtils::xlVertexColorAccumulator data;
     virtual void addVertex(float x, float y, const xlColor &c) override {
         data.PreAlloc(1);
@@ -564,11 +560,7 @@ public:
     }
     
     void flush(int type, int enableCapability) override {
-        Draw(data, type, enableCapability, curBufferIdx);
-        curBufferIdx += 2;
-        if (curBufferIdx == numBuffers) {
-            curBufferIdx = 0;
-        }
+        Draw(data, type, enableCapability);
         data.Reset();
     }
     

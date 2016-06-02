@@ -252,7 +252,9 @@ public:
         return GetNodeChannelCount(StrType) == 1;
     }
     static int GetNodeChannelCount(const std::string & nodeType);
-
+    
+private:
+    int maxVertexCount;
 };
 
 template <class ScreenLocation>

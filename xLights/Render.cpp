@@ -640,7 +640,7 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
 }
 
 void xLightsFrame::RenderGridToSeqData() {
-    int numRows = mSequenceElements.GetElementCount();
+    const int numRows = mSequenceElements.GetElementCount();
     if (numRows == 0) {
         //nothing to do....
         return;
@@ -650,12 +650,12 @@ void xLightsFrame::RenderGridToSeqData() {
     std::vector<std::set<int>> channelMaps(SeqData.NumChannels());
     Element *lastRowEl = NULL;
 
-    for (size_t row = 0; row < mSequenceElements.GetElementCount(); row++) {
+    for (size_t row = 0; row < numRows; row++) {
         jobs[row] = nullptr;
         aggregators[row] = new AggregatorRenderer(SeqData.NumFrames());
     }
 
-    for (size_t row = 0; row < mSequenceElements.GetElementCount(); row++) {
+    for (size_t row = 0; row < numRows; row++) {
         Element *rowEl = mSequenceElements.GetElement(row);
         if (rowEl->GetType() == "model" && rowEl != lastRowEl) {
             lastRowEl = rowEl;
@@ -693,7 +693,7 @@ void xLightsFrame::RenderGridToSeqData() {
     channelMaps.clear();
     
     renderProgressDialog = new RenderProgressDialog(this);
-    for (size_t row = 0; row < mSequenceElements.GetElementCount(); row++) {
+    for (size_t row = 0; row < numRows; row++) {
         if (jobs[row]) {
             if (aggregators[row]->getNumAggregated() == 0) {
                 jobs[row]->setPreviousFrameDone(END_OF_RENDER_FRAME);
@@ -721,7 +721,7 @@ void xLightsFrame::RenderGridToSeqData() {
         done = true;
         int countModels = 0;
         int countFrames = 0;
-        for (size_t row = 0; row < mSequenceElements.GetElementCount(); row++) {
+        for (size_t row = 0; row < numRows; row++) {
             if (jobs[row]) {
                 int i = jobs[row]->GetCurrentFrame();
                 if (i >= frames) {
@@ -745,7 +745,7 @@ void xLightsFrame::RenderGridToSeqData() {
 
         wxYield();
     }
-    for (size_t row = 0; row < mSequenceElements.GetElementCount(); row++) {
+    for (size_t row = 0; row < numRows; row++) {
         if (jobs[row]) {
             delete jobs[row];
         }
