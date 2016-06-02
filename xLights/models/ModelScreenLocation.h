@@ -104,10 +104,10 @@ public:
     virtual bool IsCenterBased() const override {return true;};
 
     virtual float GetHcenterOffset() const override {
-        return offsetXpct;
+        return (float)offsetXpct;
     }
     virtual float GetVcenterOffset() const override {
-        return offsetYpct;
+        return (float)offsetYpct;
     }
     virtual void SetHcenterOffset(float f) override {
         offsetXpct = f;

@@ -1980,7 +1980,7 @@ void TestDialog::OnTimer(long curtime)
 		// get list of checked channels
 		_xout->alloff();
 		GetCheckedItems(chArray);
-		if (RadioButton_RGB_Chase->GetValue() > 0 || RadioButton_Standard_Chase->GetValue() > 0)
+		if (RadioButton_RGB_Chase->GetValue() || RadioButton_Standard_Chase->GetValue())
 		{
 			_chaseGrouping = chArray.Count();
 			if (_chaseGrouping == 0)
@@ -1988,7 +1988,7 @@ void TestDialog::OnTimer(long curtime)
 				_chaseGrouping = std::numeric_limits<int>::max();
 			}
 		}
-		if (RadioButton_RGBCycle_RGBW->GetValue() > 0)
+		if (RadioButton_RGBCycle_RGBW->GetValue())
 		{
 			GetCheckedItems(chArrayR, 'R');
 			GetCheckedItems(chArrayG, 'G');

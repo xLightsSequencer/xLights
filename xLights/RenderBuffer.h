@@ -186,7 +186,7 @@ public:
 	virtual ~EffectRenderCache();
 };
  
-class NCCDLLEXPORT RenderBuffer {
+class /*NCCDLLEXPORT*/ RenderBuffer {
 public:
     RenderBuffer(xLightsFrame *frame, bool onlyOnMain);
     ~RenderBuffer();

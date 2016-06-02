@@ -157,7 +157,7 @@ public:
         double dr = red * a + bc.red * (1.0 - a);
         double dg = green * a + bc.green * (1.0 - a);
         double db = blue * a + bc.blue * (1.0 - a);
-        return xlColor(dr, dg, db);
+        return xlColor((uint8_t)dr, (uint8_t)dg, (uint8_t)db);
     }
 
     void SetFromString(const std::string &str);

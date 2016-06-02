@@ -361,7 +361,7 @@ PluginSummarisingAdapter::Impl::getSummaryForOutput(int output,
 
             case StandardDeviation:
                 if (continuous) result = sqrtf(summary.variance_c);
-                else result = sqrtf(summary.variance);
+                else result = sqrtf((float)summary.variance);
                 break;
 
             case Count:
@@ -375,7 +375,7 @@ PluginSummarisingAdapter::Impl::getSummaryForOutput(int output,
                 break;
             }
             
-            f.values.push_back(result);
+            f.values.push_back((float)result);
         }
 
         fl.push_back(f);

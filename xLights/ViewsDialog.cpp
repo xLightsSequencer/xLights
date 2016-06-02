@@ -254,7 +254,7 @@ void ViewsDialog::OnbtnUpdateViewClick(wxCommandEvent& event)
     if(lstViews->GetSelection() != wxNOT_FOUND)
     {
         wxString viewModels="";
-        for(int i=0;i<lstModelsInView->GetCount();i++)
+        for(size_t i=0;i<lstModelsInView->GetCount();i++)
         {
             if (i<lstModelsInView->GetCount()-1)
             {
