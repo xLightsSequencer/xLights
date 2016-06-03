@@ -3,16 +3,18 @@
 
 //(*Headers(SingleStrandPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxChoice;
-class wxNotebook;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxNotebookEvent;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxNotebookEvent;
+class wxNotebook;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
+class wxChoice;
 //*)
+
+#include "../ValueCurveButton.h"
 
 class SingleStrandPanel: public wxPanel
 {
@@ -22,34 +24,37 @@ class SingleStrandPanel: public wxPanel
 		virtual ~SingleStrandPanel();
 
 		//(*Declarations(SingleStrandPanel)
+		wxStaticText* StaticText9;
 		wxBitmapButton* BitmapButton_Chase_3dFade1;
-		wxBitmapButton* BitmapButton_Skips_Direction;
-		wxSlider* Slider_Color_Mix1;
-		wxStaticText* StaticText60;
-		wxPanel* Panel1;
-		wxBitmapButton* BitmapButton3;
-		wxStaticText* StaticText13;
-		wxBitmapButton* BitmapButton_Color_Mix1;
-		wxStaticText* StaticText109;
-		wxChoice* Choice_SingleStrand_Colors;
-		wxPanel* Panel2;
-		wxChoice* Choice_Skips_Direction;
-		wxBitmapButton* BitmapButton_Chase_Type1;
-		wxNotebook* SingleStrandEffectType;
-		wxCheckBox* CheckBox_Chase_Group_All;
-		wxStaticText* StaticText12;
-		wxBitmapButton* BitmapButton4;
 		wxBitmapButton* BitmapButton_Chase_Group_All;
 		wxBitmapButton* BitmapButton_SingleStrand_Colors;
+		wxStaticText* StaticText13;
+		wxNotebook* SingleStrandEffectType;
 		wxSlider* Slider_Number_Chases;
-		wxStaticText* StaticText61;
-		wxCheckBox* CheckBox_Chase_3dFade1;
-		wxBitmapButton* BitmapButton_Skips_BandSize;
-		wxStaticText* StaticText9;
-		wxStaticText* StaticText11;
+		wxBitmapButton* BitmapButton_Color_Mix1;
 		wxBitmapButton* BitmapButton_Skips_StartingPosition;
+		wxStaticText* StaticText11;
+		wxCheckBox* CheckBox_Chase_3dFade1;
+		wxPanel* Panel1;
+		wxCheckBox* CheckBox_Chase_Group_All;
+		wxStaticText* StaticText109;
+		wxBitmapButton* BitmapButton_Skips_Direction;
+		ValueCurveButton* BitmapButton_Chase_Rotations;
+		wxChoice* Choice_SingleStrand_Colors;
+		wxSlider* Slider_Color_Mix1;
+		wxStaticText* StaticText61;
 		wxBitmapButton* BitmapButton_Skips_SkipSize;
+		wxBitmapButton* BitmapButton4;
+		wxStaticText* StaticText12;
+		wxBitmapButton* BitmapButton3;
+		wxStaticText* StaticText60;
 		wxBitmapButton* BitmapButton_Number_Chases;
+		wxPanel* Panel2;
+		wxBitmapButton* BitmapButton_Skips_BandSize;
+		wxBitmapButton* BitmapButton_Chase_Type1;
+		ValueCurveButton* BitmapButton_Color_Mix1VC;
+		ValueCurveButton* BitmapButton_Number_ChasesVC;
+		wxChoice* Choice_Skips_Direction;
 		//*)
 
 	protected:
@@ -60,13 +65,16 @@ class SingleStrandPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_SingleStrand_Colors;
 		static const long ID_STATICTEXT62;
 		static const long ID_SLIDER_Number_Chases;
+		static const long ID_VALUECURVE_Number_Chases;
 		static const long IDD_TEXTCTRL_Number_Chases;
 		static const long ID_BITMAPBUTTON_Number_Chases;
 		static const long ID_STATICTEXT8;
 		static const long ID_SLIDER_Color_Mix1;
+		static const long ID_VALUECURVE_Color_Mix1;
 		static const long IDD_TEXTCTRL_Color_Mix1;
 		static const long ID_BITMAPBUTTON_SLIDER_Color_Mix1;
 		static const long IDD_SLIDER_Chase_Rotations;
+		static const long ID_VALUECURVE_Chase_Rotations;
 		static const long ID_TEXTCTRL_Chase_Rotations;
 		static const long ID_BITMAPBUTTON23;
 		static const long ID_STATICTEXT10;

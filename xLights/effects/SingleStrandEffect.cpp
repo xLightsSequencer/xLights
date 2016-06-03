@@ -69,14 +69,19 @@ void SingleStrandEffect::Render(Effect *effect, const SettingsMap &SettingsMap, 
                                 SettingsMap["CHOICE_Skips_Direction"],
                                 SettingsMap.GetInt("SLIDER_Skips_Advance", 0));
     } else {
+        float offset = (float)buffer.curPeriod / ((float)buffer.curEffEndPer - (float)buffer.curEffStartPer);
         RenderSingleStrandChase(buffer,
                                 SettingsMap.Get("CHOICE_SingleStrand_Colors", "Palette"),
-                                SettingsMap.GetInt("SLIDER_Number_Chases"),
-                                SettingsMap.GetInt("SLIDER_Color_Mix1"),
+                                GetValueCurveInt("Number_Chases", 0, SettingsMap, offset),
+                                //SettingsMap.GetInt("SLIDER_Number_Chases"),
+                                GetValueCurveInt("Color_Mix1", 0, SettingsMap, offset),
+                                // SettingsMap.GetInt("SLIDER_Color_Mix1"),
                                 SettingsMap.Get("CHOICE_Chase_Type1", "Left-Right"),
                                 SettingsMap.GetBool("CHECKBOX_Chase_3dFade1"),
                                 SettingsMap.GetBool("CHECKBOX_Chase_Group_All"),
-                                SettingsMap.GetFloat("TEXTCTRL_Chase_Rotations", 1.0));
+                                GetValueCurveDouble("Chase_Rotations", 1.0, SettingsMap, offset)
+                                //SettingsMap.GetFloat("TEXTCTRL_Chase_Rotations", 1.0)
+                                );
     }
 }
 

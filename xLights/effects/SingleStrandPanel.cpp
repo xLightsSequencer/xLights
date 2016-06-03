@@ -3,19 +3,19 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(SingleStrandPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
 #include <wx/notebook.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(SingleStrandPanel)
@@ -24,13 +24,16 @@ const long SingleStrandPanel::ID_CHOICE_SingleStrand_Colors = wxNewId();
 const long SingleStrandPanel::ID_BITMAPBUTTON_SingleStrand_Colors = wxNewId();
 const long SingleStrandPanel::ID_STATICTEXT62 = wxNewId();
 const long SingleStrandPanel::ID_SLIDER_Number_Chases = wxNewId();
+const long SingleStrandPanel::ID_VALUECURVE_Number_Chases = wxNewId();
 const long SingleStrandPanel::IDD_TEXTCTRL_Number_Chases = wxNewId();
 const long SingleStrandPanel::ID_BITMAPBUTTON_Number_Chases = wxNewId();
 const long SingleStrandPanel::ID_STATICTEXT8 = wxNewId();
 const long SingleStrandPanel::ID_SLIDER_Color_Mix1 = wxNewId();
+const long SingleStrandPanel::ID_VALUECURVE_Color_Mix1 = wxNewId();
 const long SingleStrandPanel::IDD_TEXTCTRL_Color_Mix1 = wxNewId();
 const long SingleStrandPanel::ID_BITMAPBUTTON_SLIDER_Color_Mix1 = wxNewId();
 const long SingleStrandPanel::IDD_SLIDER_Chase_Rotations = wxNewId();
+const long SingleStrandPanel::ID_VALUECURVE_Chase_Rotations = wxNewId();
 const long SingleStrandPanel::ID_TEXTCTRL_Chase_Rotations = wxNewId();
 const long SingleStrandPanel::ID_BITMAPBUTTON23 = wxNewId();
 const long SingleStrandPanel::ID_STATICTEXT10 = wxNewId();
@@ -70,32 +73,35 @@ END_EVENT_TABLE()
 SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 {
 	//(*Initialize(SingleStrandPanel)
-	wxFlexGridSizer* FlexGridSizer21;
+	wxStaticText* StaticText10;
+	wxTextCtrl* TextCtrl42;
+	wxTextCtrl* TextCtrl4;
+	wxSlider* Slider_Skips_BandSize;
+	wxFlexGridSizer* FlexGridSizer24;
+	wxStaticText* StaticText106;
 	wxTextCtrl* TextCtrl45;
+	wxStaticText* StaticText101;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxStaticText* StaticText179;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxStaticText* StaticText105;
+	wxChoice* Choice_Chase_Type1;
+	wxFlexGridSizer* FlexGridSizer81;
+	wxSlider* Slider15;
+	wxSlider* Slider16;
+	wxFlexGridSizer* FlexGridSizer21;
+	wxSlider* Slider_Skips_StartPos;
+	wxTextCtrl* TextCtrl44;
+	wxTextCtrl* TextCtrl43;
+	wxFlexGridSizer* FlexGridSizer82;
+	wxSlider* Slider_Skips_SkipSize;
+	wxFlexGridSizer* FlexGridSizer89;
+	wxTextCtrl* TextCtrl5;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer84;
 	wxTextCtrl* TextCtrl3;
 	wxFlexGridSizer* FlexGridSizer79;
-	wxTextCtrl* TextCtrl43;
-	wxStaticText* StaticText101;
-	wxStaticText* StaticText179;
-	wxSlider* Slider15;
-	wxStaticText* StaticText10;
-	wxTextCtrl* TextCtrl5;
-	wxSlider* Slider_Skips_SkipSize;
-	wxStaticText* StaticText105;
-	wxTextCtrl* TextCtrl42;
-	wxFlexGridSizer* FlexGridSizer81;
-	wxSlider* Slider_Skips_StartPos;
-	wxSlider* Slider16;
-	wxTextCtrl* TextCtrl44;
-	wxStaticText* StaticText106;
-	wxSlider* Slider_Skips_BandSize;
 	wxFlexGridSizer* FlexGridSizer83;
-	wxFlexGridSizer* FlexGridSizer89;
-	wxFlexGridSizer* FlexGridSizer84;
-	wxChoice* Choice_Chase_Type1;
-	wxFlexGridSizer* FlexGridSizer24;
-	wxTextCtrl* TextCtrl4;
-	wxFlexGridSizer* FlexGridSizer82;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer89 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -116,9 +122,14 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 	FlexGridSizer24->Add(BitmapButton_SingleStrand_Colors, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText60 = new wxStaticText(Panel1, ID_STATICTEXT62, _("Number Chases"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT62"));
 	FlexGridSizer24->Add(StaticText60, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
 	Slider_Number_Chases = new wxSlider(Panel1, ID_SLIDER_Number_Chases, 1, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Number_Chases"));
 	Slider_Number_Chases->SetSelection(1, 20);
-	FlexGridSizer24->Add(Slider_Number_Chases, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer1->Add(Slider_Number_Chases, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Number_ChasesVC = new ValueCurveButton(Panel1, ID_VALUECURVE_Number_Chases, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Number_Chases"));
+	FlexGridSizer1->Add(BitmapButton_Number_ChasesVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer24->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
 	TextCtrl44 = new wxTextCtrl(Panel1, IDD_TEXTCTRL_Number_Chases, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Number_Chases"));
 	TextCtrl44->SetMaxLength(3);
 	FlexGridSizer24->Add(TextCtrl44, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -127,8 +138,13 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 	FlexGridSizer24->Add(BitmapButton_Number_Chases, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText9 = new wxStaticText(Panel1, ID_STATICTEXT8, _("Chase Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer24->Add(StaticText9, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer2->AddGrowableCol(0);
 	Slider_Color_Mix1 = new wxSlider(Panel1, ID_SLIDER_Color_Mix1, 10, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Color_Mix1"));
-	FlexGridSizer24->Add(Slider_Color_Mix1, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer2->Add(Slider_Color_Mix1, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Color_Mix1VC = new ValueCurveButton(Panel1, ID_VALUECURVE_Color_Mix1, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Color_Mix1"));
+	FlexGridSizer2->Add(BitmapButton_Color_Mix1VC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer24->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
 	TextCtrl45 = new wxTextCtrl(Panel1, IDD_TEXTCTRL_Color_Mix1, _("10"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Color_Mix1"));
 	TextCtrl45->SetMaxLength(4);
 	FlexGridSizer24->Add(TextCtrl45, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -138,8 +154,13 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 	FlexGridSizer24->Add(BitmapButton_Color_Mix1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText10 = new wxStaticText(Panel1, wxID_ANY, _("Cycles"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer24->Add(StaticText10, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer3->AddGrowableCol(0);
 	Slider16 = new wxSlider(Panel1, IDD_SLIDER_Chase_Rotations, 10, 1, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Chase_Rotations"));
-	FlexGridSizer24->Add(Slider16, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer3->Add(Slider16, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Chase_Rotations = new ValueCurveButton(Panel1, ID_VALUECURVE_Chase_Rotations, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Chase_Rotations"));
+	FlexGridSizer3->Add(BitmapButton_Chase_Rotations, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer24->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	TextCtrl43 = new wxTextCtrl(Panel1, ID_TEXTCTRL_Chase_Rotations, _("1.0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Chase_Rotations"));
 	TextCtrl43->SetMaxLength(3);
 	FlexGridSizer24->Add(TextCtrl43, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -265,13 +286,16 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 	FlexGridSizer89->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_SingleStrand_Colors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Number_Chases,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&SingleStrandPanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Number_Chases,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&SingleStrandPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Number_Chases,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Number_Chases,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SingleStrandPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_Number_Chases,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Color_Mix1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&SingleStrandPanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Color_Mix1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&SingleStrandPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Color_Mix1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Color_Mix1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SingleStrandPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Color_Mix1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
-	Connect(IDD_SLIDER_Chase_Rotations,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&SingleStrandPanel::UpdateLinkedTextCtrlFloat);
+	Connect(IDD_SLIDER_Chase_Rotations,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&SingleStrandPanel::UpdateLinkedTextCtrlFloatVC);
+	Connect(ID_VALUECURVE_Chase_Rotations,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
 	Connect(ID_TEXTCTRL_Chase_Rotations,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SingleStrandPanel::UpdateLinkedSliderFloat);
 	Connect(ID_BITMAPBUTTON23,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_Chase_Type1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
@@ -291,6 +315,11 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON22,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON48,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
 	//*)
+
+    BitmapButton_Chase_Rotations->GetValue()->SetLimits(1, 200);
+    BitmapButton_Number_ChasesVC->GetValue()->SetLimits(1, 20);
+    BitmapButton_Color_Mix1VC->GetValue()->SetLimits(1, 100);
+
     SetName("ID_PANEL_SINGLESTRAND");
 }
 
