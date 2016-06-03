@@ -95,6 +95,8 @@
 		67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E721AD2BF3F0022667B /* BitmapCache.cpp */; };
 		6764010C1C8FBFC30079A4CF /* LayoutPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */; };
 		67653D5C1CA589830026A30B /* ModelScreenLocation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */; };
+		6766038E1D01CA0800589601 /* FillEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6766038C1D01CA0800589601 /* FillEffect.cpp */; };
+		676603911D01CA2400589601 /* FillPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6766038F1D01CA2400589601 /* FillPanel.cpp */; };
 		6767C51A1CE7EC3B003B3F6E /* xLightsTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6767C5181CE7EC3B003B3F6E /* xLightsTimer.cpp */; };
 		67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */; };
 		67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F191A069BBE0030D020 /* PreviewModels.cpp */; };
@@ -496,6 +498,10 @@
 		6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutPanel.cpp; sourceTree = "<group>"; };
 		67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelScreenLocation.cpp; path = models/ModelScreenLocation.cpp; sourceTree = "<group>"; };
 		67653D5B1CA589830026A30B /* ModelScreenLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelScreenLocation.h; path = models/ModelScreenLocation.h; sourceTree = "<group>"; };
+		6766038C1D01CA0800589601 /* FillEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FillEffect.cpp; path = effects/FillEffect.cpp; sourceTree = "<group>"; };
+		6766038D1D01CA0800589601 /* FillEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FillEffect.h; path = effects/FillEffect.h; sourceTree = "<group>"; };
+		6766038F1D01CA2400589601 /* FillPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FillPanel.cpp; path = effects/FillPanel.cpp; sourceTree = "<group>"; };
+		676603901D01CA2400589601 /* FillPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FillPanel.h; path = effects/FillPanel.h; sourceTree = "<group>"; };
 		6767C5181CE7EC3B003B3F6E /* xLightsTimer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsTimer.cpp; sourceTree = "<group>"; };
 		6767C5191CE7EC3B003B3F6E /* xLightsTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsTimer.h; sourceTree = "<group>"; };
 		67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CurrentPreviewModels.cpp; sourceTree = "<group>"; };
@@ -1006,6 +1012,10 @@
 		679BD3281C37552D000539FE /* Effects */ = {
 			isa = PBXGroup;
 			children = (
+				6766038F1D01CA2400589601 /* FillPanel.cpp */,
+				676603901D01CA2400589601 /* FillPanel.h */,
+				6766038C1D01CA0800589601 /* FillEffect.cpp */,
+				6766038D1D01CA0800589601 /* FillEffect.h */,
 				6719BF471CCB1D8800899A4B /* MusicEffect.cpp */,
 				6719BF481CCB1D8800899A4B /* MusicEffect.h */,
 				6719BF491CCB1D8800899A4B /* MusicPanel.cpp */,
@@ -1700,6 +1710,7 @@
 				670F23661CCE664500A09765 /* DrawGLUtils21.cpp in Sources */,
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
 				67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */,
+				6766038E1D01CA0800589601 /* FillEffect.cpp in Sources */,
 				67B2CF761C39D98A003C17CA /* GalaxyPanel.cpp in Sources */,
 				67D11C7C1BEA692300000A7F /* DimmingCurvePanel.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
@@ -1734,6 +1745,7 @@
 				67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */,
 				67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */,
 				675878DB1A89297200205A75 /* DataLayer.cpp in Sources */,
+				676603911D01CA2400589601 /* FillPanel.cpp in Sources */,
 				67B2CF841C39D98A003C17CA /* ShockwavePanel.cpp in Sources */,
 				67B2CF891C39D98A003C17CA /* SpirographPanel.cpp in Sources */,
 				67DAFDDF1CA1A63C004B3237 /* MidiFile.cpp in Sources */,

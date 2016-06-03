@@ -2,13 +2,13 @@
 #define FILLPANEL_H
 
 //(*Headers(FillPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/slider.h>
 #include <wx/panel.h>
-#include <wx/choice.h>
-#include <wx/bmpbuttn.h>
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
+class wxChoice;
 //*)
 
 #include "../ValueCurveButton.h"
