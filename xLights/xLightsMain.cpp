@@ -40,6 +40,10 @@
 
 // image files
 #include "../include/xLights.xpm"
+#include "../include/xLights-16.xpm"
+#include "../include/xLights-32.xpm"
+#include "../include/xLights-64.xpm"
+#include "../include/xLights-128.xpm"
 #include "../include/open.xpm"
 #include "../include/save.xpm"
 #include "../include/insertrow.xpm"
@@ -1115,7 +1119,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     Grid1HasFocus = false; //set this before grid gets any events -DJ
 
-    SetIcon(wxIcon(xlights_xpm));
+    
+    wxIconBundle icons;
+    icons.AddIcon(wxIcon(xlights_16_xpm));
+    icons.AddIcon(wxIcon(xlights_32_xpm));
+    icons.AddIcon(wxIcon(xlights_64_xpm));
+    icons.AddIcon(wxIcon(xlights_128_xpm));
+    icons.AddIcon(wxIcon(xlights_xpm));
+    
+    SetIcons(icons);
     SetName("xLights");
     wxPersistenceManager::Get().RegisterAndRestore(this);
     wxConfigBase* config = wxConfigBase::Get();
