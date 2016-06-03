@@ -79,13 +79,11 @@
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
+											<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<option>1</option>
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
-									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -96,7 +94,7 @@
 										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -138,13 +136,11 @@
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
+											<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<option>1</option>
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
-									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -155,7 +151,7 @@
 										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -200,13 +196,11 @@
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
+											<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<option>1</option>
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
-									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -217,7 +211,7 @@
 										<handler function="UpdateLinkedSliderFloat" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
