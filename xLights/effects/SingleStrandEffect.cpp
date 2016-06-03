@@ -6,10 +6,11 @@
 #include "../UtilClasses.h"
 
 
-#include "../../include/singleStrand.xpm"
+#include "../../include/singleStrand-16.xpm"
+#include "../../include/singleStrand-64.xpm"
 
 SingleStrandEffect::SingleStrandEffect(int id)
-    : RenderableEffect(id, "SingleStrand", singleStrand, singleStrand, singleStrand, singleStrand, singleStrand)
+    : RenderableEffect(id, "SingleStrand", singleStrand_16, singleStrand_64, singleStrand_64, singleStrand_64, singleStrand_64)
 {
     //ctor
     tooltip = "Single Strand";
@@ -55,7 +56,7 @@ int mapDirection(const wxString & d) {
     if ("To Middle" == d) {
         return 3;
     }
-    
+
     return 0;
 }
 
@@ -97,25 +98,25 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
     if (direction > 1) {
         max /= 2;
     }
-    
+
     size_t colorcnt = buffer.GetColorCount();
     double position = buffer.GetEffectTimeIntervalPosition() * (advances + 1.0) * 0.99;
-    
+
     x += int(position) * Skips_BandSize;
     while (x > max) {
         x -= (Skips_BandSize +  Skips_SkipSize) * colorcnt;
     }
-    
+
     if (buffer.needToInit) {
         buffer.needToInit = false;
         std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
         int rects = (Skips_SkipSize + Skips_BandSize) * (buffer.curEffEndPer - buffer.curEffStartPer + 1);
         eff->GetBackgroundDisplayList().resize(rects * 6);
     }
-    
+
     int firstX = x;
     int colorIdx = 0;
-    
+
     while (x < max) {
         buffer.palette.GetColor(colorIdx, color);
         colorIdx++;
@@ -142,7 +143,7 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
     x = firstX - 1;
     while (x >= 0) {
         x -= Skips_SkipSize;
-        
+
         buffer.palette.GetColor(colorIdx, color);
         colorIdx--;
         if (colorIdx < 0) {
@@ -163,7 +164,7 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
             x--;
         }
     }
-    
+
     max = Skips_SkipSize + Skips_BandSize - 1;
     if (max >=  buffer.BufferWi) {
         max = buffer.BufferWi - 1;
@@ -201,39 +202,39 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
                                          bool Chase_Fade3d1,bool Chase_Group_All,
                                          float chaseSpeed)
 {
-    
+
     int x,y,i,width;
     int MaxNodes;
     int Dual_Chases = 0;
     float dx;
-    
+
     int ColorScheme = "Palette" == ColorSchemeName;
-    
+
     bool R_TO_L1 = 0;
-    
+
     int chaseType = mapChaseType(Chase_Type1);
-    
+
     size_t colorcnt=buffer.GetColorCount(); // global now set to how many colors have been picked
     y=buffer.BufferHt;
     i=0;
-    
+
     int curEffStartPer, curEffEndPer;
-    
+
     buffer.GetEffectPeriods( curEffStartPer, curEffEndPer);
-    
+
     if (Chase_Group_All) MaxNodes= buffer.BufferWi*buffer.BufferHt;
     else MaxNodes=buffer.BufferWi;
-    
+
     int MaxChase=MaxNodes*(chaseSize/100.0);
     if(MaxChase<1) MaxChase=1;
-    
+
     int nodes_per_color = int(MaxChase/colorcnt);
     if(nodes_per_color<1)  nodes_per_color=1;    //  fill chase buffer
-    
+
     int Mirror = 0;
     int AutoReverse=0;
     int &ChaseDirection = buffer.tempInt;
-    
+
     if (buffer.needToInit) {
         buffer.needToInit = false;
         ChaseDirection = chaseType == 0 || chaseType == 2 || chaseType == 6; // initialize it once at the beggining of this sequence.
@@ -261,7 +262,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
             Dual_Chases=1;
             break;
     }
-    
+
     //double rtval = GetEffectTimeIntervalPosition(chaseSpeed) * (AutoReverse ? 1.999 : 0.999);
     if (Chase_Group_All) {
         width=MaxNodes;
@@ -275,7 +276,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
         width = 1;
     }
     double chaseOffset = width * chaseSize / 100.0 - 1;
-    
+
     double rtval;
     if (AutoReverse) {
         rtval = (double)(buffer.curPeriod-buffer.curEffStartPer)/(double)(buffer.curEffEndPer-buffer.curEffStartPer);
@@ -291,13 +292,13 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
             rtval -= 1.0;
         }
     }
-    
-    
+
+
     if (Number_Chases < 1) Number_Chases=1;
     if (ColorScheme < 0) ColorScheme=0;
     dx = double(width)/double(Number_Chases);
     if(dx<1) dx=1.0;
-    
+
     double startState = (width + width * chaseSize / 100.0 - 1) * rtval;
     if (Number_Chases > 1) {
         startState = width * rtval;
@@ -318,7 +319,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
             }
             x = std::round(x1);
         }
-        
+
         draw_chase(buffer, x, Chase_Group_All, ColorScheme,Number_Chases,AutoReverse, width,chaseSize,Chase_Fade3d1,ChaseDirection, Mirror); // Turn pixel on
         if(Dual_Chases) {
             draw_chase(buffer, x, Chase_Group_All,ColorScheme,Number_Chases,AutoReverse,width,chaseSize,Chase_Fade3d1,!ChaseDirection, Mirror); //
@@ -341,7 +342,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
     int new_x,i,max_chase_width,pixels_per_chase;
     size_t colorcnt=buffer.GetColorCount();
     int ColorIdx;
-    
+
     max_chase_width = width * Chase_Width/100.0;
     if (max_chase_width < 1) {
         max_chase_width = 1;
@@ -350,13 +351,13 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
     if (pixels_per_chase < 1) {
         pixels_per_chase = 1;
     }
-    
+
     HSVValue hsv;
     buffer.palette.GetHSV(0, hsv);
     orig_v = hsv.value;
     xlColor color;
-    
-    
+
+
     /*
      RRRRGGGG........+........................
      .RRRRGGGG.......+........................
@@ -373,10 +374,10 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
      .........RRRR+........................
      .........RRR+........................
      */
-    
+
     int firstX = x;
     int direction = 1;
-    
+
     if (AutoReverse) {
         if (firstX < 0 && firstX > -max_chase_width) {
             firstX = -firstX - 1;
@@ -393,7 +394,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
                 firstX = width;
                 direction = -1;
             }
-            
+
             while (dif) {
                 dif--;
                 firstX += direction;
@@ -406,7 +407,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
             }
         }
     }
-    
+
     if(max_chase_width>=1)
     {
         for (i=0; i<max_chase_width; i++)
@@ -415,10 +416,10 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
                 if (max_chase_width) hsv.hue = 1.0 - (i*1.0/max_chase_width); // rainbow hue
                 color = hsv;
             }
-            
+
             if (AutoReverse) {
                 new_x = firstX + direction;
-                
+
                 while (new_x < 0) {
                     direction = 1;
                     new_x = 0;
@@ -430,7 +431,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
                 firstX = new_x;
             } else if (Number_Chases > 1) {
                 new_x = x+i;
-                
+
                 while (new_x < 0) {
                     new_x += width;
                 }
@@ -440,7 +441,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
             } else {
                 new_x = x+i;
             }
-            
+
             //new_x=new_x%BufferWi;
             if(i < pixels_per_chase) // as long as the chase fits, keep drawing it
             {
@@ -464,7 +465,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
                     } else {
                         buffer.palette.GetColor(ColorIdx, color);
                     }
-                    
+
                 }
                 if (ChaseDirection == 0) {// are we going R-L?
                     new_x = width - new_x - 1;
@@ -513,7 +514,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
                         }
                     }
                 }
-                
+
             }
         }
     }

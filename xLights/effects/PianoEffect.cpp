@@ -10,11 +10,13 @@
 
 #include <vector>
 
-#include "../../include/piano.xpm"
+#include "../../include/piano-16.xpm"
+#include "../../include/piano-64.xpm"
+
 #include <log4cpp/Category.hh>
 #include "../MIDI/MidiFile.h"
 
-PianoEffect::PianoEffect(int id) : RenderableEffect(id, "Piano", piano, piano, piano, piano, piano)
+PianoEffect::PianoEffect(int id) : RenderableEffect(id, "Piano", piano_16, piano_64, piano_64, piano_64, piano_64)
 {
     //ctor
 	_panel = NULL;
@@ -104,7 +106,7 @@ void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         );
 }
 
-class PianoCache : public EffectRenderCache 
+class PianoCache : public EffectRenderCache
 {
 public:
 	PianoCache() { };
@@ -167,7 +169,7 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 			if (wxFile::Exists(file))
 			{
 				_timings = LoadAudacityFile(file, buffer.frameTimeInMs);
-			}            
+			}
         }
         else if (timingsource == "MIDI File" && (_timingsource != timingsource || _file != file || _MIDITrack != MIDITrack || _MIDISpeedAdjust != MIDIAdjustSpeed || _MIDIStartAdjust != MIDIAdjustStart))
         {
@@ -505,7 +507,7 @@ void PianoEffect::DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, b
 		}
 	}
 	int fwkw = buffer.BufferWi / kcount;
-	
+
 	// Get the colours
 	if (buffer.GetColorCount() > 0)
 	{

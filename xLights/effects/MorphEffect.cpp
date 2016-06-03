@@ -7,10 +7,11 @@
 #include "assist/AssistPanel.h"
 #include "assist/xlGridCanvasMorph.h"
 
-#include "../../include/morph.xpm"
+#include "../../include/morph-16.xpm"
+#include "../../include/morph-64.xpm"
 
 
-MorphEffect::MorphEffect(int id) : RenderableEffect(id, "Morph", morph, morph, morph, morph, morph)
+MorphEffect::MorphEffect(int id) : RenderableEffect(id, "Morph", morph_16, morph_64, morph_64, morph_64, morph_64)
 {
     //ctor
 }

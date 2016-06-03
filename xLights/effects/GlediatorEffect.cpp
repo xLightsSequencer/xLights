@@ -9,9 +9,10 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-#include "../../include/glediator.xpm"
+#include "../../include/glediator-16.xpm"
+#include "../../include/glediator-64.xpm"
 
-GlediatorEffect::GlediatorEffect(int id) : RenderableEffect(id, "Glediator", glediator, glediator, glediator, glediator, glediator)
+GlediatorEffect::GlediatorEffect(int id) : RenderableEffect(id, "Glediator", glediator_16, glediator_64, glediator_64, glediator_64, glediator_64)
 {
     //ctor
 }
@@ -27,7 +28,7 @@ void GlediatorEffect::SetSequenceElements(SequenceElements *els) {
         return;
     }
     wxFileName fn(els->GetFileName());
-    
+
     ((GlediatorPanel*)panel)->defaultDir = fn.GetPath();
 }
 
@@ -48,25 +49,25 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     off_t offset;
     int SeqNumPeriods,SeqDataLen,SeqNumChannels;
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
-    
-    
+
+
     if (!wxFileExists(GledFilename)) // if it doesnt exist, just return
     {
         return;
     }
-    
+
     if (!f.Open(GledFilename.c_str())) // open the *.gled file
     {
         //   PlayerError(_("Unable to load sequence:\n")+FileName);
         return;
     }
-    
+
     fileLength=f.Length();
     SeqNumChannels=(buffer.BufferWi*3*buffer.BufferHt); // 3072 = 32*32*3
     char *frameBuffer=new char[SeqNumChannels];
     SeqNumPeriods=(int)(fileLength/SeqNumChannels);
     SeqDataLen=fileLength;
-    
+
     period = buffer.curPeriod - buffer.curEffStartPer;
     offset = period*SeqNumChannels;
     f.Seek(offset, wxFromStart);
@@ -82,7 +83,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         {
             buffer.SetPixel(x,y,color);
         }
-        
+
     }
     delete[] frameBuffer;
 }

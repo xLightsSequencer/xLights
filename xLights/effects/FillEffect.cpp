@@ -7,12 +7,9 @@
 
 
 #include "../../include/fill-16.xpm"
-#include "../../include/fill-24.xpm"
-#include "../../include/fill-32.xpm"
-#include "../../include/fill-48.xpm"
 #include "../../include/fill-64.xpm"
 
-FillEffect::FillEffect(int i) : RenderableEffect(i, "Fill", fill_16, fill_24, fill_32, fill_48, fill_64)
+FillEffect::FillEffect(int i) : RenderableEffect(i, "Fill", fill_16, fill_64, fill_64, fill_64, fill_64)
 {
     //ctor
 }
