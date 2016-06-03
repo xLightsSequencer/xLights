@@ -162,11 +162,11 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     FlexGridSizer2->Add(Slider_Parameter4, 1, wxALL|wxEXPAND, 2);
     TextCtrl_Parameter4 = new wxTextCtrl(this, ID_TEXTCTRL_Parameter4, _("0"), wxDefaultPosition, wxSize(40,24), 0, _p4validator, _T("ID_TEXTCTRL_Parameter4"));
     FlexGridSizer2->Add(TextCtrl_Parameter4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_WrapValues = new wxCheckBox(this, ID_CHECKBOX_WrapValues, _("Wrap Values"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_WrapValues"));
     CheckBox_WrapValues->SetValue(false);
     FlexGridSizer2->Add(CheckBox_WrapValues, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -190,6 +190,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     Connect(ID_CHECKBOX_WrapValues,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnCheckBox_WrapValuesClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_OkClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_CancelClick);
+    Connect(wxEVT_SIZE,(wxObjectEventFunction)&ValueCurveDialog::OnResize);
     //*)
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ValueCurveDialog::OnChar), (wxObject*)NULL, this);
@@ -273,12 +274,126 @@ void ValueCurveDialog::OnButton_CancelClick(wxCommandEvent& event)
     EndDialog(wxCANCEL);
 }
 
+void ValueCurveDialog::SetParameter(int p, int v)
+{
+    switch (p)
+    {
+    case 1:
+        _vc->SetParameter1(v);
+        __p1 = v;
+        Slider_Parameter1->SetValue(v);
+        TextCtrl_Parameter1->SetValue(wxString::Format("%d", v));
+        break;
+    case 2:
+        _vc->SetParameter2(v);
+        __p2 = v;
+        Slider_Parameter2->SetValue(v);
+        TextCtrl_Parameter2->SetValue(wxString::Format("%d", v));
+        break;
+    case 3:
+        _vc->SetParameter3(v);
+        __p3 = v;
+        Slider_Parameter3->SetValue(v);
+        TextCtrl_Parameter3->SetValue(wxString::Format("%d", v));
+        break;
+    case 4:
+        _vc->SetParameter4(v);
+        __p4 = v;
+        Slider_Parameter4->SetValue(v);
+        TextCtrl_Parameter4->SetValue(wxString::Format("%d", v));
+        break;
+    }
+}
+
 void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
 {
     _vcp->SetType(std::string(Choice1->GetStringSelection().c_str()));
     _vc->SetType(std::string(Choice1->GetStringSelection().c_str()));
     _vcp->Refresh();
     ValidateWindow();
+
+    wxString type = Choice1->GetStringSelection();
+    if (type == "Flat")
+    {
+        // Dont change anything
+    }
+    else if (type == "Ramp")
+    {
+        if (_vc->GetParameter1() < 50)
+        {
+            SetParameter(2, 100);
+        }
+        else
+        {
+            SetParameter(2, 0);
+        }
+    }
+    else if (type == "Ramp Up/Down")
+    {
+        SetParameter(1, 0);
+        SetParameter(2, 100);
+        SetParameter(3, 0);
+    }
+    else if (type == "Ramp Up/Down Hold")
+    {
+        SetParameter(1, 0);
+        SetParameter(2, 100);
+        SetParameter(3, 80);
+    }
+    else if (type == "Saw Tooth")
+    {
+        SetParameter(1, 0);
+        SetParameter(2, 100);
+        SetParameter(3, 2);
+    }
+    else if (type == "Parabolic Down")
+    {
+        SetParameter(1, 4);
+        SetParameter(2, 0);
+    }
+    else if (type == "Parabolic Up")
+    {
+        SetParameter(1, 4);
+        SetParameter(2, 100);
+    }
+    else if (type == "Logarithmic Up")
+    {
+        SetParameter(1, 4);
+        SetParameter(2, 100);
+    }
+    else if (type == "Logarithmic Down")
+    {
+        SetParameter(1, 15);
+        SetParameter(2, 50);
+    }
+    else if (type == "Exponential Up")
+    {
+        SetParameter(1, 100);
+        SetParameter(2, 50);
+    }
+    else if (type == "Exponential Down")
+    {
+        SetParameter(1, 100);
+        SetParameter(2, 50);
+    }
+    else if (type == "Sine")
+    {
+        SetParameter(1, 75);
+        SetParameter(2, 100);
+        SetParameter(3, 10);
+        SetParameter(4, 50);
+    }
+    else if (type == "Abs Sine")
+    {
+        SetParameter(1, 0);
+        SetParameter(2, 100);
+        SetParameter(3, 10);
+        SetParameter(4, 50);
+    }
+    else if (type == "Custom")
+    {
+        // Dont do anything
+    }
 }
 
 #pragma region Mouse Control
@@ -730,5 +845,11 @@ void ValueCurveDialog::OnChar(wxKeyEvent& event)
 void ValueCurveDialog::OnCheckBox_WrapValuesClick(wxCommandEvent& event)
 {
     _vc->SetWrap(CheckBox_WrapValues->IsChecked());
+    Refresh();
+}
+
+void ValueCurveDialog::OnResize(wxSizeEvent& event)
+{
+    OnSize(event);
     Refresh();
 }

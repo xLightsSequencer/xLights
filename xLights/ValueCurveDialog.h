@@ -55,6 +55,7 @@ class ValueCurveDialog: public wxDialog
     ValueCurve* _vc;
     ValueCurve _backup;
     void ValidateWindow();
+    void SetParameter(int p, int v);
     ValueCurvePanel* _vcp;
 
     public:
@@ -126,6 +127,7 @@ class ValueCurveDialog: public wxDialog
 		void OnSlider_Parameter4CmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_Parameter4Text(wxCommandEvent& event);
 		void OnCheckBox_WrapValuesClick(wxCommandEvent& event);
+		void OnResize(wxSizeEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
