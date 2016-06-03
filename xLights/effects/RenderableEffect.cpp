@@ -133,8 +133,7 @@ void RenderableEffect::initBitmaps(const char **data16,
 
 
 bool RenderableEffect::needToAdjustSettings(const std::string &version) {
-    // almost all of the settings from older 4.x series need adjustment for speed things
-    return IsVersionOlder("4.2.20", version);
+    return IsVersionOlder("2016.35", version);
 }
 
 
@@ -276,8 +275,85 @@ std::string RenderableEffect::GetEffectString() {
 
 
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect) {
-    AdjustSettingsToBeFitToTime(effect->GetEffectIndex(), effect->GetSettings(), effect->GetStartTimeMS(), effect->GetEndTimeMS(), effect->GetPalette());
+    if (IsVersionOlder("4.2.20", version)) {
+        // almost all of the settings from older 4.x series need adjustment for speed things
+        AdjustSettingsToBeFitToTime(effect->GetEffectIndex(), effect->GetSettings(), effect->GetStartTimeMS(), effect->GetEndTimeMS(), effect->GetPalette());
+    }
+    if (IsVersionOlder("2016.36", version)) {
+        RemoveDefaults(version, effect);
+    }
 }
+void RenderableEffect::RemoveDefaults(const std::string &version, Effect *effect) {
+    SettingsMap &palette = effect->GetPaletteMap();
+    bool changed = false;
+    if (palette.Get("C_CHECKBOX_Palette1", "") == "0") {
+        palette.erase("C_CHECKBOX_Palette1");
+        changed = true;
+    }
+    if (palette.Get("C_CHECKBOX_Palette2", "") == "0") {
+        palette.erase("C_CHECKBOX_Palette2");
+        changed = true;
+    }
+    if (palette.Get("C_CHECKBOX_Palette3", "") == "0") {
+        palette.erase("C_CHECKBOX_Palette3");
+        changed = true;
+    }
+    if (palette.Get("C_CHECKBOX_Palette4", "") == "0") {
+        palette.erase("C_CHECKBOX_Palette4");
+        changed = true;
+    }
+    if (palette.Get("C_CHECKBOX_Palette5", "") == "0") {
+        palette.erase("C_CHECKBOX_Palette5");
+        changed = true;
+    }
+    if (palette.Get("C_CHECKBOX_Palette6", "") == "0") {
+        palette.erase("C_CHECKBOX_Palette6");
+        changed = true;
+    }
+    if (palette.Get("C_CHECKBOX_Palette7", "") == "0") {
+        palette.erase("C_CHECKBOX_Palette7");
+        changed = true;
+    }
+    if (palette.Get("C_CHECKBOX_Palette8", "") == "0") {
+        palette.erase("C_CHECKBOX_Palette8");
+        changed = true;
+    }
+    if (palette.Get("C_SLIDER_Brightness", "") == "100") {
+        palette.erase("C_SLIDER_Brightness");
+        changed = true;
+    }
+    if (palette.Get("C_SLIDER_Contrast", "") == "0") {
+        palette.erase("C_SLIDER_Contrast");
+        changed = true;
+    }
+    if (palette.Get("C_SLIDER_SparkleFrequency", "") == "0") {
+        palette.erase("C_SLIDER_SparkleFrequency");
+        changed = true;
+    }
+    if (changed) {
+        effect->PaletteMapUpdated();
+    }
+    SettingsMap &settings = effect->GetSettings();
+    if (settings.Get("T_CHECKBOX_LayerMorph", "") == "0") {
+        settings.erase("T_CHECKBOX_LayerMorph");
+    }
+    if (settings.Get("T_CHECKBOX_OverlayBkg", "") == "0") {
+        settings.erase("T_CHECKBOX_OverlayBkg");
+    }
+    if (settings.Get("T_CHOICE_LayerMethod", "") == "Normal") {
+        settings.erase("T_CHOICE_LayerMethod");
+    }
+    if (settings.Get("T_SLIDER_EffectLayerMix", "") == "0") {
+        settings.erase("T_SLIDER_EffectLayerMix");
+    }
+    if (settings.GetFloat("T_TEXTCTRL_Fadein", 1.0f) == 0.0f) {
+        settings.erase("T_TEXTCTRL_Fadein");
+    }
+    if (settings.GetFloat("T_TEXTCTRL_Fadeout", 1.0f) == 0.0f) {
+        settings.erase("T_TEXTCTRL_Fadeout");
+    }
+}
+
 
 void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS, xlColorVector &colors)
 {

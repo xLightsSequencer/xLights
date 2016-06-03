@@ -190,6 +190,16 @@ void Effect::SetPalette(const std::string& i)
     }
     ParseColorMap(mPaletteMap, mColors);
 }
+void Effect::PaletteMapUpdated() {
+    std::unique_lock<std::mutex> lock(settingsLock);
+    mColors.clear();
+    IncrementChangeCount();
+    if (mPaletteMap.empty())
+    {
+        return;
+    }
+    ParseColorMap(mPaletteMap, mColors);
+}
 
 std::string Effect::GetPaletteAsString() const
 {

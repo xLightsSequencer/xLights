@@ -66,6 +66,7 @@ class Effect
         SettingsMap &GetSettings() { return mSettings;}
         xlColorVector &GetPalette() { return mColors;}
         SettingsMap &GetPaletteMap() { return mPaletteMap;}
+        void PaletteMapUpdated();
 
         void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
         void CopyPalette(xlColorVector &target) const;

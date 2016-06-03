@@ -69,6 +69,7 @@ class RenderableEffect
         int GetValueCurveInt(wxString name, int def, const SettingsMap &SettingsMap, float offset);
         bool IsVersionOlder(const std::string& compare, const std::string& version);
         void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS, xlColorVector &colors);
+        virtual void RemoveDefaults(const std::string &version, Effect *effect);
 
         void initBitmaps(const char **data16,
                          const char **data24,

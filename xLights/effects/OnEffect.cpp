@@ -96,6 +96,23 @@ int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int 
     return 2;
 }
 
+void OnEffect::RemoveDefaults(const std::string &version, Effect *effect) {
+    SettingsMap &settingsMap = effect->GetSettings();
+    if (settingsMap.Get("E_TEXTCTRL_Eff_On_Start", "") == "100") {
+        settingsMap.erase("E_TEXTCTRL_Eff_On_Start");
+    }
+    if (settingsMap.Get("E_TEXTCTRL_Eff_On_End", "") == "100") {
+        settingsMap.erase("E_TEXTCTRL_Eff_On_End");
+    }
+    if (settingsMap.Get("E_CHECKBOX_On_Shimmer", "") == "0") {
+        settingsMap.erase("E_CHECKBOX_On_Shimmer");
+    }
+    if (settingsMap.Get("E_TEXTCTRL_On_Cycles", "") == "1.0") {
+        settingsMap.erase("E_TEXTCTRL_On_Cycles");
+    }
+    RenderableEffect::RemoveDefaults(version, effect);
+}
+
 
 void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int start = SettingsMap.GetInt(TEXTCTRL_Eff_On_Start, 100);

@@ -106,6 +106,27 @@ void ColorWashEffect::adjustSettings(const std::string &version, Effect *effect)
     effect->GetSettings().erase("E_SLIDER_ColorWash_Y1");
     effect->GetSettings().erase("E_SLIDER_ColorWash_Y2");
 }
+void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect) {
+    SettingsMap &settingsMap = effect->GetSettings();
+    if (settingsMap.Get("E_CHECKBOX_ColorWash_HFade", "") == "0") {
+        settingsMap.erase("E_CHECKBOX_ColorWash_HFade");
+    }
+    if (settingsMap.Get("E_CHECKBOX_ColorWash_VFade", "") == "0") {
+        settingsMap.erase("E_CHECKBOX_ColorWash_VFade");
+    }
+    if (settingsMap.Get("E_CHECKBOX_ColorWash_Shimmer", "") == "0") {
+        settingsMap.erase("E_CHECKBOX_ColorWash_Shimmer");
+    }
+    if (settingsMap.Get("E_CHECKBOX_ColorWash_CircularPalette", "") == "0") {
+        settingsMap.erase("E_CHECKBOX_ColorWash_CircularPalette");
+    }
+    if (settingsMap.GetFloat("E_TEXTCTRL_ColorWash_Cycles", 0.0f) == 1.0f) {
+        settingsMap.erase("E_TEXTCTRL_ColorWash_Cycles");
+    }
+    if (settingsMap.Get("E_CHECKBOX_ColorWash_CircularPalette", "") == "0") {
+        settingsMap.erase("E_CHECKBOX_ColorWash_CircularPalette");
+    }
+}
 
 
 
