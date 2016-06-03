@@ -200,6 +200,8 @@
     <ClCompile Include="effects\FacesPanel.cpp" />
     <ClCompile Include="effects\FanEffect.cpp" />
     <ClCompile Include="effects\FanPanel.cpp" />
+    <ClCompile Include="effects\FillEffect.cpp" />
+    <ClCompile Include="effects\FillPanel.cpp" />
     <ClCompile Include="effects\FireEffect.cpp" />
     <ClCompile Include="effects\FirePanel.cpp" />
     <ClCompile Include="effects\FireworksEffect.cpp" />
@@ -437,6 +439,8 @@
     <ClInclude Include="effects\FacesPanel.h" />
     <ClInclude Include="effects\FanEffect.h" />
     <ClInclude Include="effects\FanPanel.h" />
+    <ClInclude Include="effects\FillEffect.h" />
+    <ClInclude Include="effects\FillPanel.h" />
     <ClInclude Include="effects\FireEffect.h" />
     <ClInclude Include="effects\FirePanel.h" />
     <ClInclude Include="effects\FireworksEffect.h" />

@@ -31,15 +31,15 @@ class ATendril
 	float _spring;
 	xlColor _colour;
 	size_t _thickness;
-	size_t _width;
-	size_t _height;
+	int _width;
+	int _height;
 
     std::list<TendrilNode*> _nodes;
 
 	public:
 
 	~ATendril();
-	ATendril(float friction, size_t size, float dampening, float tension, float spring, wxPoint* start, xlColor colour, size_t thickness, size_t maxx, size_t maxy);
+	ATendril(float friction, int size, float dampening, float tension, float spring, wxPoint* start, xlColor colour, int thickness, size_t maxx, size_t maxy);
 	void Update(wxPoint* target);
 	void Draw(PathDrawingContext* gc);
 	wxPoint* LastLocation();
@@ -54,7 +54,7 @@ class Tendril
 	public:
 
 	~Tendril();
-	Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, wxPoint* start, xlColor colour, int thickness, int maxx, int maxy);
+	Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, wxPoint* start, xlColor colour, int thickness, size_t maxx, size_t maxy);
 	void UpdateRandomMove(int tunemovement);
     void Update(wxPoint* target);
     void Update(int x, int y);
