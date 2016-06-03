@@ -389,7 +389,6 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 }
                 if (xlights->RenameModel(selectedModel->name, event.GetValue().GetString().ToStdString())) {
                     CallAfter(&LayoutPanel::UpdateModelList, true);
-                    CallAfter(&LayoutPanel::UnSelectAllModels, true);
                 }
             }
         } else {
