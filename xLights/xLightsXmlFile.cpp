@@ -2757,6 +2757,24 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
                         }
                     }
                 }
+                for (int j = 0; j < elem->getStrandLayerCount(); j++) {
+                    StrandLayer* layer = elem->GetStrandLayer(j);
+                    for( int k = 0; k < layer->GetEffectCount(); k++ ) {
+                        Effect* eff = layer->GetEffect(k);
+                        if ( effects[eff->GetEffectIndex()] != nullptr ) {
+                            effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
+                        }
+                    }
+                    for (int k = 0; k < layer->GetNodeLayerCount(); k++) {
+                        NodeLayer* nlayer = layer->GetNodeLayer(k);
+                        for( int l = 0; l < nlayer->GetEffectCount(); l++ ) {
+                            Effect* eff = nlayer->GetEffect(l);
+                            if ( effects[eff->GetEffectIndex()] != nullptr ) {
+                                effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
