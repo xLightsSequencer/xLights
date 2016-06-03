@@ -8,6 +8,17 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.35  Jun 02, 2016
+   -- bug (dkulp) Fix colorwash stripping out stuff it shouldn't
+   -- bug (dkulp) Minor layout things (removing borders on value curve buttons) and hopefully fix subbuffer panel
+   -- bug (dkulp)  If using pixel style "Solid Circle" or "Blended Circle", performance with OpenGL 2/3 was really bad.
+   -- bug (dkulp) Ability to disable/change the autosave interval.  Move settings query to its own timer (that doesn't need to be precise)
+   -- bug (dkulp)  Fix subbufferpanel not clearing the lines
+   -- bug (chrisD)  Update makefile for linux
+   -- enh (keithsw) Add value curves to butterfly, bars, spirals, circles
+   -- enh (keithsw) Add a reset to roto-zoom
+   -- bug (keithsw) Fix lights off button. Ensure I send a lights off packet to all lights when it is turned off.
+   -- enh (keithsw) Add value curve to brightness
 2016.34  May 31, 2016
    -- bug (gil)     Fix crash when delete key was hit in Layout with no model selected.  Fixes #533.
    -- enh (gil)     Restructure how model groups are handled by providing a panel for them and allowing the
@@ -19,7 +30,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keithsw) Blur Value Curve Added
    -- bug (dkulp)   DOn't corrupt rgb-effects if mouth set to (off).  Fixes #577
    -- bug (dkulp)   Refresh the start/end channels when various properties (string type, strands, etc...) are changed. Fixes #575
-
 2016.33  May 25, 2016
    -- bug (dkulp) Maybe fix #571?   Don't post the event, call directly.
    -- bug (dkulp) don't draw the grid and then immediately refresh anyway.
