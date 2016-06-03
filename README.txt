@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Add new effect Fill.
 2016.35  Jun 02, 2016
    -- bug (dkulp) Fix colorwash stripping out stuff it shouldn't
    -- bug (dkulp) Minor layout things (removing borders on value curve buttons) and hopefully fix subbuffer panel

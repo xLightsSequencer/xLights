@@ -23,6 +23,7 @@ public:
         eff_DMX,
         eff_FACES,
         eff_FAN,
+        eff_FILL,
         eff_FIRE,
         eff_FIREWORKS,
         eff_GALAXY,
@@ -76,7 +77,7 @@ public:
         int GetEffectIndex(const std::string &effectName) const;
         const std::string &GetEffectName(int idx) const;
 
-    
+
         std::vector<RenderableEffect*>::const_iterator begin() const;
         std::vector<RenderableEffect*>::const_iterator end() const;
         RenderableEffect *operator[](int i) const {

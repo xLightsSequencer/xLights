@@ -10,6 +10,7 @@
 #include "DMXEffect.h"
 #include "FacesEffect.h"
 #include "FanEffect.h"
+#include "FillEffect.h"
 #include "FireEffect.h"
 #include "FireworksEffect.h"
 #include "GalaxyEffect.h"
@@ -58,6 +59,7 @@ EffectManager::EffectManager()
     add(new DMXEffect(eff_DMX));
     add(new FacesEffect(eff_FACES));
     add(new FanEffect(eff_FAN));
+    add(new FillEffect(eff_FILL));
     add(new FireEffect(eff_FIRE));
     add(new FireworksEffect(eff_FIREWORKS));
     add(new GalaxyEffect(eff_GALAXY));

@@ -500,6 +500,8 @@
 		<Unit filename="ExportModelSelect.h" />
 		<Unit filename="FileConverter.cpp" />
 		<Unit filename="FileConverter.h" />
+		<Unit filename="FillPanel.cpp" />
+		<Unit filename="FillPanel.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
 		<Unit filename="FlickerFreeBitmapButton.h" />
 		<Unit filename="GenerateCustomModelDialog.cpp" />
@@ -660,6 +662,8 @@
 		<Unit filename="effects/FanEffect.h" />
 		<Unit filename="effects/FanPanel.cpp" />
 		<Unit filename="effects/FanPanel.h" />
+		<Unit filename="effects/FillEffect.cpp" />
+		<Unit filename="effects/FillEffect.h" />
 		<Unit filename="effects/FireEffect.cpp" />
 		<Unit filename="effects/FireEffect.h" />
 		<Unit filename="effects/FirePanel.cpp" />
@@ -955,6 +959,7 @@
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
 		<Unit filename="wxsmith/FacesPanel.wxs" />
 		<Unit filename="wxsmith/FanPanel.wxs" />
+		<Unit filename="wxsmith/FillPanel.wxs" />
 		<Unit filename="wxsmith/FirePanel.wxs" />
 		<Unit filename="wxsmith/FireworksPanel.wxs" />
 		<Unit filename="wxsmith/GalaxyPanel.wxs" />
@@ -1156,6 +1161,7 @@
 					<wxDialog wxs="wxsmith/RenderProgressDialog.wxs" src="RenderProgressDialog.cpp" hdr="RenderProgressDialog.h" fwddecl="1" i18n="1" name="RenderProgressDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ValueCurveDialog.wxs" src="ValueCurveDialog.cpp" hdr="ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ModelGroupPanel.wxs" src="ModelGroupPanel.cpp" hdr="ModelGroupPanel.h" fwddecl="0" i18n="1" name="ModelGroupPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/FillPanel.wxs" src="FillPanel.cpp" hdr="FillPanel.h" fwddecl="0" i18n="1" name="FillPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

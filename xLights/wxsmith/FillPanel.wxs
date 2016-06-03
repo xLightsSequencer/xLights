@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="FillPanel">
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer35" member="no">
+			<cols>3</cols>
+			<vgap>0d</vgap>
+			<growablecols>1</growablecols>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText23" member="no">
+					<label>Position</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer123" member="no">
+					<cols>3</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Fill_Position" variable="Slider_Fill_Position" member="yes">
+							<value>100</value>
+							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Fill_Position" subclass="ValueCurveButton" variable="BitmapButton_Fill_Position" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fill_Position" variable="TextCtrl15" member="no">
+							<value>100</value>
+							<maxlength>3</maxlength>
+							<size>20,-1d</size>
+							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fill_Position" variable="BitmapButton_FillPosition" member="no">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<default>1</default>
+					<size>13,13</size>
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText24" member="no">
+					<label>Direction</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE_Fill_Direction" variable="Choice_Fill_Direction" member="yes">
+					<content>
+						<item>Up</item>
+						<item>Down</item>
+						<item>Left</item>
+						<item>Right</item>
+					</content>
+					<selection>0</selection>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Fill_Direction" variable="BitmapButton_Direction" member="no">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<default>1</default>
+					<size>13,13</size>
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>
