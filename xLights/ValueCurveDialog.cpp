@@ -198,6 +198,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     _vcp = new ValueCurvePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
     _vcp->SetMinSize(wxSize(200, 100));
     _vcp->SetValue(_vc);
+    _vcp->SetType(_vc->GetType());
     FlexGridSizer4->Add(_vcp, 1, wxALL | wxEXPAND, 2);
     Layout();
     Fit();
