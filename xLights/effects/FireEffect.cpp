@@ -129,9 +129,11 @@ static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
 
 // 10 <= HeightPct <= 100
 void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int HeightPct = SettingsMap.GetFloat("SLIDER_Fire_Height", 0);
-    int HueShift = SettingsMap.GetFloat("SLIDER_Fire_HueShift", 0);
-    float cycles = SettingsMap.GetFloat("TEXTCTRL_Fire_GrowthCycles", 0.0);
+
+    float offset = buffer.GetEffectTimeIntervalPosition();
+    int HeightPct = GetValueCurveInt("Fire_Height", 0, SettingsMap, offset);
+    int HueShift = GetValueCurveInt("Fire_HueShift", 0, SettingsMap, offset);
+    float cycles = GetValueCurveDouble("Fire_GrowthCycles", 0.0f, SettingsMap, offset);
     bool withMusic = SettingsMap.GetBool("CHECKBOX_Fire_GrowWithMusic", false);
 
     int x,y,r,v1,v2,v3,v4,n,new_index;

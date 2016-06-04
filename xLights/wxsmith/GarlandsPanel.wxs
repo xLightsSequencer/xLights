@@ -57,7 +57,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-					<cols>3</cols>
+					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_Garlands_Spacing" variable="Slider_Garlands_Spacing" member="yes">
@@ -119,7 +119,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-					<cols>3</cols>
+					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Garlands_Cycles" variable="Slider23" member="no">

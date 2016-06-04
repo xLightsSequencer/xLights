@@ -12,6 +12,8 @@ class wxFlexGridSizer;
 class wxChoice;
 //*)
 
+#include "../ValueCurveButton.h"
+
 class FirePanel: public wxPanel
 {
     void ValidateWindow();
@@ -23,13 +25,16 @@ class FirePanel: public wxPanel
 		//(*Declarations(FirePanel)
 		wxBitmapButton* BitmapButton_FireWidth;
 		wxStaticText* StaticText83;
+		ValueCurveButton* BitmapButton_Fire_HeightVC;
 		wxTextCtrl* TextCtrl_Fire_Height;
 		wxCheckBox* CheckBox_Fire_GrowWithMusic;
 		wxBitmapButton* BitmapButton_FireGrow;
+		ValueCurveButton* BitmapButton_Fire_GrowthCyclesVC;
 		wxSlider* Slider_Fire_Height;
 		wxSlider* Slider_Fire_GrowthCycles;
 		wxStaticText* StaticText132;
 		wxTextCtrl* TextCtrl_Fire_GrowthCycles;
+		ValueCurveButton* BitmapButton_Fire_HueShiftVC;
 		wxBitmapButton* BitmapButton_Fire_GrowWithMusic;
 		wxBitmapButton* BitmapButton_FireHeight;
 		//*)
@@ -39,13 +44,16 @@ class FirePanel: public wxPanel
 		//(*Identifiers(FirePanel)
 		static const long ID_STATICTEXT84;
 		static const long ID_SLIDER_Fire_Height;
+		static const long ID_VALUECURVE_Fire_Height;
 		static const long IDD_TEXTCTRL_Fire_Height;
 		static const long ID_BITMAPBUTTON_SLIDER_Fire_Height;
 		static const long ID_STATICTEXT133;
 		static const long ID_SLIDER_Fire_HueShift;
+		static const long ID_VALUECURVE_Fire_HueShift;
 		static const long IDD_TEXTCTRL_Fire_HueShift;
 		static const long ID_BITMAPBUTTON_SLIDER_Fire_HueShift;
 		static const long IDD_SLIDER_Fire_GrowthCycles;
+		static const long ID_VALUECURVE_Fire_GrowthCycles;
 		static const long ID_TEXTCTRL_Fire_GrowthCycles;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Fire_GrowFire;
 		static const long ID_CHECKBOX_Fire_GrowWithMusic;
