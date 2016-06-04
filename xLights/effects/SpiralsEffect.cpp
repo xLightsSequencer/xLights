@@ -26,7 +26,7 @@ wxPanel *SpiralsEffect::CreatePanel(wxWindow *parent) {
 }
 
 void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    float offset = (float)buffer.curPeriod / ((float)buffer.curEffEndPer - (float)buffer.curEffStartPer);
+    float offset = buffer.GetEffectTimeIntervalPosition();
     int PaletteRepeat = GetValueCurveInt("Spirals_Count", 0, SettingsMap, offset);
     float Movement = GetValueCurveDouble("Spirals_Movement", 1.0, SettingsMap, offset);
     int Rotation = GetValueCurveInt("Spirals_Rotation", 0, SettingsMap, offset);

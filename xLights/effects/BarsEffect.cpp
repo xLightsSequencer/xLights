@@ -58,7 +58,7 @@ static inline int GetDirection(const std::string & DirectionString) {
 
 void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
-    float offset = (float)buffer.curPeriod / ((float)buffer.curEffEndPer - (float)buffer.curEffStartPer);
+    float offset = buffer.GetEffectTimeIntervalPosition();
     int PaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset);
     double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset);
 

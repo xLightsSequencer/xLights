@@ -47,9 +47,10 @@ int GetDirection(const std::string &direction) {
 }
 
 void GarlandsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    float oset = buffer.GetEffectTimeIntervalPosition();
     int GarlandType = SettingsMap.GetInt("SLIDER_Garlands_Type", 0);
-    int Spacing = SettingsMap.GetInt("SLIDER_Garlands_Spacing", 0);
-    float cycles = SettingsMap.GetDouble("TEXTCTRL_Garlands_Cycles", 1.0);
+    int Spacing = GetValueCurveInt("Garlands_Spacing", 0, SettingsMap, oset);
+    float cycles = GetValueCurveDouble("Garlands_Cycles", 1.0f, SettingsMap, oset);
 
     if (Spacing < 1) {
         Spacing = 1;

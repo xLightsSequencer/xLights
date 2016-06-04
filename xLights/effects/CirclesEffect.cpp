@@ -133,7 +133,7 @@ public:
 
 void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
  
-    float oset = (float)buffer.curPeriod / ((float)buffer.curEffEndPer - (float)buffer.curEffStartPer);
+    float oset = buffer.GetEffectTimeIntervalPosition();
     int number = GetValueCurveInt("Circles_Count", 1, SettingsMap, oset);
     int circleSpeed = GetValueCurveInt("Circles_Speed", 10, SettingsMap, oset);
     int radius = GetValueCurveInt("Circles_Size", 1, SettingsMap, oset);

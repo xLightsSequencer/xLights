@@ -4,12 +4,14 @@
 //(*Headers(GarlandsPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxChoice;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
 class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
+class wxChoice;
 //*)
+
+#include "../ValueCurveButton.h"
 
 class GarlandsPanel: public wxPanel
 {
@@ -19,13 +21,15 @@ class GarlandsPanel: public wxPanel
 		virtual ~GarlandsPanel();
 
 		//(*Declarations(GarlandsPanel)
-		wxStaticText* StaticText32;
 		wxBitmapButton* BitmapButton_GarlandsType;
-		wxStaticText* StaticText192;
-		wxSlider* Slider_Garlands_Type;
-		wxSlider* Slider_Garlands_Spacing;
-		wxBitmapButton* BitmapButton_GarlandsSpacing;
+		ValueCurveButton* BitmapButton_Garlands_SpacingVC;
 		wxStaticText* StaticText33;
+		wxBitmapButton* BitmapButton_GarlandsSpacing;
+		wxStaticText* StaticText192;
+		wxStaticText* StaticText32;
+		wxSlider* Slider_Garlands_Spacing;
+		ValueCurveButton* BitmapButton_Garlands_CyclesVC;
+		wxSlider* Slider_Garlands_Type;
 		//*)
 
 	protected:
@@ -37,9 +41,11 @@ class GarlandsPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_SLIDER_Garlands_Type;
 		static const long ID_STATICTEXT35;
 		static const long ID_SLIDER_Garlands_Spacing;
+		static const long ID_VALUECURVE_Garlands_Spacing;
 		static const long IDD_TEXTCTRL_Garlands_Spacing;
 		static const long ID_BITMAPBUTTON_SLIDER_Garlands_Spacing;
 		static const long IDD_SLIDER_Garlands_Cycles;
+		static const long ID_VALUECURVE_Garlands_Cycles;
 		static const long ID_TEXTCTRL_Garlands_Cycles;
 		static const long ID_STATICTEXT40;
 		static const long ID_CHOICE_Garlands_Direction;
