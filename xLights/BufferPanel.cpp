@@ -1,11 +1,11 @@
 #include "BufferPanel.h"
 
 //(*InternalHeaders(BufferPanel)
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/intl.h>
 #include <wx/bitmap.h>
+#include <wx/settings.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 #include <wx/valnum.h>
@@ -29,6 +29,7 @@ const long BufferPanel::IDD_TEXTCTRL_EffectBlur = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_SLIDER_EffectBlur = wxNewId();
 const long BufferPanel::ID_CHECKBOX_OverlayBkg = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_OverlayBkg = wxNewId();
+const long BufferPanel::ID_BUTTON_Reset = wxNewId();
 const long BufferPanel::ID_SCROLLEDWINDOW1 = wxNewId();
 const long BufferPanel::ID_PANEL1 = wxNewId();
 const long BufferPanel::ID_CHOICE_Preset = wxNewId();
@@ -97,29 +98,29 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     _blur.SetMax(15);
 
 	//(*Initialize(BufferPanel)
-	wxBitmapButton* BitmapButtonBufferStyle;
-	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer15;
-	wxFlexGridSizer* FlexGridSizer11;
-	wxBitmapButton* BitmapButton_BufferTransform;
-	wxFlexGridSizer* FlexGridSizer7;
-	wxStaticText* StaticText1;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxStaticText* StaticText3;
-	wxPanel* Panel4;
-	wxStaticText* StaticText8;
-	wxPanel* Panel3;
-	wxStaticText* StaticText7;
-	wxStaticText* StaticText4;
-	wxFlexGridSizer* FlexGridSizer10;
+	wxStaticText* StaticText9;
 	wxStaticText* StaticText2;
+	wxPanel* Panel4;
+	wxFlexGridSizer* FlexGridSizer10;
 	wxStaticText* StaticText6;
 	wxFlexGridSizer* FlexGridSizer5;
-	wxStaticText* StaticText9;
+	wxStaticText* StaticText8;
 	wxStaticText* StaticText11;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxStaticText* StaticText1;
+	wxStaticText* StaticText3;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxBitmapButton* BitmapButtonBufferStyle;
+	wxPanel* Panel3;
+	wxFlexGridSizer* FlexGridSizer15;
+	wxStaticText* StaticText7;
+	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer11;
+	wxStaticText* StaticText4;
+	wxBitmapButton* BitmapButton_BufferTransform;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
@@ -192,6 +193,8 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	SubBufferPanelSizer = new wxFlexGridSizer(0, 1, 0, 0);
 	SubBufferPanelSizer->AddGrowableCol(0);
 	SubBufferPanelSizer->AddGrowableRow(0);
+	Button_Reset = new wxButton(ScrolledWindow1, ID_BUTTON_Reset, _("Reset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Reset"));
+	SubBufferPanelSizer->Add(Button_Reset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FullBufferSizer->Add(SubBufferPanelSizer, 1, wxALL|wxEXPAND, 0);
 	ScrolledWindow1->SetSizer(FullBufferSizer);
 	FullBufferSizer->Fit(ScrolledWindow1);
@@ -338,6 +341,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Connect(IDD_TEXTCTRL_EffectBlur,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&BufferPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_EffectBlur,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_OverlayBkg,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
+	Connect(ID_BUTTON_Reset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnButton_ResetClick);
 	Connect(ID_CHOICE_Preset,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BufferPanel::OnChoice_PresetSelect);
 	Connect(ID_SLIDER_Rotation,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BufferPanel::OnSlider_RotationCmdSliderUpdated);
 	Connect(ID_VALUECURVE_Rotation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnBitmapButton_RotationClick);
@@ -390,7 +394,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     subBufferPanel = new SubBufferPanel(ScrolledWindow1, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
     wxSize s(10,100);
     subBufferPanel->SetMinSize(s);
-    SubBufferPanelSizer->Add(subBufferPanel, 1, wxALL|wxEXPAND, 2);
+    SubBufferPanelSizer->Insert(0, subBufferPanel,1, wxALL|wxEXPAND, 2);
     ValidateWindow();
 }
 
@@ -598,10 +602,10 @@ void BufferPanel::OnResize(wxSizeEvent& event)
     Notebook1->SetMinSize(s);
     Notebook1->SetMaxSize(s);
     Notebook1->Refresh();
-    
+
     FullBufferSizer->Layout();
     RotoZoomSizer->Layout();
-    
+
     ScrolledWindow1->SetSizer(FullBufferSizer);
     ScrolledWindow1->FitInside();
     ScrolledWindow1->SetScrollRate(5, 5);
@@ -892,7 +896,7 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
         BitmapButton_VCRotation->SetActive(true);
         Slider_ZoomQuality->SetValue(2);
     }
-    else if (preset == "Explode") 
+    else if (preset == "Explode")
     {
         BitmapButton_VCZoom->GetValue()->SetType("Ramp");
         BitmapButton_VCZoom->GetValue()->SetParameter1(0);
@@ -950,4 +954,11 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
     }
     Choice_Preset->SetStringSelection("");
     ValidateWindow();
+}
+
+void BufferPanel::OnButton_ResetClick(wxCommandEvent& event)
+{
+    subBufferPanel->SetDefaults();
+    subBufferPanel->Refresh();
+    Refresh();
 }
