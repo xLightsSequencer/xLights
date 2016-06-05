@@ -44,10 +44,11 @@ static inline int GetPlasmaColorScheme(const std::string &ColorSchemeStr) {
 }
 void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
+    float oset = buffer.GetEffectTimeIntervalPosition();
     int Style = SettingsMap.GetInt("SLIDER_Plasma_Style", 0);
     int Line_Density = SettingsMap.GetInt("SLIDER_Plasma_Line_Density", 1);
+    int PlasmaSpeed = GetValueCurveInt("Plasma_Speed", 10, SettingsMap, oset);
     std::string PlasmaDirectionStr = SettingsMap["CHOICE_Plasma_Direction"];
-    int PlasmaSpeed = SettingsMap.GetInt("SLIDER_Plasma_Speed", 10);
 
     int PlasmaDirection = 0; //fixme?
     int ColorScheme = GetPlasmaColorScheme(SettingsMap["CHOICE_Plasma_Color"]);

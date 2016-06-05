@@ -4,12 +4,14 @@
 //(*Headers(PlasmaPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxChoice;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
 class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
+class wxChoice;
 //*)
+
+#include "../ValueCurveButton.h"
 
 class PlasmaPanel: public wxPanel
 {
@@ -19,6 +21,7 @@ class PlasmaPanel: public wxPanel
 		virtual ~PlasmaPanel();
 
 		//(*Declarations(PlasmaPanel)
+		ValueCurveButton* BitmapButton_Plasma_SpeedVC;
 		wxChoice* Choice_Plasma_Color;
 		//*)
 
@@ -34,6 +37,7 @@ class PlasmaPanel: public wxPanel
 		static const long IDD_TEXTCTRL_Plasma_Line_Density;
 		static const long ID_BITMAPBUTTON37;
 		static const long ID_SLIDER_Plasma_Speed;
+		static const long ID_VALUECURVE_Plasma_Speed;
 		static const long IDD_TEXTCTRL_Plasma_Speed;
 		static const long ID_BITMAPBUTTON39;
 		//*)
