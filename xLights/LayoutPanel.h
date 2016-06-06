@@ -216,7 +216,8 @@ class LayoutPanel: public wxPanel
         void AddModelGroupItem(wxString name, ModelGroup *grp, bool selected);
 
     private:
-        wxImageFileProperty *backgroundProperty;
+        wxImage *background;
+        wxString backgroundFile;
 
         static const long ID_MNU_DELETE_MODEL;
         static const long ID_MNU_DELETE_MODEL_GROUP;

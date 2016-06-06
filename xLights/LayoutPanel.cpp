@@ -117,9 +117,10 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
-    mDisplayAllModels(false), mDisplayMyDisplay(false), mSelectedGroup(-1)
+    mDisplayAllModels(false), mDisplayMyDisplay(false), mSelectedGroup(-1), backgroundFile("")
 {
-    backgroundProperty = nullptr;
+    background = nullptr;
+    
     _lastCustomModel = "";
     appearanceVisible = sizeVisible = stringPropsVisible = false;
 
@@ -350,11 +351,8 @@ void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
 
 LayoutPanel::~LayoutPanel()
 {
-    wxPGProperty *p = propertyEditor->GetPropertyByName("BkgImage");
-    if (p == nullptr) {
-        //not in the grid, we need to delete it
-        delete backgroundProperty;
-        backgroundProperty = nullptr;
+    if (background != nullptr) {
+        delete background;
     }
 	//(*Destroy(LayoutPanel)
 	//*)
@@ -461,10 +459,6 @@ void LayoutPanel::clearPropGrid() {
     p = propertyEditor->GetPropertyByName("ModelStringProperties");
     if (p != nullptr) {
         stringPropsVisible = propertyEditor->IsPropertyExpanded(p);
-    }
-    p = propertyEditor->GetPropertyByName("BkgImage");
-    if (p != nullptr) {
-        propertyEditor->RemoveProperty(p);
     }
     propertyEditor->Clear();
 }
@@ -659,6 +653,33 @@ void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
     }
 }
 
+class xlImageProperty : public wxImageFileProperty {
+public:
+    xlImageProperty(const wxString& label,
+                    const wxString& name,
+                    const wxString& value,
+                    const wxImage &img)
+        : lastFileName(value), wxImageFileProperty(label, name, "") {
+
+        SetValueFromString(value);
+        m_pImage = new wxImage(img);
+    }
+    virtual ~xlImageProperty() {}
+    
+    virtual void OnSetValue() override {
+        wxFileProperty::OnSetValue();
+        wxFileName fn = GetFileName();
+        if (fn != lastFileName) {
+            lastFileName = fn;
+            delete m_pImage;
+            m_pImage = new wxImage(fn.GetFullPath());
+        }
+    }
+
+private:
+    wxFileName lastFileName;
+};
+
 void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 {
     for (size_t i=0; i<modelPreview->GetModels().size(); i++)
@@ -672,16 +693,18 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     if (!updatingProperty && addBkgProps) {
         propertyEditor->Freeze();
         clearPropGrid();
-        if (backgroundProperty != nullptr && backgroundProperty->GetValue().GetString() != modelPreview->GetBackgroundImage()) {
-            delete backgroundProperty;
-            backgroundProperty = nullptr;
+        if (backgroundFile != modelPreview->GetBackgroundImage()) {
+            delete background;
+            background = nullptr;
         }
-        if (backgroundProperty == nullptr) {
-            backgroundProperty = new wxImageFileProperty("Background Image",
-                                                         "BkgImage",
-                                                         modelPreview->GetBackgroundImage());
+        if (background == nullptr) {
+            backgroundFile = modelPreview->GetBackgroundImage();
+            background = new wxImage(backgroundFile);
         }
-        propertyEditor->Append(backgroundProperty);
+        propertyEditor->Append(new xlImageProperty("Background Image",
+                                                   "BkgImage",
+                                                   modelPreview->GetBackgroundImage(),
+                                                   *background));
         propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", modelPreview->GetScaleBackgroundImage()))->SetAttribute("UseCheckbox", 1);
         wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
         prop->SetAttribute("Min", 0);
