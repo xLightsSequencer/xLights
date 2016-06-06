@@ -1051,47 +1051,47 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
     if (Notebook1->GetSelection() != NEWSEQUENCER) {
         return;
     }
-    
+
     if (selectedEffect != NULL && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
         std::string palette;
         std::string effectText = GetEffectTextFromWindows(palette);
         if (effectText != selectedEffectString
             || palette != selectedEffectPalette) {
-            
+
             int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
             wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
             if (name !=  selectedEffect->GetEffectName()) {
                 selectedEffect->SetEffectName(name.ToStdString());
                 selectedEffect->SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
             }
-            
+
             EffectLayer* el = selectedEffect->GetParentEffectLayer();
             Element *elem = el->GetParentElement();
-            
+
             //check for undo capture
             if( selectedEffectName != selectedEffect->GetEffectName() )
             {
                 mSequenceElements.get_undo_mgr().CreateUndoStep();
                 mSequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetName(), el->GetIndex(), selectedEffect->GetID(), selectedEffectString, selectedEffectPalette );
             }
-            
+
             selectedEffect->SetSettings(effectText);
             selectedEffect->SetPalette(palette);
-            
+
             selectedEffectName = selectedEffect->GetEffectName();
             selectedEffectString = effectText;
             selectedEffectPalette = palette;
-            
+
             playStartTime = selectedEffect->GetStartTimeMS();
             playEndTime = selectedEffect->GetEndTimeMS();
             playStartMS = -1;
-            
+
             // Update if effect has been modified
             if( m_mgr->GetPane("EffectAssist").IsShown() )
             {
                 sEffectAssist->ForceRefresh();
             }
-            
+
             RenderEffectForModel(elem->GetName(),playStartTime,playEndTime);
             mainSequencer->PanelEffectGrid->ForceRefresh();
             return;
@@ -1533,6 +1533,40 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
         SaveEffectsFile();
     }
 }
+
+void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event)
+{
+    wxString name = wxGetTextFromUser("Enter name of perspective","Perspective Name");
+    if(name.size()>0) {
+        for(wxXmlNode* p=PerspectivesNode->GetChildren(); p!=NULL; p=p->GetNext() )
+        {
+            if (p->GetName() == "perspective")
+            {
+                wxString check_name=p->GetAttribute("name");
+                if (check_name == name)
+                {
+                    int answer = wxMessageBox("Enter new name?", "Duplicate Name", wxYES_NO );
+                    if (answer == wxYES) {
+                        OnMenuItemViewSaveAsPerspectiveSelected(event);
+                    }
+                    return;
+                }
+            }
+        }
+
+        wxXmlNode* p=new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
+        p->AddAttribute("name", name);
+        p->AddAttribute("settings","");
+        PerspectivesNode->AddChild(p);
+        mCurrentPerpective=p;
+        OnMenuItemViewSavePerspectiveSelected(event);
+        PerspectivesChanged(event);
+        LoadPerspective(mCurrentPerpective);
+        wxCommandEvent eventPerspectivesChanged(EVT_PERSPECTIVES_CHANGED);
+        wxPostEvent(this, eventPerspectivesChanged);
+    }
+}
+
 
 void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
 {

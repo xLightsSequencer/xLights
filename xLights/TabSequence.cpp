@@ -172,7 +172,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         }
     }
     SetPreviewBackgroundImage(mBackgroundImage);
-    
+
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
     SetPreviewBackgroundBrightness(mBackgroundBrightness);
 
@@ -249,6 +249,8 @@ void xLightsFrame::LoadPerspectivesMenu(wxXmlNode* perspectivesNode)
             {
                 int id = wxNewId();
                 MenuItemPerspectives->AppendRadioItem(id,name);
+                if (name == mCurrentPerpective->GetAttribute("name"))
+                MenuItemPerspectives->Check(id,true);
                 PerspectiveId pmenu;
                 pmenu.id=id;
                 pmenu.p=p;
