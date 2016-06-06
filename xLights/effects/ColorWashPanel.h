@@ -3,13 +3,15 @@
 
 //(*Headers(ColorWashPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
 //*)
+
+#include "../ValueCurveButton.h"
 
 class ColorWashPanel: public wxPanel
 {
@@ -20,14 +22,15 @@ class ColorWashPanel: public wxPanel
 
 		//(*Declarations(ColorWashPanel)
 		wxCheckBox* ShimmerCheckBox;
-		wxSlider* SliderCycles;
-		wxCheckBox* CircularPaletteCheckBox;
-		wxCheckBox* VFadeCheckBox;
 		wxBitmapButton* BitmapButton_ColorWashVFade;
+		ValueCurveButton* BitmapButton_ColorWash_CyclesVC;
+		wxCheckBox* CircularPaletteCheckBox;
 		wxCheckBox* HFadeCheckBox;
-		wxStaticText* StaticText5;
 		wxTextCtrl* CyclesTextCtrl;
 		wxBitmapButton* BitmapButton_ColorWashHFade;
+		wxStaticText* StaticText5;
+		wxCheckBox* VFadeCheckBox;
+		wxSlider* SliderCycles;
 		wxBitmapButton* BitmapButton_ColorWashCount;
 		//*)
 
@@ -35,6 +38,7 @@ class ColorWashPanel: public wxPanel
 		//(*Identifiers(ColorWashPanel)
 		static const long ID_STATICTEXT21;
 		static const long IDD_SLIDER_ColorWash_Cycles;
+		static const long ID_VALUECURVE_ColorWash_Cycles;
 		static const long ID_TEXTCTRL_ColorWash_Cycles;
 		static const long ID_BITMAPBUTTON_SLIDER_ColorWash_Count;
 		static const long ID_CHECKBOX_ColorWash_VFade;

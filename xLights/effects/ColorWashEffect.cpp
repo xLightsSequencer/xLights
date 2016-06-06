@@ -54,7 +54,13 @@ void ColorWashEffect::SetDefaultParameters(Model *cls) {
 std::string ColorWashEffect::GetEffectString() {
     ColorWashPanel *p = (ColorWashPanel*)panel;
     std::stringstream ret;
-    if (10 != p->SliderCycles->GetValue()) {
+    if (p->BitmapButton_ColorWash_CyclesVC->GetValue()->IsActive())
+    {
+        ret << "E_VALUECURVE_ColorWash_Cycles=";
+        ret << p->BitmapButton_ColorWash_CyclesVC->GetValue()->Serialise();
+        ret << ",";
+    }
+    else if (10 != p->SliderCycles->GetValue()) {
         ret << "E_TEXTCTRL_ColorWash_Cycles=";
         ret << p->CyclesTextCtrl->GetValue();
         ret << ",";
@@ -128,15 +134,15 @@ void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect)
     }
 }
 
-
-
 void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    float cycles = GetValueCurveDouble("ColorWash_Cycles", 1.0, SettingsMap, oset);
+
     bool HorizFade = SettingsMap.GetBool(CHECKBOX_ColorWash_HFade);
     bool VertFade = SettingsMap.GetBool(CHECKBOX_ColorWash_VFade);
-    float cycles = SettingsMap.GetDouble(TEXTCTRL_ColorWash_Cycles, 1.0);
     bool shimmer = SettingsMap.GetBool(CHECKBOX_ColorWash_Shimmer);
     bool circularPalette = SettingsMap.GetBool(CHECKBOX_ColorWash_CircularPalette);
-    
     
     int x,y;
     xlColor color, orig;
