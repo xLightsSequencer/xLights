@@ -5,6 +5,8 @@
 #include <wx/notebook.h>
 
 #include "../sequencer/Effect.h"
+#include "../sequencer/EffectLayer.h"
+#include "../sequencer/Element.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../../include/ColorWash.xpm"
@@ -35,7 +37,13 @@ int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x
         DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList(), bg);
         return e->GetBackgroundDisplayList().iconSize;
     }
-    bg.AddHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
+    if (e->GetSettings().GetBool("E_CHECKBOX_ColorWash_CircularPalette")) {
+        xlColorVector map(e->GetPalette());
+        map.push_back(map[0]);
+        bg.AddHBlendedRectangle(map, x1, y1, x2, y2);
+    } else {
+        bg.AddHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
+    }
     return 2;
 }
 
@@ -128,9 +136,6 @@ void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect)
     }
     if (settingsMap.GetFloat("E_TEXTCTRL_ColorWash_Cycles", 0.0f) == 1.0f) {
         settingsMap.erase("E_TEXTCTRL_ColorWash_Cycles");
-    }
-    if (settingsMap.Get("E_CHECKBOX_ColorWash_CircularPalette", "") == "0") {
-        settingsMap.erase("E_CHECKBOX_ColorWash_CircularPalette");
     }
 }
 

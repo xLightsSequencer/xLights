@@ -12,7 +12,6 @@
 #include <wx/panel.h>
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/button.h>
 //*)
 
 #include "ValueCurve.h"
@@ -59,7 +58,6 @@ public:
 		wxFlexGridSizer* BufferSizer;
 		wxBitmapButton* BitmapButton_OverlayBkg;
 		wxSlider* Slider_PivotPointX;
-		wxButton* Button_Reset;
 		wxTextCtrl* TextCtrl_PivotPointX;
 		wxChoice* BufferTransform;
 		wxBitmapButton* BitmapButton_Rotations;
@@ -103,7 +101,6 @@ public:
 		static const long ID_BITMAPBUTTON_SLIDER_EffectBlur;
 		static const long ID_CHECKBOX_OverlayBkg;
 		static const long ID_BITMAPBUTTON_OverlayBkg;
-		static const long ID_BUTTON_Reset;
 		static const long ID_SCROLLEDWINDOW1;
 		static const long ID_PANEL1;
 		static const long ID_CHOICE_Preset;

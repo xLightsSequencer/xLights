@@ -57,11 +57,11 @@ ColorWashPanel::ColorWashPanel(wxWindow* parent)
 	SliderCycles = new wxSlider(this, IDD_SLIDER_ColorWash_Cycles, 10, 1, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_ColorWash_Cycles"));
 	FlexGridSizer1->Add(SliderCycles, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_ColorWash_CyclesVC = new ValueCurveButton(this, ID_VALUECURVE_ColorWash_Cycles, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_ColorWash_Cycles"));
-	FlexGridSizer1->Add(BitmapButton_ColorWash_CyclesVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer9->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer1->Add(BitmapButton_ColorWash_CyclesVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer9->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	CyclesTextCtrl = new wxTextCtrl(this, ID_TEXTCTRL_ColorWash_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_ColorWash_Cycles"));
 	CyclesTextCtrl->SetMaxLength(3);
-	FlexGridSizer9->Add(CyclesTextCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(CyclesTextCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_ColorWashCount = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_ColorWash_Count, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_ColorWash_Count"));
 	BitmapButton_ColorWashCount->SetDefault();
 	BitmapButton_ColorWashCount->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));

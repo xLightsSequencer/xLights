@@ -197,15 +197,6 @@
 													<cols>1</cols>
 													<growablecols>0</growablecols>
 													<growablerows>0</growablerows>
-													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_Reset" variable="Button_Reset" member="yes">
-															<label>Reset</label>
-															<handler function="OnButton_ResetClick" entry="EVT_BUTTON" />
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
 												<option>1</option>

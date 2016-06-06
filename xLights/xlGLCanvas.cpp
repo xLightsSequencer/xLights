@@ -240,7 +240,8 @@ void xlGLCanvas::SetCurrentGLContext() {
                                   UsesVertexAccumulator(),
                                   UsesAddVertex()));
         }
-        if (cache == nullptr && ver >=2 && str[0] >= '2') {
+        if (cache == nullptr && ver >=2
+            && ((str[0] > '2') || (str[0] == '2' && str[2] >= '1'))) {
             logger_opengl.info("Try creating 21 Cache");
             LOG_GL_ERRORV(cache = Create21Cache());
         }

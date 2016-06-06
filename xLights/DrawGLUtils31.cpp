@@ -178,7 +178,17 @@ public:
             buffersValid = false;
             i = 0;
         } else {
-            LOG_GL_ERRORV(glBufferSubData(GL_ARRAY_BUFFER, bufferInfo[idx].currentPos, sz, data));
+            void * tdata = nullptr;
+            tdata = glMapBufferRange(GL_ARRAY_BUFFER, bufferInfo[idx].currentPos, sz,
+                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
+            LOG_GL_ERROR();
+            if (tdata != nullptr) {
+                memcpy(tdata, data, sz);
+                LOG_GL_ERRORV(glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, sz));
+                LOG_GL_ERRORV(glUnmapBuffer(GL_ARRAY_BUFFER));
+            } else {
+                LOG_GL_ERRORV(glBufferSubData(GL_ARRAY_BUFFER, bufferInfo[idx].currentPos, sz, data));
+            }
         }
         bufferInfo[idx].currentPos += sz;
         return i;

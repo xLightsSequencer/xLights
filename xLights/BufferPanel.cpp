@@ -29,7 +29,6 @@ const long BufferPanel::IDD_TEXTCTRL_EffectBlur = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_SLIDER_EffectBlur = wxNewId();
 const long BufferPanel::ID_CHECKBOX_OverlayBkg = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_OverlayBkg = wxNewId();
-const long BufferPanel::ID_BUTTON_Reset = wxNewId();
 const long BufferPanel::ID_SCROLLEDWINDOW1 = wxNewId();
 const long BufferPanel::ID_PANEL1 = wxNewId();
 const long BufferPanel::ID_CHOICE_Preset = wxNewId();
@@ -193,8 +192,6 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	SubBufferPanelSizer = new wxFlexGridSizer(0, 1, 0, 0);
 	SubBufferPanelSizer->AddGrowableCol(0);
 	SubBufferPanelSizer->AddGrowableRow(0);
-	Button_Reset = new wxButton(ScrolledWindow1, ID_BUTTON_Reset, _("Reset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Reset"));
-	SubBufferPanelSizer->Add(Button_Reset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FullBufferSizer->Add(SubBufferPanelSizer, 1, wxALL|wxEXPAND, 0);
 	ScrolledWindow1->SetSizer(FullBufferSizer);
 	FullBufferSizer->Fit(ScrolledWindow1);
@@ -341,7 +338,6 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Connect(IDD_TEXTCTRL_EffectBlur,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&BufferPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_EffectBlur,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_OverlayBkg,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
-	Connect(ID_BUTTON_Reset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnButton_ResetClick);
 	Connect(ID_CHOICE_Preset,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BufferPanel::OnChoice_PresetSelect);
 	Connect(ID_SLIDER_Rotation,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BufferPanel::OnSlider_RotationCmdSliderUpdated);
 	Connect(ID_VALUECURVE_Rotation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnBitmapButton_RotationClick);

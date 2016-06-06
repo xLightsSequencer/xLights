@@ -79,7 +79,7 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	FlexGridSizer139->Add(Slider33, 1, wxALL|wxEXPAND, 2);
 	TextCtrl84 = new wxTextCtrl(this, IDD_TEXTCTRL_Plasma_Style, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Plasma_Style"));
 	TextCtrl84->SetMaxLength(1);
-	FlexGridSizer139->Add(TextCtrl84, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer139->Add(TextCtrl84, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton18 = new wxBitmapButton(this, ID_BITMAPBUTTON36, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON36"));
 	BitmapButton18->SetDefault();
 	BitmapButton18->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -90,7 +90,7 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	FlexGridSizer139->Add(Slider34, 1, wxALL|wxEXPAND, 2);
 	TextCtrl85 = new wxTextCtrl(this, IDD_TEXTCTRL_Plasma_Line_Density, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Plasma_Line_Density"));
 	TextCtrl85->SetMaxLength(2);
-	FlexGridSizer139->Add(TextCtrl85, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer139->Add(TextCtrl85, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton19 = new wxBitmapButton(this, ID_BITMAPBUTTON37, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON37"));
 	BitmapButton19->SetDefault();
 	BitmapButton19->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -102,7 +102,7 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	Slider36 = new wxSlider(this, ID_SLIDER_Plasma_Speed, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Plasma_Speed"));
 	FlexGridSizer3->Add(Slider36, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Plasma_SpeedVC = new ValueCurveButton(this, ID_VALUECURVE_Plasma_Speed, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Plasma_Speed"));
-	FlexGridSizer3->Add(BitmapButton_Plasma_SpeedVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer3->Add(BitmapButton_Plasma_SpeedVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer139->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	TextCtrl87 = new wxTextCtrl(this, IDD_TEXTCTRL_Plasma_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Plasma_Speed"));
 	TextCtrl87->SetMaxLength(3);
