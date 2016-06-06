@@ -77,9 +77,11 @@ public:
 
 void CurtainEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     
-    int swag = SettingsMap.GetInt("SLIDER_Curtain_Swag", 0);
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    int swag = GetValueCurveInt("Curtain_Swag", 0, SettingsMap, oset);
+    float curtainSpeed = GetValueCurveDouble("Curtain_Speed", 1.0, SettingsMap, oset);
+
     bool repeat = SettingsMap.GetBool("CHECKBOX_Curtain_Repeat");
-    float curtainSpeed = SettingsMap.GetDouble("TEXTCTRL_Curtain_Speed", 1.0);
     int edge = GetCurtainEdge(SettingsMap["CHOICE_Curtain_Edge"]);
     int effect = GetCurtainEffect(SettingsMap["CHOICE_Curtain_Effect"]);
     
@@ -189,9 +191,9 @@ void CurtainEffect::DrawCurtain(RenderBuffer & buffer, bool LeftEdge, int xlimit
 
 void CurtainEffect::DrawCurtainVertical(RenderBuffer & buffer, bool topEdge, int ylimit, const std::vector<int> &SwagArray)
 {
-    int i,x,y;
+    int x,y;
     xlColor color;
-    for (i=0; i<ylimit; i++)
+    for (size_t i=0; i<ylimit; i++)
     {
         buffer.GetMultiColorBlend(double(i) / double(buffer.BufferHt), true, color);
         y=topEdge ? buffer.BufferHt-i-1 : i;
@@ -202,7 +204,7 @@ void CurtainEffect::DrawCurtainVertical(RenderBuffer & buffer, bool topEdge, int
     }
     
     // swag
-    for (i=0; i<SwagArray.size(); i++)
+    for (size_t i=0; i<SwagArray.size(); i++)
     {
         y=ylimit+i;
         buffer.GetMultiColorBlend(double(y) / double(buffer.BufferHt), true, color);

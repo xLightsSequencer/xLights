@@ -3,14 +3,16 @@
 
 //(*Headers(CurtainPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxChoice;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
+class wxChoice;
 //*)
+
+#include "../ValueCurveButton.h"
 
 class CurtainPanel: public wxPanel
 {
@@ -20,16 +22,18 @@ class CurtainPanel: public wxPanel
 		virtual ~CurtainPanel();
 
 		//(*Declarations(CurtainPanel)
-		wxBitmapButton* BitmapButton_CurtainEdge;
 		wxChoice* Choice_Curtain_Edge;
+		wxStaticText* StaticText6;
 		wxStaticText* StaticText8;
+		ValueCurveButton* BitmapButton_Curtain_SpeedVC;
+		wxChoice* Choice_Curtain_Effect;
+		wxCheckBox* CheckBox_Curtain_Repeat;
 		wxStaticText* StaticText7;
 		wxBitmapButton* BitmapButton_CurtainEffect;
-		wxCheckBox* CheckBox_Curtain_Repeat;
-		wxStaticText* StaticText6;
+		wxBitmapButton* BitmapButton_CurtainEdge;
 		wxBitmapButton* BitmapButton_CurtainRepeat;
+		ValueCurveButton* BitmapButton_Curtain_SwagVC;
 		wxBitmapButton* BitmapButton_CurtainSwag;
-		wxChoice* Choice_Curtain_Effect;
 		//*)
 
 	protected:
@@ -43,9 +47,11 @@ class CurtainPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_CHOICE_Curtain_Effect;
 		static const long ID_STATICTEXT7;
 		static const long ID_SLIDER_Curtain_Swag;
+		static const long ID_VALUECURVE_Curtain_Swag;
 		static const long IDD_TEXTCTRL_Curtain_Swag;
 		static const long ID_BITMAPBUTTON_SLIDER_Curtain_Swag;
 		static const long IDD_SLIDER_Curtain_Speed;
+		static const long ID_VALUECURVE_Curtain_Speed;
 		static const long ID_TEXTCTRL_Curtain_Speed;
 		static const long ID_CHECKBOX_Curtain_Repeat;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat;
