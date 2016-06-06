@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (chrisD)  Add menu items to load/save perspectives directly
    -- enh (gil)     Add new effect Fill.
 2016.35  Jun 02, 2016
    -- bug (dkulp) Fix colorwash stripping out stuff it shouldn't
