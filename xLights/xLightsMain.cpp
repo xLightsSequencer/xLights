@@ -777,12 +777,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_ViewZoomOut = new wxMenuItem(Menu5, wxID_ZOOM_OUT, _("Zoom Out"), wxEmptyString, wxITEM_NORMAL);
     Menu5->Append(MenuItem_ViewZoomOut);
     Menu5->AppendSeparator();
-    MenuItem15 = new wxMenu();
-    MenuItemViewSavePerspective = new wxMenuItem(MenuItem15, ID_MENUITEM_SAVE_PERSPECTIVE, _("Save Current"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem15->Append(MenuItemViewSavePerspective);
-    MenuItemLoadEditPerspective = new wxMenuItem(MenuItem15, ID_MENUITEM_LOAD_PERSPECTIVE, _("Edit/Load"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem15->Append(MenuItemLoadEditPerspective);
-    Menu5->Append(ID_MENUITEM7, _("Perspectives"), MenuItem15, wxEmptyString);
+    MenuItemPerspectives = new wxMenu();
+    MenuItemViewSavePerspective = new wxMenuItem(MenuItemPerspectives, ID_MENUITEM_SAVE_PERSPECTIVE, _("Save Current"), wxEmptyString, wxITEM_NORMAL);
+    MenuItemPerspectives->Append(MenuItemViewSavePerspective);
+    MenuItemLoadEditPerspective = new wxMenuItem(MenuItemPerspectives, ID_MENUITEM_LOAD_PERSPECTIVE, _("Edit/Load"), wxEmptyString, wxITEM_NORMAL);
+    MenuItemPerspectives->Append(MenuItemLoadEditPerspective);
+    MenuItemPerspectives->AppendSeparator();
+    Menu5->Append(ID_MENUITEM7, _("Perspectives"), MenuItemPerspectives, wxEmptyString);
     MenuItem18 = new wxMenu();
     MenuItemDisplayElements = new wxMenuItem(MenuItem18, ID_MENUITEM_DISPLAY_ELEMENTS, _("Display Elements"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItemDisplayElements);
@@ -1434,6 +1435,7 @@ xLightsFrame::~xLightsFrame()
 
     delete CheckBoxLightOutput;
     delete ButtonGracefulStop;
+
 
     //(*Destroy(xLightsFrame)
     //*)

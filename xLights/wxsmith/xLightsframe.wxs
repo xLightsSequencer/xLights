@@ -1104,7 +1104,7 @@
 					<handler function="OnAuiToolBarItem_ZoomOutClick" entry="EVT_MENU" />
 				</object>
 				<object class="separator" />
-				<object class="wxMenu" name="ID_MENUITEM7" variable="MenuItem15" member="yes">
+				<object class="wxMenu" name="ID_MENUITEM7" variable="MenuItemPerspectives" member="yes">
 					<label>Perspectives</label>
 					<object class="wxMenuItem" name="ID_MENUITEM_SAVE_PERSPECTIVE" variable="MenuItemViewSavePerspective" member="yes">
 						<label>Save Current</label>
@@ -1114,6 +1114,7 @@
 						<label>Edit/Load</label>
 						<handler function="OnMenuItemLoadEditPerspectiveSelected" entry="EVT_MENU" />
 					</object>
+                    <object class="separator" />
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM10" variable="MenuItem18" member="yes">
 					<label>Windows</label>

@@ -340,6 +340,14 @@ public:
                            bool setDefaults);
     void SetEffectControls(const SettingsMap &settings);
 	void ApplySetting(wxString name, wxString value);
+    void LoadPerspectivesMenu(wxXmlNode* perspectivesNode);
+    struct PerspectiveId {
+        int id;
+        wxXmlNode* p;
+    };
+
+    PerspectiveId perspectives[10];
+    void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile();
     void MarkEffectsFileDirty() { UnsavedRgbEffectsChanges=true; }
     void CheckUnsavedChanges();
@@ -803,7 +811,7 @@ private:
     wxMenuItem* MenuItemRenderCanvasMode;
     wxStaticText* StaticTextShowEnd;
     wxMenuItem* MenuItemGridNodeValuesOn;
-    wxMenu* MenuItem15;
+    wxMenu* MenuItemPerspectives;
     wxMenu* Menu3;
     wxTextCtrl* TextCtrlLog;
     wxMenu* MenuItemRenderMode;
