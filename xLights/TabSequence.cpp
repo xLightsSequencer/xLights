@@ -172,7 +172,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         }
     }
     SetPreviewBackgroundImage(mBackgroundImage);
-    
+
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
     SetPreviewBackgroundBrightness(mBackgroundBrightness);
 
@@ -218,9 +218,63 @@ void xLightsFrame::LoadEffectsFile()
     displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements,ModelsNode, ModelGroupsNode, ViewsNode);
     CheckForAndCreateDefaultPerpective();
     perspectivePanel->SetPerspectives(PerspectivesNode);
+    LoadPerspectivesMenu(PerspectivesNode);
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), filename, elapsedTime));
 }
+
+void xLightsFrame::LoadPerspectivesMenu(wxXmlNode* perspectivesNode)
+{
+    // Clear old menu items
+    wxMenuItemList::Node* current_menuitem_node;
+    wxMenuItem* current_menuitem;
+
+    current_menuitem_node = MenuItemPerspectives->GetMenuItems().GetLast();
+    current_menuitem = current_menuitem_node->GetData();
+    while (!current_menuitem->IsSeparator())
+    {
+        MenuItemPerspectives->Delete(current_menuitem);
+        current_menuitem_node = current_menuitem_node->GetPrevious();
+        current_menuitem = current_menuitem_node->GetData();
+    }
+
+    int pCount = 0;
+
+    for(wxXmlNode* p=perspectivesNode->GetChildren(); p!=NULL; p=p->GetNext() )
+    {
+        if (p->GetName() == "perspective")
+        {
+            wxString name=p->GetAttribute("name");
+            if (!name.IsEmpty())
+            {
+                int id = wxNewId();
+                MenuItemPerspectives->AppendRadioItem(id,name);
+                if (name == mCurrentPerpective->GetAttribute("name"))
+                MenuItemPerspectives->Check(id,true);
+                PerspectiveId pmenu;
+                pmenu.id=id;
+                pmenu.p=p;
+                perspectives[pCount] = pmenu;
+                Connect(id, wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadPerspectiveSelected);
+                pCount++;
+                if (pCount>=10) { return; }
+            }
+        }
+    }
+
+
+}
+
+void xLightsFrame::OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event)
+{
+    for (int i=0;i<10;i++) {
+        if (perspectives[i].id == event.GetId()) {
+            LoadPerspective(perspectives[i].p);
+            return;
+        }
+    }
+}
+
 
 // returns true on success
 bool xLightsFrame::SaveEffectsFile()
