@@ -1459,6 +1459,7 @@ void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
         PerspectivesNode->DeleteAttribute("current");
         PerspectivesNode->AddAttribute("current", name);
         UnsavedRgbEffectsChanges=true;
+        mCurrentPerpective = perspective;
     }
     if (settings.size() == 0)
     {
@@ -1521,16 +1522,20 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 {
-    if(mCurrentPerpective!=NULL)
+    if(mCurrentPerpective != NULL)
     {
-        if(mCurrentPerpective->HasAttribute("settings"))
+        wxMessageDialog confirm(this, _("Are you sure you want to save the current view as perpective \"") + mCurrentPerpective->GetAttribute("name") + "\"?", _("Confirm"), wxYES|wxNO);
+        if (confirm.ShowModal() == wxID_YES)
         {
-            mCurrentPerpective->DeleteAttribute("settings");
+            if(mCurrentPerpective->HasAttribute("settings"))
+            {
+                mCurrentPerpective->DeleteAttribute("settings");
+            }
+            mCurrentPerpective->AddAttribute("settings",m_mgr->SavePerspective());
+            mCurrentPerpective->DeleteAttribute("version");
+            mCurrentPerpective->AddAttribute("version", "2.0");
+            SaveEffectsFile();
         }
-        mCurrentPerpective->AddAttribute("settings",m_mgr->SavePerspective());
-        mCurrentPerpective->DeleteAttribute("version");
-        mCurrentPerpective->AddAttribute("version", "2.0");
-        SaveEffectsFile();
     }
 }
 
