@@ -1992,7 +1992,7 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
     }
 
     CopyFiles("*.xml", srcDir, targetDirName);
-    CopyFiles("*.bkp", srcDir, targetDirName);
+    CopyFiles("*.xbkp", srcDir, targetDirName);
 
     SetStatusText("All xml files backed up.");
 }
@@ -2882,12 +2882,12 @@ void xLightsFrame::SaveWorking()
 
     if (fn == "")
     {
-        tmp = p + "/" + "__.bkp";
+        tmp = p + "/" + "__.xbkp";
     }
     else
     {
         wxFileName fnp(fn);
-        tmp = p + "/" + fnp.GetName()+ fnp.GetExt() + ".bkp";
+        tmp = p + "/" + fnp.GetName()+ fnp.GetExt() + ".xbkp";
     }
     wxFileName ftmp(tmp);
 
