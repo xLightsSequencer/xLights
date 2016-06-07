@@ -699,7 +699,12 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         }
         if (background == nullptr) {
             backgroundFile = modelPreview->GetBackgroundImage();
-            background = new wxImage(backgroundFile);
+            if (wxFile::Exists(backgroundFile)) {
+                background = new wxImage(backgroundFile);
+            }
+            else {
+                background = new wxImage();
+            }
         }
         propertyEditor->Append(new xlImageProperty("Background Image",
                                                    "BkgImage",
