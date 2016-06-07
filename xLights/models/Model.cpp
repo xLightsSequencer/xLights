@@ -1077,8 +1077,8 @@ void Model::InitRenderBufferNodes(const std::string &type,
         for (int x = firstNode; x < newNodes.size(); x++) {
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 SetCoords(*it2, cnt, 0);
-                cnt++;
             }
+            cnt++;
         }
     } else if (type == "Per Preview" || type == "Per Preview No Offset") {
         double maxX = -1000000;
@@ -1116,7 +1116,7 @@ void Model::InitRenderBufferNodes(const std::string &type,
             offx = 0;
             offy = 0;
         }
-
+        bufferHi = bufferWi = -1;
         for (int x = firstNode; x < newNodes.size(); x++) {
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 sx = it2->screenX;
@@ -1124,15 +1124,27 @@ void Model::InitRenderBufferNodes(const std::string &type,
                 
                 GetModelScreenLocation().TranslatePoint(sx, sy);
 
-                SetCoords(*it2, sx - offx, sy - offy);
+                SetCoords(*it2, std::round(sx - offx), std::round(sy - offy));
+                if (it2->bufX > bufferWi) {
+                    bufferWi = it2->bufX;
+                }
+                if (it2->bufY > bufferHi) {
+                    bufferHi = it2->bufY;
+                }
+
                 if (noOff) {
                     it2->screenX = sx;
                     it2->screenY = sy;
                 }
             }
         }
-        bufferHi = maxY - minY + 1;
-        bufferWi = maxX - minX + 1;
+        if (!noOff) {
+            bufferHi++;
+            bufferWi++;
+        } else {
+            bufferHi = std::round(maxY - minY + 1.0f);
+            bufferWi = std::round(maxX - minX + 1.0f);
+        }
     } else {
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
