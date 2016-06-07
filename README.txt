@@ -9,6 +9,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
 2016.36  Jun 06, 2016
+   -- enh (keithsw) Change backup files to *.bkp extension to minimise risk of users opening them accidentally. Include them in F10 backup.
    -- bug (dkulp) Don't use OpenGL 2.1 if context is 2.0
 			Use glMapBufferRange instead of glBufferSubData (latter is SLOOOW on ATI cards)
    -- bug (dkulp) fix the background image button not working

@@ -1170,6 +1170,7 @@ protected:
     void ResetEffectsXml();
     void SeqLoadXlightsXSEQ(const wxString& filename);
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
+    void CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName);
     void BackupDirectory(wxString targetDirName);
     void NewSequence();
     void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);

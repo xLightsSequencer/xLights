@@ -1952,42 +1952,48 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
     //CurrentDir
 }
 
+void xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName)
+{
+    wxString fname;
+    wxString srcDirName = CurrentDir + wxFileName::GetPathSeparator();
+    wxFileName srcFile;
+    srcFile.SetPath(CurrentDir);
+
+    bool cont = srcDir.GetFirst(&fname, wildcard, wxDIR_FILES);
+    while (cont)
+    {
+        srcFile.SetFullName(fname);
+
+        wxULongLong fsize = srcFile.GetSize();
+        if (fsize > 20 * 1024 * 1024) // skip any xml files > 20 mbytes, they are something other than xml files
+        {
+            srcDir.GetNext(&fname);
+            continue;
+        }
+        SetStatusText("Copying File \"" + srcFile.GetFullPath());
+        bool success = wxCopyFile(srcDirName + fname,
+            targetDirName + wxFileName::GetPathSeparator() + fname);
+        if (!success)
+        {
+            wxMessageBox("Unable to copy file \"" + CurrentDir + wxFileName::GetPathSeparator() + fname + "\"",
+                "Error", wxICON_ERROR | wxOK);
+        }
+        cont = srcDir.GetNext(&fname);
+    }
+}
+
 void xLightsFrame::BackupDirectory(wxString targetDirName)
 {
     wxDir srcDir(CurrentDir);
-    wxString fname;
-    bool success;
-    wxString srcDirName = CurrentDir+wxFileName::GetPathSeparator();
-    wxFileName srcFile;
-    srcFile.SetPath(CurrentDir);
 
     if(!srcDir.IsOpened())
     {
         return;
     }
 
-    bool cont = srcDir.GetFirst(&fname, "*.xml", wxDIR_FILES);
+    CopyFiles("*.xml", srcDir, targetDirName);
+    CopyFiles("*.bkp", srcDir, targetDirName);
 
-    while (cont)
-    {
-        srcFile.SetFullName(fname);
-
-        wxULongLong fsize=srcFile.GetSize();
-        if(fsize > 20*1024*1024) // skip any xml files > 20 mbytes, they are something other than xml files
-        {
-            srcDir.GetNext(&fname);
-            continue;
-        }
-        SetStatusText("Copying File \""+srcFile.GetFullPath());
-        success = wxCopyFile(srcDirName+fname,
-                             targetDirName+wxFileName::GetPathSeparator()+fname);
-        if (!success)
-        {
-            wxMessageBox("Unable to copy file \"" + CurrentDir+wxFileName::GetPathSeparator()+fname+"\"",
-                         "Error", wxICON_ERROR|wxOK);
-        }
-        cont = srcDir.GetNext(&fname);
-    }
     SetStatusText("All xml files backed up.");
 }
 
@@ -2876,12 +2882,12 @@ void xLightsFrame::SaveWorking()
 
     if (fn == "")
     {
-        tmp = p + "/" + "__.working.xml";
+        tmp = p + "/" + "__.bkp";
     }
     else
     {
         wxFileName fnp(fn);
-        tmp = p + "/" + fnp.GetName() + ".working." + fnp.GetExt();
+        tmp = p + "/" + fnp.GetName()+ fnp.GetExt() + ".bkp";
     }
     wxFileName ftmp(tmp);
 
