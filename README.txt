@@ -8,8 +8,21 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.36  Jun 06, 2016
+   -- bug (dkulp) Don't use OpenGL 2.1 if context is 2.0
+			Use glMapBufferRange instead of glBufferSubData (latter is SLOOOW on ATI cards)
+   -- bug (dkulp) fix the background image button not working
+   -- bug (dkulp) Update borders for singlestrand
+   -- enh (dkulp) Strip out the defaults for the On/ColorWash and buffer/layer/color panels at load time.   Reduces file size
+   -- bug (dkulp) Use an icon bundle with different sized icons to hopefully fix the volume meter issue on windows
+   -- bug (keithsw) Fix custom value curves not being editable when you re-open them
+   -- enh (keithsw) Value curves added to single strand, garlands, fire, plasma, curtain. color wash
+   -- bug (keithsw) Fix tendril effect
+   -- bug (keithsw) Fix custom value curves not being editable when you re-open them
+   -- bug (keithsw) When changing value curves use a sensible set of defaults.
    -- enh (chrisD)  Add menu items to load/save perspectives directly
    -- enh (gil)     Add new effect Fill.
+   -- enh Improve several effect toolbar icons.
 2016.35  Jun 02, 2016
    -- bug (dkulp) Fix colorwash stripping out stuff it shouldn't
    -- bug (dkulp) Minor layout things (removing borders on value curve buttons) and hopefully fix subbuffer panel
@@ -196,23 +209,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Find a solution to some crashing in release builds
    -- bug (dkulp) Remove model properties dialog and model list dialog
    -- bug (dkulp) Fix crash in editing groups
-<<<<<<< HEAD
-   -- enh (keithsw) Add writing of FPP universes file when saving networks
-   -- enh (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log
-            found typically in c:\users\<user>\AppData\Roaming
-=======
-2016.18  Apr 7, 2016
-   -- bug (gil)   Fix bug when Papagayo timing was collapsed and selected grid cell selection wasn't working.
-   -- bug (gil)   Fix Delete key operation so it doesn't do a Cut unless Shift is pressed.
-   -- bug (dkulp) Fix shift-del/ins on LayoutPanel as well
-   -- bug (dkulp) Fix "individual start channel" calculations
-   -- bug (dkulp) Set the buffer size correctly for candycanes.  Fixes #521
-   -- bug (dkulp) Find a solution to some crashing in release builds
-   -- bug (dkulp) Remove model properties dialog and model list dialog
-   -- bug (dkulp) Fix crash in editing groups
    -- enh (keithsw) Add writing of FPP universes file when saving networks
    -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log
-         found typically in c:\users\<user>\AppData\Roaming>>>>>>> ConvertInDialog
+         found typically in c:\users\<user>\AppData\Roaming
 2016.17  Apr 3, 2016
    -- enh (keithsw) Add writing of FPP universes file when saving networks
    -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log
