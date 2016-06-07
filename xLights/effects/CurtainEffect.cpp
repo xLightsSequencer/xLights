@@ -193,7 +193,7 @@ void CurtainEffect::DrawCurtainVertical(RenderBuffer & buffer, bool topEdge, int
 {
     int x,y;
     xlColor color;
-    for (size_t i=0; i<ylimit; i++)
+    for (int i=0; i<ylimit; i++)
     {
         buffer.GetMultiColorBlend(double(i) / double(buffer.BufferHt), true, color);
         y=topEdge ? buffer.BufferHt-i-1 : i;
@@ -204,7 +204,7 @@ void CurtainEffect::DrawCurtainVertical(RenderBuffer & buffer, bool topEdge, int
     }
     
     // swag
-    for (size_t i=0; i<SwagArray.size(); i++)
+    for (int i=0; i<SwagArray.size(); i++)
     {
         y=ylimit+i;
         buffer.GetMultiColorBlend(double(y) / double(buffer.BufferHt), true, color);
