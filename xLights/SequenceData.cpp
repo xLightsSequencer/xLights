@@ -8,6 +8,8 @@
 #include <cstddef>
 
 #include "SequenceData.h"
+#include <wx/wx.h>
+#include <log4cpp/Category.hh>
 
 const unsigned char FrameData::constzero = 0;
 
@@ -45,7 +47,18 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
         unsigned long tmp = numChannels;
         tmp *= numFrames;
         size_t sz = tmp;
+        wxASSERT((unsigned long)sz == tmp); // if this fails then we are asking for more memory than the system can address
         data = (unsigned char *)calloc(1, sz);
+        wxASSERT(data != NULL); // if this fails then we have a memory allocation error
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        if (data == NULL)
+        {
+            logger_base.crit("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%ld.", numFrames, numChannels, tmp);
+        }
+        else
+        {
+            logger_base.debug("Memory allocated for frame data. Frames=%d, Channels=%d, Memory=%ld.", numFrames, numChannels, tmp);
+        }
     }
     invalidData = (unsigned char *)calloc(1, numChannels);
 }

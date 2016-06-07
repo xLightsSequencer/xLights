@@ -56,6 +56,7 @@ public:
     unsigned int NumChannels() const { return numChannels;}
     unsigned int NumFrames() const { return numFrames;}
     unsigned int FrameTime() const { return frameTime;}
+    bool IsValidData() const { return data != NULL; }
 
 private:
     SequenceData(const SequenceData&);  //make sure we cannot "copy" these

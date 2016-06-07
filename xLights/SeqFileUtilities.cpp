@@ -345,6 +345,7 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
 
 void xLightsFrame::ClearSequenceData()
 {
+    wxASSERT(SeqData.IsValidData());
     for (size_t i = 0; i < SeqData.NumFrames(); ++i)
         SeqData[i].Zero();
 }
