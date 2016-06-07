@@ -69,6 +69,11 @@ void SubBufferPanel::Convert(float &x, float &y, wxMouseEvent& event) {
     
     x = (event.GetX() - startX) * 100.0/ bw ;
     y = 100.0 - (event.GetY() - startY) * 100.0/ bh ;
+
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x > 100.0) x = 100.0;
+    if (y > 100.0) y = 100.0;
 }
 
 int SubBufferPanel::OverMouseHandle(wxMouseEvent& event) {
