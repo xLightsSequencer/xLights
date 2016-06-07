@@ -25,7 +25,8 @@ class SubBufferPanel : public wxWindow, public xlCustomControl
         void mouseLeftUp( wxMouseEvent& event);
         void mouseMoved( wxMouseEvent& event);
         void Paint( wxPaintEvent& event );
-
+        void ContextMenu(wxContextMenuEvent& event);
+        void MenuItemSelected(wxCommandEvent &event);
     private:
         int OverMouseHandle(wxMouseEvent& event);
         void Convert(float &x, float &y, wxMouseEvent& event);
