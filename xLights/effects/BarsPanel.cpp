@@ -5,18 +5,18 @@
 
 
 //(*InternalHeaders(BarsPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
 #include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 
@@ -31,6 +31,9 @@ const long BarsPanel::ID_VALUECURVE_Bars_Cycles = wxNewId();
 const long BarsPanel::ID_TEXTCTRL_Bars_Cycles = wxNewId();
 const long BarsPanel::ID_CHOICE_Bars_Direction = wxNewId();
 const long BarsPanel::ID_BITMAPBUTTON_CHOICE_Bars_Direction = wxNewId();
+const long BarsPanel::ID_STATICTEXT1 = wxNewId();
+const long BarsPanel::ID_SLIDER_Bars_Center = wxNewId();
+const long BarsPanel::IDD_TEXTCTRL_Bars_Center = wxNewId();
 const long BarsPanel::ID_CHECKBOX_Bars_Highlight = wxNewId();
 const long BarsPanel::ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight = wxNewId();
 const long BarsPanel::ID_CHECKBOX_Bars_3D = wxNewId();
@@ -47,24 +50,25 @@ END_EVENT_TABLE()
 BarsPanel::BarsPanel(wxWindow* parent)
 {
 	//(*Initialize(BarsPanel)
-	wxBitmapButton* BitmapButton_Gradient;
-	wxStaticText* StaticText24;
-	wxCheckBox* CheckBox_Bars_Gradient;
-	wxCheckBox* CheckBox_Bars_3D;
-	wxTextCtrl* TextCtrl35;
-	wxCheckBox* CheckBox_Bars_Highlight;
-	wxFlexGridSizer* FlexGridSizer123;
-	wxBitmapButton* BitmapButton_3D;
-	wxSlider* Slider13;
-	wxStaticText* StaticText23;
-	wxBitmapButton* BitmapButton_Highlight;
-	wxBitmapButton* BitmapButton_Direction;
-	wxFlexGridSizer* FlexGridSizer10;
-	wxFlexGridSizer* FlexGridSizer70;
-	wxTextCtrl* TextCtrl15;
-	wxBitmapButton* BitmapButton_PaletteRep;
-	wxFlexGridSizer* FlexGridSizer35;
 	wxStaticText* StaticText177;
+	wxFlexGridSizer* FlexGridSizer70;
+	wxBitmapButton* BitmapButton_Gradient;
+	wxFlexGridSizer* FlexGridSizer10;
+	wxBitmapButton* BitmapButton_3D;
+	wxCheckBox* CheckBox_Bars_Highlight;
+	wxBitmapButton* BitmapButton_Direction;
+	wxFlexGridSizer* FlexGridSizer123;
+	wxStaticText* StaticText23;
+	wxStaticText* StaticText24;
+	wxSlider* Slider13;
+	wxTextCtrl* TextCtrl15;
+	wxBitmapButton* BitmapButton_Highlight;
+	wxFlexGridSizer* FlexGridSizer35;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxCheckBox* CheckBox_Bars_3D;
+	wxBitmapButton* BitmapButton_PaletteRep;
+	wxTextCtrl* TextCtrl35;
+	wxCheckBox* CheckBox_Bars_Gradient;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer35 = new wxFlexGridSizer(0, 3, wxDLG_UNIT(this,wxSize(0,0)).GetWidth(), 0);
@@ -118,6 +122,16 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	BitmapButton_Direction->SetDefault();
 	BitmapButton_Direction->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer35->Add(BitmapButton_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Center Point"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer35->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
+	Slider_Bars_Center = new wxSlider(this, ID_SLIDER_Bars_Center, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Bars_Center"));
+	FlexGridSizer1->Add(Slider_Bars_Center, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_Bars_Center = new wxTextCtrl(this, IDD_TEXTCTRL_Bars_Center, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Bars_Center"));
+	FlexGridSizer1->Add(TextCtrl_Bars_Center, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer35->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer35->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer35->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer10 = new wxFlexGridSizer(0, 8, 0, 0);
 	CheckBox_Bars_Highlight = new wxCheckBox(this, ID_CHECKBOX_Bars_Highlight, _("Highlight"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Bars_Highlight"));
@@ -155,7 +169,10 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	Connect(IDD_SLIDER_Bars_Cycles,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedTextCtrlFloatVC);
 	Connect(ID_VALUECURVE_Bars_Cycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnVCButtonClick);
 	Connect(ID_TEXTCTRL_Bars_Cycles,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedSliderFloat);
+	Connect(ID_CHOICE_Bars_Direction,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BarsPanel::OnChoice_Bars_DirectionSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_Bars_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
+	Connect(ID_SLIDER_Bars_Center,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedTextCtrl);
+	Connect(IDD_TEXTCTRL_Bars_Center,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_Gradient,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
@@ -165,6 +182,8 @@ BarsPanel::BarsPanel(wxWindow* parent)
 
     BitmapButton_Bars_BarCount->GetValue()->SetLimits(1, 5);
     BitmapButton_Bars_Cycles->GetValue()->SetLimits(0, 300);
+
+    ValidateWindow();
 }
 
 BarsPanel::~BarsPanel()
@@ -175,3 +194,23 @@ BarsPanel::~BarsPanel()
 
 PANEL_EVENT_HANDLERS(BarsPanel)
 
+
+void BarsPanel::OnChoice_Bars_DirectionSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void BarsPanel::ValidateWindow()
+{
+    wxString type = Choice_Bars_Direction->GetStringSelection();
+    if (type == "expand" || type == "compress" || type == "H-expand" || type == "H-compress")
+    {
+        Slider_Bars_Center->Enable();
+        TextCtrl_Bars_Center->Enable();
+    }
+    else
+    {
+        Slider_Bars_Center->Disable();
+        TextCtrl_Bars_Center->Disable();
+    }
+}

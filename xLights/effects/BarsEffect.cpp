@@ -62,14 +62,11 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     int PaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset);
     double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset);
 
-
-    //int PaletteRepeat = SettingsMap.GetInt("SLIDER_Bars_BarCount", 1);
+    int Center = SettingsMap.GetInt("SLIDER_Bars_Center", 0);
     int Direction = GetDirection(SettingsMap["CHOICE_Bars_Direction"]);
-
     bool Highlight = SettingsMap.GetBool("CHECKBOX_Bars_Highlight");
     bool Show3D = SettingsMap.GetBool("CHECKBOX_Bars_3D");
     bool Gradient = SettingsMap.GetBool("CHECKBOX_Bars_Gradient");
-    //double cycles = SettingsMap.GetDouble("TEXTCTRL_Bars_Cycles", 1.0);
 
     int x,y,n,ColorIdx;
     HSVValue hsv;
@@ -86,6 +83,7 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         int BarHt = buffer.BufferHt/BarCount+1;
         if(BarHt<1) BarHt=1;
         int HalfHt = buffer.BufferHt/2;
+        int NewCenter = buffer.BufferHt * (100 + Center) / 200;
         int BlockHt=colorcnt * BarHt;
         if(BlockHt<1) BlockHt=1;
 
@@ -95,9 +93,9 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         }
         Direction = Direction > 4?Direction-8:Direction;
 
-        for (y=0; y<buffer.BufferHt; y++)
+        for (y=-2*buffer.BufferHt; y<2*buffer.BufferHt; y++)
         {
-            n=y+f_offset;
+            n=buffer.BufferHt+y+f_offset;
             ColorIdx=(n % BlockHt) / BarHt;
             int color2 = (ColorIdx+1)%colorcnt;
             double pct = (double)(n % BarHt) / (double)BarHt;
@@ -125,21 +123,21 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     break;
                 case 2:
                     // expand
-                    if (y <= HalfHt) {
+                    if (y <= NewCenter) {
                         for (x=0; x<buffer.BufferWi; x++)
                         {
                             buffer.SetPixel(x, y, color);
-                            buffer.SetPixel(x, buffer.BufferHt-y-1, color);
+                            buffer.SetPixel(x, NewCenter+(NewCenter-y), color);
                         }
                     }
                     break;
                 case 3:
                     // compress
-                    if (y >= HalfHt) {
+                    if (y >= NewCenter) {
                         for (x=0; x<buffer.BufferWi; x++)
                         {
                             buffer.SetPixel(x, y, color);
-                            buffer.SetPixel(x, buffer.BufferHt-y-1, color);
+                            buffer.SetPixel(x, NewCenter + (NewCenter - y), color);
                         }
                     }
                     break;
@@ -158,6 +156,7 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         int BarWi = buffer.BufferWi/BarCount+1;
         if(BarWi<1) BarWi=1;
         int HalfWi = buffer.BufferWi/2;
+        int NewCenter = buffer.BufferWi * (100 + Center) / 200;
         int BlockWi=colorcnt * BarWi;
         if(BlockWi<1) BlockWi=1;
         int f_offset = position*BlockWi;
@@ -166,9 +165,9 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         }
 
         Direction = Direction > 9?Direction-6:Direction;
-        for (x=0; x<buffer.BufferWi; x++)
+        for (x=-2*buffer.BufferWi; x<2*buffer.BufferWi; x++)
         {
-            n=x+f_offset;
+            n=buffer.BufferWi+x+f_offset;
             ColorIdx=(n % BlockWi) / BarWi;
             int color2 = (ColorIdx+1)%colorcnt;
             double pct = (double)(n % BarWi) / (double)BarWi;
@@ -196,21 +195,21 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     break;
                 case 6:
                     // H-expand
-                    if (x <= HalfWi) {
+                    if (x <= NewCenter) {
                         for (y=0; y<buffer.BufferHt; y++)
                         {
                             buffer.SetPixel(x, y, color);
-                            buffer.SetPixel(buffer.BufferWi-x-1, y, color);
+                            buffer.SetPixel(NewCenter + (NewCenter - x), y, color);
                         }
                     }
                     break;
                 case 7:
                     // H-compress
-                    if (x >= HalfWi) {
+                    if (x >= NewCenter) {
                         for (y=0; y<buffer.BufferHt; y++)
                         {
                             buffer.SetPixel(x, y, color);
-                            buffer.SetPixel(buffer.BufferWi-x-1, y, color);
+                            buffer.SetPixel(NewCenter + (NewCenter - x), y, color);
                         }
                     }
                     break;
