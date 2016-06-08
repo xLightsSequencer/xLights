@@ -1548,7 +1548,7 @@ char *stringdimvar(void) {
   char id[32];
   int len;
   DIMVAR *dimvar;
-  char **answer;
+  char **answer = NULL;
   int index[5];
 
   getid(string, id, &len);

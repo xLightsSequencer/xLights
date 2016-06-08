@@ -460,7 +460,7 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
 {
     wxString ChannelName, TestName;
     int32_t ChannelColor;
-    int ch, p, csec, StartCSec, ii;
+    int ch, p, csec, StartCSec = 0, ii;
     int intensity, LastIntensity;
     wxFile f;
     int* savedIndexes;
@@ -1618,7 +1618,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
     //pass 2, convert the data
     event = parser->getNext();
     done = 0;
-    bool empty;
+    bool empty = false;
     while (!done)
     {
         if (!event)

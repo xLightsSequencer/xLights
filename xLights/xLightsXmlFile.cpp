@@ -1609,9 +1609,9 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
             filename += "_1";
         }
 
-        Element* element;
-        EffectLayer* effectLayer;
-        wxXmlNode* layer;
+        Element* element = NULL;
+        EffectLayer* effectLayer = NULL;
+        wxXmlNode* layer = NULL;
         if( sequence_loaded )
         {
             element = xLightsParent->AddTimingElement(filename);
@@ -1779,9 +1779,9 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
                             if( grid_name == timing_grids[i] )
                             {
                                 std::string new_timing_name = filename + ": " + grid_name;
-                                Element* element;
-                                EffectLayer* effectLayer;
-                                wxXmlNode* layer;
+                                Element* element = NULL;
+                                EffectLayer* effectLayer = NULL;
+                                wxXmlNode* layer = NULL;
                                 if( sequence_loaded )
                                 {
                                     element = xLightsParent->AddTimingElement(new_timing_name);
@@ -1887,10 +1887,10 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
 
             name = UniqueTimingName(xLightsParent, name);
 
-            Element* element;
-            EffectLayer* effectLayer;
-            wxXmlNode* layer;
-            wxXmlNode* timing;
+            Element* element = NULL;
+            EffectLayer* effectLayer = NULL;
+            wxXmlNode* layer = NULL;
+            wxXmlNode* timing = NULL;
             if (sequence_loaded)
             {
                 element = xLightsParent->AddTimingElement(std::string(name.c_str()));
@@ -2054,9 +2054,9 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                 ProcessError(wxString::Format(_("Invalid file @line %d ('%s' phrases for %s)"), linenum, line.c_str(), desc.c_str()));
             }
 
-            Element* element;
-            wxXmlNode* timing, *l1, *l2, *l3;
-            EffectLayer *el1, *el2, *el3;
+            Element* element = NULL;
+            wxXmlNode* timing = NULL, *l1 = NULL, *l2 = NULL, *l3 = NULL;
+            EffectLayer *el1 = NULL, *el2 = NULL, *el3 = NULL;
 
             if (sequence_loaded)
             {
@@ -2286,8 +2286,8 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
                                     wxString name = UniqueTimingName(xLightsParent, next_file.GetName());
                                     logger_base.info("  Track: " + std::string(name.c_str()));
                                     Element* element = NULL;
-                                    EffectLayer* effectLayer;
-                                    wxXmlNode* layer;
+                                    EffectLayer* effectLayer = NULL;
+                                    wxXmlNode* layer = NULL;
                                     wxXmlNode* timing = NULL;
                                     int present = 0;
                                     for (wxXmlNode* is = t->GetChildren(); is != NULL; is = is->GetNext()) {
@@ -2646,9 +2646,9 @@ bool xLightsXmlFile::TimingAlreadyExists(const std::string & section, xLightsFra
 
 void xLightsXmlFile::AddNewTimingSection(const std::string & filename, xLightsFrame* xLightsParent,
                                          std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels) {
-    Element* element;
-    EffectLayer* effectLayer;
-    wxXmlNode* layer;
+    Element* element = NULL;
+    EffectLayer* effectLayer = NULL;
+    wxXmlNode* layer = NULL;
     if( sequence_loaded )
     {
         element = xLightsParent->AddTimingElement(filename);

@@ -205,7 +205,7 @@ static PicturesRenderCache *GetCache(RenderBuffer &buf) {
 //this allows copy/paste from Vixen grid:
 void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug, const wxString& filename)
 {
-    wxByte rgb[3];
+    wxByte rgb[3] = {0,0,0};
     PicturesRenderCache *cache = GetCache(buffer);
     cache->imageCount = 0;
     cache->imageIndex = 0;
@@ -405,8 +405,8 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     int imght   =image.GetHeight();
     int yoffset =(BufferHt+imght)/2; //centered if sizes don't match
     int xoffset =(imgwidth-BufferWi)/2; //centered if sizes don't match
-    int waveX, waveY, waveW, waveN; //location of first wave, height adjust, width, wave# -DJ
-    float xscale, yscale;
+    int waveX=0, waveY=0, waveW=0, waveN=0; //location of first wave, height adjust, width, wave# -DJ
+    float xscale=0, yscale=0;
 
     if( scale_to_fit )
     {

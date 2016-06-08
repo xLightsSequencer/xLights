@@ -500,7 +500,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
     //pass 2, convert the data
     event = parser->getNext();
     done = 0;
-    bool empty;
+    bool empty = false;
     while (!done)
     {
         if (!event)
