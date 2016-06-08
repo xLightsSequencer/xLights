@@ -233,8 +233,8 @@ void xLightsFrame::LoadPerspectivesMenu(wxXmlNode* perspectivesNode)
     current_menuitem = current_menuitem_node->GetData();
     while (!current_menuitem->IsSeparator())
     {
-        MenuItemPerspectives->Delete(current_menuitem);
         current_menuitem_node = current_menuitem_node->GetPrevious();
+        MenuItemPerspectives->Delete(current_menuitem);
         current_menuitem = current_menuitem_node->GetData();
     }
 
