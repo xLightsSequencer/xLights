@@ -17,6 +17,7 @@
 #include "WindowFrameModel.h"
 #include "WreathModel.h"
 #include "SphereModel.h"
+#include "SpinnerModel.h"
 #include "IciclesModel.h"
 
 ModelManager::ModelManager(NetInfoClass &ni) : netInfo(ni)
@@ -240,6 +241,14 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "16");
         model = new MatrixModel(node, *this, false);
+    } else if (type == "Spinner") {
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "10");
+        node->DeleteAttribute("parm3");
+        node->AddAttribute("parm3", "5");
+        node->DeleteAttribute("Start");
+        node->AddAttribute("Start", "Center Bottom Arm");
+        model = new SpinnerModel(node, *this, false);
     } else if (type == "Icicles") {
         node->DeleteAttribute("parm2");
         node->AddAttribute("parm2", "80");
@@ -287,6 +296,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, bool zeroBased) const {
         model = new WholeHouseModel(node, *this, zeroBased);
     } else if (type == "Vert Matrix" || type == "Horiz Matrix") {
         model = new MatrixModel(node, *this, zeroBased);
+    } else if (type == "Spinner") {
+        model = new SpinnerModel(node, *this, zeroBased);
     } else {
         wxMessageBox(type + " is not a valid model type for model " + node->GetAttribute("name"));
         return nullptr;

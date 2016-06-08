@@ -15,16 +15,21 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
+            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+        virtual void GetBufferSize(const std::string &type, const std::string &transform,
+            int &BufferWi, int &BufferHi) const override;
 
     protected:
         virtual void AddStyleProperties(wxPropertyGridInterface *grid);
     
         SpinnerModel(const ModelManager &manager);
         virtual void InitModel() override;
-    
-        void InitSpinner();
-    
-        bool vMatrix;
+        virtual int MapToNodeIndex(int strand, int node) const override;
+        virtual int CalcCannelsPerString() override;
+
+        void SetSpinnerCoord();
+        int spinnerStart;
     private:
 };
 

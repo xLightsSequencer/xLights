@@ -4,6 +4,7 @@
 #include "tree.xpm"
 #include "wreath.xpm"
 #include "circles.xpm"
+#include "spinner.xpm"
 #include "custom.xpm"
 #include "matrix.xpm"
 #include "frame.xpm"
