@@ -4,7 +4,8 @@ PREFIX          = /usr/local
 
 # Ignore some warnings for now to make compile output cleaner
 # until the issues are cleaned up in the code.
-IGNORE_WARNINGS = -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value -Wno-sequence-point -Wno-comment -Wno-unused-function
+#IGNORE_WARNINGS = -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value -Wno-sequence-point -Wno-comment -Wno-unused-function
+IGNORE_WARNINGS = -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 
 MKDIR           = mkdir -p
 CHK_DIR_EXISTS  = test -d
@@ -83,7 +84,6 @@ xLights/xLights.cbp.mak: xLights/xLights.cbp
 	cp xLights/xLights.cbp.mak xLights/xLights.cbp.mak.orig
 	cat xLights/xLights.cbp.mak.orig \
 		| sed \
-			-e "s/^CFLAGS = \(.*\)/CFLAGS = \1 -std=gnu++11/" \
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
 		> xLights/xLights.cbp.mak

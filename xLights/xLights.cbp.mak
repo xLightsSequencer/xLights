@@ -12,7 +12,7 @@ LD = g++
 WINDRES = windres
 
 INC = 
-CFLAGS = -fno-strict-aliasing -Wno-unused-local-typedefs -DwxUSE_UNICODE -std=gnu++11
+CFLAGS = -fno-strict-aliasing -Wno-unused-local-typedefs -DwxUSE_UNICODE
 RESINC = 
 LIBDIR = 
 LIB = 
@@ -30,9 +30,9 @@ DEP_LINUX_DEBUG =
 OUT_LINUX_DEBUG = ../bin/xLights
 
 INC_LINUX_RELEASE = $(INC) -Iinclude -Isequencer -I../xLights -Ieffects -Ieffects/ -Imodels -Ieffects/assist -I../include -Imodels/
-CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -std=gnu++14 -Wall `wx-config --version=3.1 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -D__cdecl='' -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value -Wno-sequence-point -Wno-comment -Wno-unused-function
+CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -std=gnu++14 -Wall `wx-config --version=3.1 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -D__cdecl='' -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 RESINC_LINUX_RELEASE = $(RESINC)
-RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value -Wno-sequence-point -Wno-comment -Wno-unused-function
+RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 LIBDIR_LINUX_RELEASE = $(LIBDIR)
 LIB_LINUX_RELEASE = $(LIB)
 LDFLAGS_LINUX_RELEASE =  -s -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat $(LDFLAGS)
