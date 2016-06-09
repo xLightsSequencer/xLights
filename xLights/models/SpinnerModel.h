@@ -29,7 +29,8 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int CalcCannelsPerString() override;
 
         void SetSpinnerCoord();
-        int spinnerStart;
+        int hollow;
+        int arc;
     private:
 };
 

@@ -246,8 +246,10 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("parm2", "10");
         node->DeleteAttribute("parm3");
         node->AddAttribute("parm3", "5");
-        node->DeleteAttribute("Start");
-        node->AddAttribute("Start", "Center Bottom Arm");
+        node->DeleteAttribute("Hollow");
+        node->AddAttribute("Hollow", "20");
+        node->DeleteAttribute("Arc");
+        node->AddAttribute("Arc", "360");
         model = new SpinnerModel(node, *this, false);
     } else if (type == "Icicles") {
         node->DeleteAttribute("parm2");
