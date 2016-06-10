@@ -59,8 +59,6 @@ void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         TOP_BOT_LEFT_RIGHT.Add("End Clockwise");
     }
     
-    AddStyleProperties(grid);
-
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "SpinnerStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
@@ -86,16 +84,11 @@ void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 360);
     p->SetEditor("SpinCtrl");
 
+    p = grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
+
     p = grid->Append(new wxBoolProperty("Zig-Zag Start", "ZigZag", zigzag));
     p->SetEditor("CheckBox");
-    //p->Enable(!zigzag);
-
-    p = grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
 }
-
-void SpinnerModel::AddStyleProperties(wxPropertyGridInterface *grid) {
-}
-
 
 int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("SpinnerStringCount" == event.GetPropertyName()) {
@@ -141,6 +134,19 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     return Model::OnPropertyGridChange(grid, event);
 }
 
+void SpinnerModel::GetBufferSize(const std::string &type, const std::string &transform,
+    int &BufferWi, int &BufferHi) const
+{
+    if (type == "Single Line") {
+        BufferHi = 1;
+        BufferWi = this->BufferWi * this->BufferHt;
+        AdjustForTransform(transform, BufferWi, BufferHi);
+    }
+    else {
+        Model::GetBufferSize(type, transform, BufferWi, BufferHi);
+    }
+}
+
 int SpinnerModel::GetNumStrands() const {
     if (SingleChannel) {
         return 1;
@@ -148,9 +154,6 @@ int SpinnerModel::GetNumStrands() const {
     return parm1*parm3;
 }
 
-// parm1=NumStrings
-// parm2=pixelsperstring
-// parm3=StrandsPerString
 void SpinnerModel::InitModel() {
     int stringcount = parm1;
     int nodesperarm = parm2;
@@ -162,30 +165,23 @@ void SpinnerModel::InitModel() {
     arc = wxAtoi(ModelXml->GetAttribute("Arc", "360"));
     zigzag = (ModelXml->GetAttribute("ZigZag", "false") == "true");
 
-    SetBufferSize(armcount, nodesperarm);
     SetNodeCount(stringcount, pixelsperstring, rgbOrder);
     screenLocation.SetRenderSize(2 * nodesperarm + 3 + (hollow * 2.0 * nodesperarm) / 100.0, 2 * nodesperarm + 3 + (hollow * 2.0 * nodesperarm) / 100.0);
 
     // create output mapping
     if (SingleNode) {
-        size_t x = 0;
-        for (size_t n = 0; n<Nodes.size(); n++) {
-            Nodes[n]->ActChan = stringStartChan[n];
-            size_t y = 0;
-            size_t yincr = 1;
-            for (size_t c = 0; c<pixelsperstring; c++) {
-                Nodes[n]->Coords[c].bufX = IsLtoR != x ? x : armcount - x - 1;
-                Nodes[n]->Coords[c].bufY = y;
-                y += yincr;
-                if (y < 0 || y >= nodesperarm) {
-                    yincr = -yincr;
-                    y += yincr;
-                    x++;
-                }
+        SetBufferSize(1, armcount);
+        for (size_t x = 0; x<Nodes.size(); x++) {
+            Nodes[x]->ActChan = stringStartChan[x];
+            Nodes[x]->StringNum = x;
+            for (size_t c = 0; c<GetCoordCount(x); c++) {
+                Nodes[x]->Coords[c].bufX = IsLtoR ? Nodes.size() - x - 1 : x;
+                Nodes[x]->Coords[c].bufY = 0;
             }
         }
     }
     else {
+        SetBufferSize(nodesperarm, armcount);
         for (size_t x = 0; x < armcount; x++) {
             int stringnum = x / armsperstring;
             int segmentnum = x % armsperstring;
@@ -193,7 +189,7 @@ void SpinnerModel::InitModel() {
             {
                 size_t idx = stringnum * pixelsperstring + segmentnum * nodesperarm + y;
                 Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * nodesperarm * 3 + y * 3;
-                Nodes[idx]->Coords[0].bufX = IsLtoR != (segmentnum % 2 == 0) ? armcount - x - 1 : x;
+                Nodes[idx]->Coords[0].bufX = IsLtoR != (segmentnum % 2 == 0) ? x : armcount - x - 1;
                 if (!zigzag)
                 {
                     Nodes[idx]->Coords[0].bufY = isBotToTop ? y : nodesperarm - y - 1;
@@ -216,17 +212,6 @@ void SpinnerModel::InitModel() {
     SetSpinnerCoord();
 
     DisplayAs = "Spinner";
-}
-
-void SpinnerModel::GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const {
-    if (type == "Single Line") {
-        BufferHi = 1;
-        BufferWi = this->BufferWi * this->BufferHt;
-        AdjustForTransform(transform, BufferWi, BufferHi);
-    }
-    else {
-        Model::GetBufferSize(type, transform, BufferWi, BufferHi);
-    }
 }
 
 void SpinnerModel::InitRenderBufferNodes(const std::string &type, const std::string &transform,
@@ -282,19 +267,12 @@ void SpinnerModel::SetSpinnerCoord() {
     {
         if (SingleNode)
         {
-            size_t CoordCount = GetCoordCount(a);
-            for (size_t c = 0; c < CoordCount; c++) {
-                int a1 = a;
-                int per = Nodes.size() * CoordCount / armcount;
-                if (per != 1)
-                {
-                    a1 = a * Nodes.size() / armcount;
-                }
-                int start = a * per;
-                int end = start + per;
+            int a1 = a / armsperstring;
+            size_t CoordCount = GetCoordCount(a1);
+            int start = a * nodesperarm - a1 * armsperstring * nodesperarm;
+            int end = start + nodesperarm;
+            for (size_t c = start; c < end; c++) {
                 int c2 = c - start;
-                if (c >= start && c < end)
-                {
                     int c1 = 0;
                     if (!fromcentre) {
                         c1 = nodesperarm - c2 - 1;
@@ -314,7 +292,6 @@ void SpinnerModel::SetSpinnerCoord() {
 
                     Nodes[a1]->Coords[c].screenX = (0.5f + (float)c1 + ((float)hollow * 2.0 * (float)nodesperarm) / 100.0) * cos(angle);
                     Nodes[a1]->Coords[c].screenY = (0.5f + (float)c1 + ((float)hollow * 2.0 * (float)nodesperarm) / 100.0) * sin(angle);
-                }
             }
         }
         else
@@ -372,6 +349,10 @@ void SpinnerModel::SetSpinnerCoord() {
 }
 
 int SpinnerModel::MapToNodeIndex(int strand, int node) const {
+    if (SingleNode) {
+        return strand;
+    }
+
     return strand * parm2 + node;
 }
 int SpinnerModel::CalcCannelsPerString() {

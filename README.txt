@@ -9,6 +9,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- enh (keithsw) Allow bars effect centre for compress/expand to be moved
+   -- enh (keithsw) Add spinner model
 2016.36  Jun 06, 2016
    -- enh (keithsw) Change backup files to *.xbkp extension to minimise risk of users opening them accidentally. Include them in F10 backup.
    -- bug (dkulp) Don't use OpenGL 2.1 if context is 2.0

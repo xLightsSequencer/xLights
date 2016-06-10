@@ -21,8 +21,6 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
             int &BufferWi, int &BufferHi) const override;
 
     protected:
-        virtual void AddStyleProperties(wxPropertyGridInterface *grid);
-    
         SpinnerModel(const ModelManager &manager);
         virtual void InitModel() override;
         virtual int MapToNodeIndex(int strand, int node) const override;
