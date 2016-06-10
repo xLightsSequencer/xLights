@@ -1781,7 +1781,7 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
             break;
 
         default:
-            //event.Skip();
+            event.Skip();
             break;
     }
 }
