@@ -842,6 +842,8 @@
 		<Unit filename="models/SingleLineModel.h" />
 		<Unit filename="models/SphereModel.cpp" />
 		<Unit filename="models/SphereModel.h" />
+		<Unit filename="models/SpinnerModel.cpp" />
+		<Unit filename="models/SpinnerModel.h" />
 		<Unit filename="models/StarModel.cpp" />
 		<Unit filename="models/StarModel.h" />
 		<Unit filename="models/TreeModel.cpp" />
