@@ -160,17 +160,17 @@ void SingleLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     if (SingleNode) {
         p = grid->Append(new wxUIntProperty("Lights/String", "SingleLineNodes", parm2));
         p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 250);
+        p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
     } else {
         p = grid->Append(new wxUIntProperty("Nodes/String", "SingleLineNodes", parm2));
         p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 250);
+        p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
 
         p = grid->Append(new wxUIntProperty("Lights/Node", "SingleLineLights", parm3));
         p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 250);
+        p->SetAttribute("Max", 300);
         p->SetEditor("SpinCtrl");
     }
 
