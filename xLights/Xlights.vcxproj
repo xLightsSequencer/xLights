@@ -307,6 +307,7 @@
     <ClCompile Include="models\Node.cpp" />
     <ClCompile Include="models\SingleLineModel.cpp" />
     <ClCompile Include="models\SphereModel.cpp" />
+    <ClCompile Include="models\SpinnerModel.cpp" />
     <ClCompile Include="models\StarModel.cpp" />
     <ClCompile Include="models\TreeModel.cpp" />
     <ClCompile Include="models\WholeHouseModel.cpp" />
@@ -540,6 +541,7 @@
     <ClInclude Include="models\Node.h" />
     <ClInclude Include="models\SingleLineModel.h" />
     <ClInclude Include="models\SphereModel.h" />
+    <ClInclude Include="models\SpinnerModel.h" />
     <ClInclude Include="models\StarModel.h" />
     <ClInclude Include="models\TreeModel.h" />
     <ClInclude Include="models\WholeHouseModel.h" />

@@ -780,6 +780,9 @@
     <ClCompile Include="effects\FillPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="models\SpinnerModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1494,6 +1497,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="effects\FillPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\SpinnerModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

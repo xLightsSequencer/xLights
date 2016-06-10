@@ -276,7 +276,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     ListBoxElementList->SetColumnWidth(1,10);
     ListBoxElementList->SetColumnWidth(2,10);
 
-    ToolSizer->SetCols(12);
+    ToolSizer->SetCols(13);
     AddModelButton("Arches", arches);
     AddModelButton("Candy Canes", canes);
     AddModelButton("Circle", circles);
@@ -284,6 +284,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     AddModelButton("Icicles", icicles_xpm);
     AddModelButton("Matrix", matrix);
     AddModelButton("Single Line", singleline);
+    AddModelButton("Spinner", spinner);
     AddModelButton("Star", star);
     AddModelButton("Tree", tree);
     AddModelButton("Window Frame", frame);
