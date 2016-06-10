@@ -707,10 +707,11 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
                 background = new wxImage();
             }
         }
-        propertyEditor->Append(new xlImageProperty("Background Image",
+        wxPGProperty* p = propertyEditor->Append(new xlImageProperty("Background Image",
                                                    "BkgImage",
                                                    modelPreview->GetBackgroundImage(),
                                                    *background));
+        p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*");
         propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", modelPreview->GetScaleBackgroundImage()))->SetAttribute("UseCheckbox", 1);
         wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
         prop->SetAttribute("Min", 0);
