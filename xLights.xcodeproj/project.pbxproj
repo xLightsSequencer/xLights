@@ -79,6 +79,8 @@
 		675AB42F1B5ACEDA00853A28 /* PluginWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB4201B5ACEDA00853A28 /* PluginWrapper.cpp */; };
 		675AB4301B5ACEDA00853A28 /* RealTime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB4221B5ACEDA00853A28 /* RealTime.cpp */; };
 		675AC53D1C987AA700C4AFE9 /* CustomModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AC53C1C987AA700C4AFE9 /* CustomModelDialog.cpp */; };
+		675D1E951D0B54B800CC6C02 /* LayoutGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675D1E911D0B54B800CC6C02 /* LayoutGroup.cpp */; };
+		675D1E961D0B54B800CC6C02 /* PreviewPane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675D1E921D0B54B800CC6C02 /* PreviewPane.cpp */; };
 		675DE2671B53381800A9BB44 /* EffectAssist.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2551B53381800A9BB44 /* EffectAssist.cpp */; };
 		675DE2681B53381800A9BB44 /* FlickerFreeBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2571B53381800A9BB44 /* FlickerFreeBitmapButton.cpp */; };
 		675DE2691B53381800A9BB44 /* xlColorCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2591B53381800A9BB44 /* xlColorCanvas.cpp */; };
@@ -469,6 +471,10 @@
 		675AB4251B5ACEDA00853A28 /* Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Window.h; path = "vamp-hostsdk/Window.h"; sourceTree = "<group>"; };
 		675AC53B1C987AA700C4AFE9 /* CustomModelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomModelDialog.h; sourceTree = "<group>"; };
 		675AC53C1C987AA700C4AFE9 /* CustomModelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CustomModelDialog.cpp; sourceTree = "<group>"; };
+		675D1E911D0B54B800CC6C02 /* LayoutGroup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutGroup.cpp; sourceTree = "<group>"; };
+		675D1E921D0B54B800CC6C02 /* PreviewPane.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreviewPane.cpp; sourceTree = "<group>"; };
+		675D1E931D0B54B800CC6C02 /* LayoutGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutGroup.h; sourceTree = "<group>"; };
+		675D1E941D0B54B800CC6C02 /* PreviewPane.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreviewPane.h; sourceTree = "<group>"; };
 		675DE2551B53381800A9BB44 /* EffectAssist.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectAssist.cpp; sourceTree = "<group>"; };
 		675DE2561B53381800A9BB44 /* EffectAssist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectAssist.h; sourceTree = "<group>"; };
 		675DE2571B53381800A9BB44 /* FlickerFreeBitmapButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FlickerFreeBitmapButton.cpp; sourceTree = "<group>"; };
@@ -1316,6 +1322,10 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				675D1E911D0B54B800CC6C02 /* LayoutGroup.cpp */,
+				675D1E921D0B54B800CC6C02 /* PreviewPane.cpp */,
+				675D1E931D0B54B800CC6C02 /* LayoutGroup.h */,
+				675D1E941D0B54B800CC6C02 /* PreviewPane.h */,
 				67278C811CF87537000DCFFB /* ModelGroupPanel.cpp */,
 				67278C821CF87537000DCFFB /* ModelGroupPanel.h */,
 				67278C781CF74A01000DCFFB /* ValueCurve.cpp */,
@@ -1834,6 +1844,7 @@
 				670E473F1C62A901008F4C60 /* ModelGroup.cpp in Sources */,
 				6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */,
 				67B2CFEC1C3A186A003C17CA /* GlediatorEffect.cpp in Sources */,
+				675D1E951D0B54B800CC6C02 /* LayoutGroup.cpp in Sources */,
 				6784F92D1A5653670018EC0C /* RowHeading.cpp in Sources */,
 				6784F9311A5653670018EC0C /* Waveform.cpp in Sources */,
 				676C5EAF1C99D8AF0031A033 /* CandyCaneModel.cpp in Sources */,
@@ -1845,6 +1856,7 @@
 				6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */,
 				67A61A5317B51C0F008E95BB /* SerialPortWithRate.cpp in Sources */,
 				67D11C7A1BEA691900000A7F /* DimmingCurve.cpp in Sources */,
+				675D1E961D0B54B800CC6C02 /* PreviewPane.cpp in Sources */,
 				67B2CF881C39D98A003C17CA /* SpiralsPanel.cpp in Sources */,
 				670B144F1B7128AA0090F1F5 /* ModelFaceDialog.cpp in Sources */,
 				675DE26B1B53381800A9BB44 /* xlColorPickerFields.cpp in Sources */,

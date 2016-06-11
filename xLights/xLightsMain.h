@@ -17,23 +17,23 @@
 #endif
 
 //(*Headers(xLightsFrame)
-#include <wx/gauge.h>
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
 #include <wx/listctrl.h>
-#include <wx/button.h>
-#include <wx/menu.h>
-#include <wx/dirdlg.h>
-#include <wx/panel.h>
-#include <wx/splitter.h>
-#include <wx/frame.h>
-#include <wx/gbsizer.h>
-#include <wx/stattext.h>
-#include <wx/aui/aui.h>
-#include <wx/textctrl.h>
-#include <wx/timer.h>
 #include <wx/treectrl.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/menu.h>
+#include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/splitter.h>
+#include <wx/aui/aui.h>
+#include <wx/panel.h>
+#include <wx/bmpbuttn.h>
+#include <wx/gbsizer.h>
+#include <wx/button.h>
+#include <wx/dirdlg.h>
+#include <wx/frame.h>
+#include <wx/timer.h>
+#include <wx/gauge.h>
 //*)
 
 #include <wx/config.h>
@@ -95,6 +95,7 @@
 #include "DisplayElementsPanel.h"
 #include "effects/EffectManager.h"
 #include "models/ModelManager.h"
+#include "LayoutGroup.h"
 #include "xLightsTimer.h"
 #include "wx/aui/aui.h"
 #include "JobPool.h"
@@ -794,119 +795,120 @@ private:
 
 
     //(*Declarations(xLightsFrame)
-    wxMenuItem* Menu_Settings_Sequence;
-    wxMenu* MenuItem18;
+    xlAuiToolBar* OutputToolBar;
+    wxButton* ButtonAddE131;
+    wxMenuItem* MenuItemViewSavePerspective;
+    wxMenuItem* QuitMenuItem;
+    wxMenuItem* MenuItem33;
     wxMenuItem* MenuItemLoadEditPerspective;
-    wxMenuBar* MenuBar;
+    wxMenuItem* MenuItemGridNodeValuesOff;
+    wxCheckBox* CheckBoxRunSchedule;
     wxMenuItem* MenuItem40;
+    wxButton* ButtonClearLog;
+    wxBitmapButton* BitmapButtonMoveNetworkDown;
+    wxMenu* ToolIconSizeMenu;
+    wxMenuItem* MenuItem_File_Open_Sequence;
+    wxAuiManager* m_mgr;
+    wxStaticText* StaticText2;
+    wxAuiManager* MainAuiManager;
+    wxMenuItem* MenuItemRenderCanvasMode;
     wxStaticText* StaticTextShowEnd;
     wxMenuItem* MenuItemGridNodeValuesOn;
-    wxMenu* OpenGLMenu;
-    xlAuiToolBar* MainToolBar;
-    wxButton* ButtonDeleteShow;
-    wxMenuItem* MenuItem42;
-    wxMenuItem* MenuItem43;
-    wxButton* ButtonClearLog;
-    wxButton* ButtonAddE131;
-    wxBitmapButton* BitmapButton_Link_Dirs;
-    wxMenuItem* MenuItemRenderCanvasMode;
-    wxMenu* Menu1;
-    wxMenuItem* MenuItemGridIconBackgroundOn;
-    wxPanel* AUIStatusBar;
-    wxButton* ButtonUpdateShow;
-    wxTreeCtrl* ListBoxSched;
-    wxMenuItem* MenuItem16;
-    wxMenuItem* MenuItem_File_Open_Sequence;
-    wxMenuItem* MenuItem36;
-    wxCheckBox* CheckBoxRunSchedule;
-    wxButton* ButtonSaveSetup;
-    wxButton* Button_Change_Media_Dir;
-    wxPanel* PanelSequencer;
-    wxMenuItem* MenuItemViewSavePerspective;
-    wxMenu* MenuFile;
     wxMenu* Menu3;
-    wxMenuItem* MenuItem32;
-    wxGridBagSizer* StatusBarSizer;
-    wxMenu* AutoSaveMenu;
-    wxStaticText* MediaDirectoryLabel;
-    wxTimer EffectSettingsTimer;
-    xlAuiToolBar* OutputToolBar;
-    wxMenuItem* mRenderOnSaveMenuItem;
-    xlAuiToolBar* WindowMgmtToolbar;
-    wxTimer Timer_AutoSave;
-    wxMenuItem* MenuItem_File_Save_Sequence;
-    wxAuiManager* m_mgr;
-    wxMenu* MenuItem7;
-    wxMenuItem* MenuItem33;
-    wxButton* ButtonSaveLog;
-    wxMenu* ToolIconSizeMenu;
-    wxMenuItem* MenuItem_File_Close_Sequence;
-    wxBitmapButton* BitmapButtonMoveNetworkDown;
-    wxDirDialog* DirDialog1;
-    wxStaticText* StaticText1;
-    wxStaticText* StaticTextShowStart;
-    xlAuiToolBar* EditToolBar;
-    wxMenuItem* Menu_GenerateCustomModel;
-    wxMenu* MenuItem1;
-    wxMenuItem* MenuItem_ViewZoomOut;
-    wxPanel* Panel2;
-    wxSplitterWindow* SplitterWindow1;
-    wxPanel* PanelCal;
-    wxPanel* PanelPreview;
-    wxMenuItem* MenuItemGridIconBackgroundOff;
-    wxStaticText* StaticText3;
-    xlAuiToolBar* ViewToolBar;
     wxTextCtrl* TextCtrlLog;
-    wxButton* ButtonAddShow;
-    wxMenu* MenuSettings;
-    wxMenuItem* MenuItem3;
-    wxButton* ButtonNetworkChange;
-    wxButton* ButtonSaveSchedule;
-    wxMenuItem* MenuItemViewSaveAsPerspective;
-    wxMenuItem* MenuItemSavePlaylists;
-    wxPanel* PanelSetup;
-    wxMenuItem* MenuItem35;
-    wxFlexGridSizer* GaugeSizer;
-    wxPanel* Panel3;
-    wxBitmapButton* BitmapButtonMoveNetworkUp;
-    xLightsTimer Timer1;
-    wxStaticText* ShowDirectoryLabel;
-    wxMenuItem* MenuItemGridNodeValuesOff;
-    xlAuiToolBar* EffectsToolBar;
-    wxButton* ButtonShowDatesChange;
-    wxMenu* AudioMenu;
-    wxMenuItem* MenuItem_ViewZoomIn;
-    wxMenuItem* MenuItemRenderEraseMode;
-    wxListCtrl* GridNetwork;
-    wxMenuItem* MenuItem41;
-    wxMenu* GridSpacingMenu;
-    wxStaticText* StaticText4;
-    wxStaticText* StatusText;
-    wxMenuItem* MenuItem38;
-    wxStaticText* StaticText2;
-    wxButton* ButtonAddDongle;
-    wxMenuItem* MenuItemRefresh;
-    wxGauge* ProgressBar;
-    wxMenuItem* MenuItemEffectAssistAlwaysOn;
     wxMenu* MenuItemRenderMode;
-    wxMenuItem* ActionTestMenuItem;
-    wxMenuItem* MenuItemEffectAssistWindow;
-    wxStaticText* FileNameText;
-    wxButton* ButtonNetworkDelete;
-    wxMenuItem* MenuItem37;
-    wxAuiNotebook* Notebook1;
-    wxMenuItem* MenuItemEffectAssistAlwaysOff;
-    wxMenuItem* MenuItem_File_SaveAs_Sequence;
-    wxMenuItem* MenuItemBackup;
-    wxMenuItem* MenuItem34;
+    wxButton* Button_Change_Media_Dir;
+    wxMenuItem* MenuItemRefresh;
+    wxMenuItem* MenuItem_File_Save_Sequence;
+    wxMenuItem* MenuItem36;
     wxButton* ButtonNetworkDeleteAll;
-    wxAuiManager* MainAuiManager;
-    wxButton* ButtonAddNull;
-    wxMenuItem* MenuItemEffectAssistToggleMode;
-    wxMenuItem* MenuItemConvert;
+    wxTimer EffectSettingsTimer;
+    wxMenuItem* MenuItemGridIconBackgroundOn;
+    wxMenuItem* MenuItem_File_Close_Sequence;
+    wxStaticText* StaticTextShowStart;
+    wxPanel* AUIStatusBar;
+    xlAuiToolBar* ViewToolBar;
+    wxMenuItem* MenuItem37;
+    wxStaticText* StaticText1;
+    wxMenuItem* MenuItem32;
+    wxMenuItem* MenuItem_ViewZoomIn;
+    wxPanel* PanelPreview;
+    xLightsTimer Timer1;
+    wxStaticText* StaticText3;
     xlAuiToolBar* PlayToolBar;
-    wxMenuItem* QuitMenuItem;
+    wxMenu* Menu1;
+    wxFlexGridSizer* GaugeSizer;
+    wxPanel* PanelSequencer;
+    wxButton* ButtonSaveLog;
+    wxMenuItem* MenuItem42;
+    wxPanel* Panel3;
+    wxMenuItem* MenuItemEffectAssistAlwaysOn;
+    wxMenu* MenuItem7;
+    wxButton* ButtonAddDongle;
+    wxMenuItem* MenuItem_ViewZoomOut;
+    wxBitmapButton* BitmapButtonMoveNetworkUp;
+    wxMenuItem* MenuItemBackup;
+    xlAuiToolBar* WindowMgmtToolbar;
+    wxMenuItem* Menu_GenerateCustomModel;
+    wxMenuItem* MenuItem38;
+    wxMenuItem* MenuItemViewSaveAsPerspective;
+    wxMenuItem* MenuItemRenderEraseMode;
+    wxMenuItem* MenuItem3;
+    wxMenuItem* MenuItemConvert;
+    wxButton* ButtonNetworkChange;
+    wxButton* ButtonAddNull;
+    wxMenu* AutoSaveMenu;
+    wxMenuItem* Menu_Settings_Sequence;
+    wxMenu* MenuSettings;
+    wxButton* ButtonNetworkDelete;
+    wxBitmapButton* BitmapButton_Link_Dirs;
+    wxMenuItem* MenuItemEffectAssistAlwaysOff;
+    wxTreeCtrl* ListBoxSched;
+    wxListCtrl* GridNetwork;
+    wxStaticText* ShowDirectoryLabel;
+    wxPanel* PanelCal;
+    wxMenu* MenuFile;
+    wxDirDialog* DirDialog1;
+    wxAuiNotebook* Notebook1;
+    wxMenuItem* MenuItem35;
+    wxButton* ButtonDeleteShow;
+    wxButton* ButtonShowDatesChange;
+    wxMenu* OpenGLMenu;
+    wxStaticText* StatusText;
+    wxMenuItem* MenuItem_File_SaveAs_Sequence;
+    xlAuiToolBar* MainToolBar;
+    wxMenuItem* MenuItemEffectAssistToggleMode;
+    wxTimer Timer_AutoSave;
+    wxStaticText* MediaDirectoryLabel;
+    wxMenuItem* mRenderOnSaveMenuItem;
+    wxMenuItem* MenuItem41;
+    wxPanel* PanelSetup;
+    wxButton* ButtonSaveSetup;
+    wxPanel* Panel2;
+    wxMenuItem* MenuItemSavePlaylists;
     wxMenu* MenuItemPerspectives;
+    wxButton* ButtonUpdateShow;
+    wxMenu* GridSpacingMenu;
+    wxStaticText* FileNameText;
+    wxMenuItem* MenuItem16;
+    wxMenuItem* MenuItem34;
+    wxSplitterWindow* SplitterWindow1;
+    wxMenuItem* MenuItem43;
+    wxMenuItem* MenuItemEffectAssistWindow;
+    wxMenuItem* ActionTestMenuItem;
+    wxStaticText* StaticText4;
+    wxMenu* MenuItem18;
+    wxMenu* MenuItem1;
+    wxGauge* ProgressBar;
+    xlAuiToolBar* EffectsToolBar;
+    wxButton* ButtonSaveSchedule;
+    wxButton* ButtonAddShow;
+    wxGridBagSizer* StatusBarSizer;
+    wxMenu* MenuView;
+    wxMenu* AudioMenu;
+    xlAuiToolBar* EditToolBar;
+    wxMenuItem* MenuItemGridIconBackgroundOff;
+    wxMenuBar* MenuBar;
     //*)
 
     AUIToolbarButtonWrapper *CheckBoxLightOutput;
@@ -1104,7 +1106,6 @@ private:
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
     void UpdateGrid();
-    void SetXmlSetting(const wxString& settingName,const wxString& value);
     wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue);
 
     wxString CreateEffectString();
@@ -1163,6 +1164,8 @@ public:
     void SetFrequency(int frequency);
     void RenderAll();
 
+    void SetXmlSetting(const wxString& settingName,const wxString& value);
+
 protected:
     void ClearEffectWindow();
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
@@ -1189,7 +1192,6 @@ protected:
     bool GetGroupName(wxString& grpname);
     void SetSelectedModelToGroupSelected();
     void ShowModelProperties();
-    void SetModelAsPartOfDisplay(wxString& model);
     unsigned int GetMaxNumChannels();
 
 
@@ -1202,6 +1204,7 @@ protected:
 public:
     wxXmlNode* ModelsNode;
     wxXmlNode* ModelGroupsNode;
+    wxXmlNode* LayoutGroupsNode;
 private:
     wxXmlNode* SettingsNode;
 
@@ -1254,12 +1257,16 @@ public:
     void SetPreviewBackgroundScaled(bool scaled);
     void SetPreviewSize(int width, int height);
     void SetPreviewBackgroundImage(const wxString &filename);
+    const wxString & GetDefaultPreviewBackgroundImage();
     void SetPreviewBackgroundBrightness(int i);
     void UpdatePreview();
     void UpdateModelsList(bool update_groups = true);
     void RowHeadingsChanged( wxCommandEvent& event);
     int GetTotalChannels() { return _totalChannels; };
     void ForceSequencerRefresh();
+    void RefreshLayout();
+    void AddPreviewOption(LayoutGroup* grp);
+    ModelPreview* GetLayoutPreview() {return modelPreview;}
 
 private:
 
@@ -1317,6 +1324,7 @@ private:
     void TogglePlay(wxCommandEvent& event);
     void ExportModel(wxCommandEvent& event);
     void ShowDisplayElements(wxCommandEvent& event);
+    void ShowHidePreviewWindow(wxCommandEvent& event);
 
     void CheckForValidModels();
 
@@ -1343,12 +1351,18 @@ private:
     typedef enum { Normal, Locked, Random } EditState;
     std::unordered_map<std::string, EditState> buttonState;
     bool isRandom_(wxControl* ctl, const char*debug);
+
+    wxMenu* MenuItemPreviews;
+    static const long ID_MENU_ITEM_PREVIEWS;
+
 #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 
     DECLARE_EVENT_TABLE()
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ
 public:
     std::vector<Model *> PreviewModels;
+    std::vector<LayoutGroup *> LayoutGroups;
+    std::vector<ModelPreview *> PreviewWindows;
     ModelManager AllModels;
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
 

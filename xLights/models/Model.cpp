@@ -25,7 +25,7 @@ const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Pre
 
 
 
-Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), isMyDisplay(false), ModelXml(nullptr),
+Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), ModelXml(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
     StrobeRate(0), changeCount(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0)
 {
@@ -227,6 +227,7 @@ protected:
 
 static wxArrayString NODE_TYPES;
 static wxArrayString PIXEL_STYLES;
+static wxArrayString LAYOUT_GROUPS;
 
 void Model::SetProperty(wxString property, wxString value, bool apply)
 {
@@ -266,6 +267,24 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         NODE_TYPES.push_back("Single Color");
     }
 
+    LAYOUT_GROUPS.clear();
+    LAYOUT_GROUPS.push_back("Default");
+    LAYOUT_GROUPS.push_back("All Previews");
+    LAYOUT_GROUPS.push_back("Unassigned");
+
+    wxXmlNode* layouts_node = modelManager.GetLayoutsNode();
+    for(wxXmlNode* e=layouts_node->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "layoutGroup")
+        {
+            wxString grp_name=e->GetAttribute("name");
+            if (!grp_name.IsEmpty())
+            {
+                LAYOUT_GROUPS.push_back(grp_name.ToStdString());
+            }
+        }
+    }
+
     wxPGProperty *p;
     wxPGProperty *sp;
 
@@ -302,14 +321,24 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         }
     }
 
+    int layout_group_number = 0;
+    for( int grp=0; grp < LAYOUT_GROUPS.Count(); grp++)
+    {
+        if( LAYOUT_GROUPS[grp] == layout_group )
+        {
+            layout_group_number = grp;
+            break;
+        }
+    }
+
+    grid->Append(new wxEnumProperty("Preview", "ModelLayoutGroup", LAYOUT_GROUPS, wxArrayInt(), layout_group_number));
+
     p = grid->Append(new PopupDialogProperty(this, "Strand/Node Names", "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(this, "Faces", "ModelFaces", CLICK_TO_EDIT, 2));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(this, "Dimming Curves", "ModelDimmingCurves", CLICK_TO_EDIT, 3));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new wxBoolProperty("In My Display", "ModelMyDisplay", IsMyDisplay()));
-    p->SetAttribute("UseCheckbox", true);
 
     p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
     p->GetCell(0).SetFgCol(*wxBLACK);
@@ -422,9 +451,6 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         Model::WriteFaceInfo(ModelXml, faceInfo);
         IncrementChangeCount();
         return 2;
-    } else if (event.GetPropertyName() == "ModelMyDisplay") {
-        SetMyDisplay(event.GetValue().GetBool());
-        return 3 | 0x0008;
     } else if (event.GetPropertyName() == "ModelStringColor"
                || event.GetPropertyName() == "ModelStringType") {
         wxPGProperty *p2 = grid->GetPropertyByName("ModelStringType");
@@ -487,6 +513,12 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         modelManager.RecalcStartChannels();
         IncrementChangeCount();
         return 3 | 0x0008;
+    } else if (event.GetPropertyName() == "ModelLayoutGroup") {
+        layout_group = LAYOUT_GROUPS[event.GetValue().GetLong()];
+        ModelXml->DeleteAttribute("LayoutGroup");
+        ModelXml->AddAttribute("LayoutGroup", layout_group);
+        IncrementChangeCount();
+        return 3 | 0x0010;
     }
     int i = GetModelScreenLocation().OnPropertyGridChange(grid, event);
     if (i & 0x2) {
@@ -623,20 +655,7 @@ std::string Model::ComputeStringStartChannel(int i) {
     }
     return stch.ToStdString();
 }
-bool Model::IsMyDisplay(wxXmlNode* ModelNode)
-{
-    return ModelNode->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1");
-}
-void Model::SetMyDisplay(wxXmlNode* ModelNode,bool NewValue)
-{
-    ModelNode->DeleteAttribute(wxT("MyDisplay"));
-    ModelNode->AddAttribute(wxT("MyDisplay"), NewValue ? wxT("1") : wxT("0"));
-}
-void Model::SetMyDisplay(bool NewValue)
-{
-    SetMyDisplay(ModelXml, NewValue);
-    isMyDisplay = NewValue;
-}
+
 int Model::GetNumStrands() const {
     return 1;
 }
@@ -657,7 +676,7 @@ bool Model::ModelRenamed(const std::string &oldName, const std::string &newName)
             changed = true;
         }
     }
-    
+
     for (size_t i=0; i<stringStartChan.size(); i++) {
         std::string tempstr = StartChanAttrName(i);
         if (ModelXml->HasAttribute(tempstr)) {
@@ -733,8 +752,6 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     StrobeRate=0;
     Nodes.clear();
 
-    isMyDisplay = IsMyDisplay(ModelNode);
-
     name=ModelNode->GetAttribute("name").ToStdString();
     DisplayAs=ModelNode->GetAttribute("DisplayAs").ToStdString();
     StringType=ModelNode->GetAttribute("StringType").ToStdString();
@@ -803,7 +820,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     transparency = n;
     blackTransparency = wxAtoi(ModelNode->GetAttribute("BlackTransparency","0"));
 
-    MyDisplay=IsMyDisplay(ModelNode);
+    layout_group = ModelNode->GetAttribute("LayoutGroup","Unassigned");
 
     ModelStartChannel = ModelNode->GetAttribute("StartChannel");
 
@@ -813,7 +830,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
 
     SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
     GetModelScreenLocation().Read(ModelNode);
-    
+
     InitModel();
 
     size_t NodeCount=GetNodeCount();
@@ -1121,7 +1138,7 @@ void Model::InitRenderBufferNodes(const std::string &type,
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 sx = it2->screenX;
                 sy = it2->screenY;
-                
+
                 GetModelScreenLocation().TranslatePoint(sx, sy);
 
                 SetCoords(*it2, std::round(sx - offx), std::round(sy - offy));
@@ -1544,14 +1561,14 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
     preview->GetVirtualCanvasSize(w, h);
 
     GetModelScreenLocation().PrepareToDraw();
-    
+
     int vcount = 0;
     for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
         vcount += it->get()->Coords.size();
     }
-    
+
     DrawGLUtils::xlVertexColorAccumulator va;
-    
+
     if (pixelStyle > 1) {
         int f = pixelSize;
         if (pixelSize < 16) {
@@ -1640,7 +1657,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
 
 void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     bool success = preview->StartDrawing(pointSize);
-    
+
     if(success) {
         xlColor color;
         int w, h;
@@ -1661,7 +1678,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         if (pointScale > GetModelScreenLocation().RenderWi) {
             pointScale = GetModelScreenLocation().RenderWi;
         }
-        
+
         LOG_GL_ERRORV(glPointSize(preview->calcPixelSize(pixelSize*pointScale)));
         int lastPixelStyle = pixelStyle;
         int lastPixelSize = pixelSize;
@@ -1733,7 +1750,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
 
                 if (lastPixelStyle != Nodes[n]->model->pixelStyle
                     || lastPixelSize != Nodes[n]->model->pixelSize) {
-                    
+
                     if (va.count && (lastPixelStyle < 2 || Nodes[n]->model->pixelStyle < 2)) {
                         if (lastPixelStyle > 1) {
                             DrawGLUtils::Draw(va, GL_TRIANGLES);
@@ -1892,3 +1909,11 @@ void Model::SetModelStartChan(const std::string &start_channel) {
 void Model::AddSizeLocationProperties(wxPropertyGridInterface *grid) {
     GetModelScreenLocation().AddSizeLocationProperties(grid);
 }
+
+void Model::SetLayoutGroup(const std::string &grp) {
+    layout_group = grp;
+    ModelXml->DeleteAttribute("LayoutGroup");
+    ModelXml->AddAttribute("LayoutGroup", grp);
+    IncrementChangeCount();
+}
+

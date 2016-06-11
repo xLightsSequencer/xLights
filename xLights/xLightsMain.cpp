@@ -61,13 +61,13 @@
 
 
 //(*InternalHeaders(xLightsFrame)
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/intl.h>
-#include <wx/font.h>
-#include <wx/bitmap.h>
-#include <wx/image.h>
 #include <wx/artprov.h>
+#include <wx/bitmap.h>
+#include <wx/settings.h>
+#include <wx/font.h>
+#include <wx/intl.h>
+#include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 #define TOOLBAR_SAVE_VERSION "0002:"
@@ -294,7 +294,7 @@ const long xLightsFrame::ID_RANDOM_EFFECT = wxNewId();
 const long xLightsFrame::ID_COPYROW_EFFECT = wxNewId(); //copy random effect across row -DJ
 const long xLightsFrame::ID_CLEARROW_EFFECT = wxNewId(); //clear all effects on this row -DJ
 
-
+const long xLightsFrame::ID_MENU_ITEM_PREVIEWS = wxNewId();
 
 wxDEFINE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
@@ -403,70 +403,70 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     logger_base.debug("xLightsFrame being constructed.");
     _fps = -1;
     mCurrentPerpective = NULL;
+    MenuItemPreviews = nullptr;
 
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 
     //(*Initialize(xLightsFrame)
-    wxMenuItem* MenuItem2;
-    wxMenuItem* MenuItem29;
-    wxMenuItem* MenuItem23;
     wxStaticBoxSizer* StaticBoxSizer2;
-    wxFlexGridSizer* FlexGridSizer28;
     wxMenuItem* MenuItem31;
-    wxFlexGridSizer* FlexGridSizerNetworks;
-    wxPanel* Panel1;
-    wxMenuItem* MenuItem30;
-    wxMenuItem* MenuItemDelList;
-    wxMenu* Menu5;
-    wxMenuItem* MenuItem12;
+    wxMenu* MenuHelp;
+    wxMenuItem* MenuItem8;
+    wxFlexGridSizer* FlexGridSizer4;
+    wxFlexGridSizer* FlexGridSizerSetup;
+    wxMenuItem* MenuItem26;
+    wxMenuItem* MenuItemCustomScript;
     wxMenuItem* MenuItem25;
-    wxStaticText* StaticText28;
-    wxFlexGridSizer* FlexGridSizer29;
-    wxMenuItem* MenuItem19;
+    wxMenuItem* MenuItem5;
+    wxMenuItem* MenuItem2;
     wxMenuItem* MenuItemAddList;
+    wxGridBagSizer* GridBagSizer1;
+    wxFlexGridSizer* FlexGridSizer27;
+    wxMenuItem* MenuItem46;
+    wxMenuItem* MenuItem4;
+    wxMenuItem* MenuItem14;
+    wxFlexGridSizer* FlexGridSizer5;
+    wxMenuItem* MenuItem11;
+    wxMenuItem* MenuItem29;
+    wxStaticText* StaticText38;
+    wxFlexGridSizer* FlexGridSizer9;
+    wxMenuItem* MenuItem22;
+    wxPanel* Panel1;
+    wxMenuItem* MenuItem17;
+    wxBoxSizer* BoxSizer2;
+    wxMenuItem* MenuItem13;
+    wxFlexGridSizer* FlexGridSizer7;
+    wxMenuItem* MenuItem10;
     wxFlexGridSizer* FlexGridSizerCal;
+    wxMenu* MenuItem_Grid_Icon_Backgrounds;
+    wxMenuItem* MenuItemDelList;
+    wxMenuItem* MenuItem12;
+    wxMenuItem* MenuItem24;
+    wxMenuItem* MenuItem27;
+    wxMenuItem* MenuItem44;
+    wxFlexGridSizer* FlexGridSizerNetworks;
+    wxFlexGridSizer* FlexGridSizer29;
     wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
-    wxMenuItem* MenuItem48;
-    wxFlexGridSizer* FlexGridSizer7;
-    wxMenu* MenuItem_Grid_Icon_Backgrounds;
-    wxMenuItem* MenuItem24;
-    wxBoxSizer* BoxSizer2;
-    wxFlexGridSizer* FlexGridSizer4;
-    wxFlexGridSizer* FlexGridSizer9;
-    wxMenuItem* MenuItem17;
-    wxMenuItem* MenuItem21;
-    wxButton* Button03;
-    wxFlexGridSizer* FlexGridSizer27;
-    wxMenuItem* MenuItem9;
-    wxStaticText* StaticText38;
-    wxMenuItem* MenuItem11;
-    wxMenuItem* MenuItem22;
-    wxMenuItem* MenuItem5;
-    wxMenuItem* MenuItem44;
-    wxMenuItem* MenuItemDisplayElements;
-    wxBoxSizer* BoxSizer1;
-    wxMenuItem* MenuItem10;
-    wxMenuItem* MenuItem45;
-    wxMenuItem* MenuItem27;
-    wxGridBagSizer* GridBagSizer1;
-    wxMenuItem* MenuItem4;
-    wxMenuItem* MenuItem6;
-    wxMenuItem* MenuItem26;
-    wxMenuItem* MenuItem13;
-    wxMenu* Menu2;
-    wxMenuItem* MenuItemCustomScript;
-    wxMenu* MenuPlaylist;
     wxMenuItem* MenuItem28;
-    wxFlexGridSizer* FlexGridSizer5;
-    wxMenu* MenuHelp;
-    wxMenuItem* MenuItem47;
-    wxMenuItem* MenuItem8;
-    wxMenuItem* MenuItem14;
-    wxMenuItem* MenuItem46;
-    wxStaticBoxSizer* StaticBoxSizer1;
+    wxMenuItem* MenuItemDisplayElements;
+    wxMenuItem* MenuItem6;
+    wxMenuItem* MenuItem23;
+    wxStaticText* StaticText28;
+    wxBoxSizer* BoxSizer1;
     wxMenuItem* MenuItemRenameList;
-    wxFlexGridSizer* FlexGridSizerSetup;
+    wxStaticBoxSizer* StaticBoxSizer1;
+    wxMenuItem* MenuItem21;
+    wxMenu* Menu2;
+    wxMenuItem* MenuItem9;
+    wxMenuItem* MenuItem45;
+    wxMenuItem* MenuItem47;
+    wxMenuItem* MenuItem30;
+    wxMenuItem* MenuItem48;
+    wxFlexGridSizer* FlexGridSizer28;
+    wxMenu* MenuPlaylist;
+    wxMenuItem* MenuItem19;
+    wxButton* Button03;
 
     Create(parent, wxID_ANY, _("<use variables in xLightsMain.h>"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(1411,1103));
@@ -772,12 +772,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItemCustomScript = new wxMenuItem(MenuPlaylist, idCustomScript, _("Custom Script"), wxEmptyString, wxITEM_NORMAL);
     MenuPlaylist->Append(MenuItemCustomScript);
     MenuBar->Append(MenuPlaylist, _("&Playlist"));
-    Menu5 = new wxMenu();
-    MenuItem_ViewZoomIn = new wxMenuItem(Menu5, wxID_ZOOM_IN, _("Zoom In"), wxEmptyString, wxITEM_NORMAL);
-    Menu5->Append(MenuItem_ViewZoomIn);
-    MenuItem_ViewZoomOut = new wxMenuItem(Menu5, wxID_ZOOM_OUT, _("Zoom Out"), wxEmptyString, wxITEM_NORMAL);
-    Menu5->Append(MenuItem_ViewZoomOut);
-    Menu5->AppendSeparator();
+    MenuView = new wxMenu();
+    MenuItem_ViewZoomIn = new wxMenuItem(MenuView, wxID_ZOOM_IN, _("Zoom In"), wxEmptyString, wxITEM_NORMAL);
+    MenuView->Append(MenuItem_ViewZoomIn);
+    MenuItem_ViewZoomOut = new wxMenuItem(MenuView, wxID_ZOOM_OUT, _("Zoom Out"), wxEmptyString, wxITEM_NORMAL);
+    MenuView->Append(MenuItem_ViewZoomOut);
+    MenuView->AppendSeparator();
     MenuItemPerspectives = new wxMenu();
     MenuItemViewSavePerspective = new wxMenuItem(MenuItemPerspectives, ID_MENUITEM_SAVE_PERSPECTIVE, _("Save Current"), wxEmptyString, wxITEM_NORMAL);
     MenuItemPerspectives->Append(MenuItemViewSavePerspective);
@@ -786,7 +786,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItemLoadEditPerspective = new wxMenuItem(MenuItemPerspectives, ID_MENUITEM_LOAD_PERSPECTIVE, _("Edit/Load"), wxEmptyString, wxITEM_NORMAL);
     MenuItemPerspectives->Append(MenuItemLoadEditPerspective);
     MenuItemPerspectives->AppendSeparator();
-    Menu5->Append(ID_MENUITEM7, _("Perspectives"), MenuItemPerspectives, wxEmptyString);
+    MenuView->Append(ID_MENUITEM7, _("Perspectives"), MenuItemPerspectives, wxEmptyString);
     MenuItem18 = new wxMenu();
     MenuItemDisplayElements = new wxMenuItem(MenuItem18, ID_MENUITEM_DISPLAY_ELEMENTS, _("Display Elements"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItemDisplayElements);
@@ -813,8 +813,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem18->Append(MenuItem21);
     MenuItem33 = new wxMenuItem(MenuItem18, ID_MENUITEM11, _("Reset to Defaults"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem33);
-    Menu5->Append(ID_MENUITEM10, _("Windows"), MenuItem18, wxEmptyString);
-    MenuBar->Append(Menu5, _("&View"));
+    MenuView->Append(ID_MENUITEM10, _("Windows"), MenuItem18, wxEmptyString);
+    MenuBar->Append(MenuView, _("&View"));
     AudioMenu = new wxMenu();
     MenuItem8 = new wxMenuItem(AudioMenu, ID_PLAY_FULL, _("Play Full Speed"), wxEmptyString, wxITEM_RADIO);
     AudioMenu->Append(MenuItem8);
@@ -1111,12 +1111,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     logger_base.debug("xLightsFrame constructor sequencer creation done.");
 
-    layoutPanel = new LayoutPanel(PanelPreview, this);
+    layoutPanel = new LayoutPanel(PanelPreview, this, PanelSequencer);
     FlexGridSizerPreview->Add(layoutPanel, 1, wxALL | wxEXPAND, 5);
     FlexGridSizerPreview->Fit(PanelPreview);
     FlexGridSizerPreview->SetSizeHints(PanelPreview);
 
-    modelPreview = layoutPanel->modelPreview;
+    modelPreview = layoutPanel->GetMainPreview();
 
 
     playIcon = wxBitmap(control_play_blue_icon);
@@ -1656,6 +1656,17 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     {
         m_mgr->Update();
     }
+
+    // show/hide Layout Previews
+    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); it++) {
+        LayoutGroup* grp = (LayoutGroup*)(*it);
+        if (grp != nullptr) {
+            if( grp->GetMenuItem()->IsChecked() ) {
+                grp->SetPreviewActive(show);
+            }
+        }
+    }
+
 }
 
 
@@ -1673,8 +1684,9 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
 	if (pagenum == PREVIEWTAB)
     {
-        modelPreview->InitializePreview(mBackgroundImage,mBackgroundBrightness);
-        modelPreview->SetScaleBackgroundImage(mScaleBackgroundImage);
+        // these commented out lines were already setup when rgbeffects file was loaded and it messes up multiple preview loading.
+        //modelPreview->InitializePreview(mBackgroundImage,mBackgroundBrightness);
+        //modelPreview->SetScaleBackgroundImage(mScaleBackgroundImage);
         UpdatePreview();
         SetStatusText(_(""));
         EffectSettingsTimer.Stop();
@@ -1924,6 +1936,12 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     CheckUnsavedChanges();
 
     ShowHideAllSequencerWindows(false);
+
+    // destroy preview windows
+    for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); it++) {
+        ModelPreview* preview = *it;
+        delete preview;
+    }
 
     heartbeat("exit", true); //tell fido about graceful exit -DJ
     //ScrolledWindow1->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindow1Resize,0,this);
@@ -2956,3 +2974,23 @@ void xLightsFrame::AutoSaveIntervalSelected(wxCommandEvent& event)
     }
 }
 
+void xLightsFrame::AddPreviewOption(LayoutGroup* grp)
+{
+    bool menu_created = false;
+    if( MenuItemPreviews == nullptr ) {
+        MenuItemPreviews = new wxMenu();
+        MenuView->Insert(3, ID_MENU_ITEM_PREVIEWS, _("Previews"), MenuItemPreviews, wxEmptyString);
+        menu_created = true;
+    }
+    grp->AddToPreviewMenu(MenuItemPreviews);
+    Connect(grp->GetMenuId(),wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePreviewWindow, grp, this);
+    if( menu_created ) {
+        MenuView->InsertSeparator(4);
+    }
+}
+
+void xLightsFrame::ShowHidePreviewWindow(wxCommandEvent& event)
+{
+    LayoutGroup* grp = (LayoutGroup*)event.GetEventUserData();
+    grp->ShowHidePreview();
+}

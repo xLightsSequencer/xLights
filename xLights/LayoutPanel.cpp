@@ -3,8 +3,11 @@
 //(*InternalHeaders(LayoutPanel)
 #include <wx/listctrl.h>
 #include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <wx/checkbox.h>
 #include <wx/splitter.h>
+#include <wx/font.h>
+#include <wx/choice.h>
 #include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
@@ -27,9 +30,8 @@
 #include "../include/eye-16_gray.xpm"
 
 #include "models/ModelImages.h"
+#include "PreviewPane.h"
 
-#define ALL_MODELS_GROUP 0
-#define MY_DISPLAY_GROUP 1
 
 //(*IdInit(LayoutPanel)
 const long LayoutPanel::ID_CHECKLISTBOX_MODEL_GROUPS = wxNewId();
@@ -40,6 +42,8 @@ const long LayoutPanel::ID_SPLITTERWINDOW1 = wxNewId();
 const long LayoutPanel::ID_CHECKBOXOVERLAP = wxNewId();
 const long LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PANEL5 = wxNewId();
+const long LayoutPanel::ID_STATICTEXT1 = wxNewId();
+const long LayoutPanel::ID_CHOICE_PREVIEWS = wxNewId();
 const long LayoutPanel::ID_PANEL1 = wxNewId();
 const long LayoutPanel::ID_SPLITTERWINDOW2 = wxNewId();
 //*)
@@ -68,6 +72,7 @@ const long LayoutPanel::ID_MNU_DELETE_MODEL = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_RENAME_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_MODEL_GROUP = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DELETE_ACTIVE = wxNewId();
 
 class NewModelBitmapButton : public wxBitmapButton
 {
@@ -113,21 +118,23 @@ private:
 
 #include <log4cpp/Category.hh>
 
-LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
+LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) : xlights(xl), main_sequencer(sequencer),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
-    mDisplayAllModels(false), mDisplayMyDisplay(false), mSelectedGroup(-1), backgroundFile("")
+    mSelectedGroup(-1), currentLayoutGroup("Default"), backgroundFile("")
 {
     background = nullptr;
-    
+
     _lastCustomModel = "";
     appearanceVisible = sizeVisible = stringPropsVisible = false;
 
 	//(*Initialize(LayoutPanel)
 	wxFlexGridSizer* LeftPanelSizer;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* PreviewGLSizer;
 	wxFlexGridSizer* FlexGridSizerPreview;
+	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizerPreview = new wxFlexGridSizer(1, 1, 0, 0);
@@ -169,8 +176,17 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	PreviewGLSizer = new wxFlexGridSizer(2, 1, 0, 0);
 	PreviewGLSizer->AddGrowableCol(0);
 	PreviewGLSizer->AddGrowableRow(1);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
 	ToolSizer = new wxFlexGridSizer(0, 10, 0, 0);
-	PreviewGLSizer->Add(ToolSizer, 1, wxALL|wxEXPAND, 3);
+	FlexGridSizer1->Add(ToolSizer, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
+	StaticText1 = new wxStaticText(PreviewGLPanel, ID_STATICTEXT1, _("Preview:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	wxFont StaticText1Font(12,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	StaticText1->SetFont(StaticText1Font);
+	FlexGridSizer1->Add(StaticText1, 1, wxLEFT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 40);
+	ChoiceLayoutGroups = new wxChoice(PreviewGLPanel, ID_CHOICE_PREVIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PREVIEWS"));
+	FlexGridSizer1->Add(ChoiceLayoutGroups, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	PreviewGLSizer->Add(FlexGridSizer1, 1, wxALL|wxALIGN_LEFT, 3);
 	PreviewGLPanel->SetSizer(PreviewGLSizer);
 	PreviewGLSizer->Fit(PreviewGLPanel);
 	PreviewGLSizer->SetSizeHints(PreviewGLPanel);
@@ -190,13 +206,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	Connect(ID_SPLITTERWINDOW1,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnModelSplitterSashPosChanged);
 	Connect(ID_CHECKBOXOVERLAP,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBoxOverlapClick);
 	Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonSavePreviewClick);
+	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnChoiceLayoutGroupsSelect);
 	Connect(ID_SPLITTERWINDOW2,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
 	//*)
-
-#if wxCHECK_VERSION(3, 1, 0)
-    Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_LIST_ITEM_CHECKED,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementItemChecked);
-    Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_LIST_ITEM_UNCHECKED,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementItemChecked);
-#endif
 
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights->PreviewModels, true);
     PreviewGLSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
@@ -252,12 +264,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
         GroupSplitter->SetSashPosition(gsp);
     }
 
-    int sel = config->Read("LayoutGroupSelections", -1);
-    if( sel == ALL_MODELS_GROUP ) {
-        mDisplayAllModels = true;
-    } else if( sel == MY_DISPLAY_GROUP ) {
-        mDisplayMyDisplay = true;
-    }
+    currentLayoutGroup = config->Read("CurrentLayoutGroup", "Default");
 
     wxListItem elementCol;
     elementCol.SetText(_T("Element Name"));
@@ -310,6 +317,24 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     ModelGroupWindow->Hide();
 
     mDefaultSaveBtnColor = ButtonSavePreview->GetBackgroundColour();
+
+    ChoiceLayoutGroups->Append("Default");
+    ChoiceLayoutGroups->Append("All Models");
+    ChoiceLayoutGroups->Append("Unassigned");
+    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+        LayoutGroup* grp = (LayoutGroup*)(*it);
+        ChoiceLayoutGroups->Append(grp->GetName());
+    }
+    ChoiceLayoutGroups->Append("<Create New Preview>");
+    ChoiceLayoutGroups->SetSelection(0);
+    for( int i = 0; i < ChoiceLayoutGroups->GetCount(); i++ )
+    {
+        if( ChoiceLayoutGroups->GetString(i) == currentLayoutGroup )
+        {
+            ChoiceLayoutGroups->SetSelection(i);
+            break;
+        }
+    }
 }
 
 void LayoutPanel::SetDirtyHiLight(bool dirty) {
@@ -371,7 +396,20 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         xlights->SetPreviewSize(modelPreview->GetVirtualCanvasWidth(), event.GetValue().GetLong());
         xlights->UpdateModelsList();
     } else if (name == "BkgImage") {
-        xlights->SetPreviewBackgroundImage(event.GetValue().GetString());
+        if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
+            xlights->SetPreviewBackgroundImage(event.GetValue().GetString());
+        } else {
+            for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+                LayoutGroup* grp = (LayoutGroup*)(*it);
+                if( currentLayoutGroup == grp->GetName() ) {
+                    grp->SetBackgroundImage(event.GetValue().GetString());
+                    modelPreview->SetbackgroundImage(event.GetValue().GetString());
+                    MarkEffectsFileDirty();
+                    UpdatePreview();
+                    break;
+                }
+            }
+        }
     } else if (name == "BkgFill") {
         xlights->SetPreviewBackgroundScaled(event.GetValue().GetBool());
     } else if (selectedModel != nullptr) {
@@ -404,6 +442,10 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
             if (i & 0x0008) {
                 CallAfter(&LayoutPanel::refreshModelList);
             }
+            if (i & 0x0010) {
+                // Preview assignment change so model may not exist in current preview anymore
+                CallAfter(&LayoutPanel::RefreshLayout);
+            }
             if (i == 0) {
                 printf("Did not handle %s   %s\n",
                        event.GetPropertyName().ToStdString().c_str(),
@@ -428,6 +470,15 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     } else {
         CreateUndoPoint("Background", "", name, event.GetProperty()->GetValue().GetString().ToStdString());
     }
+}
+
+void LayoutPanel::RefreshLayout()
+{
+    RemoveModelGroupFilters();
+    DeselectModelGroupList();
+    DeselectModelList();
+    xlights->UpdateModelsList();
+    ShowPropGrid(true);
 }
 
 void LayoutPanel::UpdatePreview()
@@ -477,39 +528,31 @@ void LayoutPanel::refreshModelList() {
         int end_channel = model->GetLastChannel()+1;
         ListBoxElementList->SetItem(x,1, start_channel);
         ListBoxElementList->SetItem(x,2, wxString::Format(wxT("%i"),end_channel));
-#if wxCHECK_VERSION(3, 1, 0)
-        ListBoxElementList->CheckItem(x, model->IsMyDisplay());
-#endif
     }
 }
 void LayoutPanel::UpdateModelList(bool update_groups) {
     UnSelectAllModels();
     ListBoxElementList->DeleteAllItems();
 
+
     std::vector<Model *> models;
-    bool enableCheckboxes = false;
-    if( mDisplayAllModels ) {
-        enableCheckboxes = true;
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
-            if (it->second->GetDisplayAs() != "ModelGroup") {
-                models.push_back(it->second);
-            }
-        }
-    } else if( mDisplayMyDisplay ) {
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
-            if (it->second->GetDisplayAs() != "ModelGroup" && it->second->IsMyDisplay()) {
-                models.push_back(it->second);
-            }
-        }
-    } else {
-        for (auto it = xlights->PreviewModels.begin(); it != xlights->PreviewModels.end(); it++) {
-            models.push_back(*it);
+    std::vector<Model *> dummy_models;
+
+    // Update all the custom previews
+    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+        LayoutGroup* grp = (LayoutGroup*)(*it);
+        if( grp->GetName() == currentLayoutGroup ) {
+            UpdateModelsForPreview( currentLayoutGroup, grp, models );
+        } else {
+            UpdateModelsForPreview( grp->GetName(), grp, dummy_models );
         }
     }
 
-#if wxCHECK_VERSION(3, 1, 0)
-    ListBoxElementList->EnableCheckboxes(enableCheckboxes);
-#endif
+    // update the Layout tab preview for default options
+    if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
+        UpdateModelsForPreview( currentLayoutGroup, nullptr, models );
+    }
+
     for (auto it = models.begin(); it != models.end(); it++) {
         Model *model = *it;
         if (model->GetDisplayAs() == "ModelGroup") {
@@ -523,9 +566,6 @@ void LayoutPanel::UpdateModelList(bool update_groups) {
         ListBoxElementList->SetItem(itemIndex,1, start_channel);
         ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
         ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
-#if wxCHECK_VERSION(3, 1, 0)
-        ListBoxElementList->CheckItem(itemIndex, model->IsMyDisplay());
-#endif
     }
 
     if( update_groups ) {
@@ -539,9 +579,75 @@ void LayoutPanel::UpdateModelList(bool update_groups) {
         ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE_USEHEADER);
         colSizesSet = true;
     }
+
     modelPreview->SetModels(models);
     UpdatePreview();
+}
 
+void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models)
+{
+    std::set<std::string> modelsAdded;
+    if( mSelectedGroup == -1 ) {
+        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+            Model *model = it->second;
+            if (model->GetDisplayAs() != "ModelGroup") {
+                if (group == "All Models" || model->GetLayoutGroup() == group || model->GetLayoutGroup() == "All Previews" && group != "Unassigned") {
+                    prev_models.push_back(model);
+                    modelsAdded.insert(model->name);
+                }
+            }
+        }
+
+        // add in any models that were not in preview but belong to a group that is in the preview
+        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+            Model *model = it->second;
+            if (model->GetDisplayAs() == "ModelGroup") {
+                ModelGroup *grp = (ModelGroup*)(model);
+                if (group == "All Models" || model->GetLayoutGroup() == group || model->GetLayoutGroup() == "All Previews" && group != "Unassigned") {
+                    for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
+                        if (modelsAdded.find(*it) == modelsAdded.end()) {
+                            Model *m = xlights->AllModels[*it];
+                            if (m != nullptr) {
+                                modelsAdded.insert(*it);
+                                prev_models.push_back(m);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        std::string name = ListBoxModelGroups->GetItemText(mSelectedGroup, 1).ToStdString();
+        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+            Model *model = it->second;
+            if (model->GetDisplayAs() == "ModelGroup") {
+                ModelGroup *grp = (ModelGroup*)(model);
+                if( grp->name == name ) {
+                    for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
+                        if (modelsAdded.find(*it) == modelsAdded.end()) {
+                            Model *m = xlights->AllModels[*it];
+                            if (m != nullptr) {
+                                modelsAdded.insert(*it);
+                                prev_models.push_back(m);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // only run this for layout group previews
+    if( layout_grp != nullptr ) {
+        layout_grp->SetModels(prev_models);
+        ModelPreview* preview = layout_grp->GetModelPreview();
+        if( layout_grp->GetPreviewCreated() ) {
+            preview->SetModels(layout_grp->GetModels());
+            if( preview->GetActive() ) {
+                preview->Refresh();
+                preview->Update();
+            }
+        }
+    }
 }
 
 void LayoutPanel::AddModelGroupItem(wxString name, ModelGroup *grp, bool selected)
@@ -558,7 +664,6 @@ void LayoutPanel::AddModelGroupItem(wxString name, ModelGroup *grp, bool selecte
 void LayoutPanel::UpdateModelGroupList()
 {
     ListBoxModelGroups->ClearAll();
-    mNumGroupsFiltered = 0;
 
 	wxListItem col0;
 	col0.SetId(0);
@@ -576,29 +681,14 @@ void LayoutPanel::UpdateModelGroupList()
 
     mNumGroups = 0;
 
-    AddModelGroupItem("[built-in] All Models", nullptr, false);
-    AddModelGroupItem("[built-in] My Display", nullptr, false);
-
     for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
         Model *model = it->second;
         if (model->GetDisplayAs() == "ModelGroup") {
-            ModelGroup *grp = (ModelGroup*)model;
-            AddModelGroupItem(it->first, grp, grp->IsSelected());
-            if( grp->IsSelected() ) {
-                mNumGroupsFiltered++;
+            if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup || model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned") {
+                ModelGroup *grp = (ModelGroup*)model;
+                AddModelGroupItem(it->first, grp, grp->IsSelected());
             }
         }
-    }
-
-    // re-select active group after the list is rebuilt
-    if( mSelectedGroup > MY_DISPLAY_GROUP ) {
-        ListBoxModelGroups->SetItemState( mSelectedGroup, wxLIST_STATE_SELECTED, -1 );
-    }
-
-    if( mDisplayAllModels ) {
-        ListBoxModelGroups->SetChecked(ALL_MODELS_GROUP, true);
-    } else if( mDisplayMyDisplay ) {
-        ListBoxModelGroups->SetChecked(MY_DISPLAY_GROUP, true);
     }
 }
 
@@ -606,52 +696,10 @@ void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
 {
     int index = (size_t)event.GetClientObject();
     bool checked = ListBoxModelGroups->IsChecked(index);
-    wxString name = ListBoxModelGroups->GetItemText(index, 1);
-
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Write("LayoutGroupSelections", checked ? index : -1 );
-
-    if( index != mSelectedGroup ) {
-        DeselectModelGroupList();
-        ListBoxModelGroups->SetItemState( index, wxLIST_STATE_SELECTED, -1 );
-        mSelectedGroup = index;
+    if( mSelectedGroup != -1 ) {
+        ListBoxModelGroups->SetItemState(mSelectedGroup, 0, -1);
     }
-
-    if( index == ALL_MODELS_GROUP ) {
-        mDisplayAllModels = checked;
-        mDisplayMyDisplay = false;
-        ListBoxModelGroups->SetChecked(MY_DISPLAY_GROUP, false);
-        xlights->UpdateModelsList(false);
-    } else if( index == MY_DISPLAY_GROUP ) {
-        mDisplayAllModels = false;
-        mDisplayMyDisplay = checked;
-        ListBoxModelGroups->SetChecked(ALL_MODELS_GROUP, false);
-        xlights->UpdateModelsList(false);
-    } else {
-        if( checked ) {
-            mNumGroupsFiltered++;
-        } else {
-            mNumGroupsFiltered--;
-        }
-        mDisplayAllModels = false;
-        mDisplayMyDisplay = false;
-        ListBoxModelGroups->SetChecked(MY_DISPLAY_GROUP, false);
-        ListBoxModelGroups->SetChecked(ALL_MODELS_GROUP, false);
-
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
-            Model *model = it->second;
-            if (model->GetDisplayAs() == "ModelGroup") {
-                if( it->first == name ) {
-                    ModelGroup *grp = (ModelGroup*)model;
-                    grp->SetSelected(checked);
-
-                    xlights->UpdateModelsList(false);
-                    MarkEffectsFileDirty();
-                    break;
-                }
-            }
-        }
-    }
+    ListBoxModelGroups->SetItemState(index, checked ? wxLIST_STATE_SELECTED : 0, -1);
 }
 
 class xlImageProperty : public wxImageFileProperty {
@@ -666,7 +714,7 @@ public:
         m_pImage = new wxImage(img);
     }
     virtual ~xlImageProperty() {}
-    
+
     virtual void OnSetValue() override {
         wxFileProperty::OnSetValue();
         wxFileName fn = GetFileName();
@@ -694,39 +742,39 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     if (!updatingProperty && addBkgProps) {
         propertyEditor->Freeze();
         clearPropGrid();
-        if (backgroundFile != modelPreview->GetBackgroundImage()) {
+
+        wxString preview_background_image = GetBackgroundImageForSelectedPreview();
+        if (backgroundFile != preview_background_image) {
             delete background;
             background = nullptr;
         }
+
         if (background == nullptr) {
-            backgroundFile = modelPreview->GetBackgroundImage();
-            if (wxFile::Exists(backgroundFile)) {
-                background = new wxImage(backgroundFile);
-            }
-            else {
-                background = new wxImage();
-            }
+            backgroundFile = preview_background_image;
+            background = new wxImage(backgroundFile);
         }
         wxPGProperty* p = propertyEditor->Append(new xlImageProperty("Background Image",
                                                    "BkgImage",
-                                                   modelPreview->GetBackgroundImage(),
-                                                   *background));
+                                                    preview_background_image,
+                                                    *background));
         p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*");
-        propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", modelPreview->GetScaleBackgroundImage()))->SetAttribute("UseCheckbox", 1);
-        wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
-        prop->SetAttribute("Min", 0);
-        prop->SetAttribute("Max", 4096);
-        prop->SetEditor("SpinCtrl");
-        prop = propertyEditor->Append(new wxUIntProperty("Height", "BkgSizeHeight", modelPreview->GetVirtualCanvasHeight()));
-        prop->SetAttribute("Min", 0);
-        prop->SetAttribute("Max", 4096);
-        prop->SetEditor("SpinCtrl");
-        prop = propertyEditor->Append(new wxStringProperty("Brightness",
-                                                           "BkgBrightness",
-                                                           wxString::Format("%d", modelPreview->GetBackgroundBrightness())));
-        prop->SetAttribute("Min", 0);
-        prop->SetAttribute("Max", 100);
-        prop->SetEditor("SpinCtrl");
+        if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
+            propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", modelPreview->GetScaleBackgroundImage()))->SetAttribute("UseCheckbox", 1);
+            wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
+            prop->SetAttribute("Min", 0);
+            prop->SetAttribute("Max", 4096);
+            prop->SetEditor("SpinCtrl");
+            prop = propertyEditor->Append(new wxUIntProperty("Height", "BkgSizeHeight", modelPreview->GetVirtualCanvasHeight()));
+            prop->SetAttribute("Min", 0);
+            prop->SetAttribute("Max", 4096);
+            prop->SetEditor("SpinCtrl");
+            prop = propertyEditor->Append(new wxStringProperty("Brightness",
+                                                               "BkgBrightness",
+                                                               wxString::Format("%d", modelPreview->GetBackgroundBrightness())));
+            prop->SetAttribute("Min", 0);
+            prop->SetAttribute("Max", 100);
+            prop->SetEditor("SpinCtrl");
+        }
         propertyEditor->Thaw();
     }
 }
@@ -844,12 +892,7 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
 
 void LayoutPanel::OnListBoxElementListItemSelect(wxListEvent& event)
 {
-    if( !mPropGridActive ) {
-        ModelSplitter->ReplaceWindow(ModelGroupWindow, propertyEditor );
-        propertyEditor->Show();
-        ModelGroupWindow->Hide();
-        mPropGridActive = true;
-    }
+    ShowPropGrid(true);
     int sel = ListBoxElementList->GetFirstSelected();
     if (sel == wxNOT_FOUND)
     {
@@ -903,18 +946,6 @@ int wxCALLBACK SortElementsFunctionDESC(wxIntPtr item1, wxIntPtr item2, wxIntPtr
     return SortElementsFunctionASC(item2, item1, sortColumn);
 }
 
-void LayoutPanel::OnListBoxElementItemChecked(wxListEvent& event) {
-#if wxCHECK_VERSION(3, 1, 0)
-    bool b = xlights->AllModels[event.GetLabel().ToStdString()]->IsMyDisplay();
-    if (b != ListBoxElementList->IsItemChecked(event.GetIndex())) {
-        CreateUndoPoint("ModelProperty", event.GetLabel().ToStdString(), "ModelMyDisplay", xlights->AllModels[event.GetLabel().ToStdString()]->IsMyDisplay()?"true":"false");
-
-        xlights->AllModels[event.GetLabel().ToStdString()]->SetMyDisplay(ListBoxElementList->IsItemChecked(event.GetIndex()));
-        MarkEffectsFileDirty();
-        resetPropertyGrid();
-    }
-#endif
-}
 void LayoutPanel::OnListBoxElementListColumnClick(wxListEvent& event)
 {
     int col = event.GetColumn();
@@ -1027,12 +1058,7 @@ void LayoutPanel::SetSelectedModelToGroupSelected()
 
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
-    if( !mPropGridActive ) {
-        ModelSplitter->ReplaceWindow(ModelGroupWindow, propertyEditor);
-        ModelGroupWindow->Hide();
-        propertyEditor->Show();
-        mPropGridActive = true;
-    }
+    ShowPropGrid(true);
     modelPreview->SetFocus();
     int y = event.GetY();
     if (event.ControlDown())
@@ -1067,6 +1093,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             m_moving_handle = true;
             m_creating_bound_rect = false;
             newModel = CreateNewModel(selectedButton->GetModelType());
+            newModel->SetLayoutGroup(currentLayoutGroup);
 
             if (newModel != nullptr) {
                 newModel->Selected = true;
@@ -1128,20 +1155,15 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
         newModel->UpdateXmlWithScale();
         xlights->AllModels.AddModel(newModel);
 
-        if (mSelectedGroup > MY_DISPLAY_GROUP) {
+        newModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
+
+        if (mSelectedGroup != -1) {
             wxString sel = ListBoxModelGroups->GetItemText(mSelectedGroup, 1);
             ModelGroup *grp = (ModelGroup*)xlights->AllModels[sel.ToStdString()];
             if (grp != nullptr) {
                 grp->AddModel(newModel->name);
                 model_grp_panel->UpdatePanel(sel.ToStdString());
-                if( !ListBoxModelGroups->IsChecked(mSelectedGroup) && !mDisplayAllModels && !mDisplayMyDisplay && mNumGroupsFiltered > 0 ) {
-                    std::string msg = wxString::Format("Model was added to selected group (%s) which is currently hidden!\n", grp->name).ToStdString();
-                    wxMessageBox(msg);
-                }
             }
-        } else if( !mDisplayAllModels && !mDisplayMyDisplay && mNumGroupsFiltered > 0 ) {
-            std::string msg = "Model was added but group filtering prevents it from being visible!\n";
-            wxMessageBox(msg);
         }
 
         m_over_handle = -1;
@@ -1153,12 +1175,12 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
                 selectedButton->SetState(0);
                 selectedButton = nullptr;
             }
-            xlights->UpdateModelsList();
+            xlights->UpdateModelsList(false);
             UpdatePreview();
             SelectModel(name);
         } else {
             newModel = nullptr;
-            xlights->UpdateModelsList();
+            xlights->UpdateModelsList(false);
             UpdatePreview();
         }
     }
@@ -1263,21 +1285,27 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnu.Append(ID_PREVIEW_DISTRIBUTE,"Distribute", mnuDistribute,"");
         mnu.AppendSeparator();
     }
-    else if (selectedModelCnt == 0)
-    {
-        return;
-    }
-    mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT,"Node Layout");
-    mnu.Append(ID_PREVIEW_MODEL_EXPORTCSV,"Export CSV");
-    int sel = ListBoxElementList->GetFirstSelected();
-    if (sel != wxNOT_FOUND)
-    {
-        Model* model = (Model*)ListBoxElementList->GetItemData(sel);
-        if (model->IsCustom())
+    if (selectedModelCnt > 0) {
+        mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT,"Node Layout");
+        mnu.Append(ID_PREVIEW_MODEL_EXPORTCSV,"Export CSV");
+        int sel = ListBoxElementList->GetFirstSelected();
+        if (sel != wxNOT_FOUND)
         {
-            mnu.Append(ID_PREVIEW_MODEL_EXPORTCUSTOMMODEL, "Export Custom Model");
+            Model* model = (Model*)ListBoxElementList->GetItemData(sel);
+            if (model->IsCustom())
+            {
+                mnu.Append(ID_PREVIEW_MODEL_EXPORTCUSTOMMODEL, "Export Custom Model");
+            }
         }
     }
+
+    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+        if (selectedModelCnt > 0) {
+            mnu.AppendSeparator();
+        }
+        mnu.Append(ID_PREVIEW_DELETE_ACTIVE,"Delete this Preview");
+    }
+
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
     PopupMenu(&mnu);
     modelPreview->SetFocus();
@@ -1328,6 +1356,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     {
         ExportCustomModel();
     }
+    else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE)
+    {
+        DeleteCurrentPreview();
+    }
 }
 
 
@@ -1364,7 +1396,7 @@ void LayoutPanel::ExportModel()
     if (sel == wxNOT_FOUND) return;
     Model* model=(Model*)ListBoxElementList->GetItemData(sel);
     wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
-    f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %s, %d, %d\n", model->name, model->GetDisplayAs(), model->GetStringType(), model->GetNodeCount() / model->NodesPerString(), model->GetNodeCount(), stch, /*WRONG:*/ model->NodeStartChannel(0) / model->NodesPerString() + 1, model->MyDisplay));
+    f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %s, %d, %s\n", model->name, model->GetDisplayAs(), model->GetStringType(), model->GetNodeCount() / model->NodesPerString(), model->GetNodeCount(), stch, /*WRONG:*/ model->NodeStartChannel(0) / model->NodesPerString() + 1, model->GetLayoutGroup()));
     f.Close();
 }
 
@@ -2070,12 +2102,7 @@ void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
                 selectedModel = nullptr;
                 mSelectedGroup = -1;
                 UnSelectAllModels();
-                if( !mPropGridActive ) {
-                    ModelSplitter->ReplaceWindow(ModelGroupWindow, propertyEditor);
-                    ModelGroupWindow->Hide();
-                    propertyEditor->Show();
-                    mPropGridActive = true;
-                }
+                ShowPropGrid(true);
                 xlights->UpdateModelsList();
                 MarkEffectsFileDirty();
             }
@@ -2126,49 +2153,53 @@ void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
             node->AddAttribute("models", "");
             node->AddAttribute("layout", "grid");
             node->AddAttribute("GridSize", "400");
+            wxString grp = currentLayoutGroup == "All Models" ? "Unassigned" : currentLayoutGroup;
+            node->AddAttribute("LayoutGroup", grp);
 
             xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
             xlights->UpdateModelsList();
             MarkEffectsFileDirty();
             model_grp_panel->UpdatePanel(name.ToStdString());
-            if( mPropGridActive ) {
-                ModelSplitter->ReplaceWindow(propertyEditor, ModelGroupWindow);
-                propertyEditor->Hide();
-                ModelGroupWindow->Show();
-                mPropGridActive = false;
-            }
+            ShowPropGrid(false);
         }
     }
 }
 
 void LayoutPanel::OnListBoxModelGroupsItemSelect(wxListEvent& event)
 {
+    wxListItem li = event.GetItem();
+    int index = li.GetId();
+    SelectModelGroup(index);
+}
+
+void LayoutPanel::SelectModelGroup(int index)
+{
     UnSelectAllModels(false);
     DeselectModelList();
-    wxListItem li = event.GetItem();
-    mSelectedGroup = li.GetId();
-    if( li.GetId() > MY_DISPLAY_GROUP ) {
-        std::string name = ListBoxModelGroups->GetItemText(li, 1).ToStdString();
-        model_grp_panel->UpdatePanel(name);
-        if( mPropGridActive ) {
-            ModelSplitter->ReplaceWindow(propertyEditor, ModelGroupWindow);
-            propertyEditor->Hide();
-            ModelGroupWindow->Show();
-            mPropGridActive = false;
-        }
-    } else {
-        if( !mPropGridActive ) {
-            ModelSplitter->ReplaceWindow(ModelGroupWindow, propertyEditor);
-            ModelGroupWindow->Hide();
-            propertyEditor->Show();
-            mPropGridActive = true;
-        }
-        resetPropertyGrid();
+    mSelectedGroup = index;
+
+    for( int i = 0; i < ListBoxModelGroups->GetItemCount(); i++) {
+        ListBoxModelGroups->SetChecked(i, false);
     }
+    ListBoxModelGroups->SetChecked(index, true);
+
+    std::string name = ListBoxModelGroups->GetItemText(index, 1).ToStdString();
+    model_grp_panel->UpdatePanel(name);
+    ShowPropGrid(false);
+    xlights->UpdateModelsList(false);
 }
 
 void LayoutPanel::OnListBoxModelGroupsItemDeselect(wxListEvent& event)
 {
+    RemoveModelGroupFilters();
+    xlights->UpdateModelsList(false);
+}
+
+void LayoutPanel::RemoveModelGroupFilters()
+{
+    for( int i = 0; i < ListBoxModelGroups->GetItemCount(); i++) {
+        ListBoxModelGroups->SetChecked(i, false);
+    }
     mSelectedGroup = -1;
 }
 
@@ -2204,8 +2235,8 @@ void LayoutPanel::OnModelGroupRightDown(wxMouseEvent& event)
     int flags = wxLIST_HITTEST_ONITEMLABEL;
     long index = ListBoxModelGroups->HitTest(pos,flags,NULL); // got to use it at last
     mnuLayer->Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
-    if(index > MY_DISPLAY_GROUP ) {
-        mSelectedGroup = index;
+    mSelectedGroup = index;
+    if( mSelectedGroup != -1 ) {
         ListBoxModelGroups->SetItemState( index, wxLIST_STATE_SELECTED, -1 );
         mnuLayer->Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
         mnuLayer->Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
@@ -2213,3 +2244,167 @@ void LayoutPanel::OnModelGroupRightDown(wxMouseEvent& event)
     mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelGroupPopup, NULL, this);
     PopupMenu(mnuLayer);
 }
+
+LayoutGroup* LayoutPanel::GetLayoutGroup(const std::string &name)
+{
+    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+        LayoutGroup* grp = (LayoutGroup*)(*it);
+        if( grp->GetName() == name ) {
+            return grp;
+        }
+    }
+    return nullptr;
+}
+
+void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
+{
+    std::string choice_layout = std::string(ChoiceLayoutGroups->GetStringSelection().c_str());
+    if( choice_layout == "<Create New Preview>" ) {
+        wxTextEntryDialog dlg(this, "Enter name for new preview", "Create New Preview");
+        if (dlg.ShowModal() == wxID_OK) {
+            wxString name = dlg.GetValue();
+            while (GetLayoutGroup(name.ToStdString()) != nullptr || name == "Default" || name == "All Models" || name == "Unassigned") {
+                wxTextEntryDialog dlg2(this, "Preview of name " + name + " already exists. Enter name for new preview", "Create New Preview");
+                if (dlg2.ShowModal() == wxID_OK) {
+                    name = dlg2.GetValue();
+                } else {
+                    SwitchChoiceToCurrentLayoutGroup();
+                    return;
+                }
+            }
+            wxXmlNode *node = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroup");
+            xlights->LayoutGroupsNode->AddChild(node);
+            node->AddAttribute("name", name);
+
+            mSelectedGroup = -1;
+            currentLayoutGroup = name.ToStdString();
+            LayoutGroup* grp = new LayoutGroup(name.ToStdString(), xlights, node, xlights->GetDefaultPreviewBackgroundImage());
+            xlights->LayoutGroups.push_back(grp);
+            xlights->AddPreviewOption(grp);
+            ChoiceLayoutGroups->Insert(name, ChoiceLayoutGroups->GetCount()-1);
+            ChoiceLayoutGroups->SetSelection(ChoiceLayoutGroups->GetCount()-2);
+
+            xlights->UpdateModelsList();
+            MarkEffectsFileDirty();
+            ShowPropGrid(true);
+        } else {
+            SwitchChoiceToCurrentLayoutGroup();
+            return;
+        }
+    } else {
+        currentLayoutGroup = choice_layout;
+        mSelectedGroup = -1;
+        UpdateModelList();
+    }
+    modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
+    UpdatePreview();
+
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("CurrentLayoutGroup", (wxString)currentLayoutGroup );
+}
+
+void LayoutPanel::AddPreviewChoice(const std::string &name)
+{
+    ChoiceLayoutGroups->Insert(name, ChoiceLayoutGroups->GetCount()-1);
+    model_grp_panel->AddPreviewChoice(name);
+
+    // see if we need to switch to this one
+    wxConfigBase* config = wxConfigBase::Get();
+    wxString storedLayoutGroup = config->Read("CurrentLayoutGroup", "Default");
+    if( storedLayoutGroup == name ) {
+        for( int i = 0; i < ChoiceLayoutGroups->GetCount(); i++ )
+        {
+            if( ChoiceLayoutGroups->GetString(i) == storedLayoutGroup )
+            {
+                ChoiceLayoutGroups->SetSelection(i);
+                modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
+                UpdatePreview();
+                break;
+            }
+        }
+    }
+}
+
+const wxString& LayoutPanel::GetBackgroundImageForSelectedPreview() {
+    previewBackgroundFile = xlights->GetDefaultPreviewBackgroundImage();
+    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+        for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+            LayoutGroup* grp = (LayoutGroup*)(*it);
+            if( currentLayoutGroup == grp->GetName() ) {
+                previewBackgroundFile = grp->GetBackgroundImage();
+                break;
+            }
+        }
+    }
+    return previewBackgroundFile;
+}
+
+void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
+    ChoiceLayoutGroups->SetSelection(0);
+    for( int i = 0; i < ChoiceLayoutGroups->GetCount(); i++ )
+    {
+        if( ChoiceLayoutGroups->GetString(i) == currentLayoutGroup )
+        {
+            ChoiceLayoutGroups->SetSelection(i);
+            break;
+        }
+    }
+}
+
+void LayoutPanel::DeleteCurrentPreview()
+{
+    if (wxMessageBox("Are you sure you want to delete the " + currentLayoutGroup + " preview?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+        for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+            LayoutGroup* grp = (LayoutGroup*)(*it);
+            if (grp != nullptr) {
+                if( currentLayoutGroup == grp->GetName() ) {
+                    grp->GetLayoutGroupXml()->GetParent()->RemoveChild(grp->GetLayoutGroupXml());
+                    xlights->LayoutGroups.erase(it);
+                    delete grp->GetLayoutGroupXml();
+                    delete grp;
+                    break;
+                }
+            }
+        }
+        MarkEffectsFileDirty();
+        mSelectedGroup = -1;
+        for( int i = 0; i < ChoiceLayoutGroups->GetCount(); i++ )
+        {
+            if( ChoiceLayoutGroups->GetString(i) == currentLayoutGroup )
+            {
+                ChoiceLayoutGroups->Delete(i);
+                break;
+            }
+        }
+        // change any existing assignments to this preview to be unassigned
+        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+            Model *model = it->second;
+            if( model->GetLayoutGroup() == currentLayoutGroup) {
+                model->SetLayoutGroup("Unassigned");
+            }
+        }
+
+        currentLayoutGroup = "Default";
+        ChoiceLayoutGroups->SetSelection(0);
+
+        UpdateModelList();
+        modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
+        UpdatePreview();
+    }
+}
+
+void LayoutPanel::ShowPropGrid(bool show)
+{
+    if( !mPropGridActive && show ) {
+        ModelSplitter->ReplaceWindow(ModelGroupWindow, propertyEditor);
+        ModelGroupWindow->Hide();
+        propertyEditor->Show();
+        mPropGridActive = true;
+    } else if( mPropGridActive && !show) {
+        ModelSplitter->ReplaceWindow(propertyEditor, ModelGroupWindow);
+        propertyEditor->Hide();
+        ModelGroupWindow->Show();
+        mPropGridActive = false;
+    }
+}
+

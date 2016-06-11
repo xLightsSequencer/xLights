@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="PreviewPane">
+		<minsize>100,100d</minsize>
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+		<handler function="OnClose" entry="EVT_CLOSE" />
+		<object class="wxFlexGridSizer" variable="Panel_Sizer" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxPanel" name="ID_PANEL_PREVIEW" variable="PreviewPanel" member="yes">
+					<style>0</style>
+					<object class="wxFlexGridSizer" variable="PreviewPanelSizer" member="yes">
+						<cols>1</cols>
+						<growablecols>0</growablecols>
+						<growablerows>0</growablerows>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

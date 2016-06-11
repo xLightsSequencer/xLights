@@ -12,7 +12,7 @@
 
 #include "ModelPreview.h"
 #include "models/Model.h"
-
+#include "PreviewPane.h"
 #include "DrawGLUtils.h"
 
 
@@ -70,9 +70,7 @@ void ModelPreview::Render() {
     if (PreviewModels != NULL) {
         for (int i=0; i<PreviewModels->size(); i++) {
 			const xlColor *color = &xlLIGHT_GREY;
-			if (((*PreviewModels)[i])->Hidden) {
-                color = &xlMAGENTA;
-			} else if (((*PreviewModels)[i])->Selected) {
+			if (((*PreviewModels)[i])->Selected) {
 				color = &xlYELLOW;
 			} else if (((*PreviewModels)[i])->GroupSelected) {
 				color = &xlYELLOW;
@@ -237,6 +235,18 @@ double ModelPreview::calcPixelSize(double i) {
     return d;
 }
 
+bool ModelPreview::GetActive()
+{
+    return mPreviewPane->GetActive();
+}
+
+void ModelPreview::SetActive(bool show) {
+    if( show ) {
+        mPreviewPane->Show();
+    } else {
+        mPreviewPane->Hide();
+    }
+}
 
 bool ModelPreview::StartDrawing(wxDouble pointSize)
 {

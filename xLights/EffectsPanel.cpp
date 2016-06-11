@@ -8,10 +8,10 @@
 #include <wx/spinctrl.h>
 
 //(*InternalHeaders(EffectsPanel)
-#include <wx/string.h>
-#include <wx/intl.h>
 #include <wx/bitmap.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 #include <map>
@@ -43,8 +43,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
 {
     //(*Initialize(EffectsPanel)
     wxFlexGridSizer* FlexGridSizer8;
-    wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer6;
+    wxFlexGridSizer* FlexGridSizer1;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);

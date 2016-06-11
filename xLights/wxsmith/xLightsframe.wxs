@@ -1093,7 +1093,7 @@
 					<handler function="OnMenuItemCustomScriptSelected" entry="EVT_MENU" />
 				</object>
 			</object>
-			<object class="wxMenu" variable="Menu5" member="no">
+			<object class="wxMenu" variable="MenuView" member="yes">
 				<label>&amp;View</label>
 				<object class="wxMenuItem" name="wxID_ZOOM_IN" variable="MenuItem_ViewZoomIn" member="yes">
 					<label>Zoom In</label>

@@ -57,6 +57,7 @@ void xLightsFrame::ResetEffectsXml()
     PalettesNode=NULL;
     ViewsNode=NULL;
     ModelGroupsNode=NULL;
+    LayoutGroupsNode=NULL;
     SettingsNode=NULL;
     PerspectivesNode = NULL;
 }
@@ -93,6 +94,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         if (e->GetName() == "palettes") PalettesNode=e;
         if (e->GetName() == "views") ViewsNode=e;
         if (e->GetName() == "modelGroups") ModelGroupsNode=e;
+        if (e->GetName() == "layoutGroups") LayoutGroupsNode=e;
         if (e->GetName() == "settings") SettingsNode=e;
         if (e->GetName() == "perspectives") PerspectivesNode=e;
     }
@@ -127,6 +129,13 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     {
         ModelGroupsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "modelGroups" );
         root->AddChild( ModelGroupsNode );
+        UnsavedRgbEffectsChanges = true;
+    }
+
+    if (LayoutGroupsNode == 0)
+    {
+        LayoutGroupsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "layoutGroups" );
+        root->AddChild( LayoutGroupsNode );
         UnsavedRgbEffectsChanges = true;
     }
 
@@ -173,6 +182,24 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
     SetPreviewBackgroundImage(mBackgroundImage);
 
+    // Do this here as it may switch the background image
+    LayoutGroups.clear();
+    AllModels.SetLayoutsNode(LayoutGroupsNode);  // provides easy access to layout names for the model class
+    for(wxXmlNode* e=LayoutGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "layoutGroup")
+        {
+            wxString grp_name=e->GetAttribute("name");
+            if (!grp_name.IsEmpty())
+            {
+                LayoutGroup* grp = new LayoutGroup(grp_name.ToStdString(), this, e);
+                LayoutGroups.push_back(grp);
+                AddPreviewOption(grp);
+                layoutPanel->AddPreviewChoice(grp_name.ToStdString());
+            }
+        }
+    }
+
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
     SetPreviewBackgroundBrightness(mBackgroundBrightness);
 
@@ -210,6 +237,72 @@ void xLightsFrame::LoadEffectsFile()
             }
         }
     }
+    if (version < "0006") {
+        // need to convert models/groups to remove MyDisplay and add preview assignments
+        for (wxXmlNode *model = ModelsNode->GetChildren(); model != nullptr; model = model->GetNext()) {
+            if (model->GetName() == "model") {
+                std::string my_display = model->GetAttribute("MyDisplay").ToStdString();
+                std::string layout_group = "Unassigned";
+                if ( my_display == "1" ) {
+                    layout_group = "Default";
+                }
+                model->DeleteAttribute("MyDisplay");
+                model->AddAttribute("LayoutGroup", layout_group);
+             }
+        }
+        // parse groups once to figure out if any of them are selected
+        bool groups_are_selected = false;
+        for (wxXmlNode *group = ModelGroupsNode->GetChildren(); group != nullptr; group = group->GetNext()) {
+            if (group->GetName() == "modelGroup") {
+                std::string selected = group->GetAttribute("selected").ToStdString();
+                if ( selected == "1" ) {
+                    groups_are_selected = true;
+                    break;
+                }
+             }
+        }
+        // if no groups are selected then models remain as set above and all groups goto Default
+        if( !groups_are_selected ) {
+            for (wxXmlNode *group = ModelGroupsNode->GetChildren(); group != nullptr; group = group->GetNext()) {
+                if (group->GetName() == "modelGroup") {
+                    group->DeleteAttribute("selected");
+                    group->AddAttribute("LayoutGroup", "Default");
+                 }
+            }
+        } else { // otherwise need to set models in unchecked groups to unassigned
+            std::set<std::string> modelsAdded;
+            for (wxXmlNode *group = ModelGroupsNode->GetChildren(); group != nullptr; group = group->GetNext()) {
+                if (group->GetName() == "modelGroup") {
+                    std::string selected = group->GetAttribute("selected").ToStdString();
+                    std::string layout_group = "Unassigned";
+                    if( selected == "1" ) {
+                        wxArrayString mn = wxSplit(group->GetAttribute("models"), ',');
+                        for (int x = 0; x < mn.size(); x++) {
+                            std::string name = mn[x].ToStdString();
+                            if (modelsAdded.find(name) == modelsAdded.end()) {
+                                modelsAdded.insert(mn[x].ToStdString());
+                            }
+                        }
+                        layout_group = "Default";
+                    }
+                    group->DeleteAttribute("selected");
+                    group->AddAttribute("LayoutGroup", layout_group);
+                 }
+            }
+            // now move models back to unassigned that were not part of a checked group
+            for (wxXmlNode *model = ModelsNode->GetChildren(); model != nullptr; model = model->GetNext()) {
+                if (model->GetName() == "model") {
+                    std::string mn = model->GetAttribute("name").ToStdString();
+                    if (modelsAdded.find(mn) == modelsAdded.end()) {
+                        model->DeleteAttribute("LayoutGroup");
+                        model->AddAttribute("LayoutGroup", "Unassigned");
+                    }
+                 }
+            }
+        }
+       UnsavedRgbEffectsChanges = true;
+    }
+
     // update version
     EffectsNode->DeleteAttribute("version");
     EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
@@ -380,7 +473,7 @@ void xLightsFrame::UpdateModelsList(bool update_groups)
 {
     playModel = nullptr;
     PreviewModels.clear();
-    layoutPanel->modelPreview->GetModels().clear();
+    layoutPanel->GetMainPreview()->GetModels().clear();
 
     AllModels.LoadModels(ModelsNode,
                          modelPreview->GetVirtualCanvasWidth(),
@@ -475,13 +568,21 @@ void xLightsFrame::UpdateModelsList(bool update_groups)
 
     std::set<std::string> modelsAdded;
 
-    bool at_least_one_group_is_selected = false;
+    // Add all models to default House Preview that are set to Default or All Previews
+    for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
+        Model *model = it->second;
+        if (model->GetLayoutGroup() == "Default" || model->GetLayoutGroup() == "All Previews") {
+            modelsAdded.insert(model->name);
+            PreviewModels.push_back(model);
+        }
+    }
 
+    // Now add all models to default House Preview that are in groups set to Default or All Previews
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
         Model *model = it->second;
         if (model->GetDisplayAs() == "ModelGroup") {
             ModelGroup *grp = (ModelGroup*)model;
-            if (grp->IsSelected()) {
+            if (model->GetLayoutGroup() == "All Previews" || model->GetLayoutGroup() == "Default") {
                 for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
                     if (modelsAdded.find(*it) == modelsAdded.end()) {
                         Model *m = AllModels[*it];
@@ -491,44 +592,10 @@ void xLightsFrame::UpdateModelsList(bool update_groups)
                         }
                     }
                 }
-                at_least_one_group_is_selected = true;
             }
         }
     }
 
-    // find all models that will be hidden
-    if( at_least_one_group_is_selected ) {
-        for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
-            Model *model = it->second;
-            std::string name1 = it->first;
-            model->Hidden = true;
-            for (auto it2 = PreviewModels.begin(); it2 != PreviewModels.end(); it2++) {
-                Model *model2 = *it2;
-                if( model2->name == name1 ) {
-                    model->Hidden = false;
-                    break;
-                }
-            }
-        }
-    } else {
-        for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
-            Model *model = it->second;
-            if (model->IsMyDisplay()) {
-                model->Hidden = false;
-            } else {
-                model->Hidden = true;
-            }
-        }
-    }
-
-    if (PreviewModels.size() == 0) {
-        for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
-            Model *model = it->second;
-            if (model->IsMyDisplay()) {
-                PreviewModels.push_back(model);
-            }
-        }
-    }
     layoutPanel->UpdateModelList(update_groups);
 }
 

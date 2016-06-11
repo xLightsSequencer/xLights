@@ -19,6 +19,7 @@ const long ModelGroupPanel::ID_STATICTEXT6 = wxNewId();
 const long ModelGroupPanel::ID_CHOICE1 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT4 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL1 = wxNewId();
+const long ModelGroupPanel::ID_CHOICE_PREVIEWS = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT3 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT2 = wxNewId();
 const long ModelGroupPanel::ID_LISTBOX_ADD_TO_MODEL_GROUP = wxNewId();
@@ -40,6 +41,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFr
 {
 	//(*Initialize(ModelGroupPanel)
 	wxFlexGridSizer* FlexGridSizer3;
+	wxStaticText* StaticText6;
 	wxBitmapButton* BitmapButton2;
 	wxBitmapButton* BitmapButton1;
 	wxBitmapButton* BitmapButton4;
@@ -79,6 +81,10 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFr
 	SizeSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("400"), wxDefaultPosition, wxDefaultSize, 0, 10, 2000, 400, _T("ID_SPINCTRL1"));
 	SizeSpinCtrl->SetValue(_T("400"));
 	FlexGridSizer6->Add(SizeSpinCtrl, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
+	StaticText6 = new wxStaticText(this, wxID_ANY, _("Preview:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer6->Add(StaticText6, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	ChoicePreviews = new wxChoice(this, ID_CHOICE_PREVIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PREVIEWS"));
+	FlexGridSizer6->Add(ChoicePreviews, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer12 = new wxFlexGridSizer(2, 3, 0, 0);
 	FlexGridSizer12->AddGrowableCol(0);
@@ -116,17 +122,27 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFr
 	Panel_Sizer->SetSizeHints(this);
 
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoiceModelLayoutTypeSelect);
+	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoicePreviewsSelect);
 	Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonAddToModelGroupClick);
 	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonRemoveFromModelGroupClick);
 	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonUpClick);
 	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonDownClick);
 	//*)
+
+    ChoicePreviews->Append("Default");
+    ChoicePreviews->Append("All Previews");
+    ChoicePreviews->Append("Unassigned");
 }
 
 ModelGroupPanel::~ModelGroupPanel()
 {
 	//(*Destroy(ModelGroupPanel)
 	//*)
+}
+
+void ModelGroupPanel::AddPreviewChoice(const std::string name)
+{
+    ChoicePreviews->Append(name);
 }
 
 void ModelGroupPanel::UpdatePanel(const std::string group)
@@ -165,6 +181,15 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
         } else {
             ChoiceModelLayoutType->Append(v);
             ChoiceModelLayoutType->SetSelection(ChoiceModelLayoutType->GetCount() - 1);
+        }
+    }
+
+    wxString preview = e->GetAttribute("LayoutGroup", "Default");
+    ChoicePreviews->SetSelection(0);
+    for( int i = 0; i < ChoicePreviews->GetCount(); i++ ) {
+        if( ChoicePreviews->GetString(i) == preview )
+        {
+            ChoicePreviews->SetSelection(i);
         }
     }
 
@@ -262,6 +287,7 @@ void ModelGroupPanel::SaveGroupChanges()
             ModelsInGroup += ListBoxModelsInGroup->GetString(i);
         }
     }
+
     e->DeleteAttribute("models");
     e->AddAttribute("models", ModelsInGroup);
 
@@ -289,4 +315,16 @@ void ModelGroupPanel::SaveGroupChanges()
     xlights->UpdateModelsList(false);
     xlights->UnsavedRgbEffectsChanges = true;
     xlights->UpdatePreview();
+}
+
+void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
+{
+    ModelGroup *g = (ModelGroup*)mModels[mGroup];
+    wxXmlNode *e = g->GetModelXml();
+    e->DeleteAttribute("LayoutGroup");
+    e->AddAttribute("LayoutGroup", ChoicePreviews->GetString(ChoicePreviews->GetCurrentSelection()));
+    xlights->UpdateModelsList(true);
+    xlights->UnsavedRgbEffectsChanges = true;
+    xlights->UpdatePreview();
+    xlights->RefreshLayout();
 }

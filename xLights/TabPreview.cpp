@@ -13,31 +13,20 @@ void xLightsFrame::UpdatePreview()
     layoutPanel->UpdatePreview();
 }
 
+void xLightsFrame::RefreshLayout()
+{
+    layoutPanel->RefreshLayout();
+}
+
 void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
 {
-    
+
 }
 
 void xLightsFrame::PreviewOutput(int period)
 {
     TimerOutput(period);
     modelPreview->Render(&SeqData[period][0]);
-}
-
-
-void xLightsFrame::SetModelAsPartOfDisplay(wxString& model)
-{
-    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == "model")
-        {
-            if(e->GetAttribute("name")== model)
-            {
-                e->DeleteAttribute("MyDisplay");
-                e->AddAttribute("MyDisplay","1");
-            }
-        }
-    }
 }
 
 void xLightsFrame::SetPreviewBackgroundImage(const wxString &filename) {
@@ -49,6 +38,11 @@ void xLightsFrame::SetPreviewBackgroundImage(const wxString &filename) {
     modelPreview->SetbackgroundImage(mBackgroundImage);
     sPreview2->SetbackgroundImage(mBackgroundImage);
     UpdatePreview();
+}
+
+const wxString & xLightsFrame::GetDefaultPreviewBackgroundImage()
+{
+    return sPreview2->GetBackgroundImage();
 }
 
 void xLightsFrame::SetPreviewBackgroundBrightness(int i) {

@@ -22,10 +22,12 @@ class ModelGroupPanel: public wxPanel
 		virtual ~ModelGroupPanel();
 
 		void UpdatePanel(const std::string group);
+		void AddPreviewChoice(const std::string name);
 
 		//(*Declarations(ModelGroupPanel)
 		wxStaticText* StaticText2;
 		wxChoice* ChoiceModelLayoutType;
+		wxChoice* ChoicePreviews;
 		wxStaticText* LabelModelGroupName;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
@@ -45,6 +47,7 @@ class ModelGroupPanel: public wxPanel
 		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL1;
+		static const long ID_CHOICE_PREVIEWS;
 		static const long ID_STATICTEXT3;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTBOX_ADD_TO_MODEL_GROUP;
@@ -70,6 +73,7 @@ class ModelGroupPanel: public wxPanel
 		void OnChoiceModelLayoutTypeSelect(wxCommandEvent& event);
 		void OnPaint(wxPaintEvent& event);
 		void OnPaint1(wxPaintEvent& event);
+		void OnChoicePreviewsSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

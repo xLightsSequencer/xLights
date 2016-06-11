@@ -515,6 +515,8 @@
 		<Unit filename="KeyBindings.h" />
 		<Unit filename="LMSImportChannelMapDialog.cpp" />
 		<Unit filename="LMSImportChannelMapDialog.h" />
+		<Unit filename="LayoutGroup.cpp" />
+		<Unit filename="LayoutGroup.h" />
 		<Unit filename="LayoutPanel.cpp" />
 		<Unit filename="LayoutPanel.h" />
 		<Unit filename="LorConvertDialog.cpp" />
@@ -560,6 +562,8 @@
 		<Unit filename="PlayerFrame.h" />
 		<Unit filename="PreviewModels.cpp" />
 		<Unit filename="PreviewModels.h" />
+		<Unit filename="PreviewPane.cpp" />
+		<Unit filename="PreviewPane.h" />
 		<Unit filename="RenameTextDialog.cpp" />
 		<Unit filename="RenameTextDialog.h" />
 		<Unit filename="Render.cpp" />
@@ -998,6 +1002,7 @@
 		<Unit filename="wxsmith/PlaybackOptionsDialog.wxs" />
 		<Unit filename="wxsmith/PlayerFrame.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
+		<Unit filename="wxsmith/PreviewPane.wxs" />
 		<Unit filename="wxsmith/RenameTextDialog.wxs" />
 		<Unit filename="wxsmith/RenderProgressDialog.wxs" />
 		<Unit filename="wxsmith/ResizeImageDialog.wxs" />
@@ -1164,6 +1169,7 @@
 					<wxDialog wxs="wxsmith/RenderProgressDialog.wxs" src="RenderProgressDialog.cpp" hdr="RenderProgressDialog.h" fwddecl="1" i18n="1" name="RenderProgressDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ValueCurveDialog.wxs" src="ValueCurveDialog.cpp" hdr="ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ModelGroupPanel.wxs" src="ModelGroupPanel.cpp" hdr="ModelGroupPanel.h" fwddecl="0" i18n="1" name="ModelGroupPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/PreviewPane.wxs" src="PreviewPane.cpp" hdr="PreviewPane.h" fwddecl="0" i18n="1" name="PreviewPane" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

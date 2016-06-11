@@ -399,34 +399,38 @@ void xLightsFrame::UpdateChannelNames()
 	// KW left as some of the conversions seem to use this
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
         Model *model = it->second;
-        if (model->IsMyDisplay()) {
-            NodeCount=model->GetNodeCount();
-            ChanPerNode = model->GetChanCountPerNode();
-            FormatSpec = "Ch %d: "+model->name+" #%d";
-            for(n=0; n < NodeCount; n++)
-            {
-                ChannelNum=model->NodeStartChannel(n);
+        NodeCount=model->GetNodeCount();
+        ChanPerNode = model->GetChanCountPerNode();
+        FormatSpec = "Ch %d: "+model->name+" #%d";
+        for(n=0; n < NodeCount; n++)
+        {
+            ChannelNum=model->NodeStartChannel(n);
 
-                NodeNum=n+1;
-                if (ChanPerNode==1)
+            NodeNum=n+1;
+            if (ChanPerNode==1)
+            {
+                if (ChannelNum < ChNames.Count())
                 {
-                    if (ChannelNum < ChNames.Count())
+                    AbsoluteNodeNum=ChannelNum+1;
+                    if( ChNames[ChannelNum] == "" )
                     {
-                        AbsoluteNodeNum=ChannelNum+1;
                         ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum);
                     }
                 }
-                else
+            }
+            else
+            {
+                for(c=0; c < ChanPerNode; c++)
                 {
-                    for(c=0; c < ChanPerNode; c++)
+                    if (ChannelNum < ChNames.Count())
                     {
-                        if (ChannelNum < ChNames.Count())
+                        AbsoluteNodeNum=(ChannelNum/3)+1;
+                        if( ChNames[ChannelNum] == "" )
                         {
-                            AbsoluteNodeNum=(ChannelNum/3)+1;
                             ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum)+model->GetChannelColorLetter(c);
                         }
-                        ChannelNum++;
                     }
+                    ChannelNum++;
                 }
             }
         }

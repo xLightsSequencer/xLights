@@ -11,6 +11,7 @@
 #include "xlGLCanvas.h"
 
 class Model;
+class PreviewPane;
 
 class ModelPreview : public xlGLCanvas
 {
@@ -45,10 +46,10 @@ public:
     int GetBackgroundBrightness() const { return mBackgroundBrightness;}
     void SetScaleBackgroundImage(bool b);
     bool GetScaleBackgroundImage() const { return scaleImage; }
-    
+
     void Render();
     void Render(const unsigned char *data);
-    
+
     double calcPixelSize(double i);
     void SetModels(std::vector<Model*> &models) {
         previewModels.clear();
@@ -61,6 +62,10 @@ public:
         }
         return *PreviewModels;
     }
+
+    void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
+    void SetActive(bool show);
+    bool GetActive();
 
 protected:
     virtual void InitializeGLCanvas();
@@ -95,7 +100,8 @@ private:
     std::vector<Model*> previewModels;
     std::vector<Model*> *PreviewModels;
     bool allowSelected;
-    
+    PreviewPane* mPreviewPane;
+
     double currentPixelScaleFactor = 1.0;
 
 	DECLARE_EVENT_TABLE()

@@ -52,7 +52,7 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
     for (auto it = models.begin(); it != models.end(); it++) {
         if (it->first == oldName) {
             Model *model = it->second;
-            
+
             if (model != nullptr) {
                 model->GetModelXml()->DeleteAttribute("name");
                 model->GetModelXml()->AddAttribute("name",newName);
@@ -164,6 +164,7 @@ void ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                 if (it != models.end()) {
                     delete it->second;
                 }
+                model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
                 models[model->name] = model;
             }
         }
@@ -180,12 +181,12 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const std::stri
     node->AddAttribute("Antialias", "1");
     node->AddAttribute("PixelSize", "2");
     node->AddAttribute("Transparency", "0");
-    node->AddAttribute("MyDisplay", "1");
     node->AddAttribute("parm1", "1");
     node->AddAttribute("parm2", "50");
     node->AddAttribute("parm3", "1");
     node->AddAttribute("StartChannel", startChannel);
-    
+    node->AddAttribute("LayoutGroup", "Unassigned");
+
     int cnt = 0;
     std::string name = type;
     while (GetModel(name) != nullptr) {
@@ -317,7 +318,7 @@ void ModelManager::AddModel(Model *model) {
             delete it->second;
         }
         models[model->name] = model;
-        
+
         if ("ModelGroup" == model->GetDisplayAs()) {
             if (model->GetModelXml()->GetParent() != groupNode) {
                 if (model->GetModelXml()->GetParent() != nullptr) {
@@ -346,10 +347,10 @@ void ModelManager::Delete(const std::string &name) {
     for (auto it = models.begin(); it != models.end(); it++) {
         if (it->first == name) {
             Model *model = it->second;
-            
+
             if (model != nullptr) {
                 model->GetModelXml()->GetParent()->RemoveChild(model->GetModelXml());
-                
+
                 for (auto it = models.begin(); it != models.end(); it++) {
                     if (it->second->GetDisplayAs() == "ModelGroup") {
                         ModelGroup *group = (ModelGroup*)it->second;
