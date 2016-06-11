@@ -29,7 +29,6 @@ class ATendril
 	float _dampening;
 	float _tension;
 	float _spring;
-	xlColor _colour;
 	size_t _thickness;
 	int _width;
 	int _height;
@@ -39,9 +38,9 @@ class ATendril
 	public:
 
 	~ATendril();
-	ATendril(float friction, int size, float dampening, float tension, float spring, wxPoint* start, xlColor colour, int thickness, size_t maxx, size_t maxy);
+	ATendril(float friction, int size, float dampening, float tension, float spring, wxPoint& start, size_t maxx, size_t maxy);
 	void Update(wxPoint* target);
-	void Draw(PathDrawingContext* gc);
+	void Draw(PathDrawingContext* gc, xlColor colour, int thickness);
 	wxPoint* LastLocation();
 };
 
@@ -54,11 +53,11 @@ class Tendril
 	public:
 
 	~Tendril();
-	Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, wxPoint* start, xlColor colour, int thickness, size_t maxx, size_t maxy);
+	Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, wxPoint& start, size_t maxx, size_t maxy);
 	void UpdateRandomMove(int tunemovement);
     void Update(wxPoint* target);
     void Update(int x, int y);
-    void Draw(PathDrawingContext* gc);
+    void Draw(PathDrawingContext* gc, xlColor colour, int thickness);
 };
 
 class TendrilEffect : public RenderableEffect
@@ -70,7 +69,7 @@ class TendrilEffect : public RenderableEffect
         void Render(RenderBuffer &buffer,
 					const std::string& movement, int tunemovement, int movementSpeed, int thickness,
                     float friction, float dampening,
-                    float tension, int trails, int length, int xoffset, int yoffset);
+                    float tension, int trails, int length, int xoffset, int yoffset, int manualx, int manualy);
 #ifdef LINUX
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override { return false;}
 #endif
@@ -79,6 +78,7 @@ class TendrilEffect : public RenderableEffect
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
 		virtual bool needToAdjustSettings(const std::string &version) override;
 		virtual void adjustSettings(const std::string &version, Effect *effect) override;
+        int EncodeMovement(std::string movement);
 };
 
 #endif // PICTURESEFFECT_H
