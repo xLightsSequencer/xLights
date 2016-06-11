@@ -783,6 +783,12 @@
     <ClCompile Include="models\SpinnerModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LayoutGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PreviewPane.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1500,6 +1506,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="models\SpinnerModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LayoutGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PreviewPane.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

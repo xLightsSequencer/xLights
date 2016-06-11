@@ -174,6 +174,8 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_GRID_Custom,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellLeftClick);
 	//*)
     Connect(ID_GRID_Custom,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellChange);
+
+    ValidateWindow();
 }
 
 CustomModelDialog::~CustomModelDialog()
@@ -183,6 +185,20 @@ CustomModelDialog::~CustomModelDialog()
 
 	if( bkg_image != nullptr ) {
         delete bkg_image;
+    }
+}
+
+void CustomModelDialog::ValidateWindow()
+{
+    if (background_image == "")
+    {
+        SliderCustomLightness->Disable();
+        BitmapButtonCustomBkgrd->Disable();
+    }
+    else
+    {
+        SliderCustomLightness->Enable();
+        BitmapButtonCustomBkgrd->Enable();
     }
 }
 
@@ -235,6 +251,8 @@ void CustomModelDialog::Setup(CustomModel *m) {
     UpdateBackground();
     Sizer1->Layout();
     Layout();
+
+    ValidateWindow();
 }
 
 // make grid the size specified by the spin controls

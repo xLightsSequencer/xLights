@@ -281,6 +281,7 @@
     <ClCompile Include="KeyBindings.cpp" />
     <ClCompile Include="kiss_fft\kiss_fft.c" />
     <ClCompile Include="kiss_fft\tools\kiss_fftr.c" />
+    <ClCompile Include="LayoutGroup.cpp" />
     <ClCompile Include="LayoutPanel.cpp" />
     <ClCompile Include="LMSImportChannelMapDialog.cpp" />
     <ClCompile Include="LorConvertDialog.cpp" />
@@ -326,6 +327,7 @@
     <ClCompile Include="PlaybackOptionsDialog.cpp" />
     <ClCompile Include="PlayerFrame.cpp" />
     <ClCompile Include="PreviewModels.cpp" />
+    <ClCompile Include="PreviewPane.cpp" />
     <ClCompile Include="RenameTextDialog.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="RenderBuffer.cpp" />
@@ -520,6 +522,7 @@
     <ClInclude Include="Image_Loader.h" />
     <ClInclude Include="JobPool.h" />
     <ClInclude Include="KeyBindings.h" />
+    <ClInclude Include="LayoutGroup.h" />
     <ClInclude Include="LayoutPanel.h" />
     <ClInclude Include="LMSImportChannelMapDialog.h" />
     <ClInclude Include="LorConvertDialog.h" />
@@ -561,6 +564,7 @@
     <ClInclude Include="PlaybackOptionsDialog.h" />
     <ClInclude Include="PlayerFrame.h" />
     <ClInclude Include="PreviewModels.h" />
+    <ClInclude Include="PreviewPane.h" />
     <ClInclude Include="RenameTextDialog.h" />
     <ClInclude Include="RenderBuffer.h" />
     <ClInclude Include="RenderCommandEvent.h" />

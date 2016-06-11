@@ -45,7 +45,9 @@ private:
 
 class CustomModelDialog: public wxDialog
 {
-	public:
+    void ValidateWindow();
+
+    public:
 
 		CustomModelDialog(wxWindow* parent);
 		virtual ~CustomModelDialog();
