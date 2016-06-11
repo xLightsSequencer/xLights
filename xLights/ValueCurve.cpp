@@ -64,6 +64,36 @@ void ValueCurve::RenderType()
             _values.push_back(vcSortablePoint((i + 1) * per, (float)_parameter1 / 100.0, false));
         }
     }
+    else if (_type == "Square")
+    {
+        int count = _parameter3;
+        if (count < 1)
+        {
+            count = 1;
+        }
+        float per = 1.0f / (2 * count);
+        float current = 0.0f;
+        bool low = true;
+
+        for (int i = 0; i < 2 * count; i++)
+        {
+            if (low)
+            {
+                if (i != 0)
+                {
+                    _values.push_back(vcSortablePoint((float)i * per - 0.01f, (float)_parameter2 / 100.0, false));
+                }
+                _values.push_back(vcSortablePoint((float)i * per, (float)_parameter1 / 100.0, false));
+            }
+            else
+            {
+                _values.push_back(vcSortablePoint((float)i * per - 0.01f, (float)_parameter1 / 100.0, false));
+                _values.push_back(vcSortablePoint((float)i * per, (float)_parameter2 / 100.0, false));
+            }
+            low = !low;
+        }
+        _values.push_back(vcSortablePoint(1.0f, (float)_parameter2 / 100.0, false));
+    }
     else if (_type == "Parabolic Down")
     {
         int a = _parameter1;

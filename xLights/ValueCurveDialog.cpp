@@ -135,6 +135,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     Choice1->Append(_("Exponential Down"));
     Choice1->Append(_("Sine"));
     Choice1->Append(_("Abs Sine"));
+    Choice1->Append(_("Square"));
     Choice1->Append(_("Custom"));
     FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -390,6 +391,13 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
         SetParameter(2, 100);
         SetParameter(3, 10);
         SetParameter(4, 50);
+    }
+    else if (type == "Square")
+    {
+        SetParameter(1, 0);
+        SetParameter(2, 100);
+        SetParameter(3, 1);
+        SetParameter(4, 0);
     }
     else if (type == "Custom")
     {
@@ -690,7 +698,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else if (type == "Saw Tooth" || type == "Ramp Up/Down Hold" || type == "Ramp Up/Down")
+    else if (type == "Saw Tooth" || type == "Ramp Up/Down Hold" || type == "Ramp Up/Down" || type == "Square")
     {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
@@ -814,6 +822,13 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P2->SetLabel("Amplitude");
         StaticText_P3->SetLabel("Cycles");
         StaticText_P4->SetLabel("Vertical Offset");
+    }
+    else if (type == "Square")
+    {
+        StaticText_P1->SetLabel("Start Level");
+        StaticText_P2->SetLabel("End Level");
+        StaticText_P3->SetLabel("Cycles");
+        StaticText_P4->SetLabel("N/A");
     }
     else if (type == "Custom")
     {
