@@ -1218,6 +1218,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
         //}
         //FileDialogConvert->SetDirectory(ConvertDir);
     }
+    logger_base.debug("Show directory %s.", dir.ToStdString().c_str());
 
     if (!xLightsApp::mediaDir.IsNull())
     {
@@ -1227,16 +1228,20 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     {
         mediaDirectory=dir;
     }
+    logger_base.debug("Media directory %s.", mediaDirectory.ToStdString().c_str());
     MediaDirectoryLabel->SetLabel(mediaDirectory);
 
     wxString tbData = config->Read("ToolbarLocations");
-    // wxMessageBox(tbData);
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION))
     {
         MainAuiManager->LoadPerspective(tbData.Right(tbData.size() - 5));
     }
+    logger_base.debug("Perspectives loaded.");
+
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
+    logger_base.debug("Render on save: %s.", mRenderOnSave? "true" : "false");
+
     config->Read("xLightsIconSize", &mIconSize, 16);
     int isid = ID_MENUITEM_ICON_SMALL;
     if (mIconSize == 24) {
@@ -1248,6 +1253,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     }
     wxCommandEvent event(wxEVT_NULL, isid);
     SetToolIconSize(event);
+    logger_base.debug("Icon size: %d.", mIconSize);
 
     config->Read("AutoSaveInterval", &AutoSaveInterval, 3);
     id = ID_MENUITEM_AUTOSAVE_0;
@@ -1267,7 +1273,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     }
     wxCommandEvent asEvent(wxEVT_NULL, id);
     AutoSaveIntervalSelected(asEvent);
-
+    logger_base.debug("Autosave interval: %d.", AutoSaveInterval);
 
     int glVer = 99;
     config->Read("ForceOpenGLVer", &glVer, 99);
@@ -1281,6 +1287,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
             CallAfter(&xLightsFrame::MaybePackageAndSendDebugFiles);
         }
     }
+    logger_base.debug("Force OpenGL version: %d.", glVer);
+
     config->Write("LastOpenGLVer", glVer);
     switch (glVer) {
         case 1:
@@ -1296,6 +1304,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
             OpenGLMenu->Check(ID_MENU_OPENGL_AUTO, true);
             break;
     }
+
     config->Read("xLightsGridSpacing", &mGridSpacing, 16);
     if (mGridSpacing != 16)
     {
@@ -1315,24 +1324,32 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
         wxCommandEvent event(wxEVT_NULL, id);
         SetIconSize(event);
     }
+    logger_base.debug("Grid spacing: %d.", mGridSpacing);
+
     config->Read("xLightsGridIconBackgrounds", &mGridIconBackgrounds, true);
     {
         int id = mGridIconBackgrounds ? ID_MENUITEM_GRID_ICON_BACKGROUND_ON : ID_MENUITEM_GRID_ICON_BACKGROUND_OFF;
         wxCommandEvent event(wxEVT_NULL, id);
         OnSetGridIconBackground(event);
     }
+    logger_base.debug("Grid icon backgrounds: %s.", mGridIconBackgrounds ? "true" : "false");
+
     config->Read("xLightsGridNodeValues", &mGridNodeValues, true);
     {
         int id = mGridNodeValues ? ID_MENUITEM_GRID_NODE_VALUES_ON : ID_MENUITEM_GRID_NODE_VALUES_OFF;
         wxCommandEvent event(wxEVT_NULL, id);
         OnSetGridNodeValues(event);
     }
+    logger_base.debug("Grid node values: %s.", mGridNodeValues ? "true" : "false");
+
     config->Read("xLightsEffectAssistMode", &mEffectAssistMode, EFFECT_ASSIST_TOGGLE_MODE);
     MenuItemEffectAssistAlwaysOn->Check(mEffectAssistMode==EFFECT_ASSIST_ALWAYS_ON);
     MenuItemEffectAssistAlwaysOff->Check(mEffectAssistMode==EFFECT_ASSIST_ALWAYS_OFF);
     MenuItemEffectAssistToggleMode->Check(mEffectAssistMode==EFFECT_ASSIST_TOGGLE_MODE);
+    logger_base.debug("Effect Assist Mode: %s.", mEffectAssistMode ? "true" : "false");
 
     InitEffectsPanel(EffectsPanel1);
+    logger_base.debug("Effects panel initialised.");
 
     EffectTreeDlg = NULL;  // must be before any call to SetDir
 
@@ -1344,6 +1361,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     //delete config;  // close config before calling SetDir, which will open config
     if (RunFlag && xLightsApp::RunPrompt) //give user a chance to edit before running -DJ
         if (wxMessageBox("Auto-run schedule?", "Confirm", wxYES_DEFAULT | wxYES_NO) != wxYES) RunFlag = 0; //, main_frame);
+    logger_base.debug("Run Schedule: %s.", RunFlag ? "true" : "false");
 
     SetPlayMode(play_off);
     ResetEffectsXml();
@@ -1359,7 +1377,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     }
     MixTypeChanged=true;
     basic.setFrame(this);
-	// I create this but we only use it for the scheduler
+
+    // I create this but we only use it for the scheduler
     PlayerDlg = new PlayerFrame(this, ID_PLAYER_DIALOG);
     if (RunFlag && !ShowEvents.IsEmpty())
     {
@@ -1386,10 +1405,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 //    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
 
     jobPool.Start(wxThread::GetCPUCount() * 4);
-//   jobPool.Start(24);
 
     if (!xLightsApp::sequenceFile.IsNull())
     {
+        logger_base.debug("Opening sequence: %s.", xLightsApp::sequenceFile.ToStdString().c_str());
         OpenSequence(xLightsApp::sequenceFile, NULL);
     }
 
