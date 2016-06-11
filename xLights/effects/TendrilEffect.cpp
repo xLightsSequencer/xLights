@@ -99,7 +99,7 @@ ATendril::~ATendril()
 	}
 }
 
-ATendril::ATendril(float friction, int size, float dampening, float tension, float spring, wxPoint& start, size_t maxx, size_t maxy)
+ATendril::ATendril(float friction, int size, float dampening, float tension, float spring, const wxPoint& start, size_t maxx, size_t maxy)
 {
     _width = maxx;
     _height = maxy;
@@ -251,7 +251,7 @@ Tendril::~Tendril()
 	}
 }
 
-Tendril::Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, wxPoint& start, size_t maxx, size_t maxy)
+Tendril::Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const wxPoint& start, size_t maxx, size_t maxy)
 {
     _width = maxx;
     _height = maxy;

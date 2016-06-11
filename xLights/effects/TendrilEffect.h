@@ -38,7 +38,7 @@ class ATendril
 	public:
 
 	~ATendril();
-	ATendril(float friction, int size, float dampening, float tension, float spring, wxPoint& start, size_t maxx, size_t maxy);
+	ATendril(float friction, int size, float dampening, float tension, float spring, const wxPoint& start, size_t maxx, size_t maxy);
 	void Update(wxPoint* target);
 	void Draw(PathDrawingContext* gc, xlColor colour, int thickness);
 	wxPoint* LastLocation();
@@ -53,7 +53,7 @@ class Tendril
 	public:
 
 	~Tendril();
-	Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, wxPoint& start, size_t maxx, size_t maxy);
+	Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const wxPoint& start, size_t maxx, size_t maxy);
 	void UpdateRandomMove(int tunemovement);
     void Update(wxPoint* target);
     void Update(int x, int y);
