@@ -19,7 +19,6 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         void AddModel(const std::string &name);
 
         bool IsSelected() const { return selected;}
-        void SetSelected(bool select);
         const std::vector<std::string> &ModelNames() const { return modelNames;}
         const std::vector<Model *> &Models() const { return models;}
 

@@ -44,7 +44,7 @@ ModelGroup::ModelGroup(wxXmlNode *node, const ModelManager &m, int w, int h) : M
     Reset();
 }
 void ModelGroup::Reset() {
-    selected = ModelXml->GetAttribute("selected", "0") == "1";
+    selected = false;
     name = ModelXml->GetAttribute("name").ToStdString();
     DisplayAs = "ModelGroup";
     StringType = "RGB Nodes";
@@ -445,11 +445,4 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
     } else {
         Model::InitRenderBufferNodes(type, transform, Nodes, BufferWi, BufferHi);
     }
-}
-
-void ModelGroup::SetSelected(bool select)
-{
-    wxString sSelected = select?"1":"0";
-    ModelXml->DeleteAttribute("selected");
-    ModelXml->AddAttribute("selected",sSelected);
 }
