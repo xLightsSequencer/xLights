@@ -8,8 +8,15 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.37  Jun 10, 2016
+   -- enh (keithsw) Extra logging on startup to isolate problems ... also logs config so we can understand settings.
+   -- enh (dkulp) Allow 10K nodes/string for SingleLineModel.  Fixes #592
    -- enh (keithsw) Allow bars effect centre for compress/expand to be moved
    -- enh (keithsw) Add spinner model
+   -- bug (keithsw) Fix a possible crash with perspectives.
+   -- enh (keithsw) Make image files in faces and assist easier to load by not having separate filter for each file type.
+   -- bug (dkulp) Fix problems with "Single Strand" buffer mode and custom models
+   -- bug (dkulp) fix "Per Preview" mode cutting off right most pixels of custom models
 2016.36  Jun 06, 2016
    -- enh (keithsw) Change backup files to *.xbkp extension to minimise risk of users opening them accidentally. Include them in F10 backup.
    -- bug (dkulp) Don't use OpenGL 2.1 if context is 2.0
