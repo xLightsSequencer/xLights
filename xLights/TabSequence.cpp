@@ -327,17 +327,24 @@ void xLightsFrame::LoadEffectsFile()
 void xLightsFrame::LoadPerspectivesMenu(wxXmlNode* perspectivesNode)
 {
     // Clear old menu items
-    wxMenuItemList::Node* current_menuitem_node;
-    wxMenuItem* current_menuitem;
 
-    current_menuitem_node = MenuItemPerspectives->GetMenuItems().GetLast();
-    current_menuitem = current_menuitem_node->GetData();
-    while (!current_menuitem->IsSeparator())
+    int menuCount = MenuItemPerspectives->GetMenuItemCount();
+    int first = menuCount - 1;
+    wxMenuItem* current_menuitem = MenuItemPerspectives->FindItemByPosition(first);
+    while (current_menuitem != nullptr && !current_menuitem->IsSeparator())
     {
-        current_menuitem_node = current_menuitem_node->GetPrevious();
-        MenuItemPerspectives->Delete(current_menuitem);
-        current_menuitem = current_menuitem_node->GetData();
+        first--;
+        current_menuitem = MenuItemPerspectives->FindItemByPosition(first);
     }
+    first++;
+    current_menuitem =  first < menuCount ? MenuItemPerspectives->FindItemByPosition(first) : nullptr;
+    while (current_menuitem != nullptr) {
+        MenuItemPerspectives->Delete(current_menuitem);
+        menuCount--;
+        current_menuitem = first < menuCount ? MenuItemPerspectives->FindItemByPosition(first) : nullptr;
+    }
+
+    
 
     int pCount = 0;
 

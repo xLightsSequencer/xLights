@@ -722,11 +722,13 @@ public:
     xlImageProperty(const wxString& label,
                     const wxString& name,
                     const wxString& value,
-                    const wxImage &img)
+                    const wxImage *img)
         : lastFileName(value), wxImageFileProperty(label, name, "") {
 
         SetValueFromString(value);
-        m_pImage = new wxImage(img);
+        if (img != nullptr) {
+            m_pImage = new wxImage(*img);
+        }
     }
     virtual ~xlImageProperty() {}
 
@@ -736,7 +738,9 @@ public:
         if (fn != lastFileName) {
             lastFileName = fn;
             delete m_pImage;
-            m_pImage = new wxImage(fn.GetFullPath());
+            if (fn.Exists()) {
+                m_pImage = new wxImage(fn.GetFullPath());
+            }
         }
     }
 
@@ -769,12 +773,14 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 
         if (background == nullptr) {
             backgroundFile = previewBackgroundFile;
-            background = new wxImage(backgroundFile);
+            if (backgroundFile != "") {
+                background = new wxImage(backgroundFile);
+            }
         }
         wxPGProperty* p = propertyEditor->Append(new xlImageProperty("Background Image",
                                                    "BkgImage",
                                                     previewBackgroundFile,
-                                                    *background));
+                                                    background));
         p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*");
         propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", previewBackgroundScaled))->SetAttribute("UseCheckbox", 1);
         if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
