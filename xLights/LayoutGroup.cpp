@@ -8,7 +8,8 @@
 #include "PreviewPane.h"
 
 LayoutGroup::LayoutGroup(const std::string & name, xLightsFrame* xl, wxXmlNode *node, wxString bkImage)
-: mName(name), mPreviewHidden(true), mPreviewCreated(false), mModelPreview(nullptr), xlights(xl), LayoutGroupXml(node), id_menu_item(wxNewId())
+: mName(name), mScaleBackgroundImage(false), mBackgroundBrightness(100), mPreviewHidden(true), mPreviewCreated(false),
+   mModelPreview(nullptr), xlights(xl), LayoutGroupXml(node), id_menu_item(wxNewId())
 {
     if( bkImage != "" ) {
         SetBackgroundImage( bkImage );
@@ -42,6 +43,31 @@ void LayoutGroup::SetBackgroundImage(const wxString &filename)
                 mModelPreview->Update();
             }
         }
+        xlights->UnsavedRgbEffectsChanges=true;
+    }
+}
+
+void LayoutGroup::SetBackgroundBrightness(int i) {
+    if (mBackgroundBrightness != i) {
+        mBackgroundBrightness = i;
+        LayoutGroupXml->DeleteAttribute("backgroundBrightness");
+        LayoutGroupXml->AddAttribute("backgroundBrightness", wxString::Format("%d",mBackgroundBrightness));
+        if( mModelPreview != nullptr ) {
+            mModelPreview->SetBackgroundBrightness(mBackgroundBrightness);
+        }
+        xlights->UnsavedRgbEffectsChanges=true;
+    }
+}
+
+void LayoutGroup::SetBackgroundScaled(bool scaled) {
+    if (mScaleBackgroundImage != scaled) {
+        mScaleBackgroundImage = scaled;
+        LayoutGroupXml->DeleteAttribute("scaleImage");
+        LayoutGroupXml->AddAttribute("scaleImage", wxString::Format("%d",scaled));
+        if( mModelPreview != nullptr ) {
+            mModelPreview->SetScaleBackgroundImage(scaled);
+        }
+        xlights->UnsavedRgbEffectsChanges=true;
     }
 }
 
@@ -50,6 +76,8 @@ void LayoutGroup::SetFromXml(wxXmlNode* LayoutGroupNode)
     LayoutGroupXml = LayoutGroupNode;
     mName=LayoutGroupNode->GetAttribute("name").ToStdString();
     mBackgroundImage=LayoutGroupNode->GetAttribute("backgroundImage").ToStdString();
+    mBackgroundBrightness=wxAtoi(LayoutGroupNode->GetAttribute("backgroundBrightness","100").ToStdString());
+    mScaleBackgroundImage=wxAtoi(LayoutGroupNode->GetAttribute("scaleImage","0").ToStdString());
 }
 
 wxXmlNode* LayoutGroup::GetLayoutGroupXml() const {

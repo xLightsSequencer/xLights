@@ -992,6 +992,7 @@ private:
     wxString mBackgroundImage;
     int mBackgroundBrightness;
     bool mScaleBackgroundImage = false;
+    std::string mStoredLayoutGroup;
 
     // convert
 public:
@@ -1258,6 +1259,8 @@ public:
     void SetPreviewSize(int width, int height);
     void SetPreviewBackgroundImage(const wxString &filename);
     const wxString & GetDefaultPreviewBackgroundImage();
+    bool GetDefaultPreviewBackgroundScaled();
+    int GetDefaultPreviewBackgroundBrightness();
     void SetPreviewBackgroundBrightness(int i);
     void UpdatePreview();
     void UpdateModelsList(bool update_groups = true);
@@ -1267,6 +1270,8 @@ public:
     void RefreshLayout();
     void AddPreviewOption(LayoutGroup* grp);
     ModelPreview* GetLayoutPreview() {return modelPreview;}
+    void SetStoredLayoutGroup(const std::string &group);
+    const std::string& GetStoredLayoutGroup() {return mStoredLayoutGroup;}
 
 private:
 

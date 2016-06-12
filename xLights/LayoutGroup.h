@@ -20,6 +20,12 @@ class LayoutGroup : public wxObject
         void SetBackgroundImage(const wxString &filename);
         const wxString &GetBackgroundImage() const { return mBackgroundImage;}
 
+        void SetBackgroundScaled(bool scaled);
+        bool GetBackgroundScaled() {return mScaleBackgroundImage;}
+
+        void SetBackgroundBrightness(int i);
+        int GetBackgroundBrightness() {return mBackgroundBrightness;}
+
         void SetFromXml(wxXmlNode* LayoutGroupNode);
         wxXmlNode* GetLayoutGroupXml() const;
 
@@ -28,7 +34,6 @@ class LayoutGroup : public wxObject
             return previewModels;
         }
 
-        void SetModelPreview(ModelPreview* preview) {mModelPreview = preview;}
         ModelPreview* GetModelPreview() {return mModelPreview;}
 
         bool GetPreviewHidden() {return mPreviewHidden;}
@@ -45,6 +50,8 @@ class LayoutGroup : public wxObject
     private:
         std::string mName;
         wxString mBackgroundImage;
+        bool mScaleBackgroundImage;
+        int mBackgroundBrightness;
         std::vector<Model*> previewModels;
         bool mPreviewHidden;
         bool mPreviewCreated;

@@ -29,7 +29,17 @@ void xLightsFrame::PreviewOutput(int period)
     modelPreview->Render(&SeqData[period][0]);
 }
 
-void xLightsFrame::SetPreviewBackgroundImage(const wxString &filename) {
+void xLightsFrame::SetStoredLayoutGroup(const std::string &group)
+{
+    if (mStoredLayoutGroup != group) {
+        mStoredLayoutGroup = group;
+        SetXmlSetting("storedLayoutGroup",mStoredLayoutGroup);
+        UnsavedRgbEffectsChanges=true;
+    }
+}
+
+void xLightsFrame::SetPreviewBackgroundImage(const wxString &filename)
+{
     if (mBackgroundImage != filename) {
         mBackgroundImage = filename;
         SetXmlSetting("backgroundImage",mBackgroundImage);
@@ -45,7 +55,8 @@ const wxString & xLightsFrame::GetDefaultPreviewBackgroundImage()
     return sPreview2->GetBackgroundImage();
 }
 
-void xLightsFrame::SetPreviewBackgroundBrightness(int i) {
+void xLightsFrame::SetPreviewBackgroundBrightness(int i)
+{
     if (mBackgroundBrightness != i) {
         mBackgroundBrightness = i;
         SetXmlSetting("backgroundBrightness",wxString::Format("%d",mBackgroundBrightness));
@@ -56,6 +67,11 @@ void xLightsFrame::SetPreviewBackgroundBrightness(int i) {
     UpdatePreview();
 }
 
+bool xLightsFrame::GetDefaultPreviewBackgroundScaled()
+{
+    return sPreview2->GetScaleBackgroundImage();
+}
+
 void xLightsFrame::SetPreviewBackgroundScaled(bool scaled) {
     if (mScaleBackgroundImage != scaled) {
         mScaleBackgroundImage = scaled;
@@ -64,4 +80,9 @@ void xLightsFrame::SetPreviewBackgroundScaled(bool scaled) {
     }
     modelPreview->SetScaleBackgroundImage(scaled);
     sPreview2->SetScaleBackgroundImage(scaled);
+}
+
+int xLightsFrame::GetDefaultPreviewBackgroundBrightness()
+{
+    return sPreview2->GetBackgroundBrightness();
 }

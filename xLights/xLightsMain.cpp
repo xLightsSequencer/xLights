@@ -1104,6 +1104,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     UnsavedRgbEffectsChanges = false;
     UnsavedPlaylistChanges = false;
     UnsavedNetworkChanges = false;
+    mStoredLayoutGroup = "Default";
 
     logger_base.debug("xLightsFrame constructor creating sequencer.");
 

@@ -140,6 +140,10 @@ class LayoutPanel: public wxPanel
         void SetupPropGrid(Model *model);
         void AddPreviewChoice(const std::string &name);
         ModelPreview* GetMainPreview() {return modelPreview;}
+        bool GetBackgroundScaledForSelectedPreview();
+        int GetBackgroundBrightnessForSelectedPreview();
+        const std::string& GetCurrentLayoutGroup() {return currentLayoutGroup;}
+        void Reset();
 
     protected:
         void ExportModel();
@@ -206,6 +210,7 @@ class LayoutPanel: public wxPanel
         Model *newModel;
         ModelGroupPanel *model_grp_panel;
         std::string currentLayoutGroup;
+        LayoutGroup* pGrp;
 
         std::string lastModelName;
 
@@ -231,6 +236,8 @@ class LayoutPanel: public wxPanel
         wxImage *background;
         wxString backgroundFile;
         wxString previewBackgroundFile;
+        bool previewBackgroundScaled;
+        int previewBackgroundBrightness;
         wxPanel* main_sequencer;
 
         static const long ID_MNU_DELETE_MODEL;
@@ -246,6 +253,7 @@ class LayoutPanel: public wxPanel
         void DeleteCurrentPreview();
         void RemoveModelGroupFilters();
         void ShowPropGrid(bool show);
+        void SetCurrentLayoutGroup(const std::string& group);
 };
 
 #endif

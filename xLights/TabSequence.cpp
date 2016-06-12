@@ -182,8 +182,10 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
     SetPreviewBackgroundImage(mBackgroundImage);
 
+    mStoredLayoutGroup = GetXmlSetting("storedLayoutGroup","Default");
     // Do this here as it may switch the background image
     LayoutGroups.clear();
+    layoutPanel->Reset();
     AllModels.SetLayoutsNode(LayoutGroupsNode);  // provides easy access to layout names for the model class
     for(wxXmlNode* e=LayoutGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
@@ -202,9 +204,15 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
     SetPreviewBackgroundBrightness(mBackgroundBrightness);
-
     mScaleBackgroundImage = wxAtoi(GetXmlSetting("scaleImage","0"));
     SetPreviewBackgroundScaled(mScaleBackgroundImage);
+
+    std::string group = layoutPanel->GetCurrentLayoutGroup();
+    if( group != "Default" && group != "All Models" && group != "Unassigned" ) {
+        modelPreview->SetBackgroundBrightness(layoutPanel->GetBackgroundBrightnessForSelectedPreview());
+        modelPreview->SetScaleBackgroundImage(layoutPanel->GetBackgroundScaledForSelectedPreview());
+    }
+
     return effectsFile.GetFullPath();
 }
 

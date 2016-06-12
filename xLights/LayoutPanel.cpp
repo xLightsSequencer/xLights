@@ -122,7 +122,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
-    mSelectedGroup(-1), currentLayoutGroup("Default"), backgroundFile("")
+    mSelectedGroup(-1), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
+    previewBackgroundBrightness(100)
 {
     background = nullptr;
 
@@ -264,8 +265,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         GroupSplitter->SetSashPosition(gsp);
     }
 
-    currentLayoutGroup = config->Read("CurrentLayoutGroup", "Default");
-
     wxListItem elementCol;
     elementCol.SetText(_T("Element Name"));
     elementCol.SetImage(-1);
@@ -318,6 +317,13 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     mDefaultSaveBtnColor = ButtonSavePreview->GetBackgroundColour();
 
+    Reset();
+}
+
+void LayoutPanel::Reset()
+{
+    SetCurrentLayoutGroup(xlights->GetStoredLayoutGroup());
+    ChoiceLayoutGroups->Clear();
     ChoiceLayoutGroups->Append("Default");
     ChoiceLayoutGroups->Append("All Models");
     ChoiceLayoutGroups->Append("Unassigned");
@@ -388,7 +394,14 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     wxString name = event.GetPropertyName();
     updatingProperty = true;
     if (name == "BkgBrightness") {
-        xlights->SetPreviewBackgroundBrightness(event.GetValue().GetLong());
+       if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
+            xlights->SetPreviewBackgroundBrightness(event.GetValue().GetLong());
+         } else {
+            pGrp->SetBackgroundBrightness(wxAtoi(event.GetValue().GetString()));
+            modelPreview->SetBackgroundBrightness(wxAtoi(event.GetValue().GetString()));
+            MarkEffectsFileDirty();
+            UpdatePreview();
+        }
     } else if (name == "BkgSizeWidth") {
         xlights->SetPreviewSize(event.GetValue().GetLong(), modelPreview->GetVirtualCanvasHeight());
         xlights->UpdateModelsList();
@@ -399,19 +412,20 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
             xlights->SetPreviewBackgroundImage(event.GetValue().GetString());
         } else {
-            for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
-                LayoutGroup* grp = (LayoutGroup*)(*it);
-                if( currentLayoutGroup == grp->GetName() ) {
-                    grp->SetBackgroundImage(event.GetValue().GetString());
-                    modelPreview->SetbackgroundImage(event.GetValue().GetString());
-                    MarkEffectsFileDirty();
-                    UpdatePreview();
-                    break;
-                }
-            }
+            pGrp->SetBackgroundImage(event.GetValue().GetString());
+            modelPreview->SetbackgroundImage(event.GetValue().GetString());
+            MarkEffectsFileDirty();
+            UpdatePreview();
         }
     } else if (name == "BkgFill") {
-        xlights->SetPreviewBackgroundScaled(event.GetValue().GetBool());
+       if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
+            xlights->SetPreviewBackgroundScaled(event.GetValue().GetBool());
+         } else {
+            pGrp->SetBackgroundScaled(wxAtoi(event.GetValue().GetString()));
+            modelPreview->SetScaleBackgroundImage(wxAtoi(event.GetValue().GetString()));
+            MarkEffectsFileDirty();
+            UpdatePreview();
+        }
     } else if (selectedModel != nullptr) {
         //model property
         if ("ModelName" == name) {
@@ -743,23 +757,26 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         propertyEditor->Freeze();
         clearPropGrid();
 
-        wxString preview_background_image = GetBackgroundImageForSelectedPreview();
-        if (backgroundFile != preview_background_image) {
+        GetBackgroundImageForSelectedPreview();       // don't need return value....just let it set local variable previewBackgroundFile
+        GetBackgroundScaledForSelectedPreview();      // don't need return value....just let it set local variable previewBackgroundScaled
+        GetBackgroundBrightnessForSelectedPreview();  // don't need return value....just let it set local variable previewBackgroundBrightness
+
+        if (backgroundFile != previewBackgroundFile) {
             delete background;
             background = nullptr;
         }
 
         if (background == nullptr) {
-            backgroundFile = preview_background_image;
+            backgroundFile = previewBackgroundFile;
             background = new wxImage(backgroundFile);
         }
         wxPGProperty* p = propertyEditor->Append(new xlImageProperty("Background Image",
                                                    "BkgImage",
-                                                    preview_background_image,
+                                                    previewBackgroundFile,
                                                     *background));
         p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*");
+        propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", previewBackgroundScaled))->SetAttribute("UseCheckbox", 1);
         if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
-            propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", modelPreview->GetScaleBackgroundImage()))->SetAttribute("UseCheckbox", 1);
             wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
             prop->SetAttribute("Min", 0);
             prop->SetAttribute("Max", 4096);
@@ -768,13 +785,11 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
             prop->SetAttribute("Min", 0);
             prop->SetAttribute("Max", 4096);
             prop->SetEditor("SpinCtrl");
-            prop = propertyEditor->Append(new wxStringProperty("Brightness",
-                                                               "BkgBrightness",
-                                                               wxString::Format("%d", modelPreview->GetBackgroundBrightness())));
-            prop->SetAttribute("Min", 0);
-            prop->SetAttribute("Max", 100);
-            prop->SetEditor("SpinCtrl");
         }
+        wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Brightness", "BkgBrightness", wxString::Format("%d", previewBackgroundBrightness)));
+        prop->SetAttribute("Min", 0);
+        prop->SetAttribute("Max", 100);
+        prop->SetEditor("SpinCtrl");
         propertyEditor->Thaw();
     }
 }
@@ -2277,8 +2292,8 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
             node->AddAttribute("name", name);
 
             mSelectedGroup = -1;
-            currentLayoutGroup = name.ToStdString();
             LayoutGroup* grp = new LayoutGroup(name.ToStdString(), xlights, node, xlights->GetDefaultPreviewBackgroundImage());
+            SetCurrentLayoutGroup(name.ToStdString());
             xlights->LayoutGroups.push_back(grp);
             xlights->AddPreviewOption(grp);
             ChoiceLayoutGroups->Insert(name, ChoiceLayoutGroups->GetCount()-1);
@@ -2292,15 +2307,16 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
             return;
         }
     } else {
-        currentLayoutGroup = choice_layout;
+        SetCurrentLayoutGroup(choice_layout);
         mSelectedGroup = -1;
         UpdateModelList();
     }
     modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
+    modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
+    modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview());
     UpdatePreview();
 
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Write("CurrentLayoutGroup", (wxString)currentLayoutGroup );
+    xlights->SetStoredLayoutGroup(currentLayoutGroup);
 }
 
 void LayoutPanel::AddPreviewChoice(const std::string &name)
@@ -2309,15 +2325,17 @@ void LayoutPanel::AddPreviewChoice(const std::string &name)
     model_grp_panel->AddPreviewChoice(name);
 
     // see if we need to switch to this one
-    wxConfigBase* config = wxConfigBase::Get();
-    wxString storedLayoutGroup = config->Read("CurrentLayoutGroup", "Default");
+    const std::string& storedLayoutGroup = xlights->GetStoredLayoutGroup();
     if( storedLayoutGroup == name ) {
         for( int i = 0; i < ChoiceLayoutGroups->GetCount(); i++ )
         {
             if( ChoiceLayoutGroups->GetString(i) == storedLayoutGroup )
             {
+                SetCurrentLayoutGroup(storedLayoutGroup);
                 ChoiceLayoutGroups->SetSelection(i);
                 modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
+                modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
+                modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview());
                 UpdatePreview();
                 break;
             }
@@ -2328,15 +2346,27 @@ void LayoutPanel::AddPreviewChoice(const std::string &name)
 const wxString& LayoutPanel::GetBackgroundImageForSelectedPreview() {
     previewBackgroundFile = xlights->GetDefaultPreviewBackgroundImage();
     if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
-        for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
-            LayoutGroup* grp = (LayoutGroup*)(*it);
-            if( currentLayoutGroup == grp->GetName() ) {
-                previewBackgroundFile = grp->GetBackgroundImage();
-                break;
-            }
-        }
+        previewBackgroundFile = pGrp->GetBackgroundImage();
     }
     return previewBackgroundFile;
+}
+
+bool LayoutPanel::GetBackgroundScaledForSelectedPreview()
+{
+    previewBackgroundScaled = xlights->GetDefaultPreviewBackgroundScaled();
+    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+        previewBackgroundScaled = pGrp->GetBackgroundScaled();
+    }
+    return previewBackgroundScaled;
+}
+
+int LayoutPanel::GetBackgroundBrightnessForSelectedPreview()
+{
+    previewBackgroundBrightness = xlights->GetDefaultPreviewBackgroundBrightness();
+    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+        previewBackgroundBrightness = pGrp->GetBackgroundBrightness();
+    }
+    return previewBackgroundBrightness;
 }
 
 void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
@@ -2384,11 +2414,13 @@ void LayoutPanel::DeleteCurrentPreview()
             }
         }
 
-        currentLayoutGroup = "Default";
+        SetCurrentLayoutGroup("Default");
         ChoiceLayoutGroups->SetSelection(0);
 
         UpdateModelList();
         modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
+        modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
+        modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview());
         UpdatePreview();
     }
 }
@@ -2408,3 +2440,16 @@ void LayoutPanel::ShowPropGrid(bool show)
     }
 }
 
+void LayoutPanel::SetCurrentLayoutGroup(const std::string& group)
+{
+    currentLayoutGroup = group;
+    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+        LayoutGroup* grp = (LayoutGroup*)(*it);
+        if (grp != nullptr) {
+            if( currentLayoutGroup == grp->GetName() ) {
+                pGrp = grp;
+                break;
+            }
+        }
+    }
+}
