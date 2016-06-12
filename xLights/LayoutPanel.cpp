@@ -2292,10 +2292,11 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
             node->AddAttribute("name", name);
 
             mSelectedGroup = -1;
-            LayoutGroup* grp = new LayoutGroup(name.ToStdString(), xlights, node, xlights->GetDefaultPreviewBackgroundImage());
-            SetCurrentLayoutGroup(name.ToStdString());
+            LayoutGroup* grp = new LayoutGroup(name.ToStdString(), xlights, node);
+            grp->SetBackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
             xlights->LayoutGroups.push_back(grp);
             xlights->AddPreviewOption(grp);
+            SetCurrentLayoutGroup(name.ToStdString());
             ChoiceLayoutGroups->Insert(name, ChoiceLayoutGroups->GetCount()-1);
             ChoiceLayoutGroups->SetSelection(ChoiceLayoutGroups->GetCount()-2);
 

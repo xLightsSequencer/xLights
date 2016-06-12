@@ -11,7 +11,7 @@ class ModelPreview;
 class LayoutGroup : public wxObject
 {
     public:
-        LayoutGroup(const std::string & name, xLightsFrame* xl, wxXmlNode *node, wxString bkImage = "");
+        LayoutGroup(const std::string & name, xLightsFrame* xl, wxXmlNode *node);
         virtual ~LayoutGroup();
 
         const std::string &GetName() const {return mName;}

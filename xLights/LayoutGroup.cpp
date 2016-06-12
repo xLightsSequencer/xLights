@@ -7,13 +7,10 @@
 #include "models/Model.h"
 #include "PreviewPane.h"
 
-LayoutGroup::LayoutGroup(const std::string & name, xLightsFrame* xl, wxXmlNode *node, wxString bkImage)
+LayoutGroup::LayoutGroup(const std::string & name, xLightsFrame* xl, wxXmlNode *node)
 : mName(name), mScaleBackgroundImage(false), mBackgroundBrightness(100), mPreviewHidden(true), mPreviewCreated(false),
    mModelPreview(nullptr), xlights(xl), LayoutGroupXml(node), id_menu_item(wxNewId())
 {
-    if( bkImage != "" ) {
-        SetBackgroundImage( bkImage );
-    }
     SetFromXml(node);
 }
 
