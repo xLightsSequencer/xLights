@@ -571,9 +571,11 @@ void xLightsFrame::UpdateModelsList(bool update_groups)
     // Add all models to default House Preview that are set to Default or All Previews
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
         Model *model = it->second;
-        if (model->GetLayoutGroup() == "Default" || model->GetLayoutGroup() == "All Previews") {
-            modelsAdded.insert(model->name);
-            PreviewModels.push_back(model);
+        if (model->GetDisplayAs() != "ModelGroup") {
+            if (model->GetLayoutGroup() == "Default" || model->GetLayoutGroup() == "All Previews") {
+                modelsAdded.insert(model->name);
+                PreviewModels.push_back(model);
+            }
         }
     }
 
