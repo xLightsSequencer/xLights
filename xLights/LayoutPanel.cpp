@@ -555,16 +555,17 @@ void LayoutPanel::UpdateModelList(bool update_groups) {
     // Update all the custom previews
     for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
+        dummy_models.clear();
         if( grp->GetName() == currentLayoutGroup ) {
-            UpdateModelsForPreview( currentLayoutGroup, grp, models );
+            UpdateModelsForPreview( currentLayoutGroup, grp, models, true );
         } else {
-            UpdateModelsForPreview( grp->GetName(), grp, dummy_models );
+            UpdateModelsForPreview( grp->GetName(), grp, dummy_models, false );
         }
     }
 
     // update the Layout tab preview for default options
     if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
-        UpdateModelsForPreview( currentLayoutGroup, nullptr, models );
+        UpdateModelsForPreview( currentLayoutGroup, nullptr, models, true );
     }
 
     for (auto it = models.begin(); it != models.end(); it++) {
@@ -598,10 +599,10 @@ void LayoutPanel::UpdateModelList(bool update_groups) {
     UpdatePreview();
 }
 
-void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models)
+void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering)
 {
     std::set<std::string> modelsAdded;
-    if( mSelectedGroup == -1 ) {
+    if( mSelectedGroup == -1 || !filtering) {
         for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
             Model *model = it->second;
             if (model->GetDisplayAs() != "ModelGroup") {
