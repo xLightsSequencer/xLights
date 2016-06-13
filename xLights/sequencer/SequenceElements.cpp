@@ -433,6 +433,7 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
                                    wxXmlNode *effectLayerNode,
                                    const std::vector<std::string> & effectStrings,
                                    const std::vector<std::string> & colorPalettes) {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for(wxXmlNode* effect=effectLayerNode->GetChildren(); effect!=NULL; effect=effect->GetNext())
     {
         if (effect->GetName() == STR_EFFECT)
@@ -460,7 +461,16 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
                 // ID
                 id = wxAtoi(effect->GetAttribute(STR_ID, STR_ZERO));
                 if (effect->GetAttribute(STR_REF) != STR_EMPTY) {
-                    settings = effectStrings[wxAtoi(effect->GetAttribute(STR_REF))];
+                    int ref = wxAtoi(effect->GetAttribute(STR_REF));
+                    if (ref >= effectStrings.size())
+                    {
+                        logger_base.warn("Effect string not found for effect %s between %d and %d. Settings ignored.", effectName.c_str(), (int)startTime, (int)endTime);
+                        settings = "";
+                    }
+                    else
+                    {
+                        settings = effectStrings[ref];
+                    }
                 } else {
                     settings = effect->GetNodeContent();
                 }
