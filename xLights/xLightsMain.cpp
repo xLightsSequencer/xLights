@@ -1137,6 +1137,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     SetName("xLights");
     wxPersistenceManager::Get().RegisterAndRestore(this);
     wxConfigBase* config = wxConfigBase::Get();
+    if (config == NULL)
+    {
+        logger_base.error("Null config ... this wont end well.");
+    }
 
     effGridPrevX = 0;
     effGridPrevY = 0;
