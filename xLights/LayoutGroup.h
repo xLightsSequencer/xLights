@@ -7,6 +7,7 @@
 class xLightsFrame;
 class Model;
 class ModelPreview;
+class PreviewPane;
 
 class LayoutGroup : public wxObject
 {
@@ -25,6 +26,10 @@ class LayoutGroup : public wxObject
 
         void SetBackgroundBrightness(int i);
         int GetBackgroundBrightness() {return mBackgroundBrightness;}
+
+        void SetPreviewPosition(wxPoint point);
+        void SetPreviewSize(wxSize size_);
+        void ResetPositions();
 
         void SetFromXml(wxXmlNode* LayoutGroupNode);
         wxXmlNode* GetLayoutGroupXml() const;
@@ -58,8 +63,13 @@ class LayoutGroup : public wxObject
         ModelPreview* mModelPreview;
         xLightsFrame* xlights;
         wxMenuItem* mMenuItemPreview;
+        PreviewPane* mPreviewPane;
         const long id_menu_item;
-
+        int mPosX;
+        int mPosY;
+        int mPaneWidth;
+        int mPaneHeight;
+        bool ignore_size_and_pos;
 };
 
 #endif // LAYOUTGROUP_H

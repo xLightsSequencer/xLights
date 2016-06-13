@@ -2610,6 +2610,12 @@ void xLightsFrame::CheckUnsavedChanges()
     }
 }
 
+void xLightsFrame::MarkEffectsFileDirty()
+{
+    layoutPanel->SetDirtyHiLight(true);
+    UnsavedRgbEffectsChanges=true;
+}
+
 unsigned int xLightsFrame::GetMaxNumChannels() {
     return std::max(NetInfo.GetTotChannels(), AllModels.GetLastChannel() + 1);
 }

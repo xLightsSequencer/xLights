@@ -115,6 +115,14 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     m_mgr->GetPane("LayerTiming").Caption("Layer Blending").Dock().Top().Layer(0).Show();
     m_mgr->GetPane("LayerSettings").Caption("Layer Settings").Dock().Top().Layer(0).Show();
     m_mgr->Update();
+
+    // reset preview pane positions
+    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); it++) {
+        LayoutGroup* grp = (LayoutGroup*)(*it);
+        if (grp != nullptr) {
+            grp->ResetPositions();
+        }
+    }
 }
 
 

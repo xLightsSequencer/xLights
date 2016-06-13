@@ -144,6 +144,7 @@ class LayoutPanel: public wxPanel
         int GetBackgroundBrightnessForSelectedPreview();
         const std::string& GetCurrentLayoutGroup() {return currentLayoutGroup;}
         void Reset();
+        void SetDirtyHiLight(bool dirty);
 
     protected:
         void ExportModel();
@@ -155,8 +156,6 @@ class LayoutPanel: public wxPanel
         void DeselectModelGroupList();
         void SelectModelGroup(int index);
         void DeselectModelList();
-        void MarkEffectsFileDirty();
-        void SetDirtyHiLight(bool dirty);
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
 
         bool SelectSingleModel(int x,int y);

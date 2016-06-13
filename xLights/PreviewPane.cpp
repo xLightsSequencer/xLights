@@ -14,6 +14,7 @@ const long PreviewPane::ID_PANEL_PREVIEW = wxNewId();
 BEGIN_EVENT_TABLE(PreviewPane,wxDialog)
 	//(*EventTable(PreviewPane)
 	//*)
+    EVT_MOVE(PreviewPane::OnMoved)
 END_EVENT_TABLE()
 
 PreviewPane::PreviewPane(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
@@ -41,6 +42,7 @@ PreviewPane::PreviewPane(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Panel_Sizer->SetSizeHints(this);
 
 	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&PreviewPane::OnClose);
+	Connect(wxEVT_SIZE,(wxObjectEventFunction)&PreviewPane::OnResize);
 	//*)
 }
 
@@ -66,4 +68,16 @@ void PreviewPane::SetLayoutGroup( LayoutGroup* grp )
 bool PreviewPane::GetActive()
 {
     return !layout_grp->GetPreviewHidden();
+}
+
+void PreviewPane::OnResize(wxSizeEvent& event)
+{
+    layout_grp->SetPreviewSize(event.GetSize());
+    event.Skip();
+}
+
+void PreviewPane::OnMoved(wxMoveEvent& event)
+{
+    layout_grp->SetPreviewPosition(event.GetPosition());
+    event.Skip();
 }

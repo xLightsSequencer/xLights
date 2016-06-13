@@ -40,7 +40,9 @@ class PreviewPane: public wxDialog
 
 		//(*Handlers(PreviewPane)
 		void OnClose(wxCloseEvent& event);
+		void OnResize(wxSizeEvent& event);
 		//*)
+        void OnMoved(wxMoveEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };

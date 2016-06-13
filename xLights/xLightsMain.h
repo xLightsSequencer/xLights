@@ -350,7 +350,7 @@ public:
     PerspectiveId perspectives[10];
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile();
-    void MarkEffectsFileDirty() { UnsavedRgbEffectsChanges=true; }
+    void MarkEffectsFileDirty();
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int section = 0);
 	std::string GetChannelToControllerMapping(long channel);

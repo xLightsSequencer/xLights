@@ -6,6 +6,7 @@
 		<size_arg>1</size_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<handler function="OnClose" entry="EVT_CLOSE" />
+		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="Panel_Sizer" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
