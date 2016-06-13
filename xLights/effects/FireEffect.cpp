@@ -121,7 +121,6 @@ static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
     FireRenderCache *cache = (FireRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new FireRenderCache();
-        cache->FireBuffer.resize(buffer.BufferHt * buffer.BufferWi);
         buffer.infoCache[id] = cache;
     }
     return cache;
@@ -139,7 +138,6 @@ void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     int x,y,r,v1,v2,v3,v4,n,new_index;
     HSVValue hsv;
     int loc = GetLocation(SettingsMap.Get("CHOICE_Fire_Location", "Bottom"));
-    FireRenderCache *cache = GetCache(buffer, id);
 
     if (withMusic)
     {
@@ -175,9 +173,13 @@ void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     }
     
     if (maxHt<1) maxHt=1;
+
+    FireRenderCache *cache = GetCache(buffer, id);
+
     float mod_state = 4.0;
     if (buffer.needToInit) {
         buffer.needToInit = false;
+        cache->FireBuffer.resize(maxHt * maxWi);
         for (size_t i=0; i < cache->FireBuffer.size(); i++) {
             cache->FireBuffer[i]=0;
         }
