@@ -18,20 +18,28 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Music_Bars" variable="Slider_Music_Bars" member="yes">
-							<value>20</value>
-							<min>1</min>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_Music_Bars" variable="Slider_Music_Bars" member="yes">
+									<value>20</value>
+									<min>1</min>
+									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Music_Bars" variable="TextCtrl_Music_Bars" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_Bars" variable="TextCtrl_Music_Bars" member="yes">
 							<value>20</value>
 							<size>20,-1d</size>
-							<validator>__bars</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -100,7 +108,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Music_StartNote" variable="Slider_Music_StartNote" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Music_StartNote" variable="Slider_Music_StartNote" member="yes">
 							<value>60</value>
 							<max>127</max>
 							<handler function="OnSlider_Music_StartNoteCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -110,10 +118,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Music_StartNote" variable="TextCtrl_Music_StartNote" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_StartNote" variable="TextCtrl_Music_StartNote" member="yes">
 							<value>60</value>
 							<size>20,-1d</size>
-							<validator>__startNote</validator>
 							<handler function="OnTextCtrl_Music_StartNoteText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -141,7 +148,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Music_EndNote" variable="Slider_Music_EndNote" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Music_EndNote" variable="Slider_Music_EndNote" member="yes">
 							<value>80</value>
 							<max>127</max>
 							<handler function="OnSlider_Music_StartNoteCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -151,10 +158,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Music_EndNote" variable="TextCtrl_Music_EndNote" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_EndNote" variable="TextCtrl_Music_EndNote" member="yes">
 							<value>80</value>
 							<size>20,-1d</size>
-							<validator>__endNote</validator>
 							<handler function="OnTextCtrl_Music_StartNoteText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -177,24 +183,32 @@
 						<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
 							<label>Sensitivity</label>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Music_Sensitivity" variable="Slider_Music_Sensitivity" member="yes">
-							<value>50</value>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_Music_Sensitivity" variable="Slider_Music_Sensitivity" member="yes">
+									<value>50</value>
+									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Music_Sensitivity" variable="TextCtrl_Music_Sensitivity" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_Sensitivity" variable="TextCtrl_Music_Sensitivity" member="yes">
 							<value>50</value>
 							<size>20,-1d</size>
-							<validator>__sensitivity</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -222,18 +236,36 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Music_Offset" variable="Slider_Music_Offset" member="yes">
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+							<cols>2</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_Music_Offset" variable="Slider_Music_Offset" member="yes">
+									<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Music_Offset" subclass="ValueCurveButton" variable="BitmapButton_Music_OffsetVC" member="yes">
+									<bitmap code="valuecurvenotselected_24" />
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Music_Offset" variable="TextCtrl_Music_Offset" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_Offset" variable="TextCtrl_Music_Offset" member="yes">
 							<value>0</value>
 							<size>20,-1d</size>
-							<validator>__offset</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

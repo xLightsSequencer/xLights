@@ -12,15 +12,10 @@ class wxFlexGridSizer;
 class wxChoice;
 //*)
 
+#include "../ValueCurveButton.h"
+
 class MusicPanel: public wxPanel
 {
-
-    // these are only used for validation
-    int __bars;
-    int __startNote;
-    int __endNote;
-    int __sensitivity;
-    int __offset;
 
 	public:
 
@@ -42,6 +37,7 @@ class MusicPanel: public wxPanel
 		wxStaticText* StaticText3;
 		wxBitmapButton* BitmapButton_Music_Bars;
 		wxSlider* Slider_Music_Bars;
+		ValueCurveButton* BitmapButton_Music_OffsetVC;
 		wxStaticText* StaticText5;
 		wxTextCtrl* TextCtrl_Music_Offset;
 		wxBitmapButton* BitmapButton_Music_Colour;
@@ -67,27 +63,28 @@ class MusicPanel: public wxPanel
 
 		//(*Identifiers(MusicPanel)
 		static const long ID_STATICTEXT1;
-		static const long IDD_SLIDER_Music_Bars;
-		static const long ID_TEXTCTRL_Music_Bars;
+		static const long ID_SLIDER_Music_Bars;
+		static const long IDD_TEXTCTRL_Music_Bars;
 		static const long ID_BITMAPBUTTON_CHOICE_Music_Bars;
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE_Music_Type;
 		static const long ID_BITMAPBUTTON_CHOICE_Music_Type;
 		static const long ID_STATICTEXT12;
-		static const long IDD_SLIDER_Music_StartNote;
-		static const long ID_TEXTCTRL_Music_StartNote;
+		static const long ID_SLIDER_Music_StartNote;
+		static const long IDD_TEXTCTRL_Music_StartNote;
 		static const long ID_BITMAPBUTTON_Music_StartNote;
 		static const long ID_STATICTEXT11;
-		static const long IDD_SLIDER_Music_EndNote;
-		static const long ID_TEXTCTRL_Music_EndNote;
+		static const long ID_SLIDER_Music_EndNote;
+		static const long IDD_TEXTCTRL_Music_EndNote;
 		static const long ID_BITMAPBUTTON_Music_EndNote;
 		static const long ID_STATICTEXT4;
-		static const long IDD_SLIDER_Music_Sensitivity;
-		static const long ID_TEXTCTRL_Music_Sensitivity;
+		static const long ID_SLIDER_Music_Sensitivity;
+		static const long IDD_TEXTCTRL_Music_Sensitivity;
 		static const long ID_BITMAPBUTTON_Music_Sensitivty;
 		static const long ID_STATICTEXT3;
-		static const long IDD_SLIDER_Music_Offset;
-		static const long ID_TEXTCTRL_Music_Offset;
+		static const long ID_SLIDER_Music_Offset;
+		static const long ID_VALUECURVE_Music_Offset;
+		static const long IDD_TEXTCTRL_Music_Offset;
 		static const long ID_BITMAPBUTTON_Music_Offset;
 		static const long ID_CHECKBOX_Music_Scale;
 		static const long ID_BITMAPBUTTON_Music_Scale;

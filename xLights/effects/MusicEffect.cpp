@@ -60,18 +60,19 @@ void MusicEffect::adjustSettings(const std::string &version, Effect *effect)
 }
 
 void MusicEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-	Render(buffer,
-           SettingsMap.GetInt("TEXTCTRL_Music_Bars", 6),
-		   SettingsMap.Get("CHOICE_Music_Type", "Collide"),
-		   SettingsMap.GetInt("TEXTCTRL_Music_Sensitivity", 50),
-		   SettingsMap.GetBool("CHECKBOX_Music_Scale", false),
- 		   std::string(SettingsMap.Get("CHOICE_Music_Scaling", "All Notes")),
-           SettingsMap.GetInt("TEXTCTRL_Music_Offset", 0),
-           SettingsMap.GetInt("TEXTCTRL_Music_StartNote", 0),
-           SettingsMap.GetInt("TEXTCTRL_Music_EndNote", 127),   
-           SettingsMap.Get("CHOICE_Music_Colour", "Distinct"),
-           SettingsMap.GetBool("CHECKBOX_Music_Fade", false)
-        );
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    Render(buffer,
+        SettingsMap.GetInt("SLIDER_Music_Bars", 6),
+        SettingsMap.Get("CHOICE_Music_Type", "Collide"),
+        SettingsMap.GetInt("SLIDER_Music_Sensitivity", 50),
+        SettingsMap.GetBool("CHECKBOX_Music_Scale", false),
+        std::string(SettingsMap.Get("CHOICE_Music_Scaling", "All Notes")),
+        GetValueCurveInt("Music_Offset", 0, SettingsMap, oset),
+        SettingsMap.GetInt("SLIDER_Music_StartNote", 0),
+        SettingsMap.GetInt("SLIDER_Music_EndNote", 127),
+        SettingsMap.Get("CHOICE_Music_Colour", "Distinct"),
+        SettingsMap.GetBool("CHECKBOX_Music_Fade", false)
+    );
 }
 
 // represents a music event for a note
@@ -133,16 +134,6 @@ public:
         _events.clear();
 	};
 	std::vector<std::list<MusicEvent*>*> _events;
-	int _bars;
-    int _startNote;
-    int _endNote;
-	int _type;
-    int _colourTreatment;
-    int _sensitivity;
-    bool _fade;
-	int _offsetx; // skip these many cols at left of model
-	bool _scale; // scale out to fill model horizontally
-    int _scalenotes;
 };
 
 int MusicEffect::DecodeScaleNotes(const std::string& scalenotes)
@@ -220,7 +211,6 @@ void MusicEffect::Render(RenderBuffer &buffer,
 
     int nType = DecodeType(type);
     int nTreatment = DecodeColourTreatment(colourtreatment);
-    int nScaleNotes = DecodeScaleNotes(scalenotes);
 
     // Grab our cache
     MusicRenderCache *cache = (MusicRenderCache*)buffer.infoCache[id];
@@ -228,16 +218,6 @@ void MusicEffect::Render(RenderBuffer &buffer,
         cache = new MusicRenderCache();
         buffer.infoCache[id] = cache;
     }
-    int &_bars = cache->_bars;
-    int &_startNote = cache->_startNote;
-    int &_endNote = cache->_endNote;
-    int &_type = cache->_type;
-    int &_offsetx = cache->_offsetx;
-    bool &_scale = cache->_scale;
-    int &_sensitivity = cache->_sensitivity;
-    int &_scalenotes = cache->_scalenotes;
-    bool &_fade = cache->_fade;
-    int& _colourTreatment = cache->_colourTreatment;
     std::vector<std::list<MusicEvent*>*>& _events = cache->_events;
 
     int actualbars = std::min(bars, std::min(endnote - startnote + 1, buffer.BufferWi - offsetx));
@@ -246,29 +226,18 @@ void MusicEffect::Render(RenderBuffer &buffer,
     int lightsperbar = 0.5 + (float)(buffer.BufferWi - offsetx) / (float)actualbars;
 
     // Check for config changes which require us to reset
-    if (buffer.needToInit || _bars != bars || _type != nType || _startNote != startnote || 
-        _endNote != endnote || _offsetx != offsetx || _scale != scale || 
-        _scalenotes != nScaleNotes || _sensitivity != sensitivity || _colourTreatment != nTreatment || _fade != fade)
+    if (buffer.needToInit)
     {
         buffer.needToInit = false;
-        _bars = bars;
-        _fade = fade;
-        _startNote = startnote;
-        _endNote = endnote;
-        _colourTreatment = nTreatment;
-        _type = nType;
-        _offsetx = offsetx;
-        _scale = scale;
-        _sensitivity = sensitivity;
-        _scalenotes = nScaleNotes;
         cache->ClearEvents();
         // We limit bars to the width of the model less the x offset
 
-        CreateEvents(buffer, _events, _startNote, actualendnote, actualbars, _scalenotes, _sensitivity);
+        int nScaleNotes = DecodeScaleNotes(scalenotes);
+        CreateEvents(buffer, _events, startnote, actualendnote, actualbars, nScaleNotes, sensitivity);
     }
 
     int per = 1;
-    if (_scale)
+    if (scale)
     {
         per = lightsperbar;
     }
@@ -279,22 +248,22 @@ void MusicEffect::Render(RenderBuffer &buffer,
         {
             for (int i = 0; i < per; i++)
             {
-                switch (_type)
+                switch (nType)
                 {
                 case 1:
-                    RenderMorph(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, *_events[x], _colourTreatment, false, fade);
+                    RenderMorph(buffer, (x*per) + i + offsetx, bars, startnote, endnote, *_events[x], nTreatment, false, fade);
                     break;
                 case 2:
-                    RenderMorph(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, *_events[x], _colourTreatment, true, fade);
+                    RenderMorph(buffer, (x*per) + i + offsetx, bars, startnote, endnote, *_events[x], nTreatment, true, fade);
                     break;
                 case 3:
-                    RenderCollide(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, true /* collide */, *_events[x], _colourTreatment, fade);
+                    RenderCollide(buffer, (x*per) + i + offsetx, bars, startnote, endnote, true /* collide */, *_events[x], nTreatment, fade);
                     break;
                 case 4:
-                    RenderCollide(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, false /* uncollide */,* _events[x], _colourTreatment, fade);
+                    RenderCollide(buffer, (x*per) + i + offsetx, bars, startnote, endnote, false /* uncollide */,* _events[x], nTreatment, fade);
                     break;
                 case 5:
-                    RenderOn(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, *_events[x], _colourTreatment, fade);
+                    RenderOn(buffer, (x*per) + i + offsetx, bars, startnote, endnote, *_events[x], nTreatment, fade);
                     break;
                 }
             }

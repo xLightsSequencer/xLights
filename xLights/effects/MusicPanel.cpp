@@ -7,39 +7,40 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
+#include <wx/bitmap.h>
 #include <wx/slider.h>
 #include <wx/settings.h>
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
 #include <wx/intl.h>
+#include <wx/image.h>
 #include <wx/string.h>
 //*)
 
-#include <wx/valnum.h>
-
 //(*IdInit(MusicPanel)
 const long MusicPanel::ID_STATICTEXT1 = wxNewId();
-const long MusicPanel::IDD_SLIDER_Music_Bars = wxNewId();
-const long MusicPanel::ID_TEXTCTRL_Music_Bars = wxNewId();
+const long MusicPanel::ID_SLIDER_Music_Bars = wxNewId();
+const long MusicPanel::IDD_TEXTCTRL_Music_Bars = wxNewId();
 const long MusicPanel::ID_BITMAPBUTTON_CHOICE_Music_Bars = wxNewId();
 const long MusicPanel::ID_STATICTEXT2 = wxNewId();
 const long MusicPanel::ID_CHOICE_Music_Type = wxNewId();
 const long MusicPanel::ID_BITMAPBUTTON_CHOICE_Music_Type = wxNewId();
 const long MusicPanel::ID_STATICTEXT12 = wxNewId();
-const long MusicPanel::IDD_SLIDER_Music_StartNote = wxNewId();
-const long MusicPanel::ID_TEXTCTRL_Music_StartNote = wxNewId();
+const long MusicPanel::ID_SLIDER_Music_StartNote = wxNewId();
+const long MusicPanel::IDD_TEXTCTRL_Music_StartNote = wxNewId();
 const long MusicPanel::ID_BITMAPBUTTON_Music_StartNote = wxNewId();
 const long MusicPanel::ID_STATICTEXT11 = wxNewId();
-const long MusicPanel::IDD_SLIDER_Music_EndNote = wxNewId();
-const long MusicPanel::ID_TEXTCTRL_Music_EndNote = wxNewId();
+const long MusicPanel::ID_SLIDER_Music_EndNote = wxNewId();
+const long MusicPanel::IDD_TEXTCTRL_Music_EndNote = wxNewId();
 const long MusicPanel::ID_BITMAPBUTTON_Music_EndNote = wxNewId();
 const long MusicPanel::ID_STATICTEXT4 = wxNewId();
-const long MusicPanel::IDD_SLIDER_Music_Sensitivity = wxNewId();
-const long MusicPanel::ID_TEXTCTRL_Music_Sensitivity = wxNewId();
+const long MusicPanel::ID_SLIDER_Music_Sensitivity = wxNewId();
+const long MusicPanel::IDD_TEXTCTRL_Music_Sensitivity = wxNewId();
 const long MusicPanel::ID_BITMAPBUTTON_Music_Sensitivty = wxNewId();
 const long MusicPanel::ID_STATICTEXT3 = wxNewId();
-const long MusicPanel::IDD_SLIDER_Music_Offset = wxNewId();
-const long MusicPanel::ID_TEXTCTRL_Music_Offset = wxNewId();
+const long MusicPanel::ID_SLIDER_Music_Offset = wxNewId();
+const long MusicPanel::ID_VALUECURVE_Music_Offset = wxNewId();
+const long MusicPanel::IDD_TEXTCTRL_Music_Offset = wxNewId();
 const long MusicPanel::ID_BITMAPBUTTON_Music_Offset = wxNewId();
 const long MusicPanel::ID_CHECKBOX_Music_Scale = wxNewId();
 const long MusicPanel::ID_BITMAPBUTTON_Music_Scale = wxNewId();
@@ -60,23 +61,10 @@ END_EVENT_TABLE()
 
 MusicPanel::MusicPanel(wxWindow* parent)
 {
-    wxIntegerValidator<int> _bars(&__bars, wxNUM_VAL_THOUSANDS_SEPARATOR);
-    _bars.SetMin(1);
-    _bars.SetMax(100);
-    wxIntegerValidator<int> _startNote(&__startNote, wxNUM_VAL_THOUSANDS_SEPARATOR);
-    _startNote.SetMin(0);
-    _startNote.SetMax(127);
-    wxIntegerValidator<int> _endNote(&__endNote, wxNUM_VAL_THOUSANDS_SEPARATOR);
-    _endNote.SetMin(0);
-    _endNote.SetMax(127);
-    wxIntegerValidator<int> _sensitivity(&__sensitivity, wxNUM_VAL_THOUSANDS_SEPARATOR);
-    _sensitivity.SetMin(0);
-    _sensitivity.SetMax(100);
-    wxIntegerValidator<int> _offset(&__offset, wxNUM_VAL_THOUSANDS_SEPARATOR);
-    _offset.SetMin(0);
-    _offset.SetMax(100);
-
 	//(*Initialize(MusicPanel)
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer42;
 	wxFlexGridSizer* FlexGridSizer31;
 
@@ -87,9 +75,12 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	FlexGridSizer31->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Bars"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer31->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Music_Bars = new wxSlider(this, IDD_SLIDER_Music_Bars, 20, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Music_Bars"));
-	FlexGridSizer31->Add(Slider_Music_Bars, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Music_Bars = new wxTextCtrl(this, ID_TEXTCTRL_Music_Bars, _("20"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, _bars, _T("ID_TEXTCTRL_Music_Bars"));
+	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
+	Slider_Music_Bars = new wxSlider(this, ID_SLIDER_Music_Bars, 20, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Music_Bars"));
+	FlexGridSizer1->Add(Slider_Music_Bars, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer31->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_Music_Bars = new wxTextCtrl(this, IDD_TEXTCTRL_Music_Bars, _("20"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Music_Bars"));
 	FlexGridSizer31->Add(TextCtrl_Music_Bars, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Music_Bars = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_Music_Bars, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Music_Bars"));
 	BitmapButton_Music_Bars->SetDefault();
@@ -111,9 +102,9 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	FlexGridSizer31->Add(BitmapButton_Music_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Start Note"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
 	FlexGridSizer31->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Music_StartNote = new wxSlider(this, IDD_SLIDER_Music_StartNote, 60, 0, 127, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Music_StartNote"));
+	Slider_Music_StartNote = new wxSlider(this, ID_SLIDER_Music_StartNote, 60, 0, 127, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Music_StartNote"));
 	FlexGridSizer31->Add(Slider_Music_StartNote, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Music_StartNote = new wxTextCtrl(this, ID_TEXTCTRL_Music_StartNote, _("60"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, _startNote, _T("ID_TEXTCTRL_Music_StartNote"));
+	TextCtrl_Music_StartNote = new wxTextCtrl(this, IDD_TEXTCTRL_Music_StartNote, _("60"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Music_StartNote"));
 	FlexGridSizer31->Add(TextCtrl_Music_StartNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Music_StartNote = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_StartNote, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_StartNote"));
 	BitmapButton_Music_StartNote->SetDefault();
@@ -121,19 +112,22 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	FlexGridSizer31->Add(BitmapButton_Music_StartNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("End Note"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
 	FlexGridSizer31->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Music_EndNote = new wxSlider(this, IDD_SLIDER_Music_EndNote, 80, 0, 127, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Music_EndNote"));
+	Slider_Music_EndNote = new wxSlider(this, ID_SLIDER_Music_EndNote, 80, 0, 127, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Music_EndNote"));
 	FlexGridSizer31->Add(Slider_Music_EndNote, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Music_EndNote = new wxTextCtrl(this, ID_TEXTCTRL_Music_EndNote, _("80"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, _endNote, _T("ID_TEXTCTRL_Music_EndNote"));
+	TextCtrl_Music_EndNote = new wxTextCtrl(this, IDD_TEXTCTRL_Music_EndNote, _("80"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Music_EndNote"));
 	FlexGridSizer31->Add(TextCtrl_Music_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Music_EndNote = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_EndNote, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_EndNote"));
 	BitmapButton_Music_EndNote->SetDefault();
 	BitmapButton_Music_EndNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_Music_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Sensitivity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-	FlexGridSizer31->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Music_Sensitivity = new wxSlider(this, IDD_SLIDER_Music_Sensitivity, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Music_Sensitivity"));
-	FlexGridSizer31->Add(Slider_Music_Sensitivity, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Music_Sensitivity = new wxTextCtrl(this, ID_TEXTCTRL_Music_Sensitivity, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, _sensitivity, _T("ID_TEXTCTRL_Music_Sensitivity"));
+	FlexGridSizer31->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer2->AddGrowableCol(0);
+	Slider_Music_Sensitivity = new wxSlider(this, ID_SLIDER_Music_Sensitivity, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Music_Sensitivity"));
+	FlexGridSizer2->Add(Slider_Music_Sensitivity, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer31->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_Music_Sensitivity = new wxTextCtrl(this, IDD_TEXTCTRL_Music_Sensitivity, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Music_Sensitivity"));
 	FlexGridSizer31->Add(TextCtrl_Music_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Music_Sensitivity = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_Sensitivty, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_Sensitivty"));
 	BitmapButton_Music_Sensitivity->SetDefault();
@@ -141,9 +135,14 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	FlexGridSizer31->Add(BitmapButton_Music_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer31->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Music_Offset = new wxSlider(this, IDD_SLIDER_Music_Offset, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Music_Offset"));
-	FlexGridSizer31->Add(Slider_Music_Offset, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Music_Offset = new wxTextCtrl(this, ID_TEXTCTRL_Music_Offset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, _offset, _T("ID_TEXTCTRL_Music_Offset"));
+	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer3->AddGrowableCol(0);
+	Slider_Music_Offset = new wxSlider(this, ID_SLIDER_Music_Offset, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Music_Offset"));
+	FlexGridSizer3->Add(Slider_Music_Offset, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Music_OffsetVC = new ValueCurveButton(this, ID_VALUECURVE_Music_Offset, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Music_Offset"));
+	FlexGridSizer3->Add(BitmapButton_Music_OffsetVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer31->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_Music_Offset = new wxTextCtrl(this, IDD_TEXTCTRL_Music_Offset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Music_Offset"));
 	FlexGridSizer31->Add(TextCtrl_Music_Offset, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Music_Offset = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_Offset, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_Offset"));
 	BitmapButton_Music_Offset->SetDefault();
@@ -196,22 +195,23 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	FlexGridSizer42->Fit(this);
 	FlexGridSizer42->SetSizeHints(this);
 
-	Connect(IDD_SLIDER_Music_Bars,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&MusicPanel::UpdateLinkedTextCtrl);
-	Connect(ID_TEXTCTRL_Music_Bars,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&MusicPanel::UpdateLinkedSlider);
+	Connect(ID_SLIDER_Music_Bars,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&MusicPanel::UpdateLinkedTextCtrl);
+	Connect(IDD_TEXTCTRL_Music_Bars,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&MusicPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_CHOICE_Music_Bars,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
 	Connect(ID_CHOICE_Music_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&MusicPanel::OnChoice_Music_TypeSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_Music_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
-	Connect(IDD_SLIDER_Music_StartNote,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&MusicPanel::OnSlider_Music_StartNoteCmdSliderUpdated);
-	Connect(ID_TEXTCTRL_Music_StartNote,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&MusicPanel::OnTextCtrl_Music_StartNoteText);
+	Connect(ID_SLIDER_Music_StartNote,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&MusicPanel::OnSlider_Music_StartNoteCmdSliderUpdated);
+	Connect(IDD_TEXTCTRL_Music_StartNote,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&MusicPanel::OnTextCtrl_Music_StartNoteText);
 	Connect(ID_BITMAPBUTTON_Music_StartNote,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
-	Connect(IDD_SLIDER_Music_EndNote,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&MusicPanel::OnSlider_Music_StartNoteCmdSliderUpdated);
-	Connect(ID_TEXTCTRL_Music_EndNote,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&MusicPanel::OnTextCtrl_Music_StartNoteText);
+	Connect(ID_SLIDER_Music_EndNote,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&MusicPanel::OnSlider_Music_StartNoteCmdSliderUpdated);
+	Connect(IDD_TEXTCTRL_Music_EndNote,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&MusicPanel::OnTextCtrl_Music_StartNoteText);
 	Connect(ID_BITMAPBUTTON_Music_EndNote,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
-	Connect(IDD_SLIDER_Music_Sensitivity,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&MusicPanel::UpdateLinkedTextCtrl);
-	Connect(ID_TEXTCTRL_Music_Sensitivity,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&MusicPanel::UpdateLinkedSlider);
+	Connect(ID_SLIDER_Music_Sensitivity,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&MusicPanel::UpdateLinkedTextCtrl);
+	Connect(IDD_TEXTCTRL_Music_Sensitivity,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&MusicPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_Music_Sensitivty,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
-	Connect(IDD_SLIDER_Music_Offset,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&MusicPanel::UpdateLinkedTextCtrl);
-	Connect(ID_TEXTCTRL_Music_Offset,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&MusicPanel::UpdateLinkedSlider);
+	Connect(ID_SLIDER_Music_Offset,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&MusicPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Music_Offset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnVCButtonClick);
+	Connect(IDD_TEXTCTRL_Music_Offset,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&MusicPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_Music_Offset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_Music_Scale,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_Music_Scaling,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
@@ -219,6 +219,8 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_Music_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_Music");
+
+    BitmapButton_Music_OffsetVC->GetValue()->SetLimits(0, 100);
 
 	ValidateWindow();
 }
