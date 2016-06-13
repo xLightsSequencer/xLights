@@ -103,6 +103,8 @@ private:
     PreviewPane* mPreviewPane;
 
     double currentPixelScaleFactor = 1.0;
+    
+    int maxVertexCount;
 
 	DECLARE_EVENT_TABLE()
 };

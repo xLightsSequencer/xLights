@@ -164,7 +164,10 @@ public:
         LOG_GL_ERRORV(glUniformMatrix4fv(MatrixID, 1, GL_FALSE, glm::value_ptr(m)));
     }
     void SetRenderType(int i) {
-        LOG_GL_ERRORV(glUniform1i(RenderTypeID, i));
+        if (lastRenderType != i) {
+            LOG_GL_ERRORV(glUniform1i(RenderTypeID, i));
+            lastRenderType = i;
+        }
     }
     int BindBuffer(int idx, void *data, int sz) {
         return BindBuffer(idx, buffers[idx], data, sz);
@@ -222,9 +225,7 @@ public:
         LOG_GL_ERRORV(glBindVertexArray(VertexArrayID));
     }
     
-    float CalcSmoothPointParams() {
-        float ps;
-        LOG_GL_ERRORV(glGetFloatv(GL_POINT_SIZE, &ps));
+    void CalcSmoothPointParams(float ps) {
         LOG_GL_ERRORV(glPointSize(ps+1));
         float delta = 1.0 / (ps+1);
         float mid = 0.35 + 0.15 * ((ps - 1.0f)/25.0f);
@@ -236,6 +237,11 @@ public:
         float max = std::min(1.0f, mid + delta);
         LOG_GL_ERRORV(glUniform1f(PointSmoothMinID, min));
         LOG_GL_ERRORV(glUniform1f(PointSmoothMaxID, max));
+    }
+    float CalcSmoothPointParams() {
+        float ps;
+        LOG_GL_ERRORV(glGetFloatv(GL_POINT_SIZE, &ps));
+        CalcSmoothPointParams(ps);
         return ps;
     }
 
@@ -296,7 +302,8 @@ public:
     GLuint PointSmoothMinID;
     GLuint PointSmoothMaxID;
     GLuint RenderTypeID;
-    
+    int lastRenderType = -1;
+
     GLuint *buffers;
     BufferInfo *bufferInfo;
     size_t numBuffers;
@@ -476,7 +483,46 @@ public:
         }
         singleColorProgram.UnbindBuffer(0);
     }
-
+    void Draw(DrawGLUtils::xlAccumulator &va) override {
+        if (va.count == 0) {
+            return;
+        }
+        normalProgram.UseProgram();
+        normalProgram.SetMatrix(*matrix);
+        normalProgram.SetRenderType(0);
+        
+        int offset0 = normalProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat))/ (2*sizeof(GLfloat));
+        LOG_GL_ERRORV(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+        
+        normalProgram.BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
+        LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
+        
+        for (auto it = va.types.begin(); it != va.types.end(); it++) {
+            int type = it->type;
+            int enableCapability = it->enableCapability;
+            if (type == GL_POINTS && enableCapability == 0x0B10) {
+                //POINT_SMOOTH, removed in OpenGL3.x
+                normalProgram.SetRenderType(1);
+                normalProgram.CalcSmoothPointParams(it->extra);
+            } else {
+                if (enableCapability > 0) {
+                    normalProgram.SetRenderType(0);
+                    LOG_GL_ERRORV(glEnable(enableCapability));
+                } else if (enableCapability != 0) {
+                    normalProgram.SetRenderType(enableCapability);
+                } else {
+                    normalProgram.SetRenderType(0);
+                }
+            }
+            LOG_GL_ERRORV(glDrawArrays(type, offset0 + it->start, it->count));
+            if (enableCapability > 0 && type != GL_POINTS && enableCapability != 0x0B10) {
+                LOG_GL_ERRORV(glDisable(enableCapability));
+            }
+        }
+        normalProgram.SetRenderType(0);
+        normalProgram.UnbindBuffer(0);
+        normalProgram.UnbindBuffer(1);
+    }
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
         if (va.count == 0) {
             return;

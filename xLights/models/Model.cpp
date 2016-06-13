@@ -1548,7 +1548,7 @@ static void ApplyTransparency(xlColor &color, int transparency) {
 
 // display model using colors stored in each node
 // used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool allowSelected) {
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, bool allowSelected) {
     size_t NodeCount=Nodes.size();
     double sx,sy;
     xlColor color;
@@ -1566,21 +1566,17 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
     for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
         vcount += it->get()->Coords.size();
     }
-
-    DrawGLUtils::xlVertexColorAccumulator va;
-
     if (pixelStyle > 1) {
         int f = pixelSize;
         if (pixelSize < 16) {
             f = 16;
         }
-        va.PreAlloc(vcount * f * 3);
-    } else {
-        va.PreAlloc(vcount);
-        if (pixelSize != 2) {
-            LOG_GL_ERRORV(glPointSize(preview->calcPixelSize(pixelSize)));
-        }
+        vcount = vcount * f * 3;
     }
+    if (vcount > maxVertexCount) {
+        maxVertexCount = vcount;
+    }
+    va.PreAlloc(maxVertexCount);
 
     bool started = false;
     int first = 0; int last = NodeCount;
@@ -1642,16 +1638,12 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
         }
     }
     if (pixelStyle > 1) {
-        DrawGLUtils::Draw(va, GL_TRIANGLES);
+        va.Finish(GL_TRIANGLES);
     } else {
-        DrawGLUtils::Draw(va, GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0);
-        if (pixelSize != 2) {
-            LOG_GL_ERRORV(glPointSize(preview->calcPixelSize(2)));
-        }
+        va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
     }
-
     if (Selected && c != NULL && allowSelected) {
-        GetModelScreenLocation().DrawHandles();
+        GetModelScreenLocation().DrawHandles(va);
     }
 }
 
@@ -1689,7 +1681,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
             vcount += it->get()->Coords.size();
         }
-        DrawGLUtils::xlVertexColorAccumulator va;
+        DrawGLUtils::xlAccumulator va;
         if (vcount > maxVertexCount) {
             maxVertexCount = vcount;
         }
@@ -1753,21 +1745,13 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
 
                     if (va.count && (lastPixelStyle < 2 || Nodes[n]->model->pixelStyle < 2)) {
                         if (lastPixelStyle > 1) {
-                            DrawGLUtils::Draw(va, GL_TRIANGLES);
+                            va.Finish(GL_TRIANGLES);
                         } else {
-                            DrawGLUtils::Draw(va, GL_POINTS, lastPixelStyle == 1 ? GL_POINT_SMOOTH : 0);
+                            va.Finish(GL_POINTS, lastPixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(lastPixelSize * pointScale));
                         }
-                        if (va.count > maxVertexCount) {
-                            maxVertexCount = va.count;
-                        }
-                        va.Reset();
                     }
                     lastPixelStyle = Nodes[n]->model->pixelStyle;
-
-                    if (lastPixelSize != Nodes[n]->model->pixelSize) {
-                        lastPixelSize = Nodes[n]->model->pixelSize;
-                        glPointSize(preview->calcPixelSize(lastPixelSize*pointScale));
-                    }
+                    lastPixelSize = Nodes[n]->model->pixelSize;
                 }
 
 
@@ -1792,15 +1776,13 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 maxVertexCount = va.count;
             }
             if (lastPixelStyle > 1) {
-                DrawGLUtils::Draw(va, GL_TRIANGLES);
+                va.Finish(GL_TRIANGLES);
             } else {
-                DrawGLUtils::Draw(va, GL_POINTS, lastPixelStyle == 1 ? GL_POINT_SMOOTH : 0);
+                va.Finish(GL_POINTS, lastPixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(lastPixelSize * pointScale));
             }
+            DrawGLUtils::Draw(va);
         }
         preview->EndDrawing();
-        if (lastPixelSize != 2) {
-            LOG_GL_ERRORV(glPointSize(preview->calcPixelSize(2)));
-        }
     }
 }
 

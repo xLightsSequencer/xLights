@@ -269,7 +269,9 @@ void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBas
 }
 
 
-void BoxedScreenLocation::DrawHandles() const {
+void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
+    va.PreAlloc(6 * 5);
+    
     double w1 = centerx;
     double h1 = centery;
 
@@ -278,7 +280,8 @@ void BoxedScreenLocation::DrawHandles() const {
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx = sx + w1;
     sy = sy + h1;
-    DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
+
     mHandlePosition[0].x = sx;
     mHandlePosition[0].y = sy;
     // Upper Right Handle
@@ -287,7 +290,7 @@ void BoxedScreenLocation::DrawHandles() const {
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx = sx + w1;
     sy = sy + h1;
-    DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
     mHandlePosition[1].x = sx;
     mHandlePosition[1].y = sy;
     // Lower Right Handle
@@ -296,7 +299,7 @@ void BoxedScreenLocation::DrawHandles() const {
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx = sx + w1;
     sy = sy + h1;
-    DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
     mHandlePosition[2].x = sx;
     mHandlePosition[2].y = sy;
     // Lower Left Handle
@@ -305,7 +308,7 @@ void BoxedScreenLocation::DrawHandles() const {
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx = sx + w1;
     sy = sy + h1;
-    DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
     mHandlePosition[3].x = sx;
     mHandlePosition[3].y = sy;
 
@@ -315,7 +318,7 @@ void BoxedScreenLocation::DrawHandles() const {
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx += w1;
     sy += h1;
-    DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
     // Save rotate handle
     mHandlePosition[4].x = sx;
     mHandlePosition[4].y = sy;
@@ -326,14 +329,12 @@ void BoxedScreenLocation::DrawHandles() const {
     sx += w1;
     sy += h1;
 
-    LOG_GL_ERRORV(glEnable( GL_LINE_SMOOTH ));
+    va.Finish(GL_TRIANGLES);
+
     LOG_GL_ERRORV(glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ));
-    DrawGLUtils::SetLineWidth(1.7f);
-    DrawGLUtils::AddVertex(w1,h1, xlWHITE);
-    DrawGLUtils::AddVertex(sx, sy, xlWHITE);
-    DrawGLUtils::End(GL_LINES);
-    DrawGLUtils::SetLineWidth(1.0f);
-    LOG_GL_ERRORV(glDisable(GL_LINE_SMOOTH));
+    va.AddVertex(w1,h1, xlWHITE);
+    va.AddVertex(sx, sy, xlWHITE);
+    va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 }
 
 void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
@@ -564,32 +565,38 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) c
     handle = -1;
     return wxCURSOR_DEFAULT;
 }
-void TwoPointScreenLocation::DrawHandles() const {
+void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     int x1_pos = x1 * previewW;
     int x2_pos = x2 * previewW;
     int y1_pos = y1 * previewH;
     int y2_pos = y2 * previewH;
 
+    va.PreAlloc(10);
     if( y2_pos - y1_pos == 0 )
     {
-        DrawGLUtils::DrawLine(xlRED, 255, x1_pos, y1_pos, x2_pos, y2_pos, 1.0);
+        va.AddVertex(x1_pos, y1_pos, xlRED);
+        va.AddVertex(x2_pos, y2_pos, xlRED);
+        va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
     }
     else if( x2_pos - x1_pos == 0 )
     {
-        DrawGLUtils::DrawLine(xlBLUE, 255, x1_pos, y1_pos, x2_pos, y2_pos, 1.0);
+        va.AddVertex(x1_pos, y1_pos, xlBLUE);
+        va.AddVertex(x2_pos, y2_pos, xlBLUE);
+        va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
     }
 
     float sx = x1 * previewW - RECT_HANDLE_WIDTH / 2;
     float sy = y1 * previewH - RECT_HANDLE_WIDTH / 2;
-    DrawGLUtils::DrawFillRectangle(xlGREEN,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlGREEN);
     mHandlePosition[0].x = sx;
     mHandlePosition[0].y = sy;
 
     sx = x2 * previewW - RECT_HANDLE_WIDTH / 2;
     sy = y2 * previewH - RECT_HANDLE_WIDTH / 2;
-    DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
     mHandlePosition[1].x = sx;
     mHandlePosition[1].y = sy;
+    va.Finish(GL_TRIANGLES);
 }
 
 int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
@@ -900,8 +907,7 @@ static void rotate_point(float cx,float cy, float angle, float &x, float &y)
     y = ynew + cy;
 }
 
-void ThreePointScreenLocation::DrawHandles() const {
-    TwoPointScreenLocation::DrawHandles();
+void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
 
     float sx1 = (x1 + x2) * previewW / 2.0;
     float sy1 = (y1 + y2) * previewH / 2.0;
@@ -910,6 +916,7 @@ void ThreePointScreenLocation::DrawHandles() const {
     if (!minMaxSet) {
         max = RenderHt;
     }
+    va.PreAlloc(18);
 
     float x = RenderWi / 2;
     if (supportsAngle) {
@@ -920,19 +927,17 @@ void ThreePointScreenLocation::DrawHandles() const {
     glm::vec3 v1 = *matrix * glm::vec3(x, max, 1);
     float sx = v1.x;
     float sy = v1.y;
-
-    LOG_GL_ERRORV(glEnable( GL_LINE_SMOOTH ));
     LOG_GL_ERRORV(glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ));
-    DrawGLUtils::SetLineWidth(1.7f);
+    va.AddVertex(sx1, sy1, xlWHITE);
+    va.AddVertex(sx, sy, xlWHITE);
+    va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
     
-    DrawGLUtils::AddVertex(sx1, sy1, xlWHITE);
-    DrawGLUtils::AddVertex(sx, sy, xlWHITE);
-    DrawGLUtils::End(GL_LINES);
-    DrawGLUtils::SetLineWidth(1.0f);
-    LOG_GL_ERRORV(glDisable(GL_LINE_SMOOTH));
+    
+    TwoPointScreenLocation::DrawHandles(va);
+    
 
-    DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
-
+    va.AddRect(sx - RECT_HANDLE_WIDTH/2.0, sy - RECT_HANDLE_WIDTH/2.0, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
+    va.Finish(GL_TRIANGLES);
     mHandlePosition[2].x = sx;
     mHandlePosition[2].y = sy;
 }

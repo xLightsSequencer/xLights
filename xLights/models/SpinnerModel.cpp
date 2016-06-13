@@ -160,7 +160,6 @@ void SpinnerModel::InitModel() {
     int armsperstring = parm3;
     int pixelsperstring = parm3*parm2;
     int armcount = parm3*parm1;
-    int totalnodes = stringcount * armsperstring * nodesperarm;
     hollow = wxAtoi(ModelXml->GetAttribute("Hollow", "20"));
     arc = wxAtoi(ModelXml->GetAttribute("Arc", "360"));
     zigzag = (ModelXml->GetAttribute("ZigZag", "false") == "true");
@@ -268,7 +267,6 @@ void SpinnerModel::SetSpinnerCoord() {
         if (SingleNode)
         {
             int a1 = a / armsperstring;
-            size_t CoordCount = GetCoordCount(a1);
             int start = a * nodesperarm - a1 * armsperstring * nodesperarm;
             int end = start + nodesperarm;
             for (size_t c = start; c < end; c++) {

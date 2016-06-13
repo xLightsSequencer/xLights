@@ -3,6 +3,7 @@
 #define __XL_DRAWGLUTILS
 
 #include <mutex>
+#include <list>
 #include <vector>
 #include <map>
 #include "wx/glcanvas.h"
@@ -58,9 +59,9 @@ namespace DrawGLUtils
     class xlVertexColorAccumulator {
     public:
         xlVertexColorAccumulator() : count(0) {}
-        ~xlVertexColorAccumulator() {}
+        virtual ~xlVertexColorAccumulator() {}
         
-        void Reset() {count = 0; vertices.clear(); colors.clear();}
+        virtual void Reset() {count = 0; vertices.clear(); colors.clear();}
         void PreAlloc(unsigned int i) {
             vertices.reserve(vertices.size() + i*2);
             colors.reserve(colors.size() + i*4);
@@ -156,6 +157,38 @@ namespace DrawGLUtils
         std::vector<std::string> text;
         unsigned int count;
     };
+    
+    class xlAccumulator : public xlVertexColorAccumulator {
+    public:
+        xlAccumulator() : xlVertexColorAccumulator() { start = 0;}
+        virtual ~xlAccumulator() {}
+        virtual void Reset() {
+            xlVertexColorAccumulator::Reset();
+            start = 0;
+            types.clear();
+        }
+        
+        void Finish(int type, int enableCapability = 0, float extra = 2);
+        
+        class BufferRangeType {
+        public:
+            BufferRangeType(int s, int c, int t, int ec, float ex) {
+                start = s;
+                count = c;
+                type = t;
+                enableCapability = ec;
+                extra = ex;
+            }
+            int start;
+            int count;
+            int type;
+            int enableCapability;
+            float extra;
+        };
+        std::list<BufferRangeType> types;
+    private:
+        int start;
+    };
 
     class xlGLCacheInfo {
     public:
@@ -167,6 +200,7 @@ namespace DrawGLUtils
         virtual void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0) = 0;
+        virtual void Draw(xlAccumulator &va) = 0;
         
         virtual void addVertex(float x, float y, const xlColor &c) = 0;
         virtual unsigned int vertexCount() = 0;
@@ -228,6 +262,7 @@ namespace DrawGLUtils
     bool IsCoreProfile();
     int NextTextureIdx();
     
+    void Draw(xlAccumulator &va);
     void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0);
     void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0);
     void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0);

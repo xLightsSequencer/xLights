@@ -600,7 +600,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
         for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
             Model *model = it->second;
             if (model->GetDisplayAs() != "ModelGroup") {
-                if (group == "All Models" || model->GetLayoutGroup() == group || model->GetLayoutGroup() == "All Previews" && group != "Unassigned") {
+                if (group == "All Models" || model->GetLayoutGroup() == group || (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
                     prev_models.push_back(model);
                     modelsAdded.insert(model->name);
                 }
@@ -612,7 +612,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
             Model *model = it->second;
             if (model->GetDisplayAs() == "ModelGroup") {
                 ModelGroup *grp = (ModelGroup*)(model);
-                if (group == "All Models" || model->GetLayoutGroup() == group || model->GetLayoutGroup() == "All Previews" && group != "Unassigned") {
+                if (group == "All Models" || model->GetLayoutGroup() == group || (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
                     for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
                         if (modelsAdded.find(*it) == modelsAdded.end()) {
                             Model *m = xlights->AllModels[*it];
@@ -693,7 +693,8 @@ void LayoutPanel::UpdateModelGroupList()
     for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
         Model *model = it->second;
         if (model->GetDisplayAs() == "ModelGroup") {
-            if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup || model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned") {
+            if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
+                || (model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
                 ModelGroup *grp = (ModelGroup*)model;
                 AddModelGroupItem(it->first, grp, grp->IsSelected());
             }

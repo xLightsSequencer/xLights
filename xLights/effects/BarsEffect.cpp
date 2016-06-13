@@ -82,7 +82,6 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     {
         int BarHt = buffer.BufferHt/BarCount+1;
         if(BarHt<1) BarHt=1;
-        int HalfHt = buffer.BufferHt/2;
         int NewCenter = buffer.BufferHt * (100 + Center) / 200;
         int BlockHt=colorcnt * BarHt;
         if(BlockHt<1) BlockHt=1;
@@ -155,7 +154,6 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     {
         int BarWi = buffer.BufferWi/BarCount+1;
         if(BarWi<1) BarWi=1;
-        int HalfWi = buffer.BufferWi/2;
         int NewCenter = buffer.BufferWi * (100 + Center) / 200;
         int BlockWi=colorcnt * BarWi;
         if(BlockWi<1) BlockWi=1;

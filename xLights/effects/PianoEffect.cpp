@@ -303,9 +303,6 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
     int truexoffset = xoffset * buffer.BufferWi / 100;
 	xlColor wkcolour, bkcolour, wkdcolour, bkdcolour, kbcolour;
 
-	// count the keys
-	int wkeys = 0;
-	int bkeys = 0;
 
 	int sharpstart = -1;
 	int i = start;

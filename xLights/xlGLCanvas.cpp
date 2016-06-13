@@ -181,7 +181,7 @@ void AddDebugLog(xlGLCanvas *c) {
 
 DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool);
 DrawGLUtils::xlGLCacheInfo *Create21Cache();
-DrawGLUtils::xlGLCacheInfo *Create15Cache();
+DrawGLUtils::xlGLCacheInfo *Create11Cache();
 
 void xlGLCanvas::DisplayWarning(const wxString &msg) {
     wxMessageBox(msg, "Graphics Driver Problem", wxOK|wxCENTRE|wxICON_WARNING, this);
@@ -218,12 +218,13 @@ void xlGLCanvas::SetCurrentGLContext() {
             
             bool warned;
             config->Read("GDI-Warned", &warned, false);
-            config->Write("GDI-Warned", true);
-            
-            wxString msg = wxString::Format("Generic non-accelerated graphics driver detected (%s - %s). Performance will be poor.  "
-                                           "Please install updated video drivers for your video card.",
-                                           vend, rend);
-            CallAfter(&xlGLCanvas::DisplayWarning, msg);
+            if (!warned) {
+                config->Write("GDI-Warned", true);
+                wxString msg = wxString::Format("Generic non-accelerated graphics driver detected (%s - %s). Performance will be poor.  "
+                                               "Please install updated video drivers for your video card.",
+                                               vend, rend);
+                CallAfter(&xlGLCanvas::DisplayWarning, msg);
+            }
             //need to use 1.x
             ver = 1;
         }
@@ -234,7 +235,7 @@ void xlGLCanvas::SetCurrentGLContext() {
             if (logger_opengl.isDebugEnabled()) {
                 AddDebugLog(this);
             }
-            logger_opengl.info("Try creating 33 Cache");
+            logger_opengl.info("Try creating 3.3 Cache");
             LOG_GL_ERRORV(cache = Create33Cache(UsesVertexTextureAccumulator(),
                                   UsesVertexColorAccumulator(),
                                   UsesVertexAccumulator(),
@@ -242,12 +243,12 @@ void xlGLCanvas::SetCurrentGLContext() {
         }
         if (cache == nullptr && ver >=2
             && ((str[0] > '2') || (str[0] == '2' && str[2] >= '1'))) {
-            logger_opengl.info("Try creating 21 Cache");
+            logger_opengl.info("Try creating 2.1 Cache");
             LOG_GL_ERRORV(cache = Create21Cache());
         }
         if (cache == nullptr) {
-            logger_opengl.info("Try creating 15 Cache");
-            LOG_GL_ERRORV(cache = Create15Cache());
+            logger_opengl.info("Try creating 1.1 Cache");
+            LOG_GL_ERRORV(cache = Create11Cache());
         }
         if (cache == nullptr) {
             logger_opengl.error("All attempts at cache creation have failed.");

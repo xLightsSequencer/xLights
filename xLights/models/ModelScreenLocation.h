@@ -18,6 +18,9 @@ class wxCursor;
 #include <vector>
 #include "Node.h"
 #include <glm/mat3x3.hpp>
+namespace DrawGLUtils {
+    class xlAccumulator;
+}
 
 class ModelScreenLocation
 {
@@ -33,7 +36,7 @@ public:
     virtual bool IsContained(int x1, int y1, int x2, int y2) const = 0;
     virtual bool HitTest(int x,int y) const = 0;
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const = 0;
-    virtual void DrawHandles() const = 0;
+    virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) = 0;
  
@@ -95,7 +98,7 @@ public:
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(int x,int y) const override;
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
-    virtual void DrawHandles() const override;
+    virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
     
@@ -185,7 +188,7 @@ public:
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(int x,int y) const override;
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
-    virtual void DrawHandles() const override;
+    virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
 
@@ -240,7 +243,7 @@ public:
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     
-    virtual void DrawHandles() const override;
+    virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual float GetVScaleFactor() const override;
     virtual float GetYShear() const override;

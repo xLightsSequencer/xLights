@@ -72,7 +72,6 @@ void ValueCurve::RenderType()
             count = 1;
         }
         float per = 1.0f / (2 * count);
-        float current = 0.0f;
         bool low = true;
 
         for (int i = 0; i < 2 * count; i++)

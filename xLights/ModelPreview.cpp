@@ -68,6 +68,8 @@ void ModelPreview::render( wxPaintEvent& event )
 
 void ModelPreview::Render() {
     if (PreviewModels != NULL) {
+        DrawGLUtils::xlAccumulator va;
+        va.PreAlloc(maxVertexCount);
         for (int i=0; i<PreviewModels->size(); i++) {
 			const xlColor *color = &xlLIGHT_GREY;
 			if (((*PreviewModels)[i])->Selected) {
@@ -80,21 +82,31 @@ void ModelPreview::Render() {
             if (!allowSelected) {
                 color = &xlLIGHT_GREY;
             }
-            (*PreviewModels)[i]->DisplayModelOnWindow(this, color, allowSelected);
+            (*PreviewModels)[i]->DisplayModelOnWindow(this, va, color, allowSelected);
         }
+        if (va.count > maxVertexCount) {
+            maxVertexCount= va.count;
+        }
+        DrawGLUtils::Draw(va);
     }
 }
 void ModelPreview::Render(const unsigned char *data) {
     if (StartDrawing(mPointSize)) {
         if (PreviewModels != NULL) {
+            DrawGLUtils::xlAccumulator va;
+            va.PreAlloc(maxVertexCount);
             for (int m=0; m<PreviewModels->size(); m++) {
                 int NodeCnt=(*PreviewModels)[m]->GetNodeCount();
                 for(int n=0; n<NodeCnt; n++) {
                     int start = (*PreviewModels)[m]->NodeStartChannel(n);
                     (*PreviewModels)[m]->SetNodeChannelValues(n, &data[start]);
                 }
-                (*PreviewModels)[m]->DisplayModelOnWindow(this);
+                (*PreviewModels)[m]->DisplayModelOnWindow(this, va);
             }
+            if (va.count > maxVertexCount) {
+                maxVertexCount= va.count;
+            }
+            DrawGLUtils::Draw(va);
         }
         EndDrawing();
     }
@@ -110,6 +122,7 @@ void ModelPreview::keyReleased(wxKeyEvent& event) {}
 ModelPreview::ModelPreview(wxPanel* parent, std::vector<Model*> &models, bool a, int styles)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", true), PreviewModels(&models), allowSelected(a)
 {
+    maxVertexCount = 5000;
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
     virtualHeight = 0;
@@ -119,6 +132,7 @@ ModelPreview::ModelPreview(wxPanel* parent, std::vector<Model*> &models, bool a,
 ModelPreview::ModelPreview(wxPanel* parent)
 : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(NULL), allowSelected(false), image(nullptr)
 {
+    maxVertexCount = 5000;
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
     virtualHeight = 0;

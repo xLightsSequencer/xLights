@@ -80,14 +80,14 @@ void DrawGLUtils::xlGLCacheInfo::SetCurrent() {
     }
 }
 
-class OpenGL15Cache : public DrawGLUtils::xlGLCacheInfo {
+class OpenGL11Cache : public DrawGLUtils::xlGLCacheInfo {
 public:
-    OpenGL15Cache() {
+    OpenGL11Cache() {
         data.PreAlloc(128);
         LOG_GL_ERRORV(glEnable(GL_COLOR_MATERIAL));
         LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
     };
-    virtual ~OpenGL15Cache() {
+    virtual ~OpenGL11Cache() {
     };
 
     virtual void addVertex(float x, float y, const xlColor &c) override {
@@ -104,7 +104,35 @@ public:
         Draw(data, type, enableCapability);
         data.Reset();
     }
-
+    
+    void Draw(DrawGLUtils::xlAccumulator &va) override {
+        if (va.count == 0) {
+            return;
+        }
+        LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
+        LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+        
+        LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
+        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
+        
+        for (auto it = va.types.begin(); it != va.types.end(); it++) {
+            if (it->type == GL_POINTS) {
+                LOG_GL_ERRORV(glPointSize(it->extra));
+            } else if (it->type == GL_LINES || it->type == GL_LINE_LOOP || it->type == GL_LINE_STRIP) {
+                DrawGLUtils::SetLineWidth(it->extra);
+            }
+            if (it->enableCapability != 0) {
+                LOG_GL_ERRORV(glEnable(it->enableCapability));
+            }
+            LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
+            if (it->enableCapability != 0) {
+                LOG_GL_ERRORV(glDisable(it->enableCapability));
+            }
+        }
+        
+        LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
+        LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+    }
 
     void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) override {
         if (va.count == 0) {
@@ -235,8 +263,8 @@ protected:
 
 
 
-DrawGLUtils::xlGLCacheInfo *Create15Cache() {
-    return new OpenGL15Cache();
+DrawGLUtils::xlGLCacheInfo *Create11Cache() {
+    return new OpenGL11Cache();
 }
 void DrawGLUtils::SetCurrentCache(xlGLCacheInfo *c) {
     currentCache = c;
@@ -286,6 +314,9 @@ void DrawGLUtils::Rotate(float angle, float x, float y, float z) {
 }
 void DrawGLUtils::Scale(float w, float h, float z) {
     currentCache->Scale(w, h, z);
+}
+void DrawGLUtils::Draw(xlAccumulator &va) {
+    currentCache->Draw(va);
 }
 void DrawGLUtils::Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) {
     currentCache->Draw(va, color, type, enableCapability);
@@ -509,6 +540,20 @@ void DrawGLUtils::DrawFillRectangle(const xlColor &color, wxByte alpha, int x, i
     AddRectAsTriangles(x, y, x + width, y + height, c);
     currentCache->flush(GL_TRIANGLES);
 }
+
+
+void DrawGLUtils::xlAccumulator::Finish(int type, int enableCapability, float extra) {
+    if (!types.empty() && types.back().type == type
+        && types.back().enableCapability == enableCapability && types.back().extra == extra) {
+        //same params, just extent the previous
+        types.back().count += count - start;
+        start = count;
+        return;
+    }
+    types.push_back(BufferRangeType(start, count - start, type, enableCapability, extra));
+    start = count;
+}
+
 
 void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, int offset) {
     xlColor start;

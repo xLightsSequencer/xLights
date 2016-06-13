@@ -22,6 +22,10 @@ class ModelManager;
 class NodeBaseClass;
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
 
+namespace DrawGLUtils {
+    class xlAccumulator;
+}
+
 class Model
 {
 public:
@@ -148,7 +152,7 @@ public:
     wxXmlNode* GetModelXml() const;
     int GetNumberFromChannelString(const std::string &sc) const;
     int GetNumberFromChannelString(const std::string &sc, bool &valid) const;
-    void DisplayModelOnWindow(ModelPreview* preview, const xlColor *color =  NULL, bool allowSelected = true);
+    void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *color =  NULL, bool allowSelected = true);
     void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
 
     const std::string &GetLayoutGroup() const {return layout_group;}

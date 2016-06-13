@@ -803,7 +803,6 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     {
         xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();
-        Model *mc = GetModel(modelName);
         Element * model = nullptr;
         for (size_t x=0; x<mSequenceElements.GetElementCount();x++) {
             if (mSequenceElements.GetElement(x)->GetType() == "model"
