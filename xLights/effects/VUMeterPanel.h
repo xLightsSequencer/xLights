@@ -12,16 +12,10 @@ class wxFlexGridSizer;
 class wxChoice;
 //*)
 
+#include "../ValueCurveButton.h"
+
 class VUMeterPanel: public wxPanel
 {
-    // these are only used for validation
-    int __bars;
-    int __sensitivity;
-    int __startNote;
-    int __endNote;
-    int __horizontalOffset;
-    int __verticalOffset;
-
 	public:
 
 		VUMeterPanel(wxWindow* parent);
@@ -40,6 +34,7 @@ class VUMeterPanel: public wxPanel
 		wxBitmapButton* BitmapButton_VUMeter_SlowDownFalls;
 		wxStaticText* StaticText8;
 		wxStaticText* StaticText11;
+		ValueCurveButton* BitmapButton_VUMeter_YOffsetVC;
 		wxBitmapButton* BitmapButton_VUMeter_Sensitivity;
 		wxStaticText* StaticText1;
 		wxSlider* Slider_VUMeter_YOffset;
@@ -74,8 +69,8 @@ class VUMeterPanel: public wxPanel
 
 		//(*Identifiers(VUMeterPanel)
 		static const long ID_STATICTEXT1;
-		static const long IDD_SLIDER_VUMeter_Bars;
-		static const long ID_TEXTCTRL_VUMeter_Bars;
+		static const long ID_SLIDER_VUMeter_Bars;
+		static const long IDD_TEXTCTRL_VUMeter_Bars;
 		static const long ID_BITMAPBUTTON_CHOICE_VUMeter_Bars;
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE_VUMeter_Type;
@@ -86,8 +81,8 @@ class VUMeterPanel: public wxPanel
 		static const long ID_STATICTEXT4;
 		static const long ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack;
 		static const long ID_STATICTEXT6;
-		static const long IDD_SLIDER_VUMeter_Sensitivity;
-		static const long ID_TEXTCTRL_VUMeter_Sensitivity;
+		static const long ID_SLIDER_VUMeter_Sensitivity;
+		static const long IDD_TEXTCTRL_VUMeter_Sensitivity;
 		static const long ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity;
 		static const long ID_STATICTEXT7;
 		static const long ID_CHOICE_VUMeter_Shape;
@@ -98,20 +93,21 @@ class VUMeterPanel: public wxPanel
 		static const long ID_STATICTEXT10;
 		static const long ID_BITMAPBUTTON_CHECKBOX_VUMeter_SlowDownFalls;
 		static const long ID_STATICTEXT12;
-		static const long IDD_SLIDER_VUMeter_StartNote;
-		static const long ID_TEXTCTRL_VUMeter_StartNote;
+		static const long ID_SLIDER_VUMeter_StartNote;
+		static const long IDD_TEXTCTRL_VUMeter_StartNote;
 		static const long ID_BITMAPBUTTON_VUMeter_StartNote;
 		static const long ID_STATICTEXT11;
-		static const long IDD_SLIDER_VUMeter_EndNote;
-		static const long ID_TEXTCTRL_VUMeter_EndNote;
+		static const long ID_SLIDER_VUMeter_EndNote;
+		static const long IDD_TEXTCTRL_VUMeter_EndNote;
 		static const long ID_BITMAPBUTTON_VUMeter_EndNote;
 		static const long ID_STATICTEXT13;
-		static const long IDD_SLIDER_VUMeter_XOffset;
-		static const long ID_TEXTCTRL_VUMeter_XOffset;
+		static const long ID_SLIDER_VUMeter_XOffset;
+		static const long IDD_TEXTCTRL_VUMeter_XOffset;
 		static const long ID_BITMAPBUTTON_VUMeter_XOffset;
 		static const long ID_STATICTEXT14;
-		static const long IDD_SLIDER_VUMeter_YOffset;
-		static const long ID_TEXTCTRL_VUMeter_YOffset;
+		static const long ID_SLIDER_VUMeter_YOffset;
+		static const long ID_VALUECURVE_VUMeter_YOffset;
+		static const long IDD_TEXTCTRL_VUMeter_YOffset;
 		static const long ID_BITMAPBUTTON_VUMeter_YOffset;
 		//*)
 

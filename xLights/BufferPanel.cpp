@@ -72,6 +72,8 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     __zoom = 1;
     __zoomquality = 1;
     __blur = 1;
+    __pivotpointx = 50;
+    __pivotpointy = 50;
     wxIntegerValidator<int> _rotation(&__rotation, wxNUM_VAL_THOUSANDS_SEPARATOR);
     _rotation.SetMin(0);
     _rotation.SetMax(100);

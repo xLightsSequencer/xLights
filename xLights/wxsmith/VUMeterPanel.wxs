@@ -18,20 +18,28 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_VUMeter_Bars" variable="Slider_VUMeter_Bars" member="yes">
-							<value>20</value>
-							<min>1</min>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+							<cols>2</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_VUMeter_Bars" variable="Slider_VUMeter_Bars" member="yes">
+									<value>20</value>
+									<min>1</min>
+									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_Bars" variable="TextCtrl_VUMeter_Bars" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_Bars" variable="TextCtrl_VUMeter_Bars" member="yes">
 							<value>20</value>
 							<size>20,-1d</size>
-							<validator>__bars</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -148,19 +156,28 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_VUMeter_Sensitivity" variable="Slider_VUMeter_Sensitivity" member="yes">
-							<value>70</value>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+							<cols>3</cols>
+							<rows>2</rows>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_VUMeter_Sensitivity" variable="Slider_VUMeter_Sensitivity" member="yes">
+									<value>70</value>
+									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_Sensitivity" variable="TextCtrl_VUMeter_Sensitivity" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_Sensitivity" variable="TextCtrl_VUMeter_Sensitivity" member="yes">
 							<value>70</value>
 							<size>20,-1d</size>
-							<validator>__sensitivity</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -270,7 +287,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_VUMeter_StartNote" variable="Slider_VUMeter_StartNote" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_VUMeter_StartNote" variable="Slider_VUMeter_StartNote" member="yes">
 							<value>36</value>
 							<max>127</max>
 							<handler function="OnSlider_VUMeter_StartNoteCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -280,10 +297,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_StartNote" variable="TextCtrl_VUMeter_StartNote" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_StartNote" variable="TextCtrl_VUMeter_StartNote" member="yes">
 							<value>36</value>
 							<size>20,-1d</size>
-							<validator>__startNote</validator>
 							<handler function="OnTextCtrl_VUMeter_StartNoteText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -311,7 +327,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_VUMeter_EndNote" variable="Slider_VUMeter_EndNote" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_VUMeter_EndNote" variable="Slider_VUMeter_EndNote" member="yes">
 							<value>84</value>
 							<max>127</max>
 							<handler function="OnSlider_VUMeter_StartNoteCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -321,10 +337,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_EndNote" variable="TextCtrl_VUMeter_EndNote" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_EndNote" variable="TextCtrl_VUMeter_EndNote" member="yes">
 							<value>84</value>
 							<size>20,-1d</size>
-							<validator>__endNote</validator>
 							<handler function="OnTextCtrl_VUMeter_StartNoteText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -352,19 +367,27 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_VUMeter_XOffset" variable="Slider_VUMeter_XOffset" member="yes">
-							<min>-100</min>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+							<cols>2</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_VUMeter_XOffset" variable="Slider_VUMeter_XOffset" member="yes">
+									<min>-100</min>
+									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_XOffset" variable="TextCtrl_VUMeter_XOffset" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_XOffset" variable="TextCtrl_VUMeter_XOffset" member="yes">
 							<value>0</value>
 							<size>20,-1d</size>
-							<validator>__horizontalOffset</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -392,19 +415,37 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_VUMeter_YOffset" variable="Slider_VUMeter_YOffset" member="yes">
-							<min>-100</min>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+							<cols>2</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_VUMeter_YOffset" variable="Slider_VUMeter_YOffset" member="yes">
+									<min>-100</min>
+									<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_VUMeter_YOffset" subclass="ValueCurveButton" variable="BitmapButton_VUMeter_YOffsetVC" member="yes">
+									<bitmap code="valuecurvenotselected_24" />
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_YOffset" variable="TextCtrl_VUMeter_YOffset" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_YOffset" variable="TextCtrl_VUMeter_YOffset" member="yes">
 							<value>0</value>
 							<size>20,-1d</size>
-							<validator>__verticalOffset</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

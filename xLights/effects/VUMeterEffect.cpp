@@ -71,18 +71,19 @@ void VUMeterEffect::SetDefaultParameters(Model *cls)
 }
 
 void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-	Render(buffer,
-           SettingsMap.GetInt("TEXTCTRL_VUMeter_Bars", 6),
-		   SettingsMap.Get("CHOICE_VUMeter_Type", "Waveform"),
-		   SettingsMap.Get("CHOICE_VUMeter_TimingTrack", ""),
-		   SettingsMap.GetInt("TEXTCTRL_VUMeter_Sensitivity", 70),
- 		   SettingsMap.Get("CHOICE_VUMeter_Shape", "Circle"),
-		   SettingsMap.GetBool("CHECKBOX_VUMeter_SlowDownFalls", TRUE),
-           SettingsMap.GetInt("TEXTCTRL_VUMeter_StartNote", 0),
-           SettingsMap.GetInt("TEXTCTRL_VUMeter_EndNote", 127),   
-           SettingsMap.GetInt("TEXTCTRL_VUMeter_XOffset", 0),
-           SettingsMap.GetInt("TEXTCTRL_VUMeter_YOffset", 0)
-        );
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    Render(buffer,
+        SettingsMap.GetInt("SLIDER_VUMeter_Bars", 6),
+        SettingsMap.Get("CHOICE_VUMeter_Type", "Waveform"),
+        SettingsMap.Get("CHOICE_VUMeter_TimingTrack", ""),
+        SettingsMap.GetInt("SLIDER_VUMeter_Sensitivity", 70),
+        SettingsMap.Get("CHOICE_VUMeter_Shape", "Circle"),
+        SettingsMap.GetBool("CHECKBOX_VUMeter_SlowDownFalls", TRUE),
+        SettingsMap.GetInt("SLIDER_VUMeter_StartNote", 0),
+        SettingsMap.GetInt("SLIDER_VUMeter_EndNote", 127),
+        SettingsMap.GetInt("SLIDER_VUMeter_XOffset", 0),
+        GetValueCurveInt("VUMeter_YOffset", 0, SettingsMap, oset)
+    );
 }
 
 class VUMeterRenderCache : public EffectRenderCache 
@@ -93,20 +94,11 @@ public:
 	{
 	};
     virtual ~VUMeterRenderCache() {};
-	int _bars;
-    int _startNote;
-    int _endNote;
-	int _type;
-	std::string _timingtrack;
 	std::list<int> _timingmarks; // collection of recent timing marks ... used for sweep
 	int _lasttimingmark; // last time we saw a timing mark ... used for pulse
 	std::list<float> _lastvalues;
-	int _sensitivity;
 	float _lastsize;
-	bool _slowdownfalls;
     int _colourindex;
-    int _xoffset;
-    int _yoffset;
 };
 
 int VUMeterEffect::DecodeType(std::string type)
@@ -192,44 +184,26 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		cache = new VUMeterRenderCache();
 		buffer.infoCache[id] = cache;
 	}
-    int &_bars = cache->_bars;
-    int &_startNote = cache->_startNote;
-    int &_endNote = cache->_endNote;
-    int &_type = cache->_type;
-	std::string& _timingtrack = cache->_timingtrack;
 	std::list<int>& _timingmarks = cache->_timingmarks;
 	int &_lasttimingmark = cache->_lasttimingmark;
 	std::list<float>& _lastvalues = cache->_lastvalues;
-	int& _sensitivity = cache->_sensitivity;
 	float& _lastsize = cache->_lastsize;
-	bool& _slowdownfalls = cache->_slowdownfalls;
     int & _colourindex = cache->_colourindex;
-    int & _xoffset = cache->_xoffset;
-    int & _yoffset = cache->_yoffset;
 
 
 	// Check for config changes which require us to reset
-	if (_bars != bars || _type != nType || _timingtrack != timingtrack || _sensitivity != sensitivity || _slowdownfalls != slowdownfalls || _startNote != startnote || _endNote != endnote ||
-        _xoffset != xoffset || _yoffset != yoffset)
+	if (buffer.needToInit)
 	{
+        buffer.needToInit = false;
         _colourindex = -1;
-		_bars = bars;
-        _startNote = startnote;
-        _endNote = endnote;
-		_type = nType;
-		_timingtrack = timingtrack;
 		_timingmarks.clear();
 		_lasttimingmark = -1;
 		_lastvalues.clear();
-		_sensitivity = sensitivity;
 		_lastsize = 0;
-        _xoffset = xoffset;
-        _yoffset = yoffset;
-		_slowdownfalls = slowdownfalls;
 	}
 
 	// We limit bars to the width of the model in some effects
-	int usebars = _bars;
+	int usebars = bars;
 	if (usebars > buffer.BufferWi)
 	{
 		usebars = buffer.BufferWi;
@@ -237,47 +211,47 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 
 	try
 	{
-		switch (_type)
+		switch (nType)
 		{
 		case 1:
-			RenderSpectrogramFrame(buffer, _bars, _lastvalues, _slowdownfalls, _startNote, _endNote, _xoffset);
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, slowdownfalls, startnote, endnote, xoffset);
 			break;
 		case 2:
 			RenderVolumeBarsFrame(buffer, usebars);
 			break;
 		case 3:
-			RenderWaveformFrame(buffer, usebars, _yoffset);
+			RenderWaveformFrame(buffer, usebars, yoffset);
 			break;
 		case 4:
 		case 5:
-			RenderTimingEventFrame(buffer, usebars, nType, _timingtrack, _timingmarks);
+			RenderTimingEventFrame(buffer, usebars, nType, timingtrack, _timingmarks);
 			break;
 		case 6:
 			RenderOnFrame(buffer);
 			break;
 		case 7:
-			RenderPulseFrame(buffer, usebars, _timingtrack, _lasttimingmark);
+			RenderPulseFrame(buffer, usebars, timingtrack, _lasttimingmark);
 			break;
 		case 8:
 			RenderIntensityWaveFrame(buffer, usebars);
 			break;
 		case 10:
-			RenderLevelPulseFrame(buffer, usebars, _sensitivity, _lasttimingmark);
+			RenderLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark);
 			break;
 		case 11:
-			RenderLevelShapeFrame(buffer, shape, _lastsize, _sensitivity, _slowdownfalls, _xoffset, _yoffset);
+			RenderLevelShapeFrame(buffer, shape, _lastsize, sensitivity, slowdownfalls, xoffset, yoffset);
 			break;
         case 12:
             RenderOnColourFrame(buffer);
             break;
         case 13:
-            RenderTimingEventColourFrame(buffer, _colourindex, _timingtrack);
+            RenderTimingEventColourFrame(buffer, _colourindex, timingtrack);
             break;
         case 14:
-            RenderNoteOnFrame(buffer, _startNote, _endNote);
+            RenderNoteOnFrame(buffer, startnote, endnote);
             break;
         case 15:
-            RenderNoteLevelPulseFrame(buffer, usebars, _sensitivity, _lasttimingmark, _startNote, _endNote);
+            RenderNoteLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote);
             break;
         }
 	}

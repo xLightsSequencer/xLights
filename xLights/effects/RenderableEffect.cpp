@@ -734,15 +734,19 @@ double RenderableEffect::GetValueCurveDouble(wxString name, double def, const Se
 }
 int RenderableEffect::GetValueCurveInt(wxString name, int def, const SettingsMap &SettingsMap, float offset)
 {
-    int res = SettingsMap.GetInt("SLIDER_" + name, def);
-    //if (res == def)
-    //{
-    //    res = SettingsMap.GetInt("TEXTCTRL_" + name, def);
-    //}
-
-    wxString vc = SettingsMap.Get("VALUECURVE_" + name, "");
-    if (vc != "")
+    int res = def;
+    if (SettingsMap.Contains("SLIDER_" + name))
     {
+        res = SettingsMap.GetInt("SLIDER_" + name, def);
+    }
+    else if (SettingsMap.Contains("TEXTCTRL_" + name))
+    {
+        res = SettingsMap.GetInt("TEXTCTRL_" + name, def);
+    }
+
+    if (SettingsMap.Contains("VALUECURVE_" + name))
+    {
+        wxString vc = SettingsMap.Get("VALUECURVE_" + name, "");
         ValueCurve valc(vc.ToStdString());
         res = valc.GetOutputValueAt(offset);
     }
