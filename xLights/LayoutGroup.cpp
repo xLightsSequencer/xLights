@@ -22,8 +22,10 @@ LayoutGroup::~LayoutGroup()
     for (auto it = xlights->PreviewWindows.begin(); it != xlights->PreviewWindows.end(); it++) {
         if( *it == mModelPreview ) {
             xlights->PreviewWindows.erase(it);
-            delete mModelPreview;
-            mModelPreview = nullptr;
+            if( mModelPreview != nullptr ) {
+                delete mModelPreview;
+                mModelPreview = nullptr;
+            }
             break;
         }
     }
