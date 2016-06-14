@@ -101,6 +101,7 @@ private:
     std::vector<Model*> *PreviewModels;
     bool allowSelected;
     PreviewPane* mPreviewPane;
+    DrawGLUtils::xlAccumulator accumulator;
 
     double currentPixelScaleFactor = 1.0;
     

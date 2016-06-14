@@ -104,7 +104,7 @@ protected:
         LOG_GL_ERRORV(glDisable(GL_BLEND));
         LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
         LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
-        LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
         mIsInitialized = true;
     }
@@ -115,22 +115,23 @@ protected:
         if(!IsShownOnScreen()) return;
         
         SetCurrentGLContext();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
         if( mWindowResized )
         {
             prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
         }
         static int fs = 14;
-        DrawGLUtils::DrawText(5, 3 + fs, fs, time, GetContentScaleFactor());
-        DrawGLUtils::DrawText(5, 2 * (3 + fs), fs, fps, GetContentScaleFactor());
-        
+        DrawGLUtils::xlVertexTextAccumulator va;
+        va.AddVertex(5, 3 + fs, time);
+        va.AddVertex(5, 2 * (3 + fs), fps);
+        DrawGLUtils::Draw(va, fs, GetContentScaleFactor());
         SwapBuffers();
     }
 
     
 private:
-    wxString time;
-    wxString fps;
+    std::string time;
+    std::string fps;
 };
 
 BEGIN_EVENT_TABLE(TimeDisplayControl, xlGLCanvas)

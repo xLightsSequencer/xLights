@@ -328,7 +328,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
             textureProgram.Init(
                                 "#version 330 core\n"
                                 "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
-                                "layout(location = 1) in vec2 vertexUV;\n"
+                                "layout(location = 2) in vec2 vertexUV;\n"
                                 "out vec4 fragmentColor;\n"
                                 "out vec2 UV;\n"
                                 "uniform mat4 MVP;\n"
@@ -348,7 +348,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                                 "void main(){\n"
                                 "    vec4 c = texture(tex, UV);\n"
                                 "    color = vec4(c.rgb, c.a*fragmentColor.a);\n"
-                                "}\n", 2);
+                                "}\n", 3);
         }
         if (UsesVertexAccumulator) {
             singleColorProgram.Init(
@@ -496,11 +496,29 @@ public:
         
         normalProgram.BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
         LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
-        
+        bool tverticesBound = false;
         for (auto it = va.types.begin(); it != va.types.end(); it++) {
             int type = it->type;
             int enableCapability = it->enableCapability;
-            if (type == GL_POINTS && enableCapability == 0x0B10) {
+            
+            if (it->textureId != -1) {
+                textureProgram.UseProgram();
+                if (!tverticesBound) {
+                    textureProgram.SetMatrix(*matrix);
+                    textureProgram.BindBuffer(2, &va.tvertices[0], va.tvertices.size() * sizeof(GLfloat));
+                    LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+                    tverticesBound = true;
+                } else {
+                    LOG_GL_ERRORV(glEnableVertexAttribArray(2));
+                }
+                LOG_GL_ERRORV(glDisableVertexAttribArray(1));
+                LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
+                LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
+                LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(textureProgram.ProgramID, "tex"), 0));
+                
+                GLuint cid = glGetUniformLocation(textureProgram.ProgramID, "inColor");
+                LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
+            } else if (type == GL_POINTS && enableCapability == 0x0B10) {
                 //POINT_SMOOTH, removed in OpenGL3.x
                 normalProgram.SetRenderType(1);
                 normalProgram.CalcSmoothPointParams(it->extra);
@@ -518,10 +536,18 @@ public:
             if (enableCapability > 0 && type != GL_POINTS && enableCapability != 0x0B10) {
                 LOG_GL_ERRORV(glDisable(enableCapability));
             }
+            if (it->textureId != -1) {
+                LOG_GL_ERRORV(glEnableVertexAttribArray(1));
+                LOG_GL_ERRORV(glDisableVertexAttribArray(2));
+                normalProgram.UseProgram();
+            }
         }
         normalProgram.SetRenderType(0);
         normalProgram.UnbindBuffer(0);
         normalProgram.UnbindBuffer(1);
+        if (tverticesBound) {
+            textureProgram.UnbindBuffer(2);
+        }
     }
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
         if (va.count == 0) {
@@ -571,8 +597,8 @@ public:
         int offset0 = textureProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat)) / (2*sizeof(GLfloat));
         LOG_GL_ERRORV(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
-        textureProgram.BindBuffer(1, &va.tvertices[0], va.count*2*sizeof(GLfloat));
-        LOG_GL_ERRORV(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+        textureProgram.BindBuffer(2, &va.tvertices[0], va.count*2*sizeof(GLfloat));
+        LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
         LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, va.id));

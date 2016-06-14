@@ -276,29 +276,25 @@ void Waveform::DrawWaveView(const WaveView &wv)
 {
     DrawGLUtils::SetLineWidth(1.0);
 
-    DrawGLUtils::xlVertexColorAccumulator vac;
-    DrawGLUtils::xlVertexAccumulator va;
-    vac.PreAlloc(8);
-    va.PreAlloc(8);
+    DrawGLUtils::xlAccumulator vac;
+    vac.PreAlloc(18);
     xlColor color(212,208,200);
     
-    va.AddVertex(0, 0);
-    va.AddVertex(mWindowWidth, 0);
-    va.AddVertex(mWindowWidth, mWindowHeight);
-    va.AddVertex(0, mWindowHeight);
-    DrawGLUtils::Draw(va, color, GL_TRIANGLE_FAN);
-    va.Reset();
+    vac.AddVertex(0, 0, color);
+    vac.AddVertex(mWindowWidth, 0, color);
+    vac.AddVertex(mWindowWidth, mWindowHeight, color);
+    vac.AddVertex(0, mWindowHeight, color);
+    vac.Finish(GL_TRIANGLE_FAN);
     
     int max_wave_ht = mWindowHeight - VERTICAL_PADDING;
 
     // Draw Outside rectangle
     color.Set(128, 128, 128);
-    va.AddVertex(0.25, 0);
-    va.AddVertex(mWindowWidth, 0);
-    va.AddVertex(mWindowWidth, mWindowHeight-0.5);
-    va.AddVertex(0.25, mWindowHeight-0.5);
-    DrawGLUtils::Draw(va, color, GL_LINE_LOOP);
-    va.Reset();
+    vac.AddVertex(0.25, 0, color);
+    vac.AddVertex(mWindowWidth, 0, color);
+    vac.AddVertex(mWindowWidth, mWindowHeight-0.5, color);
+    vac.AddVertex(0.25, mWindowHeight-0.5, color);
+    vac.Finish(GL_LINE_LOOP);
     
     // Get selection positions from timeline
     int selected_x1 = mTimeline->GetSelectedPositionStart();
@@ -308,12 +304,11 @@ void Waveform::DrawWaveView(const WaveView &wv)
     if( selected_x1 != -1 && selected_x2 != -1)
     {
         color.Set(0, 0, 200, 45);
-        va.AddVertex(selected_x1, 1);
-        va.AddVertex(selected_x2, 1);
-        va.AddVertex(selected_x2, mWindowHeight-1);
-        va.AddVertex(selected_x1, mWindowHeight-1);
-        DrawGLUtils::Draw(va, color, GL_TRIANGLE_FAN, GL_BLEND);
-        va.Reset();
+        vac.AddVertex(selected_x1, 1, color);
+        vac.AddVertex(selected_x2, 1, color);
+        vac.AddVertex(selected_x2, mWindowHeight-1, color);
+        vac.AddVertex(selected_x1, mWindowHeight-1, color);
+        vac.Finish(GL_TRIANGLE_FAN, GL_BLEND);
     }
 
     if(_media != NULL)
@@ -355,9 +350,11 @@ void Waveform::DrawWaveView(const WaveView &wv)
             wv.lastRenderSize = max;
             wv.lastRenderStart = mStartPixelOffset;
         }
-
-        DrawGLUtils::Draw(wv.background, c, GL_TRIANGLE_STRIP);
-        DrawGLUtils::Draw(wv.outline, xlWHITE, GL_LINE_STRIP);
+        vac.PreAlloc(wv.background.count + wv.outline.count + 6);
+        vac.Load(wv.background, c);
+        vac.Finish(GL_TRIANGLE_STRIP);
+        vac.Load(wv.outline, xlWHITE);
+        vac.Finish(GL_LINE_STRIP);
     }
 
     // draw selection line if not a range
@@ -386,7 +383,8 @@ void Waveform::DrawWaveView(const WaveView &wv)
         vac.AddVertex(play_marker, mWindowHeight-1, color);
     }
     if (vac.count > 0) {
-        DrawGLUtils::Draw(vac, GL_LINES);
+        vac.Finish(GL_LINES);
+        DrawGLUtils::Draw(vac);
     }
 }
 

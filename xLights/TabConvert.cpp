@@ -687,6 +687,7 @@ void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, 
         f.Write(buf, stepSize);
     }
     f.Close();
+    free(buf);
 }
 
 void FRAMECLASS ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg)

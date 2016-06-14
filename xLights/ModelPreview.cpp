@@ -68,8 +68,6 @@ void ModelPreview::render( wxPaintEvent& event )
 
 void ModelPreview::Render() {
     if (PreviewModels != NULL) {
-        DrawGLUtils::xlAccumulator va;
-        va.PreAlloc(maxVertexCount);
         for (int i=0; i<PreviewModels->size(); i++) {
 			const xlColor *color = &xlLIGHT_GREY;
 			if (((*PreviewModels)[i])->Selected) {
@@ -82,31 +80,21 @@ void ModelPreview::Render() {
             if (!allowSelected) {
                 color = &xlLIGHT_GREY;
             }
-            (*PreviewModels)[i]->DisplayModelOnWindow(this, va, color, allowSelected);
+            (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator, color, allowSelected);
         }
-        if (va.count > maxVertexCount) {
-            maxVertexCount= va.count;
-        }
-        DrawGLUtils::Draw(va);
     }
 }
 void ModelPreview::Render(const unsigned char *data) {
     if (StartDrawing(mPointSize)) {
         if (PreviewModels != NULL) {
-            DrawGLUtils::xlAccumulator va;
-            va.PreAlloc(maxVertexCount);
             for (int m=0; m<PreviewModels->size(); m++) {
                 int NodeCnt=(*PreviewModels)[m]->GetNodeCount();
                 for(int n=0; n<NodeCnt; n++) {
                     int start = (*PreviewModels)[m]->NodeStartChannel(n);
                     (*PreviewModels)[m]->SetNodeChannelValues(n, &data[start]);
                 }
-                (*PreviewModels)[m]->DisplayModelOnWindow(this, va);
+                (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator);
             }
-            if (va.count > maxVertexCount) {
-                maxVertexCount= va.count;
-            }
-            DrawGLUtils::Draw(va);
         }
         EndDrawing();
     }
@@ -270,17 +258,17 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     mPointSize = pointSize;
     mIsDrawing = true;
     SetCurrentGLContext();
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     if( mWindowResized )
     {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     }
     LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
     DrawGLUtils::PushMatrix();
-    // Rotate Axis and tranlate
+    // Rotate Axis and translate
     DrawGLUtils::Rotate(180,0,0,1);
     DrawGLUtils::Rotate(180,0,1,0);
-
+    accumulator.PreAlloc(maxVertexCount);
     currentPixelScaleFactor = 1.0;
     if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
         && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
@@ -295,13 +283,15 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         }
         currentPixelScaleFactor = scaleh;
         LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
-        DrawGLUtils::DrawFillRectangle(xlBLACK, 255, 0, 0, virtualWidth, virtualHeight);
+        accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
+        accumulator.Finish(GL_TRIANGLES);
     } else if (virtualWidth == 0 && virtualHeight == 0) {
         int i = (int)mWindowHeight;
         DrawGLUtils::Translate(0, -i, 0);
     } else {
         DrawGLUtils::Translate(0, -virtualHeight, 0);
-        DrawGLUtils::DrawFillRectangle(xlBLACK, 255, 0, 0, virtualWidth, virtualHeight);
+        accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
+        accumulator.Finish(GL_TRIANGLES);
     }
     if(mBackgroundImageExists)
     {
@@ -323,27 +313,30 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
                 scalew = 1.0;
             }
         }
-        DrawGLUtils::xlVertexTextureAccumulator va(image->getID());
-        va.PreAlloc(6);
+        accumulator.PreAllocTexture(6);
         float tx1 = 0;
         float tx2 = image->tex_coord_x;
-        va.AddVertex(0, 0, tx1, -0.5/(image->textureHeight));
-        va.AddVertex(virtualWidth * scalew, 0, tx2, -0.5/(image->textureHeight));
-        va.AddVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
+        accumulator.AddTextureVertex(0, 0, tx1, -0.5/(image->textureHeight));
+        accumulator.AddTextureVertex(virtualWidth * scalew, 0, tx2, -0.5/(image->textureHeight));
+        accumulator.AddTextureVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
 
-        va.AddVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
-        va.AddVertex(virtualWidth * scalew, 0, tx2, -0.5/(image->textureHeight));
-        va.AddVertex(virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
+        accumulator.AddTextureVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
+        accumulator.AddTextureVertex(virtualWidth * scalew, 0, tx2, -0.5/(image->textureHeight));
+        accumulator.AddTextureVertex(virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
 
         int i = mBackgroundBrightness * 255 / 100;
-        va.alpha = i;
-        DrawGLUtils::Draw(va, GL_TRIANGLES, 0);
+        accumulator.FinishTextures(GL_TRIANGLES, image->getID(), i);
     }
     return true;
 }
 
 void ModelPreview::EndDrawing()
 {
+    if (accumulator.count > maxVertexCount) {
+        maxVertexCount= accumulator.count;
+    }
+    DrawGLUtils::Draw(accumulator);
+    accumulator.Reset();
     DrawGLUtils::PopMatrix();
     SwapBuffers();
     mIsDrawing = false;

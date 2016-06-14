@@ -29,7 +29,7 @@ static DrawGLUtils::xlGLCacheInfo *currentCache;
 
 void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-    static bool isDebugEnabled = logger_opengl.isDebugEnabled();
+    static bool isDebugEnabled = true;//logger_opengl.isDebugEnabled();
     if (isDebugEnabled) {
         int er = glGetError();
         if (er) {
@@ -109,6 +109,7 @@ public:
         if (va.count == 0) {
             return;
         }
+        bool textsBound = false;
         LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
         LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
         
@@ -116,6 +117,16 @@ public:
         LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
         
         for (auto it = va.types.begin(); it != va.types.end(); it++) {
+            if (it->textureId != -1) {
+                LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+                if (!textsBound) {
+                    LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, &va.tvertices[0]));
+                    textsBound = true;
+                }
+                LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
+                LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
+                LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+            }
             if (it->type == GL_POINTS) {
                 LOG_GL_ERRORV(glPointSize(it->extra));
             } else if (it->type == GL_LINES || it->type == GL_LINE_LOOP || it->type == GL_LINE_STRIP) {
@@ -125,6 +136,11 @@ public:
                 LOG_GL_ERRORV(glEnable(it->enableCapability));
             }
             LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
+            if (it->textureId != -1) {
+                LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+            }
             if (it->enableCapability != 0) {
                 LOG_GL_ERRORV(glDisable(it->enableCapability));
             }
@@ -543,7 +559,9 @@ void DrawGLUtils::DrawFillRectangle(const xlColor &color, wxByte alpha, int x, i
 
 
 void DrawGLUtils::xlAccumulator::Finish(int type, int enableCapability, float extra) {
-    if (!types.empty() && types.back().type == type
+    if (!types.empty()
+        && types.back().textureId == -1
+        && types.back().type == type
         && types.back().enableCapability == enableCapability && types.back().extra == extra) {
         //same params, just extent the previous
         types.back().count += count - start;
@@ -553,7 +571,56 @@ void DrawGLUtils::xlAccumulator::Finish(int type, int enableCapability, float ex
     types.push_back(BufferRangeType(start, count - start, type, enableCapability, extra));
     start = count;
 }
+void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexColorAccumulator& va) {
+    PreAlloc(va.count);
+    for (int x = 0; x < va.count * 2; x++) {
+        vertices.push_back(va.vertices[x]);
+    }
+    for (int x = 0; x < va.count * 4; x++) {
+        colors.push_back(va.colors[x]);
+    }
+    count += va.count;
+}
+void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va, const xlColor &c) {
+    PreAlloc(va.count);
+    for (int x = 0; x < va.count * 2; x++) {
+        vertices.push_back(va.vertices[x]);
+    }
+    for (int x = 0; x < va.count; x++) {
+        colors.push_back(c.Red());
+        colors.push_back(c.Green());
+        colors.push_back(c.Blue());
+        colors.push_back(c.Alpha());
+    }
+    count += va.count;
+}
+void DrawGLUtils::xlAccumulator::Load(const xlVertexTextureAccumulator &va, int type, int enableCapability) {
+    PreAlloc(va.count);
+    for (int x = 0; x < va.count * 2; x++) {
+        vertices.push_back(va.vertices[x]);
+    }
+    colors.resize(colors.size() + va.count * 4);
+    tvertices.resize((count + va.count)*2);
+    memcpy(&tvertices[count], &va.tvertices[0], va.count * sizeof(float) * 2);
+    count += va.count;
+    FinishTextures(type, va.id, va.alpha, enableCapability);
+}
 
+void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float tx, float ty) {
+    if (tvertices.size() < vertices.size()) {
+        tvertices.resize(vertices.size());
+    }
+    vertices.push_back(x);
+    vertices.push_back(y);
+    tvertices.push_back(tx);
+    tvertices.push_back(ty);
+    count++;
+    colors.resize(count * 4);
+}
+void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability) {
+    types.push_back(BufferRangeType(start, count - start, type, enableCapability, textureId, alpha));
+    start = count;
+}
 
 void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, int offset) {
     xlColor start;
@@ -1111,16 +1178,16 @@ int DrawGLUtils::GetTextWidth(double size, const wxString &text, double factor) 
     return FONTS[tsize].TextWidth(text, factor);
 }
 
-void DrawGLUtils::Draw(DrawGLUtils::xlVertexTextAccumulator &va, int size, float factor, int enableCapability) {
+void DrawGLUtils::Draw(DrawGLUtils::xlVertexTextAccumulator &va, int size, float factor) {
     int tsize = FindFont(size, factor);
     if (!FONTS[tsize].Valid()) {
         FONTS[tsize].Create(tsize);
     }
-    DrawGLUtils::xlVertexTextureAccumulator vat;
+    DrawGLUtils::xlVertexTextureAccumulator vat(currentCache->GetTextureId(FONTS[tsize].fontIdx));
     for (int x = 0; x < va.count; x++) {
         FONTS[tsize].Populate(va.vertices[x*2], va.vertices[x*2 + 1], va.text[x], factor, vat);
     }
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-    Draw(vat, GL_TRIANGLES, enableCapability);
+    Draw(vat, GL_TRIANGLES, GL_BLEND);
 }
 

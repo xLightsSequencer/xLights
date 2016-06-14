@@ -289,6 +289,10 @@ public:
         LOG_GL_ERRORV(glEnableVertexAttribArray(cattrib));
         LOG_GL_ERRORV(glVertexAttribPointer(cattrib, 4, GL_UNSIGNED_BYTE, true, 0, &va.colors[0]));
 
+        bool textBound = false;
+        GLuint tattrib = 0;
+        GLuint tvattrib = 0;
+
         for (auto it = va.types.begin(); it != va.types.end(); it++) {
             if (it->type == GL_POINTS) {
                 LOG_GL_ERRORV(glPointSize(it->extra));
@@ -327,6 +331,30 @@ public:
                 int enableCapability = it->enableCapability;
                 
                 float ps = 2.0;
+                if (it->textureId != -1) {
+                    LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
+                    LOG_GL_ERRORV(glDisableVertexAttribArray(cattrib));
+                    LOG_GL_ERRORV(glUseProgram(ProgramIDtexture));
+                    if (!textBound) {
+                        SetMVP(ProgramIDtexture);
+                        tattrib = glGetAttribLocation( ProgramIDtexture, "texturePos" );
+                        tvattrib = glGetAttribLocation( ProgramIDtexture, "vertexPosition_modelspace" );
+                        LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(ProgramIDtexture, "tex"), 0));
+                    }
+                    LOG_GL_ERRORV(glEnableVertexAttribArray(tvattrib));
+                    if (vattrib != tvattrib) {
+                        LOG_GL_ERRORV(glVertexAttribPointer(tvattrib, 2, GL_FLOAT, false, 0, &va.vertices[0]));
+                    }
+                    LOG_GL_ERRORV(glEnableVertexAttribArray(tattrib));
+                    if (tattrib == cattrib || tattrib == vattrib) {
+                        LOG_GL_ERRORV(glVertexAttribPointer(tattrib, 2, GL_FLOAT, true, 0, &va.tvertices[0]));
+                    }
+                    GLuint cid = glGetUniformLocation(ProgramIDtexture, "inColor");
+                    glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0);
+                    
+                    LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
+                }
                 if (enableCapability != 0) {
                     if (enableCapability == GL_POINT_SMOOTH) {
                         //LOG_GL_ERRORV(glEnable(enableCapability));
@@ -341,6 +369,20 @@ public:
                     }
                 }
                 LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
+                if (it->textureId != -1) {
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
+                    LOG_GL_ERRORV(glDisableVertexAttribArray(tattrib));
+                    LOG_GL_ERRORV(glDisableVertexAttribArray(tvattrib));
+                    LOG_GL_ERRORV(glUseProgram(ProgramIDcolors));
+                    LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
+                    if (tvattrib != vattrib) {
+                        LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 2, GL_FLOAT, false, 0, &va.vertices[0]));
+                    }
+                    LOG_GL_ERRORV(glEnableVertexAttribArray(cattrib));
+                    if (tattrib == cattrib || tattrib == vattrib) {
+                        LOG_GL_ERRORV(glVertexAttribPointer(cattrib, 4, GL_UNSIGNED_BYTE, true, 0, &va.colors[0]));
+                    }
+                }
                 if (enableCapability > 0) {
                     if (enableCapability == GL_POINT_SMOOTH || enableCapability == GL_POINT_SPRITE) {
                         GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");

@@ -166,9 +166,22 @@ namespace DrawGLUtils
             xlVertexColorAccumulator::Reset();
             start = 0;
             types.clear();
+            tvertices.clear();
         }
-        
+
         void Finish(int type, int enableCapability = 0, float extra = 2);
+        
+        
+        void PreAllocTexture(int i) {
+            PreAlloc(i);
+            tvertices.reserve(vertices.size());
+        }
+        void AddTextureVertex(float x, float y, float tx, float ty);
+        void FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability = 0);
+        
+        void Load(const xlVertexColorAccumulator &ca);
+        void Load(const xlVertexAccumulator &ca, const xlColor &c);
+        void Load(const xlVertexTextureAccumulator &ca, int type, int enableCapability = 0);
         
         class BufferRangeType {
         public:
@@ -178,14 +191,27 @@ namespace DrawGLUtils
                 type = t;
                 enableCapability = ec;
                 extra = ex;
+                textureId = -1;
+            }
+            BufferRangeType(int s, int c, int t, int ec, GLuint tid, uint8_t alpha) {
+                start = s;
+                count = c;
+                type = t;
+                enableCapability = ec;
+                extra = 0.0f;
+                textureId = tid;
+                textureAlpha = alpha;
             }
             int start;
             int count;
             int type;
             int enableCapability;
             float extra;
+            GLuint textureId;
+            uint8_t textureAlpha;
         };
         std::list<BufferRangeType> types;
+        std::vector<float> tvertices;
     private:
         int start;
     };
@@ -266,7 +292,7 @@ namespace DrawGLUtils
     void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0);
     void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0);
     void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0);
-    void Draw(xlVertexTextAccumulator &va, int size, float factor, int enableCapability = 0);
+    void Draw(xlVertexTextAccumulator &va, int size, float factor);
 
     
     void DrawText(double x, double y, double size, const wxString &text, double factor = 1.0);

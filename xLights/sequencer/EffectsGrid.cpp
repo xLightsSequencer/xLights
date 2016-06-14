@@ -2514,7 +2514,7 @@ void EffectsGrid::DrawEffects()
     float fontSize = ComputeFontSize(toffset, factor);
 
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
-    DrawGLUtils::Draw(texts, fontSize, factor, GL_BLEND);
+    DrawGLUtils::Draw(texts, fontSize, factor);
     DrawGLUtils::Draw(selectedBoxes, GL_TRIANGLES, GL_BLEND);
 
     textBackgrounds.Reset();
