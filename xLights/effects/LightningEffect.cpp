@@ -30,11 +30,12 @@ wxPanel *LightningEffect::CreatePanel(wxWindow *parent) {
 #define RIGHT 2
 #define LEFT 3
 void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Number_Bolts = SettingsMap.GetInt("SLIDER_Number_Bolts", 1);
-    int Number_Segments = SettingsMap.GetInt("SLIDER_Number_Segments", 1);
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    int Number_Bolts = GetValueCurveInt("Number_Bolts", 1, SettingsMap, oset);
+    int Number_Segments = GetValueCurveInt("Number_Segments", 1, SettingsMap, oset);
     bool ForkedLightning = SettingsMap.GetBool("CHECKBOX_ForkedLightning");
-    int topX = SettingsMap.GetInt("SLIDER_Lightning_TopX", 0);
-    int topY = SettingsMap.GetInt("SLIDER_Lightning_TopY", 0);
+    int topX = GetValueCurveInt("Lightning_TopX", 0, SettingsMap, oset);
+    int topY = GetValueCurveInt("Lightning_TopY", 0, SettingsMap, oset);
     int botX = SettingsMap.GetInt("SLIDER_Lightning_BOTX", 100);
     int botY = SettingsMap.GetInt("SLIDER_Lightning_BOTY", 100);
     

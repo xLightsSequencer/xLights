@@ -3,13 +3,15 @@
 
 //(*Headers(LightningPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
 //*)
+
+#include "../ValueCurveButton.h"
 
 class LightningPanel: public wxPanel
 {
@@ -19,29 +21,33 @@ class LightningPanel: public wxPanel
 		virtual ~LightningPanel();
 
 		//(*Declarations(LightningPanel)
-		wxBitmapButton* BitmapButton20;
-		wxTextCtrl* TextCtrl86;
 		wxTextCtrl* TextCtrl88;
-		wxTextCtrl* TextCtrl89;
-		wxStaticText* StaticText205;
-		wxStaticText* StaticText210;
-		wxSlider* Lightning_BOTX;
-		wxSlider* Slider_Lightning_TopY;
-		wxStaticText* StaticText208;
-		wxBitmapButton* BitmapButton26;
-		wxBitmapButton* BitmapButton27;
-		wxBitmapButton* BitmapButton25;
-		wxBitmapButton* BitmapButton28;
-		wxBitmapButton* BitmapButton22;
-		wxStaticText* StaticText207;
-		wxBitmapButton* BitmapButton23;
-		wxTextCtrl* TextCtrl90;
-		wxSlider* Slider_Lightning_BOTX;
-		wxSlider* Lightning_TopX;
 		wxStaticText* StaticText203;
-		wxStaticText* StaticText209;
 		wxCheckBox* ForkedLightning;
+		wxBitmapButton* BitmapButton22;
+		ValueCurveButton* BitmapButton_Number_BoltsVC;
+		wxStaticText* StaticText209;
+		wxSlider* Slider_Lightning_TopY;
+		wxStaticText* StaticText205;
+		wxBitmapButton* BitmapButton26;
+		wxBitmapButton* BitmapButton20;
+		wxStaticText* StaticText208;
+		wxBitmapButton* BitmapButton28;
+		ValueCurveButton* BitmapButton_Lightning_TopYVC;
+		wxTextCtrl* TextCtrl90;
+		wxStaticText* StaticText210;
+		wxTextCtrl* TextCtrl86;
+		wxSlider* Lightning_BOTX;
 		wxStaticText* StaticText206;
+		wxSlider* Lightning_TopX;
+		wxBitmapButton* BitmapButton23;
+		ValueCurveButton* BitmapButton_Lightning_TopXVC;
+		wxStaticText* StaticText207;
+		ValueCurveButton* BitmapButton_Number_SegmentsVC;
+		wxBitmapButton* BitmapButton27;
+		wxTextCtrl* TextCtrl89;
+		wxBitmapButton* BitmapButton25;
+		wxSlider* Slider_Lightning_BOTX;
 		//*)
 
 	protected:
@@ -49,10 +55,12 @@ class LightningPanel: public wxPanel
 		//(*Identifiers(LightningPanel)
 		static const long ID_STATICTEXT25;
 		static const long ID_SLIDER_Number_Bolts;
+		static const long ID_VALUECURVE_Number_Bolts;
 		static const long IDD_TEXTCTRL_Number_Bolts;
 		static const long ID_BITMAPBUTTON38;
 		static const long ID_STATICTEXT26;
 		static const long ID_SLIDER_Number_Segments;
+		static const long ID_VALUECURVE_Number_Segments;
 		static const long IDD_TEXTCTRL_Number_Segments;
 		static const long ID_BITMAPBUTTON40;
 		static const long ID_STATICTEXT60;
@@ -60,10 +68,12 @@ class LightningPanel: public wxPanel
 		static const long ID_BITMAPBUTTON41;
 		static const long ID_STATICTEXT64;
 		static const long ID_SLIDER_Lightning_TopX;
+		static const long ID_VALUECURVE_Lightning_TopX;
 		static const long IDD_TEXTCTRL_Lightning_TopX;
 		static const long ID_BITMAPBUTTON42;
 		static const long ID_STATICTEXT67;
 		static const long ID_SLIDER_Lightning_TopY;
+		static const long ID_VALUECURVE_Lightning_TopY;
 		static const long IDD_TEXTCTRL_Lightning_TopY;
 		static const long ID_BITMAPBUTTON43;
 		static const long ID_STATICTEXT70;
