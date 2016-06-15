@@ -36,11 +36,8 @@ void PianoEffect::SetDefaultParameters(Model *cls)
         return;
     }
 
+    // Tell our panel the media file in case we need to do polyphonic transcription
     xLightsFrame* frame = (xLightsFrame*)fp->GetParent();
-    //while (frame->GetParent() != NULL)
-    {
-    //    frame = (xLightsFrame*)frame->GetParent();
-    }
     if (frame != NULL && frame->CurrentSeqXmlFile != NULL)
         ((PianoPanel*)_panel)->SetAudio(frame->CurrentSeqXmlFile->GetMedia());
 
