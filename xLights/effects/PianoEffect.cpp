@@ -183,6 +183,7 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 		em = startmidi + buffer.BufferWi - 1;
 	}
 
+    std::list<float> default;
 	std::list<float>* pdata = NULL;
 
 	if (_timingsource == "Polyphonic Transcription")
@@ -201,18 +202,20 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 		}
 	}
 
-	if (pdata != NULL)
-	{
-		ReduceChannels(pdata, startmidi, em, sharps);
+    if (pdata == NULL)
+    {
+        pdata = &default;
+    }
 
-		if (type == "True Piano")
-		{
-			DrawTruePiano(buffer, pdata, sharps, startmidi, em, scale, xoffset);
-		}
-		else if (type == "Bars")
-		{
-			DrawBarsPiano(buffer, pdata, sharps, startmidi, em, scale, xoffset);
-		}
+	ReduceChannels(pdata, startmidi, em, sharps);
+
+	if (type == "True Piano")
+	{
+		DrawTruePiano(buffer, pdata, sharps, startmidi, em, scale, xoffset);
+	}
+	else if (type == "Bars")
+	{
+		DrawBarsPiano(buffer, pdata, sharps, startmidi, em, scale, xoffset);
 	}
 }
 
