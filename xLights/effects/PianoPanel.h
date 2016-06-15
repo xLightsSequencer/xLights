@@ -19,16 +19,12 @@ class wxChoice;
 //*)
 
 #include "../AudioManager.h"
+#include "../ValueCurveButton.h"
+
 class MidiFile;
 
 class PianoPanel: public wxPanel
 {
-    // these are only used for validation
-    int __verticalScale;
-    int __horizontalOffset;
-    int __midiStartTimeAdjust;
-    int __midiSpeedAdjust;
-
 public:
 
 		PianoPanel(wxWindow* parent);
@@ -64,6 +60,7 @@ public:
 		wxStaticText* StaticText3;
 		wxBitmapButton* BitmapButton_Piano_XOffset;
 		wxSpinCtrl* SpinCtrl_Piano_EndMIDI;
+		ValueCurveButton* BitmapButton_Piano_ScaleVC;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
 		wxBitmapButton* BitmapButton_Piano_scale;
@@ -95,12 +92,13 @@ public:
 		static const long ID_CHECKBOX_Piano_ShowSharps;
 		static const long ID_BITMAPBUTTON_Piano_ShowSharps;
 		static const long ID_STATICTEXT7;
-		static const long IDD_SLIDER_Piano_Scale;
-		static const long ID_TEXTCTRL_Piano_Scale;
+		static const long ID_SLIDER_Piano_Scale;
+		static const long ID_VALUECURVE_Piano_Scale;
+		static const long IDD_TEXTCTRL_Piano_Scale;
 		static const long ID_BITMAPBUTTON_Piano_Scale;
 		static const long ID_STATICTEXT9;
-		static const long IDD_SLIDER_Piano_XOffset;
-		static const long ID_TEXTCTRL_Piano_XOffset;
+		static const long ID_SLIDER_Piano_XOffset;
+		static const long IDD_TEXTCTRL_Piano_XOffset;
 		static const long ID_BITMAPBUTTON_Piano_XOffset;
 		static const long ID_STATICTEXT4;
 		static const long ID_TEXTCTRL_Piano_File;
@@ -109,12 +107,12 @@ public:
 		static const long ID_CHOICE_Piano_MIDITrack_APPLYLAST;
 		static const long ID_BITMAPBUTTON_Piano_MIDITrack_APPLYLAST;
 		static const long ID_STATICTEXT5;
-		static const long IDD_SLIDER_Piano_MIDI_Start;
-		static const long ID_TEXTCTRL_Piano_MIDI_Start;
+		static const long ID_SLIDER_Piano_MIDI_Start;
+		static const long IDD_TEXTCTRL_Piano_MIDI_Start;
 		static const long ID_BITMAPBUTTON_Piano_MIDI_Start;
 		static const long ID_STATICTEXT6;
-		static const long IDD_SLIDER_Piano_MIDI_Speed;
-		static const long ID_TEXTCTRL_Piano_MIDI_Speed;
+		static const long ID_SLIDER_Piano_MIDI_Speed;
+		static const long IDD_TEXTCTRL_Piano_MIDI_Speed;
 		static const long ID_BITMAPBUTTON_Piano_MIDI_Speed;
 		//*)
 		AudioManager* _media;

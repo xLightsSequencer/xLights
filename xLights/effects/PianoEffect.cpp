@@ -91,6 +91,7 @@ bool PianoEffect::CanRenderOnBackgroundThread(Effect *effect, const SettingsMap 
 }
 
 void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    float oset = buffer.GetEffectTimeIntervalPosition();
     RenderPiano(buffer,
 		SettingsMap.GetInt("SPINCTRL_Piano_StartMIDI"),
 		SettingsMap.GetInt("SPINCTRL_Piano_EndMIDI"),
@@ -98,11 +99,11 @@ void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 		std::string(SettingsMap.Get("CHOICE_Piano_Type", "True Piano")),
 		std::string(SettingsMap.Get("CHOICE_Piano_Notes_Source", "Polyphonic Transcription")),
 		std::string(SettingsMap.Get("TEXTCTRL_Piano_File", "")),
-		SettingsMap.GetInt("TEXTCTRL_Piano_MIDI_Start"),
-		SettingsMap.GetInt("TEXTCTRL_Piano_MIDI_Speed"),
-		SettingsMap.GetInt("TEXTCTRL_Piano_Scale"),
+		SettingsMap.GetInt("SLIDER_Piano_MIDI_Start"),
+		SettingsMap.GetInt("SLIDER_Piano_MIDI_Speed"),
+		GetValueCurveInt("Piano_Scale", 100, SettingsMap, oset),
 		std::string(SettingsMap.Get("CHOICE_Piano_MIDITrack_APPLYLAST", "")),
-        SettingsMap.GetInt("TEXTCTRL_Piano_XOffset")
+        SettingsMap.GetInt("SLIDER_Piano_XOffset", 0)
         );
 }
 
@@ -112,17 +113,11 @@ public:
 	PianoCache() { };
 	virtual ~PianoCache() { };
 
-	int _startMidiChannel;
-	int _endMidiChannel;
-	bool _showSharps;
-	std::string _type;
 	std::string _timingsource;
 	std::string _file;
 	int _MIDIStartAdjust;
 	int _MIDISpeedAdjust;
-    int _xoffset;
 	std::map<int, std::list<float>> _timings;
-	int _scale;
 	std::string _MIDItrack;
 };
 
@@ -135,31 +130,14 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 		buffer.infoCache[id] = cache;
 	}
 
-	int& _startMidiChannel = cache->_startMidiChannel;
-	int& _endMidiChannel = cache->_endMidiChannel;
-	bool& _showSharps = cache->_showSharps;
-	std::string& _type = cache->_type;
 	std::string& _timingsource = cache->_timingsource;
 	std::string& _file = cache->_file;
 	int& _MIDISpeedAdjust = cache->_MIDISpeedAdjust;
 	int& _MIDIStartAdjust = cache->_MIDIStartAdjust;
 	std::map<int, std::list<float>>& _timings = cache->_timings;
-	int& _scale = cache->_scale;
 	std::string& _MIDITrack = cache->_MIDItrack;
-    int& _xoffset = cache->_xoffset;
 
-	if (buffer.needToInit ||
-        _startMidiChannel != startmidi ||
-		_endMidiChannel != endmidi ||
-		_showSharps != sharps ||
-		_type != type ||
-		_timingsource != timingsource ||
-		_file != file ||
-		_scale != scale ||
-        _xoffset != xoffset ||
-		_MIDISpeedAdjust != MIDIAdjustSpeed ||
-		_MIDIStartAdjust != MIDIAdjustStart ||
-		_MIDITrack != MIDITrack)
+	if (buffer.needToInit)
 	{
         buffer.needToInit = false;
 		if (timingsource == "Audacity Timing File" && (_timingsource != timingsource || _file != file))
@@ -186,22 +164,17 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
             _timings = LoadTimingTrack(MIDITrack, buffer.frameTimeInMs);
         }
 
-		_startMidiChannel = startmidi;
-		_endMidiChannel = endmidi;
-		_showSharps = sharps;
-		_type = type;
-        _xoffset = xoffset;
 		_timingsource = timingsource;
 		_MIDISpeedAdjust = MIDIAdjustSpeed;
 		_MIDIStartAdjust = MIDIAdjustStart;
-		_scale = scale;
 		_file = file;
 		_MIDITrack = MIDITrack;
 	}
 
-	if (_endMidiChannel - _startMidiChannel + 1 > buffer.BufferWi)
+    int em = endmidi;
+	if (em - startmidi + 1 > buffer.BufferWi)
 	{
-		_endMidiChannel = _startMidiChannel + buffer.BufferWi - 1;
+		em = startmidi + buffer.BufferWi - 1;
 	}
 
 	std::list<float>* pdata = NULL;
@@ -224,15 +197,15 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 
 	if (pdata != NULL)
 	{
-		ReduceChannels(pdata, _startMidiChannel, _endMidiChannel, _showSharps);
+		ReduceChannels(pdata, startmidi, em, sharps);
 
-		if (_type == "True Piano")
+		if (type == "True Piano")
 		{
-			DrawTruePiano(buffer, pdata, _showSharps, _startMidiChannel, _endMidiChannel, _scale, _xoffset);
+			DrawTruePiano(buffer, pdata, sharps, startmidi, em, scale, xoffset);
 		}
-		else if (_type == "Bars")
+		else if (type == "Bars")
 		{
-			DrawBarsPiano(buffer, pdata, _showSharps, _startMidiChannel, _endMidiChannel, _scale, _xoffset);
+			DrawBarsPiano(buffer, pdata, sharps, startmidi, em, scale, xoffset);
 		}
 	}
 }
