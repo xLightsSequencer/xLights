@@ -8,6 +8,12 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Add value curves to: Music, Piano, Tendrils, Lightning, VUMeter
+   -- enh (keithsw) Allow custom value curve points to be moved sideways as well as vertically.
+   -- bug (keithsw) Fix bugs in piano effect: Piano not drawn without notes source, Polyphonic Transcription broken.
+   -- bug (keithsw) Fix problem with fire effect when buffer size changes
+   -- enh (keithsw) Add square wave to value effect presets
+   -- enh (keithsw) Add multicolour support to Tendrils ... should also fix bug with Tendril not holding colour change
 2016.37  Jun 10, 2016
    -- enh (keithsw) Extra logging on startup to isolate problems ... also logs config so we can understand settings.
    -- enh (dkulp) Allow 10K nodes/string for SingleLineModel.  Fixes #592
