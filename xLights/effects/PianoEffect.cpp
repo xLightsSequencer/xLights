@@ -6,6 +6,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../xLightsMain.h"
 #include "../xLightsXmlFile.h"
 
 #include <vector>
@@ -35,6 +36,14 @@ void PianoEffect::SetDefaultParameters(Model *cls)
         return;
     }
 
+    xLightsFrame* frame = (xLightsFrame*)fp->GetParent();
+    //while (frame->GetParent() != NULL)
+    {
+    //    frame = (xLightsFrame*)frame->GetParent();
+    }
+    if (frame != NULL && frame->CurrentSeqXmlFile != NULL)
+        ((PianoPanel*)_panel)->SetAudio(frame->CurrentSeqXmlFile->GetMedia());
+
     if (mSequenceElements == nullptr)
     {
         return;
@@ -42,7 +51,7 @@ void PianoEffect::SetDefaultParameters(Model *cls)
 
     // Load the names of the timing tracks
     std::list<std::string> timingtracks;
-    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
         if (e->GetEffectLayerCount() == 1 && e->GetType() == "timing")
@@ -905,7 +914,7 @@ std::map<int, std::list<float>> PianoEffect::LoadTimingTrack(std::string track, 
 
     // Load the names of the timing tracks
     Element* t = NULL;
-    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
         if (e->GetEffectLayerCount() == 1 && e->GetType() == "timing")

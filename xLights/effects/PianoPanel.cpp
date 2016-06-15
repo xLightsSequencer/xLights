@@ -286,6 +286,7 @@ void PianoPanel::OnChoice_Piano_Notes_SourceSelect(wxCommandEvent& event)
     {
         if (_media != NULL)
         {
+            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             if (wxMessageBox("Polyphonic transcription is known to be unstable and can cause xLights to crash. Are you sure you want to continue. Using Audacity may yield better results.", "Warning!", wxICON_WARNING | wxYES_NO, this) == wxYES)
             {
                 try
@@ -293,17 +294,19 @@ void PianoPanel::OnChoice_Piano_Notes_SourceSelect(wxCommandEvent& event)
                     if (!_media->IsPolyphonicTranscriptionDone())
                     {
                         wxProgressDialog pd("Processing Audio", "");
+                        logger_base.info("Piano processing Polyphonic Transcription");
                         _media->DoPolyphonicTranscription(&pd, &Progress);
+                        logger_base.info("Piano processing Polyphonic Transcription - DONE");
                     }
                 }
                 catch (...)
                 {
-                    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                     logger_base.warn("Exception caught processing Polyphonic Transcription");
                 }
             }
             else
             {
+                logger_base.info("User aborted choice to use Polyphonic Transcription");
                 Choice_Piano_Notes_Source->SetStringSelection("Audacity Timing File");
             }
         }
