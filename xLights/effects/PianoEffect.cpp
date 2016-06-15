@@ -183,7 +183,7 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 		em = startmidi + buffer.BufferWi - 1;
 	}
 
-    std::list<float> default;
+    std::list<float> def;
 	std::list<float>* pdata = NULL;
 
 	if (_timingsource == "Polyphonic Transcription")
@@ -204,7 +204,7 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 
     if (pdata == NULL)
     {
-        pdata = &default;
+        pdata = &def;
     }
 
 	ReduceChannels(pdata, startmidi, em, sharps);
