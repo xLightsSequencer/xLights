@@ -59,6 +59,9 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
 
 RowHeading::~RowHeading()
 {
+    if (mHeaderColorModel != NULL) delete mHeaderColorModel;
+    if (mHeaderColorTiming != NULL) delete mHeaderColorTiming;
+    if (mHeaderSelectedColor != NULL) delete mHeaderSelectedColor;
 }
 
 void RowHeading::mouseLeftDown( wxMouseEvent& event)

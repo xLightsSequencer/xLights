@@ -7,7 +7,9 @@
  * License:
  **************************************************************/
 
-
+#ifdef _MSC_VER
+//#include <vld.h> // visual leak detector ... https://vld.codeplex.com/
+#endif
 
 #include "xLightsApp.h"
 //#include "heartbeat.h" //DJ
