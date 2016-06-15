@@ -407,11 +407,6 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
 
 #pragma region Mouse Control
 
-float NormaliseGrabbedPoint(float g)
-{
-    return std::round(g * 40.0) / 40.0;
-}
-
 void ValueCurvePanel::Undo()
 {
     if (_undo.size() > 0)
@@ -463,7 +458,10 @@ void ValueCurvePanel::mouseLeftDown(wxMouseEvent& event)
         {
             _grabbedPoint = 1.0f;
         }
-        _grabbedPoint = NormaliseGrabbedPoint(_grabbedPoint);
+        _grabbedPoint = vcSortablePoint::Normalise(_grabbedPoint);
+        _originalGrabbedPoint = _grabbedPoint;
+        _minGrabbedPoint = _vc->FindMinPointLessThan(_grabbedPoint);
+        _maxGrabbedPoint = _vc->FindMaxPointGreaterThan(_grabbedPoint);
         SaveUndoSelected();
         CaptureMouse();
         Refresh();
@@ -523,7 +521,26 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
             y = 1.0f;
         }
 
+        if (x <= _minGrabbedPoint)
+        {
+            x = _minGrabbedPoint;
+        }
+        else if (x > _maxGrabbedPoint)
+        {
+            x = _maxGrabbedPoint;
+        }
+
+        if (_originalGrabbedPoint == 0 || _originalGrabbedPoint == 1.0)
+        {
+            // dont allow x to change
+        }
+        else
+        {
+            _vc->DeletePoint(_grabbedPoint);
+            _grabbedPoint = x;
+        }
         _vc->SetValueAt(_grabbedPoint, y);
+        
         Refresh();
     }
 }

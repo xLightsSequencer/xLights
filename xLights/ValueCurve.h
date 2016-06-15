@@ -8,12 +8,17 @@
 class vcSortablePoint
 {
 public:
+
+    static float Normalise(float v)
+    {
+        return std::round(v * 40.0) / 40.0;
+    }
     float x;
     float y;
     bool wrapped;
     vcSortablePoint(float xx, float yy, bool wrap)
     {
-        x = xx;
+        x = Normalise(xx);
         y = yy;
         wrapped = wrap;
     }
@@ -25,7 +30,7 @@ public:
     }
     bool operator==(const float r) const
     {
-        return x == r;
+        return x == Normalise(r);
     }
     bool operator<(const vcSortablePoint& r) const
     {
@@ -33,7 +38,7 @@ public:
     }
     bool operator<(const float r) const
     {
-        return x < r;
+        return x < Normalise(r);
     }
     bool operator<=(const vcSortablePoint& r) const
     {
@@ -41,7 +46,7 @@ public:
     }
     bool operator<=(const float r) const
     {
-        return x <= r;
+        return x <= Normalise(r);
     }
     bool operator>(const vcSortablePoint& r) const
     {
@@ -103,6 +108,8 @@ public:
     std::string GetType() { return _type; }
     std::list<vcSortablePoint> GetPoints() { return _values; }
     void RemoveExcessCustomPoints();
+    float FindMinPointLessThan(float point);
+    float FindMaxPointGreaterThan(float point);
 };
 
 #endif

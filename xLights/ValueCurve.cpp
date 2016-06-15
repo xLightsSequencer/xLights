@@ -672,3 +672,33 @@ void ValueCurve::SetWrap(bool wrap)
 
     RenderType(); 
 }
+
+float ValueCurve::FindMinPointLessThan(float point)
+{
+    float res = 0.0;
+
+    for (auto it = _values.begin(); it != _values.end(); it++)
+    {
+        if (it->x < point)
+        {
+            res = it->x + 0.025;
+        }
+    }
+
+    return vcSortablePoint::Normalise(res);
+}
+float ValueCurve::FindMaxPointGreaterThan(float point)
+{
+    float res = 1.0;
+
+    for (auto it = _values.begin(); it != _values.end(); it++)
+    {
+        if (it->x > point)
+        {
+            res = it->x - 0.025;
+            break;
+        }
+    }
+
+    return vcSortablePoint::Normalise(res);
+}

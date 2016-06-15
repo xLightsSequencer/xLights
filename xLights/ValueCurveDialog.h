@@ -40,7 +40,10 @@ protected:
 private:
     void Convert(float &x, float &y, wxMouseEvent& event);
     ValueCurve *_vc;
+    float _originalGrabbedPoint;
     float _grabbedPoint;
+    float _minGrabbedPoint;
+    float _maxGrabbedPoint;
     std::string _type;
     std::list<wxRealPoint> _undo;
 };
