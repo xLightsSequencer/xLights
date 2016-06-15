@@ -97,10 +97,10 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Notes Source"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer27->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Piano_Notes_Source = new wxChoice(this, ID_CHOICE_Piano_Notes_Source, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Piano_Notes_Source"));
-	Choice_Piano_Notes_Source->Append(_("Polyphonic Transcription"));
+	Choice_Piano_Notes_Source->Append(_("Timing Track"));
 	Choice_Piano_Notes_Source->SetSelection( Choice_Piano_Notes_Source->Append(_("Audacity Timing File")) );
 	Choice_Piano_Notes_Source->Append(_("MIDI File"));
-	Choice_Piano_Notes_Source->Append(_("Timing Track"));
+	Choice_Piano_Notes_Source->Append(_("Polyphonic Transcription"));
 	FlexGridSizer27->Add(Choice_Piano_Notes_Source, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Piano_Notes_Source = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_Notes_Source, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_Notes_Source"));
 	BitmapButton_Piano_Notes_Source->SetDefault();

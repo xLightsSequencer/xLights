@@ -20,10 +20,10 @@
 					<object class="sizeritem">
 						<object class="wxChoice" name="ID_CHOICE_Piano_Notes_Source" variable="Choice_Piano_Notes_Source" member="yes">
 							<content>
-								<item>Polyphonic Transcription</item>
+								<item>Timing Track</item>
 								<item>Audacity Timing File</item>
 								<item>MIDI File</item>
-								<item>Timing Track</item>
+								<item>Polyphonic Transcription</item>
 							</content>
 							<selection>1</selection>
 							<handler function="OnChoice_Piano_Notes_SourceSelect" entry="EVT_CHOICE" />
