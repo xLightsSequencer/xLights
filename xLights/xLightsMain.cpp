@@ -208,6 +208,7 @@ const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
 const long xLightsFrame::ID_MENUITEM18 = wxNewId();
+const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
 const long xLightsFrame::idMenuSaveSched = wxNewId();
 const long xLightsFrame::idMenuAddList = wxNewId();
 const long xLightsFrame::idMenuRenameList = wxNewId();
@@ -763,6 +764,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1->Append(Menu_GenerateCustomModel);
     MenuItem38 = new wxMenuItem(Menu1, ID_MENUITEM18, _("&Package Log FIles"), _("Packages up current configuration, logs and sequence for reporting a problem to development team."), wxITEM_NORMAL);
     Menu1->Append(MenuItem38);
+    mExportModelsMenuItem = new wxMenuItem(Menu1, ID_EXPORT_MODELS, _("E&xport Models"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(mExportModelsMenuItem);
     MenuBar->Append(Menu1, _("&Tools"));
     MenuPlaylist = new wxMenu();
     MenuItemSavePlaylists = new wxMenuItem(MenuPlaylist, idMenuSaveSched, _("Save Playlists"), wxEmptyString, wxITEM_NORMAL);
@@ -1003,6 +1006,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM_CONVERT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MENUITEM_GenerateCustomModel,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
     Connect(ID_MENUITEM18,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemPackageDebugFiles);
+    Connect(ID_EXPORT_MODELS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmExportModelsMenuItemSelected);
     Connect(idMenuSaveSched,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSavePlaylistsSelected);
     Connect(idMenuAddList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemAddListSelected);
     Connect(idMenuRenameList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenameListSelected);
@@ -3143,4 +3147,50 @@ void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)
     SaveWorking();
 
     DoAltBackup();
+}
+
+void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
+{
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, wxEmptyString, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (filename.IsEmpty()) return;
+
+    wxFile f(filename);
+
+    if (!f.Create(filename, true) || !f.IsOpened())
+    {
+        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()), _("Export Error"));
+        return;
+    }
+
+    f.Write(_("Model Name,Display As,String Type,String Count,Node Count,Channel Count,Start Channel,Start Channel No,My Display,Controller Type,Controller Description,IP,Universe,Controller Channel,Inactive\n"));
+
+    for (auto m = PreviewModels.begin(); m != PreviewModels.end(); m++)
+    {
+        Model* model = *m;
+        wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
+        int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+        std::string type, description, ip, universe, inactive;
+        int channeloffset;
+        GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive);
+        f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",%d,%d,%d,%s,%d,%s,%s,\"%s\",%s,%s,%d,%s\n", 
+            model->name, 
+            model->GetDisplayAs(), 
+            model->GetStringType(), 
+            model->GetNodeCount() / model->NodesPerString(), 
+            model->GetNodeCount(), 
+            model->GetChanCount(), 
+            stch, 
+            ch, 
+            model->GetLayoutGroup(), 
+            type, 
+            description, 
+            ip, 
+            universe, 
+            channeloffset, 
+            inactive));
+    }
+    f.Write(wxString::Format("\"Model Count\",%d\n", PreviewModels.size()));
+    f.Close();
 }

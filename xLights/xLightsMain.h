@@ -354,6 +354,7 @@ public:
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int section = 0);
 	std::string GetChannelToControllerMapping(long channel);
+    void GetControllerDetailsForChannel(long channel, std::string& type, std::string& description, int& channeloffset, std::string &ip, std::string& u, std::string& inactive);
 
     enum LAYER_OPTIONS_e
     {
@@ -599,6 +600,7 @@ private:
     void OnmBackupOnSaveSelected(wxCommandEvent& event);
     void OnmAltBackupLocationMenuItemSelected(wxCommandEvent& event);
     void OnmAltBackupMenuItemSelected(wxCommandEvent& event);
+    void OnmExportModelsMenuItemSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -709,6 +711,7 @@ private:
     static const long ID_MENUITEM_CONVERT;
     static const long ID_MENUITEM_GenerateCustomModel;
     static const long ID_MENUITEM18;
+    static const long ID_EXPORT_MODELS;
     static const long idMenuSaveSched;
     static const long idMenuAddList;
     static const long idMenuRenameList;
@@ -861,6 +864,7 @@ private:
     wxMenuItem* MenuItemViewSaveAsPerspective;
     wxMenuItem* MenuItemRenderEraseMode;
     wxMenuItem* MenuItem3;
+    wxMenuItem* mExportModelsMenuItem;
     wxMenuItem* MenuItemConvert;
     wxButton* ButtonNetworkChange;
     wxButton* ButtonAddNull;

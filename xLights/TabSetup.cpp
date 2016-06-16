@@ -216,6 +216,74 @@ void xLightsFrame::SetDir(const wxString& newdir)
     FileNameText->SetLabel(newdir);
 }
 
+void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& type, std::string& description, int& channeloffset, std::string &ip, std::string& u, std::string& inactive)
+{
+    type = "Unknown";
+    description = "";
+    channeloffset = -1;
+    ip = "";
+    u = "";
+    inactive = "";
+
+    wxXmlNode* e = NetworkXML.GetRoot();
+    long currentcontrollerstartchannel = 0;
+    long currentcontrollerendchannel = 0;
+    int nullcount = 1;
+
+    for (e = e->GetChildren(); e != NULL; e = e->GetNext())
+    {
+        if (e->GetName() == "network")
+        {
+            currentcontrollerstartchannel = currentcontrollerendchannel + 1;
+            wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
+            long MaxChannels;
+            MaxChannelsStr.ToLong(&MaxChannels);
+            currentcontrollerendchannel = currentcontrollerstartchannel + MaxChannels - 1;
+
+            if (channel >= currentcontrollerstartchannel && channel <= currentcontrollerendchannel)
+            {
+                channeloffset = channel - currentcontrollerstartchannel + 1;
+                // found it
+                description =  std::string(e->GetAttribute("Description"));
+                type = std::string(e->GetAttribute("NetworkType", ""));
+                if (type == "NULL")
+                {
+                    // nothing interesting
+                }
+                else if (type == "E131")
+                {
+                    ip = std::string(e->GetAttribute("ComPort", ""));
+                    u = std::string(e->GetAttribute("BaudRate", ""));
+                }
+                else if (type == "DMX")
+                {
+                    ip = std::string(e->GetAttribute("ComPort", ""));
+                    u = std::string(e->GetAttribute("BaudRate", ""));
+                    int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
+                    // adjust end channel because this has multiple universes
+                    currentcontrollerendchannel = currentcontrollerendchannel + (ucount - 1) * MaxChannels;
+                    if (ucount > 1)
+                    {
+                        int startu = wxAtoi(e->GetAttribute("BaudRate", "1"));
+                        int uoffset = channeloffset % MaxChannels;
+                        int uu = startu + uoffset;
+                        u = std::string(wxString::Format(wxT("%i"), uu));
+                        channeloffset = channeloffset - uoffset * MaxChannels;
+                    }
+                }
+                if (e->GetAttribute("Enabled", "Yes") != "Yes")
+                {
+                    inactive = "TRUE";
+                }
+                else
+                {
+                    inactive = "FALSE";
+                }
+            }
+        }
+    }
+}
+
 std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 {
 	wxXmlNode* e = NetworkXML.GetRoot();

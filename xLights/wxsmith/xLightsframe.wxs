@@ -1070,6 +1070,10 @@
 					<help>Packages up current configuration, logs and sequence for reporting a problem to development team.</help>
 					<handler function="OnMenuItemPackageDebugFiles" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_EXPORT_MODELS" variable="mExportModelsMenuItem" member="yes">
+					<label>E&amp;xport Models</label>
+					<handler function="OnmExportModelsMenuItemSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuPlaylist" member="no">
 				<label>&amp;Playlist</label>
