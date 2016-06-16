@@ -1330,6 +1330,7 @@ private:
     void ExportModel(wxCommandEvent& event);
     void ShowDisplayElements(wxCommandEvent& event);
     void ShowHidePreviewWindow(wxCommandEvent& event);
+    void ShowHideAllPreviewWindows(wxCommandEvent& event);
 
     void CheckForValidModels();
 
@@ -1359,6 +1360,7 @@ private:
 
     wxMenu* MenuItemPreviews;
     static const long ID_MENU_ITEM_PREVIEWS;
+    static const long ID_MENU_ITEM_PREVIEWS_SHOW_ALL;
 
 #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 

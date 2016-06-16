@@ -295,6 +295,7 @@ const long xLightsFrame::ID_COPYROW_EFFECT = wxNewId(); //copy random effect acr
 const long xLightsFrame::ID_CLEARROW_EFFECT = wxNewId(); //clear all effects on this row -DJ
 
 const long xLightsFrame::ID_MENU_ITEM_PREVIEWS = wxNewId();
+const long xLightsFrame::ID_MENU_ITEM_PREVIEWS_SHOW_ALL = wxNewId();
 
 wxDEFINE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
@@ -2993,6 +2994,14 @@ void xLightsFrame::AddPreviewOption(LayoutGroup* grp)
         MenuView->Insert(3, ID_MENU_ITEM_PREVIEWS, _("Previews"), MenuItemPreviews, wxEmptyString);
         menu_created = true;
     }
+    if( LayoutGroups.size() > 1 ) {
+        wxMenuItem* first_item = MenuItemPreviews->GetMenuItems().GetFirst()->GetData();
+        if( first_item->GetId() != ID_MENU_ITEM_PREVIEWS_SHOW_ALL ) {
+            wxMenuItem* menu_item = new wxMenuItem(MenuItemPreviews, ID_MENU_ITEM_PREVIEWS_SHOW_ALL, _("Show All"), wxEmptyString, wxITEM_CHECK);
+            MenuItemPreviews->Insert(0, menu_item);
+            Connect(ID_MENU_ITEM_PREVIEWS_SHOW_ALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideAllPreviewWindows, NULL, this);
+        }
+    }
     grp->AddToPreviewMenu(MenuItemPreviews);
     Connect(grp->GetMenuId(),wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePreviewWindow, grp, this);
     if( menu_created ) {
@@ -3002,6 +3011,18 @@ void xLightsFrame::AddPreviewOption(LayoutGroup* grp)
 
 void xLightsFrame::ShowHidePreviewWindow(wxCommandEvent& event)
 {
+    wxMenuItem* item = MenuItemPreviews->FindItem(event.GetId());
     LayoutGroup* grp = (LayoutGroup*)event.GetEventUserData();
-    grp->ShowHidePreview();
+    grp->ShowPreview(item->IsChecked());
+}
+
+void xLightsFrame::ShowHideAllPreviewWindows(wxCommandEvent& event)
+{
+    wxMenuItem* first_item = MenuItemPreviews->GetMenuItems().GetFirst()->GetData();
+    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); it++) {
+        LayoutGroup* grp = (LayoutGroup*)(*it);
+        if (grp != nullptr) {
+            grp->ShowPreview(first_item->IsChecked());
+        }
+    }
 }

@@ -136,7 +136,7 @@ const long LayoutGroup::AddToPreviewMenu(wxMenu* preview_menu)
     return id_menu_item;
 }
 
-void LayoutGroup::ShowHidePreview()
+void LayoutGroup::ShowPreview(bool show)
 {
     if( !mPreviewCreated ) {
         ignore_size_and_pos = true;
@@ -169,14 +169,10 @@ void LayoutGroup::ShowHidePreview()
         new_preview->SetScaleBackgroundImage(modelPreview->GetScaleBackgroundImage());
         new_preview->SetCanvasSize(modelPreview->GetVirtualCanvasWidth(),modelPreview->GetVirtualCanvasHeight());
         mPreviewCreated = true;
-        SetPreviewActive(true);
         mMenuItemPreview->Check(true);
         ignore_size_and_pos = false;
-    } else {
-        bool show = mMenuItemPreview->IsChecked();
-        SetPreviewActive(show);
-        mMenuItemPreview->Check(show);
     }
-
+    SetPreviewActive(show);
+    mMenuItemPreview->Check(show);
 }
 
