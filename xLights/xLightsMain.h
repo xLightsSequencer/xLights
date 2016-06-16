@@ -597,6 +597,8 @@ private:
     void OnEffectSettingsTimerTrigger(wxTimerEvent& event);
     void OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event);
     void OnmBackupOnSaveSelected(wxCommandEvent& event);
+    void OnmAltBackupLocationMenuItemSelected(wxCommandEvent& event);
+    void OnmAltBackupMenuItemSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -702,6 +704,7 @@ private:
     static const long ID_CLOSE_SEQ;
     static const long ID_MENUITEM2;
     static const long ID_FILE_BACKUP;
+    static const long ID_FILE_ALTBACKUP;
     static const long ID_MENUITEM13;
     static const long ID_MENUITEM_CONVERT;
     static const long ID_MENUITEM_GenerateCustomModel;
@@ -737,6 +740,7 @@ private:
     static const long ID_SEQ_SETTINGS;
     static const long ID_RENDER_ON_SAVE;
     static const long ID_BACKUP_ON_SAVE;
+    static const long ID_ALT_BACKUPLOCATION;
     static const long ID_MENUITEM_ICON_SMALL;
     static const long ID_MENUITEM_ICON_MEDIUM;
     static const long ID_MENUITEM_ICON_LARGE;
@@ -821,6 +825,7 @@ private:
     wxMenu* MenuItemRenderMode;
     wxButton* Button_Change_Media_Dir;
     wxMenuItem* MenuItemRefresh;
+    wxMenuItem* mAltBackupLocationMenuItem;
     wxMenuItem* MenuItem_File_Save_Sequence;
     wxMenuItem* MenuItem36;
     wxButton* ButtonNetworkDeleteAll;
@@ -893,6 +898,7 @@ private:
     wxButton* ButtonUpdateShow;
     wxMenu* GridSpacingMenu;
     wxStaticText* FileNameText;
+    wxMenuItem* mAltBackupMenuItem;
     wxMenuItem* MenuItem16;
     wxMenuItem* MenuItem34;
     wxSplitterWindow* SplitterWindow1;
@@ -946,7 +952,8 @@ private:
     int effGridPrevY;
 
 
-    void DoBackup(bool prompt);
+    void DoBackup(bool prompt = true);
+    void DoAltBackup(bool prompt = true);
     void SetPlayMode(play_modes newmode);
     double rand01();
     bool EnableOutputs();
@@ -1223,6 +1230,7 @@ private:
     bool mResetToolbars;
     bool mRenderOnSave;
     bool mBackupOnSave;
+    wxString mAltBackupDir;
     int mIconSize;
     int mGridSpacing;
     bool mGridIconBackgrounds;

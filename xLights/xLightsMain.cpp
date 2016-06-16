@@ -203,6 +203,7 @@ const long xLightsFrame::ID_SAVE_AS_SEQUENCE = wxNewId();
 const long xLightsFrame::ID_CLOSE_SEQ = wxNewId();
 const long xLightsFrame::ID_MENUITEM2 = wxNewId();
 const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
+const long xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
 const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
@@ -238,6 +239,7 @@ const long xLightsFrame::ID_IMPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
 const long xLightsFrame::ID_RENDER_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_BACKUP_ON_SAVE = wxNewId();
+const long xLightsFrame::ID_ALT_BACKUPLOCATION = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_SMALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_LARGE = wxNewId();
@@ -731,6 +733,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItemBackup = new wxMenuItem(MenuFile, ID_FILE_BACKUP, _("Backup\tF10"), wxEmptyString, wxITEM_NORMAL);
     MenuItemBackup->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_HARDDISK")),wxART_OTHER));
     MenuFile->Append(MenuItemBackup);
+    mAltBackupMenuItem = new wxMenuItem(MenuFile, ID_FILE_ALTBACKUP, _("Alternate Backup\tF11"), wxEmptyString, wxITEM_NORMAL);
+    MenuFile->Append(mAltBackupMenuItem);
     QuitMenuItem = new wxMenuItem(MenuFile, wxID_EXIT, _("Quit\tAlt-F4"), _("Quit the application"), wxITEM_NORMAL);
     QuitMenuItem->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_QUIT")),wxART_OTHER));
     MenuFile->Append(QuitMenuItem);
@@ -839,6 +843,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     mRenderOnSaveMenuItem->Check(true);
     mBackupOnSaveMenuItem = new wxMenuItem(MenuSettings, ID_BACKUP_ON_SAVE, _("Backup On Save"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(mBackupOnSaveMenuItem);
+    mAltBackupLocationMenuItem = new wxMenuItem(MenuSettings, ID_ALT_BACKUPLOCATION, _("Alt Backup Location"), wxEmptyString, wxITEM_NORMAL);
+    MenuSettings->Append(mAltBackupLocationMenuItem);
     ToolIconSizeMenu = new wxMenu();
     MenuItem10 = new wxMenuItem(ToolIconSizeMenu, ID_MENUITEM_ICON_SMALL, _("Small\tALT-1"), wxEmptyString, wxITEM_RADIO);
     ToolIconSizeMenu->Append(MenuItem10);
@@ -991,6 +997,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_CLOSE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Close_SequenceSelected);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_FILE_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
+    Connect(ID_FILE_ALTBACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmAltBackupMenuItemSelected);
     Connect(wxID_EXIT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnQuit);
     Connect(ID_MENUITEM13,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
     Connect(ID_MENUITEM_CONVERT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
@@ -1027,6 +1034,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(ID_RENDER_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderOnSave);
     Connect(ID_BACKUP_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmBackupOnSaveSelected);
+    Connect(ID_ALT_BACKUPLOCATION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmAltBackupLocationMenuItemSelected);
     Connect(ID_MENUITEM_ICON_SMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
@@ -1092,6 +1100,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     mResetToolbars = false;
     mRenderOnSave = true;
     mBackupOnSave = false;
+    mAltBackupDir = "";
     mIconSize = 16;
 
     StatusBarSizer->AddGrowableCol(0,2);
@@ -1255,6 +1264,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     config->Read("xLightsBackupOnSave", &mBackupOnSave, false);
     mBackupOnSaveMenuItem->Check(mBackupOnSave);
     logger_base.debug("Backup on save: %s.", mBackupOnSave? "true" : "false");
+
+    config->Read(_("xLightsAltBackupDir"), &mAltBackupDir);
+    logger_base.debug("Alternate Backup Dir: '%s'.", (const char *)mAltBackupDir.c_str());
+
+    if (wxDir::Exists(mAltBackupDir))
+    {
+        mAltBackupMenuItem->SetHelp(mAltBackupDir);
+    }
+    else
+    {
+        mAltBackupMenuItem->SetHelp("");
+    }
 
     config->Read("xLightsIconSize", &mIconSize, 16);
     int isid = ID_MENUITEM_ICON_SMALL;
@@ -1453,6 +1474,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsRenderOnSave", mRenderOnSave);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsEffectAssistMode", mEffectAssistMode);
+    config->Write("xLightsAltBackupDir", mAltBackupDir);
 
     config->Flush();
 
@@ -3045,4 +3067,80 @@ void xLightsFrame::ShowHideAllPreviewWindows(wxCommandEvent& event)
 void xLightsFrame::OnmBackupOnSaveSelected(wxCommandEvent& event)
 {
     mBackupOnSave = event.IsChecked();
+}
+
+void xLightsFrame::OnmAltBackupLocationMenuItemSelected(wxCommandEvent& event)
+{
+    wxDirDialog dir(this, _("Select alternate backup directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+    if (dir.ShowModal() == wxID_OK)
+    {
+        mAltBackupDir = dir.GetPath();
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("Alternate backup location set to %s.", (const char *)mAltBackupDir.c_str());
+    }
+
+    if (wxDir::Exists(mAltBackupDir))
+    {
+        mAltBackupMenuItem->SetHelp(mAltBackupDir);
+    }
+    else
+    {
+        mAltBackupMenuItem->SetHelp("");
+    }
+}
+
+void xLightsFrame::DoAltBackup(bool prompt)
+{
+
+    wxString folderName;
+    time_t cur;
+    time(&cur);
+    wxFileName newDirH;
+    wxDateTime curTime(cur);
+
+    //  first make sure there is a Backup sub directory
+    wxString newDirBackup = mAltBackupDir + wxFileName::GetPathSeparator() + "Backup";
+    if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
+    {
+        wxMessageBox("Unable to create directory Backup!", "Error", wxICON_ERROR | wxOK);
+        return;
+    }
+
+    wxString newDir = mAltBackupDir + wxFileName::GetPathSeparator() + wxString::Format(
+        "Backup%c%s-%s", wxFileName::GetPathSeparator(),
+        curTime.FormatISODate(), curTime.Format("%H%M%S"));
+
+    if (prompt)
+    {
+        if (wxNO == wxMessageBox("All xml files under 20MB in your xlights directory will be backed up to \"" +
+            newDir + "\". Proceed?", "Backup", wxICON_QUESTION | wxYES_NO))
+        {
+            return;
+        }
+    }
+
+    if (!newDirH.Mkdir(newDir))
+    {
+        wxMessageBox("Unable to create directory!", "Error", wxICON_ERROR | wxOK);
+        return;
+    }
+
+    BackupDirectory(newDir);
+}
+
+void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)
+{
+    if (mAltBackupDir == "")
+    {
+        OnmAltBackupLocationMenuItemSelected(event);
+    }
+
+    if (mAltBackupDir == "")
+    {
+        return;
+    }
+
+    SaveWorking();
+
+    DoAltBackup();
 }

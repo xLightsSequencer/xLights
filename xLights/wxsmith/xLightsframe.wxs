@@ -1014,6 +1014,11 @@
 					<bitmap stock_id="wxART_HARDDISK" />
 					<handler function="OnMenuItemBackupSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_FILE_ALTBACKUP" variable="mAltBackupMenuItem" member="yes">
+					<label>Alternate Backup</label>
+					<accel>F11</accel>
+					<handler function="OnmAltBackupMenuItemSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="wxID_EXIT" variable="QuitMenuItem" member="yes">
 					<label>Quit</label>
 					<accel>Alt-F4</accel>
@@ -1219,6 +1224,10 @@
 					<label>Backup On Save</label>
 					<handler function="OnmBackupOnSaveSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
+				</object>
+				<object class="wxMenuItem" name="ID_ALT_BACKUPLOCATION" variable="mAltBackupLocationMenuItem" member="yes">
+					<label>Alt Backup Location</label>
+					<handler function="OnmAltBackupLocationMenuItemSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM4" variable="ToolIconSizeMenu" member="yes">
 					<label>Tool Icon Size</label>
