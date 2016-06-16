@@ -596,6 +596,7 @@ private:
     void AutoSaveIntervalSelected(wxCommandEvent& event);
     void OnEffectSettingsTimerTrigger(wxTimerEvent& event);
     void OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event);
+    void OnmBackupOnSaveSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -735,6 +736,7 @@ private:
     static const long ID_IMPORT_EFFECTS;
     static const long ID_SEQ_SETTINGS;
     static const long ID_RENDER_ON_SAVE;
+    static const long ID_BACKUP_ON_SAVE;
     static const long ID_MENUITEM_ICON_SMALL;
     static const long ID_MENUITEM_ICON_MEDIUM;
     static const long ID_MENUITEM_ICON_LARGE;
@@ -885,6 +887,7 @@ private:
     wxPanel* PanelSetup;
     wxButton* ButtonSaveSetup;
     wxPanel* Panel2;
+    wxMenuItem* mBackupOnSaveMenuItem;
     wxMenuItem* MenuItemSavePlaylists;
     wxMenu* MenuItemPerspectives;
     wxButton* ButtonUpdateShow;
@@ -943,6 +946,7 @@ private:
     int effGridPrevY;
 
 
+    void DoBackup(bool prompt);
     void SetPlayMode(play_modes newmode);
     double rand01();
     bool EnableOutputs();
@@ -1218,6 +1222,7 @@ private:
 
     bool mResetToolbars;
     bool mRenderOnSave;
+    bool mBackupOnSave;
     int mIconSize;
     int mGridSpacing;
     bool mGridIconBackgrounds;

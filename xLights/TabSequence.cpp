@@ -671,6 +671,12 @@ void xLightsFrame::SaveSequence()
     wxStopWatch sw; // start a stopwatch timer
     SetStatusText(_("Saving ")+xlightsFilename+_(" ... Saving xml."));
     CurrentSeqXmlFile->Save(mSequenceElements);
+
+    if (mBackupOnSave)
+    {
+        DoBackup(false);
+    }
+
     if (mRenderOnSave) {
         SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
         ProgressBar->Show();

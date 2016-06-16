@@ -237,6 +237,7 @@ const long xLightsFrame::ID_PLAY_1_4 = wxNewId();
 const long xLightsFrame::ID_IMPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
 const long xLightsFrame::ID_RENDER_ON_SAVE = wxNewId();
+const long xLightsFrame::ID_BACKUP_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_SMALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_LARGE = wxNewId();
@@ -836,6 +837,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     mRenderOnSaveMenuItem = new wxMenuItem(MenuSettings, ID_RENDER_ON_SAVE, _("Render On Save"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(mRenderOnSaveMenuItem);
     mRenderOnSaveMenuItem->Check(true);
+    mBackupOnSaveMenuItem = new wxMenuItem(MenuSettings, ID_BACKUP_ON_SAVE, _("Backup On Save"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(mBackupOnSaveMenuItem);
     ToolIconSizeMenu = new wxMenu();
     MenuItem10 = new wxMenuItem(ToolIconSizeMenu, ID_MENUITEM_ICON_SMALL, _("Small\tALT-1"), wxEmptyString, wxITEM_RADIO);
     ToolIconSizeMenu->Append(MenuItem10);
@@ -1023,6 +1026,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_IMPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemImportEffects);
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(ID_RENDER_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderOnSave);
+    Connect(ID_BACKUP_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmBackupOnSaveSelected);
     Connect(ID_MENUITEM_ICON_SMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
@@ -1087,6 +1091,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     ButtonPasteByCell->SetValue(false);
     mResetToolbars = false;
     mRenderOnSave = true;
+    mBackupOnSave = false;
     mIconSize = 16;
 
     StatusBarSizer->AddGrowableCol(0,2);
@@ -1247,6 +1252,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
     logger_base.debug("Render on save: %s.", mRenderOnSave? "true" : "false");
+    config->Read("xLightsBackupOnSave", &mBackupOnSave, false);
+    mBackupOnSaveMenuItem->Check(mBackupOnSave);
+    logger_base.debug("Backup on save: %s.", mBackupOnSave? "true" : "false");
 
     config->Read("xLightsIconSize", &mIconSize, 16);
     int isid = ID_MENUITEM_ICON_SMALL;
@@ -1443,6 +1451,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsGridIconBackgrounds", mGridIconBackgrounds);
     config->Write("xLightsGridNodeValues", mGridNodeValues);
     config->Write("xLightsRenderOnSave", mRenderOnSave);
+    config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsEffectAssistMode", mEffectAssistMode);
 
     config->Flush();
@@ -1956,7 +1965,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 	logger_base.info("xLights Closed.");
 }
 
-void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
+void xLightsFrame::DoBackup(bool prompt)
 {
     wxString folderName;
     time_t cur;
@@ -1964,35 +1973,41 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
     wxFileName newDirH;
     wxDateTime curTime(cur);
 
-    SaveWorking();
-
-//  first make sure there is a Backup sub directory
-    wxString newDirBackup = CurrentDir+wxFileName::GetPathSeparator()+"Backup";
+    //  first make sure there is a Backup sub directory
+    wxString newDirBackup = CurrentDir + wxFileName::GetPathSeparator() + "Backup";
     if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
     {
-        wxMessageBox("Unable to create directory Backup!","Error", wxICON_ERROR|wxOK);
+        wxMessageBox("Unable to create directory Backup!", "Error", wxICON_ERROR | wxOK);
         return;
     }
 
-//if(curTime.ParseFormat("2003-xx-xx yy:yy", "%Y-%m-%d_%H%M%S"))
+    wxString newDir = CurrentDir + wxFileName::GetPathSeparator() + wxString::Format(
+        "Backup%c%s-%s", wxFileName::GetPathSeparator(),
+        curTime.FormatISODate(), curTime.Format("%H%M%S"));
 
-    wxString newDir = CurrentDir+wxFileName::GetPathSeparator()+wxString::Format(
-                          "Backup%c%s-%s",wxFileName::GetPathSeparator(),
-                          curTime.FormatISODate(),curTime.Format("%H%M%S"));
-
-    if ( wxNO == wxMessageBox("All xml files under 20MB in your xlights directory will be backed up to \""+
-                              newDir+"\". Proceed?","Backup",wxICON_QUESTION | wxYES_NO))
+    if (prompt)
     {
-        return;
+        if (wxNO == wxMessageBox("All xml files under 20MB in your xlights directory will be backed up to \"" +
+            newDir + "\". Proceed?", "Backup", wxICON_QUESTION | wxYES_NO))
+        {
+            return;
+        }
     }
+
     if (!newDirH.Mkdir(newDir))
     {
-        wxMessageBox("Unable to create directory!","Error", wxICON_ERROR|wxOK);
+        wxMessageBox("Unable to create directory!", "Error", wxICON_ERROR | wxOK);
         return;
     }
-    BackupDirectory(newDir);
 
-    //CurrentDir
+    BackupDirectory(newDir);
+}
+
+void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
+{
+    SaveWorking();
+
+    DoBackup(true);
 }
 
 void xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName)
@@ -3025,4 +3040,9 @@ void xLightsFrame::ShowHideAllPreviewWindows(wxCommandEvent& event)
             grp->ShowPreview(first_item->IsChecked());
         }
     }
+}
+
+void xLightsFrame::OnmBackupOnSaveSelected(wxCommandEvent& event)
+{
+    mBackupOnSave = event.IsChecked();
 }
