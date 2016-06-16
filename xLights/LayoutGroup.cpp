@@ -19,6 +19,16 @@ LayoutGroup::LayoutGroup(const std::string & name, xLightsFrame* xl, wxXmlNode *
 LayoutGroup::~LayoutGroup()
 {
     previewModels.clear();
+    for (auto it = xlights->PreviewWindows.begin(); it != xlights->PreviewWindows.end(); it++) {
+        if( *it == mModelPreview ) {
+            xlights->PreviewWindows.erase(it);
+            if( mModelPreview != nullptr ) {
+                delete mModelPreview;
+                mModelPreview = nullptr;
+            }
+            break;
+        }
+    }
 }
 
 void LayoutGroup::SetBackgroundImage(const wxString &filename)
