@@ -6,6 +6,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../xLightsXmlFile.h"
+#include <log4cpp/Category.hh>
 
 #include "../../include/video-16.xpm"
 #include "../../include/video-24.xpm"
@@ -111,7 +112,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	}
     
 	// we always reopen video on first frame or if it is not open or if the filename has changed
-	if (buffer.needToInit || _videoreader == NULL || _filename != filename || _aspectratio != aspectratio || _durationTreatment != durationTreatment)
+	if (buffer.needToInit || _videoreader == NULL)
 	{
         buffer.needToInit = false;
 		_filename = filename;
@@ -130,28 +131,41 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 			// have to open the file
 			_videoreader = new VideoReader(_filename, buffer.BufferWi, buffer.BufferHt, _aspectratio);
 
-			// extract the video length
-			int videolen = _videoreader->GetLengthMS();
-
-			VideoPanel *fp = (VideoPanel*)panel;
-			if (fp != nullptr)
-			{
-                fp->addVideoTime(filename, videolen);
-			}
-
-			if (_starttime != 0)
-			{
-				_videoreader->Seek(_starttime * 1000);
-			}
-
-            if (_durationTreatment == "Slow/Accelerate")
+            if (_videoreader == NULL)
             {
-                int effectFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
-                int videoFrames = (videolen - _starttime) / buffer.frameTimeInMs;
-                float speedFactor = (float)videoFrames / (float)effectFrames;
-                _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
+                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("VideoEffect: Failed to load video file %s.", (const char *)_filename.c_str());
+            }
+            else
+            {
+                // extract the video length
+                int videolen = _videoreader->GetLengthMS();
+
+                VideoPanel *fp = (VideoPanel*)panel;
+                if (fp != nullptr)
+                {
+                    fp->addVideoTime(filename, videolen);
+                }
+
+                if (_starttime != 0)
+                {
+                    _videoreader->Seek(_starttime * 1000);
+                }
+
+                if (_durationTreatment == "Slow/Accelerate")
+                {
+                    int effectFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
+                    int videoFrames = (videolen - _starttime) / buffer.frameTimeInMs;
+                    float speedFactor = (float)videoFrames / (float)effectFrames;
+                    _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
+                }
             }
 		}
+        else
+        {
+            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("VideoEffect: Video file %s not found.", (const char *)_filename.c_str());
+        }
 	}
 
 	if (_videoreader != NULL)
