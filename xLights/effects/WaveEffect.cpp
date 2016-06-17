@@ -74,14 +74,16 @@ static inline int GetWaveFillColor(const std::string &color) {
 }
 void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
+    float oset = buffer.GetEffectTimeIntervalPosition();
+
     int WaveType = GetWaveType(SettingsMap["CHOICE_Wave_Type"]);
     int FillColor = GetWaveFillColor(SettingsMap["CHOICE_Fill_Colors"]);
 
     bool MirrorWave = SettingsMap.GetBool("CHECKBOX_Mirror_Wave");
-    int NumberWaves = SettingsMap.GetInt("SLIDER_Number_Waves", 1);
-    int ThicknessWave = SettingsMap.GetInt("SLIDER_Thickness_Percentage", 50);
-    int WaveHeight = SettingsMap.GetInt("SLIDER_Wave_Height", 50);
-    int wspeed = SettingsMap.GetInt("TEXTCTRL_Wave_Speed", 10);
+    int NumberWaves = GetValueCurveInt("Number_Waves", 1, SettingsMap, oset);
+    int ThicknessWave = GetValueCurveInt("Thickness_Percentage", 50, SettingsMap, oset);
+    int WaveHeight = GetValueCurveInt("Wave_Height", 50, SettingsMap, oset);
+    int wspeed = GetValueCurveInt("Wave_Speed", 10, SettingsMap, oset);
 
     int WaveDirection = "Left to Right" == SettingsMap["CHOICE_Wave_Direction"] ? 1 : 0;
 
@@ -126,6 +128,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         if (r < 0) r = 0; //turn into straight line; don't completely disappear
     }
     else if (WaveType == WAVETYPE_IVYFRACTAL) //generate branches at start of effect
+    {
         if (!buffer.needToInit || (WaveBuffer0.size() != NumberWaves * buffer.BufferWi)) {
             r = 0;
             debug(10, "regen wave path, state %d", state);
@@ -134,7 +137,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             for (int x = 0; x < NumberWaves * buffer.BufferWi; ++x) {
                 //                if (delay < 1) angle = (rand() % 45) - 22.5;
                 //                int xx = WaveDirection? NumberWaves * BufferWi - x - 1: x;
-                WaveBuffer0[x] = (delay-- > 0)? WaveBuffer0[x - 1] + delta: 2 * yc;
+                WaveBuffer0[x] = (delay-- > 0) ? WaveBuffer0[x - 1] + delta : 2 * yc;
                 if (WaveBuffer0[x] >= 2 * buffer.BufferHt) { delta = -2; WaveBuffer0[x] = 2 * buffer.BufferHt - 1; if (delay > 1) delay = 1; }
                 if (WaveBuffer0[x] < 0) { delta = 2; WaveBuffer0[x] = 0; if (delay > 1) delay = 1; }
                 if (delay < 1) {
@@ -143,6 +146,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 }
             }
         }
+    }
     degree_per_x = NumberWaves/buffer.BufferWi;
     degree = 1+ state%NumberWaves;
     hsv.saturation=1.0;

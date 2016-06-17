@@ -8,9 +8,10 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (keithsw) Make video more resilient to missing files
    -- enh (keithsw) Add models export - now with controller details as well
    -- enh (keithsw) Add optional backup on save ... this is by default disabled.
-   -- enh (keithsw) Add value curves to: Music, Piano, Tendrils, Lightning, VUMeter
+   -- enh (keithsw) Add value curves to: Music, Piano, Tendrils, Lightning, VUMeter, Wave
    -- enh (keithsw) Allow custom value curve points to be moved sideways as well as vertically.
    -- bug (keithsw) Fix bugs in piano effect: Piano not drawn without notes source, Polyphonic Transcription broken.
    -- bug (keithsw) Fix problem with fire effect when buffer size changes
