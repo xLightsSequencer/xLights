@@ -1890,34 +1890,40 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
             wxXmlDocument doc(in);
 
             wxXmlNode *nd = doc.GetRoot();
-            doc.DetachRoot();
+            if (nd != nullptr) // Issue #589 ... this would appear to be the only reason why it would occur ... so guarding against it
+            {
+                doc.DetachRoot();
 
-            if (xlights->AllModels[lastModelName] != nullptr
-                && nd->GetAttribute("Advanced", "0") != "1") {
-                std::string startChannel = ">" + lastModelName + ":1";
-                nd->DeleteAttribute("StartChannel");
-                nd->AddAttribute("StartChannel", startChannel);
+                if (xlights->AllModels[lastModelName] != nullptr
+                    && nd->GetAttribute("Advanced", "0") != "1") {
+                    std::string startChannel = ">" + lastModelName + ":1";
+                    nd->DeleteAttribute("StartChannel");
+                    nd->AddAttribute("StartChannel", startChannel);
+                }
+
+                Model *newModel = xlights->AllModels.CreateModel(nd);
+                int cnt = 1;
+                std::string name = newModel->name;
+                while (xlights->AllModels[name] != nullptr) {
+                    name = newModel->name + "-" + std::to_string(cnt++);
+                }
+                newModel->name = name;
+                newModel->GetModelXml()->DeleteAttribute("name");
+                newModel->GetModelXml()->AddAttribute("name", name);
+                newModel->AddOffset(0.02, 0.02);
+                newModel->UpdateXmlWithScale();
+                xlights->AllModels.AddModel(newModel);
+                lastModelName = name;
+
+                xlights->UpdateModelsList();
+                xlights->MarkEffectsFileDirty();
+                wxTheClipboard->Close();
+                SelectModel(name);
             }
-
-
-            Model *newModel = xlights->AllModels.CreateModel(nd);
-            int cnt = 1;
-            std::string name = newModel->name;
-            while (xlights->AllModels[name] != nullptr) {
-                name = newModel->name + "-" + std::to_string(cnt++);
+            else
+            {
+                wxTheClipboard->Close();
             }
-            newModel->name = name;
-            newModel->GetModelXml()->DeleteAttribute("name");
-            newModel->GetModelXml()->AddAttribute("name", name);
-            newModel->AddOffset(0.02, 0.02);
-            newModel->UpdateXmlWithScale();
-            xlights->AllModels.AddModel(newModel);
-            lastModelName = name;
-
-            xlights->UpdateModelsList();
-            xlights->MarkEffectsFileDirty();
-            wxTheClipboard->Close();
-            SelectModel(name);
         }
     }
 }
