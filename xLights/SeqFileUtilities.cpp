@@ -2578,8 +2578,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + (std::string)endc
                             + ",C_CHECKBOX_Palette2=1";
 
-                    
-                        
+
+
                         std::string settings = "B_CUSTOM_SubBuffer=";
                         std::string val = wxString::Format("%d", rect.x).ToStdString();
                         if( !CalcBoundedPercentage(val, num_columns, false, x_offset) ) continue;
@@ -2632,9 +2632,12 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             }
                         }
 
-                        std::string settings = "E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=scaled,"
+                        std::string settings = "E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,"
                             "E_SLIDER_PicturesXC=0"
                             ",E_SLIDER_PicturesYC=0"
+                            ",E_CHECKBOX_Pictures_ScaleToFit=1"
+                            ",E_SLIDER_Pictures_StartScale=100"
+                            ",E_SLIDER_Pictures_EndScale=100"
                             ",E_CHECKBOX_Pictures_PixelOffsets=1"
                             ",E_TEXTCTRL_Pictures_Speed=1.0"
                             ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0"
