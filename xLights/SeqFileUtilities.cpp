@@ -436,9 +436,9 @@ static bool CalcBoundedPercentage(std::string& value, int base, bool reverse, in
     val %= (int)base;
     if( val < 0 ) return false;
     if (val == 0) {
-        value = reverse ? "100.0" : "0.0";
+        value = reverse ? "99.9" : "0.0";
     } else if (val == (base - 1)) {
-        value = reverse ? "0.0" : "100.0";
+        value = reverse ? "0.0" : "99.9";
     } else {
         return CalcPercentage(value, base, reverse, offset);
     }
@@ -2209,8 +2209,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 num_rows = (double)y_size;
                 num_columns = (double)x_size;
             }
-            element->GetAttribute("controllerLocation", &attr);
-            if( attr == "bottom" || flip_y )
+            if( flip_y )
             {
                 reverse_rows = true;
             }
@@ -2586,7 +2585,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         settings += val;
                         settings += "x";
                         val = wxString::Format("%d", rect.y);
-                        if( !CalcBoundedPercentage(val, num_rows, true, y_offset) ) continue;
+                        if( !CalcBoundedPercentage(val, num_rows, !reverse_rows, y_offset) ) continue;
                         settings += val;
                         settings += "x";
                         val = wxString::Format("%d", rect.width);
@@ -2594,7 +2593,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         settings += val;
                         settings += "x";
                         val = wxString::Format("%d", rect.height);
-                        if( !CalcBoundedPercentage(val, num_columns, false, x_offset) ) continue;
+                        if( !CalcBoundedPercentage(val, num_rows, !reverse_rows, y_offset) ) continue;
                         settings += val;
 
 
@@ -2785,6 +2784,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         std::string settings = "E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,"
                             "E_SLIDER_PicturesXC=" + wxString::Format("%d", x).ToStdString()
                             + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y).ToStdString()
+                            + ",E_CHECKBOX_Pictures_ScaleToFit=0"
+                            + ",E_SLIDER_Pictures_StartScale=100"
+                            + ",E_SLIDER_Pictures_EndScale=100"
                             + ",E_CHECKBOX_Pictures_PixelOffsets=1"
                             + ",E_TEXTCTRL_Pictures_Filename=" + imgInfo.imageName
                             + ",E_TEXTCTRL_Pictures_Speed=1.0"
@@ -2804,6 +2806,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y - (int)round((double)starty*imgInfo.scaleY)).ToStdString()
                             + ",E_SLIDER_PicturesEndXC=" + wxString::Format("%d", x + (int)round((double)endx*imgInfo.scaleX)).ToStdString()
                             + ",E_SLIDER_PicturesEndYC=" + wxString::Format("%d", y - (int)round((double)endy*imgInfo.scaleY)).ToStdString()
+                            + ",E_CHECKBOX_Pictures_ScaleToFit=0"
+                            + ",E_SLIDER_Pictures_StartScale=100"
+                            + ",E_SLIDER_Pictures_EndScale=100"
                             + ",E_TEXTCTRL_Pictures_Speed=1.0"
                             + ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0"
                             + ",E_CHECKBOX_Pictures_PixelOffsets=1"
