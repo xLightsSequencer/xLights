@@ -1,8 +1,6 @@
 #ifndef PIANOPANEL_H
 #define PIANOPANEL_H
 
-#include <wx/progdlg.h>
-
 //(*Headers(PianoPanel)
 #include <wx/panel.h>
 class wxSpinEvent;
@@ -18,6 +16,7 @@ class wxButton;
 class wxChoice;
 //*)
 
+#include <wx/progdlg.h>
 #include "../AudioManager.h"
 #include "../ValueCurveButton.h"
 

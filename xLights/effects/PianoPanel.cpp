@@ -233,9 +233,11 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	//*)
     SetName("ID_PANEL_PIANO");
 
+    // Set value curve limits
     BitmapButton_Piano_ScaleVC->GetValue()->SetLimits(0, 100);
 
 	ValidateWindow();
+
 	// this is slow so we do it outside of the commonly called ValidateWindow
 	MIDIExtraValidateWindow();
 	AudacityExtraValidateWindow();
@@ -251,6 +253,7 @@ PianoPanel::~PianoPanel()
 PANEL_EVENT_HANDLERS(PianoPanel)
 void PianoPanel::OnSpinCtrl_Piano_StartMIDIChange(wxSpinEvent& event)
 {
+    // ensure start is never greater than end
 	int start = SpinCtrl_Piano_StartMIDI->GetValue();
 	int end = SpinCtrl_Piano_EndMIDI->GetValue();
 
@@ -262,6 +265,7 @@ void PianoPanel::OnSpinCtrl_Piano_StartMIDIChange(wxSpinEvent& event)
 
 void PianoPanel::OnSpinCtrl_Piano_EndMIDIChange(wxSpinEvent& event)
 {
+    // ensure end is never less than start
 	int start = SpinCtrl_Piano_StartMIDI->GetValue();
 	int end = SpinCtrl_Piano_EndMIDI->GetValue();
 
@@ -273,6 +277,7 @@ void PianoPanel::OnSpinCtrl_Piano_EndMIDIChange(wxSpinEvent& event)
 
 void Progress(wxProgressDialog* pd, int p)
 {
+    // Update progress dialog
 	if (pd != NULL)
 	{
 		pd->Update(p);
@@ -284,6 +289,10 @@ void PianoPanel::OnChoice_Piano_Notes_SourceSelect(wxCommandEvent& event)
 	wxString notes = Choice_Piano_Notes_Source->GetStringSelection();
     if (notes == "Polyphonic Transcription")
     {
+        // Only do polyphonic transcription if:
+        // - we have a media file
+        // - the user agrees to take the risk ... this is known to be unstable
+        // - we have not already done it
         if (_media != NULL)
         {
             log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
