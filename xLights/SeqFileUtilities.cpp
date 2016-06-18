@@ -2990,6 +2990,8 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
                     }
                 }
             } else {
+                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("Could not parse XML file %s.", (const char *)ent->GetName().c_str());
                 wxLogError("Could not parse XML file %s", ent->GetName().c_str());
             }
         }
