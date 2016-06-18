@@ -157,7 +157,6 @@ void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         cache = new CirclesRenderCache();
         buffer.infoCache[id] = cache;
     }
-
     
     int ii=0;
     int colorIdx;
@@ -178,11 +177,11 @@ void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         return; //radial is the easiest case so just get out.
     }
     
-    if ( 0 == effectState || radius != effectObjects[ii]._radius || number != cache->numBalls || cache->metaType != plasma)
+    if (buffer.needToInit || radius != effectObjects[ii]._radius || number != cache->numBalls || cache->metaType != plasma)
     {
         for(ii=0; ii<number; ii++)
         {
-            if (ii >= cache->numBalls)
+            if (ii >= cache->numBalls || buffer.needToInit)
             {
                 start_x = rand() % (buffer.BufferWi);
                 start_y = rand() % (buffer.BufferHt);
@@ -210,6 +209,7 @@ void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         }
         cache->numBalls = number;
         cache->metaType=plasma;
+        buffer.needToInit = false;
     }
     else
     {
