@@ -169,7 +169,7 @@ namespace DrawGLUtils
             tvertices.clear();
         }
 
-        void Finish(int type, int enableCapability = 0, float extra = 2);
+        void Finish(int type, int enableCapability = 0, float extra = 1);
         
         
         void PreAllocTexture(int i) {

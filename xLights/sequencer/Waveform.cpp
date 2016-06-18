@@ -240,7 +240,7 @@ void Waveform::InitializeGLCanvas()
     LOG_GL_ERRORV(glDisable(GL_BLEND));
     LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     mIsInitialized = true;
     SetZoomLevel(mZoomLevel);
@@ -258,7 +258,7 @@ void Waveform::renderGL( )
 
     SetCurrentGLContext();
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
     
     if( mWindowResized )
     {
@@ -294,7 +294,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
     vac.AddVertex(mWindowWidth, 0, color);
     vac.AddVertex(mWindowWidth, mWindowHeight-0.5, color);
     vac.AddVertex(0.25, mWindowHeight-0.5, color);
-    vac.Finish(GL_LINE_LOOP);
+    vac.Finish(GL_LINE_LOOP, 0, 1);
     
     // Get selection positions from timeline
     int selected_x1 = mTimeline->GetSelectedPositionStart();
@@ -354,7 +354,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
         vac.Load(wv.background, c);
         vac.Finish(GL_TRIANGLE_STRIP);
         vac.Load(wv.outline, xlWHITE);
-        vac.Finish(GL_LINE_STRIP);
+        vac.Finish(GL_LINE_STRIP, 0, 1);
     }
 
     // draw selection line if not a range
@@ -383,7 +383,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
         vac.AddVertex(play_marker, mWindowHeight-1, color);
     }
     if (vac.count > 0) {
-        vac.Finish(GL_LINES);
+        vac.Finish(GL_LINES, 0, 1);
         DrawGLUtils::Draw(vac);
     }
 }
