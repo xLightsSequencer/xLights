@@ -295,6 +295,7 @@
     <ClCompile Include="ModelFaceDialog.cpp" />
     <ClCompile Include="ModelGroupPanel.cpp" />
     <ClCompile Include="ModelPreview.cpp" />
+    <ClCompile Include="ModelStateDialog.cpp" />
     <ClCompile Include="models\ArchesModel.cpp" />
     <ClCompile Include="models\CandyCaneModel.cpp" />
     <ClCompile Include="models\CircleModel.cpp" />
@@ -531,6 +532,7 @@
     <ClInclude Include="ModelFaceDialog.h" />
     <ClInclude Include="ModelGroupPanel.h" />
     <ClInclude Include="ModelPreview.h" />
+    <ClInclude Include="ModelStateDialog.h" />
     <ClInclude Include="models\ArchesModel.h" />
     <ClInclude Include="models\CandyCaneModel.h" />
     <ClInclude Include="models\CircleModel.h" />
