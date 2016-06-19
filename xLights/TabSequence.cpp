@@ -317,6 +317,7 @@ void xLightsFrame::LoadEffectsFile()
 
     UpdateModelsList();
     displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements,ModelsNode, ModelGroupsNode, ViewsNode);
+    mSequencerInitialize = FALSE;
     CheckForAndCreateDefaultPerpective();
     perspectivePanel->SetPerspectives(PerspectivesNode);
     LoadPerspectivesMenu(PerspectivesNode);
@@ -344,7 +345,6 @@ void xLightsFrame::LoadPerspectivesMenu(wxXmlNode* perspectivesNode)
         current_menuitem = first < menuCount ? MenuItemPerspectives->FindItemByPosition(first) : nullptr;
     }
 
-    
 
     int pCount = 0;
 
