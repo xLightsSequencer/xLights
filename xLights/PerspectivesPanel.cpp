@@ -142,6 +142,10 @@ void PerspectivesPanel::OnButtonRenamePerspectiveClick(wxCommandEvent& event)
             wxString name = wxGetTextFromUser("Enter new name for perspective","Rename Perspective ");
             if(name.size()>0 && !CheckForDuplicates(name))
             {
+                if (p->GetAttribute("name") == mPerspectivesNode->GetAttribute("current")) {
+                    mPerspectivesNode->DeleteAttribute("current");
+                    mPerspectivesNode->AddAttribute("current",name);
+                }
                 p->DeleteAttribute("name");
                 p->AddAttribute("name", name);
                 ListBoxPerspectives->SetString(ListBoxPerspectives->GetSelection(),name);
