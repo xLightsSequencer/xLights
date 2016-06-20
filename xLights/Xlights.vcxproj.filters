@@ -792,6 +792,9 @@
     <ClCompile Include="ModelStateDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NodesGridCellEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1518,6 +1521,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ModelStateDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NodesGridCellEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

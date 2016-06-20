@@ -318,6 +318,7 @@
     <ClCompile Include="ModelViewSelector.cpp" />
     <ClCompile Include="NetInfo.cpp" />
     <ClCompile Include="NewTimingDialog.cpp" />
+    <ClCompile Include="NodesGridCellEditor.cpp" />
     <ClCompile Include="NullOutputDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
@@ -555,6 +556,7 @@
     <ClInclude Include="ModelViewSelector.h" />
     <ClInclude Include="NetInfo.h" />
     <ClInclude Include="NewTimingDialog.h" />
+    <ClInclude Include="NodesGridCellEditor.h" />
     <ClInclude Include="NullOutputDialog.h" />
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="osxMacUtils.h" />

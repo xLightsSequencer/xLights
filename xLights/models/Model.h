@@ -41,6 +41,10 @@ public:
     static void WriteFaceInfo(wxXmlNode *fiNode, const std::map<std::string, std::map<std::string, std::string> > &faceInfo);
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
 
+    static void ParseStateInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &stateInfo);
+    static void WriteStateInfo(wxXmlNode *fiNode, const std::map<std::string, std::map<std::string, std::string> > &stateInfo);
+    std::map<std::string, std::map<std::string, std::string> > stateInfo;
+
     virtual const std::vector<std::string> &GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
     virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const;
     virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
@@ -187,6 +191,7 @@ public:
     bool IsCustom(void);
     size_t GetChannelCoords(wxArrayString& choices); //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
     static bool ParseFaceElement(const std::string& str, std::vector<wxPoint>& first_xy);
+    static bool ParseStateElement(const std::string& str, std::vector<wxPoint>& first_xy);
     //    int FindChannelAtXY(int x, int y, const wxString& model);
     std::string GetNodeXY(const std::string& nodenumstr);
     std::string GetNodeXY(int nodeinx);

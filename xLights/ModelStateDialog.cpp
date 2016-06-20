@@ -1,5 +1,6 @@
 #include "ModelStateDialog.h"
 #include "xLightsXmlFile.h"
+#include "NodesGridCellEditor.h"
 
 //(*InternalHeaders(ModelStateDialog)
 #include <wx/intl.h>
@@ -39,6 +40,13 @@ END_EVENT_TABLE()
 enum {
     SINGLE_NODE_STATE = 0,
     NODE_RANGE_STATE
+};
+
+enum {
+    //ROWTITLE_COL = 0,
+    NAME_COL = 0,
+    CHANNEL_COL,
+    COLOUR_COL
 };
 
 
@@ -154,210 +162,12 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 
 ModelStateDialog::~ModelStateDialog()
 {
-	//(*Destroy(ModelStateDialog)
-	//*)
+    //(*Destroy(ModelStateDialog)
+    //*)
 }
-
-
-class NodesGridCellEditor : public wxGridCellEditor {
-public:
-    NodesGridCellEditor() : wxGridCellEditor() {
-
-    }
-    virtual ~NodesGridCellEditor() {
-
-    }
-
-    wxArrayString names;
-
-
-    virtual void Create(wxWindow* parent,
-                        wxWindowID id,
-                        wxEvtHandler* evtHandler);
-
-
-    virtual void BeginEdit(int row, int col, wxGrid* grid);
-    virtual bool EndEdit(int row, int col, const wxGrid* grid,
-                         const wxString& oldval, wxString *newval);
-    virtual void ApplyEdit(int row, int col, wxGrid* grid);
-
-    virtual void Reset();
-    virtual wxGridCellEditor *Clone() const;
-    virtual wxString GetValue() const;
-
-    void SelectionChanged(wxCommandEvent& event);
-    void EditDone(wxCommandEvent& event);
-    void EditDone2(wxMouseEvent& event);
-
-    virtual void SetSize(const wxRect& rect);
-
-protected:
-    wxListBox *ListBox() const { return (wxListBox *)m_control; }
-    wxStaticText* m_text;
-    wxGrid* m_grid;
-
-    wxString        m_value;
-
-    wxDECLARE_NO_COPY_CLASS(NodesGridCellEditor);
-};
-
-
-wxGridCellEditor *NodesGridCellEditor::Clone() const
-{
-    NodesGridCellEditor *editor = new NodesGridCellEditor;
-    editor->names = names;
-    return editor;
-}
-
-void NodesGridCellEditor::SetSize(const wxRect& rect) {
-    // Check that the height is not too small to fit the combobox.
-    wxRect rectTallEnough = rect;
-
-    rectTallEnough.y += rectTallEnough.height; //put list below cell so it looks like a combo box and user can see current selection(s)
-    rectTallEnough.height *= 5; //std::min(5, (int)m_choices.GetCount()); //rect was set to cell size so x, y, and width were correct; just adjust height to show listbox
-    rectTallEnough.height += 4; //FUD; maybe borders?
-    rectTallEnough.width += 2; //kludge: not quite wide enough, due to border?
-
-    wxRect txtrect = rect;
-    //TODO: spacing needs a little tweaking yet
-    ++txtrect.x;
-    ++txtrect.y; //FUD
-    --txtrect.height;
-    --txtrect.width;
-    //    txtrect.height -= 2;
-    m_text->SetSize(txtrect);
-    wxGridCellEditor::SetSize(rectTallEnough);
-}
-
-void NodesGridCellEditor::Create(wxWindow* parent,
-                                    wxWindowID id,
-                                    wxEvtHandler* evtHandler)
-{
-    int style = wxBORDER_DEFAULT;
-    style |= wxLB_EXTENDED; //wxLB_MULTIPLE;
-
-    m_control = new wxListBox(parent, id,
-                              wxDefaultPosition, wxDefaultSize,
-                              names,
-                              style);
-    m_text = new wxStaticText(parent, wxID_ANY /*wxNewId()*/, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_NO_AUTORESIZE);
-    m_text->SetForegroundColour(*wxBLUE); //make it easier to see which cell will be changing
-    wxColor ltblue(200, 200, 255);
-    m_text->SetBackgroundColour(ltblue);
-
-    wxGridCellEditor::Create(parent, id, evtHandler);
-}
-
-void NodesGridCellEditor::SelectionChanged(wxCommandEvent& event)
-{
-    m_text->SetLabel(GetValue()); //show intermediate results
-}
-
-void NodesGridCellEditor::EditDone(wxCommandEvent& event)
-{
-    if (m_grid) m_grid->DisableCellEditControl();
-}
-
-void NodesGridCellEditor::EditDone2(wxMouseEvent& event)
-{
-    if (m_grid) m_grid->DisableCellEditControl();
-}
-
-
-void NodesGridCellEditor::BeginEdit(int row, int col, wxGrid* grid) {
-
-#ifdef __linux__
-    // wxGridCellEditorEvtHandler is undefined on Linux, need a workaround
-    return;
-#endif
-
-    wxGridCellEditorEvtHandler* evtHandler = NULL;
-    if (m_control)
-        evtHandler = (wxGridCellEditorEvtHandler*)m_control->GetEventHandler();
-
-    // Don't immediately end if we get a kill focus event within BeginEdit
-    if (evtHandler) {
-        evtHandler->SetInSetFocus(true);
-        evtHandler->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &NodesGridCellEditor::SelectionChanged, this);
-        evtHandler->Bind(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, &NodesGridCellEditor::EditDone, this);
-        m_grid = grid; //allow custom events to access grid
-    }
-
-    //no worky; use grid event handler instead
-    wxEvtHandler* evtHandler2 = NULL;
-    if (m_text) evtHandler2 = m_text->GetEventHandler();
-    if (evtHandler2) {
-        evtHandler2->Bind(wxEVT_LEFT_DOWN, &NodesGridCellEditor::EditDone2, this);
-    }
-
-    m_value = grid->GetTable()->GetValue(row, col);
-
-    Reset(); // this updates combo box to correspond to m_value
-    m_text->SetLabel(GetValue()); //show intermediate results
-    m_text->Show();
-
-    ListBox()->SetFocus();
-
-    if (evtHandler) {
-        // When dropping down the menu, a kill focus event
-        // happens after this point, so we can't reset the flag yet.
-        evtHandler->SetInSetFocus(false);
-    }
-}
-
-#define notWXUNUSED(thing)  thing
-bool NodesGridCellEditor::EndEdit(int notWXUNUSED(row),
-                                  int notWXUNUSED(col),
-                                  const wxGrid* notWXUNUSED(grid),
-                                  const wxString& notWXUNUSED(oldval),
-                                  wxString *newval)
-{
-    m_text->Hide();
-    const wxString value = GetValue();
-    if ( value == m_value )
-        return false;
-
-    m_value = value;
-    if ( newval )
-        *newval = value;
-    return true;
-}
-
-void NodesGridCellEditor::ApplyEdit(int row, int col, wxGrid* grid) {
-    grid->GetTable()->SetValue(row, col, m_value);
-}
-
-void NodesGridCellEditor::Reset()
-{
-    ListBox()->SetSelection(wxNOT_FOUND);
-
-    wxStringTokenizer wtkz(m_value, ",");
-    while (wtkz.HasMoreTokens()) //single iteration for model name, maybe multiple for node#s
-    {
-        wxString valstr = wtkz.GetNextToken();
-        for (int i = 0; i < ListBox()->GetCount(); ++i) {
-            if (ListBox()->GetString(i) == valstr) {
-                ListBox()->SetSelection(i);
-            }
-        }
-    }
-}
-
-// return the value in the text control
-wxString NodesGridCellEditor::GetValue() const
-{
-    wxString retval;
-    for (int i = 0; i < ListBox()->GetCount(); ++i) {
-        if (!ListBox()->IsSelected(i)) continue;
-        if (!retval.empty()) retval += wxT(",");
-        retval += ListBox()->GetString(i);
-    }
-    return retval;
-}
-
 void ModelStateDialog::SetStateInfo(const Model *cls, std::map< std::string, std::map<std::string, std::string> > &finfo) {
-    NodeRangeGrid->SetColSize(1, 50);
-    SingleNodeGrid->SetColSize(1, 50);
+    NodeRangeGrid->SetColSize(COLOUR_COL, 50);
+    SingleNodeGrid->SetColSize(COLOUR_COL, 50);
     NameChoice->Clear();
 
     for (std::map< std::string, std::map<std::string, std::string> >::iterator it = finfo.begin();
@@ -378,14 +188,6 @@ void ModelStateDialog::SetStateInfo(const Model *cls, std::map< std::string, std
             }
         }
 
-		for (std::map<std::string, std::string>::iterator it = info.begin(); it != info.end(); ++it)
-		{
-			if (it->first.substr(0, 5) == "Mouth" || it->first.substr(0, 4) == "Eyes")
-			{
-				it->second = xLightsXmlFile::FixFile("", it->second);
-			}
-		}
-
         stateData[name] = info;
     }
 
@@ -401,29 +203,44 @@ void ModelStateDialog::SetStateInfo(const Model *cls, std::map< std::string, std
 
     wxArrayString names;
     names.push_back("");
-    for (int x = 0; x < cls->GetNodeCount(); x++) {
+    for (size_t x = 0; x < cls->GetNodeCount(); x++) {
         wxString nn = cls->GetNodeName(x, true);
         names.push_back(nn);
     }
 
-    NodesGridCellEditor *editor = new NodesGridCellEditor();
-    editor->names = names;
-    SingleNodeGrid->SetDefaultEditor(editor);
     for (int x = 0; x < SingleNodeGrid->GetNumberRows(); x++) {
-        SingleNodeGrid->SetReadOnly(x, 1);
+        wxGridCellTextEditor *neditor = new wxGridCellTextEditor();
+        wxString nfilter("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_ ");
+        wxTextValidator nvalidator(wxFILTER_INCLUDE_CHAR_LIST);
+        nvalidator.SetCharIncludes(nfilter);
+        neditor->SetValidator(nvalidator);
+
+        NodesGridCellEditor *editor = new NodesGridCellEditor();
+        editor->names = names;
+
+        SingleNodeGrid->SetCellEditor(x, NAME_COL, neditor);
+        SingleNodeGrid->SetCellEditor(x, CHANNEL_COL, editor);
+        SingleNodeGrid->SetReadOnly(x, COLOUR_COL);
     }
 
-    wxGridCellTextEditor *reditor = new wxGridCellTextEditor();
-    wxString filter("0123456789,-");
-    wxTextValidator validator(wxFILTER_INCLUDE_CHAR_LIST);
-    validator.SetCharIncludes(filter);
-    reditor->SetValidator(validator);
-    NodeRangeGrid->SetDefaultEditor(reditor);
     for (int x = 0; x < NodeRangeGrid->GetNumberRows(); x++) {
-        NodeRangeGrid->SetReadOnly(x, 1);
+        wxGridCellTextEditor *reditor = new wxGridCellTextEditor();
+        wxString filter("0123456789,-");
+        wxTextValidator validator(wxFILTER_INCLUDE_CHAR_LIST);
+        validator.SetCharIncludes(filter);
+        reditor->SetValidator(validator);
+
+        wxGridCellTextEditor *neditor2 = new wxGridCellTextEditor();
+        wxString nfilter2("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_ ");
+        wxTextValidator nvalidator2(wxFILTER_INCLUDE_CHAR_LIST);
+        nvalidator2.SetCharIncludes(nfilter2);
+        neditor2->SetValidator(nvalidator2);
+
+        NodeRangeGrid->SetCellEditor(x, NAME_COL, neditor2);
+        NodeRangeGrid->SetCellEditor(x, CHANNEL_COL, reditor);
+        NodeRangeGrid->SetReadOnly(x, COLOUR_COL);
     }
 }
-
 
 void ModelStateDialog::GetStateInfo(std::map< std::string, std::map<std::string, std::string> > &finfo) {
     finfo.clear();
@@ -438,22 +255,25 @@ void ModelStateDialog::GetStateInfo(std::map< std::string, std::map<std::string,
 static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
     bool customColor = false;
     if (info["CustomColors"] == "1") {
-        grid->ShowCol(1);
+        grid->ShowCol(COLOUR_COL);
         customColor = true;
     } else {
-        grid->HideCol(1);
+        grid->HideCol(COLOUR_COL);
     }
     for (int x = 0; x < grid->GetNumberRows(); x++) {
-        wxString pname = grid->GetRowLabelValue(x);
+        wxString pname = "s" + grid->GetRowLabelValue(x);
         pname.Replace(" ", "");
-        grid->SetCellValue(x, 0, info[pname.ToStdString()]);
+        grid->SetCellValue(x, CHANNEL_COL, info[pname.ToStdString()]);
+
+        wxString n = info[pname.ToStdString() + "-Name"];
+        grid->SetCellValue(x, NAME_COL, n);
 
         wxString c = info[pname.ToStdString() + "-Color"];
         if (c == "") {
             c = "#FFFFFF";
         }
         xlColor color(c);
-        grid->SetCellBackgroundColour(x, 1, color.asWxColor());
+        grid->SetCellBackgroundColour(x, COLOUR_COL, color.asWxColor());
     }
     return customColor;
 }
@@ -476,7 +296,6 @@ void ModelStateDialog::SelectStateModel(const std::string &name) {
     }
 }
 
-
 void ModelStateDialog::OnMatrixNameChoiceSelect(wxCommandEvent& event)
 {
     SelectStateModel(NameChoice->GetString(NameChoice->GetSelection()).ToStdString());
@@ -484,7 +303,7 @@ void ModelStateDialog::OnMatrixNameChoiceSelect(wxCommandEvent& event)
 
 void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
 {
-    wxTextEntryDialog dlg(this, "New Face", "Enter name for new face definition");
+    wxTextEntryDialog dlg(this, "New State Model", "Enter name for new state model definition");
     if (dlg.ShowModal() == wxID_OK) {
         std::string n = dlg.GetValue().ToStdString();
         if (NameChoice->FindString(n) == wxNOT_FOUND) {
@@ -497,10 +316,11 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
         }
     }
 }
+
 void ModelStateDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    int i = wxMessageBox("Delete face definion?", "Are you sure you want to delete " + name + "?",
+    int i = wxMessageBox("Delete state model definion?", "Are you sure you want to delete " + name + "?",
                          wxICON_WARNING | wxOK , this);
     if (i == wxID_OK || i == wxOK) {
 
@@ -518,62 +338,23 @@ void ModelStateDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
     }
 }
 
-void ModelStateDialog::OnMatrixModelsGridCellChange(wxGridEvent& event)
-{
-    std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    int r = event.GetRow();
-    int c = event.GetCol();
-    wxString key = MatrixModelsGrid->GetRowLabelValue(r) + "-" + MatrixModelsGrid->GetColLabelValue(c);
-    key.Replace(" ", "");
-    stateData[name][key.ToStdString()] = MatrixModelsGrid->GetCellValue(r, c);
-}
-
-
-//static const wxString strSupportedImageTypes = "PNG files (*.png)|*.png|BMP files (*.bmp)|*.bmp|JPG files(*.jpg)|*.jpg|All files (*.*)|*.*";
-static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg|All files (*.*)|*.*";
-void ModelStateDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
-{
-    std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    int r = event.GetRow();
-    int c = event.GetCol();
-    wxString key = MatrixModelsGrid->GetRowLabelValue(r) + "-" + MatrixModelsGrid->GetColLabelValue(c);
-    wxFileName fname(MatrixModelsGrid->GetCellValue(r, c));
-    wxFileDialog dlg(this, "Choose Image File for " + key, fname.GetPath(),
-                     wxEmptyString,
-                     strSupportedImageTypes,
-                     wxFD_OPEN);
-    if (dlg.ShowModal() == wxID_OK) {
-        wxString new_filename = dlg.GetPath();
-        key.Replace(" ", "");
-        stateData[name][key.ToStdString()] = new_filename;
-        MatrixModelsGrid->SetCellValue(r, c, new_filename);
-    }
-}
-
-
-void ModelStateDialog::OnMatricImagePlacementChoiceSelect(wxCommandEvent& event)
-{
-    std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    stateData[name]["ImagePlacement"] = NameChoice->GetString(MatrixImagePlacementChoice->GetSelection());
-}
-
 void ModelStateDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (FaceTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
         if (CustomColorSingleNode->IsChecked()) {
-            SingleNodeGrid->ShowCol(1);
+            SingleNodeGrid->ShowCol(COLOUR_COL);
             stateData[name]["CustomColors"] = "1";
         } else {
-            SingleNodeGrid->HideCol(1);
+            SingleNodeGrid->HideCol(COLOUR_COL);
             stateData[name]["CustomColors"] = "0";
         }
     } else {
         if (CustomColorNodeRanges->IsChecked()) {
-            NodeRangeGrid->ShowCol(1);
+            NodeRangeGrid->ShowCol(COLOUR_COL);
             stateData[name]["CustomColors"] = "1";
         } else {
-            NodeRangeGrid->HideCol(1);
+            NodeRangeGrid->HideCol(COLOUR_COL);
             stateData[name]["CustomColors"] = "0";
         }
     }
@@ -582,12 +363,16 @@ void ModelStateDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
 static void GetValue(wxGrid *grid, wxGridEvent &event, std::map<std::string, std::string> &info) {
     int r = event.GetRow();
     int c = event.GetCol();
-    wxString key = grid->GetRowLabelValue(r).ToStdString();
+    wxString key = "s" + grid->GetRowLabelValue(r).ToStdString();
     key.Replace(" ", "");
-    if (c == 1) {
+    if (c == COLOUR_COL) {
         key += "-Color";
         xlColor color = grid->GetCellBackgroundColour(r, c);
         info[key.ToStdString()] = color;
+    }
+    else if (c == NAME_COL) {
+        key += "-Name";
+        info[key.ToStdString()] = grid->GetCellValue(r, c);
     } else {
         info[key.ToStdString()] = grid->GetCellValue(r, c);
     }
@@ -619,33 +404,33 @@ void ModelStateDialog::OnFaceTypeChoicePageChanged(wxChoicebookEvent& event)
     }
     SelectStateModel(name);
 }
+
 void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
 {
-    if (event.GetCol() == 1) {
+    if (event.GetCol() == COLOUR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-        wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), 1);
+        wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL);
         wxColourData data;
         data.SetColour(c);
         wxColourDialog dlg(this, &data);
         if (dlg.ShowModal() == wxID_OK) {
-            NodeRangeGrid->SetCellBackgroundColour(event.GetRow(), 1, dlg.GetColourData().GetColour());
+            NodeRangeGrid->SetCellBackgroundColour(event.GetRow(), COLOUR_COL, dlg.GetColourData().GetColour());
             NodeRangeGrid->Refresh();
             GetValue(NodeRangeGrid, event, stateData[name]);
         }
     }
-
 }
 
 void ModelStateDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
 {
-    if (event.GetCol() == 1) {
+    if (event.GetCol() == COLOUR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-        wxColor c = SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), 1);
+        wxColor c = SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL);
         wxColourData data;
         data.SetColour(c);
         wxColourDialog dlg(this, &data);
         if (dlg.ShowModal() == wxID_OK) {
-            SingleNodeGrid->SetCellBackgroundColour(event.GetRow(), 1, dlg.GetColourData().GetColour());
+            SingleNodeGrid->SetCellBackgroundColour(event.GetRow(), COLOUR_COL, dlg.GetColourData().GetColour());
             SingleNodeGrid->Refresh();
             GetValue(SingleNodeGrid, event, stateData[name]);
         }
