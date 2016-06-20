@@ -544,6 +544,8 @@
 		<Unit filename="NetInfo.h" />
 		<Unit filename="NewTimingDialog.cpp" />
 		<Unit filename="NewTimingDialog.h" />
+		<Unit filename="NodesGridCellEditor.cpp" />
+		<Unit filename="NodesGridCellEditor.h" />
 		<Unit filename="NullOutputDialog.cpp" />
 		<Unit filename="NullOutputDialog.h" />
 		<Unit filename="OptionChooser.cpp" />
