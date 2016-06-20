@@ -647,7 +647,7 @@ void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
 void ModelFaceDialog::OnMatricImagePlacementChoiceSelect(wxCommandEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    faceData[name]["ImagePlacement"] = NameChoice->GetString(MatrixImagePlacementChoice->GetSelection());
+    faceData[name]["ImagePlacement"] = MatrixImagePlacementChoice->GetStringSelection();
 }
 
 void ModelFaceDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
