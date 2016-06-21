@@ -743,7 +743,10 @@ void xLightsFrame::RenderGridToSeqData() {
             }
         }
 
-        wxYield();
+        //no point updating more than 50ms, let the CPU's render data
+        //instead of rendering the progress bars constantly
+        wxMilliSleep(50);
+        wxYieldIfNeeded();
     }
     for (size_t row = 0; row < numRows; row++) {
         if (jobs[row]) {

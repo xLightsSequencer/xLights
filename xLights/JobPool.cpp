@@ -24,6 +24,7 @@ class JobPoolWorker : public wxThread
     std::condition_variable *signal;
     volatile int &idleThreads;
     volatile int &numThreads;
+    volatile bool stopped;
     std::deque<Job*> *queue;
 
     Job *currentJob;
@@ -48,7 +49,7 @@ public:
 
 JobPoolWorker::JobPoolWorker(std::mutex *l, std::condition_variable *s, std::deque<Job*> *queue,
                              volatile int &idleThreadPtr, volatile int &numThreadsPtr)
-: wxThread(wxTHREAD_JOINABLE), lock(l) ,signal(s), queue(queue), idleThreads(idleThreadPtr), numThreads(numThreadsPtr), currentJob(nullptr)
+: wxThread(wxTHREAD_JOINABLE), lock(l) ,signal(s), queue(queue), idleThreads(idleThreadPtr), numThreads(numThreadsPtr), currentJob(nullptr), stopped(false)
 {
 }
 
@@ -76,8 +77,14 @@ std::string JobPoolWorker::GetStatus()
 }
 void JobPoolWorker::Stop()
 {
-    if ( IsAlive() )
+    stopped = true;
+    if ( IsAlive() ) {
+        std::unique_lock<std::mutex> mutLock(*lock);
+        signal->notify_all();
+    }
+    if ( IsAlive() ) {
         Delete();
+    }
 
     while ( IsAlive() ) {
         wxThread::Sleep( 5 );
@@ -96,7 +103,11 @@ Job *JobPoolWorker::GetJob()
     Job *req(NULL);
     if (queue->empty()) {
         idleThreads++;
-        signal->wait_for(mutLock, std::chrono::milliseconds(100));
+        long timeout = 100;
+        if (idleThreads <= 5) {
+            timeout = 30000;
+        }
+        signal->wait_for(mutLock, std::chrono::milliseconds(timeout));
         idleThreads--;
     }
     if ( !queue->empty() ) {
@@ -111,7 +122,7 @@ void* JobPoolWorker::Entry()
 #ifdef LINUX
     XInitThreads();
 #endif
-    while ( true ) {
+    while ( !stopped ) {
         // Did we get a request to terminate?
         if (TestDestroy())
             break;
@@ -183,7 +194,13 @@ void JobPool::PushJob(Job *job)
 
 void JobPool::Start(size_t poolSize)
 {
-    maxNumThreads = poolSize > 250 ? 250 : poolSize;
+    if (poolSize > 250) {
+        poolSize = 250;
+    }
+    if (poolSize < 8) {
+        poolSize = 8;
+    }
+    maxNumThreads = poolSize;
     idleThreads = 0;
     numThreads = 0;
 }
