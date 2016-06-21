@@ -253,6 +253,8 @@
     <ClCompile Include="effects\SpiralsPanel.cpp" />
     <ClCompile Include="effects\SpirographEffect.cpp" />
     <ClCompile Include="effects\SpirographPanel.cpp" />
+    <ClCompile Include="effects\StateEffect.cpp" />
+    <ClCompile Include="effects\StatePanel.cpp" />
     <ClCompile Include="effects\StrobeEffect.cpp" />
     <ClCompile Include="effects\StrobePanel.cpp" />
     <ClCompile Include="effects\TendrilEffect.cpp" />
@@ -497,6 +499,8 @@
     <ClInclude Include="effects\SpiralsPanel.h" />
     <ClInclude Include="effects\SpirographEffect.h" />
     <ClInclude Include="effects\SpirographPanel.h" />
+    <ClInclude Include="effects\StateEffect.h" />
+    <ClInclude Include="effects\StatePanel.h" />
     <ClInclude Include="effects\StrobeEffect.h" />
     <ClInclude Include="effects\StrobePanel.h" />
     <ClInclude Include="effects\TendrilEffect.h" />

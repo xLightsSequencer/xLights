@@ -795,6 +795,12 @@
     <ClCompile Include="NodesGridCellEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="effects\StateEffect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\StatePanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1524,6 +1530,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NodesGridCellEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\StateEffect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\StatePanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -774,6 +774,10 @@
 		<Unit filename="effects/SpirographEffect.h" />
 		<Unit filename="effects/SpirographPanel.cpp" />
 		<Unit filename="effects/SpirographPanel.h" />
+		<Unit filename="effects/StateEffect.cpp" />
+		<Unit filename="effects/StateEffect.h" />
+		<Unit filename="effects/StatePanel.cpp" />
+		<Unit filename="effects/StatePanel.h" />
 		<Unit filename="effects/StrobeEffect.cpp" />
 		<Unit filename="effects/StrobeEffect.h" />
 		<Unit filename="effects/StrobePanel.cpp" />
@@ -1023,6 +1027,7 @@
 		<Unit filename="wxsmith/SnowstormPanel.wxs" />
 		<Unit filename="wxsmith/SpiralsPanel.wxs" />
 		<Unit filename="wxsmith/SpirographPanel.wxs" />
+		<Unit filename="wxsmith/StatePanel.wxs" />
 		<Unit filename="wxsmith/StartChannelDialog.wxs" />
 		<Unit filename="wxsmith/StrobePanel.wxs" />
 		<Unit filename="wxsmith/SuperStarImportDialog.wxs" />
@@ -1154,6 +1159,7 @@
 					<wxPanel wxs="wxsmith/SnowstormPanel.wxs" src="effects/SnowstormPanel.cpp" hdr="effects/SnowstormPanel.h" fwddecl="1" i18n="1" name="SnowstormPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SpiralsPanel.wxs" src="effects/SpiralsPanel.cpp" hdr="effects/SpiralsPanel.h" fwddecl="1" i18n="1" name="SpiralsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SpirographPanel.wxs" src="effects/SpirographPanel.cpp" hdr="effects/SpirographPanel.h" fwddecl="1" i18n="1" name="SpirographPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/StatePanel.wxs" src="effects/StatePanel.cpp" hdr="effects/StatePanel.h" fwddecl="1" i18n="1" name="StatePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/StrobePanel.wxs" src="effects/StrobePanel.cpp" hdr="effects/StrobePanel.h" fwddecl="1" i18n="1" name="StrobePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TendrilPanel.wxs" src="effects/TendrilPanel.cpp" hdr="effects/TendrilPanel.h" fwddecl="1" i18n="1" name="TendrilPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TextPanel.wxs" src="effects/TextPanel.cpp" hdr="effects/TextPanel.h" fwddecl="1" i18n="1" name="TextPanel" language="CPP" />
