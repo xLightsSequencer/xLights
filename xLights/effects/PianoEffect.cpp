@@ -99,7 +99,8 @@ bool PianoEffect::CanRenderOnBackgroundThread(Effect *effect, const SettingsMap 
 void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     RenderPiano(buffer,
-		SettingsMap.GetInt("SPINCTRL_Piano_StartMIDI"),
+        effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
+        SettingsMap.GetInt("SPINCTRL_Piano_StartMIDI"),
 		SettingsMap.GetInt("SPINCTRL_Piano_EndMIDI"),
 		SettingsMap.GetBool("CHECKBOX_Piano_ShowSharps"),
 		std::string(SettingsMap.Get("CHOICE_Piano_Type", "True Piano")),
@@ -128,7 +129,7 @@ public:
 };
 
 //render piano fx during sequence:
-void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const int endmidi, const bool sharps, const std::string type, std::string timingsource, std::string file, int MIDIAdjustStart, int MIDIAdjustSpeed, int scale, std::string MIDITrack, int xoffset)
+void PianoEffect::RenderPiano(RenderBuffer &buffer, SequenceElements *elements, const int startmidi, const int endmidi, const bool sharps, const std::string type, std::string timingsource, std::string file, int MIDIAdjustStart, int MIDIAdjustSpeed, int scale, std::string MIDITrack, int xoffset)
 {
 	PianoCache *cache = (PianoCache*)buffer.infoCache[id];
 	if (cache == nullptr) {
@@ -168,6 +169,7 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
         {
             _timings.clear();
             _timings = LoadTimingTrack(MIDITrack, buffer.frameTimeInMs);
+            elements->AddRenderDependency(MIDITrack, buffer.cur_model);
         }
 
 		_timingsource = timingsource;
