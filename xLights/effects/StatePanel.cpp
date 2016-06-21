@@ -65,6 +65,7 @@ StatePanel::StatePanel(wxWindow* parent)
 	Connect(IDD_RADIOBUTTON_State_State,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StatePanel::OnMouthMovementTypeSelected);
 	Connect(IDD_RADIOBUTTON_State_TimingTrack,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StatePanel::OnMouthMovementTypeSelected);
 	//*)
+
     SetName("ID_PANEL_State");
 }
 
@@ -78,11 +79,11 @@ PANEL_EVENT_HANDLERS(StatePanel)
 
 void StatePanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
 {
-    if (event.GetId() == IDD_RADIOBUTTON_State_Phoneme) {
-        Choice_State_Phoneme->Enable();
+    if (event.GetId() == IDD_RADIOBUTTON_State_State) {
+        Choice_State_State->Enable();
         Choice_State_TimingTrack->Disable();
     } else {
-        Choice_State_Phoneme->Disable();
+        Choice_State_State->Disable();
         Choice_State_TimingTrack->Enable();
     }
 }

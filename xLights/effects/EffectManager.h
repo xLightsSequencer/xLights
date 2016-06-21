@@ -47,6 +47,7 @@ public:
         eff_SNOWSTORM,
         eff_SPIRALS,
         eff_SPIROGRAPH,
+        eff_STATE,
         eff_STROBE,
 		eff_TENDRIL,
 		eff_TEXT,

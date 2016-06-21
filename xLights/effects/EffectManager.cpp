@@ -37,6 +37,7 @@
 #include "SnowstormEffect.h"
 #include "SpiralsEffect.h"
 #include "SpirographEffect.h"
+#include "StateEffect.h"
 #include "StrobeEffect.h"
 #include "TendrilEffect.h"
 #include "TextEffect.h"
@@ -83,6 +84,7 @@ EffectManager::EffectManager()
     add(new SnowstormEffect(eff_SNOWSTORM));
     add(new SpiralsEffect(eff_SPIRALS));
     add(new SpirographEffect(eff_SPIROGRAPH));
+    add(new StateEffect(eff_STATE));
     add(new StrobeEffect(eff_STROBE));
     add(new TendrilEffect(eff_TENDRIL));
     add(new TextEffect(eff_TEXT));
