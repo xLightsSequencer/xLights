@@ -8,6 +8,26 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.x38  Jun 21, 2016
+   -- bug (chrisD) Don't crash when loading perspectives menu if current perspective not defined
+   -- bug (chrisD) Update default perspective if it is renamed
+   -- bug (chrisD) Reload default perspective on show directory change - fixes issue #601
+   -- enh (dkulp) Collect the data for ALL the models on a preview and send it to the video card in one shot.
+   -- enh (dkulp) Add texture support to xlAccumulator
+   -- enh (dkulp) Update ModelPreview to pass the background int the accumulator and transfer all data in one shot
+   -- enh (dkulp) Update Wave to pass all data in one shot
+   -- enh (dkulp) Fix warnings if background image doesn't exist
+   -- bug (dkulp) Fix crash on mac when swithing show directories.   
+   -- enh (dkulp) Radio menu items have to be removed top down on Mac
+   -- bug (gil) Fix SuperStar import for Scenes to account for scaling changes to the Pictures effect.
+   -- enh (gil) Add option to show/hide all previews in View menu.
+   -- enh (gil) Save preview pane positions.
+   -- enh (gil) Allow each preview to have it's own Fill and Brightness settings.
+   -- enh (gil) Don't process model groups twice for House Preview.
+   -- bug (keithsw) Fix circles effect not changing colour.
+   -- bug (keithsw) Fix #589 - guard against nulll ptr
+   -- enh (keithsw) Implement alternate backup F11 allows the user to specify an alternate backup location and 
+           backs up there instead. There is no auto backup to this location.
    -- bug (keithsw) Make video more resilient to missing files
    -- enh (keithsw) Add models export - now with controller details as well
    -- enh (keithsw) Add optional backup on save ... this is by default disabled.
@@ -17,6 +37,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keithsw) Fix problem with fire effect when buffer size changes
    -- enh (keithsw) Add square wave to value effect presets
    -- enh (keithsw) Add multicolour support to Tendrils ... should also fix bug with Tendril not holding colour change
+   -- bug (keithsw) Disable bitmap brightness slider and show/hide button if no bitmap defined on custom model.
 2016.37  Jun 10, 2016
    -- enh (keithsw) Extra logging on startup to isolate problems ... also logs config so we can understand settings.
    -- enh (dkulp) Allow 10K nodes/string for SingleLineModel.  Fixes #592
