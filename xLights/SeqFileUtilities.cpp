@@ -663,17 +663,18 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
         if (!fn.Exists()) {
             return;
         }
-        if (fn.GetExt() == "lms") {
+        wxString ext = fn.GetExt().Lower();
+        if (ext == "lms") {
             ImportLMS(fn);
-        } else if (fn.GetExt() == "hlsIdata") {
+        } else if (ext == "hlsidata") {
             ImportHLS(fn);
-        } else if (fn.GetExt() == "sup") {
+        } else if (ext == "sup") {
             ImportSuperStar(fn);
-        } else if (fn.GetExt() == "vix") {
+        } else if (ext == "vix") {
             ImportVix(fn);
-        } else if (fn.GetExt() == "xml") {
+        } else if (ext == "xml") {
             ImportXLights(fn);
-        } else if (fn.GetExt() == "msq") {
+        } else if (ext == "msq") {
             ImportLSP(fn);
         }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
