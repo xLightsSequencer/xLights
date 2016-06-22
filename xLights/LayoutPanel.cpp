@@ -2307,7 +2307,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
             xlights->LayoutGroups.push_back(grp);
             xlights->AddPreviewOption(grp);
             SetCurrentLayoutGroup(name.ToStdString());
-            ChoiceLayoutGroups->Insert(name, ChoiceLayoutGroups->GetCount()-1);
+            AddPreviewChoice(name.ToStdString());
             ChoiceLayoutGroups->SetSelection(ChoiceLayoutGroups->GetCount()-2);
 
             xlights->UpdateModelsList();
