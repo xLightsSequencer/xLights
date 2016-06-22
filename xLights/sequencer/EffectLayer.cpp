@@ -211,6 +211,27 @@ Effect* EffectLayer::GetEffectBeforeTime(int ms)
     }
 }
 
+Effect* EffectLayer::GetEffectAfterTime(int ms)
+{
+    int i;
+    for (i = 0; i<mEffects.size(); i++)
+    {
+        if (mEffects[i]->GetStartTimeMS() > ms)
+        {
+            break;
+        }
+    }
+    if (i >= mEffects.size())
+    {
+        return nullptr;
+    }
+    else
+    {
+        return mEffects[i];
+    }
+}
+
+
 Effect* EffectLayer::GetEffectAtTime(int timeMS)
 {
     for(int i=0;i<mEffects.size();i++) {

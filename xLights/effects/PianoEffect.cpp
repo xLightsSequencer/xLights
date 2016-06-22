@@ -810,7 +810,7 @@ std::list<std::string> PianoEffect::ExtractNotes(std::string& label)
     string s = "";
     for (auto it = n.begin(); it != n.end(); ++it)
     {
-        if (*it == ':' || *it == ' ' || *it == ';')
+        if (*it == ':' || *it == ' ' || *it == ';' || *it == ',')
         {
             if (s != "")
             {
