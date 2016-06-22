@@ -292,6 +292,11 @@ bool xLightsFrame::CloseSequence()
         if( dlg->GetSaveChanges() )
         {
             SaveSequence();
+            //must wait for the rendering to complete
+            while (renderProgressInfo != nullptr) {
+                wxMilliSleep(10);
+                wxYield();
+            }
         }
     }
 

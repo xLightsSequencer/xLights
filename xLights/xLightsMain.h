@@ -215,6 +215,7 @@ class wxDebugReportCompress;
 class BufferPanel;
 class LayoutPanel;
 class RenderProgressDialog;
+class RenderProgressInfo;
 
 class xlAuiToolBar : public wxAuiToolBar {
 public:
@@ -982,6 +983,7 @@ private:
 
 
     void OnProgressBarDoubleClick(wxMouseEvent& event);
+    RenderProgressInfo *renderProgressInfo;
     RenderProgressDialog *renderProgressDialog;
     // test
     //void SetTestCheckboxes(bool NewValue);
@@ -1147,7 +1149,8 @@ private:
 public:
     bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
     Model *GetModel(const std::string& name);
-    void RenderGridToSeqData();
+    void RenderGridToSeqData(std::function<void()>&& callback);
+    void UpdateRenderStatus();
     bool RenderEffectFromMap(Effect *effect, int layer, int period, const SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false, RenderEvent *event = NULL);

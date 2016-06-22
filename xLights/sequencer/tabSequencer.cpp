@@ -1056,6 +1056,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
     if (CurrentSeqXmlFile == NULL) {
         return;
     }
+    UpdateRenderStatus();
     if (Notebook1->GetSelection() != NEWSEQUENCER) {
         return;
     }

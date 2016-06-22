@@ -639,7 +639,17 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     ev->signal.notify_all();
 }
 
-void xLightsFrame::RenderGridToSeqData() {
+class RenderProgressInfo {
+public:
+    RenderProgressInfo(std::function<void()>&& cb) : callback(cb) {};
+    std::function<void()> callback;
+    int numRows;
+    int frames;
+    RenderJob **jobs;
+    AggregatorRenderer **aggregators;
+};
+
+void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
     const int numRows = mSequenceElements.GetElementCount();
     if (numRows == 0) {
         //nothing to do....
@@ -714,52 +724,69 @@ void xLightsFrame::RenderGridToSeqData() {
     renderProgressDialog->scrolledWindow->FitInside();
     renderProgressDialog->scrolledWindow->SetScrollRate(5, 5);
     
-    bool done = false;
-    int frames = SeqData.NumFrames();
-
-    while (!done) {
-        done = true;
-        int countModels = 0;
-        int countFrames = 0;
-        for (size_t row = 0; row < numRows; row++) {
-            if (jobs[row]) {
-                int i = jobs[row]->GetCurrentFrame();
-                if (i >= frames) {
-                    i = frames;
-                } else {
-                    done = false;
-                }
-                countModels++;
-                jobs[row]->GetGauge()->SetValue((100 * i)/frames);
-                countFrames += i;
-            }
-        }
-        if (countFrames > 0) {
-            int pct = (countFrames * 80) / (countModels * frames);
-            static int lastVal = 0;
-            if (lastVal != pct) {
-                ProgressBar->SetValue(10 + pct);
-                lastVal = pct;
-            }
-        }
-
-        //no point updating more than 50ms, let the CPU's render data
-        //instead of rendering the progress bars constantly
-        wxMilliSleep(50);
-        wxYieldIfNeeded();
-    }
-    for (size_t row = 0; row < numRows; row++) {
-        if (jobs[row]) {
-            delete jobs[row];
-        }
-        delete aggregators[row];
-    }
-    delete renderProgressDialog;
-    renderProgressDialog = nullptr;
-    delete []jobs;
-    delete []aggregators;
-    RenderDone();
+    renderProgressInfo = new RenderProgressInfo(std::move(callback));
+    renderProgressInfo->numRows = numRows;
+    renderProgressInfo->frames = SeqData.NumFrames();
+    renderProgressInfo->jobs = jobs;
+    renderProgressInfo->aggregators = aggregators;
 }
+void xLightsFrame::UpdateRenderStatus() {
+    if (renderProgressInfo == nullptr) {
+        return;
+    }
+    bool done = true;
+    int countModels = 0;
+    int countFrames = 0;
+    bool shown = renderProgressDialog->IsShown();
+    for (size_t row = 0; row < renderProgressInfo->numRows; row++) {
+        if (renderProgressInfo->jobs[row]) {
+            int i = renderProgressInfo->jobs[row]->GetCurrentFrame();
+            if (i >= renderProgressInfo->frames) {
+                i = renderProgressInfo->frames;
+            } else {
+                done = false;
+            }
+            countModels++;
+            if (shown) {
+                int val = (100 * i)/renderProgressInfo->frames;
+                wxGauge *g = renderProgressInfo->jobs[row]->GetGauge();
+                if (g->wxGaugeBase::GetValue() != val) {
+                    g->SetValue(val);
+                }
+            }
+            countFrames += i;
+        }
+    }
+    if (countFrames > 0) {
+        int pct = (countFrames * 80) / (countModels * renderProgressInfo->frames);
+        static int lastVal = 0;
+        if (lastVal != pct) {
+            if (ProgressBar->GetValue() != (10 + pct)) {
+                ProgressBar->SetValue(10 + pct);
+            }
+            lastVal = pct;
+        }
+    }
+    
+    if (done) {
+        for (size_t row = 0; row < renderProgressInfo->numRows; row++) {
+            if (renderProgressInfo->jobs[row]) {
+                delete renderProgressInfo->jobs[row];
+            }
+            delete renderProgressInfo->aggregators[row];
+        }
+        delete renderProgressDialog;
+        renderProgressDialog = nullptr;
+        delete []renderProgressInfo->jobs;
+        delete []renderProgressInfo->aggregators;
+        RenderDone();
+        renderProgressInfo->callback();
+        delete renderProgressInfo;
+        renderProgressInfo = nullptr;
+    }
+}
+
+
 void xLightsFrame::RenderDone() {
     mainSequencer->PanelEffectGrid->Refresh();
 }

@@ -1112,6 +1112,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     ProgressBar->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&xLightsFrame::OnProgressBarDoubleClick, nullptr, this);
     ProgressBar->Hide();
     renderProgressDialog = nullptr;
+    renderProgressInfo = nullptr;
     selectedEffectPalette = "";
     selectedEffect = NULL;
     playStartTime = playEndTime = 0;
