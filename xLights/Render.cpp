@@ -750,7 +750,7 @@ void xLightsFrame::UpdateRenderStatus() {
             if (shown) {
                 int val = (100 * i)/renderProgressInfo->frames;
                 wxGauge *g = renderProgressInfo->jobs[row]->GetGauge();
-                if (g->wxGaugeBase::GetValue() != val) {
+                if (g->GetValue() != val) {
                     g->SetValue(val);
                 }
             }
