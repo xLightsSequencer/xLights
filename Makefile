@@ -19,7 +19,7 @@ SUBDIRS         = xLights
 
 .NOTPARALLEL:
 
-all: wxwidgets31 makefile subdirs
+all: wxwidgets31 cbp2make makefile subdirs
 
 #############################################################################
 
@@ -75,6 +75,11 @@ uninstall:
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 
 #############################################################################
+
+cbp2make:
+	if test -n "`cbp2make --version`"; \
+		then $(DEL_FILE) xLights/xLights.cbp.mak; \
+	fi
 
 makefile: xLights/xLights.cbp.mak
 
