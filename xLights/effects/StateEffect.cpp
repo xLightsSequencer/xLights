@@ -46,7 +46,10 @@ void StateEffect::SetDefaultParameters(Model *cls) {
 
     if (cls != nullptr) {
         for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->stateInfo.begin(); it != cls->stateInfo.end(); it++) {
-            fp->Choice_StateDefinitonChoice->Append(it->first);
+            if (it->second.size() > 30) // actually it should be about 120
+            {
+                fp->Choice_StateDefinitonChoice->Append(it->first);
+            }
         }
     }
     if (fp->Choice_StateDefinitonChoice->GetCount() > 0)
@@ -269,7 +272,12 @@ void StateEffect::RenderState(RenderBuffer &buffer,
     else if (mode == "Time Countdown")
     {
         wxDateTime dt;
-        dt.ParseDateTime(tstates.c_str());
+        dt.ParseFormat(tstates.c_str(), "%H:%M:%S");
+
+        if (!dt.IsValid())
+        {
+            dt.ParseFormat(tstates.c_str(), "%M:%S");
+        }
 
         if (dt.IsValid())
         {
@@ -308,10 +316,10 @@ void StateEffect::RenderState(RenderBuffer &buffer,
     }
     else if (mode == "Number") // used for FM frequencies
     {
-        float f = wxAtof(tstates);
+        double f = wxAtof(tstates);
         sstates.push_back("dot");
-        float f2 = f - int(f);
-        f2 = f2 * 10;
+        double f2 = f - int(f);
+        f2 = (int)(f2 * 10 + 0.5);
         sstates.push_back(wxString::Format("%d", (int)f2).ToStdString());
 
         int v = f;

@@ -140,9 +140,11 @@ void StatePanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
     if (event.GetId() == IDD_RADIOBUTTON_State_State) {
         Choice_State_State->Enable();
         Choice_State_TimingTrack->Disable();
+        Choice_State_Mode->Disable();
     } else {
         Choice_State_State->Disable();
         Choice_State_TimingTrack->Enable();
+        Choice_State_Mode->Enable();
     }
 }
 
