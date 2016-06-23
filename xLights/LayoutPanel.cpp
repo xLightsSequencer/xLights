@@ -2399,6 +2399,7 @@ void LayoutPanel::DeleteCurrentPreview()
             LayoutGroup* grp = (LayoutGroup*)(*it);
             if (grp != nullptr) {
                 if( currentLayoutGroup == grp->GetName() ) {
+                    xlights->RemovePreviewOption(grp);
                     grp->GetLayoutGroupXml()->GetParent()->RemoveChild(grp->GetLayoutGroupXml());
                     xlights->LayoutGroups.erase(it);
                     delete grp->GetLayoutGroupXml();

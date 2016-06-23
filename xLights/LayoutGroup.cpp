@@ -136,6 +136,12 @@ const long LayoutGroup::AddToPreviewMenu(wxMenu* preview_menu)
     return id_menu_item;
 }
 
+void LayoutGroup::RemoveFromPreviewMenu(wxMenu* preview_menu)
+{
+    //preview_menu->Delete(mMenuItemPreview);
+    delete mMenuItemPreview;
+}
+
 void LayoutGroup::ShowPreview(bool show)
 {
     if( !mPreviewCreated ) {

@@ -45,6 +45,7 @@ class LayoutGroup : public wxObject
         bool GetPreviewCreated() {return mPreviewCreated;}
         void SetPreviewActive(bool show);
         const long AddToPreviewMenu(wxMenu* preview_menu);
+        void RemoveFromPreviewMenu(wxMenu* preview_menu);
         wxMenuItem* GetMenuItem() {return mMenuItemPreview;}
         void ShowPreview(bool show);
         const long GetMenuId() {return id_menu_item;}

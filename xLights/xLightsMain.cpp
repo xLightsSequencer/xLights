@@ -3045,17 +3045,35 @@ void xLightsFrame::AddPreviewOption(LayoutGroup* grp)
         }
     }
     grp->AddToPreviewMenu(MenuItemPreviews);
-    Connect(grp->GetMenuId(),wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePreviewWindow, grp, this);
+    Connect(grp->GetMenuId(),wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePreviewWindow, NULL, this);
     if( menu_created ) {
-        MenuView->InsertSeparator(4);
+        MenuItemPreviewSeparator = MenuView->InsertSeparator(4);
+    }
+}
+
+void xLightsFrame::RemovePreviewOption(LayoutGroup* grp)
+{
+    Disconnect(grp->GetMenuId(),wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePreviewWindow, NULL, this);
+    grp->RemoveFromPreviewMenu(MenuItemPreviews);
+    if( LayoutGroups.size() == 1 ) {
+        Disconnect(ID_MENU_ITEM_PREVIEWS_SHOW_ALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideAllPreviewWindows, NULL, this);
+        MenuView->Delete(ID_MENU_ITEM_PREVIEWS);
+        MenuItemPreviews = nullptr;
+        MenuView->Delete(MenuItemPreviewSeparator);
     }
 }
 
 void xLightsFrame::ShowHidePreviewWindow(wxCommandEvent& event)
 {
     wxMenuItem* item = MenuItemPreviews->FindItem(event.GetId());
-    LayoutGroup* grp = (LayoutGroup*)event.GetEventUserData();
-    grp->ShowPreview(item->IsChecked());
+    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); it++) {
+        LayoutGroup* grp = (LayoutGroup*)(*it);
+        if (grp != nullptr) {
+            if( grp->GetMenuItem() == item ) {
+                grp->ShowPreview(item->IsChecked());
+            }
+        }
+    }
 }
 
 void xLightsFrame::ShowHideAllPreviewWindows(wxCommandEvent& event)
@@ -3175,21 +3193,21 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
         std::string type, description, ip, universe, inactive;
         int channeloffset;
         GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive);
-        f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",%d,%d,%d,%s,%d,%s,%s,\"%s\",%s,%s,%d,%s\n", 
-            model->name, 
-            model->GetDisplayAs(), 
-            model->GetStringType(), 
-            model->GetNodeCount() / model->NodesPerString(), 
-            model->GetNodeCount(), 
-            model->GetChanCount(), 
-            stch, 
-            ch, 
-            model->GetLayoutGroup(), 
-            type, 
-            description, 
-            ip, 
-            universe, 
-            channeloffset, 
+        f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",%d,%d,%d,%s,%d,%s,%s,\"%s\",%s,%s,%d,%s\n",
+            model->name,
+            model->GetDisplayAs(),
+            model->GetStringType(),
+            model->GetNodeCount() / model->NodesPerString(),
+            model->GetNodeCount(),
+            model->GetChanCount(),
+            stch,
+            ch,
+            model->GetLayoutGroup(),
+            type,
+            description,
+            ip,
+            universe,
+            channeloffset,
             inactive));
     }
     f.Write(wxString::Format("\"Model Count\",%d\n", PreviewModels.size()));

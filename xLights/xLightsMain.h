@@ -1289,6 +1289,7 @@ public:
     void ForceSequencerRefresh();
     void RefreshLayout();
     void AddPreviewOption(LayoutGroup* grp);
+    void RemovePreviewOption(LayoutGroup* grp);
     ModelPreview* GetLayoutPreview() {return modelPreview;}
     void SetStoredLayoutGroup(const std::string &group);
     const std::string& GetStoredLayoutGroup() {return mStoredLayoutGroup;}
@@ -1379,6 +1380,7 @@ private:
     bool isRandom_(wxControl* ctl, const char*debug);
 
     wxMenu* MenuItemPreviews;
+    wxMenuItem* MenuItemPreviewSeparator;
     static const long ID_MENU_ITEM_PREVIEWS;
     static const long ID_MENU_ITEM_PREVIEWS_SHOW_ALL;
 
