@@ -573,33 +573,26 @@ void DrawGLUtils::xlAccumulator::Finish(int type, int enableCapability, float ex
 }
 void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexColorAccumulator& va) {
     PreAlloc(va.count);
-    for (int x = 0; x < va.count * 2; x++) {
-        vertices.push_back(va.vertices[x]);
-    }
-    for (int x = 0; x < va.count * 4; x++) {
-        colors.push_back(va.colors[x]);
-    }
+    memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
+    memcpy(&colors[count*4], va.colors, va.count*4);
     count += va.count;
 }
 void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va, const xlColor &c) {
     PreAlloc(va.count);
-    for (int x = 0; x < va.count * 2; x++) {
-        vertices.push_back(va.vertices[x]);
-    }
+    memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
+    int i = count * 4;
     for (int x = 0; x < va.count; x++) {
-        colors.push_back(c.Red());
-        colors.push_back(c.Green());
-        colors.push_back(c.Blue());
-        colors.push_back(c.Alpha());
+        colors[i++] = c.Red();
+        colors[i++] = c.Green();
+        colors[i++] = c.Blue();
+        colors[i++] = c.Alpha();
     }
     count += va.count;
 }
 void DrawGLUtils::xlAccumulator::Load(const xlVertexTextureAccumulator &va, int type, int enableCapability) {
     PreAlloc(va.count);
-    for (int x = 0; x < va.count * 2; x++) {
-        vertices.push_back(va.vertices[x]);
-    }
-    colors.resize(colors.size() + va.count * 4);
+    memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
+
     tvertices.resize((count + va.count)*2);
     memcpy(&tvertices[count], &va.tvertices[0], va.count * sizeof(float) * 2);
     count += va.count;
@@ -607,15 +600,18 @@ void DrawGLUtils::xlAccumulator::Load(const xlVertexTextureAccumulator &va, int 
 }
 
 void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float tx, float ty) {
-    if (tvertices.size() < vertices.size()) {
-        tvertices.resize(vertices.size());
+    PreAlloc(1);
+    if (tvertices.size() < max) {
+        tvertices.resize(max);
     }
-    vertices.push_back(x);
-    vertices.push_back(y);
-    tvertices.push_back(tx);
-    tvertices.push_back(ty);
+
+    int i = count*2;
+    vertices[i] = x;
+    tvertices[i] = tx;
+    i++;
+    vertices[i] = y;
+    tvertices[i] = ty;
     count++;
-    colors.resize(count * 4);
 }
 void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability) {
     types.push_back(BufferRangeType(start, count - start, type, enableCapability, textureId, alpha));

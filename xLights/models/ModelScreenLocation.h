@@ -31,7 +31,7 @@ public:
     
     virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) = 0;
     virtual void PrepareToDraw() const = 0;
-    virtual void TranslatePoint(double &x, double &y) const = 0;
+    virtual void TranslatePoint(float &x, float &y) const = 0;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const = 0;
     virtual bool HitTest(int x,int y) const = 0;
@@ -45,8 +45,8 @@ public:
     virtual bool IsCenterBased() const = 0;
     virtual float GetVScaleFactor() const {return 1.0;}
     
-    virtual void SetOffset(double xPct, double yPct) = 0;
-    virtual void AddOffset(double xPct, double yPct) = 0;
+    virtual void SetOffset(float xPct, float yPct) = 0;
+    virtual void AddOffset(float xPct, float yPct) = 0;
     
     virtual float GetHcenterOffset() const = 0;
     virtual float GetVcenterOffset() const = 0;
@@ -93,7 +93,7 @@ public:
     
     virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) override;
     virtual void PrepareToDraw() const override;
-    virtual void TranslatePoint(double &x, double &y) const override;
+    virtual void TranslatePoint(float &x, float &y) const override;
     
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(int x,int y) const override;
@@ -119,15 +119,15 @@ public:
         offsetYpct = f;
     }
 
-    virtual void SetOffset(double xPct, double yPct) override {
+    virtual void SetOffset(float xPct, float yPct) override {
         offsetXpct=xPct;
         offsetYpct=yPct;
     }
-    virtual void AddOffset(double xPct, double yPct) override {
+    virtual void AddOffset(float xPct, float yPct) override {
         offsetXpct+=xPct;
         offsetYpct+=yPct;
     }
-    void SetScale(double x, double y) {
+    void SetScale(float x, float y) {
         PreviewScaleX = x;
         PreviewScaleY = y;
         singleScale = false;
@@ -154,16 +154,16 @@ public:
     virtual void SetBottom(int i) override;
     
 private:
-    double offsetXpct,offsetYpct;
+    float offsetXpct,offsetYpct;
     bool singleScale;
-    double PreviewScaleX, PreviewScaleY;
+    float PreviewScaleX, PreviewScaleY;
     int PreviewRotation;
     
-    mutable double radians;
-    mutable double scalex;
-    mutable double scaley;
-    mutable double centerx;
-    mutable double centery;
+    mutable float radians;
+    mutable float scalex;
+    mutable float scaley;
+    mutable float centerx;
+    mutable float centery;
     
     int mMinScreenX;
     int mMinScreenY;
@@ -183,7 +183,7 @@ public:
     
     virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) override;
     virtual void PrepareToDraw() const override;
-    virtual void TranslatePoint(double &x, double &y) const override;
+    virtual void TranslatePoint(float &x, float &y) const override;
     
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(int x,int y) const override;
@@ -201,8 +201,8 @@ public:
     virtual void SetVcenterOffset(float f) override;
     virtual bool IsCenterBased() const override {return false;};
 
-    virtual void SetOffset(double xPct, double yPct) override;
-    virtual void AddOffset(double xPct, double yPct) override;
+    virtual void SetOffset(float xPct, float yPct) override;
+    virtual void AddOffset(float xPct, float yPct) override;
     virtual int GetTop() const override;
     virtual int GetLeft() const override;
     virtual int GetRight() const override;

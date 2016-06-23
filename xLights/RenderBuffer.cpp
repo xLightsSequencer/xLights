@@ -300,8 +300,18 @@ void TextDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
             style |= wxFONTFLAG_STRIKETHROUGH;
         }
 
-        wxGraphicsFont f = gc->CreateFont(font.GetPixelSize().y, font.GetFaceName(), style, color.asWxColor());
-        gc->SetFont(f);
+        if (style != fontStyle
+            || font.GetPixelSize().y != fontSize
+            || font.GetFaceName() != fontName
+            || color != fontColor) {
+            this->font = gc->CreateFont(font.GetPixelSize().y, font.GetFaceName(), style, color.asWxColor());
+            
+            fontStyle = style;
+            fontSize = font.GetPixelSize().y;
+            fontName = font.GetFaceName();
+            fontColor = color;
+        }
+        gc->SetFont(this->font);
     } else {
         wxFont f(font);
     #ifdef __WXMSW__
@@ -517,20 +527,19 @@ void RenderBuffer::SetRangeColor(const HSVValue& hsv1, const HSVValue& hsv2, HSV
 }
 
 // return a value between c1 and c2
-wxByte RenderBuffer::ChannelBlend(wxByte c1, wxByte c2, double ratio)
+uint8_t RenderBuffer::ChannelBlend(uint8_t c1, uint8_t c2, float ratio)
 {
     return c1 + floor(ratio*(c2-c1)+0.5);
 }
 
-void RenderBuffer::Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColor &color)
+void RenderBuffer::Get2ColorBlend(int coloridx1, int coloridx2, float ratio, xlColor &color)
 {
-    xlColor c1,c2;
-    palette.GetColor(coloridx1,c1);
-    palette.GetColor(coloridx2,c2);
+    const xlColor &c1 = palette.GetColor(coloridx1);
+    const xlColor &c2 = palette.GetColor(coloridx2);
     color.Set(ChannelBlend(c1.Red(),c2.Red(),ratio), ChannelBlend(c1.Green(),c2.Green(),ratio), ChannelBlend(c1.Blue(),c2.Blue(),ratio));
 }
 
-void RenderBuffer::Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, double ratio, xlColor &color)
+void RenderBuffer::Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, float ratio, xlColor &color)
 {
     color.Set(ChannelBlend(c1.Red(),c2.Red(),ratio), ChannelBlend(c1.Green(),c2.Green(),ratio), ChannelBlend(c1.Blue(),c2.Blue(),ratio));
 }
@@ -546,7 +555,7 @@ HSVValue RenderBuffer::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
     return rgb.asHSV();
 }
 // 0 <= n < 1
-void RenderBuffer::GetMultiColorBlend(double n, bool circular, xlColor &color)
+void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color)
 {
     size_t colorcnt=GetColorCount();
     if (colorcnt <= 1)
@@ -556,10 +565,10 @@ void RenderBuffer::GetMultiColorBlend(double n, bool circular, xlColor &color)
     }
     if (n >= 1.0) n=0.99999;
     if (n < 0.0) n=0.0;
-    double realidx=circular ? n*colorcnt : n*(colorcnt-1);
+    float realidx=circular ? n*colorcnt : n*(colorcnt-1);
     int coloridx1=floor(realidx);
     int coloridx2=(coloridx1+1) % colorcnt;
-    double ratio=realidx-double(coloridx1);
+    float ratio=realidx-float(coloridx1);
     Get2ColorBlend(coloridx1,coloridx2,ratio,color);
 }
 

@@ -52,7 +52,7 @@ void TreeModel::InitModel() {
     DisplayAs = "Tree";
 }
 
-inline double toRadians(float degrees) {
+static inline double toRadians(float degrees) {
     return 2.0*M_PI*double(degrees)/360.0;
 }
 // initialize screen coordinates for tree

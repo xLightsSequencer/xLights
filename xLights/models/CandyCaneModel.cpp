@@ -200,7 +200,7 @@ int CandyCaneModel::CalcCannelsPerString() {
     }
     return GetNodeChannelCount(StringType) * parm2;
 }
-inline double toRadians(float degrees) {
+static inline double toRadians(float degrees) {
     return 2.0*M_PI*double(degrees)/360.0;
 }
 

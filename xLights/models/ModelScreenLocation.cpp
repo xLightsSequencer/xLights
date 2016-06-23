@@ -11,22 +11,26 @@
 #define RECT_HANDLE_WIDTH           6
 #define BOUNDING_RECT_OFFSET        8
 
-static inline void TranslatePointDoubles(double radians,double x, double y,double &x1, double &y1) {
-    x1 = cos(radians)*x-(sin(radians)*y);
-    y1 = sin(radians)*x+(cos(radians)*y);
+static inline void TranslatePointDoubles(float radians,float x, float y,float &x1, float &y1) {
+    float s = sin(radians);
+    float c = cos(radians);
+    x1 = c*x-(s*y);
+    y1 = s*x+(c*y);
 }
-static inline void RotatePoint(double radians, float &x1, float &y1) {
+static inline void RotatePoint(float radians, float &x1, float &y1) {
     float x = x1;
     float y = y1;
-    x1 = cos(radians)*x-(sin(radians)*y);
-    y1 = sin(radians)*x+(cos(radians)*y);
+    float s = sin(radians);
+    float c = cos(radians);
+    x1 = c*x-(s*y);
+    y1 = s*x+(c*y);
 }
 
-inline double toRadians(long degrees) {
-    return 2.0*M_PI*double(degrees)/360.0;
+static inline float toRadians(long degrees) {
+    return 2.0*M_PI*float(degrees)/360.0f;
 }
 
-inline int toDegrees(double radians) {
+static inline int toDegrees(float radians) {
     return (radians/(2*M_PI))*360.0;
 }
 
@@ -113,8 +117,7 @@ void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
         PreviewScaleY = wxAtof(ModelNode->GetAttribute("PreviewScaleY", "0.3333"));
     } else {
         singleScale = true;
-        tempstr.ToDouble(&PreviewScaleX);
-        tempstr.ToDouble(&PreviewScaleY);
+        PreviewScaleX = PreviewScaleY = wxAtof(tempstr);
     }
     if(PreviewScaleX<0 || PreviewScaleX>1) {
         PreviewScaleX = .33;
@@ -143,7 +146,7 @@ void BoxedScreenLocation::Write(wxXmlNode *ModelXml) {
 }
 
 
-void BoxedScreenLocation::TranslatePoint(double &sx, double &sy) const {
+void BoxedScreenLocation::TranslatePoint(float &sx, float &sy) const {
     sx = (sx*scalex);
     sy = (sy*scaley);
     TranslatePointDoubles(radians,sx,sy,sx,sy);
@@ -209,10 +212,10 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
 
 void BoxedScreenLocation::PrepareToDraw() const {
     radians = toRadians(PreviewRotation);
-    scalex = (double)previewW / (double)RenderWi * PreviewScaleX;
-    scaley = (double)previewH / (double)RenderHt * PreviewScaleY;
-    centerx = int(offsetXpct*(double)previewW);
-    centery = int(offsetYpct*(double)previewH);
+    scalex = (float)previewW / (float)RenderWi * PreviewScaleX;
+    scaley = (float)previewH / (float)RenderHt * PreviewScaleY;
+    centerx = int(offsetXpct*(float)previewW);
+    centery = int(offsetYpct*(float)previewH);
 }
 
 void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) {
@@ -223,14 +226,14 @@ void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBas
         //we now have the virtual size so we can flip to non-single scale
         singleScale = false;
         if (RenderHt > RenderWi) {
-            PreviewScaleX = double(RenderWi) * double(previewH) / (double(previewW) * RenderHt) * PreviewScaleY;
+            PreviewScaleX = float(RenderWi) * float(previewH) / (float(previewW) * RenderHt) * PreviewScaleY;
         } else {
-            PreviewScaleY = double(RenderHt) * double(previewW) / (double(previewH) * RenderWi) * PreviewScaleX;
+            PreviewScaleY = float(RenderHt) * float(previewW) / (float(previewH) * RenderWi) * PreviewScaleX;
         }
     }
     PrepareToDraw();
 
-    double sx,sy;
+    float sx,sy;
     mMinScreenX = w;
     mMinScreenY = h;
     mMaxScreenX = 0;
@@ -272,11 +275,11 @@ void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBas
 void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     va.PreAlloc(6 * 5);
     
-    double w1 = centerx;
-    double h1 = centery;
+    float w1 = centerx;
+    float h1 = centery;
 
-    double sx =  (-RenderWi*scalex/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
-    double sy = (RenderHt*scaley/2) + BOUNDING_RECT_OFFSET;
+    float sx =  (-RenderWi*scalex/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+    float sy = (RenderHt*scaley/2) + BOUNDING_RECT_OFFSET;
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx = sx + w1;
     sy = sy + h1;
@@ -385,7 +388,7 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
         sy = mouseY-centery;
         //Calculate angle of mouse from center.
         float tan = (float)sx/(float)sy;
-        int angle = -toDegrees((double)atan(tan));
+        int angle = -toDegrees((float)atan(tan));
         if(sy>=0) {
             PreviewRotation = angle;
         } else if (sx<=0) {
@@ -398,14 +401,14 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
         }
     } else {
         // Get mouse point in model space/ not screen space
-        double sx,sy;
-        sx = double(mouseX)-centerx;
-        sy = double(mouseY)-centery;
-        double radians=-toRadians(PreviewRotation); // negative angle to reverse translation
+        float sx,sy;
+        sx = float(mouseX)-centerx;
+        sy = float(mouseY)-centery;
+        float radians=-toRadians(PreviewRotation); // negative angle to reverse translation
         TranslatePointDoubles(radians,sx,sy,sx,sy);
         sx = fabs(sx) - RECT_HANDLE_WIDTH;
         sy = fabs(sy) - RECT_HANDLE_WIDTH;
-        SetScale( (double)(sx*2.0)/double(previewW), (double)(sy*2.0)/double(previewH));
+        SetScale( (float)(sx*2.0)/float(previewW), (float)(sy*2.0)/float(previewH));
     }
     return 0;
 }
@@ -494,7 +497,7 @@ void TwoPointScreenLocation::PrepareToDraw() const {
     }
     matrix = new glm::mat3(mat3);
 }
-void TwoPointScreenLocation::TranslatePoint(double &x, double &y) const {
+void TwoPointScreenLocation::TranslatePoint(float &x, float &y) const {
     glm::vec3 v = *matrix * glm::vec3(x, y, 1);
     x = v.x;
     y = v.y;
@@ -703,7 +706,8 @@ void TwoPointScreenLocation::ProcessOldNode(wxXmlNode *old) {
     box.SetRenderSize(RenderWi, RenderHt);
     box.PrepareToDraw();
 
-    double sx = - float(RenderWi) / 2.0; double sy = 0;
+    float sx = - float(RenderWi) / 2.0;
+    float sy = 0;
     box.TranslatePoint(sx, sy);
     x1 = sx / (float)previewW;
     y1 = sy / (float)previewH;
@@ -740,7 +744,7 @@ void TwoPointScreenLocation::SetVcenterOffset(float f) {
     y2 -= diffy;
 }
 
-void TwoPointScreenLocation::SetOffset(double xPct, double yPct) {
+void TwoPointScreenLocation::SetOffset(float xPct, float yPct) {
     float diffx = (x1 + x2) / 2.0 - xPct;
     float diffy = (y1 + y2) / 2.0 - yPct;
 
@@ -749,7 +753,7 @@ void TwoPointScreenLocation::SetOffset(double xPct, double yPct) {
     x1 -= diffx;
     x2 -= diffx;
 }
-void TwoPointScreenLocation::AddOffset(double xPct, double yPct) {
+void TwoPointScreenLocation::AddOffset(float xPct, float yPct) {
     y1 += yPct;
     y2 += yPct;
     x1 += xPct;
@@ -1002,8 +1006,8 @@ void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
     box.SetRenderSize(RenderWi, RenderHt);
     box.PrepareToDraw();
 
-    double x1 = RenderWi / 2.0;
-    double y1 = RenderHt;
+    float x1 = RenderWi / 2.0;
+    float y1 = RenderHt;
     box.TranslatePoint(x1, y1);
 
     TwoPointScreenLocation::ProcessOldNode(old);

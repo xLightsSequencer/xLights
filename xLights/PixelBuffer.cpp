@@ -852,30 +852,18 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 
 void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
 {
-    const float PI_2 = 6.283185307f;
-    xlColor c;
-    RenderBuffer orig(layer->buffer);
-    int q = layer->zoomquality;
-    int cx = layer->pivotpointx;
-    if (layer->PivotPointXValueCurve.IsActive())
+    float zoom = layer->zoom;
+    if (layer->ZoomValueCurve.IsActive())
     {
-        cx = layer->PivotPointXValueCurve.GetOutputValueAt(offset);
+        zoom = layer->ZoomValueCurve.GetOutputValueAt(offset);
     }
-    int cy = layer->pivotpointy;
-    if (layer->PivotPointYValueCurve.IsActive())
-    {
-        cy = layer->PivotPointYValueCurve.GetOutputValueAt(offset);
-    }
-    float inc = 1.0 / (float)q;
-
     float rotations = layer->rotations;
+    float rotationoffset = offset;
+    float offsetperrotation = 1.0f;
     if (layer->RotationsValueCurve.IsActive())
     {
         rotations = layer->RotationsValueCurve.GetOutputValueAt(offset);
     }
-
-    float rotationoffset = offset;
-    float offsetperrotation = 1.0f;
     if (rotations > 0)
     {
         offsetperrotation = 1.0f / rotations;
@@ -885,7 +873,6 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
         rotationoffset -= offsetperrotation;
     }
     rotationoffset *= rotations;
-
     float rotation = (float)layer->rotation / 100.0;
     if (rotations > 0)
     {
@@ -894,20 +881,32 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
             rotation = layer->RotationValueCurve.GetValueAt(rotationoffset);
         }
     }
-    float angle = PI_2 * -rotation;
-    float xoff = (cx * layer->buffer.BufferWi) / 100.0;
-    float yoff = (cy * layer->BufferHt) / 100.0;
-    float anglecos = cos(-angle);
-    float anglesin = sin(-angle);
-
-    float zoom = layer->zoom;
-    if (layer->ZoomValueCurve.IsActive())
-    {
-        zoom = layer->ZoomValueCurve.GetOutputValueAt(offset);
-    }
 
     if (rotation != 0.0 || zoom != 1.0)
     {
+        static const float PI_2 = 6.283185307f;
+        xlColor c;
+        RenderBuffer orig(layer->buffer);
+        int q = layer->zoomquality;
+        int cx = layer->pivotpointx;
+        if (layer->PivotPointXValueCurve.IsActive())
+        {
+            cx = layer->PivotPointXValueCurve.GetOutputValueAt(offset);
+        }
+        int cy = layer->pivotpointy;
+        if (layer->PivotPointYValueCurve.IsActive())
+        {
+            cy = layer->PivotPointYValueCurve.GetOutputValueAt(offset);
+        }
+        float inc = 1.0 / (float)q;
+
+        float angle = PI_2 * -rotation;
+        float xoff = (cx * layer->buffer.BufferWi) / 100.0;
+        float yoff = (cy * layer->BufferHt) / 100.0;
+        float anglecos = cos(-angle);
+        float anglesin = sin(-angle);
+
+
         layer->buffer.Clear(xlBLACK);
         for (int x = 0; x < layer->BufferWi; x++)
         {
@@ -984,6 +983,8 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                 if (fadeInFactor<1) {
                     layers[ii]->fadeFactor = fadeInFactor;
                 }
+            } else {
+                layers[ii]->inMaskFactor = fadeInFactor;
             }
             if (STR_FADE == layers[ii]->outTransitionType) {
                 if (fadeOutFactor<1) {
@@ -994,11 +995,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                         layers[ii]->fadeFactor = fadeOutFactor;
                     }
                 }
-            }
-            if (STR_FADE != layers[ii]->inTransitionType) {
-                layers[ii]->inMaskFactor = fadeInFactor;
-            }
-            if (STR_FADE != layers[ii]->outTransitionType) {
+            } else {
                 layers[ii]->outMaskFactor = fadeOutFactor;
             }
             layers[ii]->calculateMask();

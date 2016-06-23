@@ -126,6 +126,11 @@ public:
     void GetTextExtent(const wxString &msg, double *width, double *height);
     
 private:
+    wxString fontName;
+    int fontStyle;
+    int fontSize;
+    xlColor fontColor;
+    wxGraphicsFont font;
 };
 
 class PaletteClass
@@ -152,6 +157,12 @@ public:
         return colorcnt;
     }
 
+    const xlColor &GetColor(size_t idx) const {
+        if (idx >= color.size()) {
+            return xlWHITE;
+        }
+        return color[idx];
+    }
     void GetColor(size_t idx, xlColor& c)
     {
         if (idx >= color.size())
@@ -234,10 +245,10 @@ public:
     double calcAccel(double ratio, double accel);
     double GetStepAngle(int width, int height);
 
-    wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);
-    void Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColor &color);
-    void Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, double ratio, xlColor &color);
-    void GetMultiColorBlend(double n, bool circular, xlColor &color);
+    uint8_t ChannelBlend(uint8_t c1, uint8_t c2, float ratio);
+    void Get2ColorBlend(int coloridx1, int coloridx2, float ratio, xlColor &color);
+    void Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, float ratio, xlColor &color);
+    void GetMultiColorBlend(float n, bool circular, xlColor &color);
     void SetRangeColor(const HSVValue& hsv1, const HSVValue& hsv2, HSVValue& newhsv);
     double RandomRange(double num1, double num2);
     void Color2HSV(const xlColor& color, HSVValue& hsv);

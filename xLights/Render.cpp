@@ -330,9 +330,9 @@ public:
     }
 
     virtual void Process() override {
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         SetGenericStatus("Initializing rendering thread for %s\n", 0);
-		logger_base.info("Initializing rendering thread.");
+		logger_base.debug("Initializing rendering thread.");
 		//printf("Starting rendering %lx (no next)\n", (unsigned long)this);
         int maxFrameBeforeCheck = -1;
         int origChangeCount;
@@ -366,15 +366,18 @@ public:
 
         int numLayers = rowToRender->GetEffectLayerCount();
         std::vector<Effect*> currentEffects(numLayers, nullptr);
+        std::vector<int> currentEffectIdxs(numLayers, 0);
         std::vector<SettingsMap> settingsMaps(numLayers);
         std::vector<bool> effectStates(numLayers);
         std::vector<bool> validLayers(numLayers);
         std::map<int, Effect*> strandEffects;
         std::map<int, SettingsMap> strandSettingsMaps;
         std::map<int, bool> strandEffectStates;
+        std::map<int, int> strandEffectidxs;
         std::map<SNPair, Effect*> nodeEffects;
         std::map<SNPair, SettingsMap> nodeSettingsMaps;
         std::map<SNPair, bool> nodeEffectStates;
+        std::map<SNPair, int> nodeEffectIdxs;
 
         if (clearAllFrames && mainBuffer != NULL) {
             mainBuffer->Clear(0);
@@ -383,7 +386,7 @@ public:
         try {
             for (int layer = 0; layer < numLayers; layer++) {
                 SetStatus(wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame));
-                currentEffects[layer] = findEffectForFrame(layer, startFrame);
+                currentEffects[layer] = findEffectForFrame(layer, startFrame, currentEffectIdxs[layer]);
                 SetStatus(wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, startFrame));
                 initialize(layer, startFrame, currentEffects[layer], settingsMaps[layer], mainBuffer);
                 effectStates[layer] = true;
@@ -407,7 +410,7 @@ public:
                 bool effectsToUpdate = false;
                 for (int layer = 0; layer < numLayers; layer++) {
                     SetGenericStatus("%s: Starting frame %d, layer %d\n", frame, layer);
-                    Effect *el = findEffectForFrame(layer, frame);
+                    Effect *el = findEffectForFrame(layer, frame, currentEffectIdxs[layer]);
                     if (el != currentEffects[layer]) {
                         currentEffects[layer] = el;
                         SetInializingStatus(frame, layer);
@@ -443,7 +446,7 @@ public:
 
                         PixelBufferClass *buffer = it->second.get();
                         StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
-                        Effect *el = findEffectForFrame(slayer, frame);
+                        Effect *el = findEffectForFrame(slayer, frame, strandEffectidxs[strand]);
                         if (el != strandEffects[strand] || frame == startFrame) {
                             strandEffects[strand] = el;
                             SetInializingStatus(frame, -1, strand);
@@ -486,7 +489,7 @@ public:
                             //deleted node
                             continue;
                         }
-                        Effect *el = findEffectForFrame(nlayer, frame);
+                        Effect *el = findEffectForFrame(nlayer, frame, nodeEffectIdxs[node]);
                         if (el != nodeEffects[node] || frame == startFrame) {
                             nodeEffects[node] = el;
                             SetInializingStatus(frame, -1, strand, inode);
@@ -540,7 +543,7 @@ public:
         }
         currentFrame = END_OF_RENDER_FRAME;
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
-		logger_base.info("Rendering thread exiting.");
+		logger_base.debug("Rendering thread exiting.");
 	}
 
 private:
@@ -569,9 +572,9 @@ private:
         buffer->SetPalette(layer, newcolors);
     }
 
-    Effect *findEffectForFrame(EffectLayer* layer, int frame) {
+    Effect *findEffectForFrame(EffectLayer* layer, int frame, int &lastIdx) {
         int time = frame * seqData->FrameTime();
-        for (int e = 0; e < layer->GetEffectCount(); e++) {
+        for (int e = lastIdx; e < layer->GetEffectCount(); e++) {
             Effect *effect = layer->GetEffect(e);
             int st = effect->GetStartTimeMS();
             int et = effect->GetEndTimeMS();
@@ -581,8 +584,8 @@ private:
         }
         return NULL;
     }
-    Effect *findEffectForFrame(int layer, int frame) {
-        return findEffectForFrame(rowToRender->GetEffectLayer(layer), frame);
+    Effect *findEffectForFrame(int layer, int frame, int &lastIdx) {
+        return findEffectForFrame(rowToRender->GetEffectLayer(layer), frame, lastIdx);
     }
     void loadSettingsMap(const std::string &effectName,
                          Effect *effect,
@@ -921,7 +924,6 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                        bool bgThread, RenderEvent *event) {
     bool retval=true;
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     buffer.SetLayer(layer, period, resetEffectState);
     resetEffectState = false;
     int eidx = -1;
@@ -947,7 +949,6 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 retval = event->returnVal;
             } else {
                 printf("HELP!!!!\n");
-				logger_base.info("HELP!!!!");
 			}
             if (period % 10 == 0) {
                 //constantly putting stuff on CallAfter can result in the main

@@ -19,17 +19,57 @@ namespace DrawGLUtils
     
     bool LoadGLFunctions();
     
-    class xlVertexAccumulator {
+    class xlVertexAccumulatorBase {
     public:
-        xlVertexAccumulator() : count(0) {}
-        ~xlVertexAccumulator() {}
-        
+        virtual void Reset() {count = 0;}
         void PreAlloc(unsigned int i) {
-            vertices.reserve(vertices.size() + i * 2);
+            if ((count + i) > max) {
+                DoRealloc(count + i);
+                max = count + i;
+            }
         };
+        
+        float *vertices;
+        unsigned int count;
+        unsigned int max;
+        
+    protected:
+        virtual void DoRealloc(int newMax) {
+            vertices = (float*)realloc(vertices, sizeof(float)*newMax*2);
+        }
+        xlVertexAccumulatorBase() : count(0), max(64) {
+            vertices = (float*)malloc(sizeof(float)*max*2);
+        }
+        xlVertexAccumulatorBase(unsigned int m) : count(0), max(m) {
+            vertices = (float*)malloc(sizeof(float)*max*2);
+        }
+
+        xlVertexAccumulatorBase(const xlVertexAccumulatorBase &mv) {
+            count = mv.count;
+            max = mv.max;
+            vertices = (float*)malloc(sizeof(float)*max*2);
+            memcpy(vertices, mv.vertices, count * sizeof(float) * 2);
+        }
+        xlVertexAccumulatorBase(xlVertexAccumulatorBase &&mv) {
+            vertices = mv.vertices;
+            mv.vertices = nullptr;
+            count = mv.count;
+            max = mv.max;
+        }
+        virtual ~xlVertexAccumulatorBase() {
+            if (vertices != nullptr) free(vertices);
+        }
+
+    };
+    class xlVertexAccumulator : public xlVertexAccumulatorBase {
+    public:
+        xlVertexAccumulator() : xlVertexAccumulatorBase() {}
+        
         void AddVertex(float x, float y) {
-            vertices.push_back(x);
-            vertices.push_back(y);
+            PreAlloc(1);
+            int i = count*2;
+            vertices[i++] = x;
+            vertices[i] = y;
             count++;
         }
         void AddLinesRect(float x1, float y1, float x2, float y2) {
@@ -52,28 +92,38 @@ namespace DrawGLUtils
             AddVertex(x2, y1);
             AddVertex(x1, y1);
         }
-        void Reset() {count = 0; vertices.clear();}
-        std::vector<float> vertices;
-        unsigned int count;
     };
-    class xlVertexColorAccumulator {
+    class xlVertexColorAccumulator : public xlVertexAccumulatorBase {
     public:
-        xlVertexColorAccumulator() : count(0) {}
-        virtual ~xlVertexColorAccumulator() {}
-        
-        virtual void Reset() {count = 0; vertices.clear(); colors.clear();}
-        void PreAlloc(unsigned int i) {
-            vertices.reserve(vertices.size() + i*2);
-            colors.reserve(colors.size() + i*4);
-        };
-        
+        xlVertexColorAccumulator() : xlVertexAccumulatorBase() {
+            colors = (uint8_t*)malloc(max*4);
+        }
+        xlVertexColorAccumulator(unsigned int m) : xlVertexAccumulatorBase(m) {
+            colors = (uint8_t*)malloc(max*4);
+        }
+        xlVertexColorAccumulator(xlVertexColorAccumulator &&mv) : xlVertexAccumulatorBase(mv) {
+            colors = mv.colors;
+            mv.colors = nullptr;
+        }
+        xlVertexColorAccumulator(const xlVertexColorAccumulator &mv) : xlVertexAccumulatorBase(mv) {
+            colors = (uint8_t*)malloc(max*4);
+            memcpy(colors, mv.colors, count * 4);
+        }
+
+        virtual ~xlVertexColorAccumulator() {
+            free(colors);
+        }
+    
         void AddVertex(float x, float y, const xlColor &c) {
-            vertices.push_back(x);
-            vertices.push_back(y);
-            colors.push_back(c.Red());
-            colors.push_back(c.Green());
-            colors.push_back(c.Blue());
-            colors.push_back(c.Alpha());
+            PreAlloc(1);
+            int i = count*2;
+            vertices[i++] = x;
+            vertices[i] = y;
+            i = count*4;
+            colors[i++] = c.Red();
+            colors[i++] = c.Green();
+            colors[i++] = c.Blue();
+            colors[i] = c.Alpha();
             count++;
         }
         void AddRect(float x1, float y1, float x2, float y2, const xlColor &c) {
@@ -102,25 +152,47 @@ namespace DrawGLUtils
         void AddTrianglesCircle(float x, float y, float radius, const xlColor &color);
         void AddTrianglesCircle(float x, float y, float radius, const xlColor &center, const xlColor &edge);
         
-        std::vector<float> vertices;
-        std::vector<uint8_t> colors;
-        unsigned int count;
+        uint8_t *colors;
+    protected:
+        virtual void DoRealloc(int newMax) {
+            xlVertexAccumulatorBase::DoRealloc(newMax);
+            colors = (uint8_t*)realloc(colors, newMax*4);
+        }
     };
     
-    class xlVertexTextureAccumulator {
+    class xlVertexTextureAccumulator : public xlVertexAccumulatorBase {
     public:
-        xlVertexTextureAccumulator() : id(0), count(0), alpha(255) {}
-        xlVertexTextureAccumulator(GLuint i) : id(i), count(0), alpha(255) {}
-        ~xlVertexTextureAccumulator() {}
+        xlVertexTextureAccumulator() : xlVertexAccumulatorBase(), id(0), alpha(255) {
+            tvertices = (float*)malloc(sizeof(float)*max*2);
+        }
+        xlVertexTextureAccumulator(GLuint i) : xlVertexAccumulatorBase(), id(i), alpha(255) {
+            tvertices = (float*)malloc(sizeof(float)*max*2);
+        }
+        xlVertexTextureAccumulator(xlVertexTextureAccumulator &&mv) : xlVertexAccumulatorBase(mv) {
+            tvertices = mv.tvertices;
+            mv.tvertices = nullptr;
+            id = mv.id;
+            alpha = mv.alpha;
+        }
+        xlVertexTextureAccumulator(const xlVertexTextureAccumulator &mv) : xlVertexAccumulatorBase(mv) {
+            id = mv.id;
+            alpha = mv.alpha;
+            tvertices = (float*)malloc(sizeof(float)*max*2);
+            memcpy(tvertices, mv.tvertices, count * sizeof(float) * 2);
+        }
+
+        virtual ~xlVertexTextureAccumulator() {
+            free(tvertices);
+        }
         
-        void PreAlloc(unsigned int i) {
-            vertices.reserve(vertices.size() + i*2);
-            tvertices.reserve(tvertices.size() + i*2);
-        };
-        void Reset() {count = 0; vertices.clear(); tvertices.clear();}
         void AddVertex(float x, float y, float tx, float ty) {
-            vertices.push_back(x); vertices.push_back(y);
-            tvertices.push_back(tx); tvertices.push_back(ty);
+            PreAlloc(1);
+            int i = count*2;
+            vertices[i] = x;
+            tvertices[i] = tx;
+            i++;
+            vertices[i] = y;
+            tvertices[i] = ty;
             count++;
         }
         void AddFullTexture(float x, float y, float x2, float y2) {
@@ -133,10 +205,13 @@ namespace DrawGLUtils
             AddVertex(x, y, 0, 0);
         }
         GLuint id;
-        unsigned int count;
         uint8_t alpha;
-        std::vector<float> vertices;
-        std::vector<float> tvertices;
+        float *tvertices;
+    protected:
+        virtual void DoRealloc(int newMax) {
+            xlVertexAccumulatorBase::DoRealloc(newMax);
+            tvertices = (float*)realloc(tvertices, sizeof(float)*newMax*2);
+        }
     };
     class xlVertexTextAccumulator {
     public:
@@ -161,6 +236,7 @@ namespace DrawGLUtils
     class xlAccumulator : public xlVertexColorAccumulator {
     public:
         xlAccumulator() : xlVertexColorAccumulator() { start = 0;}
+        xlAccumulator(unsigned int max) : xlVertexColorAccumulator(max) { start = 0;}
         virtual ~xlAccumulator() {}
         virtual void Reset() {
             xlVertexColorAccumulator::Reset();
@@ -174,7 +250,7 @@ namespace DrawGLUtils
         
         void PreAllocTexture(int i) {
             PreAlloc(i);
-            tvertices.reserve(vertices.size());
+            tvertices.reserve(max * 2);
         }
         void AddTextureVertex(float x, float y, float tx, float ty);
         void FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability = 0);

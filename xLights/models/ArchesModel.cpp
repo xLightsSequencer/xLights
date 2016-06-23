@@ -172,7 +172,7 @@ int ArchesModel::CalcCannelsPerString() {
     SingleChannel = false;
     return GetNodeChannelCount(StringType) * parm2;
 }
-inline double toRadians(long degrees) {
+static inline double toRadians(long degrees) {
     return 2.0*M_PI*double(degrees)/360.0;
 }
 

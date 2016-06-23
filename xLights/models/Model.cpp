@@ -939,11 +939,11 @@ void Model::AddOffset(double xPct, double yPct) {
 // parm1=Number of Strings/Arches/Canes
 // parm2=Pixels Per String/Arch/Cane
 void Model::SetLineCoord() {
-    double x,y;
+    float x,y;
     float idx=0;
     size_t NodeCount=GetNodeCount();
     int numlights=parm1*parm2;
-    double half=numlights/2;
+    float half=numlights/2;
     GetModelScreenLocation().SetRenderSize(numlights, numlights*2);
 
     for(size_t n=0; n<NodeCount; n++) {
@@ -1098,11 +1098,11 @@ void Model::InitRenderBufferNodes(const std::string &type,
             cnt++;
         }
     } else if (type == "Per Preview" || type == "Per Preview No Offset") {
-        double maxX = -1000000;
-        double minX = 1000000;
-        double maxY = -1000000;
-        double minY = 1000000;
-        double sx,sy;
+        float maxX = -1000000;
+        float minX = 1000000;
+        float maxY = -1000000;
+        float minY = 1000000;
+        float sx,sy;
         GetModelScreenLocation().PrepareToDraw();
 
         for (int x = firstNode; x < newNodes.size(); x++) {
@@ -1539,7 +1539,7 @@ wxCursor Model::InitializeLocation(int &handle, wxCoord x,wxCoord y) {
 
 static void ApplyTransparency(xlColor &color, int transparency) {
     if (transparency) {
-        double t = 100.0 - transparency;
+        float t = 100.0 - transparency;
         t *= 2.55;
         transparency = t;
         color.alpha = transparency > 255 ? 255 : (transparency < 0 ? 0 : transparency);
@@ -1550,7 +1550,7 @@ static void ApplyTransparency(xlColor &color, int transparency) {
 // used when preview is running
 void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, bool allowSelected) {
     size_t NodeCount=Nodes.size();
-    double sx,sy;
+    float sx,sy;
     xlColor color;
     if (c != NULL) {
         color = *c;
@@ -1656,11 +1656,11 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
 
         preview->GetSize(&w, &h);
 
-        double scaleX = double(w) * 0.95 / GetModelScreenLocation().RenderWi;
-        double scaleY = double(h) * 0.95 / GetModelScreenLocation().RenderHt;
-        double scale=scaleY < scaleX ? scaleY : scaleX;
+        float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
+        float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
+        float scale=scaleY < scaleX ? scaleY : scaleX;
 
-        double pointScale = scale;
+        float pointScale = scale;
         if (pointScale > 2.5) {
             pointScale = 2.5;
         }
@@ -1681,12 +1681,11 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
             vcount += it->get()->Coords.size();
         }
-        DrawGLUtils::xlAccumulator va;
         if (vcount > maxVertexCount) {
             maxVertexCount = vcount;
         }
-        va.PreAlloc(maxVertexCount);
-        double sx,sy;
+        DrawGLUtils::xlAccumulator va(maxVertexCount);
+        float sx,sy;
         int first = 0; int last = NodeCount;
         int buffFirst = -1; int buffLast = -1;
         bool left = true;
@@ -1737,7 +1736,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                         sy -= GetModelScreenLocation().RenderHt / 2.0;
                     }
                 }
-                double newsy = ((sy*scale)+(h/2));
+                float newsy = ((sy*scale)+(h/2));
 
 
                 if (lastPixelStyle != Nodes[n]->model->pixelStyle
