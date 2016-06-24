@@ -179,6 +179,11 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                     color = hsv;
                 }
             }
+            else
+            {
+                color.alpha = orig.alpha;
+            }
+
             color2.alpha = color.alpha;
             for (y=startY; y<=endY; y++) {
                 if (VertFade) {
