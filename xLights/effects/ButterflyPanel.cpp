@@ -3,17 +3,17 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(ButterflyPanel)
-#include <wx/bmpbuttn.h>
 #include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(ButterflyPanel)
@@ -27,7 +27,7 @@ const long ButterflyPanel::ID_VALUECURVE_Butterfly_Chunks = wxNewId();
 const long ButterflyPanel::IDD_TEXTCTRL_Butterfly_Chunks = wxNewId();
 const long ButterflyPanel::ID_BITMAPBUTTON_SLIDER_Butterfly_Chunks = wxNewId();
 const long ButterflyPanel::ID_SLIDER_Butterfly_Skip = wxNewId();
-const long ButterflyPanel::ID_VALUECURVE__Butterfly_Skip = wxNewId();
+const long ButterflyPanel::ID_VALUECURVE_Butterfly_Skip = wxNewId();
 const long ButterflyPanel::IDD_TEXTCTRL_Butterfly_Skip = wxNewId();
 const long ButterflyPanel::ID_BITMAPBUTTON15 = wxNewId();
 const long ButterflyPanel::ID_SLIDER_Butterfly_Speed = wxNewId();
@@ -46,32 +46,32 @@ END_EVENT_TABLE()
 ButterflyPanel::ButterflyPanel(wxWindow* parent)
 {
 	//(*Initialize(ButterflyPanel)
-	wxBitmapButton* BitmapButton8;
-	wxBitmapButton* BitmapButton_ButterflySkip;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxStaticText* StaticText175;
-	wxSlider* Slider8;
-	wxStaticText* StaticText28;
-	wxBitmapButton* BitmapButton_ButterflyChunks;
-	wxBitmapButton* BitmapButton_ButterflyStyle;
-	wxTextCtrl* TextCtrl18;
 	wxChoice* Choice_Butterfly_Colors;
+	wxStaticText* StaticText175;
+	wxBitmapButton* BitmapButton_ButterflyStyle;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxTextCtrl* TextCtrl16;
+	wxStaticText* StaticText26;
+	wxSlider* Slider_Butterfly_Chunks;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxStaticText* StaticText58;
+	wxStaticText* StaticText27;
+	wxBitmapButton* BitmapButton8;
+	wxBitmapButton* BitmapButton1;
+	wxBitmapButton* BitmapButton_ButterflySkip;
+	wxTextCtrl* TextCtrl18;
+	wxTextCtrl* TextCtrl17;
+	wxBitmapButton* BitmapButton_ButterflyColors;
+	wxStaticText* StaticText28;
+	wxSlider* Slider8;
 	wxTextCtrl* TextCtrl25;
 	wxChoice* Choice_Butterfly_Direction;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxBitmapButton* BitmapButton_ButterflyColors;
-	wxSlider* Slider_Butterfly_Chunks;
-	wxTextCtrl* TextCtrl16;
-	wxStaticText* StaticText27;
-	wxSlider* Slider_Butterfly_Style;
-	wxStaticText* StaticText26;
 	wxFlexGridSizer* FlexGridSizer36;
-	wxSlider* Slider_Butterfly_Skip;
-	wxStaticText* StaticText58;
-	wxBitmapButton* BitmapButton1;
+	wxSlider* Slider_Butterfly_Style;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxStaticText* StaticText25;
-	wxTextCtrl* TextCtrl17;
+	wxBitmapButton* BitmapButton_ButterflyChunks;
+	wxSlider* Slider_Butterfly_Skip;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer36 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -120,7 +120,7 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	FlexGridSizer2->AddGrowableCol(0);
 	Slider_Butterfly_Skip = new wxSlider(this, ID_SLIDER_Butterfly_Skip, 2, 2, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Butterfly_Skip"));
 	FlexGridSizer2->Add(Slider_Butterfly_Skip, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Butterfly_Skip = new ValueCurveButton(this, ID_VALUECURVE__Butterfly_Skip, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE__Butterfly_Skip"));
+	BitmapButton_Butterfly_Skip = new ValueCurveButton(this, ID_VALUECURVE_Butterfly_Skip, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Butterfly_Skip"));
 	FlexGridSizer2->Add(BitmapButton_Butterfly_Skip, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer36->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	TextCtrl18 = new wxTextCtrl(this, IDD_TEXTCTRL_Butterfly_Skip, _("2"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Butterfly_Skip"));
@@ -169,7 +169,7 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	Connect(IDD_TEXTCTRL_Butterfly_Chunks,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Butterfly_Chunks,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButterflyPanel::OnLockButtonClick);
 	Connect(ID_SLIDER_Butterfly_Skip,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedTextCtrlVC);
-	Connect(ID_VALUECURVE__Butterfly_Skip,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButterflyPanel::OnVCButtonClick);
+	Connect(ID_VALUECURVE_Butterfly_Skip,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButterflyPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Butterfly_Skip,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON15,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButterflyPanel::OnLockButtonClick);
 	Connect(ID_SLIDER_Butterfly_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ButterflyPanel::UpdateLinkedTextCtrlVC);

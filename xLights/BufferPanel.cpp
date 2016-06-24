@@ -431,7 +431,7 @@ wxString BufferPanel::GetBufferString() {
     if (BitmapButton_Blur->GetValue()->IsActive())
     {
         wxString blurVC = wxString(BitmapButton_Blur->GetValue()->Serialise().c_str());
-        if (blurVC.size() > 0)
+        //if (blurVC.size() > 0)
         {
             s += "B_VALUECURVE_Blur=";
             s += blurVC;
@@ -448,7 +448,7 @@ wxString BufferPanel::GetBufferString() {
     if (BitmapButton_VCRotation->GetValue()->IsActive())
     {
         wxString rotationVC = wxString(BitmapButton_VCRotation->GetValue()->Serialise().c_str());
-        if (rotationVC.size() > 0)
+        //if (rotationVC.size() > 0)
         {
             s += "B_VALUECURVE_Rotation=";
             s += rotationVC;
@@ -464,7 +464,7 @@ wxString BufferPanel::GetBufferString() {
     if (BitmapButton_VCZoom->GetValue()->IsActive())
     {
         wxString zoomVC = wxString(BitmapButton_VCZoom->GetValue()->Serialise().c_str());
-        if (zoomVC.size() > 0)
+        //if (zoomVC.size() > 0)
         {
             s += "B_VALUECURVE_Zoom=";
             s += zoomVC;
@@ -480,7 +480,7 @@ wxString BufferPanel::GetBufferString() {
     if (BitmapButton_VCRotations->GetValue()->IsActive())
     {
         wxString rotationsVC = wxString(BitmapButton_VCRotations->GetValue()->Serialise().c_str());
-        if (rotationsVC.size() > 0)
+        //if (rotationsVC.size() > 0)
         {
             s += "B_VALUECURVE_Rotations=";
             s += rotationsVC;
@@ -499,7 +499,7 @@ wxString BufferPanel::GetBufferString() {
     if (BitmapButton_VCPivotPointX->GetValue()->IsActive())
     {
         wxString pivotpointxVC = wxString(BitmapButton_VCPivotPointX->GetValue()->Serialise().c_str());
-        if (pivotpointxVC.size() > 0)
+        //if (pivotpointxVC.size() > 0)
         {
             s += "B_VALUECURVE_PivotPointX=";
             s += pivotpointxVC;
@@ -515,7 +515,7 @@ wxString BufferPanel::GetBufferString() {
     if (BitmapButton_VCPivotPointY->GetValue()->IsActive())
     {
         wxString pivotpointyVC = wxString(BitmapButton_VCPivotPointY->GetValue()->Serialise().c_str());
-        if (pivotpointyVC.size() > 0)
+        //if (pivotpointyVC.size() > 0)
         {
             s += "B_VALUECURVE_PivotPointY=";
             s += pivotpointyVC;

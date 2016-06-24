@@ -300,7 +300,7 @@ wxString ColorPanel::GetColorString()
     if (BitmapButton_VCBrightness->GetValue()->IsActive())
     {
         wxString brightnessVC = wxString(BitmapButton_VCBrightness->GetValue()->Serialise().c_str());
-        if (brightnessVC.size() > 0)
+        //if (brightnessVC.size() > 0)
         {
             s += "C_VALUECURVE_Brightness=";
             s += brightnessVC;

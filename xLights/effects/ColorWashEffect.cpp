@@ -62,13 +62,14 @@ void ColorWashEffect::SetDefaultParameters(Model *cls) {
 std::string ColorWashEffect::GetEffectString() {
     ColorWashPanel *p = (ColorWashPanel*)panel;
     std::stringstream ret;
-    if (p->BitmapButton_ColorWash_CyclesVC->GetValue()->IsActive())
+    //if (p->BitmapButton_ColorWash_CyclesVC->GetValue()->IsActive())
     {
         ret << "E_VALUECURVE_ColorWash_Cycles=";
         ret << p->BitmapButton_ColorWash_CyclesVC->GetValue()->Serialise();
         ret << ",";
     }
-    else if (10 != p->SliderCycles->GetValue()) {
+    
+    if (10 != p->SliderCycles->GetValue()) {
         ret << "E_TEXTCTRL_ColorWash_Cycles=";
         ret << p->CyclesTextCtrl->GetValue();
         ret << ",";

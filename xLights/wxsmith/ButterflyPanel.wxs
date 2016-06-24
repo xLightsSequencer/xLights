@@ -171,7 +171,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE__Butterfly_Skip" subclass="ValueCurveButton" variable="BitmapButton_Butterfly_Skip" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Butterfly_Skip" subclass="ValueCurveButton" variable="BitmapButton_Butterfly_Skip" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />

@@ -185,7 +185,7 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
         else if (ChildName.StartsWith("ID_VALUECURVE"))
         {
             ValueCurveButton* ctrl = (ValueCurveButton*)ChildWin;
-            if (ctrl->GetValue()->IsActive())
+            //if (ctrl->GetValue()->IsActive())
             {
                 s += AttrName + "=" + ctrl->GetValue()->Serialise() + ",";
             }
