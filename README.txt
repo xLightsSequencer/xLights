@@ -8,22 +8,25 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-2016.x38  Jun 21, 2016
+2016.38  Jun 24, 2016
+   -- bug (gil) Make sure new previews are added to the model groups preview combo box.
+   -- bug (gil) Remove items from View menu when a preview is deleted.
    -- bug (chrisD) Don't crash when loading perspectives menu if current perspective not defined
    -- bug (chrisD) Update default perspective if it is renamed
    -- bug (chrisD) Reload default perspective on show directory change - fixes issue #601
-   -- enh (dkulp) Collect the data for ALL the models on a preview and send it to the video card in one shot.
-   -- enh (dkulp) Add texture support to xlAccumulator
-   -- enh (dkulp) Update ModelPreview to pass the background int the accumulator and transfer all data in one shot
-   -- enh (dkulp) Update Wave to pass all data in one shot
-   -- enh (dkulp) Fix warnings if background image doesn't exist
-   -- bug (dkulp) Fix crash on mac when swithing show directories.   
-   -- enh (dkulp) Radio menu items have to be removed top down on Mac
+   -- bug (keithsw) Fix matrix faces not able to be changed to scaled. It always resets to centred.
+   -- bug (keithsw) For text effect with no movement ... x start slider was being ignored. Fixed.
+   -- bug (keithsw) Fix vertical fade on colorwash effect. It only worked if horizontal fade was also selected.
+   -- bug (dkulp) Check the file extension based on the lowercase version of the extension, so *.lms and *.LMS both work
+   -- enh (gil) NEW: Multiple Previews
    -- bug (gil) Fix SuperStar import for Scenes to account for scaling changes to the Pictures effect.
-   -- enh (gil) Add option to show/hide all previews in View menu.
-   -- enh (gil) Save preview pane positions.
-   -- enh (gil) Allow each preview to have it's own Fill and Brightness settings.
-   -- enh (gil) Don't process model groups twice for House Preview.
+   -- bug (chrisD) Don't crash when loading perspectives menu if current perspective not defined
+   -- bug (chrisD) Update default perspective if it is renamed
+   -- bug (chrisD) Reload default perspective on show directory change - fixes issue #601
+   -- enh (dkulp) Optimizations for OpenGL for WaveView and model/house previews to pass all vertices/colors/textures in one shot
+                          (helps performance, particularly when multiple previews are shown)
+   -- enh (dkulp) Fix warnings/crash if background image doesn't exist
+   -- bug (dkulp) Fix crash on mac when swithing show directories.   
    -- bug (keithsw) Fix circles effect not changing colour.
    -- bug (keithsw) Fix #589 - guard against nulll ptr
    -- enh (keithsw) Implement alternate backup F11 allows the user to specify an alternate backup location and 
