@@ -163,7 +163,8 @@ class RenderJob: public Job, public NextRenderer {
 public:
     RenderJob(Element *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false, bool clear = false)
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), deleteWhenComplete(false),
-            gauge(nullptr), currentFrame(0) {
+            gauge(nullptr), currentFrame(0), renderLog(log4cpp::Category::getInstance(std::string("log_render")))
+    {
         if (row != NULL) {
             name = row->GetName();
             mainBuffer = new PixelBufferClass(xframe, false);
@@ -219,92 +220,70 @@ public:
     void SetDeleteWhenComplete() {
         deleteWhenComplete = true;
     }
-    wxString StripNewLine(const wxString& s)
-    {
-        if (s.EndsWith("\n"))
-        {
-            return s.Left(s.size() - 1);
+    void LogToLogger(int logLevel) {
+        if (renderLog.isPriorityEnabled(logLevel)) {
+            renderLog.log(logLevel, (const char *)GetwxStatus().c_str());
         }
-
-        return s;
     }
-    void SetGenericStatus(const wxString &msg, int frame, bool log = true) {
+    void SetGenericStatus(const wxString &msg, int frame, bool debugLog = false) {
         statusType = 4;
         statusMsg = msg;
         statusFrame = frame;
-        if (log)
-        {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.debug((const char *)StripNewLine(GetwxStatus()).c_str());
-        }
+        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    void SetGenericStatus(const char *msg, int frame, bool log = true) {
+    void SetGenericStatus(const char *msg, int frame, bool debugLog = false) {
         statusType = 6;
         statusMsgChars = msg;
         statusFrame = frame;
-        if (log)
-        {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.debug((const char *)StripNewLine(GetwxStatus()).c_str());
-        }
+        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    void SetGenericStatus(const wxString &msg, int frame, int layer, bool log = true) {
+    void SetGenericStatus(const wxString &msg, int frame, int layer, bool debugLog = false) {
         statusType = 5;
         statusMsg = msg;
         statusFrame = frame;
         statusLayer = layer;
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug((const char *)StripNewLine(GetwxStatus()).c_str());
+        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    void SetGenericStatus(const char *msg, int frame, int layer, bool log = true) {
+    void SetGenericStatus(const char *msg, int frame, int layer, bool debugLog = false) {
         statusType = 7;
         statusMsgChars = msg;
         statusFrame = frame;
         statusLayer = layer;
-        if (log)
-        {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.debug((const char *)StripNewLine(GetwxStatus()).c_str());
-        }
+        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    void SetRenderingStatus(int frame, SettingsMap*map, int layer, int strand = -1, int node = -1) {
+    void SetRenderingStatus(int frame, SettingsMap*map, int layer, int strand, int node, bool debugLog = false) {
         statusType = 2;
         statusFrame = frame;
         statusLayer = layer;
         statusStrand = strand;
         statusNode = node;
         statusMap = map;
+        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    void SetCalOutputStatus(int frame, int strand = -1, int node = -1) {
+    void SetCalOutputStatus(int frame, int strand = -1, int node = -1, bool debugLog = true) {
         statusType = 3;
         statusFrame = frame;
         statusStrand = strand;
         statusNode = node;
+        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    void SetInializingStatus(int frame, int layer, int strand = -1, int node = -1) {
+    void SetInializingStatus(int frame, int layer, int strand = -1, int node = -1, bool debugLog = false) {
         statusType = 1;
         statusFrame = frame;
         statusLayer = layer;
         statusStrand = strand;
         statusNode = node;
+        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    void SetStatus(const wxString &st, bool log = true) {
+    void SetStatus(const wxString &st, bool debugLog = false) {
         statusMsg = st;
         statusType = 0;
-        if (log)
-        {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.debug((const char *)StripNewLine(GetwxStatus()).c_str());
-        }
+        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    void SetStatus(const char *st, bool log = true) {
+    void SetStatus(const char *st, bool debugLog = false) {
         statusMsgChars = st;
         statusType = 8;
-        if (log)
-        {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.debug((const char *)StripNewLine(GetwxStatus()).c_str());
-        }
+        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
     std::string GetStatus() override {
         return GetwxStatus().ToStdString();
@@ -315,27 +294,27 @@ public:
             return statusMsg;
         case 1:
             if (statusStrand == -1) {
-                return wxString::Format("Initializing effect at frame %d for %s, layer %d.\n    ", statusFrame, name, statusLayer);
+                return wxString::Format("Initializing effect at frame %d for %s, layer %d.", statusFrame, name, statusLayer);
             } else if (statusNode == -1) {
-                return wxString::Format("Initializing strand effect at frame %d for %s, strand %d.\n    ", statusFrame, name, statusStrand);
+                return wxString::Format("Initializing strand effect at frame %d for %s, strand %d.", statusFrame, name, statusStrand);
             } else {
-                return wxString::Format("Initializing node effect at frame %d for %s, strand %d, node %d.\n    ", statusFrame, name, statusStrand, statusNode);
+                return wxString::Format("Initializing node effect at frame %d for %s, strand %d, node %d.", statusFrame, name, statusStrand, statusNode);
             }
         case 2:
             if (statusStrand == -1) {
-                return wxString::Format("Rendering layer effect for frame %d of %s, layer %d.\n    ", statusFrame, name, statusLayer) + statusMap->AsString();
+                return wxString::Format("Rendering layer effect for frame %d of %s, layer %d.", statusFrame, name, statusLayer) + statusMap->AsString();
             } else if (statusNode == -1) {
-                return wxString::Format("Rendering strand effect for frame %d of %s, strand %d.\n    ", statusFrame, name, statusStrand) + statusMap->AsString();
+                return wxString::Format("Rendering strand effect for frame %d of %s, strand %d.", statusFrame, name, statusStrand) + statusMap->AsString();
             } else {
-                return wxString::Format("Rendering node effect for frame %d of %s, strand %d, node %d.\n    ", statusFrame, name, statusLayer, statusNode) + statusMap->AsString();
+                return wxString::Format("Rendering node effect for frame %d of %s, strand %d, node %d.", statusFrame, name, statusLayer, statusNode) + statusMap->AsString();
             }
         case 3:
             if (statusStrand == -1) {
-                return wxString::Format("Calculating output at frame %d for %s.\n    ", statusFrame, name);
+                return wxString::Format("Calculating output at frame %d for %s.", statusFrame, name);
             } else if (statusNode == -1) {
-                return wxString::Format("Calculating output at frame %d for %s, strand %d.\n    ", statusFrame, name, statusStrand);
+                return wxString::Format("Calculating output at frame %d for %s, strand %d.", statusFrame, name, statusStrand);
             } else {
-                return wxString::Format("Calculating output at frame %d for %s, strand %d, node %d.\n    ", statusFrame, name, statusStrand, statusNode);
+                return wxString::Format("Calculating output at frame %d for %s, strand %d, node %d.", statusFrame, name, statusStrand, statusNode);
             }
         case 4:
             return wxString::Format(statusMsg, name, statusFrame);
@@ -366,9 +345,7 @@ public:
     }
 
     virtual void Process() override {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        SetGenericStatus("Initializing rendering thread for %s\n", 0);
-		//printf("Starting rendering %lx (no next)\n", (unsigned long)this);
+        SetGenericStatus("Initializing rendering thread for %s", 0);
         int maxFrameBeforeCheck = -1;
         int origChangeCount;
         int ss, es;
@@ -376,7 +353,7 @@ public:
         rowToRender->IncWaitCount();
         std::unique_lock<std::recursive_mutex> lock(rowToRender->GetRenderLock());
         rowToRender->DecWaitCount();
-        SetGenericStatus("Got lock on rendering thread for %s\n", 0);
+        SetGenericStatus("Got lock on rendering thread for %s", 0);
 
         rowToRender->GetAndResetDirtyRange(origChangeCount, ss, es);
         if (ss != -1) {
@@ -431,7 +408,7 @@ public:
 
             for (int frame = startFrame; frame < endFrame; frame++) {
                 currentFrame = frame;
-                SetGenericStatus("%s: Starting frame %d\n", frame, false);
+                SetGenericStatus("%s: Starting frame %d", frame, true);
 
                 if (HasNext() &&
                         (origChangeCount != rowToRender->getChangeCount()
@@ -446,7 +423,7 @@ public:
                 }
                 bool effectsToUpdate = false;
                 for (int layer = 0; layer < numLayers; layer++) {
-                    SetGenericStatus("%s: Starting frame %d, layer %d\n", frame, layer, false);
+                    SetGenericStatus("%s: Starting frame %d, layer %d", frame, layer, true);
                     Effect *el = findEffectForFrame(layer, frame, currentEffectIdxs[layer]);
                     if (el != currentEffects[layer]) {
                         currentEffects[layer] = el;
@@ -458,7 +435,7 @@ public:
                     if (!persist || currentEffects[layer] == nullptr || currentEffects[layer]->GetEffectIndex() == -1) {
                         mainBuffer->Clear(layer);
                     }
-                    SetRenderingStatus(frame, &settingsMaps[layer], layer);
+                    SetRenderingStatus(frame, &settingsMaps[layer], layer, -1, -1, true);
                     bool b = effectStates[layer];
                     validLayers[layer] = xLights->RenderEffectFromMap(el, layer, frame, settingsMaps[layer], *mainBuffer, b, true, &renderEvent);
                     effectStates[layer] = b;
@@ -494,7 +471,7 @@ public:
                         if (!persist || strandEffects[strand] == nullptr || strandEffects[strand]->GetEffectIndex() == -1) {
                             buffer->Clear(0);
                         }
-                        SetRenderingStatus(frame, &strandSettingsMaps[strand], -1, strand);
+                        SetRenderingStatus(frame, &strandSettingsMaps[strand], -1, strand, -1, true);
 
                         if (xLights->RenderEffectFromMap(el, 0, frame, strandSettingsMaps[strand], *buffer, strandEffectStates[strand], true, &renderEvent)) {
                             //copy to output
@@ -538,7 +515,7 @@ public:
                             buffer->Clear(0);
                         }
 
-                        SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, strand, inode);
+                        SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, strand, inode, true);
                         if (xLights->RenderEffectFromMap(el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
                             SetCalOutputStatus(frame, strand, inode);
                             //copy to output
@@ -554,25 +531,25 @@ public:
                     }
                 }
                 if (HasNext()) {
-                    SetGenericStatus("%s: Notifying next renderer of frame %d done\n", frame);
+                    SetGenericStatus("%s: Notifying next renderer of frame %d done", frame);
                     FrameDone(frame);
                 }
             }
         } catch ( std::exception &ex) {
-            printf("Caught an exception %s\n", ex.what());
-			logger_base.error("Caught an exception on rendering thread: " + std::string(ex.what()));
+            printf("Caught an exception %s", ex.what());
+			renderLog.error("Caught an exception on rendering thread: " + std::string(ex.what()));
 		} catch ( ... ) {
-            printf("Caught an unknown exception\n");
-			logger_base.error("Caught an unknown exception on rendering thread.");
+            printf("Caught an unknown exception");
+			renderLog.error("Caught an unknown exception on rendering thread.");
 		}
         if (HasNext()) {
             //make sure the previous has told us we're at the end.  If we return before waiting, the previous
             //may try sending the END_OF_RENDER_FRAME to us and we'll have been deleted
-            SetGenericStatus("%s: Waiting on previous renderer for final frame\n", 0);
+            SetGenericStatus("%s: Waiting on previous renderer for final frame", 0);
             waitForFrame(END_OF_RENDER_FRAME);
 
             //let the next know we're done
-            SetGenericStatus("%s: Notifying next renderer of final frame\n", 0);
+            SetGenericStatus("%s: Notifying next renderer of final frame", 0);
             FrameDone(END_OF_RENDER_FRAME);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()), 0);
         } else {
@@ -580,7 +557,7 @@ public:
         }
         currentFrame = END_OF_RENDER_FRAME;
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
-		logger_base.debug("Rendering thread exiting.");
+		renderLog.debug("Rendering thread exiting.");
 	}
 
 private:
@@ -652,7 +629,8 @@ private:
     volatile int statusLayer;
     volatile int statusStrand;
     volatile int statusNode;
-
+    log4cpp::Category &renderLog;
+    
     wxGauge *gauge;
     int currentFrame;
 
