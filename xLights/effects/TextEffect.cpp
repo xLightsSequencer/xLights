@@ -755,7 +755,8 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
                 break; // left-to-right, wavey up-down 1/2 height (too bouncy if full height is used), slow down up/down motion (too fast unless scaled)
             case TEXTDIR_NONE: //fall thru to default
             default:
-                rect.Offset(0, OffsetTop);
+                //rect.Offset(0, OffsetTop);
+                rect.Offset(OffsetLeft, OffsetTop);
                 break; // static
         }
         DrawLabel(dc, msg,rect,wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
