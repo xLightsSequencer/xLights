@@ -47,17 +47,17 @@ const long ValueCurveDialog::ID_STATICTEXT3 = wxNewId();
 const long ValueCurveDialog::ID_STATICTEXT4 = wxNewId();
 const long ValueCurveDialog::ID_CHOICE1 = wxNewId();
 const long ValueCurveDialog::ID_STATICTEXT1 = wxNewId();
-const long ValueCurveDialog::IDD_SLIDER_Parameter1 = wxNewId();
-const long ValueCurveDialog::ID_TEXTCTRL_Parameter1 = wxNewId();
+const long ValueCurveDialog::ID_SLIDER_Parameter1 = wxNewId();
+const long ValueCurveDialog::IDD_TEXTCTRL_Parameter1 = wxNewId();
 const long ValueCurveDialog::ID_STATICTEXT2 = wxNewId();
-const long ValueCurveDialog::IDD_SLIDER_Parameter2 = wxNewId();
-const long ValueCurveDialog::ID_TEXTCTRL_Parameter2 = wxNewId();
+const long ValueCurveDialog::ID_SLIDER_Parameter2 = wxNewId();
+const long ValueCurveDialog::IDD_TEXTCTRL_Parameter2 = wxNewId();
 const long ValueCurveDialog::ID_STATICTEXT5 = wxNewId();
-const long ValueCurveDialog::IDD_SLIDER_Parameter3 = wxNewId();
-const long ValueCurveDialog::ID_TEXTCTRL_Parameter3 = wxNewId();
+const long ValueCurveDialog::ID_SLIDER_Parameter3 = wxNewId();
+const long ValueCurveDialog::IDD_TEXTCTRL_Parameter3 = wxNewId();
 const long ValueCurveDialog::ID_STATICTEXT6 = wxNewId();
 const long ValueCurveDialog::ID_SLIDER_Parameter4 = wxNewId();
-const long ValueCurveDialog::ID_TEXTCTRL_Parameter4 = wxNewId();
+const long ValueCurveDialog::IDD_TEXTCTRL_Parameter4 = wxNewId();
 const long ValueCurveDialog::ID_CHECKBOX_WrapValues = wxNewId();
 const long ValueCurveDialog::ID_BUTTON1 = wxNewId();
 const long ValueCurveDialog::ID_BUTTON2 = wxNewId();
@@ -71,23 +71,6 @@ END_EVENT_TABLE()
 ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _vc = vc;
-
-    __p1 = 0;
-    __p2 = 0;
-    __p3 = 0;
-    __p4 = 0;
-    wxIntegerValidator<int> _p1validator(&__p1, wxNUM_VAL_THOUSANDS_SEPARATOR);
-    _p1validator.SetMin(0);
-    _p1validator.SetMax(100);
-    wxIntegerValidator<int> _p2validator(&__p2, wxNUM_VAL_THOUSANDS_SEPARATOR);
-    _p2validator.SetMin(0);
-    _p2validator.SetMax(100);
-    wxIntegerValidator<int> _p3validator(&__p3, wxNUM_VAL_THOUSANDS_SEPARATOR);
-    _p3validator.SetMin(0);
-    _p3validator.SetMax(100);
-    wxIntegerValidator<int> _p4validator(&__p4, wxNUM_VAL_THOUSANDS_SEPARATOR);
-    _p4validator.SetMin(0);
-    _p4validator.SetMax(100);
 
     //(*Initialize(ValueCurveDialog)
     wxFlexGridSizer* FlexGridSizer4;
@@ -141,27 +124,27 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_P1 = new wxStaticText(this, ID_STATICTEXT1, _("XXXXXXXXXXXXXXX"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer2->Add(StaticText_P1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Parameter1 = new wxSlider(this, IDD_SLIDER_Parameter1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Parameter1"));
+    Slider_Parameter1 = new wxSlider(this, ID_SLIDER_Parameter1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Parameter1"));
     FlexGridSizer2->Add(Slider_Parameter1, 1, wxALL|wxEXPAND, 2);
-    TextCtrl_Parameter1 = new wxTextCtrl(this, ID_TEXTCTRL_Parameter1, _("0"), wxDefaultPosition, wxSize(40,24), 0, _p1validator, _T("ID_TEXTCTRL_Parameter1"));
+    TextCtrl_Parameter1 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter1, _("0"), wxDefaultPosition, wxSize(40,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter1"));
     FlexGridSizer2->Add(TextCtrl_Parameter1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText_P2 = new wxStaticText(this, ID_STATICTEXT2, _("Parameter 2"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer2->Add(StaticText_P2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Parameter2 = new wxSlider(this, IDD_SLIDER_Parameter2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Parameter2"));
+    Slider_Parameter2 = new wxSlider(this, ID_SLIDER_Parameter2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Parameter2"));
     FlexGridSizer2->Add(Slider_Parameter2, 1, wxALL|wxEXPAND, 2);
-    TextCtrl_Parameter2 = new wxTextCtrl(this, ID_TEXTCTRL_Parameter2, _("0"), wxDefaultPosition, wxSize(40,24), 0, _p2validator, _T("ID_TEXTCTRL_Parameter2"));
+    TextCtrl_Parameter2 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter2, _("0"), wxDefaultPosition, wxSize(40,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter2"));
     FlexGridSizer2->Add(TextCtrl_Parameter2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText_P3 = new wxStaticText(this, ID_STATICTEXT5, _("Parameter 3"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
     FlexGridSizer2->Add(StaticText_P3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Parameter3 = new wxSlider(this, IDD_SLIDER_Parameter3, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Parameter3"));
+    Slider_Parameter3 = new wxSlider(this, ID_SLIDER_Parameter3, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Parameter3"));
     FlexGridSizer2->Add(Slider_Parameter3, 1, wxALL|wxEXPAND, 2);
-    TextCtrl_Parameter3 = new wxTextCtrl(this, ID_TEXTCTRL_Parameter3, _("0"), wxDefaultPosition, wxSize(40,24), 0, _p3validator, _T("ID_TEXTCTRL_Parameter3"));
+    TextCtrl_Parameter3 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter3, _("0"), wxDefaultPosition, wxSize(40,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter3"));
     FlexGridSizer2->Add(TextCtrl_Parameter3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText_P4 = new wxStaticText(this, ID_STATICTEXT6, _("Label"), wxDefaultPosition, wxSize(121,16), 0, _T("ID_STATICTEXT6"));
     FlexGridSizer2->Add(StaticText_P4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Parameter4 = new wxSlider(this, ID_SLIDER_Parameter4, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Parameter4"));
     FlexGridSizer2->Add(Slider_Parameter4, 1, wxALL|wxEXPAND, 2);
-    TextCtrl_Parameter4 = new wxTextCtrl(this, ID_TEXTCTRL_Parameter4, _("0"), wxDefaultPosition, wxSize(40,24), 0, _p4validator, _T("ID_TEXTCTRL_Parameter4"));
+    TextCtrl_Parameter4 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter4, _("0"), wxDefaultPosition, wxSize(40,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter4"));
     FlexGridSizer2->Add(TextCtrl_Parameter4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_WrapValues = new wxCheckBox(this, ID_CHECKBOX_WrapValues, _("Wrap Values"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_WrapValues"));
@@ -180,14 +163,14 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ValueCurveDialog::OnChoice1Select);
-    Connect(IDD_SLIDER_Parameter1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter1CmdSliderUpdated);
-    Connect(ID_TEXTCTRL_Parameter1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter1Text);
-    Connect(IDD_SLIDER_Parameter2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter2CmdSliderUpdated);
-    Connect(ID_TEXTCTRL_Parameter2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter2Text);
-    Connect(IDD_SLIDER_Parameter3,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated);
-    Connect(ID_TEXTCTRL_Parameter3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter3Text);
+    Connect(ID_SLIDER_Parameter1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter1CmdSliderUpdated);
+    Connect(IDD_TEXTCTRL_Parameter1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter1Text);
+    Connect(ID_SLIDER_Parameter2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter2CmdSliderUpdated);
+    Connect(IDD_TEXTCTRL_Parameter2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter2Text);
+    Connect(ID_SLIDER_Parameter3,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated);
+    Connect(IDD_TEXTCTRL_Parameter3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter3Text);
     Connect(ID_SLIDER_Parameter4,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter4CmdSliderUpdated);
-    Connect(ID_TEXTCTRL_Parameter4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter4Text);
+    Connect(IDD_TEXTCTRL_Parameter4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter4Text);
     Connect(ID_CHECKBOX_WrapValues,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnCheckBox_WrapValuesClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_OkClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_CancelClick);
@@ -282,25 +265,21 @@ void ValueCurveDialog::SetParameter(int p, int v)
     {
     case 1:
         _vc->SetParameter1(v);
-        __p1 = v;
         Slider_Parameter1->SetValue(v);
         TextCtrl_Parameter1->SetValue(wxString::Format("%d", v));
         break;
     case 2:
         _vc->SetParameter2(v);
-        __p2 = v;
         Slider_Parameter2->SetValue(v);
         TextCtrl_Parameter2->SetValue(wxString::Format("%d", v));
         break;
     case 3:
         _vc->SetParameter3(v);
-        __p3 = v;
         Slider_Parameter3->SetValue(v);
         TextCtrl_Parameter3->SetValue(wxString::Format("%d", v));
         break;
     case 4:
         _vc->SetParameter4(v);
-        __p4 = v;
         Slider_Parameter4->SetValue(v);
         TextCtrl_Parameter4->SetValue(wxString::Format("%d", v));
         break;
@@ -547,85 +526,111 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
 #pragma endregion Mouse Control
 
 #pragma region Sliders and TextCtrls
+
+void ValueCurveDialog::UpdateLinkedSlider(wxCommandEvent& event)
+{
+    wxTextCtrl * txt = (wxTextCtrl*)event.GetEventObject();
+    wxString name = txt->GetName();
+    if (name.Contains("IDD_")) {
+        name.Replace("IDD_TEXTCTRL_", "ID_SLIDER_");
+    }
+    else {
+        name.Replace("ID_TEXTCTRL_", "IDD_SLIDER_");
+    }
+    wxSlider *slider = (wxSlider*)txt->GetParent()->FindWindowByName(name);
+    if (slider == nullptr) {
+        return;
+    }
+    int value = wxAtoi(txt->GetValue());
+
+    if (value < slider->GetMin()) {
+        value = slider->GetMin();
+        wxString val_str;
+        val_str << value;
+        txt->ChangeValue(val_str);
+    }
+    else if (value > slider->GetMax()) {
+        value = slider->GetMax();
+        wxString val_str;
+        val_str << value;
+        txt->ChangeValue(val_str);
+    }
+    slider->SetValue(value);
+}
+
+void ValueCurveDialog::UpdateLinkedTextCtrl(wxScrollEvent& event)
+{
+    wxSlider * slider = (wxSlider*)event.GetEventObject();
+    wxString name = slider->GetName();
+    if (name.Contains("ID_")) {
+        name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
+    }
+    else {
+        name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
+    }
+    wxTextCtrl *txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
+    txt->ChangeValue(wxString::Format("%d", slider->GetValue()));
+}
+
 void ValueCurveDialog::OnTextCtrl_Parameter1Text(wxCommandEvent& event)
 {
+    UpdateLinkedSlider(event);
     int i = wxAtoi(TextCtrl_Parameter1->GetValue());
-    __p1 = i;
-    if (Slider_Parameter1->GetValue() != i)
-    {
-        Slider_Parameter1->SetValue(i);
-    }
     _vc->SetParameter1(i);
     _vcp->Refresh();
 }
 void ValueCurveDialog::OnSlider_Parameter1CmdSliderUpdated(wxScrollEvent& event)
 {
+    UpdateLinkedTextCtrl(event);
     int i = Slider_Parameter1->GetValue();
-    __p1 = i;
-    TextCtrl_Parameter1->SetValue(wxString::Format("%d", i));
     _vc->SetParameter1(i);
     _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnTextCtrl_Parameter2Text(wxCommandEvent& event)
 {
+    UpdateLinkedSlider(event);
     int i = wxAtoi(TextCtrl_Parameter2->GetValue());
-    __p2 = i;
-    if (Slider_Parameter2->GetValue() != i)
-    {
-        Slider_Parameter2->SetValue(_vc->GetParameter2());
-    }
     _vc->SetParameter2(i);
     _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnSlider_Parameter2CmdSliderUpdated(wxScrollEvent& event)
 {
+    UpdateLinkedTextCtrl(event);
     int i = Slider_Parameter2->GetValue();
-    __p2 = i;
-    TextCtrl_Parameter2->SetValue(wxString::Format("%d", i));
     _vc->SetParameter2(i);
     _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnTextCtrl_Parameter3Text(wxCommandEvent& event)
 {
+    UpdateLinkedSlider(event);
     int i = wxAtoi(TextCtrl_Parameter3->GetValue());
-    __p3 = i;
-    if (Slider_Parameter3->GetValue() != i)
-    {
-        Slider_Parameter3->SetValue(i);
-    }
     _vc->SetParameter3(i);
     _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event)
 {
+    UpdateLinkedTextCtrl(event);
     int i = Slider_Parameter3->GetValue();
-    __p3 = i;
-    TextCtrl_Parameter3->SetValue(wxString::Format("%d", i));
     _vc->SetParameter3(i);
     _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnTextCtrl_Parameter4Text(wxCommandEvent& event)
 {
+    UpdateLinkedSlider(event);
     int i = wxAtoi(TextCtrl_Parameter4->GetValue());
-    __p4 = i;
-    if (Slider_Parameter4->GetValue() != i)
-    {
-        Slider_Parameter4->SetValue(i);
-    }
     _vc->SetParameter4(i);
     _vcp->Refresh();
 }
 
 void ValueCurveDialog::OnSlider_Parameter4CmdSliderUpdated(wxScrollEvent& event)
 {
+    UpdateLinkedTextCtrl(event);
     int i = Slider_Parameter4->GetValue();
-    __p4 = i;
-    TextCtrl_Parameter4->SetValue(wxString::Format("%d", i));
     _vc->SetParameter4(i);
     _vcp->Refresh();
 }

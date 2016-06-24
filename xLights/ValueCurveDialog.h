@@ -50,16 +50,13 @@ private:
 
 class ValueCurveDialog: public wxDialog
 {
-    // these are only used for validation
-    int __p1;
-    int __p2;
-    int __p3;
-    int __p4;
     ValueCurve* _vc;
     ValueCurve _backup;
     void ValidateWindow();
     void SetParameter(int p, int v);
     ValueCurvePanel* _vcp;
+    void UpdateLinkedTextCtrl(wxScrollEvent& event);
+    void UpdateLinkedSlider(wxCommandEvent& event);
 
     public:
 
@@ -94,17 +91,17 @@ class ValueCurveDialog: public wxDialog
 		static const long ID_STATICTEXT4;
 		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT1;
-		static const long IDD_SLIDER_Parameter1;
-		static const long ID_TEXTCTRL_Parameter1;
+		static const long ID_SLIDER_Parameter1;
+		static const long IDD_TEXTCTRL_Parameter1;
 		static const long ID_STATICTEXT2;
-		static const long IDD_SLIDER_Parameter2;
-		static const long ID_TEXTCTRL_Parameter2;
+		static const long ID_SLIDER_Parameter2;
+		static const long IDD_TEXTCTRL_Parameter2;
 		static const long ID_STATICTEXT5;
-		static const long IDD_SLIDER_Parameter3;
-		static const long ID_TEXTCTRL_Parameter3;
+		static const long ID_SLIDER_Parameter3;
+		static const long IDD_TEXTCTRL_Parameter3;
 		static const long ID_STATICTEXT6;
 		static const long ID_SLIDER_Parameter4;
-		static const long ID_TEXTCTRL_Parameter4;
+		static const long IDD_TEXTCTRL_Parameter4;
 		static const long ID_CHECKBOX_WrapValues;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
