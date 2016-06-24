@@ -13,6 +13,8 @@
 #include <wx/choice.h>
 //*)
 
+#include "../ValueCurveButton.h"
+
 //(*IdInit(DMXPanel)
 const long DMXPanel::ID_SLIDER_DMX1 = wxNewId();
 const long DMXPanel::IDD_TEXTCTRL_DMX1 = wxNewId();
@@ -489,6 +491,9 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	Connect(IDD_TEXTCTRL_DMX15_Ramp,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&DMXPanel::UpdateLinkedSlider);
 	//*)
     SetName("ID_PANEL_DMX");
+
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&DMXPanel::OnVCChanged, 0, this);
+
 }
 
 DMXPanel::~DMXPanel()

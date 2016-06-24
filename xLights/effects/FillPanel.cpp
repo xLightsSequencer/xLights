@@ -86,6 +86,8 @@ FillPanel::FillPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 
     SetName("ID_PANEL_FILL");
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FillPanel::OnVCChanged, 0, this);
+
     BitmapButton_Fill_Position->GetValue()->SetLimits(0, 100);
 }
 

@@ -180,6 +180,8 @@ BarsPanel::BarsPanel(wxWindow* parent)
 
     SetName("ID_PANEL_BARS");
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&BarsPanel::OnVCChanged, 0, this);
+
     BitmapButton_Bars_BarCount->GetValue()->SetLimits(1, 5);
     BitmapButton_Bars_Cycles->GetValue()->SetLimits(0, 300);
 

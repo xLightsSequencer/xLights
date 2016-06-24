@@ -178,6 +178,8 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_SLIDER_Butterfly_Skip,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButterflyPanel::OnLockButtonClick);
 	//*)
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ButterflyPanel::OnVCChanged, 0, this);
+
     BitmapButton_Butterfly_Speed->GetValue()->SetLimits(0, 100);
     BitmapButton_Butterfly_Skip->GetValue()->SetLimits(2, 10);
     BitmapButton_Butterfly_Chunks->GetValue()->SetLimits(1, 10);

@@ -176,6 +176,8 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ColorPanel::OnResize);
 	//*)
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ColorPanel::OnVCChanged, 0, this);
+
     BitmapButton_VCBrightness->GetValue()->SetLimits(0, 400);
 
     FlexGridSizer_Palette->SetCols(PALETTE_SIZE);
@@ -457,9 +459,3 @@ void ColorPanel::OnBitmapButton_VCBrightnessClick(wxCommandEvent& event)
         vcd.ShowModal();
     }
 }
-
-void ColorPanel::OnVCChanged(wxCommandEvent& event)
-{
-    ValidateWindow();
-}
-

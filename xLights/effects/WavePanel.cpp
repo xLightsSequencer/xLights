@@ -207,6 +207,8 @@ WavePanel::WavePanel(wxWindow* parent)
 	//*)
     SetName("ID_PANEL_WAVE");
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&WavePanel::OnVCChanged, 0, this);
+
     BitmapButton_Number_WavesVC->GetValue()->SetLimits(180, 3600);
     BitmapButton_Thickness_PercentageVC->GetValue()->SetLimits(0, 100);
     BitmapButton_Wave_HeightVC->GetValue()->SetLimits(0, 100);

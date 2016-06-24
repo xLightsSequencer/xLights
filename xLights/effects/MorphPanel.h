@@ -157,8 +157,8 @@ class MorphPanel: public wxPanel
     void OnCheckBox_Morph_Start_LinkClick(wxCommandEvent& event);
     void OnCheckBox_Morph_End_LinkClick(wxCommandEvent& event);
     void OnChoice_Morph_QuickSetSelect(wxCommandEvent& event);
-
-		//*)
+    void OnVCChanged(wxCommandEvent& event);
+    //*)
 
 		DECLARE_EVENT_TABLE()
 };

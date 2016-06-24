@@ -102,7 +102,8 @@ class WavePanel: public wxPanel
 		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnChoice_Wave_TypeSelect(wxCommandEvent& event);
-		//*)
+        void OnVCChanged(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

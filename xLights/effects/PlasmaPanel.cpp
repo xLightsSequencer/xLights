@@ -128,6 +128,8 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON39,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlasmaPanel::OnLockButtonClick);
 	//*)
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&PlasmaPanel::OnVCChanged, 0, this);
+
     BitmapButton_Plasma_SpeedVC->GetValue()->SetLimits(0, 100);
 
     SetName("ID_PANEL_PLASMA");

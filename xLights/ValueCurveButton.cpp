@@ -52,6 +52,7 @@ void ValueCurveButton::UpdateState()
         wxBitmap bmp(valuecurvenotselected_24);
         SetBitmap(bmp);
     }
+    NotifyChange();
 }
 
 void ValueCurveButton::RenderNewBitmap() {
@@ -87,7 +88,6 @@ void ValueCurveButton::SetValue(const wxString& value)
 {
     _vc->Deserialise(value.ToStdString());
     UpdateState();
-    NotifyChange();
 }
 
 void ValueCurveButton::NotifyChange()

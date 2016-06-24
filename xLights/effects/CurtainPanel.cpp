@@ -143,6 +143,8 @@ CurtainPanel::CurtainPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CurtainPanel::OnLockButtonClick);
 	//*)
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&CurtainPanel::OnVCChanged, 0, this);
+
     BitmapButton_Curtain_SpeedVC->GetValue()->SetLimits(0, 10);
     BitmapButton_Curtain_SwagVC->GetValue()->SetLimits(0, 10);
 

@@ -94,6 +94,56 @@ void EffectPanelUtils::UpdateLinkedTextCtrl(wxScrollEvent& event)
     txt->ChangeValue(wxString::Format("%d",slider->GetValue()));
 }
 
+void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
+{
+    ValueCurveButton * vcb = (ValueCurveButton*)event.GetEventObject();
+    wxString name = vcb->GetName();
+    wxString slidername = name;
+    wxString slidername2 = name;
+    slidername.Replace("ID_VALUECURVE_", "ID_SLIDER_");
+    slidername2.Replace("ID_VALUECURVE_", "IDD_SLIDER_");
+    wxString textctrlname = name;
+    wxString textctrlname2 = name;
+    textctrlname.Replace("ID_VALUECURVE_", "ID_TEXTCTRL_");
+    textctrlname2.Replace("ID_VALUECURVE_", "IDD_TEXTCTRL_");
+    wxSlider* slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername);
+    if (slider == NULL || (void*)slider == (void*)vcb)
+    {
+        slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername2);
+    }
+    wxTextCtrl* textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname);
+    if (textctrl == NULL || (void*)textctrl == (void*)vcb)
+    {
+        textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname2);
+    }
+
+    wxASSERT(slider != NULL && (void*)slider != (void*)vcb);
+    wxASSERT(textctrl != NULL && (void*)textctrl != (void*)vcb);
+
+    if (vcb->GetValue()->IsActive())
+    {
+        if (slider != NULL)
+        {
+            slider->Disable();
+        }
+        if (textctrl != NULL)
+        {
+            textctrl->Disable();
+        }
+    }
+    else
+    {
+        if (slider != NULL)
+        {
+            slider->Enable();
+        }
+        if (textctrl != NULL)
+        {
+            textctrl->Enable();
+        }
+    }
+}
+
 void EffectPanelUtils::UpdateLinkedTextCtrlVC(wxScrollEvent& event)
 {
     UpdateLinkedTextCtrl(event);

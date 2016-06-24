@@ -169,7 +169,8 @@ class TendrilPanel: public wxPanel
 		void OnTextCtrl1Text(wxCommandEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnChoice_Tendril_MovementSelect(wxCommandEvent& event);
-		//*)
+        void OnVCChanged(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

@@ -27,6 +27,7 @@ public:
     static void UpdateLinkedSlider(wxCommandEvent& event);
     static void OnLockButtonClick(wxCommandEvent& event);
     static void OnVCButtonClick(wxCommandEvent& event);
+    static void OnVCChanged(wxCommandEvent& event);
 
     static void SetLock(wxButton* button);
     static bool IsLocked(std::string name);
@@ -64,6 +65,8 @@ void cls::OnLockButtonClick(wxCommandEvent& event) { \
 } \
 void cls::OnVCButtonClick(wxCommandEvent& event) { \
     EffectPanelUtils::OnVCButtonClick(event); \
-}
-
+} \
+void cls::OnVCChanged(wxCommandEvent& event) { \
+        EffectPanelUtils::OnVCChanged(event); \
+} 
 #endif

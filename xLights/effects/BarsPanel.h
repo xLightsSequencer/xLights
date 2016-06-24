@@ -70,7 +70,8 @@ class BarsPanel: public wxPanel
 		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnChoice_Bars_DirectionSelect(wxCommandEvent& event);
-		//*)
+        void OnVCChanged(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

@@ -129,6 +129,7 @@ class VUMeterPanel: public wxPanel
 		void OnSlider_VUMeter_StartNoteCmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_VUMeter_StartNoteText(wxCommandEvent& event);
         void OnVCButtonClick(wxCommandEvent& event);
+        void OnVCChanged(wxCommandEvent& event);
         //*)
 
 		DECLARE_EVENT_TABLE()

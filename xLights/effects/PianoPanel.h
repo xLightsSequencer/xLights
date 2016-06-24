@@ -147,6 +147,7 @@ public:
         void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
         void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
         void OnVCButtonClick(wxCommandEvent& event);
+        void OnVCChanged(wxCommandEvent& event);
         //*)
 
 		DECLARE_EVENT_TABLE()

@@ -235,6 +235,8 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Linear_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
 	//*)
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&CirclesPanel::OnVCChanged, 0, this);
+
     BitmapButton_Circles_Count->GetValue()->SetLimits(1, 10);
     BitmapButton_Circles_Size->GetValue()->SetLimits(1, 20);
     BitmapButton_Circles_Speed->GetValue()->SetLimits(1, 30);

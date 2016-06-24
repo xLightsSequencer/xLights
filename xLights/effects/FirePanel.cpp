@@ -143,6 +143,8 @@ FirePanel::FirePanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_Fire_GrowWithMusic,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FirePanel::OnLockButtonClick);
 	//*)
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FirePanel::OnVCChanged, 0, this);
+
     BitmapButton_Fire_GrowthCyclesVC->GetValue()->SetLimits(0, 20);
     BitmapButton_Fire_HeightVC->GetValue()->SetLimits(10, 100);
     BitmapButton_Fire_HueShiftVC->GetValue()->SetLimits(0, 100);

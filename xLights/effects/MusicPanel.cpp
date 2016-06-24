@@ -220,6 +220,8 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	//*)
     SetName("ID_PANEL_Music");
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MusicPanel::OnVCChanged, 0, this);
+
     BitmapButton_Music_OffsetVC->GetValue()->SetLimits(0, 100);
 
 	ValidateWindow();

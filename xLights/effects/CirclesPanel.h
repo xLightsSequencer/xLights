@@ -96,7 +96,8 @@ class CirclesPanel: public wxPanel
 		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnCheckBox_Circles_BubblesClick(wxCommandEvent& event);
-		//*)
+        void OnVCChanged(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

@@ -343,6 +343,8 @@ TendrilPanel::TendrilPanel(wxWindow* parent)
 	Connect(ID_TEXTCTRL_Tendril_ManualY,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TendrilPanel::UpdateLinkedSlider);
 	//*)
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&TendrilPanel::OnVCChanged, 0, this);
+
     BitmapButton_Tendril_TuneMovementVC->GetValue()->SetLimits(0, 20);
     BitmapButton_Tendril_ThicknessVC->GetValue()->SetLimits(1, 20);
     BitmapButton_Tendril_ManualXVC->GetValue()->SetLimits(0, 100);

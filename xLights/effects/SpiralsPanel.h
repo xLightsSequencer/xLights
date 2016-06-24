@@ -89,7 +89,8 @@ class SpiralsPanel: public wxPanel
 		void OnVCButtonClick(wxCommandEvent& event);
 		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
 		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-		//*)
+        void OnVCChanged(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

@@ -100,7 +100,8 @@ class TimingPanel: public wxPanel
         void OnTransitionTypeSelect(wxCommandEvent& event);
 		void OnEffectTimeChange(wxCommandEvent& event);
         void OnVCButtonClick(wxCommandEvent& event);
-		//*)
+        void OnVCChanged(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

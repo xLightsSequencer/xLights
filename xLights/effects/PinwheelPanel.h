@@ -100,7 +100,8 @@ class PinwheelPanel: public wxPanel
     void OnTextCtrl_Pinwheel_TwistText(wxCommandEvent& event);
     void OnTextCtrl_Pinwheel_ThicknessText(wxCommandEvent& event);
     void OnSlider_Pinwheel_ArmsCmdScroll(wxScrollEvent& event);
-		//*)
+    void OnVCChanged(wxCommandEvent& event);
+    //*)
 
 		DECLARE_EVENT_TABLE()
 };

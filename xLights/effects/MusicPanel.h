@@ -116,6 +116,7 @@ class MusicPanel: public wxPanel
 		void OnSlider_Music_StartNoteCmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_Music_StartNoteText(wxCommandEvent& event);
         void OnVCButtonClick(wxCommandEvent& event);
+        void OnVCChanged(wxCommandEvent& event);
         //*)
 
 		DECLARE_EVENT_TABLE()

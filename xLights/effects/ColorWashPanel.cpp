@@ -107,6 +107,8 @@ ColorWashPanel::ColorWashPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorWashPanel::OnLockButtonClick);
 	//*)
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ColorWashPanel::OnVCChanged, 0, this);
+
     BitmapButton_ColorWash_CyclesVC->GetValue()->SetLimits(0.1f, 20);
     
     SetName("ID_PANEL_COLORWASH");

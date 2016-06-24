@@ -191,6 +191,8 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON52,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LightningPanel::OnLockButtonClick);
 	//*)
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&LightningPanel::OnVCChanged, 0, this);
+
     BitmapButton_Lightning_TopXVC->GetValue()->SetLimits(-50,50);
     BitmapButton_Lightning_TopYVC->GetValue()->SetLimits(0,100);
     BitmapButton_Number_BoltsVC->GetValue()->SetLimits(1,50);

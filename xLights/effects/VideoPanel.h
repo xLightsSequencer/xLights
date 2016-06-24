@@ -87,7 +87,8 @@ class VideoPanel: public wxPanel
 		void OnTextCtrl1Text(wxCommandEvent& event);
 		void OnSlider_Video_StarttimeCmdSliderUpdated(wxScrollEvent& event);
 		void OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event);
-		//*)
+        void OnVCChanged(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

@@ -122,6 +122,8 @@ GarlandsPanel::GarlandsPanel(wxWindow* parent)
 	Connect(ID_TEXTCTRL_Garlands_Cycles,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&GarlandsPanel::UpdateLinkedSliderFloat);
 	//*)
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&GarlandsPanel::OnVCChanged, 0, this);
+
     BitmapButton_Garlands_CyclesVC->GetValue()->SetLimits(0, 20);
     BitmapButton_Garlands_SpacingVC->GetValue()->SetLimits(1, 100);
 

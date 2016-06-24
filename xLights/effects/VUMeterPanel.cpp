@@ -250,6 +250,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	//*)
     SetName("ID_PANEL_VUMeter");
 
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&VUMeterPanel::OnVCChanged, 0, this);
+
     BitmapButton_VUMeter_YOffsetVC->GetValue()->SetLimits(-100, 100);
 
 	ValidateWindow();
