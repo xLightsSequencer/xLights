@@ -160,6 +160,9 @@ int xLightsXmlFile::GetSequenceTimingAsInt()
 
 void xLightsXmlFile::SetSequenceTiming( const wxString& timing )
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Sequence timing set to " + timing + "ms");
+
     seq_timing = timing;
 
     wxXmlNode* root=seqDocument.GetRoot();
@@ -1341,7 +1344,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
 			audio->SetFrameInterval(GetSequenceTimingAsInt());
 		}
 	}
-
+    logger_base.info("Sequence timing interval %dms.", GetSequenceTimingAsInt());
 	logger_base.info("Sequence loaded.");
 
 	return is_open;

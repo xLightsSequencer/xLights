@@ -618,6 +618,8 @@ void xLightsFrame::UpdateModelsList(bool update_groups)
 
 void xLightsFrame::SaveSequence()
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (SeqData.NumFrames() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
@@ -670,7 +672,9 @@ void xLightsFrame::SaveSequence()
     EnableSequenceControls(false);
     wxStopWatch sw; // start a stopwatch timer
     SetStatusText(_("Saving ")+xlightsFilename+_(" ... Saving xml."));
+    logger_base.info("Saving XML file.");
     CurrentSeqXmlFile->Save(mSequenceElements);
+    logger_base.info("XML file done.");
 
     if (mBackupOnSave)
     {
@@ -681,17 +685,24 @@ void xLightsFrame::SaveSequence()
         SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
         ProgressBar->Show();
         GaugeSizer->Layout();
+        logger_base.info("Rendering on save.");
         RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
+        logger_base.info("   iseq below effects done.");
         ProgressBar->SetValue(10);
         RenderGridToSeqData([this, sw] {
+            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.info("   Effects done.");
             ProgressBar->SetValue(90);
             RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
+            logger_base.info("   iseq above effects done. Render complete.");
             ProgressBar->SetValue(100);
             ProgressBar->Hide();
             GaugeSizer->Layout();
             
+            logger_base.info("Saving fseq file.");
             SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
             WriteFalconPiFile(xlightsFilename);
+            logger_base.info("fseq file done.");
             DisplayXlightsFilename(xlightsFilename);
             float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
             wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
@@ -760,7 +771,8 @@ void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent &evt) {
 }
 void xLightsFrame::RenderAll()
 {
-	mRendering = true;
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    mRendering = true;
     EnableSequenceControls(false);
 	wxYield(); // ensure all controls are disabled.
     wxStopWatch sw; // start a stopwatch timer
@@ -768,11 +780,16 @@ void xLightsFrame::RenderAll()
     ProgressBar->Show();
     GaugeSizer->Layout();
     SetStatusText(_("Rendering all layers"));
+    logger_base.debug("Rendering all.");
     RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
+    logger_base.info("   iseq below effects done.");
     ProgressBar->SetValue(10);
     RenderGridToSeqData([this, sw] {
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("   Effects done.");
         ProgressBar->SetValue(90);
         RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
+        logger_base.info("   iseq above effects done. Render all complete.");
         ProgressBar->SetValue(100);
         float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
         wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);

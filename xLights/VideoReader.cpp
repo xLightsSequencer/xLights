@@ -214,7 +214,7 @@ void VideoReader::Seek(int timestampMS)
 	if (_valid)
 	{
         log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("       VideoReader: Seeking to %d ms.", timestampMS);
+        //logger_base.info("       VideoReader: Seeking to %d ms.", timestampMS);
         if (timestampMS < _lengthMS)
 		{
 			_atEnd = false;

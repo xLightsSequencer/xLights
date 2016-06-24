@@ -63,7 +63,7 @@ public:
             (*i)->setPreviousFrameDone(frame);
         }
     }
-    
+
     virtual void setPreviousFrameDone(int i) {
         std::unique_lock<std::mutex> lock(nextLock);
         previousFrameDone = i;
@@ -204,42 +204,68 @@ public:
             delete mainBuffer;
         }
     }
-    
+
     wxGauge *GetGauge() const { return gauge;}
     void SetGauge(wxGauge *g) { gauge = g;}
     int GetCurrentFrame() const { return currentFrame;}
-    
+
     const std::string &GetName() const {
         return name;
     }
-    
+
     virtual bool DeleteWhenComplete() override {
         return deleteWhenComplete;
     }
     void SetDeleteWhenComplete() {
         deleteWhenComplete = true;
     }
-    void SetGenericStatus(const wxString &msg, int frame) {
+    wxString StripNewLine(const wxString& s)
+    {
+        if (s.EndsWith("\n"))
+        {
+            return s.Left(s.size() - 1);
+        }
+
+        return s;
+    }
+    void SetGenericStatus(const wxString &msg, int frame, bool log = true) {
         statusType = 4;
         statusMsg = msg;
         statusFrame = frame;
+        if (log)
+        {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug((const char *)StripNewLine(GetwxStatus()).c_str());
+        }
     }
-    void SetGenericStatus(const char *msg, int frame) {
+    void SetGenericStatus(const char *msg, int frame, bool log = true) {
         statusType = 6;
         statusMsgChars = msg;
         statusFrame = frame;
+        if (log)
+        {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug((const char *)StripNewLine(GetwxStatus()).c_str());
+        }
     }
-    void SetGenericStatus(const wxString &msg, int frame, int layer) {
+    void SetGenericStatus(const wxString &msg, int frame, int layer, bool log = true) {
         statusType = 5;
         statusMsg = msg;
         statusFrame = frame;
         statusLayer = layer;
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug((const char *)StripNewLine(GetwxStatus()).c_str());
     }
-    void SetGenericStatus(const char *msg, int frame, int layer) {
+    void SetGenericStatus(const char *msg, int frame, int layer, bool log = true) {
         statusType = 7;
         statusMsgChars = msg;
         statusFrame = frame;
         statusLayer = layer;
+        if (log)
+        {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug((const char *)StripNewLine(GetwxStatus()).c_str());
+        }
     }
     void SetRenderingStatus(int frame, SettingsMap*map, int layer, int strand = -1, int node = -1) {
         statusType = 2;
@@ -262,13 +288,23 @@ public:
         statusStrand = strand;
         statusNode = node;
     }
-    void SetStatus(const wxString &st) {
+    void SetStatus(const wxString &st, bool log = true) {
         statusMsg = st;
         statusType = 0;
+        if (log)
+        {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug((const char *)StripNewLine(GetwxStatus()).c_str());
+        }
     }
-    void SetStatus(const char *st) {
+    void SetStatus(const char *st, bool log = true) {
         statusMsgChars = st;
         statusType = 8;
+        if (log)
+        {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug((const char *)StripNewLine(GetwxStatus()).c_str());
+        }
     }
     std::string GetStatus() override {
         return GetwxStatus().ToStdString();
@@ -332,7 +368,6 @@ public:
     virtual void Process() override {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         SetGenericStatus("Initializing rendering thread for %s\n", 0);
-		logger_base.debug("Initializing rendering thread.");
 		//printf("Starting rendering %lx (no next)\n", (unsigned long)this);
         int maxFrameBeforeCheck = -1;
         int origChangeCount;
@@ -385,16 +420,18 @@ public:
 
         try {
             for (int layer = 0; layer < numLayers; layer++) {
-                SetStatus(wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame));
+                wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame);
+                SetStatus(msg);
                 currentEffects[layer] = findEffectForFrame(layer, startFrame, currentEffectIdxs[layer]);
-                SetStatus(wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, startFrame));
+                msg = wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, startFrame);
+                SetStatus(msg);
                 initialize(layer, startFrame, currentEffects[layer], settingsMaps[layer], mainBuffer);
                 effectStates[layer] = true;
             }
 
             for (int frame = startFrame; frame < endFrame; frame++) {
                 currentFrame = frame;
-                SetGenericStatus("%s: Starting frame %d\n", frame);
+                SetGenericStatus("%s: Starting frame %d\n", frame, false);
 
                 if (HasNext() &&
                         (origChangeCount != rowToRender->getChangeCount()
@@ -409,7 +446,7 @@ public:
                 }
                 bool effectsToUpdate = false;
                 for (int layer = 0; layer < numLayers; layer++) {
-                    SetGenericStatus("%s: Starting frame %d, layer %d\n", frame, layer);
+                    SetGenericStatus("%s: Starting frame %d, layer %d\n", frame, layer, false);
                     Effect *el = findEffectForFrame(layer, frame, currentEffectIdxs[layer]);
                     if (el != currentEffects[layer]) {
                         currentEffects[layer] = el;
@@ -615,10 +652,10 @@ private:
     volatile int statusLayer;
     volatile int statusStrand;
     volatile int statusNode;
-    
+
     wxGauge *gauge;
     int currentFrame;
-    
+
     std::map<int, PixelBufferClassPtr> strandBuffers;
     std::map<SNPair, PixelBufferClassPtr> nodeBuffers;
 };
@@ -680,7 +717,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
                 delete job;
                 continue;
             }
-            
+
             jobs[row] = job;
             aggregators[row]->addNext(job);
             size_t cn = buffer->GetChanCountPerNode();
@@ -704,7 +741,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
         }
     }
     channelMaps.clear();
-    
+
     renderProgressDialog = new RenderProgressDialog(this);
     for (size_t row = 0; row < numRows; row++) {
         if (jobs[row]) {
@@ -712,7 +749,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
                 jobs[row]->setPreviousFrameDone(END_OF_RENDER_FRAME);
             }
             jobPool.PushJob(jobs[row]);
-            
+
             wxStaticText *label = new wxStaticText(renderProgressDialog->scrolledWindow, wxID_ANY, jobs[row]->GetName());
             renderProgressDialog->scrolledWindowSizer->Add(label,1, wxALL |wxEXPAND,3);
             wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 99);
@@ -726,7 +763,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
     renderProgressDialog->scrolledWindow->SetSizer(renderProgressDialog->scrolledWindowSizer);
     renderProgressDialog->scrolledWindow->FitInside();
     renderProgressDialog->scrolledWindow->SetScrollRate(5, 5);
-    
+
     renderProgressInfo = new RenderProgressInfo(std::move(callback));
     renderProgressInfo->numRows = numRows;
     renderProgressInfo->frames = SeqData.NumFrames();
@@ -770,7 +807,7 @@ void xLightsFrame::UpdateRenderStatus() {
             lastVal = pct;
         }
     }
-    
+
     if (done) {
         for (size_t row = 0; row < renderProgressInfo->numRows; row++) {
             if (renderProgressInfo->jobs[row]) {
