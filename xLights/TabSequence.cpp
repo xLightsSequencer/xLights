@@ -385,17 +385,40 @@ void xLightsFrame::OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event)
 
 
 // returns true on success
-bool xLightsFrame::SaveEffectsFile()
+bool xLightsFrame::SaveEffectsFile(bool backup)
 {
+    // dont save if currently saving
+    std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
+    if (!lock.owns_lock()) return false;
+
     wxFileName effectsFile;
     effectsFile.AssignDir( CurrentDir );
-    effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
+    if (backup)
+    {
+        effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE_BACKUP));
+    }
+    else
+    {
+        effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
+    }
+
     if (!EffectsXml.Save( effectsFile.GetFullPath() ))
     {
-        wxMessageBox(_("Unable to save RGB effects file"), _("Error"));
+        if (backup)
+        {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("Unable to save backup of RGB effects file");
+        }
+        else
+        {
+            wxMessageBox(_("Unable to save RGB effects file"), _("Error"));
+        }
         return false;
     }
-    UnsavedRgbEffectsChanges=false;
+    if (!backup)
+    {
+        UnsavedRgbEffectsChanges = false;
+    }
     return true;
 }
 

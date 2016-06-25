@@ -350,7 +350,7 @@ public:
 
     PerspectiveId perspectives[10];
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
-	bool SaveEffectsFile();
+	bool SaveEffectsFile(bool backup = false);
     void MarkEffectsFileDirty();
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int section = 0);
@@ -403,6 +403,7 @@ public:
     void ImportLSP(const wxFileName &filename);
     void ImportSuperStar(const wxFileName &filename);
     void SaveWorking();
+    void SaveWorkingLayout();
 
     EffectManager &GetEffectManager() { return effectManager; }
 

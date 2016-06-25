@@ -2958,6 +2958,16 @@ void xLightsFrame::OnMenuOpenGLSelected(wxCommandEvent& event)
     wxMessageBox("OpenGL changes require a restart\n");
 }
 
+void xLightsFrame::SaveWorkingLayout()
+{
+    // update xml with offsets and scale
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        modelPreview->GetModels()[i]->UpdateXmlWithScale();
+    }
+    SaveEffectsFile(true);
+}
+
 void xLightsFrame::SaveWorking()
 {
     // dont save if no file in existence
@@ -2996,8 +3006,14 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
     // dont save if currently playing
     if (playType != PLAY_TYPE_MODEL) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug("Autosaving backup of sequence.");
         wxStopWatch sw;
         SaveWorking();
+        if (UnsavedRgbEffectsChanges)
+        {
+            logger_base.debug("Autosaving backup of layout.");
+            SaveWorkingLayout();
+        }
         logger_base.debug("AutoSave took %d ms.", sw.Time());
     }
     if (AutoSaveInterval > 0) {
