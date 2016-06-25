@@ -13,6 +13,8 @@ class DMXEffect : public RenderableEffect
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual bool needToAdjustSettings(const std::string& version) override { return true; };
+        virtual void adjustSettings(const std::string &version, Effect *effect) override;
     private:
 };
 
