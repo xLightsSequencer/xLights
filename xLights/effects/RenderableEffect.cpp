@@ -727,7 +727,10 @@ double RenderableEffect::GetValueCurveDouble(wxString name, double def, const Se
     if (vc != "")
     {
         ValueCurve valc(vc.ToStdString());
-        res = valc.GetOutputValueAt(offset);
+        if (valc.IsActive())
+        {
+            res = valc.GetOutputValueAt(offset);
+        }
     }
 
     return res;
@@ -748,7 +751,10 @@ int RenderableEffect::GetValueCurveInt(wxString name, int def, const SettingsMap
     {
         wxString vc = SettingsMap.Get("VALUECURVE_" + name, "");
         ValueCurve valc(vc.ToStdString());
-        res = valc.GetOutputValueAt(offset);
+        if (valc.IsActive())
+        {
+            res = valc.GetOutputValueAt(offset);
+        }
     }
 
     return res;

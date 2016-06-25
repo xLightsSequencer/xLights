@@ -435,6 +435,7 @@ std::string ValueCurve::Serialise()
 
     if (IsActive())
     {
+        res += "Active=TRUE|";
         res += "Id=" + _id + "|";
         if (_type != "Flat")
         {
@@ -474,7 +475,12 @@ std::string ValueCurve::Serialise()
                     res += ";";
                 }
             }
+            res += "|";
         }
+    }
+    else
+    {
+        res += "Active=FALSE|";
     }
     return res;
 }
@@ -485,6 +491,18 @@ void ValueCurve::SetSerialisedValue(std::string k, std::string s)
     if (kk == "Id")
     {
         _id = s;
+    }
+    else if (kk == "Active")
+    {
+        if (s == "FALSE")
+        {
+            _active = false;
+        }
+        else
+        {
+            // it should already be true
+            wxASSERT(_active == true);
+        }
     }
     else if (kk == "Type")
     {
@@ -530,7 +548,7 @@ void ValueCurve::SetSerialisedValue(std::string k, std::string s)
         }
     
     _values.sort();
-    _active = true;
+    //_active = true;
 }
 
 void ValueCurve::SetType(std::string type)
