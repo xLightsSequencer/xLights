@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil) DMX effect now uses value curves to do ramps and works with single color channels
 2016.38  Jun 24, 2016
    -- bug (gil) Make sure new previews are added to the model groups preview combo box.
    -- bug (gil) Remove items from View menu when a preview is deleted.
@@ -26,10 +27,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (dkulp) Optimizations for OpenGL for WaveView and model/house previews to pass all vertices/colors/textures in one shot
                           (helps performance, particularly when multiple previews are shown)
    -- enh (dkulp) Fix warnings/crash if background image doesn't exist
-   -- bug (dkulp) Fix crash on mac when swithing show directories.   
+   -- bug (dkulp) Fix crash on mac when swithing show directories.
    -- bug (keithsw) Fix circles effect not changing colour.
    -- bug (keithsw) Fix #589 - guard against nulll ptr
-   -- enh (keithsw) Implement alternate backup F11 allows the user to specify an alternate backup location and 
+   -- enh (keithsw) Implement alternate backup F11 allows the user to specify an alternate backup location and
            backs up there instead. There is no auto backup to this location.
    -- bug (keithsw) Make video more resilient to missing files
    -- enh (keithsw) Add models export - now with controller details as well
