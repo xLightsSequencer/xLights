@@ -209,3 +209,27 @@ void DMXEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
     }
 
 }
+
+void DMXEffect::SetPanelStatus(Model *cls) {
+    DMXPanel *p = (DMXPanel*)panel;
+    if (p == nullptr) {
+        return;
+    }
+
+    for(int i = 1; i <= 18; ++i) {
+        wxString control = wxString::Format("ID_LABEL_DMX%d", i);
+        std::string name = cls->GetNodeName(i-1);
+        wxStaticText* text = (wxStaticText*)(p->FindWindowByName(control));
+        if( text != nullptr ) {
+            if( name == "" ) {
+                text->SetLabel(wxString::Format("Channel%d:", i));
+            } else {
+                text->SetLabel(wxString::Format("%s:", name));
+            }
+        }
+    }
+	//p->FlexGridSizer_Panel1->Layout();
+	//p->FlexGridSizer_Panel2->Layout();
+	//p->FlexGridSizer_Main->Layout();
+	//p->FlexGridSizer_Main->Fit(p);
+}

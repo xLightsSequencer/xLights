@@ -41,6 +41,7 @@ class RenderableEffect
 
         wxPanel *GetPanel(wxWindow *parent);
 		virtual void SetDefaultParameters(Model *cls) {}
+		virtual void SetPanelStatus(Model *cls) {}
 		virtual std::string GetEffectString();
 
         //Methods for rendering the effect
@@ -64,7 +65,7 @@ class RenderableEffect
     protected:
         static void SetSliderValue(wxSlider *slider, int value);
         static void SetCheckBoxValue(wxCheckBox *w, bool b);
-    
+
         double GetValueCurveDouble(wxString name, double def, const SettingsMap &SettingsMap, float offset);
         int GetValueCurveInt(wxString name, int def, const SettingsMap &SettingsMap, float offset);
         bool IsVersionOlder(const std::string& compare, const std::string& version);

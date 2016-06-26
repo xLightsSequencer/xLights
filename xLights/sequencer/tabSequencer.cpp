@@ -1258,6 +1258,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
                                      const SettingsMap &settings, const SettingsMap &palette,
                                      bool setDefaults) {
     SetChoicebook(EffectsPanel1->EffectChoicebook, effectName);
+    Model *model = GetModel(modelName);
     if (setDefaults) {
         if (modelName == "") {
             EffectsPanel1->SetDefaultEffectValues(nullptr, CurrentSeqXmlFile->GetMedia(), effectName);
@@ -1265,13 +1266,13 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
             bufferPanel->SetDefaultControls(nullptr);
             colorPanel->SetDefaultSettings();
         } else {
-            Model *model = GetModel(modelName);
             EffectsPanel1->SetDefaultEffectValues(model, CurrentSeqXmlFile->GetMedia(), effectName);
             timingPanel->SetDefaultControls(model);
             bufferPanel->SetDefaultControls(model);
             colorPanel->SetDefaultSettings();
         }
     }
+    EffectsPanel1->SetEffectPanelStatus(model, effectName);
     SetEffectControls(settings);
     SetEffectControls(palette);
 }

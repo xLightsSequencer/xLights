@@ -32,6 +32,7 @@ public:
     void SetDefaultPalette();
     wxString* CurrentDir;
     void SetDefaultEffectValues(Model *cls, AudioManager* audio, const wxString &name);
+    void SetEffectPanelStatus(Model *cls, const wxString &name);
     wxString GetRandomEffectString(int effidx);
     void SetButtonColor(wxButton* btn, const wxColour* c);
 

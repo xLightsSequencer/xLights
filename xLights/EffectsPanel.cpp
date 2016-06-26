@@ -124,6 +124,12 @@ void EffectsPanel::SetSequenceElements(SequenceElements *els) {
     }
 }
 
+void EffectsPanel::SetEffectPanelStatus(Model *cls, const wxString &name) {
+    RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
+    if (eff != nullptr) {
+        eff->SetPanelStatus(cls);
+	}
+}
 
 int EffectsPanel::GetRandomSliderValue(wxSlider* slider)
 {
