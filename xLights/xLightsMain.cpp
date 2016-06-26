@@ -1415,6 +1415,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     {
         PromptForShowDirectory();
     }
+
     MixTypeChanged=true;
     basic.setFrame(this);
 
@@ -1992,7 +1993,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 	logger_base.info("xLights Closed.");
 }
 
-void xLightsFrame::DoBackup(bool prompt)
+void xLightsFrame::DoBackup(bool prompt, bool startup)
 {
     wxString folderName;
     time_t cur;
@@ -2011,6 +2012,10 @@ void xLightsFrame::DoBackup(bool prompt)
     wxString newDir = CurrentDir + wxFileName::GetPathSeparator() + wxString::Format(
         "Backup%c%s-%s", wxFileName::GetPathSeparator(),
         curTime.FormatISODate(), curTime.Format("%H%M%S"));
+    if (startup)
+    {
+        newDir += "_OnStart";
+    }
 
     if (prompt)
     {
@@ -2554,6 +2559,8 @@ void xLightsFrame::OnBitmapButton_Link_DirsClick(wxCommandEvent& event)
         config->Write(_("MediaDir"), mediaDirectory);
         MediaDirectoryLabel->SetLabel(mediaDirectory);
         MediaDirectoryLabel->GetParent()->Layout();
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
     }
     config->Write(_("LinkFlag"), LinkFlag);
 }

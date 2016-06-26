@@ -958,7 +958,7 @@ private:
     int effGridPrevY;
 
 
-    void DoBackup(bool prompt = true);
+    void DoBackup(bool prompt = true, bool startup = false);
     void DoAltBackup(bool prompt = true);
     void SetPlayMode(play_modes newmode);
     double rand01();
