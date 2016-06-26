@@ -8,9 +8,11 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Add backup when xlights started or show directory changed
    -- bug (keithsw) Fix value curve enabling/disabling
    -- bug (keithsw) Fix piano and VUMeter reaction to changes in timing marks.
    -- enh (keithsw) Add model state settings and effect to control states.
+   -- enh (keithsw) Add autosave to layout
    -- enh (gil) DMX effect now uses value curves to do ramps and works with single color channels
 2016.38  Jun 24, 2016
    -- bug (gil) Make sure new previews are added to the model groups preview combo box.
