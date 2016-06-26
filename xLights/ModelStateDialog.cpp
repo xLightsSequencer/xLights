@@ -365,16 +365,20 @@ static void GetValue(wxGrid *grid, wxGridEvent &event, std::map<std::string, std
     int c = event.GetCol();
     wxString key = "s" + grid->GetRowLabelValue(r).ToStdString();
     key.Replace(" ", "");
-    if (c == COLOUR_COL) {
-        key += "-Color";
-        xlColor color = grid->GetCellBackgroundColour(r, c);
-        info[key.ToStdString()] = color;
-    }
-    else if (c == NAME_COL) {
-        key += "-Name";
-        info[key.ToStdString()] = grid->GetCellValue(r, c);
-    } else {
-        info[key.ToStdString()] = grid->GetCellValue(r, c);
+    if (key != "")
+    {
+        if (c == COLOUR_COL) {
+            key += "-Color";
+            xlColor color = grid->GetCellBackgroundColour(r, c);
+            info[key.ToStdString()] = color;
+        }
+        else if (c == NAME_COL) {
+            key += "-Name";
+            info[key.ToStdString()] = grid->GetCellValue(r, c);
+        }
+        else {
+            info[key.ToStdString()] = grid->GetCellValue(r, c);
+        }
     }
 }
 
