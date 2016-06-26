@@ -375,10 +375,11 @@ void StateEffect::RenderState(RenderBuffer &buffer,
     for (size_t i = 0; i < sstates.size(); i++)
     {
         // get the channels
-        std::string channels = model_info->stateInfo[definition][FindState(model_info->stateInfo[definition], sstates[i])];
+        std::string statename = FindState(model_info->stateInfo[definition], sstates[i]);
+        std::string channels = model_info->stateInfo[definition][statename];
 
         xlColor color;
-        std::vector<xlColor> colors;
+        //std::vector<xlColor> colors;
         if (colourmode == "Graduate")
         {
             buffer.GetMultiColorBlend(buffer.GetEffectTimeIntervalPosition(), false, color);
@@ -390,21 +391,23 @@ void StateEffect::RenderState(RenderBuffer &buffer,
         else
         {
             // allocate
-            int statenum = wxAtoi(FindState(model_info->stateInfo[definition], sstates[i]).substr(1));
+            int statenum = wxAtoi(statename.substr(1));
             buffer.palette.GetColor((statenum - 1) % buffer.GetColorCount(), color);
         }
         if (customColor) {
-            std::string cname = model_info->stateInfo[definition][FindState(model_info->stateInfo[definition], sstates[i]) + "-Color"];
+            std::string cname = model_info->stateInfo[definition][statename + "-Color"];
             if (cname == "") {
-                colors.push_back(xlWHITE);
+                color = xlWHITE;
+                //colors.push_back(color);
             }
             else {
-                colors.push_back(xlColor(cname));
+                color = xlColor(cname);
+                //colors.push_back(color);
             }
         }
-        else {
-            colors.push_back(color);
-        }
+        //else {
+        //    colors.push_back(color);
+        //}
 
         wxStringTokenizer wtkz(channels, ",");
         while (wtkz.HasMoreTokens()) 
