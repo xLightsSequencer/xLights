@@ -8,7 +8,6 @@
 #include <wx/textctrl.h>
 #include <wx/bitmap.h>
 #include <wx/slider.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
 #include <wx/intl.h>
 #include <wx/image.h>
@@ -52,7 +51,6 @@ const long DMXPanel::ID_LABEL_DMX9 = wxNewId();
 const long DMXPanel::ID_SLIDER_DMX9 = wxNewId();
 const long DMXPanel::ID_VALUECURVE_DMX9 = wxNewId();
 const long DMXPanel::IDD_TEXTCTRL_DMX9 = wxNewId();
-const long DMXPanel::ID_CHOICE_Num_Dmx_Channels = wxNewId();
 const long DMXPanel::ID_PANEL6 = wxNewId();
 const long DMXPanel::ID_LABEL_DMX10 = wxNewId();
 const long DMXPanel::ID_SLIDER_DMX10 = wxNewId();
@@ -236,28 +234,6 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	FlexGridSizer_Panel1->Add(ValueCurve_DMX9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_DMX9 = new wxTextCtrl(ChannelPanel1, IDD_TEXTCTRL_DMX9, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel1,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX9"));
 	FlexGridSizer_Panel1->Add(TextCtrl_DMX9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer_Panel1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Num_Dmx_Channels = new wxChoice(ChannelPanel1, ID_CHOICE_Num_Dmx_Channels, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Num_Dmx_Channels"));
-	Choice_Num_Dmx_Channels->SetSelection( Choice_Num_Dmx_Channels->Append(_("Use 1 channel")) );
-	Choice_Num_Dmx_Channels->Append(_("Use 2 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 3 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 4 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 5 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 6 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 7 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 8 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 9 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 10 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 11 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 12 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 13 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 14 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 15 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 16 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 17 channels"));
-	Choice_Num_Dmx_Channels->Append(_("Use 18 channels"));
-	FlexGridSizer_Panel1->Add(Choice_Num_Dmx_Channels, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer_Panel1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ChannelPanel1->SetSizer(FlexGridSizer_Panel1);
 	FlexGridSizer_Panel1->Fit(ChannelPanel1);
 	FlexGridSizer_Panel1->SetSizeHints(ChannelPanel1);

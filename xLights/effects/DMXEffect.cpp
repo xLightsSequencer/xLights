@@ -85,6 +85,7 @@ void DMXEffect::adjustSettings(const std::string &version, Effect *effect)
             settings["E_SLIDER_DMX17"] = "0";
             settings["E_SLIDER_DMX18"] = "0";
         }
+        settings.erase("E_CHOICE_Num_Dmx_Channels");
         settings.erase("E_CHECKBOX_Use_Dmx_Ramps");
         settings.erase("E_SLIDER_DMX1_Ramp");
         settings.erase("E_SLIDER_DMX2_Ramp");
@@ -163,8 +164,6 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, const SettingsMap &Set
 
 void DMXEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
-    wxArrayString parts = wxSplit(SettingsMap.Get("CHOICE_Num_Dmx_Channels", "Use 1 Channel"), ' ');
-    int num_channels = wxAtoi(parts[1]);
 
     if (buffer.cur_model == "") {
         return;
@@ -173,6 +172,8 @@ void DMXEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
     if (model_info == nullptr) {
         return;
     }
+
+    int num_channels = model_info->GetNumChannels();
 
     const std::string& string_type = model_info->GetStringType();
 
@@ -216,20 +217,37 @@ void DMXEffect::SetPanelStatus(Model *cls) {
         return;
     }
 
+    int num_channels = cls->GetNumChannels();
+
     for(int i = 1; i <= 18; ++i) {
-        wxString control = wxString::Format("ID_LABEL_DMX%d", i);
+        wxString label_ctrl = wxString::Format("ID_LABEL_DMX%d", i);
         std::string name = cls->GetNodeName(i-1);
-        wxStaticText* text = (wxStaticText*)(p->FindWindowByName(control));
-        if( text != nullptr ) {
+        wxStaticText* label = (wxStaticText*)(p->FindWindowByName(label_ctrl));
+        if( label != nullptr ) {
             if( name == "" ) {
-                text->SetLabel(wxString::Format("Channel%d:", i));
+                label->SetLabel(wxString::Format("Channel%d:", i));
             } else {
-                text->SetLabel(wxString::Format("%s:", name));
+                label->SetLabel(wxString::Format("%s:", name));
             }
         }
+        wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i);
+        wxSlider* slider = (wxSlider*)(p->FindWindowByName(slider_ctrl));
+        wxString vc_ctrl = wxString::Format("ID_VALUECURVE_DMX%d", i);
+        wxBitmapButton* curve = (wxBitmapButton*)(p->FindWindowByName(vc_ctrl));
+        wxString text_ctrl = wxString::Format("IDD_TEXTCTRL_DMX%d", i);
+        wxBitmapButton* text = (wxBitmapButton*)(p->FindWindowByName(text_ctrl));
+        if( i > num_channels ) {
+            if( label != nullptr ) label->Enable(false);
+            if( slider != nullptr ) slider->Enable(false);
+            if( curve != nullptr ) curve->Enable(false);
+            if( text != nullptr ) text->Enable(false);
+        } else {
+            if( label != nullptr ) label->Enable(true);
+            if( slider != nullptr ) slider->Enable(true);
+            if( curve != nullptr ) curve->Enable(true);
+            if( text != nullptr ) text->Enable(true);
+        }
     }
-	//p->FlexGridSizer_Panel1->Layout();
-	//p->FlexGridSizer_Panel2->Layout();
-	//p->FlexGridSizer_Main->Layout();
-	//p->FlexGridSizer_Main->Fit(p);
+    p->FlexGridSizer_Main->RecalcSizes();
+    p->Refresh();
 }

@@ -354,44 +354,6 @@
 									<border>2</border>
 									<option>1</option>
 								</object>
-								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxChoice" name="ID_CHOICE_Num_Dmx_Channels" variable="Choice_Num_Dmx_Channels" member="yes">
-										<content>
-											<item>Use 1 channel</item>
-											<item>Use 2 channels</item>
-											<item>Use 3 channels</item>
-											<item>Use 4 channels</item>
-											<item>Use 5 channels</item>
-											<item>Use 6 channels</item>
-											<item>Use 7 channels</item>
-											<item>Use 8 channels</item>
-											<item>Use 9 channels</item>
-											<item>Use 10 channels</item>
-											<item>Use 11 channels</item>
-											<item>Use 12 channels</item>
-											<item>Use 13 channels</item>
-											<item>Use 14 channels</item>
-											<item>Use 15 channels</item>
-											<item>Use 16 channels</item>
-											<item>Use 17 channels</item>
-											<item>Use 18 channels</item>
-										</content>
-										<selection>0</selection>
-									</object>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
 							</object>
 						</object>
 						<label>Channels 1-9</label>

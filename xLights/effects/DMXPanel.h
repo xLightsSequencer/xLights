@@ -10,7 +10,6 @@ class wxStaticText;
 class wxSlider;
 class wxBitmapButton;
 class wxFlexGridSizer;
-class wxChoice;
 //*)
 
 #include "../ValueCurveButton.h"
@@ -35,7 +34,6 @@ class DMXPanel: public wxPanel
 		ValueCurveButton* ValueCurve_DMX9;
 		ValueCurveButton* ValueCurve_DMX6;
 		ValueCurveButton* ValueCurve_DMX14;
-		wxChoice* Choice_Num_Dmx_Channels;
 		ValueCurveButton* ValueCurve_DMX13;
 		wxPanel* ChannelPanel2;
 		ValueCurveButton* ValueCurve_DMX4;
@@ -89,7 +87,6 @@ class DMXPanel: public wxPanel
 		static const long ID_SLIDER_DMX9;
 		static const long ID_VALUECURVE_DMX9;
 		static const long IDD_TEXTCTRL_DMX9;
-		static const long ID_CHOICE_Num_Dmx_Channels;
 		static const long ID_PANEL6;
 		static const long ID_LABEL_DMX10;
 		static const long ID_SLIDER_DMX10;

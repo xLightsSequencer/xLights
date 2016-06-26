@@ -152,6 +152,7 @@ public:
     void AddOffset(double xPct, double yPct);
     unsigned int GetLastChannel();
     unsigned int GetFirstChannel();
+    unsigned int GetNumChannels();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml() const;
     int GetNumberFromChannelString(const std::string &sc) const;

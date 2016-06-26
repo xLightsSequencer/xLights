@@ -1010,6 +1010,10 @@ unsigned int Model::GetFirstChannel() {
     return LastChan;
 }
 
+unsigned int Model::GetNumChannels() {
+    return GetLastChannel() - GetFirstChannel() + 1;
+}
+
 void Model::SetOffset(double xPct, double yPct) {
     GetModelScreenLocation().SetOffset(xPct, yPct);
     IncrementChangeCount();
