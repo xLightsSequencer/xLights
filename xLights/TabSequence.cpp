@@ -64,6 +64,7 @@ void xLightsFrame::ResetEffectsXml()
 
 wxString xLightsFrame::LoadEffectsFileNoCheck()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     ResetEffectsXml();
     wxFileName effectsFile;
     effectsFile.AssignDir( CurrentDir );
@@ -78,12 +79,14 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
     else if (!EffectsXml.Load( effectsFile.GetFullPath() ))
     {
+        logger_base.warn("Unable to load RGB effects file ... creating a default one.");
         wxMessageBox(_("Unable to load RGB effects file"), _("Error"));
         CreateDefaultEffectsXml();
     }
     wxXmlNode* root=EffectsXml.GetRoot();
     if (root->GetName() != "xrgb")
     {
+        logger_base.warn("Invalid RGB effects file... xrgb node not found ... creating a default one.");
         wxMessageBox(_("Invalid RGB effects file. Press Save File button to start a new file."), _("Error"));
         CreateDefaultEffectsXml();
     }
