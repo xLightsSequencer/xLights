@@ -635,6 +635,13 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                                        mSequenceElements.GetSelectedRange(i)->StartTime,
                                        mSequenceElements.GetSelectedRange(i)->EndTime,
                                        EFFECT_SELECTED,false);
+
+        // Dan/Gil I am not sure this is ok ... but i think it is. I need this for the state effect to 
+        // ensure the choice boxes are populated correctly when the effect is dropped.
+        SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
+            effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
+            !event.GetInt());
+
         last_effect_created = effect;
 
         mSequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), effect->GetID() );
