@@ -253,6 +253,8 @@
     <ClCompile Include="effects\SpiralsPanel.cpp" />
     <ClCompile Include="effects\SpirographEffect.cpp" />
     <ClCompile Include="effects\SpirographPanel.cpp" />
+    <ClCompile Include="effects\StateEffect.cpp" />
+    <ClCompile Include="effects\StatePanel.cpp" />
     <ClCompile Include="effects\StrobeEffect.cpp" />
     <ClCompile Include="effects\StrobePanel.cpp" />
     <ClCompile Include="effects\TendrilEffect.cpp" />
@@ -295,6 +297,7 @@
     <ClCompile Include="ModelFaceDialog.cpp" />
     <ClCompile Include="ModelGroupPanel.cpp" />
     <ClCompile Include="ModelPreview.cpp" />
+    <ClCompile Include="ModelStateDialog.cpp" />
     <ClCompile Include="models\ArchesModel.cpp" />
     <ClCompile Include="models\CandyCaneModel.cpp" />
     <ClCompile Include="models\CircleModel.cpp" />
@@ -317,6 +320,7 @@
     <ClCompile Include="ModelViewSelector.cpp" />
     <ClCompile Include="NetInfo.cpp" />
     <ClCompile Include="NewTimingDialog.cpp" />
+    <ClCompile Include="NodesGridCellEditor.cpp" />
     <ClCompile Include="NullOutputDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
@@ -495,6 +499,8 @@
     <ClInclude Include="effects\SpiralsPanel.h" />
     <ClInclude Include="effects\SpirographEffect.h" />
     <ClInclude Include="effects\SpirographPanel.h" />
+    <ClInclude Include="effects\StateEffect.h" />
+    <ClInclude Include="effects\StatePanel.h" />
     <ClInclude Include="effects\StrobeEffect.h" />
     <ClInclude Include="effects\StrobePanel.h" />
     <ClInclude Include="effects\TendrilEffect.h" />
@@ -531,6 +537,7 @@
     <ClInclude Include="ModelFaceDialog.h" />
     <ClInclude Include="ModelGroupPanel.h" />
     <ClInclude Include="ModelPreview.h" />
+    <ClInclude Include="ModelStateDialog.h" />
     <ClInclude Include="models\ArchesModel.h" />
     <ClInclude Include="models\CandyCaneModel.h" />
     <ClInclude Include="models\CircleModel.h" />
@@ -553,6 +560,7 @@
     <ClInclude Include="ModelViewSelector.h" />
     <ClInclude Include="NetInfo.h" />
     <ClInclude Include="NewTimingDialog.h" />
+    <ClInclude Include="NodesGridCellEditor.h" />
     <ClInclude Include="NullOutputDialog.h" />
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="osxMacUtils.h" />

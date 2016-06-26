@@ -15,6 +15,7 @@
 
 #include "../StrandNodeNamesDialog.h"
 #include "../ModelFaceDialog.h"
+#include "../ModelStateDialog.h"
 #include "../ModelDimmingCurveDialog.h"
 #include "../StartChannelDialog.h"
 
@@ -78,6 +79,28 @@ public:
         if (dlg.ShowModal() == wxID_OK) {
             m_model->faceInfo.clear();
             dlg.GetFaceInfo(m_model->faceInfo);
+            wxVariant v(CLICK_TO_EDIT);
+            SetValue(v);
+            return true;
+        }
+        return false;
+    }
+protected:
+    Model *m_model;
+};
+class StatesDialogAdapter : public wxPGEditorDialogAdapter
+{
+public:
+    StatesDialogAdapter(Model *model)
+        : wxPGEditorDialogAdapter(), m_model(model) {
+    }
+    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
+        wxPGProperty* WXUNUSED(property)) override {
+        ModelStateDialog dlg(propGrid);
+        dlg.SetStateInfo(m_model, m_model->stateInfo);
+        if (dlg.ShowModal() == wxID_OK) {
+            m_model->stateInfo.clear();
+            dlg.GetStateInfo(m_model->stateInfo);
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
@@ -172,6 +195,8 @@ public:
             return new FacesDialogAdapter(m_model);
         case 3:
             return new DimmingCurveDialogAdapter(m_model);
+        case 4:
+            return new StatesDialogAdapter(m_model);
         }
         return nullptr;
     }
@@ -339,6 +364,8 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(this, "Dimming Curves", "ModelDimmingCurves", CLICK_TO_EDIT, 3));
     grid->LimitPropertyEditing(p);
+    p = grid->Append(new PopupDialogProperty(this, "States", "ModelStates", CLICK_TO_EDIT, 4));
+    grid->LimitPropertyEditing(p);
 
     p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
     p->GetCell(0).SetFgCol(*wxBLACK);
@@ -404,6 +431,7 @@ static wxString GetColorString(wxPGProperty *p, xlColor &xc) {
     }
     return tp;
 }
+
 int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if (event.GetPropertyName() == "ModelPixelSize") {
         pixelSize = event.GetValue().GetLong();
@@ -449,6 +477,22 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         Model::WriteFaceInfo(ModelXml, faceInfo);
+        IncrementChangeCount();
+        return 2;
+    }
+    else if (event.GetPropertyName() == "ModelStates") {
+        wxXmlNode *f = ModelXml->GetChildren();
+        while (f != nullptr) {
+            if ("stateInfo" == f->GetName()) {
+                ModelXml->RemoveChild(f);
+                delete f;
+                f = ModelXml->GetChildren();
+            }
+            else {
+                f = f->GetNext();
+            }
+        }
+        Model::WriteStateInfo(ModelXml, stateInfo);
         IncrementChangeCount();
         return 2;
     } else if (event.GetPropertyName() == "ModelStringColor"
@@ -577,7 +621,6 @@ void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
     }
 }
 
-
 void Model::ParseFaceInfo(wxXmlNode *f, std::map<std::string, std::map<std::string, std::string> > &faceInfo) {
     std::string name = f->GetAttribute("Name", "SingleNode").ToStdString();
     std::string type = f->GetAttribute("Type", "SingleNode").ToStdString();
@@ -623,6 +666,45 @@ void Model::WriteFaceInfo(wxXmlNode *rootXml, const std::map<std::string, std::m
         }
     }
 }
+
+void Model::ParseStateInfo(wxXmlNode *f, std::map<std::string, std::map<std::string, std::string> > &stateInfo) {
+    std::string name = f->GetAttribute("Name", "SingleNode").ToStdString();
+    std::string type = f->GetAttribute("Type", "SingleNode").ToStdString();
+    if (name == "") {
+        name = type;
+        f->DeleteAttribute("Name");
+        f->AddAttribute("Name", type);
+    }
+    if (!(type == "SingleNode" || type == "NodeRange")) {
+        if (type == "Coro") {
+            type = "SingleNode";
+        }
+        f->DeleteAttribute("Type");
+        f->AddAttribute("Type", type);
+    }
+    wxXmlAttribute *att = f->GetAttributes();
+    while (att != nullptr) {
+        if (att->GetName() != "Name")
+        {
+                stateInfo[name][att->GetName().ToStdString()] = att->GetValue();
+        }
+        att = att->GetNext();
+    }
+}
+
+void Model::WriteStateInfo(wxXmlNode *rootXml, const std::map<std::string, std::map<std::string, std::string> > &stateInfo) {
+    if (!stateInfo.empty()) {
+        for (auto it = stateInfo.begin(); it != stateInfo.end(); it++) {
+            wxXmlNode *f = new wxXmlNode(rootXml, wxXML_ELEMENT_NODE, "stateInfo");
+            std::string name = it->first;
+            f->AddAttribute("Name", name);
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                f->AddAttribute(it2->first, it2->second);
+            }
+        }
+    }
+}
+
 std::string Model::ComputeStringStartChannel(int i) {
     if (i == 0) {
         return ModelXml->GetAttribute("StartChannel", "1").ToStdString();
@@ -840,10 +922,15 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
 
     wxXmlNode *f = ModelNode->GetChildren();
     faceInfo.clear();
+    stateInfo.clear();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
             ParseFaceInfo(f, faceInfo);
-        } else if ("dimmingCurve" == f->GetName()) {
+        }
+        else if ("stateInfo" == f->GetName()) {
+            ParseStateInfo(f, stateInfo);
+        }
+        else if ("dimmingCurve" == f->GetName()) {
             modelDimmingCurve = DimmingCurve::createFromXML(f);
         }
         f = f->GetNext();
@@ -1417,6 +1504,47 @@ bool Model::ParseFaceElement(const std::string& multi_str, std::vector<wxPoint>&
     return !first_xy.empty(); //true;
 }
 
+//extract first (X,Y) from string formatted above:
+bool Model::ParseStateElement(const std::string& multi_str, std::vector<wxPoint>& first_xy) {
+    //    first_xy->x = first_xy->y = 0;
+    //    first_xy.clear();
+    wxStringTokenizer wtkz(multi_str, "+");
+    while (wtkz.HasMoreTokens()) {
+        wxString str = wtkz.GetNextToken();
+        if (str.empty()) continue;
+        if (str.Find('@') == wxNOT_FOUND) continue; //return false;
+
+        wxString xystr = str.AfterFirst('@');
+        if (xystr.empty()) continue; //return false;
+        long xval = 0, yval = 0;
+        if (xystr[0] == '(') {
+            xystr.Remove(0, 1);
+            if (!xystr.BeforeFirst(',').ToLong(&xval)) continue; //return false;
+            if (!xystr.AfterFirst(',').BeforeFirst(')').ToLong(&yval)) continue; //return false;
+        }
+        else {
+            int parts = 0;
+            while (!xystr.empty() && (xystr[0] >= 'A') && (xystr[0] <= 'Z')) {
+                xval *= 26;
+                xval += xystr[0] - 'A' + 1;
+                xystr.Remove(0, 1);
+                parts |= 1;
+            }
+            while (!xystr.empty() && (xystr[0] >= '0') && (xystr[0] <= '9')) {
+                yval *= 10;
+                yval += xystr[0] - '0';
+                xystr.Remove(0, 1);
+                parts |= 2;
+            }
+            if (parts != 3) continue; //return false;
+            if (!xystr.empty() && (xystr[0] != '-')) continue; //return false;
+        }
+        wxPoint newxy(xval, yval);
+        first_xy.push_back(newxy);
+    }
+
+    return !first_xy.empty(); //true;
+}
 
 std::string Model::ChannelLayoutHtml() {
     size_t NodeCount=GetNodeCount();

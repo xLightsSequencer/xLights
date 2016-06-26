@@ -73,6 +73,7 @@ void VUMeterEffect::SetDefaultParameters(Model *cls)
 void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
+        effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
         SettingsMap.GetInt("SLIDER_VUMeter_Bars", 6),
         SettingsMap.Get("CHOICE_VUMeter_Type", "Waveform"),
         SettingsMap.Get("CHOICE_VUMeter_TimingTrack", ""),
@@ -168,7 +169,7 @@ int VUMeterEffect::DecodeType(std::string type)
 	return 2;
 }
 
-void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset)
+void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset)
 {
 	// no point if we have no media
 	if (buffer.GetMedia() == NULL)
@@ -200,6 +201,10 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		_lasttimingmark = -1;
 		_lastvalues.clear();
 		_lastsize = 0;
+        if (timingtrack != "")
+        {
+            elements->AddRenderDependency(timingtrack, buffer.cur_model);
+        }
 	}
 
 	// We limit bars to the width of the model in some effects

@@ -536,12 +536,16 @@
 		<Unit filename="ModelGroupPanel.h" />
 		<Unit filename="ModelPreview.cpp" />
 		<Unit filename="ModelPreview.h" />
+		<Unit filename="ModelStateDialog.cpp" />
+		<Unit filename="ModelStateDialog.h" />
 		<Unit filename="ModelViewSelector.cpp" />
 		<Unit filename="ModelViewSelector.h" />
 		<Unit filename="NetInfo.cpp" />
 		<Unit filename="NetInfo.h" />
 		<Unit filename="NewTimingDialog.cpp" />
 		<Unit filename="NewTimingDialog.h" />
+		<Unit filename="NodesGridCellEditor.cpp" />
+		<Unit filename="NodesGridCellEditor.h" />
 		<Unit filename="NullOutputDialog.cpp" />
 		<Unit filename="NullOutputDialog.h" />
 		<Unit filename="OptionChooser.cpp" />
@@ -770,6 +774,10 @@
 		<Unit filename="effects/SpirographEffect.h" />
 		<Unit filename="effects/SpirographPanel.cpp" />
 		<Unit filename="effects/SpirographPanel.h" />
+		<Unit filename="effects/StateEffect.cpp" />
+		<Unit filename="effects/StateEffect.h" />
+		<Unit filename="effects/StatePanel.cpp" />
+		<Unit filename="effects/StatePanel.h" />
 		<Unit filename="effects/StrobeEffect.cpp" />
 		<Unit filename="effects/StrobeEffect.h" />
 		<Unit filename="effects/StrobePanel.cpp" />
@@ -984,6 +992,7 @@
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="wxsmith/ModelGroupPanel.wxs" />
+		<Unit filename="wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="wxsmith/ModelViewSelector.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
 		<Unit filename="wxsmith/MusicPanel.wxs" />
@@ -1018,6 +1027,7 @@
 		<Unit filename="wxsmith/SnowstormPanel.wxs" />
 		<Unit filename="wxsmith/SpiralsPanel.wxs" />
 		<Unit filename="wxsmith/SpirographPanel.wxs" />
+		<Unit filename="wxsmith/StatePanel.wxs" />
 		<Unit filename="wxsmith/StartChannelDialog.wxs" />
 		<Unit filename="wxsmith/StrobePanel.wxs" />
 		<Unit filename="wxsmith/SuperStarImportDialog.wxs" />
@@ -1110,6 +1120,7 @@
 					<wxDialog wxs="wxsmith/VAMPPluginDialog.wxs" src="VAMPPluginDialog.cpp" hdr="VAMPPluginDialog.h" fwddecl="0" i18n="1" name="VAMPPluginDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/StrandNodeNamesDialog.wxs" src="StrandNodeNamesDialog.cpp" hdr="StrandNodeNamesDialog.h" fwddecl="0" i18n="1" name="StrandNodeNamesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelFaceDialog.wxs" src="ModelFaceDialog.cpp" hdr="ModelFaceDialog.h" fwddecl="0" i18n="1" name="ModelFaceDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelStateDialog.wxs" src="ModelStateDialog.cpp" hdr="ModelStateDialog.h" fwddecl="0" i18n="1" name="ModelStateDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SaveChangesDialog.wxs" src="SaveChangesDialog.cpp" hdr="SaveChangesDialog.h" fwddecl="0" i18n="1" name="SaveChangesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ResizeImageDialog.wxs" src="ResizeImageDialog.cpp" hdr="ResizeImageDialog.h" fwddecl="0" i18n="1" name="ResizeImageDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelDimmingCurveDialog.wxs" src="ModelDimmingCurveDialog.cpp" hdr="ModelDimmingCurveDialog.h" fwddecl="0" i18n="1" name="ModelDimmingCurveDialog" language="CPP" />
@@ -1148,6 +1159,7 @@
 					<wxPanel wxs="wxsmith/SnowstormPanel.wxs" src="effects/SnowstormPanel.cpp" hdr="effects/SnowstormPanel.h" fwddecl="1" i18n="1" name="SnowstormPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SpiralsPanel.wxs" src="effects/SpiralsPanel.cpp" hdr="effects/SpiralsPanel.h" fwddecl="1" i18n="1" name="SpiralsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SpirographPanel.wxs" src="effects/SpirographPanel.cpp" hdr="effects/SpirographPanel.h" fwddecl="1" i18n="1" name="SpirographPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/StatePanel.wxs" src="effects/StatePanel.cpp" hdr="effects/StatePanel.h" fwddecl="1" i18n="1" name="StatePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/StrobePanel.wxs" src="effects/StrobePanel.cpp" hdr="effects/StrobePanel.h" fwddecl="1" i18n="1" name="StrobePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TendrilPanel.wxs" src="effects/TendrilPanel.cpp" hdr="effects/TendrilPanel.h" fwddecl="1" i18n="1" name="TendrilPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TextPanel.wxs" src="effects/TextPanel.cpp" hdr="effects/TextPanel.h" fwddecl="1" i18n="1" name="TextPanel" language="CPP" />
