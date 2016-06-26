@@ -68,7 +68,8 @@ class StatePanel: public wxPanel
 		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnState_StateDefinitonChoiceSelect(wxCommandEvent& event);
-		//*)
+        void OnVCChanged(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };
