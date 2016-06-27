@@ -65,11 +65,8 @@ class TendrilEffect : public RenderableEffect
     public:
         TendrilEffect(int id);
         virtual ~TendrilEffect();
+        virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
-        void Render(RenderBuffer &buffer,
-					const std::string& movement, int tunemovement, int movementSpeed, int thickness,
-                    float friction, float dampening,
-                    float tension, int trails, int length, int xoffset, int yoffset, int manualx, int manualy);
 #ifdef LINUX
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override { return false;}
 #endif
@@ -79,6 +76,10 @@ class TendrilEffect : public RenderableEffect
 		virtual bool needToAdjustSettings(const std::string &version) override;
 		virtual void adjustSettings(const std::string &version, Effect *effect) override;
         int EncodeMovement(std::string movement);
+        void Render(RenderBuffer &buffer,
+            const std::string& movement, int tunemovement, int movementSpeed, int thickness,
+            float friction, float dampening,
+            float tension, int trails, int length, int xoffset, int yoffset, int manualx, int manualy);
 };
 
 #endif // PICTURESEFFECT_H

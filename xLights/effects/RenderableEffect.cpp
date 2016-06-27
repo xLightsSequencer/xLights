@@ -711,6 +711,14 @@ void RenderableEffect::SetSliderValue(wxSlider *slider, int value) {
     slider->ProcessWindowEvent(event);
 }
 
+void RenderableEffect::SetChoiceValue(wxChoice *choice, std::string value) {
+    choice->SetStringSelection(wxString(value.c_str()));
+    wxCommandEvent event(wxEVT_CHOICE, choice->GetId());
+    event.SetEventObject(choice);
+    event.SetString(wxString(value.c_str()));
+    choice->ProcessWindowEvent(event);
+}
+
 void RenderableEffect::SetCheckBoxValue(wxCheckBox *c, bool b) {
     c->SetValue(b);
     wxCommandEvent evt(wxEVT_COMMAND_CHECKBOX_CLICKED, c->GetId());
