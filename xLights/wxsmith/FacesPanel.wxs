@@ -104,6 +104,7 @@
 								<item>Auto</item>
 								<item>(off)</item>
 							</content>
+							<selection>2</selection>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

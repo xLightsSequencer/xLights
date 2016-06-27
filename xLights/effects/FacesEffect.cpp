@@ -27,7 +27,7 @@ FacesEffect::~FacesEffect()
     //dtor
 }
 
-void FacesEffect::SetDefaultParameters(Model *cls) {
+void FacesEffect::SetPanelStatus(Model *cls) {
     FacesPanel *fp = (FacesPanel*)panel;
     if (fp == nullptr) {
         return;
@@ -46,9 +46,12 @@ void FacesEffect::SetDefaultParameters(Model *cls) {
     bool addRender = true;
     if (cls != nullptr) {
         for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->faceInfo.begin(); it != cls->faceInfo.end(); it++) {
-            fp->Face_FaceDefinitonChoice->Append(it->first);
-            if (it->second["Type"] == "Coro" || it->second["Type"] == "SingleNode" || it->second["Type"] == "NodeRange") {
-                addRender = false;
+            if (it->first != "")
+            {
+                fp->Face_FaceDefinitonChoice->Append(it->first);
+                if (it->second["Type"] == "Coro" || it->second["Type"] == "SingleNode" || it->second["Type"] == "NodeRange") {
+                    addRender = false;
+                }
             }
         }
     }
@@ -609,7 +612,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     }
 
     std::string definition = faceDefinition;
-    if (definition == "Default" && !model_info->faceInfo.empty()) {
+    if (definition == "Default" && !model_info->faceInfo.empty() && model_info->faceInfo.begin()->first != "") {
         definition = model_info->faceInfo.begin()->first;
     }
     bool found = true;

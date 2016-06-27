@@ -3,13 +3,13 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(FacesPanel)
-#include <wx/checkbox.h>
 #include <wx/sizer.h>
-#include <wx/radiobut.h>
-#include <wx/string.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
+#include <wx/checkbox.h>
+#include <wx/radiobut.h>
 #include <wx/choice.h>
+#include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(FacesPanel)
@@ -34,8 +34,8 @@ FacesPanel::FacesPanel(wxWindow* parent)
 	//(*Initialize(FacesPanel)
 	wxStaticBoxSizer* StaticBoxSizer2;
 	wxFlexGridSizer* FlexGridSizer47;
-	wxFlexGridSizer* FlexGridSizer98;
 	wxFlexGridSizer* FlexGridSizer97;
+	wxFlexGridSizer* FlexGridSizer98;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer47 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -77,7 +77,7 @@ FacesPanel::FacesPanel(wxWindow* parent)
 	Choice_Faces_Eyes = new wxChoice(this, ID_CHOICE_Faces_Eyes, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_Eyes"));
 	Choice_Faces_Eyes->Append(_("Open"));
 	Choice_Faces_Eyes->Append(_("Closed"));
-	Choice_Faces_Eyes->Append(_("Auto"));
+	Choice_Faces_Eyes->SetSelection( Choice_Faces_Eyes->Append(_("Auto")) );
 	Choice_Faces_Eyes->Append(_("(off)"));
 	FlexGridSizer98->Add(Choice_Faces_Eyes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
