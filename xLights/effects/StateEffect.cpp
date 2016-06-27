@@ -89,6 +89,16 @@ wxPanel *StateEffect::CreatePanel(wxWindow *parent) {
     return new StatePanel(parent);
 }
 
+void StateEffect::SetDefaultParameters(Model *cls) {
+    StatePanel *sp = (StatePanel*)panel;
+    if (sp == nullptr) {
+        return;
+    }
+
+    SetChoiceValue(sp->Choice_State_Mode, "Default");
+    SetChoiceValue(sp->Choice_State_Color, "Graduate");
+}
+
 void StateEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     RenderState(buffer,
                 effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
