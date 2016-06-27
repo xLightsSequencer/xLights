@@ -1229,6 +1229,13 @@
 					<handler function="OnmBackupOnSaveSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
+				<object class="wxMenuItem" name="ID_MENU_BACKUP_ON_LAUNCH" variable="MenuItem_BackupOnLaunch" member="yes">
+					<label>Backup On Launch</label>
+					<help>Recommended.</help>
+					<checked>1</checked>
+					<handler function="OnMenuItem_BackupOnLaunchSelected" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
 				<object class="wxMenuItem" name="ID_ALT_BACKUPLOCATION" variable="mAltBackupLocationMenuItem" member="yes">
 					<label>Alt Backup Location</label>
 					<handler function="OnmAltBackupLocationMenuItemSelected" entry="EVT_MENU" />

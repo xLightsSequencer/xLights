@@ -603,6 +603,7 @@ private:
     void OnmAltBackupLocationMenuItemSelected(wxCommandEvent& event);
     void OnmAltBackupMenuItemSelected(wxCommandEvent& event);
     void OnmExportModelsMenuItemSelected(wxCommandEvent& event);
+    void OnMenuItem_BackupOnLaunchSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -745,6 +746,7 @@ private:
     static const long ID_SEQ_SETTINGS;
     static const long ID_RENDER_ON_SAVE;
     static const long ID_BACKUP_ON_SAVE;
+    static const long ID_MENU_BACKUP_ON_LAUNCH;
     static const long ID_ALT_BACKUPLOCATION;
     static const long ID_MENUITEM_ICON_SMALL;
     static const long ID_MENUITEM_ICON_MEDIUM;
@@ -842,6 +844,7 @@ private:
     xlAuiToolBar* ViewToolBar;
     wxMenuItem* MenuItem37;
     wxStaticText* StaticText1;
+    wxMenuItem* MenuItem_BackupOnLaunch;
     wxMenuItem* MenuItem32;
     wxMenuItem* MenuItem_ViewZoomIn;
     wxPanel* PanelPreview;
@@ -1238,6 +1241,7 @@ private:
     bool mResetToolbars;
     bool mRenderOnSave;
     bool mBackupOnSave;
+    bool mBackupOnLaunch;
     wxString mAltBackupDir;
     int mIconSize;
     int mGridSpacing;
