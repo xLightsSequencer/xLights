@@ -59,17 +59,35 @@ void MusicEffect::adjustSettings(const std::string &version, Effect *effect)
     }
 }
 
+void MusicEffect::SetDefaultParameters(Model *cls) {
+    MusicPanel *mp = (MusicPanel*)panel;
+    if (mp == nullptr) {
+        return;
+    }
+
+    SetSliderValue(mp->Slider_Music_Bars, 20);
+    SetChoiceValue(mp->Choice_Music_Type, "Morph");
+    SetSliderValue(mp->Slider_Music_Sensitivity, 50);
+    SetCheckBoxValue(mp->CheckBox_Music_Scale, false);
+    SetChoiceValue(mp->Choice_Music_Scaling, "None");
+    SetSliderValue(mp->Slider_Music_Offset, 0);
+    SetSliderValue(mp->Slider_Music_StartNote, 60);
+    SetSliderValue(mp->Slider_Music_EndNote, 80);
+    SetChoiceValue(mp->Choice_Music_Colour, "Distinct");
+    SetCheckBoxValue(mp->CheckBox_Music_Fade, false);
+}
+
 void MusicEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
-        SettingsMap.GetInt("SLIDER_Music_Bars", 6),
-        SettingsMap.Get("CHOICE_Music_Type", "Collide"),
+        SettingsMap.GetInt("SLIDER_Music_Bars", 20),
+        SettingsMap.Get("CHOICE_Music_Type", "Morph"),
         SettingsMap.GetInt("SLIDER_Music_Sensitivity", 50),
         SettingsMap.GetBool("CHECKBOX_Music_Scale", false),
-        std::string(SettingsMap.Get("CHOICE_Music_Scaling", "All Notes")),
+        std::string(SettingsMap.Get("CHOICE_Music_Scaling", "None")),
         GetValueCurveInt("Music_Offset", 0, SettingsMap, oset),
-        SettingsMap.GetInt("SLIDER_Music_StartNote", 0),
-        SettingsMap.GetInt("SLIDER_Music_EndNote", 127),
+        SettingsMap.GetInt("SLIDER_Music_StartNote", 60),
+        SettingsMap.GetInt("SLIDER_Music_EndNote", 80),
         SettingsMap.Get("CHOICE_Music_Colour", "Distinct"),
         SettingsMap.GetBool("CHECKBOX_Music_Fade", false)
     );

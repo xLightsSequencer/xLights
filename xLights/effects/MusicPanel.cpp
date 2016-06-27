@@ -160,9 +160,9 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Notes Scaling"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer31->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Music_Scaling = new wxChoice(this, ID_CHOICE_Music_Scaling, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Music_Scaling"));
-	Choice_Music_Scaling->Append(_("None"));
+	Choice_Music_Scaling->SetSelection( Choice_Music_Scaling->Append(_("None")) );
 	Choice_Music_Scaling->Append(_("Individual Notes"));
-	Choice_Music_Scaling->SetSelection( Choice_Music_Scaling->Append(_("All Notes")) );
+	Choice_Music_Scaling->Append(_("All Notes"));
 	FlexGridSizer31->Add(Choice_Music_Scaling, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Music_Scaling = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_Scaling, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_Scaling"));

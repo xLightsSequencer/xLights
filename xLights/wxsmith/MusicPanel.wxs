@@ -329,7 +329,7 @@
 								<item>Individual Notes</item>
 								<item>All Notes</item>
 							</content>
-							<selection>2</selection>
+							<selection>0</selection>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>

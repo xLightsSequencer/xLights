@@ -17,7 +17,8 @@ class MusicEffect : public RenderableEffect
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         void Render(RenderBuffer &buffer,
                     int bars, const std::string& type, int sensitivity, bool scale, const std::string& scalenotes, int offsetx, int startnote, int endnote, const std::string& colourtreatment, bool fade);
-	protected:
+        virtual void SetDefaultParameters(Model *cls) override;
+    protected:
         void CreateEvents(RenderBuffer& buffer, std::vector<std::list<MusicEvent*>*>& events, int startNote, int endNote, int bars, int scalenotes, int sensitivity);
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
 		int DecodeType(const std::string& type);
