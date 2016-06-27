@@ -20,7 +20,8 @@ StateEffect::~StateEffect()
     //dtor
 }
 
-void StateEffect::SetDefaultParameters(Model *cls) {
+//void StateEffect::SetDefaultParameters(Model *cls) {
+void StateEffect::SetPanelStatus(Model *cls) {
     StatePanel *fp = (StatePanel*)panel;
     if (fp == nullptr) {
         return;
