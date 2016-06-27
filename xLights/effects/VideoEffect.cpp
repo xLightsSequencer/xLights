@@ -55,6 +55,19 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect)
     }
 }
 
+void VideoEffect::SetDefaultParameters(Model *cls)
+{
+    VideoPanel *vp = (VideoPanel*)panel;
+    if (vp == nullptr) {
+        return;
+    }
+
+    vp->FilePicker_Video_Filename->SetFileName(wxFileName());
+    SetSliderValue(vp->Slider_Video_Starttime, 0);
+    SetCheckBoxValue(vp->CheckBox_Video_AspectRatio, false);
+    SetChoiceValue(vp->Choice_Video_DurationTreatment, "Normal");
+}
+
 void VideoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     Render(buffer,
 		   SettingsMap["FILEPICKERCTRL_Video_Filename"],

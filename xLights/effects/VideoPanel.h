@@ -42,10 +42,8 @@ class VideoPanel: public wxPanel
 
 		VideoPanel(wxWindow* parent);
 		virtual ~VideoPanel();
-
-    
         void addVideoTime(std::string fn, unsigned long ms);
-	protected:
+
         //(*Declarations(VideoPanel)
         wxChoice* Choice_Video_DurationTreatment;
         wxSlider* Slider_Video_Starttime;
@@ -55,12 +53,11 @@ class VideoPanel: public wxPanel
         wxTextCtrl* TextCtrl_Video_Starttime;
         //*)
 
-    
+protected:
+
         std::mutex lock;
         std::map<std::string, unsigned long> videoTimeCache;
     
-
-
 		//(*Identifiers(VideoPanel)
 		static const long ID_FILEPICKERCTRL_Video_Filename;
 		static const long ID_STATICTEXT8;

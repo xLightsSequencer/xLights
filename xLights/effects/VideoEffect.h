@@ -18,6 +18,7 @@ class VideoEffect : public RenderableEffect
         void Render(RenderBuffer &buffer,
 					const std::string& filename, double starttime, bool keepaspectratio, std::string durationTreatment);
         virtual bool CanBeRandom() override {return false;}
+        virtual void SetDefaultParameters(Model *cls) override;
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent)override;
