@@ -14,12 +14,12 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Snowflakes_Count" variable="Slider_Snowflakes_Count" member="no">
+				<object class="wxSlider" name="ID_SLIDER_Snowflakes_Count" variable="Slider_Snowflakes_Count" member="yes">
 					<value>5</value>
 					<min>1</min>
 					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -60,7 +60,7 @@
 					<max>5</max>
 					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -96,12 +96,12 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Snowflakes_Speed" variable="Slider21" member="no">
+				<object class="wxSlider" name="ID_SLIDER_Snowflakes_Speed" variable="Slider_Snowflakes_Speed" member="yes">
 					<value>10</value>
 					<max>50</max>
 					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -136,7 +136,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Falling" variable="ChoiceFalling" member="yes">
+				<object class="wxChoice" name="ID_CHOICE_Falling" variable="Choice_Falling" member="yes">
 					<content>
 						<item>Driving</item>
 						<item>Falling</item>

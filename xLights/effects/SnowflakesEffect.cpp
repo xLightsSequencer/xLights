@@ -135,12 +135,24 @@ public:
     int effectState;
 };
 
+void SnowflakesEffect::SetDefaultParameters(Model *cls)
+{
+    SnowflakesPanel *sp = (SnowflakesPanel*)panel;
+    if (sp == nullptr) {
+        return;
+    }
+
+    SetSliderValue(sp->Slider_Snowflakes_Count, 5);
+    SetSliderValue(sp->Slider_Snowflakes_Type, 1);
+    SetSliderValue(sp->Slider_Snowflakes_Speed, 10);
+    SetChoiceValue(sp->Choice_Falling, "Driving");
+}
 
 void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
-    int Count = SettingsMap.GetInt("SLIDER_Snowflakes_Count", 0);
-    int SnowflakeType = SettingsMap.GetInt("SLIDER_Snowflakes_Type", 0);
-    int sSpeed = SettingsMap.GetInt("SLIDER_Snowflakes_Speed", 0);
+    int Count = SettingsMap.GetInt("SLIDER_Snowflakes_Count", 5);
+    int SnowflakeType = SettingsMap.GetInt("SLIDER_Snowflakes_Type", 1);
+    int sSpeed = SettingsMap.GetInt("SLIDER_Snowflakes_Speed", 10);
     std::string falling = SettingsMap.Get("CHOICE_Falling", "Driving");
 
     int i,n,x,x0,y0,y,check,delta_y;
