@@ -15,7 +15,8 @@ class VUMeterEffect : public RenderableEffect
         void Render(RenderBuffer &buffer, SequenceElements *elements,
                     int bars, const std::string& type, const std::string& timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset);
 		virtual void SetDefaultParameters(Model *cls) override;
-	protected:
+        virtual void SetPanelStatus(Model *cls) override;
+    protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
 		int DecodeType(std::string type);
 		void RenderSpectrogramFrame(RenderBuffer &buffer, int bars, std::list<float>& lastvalues, bool slowdownfalls, int startnote, int endnote, int xoffset);

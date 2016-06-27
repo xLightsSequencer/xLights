@@ -36,38 +36,56 @@ wxPanel *VUMeterEffect::CreatePanel(wxWindow *parent) {
 	return new VUMeterPanel(parent);
 }
 
+void VUMeterEffect::SetPanelStatus(Model* cls)
+{
+    VUMeterPanel *vp = (VUMeterPanel*)panel;
+    if (vp == nullptr)
+    {
+        return;
+    }
+
+    vp->Choice_VUMeter_TimingTrack->Clear();
+    if (mSequenceElements == nullptr)
+    {
+        return;
+    }
+
+    // Load the names of the timing tracks
+    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+    {
+        Element* e = mSequenceElements->GetElement(i);
+        if (e->GetEffectLayerCount() == 1 && e->GetType() == "timing")
+        {
+            vp->Choice_VUMeter_TimingTrack->Append(e->GetName());
+        }
+    }
+
+    // Select the first one
+    if (vp->Choice_VUMeter_TimingTrack->GetCount() > 0)
+    {
+        vp->Choice_VUMeter_TimingTrack->Select(0);
+    }
+
+    // Validate the window (includes enabling and disabling controls)
+    vp->ValidateWindow();
+}
+
 void VUMeterEffect::SetDefaultParameters(Model *cls) 
 {
-	VUMeterPanel *fp = (VUMeterPanel*)panel;
-	if (fp == nullptr) 
-	{
-		return;
-	}
+    VUMeterPanel *vp = (VUMeterPanel*)panel;
+    if (vp == nullptr) {
+        return;
+    }
 
-	fp->Choice_VUMeter_TimingTrack->Clear();
-	if (mSequenceElements == nullptr) 
-	{
-		return;
-	}
-
-	// Load the names of the timing tracks
-	for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
-	{
-		Element* e = mSequenceElements->GetElement(i);
-		if (e->GetEffectLayerCount() == 1 && e->GetType() == "timing") 
-		{
-			fp->Choice_VUMeter_TimingTrack->Append(e->GetName());
-		}
-	}
-
-	// Select the first one
-	if (fp->Choice_VUMeter_TimingTrack->GetCount() > 0)
-	{
-		fp->Choice_VUMeter_TimingTrack->Select(0);
-	}
-
-	// Validate the window (includes enabling and disabling controls)
-	fp->ValidateWindow();
+    SetSliderValue(vp->Slider_VUMeter_Bars, 6);
+    SetChoiceValue(vp->Choice_VUMeter_Type, "Waveform");
+    SetSliderValue(vp->Slider_VUMeter_Sensitivity, 70);
+    SetChoiceValue(vp->Choice_VUMeter_Shape, "Circle");
+    SetCheckBoxValue(vp->CheckBox_VUMeter_SlowDownFalls, true);
+    SetSliderValue(vp->Slider_VUMeter_StartNote, 36);
+    SetSliderValue(vp->Slider_VUMeter_EndNote, 84);
+    SetSliderValue(vp->Slider_VUMeter_XOffset, 0);
+    SetSliderValue(vp->Slider_VUMeter_YOffset, 0);
 }
 
 void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
