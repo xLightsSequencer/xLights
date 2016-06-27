@@ -235,7 +235,7 @@ void StateEffect::RenderState(RenderBuffer &buffer,
         while (tkz.HasMoreTokens())
         {
             wxString token = tkz.GetNextToken();
-            sstates.push_back(token.ToStdString());
+            sstates.push_back(token.Lower().ToStdString());
         }
     }
     else if (mode == "Countdown")
@@ -375,7 +375,7 @@ void StateEffect::RenderState(RenderBuffer &buffer,
         while (tkz.HasMoreTokens())
         {
             wxString token = tkz.GetNextToken();
-            tmpstates.push_back(token.ToStdString());
+            tmpstates.push_back(token.Lower().ToStdString());
         }
 
         int which = tmpstates.size() * progressthroughtimeinterval;

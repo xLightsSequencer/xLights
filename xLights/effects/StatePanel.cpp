@@ -91,6 +91,7 @@ StatePanel::StatePanel(wxWindow* parent)
 	FlexGridSizer47->Fit(this);
 	FlexGridSizer47->SetSizeHints(this);
 
+	Connect(ID_CHOICE_State_StateDefinition,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&StatePanel::OnState_StateDefinitonChoiceSelect);
 	Connect(IDD_RADIOBUTTON_State_State,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StatePanel::OnMouthMovementTypeSelected);
 	Connect(IDD_RADIOBUTTON_State_TimingTrack,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StatePanel::OnMouthMovementTypeSelected);
 	//*)

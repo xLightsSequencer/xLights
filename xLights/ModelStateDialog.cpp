@@ -210,7 +210,7 @@ void ModelStateDialog::SetStateInfo(const Model *cls, std::map< std::string, std
 
     for (int x = 0; x < SingleNodeGrid->GetNumberRows(); x++) {
         wxGridCellTextEditor *neditor = new wxGridCellTextEditor();
-        wxString nfilter("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_/\\|");
+        wxString nfilter("abcdefghijklmnopqrstuvwxyz0123456789-_/\\|");
         wxTextValidator nvalidator(wxFILTER_INCLUDE_CHAR_LIST);
         nvalidator.SetCharIncludes(nfilter);
         neditor->SetValidator(nvalidator);
@@ -231,7 +231,7 @@ void ModelStateDialog::SetStateInfo(const Model *cls, std::map< std::string, std
         reditor->SetValidator(validator);
 
         wxGridCellTextEditor *neditor2 = new wxGridCellTextEditor();
-        wxString nfilter2("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_/\\|");
+        wxString nfilter2("abcdefghijklmnopqrstuvwxyz0123456789-_/\\|");
         wxTextValidator nvalidator2(wxFILTER_INCLUDE_CHAR_LIST);
         nvalidator2.SetCharIncludes(nfilter2);
         neditor2->SetValidator(nvalidator2);
@@ -374,7 +374,7 @@ static void GetValue(wxGrid *grid, wxGridEvent &event, std::map<std::string, std
         }
         else if (c == NAME_COL) {
             key += "-Name";
-            info[key.ToStdString()] = grid->GetCellValue(r, c);
+            info[key.ToStdString()] = grid->GetCellValue(r, c).Lower();
         }
         else {
             info[key.ToStdString()] = grid->GetCellValue(r, c);
