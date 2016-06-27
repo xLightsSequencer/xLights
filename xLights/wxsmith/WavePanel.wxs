@@ -53,7 +53,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Fill_Colors" variable="Choice_Fill_Colors" member="no">
+				<object class="wxChoice" name="ID_CHOICE_Fill_Colors" variable="Choice_Fill_Colors" member="yes">
 					<content>
 						<item>None</item>
 						<item>Rainbow</item>
@@ -300,7 +300,7 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Wave_Speed" variable="Slider29" member="no">
+						<object class="wxSlider" name="ID_SLIDER_Wave_Speed" variable="Slider_Wave_Speed" member="yes">
 							<value>10</value>
 							<max>50</max>
 							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -355,7 +355,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Wave_Direction" variable="Choice_Wave_Direction" member="no">
+				<object class="wxChoice" name="ID_CHOICE_Wave_Direction" variable="Choice_Wave_Direction" member="yes">
 					<content>
 						<item>Right to Left</item>
 						<item>Left to Right</item>

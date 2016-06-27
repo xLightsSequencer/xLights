@@ -69,10 +69,7 @@ WavePanel::WavePanel(wxWindow* parent)
 	wxTextCtrl* TextCtrl75;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxTextCtrl* TextCtrl77;
-	wxChoice* Choice_Wave_Direction;
 	wxFlexGridSizer* FlexGridSizer1;
-	wxChoice* Choice_Fill_Colors;
-	wxSlider* Slider29;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer51 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -159,8 +156,8 @@ WavePanel::WavePanel(wxWindow* parent)
 	FlexGridSizer51->Add(StaticText189, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
-	Slider29 = new wxSlider(this, ID_SLIDER_Wave_Speed, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Wave_Speed"));
-	FlexGridSizer4->Add(Slider29, 1, wxALL|wxEXPAND, 2);
+	Slider_Wave_Speed = new wxSlider(this, ID_SLIDER_Wave_Speed, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Wave_Speed"));
+	FlexGridSizer4->Add(Slider_Wave_Speed, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Wave_SpeedVC = new ValueCurveButton(this, ID_VALUECURVE_Wave_Speed, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Wave_Speed"));
 	FlexGridSizer4->Add(BitmapButton_Wave_SpeedVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer51->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);

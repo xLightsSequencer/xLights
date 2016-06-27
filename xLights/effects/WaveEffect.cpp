@@ -72,6 +72,23 @@ static inline int GetWaveFillColor(const std::string &color) {
     }
     return 0; //None
 }
+
+void WaveEffect::SetDefaultParameters(Model *cls) {
+    WavePanel *wp = (WavePanel*)panel;
+    if (wp == nullptr) {
+        return;
+    }
+
+    SetChoiceValue(wp->Choice_Wave_Type, "Sine");
+    SetChoiceValue(wp->Choice_Fill_Colors, "None");
+    SetCheckBoxValue(wp->CheckBox_Mirror_Wave, false);
+    SetSliderValue(wp->Slider_Number_Waves, 900);
+    SetSliderValue(wp->Slider_Thickness_Percentage, 5);
+    SetSliderValue(wp->Slider_Wave_Height, 50);
+    SetSliderValue(wp->Slider_Wave_Speed, 10);
+    SetChoiceValue(wp->Choice_Wave_Direction, "Right to Left");
+}
+
 void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
@@ -81,7 +98,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
 
     bool MirrorWave = SettingsMap.GetBool("CHECKBOX_Mirror_Wave");
     int NumberWaves = GetValueCurveInt("Number_Waves", 1, SettingsMap, oset);
-    int ThicknessWave = GetValueCurveInt("Thickness_Percentage", 50, SettingsMap, oset);
+    int ThicknessWave = GetValueCurveInt("Thickness_Percentage", 5, SettingsMap, oset);
     int WaveHeight = GetValueCurveInt("Wave_Height", 50, SettingsMap, oset);
     int wspeed = GetValueCurveInt("Wave_Speed", 10, SettingsMap, oset);
 

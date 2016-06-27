@@ -37,12 +37,15 @@ class WavePanel: public wxPanel
 		wxStaticText* StaticText49;
 		wxSlider* Slider_Thickness_Percentage;
 		wxStaticText* StaticText189;
+		wxChoice* Choice_Wave_Direction;
+		wxSlider* Slider_Wave_Speed;
 		wxStaticText* StaticText47;
 		wxStaticText* StaticText52;
 		ValueCurveButton* BitmapButton_Number_WavesVC;
 		wxBitmapButton* BitmapButton_Wave_Thickness;
 		wxBitmapButton* BitmapButton_NumberWaves;
 		wxBitmapButton* BitmapButton_Wave_FillColors;
+		wxChoice* Choice_Fill_Colors;
 		wxSlider* Slider_Number_Waves;
 		wxChoice* Choice_Wave_Type;
 		wxBitmapButton* BitmapButton_WaveType;
