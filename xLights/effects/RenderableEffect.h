@@ -17,6 +17,7 @@ class RenderBuffer;
 class wxSlider;
 class wxCheckBox;
 class AudioManager;
+class wxSpinCtrl;
 
 class RenderableEffect
 {
