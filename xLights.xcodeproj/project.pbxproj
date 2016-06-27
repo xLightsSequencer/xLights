@@ -262,6 +262,10 @@
 		67B845071A9C0E7500564051 /* ModelViewSelector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845021A9C0E7500564051 /* ModelViewSelector.cpp */; };
 		67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */; };
 		67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */; };
+		67BC8BB41D2152C5009B660F /* StateEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC8BB01D2152C5009B660F /* StateEffect.cpp */; };
+		67BC8BB51D2152C5009B660F /* StatePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC8BB11D2152C5009B660F /* StatePanel.cpp */; };
+		67BC8BBA1D2152EC009B660F /* ModelStateDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC8BB61D2152EC009B660F /* ModelStateDialog.cpp */; };
+		67BC8BBB1D2152EC009B660F /* NodesGridCellEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC8BB71D2152EC009B660F /* NodesGridCellEditor.cpp */; };
 		67BE75131CAC2EB200D7BA82 /* IciclesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */; };
 		67C0EEE31C755ABE002FE25E /* MatrixModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */; };
 		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
@@ -798,6 +802,14 @@
 		67BA42A51C93B78500D17518 /* StartChannelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StartChannelDialog.h; sourceTree = "<group>"; };
 		67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StartChannelDialog.cpp; sourceTree = "<group>"; };
 		67BAE6E21A08252700CB7041 /* spxml-0.5 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "spxml-0.5"; path = "include/spxml-0.5"; sourceTree = SOURCE_ROOT; };
+		67BC8BB01D2152C5009B660F /* StateEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StateEffect.cpp; path = effects/StateEffect.cpp; sourceTree = "<group>"; };
+		67BC8BB11D2152C5009B660F /* StatePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StatePanel.cpp; path = effects/StatePanel.cpp; sourceTree = "<group>"; };
+		67BC8BB21D2152C5009B660F /* StateEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StateEffect.h; path = effects/StateEffect.h; sourceTree = "<group>"; };
+		67BC8BB31D2152C5009B660F /* StatePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StatePanel.h; path = effects/StatePanel.h; sourceTree = "<group>"; };
+		67BC8BB61D2152EC009B660F /* ModelStateDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelStateDialog.cpp; sourceTree = "<group>"; };
+		67BC8BB71D2152EC009B660F /* NodesGridCellEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodesGridCellEditor.cpp; sourceTree = "<group>"; };
+		67BC8BB81D2152EC009B660F /* ModelStateDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelStateDialog.h; sourceTree = "<group>"; };
+		67BC8BB91D2152EC009B660F /* NodesGridCellEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodesGridCellEditor.h; sourceTree = "<group>"; };
 		67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IciclesModel.cpp; path = models/IciclesModel.cpp; sourceTree = "<group>"; };
 		67BE75121CAC2EB200D7BA82 /* IciclesModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IciclesModel.h; path = models/IciclesModel.h; sourceTree = "<group>"; };
 		67C0EEE11C755ABE002FE25E /* MatrixModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MatrixModel.h; path = models/MatrixModel.h; sourceTree = "<group>"; };
@@ -1023,6 +1035,10 @@
 		679BD3281C37552D000539FE /* Effects */ = {
 			isa = PBXGroup;
 			children = (
+				67BC8BB01D2152C5009B660F /* StateEffect.cpp */,
+				67BC8BB11D2152C5009B660F /* StatePanel.cpp */,
+				67BC8BB21D2152C5009B660F /* StateEffect.h */,
+				67BC8BB31D2152C5009B660F /* StatePanel.h */,
 				6766038F1D01CA2400589601 /* FillPanel.cpp */,
 				676603901D01CA2400589601 /* FillPanel.h */,
 				6766038C1D01CA0800589601 /* FillEffect.cpp */,
@@ -1322,6 +1338,10 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67BC8BB61D2152EC009B660F /* ModelStateDialog.cpp */,
+				67BC8BB71D2152EC009B660F /* NodesGridCellEditor.cpp */,
+				67BC8BB81D2152EC009B660F /* ModelStateDialog.h */,
+				67BC8BB91D2152EC009B660F /* NodesGridCellEditor.h */,
 				675D1E911D0B54B800CC6C02 /* LayoutGroup.cpp */,
 				675D1E921D0B54B800CC6C02 /* PreviewPane.cpp */,
 				675D1E931D0B54B800CC6C02 /* LayoutGroup.h */,
@@ -1684,6 +1704,7 @@
 				67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */,
 				675DE2691B53381800A9BB44 /* xlColorCanvas.cpp in Sources */,
 				6761F5F71C4EA041009780DA /* xlGridCanvasEmpty.cpp in Sources */,
+				67BC8BB51D2152C5009B660F /* StatePanel.cpp in Sources */,
 				67B2CF781C39D98A003C17CA /* GlediatorPanel.cpp in Sources */,
 				67B2CF901C39D98A003C17CA /* ColorWashPanel.cpp in Sources */,
 				67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */,
@@ -1692,6 +1713,7 @@
 				67B2CFD71C3A186A003C17CA /* SnowstormEffect.cpp in Sources */,
 				67B2CF871C39D98A003C17CA /* SnowstormPanel.cpp in Sources */,
 				67DAFDDD1CA1A63C004B3237 /* MidiEvent.cpp in Sources */,
+				67BC8BBA1D2152EC009B660F /* ModelStateDialog.cpp in Sources */,
 				67ACBAB21C63D84500BFA7D6 /* CustomModel.cpp in Sources */,
 				670C828B1C45C48B000AA5D8 /* Model.cpp in Sources */,
 				67B2CF711C39D98A003C17CA /* DMXPanel.cpp in Sources */,
@@ -1748,6 +1770,7 @@
 				67653D5C1CA589830026A30B /* ModelScreenLocation.cpp in Sources */,
 				679BD33A1C37555C000539FE /* OffEffect.cpp in Sources */,
 				67447D991C6664900095CDB5 /* WindowFrameModel.cpp in Sources */,
+				67BC8BBB1D2152EC009B660F /* NodesGridCellEditor.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
 				675AC53D1C987AA700C4AFE9 /* CustomModelDialog.cpp in Sources */,
 				6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */,
@@ -1868,6 +1891,7 @@
 				67A61A5417B51C0F008E95BB /* ShowDatesDialog.cpp in Sources */,
 				67A61A6D17B51C0F008E95BB /* xlights_out.cpp in Sources */,
 				67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */,
+				67BC8BB41D2152C5009B660F /* StateEffect.cpp in Sources */,
 				67B2CFD91C3A186A003C17CA /* SpirographEffect.cpp in Sources */,
 				675AB4291B5ACEDA00853A28 /* host-c.cpp in Sources */,
 				67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */,
