@@ -16,12 +16,13 @@ class PianoEffect : public RenderableEffect
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
 		virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
 		static std::vector<float> Parse(wxString& l);
+        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetPanelStatus(Model *cls) override;
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
         virtual bool needToAdjustSettings(const std::string& version) override { return true; };
         virtual void adjustSettings(const std::string &version, Effect *effect) override;
-        virtual void SetDefaultParameters(Model *cls) override;
 
     private:
     

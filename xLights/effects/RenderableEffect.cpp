@@ -711,6 +711,14 @@ void RenderableEffect::SetSliderValue(wxSlider *slider, int value) {
     slider->ProcessWindowEvent(event);
 }
 
+void RenderableEffect::SetSpinValue(wxSpinCtrl *spin, int value) {
+    spin->SetValue(value);
+    wxCommandEvent event(wxEVT_SPIN, spin->GetId());
+    event.SetEventObject(spin);
+    event.SetInt(value);
+    spin->ProcessWindowEvent(event);
+}
+
 void RenderableEffect::SetChoiceValue(wxChoice *choice, std::string value) {
     choice->SetStringSelection(wxString(value.c_str()));
     wxCommandEvent event(wxEVT_CHOICE, choice->GetId());
@@ -721,7 +729,7 @@ void RenderableEffect::SetChoiceValue(wxChoice *choice, std::string value) {
 
 void RenderableEffect::SetTextValue(wxTextCtrl *text, std::string value) {
     text->SetValue(wxString(value.c_str()));
-    wxCommandEvent event(wxEVT_CHOICE, text->GetId());
+    wxCommandEvent event(wxEVT_TEXT, text->GetId());
     event.SetEventObject(text);
     event.SetString(wxString(value.c_str()));
     text->ProcessWindowEvent(event);

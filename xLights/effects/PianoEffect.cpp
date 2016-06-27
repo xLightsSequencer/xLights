@@ -28,7 +28,7 @@ PianoEffect::~PianoEffect()
     //dtor
 }
 
-void PianoEffect::SetDefaultParameters(Model *cls)
+void PianoEffect::SetPanelStatus(Model *cls)
 {
     PianoPanel *fp = (PianoPanel*)panel;
     if (fp == nullptr)
@@ -94,6 +94,20 @@ bool PianoEffect::CanRenderOnBackgroundThread(Effect *effect, const SettingsMap 
         return buffer.GetMedia()->IsPolyphonicTranscriptionDone();
     }
     return true;
+}
+
+void PianoEffect::SetDefaultParameters(Model *cls) {
+    PianoPanel *pp = (PianoPanel*)panel;
+    if (pp == nullptr) {
+        return;
+    }
+
+    SetChoiceValue(pp->Choice_Piano_Type, "True Piano");
+    SetSpinValue(pp->SpinCtrl_Piano_StartMIDI, 60);
+    SetSpinValue(pp->SpinCtrl_Piano_EndMIDI, 72);
+    SetCheckBoxValue(pp->CheckBox_Piano_ShowSharps, true);
+    SetSliderValue(pp->Slider_Piano_Scale, 100);
+    SetSliderValue(pp->Slider_Piano_XOffset, 0);
 }
 
 void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

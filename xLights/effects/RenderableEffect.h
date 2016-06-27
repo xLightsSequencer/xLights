@@ -64,6 +64,7 @@ class RenderableEffect
 
     protected:
         static void SetSliderValue(wxSlider *slider, int value);
+        static void SetSpinValue(wxSpinCtrl *spin, int value);
         static void SetChoiceValue(wxChoice* choice, std::string value);
         static void SetTextValue(wxTextCtrl* choice, std::string value);
         static void SetCheckBoxValue(wxCheckBox *w, bool b);
