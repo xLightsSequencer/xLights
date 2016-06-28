@@ -18,7 +18,7 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Number_Bolts" variable="Number_Bolts" member="no">
+						<object class="wxSlider" name="ID_SLIDER_Number_Bolts" variable="Slider_Number_Bolts" member="yes">
 							<value>10</value>
 							<min>1</min>
 							<max>50</max>
@@ -77,7 +77,7 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Number_Segments" variable="Number_Segments" member="no">
+						<object class="wxSlider" name="ID_SLIDER_Number_Segments" variable="Slider_Number_Segments" member="yes">
 							<value>5</value>
 							<min>1</min>
 							<max>20</max>
@@ -133,7 +133,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_ForkedLightning" variable="ForkedLightning" member="yes">
+				<object class="wxCheckBox" name="ID_CHECKBOX_ForkedLightning" variable="CheckBox_ForkedLightning" member="yes">
 					<label>Yes</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -168,7 +168,7 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Lightning_TopX" variable="Lightning_TopX" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Lightning_TopX" variable="Slider_Lightning_TopX" member="yes">
 							<min>-50</min>
 							<max>50</max>
 							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -317,7 +317,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Lightning_BOTY" variable="Lightning_BOTX" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Lightning_BOTY" variable="Slider_Lightning_BOTY" member="yes">
 					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

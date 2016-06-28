@@ -39,7 +39,6 @@ SnowstormPanel::SnowstormPanel(wxWindow* parent)
 	wxTextCtrl* TextCtrl55;
 	wxFlexGridSizer* FlexGridSizer44;
 	wxTextCtrl* TextCtrl54;
-	wxSlider* Slider20;
 	wxTextCtrl* TextCtrl53;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -67,8 +66,8 @@ SnowstormPanel::SnowstormPanel(wxWindow* parent)
 	FlexGridSizer44->Add(BitmapButton_SnowstormLength, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText180 = new wxStaticText(this, wxID_ANY, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer44->Add(StaticText180, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider20 = new wxSlider(this, ID_SLIDER_Snowstorm_Speed, 10, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Snowstorm_Speed"));
-	FlexGridSizer44->Add(Slider20, 1, wxALL|wxEXPAND, 5);
+	Slider_Snowstorm_Speed = new wxSlider(this, ID_SLIDER_Snowstorm_Speed, 10, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Snowstorm_Speed"));
+	FlexGridSizer44->Add(Slider_Snowstorm_Speed, 1, wxALL|wxEXPAND, 5);
 	TextCtrl55 = new wxTextCtrl(this, IDD_TEXTCTRL_Snowstorm_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Snowstorm_Speed"));
 	TextCtrl55->SetMaxLength(3);
 	FlexGridSizer44->Add(TextCtrl55, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

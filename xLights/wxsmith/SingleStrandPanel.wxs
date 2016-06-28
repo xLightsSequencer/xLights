@@ -180,7 +180,7 @@
 										<cols>2</cols>
 										<growablecols>0</growablecols>
 										<object class="sizeritem">
-											<object class="wxSlider" name="IDD_SLIDER_Chase_Rotations" variable="Slider16" member="no">
+											<object class="wxSlider" name="IDD_SLIDER_Chase_Rotations" variable="Slider_Chase_Rotations" member="yes">
 												<value>10</value>
 												<min>1</min>
 												<max>200</max>
@@ -236,7 +236,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxChoice" name="ID_CHOICE_Chase_Type1" variable="Choice_Chase_Type1" member="no">
+									<object class="wxChoice" name="ID_CHOICE_Chase_Type1" variable="Choice_Chase_Type1" member="yes">
 										<content>
 											<item>Left-Right</item>
 											<item>Right-Left</item>
@@ -358,7 +358,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Skips_BandSize" variable="Slider_Skips_BandSize" member="no">
+											<object class="wxSlider" name="ID_SLIDER_Skips_BandSize" variable="Slider_Skips_BandSize" member="yes">
 												<value>1</value>
 												<min>1</min>
 												<max>20</max>
@@ -409,7 +409,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Skips_SkipSize" variable="Slider_Skips_SkipSize" member="no">
+											<object class="wxSlider" name="ID_SLIDER_Skips_SkipSize" variable="Slider_Skips_SkipSize" member="yes">
 												<value>1</value>
 												<max>20</max>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -459,7 +459,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Skips_StartPos" variable="Slider_Skips_StartPos" member="no">
+											<object class="wxSlider" name="ID_SLIDER_Skips_StartPos" variable="Slider_Skips_StartPos" member="yes">
 												<value>1</value>
 												<min>1</min>
 												<max>20</max>
@@ -510,7 +510,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Skips_Advance" variable="Slider15" member="no">
+											<object class="wxSlider" name="ID_SLIDER_Skips_Advance" variable="Slider_Skips_Advance" member="yes">
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
@@ -564,8 +564,9 @@
 													<item>From Middle</item>
 													<item>To Middle</item>
 												</content>
+												<selection>0</selection>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>

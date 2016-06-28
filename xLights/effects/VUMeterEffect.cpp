@@ -86,6 +86,7 @@ void VUMeterEffect::SetDefaultParameters(Model *cls)
     SetSliderValue(vp->Slider_VUMeter_EndNote, 84);
     SetSliderValue(vp->Slider_VUMeter_XOffset, 0);
     SetSliderValue(vp->Slider_VUMeter_YOffset, 0);
+    vp->BitmapButton_VUMeter_YOffsetVC->SetActive(false);
 }
 
 void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

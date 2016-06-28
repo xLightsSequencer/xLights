@@ -25,9 +25,32 @@ wxPanel *SpiralsEffect::CreatePanel(wxWindow *parent) {
     return new SpiralsPanel(parent);
 }
 
+void SpiralsEffect::SetDefaultParameters(Model *cls)
+{
+    SpiralsPanel *sp = (SpiralsPanel*)panel;
+    if (sp == nullptr) {
+        return;
+    }
+
+    sp->BitmapButton_VCSpiralsCount->SetActive(false);
+    sp->BitmapButton_VCSpirals_Movement->SetActive(false);
+    sp->BitmapButton_VCSpirals_Rotation->SetActive(false);
+    sp->BitmapButton_VCSpirals_Thickness->SetActive(false);
+
+    SetSliderValue(sp->Slider_Spirals_Count, 1);
+    SetSliderValue(sp->Slider_Spirals_Rotation, 20);
+    SetSliderValue(sp->Slider_Spirals_Thickness, 50);
+    SetSliderValue(sp->Slider_Spirals_Movement, 10);
+
+    SetCheckBoxValue(sp->CheckBox_Spirals_3D, false);
+    SetCheckBoxValue(sp->CheckBox_Spirals_Blend, false);
+    SetCheckBoxValue(sp->CheckBox_Spirals_Grow, false);
+    SetCheckBoxValue(sp->CheckBox_Spirlas_Shrink, false);
+}
+
 void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
-    int PaletteRepeat = GetValueCurveInt("Spirals_Count", 0, SettingsMap, offset);
+    int PaletteRepeat = GetValueCurveInt("Spirals_Count", 1, SettingsMap, offset);
     float Movement = GetValueCurveDouble("Spirals_Movement", 1.0, SettingsMap, offset);
     int Rotation = GetValueCurveInt("Spirals_Rotation", 0, SettingsMap, offset);
     int Thickness = GetValueCurveInt("Spirals_Thickness", 0, SettingsMap, offset);

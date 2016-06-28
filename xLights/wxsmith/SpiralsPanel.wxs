@@ -83,7 +83,7 @@
 							<cols>2</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_Spirals_Rotation" variable="Slider_Spirals_Rotation" member="no">
+								<object class="wxSlider" name="ID_SLIDER_Spirals_Rotation" variable="Slider_Spirals_Rotation" member="yes">
 									<value>20</value>
 									<min>-300</min>
 									<max>300</max>
@@ -205,7 +205,7 @@
 							<cols>2</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxSlider" name="IDD_SLIDER_Spirals_Movement" variable="Slider_Spirals_Direction" member="no">
+								<object class="wxSlider" name="IDD_SLIDER_Spirals_Movement" variable="Slider_Spirals_Movement" member="yes">
 									<value>10</value>
 									<min>-200</min>
 									<max>200</max>

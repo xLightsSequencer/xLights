@@ -3,17 +3,17 @@
 #include "EffectPanelUtils.h" 
 
 //(*InternalHeaders(TwinklePanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
 #include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(TwinklePanel)
@@ -39,10 +39,9 @@ END_EVENT_TABLE()
 TwinklePanel::TwinklePanel(wxWindow* parent)
 {
 	//(*Initialize(TwinklePanel)
-	wxCheckBox* CheckBoxTwinkleReRandom;
 	wxFlexGridSizer* FlexGridSizer4;
-	wxTextCtrl* TextCtrl79;
 	wxTextCtrl* TextCtrl80;
+	wxTextCtrl* TextCtrl79;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -79,9 +78,9 @@ TwinklePanel::TwinklePanel(wxWindow* parent)
 	BitmapButton_TwinkleStrobe->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer4->Add(BitmapButton_TwinkleStrobe, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBoxTwinkleReRandom = new wxCheckBox(this, ID_CHECKBOX_Twinkle_ReRandom, _("Re-Randomize after twinkle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Twinkle_ReRandom"));
-	CheckBoxTwinkleReRandom->SetValue(false);
-	FlexGridSizer4->Add(CheckBoxTwinkleReRandom, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Twinkle_ReRandom = new wxCheckBox(this, ID_CHECKBOX_Twinkle_ReRandom, _("Re-Randomize after twinkle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Twinkle_ReRandom"));
+	CheckBox_Twinkle_ReRandom->SetValue(false);
+	FlexGridSizer4->Add(CheckBox_Twinkle_ReRandom, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton24 = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom"));
 	BitmapButton24->SetDefault();

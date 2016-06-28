@@ -30,6 +30,7 @@ class TextPanel: public wxPanel
 		wxBitmapButton* BitmapButton_TextFont3;
 		wxTextCtrl* TextCtrl_Text_Line4;
 		wxStaticText* StaticText20;
+		wxSlider* Slider_Text_XEnd1;
 		wxBitmapButton* BitmapButton_TextEffect3;
 		wxBitmapButton* BitmapButton_TextToCenter1;
 		wxBitmapButton* BitmapButton_TextCount2;
@@ -40,6 +41,7 @@ class TextPanel: public wxPanel
 		wxStaticText* StaticText78;
 		wxBitmapButton* BitmapButton_TextDir3;
 		wxBitmapButton* BitmapButton_TextFont2;
+		wxSlider* Slider_Text_YStart1;
 		wxChoice* Choice_Text_Dir2;
 		wxBitmapButton* BitmapButton_TextCount4;
 		wxChoice* Choice_Text_Count2;
@@ -48,7 +50,9 @@ class TextPanel: public wxPanel
 		wxSlider* Slider_Text_Position2;
 		wxBitmapButton* BitmapButton_TextFont1;
 		wxBitmapButton* BitmapButton9;
+		wxSlider* Slider_Text_XStart1;
 		wxChoice* Choice_Text_Effect2;
+		wxSlider* Slider_Text_Speed3;
 		wxSlider* Slider_Text_Position4;
 		wxBitmapButton* BitmapButton10;
 		wxStaticText* StaticText42;
@@ -62,7 +66,9 @@ class TextPanel: public wxPanel
 		wxStaticText* StaticText54;
 		wxStaticText* StaticText44;
 		wxChoice* Choice_Text_Effect1;
+		wxSlider* Slider_Text_Speed1;
 		wxBitmapButton* BitmapButton12;
+		wxSlider* Slider_Text_Speed4;
 		wxBitmapButton* BitmapButton_TextCount1;
 		wxPanel* Panel_Text4;
 		wxStaticText* StaticText185;
@@ -77,10 +83,13 @@ class TextPanel: public wxPanel
 		wxChoice* Choice_Text_Count3;
 		wxBitmapButton* BitmapButton_TextEffect4;
 		wxBitmapButton* BitmapButton_TextDir2;
+		wxCheckBox* CheckBox_Text_PixelOffsets1;
 		wxBitmapButton* BitmapButton_TextCount3;
+		wxSlider* Slider_Text_YEnd1;
 		wxStaticText* StaticText15;
 		wxStaticText* StaticText102;
 		wxStaticText* StaticText187;
+		wxSlider* Slider_Text_Speed2;
 		wxBitmapButton* BitmapButton_TextToCenter2;
 		wxChoice* Choice_Text_Dir4;
 		wxBitmapButton* BitmapButton_TextEffect2;
@@ -213,18 +222,19 @@ class TextPanel: public wxPanel
 	public:
 
 		//(*Handlers(TextPanel)
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
-    void OnLockButtonClick(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		void UpdateLinkedSliderFloat(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
+		void UpdateLinkedSlider360(wxCommandEvent& event);
+		void UpdateLinkedTextCtrl(wxScrollEvent& event);
+		void UpdateLinkedSlider(wxCommandEvent& event);
+		void OnLockButtonClick(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+		void OnVCButtonClick(wxCommandEvent& event);
+		void OnVCChanged(wxCommandEvent& event);
+		void OnSlider35CmdScroll(wxScrollEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

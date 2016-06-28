@@ -62,12 +62,10 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 	wxTextCtrl* TextCtrl39;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer129;
-	wxSlider* Slider_Spirals_Direction;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStaticText* StaticText36;
 	wxTextCtrl* TextCtrl38;
 	wxTextCtrl* TextCtrl36;
-	wxSlider* Slider_Spirals_Rotation;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer45 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -127,8 +125,8 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 	FlexGridSizer129->Add(StaticText40, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
-	Slider_Spirals_Direction = new wxSlider(this, IDD_SLIDER_Spirals_Movement, 10, -200, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Spirals_Movement"));
-	FlexGridSizer4->Add(Slider_Spirals_Direction, 1, wxALL|wxEXPAND, 5);
+	Slider_Spirals_Movement = new wxSlider(this, IDD_SLIDER_Spirals_Movement, 10, -200, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Spirals_Movement"));
+	FlexGridSizer4->Add(Slider_Spirals_Movement, 1, wxALL|wxEXPAND, 5);
 	BitmapButton_VCSpirals_Movement = new ValueCurveButton(this, ID_VALUECURVE_Spirals_Movement, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Spirals_Movement"));
 	FlexGridSizer4->Add(BitmapButton_VCSpirals_Movement, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer129->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);

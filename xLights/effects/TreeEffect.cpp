@@ -24,6 +24,17 @@ wxPanel *TreeEffect::CreatePanel(wxWindow *parent) {
     return new TreePanel(parent);
 }
 
+void TreeEffect::SetDefaultParameters(Model *cls)
+{
+    TreePanel *tp = (TreePanel*)panel;
+    if (tp == nullptr) {
+        return;
+    }
+
+    SetSliderValue(tp->Slider_Tree_Branches, 3);
+    SetSliderValue(tp->Slider_Tree_Speed, 10);
+}
+
 void TreeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int Branches = SettingsMap.GetInt("SLIDER_Tree_Branches", 1);
     int tspeed = SettingsMap.GetInt("SLIDER_Tree_Speed", 10);

@@ -46,10 +46,38 @@ void TextEffect::SetDefaultParameters(Model *cls) {
         return;
     }
 
+    SetTextValue(tp->TextCtrl_Text_Line1, "");
+    SetTextValue(tp->TextCtrl_Text_Line2, "");
+    SetTextValue(tp->TextCtrl_Text_Line3, "");
+    SetTextValue(tp->TextCtrl_Text_Line4, "");
+    SetChoiceValue(tp->Choice_Text_Dir1, "none");
+    SetChoiceValue(tp->Choice_Text_Dir2, "none");
+    SetChoiceValue(tp->Choice_Text_Dir3, "none");
+    SetChoiceValue(tp->Choice_Text_Dir4, "none");
+    SetSliderValue(tp->Slider_Text_Speed1, 10);
+    SetSliderValue(tp->Slider_Text_Speed2, 10);
+    SetSliderValue(tp->Slider_Text_Speed3, 10);
+    SetSliderValue(tp->Slider_Text_Speed4, 10);
+    SetChoiceValue(tp->Choice_Text_Effect1, "normal");
+    SetChoiceValue(tp->Choice_Text_Effect2, "normal");
+    SetChoiceValue(tp->Choice_Text_Effect3, "normal");
+    SetChoiceValue(tp->Choice_Text_Effect4, "normal");
+    SetChoiceValue(tp->Choice_Text_Count1, "none");
+    SetChoiceValue(tp->Choice_Text_Count2, "none");
+    SetChoiceValue(tp->Choice_Text_Count3, "none");
+    SetChoiceValue(tp->Choice_Text_Count4, "none");
     SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter1, false);
     SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter2, false);
     SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter3, false);
     SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter4, false);
+    SetCheckBoxValue(tp->CheckBox_Text_PixelOffsets1, false);
+    SetSliderValue(tp->Slider_Text_XStart1, 0);
+    SetSliderValue(tp->Slider_Text_YStart1, 0);
+    SetSliderValue(tp->Slider_Text_XEnd1, 0);
+    SetSliderValue(tp->Slider_Text_YEnd1, 0);
+    SetSliderValue(tp->Slider_Text_Position2, 50);
+    SetSliderValue(tp->Slider_Text_Position3, 50);
+    SetSliderValue(tp->Slider_Text_Position4, 50);
 }
 
 //formatting notes:

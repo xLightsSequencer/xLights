@@ -150,7 +150,7 @@
 												<cols>2</cols>
 												<growablecols>0</growablecols>
 												<object class="sizeritem">
-													<object class="wxSlider" name="IDD_SLIDER_Text_Speed1" variable="Slider26" member="no">
+													<object class="wxSlider" name="IDD_SLIDER_Text_Speed1" variable="Slider_Text_Speed1" member="yes">
 														<value>10</value>
 														<max>50</max>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -274,7 +274,7 @@
 										<cols>1</cols>
 										<growablecols>0</growablecols>
 										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX_Text_PixelOffsets1" variable="CheckBox6" member="no">
+											<object class="wxCheckBox" name="ID_CHECKBOX_Text_PixelOffsets1" variable="CheckBox_Text_PixelOffsets1" member="yes">
 												<label>Offsets In Pixels</label>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
@@ -302,7 +302,7 @@
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
-																		<object class="wxSlider" name="ID_SLIDER_Text_XStart1" variable="Slider35" member="no">
+																		<object class="wxSlider" name="ID_SLIDER_Text_XStart1" variable="Slider_Text_XStart1" member="yes">
 																			<min>-200</min>
 																			<max>200</max>
 																			<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -360,7 +360,7 @@
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
-																		<object class="wxSlider" name="ID_SLIDER_Text_YStart1" variable="Slider37" member="no">
+																		<object class="wxSlider" name="ID_SLIDER_Text_YStart1" variable="Slider_Text_YStart1" member="yes">
 																			<min>-200</min>
 																			<max>200</max>
 																			<style>wxSL_VERTICAL|wxSL_INVERSE</style>
@@ -401,7 +401,7 @@
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
-																		<object class="wxSlider" name="ID_SLIDER_Text_XEnd1" variable="Slider38" member="no">
+																		<object class="wxSlider" name="ID_SLIDER_Text_XEnd1" variable="Slider_Text_XEnd1" member="yes">
 																			<min>-200</min>
 																			<max>200</max>
 																			<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -459,7 +459,7 @@
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
-																		<object class="wxSlider" name="ID_SLIDER_Text_YEnd1" variable="Slider39" member="no">
+																		<object class="wxSlider" name="ID_SLIDER_Text_YEnd1" variable="Slider_Text_YEnd1" member="yes">
 																			<min>-200</min>
 																			<max>200</max>
 																			<style>wxSL_VERTICAL|wxSL_INVERSE</style>
@@ -633,7 +633,7 @@
 										<cols>2</cols>
 										<growablecols>0</growablecols>
 										<object class="sizeritem">
-											<object class="wxSlider" name="IDD_SLIDER_Text_Speed2" variable="Slider27" member="no">
+											<object class="wxSlider" name="IDD_SLIDER_Text_Speed2" variable="Slider_Text_Speed2" member="yes">
 												<value>10</value>
 												<max>50</max>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -939,7 +939,7 @@
 										<cols>2</cols>
 										<growablecols>0</growablecols>
 										<object class="sizeritem">
-											<object class="wxSlider" name="IDD_SLIDER_Text_Speed3" variable="Slider25" member="no">
+											<object class="wxSlider" name="IDD_SLIDER_Text_Speed3" variable="Slider_Text_Speed3" member="yes">
 												<value>10</value>
 												<max>50</max>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -1244,7 +1244,7 @@
 										<cols>2</cols>
 										<growablecols>0</growablecols>
 										<object class="sizeritem">
-											<object class="wxSlider" name="IDD_SLIDER_Text_Speed4" variable="Slider28" member="no">
+											<object class="wxSlider" name="IDD_SLIDER_Text_Speed4" variable="Slider_Text_Speed4" member="yes">
 												<value>10</value>
 												<max>50</max>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />

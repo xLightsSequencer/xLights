@@ -123,11 +123,22 @@ public:
     SnowstormList SnowstormItems;
 };
 
+void SnowstormEffect::SetDefaultParameters(Model *cls)
+{
+    SnowstormPanel *sp = (SnowstormPanel*)panel;
+    if (sp == nullptr) {
+        return;
+    }
+
+    SetSliderValue(sp->Slider_Snowstorm_Count, 50);
+    SetSliderValue(sp->Slider_Snowstorm_Length, 50);
+    SetSliderValue(sp->Slider_Snowstorm_Speed, 10);
+}
 
 void SnowstormEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Count = SettingsMap.GetInt("SLIDER_Snowstorm_Count", 0);
-    int TailLength = SettingsMap.GetInt("SLIDER_Snowstorm_Length", 0);
-    int sSpeed = SettingsMap.GetInt("SLIDER_Snowstorm_Speed", 0);
+    int Count = SettingsMap.GetInt("SLIDER_Snowstorm_Count", 50);
+    int TailLength = SettingsMap.GetInt("SLIDER_Snowstorm_Length", 50);
+    int sSpeed = SettingsMap.GetInt("SLIDER_Snowstorm_Speed", 10);
 
     // create new meteors
     HSVValue hsv,hsv0,hsv1;

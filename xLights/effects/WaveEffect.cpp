@@ -87,6 +87,10 @@ void WaveEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(wp->Slider_Wave_Height, 50);
     SetSliderValue(wp->Slider_Wave_Speed, 10);
     SetChoiceValue(wp->Choice_Wave_Direction, "Right to Left");
+    wp->BitmapButton_Number_WavesVC->SetActive(false);
+    wp->BitmapButton_Thickness_PercentageVC->SetActive(false);
+    wp->BitmapButton_Wave_HeightVC->SetActive(false);
+    wp->BitmapButton_Wave_SpeedVC->SetActive(false);
 }
 
 void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

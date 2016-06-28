@@ -34,7 +34,6 @@ TreePanel::TreePanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer71;
 	wxTextCtrl* TextCtrl59;
 	wxStaticText* StaticText182;
-	wxSlider* Slider22;
 	wxTextCtrl* TextCtrl60;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -52,8 +51,8 @@ TreePanel::TreePanel(wxWindow* parent)
 	FlexGridSizer71->Add(BitmapButton_TreeBranches, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText182 = new wxStaticText(this, wxID_ANY, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer71->Add(StaticText182, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider22 = new wxSlider(this, ID_SLIDER_Tree_Speed, 10, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Tree_Speed"));
-	FlexGridSizer71->Add(Slider22, 1, wxALL|wxEXPAND, 5);
+	Slider_Tree_Speed = new wxSlider(this, ID_SLIDER_Tree_Speed, 10, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Tree_Speed"));
+	FlexGridSizer71->Add(Slider_Tree_Speed, 1, wxALL|wxEXPAND, 5);
 	TextCtrl60 = new wxTextCtrl(this, IDD_TEXTCTRL_Tree_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Tree_Speed"));
 	TextCtrl60->SetMaxLength(3);
 	FlexGridSizer71->Add(TextCtrl60, 1, wxALL|wxEXPAND, 5);

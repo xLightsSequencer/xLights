@@ -57,17 +57,17 @@ void ColorWashEffect::SetDefaultParameters(Model *cls) {
     SetCheckBoxValue(p->VFadeCheckBox, false);
     SetCheckBoxValue(p->ShimmerCheckBox, false);
     SetCheckBoxValue(p->CircularPaletteCheckBox, false);
+    p->BitmapButton_ColorWash_CyclesVC->SetActive(false);
 }
 
 std::string ColorWashEffect::GetEffectString() {
     ColorWashPanel *p = (ColorWashPanel*)panel;
     std::stringstream ret;
-    //if (p->BitmapButton_ColorWash_CyclesVC->GetValue()->IsActive())
-    {
-        ret << "E_VALUECURVE_ColorWash_Cycles=";
-        ret << p->BitmapButton_ColorWash_CyclesVC->GetValue()->Serialise();
-        ret << ",";
-    }
+
+    // You must always include value curves or they wont update correctly
+    ret << "E_VALUECURVE_ColorWash_Cycles=";
+    ret << p->BitmapButton_ColorWash_CyclesVC->GetValue()->Serialise();
+    ret << ",";
     
     if (10 != p->SliderCycles->GetValue()) {
         ret << "E_TEXTCTRL_ColorWash_Cycles=";

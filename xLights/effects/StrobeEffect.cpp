@@ -54,10 +54,23 @@ public:
     std::list<StrobeClass> strobe;
 };
 
+void StrobeEffect::SetDefaultParameters(Model *cls)
+{
+    StrobePanel *sp = (StrobePanel*)panel;
+    if (sp == nullptr) {
+        return;
+    }
+
+    SetSliderValue(sp->Slider_Number_Strobes, 3);
+    SetSliderValue(sp->Slider_Strobe_Duration, 10);
+    SetSliderValue(sp->Slider_Strobe_Type, 1);
+    SetCheckBoxValue(sp->CheckBox_Strobe_Music, false);
+}
+
 void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Number_Strobes = SettingsMap.GetInt("SLIDER_Number_Strobes", 1);
-    int StrobeDuration = SettingsMap.GetInt("SLIDER_Strobe_Duration", 1);
-    int Strobe_Type = SettingsMap.GetInt("SLIDER_Strobe_Type", 0);
+    int Number_Strobes = SettingsMap.GetInt("SLIDER_Number_Strobes", 3);
+    int StrobeDuration = SettingsMap.GetInt("SLIDER_Strobe_Duration", 10);
+    int Strobe_Type = SettingsMap.GetInt("SLIDER_Strobe_Type", 1);
     bool reactToMusic = SettingsMap.GetBool("CHECKBOX_Strobe_Music", false);
 
     if (reactToMusic)

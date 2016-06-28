@@ -417,6 +417,13 @@ void TendrilEffect::SetDefaultParameters(Model *cls) {
         return;
     }
 
+    tp->BitmapButton_Tendril_ManualXVC->SetActive(false);
+    tp->BitmapButton_Tendril_ManualYVC->SetActive(false);
+    tp->BitmapButton_Tendril_ThicknessVC->SetActive(false);
+    tp->BitmapButton_Tendril_TuneMovementVC->SetActive(false);
+    tp->BitmapButton_Tendril_XOffsetVC->SetActive(false);
+    tp->BitmapButton_Tendril_YOffsetVC->SetActive(false);
+
     SetChoiceValue(tp->Choice_Tendril_Movement, "Random");
     SetSliderValue(tp->Slider_Tendril_TuneMovement, 10);
     SetSliderValue(tp->Slider_Tendril_Speed, 10);

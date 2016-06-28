@@ -65,6 +65,8 @@ void MusicEffect::SetDefaultParameters(Model *cls) {
         return;
     }
 
+    mp->BitmapButton_Music_OffsetVC->SetActive(false);
+
     SetSliderValue(mp->Slider_Music_Bars, 20);
     SetChoiceValue(mp->Choice_Music_Type, "Morph");
     SetSliderValue(mp->Slider_Music_Sensitivity, 50);

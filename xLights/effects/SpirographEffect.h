@@ -9,8 +9,7 @@ class SpirographEffect : public RenderableEffect
     public:
         SpirographEffect(int id);
         virtual ~SpirographEffect();
-    
-    
+        virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
 
     protected:

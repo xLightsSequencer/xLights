@@ -31,6 +31,7 @@ class SpiralsPanel: public wxPanel
 		ValueCurveButton* BitmapButton_VCSpirals_Thickness;
 		wxStaticText* StaticText38;
 		wxBitmapButton* BitmapButton_SpiralsShrink;
+		wxSlider* Slider_Spirals_Movement;
 		wxBitmapButton* BitmapButton_SpiralsGrow;
 		wxStaticText* StaticText34;
 		wxBitmapButton* BitmapButton_SpiralsBlend;
@@ -42,6 +43,7 @@ class SpiralsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_SpiralsCount;
 		wxBitmapButton* BitmapButton_SpiralsRotation;
 		wxCheckBox* CheckBox_Spirlas_Shrink;
+		wxSlider* Slider_Spirals_Rotation;
 		//*)
 
 	protected:

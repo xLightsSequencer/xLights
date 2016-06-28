@@ -19,6 +19,7 @@ class SnowstormPanel: public wxPanel
 
 		//(*Declarations(SnowstormPanel)
 		wxStaticText* StaticText45;
+		wxSlider* Slider_Snowstorm_Speed;
 		wxSlider* Slider_Snowstorm_Count;
 		wxSlider* Slider_Snowstorm_Length;
 		wxBitmapButton* BitmapButton_SnowstormCount;

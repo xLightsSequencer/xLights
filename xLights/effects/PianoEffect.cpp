@@ -102,6 +102,8 @@ void PianoEffect::SetDefaultParameters(Model *cls) {
         return;
     }
 
+    pp->BitmapButton_Piano_ScaleVC->SetActive(false);
+
     SetChoiceValue(pp->Choice_Piano_Type, "True Piano");
     SetSpinValue(pp->SpinCtrl_Piano_StartMIDI, 60);
     SetSpinValue(pp->SpinCtrl_Piano_EndMIDI, 72);

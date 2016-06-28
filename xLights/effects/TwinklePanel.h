@@ -3,12 +3,12 @@
 
 //(*Headers(TwinklePanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
 //*)
 
 class TwinklePanel: public wxPanel
@@ -19,15 +19,16 @@ class TwinklePanel: public wxPanel
 		virtual ~TwinklePanel();
 
 		//(*Declarations(TwinklePanel)
-		wxStaticText* StaticText85;
-		wxBitmapButton* BitmapButton24;
 		wxCheckBox* CheckBox_Twinkle_Strobe;
-		wxSlider* Slider_Twinkle_Count;
-		wxBitmapButton* BitmapButton_TwinkleStrobe;
-		wxBitmapButton* BitmapButton_TwinkleSteps;
-		wxStaticText* StaticText104;
+		wxBitmapButton* BitmapButton24;
+		wxCheckBox* CheckBox_Twinkle_ReRandom;
 		wxBitmapButton* BitmapButton_TwinkleCount;
+		wxSlider* Slider_Twinkle_Count;
 		wxSlider* Slider_Twinkle_Steps;
+		wxBitmapButton* BitmapButton_TwinkleSteps;
+		wxStaticText* StaticText85;
+		wxStaticText* StaticText104;
+		wxBitmapButton* BitmapButton_TwinkleStrobe;
 		//*)
 
 	protected:

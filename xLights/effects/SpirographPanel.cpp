@@ -3,16 +3,16 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(SpirographPanel)
-#include <wx/bmpbuttn.h>
 #include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(SpirographPanel)
@@ -49,27 +49,21 @@ END_EVENT_TABLE()
 SpirographPanel::SpirographPanel(wxWindow* parent)
 {
 	//(*Initialize(SpirographPanel)
-	wxTextCtrl* TextCtrl81;
-	wxFlexGridSizer* FlexGridSizer127;
-	wxSlider* Slider_Spirograph_r;
-	wxFlexGridSizer* FlexGridSizer72;
-	wxTextCtrl* TextCtrl82;
-	wxTextCtrl* TextCtrl22;
-	wxStaticText* StaticText92;
-	wxTextCtrl* TextCtrl21;
-	wxSlider* Slider31;
-	wxTextCtrl* TextCtrl83;
 	wxFlexGridSizer* FlexGridSizer132;
-	wxSlider* Slider32;
-	wxStaticText* StaticText191;
-	wxFlexGridSizer* FlexGridSizer126;
-	wxFlexGridSizer* FlexGridSizer125;
-	wxSlider* Slider_Spirograph_d;
-	wxFlexGridSizer* FlexGridSizer133;
-	wxTextCtrl* TextCtrl23;
-	wxSlider* Slider_Spirograph_R;
 	wxFlexGridSizer* FlexGridSizer134;
-	wxSlider* Slider30;
+	wxFlexGridSizer* FlexGridSizer133;
+	wxTextCtrl* TextCtrl81;
+	wxTextCtrl* TextCtrl83;
+	wxStaticText* StaticText191;
+	wxTextCtrl* TextCtrl21;
+	wxFlexGridSizer* FlexGridSizer127;
+	wxTextCtrl* TextCtrl22;
+	wxFlexGridSizer* FlexGridSizer125;
+	wxStaticText* StaticText92;
+	wxTextCtrl* TextCtrl82;
+	wxTextCtrl* TextCtrl23;
+	wxFlexGridSizer* FlexGridSizer72;
+	wxFlexGridSizer* FlexGridSizer126;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer72 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -78,8 +72,8 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	FlexGridSizer72->Add(StaticText190, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer132 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer132->AddGrowableCol(0);
-	Slider30 = new wxSlider(this, IDD_SLIDER_Spirograph_Speed, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Spirograph_Speed"));
-	FlexGridSizer132->Add(Slider30, 1, wxALL|wxEXPAND, 2);
+	Slider_Spirograph_Speed = new wxSlider(this, IDD_SLIDER_Spirograph_Speed, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Spirograph_Speed"));
+	FlexGridSizer132->Add(Slider_Spirograph_Speed, 1, wxALL|wxEXPAND, 2);
 	TextCtrl81 = new wxTextCtrl(this, ID_TEXTCTRL_Spirograph_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Spirograph_Speed"));
 	TextCtrl81->SetMaxLength(3);
 	FlexGridSizer132->Add(TextCtrl81, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -130,12 +124,12 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	BitmapButton_SpirographAnimate->SetDefault();
 	BitmapButton_SpirographAnimate->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer72->Add(BitmapButton_SpirographAnimate, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	StaticText92 = new wxStaticText(this, wxID_ANY, _("d - Animation"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	StaticText92 = new wxStaticText(this, wxID_ANY, _("a - Animation"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer72->Add(StaticText92, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer133 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer133->AddGrowableCol(0);
-	Slider31 = new wxSlider(this, IDD_SLIDER_Spirograph_Animate, 0, -50, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Spirograph_Animate"));
-	FlexGridSizer133->Add(Slider31, 1, wxALL|wxEXPAND, 2);
+	Slider_Spirograph_Animate = new wxSlider(this, IDD_SLIDER_Spirograph_Animate, 0, -50, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Spirograph_Animate"));
+	FlexGridSizer133->Add(Slider_Spirograph_Animate, 1, wxALL|wxEXPAND, 2);
 	TextCtrl82 = new wxTextCtrl(this, ID_TEXTCTRL_Spirograph_Animate, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Spirograph_Animate"));
 	TextCtrl82->SetMaxLength(3);
 	FlexGridSizer133->Add(TextCtrl82, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -148,8 +142,8 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	FlexGridSizer72->Add(StaticText191, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer134 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer134->AddGrowableCol(0);
-	Slider32 = new wxSlider(this, IDD_SLIDER_Spirograph_Length, 20, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Spirograph_Length"));
-	FlexGridSizer134->Add(Slider32, 1, wxALL|wxEXPAND, 2);
+	Slider_Spirograph_Length = new wxSlider(this, IDD_SLIDER_Spirograph_Length, 20, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Spirograph_Length"));
+	FlexGridSizer134->Add(Slider_Spirograph_Length, 1, wxALL|wxEXPAND, 2);
 	TextCtrl83 = new wxTextCtrl(this, ID_TEXTCTRL_Spirograph_Length, _("20"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Spirograph_Length"));
 	TextCtrl83->SetMaxLength(3);
 	FlexGridSizer134->Add(TextCtrl83, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

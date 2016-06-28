@@ -21,9 +21,22 @@ wxPanel *ShimmerEffect::CreatePanel(wxWindow *parent) {
     return new ShimmerPanel(parent);
 }
 
+void ShimmerEffect::SetDefaultParameters(Model *cls)
+{
+    ShimmerPanel *sp = (ShimmerPanel*)panel;
+    if (sp == nullptr) {
+        return;
+    }
+
+    SetSliderValue(sp->Slider_Shimmer_Duty_Factor, 50);
+    SetSliderValue(sp->Slider_Shimmer_Cycles, 10);
+
+    SetCheckBoxValue(sp->CheckBox_Shimmer_Use_All_Colors, false);
+}
+
 void ShimmerEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Duty_Factor = SettingsMap.GetInt("SLIDER_Shimmer_Duty_Factor", 100);
-    bool Use_All_Colors = SettingsMap.GetBool("CHECKBOX_Shimmer_Use_All_Colors");
+    int Duty_Factor = SettingsMap.GetInt("SLIDER_Shimmer_Duty_Factor", 50);
+    bool Use_All_Colors = SettingsMap.GetBool("CHECKBOX_Shimmer_Use_All_Colors", false);
     float cycles = SettingsMap.GetDouble("TEXTCTRL_Shimmer_Cycles", 1.0);
     int colorcnt=buffer.GetColorCount();
     

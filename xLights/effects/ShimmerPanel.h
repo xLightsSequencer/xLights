@@ -3,12 +3,12 @@
 
 //(*Headers(ShimmerPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
 //*)
 
 class ShimmerPanel: public wxPanel
@@ -19,13 +19,15 @@ class ShimmerPanel: public wxPanel
 		virtual ~ShimmerPanel();
 
 		//(*Declarations(ShimmerPanel)
-		wxStaticText* StaticText65;
+		wxBitmapButton* BitmapButton_Shimmer_Use_All_Colors;
 		wxBitmapButton* BitmapButton5;
+		wxStaticText* StaticText65;
+		wxSlider* Slider_Shimmer_Duty_Factor;
+		wxSlider* Slider_Shimmer_Cycles;
+		wxStaticText* StaticText67;
+		wxCheckBox* CheckBox_Shimmer_Use_All_Colors;
 		wxStaticText* StaticText66;
 		wxBitmapButton* BitmapButton_Shimmer_Duty_Factor;
-		wxStaticText* StaticText67;
-		wxBitmapButton* BitmapButton_Shimmer_Use_All_Colors;
-		wxCheckBox* CheckBox_Shimmer_Use_All_Colors;
 		//*)
 
 	protected:

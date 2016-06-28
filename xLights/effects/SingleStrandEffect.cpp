@@ -60,28 +60,47 @@ int mapDirection(const wxString & d) {
     return 0;
 }
 
+void SingleStrandEffect::SetDefaultParameters(Model *cls)
+{
+    SingleStrandPanel *sp = (SingleStrandPanel*)panel;
+    if (sp == nullptr) {
+        return;
+    }
+
+    SetChoiceValue(sp->Choice_SingleStrand_Colors, "Palette");
+    SetChoiceValue(sp->Choice_Skips_Direction, "Left");
+    SetChoiceValue(sp->Choice_Chase_Type1, "Left-Right");
+
+    SetSliderValue(sp->Slider_Number_Chases, 1);
+    SetSliderValue(sp->Slider_Color_Mix1, 10);
+    SetSliderValue(sp->Slider_Chase_Rotations, 10);
+    SetSliderValue(sp->Slider_Skips_BandSize, 1);
+    SetSliderValue(sp->Slider_Skips_SkipSize, 1);
+    SetSliderValue(sp->Slider_Skips_StartPos, 1);
+    SetSliderValue(sp->Slider_Skips_Advance, 0);
+
+    SetCheckBoxValue(sp->CheckBox_Chase_3dFade1, false);
+    SetCheckBoxValue(sp->CheckBox_Chase_Group_All, false);
+}
 
 void SingleStrandEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     if ("Skips" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {
         RenderSingleStrandSkips(buffer, effect,
-                                SettingsMap.GetInt("SLIDER_Skips_BandSize"),
-                                SettingsMap.GetInt("SLIDER_Skips_SkipSize"),
-                                SettingsMap.GetInt("SLIDER_Skips_StartPos"),
+                                SettingsMap.GetInt("SLIDER_Skips_BandSize",1),
+                                SettingsMap.GetInt("SLIDER_Skips_SkipSize",1),
+                                SettingsMap.GetInt("SLIDER_Skips_StartPos",1),
                                 SettingsMap["CHOICE_Skips_Direction"],
                                 SettingsMap.GetInt("SLIDER_Skips_Advance", 0));
     } else {
         float offset = (float)buffer.curPeriod / ((float)buffer.curEffEndPer - (float)buffer.curEffStartPer);
         RenderSingleStrandChase(buffer,
                                 SettingsMap.Get("CHOICE_SingleStrand_Colors", "Palette"),
-                                GetValueCurveInt("Number_Chases", 0, SettingsMap, offset),
-                                //SettingsMap.GetInt("SLIDER_Number_Chases"),
-                                GetValueCurveInt("Color_Mix1", 0, SettingsMap, offset),
-                                // SettingsMap.GetInt("SLIDER_Color_Mix1"),
+                                GetValueCurveInt("Number_Chases", 1, SettingsMap, offset),
+                                GetValueCurveInt("Color_Mix1", 10, SettingsMap, offset),
                                 SettingsMap.Get("CHOICE_Chase_Type1", "Left-Right"),
-                                SettingsMap.GetBool("CHECKBOX_Chase_3dFade1"),
-                                SettingsMap.GetBool("CHECKBOX_Chase_Group_All"),
+                                SettingsMap.GetBool("CHECKBOX_Chase_3dFade1", false),
+                                SettingsMap.GetBool("CHECKBOX_Chase_Group_All", false),
                                 GetValueCurveDouble("Chase_Rotations", 1.0, SettingsMap, offset)
-                                //SettingsMap.GetFloat("TEXTCTRL_Chase_Rotations", 1.0)
                                 );
     }
 }

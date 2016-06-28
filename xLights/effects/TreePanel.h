@@ -21,6 +21,7 @@ class TreePanel: public wxPanel
 		wxSlider* Slider_Tree_Branches;
 		wxBitmapButton* BitmapButton_TreeBranches;
 		wxStaticText* StaticText86;
+		wxSlider* Slider_Tree_Speed;
 		//*)
 
 	protected:

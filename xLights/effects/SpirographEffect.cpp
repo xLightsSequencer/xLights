@@ -25,11 +25,26 @@ wxPanel *SpirographEffect::CreatePanel(wxWindow *parent) {
     return new SpirographPanel(parent);
 }
 
+void SpirographEffect::SetDefaultParameters(Model *cls)
+{
+    SpirographPanel *sp = (SpirographPanel*)panel;
+    if (sp == nullptr) {
+        return;
+    }
+
+    SetSliderValue(sp->Slider_Spirograph_Speed, 10);
+    SetSliderValue(sp->Slider_Spirograph_R, 20);
+    SetSliderValue(sp->Slider_Spirograph_r, 10);
+    SetSliderValue(sp->Slider_Spirograph_d, 30);
+    SetSliderValue(sp->Slider_Spirograph_Animate, 0);
+    SetSliderValue(sp->Slider_Spirograph_Length, 20);
+}
+
 void SpirographEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
-    int int_R   = SettingsMap.GetInt("SLIDER_Spirograph_R", 0);
-    int int_r   = SettingsMap.GetInt("SLIDER_Spirograph_r", 0);
-    int int_d   = SettingsMap.GetInt("SLIDER_Spirograph_d", 0);
+    int int_R   = SettingsMap.GetInt("SLIDER_Spirograph_R", 20);
+    int int_r   = SettingsMap.GetInt("SLIDER_Spirograph_r", 10);
+    int int_d   = SettingsMap.GetInt("SLIDER_Spirograph_d", 30);
     int Animate = SettingsMap.GetInt("TEXTCTRL_Spirograph_Animate", 0);
     int sspeed  = SettingsMap.GetInt("TEXTCTRL_Spirograph_Speed", 10);
     int length  = SettingsMap.GetInt("TEXTCTRL_Spirograph_Length", 20);

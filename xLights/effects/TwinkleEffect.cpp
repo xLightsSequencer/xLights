@@ -43,12 +43,24 @@ public:
     std::vector<StrobeClass> strobe;
 };
 
+void TwinkleEffect::SetDefaultParameters(Model *cls)
+{
+    TwinklePanel *tp = (TwinklePanel*)panel;
+    if (tp == nullptr) {
+        return;
+    }
+
+    SetSliderValue(tp->Slider_Twinkle_Count, 3);
+    SetSliderValue(tp->Slider_Twinkle_Steps, 30);
+    SetCheckBoxValue(tp->CheckBox_Twinkle_Strobe, false);
+    SetCheckBoxValue(tp->CheckBox_Twinkle_ReRandom, false);
+}
 
 void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Count = SettingsMap.GetInt("SLIDER_Twinkle_Count", 1);
-    int Steps = SettingsMap.GetInt("SLIDER_Twinkle_Steps", 1);
-    bool Strobe = SettingsMap.GetBool("CHECKBOX_Twinkle_Strobe");
-    bool reRandomize = SettingsMap.GetBool("CHECKBOX_Twinkle_ReRandom");
+    int Count = SettingsMap.GetInt("SLIDER_Twinkle_Count", 3);
+    int Steps = SettingsMap.GetInt("SLIDER_Twinkle_Steps", 30);
+    bool Strobe = SettingsMap.GetBool("CHECKBOX_Twinkle_Strobe", false);
+    bool reRandomize = SettingsMap.GetBool("CHECKBOX_Twinkle_ReRandom", false);
     
     int i,ColorIdx;
     int lights = (buffer.BufferHt*buffer.BufferWi)*(Count/100.0); // Count is in range of 1-100 from slider bar

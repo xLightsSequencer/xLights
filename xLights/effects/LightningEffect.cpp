@@ -29,15 +29,37 @@ wxPanel *LightningEffect::CreatePanel(wxWindow *parent) {
 #define UP 1
 #define RIGHT 2
 #define LEFT 3
+
+void LightningEffect::SetDefaultParameters(Model *cls) {
+    LightningPanel *lp = (LightningPanel*)panel;
+    if (lp == nullptr) {
+        return;
+    }
+
+    lp->BitmapButton_Lightning_TopXVC->SetActive(false);
+    lp->BitmapButton_Lightning_TopYVC->SetActive(false);
+    lp->BitmapButton_Number_BoltsVC->SetActive(false);
+    lp->BitmapButton_Number_SegmentsVC->SetActive(false);
+
+    SetSliderValue(lp->Slider_Number_Bolts, 10);
+    SetSliderValue(lp->Slider_Number_Segments, 5);
+    SetSliderValue(lp->Slider_Lightning_TopX, 0);
+    SetSliderValue(lp->Slider_Lightning_TopY, 0);
+    SetSliderValue(lp->Slider_Lightning_BOTX, 0);
+    SetSliderValue(lp->Slider_Lightning_BOTY, 0);
+
+    SetCheckBoxValue(lp->CheckBox_ForkedLightning, false);
+}
+
 void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Number_Bolts = GetValueCurveInt("Number_Bolts", 1, SettingsMap, oset);
-    int Number_Segments = GetValueCurveInt("Number_Segments", 1, SettingsMap, oset);
-    bool ForkedLightning = SettingsMap.GetBool("CHECKBOX_ForkedLightning");
+    int Number_Bolts = GetValueCurveInt("Number_Bolts", 10, SettingsMap, oset);
+    int Number_Segments = GetValueCurveInt("Number_Segments", 5, SettingsMap, oset);
+    bool ForkedLightning = SettingsMap.GetBool("CHECKBOX_ForkedLightning", false);
     int topX = GetValueCurveInt("Lightning_TopX", 0, SettingsMap, oset);
     int topY = GetValueCurveInt("Lightning_TopY", 0, SettingsMap, oset);
-    int botX = SettingsMap.GetInt("SLIDER_Lightning_BOTX", 100);
-    int botY = SettingsMap.GetInt("SLIDER_Lightning_BOTY", 100);
+    int botX = SettingsMap.GetInt("SLIDER_Lightning_BOTX", 0);
+    int botY = SettingsMap.GetInt("SLIDER_Lightning_BOTY", 0);
     
     if (Number_Bolts == 0) {
         Number_Bolts = 1;

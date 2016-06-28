@@ -26,7 +26,10 @@ class SingleStrandPanel: public wxPanel
 		//(*Declarations(SingleStrandPanel)
 		wxStaticText* StaticText9;
 		wxBitmapButton* BitmapButton_Chase_3dFade1;
+		wxSlider* Slider_Skips_BandSize;
 		wxBitmapButton* BitmapButton_Chase_Group_All;
+		wxSlider* Slider_Chase_Rotations;
+		wxSlider* Slider_Skips_Advance;
 		wxBitmapButton* BitmapButton_SingleStrand_Colors;
 		wxStaticText* StaticText13;
 		wxNotebook* SingleStrandEffectType;
@@ -39,12 +42,15 @@ class SingleStrandPanel: public wxPanel
 		wxCheckBox* CheckBox_Chase_Group_All;
 		wxStaticText* StaticText109;
 		wxBitmapButton* BitmapButton_Skips_Direction;
+		wxChoice* Choice_Chase_Type1;
 		ValueCurveButton* BitmapButton_Chase_Rotations;
 		wxChoice* Choice_SingleStrand_Colors;
 		wxSlider* Slider_Color_Mix1;
+		wxSlider* Slider_Skips_StartPos;
 		wxStaticText* StaticText61;
 		wxBitmapButton* BitmapButton_Skips_SkipSize;
 		wxBitmapButton* BitmapButton4;
+		wxSlider* Slider_Skips_SkipSize;
 		wxStaticText* StaticText12;
 		wxBitmapButton* BitmapButton3;
 		wxStaticText* StaticText60;

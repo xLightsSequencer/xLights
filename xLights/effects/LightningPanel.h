@@ -21,25 +21,27 @@ class LightningPanel: public wxPanel
 		virtual ~LightningPanel();
 
 		//(*Declarations(LightningPanel)
+		wxSlider* Slider_Lightning_BOTY;
+		wxSlider* Slider_Number_Bolts;
 		wxTextCtrl* TextCtrl88;
 		wxStaticText* StaticText203;
-		wxCheckBox* ForkedLightning;
 		wxBitmapButton* BitmapButton22;
+		wxCheckBox* CheckBox_ForkedLightning;
 		ValueCurveButton* BitmapButton_Number_BoltsVC;
 		wxStaticText* StaticText209;
 		wxSlider* Slider_Lightning_TopY;
+		wxSlider* Slider_Number_Segments;
 		wxStaticText* StaticText205;
 		wxBitmapButton* BitmapButton26;
 		wxBitmapButton* BitmapButton20;
 		wxStaticText* StaticText208;
+		wxSlider* Slider_Lightning_TopX;
 		wxBitmapButton* BitmapButton28;
 		ValueCurveButton* BitmapButton_Lightning_TopYVC;
 		wxTextCtrl* TextCtrl90;
 		wxStaticText* StaticText210;
 		wxTextCtrl* TextCtrl86;
-		wxSlider* Lightning_BOTX;
 		wxStaticText* StaticText206;
-		wxSlider* Lightning_TopX;
 		wxBitmapButton* BitmapButton23;
 		ValueCurveButton* BitmapButton_Lightning_TopXVC;
 		wxStaticText* StaticText207;

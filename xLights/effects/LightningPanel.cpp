@@ -63,10 +63,8 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	wxTextCtrl* TextCtrl_Number_Bolts;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer2;
-	wxSlider* Number_Segments;
 	wxTextCtrl* TextCtrl_Number_Segments;
 	wxFlexGridSizer* FlexGridSizer1;
-	wxSlider* Number_Bolts;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer140 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -75,8 +73,8 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	FlexGridSizer140->Add(StaticText203, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	Number_Bolts = new wxSlider(this, ID_SLIDER_Number_Bolts, 10, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Number_Bolts"));
-	FlexGridSizer1->Add(Number_Bolts, 1, wxALL|wxEXPAND, 2);
+	Slider_Number_Bolts = new wxSlider(this, ID_SLIDER_Number_Bolts, 10, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Number_Bolts"));
+	FlexGridSizer1->Add(Slider_Number_Bolts, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Number_BoltsVC = new ValueCurveButton(this, ID_VALUECURVE_Number_Bolts, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Number_Bolts"));
 	FlexGridSizer1->Add(BitmapButton_Number_BoltsVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer140->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
@@ -90,8 +88,8 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	FlexGridSizer140->Add(StaticText205, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
-	Number_Segments = new wxSlider(this, ID_SLIDER_Number_Segments, 5, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Number_Segments"));
-	FlexGridSizer2->Add(Number_Segments, 1, wxALL|wxEXPAND, 2);
+	Slider_Number_Segments = new wxSlider(this, ID_SLIDER_Number_Segments, 5, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Number_Segments"));
+	FlexGridSizer2->Add(Slider_Number_Segments, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Number_SegmentsVC = new ValueCurveButton(this, ID_VALUECURVE_Number_Segments, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Number_Segments"));
 	FlexGridSizer2->Add(BitmapButton_Number_SegmentsVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer140->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
@@ -104,9 +102,9 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	FlexGridSizer140->Add(BitmapButton22, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText206 = new wxStaticText(this, ID_STATICTEXT60, _("Forked Lightning"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT60"));
 	FlexGridSizer140->Add(StaticText206, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ForkedLightning = new wxCheckBox(this, ID_CHECKBOX_ForkedLightning, _("Yes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ForkedLightning"));
-	ForkedLightning->SetValue(false);
-	FlexGridSizer140->Add(ForkedLightning, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_ForkedLightning = new wxCheckBox(this, ID_CHECKBOX_ForkedLightning, _("Yes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ForkedLightning"));
+	CheckBox_ForkedLightning->SetValue(false);
+	FlexGridSizer140->Add(CheckBox_ForkedLightning, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer140->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton23 = new wxBitmapButton(this, ID_BITMAPBUTTON41, padlock16x16_blue_xpm, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON41"));
 	BitmapButton23->SetMinSize(wxSize(13,13));
@@ -116,8 +114,8 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	FlexGridSizer140->Add(StaticText207, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	Lightning_TopX = new wxSlider(this, ID_SLIDER_Lightning_TopX, 0, -50, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Lightning_TopX"));
-	FlexGridSizer3->Add(Lightning_TopX, 1, wxALL|wxEXPAND, 2);
+	Slider_Lightning_TopX = new wxSlider(this, ID_SLIDER_Lightning_TopX, 0, -50, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Lightning_TopX"));
+	FlexGridSizer3->Add(Slider_Lightning_TopX, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Lightning_TopXVC = new ValueCurveButton(this, ID_VALUECURVE_Lightning_TopX, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Lightning_TopX"));
 	FlexGridSizer3->Add(BitmapButton_Lightning_TopXVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer140->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
@@ -154,8 +152,8 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	FlexGridSizer140->Add(BitmapButton27, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText210 = new wxStaticText(this, ID_STATICTEXT73, _("(Not Used yet)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT73"));
 	FlexGridSizer140->Add(StaticText210, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Lightning_BOTX = new wxSlider(this, ID_SLIDER_Lightning_BOTY, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Lightning_BOTY"));
-	FlexGridSizer140->Add(Lightning_BOTX, 1, wxALL|wxEXPAND, 5);
+	Slider_Lightning_BOTY = new wxSlider(this, ID_SLIDER_Lightning_BOTY, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Lightning_BOTY"));
+	FlexGridSizer140->Add(Slider_Lightning_BOTY, 1, wxALL|wxEXPAND, 5);
 	TextCtrl90 = new wxTextCtrl(this, IDD_TEXTCTRL_Lightning_BOTY, _("0"), wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Lightning_BOTY"));
 	FlexGridSizer140->Add(TextCtrl90, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton28 = new wxBitmapButton(this, ID_BITMAPBUTTON52, padlock16x16_blue_xpm, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON52"));

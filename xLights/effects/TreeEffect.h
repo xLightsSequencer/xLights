@@ -9,7 +9,7 @@ class TreeEffect : public RenderableEffect
     public:
         TreeEffect(int id);
         virtual ~TreeEffect();
-    
+        virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
     
     protected:
