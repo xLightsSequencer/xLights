@@ -31,6 +31,10 @@ public:
     void ToggleActive();
     void SetActive(bool active);
     void UpdateState();
+    void UpdateBitmap();
+    
+    
+    static wxBitmap disabledBitmap;
 };
 
 #endif

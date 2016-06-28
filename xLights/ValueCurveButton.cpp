@@ -39,19 +39,26 @@ void ValueCurveButton::ToggleActive()
     UpdateState();
 }
 
-void ValueCurveButton::UpdateState()
-{
+wxBitmap ValueCurveButton::disabledBitmap;
+
+void ValueCurveButton::UpdateBitmap() {
     if (GetValue()->IsActive())
     {
-        //wxBitmap bmp(valuecurveselected_24);
-        //SetBitmap(bmp);
         RenderNewBitmap();
     }
     else
     {
-        wxBitmap bmp(valuecurvenotselected_24);
-        SetBitmap(bmp);
+        if (!disabledBitmap.IsOk()) {
+            wxBitmap bmp(valuecurvenotselected_24);
+            disabledBitmap = bmp;
+        }
+        SetBitmap(disabledBitmap);
     }
+}
+
+void ValueCurveButton::UpdateState()
+{
+    UpdateBitmap();
     NotifyChange();
 }
 
