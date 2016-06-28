@@ -126,6 +126,9 @@ public:
                 LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
                 LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
                 LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+                float trans = it->textureAlpha;
+                trans /= 255.0f;
+                LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, trans));
             }
             if (it->type == GL_POINTS) {
                 LOG_GL_ERRORV(glPointSize(it->extra));
@@ -140,6 +143,7 @@ public:
                 LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
                 LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
                 LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+                LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
             }
             if (it->enableCapability != 0) {
                 LOG_GL_ERRORV(glDisable(it->enableCapability));
