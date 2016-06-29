@@ -2668,10 +2668,17 @@ void xLightsFrame::CheckUnsavedChanges()
         SaveScheduleFile();
     }
 
-    if ( UnsavedRgbEffectsChanges && wxYES == wxMessageBox("Save Models, Views, Perspectives, and Preset changes?",
-            "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+    if (UnsavedRgbEffectsChanges)
     {
-        SaveEffectsFile();
+        // This is not necessary but it shows the user that the save button is red which I am hoping makes it clearer
+        // to the user what this prompt is for
+        Notebook1->SetSelection(PREVIEWTAB);
+
+        if (wxYES == wxMessageBox("Save Models, Views, Perspectives, and Preset changes?",
+            "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+        {
+            SaveEffectsFile();
+        }
     }
 }
 
