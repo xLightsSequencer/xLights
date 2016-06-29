@@ -101,11 +101,26 @@ public:
 
 #define REPEATTRIGGER 20
 
+void FireworksEffect::SetDefaultParameters(Model *cls) {
+    FireworksPanel *fp = (FireworksPanel*)panel;
+    if (fp == nullptr) {
+        return;
+    }
+
+    SetSliderValue(fp->Slider_Fireworks_Num_Explosions, 16);
+    SetSliderValue(fp->Slider_Fireworks_Count, 50);
+    SetSliderValue(fp->Slider_Fireworks_Velocity, 2);
+    SetSliderValue(fp->Slider_Fireworks_Fade, 50);
+    SetSliderValue(fp->Slider_Fireworks_Sensitivity, 50);
+
+    SetCheckBoxValue(fp->CheckBox_Fireworks_UseMusic, false);
+}
+
 void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Number_Explosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", 0);
-    int Count = SettingsMap.GetInt("SLIDER_Fireworks_Count", 0);
-    float Velocity = SettingsMap.GetDouble("SLIDER_Fireworks_Velocity", 0.0f);
-    int Fade = SettingsMap.GetInt("SLIDER_Fireworks_Fade", 0);
+    int Number_Explosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", 16);
+    int Count = SettingsMap.GetInt("SLIDER_Fireworks_Count", 50);
+    float Velocity = SettingsMap.GetDouble("SLIDER_Fireworks_Velocity", 2.0f);
+    int Fade = SettingsMap.GetInt("SLIDER_Fireworks_Fade", 50);
 
     float f = 0.0;
     bool useMusic = SettingsMap.GetBool("CHECKBOX_Fireworks_UseMusic", false);

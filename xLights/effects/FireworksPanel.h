@@ -28,6 +28,7 @@ class FireworksPanel: public wxPanel
 		wxStaticText* StaticText94;
 		wxCheckBox* CheckBox_Fireworks_UseMusic;
 		wxBitmapButton* BitmapButton_FireworksVelocity;
+		wxSlider* Slider_Fireworks_Num_Explosions;
 		wxStaticText* StaticText91;
 		wxStaticText* StaticText93;
 		wxStaticText* StaticText95;

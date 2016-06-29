@@ -120,7 +120,7 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Garlands_Cycles" variable="Slider23" member="no">
+						<object class="wxSlider" name="IDD_SLIDER_Garlands_Cycles" variable="Slider_Garlands_Cycles" member="yes">
 							<value>10</value>
 							<max>200</max>
 							<handler function="UpdateLinkedTextCtrlFloatVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -168,7 +168,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Garlands_Direction" variable="Choice1" member="no">
+				<object class="wxChoice" name="ID_CHOICE_Garlands_Direction" variable="Choice_Garlands_Direction" member="yes">
 					<content>
 						<item>Up</item>
 						<item>Down</item>

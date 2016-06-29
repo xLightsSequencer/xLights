@@ -11,6 +11,7 @@ class GlediatorEffect : public RenderableEffect
         virtual ~GlediatorEffect();
         virtual bool CanBeRandom() override {return false;}
         virtual void SetSequenceElements(SequenceElements *els) override;
+        virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

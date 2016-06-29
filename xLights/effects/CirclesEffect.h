@@ -11,7 +11,7 @@ class CirclesEffect : public RenderableEffect
     public:
         CirclesEffect(int id);
         virtual ~CirclesEffect();
-    
+        virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
 
     protected:

@@ -129,28 +129,47 @@ public:
     MetaBall *metaballs;
 };
 
+void CirclesEffect::SetDefaultParameters(Model *cls) {
+    CirclesPanel *cp = (CirclesPanel*)panel;
+    if (cp == nullptr) {
+        return;
+    }
 
+    cp->BitmapButton_Circles_Count->SetActive(false);
+    cp->BitmapButton_Circles_Size->SetActive(false);
+    cp->BitmapButton_Circles_Speed->SetActive(false);
+
+    SetSliderValue(cp->Slider_Circles_Count, 3);
+    SetSliderValue(cp->Slider_Circles_Size, 5);
+    SetSliderValue(cp->Slider_Circles_Speed, 10);
+
+    SetCheckBoxValue(cp->CheckBox_Circles_Bounce, false);
+    SetCheckBoxValue(cp->CheckBox_Circles_Radial, false);
+    SetCheckBoxValue(cp->CheckBox_Circles_Plasma, false);
+    SetCheckBoxValue(cp->CheckBox_Circles_Radial_3D, false);
+    SetCheckBoxValue(cp->CheckBox_Circles_Bubbles, false);
+    SetCheckBoxValue(cp->CheckBox_Circles_Collide, false);
+    SetCheckBoxValue(cp->CheckBox_Circles_Random_m, false);
+    SetCheckBoxValue(cp->CheckBox_Circles_Linear_Fade, false);
+}
 
 void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
  
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int number = GetValueCurveInt("Circles_Count", 1, SettingsMap, oset);
+    int number = GetValueCurveInt("Circles_Count", 3, SettingsMap, oset);
     int circleSpeed = GetValueCurveInt("Circles_Speed", 10, SettingsMap, oset);
-    int radius = GetValueCurveInt("Circles_Size", 1, SettingsMap, oset);
+    int radius = GetValueCurveInt("Circles_Size", 5, SettingsMap, oset);
 
-    //int number = SettingsMap.GetInt("SLIDER_Circles_Count", 1);
-    bool plasma = SettingsMap.GetBool("CHECKBOX_Circles_Plasma");
-    //int circleSpeed = SettingsMap.GetInt("SLIDER_Circles_Speed", 10);
-    bool radial = SettingsMap.GetBool("CHECKBOX_Circles_Radial");
-    bool radial_3D = SettingsMap.GetBool("CHECKBOX_Circles_Radial_3D");
+    bool plasma = SettingsMap.GetBool("CHECKBOX_Circles_Plasma", false);
+    bool radial = SettingsMap.GetBool("CHECKBOX_Circles_Radial", false);
+    bool radial_3D = SettingsMap.GetBool("CHECKBOX_Circles_Radial_3D", false);
     int start_x = buffer.BufferWi/2;
     int start_y = buffer.BufferHt/2;
-    bool fade = SettingsMap.GetBool("CHECKBOX_Circles_Linear_Fade");
-    bool bubbles = SettingsMap.GetBool("CHECKBOX_Circles_Bubbles");
-    bool random = SettingsMap.GetBool("CHECKBOX_Circles_Random_m");
-    bool collide = SettingsMap.GetBool("CHECKBOX_Circles_Collide");
-    bool bounce = SettingsMap.GetBool("CHECKBOX_Circles_Bounce");
-    //int radius = SettingsMap.GetInt("SLIDER_Circles_Size", 1);
+    bool fade = SettingsMap.GetBool("CHECKBOX_Circles_Linear_Fade", false);
+    bool bubbles = SettingsMap.GetBool("CHECKBOX_Circles_Bubbles", false);
+    bool random = SettingsMap.GetBool("CHECKBOX_Circles_Random_m", false);
+    bool collide = SettingsMap.GetBool("CHECKBOX_Circles_Collide", false);
+    bool bounce = SettingsMap.GetBool("CHECKBOX_Circles_Bounce", false);
     
     CirclesRenderCache *cache = (CirclesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {

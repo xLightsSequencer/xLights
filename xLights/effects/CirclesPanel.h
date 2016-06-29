@@ -23,6 +23,7 @@ class CirclesPanel: public wxPanel
 		//(*Declarations(CirclesPanel)
 		wxCheckBox* CheckBox_Circles_Radial_3D;
 		ValueCurveButton* BitmapButton_Circles_Size;
+		wxSlider* Slider_Circles_Size;
 		wxCheckBox* CheckBox_Circles_Linear_Fade;
 		wxStaticText* StaticText137;
 		wxBitmapButton* BitmapButton_CirclesSize;
@@ -31,10 +32,12 @@ class CirclesPanel: public wxPanel
 		wxBitmapButton* BitmapButton2;
 		wxBitmapButton* BitmapButton_CirclesCollide;
 		wxBitmapButton* BitmapButton_RandomMotion;
+		wxSlider* Slider_Circles_Count;
 		wxStaticText* StaticText136;
 		wxCheckBox* CheckBox_Circles_Collide;
 		wxCheckBox* CheckBox_Circles_Plasma;
 		wxCheckBox* CheckBox_Circles_Bounce;
+		wxSlider* Slider_Circles_Speed;
 		wxBitmapButton* BitmapButton_CirclesBounce;
 		wxBitmapButton* BitmapButton_CirclesBubbles;
 		wxCheckBox* CheckBox_Circles_Radial;

@@ -39,10 +39,10 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="ID_TEXTCTRL_Glediator_Filename" variable="TextCtrl_Glediator_Filename" member="yes">
-					<size>200,-1d</size>
+					<size>180,-1d</size>
 					<style>wxTE_READONLY</style>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>

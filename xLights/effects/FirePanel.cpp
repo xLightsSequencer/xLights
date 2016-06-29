@@ -46,14 +46,12 @@ FirePanel::FirePanel(wxWindow* parent)
 {
 	//(*Initialize(FirePanel)
 	wxStaticText* StaticText193;
-	wxSlider* Slider_Fire_HueShift;
 	wxFlexGridSizer* FlexGridSizer38;
 	wxStaticText* StaticText30;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxTextCtrl* TextCtrl20;
 	wxFlexGridSizer* FlexGridSizer1;
-	wxChoice* Choice2;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer38 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -117,12 +115,12 @@ FirePanel::FirePanel(wxWindow* parent)
 	FlexGridSizer38->Add(BitmapButton_Fire_GrowWithMusic, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText193 = new wxStaticText(this, wxID_ANY, _("Location"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer38->Add(StaticText193, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Choice2 = new wxChoice(this, ID_CHOICE_Fire_Location, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Fire_Location"));
-	Choice2->SetSelection( Choice2->Append(_("Bottom")) );
-	Choice2->Append(_("Top"));
-	Choice2->Append(_("Left"));
-	Choice2->Append(_("Right"));
-	FlexGridSizer38->Add(Choice2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Fire_Location = new wxChoice(this, ID_CHOICE_Fire_Location, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Fire_Location"));
+	Choice_Fire_Location->SetSelection( Choice_Fire_Location->Append(_("Bottom")) );
+	Choice_Fire_Location->Append(_("Top"));
+	Choice_Fire_Location->Append(_("Left"));
+	Choice_Fire_Location->Append(_("Right"));
+	FlexGridSizer38->Add(Choice_Fire_Location, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer38);
 	FlexGridSizer38->Fit(this);
 	FlexGridSizer38->SetSizeHints(this);

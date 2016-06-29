@@ -61,13 +61,11 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 {
 	//(*Initialize(MeteorsPanel)
 	wxFlexGridSizer* FlexGridSizer41;
-	wxSlider* Slider19;
 	wxTextCtrl* TextCtrl50;
 	wxTextCtrl* TextCtrl52;
 	wxTextCtrl* TextCtrl51;
 	wxStaticText* StaticText4;
 	wxTextCtrl* TextCtrl49;
-	wxChoice* Choice_Meteors_Type;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer41 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -136,8 +134,8 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	FlexGridSizer41->Add(BitmapButton_MeteorsSwirlIntensity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText4 = new wxStaticText(this, wxID_ANY, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer41->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider19 = new wxSlider(this, ID_SLIDER_Meteors_Speed, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Meteors_Speed"));
-	FlexGridSizer41->Add(Slider19, 1, wxALL|wxEXPAND, 5);
+	Slider_Meteors_Speed = new wxSlider(this, ID_SLIDER_Meteors_Speed, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Meteors_Speed"));
+	FlexGridSizer41->Add(Slider_Meteors_Speed, 1, wxALL|wxEXPAND, 5);
 	TextCtrl52 = new wxTextCtrl(this, IDD_TEXTCTRL_Meteors_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Meteors_Speed"));
 	TextCtrl52->SetMaxLength(3);
 	FlexGridSizer41->Add(TextCtrl52, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

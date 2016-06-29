@@ -56,6 +56,26 @@ static inline int GetDirection(const std::string & DirectionString) {
     return 0;
 }
 
+void BarsEffect::SetDefaultParameters(Model *cls) {
+    BarsPanel *bp = (BarsPanel*)panel;
+    if (bp == nullptr) {
+        return;
+    }
+
+    bp->BitmapButton_Bars_BarCount->SetActive(false);
+    bp->BitmapButton_Bars_Cycles->SetActive(false);
+
+    SetSliderValue(bp->Slider_Bars_BarCount, 1);
+    SetSliderValue(bp->Slider_Bars_Cycles, 10);
+    SetSliderValue(bp->Slider_Bars_Center, 0);
+
+    SetChoiceValue(bp->Choice_Bars_Direction, "up");
+
+    SetCheckBoxValue(bp->CheckBox_Bars_Highlight, false);
+    SetCheckBoxValue(bp->CheckBox_Bars_3D, false);
+    SetCheckBoxValue(bp->CheckBox_Bars_Gradient, false);
+}
+
 void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float offset = buffer.GetEffectTimeIntervalPosition();
@@ -64,9 +84,9 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
 
     int Center = SettingsMap.GetInt("SLIDER_Bars_Center", 0);
     int Direction = GetDirection(SettingsMap["CHOICE_Bars_Direction"]);
-    bool Highlight = SettingsMap.GetBool("CHECKBOX_Bars_Highlight");
-    bool Show3D = SettingsMap.GetBool("CHECKBOX_Bars_3D");
-    bool Gradient = SettingsMap.GetBool("CHECKBOX_Bars_Gradient");
+    bool Highlight = SettingsMap.GetBool("CHECKBOX_Bars_Highlight", false);
+    bool Show3D = SettingsMap.GetBool("CHECKBOX_Bars_3D", false);
+    bool Gradient = SettingsMap.GetBool("CHECKBOX_Bars_Gradient", false);
 
     int x,y,n,ColorIdx;
     HSVValue hsv;

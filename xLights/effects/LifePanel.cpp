@@ -3,16 +3,16 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(LifePanel)
-#include <wx/bmpbuttn.h>
 #include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(LifePanel)
@@ -36,12 +36,11 @@ END_EVENT_TABLE()
 LifePanel::LifePanel(wxWindow* parent)
 {
 	//(*Initialize(LifePanel)
-	wxTextCtrl* TextCtrl32;
-	wxFlexGridSizer* FlexGridSizer40;
-	wxTextCtrl* TextCtrl31;
-	wxSlider* Slider11;
 	wxStaticText* StaticText134;
 	wxTextCtrl* TextCtrl30;
+	wxTextCtrl* TextCtrl32;
+	wxTextCtrl* TextCtrl31;
+	wxFlexGridSizer* FlexGridSizer40;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer40 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -70,8 +69,8 @@ LifePanel::LifePanel(wxWindow* parent)
 	FlexGridSizer40->Add(BitmapButton_LifeSpeed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText134 = new wxStaticText(this, wxID_ANY, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer40->Add(StaticText134, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider11 = new wxSlider(this, ID_SLIDER_Life_Speed, 10, 1, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Life_Speed"));
-	FlexGridSizer40->Add(Slider11, 1, wxALL|wxEXPAND, 2);
+	Slider_Life_Speed = new wxSlider(this, ID_SLIDER_Life_Speed, 10, 1, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Life_Speed"));
+	FlexGridSizer40->Add(Slider_Life_Speed, 1, wxALL|wxEXPAND, 2);
 	TextCtrl30 = new wxTextCtrl(this, IDD_TEXTCTRL_Life_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Life_Speed"));
 	TextCtrl30->SetMaxLength(2);
 	FlexGridSizer40->Add(TextCtrl30, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);

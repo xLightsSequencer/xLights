@@ -106,12 +106,33 @@ static MeteorsRenderCache* GetCache(RenderBuffer &buffer, int id) {
     }
     return cache;
 }
+
+void MeteorsEffect::SetDefaultParameters(Model *cls) {
+    MeteorsPanel *mp = (MeteorsPanel*)panel;
+    if (mp == nullptr) {
+        return;
+    }
+
+    SetChoiceValue(mp->Choice_Meteors_Effect, "Down");
+    SetChoiceValue(mp->Choice_Meteors_Type, "Rainbow");
+
+    SetSliderValue(mp->Slider_Meteors_Count, 10);
+    SetSliderValue(mp->Slider_Meteors_Length, 25);
+    SetSliderValue(mp->Slider_Meteors_Swirl_Intensity, 0);
+    SetSliderValue(mp->Slider_Meteors_Speed, 10);
+    SetSliderValue(mp->Slider_Meteors_XOffset, 0);
+    SetSliderValue(mp->Slider_Meteors_YOffset, 0);
+
+    SetCheckBoxValue(mp->CheckBox_Meteors_UseMusic, false);
+    SetCheckBoxValue(mp->CheckBox_FadeWithDistance, false);
+}
+
 // ColorScheme: 0=rainbow, 1=range, 2=palette
 // MeteorsEffect: 0=down, 1=up, 2=left, 3=right, 4=implode, 5=explode
 void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Count = SettingsMap.GetInt("SLIDER_Meteors_Count", 1);
-    int Length = SettingsMap.GetInt("SLIDER_Meteors_Length", 1);
-    int SwirlIntensity = SettingsMap.GetInt("SLIDER_Meteors_Swirl_Intensity", 1);
+    int Count = SettingsMap.GetInt("SLIDER_Meteors_Count", 10);
+    int Length = SettingsMap.GetInt("SLIDER_Meteors_Length", 25);
+    int SwirlIntensity = SettingsMap.GetInt("SLIDER_Meteors_Swirl_Intensity", 0);
     int mSpeed = SettingsMap.GetInt("SLIDER_Meteors_Speed", 10);
 
     int MeteorsEffect = GetMeteorEffect(SettingsMap["CHOICE_Meteors_Effect"]);

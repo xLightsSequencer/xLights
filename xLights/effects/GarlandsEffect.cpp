@@ -46,10 +46,26 @@ int GetDirection(const std::string &direction) {
     return 0;
 }
 
+void GarlandsEffect::SetDefaultParameters(Model *cls) {
+    GarlandsPanel *fp = (GarlandsPanel*)panel;
+    if (fp == nullptr) {
+        return;
+    }
+
+    fp->BitmapButton_Garlands_CyclesVC->SetActive(false);
+    fp->BitmapButton_Garlands_SpacingVC->SetActive(false);
+
+    SetSliderValue(fp->Slider_Garlands_Type, 0);
+    SetSliderValue(fp->Slider_Garlands_Spacing, 10);
+    SetSliderValue(fp->Slider_Garlands_Cycles, 10);
+
+    SetChoiceValue(fp->Choice_Garlands_Direction, "Up");
+}
+
 void GarlandsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     int GarlandType = SettingsMap.GetInt("SLIDER_Garlands_Type", 0);
-    int Spacing = GetValueCurveInt("Garlands_Spacing", 0, SettingsMap, oset);
+    int Spacing = GetValueCurveInt("Garlands_Spacing", 10, SettingsMap, oset);
     float cycles = GetValueCurveDouble("Garlands_Cycles", 1.0f, SettingsMap, oset);
 
     if (Spacing < 1) {

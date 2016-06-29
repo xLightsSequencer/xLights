@@ -9,7 +9,7 @@ class ButterflyEffect : public RenderableEffect
     public:
         ButterflyEffect(int id);
         virtual ~ButterflyEffect();
-    
+        virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
 
     protected:

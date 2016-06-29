@@ -55,20 +55,16 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	wxBitmapButton* BitmapButton_Gradient;
 	wxFlexGridSizer* FlexGridSizer10;
 	wxBitmapButton* BitmapButton_3D;
-	wxCheckBox* CheckBox_Bars_Highlight;
 	wxBitmapButton* BitmapButton_Direction;
 	wxFlexGridSizer* FlexGridSizer123;
 	wxStaticText* StaticText23;
 	wxStaticText* StaticText24;
-	wxSlider* Slider13;
 	wxTextCtrl* TextCtrl15;
 	wxBitmapButton* BitmapButton_Highlight;
 	wxFlexGridSizer* FlexGridSizer35;
 	wxFlexGridSizer* FlexGridSizer1;
-	wxCheckBox* CheckBox_Bars_3D;
 	wxBitmapButton* BitmapButton_PaletteRep;
 	wxTextCtrl* TextCtrl35;
-	wxCheckBox* CheckBox_Bars_Gradient;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer35 = new wxFlexGridSizer(0, 3, wxDLG_UNIT(this,wxSize(0,0)).GetWidth(), 0);
@@ -93,8 +89,8 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	FlexGridSizer35->Add(StaticText177, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer70 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer70->AddGrowableCol(0);
-	Slider13 = new wxSlider(this, IDD_SLIDER_Bars_Cycles, 10, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Bars_Cycles"));
-	FlexGridSizer70->Add(Slider13, 1, wxALL|wxEXPAND, 2);
+	Slider_Bars_Cycles = new wxSlider(this, IDD_SLIDER_Bars_Cycles, 10, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Bars_Cycles"));
+	FlexGridSizer70->Add(Slider_Bars_Cycles, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Bars_Cycles = new ValueCurveButton(this, ID_VALUECURVE_Bars_Cycles, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Bars_Cycles"));
 	FlexGridSizer70->Add(BitmapButton_Bars_Cycles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	TextCtrl35 = new wxTextCtrl(this, ID_TEXTCTRL_Bars_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Bars_Cycles"));
@@ -131,7 +127,7 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	TextCtrl_Bars_Center = new wxTextCtrl(this, IDD_TEXTCTRL_Bars_Center, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Bars_Center"));
 	FlexGridSizer1->Add(TextCtrl_Bars_Center, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer35->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer35->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer35->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer35->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer10 = new wxFlexGridSizer(0, 8, 0, 0);
 	CheckBox_Bars_Highlight = new wxCheckBox(this, ID_CHECKBOX_Bars_Highlight, _("Highlight"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Bars_Highlight"));

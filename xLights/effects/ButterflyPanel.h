@@ -21,8 +21,14 @@ class ButterflyPanel: public wxPanel
 		virtual ~ButterflyPanel();
 
 		//(*Declarations(ButterflyPanel)
+		wxChoice* Choice_Butterfly_Colors;
 		ValueCurveButton* BitmapButton_Butterfly_Skip;
+		wxSlider* Slider_Butterfly_Chunks;
+		wxChoice* Choice_Butterfly_Direction;
+		wxSlider* Slider_Butterfly_Style;
 		ValueCurveButton* BitmapButton_Butterfly_Speed;
+		wxSlider* Slider_Butterfly_Speed;
+		wxSlider* Slider_Butterfly_Skip;
 		ValueCurveButton* BitmapButton_Butterfly_Chunks;
 		//*)
 

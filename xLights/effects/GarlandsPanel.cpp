@@ -41,13 +41,11 @@ END_EVENT_TABLE()
 GarlandsPanel::GarlandsPanel(wxWindow* parent)
 {
 	//(*Initialize(GarlandsPanel)
-	wxSlider* Slider23;
 	wxStaticText* StaticText183;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxTextCtrl* TextCtrl61;
 	wxTextCtrl* TextCtrl63;
 	wxFlexGridSizer* FlexGridSizer1;
-	wxChoice* Choice1;
 	wxFlexGridSizer* FlexGridSizer39;
 	wxTextCtrl* TextCtrl62;
 
@@ -85,8 +83,8 @@ GarlandsPanel::GarlandsPanel(wxWindow* parent)
 	FlexGridSizer39->Add(StaticText183, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
-	Slider23 = new wxSlider(this, IDD_SLIDER_Garlands_Cycles, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Garlands_Cycles"));
-	FlexGridSizer2->Add(Slider23, 1, wxALL|wxEXPAND, 2);
+	Slider_Garlands_Cycles = new wxSlider(this, IDD_SLIDER_Garlands_Cycles, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Garlands_Cycles"));
+	FlexGridSizer2->Add(Slider_Garlands_Cycles, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Garlands_CyclesVC = new ValueCurveButton(this, ID_VALUECURVE_Garlands_Cycles, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Garlands_Cycles"));
 	FlexGridSizer2->Add(BitmapButton_Garlands_CyclesVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer39->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
@@ -96,16 +94,16 @@ GarlandsPanel::GarlandsPanel(wxWindow* parent)
 	FlexGridSizer39->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText192 = new wxStaticText(this, ID_STATICTEXT40, _("Stack Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT40"));
 	FlexGridSizer39->Add(StaticText192, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Choice1 = new wxChoice(this, ID_CHOICE_Garlands_Direction, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Garlands_Direction"));
-	Choice1->SetSelection( Choice1->Append(_("Up")) );
-	Choice1->Append(_("Down"));
-	Choice1->Append(_("Left"));
-	Choice1->Append(_("Right"));
-	Choice1->Append(_("Up then Down"));
-	Choice1->Append(_("Down then Up"));
-	Choice1->Append(_("Left then Right"));
-	Choice1->Append(_("Right then Left"));
-	FlexGridSizer39->Add(Choice1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Garlands_Direction = new wxChoice(this, ID_CHOICE_Garlands_Direction, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Garlands_Direction"));
+	Choice_Garlands_Direction->SetSelection( Choice_Garlands_Direction->Append(_("Up")) );
+	Choice_Garlands_Direction->Append(_("Down"));
+	Choice_Garlands_Direction->Append(_("Left"));
+	Choice_Garlands_Direction->Append(_("Right"));
+	Choice_Garlands_Direction->Append(_("Up then Down"));
+	Choice_Garlands_Direction->Append(_("Down then Up"));
+	Choice_Garlands_Direction->Append(_("Left then Right"));
+	Choice_Garlands_Direction->Append(_("Right then Left"));
+	FlexGridSizer39->Add(Choice_Garlands_Direction, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer39);
 	FlexGridSizer39->Fit(this);
 	FlexGridSizer39->SetSizeHints(this);

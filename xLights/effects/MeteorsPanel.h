@@ -34,6 +34,7 @@ class MeteorsPanel: public wxPanel
 		wxStaticText* StaticText128;
 		wxBitmapButton* BitmapButton_MeteorsType;
 		wxStaticText* StaticText39;
+		wxSlider* Slider_Meteors_Speed;
 		wxStaticText* StaticText130;
 		wxBitmapButton* BitmapButton_Meteors_UseMusic;
 		wxTextCtrl* TextCtrl_Meteors_Yoffset;
@@ -46,6 +47,7 @@ class MeteorsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
 		wxBitmapButton* BitmapButton_MeteorsLength;
 		wxBitmapButton* BitmapButton_FadeWithDistance;
+		wxChoice* Choice_Meteors_Type;
 		//*)
 
 	protected:

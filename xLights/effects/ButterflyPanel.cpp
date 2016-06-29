@@ -46,13 +46,11 @@ END_EVENT_TABLE()
 ButterflyPanel::ButterflyPanel(wxWindow* parent)
 {
 	//(*Initialize(ButterflyPanel)
-	wxChoice* Choice_Butterfly_Colors;
 	wxStaticText* StaticText175;
 	wxBitmapButton* BitmapButton_ButterflyStyle;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxTextCtrl* TextCtrl16;
 	wxStaticText* StaticText26;
-	wxSlider* Slider_Butterfly_Chunks;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText58;
 	wxStaticText* StaticText27;
@@ -63,15 +61,11 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	wxTextCtrl* TextCtrl17;
 	wxBitmapButton* BitmapButton_ButterflyColors;
 	wxStaticText* StaticText28;
-	wxSlider* Slider8;
 	wxTextCtrl* TextCtrl25;
-	wxChoice* Choice_Butterfly_Direction;
 	wxFlexGridSizer* FlexGridSizer36;
-	wxSlider* Slider_Butterfly_Style;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStaticText* StaticText25;
 	wxBitmapButton* BitmapButton_ButterflyChunks;
-	wxSlider* Slider_Butterfly_Skip;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer36 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -134,8 +128,8 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 	FlexGridSizer36->Add(StaticText175, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	Slider8 = new wxSlider(this, ID_SLIDER_Butterfly_Speed, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Butterfly_Speed"));
-	FlexGridSizer3->Add(Slider8, 1, wxALL|wxEXPAND, 2);
+	Slider_Butterfly_Speed = new wxSlider(this, ID_SLIDER_Butterfly_Speed, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Butterfly_Speed"));
+	FlexGridSizer3->Add(Slider_Butterfly_Speed, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Butterfly_Speed = new ValueCurveButton(this, ID_VALUECURVE_Butterfly_Speed, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Butterfly_Speed"));
 	FlexGridSizer3->Add(BitmapButton_Butterfly_Speed, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer36->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);

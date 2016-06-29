@@ -10,7 +10,7 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxFilePickerCtrl" name="ID_FILEPICKER_Pictures_Filename" subclass="xlPictureFilePickerCtrl" variable="FilePickerCtrl1" member="no">
+						<object class="wxFilePickerCtrl" name="ID_FILEPICKER_Pictures_Filename" subclass="xlPictureFilePickerCtrl" variable="FilePickerCtrl1" member="yes">
 							<message></message>
 							<wildcard></wildcard>
 						</object>
@@ -107,7 +107,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Pictures_Speed" variable="Slider18" member="no">
+						<object class="wxSlider" name="IDD_SLIDER_Pictures_Speed" variable="Slider_Pictures_Speed" member="yes">
 							<value>10</value>
 							<max>200</max>
 							<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -149,7 +149,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Pictures_FrameRateAdj" variable="Slider_Pictures_FR" member="no">
+						<object class="wxSlider" name="IDD_SLIDER_Pictures_FrameRateAdj" variable="Slider_Pictures_FR" member="yes">
 							<value>10</value>
 							<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
@@ -195,7 +195,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 							<cols>3</cols>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Pictures_PixelOffsets" variable="CheckBox1" member="no">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Pictures_PixelOffsets" variable="CheckBox_Pictures_PixelOffsets" member="yes">
 									<label>Offsets In Pixels</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
@@ -203,7 +203,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Pictures_ScaleToFit" variable="CheckBox2" member="no">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Pictures_ScaleToFit" variable="CheckBox_Pictures_ScaleToFit" member="yes">
 									<label>Scale To Fit</label>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -236,7 +236,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_PicturesXC" variable="Slider_PicturesXC" member="no">
+													<object class="wxSlider" name="ID_SLIDER_PicturesXC" variable="Slider_PicturesXC" member="yes">
 														<min>-100</min>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
@@ -296,7 +296,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_PicturesYC" variable="Slider_PicturesYC" member="no">
+													<object class="wxSlider" name="ID_SLIDER_PicturesYC" variable="Slider_PicturesYC" member="yes">
 														<min>-100</min>
 														<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -336,7 +336,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_PicturesEndXC" variable="Slider1" member="no">
+													<object class="wxSlider" name="ID_SLIDER_PicturesEndXC" variable="Slider_PicturesEndXC" member="yes">
 														<min>-100</min>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
@@ -393,7 +393,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_PicturesEndYC" variable="Slider2" member="no">
+													<object class="wxSlider" name="ID_SLIDER_PicturesEndYC" variable="Slider_PicturesEndYC" member="yes">
 														<min>-100</min>
 														<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -428,7 +428,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Pictures_StartScale" variable="Slider_Pictures_StartScale" member="no">
+											<object class="wxSlider" name="ID_SLIDER_Pictures_StartScale" variable="Slider_Pictures_StartScale" member="yes">
 												<value>100</value>
 												<max>1000</max>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -439,9 +439,9 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pictures_StartScale" variable="TextCtrl_Pictures_StartScale" member="no">
-												<value>0</value>
-												<maxlength>3</maxlength>
-												<size>20,-1d</size>
+												<value>100</value>
+												<maxlength>4</maxlength>
+												<size>25,-1d</size>
 												<style>wxTE_CENTRE</style>
 												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
@@ -467,7 +467,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Pictures_EndScale" variable="Slider_Pictures_EndScale" member="no">
+											<object class="wxSlider" name="ID_SLIDER_Pictures_EndScale" variable="Slider_Pictures_EndScale" member="yes">
 												<value>100</value>
 												<max>1000</max>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -478,9 +478,9 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pictures_EndScale" variable="TextCtrl_Pictures_EndScale" member="no">
-												<value>0</value>
-												<maxlength>3</maxlength>
-												<size>20,-1d</size>
+												<value>100</value>
+												<maxlength>4</maxlength>
+												<size>25,-1d</size>
 												<style>wxTE_CENTRE</style>
 												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>

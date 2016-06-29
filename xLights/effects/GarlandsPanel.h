@@ -22,6 +22,7 @@ class GarlandsPanel: public wxPanel
 
 		//(*Declarations(GarlandsPanel)
 		wxBitmapButton* BitmapButton_GarlandsType;
+		wxSlider* Slider_Garlands_Cycles;
 		ValueCurveButton* BitmapButton_Garlands_SpacingVC;
 		wxStaticText* StaticText33;
 		wxBitmapButton* BitmapButton_GarlandsSpacing;
@@ -29,6 +30,7 @@ class GarlandsPanel: public wxPanel
 		wxStaticText* StaticText32;
 		wxSlider* Slider_Garlands_Spacing;
 		ValueCurveButton* BitmapButton_Garlands_CyclesVC;
+		wxChoice* Choice_Garlands_Direction;
 		wxSlider* Slider_Garlands_Type;
 		//*)
 

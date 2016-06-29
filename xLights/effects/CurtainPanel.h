@@ -22,6 +22,7 @@ class CurtainPanel: public wxPanel
 		virtual ~CurtainPanel();
 
 		//(*Declarations(CurtainPanel)
+		wxSlider* Slider_Curtain_Speed;
 		wxChoice* Choice_Curtain_Edge;
 		wxStaticText* StaticText6;
 		wxStaticText* StaticText8;
@@ -34,6 +35,7 @@ class CurtainPanel: public wxPanel
 		wxBitmapButton* BitmapButton_CurtainRepeat;
 		ValueCurveButton* BitmapButton_Curtain_SwagVC;
 		wxBitmapButton* BitmapButton_CurtainSwag;
+		wxSlider* Slider_Curtain_Swag;
 		//*)
 
 	protected:

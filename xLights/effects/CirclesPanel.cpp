@@ -59,15 +59,12 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	//(*Initialize(CirclesPanel)
 	wxTextCtrl* TextCtrl28;
 	wxFlexGridSizer* FlexGridSizer91;
-	wxSlider* Slider_Circles_Size;
 	wxFlexGridSizer* FlexGridSizer16;
-	wxSlider* Slider10;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer80;
 	wxTextCtrl* TextCtrl27;
 	wxFlexGridSizer* FlexGridSizer22;
 	wxStaticText* StaticText31;
-	wxSlider* Slider_Circles_Count;
 	wxFlexGridSizer* FlexGridSizer15;
 	wxFlexGridSizer* FlexGridSizer18;
 	wxFlexGridSizer* FlexGridSizer14;
@@ -119,8 +116,8 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	FlexGridSizer22->AddGrowableCol(1);
 	StaticText31 = new wxStaticText(this, wxID_ANY, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer22->Add(StaticText31, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Slider10 = new wxSlider(this, ID_SLIDER_Circles_Speed, 10, 1, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Circles_Speed"));
-	FlexGridSizer22->Add(Slider10, 1, wxALL|wxEXPAND, 2);
+	Slider_Circles_Speed = new wxSlider(this, ID_SLIDER_Circles_Speed, 10, 1, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Circles_Speed"));
+	FlexGridSizer22->Add(Slider_Circles_Speed, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Circles_Speed = new ValueCurveButton(this, ID_VALUECURVE_Circles_Speed, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Circles_Speed"));
 	FlexGridSizer22->Add(BitmapButton_Circles_Speed, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	TextCtrl29 = new wxTextCtrl(this, IDD_TEXTCTRL_Circles_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Circles_Speed"));

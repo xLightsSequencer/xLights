@@ -9,7 +9,7 @@ class FireworksEffect : public RenderableEffect
     public:
         FireworksEffect(int id);
         virtual ~FireworksEffect();
-    
+        virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

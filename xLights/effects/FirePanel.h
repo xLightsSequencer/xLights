@@ -26,6 +26,7 @@ class FirePanel: public wxPanel
 		wxBitmapButton* BitmapButton_FireWidth;
 		wxStaticText* StaticText83;
 		ValueCurveButton* BitmapButton_Fire_HeightVC;
+		wxSlider* Slider_Fire_HueShift;
 		wxTextCtrl* TextCtrl_Fire_Height;
 		wxCheckBox* CheckBox_Fire_GrowWithMusic;
 		wxBitmapButton* BitmapButton_FireGrow;
@@ -36,6 +37,7 @@ class FirePanel: public wxPanel
 		wxTextCtrl* TextCtrl_Fire_GrowthCycles;
 		ValueCurveButton* BitmapButton_Fire_HueShiftVC;
 		wxBitmapButton* BitmapButton_Fire_GrowWithMusic;
+		wxChoice* Choice_Fire_Location;
 		wxBitmapButton* BitmapButton_FireHeight;
 		//*)
 

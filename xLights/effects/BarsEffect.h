@@ -8,7 +8,7 @@ class BarsEffect : public RenderableEffect
     public:
         BarsEffect(int id);
         virtual ~BarsEffect();
-    
+        virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
 
     protected:

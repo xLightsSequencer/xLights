@@ -24,9 +24,6 @@ wxPanel *CurtainEffect::CreatePanel(wxWindow *parent) {
     return new CurtainPanel(parent);
 }
 
-
-
-
 static inline int GetCurtainEdge(const std::string &edge) {
     if ("left" == edge) {
         return 0;
@@ -74,14 +71,31 @@ public:
     int LastCurtainLimit;
 };
 
+void CurtainEffect::SetDefaultParameters(Model *cls) {
+    CurtainPanel *cp = (CurtainPanel*)panel;
+    if (cp == nullptr) {
+        return;
+    }
+
+    cp->BitmapButton_Curtain_SpeedVC->SetActive(false);
+    cp->BitmapButton_Curtain_SwagVC->SetActive(false);
+
+    SetSliderValue(cp->Slider_Curtain_Swag, 3);
+    SetSliderValue(cp->Slider_Curtain_Speed, 10);
+
+    SetChoiceValue(cp->Choice_Curtain_Edge, "left");
+    SetChoiceValue(cp->Choice_Curtain_Effect, "open");
+
+    SetCheckBoxValue(cp->CheckBox_Curtain_Repeat, false);
+}
 
 void CurtainEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int swag = GetValueCurveInt("Curtain_Swag", 0, SettingsMap, oset);
+    int swag = GetValueCurveInt("Curtain_Swag", 3, SettingsMap, oset);
     float curtainSpeed = GetValueCurveDouble("Curtain_Speed", 1.0, SettingsMap, oset);
 
-    bool repeat = SettingsMap.GetBool("CHECKBOX_Curtain_Repeat");
+    bool repeat = SettingsMap.GetBool("CHECKBOX_Curtain_Repeat", false);
     int edge = GetCurtainEdge(SettingsMap["CHOICE_Curtain_Edge"]);
     int effect = GetCurtainEffect(SettingsMap["CHOICE_Curtain_Effect"]);
     

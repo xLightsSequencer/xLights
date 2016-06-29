@@ -36,6 +36,15 @@ wxPanel *GlediatorEffect::CreatePanel(wxWindow *parent) {
     return new GlediatorPanel(parent);
 }
 
+void GlediatorEffect::SetDefaultParameters(Model *cls) {
+    GlediatorPanel *gp = (GlediatorPanel*)panel;
+    if (gp == nullptr) {
+        return;
+    }
+
+    SetTextValue(gp->TextCtrl_Glediator_Filename, "");
+}
+
 void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     wxString GledFilename = SettingsMap["TEXTCTRL_Glediator_Filename"];
     wxFile f;

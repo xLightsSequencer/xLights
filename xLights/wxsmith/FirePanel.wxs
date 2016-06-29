@@ -77,7 +77,7 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Fire_HueShift" variable="Slider_Fire_HueShift" member="no">
+						<object class="wxSlider" name="ID_SLIDER_Fire_HueShift" variable="Slider_Fire_HueShift" member="yes">
 							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -220,7 +220,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Fire_Location" variable="Choice2" member="no">
+				<object class="wxChoice" name="ID_CHOICE_Fire_Location" variable="Choice_Fire_Location" member="yes">
 					<content>
 						<item>Bottom</item>
 						<item>Top</item>

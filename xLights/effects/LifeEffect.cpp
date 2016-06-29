@@ -55,12 +55,22 @@ public:
     int LastLifeState;
 };
 
+void LifeEffect::SetDefaultParameters(Model *cls) {
+    LifePanel *lp = (LifePanel*)panel;
+    if (lp == nullptr) {
+        return;
+    }
+
+    SetSliderValue(lp->Slider_Life_Count, 50);
+    SetSliderValue(lp->Slider_Life_Seed, 0);
+    SetSliderValue(lp->Slider_Life_Speed, 10);
+}
+
 void LifeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Count = SettingsMap.GetInt("SLIDER_Life_Count", 0);
+    int Count = SettingsMap.GetInt("SLIDER_Life_Count", 50);
     int Type = SettingsMap.GetInt("SLIDER_Life_Seed", 0);
     int lspeed = SettingsMap.GetInt("SLIDER_Life_Speed", 10);
-    
-    
+        
     LifeRenderCache *cache = (LifeRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new LifeRenderCache();

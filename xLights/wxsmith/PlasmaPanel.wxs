@@ -55,7 +55,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Plasma_Style" variable="Slider33" member="no">
+				<object class="wxSlider" name="ID_SLIDER_Plasma_Style" variable="Slider_Plasma_Style" member="yes">
 					<value>1</value>
 					<min>1</min>
 					<max>10</max>
@@ -98,7 +98,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Plasma_Line_Density" variable="Slider34" member="no">
+				<object class="wxSlider" name="ID_SLIDER_Plasma_Line_Density" variable="Slider_Plasma_Line_Density" member="yes">
 					<value>1</value>
 					<min>1</min>
 					<max>10</max>
@@ -145,7 +145,7 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Plasma_Speed" variable="Slider36" member="no">
+						<object class="wxSlider" name="ID_SLIDER_Plasma_Speed" variable="Slider_Plasma_Speed" member="yes">
 							<value>10</value>
 							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>

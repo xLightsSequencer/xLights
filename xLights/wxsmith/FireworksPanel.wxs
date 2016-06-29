@@ -14,7 +14,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Fireworks_Explosions" variable="Slider_Fireworks_Num_Explosions" member="no">
+				<object class="wxSlider" name="ID_SLIDER_Fireworks_Explosions" variable="Slider_Fireworks_Num_Explosions" member="yes">
 					<value>16</value>
 					<min>1</min>
 					<max>50</max>

@@ -14,7 +14,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Butterfly_Colors" variable="Choice_Butterfly_Colors" member="no">
+				<object class="wxChoice" name="ID_CHOICE_Butterfly_Colors" variable="Choice_Butterfly_Colors" member="yes">
 					<content>
 						<item>Rainbow</item>
 						<item>Palette</item>
@@ -52,7 +52,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Butterfly_Style" variable="Slider_Butterfly_Style" member="no">
+				<object class="wxSlider" name="ID_SLIDER_Butterfly_Style" variable="Slider_Butterfly_Style" member="yes">
 					<value>1</value>
 					<min>1</min>
 					<max>10</max>
@@ -99,7 +99,7 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Butterfly_Chunks" variable="Slider_Butterfly_Chunks" member="no">
+						<object class="wxSlider" name="ID_SLIDER_Butterfly_Chunks" variable="Slider_Butterfly_Chunks" member="yes">
 							<value>1</value>
 							<min>1</min>
 							<max>10</max>
@@ -160,7 +160,7 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Butterfly_Skip" variable="Slider_Butterfly_Skip" member="no">
+						<object class="wxSlider" name="ID_SLIDER_Butterfly_Skip" variable="Slider_Butterfly_Skip" member="yes">
 							<value>2</value>
 							<min>2</min>
 							<max>10</max>
@@ -221,7 +221,7 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Butterfly_Speed" variable="Slider8" member="no">
+						<object class="wxSlider" name="ID_SLIDER_Butterfly_Speed" variable="Slider_Butterfly_Speed" member="yes">
 							<value>10</value>
 							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
@@ -276,7 +276,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Butterfly_Direction" variable="Choice_Butterfly_Direction" member="no">
+				<object class="wxChoice" name="ID_CHOICE_Butterfly_Direction" variable="Choice_Butterfly_Direction" member="yes">
 					<content>
 						<item>Normal</item>
 						<item>Reverse</item>

@@ -69,6 +69,24 @@ wxPanel *FacesEffect::CreatePanel(wxWindow *parent) {
     return new FacesPanel(parent);
 }
 
+void FacesEffect::SetDefaultParameters(Model *cls) {
+    FacesPanel *fp = (FacesPanel*)panel;
+    if (fp == nullptr) {
+        return;
+    }
+
+    SetRadioValue(fp->RadioButton1);
+    SetChoiceValue(fp->Choice_Faces_Phoneme, "AI");
+    SetChoiceValue(fp->Choice_Faces_Eyes, "Auto");
+
+    if (fp->Face_FaceDefinitonChoice->GetCount() > 0)
+    {
+        fp->Face_FaceDefinitonChoice->SetSelection(0);
+    }
+
+    SetCheckBoxValue(fp->CheckBox_Faces_Outline, false);
+}
+
 void FacesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == "Rendered"
         && SettingsMap.Get("CHECKBOX_Faces_Outline", "") == "") {

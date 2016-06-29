@@ -14,7 +14,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Meteors_Type" variable="Choice_Meteors_Type" member="no">
+				<object class="wxChoice" name="ID_CHOICE_Meteors_Type" variable="Choice_Meteors_Type" member="yes">
 					<content>
 						<item>Rainbow</item>
 						<item>Range</item>
@@ -223,7 +223,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Meteors_Speed" variable="Slider19" member="no">
+				<object class="wxSlider" name="ID_SLIDER_Meteors_Speed" variable="Slider_Meteors_Speed" member="yes">
 					<value>10</value>
 					<max>50</max>
 					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />

@@ -46,7 +46,6 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 {
 	//(*Initialize(FireworksPanel)
 	wxFlexGridSizer* FlexGridSizer73;
-	wxSlider* Slider_Fireworks_Num_Explosions;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer73 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -83,7 +82,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 	BitmapButton_FireworksFade->SetDefault();
 	BitmapButton_FireworksFade->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer73->Add(BitmapButton_FireworksFade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer73->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Fireworks_UseMusic = new wxCheckBox(this, ID_CHECKBOX_Fireworks_UseMusic, _("Fire with music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Fireworks_UseMusic"));
 	CheckBox_Fireworks_UseMusic->SetValue(false);
 	FlexGridSizer73->Add(CheckBox_Fireworks_UseMusic, 1, wxALL|wxEXPAND, 5);

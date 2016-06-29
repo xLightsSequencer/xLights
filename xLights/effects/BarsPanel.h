@@ -25,12 +25,16 @@ class BarsPanel: public wxPanel
 
 		//(*Declarations(BarsPanel)
 		ValueCurveButton* BitmapButton_Bars_BarCount;
+		wxSlider* Slider_Bars_Cycles;
+		wxCheckBox* CheckBox_Bars_Highlight;
 		wxSlider* Slider_Bars_Center;
 		wxStaticText* StaticText1;
 		wxSlider* Slider_Bars_BarCount;
+		wxCheckBox* CheckBox_Bars_3D;
 		wxChoice* Choice_Bars_Direction;
 		wxTextCtrl* TextCtrl_Bars_Center;
 		ValueCurveButton* BitmapButton_Bars_Cycles;
+		wxCheckBox* CheckBox_Bars_Gradient;
 		//*)
 
 	protected:

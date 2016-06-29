@@ -16,6 +16,26 @@ class wxFlexGridSizer;
 class wxChoice;
 //*)
 
+#include <wx/filepicker.h>
+
+class xlPictureFilePickerCtrl : public wxFilePickerCtrl {
+public:
+    xlPictureFilePickerCtrl(wxWindow *parent,
+        wxWindowID id,
+        const wxString& path = wxEmptyString,
+        const wxString& message = wxFileSelectorPromptStr,
+        const wxString& wildcard = wxFileSelectorDefaultWildcardStr,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxFLP_DEFAULT_STYLE,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxFilePickerCtrlNameStr)
+        : wxFilePickerCtrl(parent, id, path, message, wxImage::GetImageExtWildcard(), pos, size, style, validator, name) {
+
+    }
+    virtual ~xlPictureFilePickerCtrl() {}
+};
+
 class PicturesPanel: public wxPanel
 {
 	public:
@@ -24,14 +44,25 @@ class PicturesPanel: public wxPanel
 		virtual ~PicturesPanel();
 
 		//(*Declarations(PicturesPanel)
+		wxSlider* Slider_PicturesEndXC;
+		wxCheckBox* CheckBox_Pictures_PixelOffsets;
+		wxCheckBox* CheckBox_Pictures_ScaleToFit;
+		wxSlider* Slider_Pictures_Speed;
 		wxCheckBox* CheckBox_Pictures_WrapX;
 		wxChoice* Choice_Pictures_Direction;
 		wxBitmapButton* BitmapButton_PicturesDirection;
 		wxBitmapButton* BitmapButton_PicturesSpeed;
+		wxSlider* Slider_Pictures_EndScale;
+		wxSlider* Slider_PicturesXC;
+		wxSlider* Slider_Pictures_StartScale;
+		xlPictureFilePickerCtrl* FilePickerCtrl1;
+		wxSlider* Slider_PicturesYC;
 		wxBitmapButton* BitmapButton6;
 		wxPanel* PictureEndPositionPanel;
 		wxBitmapButton* BitmapButton_PicturesFilename;
 		wxStaticText* StaticText68;
+		wxSlider* Slider_Pictures_FR;
+		wxSlider* Slider_PicturesEndYC;
 		wxStaticText* StaticText46;
 		//*)
 

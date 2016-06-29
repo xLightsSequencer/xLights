@@ -52,8 +52,6 @@ CurtainPanel::CurtainPanel(wxWindow* parent)
 	wxStaticText* StaticText178;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxTextCtrl* TextCtrl40;
-	wxSlider* Slider_Curtain_Swag;
-	wxSlider* Slider14;
 
 	Create(parent, wxID_ANY, wxPoint(150,14), wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -108,8 +106,8 @@ CurtainPanel::CurtainPanel(wxWindow* parent)
 	FlexGridSizer20->Add(StaticText178, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
-	Slider14 = new wxSlider(this, IDD_SLIDER_Curtain_Speed, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Curtain_Speed"));
-	FlexGridSizer2->Add(Slider14, 1, wxALL|wxEXPAND, 2);
+	Slider_Curtain_Speed = new wxSlider(this, IDD_SLIDER_Curtain_Speed, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Curtain_Speed"));
+	FlexGridSizer2->Add(Slider_Curtain_Speed, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Curtain_SpeedVC = new ValueCurveButton(this, ID_VALUECURVE_Curtain_Speed, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Curtain_Speed"));
 	FlexGridSizer2->Add(BitmapButton_Curtain_SpeedVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer20->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);

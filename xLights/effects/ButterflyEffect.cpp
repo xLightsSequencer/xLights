@@ -48,17 +48,33 @@ static inline int GetButterflyColorScheme(const std::string &color) {
     return 0;
 }
 
+void ButterflyEffect::SetDefaultParameters(Model *cls) {
+    ButterflyPanel *bp = (ButterflyPanel*)panel;
+    if (bp == nullptr) {
+        return;
+    }
+
+    SetChoiceValue(bp->Choice_Butterfly_Colors, "Rainbow");
+    SetChoiceValue(bp->Choice_Butterfly_Direction, "Normal");
+
+    bp->BitmapButton_Butterfly_Chunks->SetActive(false);
+    bp->BitmapButton_Butterfly_Skip->SetActive(false);
+    bp->BitmapButton_Butterfly_Speed->SetActive(false);
+
+    SetSliderValue(bp->Slider_Butterfly_Style, 1);
+    SetSliderValue(bp->Slider_Butterfly_Chunks, 1);
+    SetSliderValue(bp->Slider_Butterfly_Skip, 2);
+    SetSliderValue(bp->Slider_Butterfly_Speed, 10);
+}
+
 void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Chunks = GetValueCurveInt("Butterfly_Chunks", 0, SettingsMap, oset);
-    int Skip = GetValueCurveInt("Butterfly_Skip", 0, SettingsMap, oset);
+    int Chunks = GetValueCurveInt("Butterfly_Chunks", 1, SettingsMap, oset);
+    int Skip = GetValueCurveInt("Butterfly_Skip", 2, SettingsMap, oset);
     int butterFlySpeed = GetValueCurveInt("Butterfly_Speed", 10, SettingsMap, oset);
 
-    int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 0);
-    //int Chunks = SettingsMap.GetInt("SLIDER_Butterfly_Chunks", 0);
-    //int Skip = SettingsMap.GetInt("SLIDER_Butterfly_Skip", 0);
-    //int butterFlySpeed = SettingsMap.GetInt("SLIDER_Butterfly_Speed", 10);
+    int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
     int ColorScheme = GetButterflyColorScheme(SettingsMap["CHOICE_Butterfly_Colors"]);
     int ButterflyDirection = SettingsMap["CHOICE_Butterfly_Direction"] == "Reverse" ? 1 : 0;
     

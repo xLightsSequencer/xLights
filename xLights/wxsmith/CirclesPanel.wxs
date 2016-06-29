@@ -22,7 +22,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_Circles_Count" variable="Slider_Circles_Count" member="no">
+								<object class="wxSlider" name="ID_SLIDER_Circles_Count" variable="Slider_Circles_Count" member="yes">
 									<value>3</value>
 									<min>1</min>
 									<max>10</max>
@@ -82,7 +82,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_Circles_Size" variable="Slider_Circles_Size" member="no">
+								<object class="wxSlider" name="ID_SLIDER_Circles_Size" variable="Slider_Circles_Size" member="yes">
 									<value>5</value>
 									<min>1</min>
 									<max>20</max>
@@ -142,7 +142,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_Circles_Speed" variable="Slider10" member="no">
+								<object class="wxSlider" name="ID_SLIDER_Circles_Speed" variable="Slider_Circles_Speed" member="yes">
 									<value>10</value>
 									<min>1</min>
 									<max>30</max>

@@ -273,7 +273,29 @@ void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug,
     cache->PictureName = filename;
 }
 
-//            image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y));
+void PicturesEffect::SetDefaultParameters(Model *cls) {
+    PicturesPanel *pp = (PicturesPanel*)panel;
+    if (pp == nullptr) {
+        return;
+    }
+
+    SetSliderValue(pp->Slider_Pictures_Speed, 10);
+    SetSliderValue(pp->Slider_Pictures_FR, 10);
+    SetSliderValue(pp->Slider_PicturesXC, 0);
+    SetSliderValue(pp->Slider_PicturesYC, 0);
+    SetSliderValue(pp->Slider_PicturesEndXC, 0);
+    SetSliderValue(pp->Slider_PicturesEndYC, 0);
+    SetSliderValue(pp->Slider_Pictures_EndScale, 100);
+    SetSliderValue(pp->Slider_Pictures_StartScale, 100);
+
+    SetChoiceValue(pp->Choice_Pictures_Direction, "none");
+
+    SetCheckBoxValue(pp->CheckBox_Pictures_PixelOffsets, false);
+    SetCheckBoxValue(pp->CheckBox_Pictures_ScaleToFit, false);
+    SetCheckBoxValue(pp->CheckBox_Pictures_WrapX, false);
+
+    pp->FilePickerCtrl1->SetFileName(wxFileName());
+}
 
 void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     Render(buffer,
@@ -281,15 +303,15 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
            SettingsMap["FILEPICKER_Pictures_Filename"],
            SettingsMap.GetFloat("TEXTCTRL_Pictures_Speed", 1.0),
            SettingsMap.GetFloat("TEXTCTRL_Pictures_FrameRateAdj", 1.0),
-           SettingsMap.GetInt("SLIDER_PicturesXC"),
-           SettingsMap.GetInt("SLIDER_PicturesYC"),
-           SettingsMap.GetInt("SLIDER_PicturesEndXC"),
-           SettingsMap.GetInt("SLIDER_PicturesEndYC"),
+           SettingsMap.GetInt("SLIDER_PicturesXC", 0),
+           SettingsMap.GetInt("SLIDER_PicturesYC", 0),
+           SettingsMap.GetInt("SLIDER_PicturesEndXC", 0),
+           SettingsMap.GetInt("SLIDER_PicturesEndYC", 0),
            SettingsMap.GetInt("SLIDER_Pictures_StartScale", 100),
            SettingsMap.GetInt("SLIDER_Pictures_EndScale", 100),
-           SettingsMap.GetBool("CHECKBOX_Pictures_ScaleToFit"),
-           SettingsMap.GetBool("CHECKBOX_Pictures_PixelOffsets"),
-           SettingsMap.GetBool("CHECKBOX_Pictures_WrapX"));
+           SettingsMap.GetBool("CHECKBOX_Pictures_ScaleToFit", false),
+           SettingsMap.GetBool("CHECKBOX_Pictures_PixelOffsets", false),
+           SettingsMap.GetBool("CHECKBOX_Pictures_WrapX", false));
 }
 
 void PicturesEffect::Render(RenderBuffer &buffer,

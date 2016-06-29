@@ -60,60 +60,30 @@ BEGIN_EVENT_TABLE(PicturesPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-class xlPictureFilePickerCtrl : public wxFilePickerCtrl {
-public:
-    xlPictureFilePickerCtrl(wxWindow *parent,
-                            wxWindowID id,
-                            const wxString& path = wxEmptyString,
-                            const wxString& message = wxFileSelectorPromptStr,
-                            const wxString& wildcard = wxFileSelectorDefaultWildcardStr,
-                            const wxPoint& pos = wxDefaultPosition,
-                            const wxSize& size = wxDefaultSize,
-                            long style = wxFLP_DEFAULT_STYLE,
-                            const wxValidator& validator = wxDefaultValidator,
-                            const wxString& name = wxFilePickerCtrlNameStr)
-    : wxFilePickerCtrl(parent, id, path, message, wxImage::GetImageExtWildcard(), pos, size, style, validator, name) {
-
-    }
-    virtual ~xlPictureFilePickerCtrl() {}
-};
-
-
 PicturesPanel::PicturesPanel(wxWindow* parent)
 {
 	//(*Initialize(PicturesPanel)
-	wxSlider* Slider1;
 	wxFlexGridSizer* FlexGridSizer112;
 	wxTextCtrl* TextCtrl_Pictures_FR;
-	wxSlider* Slider2;
 	wxFlexGridSizer* FlexGridSizer19;
 	wxStaticText* StaticText2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxGridBagSizer* GridBagSizer2;
-	wxSlider* Slider18;
-	wxCheckBox* CheckBox2;
 	wxPanel* Panel1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText_Pictures_YC;
 	wxPanel* PictureStartPositionPanel;
 	wxFlexGridSizer* FlexGridSizer102;
-	wxSlider* Slider_Pictures_EndScale;
 	wxTextCtrl* TextCtrl_PicturesXC;
-	wxCheckBox* CheckBox1;
-	wxSlider* Slider_PicturesXC;
-	wxSlider* Slider_Pictures_StartScale;
 	wxTextCtrl* TextCtrl48;
 	wxTextCtrl* TextCtrl_Pictures_EndScale;
-	xlPictureFilePickerCtrl* FilePickerCtrl1;
-	wxSlider* Slider_PicturesYC;
 	wxTextCtrl* TextCtrl_PicturesYC;
 	wxFlexGridSizer* FlexGridSizer111;
 	wxTextCtrl* TextCtrl2;
 	wxStaticText* StaticText96;
 	wxTextCtrl* TextCtrl_Pictures_StartScale;
 	wxTextCtrl* TextCtrl1;
-	wxSlider* Slider_Pictures_FR;
 	wxStaticText* StaticText160;
 	wxPanel* Panel2;
 	wxFlexGridSizer* FlexGridSizer1;
@@ -174,8 +144,8 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	FlexGridSizer31->Add(BitmapButton_PicturesDirection, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText68 = new wxStaticText(this, ID_STATICTEXT27, _("Movement Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT27"));
 	FlexGridSizer31->Add(StaticText68, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider18 = new wxSlider(this, IDD_SLIDER_Pictures_Speed, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Pictures_Speed"));
-	FlexGridSizer31->Add(Slider18, 1, wxALL|wxEXPAND, 2);
+	Slider_Pictures_Speed = new wxSlider(this, IDD_SLIDER_Pictures_Speed, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Pictures_Speed"));
+	FlexGridSizer31->Add(Slider_Pictures_Speed, 1, wxALL|wxEXPAND, 2);
 	TextCtrl48 = new wxTextCtrl(this, ID_TEXTCTRL_Pictures_Speed, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_Speed"));
 	TextCtrl48->SetMaxLength(4);
 	FlexGridSizer31->Add(TextCtrl48, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -198,12 +168,12 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	FlexGridSizer102 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer102->AddGrowableCol(0);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
-	CheckBox1 = new wxCheckBox(this, ID_CHECKBOX_Pictures_PixelOffsets, _("Offsets In Pixels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_PixelOffsets"));
-	CheckBox1->SetValue(false);
-	FlexGridSizer1->Add(CheckBox1, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
-	CheckBox2 = new wxCheckBox(this, ID_CHECKBOX_Pictures_ScaleToFit, _("Scale To Fit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_ScaleToFit"));
-	CheckBox2->SetValue(false);
-	FlexGridSizer1->Add(CheckBox2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Pictures_PixelOffsets = new wxCheckBox(this, ID_CHECKBOX_Pictures_PixelOffsets, _("Offsets In Pixels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_PixelOffsets"));
+	CheckBox_Pictures_PixelOffsets->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Pictures_PixelOffsets, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
+	CheckBox_Pictures_ScaleToFit = new wxCheckBox(this, ID_CHECKBOX_Pictures_ScaleToFit, _("Scale To Fit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_ScaleToFit"));
+	CheckBox_Pictures_ScaleToFit->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Pictures_ScaleToFit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer102->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
 	Notebook4 = new wxNotebook(this, IDD_NOTEBOOK_Pictures_Positions, wxDefaultPosition, wxDefaultSize, 0, _T("IDD_NOTEBOOK_Pictures_Positions"));
 	PictureStartPositionPanel = new wxPanel(Notebook4, ID_PANEL43, wxPoint(15,49), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL43"));
@@ -241,8 +211,8 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	FlexGridSizer113->AddGrowableCol(1);
 	StaticText160 = new wxStaticText(PictureEndPositionPanel, wxID_ANY, _("X-axis Center"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer113->Add(StaticText160, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider1 = new wxSlider(PictureEndPositionPanel, ID_SLIDER_PicturesEndXC, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PicturesEndXC"));
-	FlexGridSizer113->Add(Slider1, 1, wxALL|wxEXPAND, 5);
+	Slider_PicturesEndXC = new wxSlider(PictureEndPositionPanel, ID_SLIDER_PicturesEndXC, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PicturesEndXC"));
+	FlexGridSizer113->Add(Slider_PicturesEndXC, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer113->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl1 = new wxTextCtrl(PictureEndPositionPanel, IDD_TEXTCTRL_PicturesEndXC, _("0"), wxDefaultPosition, wxDLG_UNIT(PictureEndPositionPanel,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PicturesEndXC"));
 	TextCtrl1->SetMaxLength(3);
@@ -254,8 +224,8 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	TextCtrl2 = new wxTextCtrl(PictureEndPositionPanel, IDD_TEXTCTRL_PicturesEndYC, _("0"), wxDefaultPosition, wxDLG_UNIT(PictureEndPositionPanel,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PicturesEndYC"));
 	TextCtrl2->SetMaxLength(3);
 	GridBagSizer3->Add(TextCtrl2, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Slider2 = new wxSlider(PictureEndPositionPanel, ID_SLIDER_PicturesEndYC, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_PicturesEndYC"));
-	GridBagSizer3->Add(Slider2, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_PicturesEndYC = new wxSlider(PictureEndPositionPanel, ID_SLIDER_PicturesEndYC, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_PicturesEndYC"));
+	GridBagSizer3->Add(Slider_PicturesEndYC, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer111->Add(GridBagSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PictureEndPositionPanel->SetSizer(FlexGridSizer111);
 	FlexGridSizer111->Fit(PictureEndPositionPanel);
@@ -267,8 +237,8 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Pictures_StartScale = new wxSlider(Panel1, ID_SLIDER_Pictures_StartScale, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Pictures_StartScale"));
 	FlexGridSizer2->Add(Slider_Pictures_StartScale, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_Pictures_StartScale = new wxTextCtrl(Panel1, IDD_TEXTCTRL_Pictures_StartScale, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pictures_StartScale"));
-	TextCtrl_Pictures_StartScale->SetMaxLength(3);
+	TextCtrl_Pictures_StartScale = new wxTextCtrl(Panel1, IDD_TEXTCTRL_Pictures_StartScale, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pictures_StartScale"));
+	TextCtrl_Pictures_StartScale->SetMaxLength(4);
 	FlexGridSizer2->Add(TextCtrl_Pictures_StartScale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel1->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(Panel1);
@@ -280,8 +250,8 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	FlexGridSizer3->Add(StaticText2, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Pictures_EndScale = new wxSlider(Panel2, ID_SLIDER_Pictures_EndScale, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Pictures_EndScale"));
 	FlexGridSizer3->Add(Slider_Pictures_EndScale, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_Pictures_EndScale = new wxTextCtrl(Panel2, IDD_TEXTCTRL_Pictures_EndScale, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pictures_EndScale"));
-	TextCtrl_Pictures_EndScale->SetMaxLength(3);
+	TextCtrl_Pictures_EndScale = new wxTextCtrl(Panel2, IDD_TEXTCTRL_Pictures_EndScale, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(25,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pictures_EndScale"));
+	TextCtrl_Pictures_EndScale->SetMaxLength(4);
 	FlexGridSizer3->Add(TextCtrl_Pictures_EndScale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel2->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Panel2);
