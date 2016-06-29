@@ -13,6 +13,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keithsw) Fix piano and VUMeter reaction to changes in timing marks.
    -- enh (keithsw) Add model state settings and effect to control states.
    -- enh (keithsw) Add autosave to layout
+   -- bug (keithsw) Ensure effect settings reset when first selected for dropping if they are different to the current effect. Most effects done.
+   -- enh (keithsw) Add value curves to Pinwheel, Shimmer, Spirograph, Ripple effects
    -- enh (gil) DMX effect automatically determines number of channels to use
    -- enh (gil) DMX effect will show node names if defined in place of channel numbers
    -- enh (gil) DMX effect now uses value curves to do ramps and works with single color channels

@@ -46,15 +46,12 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer3;
 	wxStaticText* StaticText64;
 	wxTextCtrl* TextCtrl84;
-	wxSlider* Slider34;
 	wxBitmapButton* BitmapButton21;
 	wxStaticText* StaticText197;
 	wxBitmapButton* BitmapButton18;
 	wxFlexGridSizer* FlexGridSizer139;
 	wxTextCtrl* TextCtrl87;
-	wxSlider* Slider33;
 	wxTextCtrl* TextCtrl85;
-	wxSlider* Slider36;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer139 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -75,8 +72,8 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	FlexGridSizer139->Add(BitmapButton17, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText197 = new wxStaticText(this, wxID_ANY, _("Add Twist to Effect"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer139->Add(StaticText197, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider33 = new wxSlider(this, ID_SLIDER_Plasma_Style, 1, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Plasma_Style"));
-	FlexGridSizer139->Add(Slider33, 1, wxALL|wxEXPAND, 2);
+	Slider_Plasma_Style = new wxSlider(this, ID_SLIDER_Plasma_Style, 1, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Plasma_Style"));
+	FlexGridSizer139->Add(Slider_Plasma_Style, 1, wxALL|wxEXPAND, 2);
 	TextCtrl84 = new wxTextCtrl(this, IDD_TEXTCTRL_Plasma_Style, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Plasma_Style"));
 	TextCtrl84->SetMaxLength(1);
 	FlexGridSizer139->Add(TextCtrl84, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -86,8 +83,8 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	FlexGridSizer139->Add(BitmapButton18, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText202 = new wxStaticText(this, wxID_ANY, _("Line Density"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer139->Add(StaticText202, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider34 = new wxSlider(this, ID_SLIDER_Plasma_Line_Density, 1, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Plasma_Line_Density"));
-	FlexGridSizer139->Add(Slider34, 1, wxALL|wxEXPAND, 2);
+	Slider_Plasma_Line_Density = new wxSlider(this, ID_SLIDER_Plasma_Line_Density, 1, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Plasma_Line_Density"));
+	FlexGridSizer139->Add(Slider_Plasma_Line_Density, 1, wxALL|wxEXPAND, 2);
 	TextCtrl85 = new wxTextCtrl(this, IDD_TEXTCTRL_Plasma_Line_Density, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Plasma_Line_Density"));
 	TextCtrl85->SetMaxLength(2);
 	FlexGridSizer139->Add(TextCtrl85, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -99,8 +96,8 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	FlexGridSizer139->Add(StaticText204, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	Slider36 = new wxSlider(this, ID_SLIDER_Plasma_Speed, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Plasma_Speed"));
-	FlexGridSizer3->Add(Slider36, 1, wxALL|wxEXPAND, 2);
+	Slider_Plasma_Speed = new wxSlider(this, ID_SLIDER_Plasma_Speed, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Plasma_Speed"));
+	FlexGridSizer3->Add(Slider_Plasma_Speed, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Plasma_SpeedVC = new ValueCurveButton(this, ID_VALUECURVE_Plasma_Speed, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Plasma_Speed"));
 	FlexGridSizer3->Add(BitmapButton_Plasma_SpeedVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer139->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);

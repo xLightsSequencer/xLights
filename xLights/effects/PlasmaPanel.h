@@ -23,6 +23,9 @@ class PlasmaPanel: public wxPanel
 		//(*Declarations(PlasmaPanel)
 		ValueCurveButton* BitmapButton_Plasma_SpeedVC;
 		wxChoice* Choice_Plasma_Color;
+		wxSlider* Slider_Plasma_Line_Density;
+		wxSlider* Slider_Plasma_Speed;
+		wxSlider* Slider_Plasma_Style;
 		//*)
 
 	protected:

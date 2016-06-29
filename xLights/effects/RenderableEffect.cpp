@@ -743,6 +743,14 @@ void RenderableEffect::SetCheckBoxValue(wxCheckBox *c, bool b) {
     c->ProcessWindowEvent(evt);
 }
 
+void RenderableEffect::SetRadioValue(wxRadioButton *r) {
+    r->SetValue(true);
+    wxCommandEvent evt(wxEVT_RADIOBUTTON, r->GetId());
+    evt.SetEventObject(r);
+    evt.SetInt(true);
+    r->ProcessWindowEvent(evt);
+}
+
 double RenderableEffect::GetValueCurveDouble(wxString name, double def, const SettingsMap &SettingsMap, float offset)
 {
     double res = SettingsMap.GetDouble("TEXTCTRL_" + name, def);

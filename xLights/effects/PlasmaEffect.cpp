@@ -42,10 +42,26 @@ static inline int GetPlasmaColorScheme(const std::string &ColorSchemeStr) {
     }
     return PLASMA_NORMAL_COLORS;
 }
+
+void PlasmaEffect::SetDefaultParameters(Model *cls) {
+    PlasmaPanel *pp = (PlasmaPanel*)panel;
+    if (pp == nullptr) {
+        return;
+    }
+
+    pp->BitmapButton_Plasma_SpeedVC->SetActive(false);
+
+    SetSliderValue(pp->Slider_Plasma_Style, 1);
+    SetSliderValue(pp->Slider_Plasma_Line_Density, 1);
+    SetSliderValue(pp->Slider_Plasma_Speed, 10);
+
+    SetChoiceValue(pp->Choice_Plasma_Color, "Normal");
+}
+
 void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Style = SettingsMap.GetInt("SLIDER_Plasma_Style", 0);
+    int Style = SettingsMap.GetInt("SLIDER_Plasma_Style", 1);
     int Line_Density = SettingsMap.GetInt("SLIDER_Plasma_Line_Density", 1);
     int PlasmaSpeed = GetValueCurveInt("Plasma_Speed", 10, SettingsMap, oset);
     std::string PlasmaDirectionStr = SettingsMap["CHOICE_Plasma_Direction"];
