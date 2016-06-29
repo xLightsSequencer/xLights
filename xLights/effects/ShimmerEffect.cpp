@@ -28,6 +28,9 @@ void ShimmerEffect::SetDefaultParameters(Model *cls)
         return;
     }
 
+    sp->BitmapButton_Shimmer_CyclesVC->SetActive(false);
+    sp->BitmapButton_Shimmer_Duty_FactorVC->SetActive(false);
+
     SetSliderValue(sp->Slider_Shimmer_Duty_Factor, 50);
     SetSliderValue(sp->Slider_Shimmer_Cycles, 10);
 
@@ -35,9 +38,10 @@ void ShimmerEffect::SetDefaultParameters(Model *cls)
 }
 
 void ShimmerEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Duty_Factor = SettingsMap.GetInt("SLIDER_Shimmer_Duty_Factor", 50);
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    int Duty_Factor = GetValueCurveInt("Shimmer_Duty_Factor", 50, SettingsMap, oset);
     bool Use_All_Colors = SettingsMap.GetBool("CHECKBOX_Shimmer_Use_All_Colors", false);
-    float cycles = SettingsMap.GetDouble("TEXTCTRL_Shimmer_Cycles", 1.0);
+    float cycles = GetValueCurveDouble("Shimmer_Cycles", 1.0, SettingsMap, oset);
     int colorcnt=buffer.GetColorCount();
     
     double position = buffer.GetEffectTimeIntervalPosition(cycles);

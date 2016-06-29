@@ -11,6 +11,8 @@ class wxBitmapButton;
 class wxFlexGridSizer;
 //*)
 
+#include "../ValueCurveButton.h"
+
 class ShimmerPanel: public wxPanel
 {
 	public:
@@ -26,6 +28,8 @@ class ShimmerPanel: public wxPanel
 		wxSlider* Slider_Shimmer_Cycles;
 		wxStaticText* StaticText67;
 		wxCheckBox* CheckBox_Shimmer_Use_All_Colors;
+		ValueCurveButton* BitmapButton_Shimmer_Duty_FactorVC;
+		ValueCurveButton* BitmapButton_Shimmer_CyclesVC;
 		wxStaticText* StaticText66;
 		wxBitmapButton* BitmapButton_Shimmer_Duty_Factor;
 		//*)
@@ -35,10 +39,12 @@ class ShimmerPanel: public wxPanel
 		//(*Identifiers(ShimmerPanel)
 		static const long ID_STATICTEXT68;
 		static const long ID_SLIDER_Shimmer_Duty_Factor;
+		static const long ID_VALUECURVE_Shimmer_Duty_Factor;
 		static const long IDD_TEXTCTRL_Shimmer_Duty_Factor;
 		static const long ID_BITMAPBUTTON_DutyFactor;
 		static const long ID_STATICTEXT9;
 		static const long IDD_SLIDER_Shimmer_Cycles;
+		static const long ID_VALUECURVE_Shimmer_Cycles;
 		static const long ID_TEXTCTRL_Shimmer_Cycles;
 		static const long ID_BITMAPBUTTON24;
 		static const long ID_STATICTEXT69;

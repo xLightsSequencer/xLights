@@ -3,15 +3,17 @@
 
 //(*Headers(PinwheelPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxChoice;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxBoxSizer;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
+class wxBoxSizer;
+class wxChoice;
 //*)
+
+#include "../ValueCurveButton.h"
 
 class PinwheelPanel: public wxPanel
 {
@@ -21,29 +23,36 @@ class PinwheelPanel: public wxPanel
 		virtual ~PinwheelPanel();
 
 		//(*Declarations(PinwheelPanel)
-		wxSlider* Slider_Pinwheel_Twist;
-		wxBitmapButton* BitmapButton_Pinwheel3D;
-		wxStaticText* StaticText76;
-		wxSlider* Slider_PinwheelYC;
-		wxSlider* Slider_Pinwheel_Thickness;
-		wxSlider* Slider_PinwheelXC;
 		wxChoice* Choice_Pinwheel_3D;
-		wxStaticText* StaticText63;
-		wxBitmapButton* BitmapButton_PinwheelNumberArms;
-		wxSlider* Slider_Pinwheel_Arms;
-		wxStaticText* StaticText77;
-		wxBitmapButton* BitmapButton_PinwheelThickness;
-		wxBitmapButton* BitmapButton_PinwheelRotation;
-		wxStaticText* StaticText75;
-		wxBitmapButton* BitmapButton_PinwheelTwist;
-		wxBitmapButton* BitmapButton7;
-		wxStaticText* StaticText84;
-		wxStaticText* StaticText81;
+		ValueCurveButton* BitmapButton_PinwheelYCVC;
 		wxBitmapButton* BitmapButton_Pinwheel_ArmSize;
-		wxSlider* Slider_Pinwheel_ArmSize;
+		wxSlider* Slider_PinwheelYC;
 		wxStaticText* StaticText74;
-		wxCheckBox* CheckBox_Pinwheel_Rotation;
+		wxStaticText* StaticText75;
+		wxStaticText* StaticText76;
 		wxStaticText* StaticText82;
+		wxSlider* Slider_PinwheelXC;
+		wxSlider* Slider_Pinwheel_Twist;
+		ValueCurveButton* BitmapButton_Pinwheel_ArmSizeVC;
+		wxStaticText* StaticText81;
+		wxSlider* Slider_Pinwheel_ArmSize;
+		wxBitmapButton* BitmapButton_PinwheelTwist;
+		wxStaticText* StaticText84;
+		wxSlider* Slider_Pinwheel_Arms;
+		ValueCurveButton* BitmapButton_Pinwheel_SpeedVC;
+		wxBitmapButton* BitmapButton_Pinwheel3D;
+		ValueCurveButton* BitmapButton_Pinwheel_ThicknessVC;
+		wxBitmapButton* BitmapButton_PinwheelRotation;
+		ValueCurveButton* BitmapButton_Pinwheel_TwistVC;
+		wxSlider* Slider_Pinwheel_Speed;
+		wxBitmapButton* BitmapButton7;
+		wxBitmapButton* BitmapButton_PinwheelThickness;
+		wxCheckBox* CheckBox_Pinwheel_Rotation;
+		wxSlider* Slider_Pinwheel_Thickness;
+		ValueCurveButton* BitmapButton_PinwheelXCVC;
+		wxBitmapButton* BitmapButton_PinwheelNumberArms;
+		wxStaticText* StaticText63;
+		wxStaticText* StaticText77;
 		//*)
 
 	protected:
@@ -55,18 +64,22 @@ class PinwheelPanel: public wxPanel
 		static const long ID_BITMAPBUTTON11;
 		static const long ID_STATICTEXT98;
 		static const long ID_SLIDER_Pinwheel_ArmSize;
+		static const long ID_VALUECURVE_Pinwheel_ArmSize;
 		static const long IDD_TEXTCTRL_Pinwheel_ArmSize;
 		static const long ID_BITMAPBUTTON16;
 		static const long ID_STATICTEXT76;
 		static const long ID_SLIDER_Pinwheel_Twist;
+		static const long ID_VALUECURVE_Pinwheel_Twist;
 		static const long IDD_TEXTCTRL_Pinwheel_Twist;
 		static const long ID_BITMAPBUTTON12;
 		static const long ID_STATICTEXT77;
 		static const long ID_SLIDER_Pinwheel_Thickness;
+		static const long ID_VALUECURVE_Pinwheel_Thickness;
 		static const long IDD_TEXTCTRL_Pinwheel_Thickness;
 		static const long ID_BITMAPBUTTON18;
-		static const long IDD_SLIDER_Pinwheel_Speed;
-		static const long ID_TEXTCTRL_Pinwheel_Speed;
+		static const long ID_SLIDER_Pinwheel_Speed;
+		static const long ID_VALUECURVE_Pinwheel_Speed;
+		static const long IDD_TEXTCTRL_Pinwheel_Speed;
 		static const long ID_BITMAPBUTTON26;
 		static const long ID_STATICTEXT78;
 		static const long ID_CHECKBOX_Pinwheel_Rotation;
@@ -76,8 +89,10 @@ class PinwheelPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_Pinwheel3D;
 		static const long ID_STATICTEXT85;
 		static const long ID_SLIDER_PinwheelXC;
+		static const long ID_VALUECURVE_PinwheelXC;
 		static const long IDD_TEXTCTRL_PinwheelXC;
 		static const long ID_STATICTEXT83;
+		static const long ID_VALUECURVE_PinwheelYC;
 		static const long IDD_TEXTCTRL_PinwheelYC;
 		static const long ID_SLIDER_PinwheelYC;
 		//*)

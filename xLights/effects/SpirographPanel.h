@@ -10,6 +10,8 @@ class wxBitmapButton;
 class wxFlexGridSizer;
 //*)
 
+#include "../ValueCurveButton.h"
+
 class SpirographPanel: public wxPanel
 {
 	public:
@@ -24,15 +26,21 @@ class SpirographPanel: public wxPanel
 		wxSlider* Slider_Spirograph_Animate;
 		wxSlider* Slider_Spirograph_Speed;
 		wxStaticText* StaticText87;
+		ValueCurveButton* BitmapButton_Spirograph_RVC;
 		wxStaticText* StaticText90;
 		wxBitmapButton* BitmapButton14;
 		wxSlider* Slider_Spirograph_d;
+		ValueCurveButton* BitmapButton_Spirograph_AnimateVC;
 		wxSlider* Slider_Spirograph_R;
 		wxBitmapButton* BitmapButton_SpirographAnimate;
+		ValueCurveButton* BitmapButton_Spirograph_SpeedrVC;
 		wxBitmapButton* BitmapButton_Spirographr;
 		wxStaticText* StaticText190;
+		ValueCurveButton* BitmapButton_Spirograph_dVC;
 		wxSlider* Slider_Spirograph_r;
+		ValueCurveButton* BitmapButton_Spirograph_rVC;
 		wxStaticText* StaticText88;
+		ValueCurveButton* BitmapButton_Spirograph_LengthVC;
 		wxStaticText* StaticText89;
 		wxBitmapButton* BitmapButton_SpirographR;
 		//*)
@@ -42,24 +50,30 @@ class SpirographPanel: public wxPanel
 		//(*Identifiers(SpirographPanel)
 		static const long ID_STATICTEXT33;
 		static const long IDD_SLIDER_Spirograph_Speed;
+		static const long ID_VALUECURVE_Spirograph_Speed;
 		static const long ID_TEXTCTRL_Spirograph_Speed;
 		static const long ID_BITMAPBUTTON32;
 		static const long ID_STATICTEXT88;
 		static const long ID_SLIDER_Spirograph_R;
+		static const long ID_VALUECURVE_Spirograph_R;
 		static const long IDD_TEXTCTRL_Spirograph_R;
 		static const long ID_BITMAPBUTTON_SLIDER_Spirograph_R;
 		static const long ID_STATICTEXT89;
 		static const long ID_SLIDER_Spirograph_r;
+		static const long ID_VALUECURVE_Spirograph_r;
 		static const long IDD_TEXTCTRL_Spirograph_r;
 		static const long ID_BITMAPBUTTON_SLIDER_Spirograph_r;
 		static const long ID_STATICTEXT90;
 		static const long ID_SLIDER_Spirograph_d;
+		static const long ID_VALUECURVE_Spirograph_d;
 		static const long IDD_TEXTCTRL_Spirograph_d;
 		static const long ID_BITMAPBUTTON_SLIDER_Spirograph_d;
 		static const long IDD_SLIDER_Spirograph_Animate;
+		static const long ID_VALUECURVE_Spirograph_Animate;
 		static const long ID_TEXTCTRL_Spirograph_Animate;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate;
 		static const long IDD_SLIDER_Spirograph_Length;
+		static const long ID_VALUECURVE_Spirograph_Length;
 		static const long ID_TEXTCTRL_Spirograph_Length;
 		static const long ID_BITMAPBUTTON33;
 		static const long ID_STATICTEXT91;

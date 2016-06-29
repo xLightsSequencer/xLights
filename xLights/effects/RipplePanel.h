@@ -3,14 +3,16 @@
 
 //(*Headers(RipplePanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxChoice;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
+class wxChoice;
 //*)
+
+#include "../ValueCurveButton.h"
 
 class RipplePanel: public wxPanel
 {
@@ -20,17 +22,20 @@ class RipplePanel: public wxPanel
 		virtual ~RipplePanel();
 
 		//(*Declarations(RipplePanel)
-		wxSlider* Slider_Ripple_Thickness;
-		wxStaticText* StaticText70;
-		wxBitmapButton* BitmapButton_Ripple_Movement;
-		wxStaticText* StaticText69;
-		wxBitmapButton* BitmapButton_Ripple_Object_To_Draw;
-		wxBitmapButton* BitmapButton_RippleThickness;
-		wxStaticText* StaticText72;
-		wxChoice* Choice_Ripple_Object_To_Draw;
-		wxCheckBox* CheckBox_Ripple3D;
 		wxBitmapButton* BitmapButton_Ripple3D;
+		ValueCurveButton* BitmapButton_Ripple_ThicknessVC;
+		wxBitmapButton* BitmapButton_Ripple_Movement;
 		wxChoice* Choice_Ripple_Movement;
+		wxBitmapButton* BitmapButton_RippleThickness;
+		wxBitmapButton* BitmapButton_Ripple_Object_To_Draw;
+		wxSlider* Slider_Ripple_Cycles;
+		wxStaticText* StaticText72;
+		wxStaticText* StaticText69;
+		ValueCurveButton* BitmapButton_Ripple_CyclesVC;
+		wxCheckBox* CheckBox_Ripple3D;
+		wxStaticText* StaticText70;
+		wxChoice* Choice_Ripple_Object_To_Draw;
+		wxSlider* Slider_Ripple_Thickness;
 		//*)
 
 	protected:
@@ -44,9 +49,11 @@ class RipplePanel: public wxPanel
 		static const long ID_BITMAPBUTTON13;
 		static const long ID_STATICTEXT74;
 		static const long ID_SLIDER_Ripple_Thickness;
+		static const long ID_VALUECURVE_Ripple_Thickness;
 		static const long IDD_TEXTCTRL_Ripple_Thickness;
 		static const long ID_BITMAPBUTTON14;
 		static const long IDD_SLIDER_Ripple_Cycles;
+		static const long ID_VALUECURVE_Ripple_Cycles;
 		static const long ID_TEXTCTRL_Ripple_Cycles;
 		static const long ID_CHECKBOX_Ripple3D;
 		static const long ID_BITMAPBUTTON17;

@@ -32,6 +32,13 @@ void SpirographEffect::SetDefaultParameters(Model *cls)
         return;
     }
 
+    sp->BitmapButton_Spirograph_AnimateVC->SetActive(false);
+    sp->BitmapButton_Spirograph_LengthVC->SetActive(false);
+    sp->BitmapButton_Spirograph_dVC->SetActive(false);
+    sp->BitmapButton_Spirograph_RVC->SetActive(false);
+    sp->BitmapButton_Spirograph_rVC->SetActive(false);
+    sp->BitmapButton_Spirograph_SpeedrVC->SetActive(false);
+
     SetSliderValue(sp->Slider_Spirograph_Speed, 10);
     SetSliderValue(sp->Slider_Spirograph_R, 20);
     SetSliderValue(sp->Slider_Spirograph_r, 10);
@@ -42,12 +49,14 @@ void SpirographEffect::SetDefaultParameters(Model *cls)
 
 void SpirographEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
-    int int_R   = SettingsMap.GetInt("SLIDER_Spirograph_R", 20);
-    int int_r   = SettingsMap.GetInt("SLIDER_Spirograph_r", 10);
-    int int_d   = SettingsMap.GetInt("SLIDER_Spirograph_d", 30);
-    int Animate = SettingsMap.GetInt("TEXTCTRL_Spirograph_Animate", 0);
-    int sspeed  = SettingsMap.GetInt("TEXTCTRL_Spirograph_Speed", 10);
-    int length  = SettingsMap.GetInt("TEXTCTRL_Spirograph_Length", 20);
+    float oset = buffer.GetEffectTimeIntervalPosition();
+
+    int int_R   = GetValueCurveInt("Spirograph_R", 20, SettingsMap, oset);
+    int int_r   = GetValueCurveInt("Spirograph_r", 10, SettingsMap, oset);
+    int int_d   = GetValueCurveInt("Spirograph_d", 30, SettingsMap, oset);
+    int Animate = GetValueCurveInt("Spirograph_Animate", 0, SettingsMap, oset);
+    int sspeed  = GetValueCurveInt("Spirograph_Speed", 10, SettingsMap, oset);
+    int length  = GetValueCurveInt("Spirograph_Length", 20, SettingsMap, oset);
 
     int i,x,y,xc,yc,ColorIdx;
     int mod1440,d_mod;

@@ -15,15 +15,25 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer132" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Spirograph_Speed" variable="Slider_Spirograph_Speed" member="yes">
 							<value>10</value>
 							<max>50</max>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_Speed" subclass="ValueCurveButton" variable="BitmapButton_Spirograph_SpeedrVC" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -66,15 +76,25 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer125" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_Spirograph_R" variable="Slider_Spirograph_R" member="yes">
 							<value>20</value>
 							<min>1</min>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_R" subclass="ValueCurveButton" variable="BitmapButton_Spirograph_RVC" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -117,15 +137,25 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer126" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_Spirograph_r" variable="Slider_Spirograph_r" member="yes">
 							<value>10</value>
 							<min>1</min>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_r" subclass="ValueCurveButton" variable="BitmapButton_Spirograph_rVC" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -168,15 +198,25 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer127" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_Spirograph_d" variable="Slider_Spirograph_d" member="yes">
 							<value>30</value>
 							<min>1</min>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_d" subclass="ValueCurveButton" variable="BitmapButton_Spirograph_dVC" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -219,15 +259,25 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer133" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Spirograph_Animate" variable="Slider_Spirograph_Animate" member="yes">
 							<min>-50</min>
 							<max>50</max>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_Animate" subclass="ValueCurveButton" variable="BitmapButton_Spirograph_AnimateVC" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -270,15 +320,25 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer134" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Spirograph_Length" variable="Slider_Spirograph_Length" member="yes">
 							<value>20</value>
 							<max>50</max>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_Length" subclass="ValueCurveButton" variable="BitmapButton_Spirograph_LengthVC" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>

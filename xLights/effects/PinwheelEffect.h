@@ -10,7 +10,7 @@ class PinwheelEffect : public RenderableEffect
     public:
         PinwheelEffect(int id);
         virtual ~PinwheelEffect();
-    
+        virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

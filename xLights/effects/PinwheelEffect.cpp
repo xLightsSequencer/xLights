@@ -11,7 +11,6 @@
 #include "../../include/pinwheel-48.xpm"
 #include "../../include/pinwheel-64.xpm"
 
-
 PinwheelEffect::PinwheelEffect(int id) : RenderableEffect(id, "Pinwheel", pinwheel_16, pinwheel_24, pinwheel_32, pinwheel_48, pinwheel_64)
 {
     //ctor
@@ -25,19 +24,45 @@ wxPanel *PinwheelEffect::CreatePanel(wxWindow *parent) {
     return new PinwheelPanel(parent);
 }
 
+void PinwheelEffect::SetDefaultParameters(Model *cls) {
+    PinwheelPanel *pp = (PinwheelPanel*)panel;
+    if (pp == nullptr) {
+        return;
+    }
+
+    pp->BitmapButton_PinwheelXCVC->SetActive(false);
+    pp->BitmapButton_PinwheelYCVC->SetActive(false);
+    pp->BitmapButton_Pinwheel_ArmSizeVC->SetActive(false);
+    pp->BitmapButton_Pinwheel_SpeedVC->SetActive(false);
+    pp->BitmapButton_Pinwheel_ThicknessVC->SetActive(false);
+    pp->BitmapButton_Pinwheel_TwistVC->SetActive(false);
+    
+    SetChoiceValue(pp->Choice_Pinwheel_3D, "none");
+
+    SetSliderValue(pp->Slider_PinwheelXC, 0);
+    SetSliderValue(pp->Slider_PinwheelYC, 0);
+    SetSliderValue(pp->Slider_Pinwheel_Arms, 3);
+    SetSliderValue(pp->Slider_Pinwheel_ArmSize, 100);
+    SetSliderValue(pp->Slider_Pinwheel_Thickness, 0);
+    SetSliderValue(pp->Slider_Pinwheel_Twist, 0);
+    SetSliderValue(pp->Slider_Pinwheel_Speed, 10);
+
+    SetCheckBoxValue(pp->CheckBox_Pinwheel_Rotation, true);
+}
+
 void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
+    float oset = buffer.GetEffectTimeIntervalPosition();
 
-    int pinwheel_arms = SettingsMap.GetInt("SLIDER_Pinwheel_Arms", 1);
-    int pinwheel_twist = SettingsMap.GetInt("SLIDER_Pinwheel_Twist", 1);
-    int pinwheel_thickness = SettingsMap.GetInt("SLIDER_Pinwheel_Thickness", 1);
+    int pinwheel_arms = SettingsMap.GetInt("SLIDER_Pinwheel_Arms", 3);
+    int pinwheel_twist = GetValueCurveInt("Pinwheel_Twist", 0, SettingsMap, oset);
+    int pinwheel_thickness = GetValueCurveInt("Pinwheel_Thickness", 0, SettingsMap, oset);
     bool pinwheel_rotation = SettingsMap.GetBool("CHECKBOX_Pinwheel_Rotation");
     const std::string &pinwheel_3d = SettingsMap["CHOICE_Pinwheel_3D"];
-    int xc_adj = SettingsMap.GetInt("SLIDER_PinwheelXC", 0);
-    int yc_adj = SettingsMap.GetInt("SLIDER_PinwheelYC", 0);
-    int pinwheel_armsize = SettingsMap.GetInt("SLIDER_Pinwheel_ArmSize", 1);
-    int pspeed = SettingsMap.GetInt("TEXTCTRL_Pinwheel_Speed", 1);
-
+    int xc_adj = GetValueCurveInt("PinwheelXC", 0, SettingsMap, oset);
+    int yc_adj = GetValueCurveInt("PinwheelYC", 0, SettingsMap, oset);
+    int pinwheel_armsize = GetValueCurveInt("Pinwheel_ArmSize", 100, SettingsMap, oset);
+    int pspeed = GetValueCurveInt("Pinwheel_Speed", 10, SettingsMap, oset);
 
     int a,xc,ColorIdx,base_degrees;
     float t,tmax;

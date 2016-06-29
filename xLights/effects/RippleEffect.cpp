@@ -32,12 +32,31 @@ wxPanel *RippleEffect::CreatePanel(wxWindow *parent) {
 #define MOVEMENT_EXPLODE    0
 #define MOVEMENT_IMPLODE    1
 
+void RippleEffect::SetDefaultParameters(Model *cls) {
+    RipplePanel *rp = (RipplePanel*)panel;
+    if (rp == nullptr) {
+        return;
+    }
+
+    rp->BitmapButton_Ripple_CyclesVC->SetActive(false);
+    rp->BitmapButton_Ripple_ThicknessVC->SetActive(false);
+
+    SetChoiceValue(rp->Choice_Ripple_Object_To_Draw, "Circle");
+    SetChoiceValue(rp->Choice_Ripple_Movement, "Explode");
+
+    SetSliderValue(rp->Slider_Ripple_Thickness, 3);
+    SetSliderValue(rp->Slider_Ripple_Cycles, 10);
+
+    SetCheckBoxValue(rp->CheckBox_Ripple3D, false);
+}
+
 void RippleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    float oset = buffer.GetEffectTimeIntervalPosition();
     const std::string &Object_To_DrawStr = SettingsMap["CHOICE_Ripple_Object_To_Draw"];
     const std::string &MovementStr = SettingsMap["CHOICE_Ripple_Movement"];
-    int Ripple_Thickness = SettingsMap.GetInt("SLIDER_Ripple_Thickness", 1);
-    bool CheckBox_Ripple3D = SettingsMap.GetBool("CHECKBOX_Ripple3D");
-    float cycles = SettingsMap.GetFloat("TEXTCTRL_Ripple_Cycles", 1.0);
+    int Ripple_Thickness = GetValueCurveInt("Ripple_Thickness", 3, SettingsMap, oset);
+    bool CheckBox_Ripple3D = SettingsMap.GetBool("CHECKBOX_Ripple3D", false);
+    float cycles = GetValueCurveDouble("Ripple_Cycles", 1.0, SettingsMap, oset);
     
     int Object_To_Draw = "Circle" == Object_To_DrawStr ? RENDER_RIPPLE_CIRCLE :
         "Square" == Object_To_DrawStr ? RENDER_RIPPLE_SQUARE : RENDER_RIPPLE_TRIANGLE;
