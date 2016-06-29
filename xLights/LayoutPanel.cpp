@@ -2428,6 +2428,7 @@ void LayoutPanel::DeleteCurrentPreview()
 
         SetCurrentLayoutGroup("Default");
         ChoiceLayoutGroups->SetSelection(0);
+        xlights->SetStoredLayoutGroup(currentLayoutGroup);
 
         UpdateModelList();
         modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());

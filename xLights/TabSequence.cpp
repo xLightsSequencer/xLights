@@ -186,6 +186,28 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     SetPreviewBackgroundImage(mBackgroundImage);
 
     mStoredLayoutGroup = GetXmlSetting("storedLayoutGroup","Default");
+
+    // validate stored preview exists
+    bool found_saved_preview = false;
+    for(wxXmlNode* e=LayoutGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "layoutGroup")
+        {
+            wxString grp_name=e->GetAttribute("name");
+            if (!grp_name.IsEmpty())
+            {
+                if( grp_name.ToStdString() == mStoredLayoutGroup )
+                {
+                    found_saved_preview = true;
+                }
+            }
+        }
+    }
+    if( !found_saved_preview )
+    {
+        mStoredLayoutGroup = "Default";
+    }
+
     // Do this here as it may switch the background image
     LayoutGroups.clear();
     layoutPanel->Reset();
@@ -201,6 +223,10 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
                 LayoutGroups.push_back(grp);
                 AddPreviewOption(grp);
                 layoutPanel->AddPreviewChoice(grp_name.ToStdString());
+                if( grp_name.ToStdString() == mStoredLayoutGroup )
+                {
+                    found_saved_preview = true;
+                }
             }
         }
     }
@@ -724,7 +750,7 @@ void xLightsFrame::SaveSequence()
             ProgressBar->SetValue(100);
             ProgressBar->Hide();
             GaugeSizer->Layout();
-            
+
             logger_base.info("Saving fseq file.");
             SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
             WriteFalconPiFile(xlightsFilename);
