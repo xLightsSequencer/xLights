@@ -2107,7 +2107,7 @@ wxString CreateSceneImage(const std::string &imagePfx, const std::string &postFi
     i.SaveFile(name);
     return name;
 }
-bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFull, wxRect &rect) {
+bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFull, wxRect &rect, bool reverse) {
     std::vector< std::vector<bool> > data(num_columns, std::vector<bool>(num_rows));
     int maxCol = -1;
     int maxRow = -1;
@@ -2118,6 +2118,9 @@ bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFu
         if (e->GetName() == "element") {
             int x = wxAtoi(e->GetAttribute("ribbonIndex"));
             int y = wxAtoi(e->GetAttribute("pixelIndex"));
+            if( reverse ) {
+                std::swap( x, y );
+            }
             if (x < num_columns) {
                 data[x][y] = true;
                 if (x > maxCol) maxCol = x;
@@ -2347,6 +2350,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             int idx = wxAtoi(element->GetAttribute("savedIndex"));
                             int xOffset =  wxAtoi(element->GetAttribute("xOffset"));
                             int yOffset =  wxAtoi(element->GetAttribute("yOffset"));
+
                             unsigned char *bytes = (unsigned char *)malloc(w*h*3);
                             unsigned char *alpha = (unsigned char *)malloc(w*h);
                             int cnt = 0;
@@ -2388,11 +2392,13 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                 imagePfx = fd.GetPath();
                             }
                             std::string fname = imagePfx + "_" + wxString::Format("%d.png", idx).ToStdString();
-                            imageInfo[idx].Set(xOffset, yOffset, w, h, fname);
-                            ScaleImage(image, imageResizeType, modelSize, num_columns, num_rows, imageInfo[idx]);
                             if( reverse_xy ) {
-                                image.Rotate90(false);
+                                image = image.Rotate90(false);
+                                imageInfo[idx].Set(yOffset, xOffset, h, w, fname);
+                            } else {
+                                imageInfo[idx].Set(xOffset, yOffset, w, h, fname);
                             }
+                            ScaleImage(image, imageResizeType, modelSize, num_columns, num_rows, imageInfo[idx]);
                             image.SaveFile(fname);
                         }
                     }
@@ -2553,7 +2559,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     bool isFull = false;
                     wxRect rect;
 
-                    bool isPartOfModel = IsPartOfModel(element, num_rows, num_columns, isFull, rect);
+                    bool isPartOfModel = IsPartOfModel(element, num_rows, num_columns, isFull, rect, reverse_xy);
 
                     if (isPartOfModel && isFull) {
                         //Every pixel in the model is specified, we can use a color wash or on instead of images
@@ -2668,11 +2674,18 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     int fontCellWidth = wxAtoi(element->GetAttribute("fontCellWidth", "6"));
 
                     int rotation = wxAtoi(element->GetAttribute("rotation", "90"));
+                    if( reverse_xy ) {
+                        rotation -= 90;
+                    }
                     //int direction = wxAtoi(element->GetAttribute("direction", "0"));
                     int xStart = wxAtoi(element->GetAttribute("xStart", "0"));
                     int yStart = wxAtoi(element->GetAttribute("yStart", "0"));
                     int xEnd = wxAtoi(element->GetAttribute("xEnd", "0"));
                     int yEnd = wxAtoi(element->GetAttribute("yEnd", "0"));
+                    if( reverse_xy ) {
+                        std::swap( xStart, yStart );
+                        std::swap( xEnd, yEnd );
+                    }
 
                     xlColor color = GetColor(element->GetAttribute("red").ToStdString(),
                                              element->GetAttribute("green").ToStdString(),
@@ -2778,7 +2791,10 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     int starty = wxAtoi(element->GetAttribute("yStart"));
                     int endx = wxAtoi(element->GetAttribute("xEnd"));
                     int endy = wxAtoi(element->GetAttribute("yEnd"));
-
+                    if( reverse_xy ) {
+                        std::swap(startx, starty);
+                        std::swap(endx, endy);
+                    }
                     ImageInfo &imgInfo = imageInfo[idx];
                     int x = imgInfo.xOffset;
                     int y = imgInfo.yOffset;

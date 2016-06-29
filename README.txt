@@ -16,6 +16,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (gil) DMX effect automatically determines number of channels to use
    -- enh (gil) DMX effect will show node names if defined in place of channel numbers
    -- enh (gil) DMX effect now uses value curves to do ramps and works with single color channels
+   -- bug (gil) Fix SuperStar import for Scenes, ImageActions, and Text when layout is horizontal.
    -- bug (gil) Update last preview in effects file when preview is deleted.  Also protect against a bad named stored in the file.
 2016.38  Jun 24, 2016
    -- bug (gil) Make sure new previews are added to the model groups preview combo box.
