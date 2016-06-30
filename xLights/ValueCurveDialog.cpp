@@ -15,6 +15,8 @@ BEGIN_EVENT_TABLE(ValueCurvePanel, wxWindow)
 EVT_MOTION(ValueCurvePanel::mouseMoved)
 EVT_LEFT_DOWN(ValueCurvePanel::mouseLeftDown)
 EVT_LEFT_UP(ValueCurvePanel::mouseLeftUp)
+EVT_ENTER_WINDOW(ValueCurvePanel::mouseEnter)
+EVT_LEAVE_WINDOW(ValueCurvePanel::mouseLeave)
 EVT_PAINT(ValueCurvePanel::Paint)
 EVT_MOUSE_CAPTURE_LOST(ValueCurvePanel::mouseCaptureLost)
 END_EVENT_TABLE()
@@ -24,6 +26,8 @@ ValueCurvePanel::ValueCurvePanel(wxWindow* parent, wxWindowID id, const wxPoint 
 {
     Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&ValueCurvePanel::mouseLeftDown, 0, this);
     Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&ValueCurvePanel::mouseLeftUp, 0, this);
+    Connect(wxEVT_ENTER_WINDOW, (wxObjectEventFunction)&ValueCurvePanel::mouseEnter, 0, this);
+    Connect(wxEVT_LEAVE_WINDOW, (wxObjectEventFunction)&ValueCurvePanel::mouseLeave, 0, this);
     Connect(wxEVT_MOTION, (wxObjectEventFunction)&ValueCurvePanel::mouseMoved, 0, this);
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&ValueCurvePanel::Paint, 0, this);
     Connect(wxEVT_MOUSE_CAPTURE_LOST, (wxObjectEventFunction)&ValueCurvePanel::mouseCaptureLost, 0, this);
@@ -443,6 +447,7 @@ void ValueCurvePanel::mouseLeftDown(wxMouseEvent& event)
         _maxGrabbedPoint = _vc->FindMaxPointGreaterThan(_grabbedPoint);
         SaveUndoSelected();
         CaptureMouse();
+        mouseMoved(event);
         Refresh();
     }
 }
@@ -485,9 +490,23 @@ void ValueCurvePanel::Delete()
     }
 }
 
+void ValueCurvePanel::mouseEnter(wxMouseEvent& event)
+{
+    if (_type == "Custom")
+    {
+        SetCursor(wxCURSOR_CROSS);
+        mouseMoved(event);
+    }
+}
+
+void ValueCurvePanel::mouseLeave(wxMouseEvent& event)
+{
+    SetCursor(wxCURSOR_DEFAULT);
+}
+
 void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
 {
-    if (_type == "Custom" && HasCapture())
+    if (_type == "Custom")
     {
         float x, y;
         Convert(x, y, event);
@@ -500,27 +519,39 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
             y = 1.0f;
         }
 
-        if (x <= _minGrabbedPoint)
+        if (_vc->NearCustomPoint(x, y))
         {
-            x = _minGrabbedPoint;
-        }
-        else if (x > _maxGrabbedPoint)
-        {
-            x = _maxGrabbedPoint;
-        }
-
-        if (_originalGrabbedPoint == 0 || _originalGrabbedPoint == 1.0)
-        {
-            // dont allow x to change
+            SetCursor(wxCURSOR_SIZENWSE);
         }
         else
         {
-            _vc->DeletePoint(_grabbedPoint);
-            _grabbedPoint = x;
+            SetCursor(wxCURSOR_CROSS);
         }
-        _vc->SetValueAt(_grabbedPoint, y);
-        
-        Refresh();
+
+        if (HasCapture())
+        {
+            if (x <= _minGrabbedPoint)
+            {
+                x = _minGrabbedPoint;
+            }
+            else if (x > _maxGrabbedPoint)
+            {
+                x = _maxGrabbedPoint;
+            }
+
+            if (_originalGrabbedPoint == 0 || _originalGrabbedPoint == 1.0)
+            {
+                // dont allow x to change
+            }
+            else
+            {
+                _vc->DeletePoint(_grabbedPoint);
+                _grabbedPoint = x;
+            }
+            _vc->SetValueAt(_grabbedPoint, y);
+
+            Refresh();
+        }
     }
 }
 #pragma endregion Mouse Control
@@ -675,7 +706,7 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
         {
             pdc.DrawRectangle((it->x * w) - 2, h - (it->y * h) - 2, 5, 5);
         }
-        if (_grabbedPoint >= 0)
+        if (HasCapture())
         {
             pdc.SetPen(wxPen(*wxBLUE, 2, wxPENSTYLE_SOLID));
             pdc.DrawRectangle((_grabbedPoint * w) - 2, h - (_vc->GetValueAt(_grabbedPoint) * h) - 2, 5, 5);
