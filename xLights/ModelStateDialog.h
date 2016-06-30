@@ -34,7 +34,7 @@ class ModelStateDialog: public wxDialog
 		wxPanel* Matrix;
 		wxCheckBox* CustomColorSingleNode;
 		wxButton* DeleteButton;
-		wxChoicebook* FaceTypeChoice;
+		wxChoicebook* StateTypeChoice;
 		wxGrid* NodeRangeGrid;
 		wxChoice* NameChoice;
 		//*)
@@ -73,10 +73,11 @@ class ModelStateDialog: public wxDialog
 		void OnFaceTypeChoicePageChanged(wxChoicebookEvent& event);
 		void OnNodeRangeGridCellLeftDClick(wxGridEvent& event);
 		void OnSingleNodeGridCellLeftDClick(wxGridEvent& event);
+		void OnStateTypeChoicePageChanged(wxChoicebookEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
-    
+
     std::map<std::string, std::map<std::string, std::string> > stateData;
     void SelectStateModel(const std::string &s);
 };

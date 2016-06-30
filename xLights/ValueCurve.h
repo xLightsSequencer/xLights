@@ -22,6 +22,10 @@ public:
         y = yy;
         wrapped = wrap;
     }
+    bool IsNear(float xx, float yy)
+    {
+        return (x == Normalise(xx) && yy >= y - 0.05 && yy <= y + 0.05);
+    }
     void ClearWrap() { wrapped = false; }
     bool IsWrapped() { return wrapped; }
     bool operator==(const vcSortablePoint& r) const
@@ -110,6 +114,7 @@ public:
     void RemoveExcessCustomPoints();
     float FindMinPointLessThan(float point);
     float FindMaxPointGreaterThan(float point);
+    bool NearCustomPoint(float x, float y);
 };
 
 #endif

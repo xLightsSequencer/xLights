@@ -720,3 +720,16 @@ float ValueCurve::FindMaxPointGreaterThan(float point)
 
     return vcSortablePoint::Normalise(res);
 }
+
+bool ValueCurve::NearCustomPoint(float x, float y)
+{
+    for (auto it = _values.begin(); it != _values.end(); it++)
+    {
+        if (it->IsNear(x, y))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}

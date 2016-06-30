@@ -32,6 +32,8 @@ public:
 protected:
     DECLARE_EVENT_TABLE()
 
+    void mouseEnter(wxMouseEvent& event);
+    void mouseLeave(wxMouseEvent& event);
     void mouseLeftDown(wxMouseEvent& event);
     void mouseLeftUp(wxMouseEvent& event);
     void mouseMoved(wxMouseEvent& event);

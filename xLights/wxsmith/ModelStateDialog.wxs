@@ -41,7 +41,7 @@
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON4" variable="DeleteButton" member="yes">
 							<label>Delete</label>
-							<handler function="OnButtonMatrixAddClicked" entry="EVT_BUTTON" />
+							<handler function="OnButtonMatrixDeleteClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -54,7 +54,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="StateTypeChoice" member="yes">
-					<handler function="OnFaceTypeChoicePageChanged" entry="EVT_CHOICEBOOK_PAGE_CHANGED" />
+					<handler function="OnStateTypeChoicePageChanged" entry="EVT_CHOICEBOOK_PAGE_CHANGED" />
 					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL2" variable="CoroPanel" member="no">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
