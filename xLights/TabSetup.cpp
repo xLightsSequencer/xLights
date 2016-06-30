@@ -572,7 +572,7 @@ void xLightsFrame::MoveNetworkRow(int fromRow, int toRow)
         // move down
         root->InsertChildAfter(fromNode,toNode);
     }
-    UnsavedNetworkChanges=true;
+    NetworkChange();
     UpdateNetworkList();
 }
 
@@ -639,7 +639,7 @@ void xLightsFrame::OnButtonNetworkDeleteClick(wxCommandEvent& event)
             }
         }
     }
-    UnsavedNetworkChanges=true;
+    NetworkChange();
     UpdateNetworkList();
     cnt=GridNetwork->GetItemCount();
     if (cnt > 0)
@@ -656,7 +656,7 @@ void xLightsFrame::OnButtonNetworkDeleteAllClick(wxCommandEvent& event)
     {
         root->RemoveChild(e);
     }
-    UnsavedNetworkChanges=true;
+    NetworkChange();
     UpdateNetworkList();
 }
 
@@ -800,7 +800,7 @@ void xLightsFrame::SetupNullOutput(wxXmlNode* e) {
 		e->DeleteAttribute("Description");
 		e->AddAttribute("Description", Description);
 		UpdateNetworkList();
-        UnsavedNetworkChanges=true;
+        NetworkChange();
     }
 }
 
@@ -898,7 +898,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
                     }
                 }
                 UpdateNetworkList();
-                UnsavedNetworkChanges=true;
+                NetworkChange();
             }
             else
             {
@@ -968,7 +968,7 @@ void xLightsFrame::SetupDongle(wxXmlNode* e)
 				e->DeleteAttribute("Description");
 				e->AddAttribute("Description", Description);
                 UpdateNetworkList();
-                UnsavedNetworkChanges=true;
+                NetworkChange();
                 ok=true;
             }
         }
@@ -1023,12 +1023,29 @@ void xLightsFrame::SaveFPPUniverses(std::string path)
     }
 }
 
+void xLightsFrame::NetworkChange()
+{
+    UnsavedNetworkChanges = true;
+#ifdef __WXOSX__
+    ButtonSaveSetup->SetForegroundColour(wxColour(255, 0, 0));
+    ButtonSaveSetup->SetBackgroundColour(wxColour(255, 0, 0));
+#else
+    ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
+#endif
+}
+
 bool xLightsFrame::SaveNetworksFile()
 {
     SaveFPPUniverses(std::string(networkFile.GetPath().c_str()));
     if (NetworkXML.Save( networkFile.GetFullPath() ))
     {
         UnsavedNetworkChanges=false;
+#ifdef __WXOSX__
+        ButtonSaveSetup->SetForegroundColour(*wxBLACK);
+        ButtonSaveSetup->SetBackgroundColour(mDefaultNetworkSaveBtnColor);
+#else
+        ButtonSaveSetup->SetBackgroundColour(mDefaultNetworkSaveBtnColor);
+#endif
         return true;
     }
     else

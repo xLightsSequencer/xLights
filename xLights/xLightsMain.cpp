@@ -1131,6 +1131,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     UnsavedPlaylistChanges = false;
     UnsavedNetworkChanges = false;
     mStoredLayoutGroup = "Default";
+    mDefaultNetworkSaveBtnColor = ButtonSaveSetup->GetBackgroundColour();
+
 
     logger_base.debug("xLightsFrame constructor creating sequencer.");
 
@@ -2656,12 +2658,6 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect, RenderableEffect* re
 
 void xLightsFrame::CheckUnsavedChanges()
 {
-    if ( UnsavedNetworkChanges && wxYES == wxMessageBox("Save Network Setup changes?",
-            "Networks Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
-    {
-        SaveNetworksFile();
-    }
-
     if ( UnsavedPlaylistChanges && wxYES == wxMessageBox("Save Scheduler/Playlist changes?",
             "Scheduler Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
     {
@@ -2678,6 +2674,19 @@ void xLightsFrame::CheckUnsavedChanges()
             "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
         {
             SaveEffectsFile();
+        }
+    }
+
+    if (UnsavedNetworkChanges)
+    {
+        // This is not necessary but it shows the user that the save button is red which I am hoping makes it clearer
+        // to the user what this prompt is for
+        Notebook1->SetSelection(SETUPTAB);
+
+        if (wxYES == wxMessageBox("Save Network Setup changes?",
+            "Networks Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+        {
+            SaveNetworksFile();
         }
     }
 }

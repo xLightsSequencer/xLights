@@ -948,6 +948,7 @@ private:
     wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges;
     bool UnsavedPlaylistChanges;
+    wxColor mDefaultNetworkSaveBtnColor;
     int mSavedChangeCount;
     wxDateTime starttime;
     play_modes play_mode;
@@ -983,6 +984,7 @@ private:
     void SetupE131(wxXmlNode* e);
     void SetupNullOutput(wxXmlNode* e);
     bool SaveNetworksFile();
+    void NetworkChange();
     void SaveFPPUniverses(std::string path);
 
 
