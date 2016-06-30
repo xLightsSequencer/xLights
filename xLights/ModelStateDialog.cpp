@@ -88,8 +88,8 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	DeleteButton = new wxButton(this, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
 	FlexGridSizer7->Add(DeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FaceTypeChoice = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
-	CoroPanel = new wxPanel(FaceTypeChoice, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+	StateTypeChoice = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
+	CoroPanel = new wxPanel(StateTypeChoice, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(0);
@@ -112,7 +112,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	CoroPanel->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(CoroPanel);
 	FlexGridSizer2->SetSizeHints(CoroPanel);
-	NodeRangePanel = new wxPanel(FaceTypeChoice, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
+	NodeRangePanel = new wxPanel(StateTypeChoice, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer5->AddGrowableCol(0);
 	FlexGridSizer5->AddGrowableRow(0);
@@ -135,9 +135,9 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	NodeRangePanel->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(NodeRangePanel);
 	FlexGridSizer5->SetSizeHints(NodeRangePanel);
-	FaceTypeChoice->AddPage(CoroPanel, _("Single Nodes"), false);
-	FaceTypeChoice->AddPage(NodeRangePanel, _("Node Ranges"), false);
-	FlexGridSizer1->Add(FaceTypeChoice, 1, wxALL|wxEXPAND, 5);
+	StateTypeChoice->AddPage(CoroPanel, _("Single Nodes"), false);
+	StateTypeChoice->AddPage(NodeRangePanel, _("Node Ranges"), false);
+	FlexGridSizer1->Add(StateTypeChoice, 1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
@@ -149,14 +149,14 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelStateDialog::OnMatrixNameChoiceSelect);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButtonMatrixAddClicked);
-	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButtonMatrixAddClicked);
+	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButtonMatrixDeleteClick);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnCustomColorCheckboxClick);
 	Connect(ID_GRID_COROSTATES,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellLeftDClick);
 	Connect(ID_GRID_COROSTATES,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellChange);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnCustomColorCheckboxClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellLeftDClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellChange);
-	Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&ModelStateDialog::OnFaceTypeChoicePageChanged);
+	Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&ModelStateDialog::OnStateTypeChoicePageChanged);
 	//*)
 }
 
@@ -193,12 +193,12 @@ void ModelStateDialog::SetStateInfo(const Model *cls, std::map< std::string, std
 
     if (NameChoice->GetCount() > 0) {
         DeleteButton->Enable();
-        FaceTypeChoice->Enable();
+        StateTypeChoice->Enable();
         NameChoice->SetSelection(0);
         SelectStateModel(NameChoice->GetString(NameChoice->GetSelection()).ToStdString());
     } else {
         DeleteButton->Disable();
-        FaceTypeChoice->Disable();
+        StateTypeChoice->Disable();
     }
 
     wxArrayString names;
@@ -279,18 +279,18 @@ static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
 }
 
 void ModelStateDialog::SelectStateModel(const std::string &name) {
-    FaceTypeChoice->Enable();
+    StateTypeChoice->Enable();
     wxString type = stateData[name]["Type"];
     if (type == "") {
         type = "SingleNode";
         stateData[name]["Type"] = type;
     }
     if (type == "SingleNode") {
-        FaceTypeChoice->ChangeSelection(SINGLE_NODE_STATE);
+        StateTypeChoice->ChangeSelection(SINGLE_NODE_STATE);
         std::map<std::string, std::string> &info = stateData[name];
         CustomColorSingleNode->SetValue(SetGrid(SingleNodeGrid, info));
     } else if (type == "NodeRange") {
-        FaceTypeChoice->ChangeSelection(NODE_RANGE_STATE);
+        StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
         std::map<std::string, std::string> &info = stateData[name];
         CustomColorNodeRanges->SetValue(SetGrid(NodeRangeGrid, info));
     }
@@ -311,7 +311,7 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             NameChoice->SetStringSelection(n);
             SelectStateModel(n);
             NameChoice->Enable();
-            FaceTypeChoice->Enable();
+            StateTypeChoice->Enable();
             DeleteButton->Enable();
         }
     }
@@ -332,7 +332,7 @@ void ModelStateDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
         } else {
             NameChoice->SetSelection(wxNOT_FOUND);
             NameChoice->Disable();
-            FaceTypeChoice->Disable();
+            StateTypeChoice->Disable();
             DeleteButton->Disable();
         }
     }
@@ -341,7 +341,7 @@ void ModelStateDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
 void ModelStateDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    if (FaceTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
+    if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
         if (CustomColorSingleNode->IsChecked()) {
             SingleNodeGrid->ShowCol(COLOUR_COL);
             stateData[name]["CustomColors"] = "1";
@@ -394,11 +394,11 @@ void ModelStateDialog::OnSingleNodeGridCellChange(wxGridEvent& event)
     GetValue(SingleNodeGrid, event, stateData[name]);
 }
 
-void ModelStateDialog::OnFaceTypeChoicePageChanged(wxChoicebookEvent& event)
+void ModelStateDialog::OnStateTypeChoicePageChanged(wxChoicebookEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     stateData[name].clear();
-    switch (FaceTypeChoice->GetSelection()) {
+    switch (StateTypeChoice->GetSelection()) {
         case SINGLE_NODE_STATE:
             stateData[name]["Type"] = "SingleNode";
             break;
