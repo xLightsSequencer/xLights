@@ -1766,6 +1766,8 @@ effects/SpirographEffect.cpp: effects/SpirographEffect.h effects/SpirographPanel
 
 effects/SpirographEffect.h: effects/RenderableEffect.h
 
+effects/SpirographPanel.h: ValueCurveButton.h
+
 effects/SpirographPanel.cpp: effects/SpirographPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/StateEffect.cpp: effects/StateEffect.h effects/StatePanel.h models/Model.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h xLightsMain.h ../include/state.xpm
@@ -2146,7 +2148,11 @@ effects/RippleEffect.cpp: effects/RippleEffect.h effects/RipplePanel.h sequencer
 
 effects/RippleEffect.h: effects/RenderableEffect.h Color.h
 
+effects/RipplePanel.h: ValueCurveButton.h
+
 effects/PinwheelPanel.cpp: effects/PinwheelPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
+
+effects/PinwheelPanel.h: ValueCurveButton.h
 
 effects/PlasmaEffect.cpp: effects/PlasmaEffect.h effects/PlasmaPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/plasma-16.xpm ../include/plasma-24.xpm ../include/plasma-32.xpm ../include/plasma-48.xpm ../include/plasma-64.xpm
 
@@ -2167,6 +2173,8 @@ effects/RipplePanel.cpp: effects/RipplePanel.h ../include/padlock16x16-blue.xpm 
 effects/ShimmerEffect.cpp: effects/ShimmerEffect.h effects/ShimmerPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/shimmer.xpm
 
 effects/ShimmerEffect.h: effects/RenderableEffect.h
+
+effects/ShimmerPanel.h: ValueCurveButton.h
 
 effects/ShimmerPanel.cpp: effects/ShimmerPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
