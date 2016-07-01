@@ -2020,7 +2020,7 @@ void ScaleImage(wxImage &img, int type,
 
     imgInfo.xOffset = imgInfo.xOffset + (imgInfo.width-numCol)/2;
     if( reverse ) {
-        imgInfo.yOffset = (numRow+imgInfo.height+0.5)/2 - numRow - imgInfo.yOffset;
+        imgInfo.yOffset = imgInfo.yOffset + (imgInfo.height+0.5)/2 - numRow/2;
     } else {
         imgInfo.yOffset = numRow - imgInfo.yOffset - (numRow+imgInfo.height)/2;
     }
@@ -2453,6 +2453,16 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     if( !CalcPercentage(centerY, num_rows, reverse_rows, y_offset) ) continue;
                     int startAngle = wxAtoi(element->GetAttribute("startAngle"));
                     int endAngle = wxAtoi(element->GetAttribute("endAngle"));
+                    if( reverse_xy ) {
+                        startAngle -= 90;
+                        endAngle -= 90;
+                        if( startAngle < 0 ) {
+                            startAngle += 360;
+                        }
+                        if( endAngle < 0 ) {
+                            endAngle += 360;
+                        }
+                    }
                     int revolutions = std::abs(endAngle-startAngle);
                     if( revolutions == 0 ) revolutions = 3;  // algorithm needs non-zero value until we figure out better way to draw effect
                     int startRadius = wxAtoi(element->GetAttribute("startRadius"));

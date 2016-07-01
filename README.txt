@@ -10,6 +10,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- bug (gil)     Delete model and all effects from grid and views when a model is deleted. Fixes #611
    -- enh (gil)     More improvements to SuperStar imports of images.
+   -- enh (gil)     Fix proper start/end angles for flowys imported from Superstar for horizontal layout.
 2016.39  Jun 30, 2016
    -- enh (keithsw) Make network setup save button work like the layout panel ... red when it needs saving.
    -- bug (dkulp) Fix background brightness setting with OpenGL 1.1
