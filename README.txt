@@ -8,7 +8,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-   -- enh (gil)     s
+   -- bug (gil)     Delete model and all effects from grid and views when a model is deleted. Fixes #611
+   -- enh (gil)     More improvements to SuperStar imports of images.
 2016.39  Jun 30, 2016
    -- enh (keithsw) Make network setup save button work like the layout panel ... red when it needs saving.
    -- bug (dkulp) Fix background brightness setting with OpenGL 1.1

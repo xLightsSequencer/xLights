@@ -8,11 +8,12 @@
 class Model;
 class wxXmlNode;
 class NetInfoClass;
+class xLightsFrame;
 
 class ModelManager
 {
     public:
-        ModelManager(NetInfoClass &ni);
+        ModelManager(NetInfoClass &ni, xLightsFrame* xl);
         virtual ~ModelManager();
 
         NetInfoClass &GetNetInfo() const {
@@ -51,6 +52,7 @@ class ModelManager
     wxXmlNode *groupNode;
     wxXmlNode *layoutsNode;
     NetInfoClass &netInfo;
+    xLightsFrame* xlights;
     int previewWidth;
     int previewHeight;
     std::map<std::string, Model *> models;
