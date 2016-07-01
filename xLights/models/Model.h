@@ -39,11 +39,15 @@ public:
 
     static void ParseFaceInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &faceInfo);
     static void WriteFaceInfo(wxXmlNode *fiNode, const std::map<std::string, std::map<std::string, std::string> > &faceInfo);
+    wxString SerialiseFace();
+    wxString SerialiseState();
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
 
     static void ParseStateInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &stateInfo);
     static void WriteStateInfo(wxXmlNode *fiNode, const std::map<std::string, std::map<std::string, std::string> > &stateInfo);
     std::map<std::string, std::map<std::string, std::string> > stateInfo;
+    void AddFace(wxXmlNode* n);
+    void AddState(wxXmlNode* n);
 
     virtual const std::vector<std::string> &GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
     virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const;

@@ -667,6 +667,35 @@ void Model::WriteFaceInfo(wxXmlNode *rootXml, const std::map<std::string, std::m
     }
 }
 
+void Model::AddFace(wxXmlNode* n)
+{
+    ParseFaceInfo(n, faceInfo);
+    Model::WriteFaceInfo(ModelXml, faceInfo);
+}
+
+void Model::AddState(wxXmlNode* n)
+{
+    ParseStateInfo(n, stateInfo);
+    Model::WriteStateInfo(ModelXml, stateInfo);
+}
+
+wxString Model::SerialiseFace()
+{
+    wxString res = "";
+
+    if (!faceInfo.empty()) {
+        for (auto it = faceInfo.begin(); it != faceInfo.end(); it++) {
+            res += "    <faceInfo Name=\"" + it->first + "\" ";
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                res += it2->first + "=\"" + it2->second + "\" ";
+            }
+            res += "/>\n";
+        }
+    }
+
+    return res;
+}
+
 void Model::ParseStateInfo(wxXmlNode *f, std::map<std::string, std::map<std::string, std::string> > &stateInfo) {
     std::string name = f->GetAttribute("Name", "SingleNode").ToStdString();
     std::string type = f->GetAttribute("Type", "SingleNode").ToStdString();
@@ -703,6 +732,23 @@ void Model::WriteStateInfo(wxXmlNode *rootXml, const std::map<std::string, std::
             }
         }
     }
+}
+
+wxString Model::SerialiseState()
+{
+    wxString res = "";
+
+    if (!stateInfo.empty()) {
+        for (auto it = stateInfo.begin(); it != stateInfo.end(); it++) {
+            res += "    <stateInfo Name=\"" + it->first + "\" ";
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                res += it2->first + "=\"" + it2->second + "\" ";
+            }
+            res += "/>\n";
+        }
+    }
+
+    return res;
 }
 
 std::string Model::ComputeStringStartChannel(int i) {

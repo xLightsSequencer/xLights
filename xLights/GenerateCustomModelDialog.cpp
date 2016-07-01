@@ -2592,7 +2592,8 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     f.Write(cm);
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(" />\n");
+    f.Write(" >\n");
+    f.Write("</custommodel>");
     f.Close();
 }
 

@@ -1467,6 +1467,18 @@ void LayoutPanel::ImportCustomModel(Model* newModel)
             }
             newModel->SetProperty("name", newname, true);
 
+            for (wxXmlNode* n = root->GetChildren(); n != NULL; n = n->GetNext())
+            {
+                if (n->GetName() == "faceInfo")
+                {
+                    newModel->AddFace(n);
+                }
+                else if (n->GetName() == "stateInfo")
+                {
+                    newModel->AddState(n);
+                }
+            }
+
             xlights->MarkEffectsFileDirty();
         }
         else
@@ -1518,7 +1530,18 @@ void LayoutPanel::ExportCustomModel()
     f.Write(cm);
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(" />\n");
+    f.Write(" >\n");
+    wxString face = model->SerialiseFace();
+    if (face != "")
+    {
+        f.Write(face);
+    }
+    wxString state = model->SerialiseState();
+    if (state != "")
+    {
+        f.Write(state);
+    }
+    f.Write("</custommodel>");
     f.Close();
 }
 
