@@ -2014,11 +2014,16 @@ public:
 void ScaleImage(wxImage &img, int type,
                 const wxSize &modelSize,
                 int numCol, int numRow,
-                ImageInfo &imgInfo) {
+                ImageInfo &imgInfo,
+                bool reverse) {
     bool scale = false;
 
     imgInfo.xOffset = imgInfo.xOffset + (imgInfo.width-numCol)/2;
-    imgInfo.yOffset = numRow - imgInfo.yOffset - (numRow+imgInfo.height)/2;
+    if( reverse ) {
+        imgInfo.yOffset = (numRow+imgInfo.height+0.5)/2 - numRow - imgInfo.yOffset;
+    } else {
+        imgInfo.yOffset = numRow - imgInfo.yOffset - (numRow+imgInfo.height)/2;
+    }
 
     switch (type) {
         case 0: // NONE
@@ -2103,7 +2108,7 @@ wxString CreateSceneImage(const std::string &imagePfx, const std::string &postFi
     std::string name = imagePfx + "_s" + element->GetAttribute("savedIndex").ToStdString() + postFix + ".png";
     ImageInfo im;
     im.Set(0, 0, numCols, numRows, name);
-    ScaleImage(i, resizeType, modelSize, numCols, numRows, im);
+    ScaleImage(i, resizeType, modelSize, numCols, numRows, im, false);
     i.SaveFile(name);
     return name;
 }
@@ -2398,7 +2403,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             } else {
                                 imageInfo[idx].Set(xOffset, yOffset, w, h, fname);
                             }
-                            ScaleImage(image, imageResizeType, modelSize, num_columns, num_rows, imageInfo[idx]);
+                            ScaleImage(image, imageResizeType, modelSize, num_columns, num_rows, imageInfo[idx], reverse_xy);
                             image.SaveFile(fname);
                         }
                     }
@@ -2794,6 +2799,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     if( reverse_xy ) {
                         std::swap(startx, starty);
                         std::swap(endx, endy);
+                        starty = -starty;
+                        endy = -endy;
                     }
                     ImageInfo &imgInfo = imageInfo[idx];
                     int x = imgInfo.xOffset;
