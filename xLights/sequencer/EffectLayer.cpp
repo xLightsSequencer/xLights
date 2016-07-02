@@ -5,7 +5,8 @@
 #include "Effect.h"
 #include "RowHeading.h"
 #include "../models/Model.h"
-
+#include "../effects/EffectManager.h"
+#include <log4cpp/Category.hh>
 
 std::atomic_int EffectLayer::exclusive_index(0);
 const std::string NamedLayer::NO_NAME("");
@@ -91,11 +92,21 @@ Effect* EffectLayer::AddEffect(int id, const std::string &name, const std::strin
                                int startTimeMS, int endTimeMS, int Selected, bool Protected)
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
-    Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
-    mEffects.push_back(e);
-    SortEffects();
-    IncrementChangeCount(startTimeMS, endTimeMS);
-    return e;
+
+    if (name != "" && GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name) == -1)
+    {
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.warn("Unknown effect: " + name + ". Not loaded.");
+        return NULL;
+    }
+    else
+    {
+        Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
+        mEffects.push_back(e);
+        SortEffects();
+        IncrementChangeCount(startTimeMS, endTimeMS);
+        return e;
+    }
 }
 
 

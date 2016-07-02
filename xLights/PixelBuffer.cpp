@@ -665,7 +665,6 @@ static const std::string SLIDER_EffectLayerMix("SLIDER_EffectLayerMix");
 static const std::string CHECKBOX_LayerMorph("CHECKBOX_LayerMorph");
 static const std::string TEXTCTRL_Fadein("TEXTCTRL_Fadein");
 static const std::string TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
-static const std::string SLIDER_EffectBlur("SLIDER_EffectBlur");
 static const std::string SLIDER_Blur("SLIDER_Blur");
 static const std::string SLIDER_Zoom("SLIDER_Zoom");
 static const std::string SLIDER_Rotation("SLIDER_Rotation");
@@ -762,14 +761,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->inTransitionReverse = settingsMap.GetBool(CHECKBOX_In_Transition_Reverse);
     inf->outTransitionReverse = settingsMap.GetBool(CHECKBOX_Out_Transition_Reverse);
 
-    if (settingsMap.Contains((const char *)SLIDER_EffectBlur.c_str()))
-    {
-        inf->blur = settingsMap.GetInt(SLIDER_EffectBlur, 1);
-    }
-    else
-    {
-        inf->blur = settingsMap.GetInt(SLIDER_Blur, 1);
-    }
+    inf->blur = settingsMap.GetInt(SLIDER_Blur, 1);
     inf->rotation = settingsMap.GetInt(SLIDER_Rotation, 0);
     inf->rotations = (float)settingsMap.GetInt(SLIDER_Rotations, 0) / 10.0f;
     inf->zoom = (float)settingsMap.GetInt(SLIDER_Zoom, 10) / 10.0f;

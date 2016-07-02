@@ -51,6 +51,9 @@ public:
         data["E_CHECKBOX_Faces_InPapagayo"] = "";
         data["E_CHOICE_CoroFaces_TimingTrack"] = "E_CHOICE_Faces_TimingTrack";
         data["E_CHOICE_CoroFaces_FaceDefinition"] = "E_CHOICE_Faces_FaceDefinition";
+
+        data["T_SLIDER_EffectBlur"] = "B_SLIDER_Blur";
+        data["B_SLIDER_EffectBlur"] = "B_SLIDER_Blur";
     }
     const void map(std::string &n) const
     {

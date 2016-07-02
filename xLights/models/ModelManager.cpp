@@ -19,8 +19,8 @@
 #include "SphereModel.h"
 #include "SpinnerModel.h"
 #include "IciclesModel.h"
-#include "Element.h"
-#include "xLightsMain.h"
+#include "../sequencer/Element.h"
+#include "../xLightsMain.h"
 
 ModelManager::ModelManager(NetInfoClass &ni, xLightsFrame* xl) : netInfo(ni), xlights(xl)
 {

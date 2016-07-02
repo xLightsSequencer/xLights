@@ -1406,7 +1406,9 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
         else
 		{
 			wxMessageBox("Unknown type: " + name, "Internal Error");
-		}
+            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("Unknown type: " + name);
+        }
 	}
 	else
 	{
@@ -1417,7 +1419,9 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
 		}
 		if (CtrlWin == nullptr) {
 			wxMessageBox("Unable to find: " + name, "Internal Error");
-		}
+            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("Unable to find : " + name);
+        }
 	}
 }
 
