@@ -1554,11 +1554,12 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
         int x_offset = wxAtoi(dlg.TextCtrl_SS_X_Offset->GetValue());
         int y_offset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
         bool flip_y = dlg.CheckBox_SS_FlipY->GetValue();
+        bool average_colors = dlg.CheckBox_AverageColors->GetValue();
         Model *cls = GetModel(model->GetName());
         int bw, bh;
         cls->GetBufferSize("Default", "None", bw, bh);
         wxSize modelSize(bw, bh);
-        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, flip_y, dlg.ImageResizeChoice->GetSelection(), modelSize);
+        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, flip_y, average_colors, dlg.ImageResizeChoice->GetSelection(), modelSize);
     }
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
@@ -2160,7 +2161,7 @@ bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFu
 }
 
 bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int x_size, int y_size,
-                                   int x_offset, int y_offset, bool flip_y,
+                                   int x_offset, int y_offset, bool flip_y, bool average_colors,
                                    int imageResizeType, const wxSize &modelSize)
 {
     double num_rows = 1.0;
@@ -2173,6 +2174,10 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
     std::map<int, ImageInfo> imageInfo;
     std::string imagePfx;
     std::vector<bool> reserved;
+    std::string blend_string = "";
+    if( average_colors ) {
+        blend_string = ",T_CHOICE_LayerMethod=Average";
+    }
     for(wxXmlNode* e=input_root->GetChildren(); e!=NULL; e=e->GetNext()) {
         if ("imageActions" == e->GetName()) {
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
@@ -2333,7 +2338,17 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 palette += "C_BUTTON_Palette4=" + color + ",";
                 palette += "C_BUTTON_Palette5=#FFFFFF,C_BUTTON_Palette6=#000000,C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=1,";
                 if( color != xlBLACK ) {
-                    settings += ",T_CHOICE_LayerMethod=1 reveals 2,";
+                    if( average_colors ) {
+                        settings += blend_string;
+                        settings += ",";
+                    } else {
+                        settings += ",T_CHOICE_LayerMethod=1 reveals 2,";
+                    }
+                } else {
+                    if( average_colors ) {
+                        settings += blend_string;
+                        settings += ",";
+                    }
                 }
                 while( model->GetEffectLayerCount() < layer_index )
                 {
@@ -2487,7 +2502,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Galaxy_Revolutions=" + wxString::Format("%d", revolutions).ToStdString()
                                             + ",E_SLIDER_Galaxy_Start_Angle=" + wxString::Format("%d", startAngle).ToStdString()
                                             + ",E_SLIDER_Galaxy_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString()
-                                            + ",E_SLIDER_Galaxy_Start_Width=" + wxString::Format("%d", startWidth).ToStdString();
+                                            + ",E_SLIDER_Galaxy_Start_Width=" + wxString::Format("%d", startWidth).ToStdString()
+                                            + blend_string;
 
                         layer->AddEffect(0, "Galaxy", settings, palette, startms, endms, false, false);
                     }
@@ -2502,7 +2518,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Shockwave_End_Radius=" + wxString::Format("%d", endRadius).ToStdString()
                                             + ",E_SLIDER_Shockwave_End_Width=" + wxString::Format("%d", endWidth).ToStdString()
                                             + ",E_SLIDER_Shockwave_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString()
-                                            + ",E_SLIDER_Shockwave_Start_Width=" + wxString::Format("%d", startWidth).ToStdString();
+                                            + ",E_SLIDER_Shockwave_Start_Width=" + wxString::Format("%d", startWidth).ToStdString()
+                                            + blend_string;
                         layer->AddEffect(0, "Shockwave", settings, palette, startms, endms, false, false);
                     }
                     else if( type == "Fan" )
@@ -2512,11 +2529,14 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         int blade_width = wxAtoi(element->GetAttribute("width"));
                         int elementAngle = wxAtoi(element->GetAttribute("elementAngle"));
                         int elementStepAngle = wxAtoi(element->GetAttribute("elementStepAngle"));
-                        int numElements = (int)(((360.0/(double)blades)*((double)blade_width/100.0))/(double)elementStepAngle);
+                        int numElements = elementAngle / elementStepAngle;
                         numElements = std::max(1, numElements);
                         numElements = std::min(numElements, 4);
                         blades = std::max(1, blades);
                         blades = std::min(blades, 16);
+                        int tailms = int(double(endms-startms) * (blade_width * 2.0)/100.0) + 35;
+                        endms += tailms;
+                        int duration = 100 - int(tailms * 100.0 / (endms-startms));
                         std::string settings = "E_CHECKBOX_Fan_Reverse=" + wxString::Format("%d", startAngle > endAngle).ToStdString()
                                             + ",E_CHECKBOX_Fan_Blend_Edges=1"
                                             + ",E_NOTEBOOK_Fan=Position,E_SLIDER_Fan_Accel=" + wxString::Format("%d", acceleration).ToStdString()
@@ -2524,14 +2544,15 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Fan_Blade_Width=" + wxString::Format("%d", blade_width).ToStdString()
                                             + ",E_SLIDER_Fan_CenterX=" + centerX
                                             + ",E_SLIDER_Fan_CenterY=" + centerY
-                                            + ",E_SLIDER_Fan_Duration=100"
+                                            + ",E_SLIDER_Fan_Duration=" + wxString::Format("%d", duration).ToStdString()
                                             + ",E_SLIDER_Fan_Element_Width=" + wxString::Format("%d", 100).ToStdString()
                                             + ",E_SLIDER_Fan_Num_Blades=" + wxString::Format("%d", blades).ToStdString()
                                             + ",E_SLIDER_Fan_Num_Elements=" + wxString::Format("%d", numElements).ToStdString()
                                             + ",E_SLIDER_Fan_End_Radius=" + wxString::Format("%d", endRadius).ToStdString()
                                             + ",E_SLIDER_Fan_Revolutions=" + wxString::Format("%d", (int)((double)revolutionsPerSecond*((double)(endms-startms)/1000.0)*3.6)).ToStdString()
                                             + ",E_SLIDER_Fan_Start_Angle=" + wxString::Format("%d", startAngle).ToStdString()
-                                            + ",E_SLIDER_Fan_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString();
+                                            + ",E_SLIDER_Fan_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString()
+                                            + blend_string;
                         layer->AddEffect(0, "Fan", settings, palette, startms, endms, false, false);
                     }
                 }
@@ -2585,18 +2606,20 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",C_CHECKBOX_Palette2=1,";
 
 
+                        std::string settings = blend_string;
                         if (startc == endc) {
-                            std::string settings = "";
                             layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
                         } else if (startc == xlBLACK) {
                             std::string palette = "C_BUTTON_Palette1=" + (std::string)endc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2="
                                 + (std::string)startc +
                                 ",C_CHECKBOX_Palette2=1";
-                            layer->AddEffect(0, "On", "E_TEXTCTRL_Eff_On_Start=0", palette, start_time, end_time, false, false);
+                            settings += ",E_TEXTCTRL_Eff_On_Start=0";
+                            layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
                         } else if (endc == xlBLACK) {
+                            settings += ",E_TEXTCTRL_Eff_On_End=0";
                             layer->AddEffect(0, "On", "E_TEXTCTRL_Eff_On_End=0", palette, start_time, end_time, false, false);
                         } else {
-                            layer->AddEffect(0, "Color Wash", "", palette, start_time, end_time, false, false);
+                            layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
                         }
                     } else if (isPartOfModel && rect.x != -1) {
                         //forms a simple rectangle, we can use a ColorWash affect for this with a partial rectangle
@@ -2622,7 +2645,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         val = wxString::Format("%d", rect.height);
                         if( !CalcBoundedPercentage(val, num_rows, !reverse_rows, y_offset) ) continue;
                         settings += val;
-
+                        settings += blend_string;
 
                         layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
                     } else if (isPartOfModel) {
@@ -2668,6 +2691,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             ",E_TEXTCTRL_Pictures_Speed=1.0"
                             ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0"
                             ",E_TEXTCTRL_Pictures_Filename=" + imageName;
+                        settings += blend_string;
                         if (ru != "0.0") {
                             settings += ",T_TEXTCTRL_Fadein=" + ru;
                         }
@@ -2687,6 +2711,10 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     wxString fontName = element->GetAttribute("fontName");
                     int fontSize = wxAtoi(element->GetAttribute("fontCapsHeight", "6"));
                     int fontCellWidth = wxAtoi(element->GetAttribute("fontCellWidth", "6"));
+
+                    // SuperStar fonts are not as wide as they are listed.  This gets us closer to reality.
+                    fontCellWidth = (fontCellWidth * 2) / 3;
+                    fontSize += 4;
 
                     int rotation = wxAtoi(element->GetAttribute("rotation", "90"));
                     if( reverse_xy ) {
@@ -2716,7 +2744,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     int lorWidth = text.size() * fontCellWidth;
                     int lorHeight = fontSize;
 
-                    std::string font = "arial " + wxString::Format("%s%d", (fontName.Contains("Bold") ? "bold " : ""), fontSize + 4).ToStdString();
+                    std::string font = "arial " + wxString::Format("%s%d", (fontName.Contains("Bold") ? "bold " : ""), fontSize).ToStdString();
                     std::string eff = "normal";
                     if (fontName.Contains("Vertical")) {
                         eff = "vert text down";
@@ -2767,7 +2795,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         + "E_SLIDER_Text_Position2=50,E_SLIDER_Text_Position3=50,E_SLIDER_Text_Position4=50,"
                         + "E_TEXTCTRL_Text_Line2=,E_TEXTCTRL_Text_Line3=,E_TEXTCTRL_Text_Line4=,"
                         + "E_TEXTCTRL_Text_Speed2=10,E_TEXTCTRL_Text_Speed3=10,E_TEXTCTRL_Text_Speed4=10";
-
+                    settings += blend_string;
 
                     layer->AddEffect(0, "Text", settings, palette, start_time, end_time, false, false);
                 }
@@ -2837,6 +2865,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             if ("0" != rampDownTimeString) {
                                 settings += ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
                             }
+                            settings += blend_string;
 
                         layer->AddEffect(0, "Pictures", settings, "", startms, endms, false, false);
                     } else {
@@ -2859,6 +2888,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         if ("0" != rampDownTimeString) {
                             settings += ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
                         }
+                        settings += blend_string;
 
                         layer->AddEffect(0, "Pictures", settings, "", startms, endms, false, false);
                     }

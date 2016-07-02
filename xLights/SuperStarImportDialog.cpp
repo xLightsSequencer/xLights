@@ -1,14 +1,13 @@
 #include "SuperStarImportDialog.h"
 
 //(*InternalHeaders(SuperStarImportDialog)
+#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
-#include <wx/intl.h>
 //*)
 
 //(*IdInit(SuperStarImportDialog)
 const long SuperStarImportDialog::ID_CHOICE_SuperStarImportModel = wxNewId();
-const long SuperStarImportDialog::ID_STATICTEXT31 = wxNewId();
 const long SuperStarImportDialog::ID_STATICTEXT1 = wxNewId();
 const long SuperStarImportDialog::ID_CHOICE1 = wxNewId();
 const long SuperStarImportDialog::ID_SPINCTRL1 = wxNewId();
@@ -22,6 +21,8 @@ const long SuperStarImportDialog::ID_TEXTCTRL_SS_X_Size = wxNewId();
 const long SuperStarImportDialog::ID_STATICTEXT41 = wxNewId();
 const long SuperStarImportDialog::ID_TEXTCTRL_SS_Y_Size = wxNewId();
 const long SuperStarImportDialog::ID_CHECKBOX_SS_FlipY = wxNewId();
+const long SuperStarImportDialog::ID_STATICTEXT31 = wxNewId();
+const long SuperStarImportDialog::ID_CHECKBOX_AverageColors = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SuperStarImportDialog,wxDialog)
@@ -32,9 +33,9 @@ END_EVENT_TABLE()
 SuperStarImportDialog::SuperStarImportDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(SuperStarImportDialog)
-	wxFlexGridSizer* FlexGridSizer1;
 	wxStaticText* StaticText2;
 	wxGridBagSizer* GridBagSizer1;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, _("SuperStar Import"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
@@ -44,8 +45,6 @@ SuperStarImportDialog::SuperStarImportDialog(wxWindow* parent,wxWindowID id,cons
 	GridBagSizer1 = new wxGridBagSizer(0, 0);
 	ChoiceSuperStarImportModel = new wxChoice(this, ID_CHOICE_SuperStarImportModel, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_SuperStarImportModel"));
 	GridBagSizer1->Add(ChoiceSuperStarImportModel, wxGBPosition(0, 1), wxGBSpan(1, 3), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText39 = new wxStaticText(this, ID_STATICTEXT31, _("SuperStar: This is currently designed to work with SuperStar sequences\nfor CCR ribbon trees.  X/Y Size and Offset only apply to SuperStar. \nX/Y Size is ignored unless the sequence type is a Visualization.\n"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT31"));
-	GridBagSizer1->Add(StaticText39, wxGBPosition(7, 0), wxGBSpan(1, 5), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Image Resizing:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	GridBagSizer1->Add(StaticText1, wxGBPosition(4, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	ImageResizeChoice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
@@ -81,6 +80,11 @@ SuperStarImportDialog::SuperStarImportDialog(wxWindow* parent,wxWindowID id,cons
 	CheckBox_SS_FlipY = new wxCheckBox(this, ID_CHECKBOX_SS_FlipY, _("Flip Y"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_SS_FlipY"));
 	CheckBox_SS_FlipY->SetValue(false);
 	GridBagSizer1->Add(CheckBox_SS_FlipY, wxGBPosition(3, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText39 = new wxStaticText(this, ID_STATICTEXT31, _("SuperStar: This is currently designed to work with SuperStar sequences\nfor CCR ribbon trees.  X/Y Size and Offset only apply to SuperStar. \nX/Y Size is ignored unless the sequence type is a Visualization.\n"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT31"));
+	GridBagSizer1->Add(StaticText39, wxGBPosition(8, 0), wxGBSpan(1, 5), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_AverageColors = new wxCheckBox(this, ID_CHECKBOX_AverageColors, _("Average Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_AverageColors"));
+	CheckBox_AverageColors->SetValue(true);
+	GridBagSizer1->Add(CheckBox_AverageColors, wxGBPosition(6, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(GridBagSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));

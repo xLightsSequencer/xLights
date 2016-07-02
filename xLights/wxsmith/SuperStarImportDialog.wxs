@@ -20,17 +20,6 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT31" variable="StaticText39" member="yes">
-							<label>SuperStar: This is currently designed to work with SuperStar sequences&#x0A;for CCR ribbon trees.  X/Y Size and Offset only apply to SuperStar. &#x0A;X/Y Size is ignored unless the sequence type is a Visualization.&#x0A;</label>
-						</object>
-						<colspan>5</colspan>
-						<col>0</col>
-						<row>7</row>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 							<label>Image Resizing:</label>
 						</object>
@@ -184,6 +173,28 @@
 						</object>
 						<col>3</col>
 						<row>3</row>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT31" variable="StaticText39" member="yes">
+							<label>SuperStar: This is currently designed to work with SuperStar sequences&#x0A;for CCR ribbon trees.  X/Y Size and Offset only apply to SuperStar. &#x0A;X/Y Size is ignored unless the sequence type is a Visualization.&#x0A;</label>
+						</object>
+						<colspan>5</colspan>
+						<col>0</col>
+						<row>8</row>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_AverageColors" variable="CheckBox_AverageColors" member="yes">
+							<label>Average Colors</label>
+							<checked>1</checked>
+						</object>
+						<col>1</col>
+						<row>6</row>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
