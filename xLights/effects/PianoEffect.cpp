@@ -196,6 +196,13 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, SequenceElements *elements, 
 	}
 
     int em = endmidi;
+
+    // end midi must not be less than start midi
+    if (em < startmidi)
+    {
+        em = startmidi;
+    }
+
 	if (em - startmidi + 1 > buffer.BufferWi)
 	{
 		em = startmidi + buffer.BufferWi - 1;
@@ -302,7 +309,6 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 {
     int truexoffset = xoffset * buffer.BufferWi / 100;
 	xlColor wkcolour, bkcolour, wkdcolour, bkdcolour, kbcolour;
-
 
 	int sharpstart = -1;
 	int i = start;
