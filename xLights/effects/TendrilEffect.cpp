@@ -797,7 +797,6 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
         case 6:
         {
             // line movement based on music
-            _mv3 = tunemovement; // direction
             float f = 0.1f;
             if (buffer.GetMedia() != NULL)
             {
@@ -809,7 +808,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             }
 
             _mv1 = _mv1 + _mv3;
-            if (_mv1 < 0 + truexoffset || _mv1 > buffer.BufferWi + truexoffset)
+            if ((_mv1 < 0 + truexoffset && _mv3 < 0) || (_mv1 > buffer.BufferWi + truexoffset && _mv3 > 0))
             {
                 _mv3 = _mv3 * -1;
             }
