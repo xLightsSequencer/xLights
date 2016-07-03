@@ -23,6 +23,7 @@ class xLightsFrame;
 const long ColorPanel::ID_BUTTON1 = wxNewId();
 const long ColorPanel::ID_STATICTEXT24 = wxNewId();
 const long ColorPanel::ID_SLIDER_SparkleFrequency = wxNewId();
+const long ColorPanel::ID_VALUECURVE_SparkleFrequency = wxNewId();
 const long ColorPanel::IDD_TEXTCTRL_SparkleFrequency = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON_SLIDER_SparkleFrequency = wxNewId();
 const long ColorPanel::ID_CHECKBOX_MusicSparkles = wxNewId();
@@ -62,6 +63,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer8;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
 
@@ -87,9 +89,14 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer2->AddGrowableCol(1);
 	StaticText22 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT24, _("Sparkles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
 	FlexGridSizer2->Add(StaticText22, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer8->AddGrowableCol(0);
 	Slider_SparkleFrequency = new wxSlider(ColorScrollWindow, ID_SLIDER_SparkleFrequency, 0, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_SparkleFrequency"));
-	FlexGridSizer2->Add(Slider_SparkleFrequency, 1, wxALL|wxEXPAND, 2);
-	txtCtrlSparkleFreq = new wxTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_SparkleFrequency, _("200"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_SparkleFrequency"));
+	FlexGridSizer8->Add(Slider_SparkleFrequency, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_SparkleFrequencyVC = new ValueCurveButton(ColorScrollWindow, ID_VALUECURVE_SparkleFrequency, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_SparkleFrequency"));
+	FlexGridSizer8->Add(BitmapButton_SparkleFrequencyVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
+	txtCtrlSparkleFreq = new wxTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_SparkleFrequency, _("0"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_SparkleFrequency"));
 	FlexGridSizer2->Add(txtCtrlSparkleFreq, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_SparkleFrequency = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_SparkleFrequency, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_SparkleFrequency"));
 	BitmapButton_SparkleFrequency->SetDefault();
@@ -161,13 +168,14 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnUpdateColorClick);
-	Connect(ID_SLIDER_SparkleFrequency,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_SparkleFrequency,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_SparkleFrequency,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
 	Connect(ID_CHECKBOX_MusicSparkles,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_MusicSparklesClick);
 	Connect(ID_BITMAPBUTTON_MusicSparkles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Brightness,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::OnSlider_BrightnessCmdSliderUpdated);
-	Connect(ID_VALUECURVE_Brightness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_VCBrightnessClick);
+	Connect(ID_SLIDER_Brightness,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Brightness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Brightness,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Brightness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
 	Connect(ID_SLIDER_Contrast,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrl);
@@ -179,6 +187,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ColorPanel::OnVCChanged, 0, this);
 
     BitmapButton_VCBrightness->GetValue()->SetLimits(0, 400);
+    BitmapButton_SparkleFrequencyVC->GetValue()->SetLimits(0, 200);
 
     FlexGridSizer_Palette->SetCols(PALETTE_SIZE);
     for (int x = 0; x < PALETTE_SIZE; x++) {
@@ -290,8 +299,18 @@ wxString ColorPanel::GetColorString()
             s += AttrName;
         }
     }
-    if (Slider_SparkleFrequency->GetValue() != 0) {
-        s+= wxString::Format("C_SLIDER_SparkleFrequency=%d,",Slider_SparkleFrequency->GetValue());
+    if (BitmapButton_SparkleFrequencyVC->GetValue()->IsActive())
+    {
+        wxString sparkleVC = wxString(BitmapButton_SparkleFrequencyVC->GetValue()->Serialise().c_str());
+        s += "C_VALUECURVE_SparkleFrequency=";
+        s += sparkleVC;
+        s += ",";
+    }
+    else
+    {
+        if (Slider_SparkleFrequency->GetValue() != 0) {
+            s += wxString::Format("C_SLIDER_SparkleFrequency=%d,", Slider_SparkleFrequency->GetValue());
+        }
     }
     if (CheckBox_MusicSparkles->GetValue())
     {
@@ -300,12 +319,9 @@ wxString ColorPanel::GetColorString()
     if (BitmapButton_VCBrightness->GetValue()->IsActive())
     {
         wxString brightnessVC = wxString(BitmapButton_VCBrightness->GetValue()->Serialise().c_str());
-        //if (brightnessVC.size() > 0)
-        {
-            s += "C_VALUECURVE_Brightness=";
-            s += brightnessVC;
-            s += ",";
-        }
+        s += "C_VALUECURVE_Brightness=";
+        s += brightnessVC;
+        s += ",";
     }
     else
     {
@@ -350,6 +366,8 @@ void ColorPanel::SetDefaultSettings() {
     for (auto it = checkBoxes.begin(); it != checkBoxes.end(); it++) {
         (*it)->SetValue(false);
     }
+    BitmapButton_SparkleFrequencyVC->GetValue()->SetDefault(0.0f, 200.0f);
+    BitmapButton_SparkleFrequencyVC->UpdateState();
     Slider_SparkleFrequency->SetValue(0);
     CheckBox_MusicSparkles->SetValue(false);
     __brightness = 100;
@@ -428,34 +446,5 @@ void ColorPanel::OnCheckBox_MusicSparklesClick(wxCommandEvent& event)
 
 void ColorPanel::ValidateWindow()
 {
-    if (BitmapButton_VCBrightness->GetValue()->IsActive())
-    {
-        Slider_Brightness->Disable();
-        txtCtlBrightness->Disable();
-    }
-    else
-    {
-        Slider_Brightness->Enable();
-        txtCtlBrightness->Enable();
-    }
 }
 
-void ColorPanel::OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& event)
-{
-    UpdateLinkedTextCtrl(event);
-    if (BitmapButton_VCBrightness->GetValue()->GetType() == "Flat")
-    {
-        BitmapButton_VCBrightness->GetValue()->SetUnscaledParameter1(Slider_Brightness->GetValue());
-    }
-}
-
-void ColorPanel::OnBitmapButton_VCBrightnessClick(wxCommandEvent& event)
-{
-    BitmapButton_VCBrightness->ToggleActive();
-    ValidateWindow();
-    if (BitmapButton_VCBrightness->GetValue()->IsActive())
-    {
-        ValueCurveDialog vcd(this, BitmapButton_VCBrightness->GetValue());
-        vcd.ShowModal();
-    }
-}

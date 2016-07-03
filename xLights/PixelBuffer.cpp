@@ -85,6 +85,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
         layers[x]->subBuffer = "";
         layers[x]->brightnessValueCurve = "";
         layers[x]->blurValueCurve = "";
+        layers[x]->sparklesValueCurve = "";
         layers[x]->rotationValueCurve = "";
         layers[x]->zoomValueCurve = "";
         layers[x]->rotationsValueCurve = "";
@@ -498,9 +499,14 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
             }
 
             // add sparkles
-            if ((layers[layer]->music_sparkle_count || layers[layer]->sparkle_count > 0) && color != xlBLACK)
+            if ((layers[layer]->music_sparkle_count || layers[layer]->sparkle_count > 0 || layers[layer]->SparklesValueCurve.IsActive()) && color != xlBLACK)
             {
                 int sc = layers[layer]->sparkle_count;
+                if (layers[layer]->SparklesValueCurve.IsActive())
+                {
+                    sc = (int)layers[layer]->SparklesValueCurve.GetOutputValueAt(offset);
+                }
+
                 if (layers[layer]->music_sparkle_count && layers[layer]->buffer.GetMedia() != NULL)
                 {
                     float f = 0.0;
@@ -678,6 +684,7 @@ static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
 static const std::string CHOICE_BufferTransform("CHOICE_BufferTransform");
 static const std::string CUSTOM_SubBuffer("CUSTOM_SubBuffer");
 static const std::string VALUECURVE_Blur("VALUECURVE_Blur");
+static const std::string VALUECURVE_Sparkles("VALUECURVE_SparkleFrequency");
 static const std::string VALUECURVE_Brightness("VALUECURVE_Brightness");
 static const std::string VALUECURVE_Zoom("VALUECURVE_Zoom");
 static const std::string VALUECURVE_Rotation("VALUECURVE_Rotation");
@@ -784,6 +791,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
     const std::string &subBuffer = settingsMap.Get(CUSTOM_SubBuffer, STR_EMPTY);
     const std::string &blurValueCurve = settingsMap.Get(VALUECURVE_Blur, STR_EMPTY);
+    const std::string &sparklesValueCurve = settingsMap.Get(VALUECURVE_Sparkles, STR_EMPTY);
     const std::string &brightnessValueCurve = settingsMap.Get(VALUECURVE_Brightness, STR_EMPTY);
     const std::string &rotationValueCurve = settingsMap.Get(VALUECURVE_Rotation, STR_EMPTY);
     const std::string &zoomValueCurve = settingsMap.Get(VALUECURVE_Zoom, STR_EMPTY);
@@ -791,13 +799,14 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     const std::string &pivotpointxValueCurve = settingsMap.Get(VALUECURVE_PivotPointX, STR_EMPTY);
     const std::string &pivotpointyValueCurve = settingsMap.Get(VALUECURVE_PivotPointY, STR_EMPTY);
 
-    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve || inf->zoomValueCurve != zoomValueCurve || inf->rotationValueCurve != rotationValueCurve || inf->rotationsValueCurve != rotationsValueCurve || inf->pivotpointxValueCurve != pivotpointxValueCurve || inf->pivotpointyValueCurve != pivotpointyValueCurve || inf->brightnessValueCurve != brightnessValueCurve)
+    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve || inf->sparklesValueCurve != sparklesValueCurve || inf->zoomValueCurve != zoomValueCurve || inf->rotationValueCurve != rotationValueCurve || inf->rotationsValueCurve != rotationsValueCurve || inf->pivotpointxValueCurve != pivotpointxValueCurve || inf->pivotpointyValueCurve != pivotpointyValueCurve || inf->brightnessValueCurve != brightnessValueCurve)
     {
         inf->Nodes.clear();
         model->InitRenderBufferNodes(type, transform, inf->Nodes, inf->BufferWi, inf->BufferHt);
         ComputeSubBuffer(subBuffer, inf->Nodes, inf->BufferWi, inf->BufferHt);
         ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
         ComputeValueCurve(blurValueCurve, inf->BlurValueCurve);
+        ComputeValueCurve(sparklesValueCurve, inf->SparklesValueCurve);
         ComputeValueCurve(rotationValueCurve, inf->RotationValueCurve);
         ComputeValueCurve(zoomValueCurve, inf->ZoomValueCurve);
         ComputeValueCurve(rotationsValueCurve, inf->RotationsValueCurve);
@@ -807,6 +816,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->bufferTransform = transform;
         inf->subBuffer = subBuffer;
         inf->blurValueCurve = blurValueCurve;
+        inf->sparklesValueCurve = sparklesValueCurve;
         inf->brightnessValueCurve = brightnessValueCurve;
         inf->zoomValueCurve = zoomValueCurve;
         inf->rotationValueCurve = rotationValueCurve;

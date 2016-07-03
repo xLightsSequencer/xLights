@@ -92,6 +92,7 @@ private:
         std::string bufferTransform;
         std::string subBuffer;
         std::string blurValueCurve;
+        std::string sparklesValueCurve;
         std::string brightnessValueCurve;
         std::string rotationValueCurve;
         std::string zoomValueCurve;
@@ -102,6 +103,7 @@ private:
         int BufferHt;
         int BufferWi;
         ValueCurve BlurValueCurve;
+        ValueCurve SparklesValueCurve;
         ValueCurve BrightnessValueCurve;
         ValueCurve RotationValueCurve;
         ValueCurve ZoomValueCurve;

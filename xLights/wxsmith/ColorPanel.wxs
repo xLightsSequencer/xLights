@@ -63,9 +63,28 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxSlider" name="ID_SLIDER_SparkleFrequency" variable="Slider_SparkleFrequency" member="yes">
-													<max>200</max>
-													<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+												<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
+													<cols>2</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_SparkleFrequency" variable="Slider_SparkleFrequency" member="yes">
+															<max>200</max>
+															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_SparkleFrequency" subclass="ValueCurveButton" variable="BitmapButton_SparkleFrequencyVC" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
 												<border>2</border>
@@ -73,7 +92,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="IDD_TEXTCTRL_SparkleFrequency" variable="txtCtrlSparkleFreq" member="yes">
-													<value>200</value>
+													<value>0</value>
 													<size>20,-1d</size>
 													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 												</object>
@@ -143,7 +162,7 @@
 														<object class="wxSlider" name="ID_SLIDER_Brightness" variable="Slider_Brightness" member="yes">
 															<value>100</value>
 															<max>400</max>
-															<handler function="OnSlider_BrightnessCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
 														<border>2</border>
@@ -153,7 +172,7 @@
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Brightness" subclass="ValueCurveButton" variable="BitmapButton_VCBrightness" member="yes">
 															<bitmap code="valuecurvenotselected_24" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_VCBrightnessClick" entry="EVT_BUTTON" />
+															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<option>1</option>

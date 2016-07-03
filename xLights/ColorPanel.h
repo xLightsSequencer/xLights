@@ -73,6 +73,7 @@ public:
 		wxTextCtrl* txtCtrlSparkleFreq;
 		wxSlider* Slider_Contrast;
 		wxCheckBox* CheckBox_MusicSparkles;
+		ValueCurveButton* BitmapButton_SparkleFrequencyVC;
 		//*)
 
 	protected:
@@ -81,6 +82,7 @@ public:
 		static const long ID_BUTTON1;
 		static const long ID_STATICTEXT24;
 		static const long ID_SLIDER_SparkleFrequency;
+		static const long ID_VALUECURVE_SparkleFrequency;
 		static const long IDD_TEXTCTRL_SparkleFrequency;
 		static const long ID_BITMAPBUTTON_SLIDER_SparkleFrequency;
 		static const long ID_CHECKBOX_MusicSparkles;
