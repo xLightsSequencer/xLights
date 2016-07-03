@@ -355,39 +355,40 @@ Model *ModelManager::createAndAddModel(wxXmlNode *node) {
 
 void ModelManager::Delete(const std::string &name) {
 
-    // Delete the model from the sequencer grid and views
-    int result = wxNO;
-    Element* elem_to_delete = xlights->GetSequenceElements().GetElement(name);
-    if( elem_to_delete != NULL )
-    {
+    if( xlights->CurrentSeqXmlFile != nullptr ) {
+        int result = wxNO;
         result = wxMessageBox("Delete all effects and layers for the selected model(s)?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO);
-        if( result == wxYES ) {
+        if( result != wxYES ) return;
+
+        // Delete the model from the sequencer grid and views
+        Element* elem_to_delete = xlights->GetSequenceElements().GetElement(name);
+        if( elem_to_delete != NULL )
+        {
             xlights->GetSequenceElements().DeleteElement(name);
-
-            // now delete the model
-            for (auto it = models.begin(); it != models.end(); it++) {
-                if (it->first == name) {
-                    Model *model = it->second;
-
-                    if (model != nullptr) {
-                        model->GetModelXml()->GetParent()->RemoveChild(model->GetModelXml());
-
-                        for (auto it = models.begin(); it != models.end(); it++) {
-                            if (it->second->GetDisplayAs() == "ModelGroup") {
-                                ModelGroup *group = (ModelGroup*)it->second;
-                                group->ModelRemoved(name);
-                            }
-                        }
-                        models.erase(it);
-                        delete model->GetModelXml();
-                        delete model;
-                        return;
-                    }
-                }
-            }
         }
     }
 
+    // now delete the model
+    for (auto it = models.begin(); it != models.end(); it++) {
+        if (it->first == name) {
+            Model *model = it->second;
+
+            if (model != nullptr) {
+                model->GetModelXml()->GetParent()->RemoveChild(model->GetModelXml());
+
+                for (auto it = models.begin(); it != models.end(); it++) {
+                    if (it->second->GetDisplayAs() == "ModelGroup") {
+                        ModelGroup *group = (ModelGroup*)it->second;
+                        group->ModelRemoved(name);
+                    }
+                }
+                models.erase(it);
+                delete model->GetModelXml();
+                delete model;
+                return;
+            }
+        }
+    }
 }
 
 
