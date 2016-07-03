@@ -2635,7 +2635,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         settings += val;
                         settings += "x";
                         val = wxString::Format("%d", rect.y);
-                        if( !CalcBoundedPercentage(val, num_rows, !reverse_rows, y_offset) ) continue;
+                        if( !CalcBoundedPercentage(val, num_rows, !reverse_rows ^ reverse_xy, y_offset) ) continue;
                         settings += val;
                         settings += "x";
                         val = wxString::Format("%d", rect.width);
@@ -2643,7 +2643,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         settings += val;
                         settings += "x";
                         val = wxString::Format("%d", rect.height);
-                        if( !CalcBoundedPercentage(val, num_rows, !reverse_rows, y_offset) ) continue;
+                        if( !CalcBoundedPercentage(val, num_rows, !reverse_rows ^ reverse_xy, y_offset) ) continue;
                         settings += val;
                         settings += blend_string;
 
