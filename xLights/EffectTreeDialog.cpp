@@ -2,8 +2,8 @@
 #include "xLightsMain.h"
 
 //(*InternalHeaders(EffectTreeDialog)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(EffectTreeDialog)
@@ -14,6 +14,7 @@ const long EffectTreeDialog::ID_BUTTON2 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON7 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON3 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON4 = wxNewId();
+const long EffectTreeDialog::ID_BUTTON5 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON8 = wxNewId();
 //*)
 
@@ -25,9 +26,9 @@ END_EVENT_TABLE()
 EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(EffectTreeDialog)
-	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxBoxSizer* BoxSizer1;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, _("Effect Presets"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("id"));
@@ -59,6 +60,8 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	btDelete = new wxButton(this, ID_BUTTON4, _("&Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
 	btDelete->SetToolTip(_("Delete curently selected effect preset."));
 	BoxSizer1->Add(btDelete, 1, wxALL|wxEXPAND, 5);
+	btExport = new wxButton(this, ID_BUTTON5, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	BoxSizer1->Add(btExport, 1, wxALL|wxEXPAND, 5);
 	btImport = new wxButton(this, ID_BUTTON8, _("&Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
 	btImport->SetToolTip(_("Import presets from another file."));
 	BoxSizer1->Add(btImport, 1, wxALL|wxEXPAND, 5);
@@ -75,16 +78,19 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_BEGIN_DRAG,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1BeginDrag);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_END_DRAG,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1EndDrag);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_ACTIVATED,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1ItemActivated);
+	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1SelectionChanged);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtApplyClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtNewPresetClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtUpdateClick);
 	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtAddGroupClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtRenameClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtDeleteClick);
+	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtExportClick);
 	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtImportClick);
 	//*)
 	treeRootID = TreeCtrl1->AddRoot("Effect Presets");
     xLightParent = (xLightsFrame*)parent;
+    ValidateWindow();
 }
 
 EffectTreeDialog::~EffectTreeDialog()
@@ -121,6 +127,7 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
     }
 
 	TreeCtrl1->Expand(treeRootID);
+    ValidateWindow();
 }
 
 void EffectTreeDialog::AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeItemId curGroupID)
@@ -189,6 +196,7 @@ void EffectTreeDialog::ApplyEffect(bool dblClick)
 void EffectTreeDialog::OnbtApplyClick(wxCommandEvent& event)
 {
     ApplyEffect();
+    ValidateWindow();
 }
 
 wxXmlNode* EffectTreeDialog::CreateEffectGroupNode(wxString& name)
@@ -231,6 +239,7 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     if ( !itemID.IsOk() )
     {
         wxMessageBox(_("A preset cannot be added at the currently selected location"), _("ERROR"));
+        ValidateWindow();
         return;
     }
     wxString prompt = "Enter effect preset name";
@@ -256,6 +265,7 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode));
 
     EffectsFileDirty();
+    ValidateWindow();
 }
 
 void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
@@ -266,6 +276,7 @@ void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
     if ( TreeCtrl1->HasChildren(itemID))
     {
         wxMessageBox(_("You cannot store an effect on the selected item."), _("ERROR"));
+        ValidateWindow();
         return;
     }
     MyTreeItemData *selData = (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
@@ -275,6 +286,7 @@ void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
     xLightParent->UpdateEffectNode(xml_node);
 
     EffectsFileDirty();
+    ValidateWindow();
 }
 
 void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
@@ -283,6 +295,7 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
     if (!itemID.IsOk())
     {
         wxMessageBox(_("You Cannot rename this item"), _("ERROR"));
+        ValidateWindow();
         return;
     }
 
@@ -297,6 +310,7 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
     e->AddAttribute("name",newName);
     TreeCtrl1->SetItemText(itemID, newName);
     EffectsFileDirty();
+    ValidateWindow();
 }
 
 void EffectTreeDialog::OnbtDeleteClick(wxCommandEvent& event)
@@ -309,6 +323,7 @@ void EffectTreeDialog::OnbtDeleteClick(wxCommandEvent& event)
     if( !itemID.IsOk() || itemID == treeRootID )
     {
         wxMessageBox(_("You cannot delete this item"), _("ERROR"));
+        ValidateWindow();
         return;
     }
     parentID = TreeCtrl1->GetItemParent(itemID);
@@ -322,6 +337,7 @@ void EffectTreeDialog::OnbtDeleteClick(wxCommandEvent& event)
     delete oldXml;
     TreeCtrl1->Delete(itemID);
     EffectsFileDirty();
+    ValidateWindow();
 }
 
 void EffectTreeDialog::OnbtAddGroupClick(wxCommandEvent& event)
@@ -353,11 +369,13 @@ void EffectTreeDialog::OnbtAddGroupClick(wxCommandEvent& event)
     itemID = TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode, true));
     TreeCtrl1->SetItemHasChildren(itemID);
     EffectsFileDirty();
+    ValidateWindow();
 }
 
 void EffectTreeDialog::OnTreeCtrl1ItemActivated(wxTreeEvent& event)
 {
     ApplyEffect(true);
+    ValidateWindow();
 }
 
 void EffectTreeDialog::EffectsFileDirty()
@@ -368,6 +386,7 @@ void EffectTreeDialog::EffectsFileDirty()
 void EffectTreeDialog::OnButton_OKClick(wxCommandEvent& event)
 {
     Show(false);
+    ValidateWindow();
 }
 
 void EffectTreeDialog::OnTreeCtrl1BeginDrag(wxTreeEvent& event)
@@ -378,6 +397,7 @@ void EffectTreeDialog::OnTreeCtrl1BeginDrag(wxTreeEvent& event)
         m_draggedItem = event.GetItem();
         event.Allow();
     }
+    ValidateWindow();
 }
 
 void EffectTreeDialog::OnTreeCtrl1EndDrag(wxTreeEvent& event)
@@ -395,6 +415,7 @@ void EffectTreeDialog::OnTreeCtrl1EndDrag(wxTreeEvent& event)
 
     if ( !itemDst.IsOk() )
     {
+        ValidateWindow();
         return;
     }
 
@@ -418,53 +439,102 @@ void EffectTreeDialog::OnTreeCtrl1EndDrag(wxTreeEvent& event)
     TreeCtrl1->SelectItem(itemID);
 
     EffectsFileDirty();
+    ValidateWindow();
 }
 
-void EffectTreeDialog::AddImportedItemsRecursively(wxXmlNode* effects_node, wxTreeItemId curGroupID)
+void EffectTreeDialog::AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID)
 {
-    wxString name, settings, version;
-    wxTreeItemId nextGroupID;
     MyTreeItemData *parentData;
-
-    for(wxXmlNode *ele = effects_node->GetChildren(); ele!=NULL; ele=ele->GetNext() )
+    wxString name = ele->GetAttribute("name");
+    wxString settings = ele->GetAttribute("settings");
+    wxString version = ele->GetAttribute("version", "0000");
+    if (!name.IsEmpty())
     {
-        if (ele->GetName() == "effect")
-        {
-            name=ele->GetAttribute("name");
-            settings=ele->GetAttribute("settings");
-            version=ele->GetAttribute("version", "0000");
-            if (!name.IsEmpty())
-            {
-                parentData = (MyTreeItemData *)TreeCtrl1->GetItemData(curGroupID);
-                wxXmlNode *node = parentData->GetElement();
-                wxXmlNode *newNode = new wxXmlNode(wxXML_ELEMENT_NODE, "effect");
-                newNode->AddAttribute("name", name);
-                newNode->AddAttribute("settings", settings);
-                newNode->AddAttribute("version", version);
+        parentData = (MyTreeItemData *)TreeCtrl1->GetItemData(curGroupID);
+        wxXmlNode *node = parentData->GetElement();
+        wxXmlNode *newNode = new wxXmlNode(wxXML_ELEMENT_NODE, "effect");
+        newNode->AddAttribute("name", name);
+        newNode->AddAttribute("settings", settings);
+        newNode->AddAttribute("version", version);
 
-                node->AddChild(newNode);
-                TreeCtrl1->AppendItem(curGroupID, name, -1,-1, new MyTreeItemData(newNode));
-            }
-        }
-        else if (ele->GetName() == "effectGroup")
+        node->AddChild(newNode);
+        TreeCtrl1->AppendItem(curGroupID, name, -1, -1, new MyTreeItemData(newNode));
+    }
+}
+
+void EffectTreeDialog::AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID)
+{
+    MyTreeItemData *parentData = (MyTreeItemData*)TreeCtrl1->GetItemData(curGroupID);
+    wxString name = ele->GetAttribute("name");
+
+    if (!name.IsEmpty())
+    {
+        wxXmlNode *node = parentData->GetElement();
+        wxXmlNode *newNode = new wxXmlNode(wxXML_ELEMENT_NODE, "effectGroup");
+        newNode->AddAttribute("name", name);
+        node->AddChild(newNode);
+
+        wxTreeItemId nextGroupID = TreeCtrl1->AppendItem(curGroupID, name, -1, -1, new MyTreeItemData(newNode, true));
+        TreeCtrl1->SetItemHasChildren(nextGroupID);
+
+        for (wxXmlNode *ele2 = ele->GetChildren(); ele2 != NULL; ele2 = ele2->GetNext())
         {
-            name=ele->GetAttribute("name");
-            if (!name.IsEmpty())
+            if (ele2->GetName() == "effect")
             {
-                nextGroupID = TreeCtrl1->AppendItem(curGroupID, name,-1,-1,new MyTreeItemData (ele, true));
-                TreeCtrl1->SetItemHasChildren(nextGroupID);
-                AddTreeElementsRecursive(ele, nextGroupID);
+                AddEffect(ele2, nextGroupID);
+            }
+            else if (ele2->GetName() == "effectGroup")
+            {
+                AddGroup(ele2, nextGroupID);
             }
         }
     }
 }
 
+//void EffectTreeDialog::AddImportedItemsRecursively(wxXmlNode* effects_node, wxTreeItemId curGroupID)
+//{
+//    wxString name, settings, version;
+//    wxTreeItemId nextGroupID;
+//    MyTreeItemData *parentData;
+//
+//    for(wxXmlNode *ele = effects_node->GetChildren(); ele!=NULL; ele=ele->GetNext() )
+//    {
+//        if (ele->GetName() == "effect")
+//        {
+//            AddEffect(ele, curGroupID);
+//        }
+//        else if (ele->GetName() == "effectGroup")
+//        {
+//            name=ele->GetAttribute("name");
+//            if (!name.IsEmpty())
+//            {
+//                nextGroupID = TreeCtrl1->AppendItem(curGroupID, name,-1,-1,new MyTreeItemData (ele, true));
+//                TreeCtrl1->SetItemHasChildren(nextGroupID);
+//                AddTreeElementsRecursive(ele, nextGroupID);
+//            }
+//        }
+//    }
+//}
+
 void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose file to Import", wxEmptyString, wxEmptyString, "XML files (*.xml)|*.xml", wxFD_OPEN, wxDefaultPosition);
+    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose file to Import", wxEmptyString, wxEmptyString, "Preset files (*.xpreset)|*.xpreset|Show files (xlights_rgbeffects.xml)|xlights_rgbeffects.xml", wxFD_OPEN, wxDefaultPosition);
     OpenDialog->SetDirectory(xLightParent->CurrentDir);
     if (OpenDialog->ShowModal() == wxID_OK)
     {
+        wxTreeItemId id = TreeCtrl1->GetSelection();
+        wxTreeItemId insertPoint = treeRootID;
+
+        if (id.IsOk() && id == treeRootID || TreeCtrl1->HasChildren(id))
+        {
+            insertPoint = id;
+        }
+        else if (id.IsOk())
+        {
+            // if on an effect then add it to the same parent
+            insertPoint = TreeCtrl1->GetItemParent(id);
+        }
+
         wxString fDir = OpenDialog->GetDirectory();
         wxString filename = OpenDialog->GetFilename();
         wxFileName name_and_path(filename);
@@ -472,34 +542,44 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
         wxString file_to_import = name_and_path.GetFullPath();
 
         wxXmlDocument input_xml;
-        if( !input_xml.Load(file_to_import) )  return;
+        if (!input_xml.Load(file_to_import)) {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("EffectTreeDialog::Unable to load %s to import presets.", (const char *)file_to_import.c_str());
+            ValidateWindow();
+            return;
+        }
 
-        wxXmlNode* input_root=input_xml.GetRoot();
+        wxXmlNode* input_root = input_xml.GetRoot();
 
-        for(wxXmlNode* e=input_root->GetChildren(); e!=NULL; e=e->GetNext() )
+        if (name_and_path.GetExt().Lower() == "xpreset")
         {
-            if (e->GetName() == "effects")
+            for (wxXmlNode *ele = input_root->GetChildren(); ele != NULL; ele = ele->GetNext())
             {
-                for(wxXmlNode *ele = e->GetChildren(); ele!=NULL; ele=ele->GetNext() )
+                if (ele->GetName() == "effectGroup")
                 {
-                    if (ele->GetName() == "effectGroup")
+                    AddGroup(ele, insertPoint);
+                }
+                else
+                {
+                    AddEffect(ele, insertPoint);
+                }
+            }
+        }
+        else
+        {
+            for (wxXmlNode* e = input_root->GetChildren(); e != NULL; e = e->GetNext())
+            {
+                if (e->GetName() == "effects")
+                {
+                    for (wxXmlNode *ele = e->GetChildren(); ele != NULL; ele = ele->GetNext())
                     {
-                        wxString name = ele->GetAttribute("name");
-                        wxTreeItemIdValue cookie;
-                        wxTreeItemId root = TreeCtrl1->GetRootItem();
-                        bool group_exists = false;
-                        for(wxTreeItemId branch = TreeCtrl1->GetFirstChild(root, cookie); branch.IsOk(); branch = TreeCtrl1->GetNextChild(root, cookie) )
+                        if (ele->GetName() == "effectGroup")
                         {
-                            if( TreeCtrl1->GetItemText(branch) == name )
-                            {
-                                AddImportedItemsRecursively(ele, branch);
-                                group_exists = true;
-                                break;
-                            }
+                            AddGroup(ele, insertPoint);
                         }
-                        if( !group_exists )
+                        else
                         {
-                            AddImportedItemsRecursively(ele, treeRootID);
+                            AddEffect(ele, insertPoint);
                         }
                     }
                 }
@@ -507,4 +587,188 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
         }
         EffectsFileDirty();
     }
+    ValidateWindow();
+}
+
+wxString XmlSafe(wxString s)
+{
+    wxString res = "";
+    for (auto c = s.begin(); c != s.end(); c++)
+    {
+        if ((int)(*c) < 32)
+        {
+            //res += wxString::Format("&#x%x;", (int)(*c));
+            res += wxString::Format("&#%d;", (int)(*c));
+        }
+        else if (*c == '&')
+        {
+            res += "&amp;";
+        }
+        else if (*c == '<')
+        {
+            res += "&lt;";
+        }
+        else if (*c == '>')
+        {
+            res += "&gt;";
+        }
+        else if (*c == '\'')
+        {
+            res += "&apos;";
+        }
+        else if (*c == '\"')
+        {
+            res += "&quot;";
+        }
+        else
+        {
+            res += (*c);
+        }
+    }
+
+    return res;
+}
+
+void EffectTreeDialog::WriteEffect(wxFile& f, wxXmlNode* n)
+{
+    f.Write("<effect name=\"" + n->GetAttribute("name") + "\" settings=\""+XmlSafe(n->GetAttribute("settings"))+"\" version=\""+n->GetAttribute("version")+"\" />\n");
+}
+
+void EffectTreeDialog::WriteGroup(wxFile& f, wxXmlNode* n)
+{
+    f.Write("<effectGroup name=\"" + n->GetAttribute("name") + "\" >\n");
+    for (auto it = n->GetChildren(); it != NULL; it = it->GetNext())
+    {
+        if (it->GetName() == "effectGroup")
+        {
+            WriteGroup(f, it);
+        }
+        else
+        {
+            WriteEffect(f, it);
+        }
+    }
+    f.Write("</effectGroup>\n");
+}
+
+void EffectTreeDialog::OnbtExportClick(wxCommandEvent& event)
+{
+    wxTreeItemId id = TreeCtrl1->GetSelection();
+    if (!id.IsOk()) return;
+
+    wxString name = TreeCtrl1->GetItemText(id);
+
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Preset files (*.xpreset)|*.xpreset", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (filename.IsEmpty()) return;
+    wxFile f(filename);
+    
+    if (!f.Create(filename, true) || !f.IsOpened())
+    {
+        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()), _("ERROR"));
+        ValidateWindow();
+        return;
+    }
+
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    wxString v = xlights_version_string;
+    f.Write(wxString::Format("<preset SourceVersion=\"%s\" >\n", v));
+
+    if (id == treeRootID)
+    {
+        wxTreeItemIdValue cookie;
+        for (wxTreeItemId i = TreeCtrl1->GetFirstChild(id, cookie); i.IsOk(); i = TreeCtrl1->GetNextChild(id, cookie))
+        {
+            MyTreeItemData *itemData = (MyTreeItemData *)TreeCtrl1->GetItemData(i);
+            wxXmlNode* n = itemData->GetElement();
+
+            if (itemData->IsGroup())
+            {
+                WriteGroup(f, n);
+            }
+            else
+            {
+                WriteEffect(f, n);
+            }
+        }
+    }
+    else
+    {
+        MyTreeItemData *itemData = (MyTreeItemData *)TreeCtrl1->GetItemData(id);
+
+        wxXmlNode* n = itemData->GetElement();
+
+        if (itemData->IsGroup())
+        {
+            WriteGroup(f, n);
+        }
+        else
+        {
+            WriteEffect(f, n);
+        }
+    }
+    f.Write("</preset>\n");
+    f.Close();
+}
+
+// This handles all the enabling and disabling of buttons ... stops lots of dialog boxes popping up when users do something
+// that is not allowed.
+void EffectTreeDialog::ValidateWindow()
+{
+    bool effectselected = false;
+    bool effectgroupselected = false;
+
+    wxTreeItemId id = TreeCtrl1->GetSelection();
+
+    if (!id.IsOk() || id == treeRootID)
+    {
+        // nothing selected
+    }
+    else if (TreeCtrl1->HasChildren(id))
+    {
+        effectgroupselected = true;
+    }
+    else
+    {
+        effectselected = true;
+    }
+
+    if (effectgroupselected)
+    {
+        btApply->Disable();
+        btExport->Enable();
+        btDelete->Enable();
+        btUpdate->Disable();
+        btRename->Enable();
+    }
+    else if (effectselected)
+    {
+        btApply->Enable();
+        btExport->Enable();
+        btDelete->Enable();
+        btUpdate->Enable();
+        btRename->Enable();
+    }
+    else
+    {
+        btApply->Disable();
+        if (id == treeRootID)
+        {
+            btExport->Enable();
+        }
+        else
+        {
+            btExport->Disable();
+        }
+        btDelete->Disable();
+        btUpdate->Disable();
+        btRename->Disable();
+    }
+}
+
+
+void EffectTreeDialog::OnTreeCtrl1SelectionChanged(wxTreeEvent& event)
+{
+    ValidateWindow();
 }

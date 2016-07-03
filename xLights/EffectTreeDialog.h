@@ -2,10 +2,10 @@
 #define EFFECTTREEDIALOG_H
 
 //(*Headers(EffectTreeDialog)
-#include <wx/dialog.h>
+#include <wx/treectrl.h>
 #include <wx/sizer.h>
 #include <wx/button.h>
-#include <wx/treectrl.h>
+#include <wx/dialog.h>
 //*)
 #include <wx/xml/xml.h>
 #include <wx/filename.h>
@@ -15,20 +15,25 @@ class xLightsFrame;
 
 class EffectTreeDialog : public wxDialog
 {
+    void ValidateWindow();
+    void WriteEffect(wxFile& f, wxXmlNode* n);
+    void WriteGroup(wxFile& f, wxXmlNode* n);
+
 	public:
 
 		EffectTreeDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~EffectTreeDialog();
 
 		//(*Declarations(EffectTreeDialog)
+		wxButton* btNewPreset;
+		wxButton* btAddGroup;
+		wxButton* btUpdate;
+		wxButton* btApply;
 		wxButton* btRename;
 		wxButton* btImport;
-		wxButton* btNewPreset;
-		wxButton* btDelete;
-		wxButton* btUpdate;
 		wxTreeCtrl* TreeCtrl1;
-		wxButton* btApply;
-		wxButton* btAddGroup;
+		wxButton* btExport;
+		wxButton* btDelete;
 		//*)
         wxTreeItemId treeRootID;
         void InitItems(wxXmlNode *e);
@@ -43,6 +48,7 @@ class EffectTreeDialog : public wxDialog
 		static const long ID_BUTTON7;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
+		static const long ID_BUTTON5;
 		static const long ID_BUTTON8;
 		//*)
 
@@ -60,6 +66,8 @@ class EffectTreeDialog : public wxDialog
 		void OnTreeCtrl1BeginDrag(wxTreeEvent& event);
 		void OnTreeCtrl1EndDrag(wxTreeEvent& event);
 		void OnbtImportClick(wxCommandEvent& event);
+		void OnbtExportClick(wxCommandEvent& event);
+		void OnTreeCtrl1SelectionChanged(wxTreeEvent& event);
 		//*)
 
         xLightsFrame* xLightParent;
@@ -69,7 +77,9 @@ class EffectTreeDialog : public wxDialog
         void AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeItemId curGroupID);
         wxXmlNode* CreateEffectGroupNode(wxString& name);
         void ApplyEffect(bool dblClick=false);
-        void AddImportedItemsRecursively(wxXmlNode* effects_node, wxTreeItemId curGroupID);
+        void AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID);
+        void AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID);
+        //void AddImportedItemsRecursively(wxXmlNode* effects_node, wxTreeItemId curGroupID);
         void EffectsFileDirty();
 
 		DECLARE_EVENT_TABLE()
