@@ -491,31 +491,6 @@ void EffectTreeDialog::AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID)
     }
 }
 
-//void EffectTreeDialog::AddImportedItemsRecursively(wxXmlNode* effects_node, wxTreeItemId curGroupID)
-//{
-//    wxString name, settings, version;
-//    wxTreeItemId nextGroupID;
-//    MyTreeItemData *parentData;
-//
-//    for(wxXmlNode *ele = effects_node->GetChildren(); ele!=NULL; ele=ele->GetNext() )
-//    {
-//        if (ele->GetName() == "effect")
-//        {
-//            AddEffect(ele, curGroupID);
-//        }
-//        else if (ele->GetName() == "effectGroup")
-//        {
-//            name=ele->GetAttribute("name");
-//            if (!name.IsEmpty())
-//            {
-//                nextGroupID = TreeCtrl1->AppendItem(curGroupID, name,-1,-1,new MyTreeItemData (ele, true));
-//                TreeCtrl1->SetItemHasChildren(nextGroupID);
-//                AddTreeElementsRecursive(ele, nextGroupID);
-//            }
-//        }
-//    }
-//}
-
 void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
 {
     wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose file to Import", wxEmptyString, wxEmptyString, "Preset files (*.xpreset)|*.xpreset|Show files (xlights_rgbeffects.xml)|xlights_rgbeffects.xml", wxFD_OPEN, wxDefaultPosition);
