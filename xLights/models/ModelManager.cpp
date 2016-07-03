@@ -127,15 +127,23 @@ unsigned int ModelManager::GetLastChannel() const {
 void ModelManager::RecalcStartChannels() const {
     int countValid = 0;
     for (auto it = models.begin(); it != models.end(); it++) {
-        it->second->SetFromXml(it->second->GetModelXml());
-        countValid += it->second->CouldComputeStartChannel ? 1 : 0;
+        if( it->second->GetDisplayAs() != "ModelGroup" ) {
+            it->second->SetFromXml(it->second->GetModelXml());
+            countValid += it->second->CouldComputeStartChannel ? 1 : 0;
+        } else {
+            countValid++;
+        }
     }
     while (countValid != models.size()) {
         int newCountValid = 0;
         for (auto it = models.begin(); it != models.end(); it++) {
-            if (!it->second->CouldComputeStartChannel) {
-                it->second->SetFromXml(it->second->GetModelXml());
-                newCountValid += it->second->CouldComputeStartChannel ? 1 : 0;
+            if( it->second->GetDisplayAs() != "ModelGroup" ) {
+                if (!it->second->CouldComputeStartChannel) {
+                    it->second->SetFromXml(it->second->GetModelXml());
+                    newCountValid += it->second->CouldComputeStartChannel ? 1 : 0;
+                } else {
+                    newCountValid++;
+                }
             } else {
                 newCountValid++;
             }
