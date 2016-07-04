@@ -24,6 +24,7 @@
 #include "heartbeat.h" //DJ
 #include "SeqSettingsDialog.h"
 #include <wx/grid.h>
+#include <wx/mimetype.h>
 
 #include "RenderCommandEvent.h"
 #include "BitmapCache.h"
@@ -207,6 +208,7 @@ const long xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
 const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
+const long xLightsFrame::ID_MENU_VIEW_LOG = wxNewId();
 const long xLightsFrame::ID_MENUITEM18 = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
 const long xLightsFrame::idMenuSaveSched = wxNewId();
@@ -765,6 +767,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1->Append(MenuItemConvert);
     Menu_GenerateCustomModel = new wxMenuItem(Menu1, ID_MENUITEM_GenerateCustomModel, _("&Generate Custom Model"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(Menu_GenerateCustomModel);
+    MenuItem_ViewLog = new wxMenuItem(Menu1, ID_MENU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_ViewLog);
     MenuItem38 = new wxMenuItem(Menu1, ID_MENUITEM18, _("&Package Log FIles"), _("Packages up current configuration, logs and sequence for reporting a problem to development team."), wxITEM_NORMAL);
     Menu1->Append(MenuItem38);
     mExportModelsMenuItem = new wxMenuItem(Menu1, ID_EXPORT_MODELS, _("E&xport Models"), wxEmptyString, wxITEM_NORMAL);
@@ -1011,6 +1015,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM13,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
     Connect(ID_MENUITEM_CONVERT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MENUITEM_GenerateCustomModel,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
+    Connect(ID_MENU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MENUITEM18,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemPackageDebugFiles);
     Connect(ID_EXPORT_MODELS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmExportModelsMenuItemSelected);
     Connect(idMenuSaveSched,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSavePlaylistsSelected);
@@ -2946,7 +2951,6 @@ static void AddLogFile(const wxString &CurrentDir, const wxString &fileName, wxD
     {
         report.AddFile(wxFileName(wxGetCwd(), fileName).GetFullPath(), fileName);
     }
-
 }
 
 void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
@@ -3269,4 +3273,53 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_BackupOnLaunchSelected(wxCommandEvent& event)
 {
     mBackupOnLaunch = event.IsChecked();
+}
+
+void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
+{
+    wxString dir;
+    wxString fileName = "xLights_l4cpp.log";
+#ifdef __WXMSW__
+    wxGetEnv("APPDATA", &dir);
+    wxString filename = dir + "/" + fileName;
+#endif
+#ifdef __WXOSX_MAC__
+    wxFileName home;
+    home.AssignHomeDir();
+    dir = home.GetFullPath();
+    wxString filename = dir + "/Library/Logs/" + fileName;
+#endif
+#ifdef __LINUX__
+    wxString filename = "/tmp/" + fileName;
+#endif
+    wxString fn = "";
+    if (wxFile::Exists(filename))
+    {
+        fn = filename;
+    }
+    else if (wxFile::Exists(wxFileName(CurrentDir, fileName).GetFullPath()))
+    {
+        fn = wxFileName(CurrentDir, fileName).GetFullPath();
+    }
+    else if (wxFile::Exists(wxFileName(wxGetCwd(), fileName).GetFullPath()))
+    {
+        fn = wxFileName(wxGetCwd(), fileName).GetFullPath();
+    }
+
+    wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+    if (fn != "" && ft)
+    {
+        wxString command = ft->GetOpenCommand("foo.txt");
+        command.Replace("foo.txt", fn);
+
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug("Viewing log file %s.", (const char *)fn.c_str());
+
+        wxExecute(command);
+        delete ft;
+    }
+    else
+    {
+        wxMessageBox(_("Unable to show log file."), _("Error"));
+    }
 }

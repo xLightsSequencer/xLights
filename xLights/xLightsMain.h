@@ -604,6 +604,7 @@ private:
     void OnmAltBackupMenuItemSelected(wxCommandEvent& event);
     void OnmExportModelsMenuItemSelected(wxCommandEvent& event);
     void OnMenuItem_BackupOnLaunchSelected(wxCommandEvent& event);
+    void OnMenuItem_ViewLogSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -713,6 +714,7 @@ private:
     static const long ID_MENUITEM13;
     static const long ID_MENUITEM_CONVERT;
     static const long ID_MENUITEM_GenerateCustomModel;
+    static const long ID_MENU_VIEW_LOG;
     static const long ID_MENUITEM18;
     static const long ID_EXPORT_MODELS;
     static const long idMenuSaveSched;
@@ -923,6 +925,7 @@ private:
     wxButton* ButtonAddShow;
     wxGridBagSizer* StatusBarSizer;
     wxMenu* MenuView;
+    wxMenuItem* MenuItem_ViewLog;
     wxMenu* AudioMenu;
     xlAuiToolBar* EditToolBar;
     wxMenuItem* MenuItemGridIconBackgroundOff;
