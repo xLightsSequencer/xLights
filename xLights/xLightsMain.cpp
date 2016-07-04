@@ -388,7 +388,9 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
         int size = 16;
         BitmapButton34->SetMinSize(wxSize(size,size));
         BitmapButton34->SetMaxSize(wxSize(size,size));
+#ifndef LINUX
         BitmapButton34->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
+#endif
         BitmapButton34->SetEffect(manager[x]);
         BitmapButton34->SetBitmapMargins(0,0);
         EffectsToolBar->AddControl(BitmapButton34, BitmapButton34->GetToolTipText());

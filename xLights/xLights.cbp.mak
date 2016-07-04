@@ -1720,7 +1720,7 @@ models/ModelGroup.cpp: models/ModelGroup.h models/ModelManager.h models/SingleLi
 
 models/ModelGroup.h: models/Model.h
 
-models/ModelManager.cpp: models/ModelManager.h models/Model.h models/StarModel.h models/ArchesModel.h models/CandyCaneModel.h models/CircleModel.h models/TreeModel.h models/CustomModel.h models/WholeHouseModel.h models/SingleLineModel.h models/ModelGroup.h models/WindowFrameModel.h models/WreathModel.h models/SphereModel.h models/SpinnerModel.h models/IciclesModel.h
+models/ModelManager.cpp: models/ModelManager.h models/Model.h models/StarModel.h models/ArchesModel.h models/CandyCaneModel.h models/CircleModel.h models/TreeModel.h models/CustomModel.h models/WholeHouseModel.h models/SingleLineModel.h models/ModelGroup.h models/WindowFrameModel.h models/WreathModel.h models/SphereModel.h models/SpinnerModel.h models/IciclesModel.h sequencer/Element.h xLightsMain.h
 
 models/ArchesModel.h: models/Model.h
 
@@ -1750,7 +1750,7 @@ sequencer/Effect.cpp: UtilClasses.h sequencer/Effect.h sequencer/EffectLayer.h s
 
 sequencer/EffectDropTarget.cpp: sequencer/EffectDropTarget.h sequencer/EffectsGrid.h
 
-sequencer/EffectLayer.cpp: sequencer/EffectLayer.h sequencer/EffectsGrid.h sequencer/Effect.h sequencer/RowHeading.h models/Model.h
+sequencer/EffectLayer.cpp: sequencer/EffectLayer.h sequencer/EffectsGrid.h sequencer/Effect.h sequencer/RowHeading.h models/Model.h effects/EffectManager.h
 
 sequencer/EffectsGrid.cpp: sequencer/EffectsGrid.h sequencer/MainSequencer.h sequencer/TimeLine.h sequencer/RowHeading.h xLightsMain.h sequencer/SequenceElements.h sequencer/Effect.h sequencer/EffectLayer.h sequencer/EffectDropTarget.h DrawGLUtils.h RenderCommandEvent.h BitmapCache.h effects/RenderableEffect.h
 
