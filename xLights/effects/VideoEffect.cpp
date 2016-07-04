@@ -125,7 +125,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	}
     
 	// we always reopen video on first frame or if it is not open or if the filename has changed
-	if (buffer.needToInit || _videoreader == NULL)
+	if (buffer.needToInit)
 	{
         buffer.needToInit = false;
 		_filename = filename;
@@ -139,7 +139,12 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 			_videoreader = NULL;
 		}
 
-		if (wxFileExists(_filename))
+        if (buffer.BufferHt == 1)
+        {
+            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("VideoEffect::Cannot render video onto a 1 pixel high model. Have you set it to single line?");
+        }
+        else if (wxFileExists(_filename))
 		{
 			// have to open the file
 			_videoreader = new VideoReader(_filename, buffer.BufferWi, buffer.BufferHt, _aspectratio);
@@ -225,13 +230,24 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 		else
 		{
 			// display a blue background to show we have gone past end of video
-			for (int y = 0; y < _videoreader->GetHeight(); y++)
+			for (int y = 0; y < buffer.BufferHt; y++)
 			{
-				for (int x = 0; x < _videoreader->GetWidth(); x++)
+				for (int x = 0; x < buffer.BufferWi; x++)
 				{
-					buffer.SetPixel(x+startx, y+starty, xlBLUE);
+					buffer.SetPixel(x, y, xlBLUE);
 				}
 			}
 		}
 	}
+    else
+    {
+        // display a red background to show we have a problem
+        for (int y = 0; y < buffer.BufferHt; y++)
+        {
+            for (int x = 0; x < buffer.BufferWi; x++)
+            {
+                buffer.SetPixel(x, y, xlRED);
+            }
+        }
+    }
 }
