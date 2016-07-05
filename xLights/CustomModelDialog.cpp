@@ -252,6 +252,28 @@ void CustomModelDialog::Setup(CustomModel *m) {
     Sizer1->Layout();
     Layout();
 
+    // This does not stop the user entering the illegal characters
+    //        wxGridCellTextEditor *reditor = new wxGridCellTextEditor();
+    //        wxString filter("0123456789");
+    //        wxTextValidator validator(wxFILTER_INCLUDE_CHAR_LIST);
+    //        validator.SetCharIncludes(filter);
+    //        reditor->SetValidator(validator);
+    //        GridCustom->SetDefaultEditor(reditor);
+
+    // neither does this
+    //for (int r = 0; r < GridCustom->GetNumberRows(); ++r)
+    //{
+    //    for (int c = 0; c < GridCustom->GetNumberCols(); ++c)
+    //    {
+    //        wxGridCellTextEditor *reditor = new wxGridCellTextEditor();
+    //        wxString filter("0123456789");
+    //        wxTextValidator validator(wxFILTER_INCLUDE_CHAR_LIST);
+    //        validator.SetCharIncludes(filter);
+    //        reditor->SetValidator(validator);
+    //        //GridCustom->SetDefaultEditor(reditor);
+    //        GridCustom->SetCellEditor(r, c, reditor);
+    //    }
+    //}
     ValidateWindow();
 }
 
@@ -269,6 +291,21 @@ void CustomModelDialog::ResizeCustomGrid()
     UpdateBackground();
 }
 
+wxString StripIllegalChars(wxString& s)
+{
+    wxString res = "";
+
+    for (auto it = s.begin(); it != s.end(); it++)
+    {
+        if (*it >= '0' && *it <= '9')
+        {
+            res += *it;
+        }
+    }
+
+    return res;
+}
+
 void CustomModelDialog::Save(CustomModel *m) {
     m->SetCustomHeight(HeightSpin->GetValue());
     m->SetCustomWidth(WidthSpin->GetValue());
@@ -280,7 +317,7 @@ void CustomModelDialog::Save(CustomModel *m) {
         if (row > 0) customChannelData+=";";
         for(int col=0; col<numCols; col++) {
             if (col > 0) customChannelData+=",";
-            value = GridCustom->GetCellValue(row,col);
+            value = StripIllegalChars(GridCustom->GetCellValue(row,col));
             if (value == "0" || value.StartsWith("-")) value.clear();
             customChannelData += value;
         }
@@ -382,7 +419,7 @@ void CustomModelDialog::CutOrCopyToClipboard(bool IsCut) {
                 {
                     copy_data += "\t";  // next COLUMN
                 }
-                copy_data += GridCustom->GetCellValue(i,k);    // finally we need the field value
+                copy_data += StripIllegalChars(GridCustom->GetCellValue(i,k));    // finally we need the field value
                 if (IsCut) GridCustom->SetCellValue(i,k,wxEmptyString);
             }
         }
