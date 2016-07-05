@@ -88,7 +88,7 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxUIntProperty("Pan Channel", "DmxPanChannel", pan_channel));
-    p->SetAttribute("Min", 1);
+    p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
@@ -103,7 +103,7 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxUIntProperty("Tilt Channel", "DmxTiltChannel", tilt_channel));
-    p->SetAttribute("Min", 1);
+    p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
@@ -222,10 +222,10 @@ void DmxModel::InitModel() {
     screenLocation.SetRenderSize(1, 1);
 
 	dmx_style = ModelXml->GetAttribute("DmxStyle", "Moving Head Top");
-	pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "1"));
+	pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "0"));
 	pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "0"));
 	pan_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxPanDegOfRot", "540"));
-	tilt_channel = wxAtoi(ModelXml->GetAttribute("DmxTiltChannel", "1"));
+	tilt_channel = wxAtoi(ModelXml->GetAttribute("DmxTiltChannel", "0"));
 	tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "0"));
 	tilt_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxTiltDegOfRot", "180"));
 	red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "0"));
@@ -339,10 +339,18 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     ApplyTransparency(base_color, trans);
     ApplyTransparency(pnt_color, trans);
 
-    Nodes[pan_channel-1]->GetColor(color_angle);
-    pan_angle = (color_angle.red / 255.0f) * pan_deg_of_rot + pan_orient;
-    Nodes[tilt_channel-1]->GetColor(color_angle);
-    tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
+    if( pan_channel > 0 ) {
+        Nodes[pan_channel-1]->GetColor(color_angle);
+        pan_angle = (color_angle.red / 255.0f) * pan_deg_of_rot + pan_orient;
+    } else {
+        pan_angle = 0.0f;
+    }
+    if( tilt_channel > 0 ) {
+        Nodes[tilt_channel-1]->GetColor(color_angle);
+        tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
+    } else {
+        tilt_angle = 0.0f;
+    }
 
     // Determine if we need to flip the beam
     int tilt_pos = (int)(RenderBuffer::cos(ToRadians(tilt_angle))*radius*0.8);
