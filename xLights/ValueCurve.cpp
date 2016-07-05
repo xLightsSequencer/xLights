@@ -565,6 +565,8 @@ float ValueCurve::GetOutputValueAt(float offset)
 
 float ValueCurve::GetValueAt(float offset)
 {
+    float res = 0.0f;
+
     if (_values.size() < 2) return 1.0f;
     if (!_active) return 1.0f;
 
@@ -582,29 +584,33 @@ float ValueCurve::GetValueAt(float offset)
 
     if (it == _values.end())
     {
-        return _values.back().y;
+        res = _values.back().y;
     }
-
-    if (it->x == last.x)
+    else if (it->x == last.x)
     {
         // this should not be possible
-        return it->y;
+        res = it->y;
     }
     else
     {
         if (it->x == offset)
         {
-            return it->y;
+            res = it->y;
         }
         else if (it->IsWrapped())
         {
-            return it->y;
+            res = it->y;
         }
         else
         {
-            return last.y + (it->y - last.y) * (offset - last.x) / (it->x - last.x);
+            res = last.y + (it->y - last.y) * (offset - last.x) / (it->x - last.x);
         }
     }
+
+    if (res < 0.0f) res = 0.0f;
+    if (res > 1.0f) res = 1.0f;
+
+    return res;
 }
 
 bool ValueCurve::IsSetPoint(float offset)
