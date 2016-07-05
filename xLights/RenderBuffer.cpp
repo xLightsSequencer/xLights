@@ -305,7 +305,7 @@ void TextDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
             || font.GetFaceName() != fontName
             || color != fontColor) {
             this->font = gc->CreateFont(font.GetPixelSize().y, font.GetFaceName(), style, color.asWxColor());
-            
+
             fontStyle = style;
             fontSize = font.GetPixelSize().y;
             fontName = font.GetFaceName();
@@ -487,11 +487,11 @@ public:
 };
 static SinTable sinTable;
 
-float RenderBuffer::sin(float rad) const
+float RenderBuffer::sin(float rad)
 {
     return sinTable.sin(rad);
 }
-float RenderBuffer::cos(float rad) const
+float RenderBuffer::cos(float rad)
 {
     return sinTable.cos(rad);
 }
@@ -926,7 +926,7 @@ void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, double x1, double y1
     eff->GetBackgroundDisplayList()[idx+3].color = cx2y2;
     eff->GetBackgroundDisplayList()[idx+4].color = cx2y1;
     eff->GetBackgroundDisplayList()[idx+5].color = cx1y1;
-    
+
     eff->GetBackgroundDisplayList()[idx].x = x1;
     eff->GetBackgroundDisplayList()[idx+1].x = x1;
     eff->GetBackgroundDisplayList()[idx+2].x = x2;

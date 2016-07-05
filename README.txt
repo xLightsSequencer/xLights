@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     New DMX model added.
    -- bug (gil)     Prevent scenario where model groups could show up to be added to a model group.
    -- bug (gil)     Delete model and all effects from grid and views when a model is deleted. Fixes #611
    -- enh (gil)     More improvements to SuperStar imports of images.

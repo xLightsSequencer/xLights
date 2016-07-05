@@ -184,6 +184,7 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
         if (cols.size() > width) width=cols.size();
         for(size_t col=0; col < cols.size(); col++) {
             value=cols[col];
+            // FIXME:  If user types in spaces this doesn't catch it.
             if (!value.IsEmpty() && value != "0") {
                 value.ToLong(&idx);
 

@@ -11,6 +11,7 @@
 #include "CircleModel.h"
 #include "TreeModel.h"
 #include "CustomModel.h"
+#include "DmxModel.h"
 #include "WholeHouseModel.h"
 #include "SingleLineModel.h"
 #include "ModelGroup.h"
@@ -221,6 +222,20 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->DeleteAttribute("parm3");
         node->AddAttribute("parm3", "50");
         model = new CircleModel(node, *this, false);
+    } else if (type == "DMX") {
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "8");
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "1");
+        node->DeleteAttribute("DmxStyle");
+        node->AddAttribute("DmxStyle", "Moving Head Top");
+        node->DeleteAttribute("StringType");
+        node->AddAttribute("StringType", "Single Color White");
+        node->DeleteAttribute("DmxPanOrient");
+        node->AddAttribute("DmxPanOrient", "0");
+        node->DeleteAttribute("DmxPanDegOfRot");
+        node->AddAttribute("DmxPanDegOfRot", "540");
+        model = new DmxModel(node, *this, false);
     } else if (type == "Window Frame") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "16");
@@ -291,6 +306,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, bool zeroBased) const {
 		model = new CandyCaneModel(node, *this, zeroBased);
 	} else if (type == "Circle") {
         model = new CircleModel(node, *this, zeroBased);
+	} else if (type == "DMX") {
+        model = new DmxModel(node, *this, zeroBased);
     } else if (type == "Window Frame") {
         model = new WindowFrameModel(node, *this, zeroBased);
     } else if (type == "Wreath") {

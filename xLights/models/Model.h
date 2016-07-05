@@ -85,6 +85,7 @@ protected:
                         int &bufferWi, int &bufferHi) const;
     void AdjustForTransform(const std::string &transform,
                             int &bufferWi, int &bufferHi) const;
+    void ApplyTransparency(xlColor &color, int transparency);
 
     int BufferHt,BufferWi;  // size of the default buffer
     std::vector<NodeBaseClassPtr> Nodes;
@@ -161,8 +162,8 @@ public:
     wxXmlNode* GetModelXml() const;
     int GetNumberFromChannelString(const std::string &sc) const;
     int GetNumberFromChannelString(const std::string &sc, bool &valid) const;
-    void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *color =  NULL, bool allowSelected = true);
-    void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
+    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *color =  NULL, bool allowSelected = false);
+    virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
 
     const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
@@ -265,7 +266,7 @@ public:
     }
     static int GetNodeChannelCount(const std::string & nodeType);
 
-private:
+protected:
     int maxVertexCount;
 };
 

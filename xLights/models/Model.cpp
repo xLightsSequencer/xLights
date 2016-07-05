@@ -1715,7 +1715,7 @@ wxCursor Model::InitializeLocation(int &handle, wxCoord x,wxCoord y) {
     return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes);
 }
 
-static void ApplyTransparency(xlColor &color, int transparency) {
+void Model::ApplyTransparency(xlColor &color, int transparency) {
     if (transparency) {
         float t = 100.0 - transparency;
         t *= 2.55;

@@ -25,10 +25,10 @@ namespace DrawGLUtils {
 class ModelScreenLocation
 {
 public:
-    
+
     virtual void Read(wxXmlNode *node) = 0;
     virtual void Write(wxXmlNode *node) = 0;
-    
+
     virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) = 0;
     virtual void PrepareToDraw() const = 0;
     virtual void TranslatePoint(float &x, float &y) const = 0;
@@ -39,20 +39,20 @@ public:
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) = 0;
- 
+
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) = 0;
     virtual bool IsCenterBased() const = 0;
     virtual float GetVScaleFactor() const {return 1.0;}
-    
+
     virtual void SetOffset(float xPct, float yPct) = 0;
     virtual void AddOffset(float xPct, float yPct) = 0;
-    
+
     virtual float GetHcenterOffset() const = 0;
     virtual float GetVcenterOffset() const = 0;
     virtual void SetHcenterOffset(float f) = 0;
     virtual void SetVcenterOffset(float f) = 0;
-    
+
     //in screen coordinates
     virtual int GetTop() const = 0;
     virtual int GetLeft() const = 0;
@@ -62,15 +62,14 @@ public:
     virtual void SetLeft(int i) = 0;
     virtual void SetRight(int i) = 0;
     virtual void SetBottom(int i) = 0;
-    
-    
+
     void SetRenderSize(float NewWi, float NewHt) {
         RenderHt=NewHt;
         RenderWi=NewWi;
     }
     float RenderHt,RenderWi;  // size of the rendered output
     int previewW,previewH;
-    
+
 protected:
     ModelScreenLocation(int points);
     virtual ~ModelScreenLocation() {};
@@ -87,21 +86,21 @@ class BoxedScreenLocation : public ModelScreenLocation {
 public:
     BoxedScreenLocation();
     virtual ~BoxedScreenLocation() {}
-    
+
     virtual void Read(wxXmlNode *node) override;
     virtual void Write(wxXmlNode *node) override;
-    
+
     virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) override;
     virtual void PrepareToDraw() const override;
     virtual void TranslatePoint(float &x, float &y) const override;
-    
+
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(int x,int y) const override;
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
-    
+
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual bool IsCenterBased() const override {return true;};
@@ -135,7 +134,7 @@ public:
     void SetRotation(int r) {
         PreviewRotation = r;
     }
-    
+
     virtual int GetTop() const override {
         return mMaxScreenY;
     }
@@ -152,19 +151,27 @@ public:
     virtual void SetLeft(int i) override;
     virtual void SetRight(int i) override;
     virtual void SetBottom(int i) override;
-    
+
+    virtual float GetScaleX() const {
+        return PreviewScaleX;
+    }
+
+    virtual float GetScaleY() const {
+        return PreviewScaleY;
+    }
+
 private:
     float offsetXpct,offsetYpct;
     bool singleScale;
     float PreviewScaleX, PreviewScaleY;
     int PreviewRotation;
-    
+
     mutable float radians;
     mutable float scalex;
     mutable float scaley;
     mutable float centerx;
     mutable float centery;
-    
+
     int mMinScreenX;
     int mMinScreenY;
     int mMaxScreenX;
@@ -177,14 +184,14 @@ class TwoPointScreenLocation : public ModelScreenLocation {
 public:
     TwoPointScreenLocation();
     virtual ~TwoPointScreenLocation();
-    
+
     virtual void Read(wxXmlNode *node) override;
     virtual void Write(wxXmlNode *node) override;
-    
+
     virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) override;
     virtual void PrepareToDraw() const override;
     virtual void TranslatePoint(float &x, float &y) const override;
-    
+
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(int x,int y) const override;
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
@@ -194,7 +201,7 @@ public:
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-    
+
     virtual float GetHcenterOffset() const override;
     virtual float GetVcenterOffset() const override;
     virtual void SetHcenterOffset(float f) override;
@@ -211,7 +218,7 @@ public:
     virtual void SetLeft(int i) override;
     virtual void SetRight(int i) override;
     virtual void SetBottom(int i) override;
-    
+
     virtual float GetYShear() const {return 0.0;}
     void SetYMinMax(float min, float max) {
         minMaxSet = true;
@@ -222,12 +229,12 @@ public:
 
 protected:
     virtual void ProcessOldNode(wxXmlNode *n);
-    
+
     float x1, y1;
     float x2, y2;
     float ymin, ymax;
     bool minMaxSet;
-    
+
     wxXmlNode *old;
     mutable glm::mat3 *matrix;
 };
@@ -239,10 +246,10 @@ public:
     virtual ~ThreePointScreenLocation();
     virtual void Read(wxXmlNode *node) override;
     virtual void Write(wxXmlNode *node) override;
-    
+
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-    
+
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual float GetVScaleFactor() const override;

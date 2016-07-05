@@ -836,6 +836,8 @@
 		<Unit filename="models/CircleModel.h" />
 		<Unit filename="models/CustomModel.cpp" />
 		<Unit filename="models/CustomModel.h" />
+		<Unit filename="models/DmxModel.cpp" />
+		<Unit filename="models/DmxModel.h" />
 		<Unit filename="models/IciclesModel.cpp" />
 		<Unit filename="models/IciclesModel.h" />
 		<Unit filename="models/MatrixModel.cpp" />
@@ -1027,8 +1029,8 @@
 		<Unit filename="wxsmith/SnowstormPanel.wxs" />
 		<Unit filename="wxsmith/SpiralsPanel.wxs" />
 		<Unit filename="wxsmith/SpirographPanel.wxs" />
-		<Unit filename="wxsmith/StatePanel.wxs" />
 		<Unit filename="wxsmith/StartChannelDialog.wxs" />
+		<Unit filename="wxsmith/StatePanel.wxs" />
 		<Unit filename="wxsmith/StrobePanel.wxs" />
 		<Unit filename="wxsmith/SuperStarImportDialog.wxs" />
 		<Unit filename="wxsmith/TendrilPanel.wxs" />

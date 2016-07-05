@@ -83,7 +83,7 @@ public:
     DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha);
     virtual ~DrawingContext();
 
-    
+
     void ResetSize(int BufferWi, int BufferHt);
     virtual void Clear();
     virtual wxImage *FlushAndGetImage();
@@ -100,11 +100,11 @@ class PathDrawingContext : public DrawingContext {
 public:
     PathDrawingContext(int BufferWi, int BufferHt, bool allowShared);
     virtual ~PathDrawingContext();
-    
+
     virtual void Clear() override;
-    
+
     void SetPen(wxPen& pen);
-    
+
     wxGraphicsPath CreatePath();
     void StrokePath(wxGraphicsPath& path);
 private:
@@ -119,12 +119,12 @@ public:
     virtual bool AllowAlphaChannel() override;
 
     void SetPen(wxPen& pen);
-    
+
     void SetFont(wxFontInfo &font, const xlColor &color);
     void DrawText(const wxString &msg, int x, int y, double rotation);
     void DrawText(const wxString &msg, int x, int y);
     void GetTextExtent(const wxString &msg, double *width, double *height);
-    
+
 private:
     wxString fontName;
     int fontStyle;
@@ -174,7 +174,7 @@ public:
             c=color[idx];
         }
     }
-    
+
     void GetHSV(size_t idx, HSVValue& c)
     {
         if (hsv.size() == 0)
@@ -196,7 +196,7 @@ public:
 	EffectRenderCache();
 	virtual ~EffectRenderCache();
 };
- 
+
 class /*NCCDLLEXPORT*/ RenderBuffer {
 public:
     RenderBuffer(xLightsFrame *frame, bool onlyOnMain);
@@ -238,9 +238,9 @@ public:
     void DrawThickLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction );
 
     //aproximation of sin/cos, but much faster
-    float sin(float rad) const;
-    float cos(float rad) const;
-    
+    static float sin(float rad);
+    static float cos(float rad);
+
     double rand01();
     double calcAccel(double ratio, double accel);
     double GetStepAngle(int width, int height);
@@ -270,7 +270,7 @@ public:
                             const xlColor &cx2y1, const xlColor &cx2y2);
 
     int BufferHt,BufferWi;  // size of the buffer
-    
+
     xlColorVector pixels; // this is the calculation buffer
     xlColorVector tempbuf;
     PaletteClass palette;
@@ -297,7 +297,7 @@ public:
     std::map<int, EffectRenderCache*> infoCache;
     int tempInt;
     int tempInt2;
-    
+
 private:
     bool onlyOnMain;
 };
