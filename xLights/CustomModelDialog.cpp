@@ -291,7 +291,7 @@ void CustomModelDialog::ResizeCustomGrid()
     UpdateBackground();
 }
 
-wxString StripIllegalChars(wxString& s)
+wxString StripIllegalChars(const wxString& s)
 {
     wxString res = "";
 
