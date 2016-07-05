@@ -305,6 +305,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     xlColor pnt_color(xlRED);
     xlColor beam_color(xlWHITE);
     xlColor marker_color(xlBLACK);
+    xlColor black(xlBLACK);
     xlColor base_color(200, 200, 200);
     xlColor color;
     if (c != NULL) {
@@ -401,6 +402,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
         // draw tilt marker
         dmxPoint marker(tilt_pos, 0, sx, sy, 1.0, angle);
+        va.AddTrianglesCircle(marker.x, marker.y, radius*0.22, black, black);
         va.AddTrianglesCircle(marker.x, marker.y, radius*0.20, marker_color, marker_color);
     } else {
         // draw head
