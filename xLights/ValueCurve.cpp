@@ -3,6 +3,7 @@
 #include <iostream>
 #include <wx/wx.h>
 #include <wx/string.h>
+#include <log4cpp/Category.hh>
 
 void ValueCurve::SetUnscaledParameter1(float v)
 {
@@ -567,6 +568,9 @@ float ValueCurve::GetValueAt(float offset)
     if (_values.size() < 2) return 1.0f;
     if (!_active) return 1.0f;
 
+    if (offset < 0.0f) offset = 0.0;
+    if (offset > 1.0f) offset = 1.0;
+
     vcSortablePoint last = _values.front();
     auto it = _values.begin();
     it++;
@@ -581,7 +585,6 @@ float ValueCurve::GetValueAt(float offset)
         return _values.back().y;
     }
 
-    // straight line interpolation between last and *it
     if (it->x == last.x)
     {
         // this should not be possible
@@ -589,7 +592,11 @@ float ValueCurve::GetValueAt(float offset)
     }
     else
     {
-        if (it->IsWrapped())
+        if (it->x == offset)
+        {
+            return it->y;
+        }
+        else if (it->IsWrapped())
         {
             return it->y;
         }
