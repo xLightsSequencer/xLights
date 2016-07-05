@@ -3,7 +3,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
 #include "ModelScreenLocation.h"
-#include "ModelPreview.h"
+#include "../ModelPreview.h"
 #include "../RenderBuffer.h"
 
 DmxModel::DmxModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
