@@ -59,7 +59,9 @@ static wxPGChoices DMX_STYLES;
 enum DMX_STYLE {
     DMX_STYLE_MOVING_HEAD_TOP,
     DMX_STYLE_MOVING_HEAD_SIDE,
-    DMX_STYLE_MOVING_HEAD_BARS
+    DMX_STYLE_MOVING_HEAD_BARS,
+    DMX_STYLE_MOVING_HEAD_TOP_BARS,
+    DMX_STYLE_MOVING_HEAD_SIDE_BARS
 };
 
 void DmxModel::GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const {
@@ -85,6 +87,8 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         DMX_STYLES.Add("Moving Head Top");
         DMX_STYLES.Add("Moving Head Side");
         DMX_STYLES.Add("Moding Head Bars");
+        DMX_STYLES.Add("Moding Head Top Bars");
+        DMX_STYLES.Add("Moding Head Side Bars");
     }
 
     AddStyleProperties(grid);
@@ -154,6 +158,10 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
             dmx_style = "Moving Head Side";
         } else if( dmx_style_val == DMX_STYLE_MOVING_HEAD_BARS ) {
             dmx_style = "Moving Head Bars";
+        } else if( dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS ) {
+            dmx_style = "Moving Head TopBars";
+        } else if( dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS ) {
+            dmx_style = "Moving Head SideBars";
         }
         ModelXml->AddAttribute("DmxStyle", dmx_style );
         SetFromXml(ModelXml, zeroBased);
@@ -242,6 +250,10 @@ void DmxModel::InitModel() {
         dmx_style_val = DMX_STYLE_MOVING_HEAD_SIDE;
     } else if( dmx_style == "Moving Head Bars" ) {
         dmx_style_val = DMX_STYLE_MOVING_HEAD_BARS;
+    } else if( dmx_style == "Moving Head TopBars" ) {
+        dmx_style_val = DMX_STYLE_MOVING_HEAD_TOP_BARS;
+    } else if( dmx_style == "Moving Head SideBars" ) {
+        dmx_style_val = DMX_STYLE_MOVING_HEAD_SIDE_BARS;
     }
 	pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "0"));
 	pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "0"));
@@ -382,14 +394,26 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         tilt_pos *= -1;
     }
 
-    if( dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP ) {
+    if( dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP || dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS ) {
         angle = pan_angle;
     } else {
         angle = tilt_angle;
     }
 
+    float sf = 12.0f;
+    float scale = radius / sf;
+
+    int bars_deltax = (int)(scale * sf * 1.0f);
+    int bars_deltay = (int)(scale * sf * 1.1f);
+
+    if( dmx_style_val == DMX_STYLE_MOVING_HEAD_BARS ||
+        dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS ||
+        dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS ) {
+            scale /= 2.0f;
+    }
+
     float beam_width = 30.0f;
-    beam_length = radius * 4.0f;
+    beam_length = scale * sf * 4.0f;
     angle1 = angle - beam_width / 2.0f;
     angle2 = angle + beam_width / 2.0f;
     if( angle1 < 0.0f ) {
@@ -411,9 +435,8 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         va.AddVertex(sx+x2, sy+y2, beam_color);
     }
 
-    float scale = radius / 12.0f;
-    if( dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP ) {
-        va.AddTrianglesCircle(sx, sy, radius, ccolor, ccolor);
+    if( dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP || dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS) {
+        va.AddTrianglesCircle(sx, sy, scale*sf, ccolor, ccolor);
 
         // draw angle line
         dmxPoint p1(0, -1, sx, sy, scale, angle);
@@ -431,9 +454,9 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
         // draw tilt marker
         dmxPoint marker(tilt_pos, 0, sx, sy, 1.0, angle);
-        va.AddTrianglesCircle(marker.x, marker.y, radius*0.22, black, black);
-        va.AddTrianglesCircle(marker.x, marker.y, radius*0.20, marker_color, marker_color);
-    } else if( dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE ) {
+        va.AddTrianglesCircle(marker.x, marker.y, scale*sf*0.22, black, black);
+        va.AddTrianglesCircle(marker.x, marker.y, scale*sf*0.20, marker_color, marker_color);
+    } else if( dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE || dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS) {
         // draw head
         /*DrawGLUtils::PushMatrix();
         va.AddVertex(12, -13, ccolor);
@@ -480,8 +503,8 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         va.AddVertex(p5.x, p5.y, ccolor);
 
         // draw base
-        va.AddTrianglesCircle(sx, sy, radius*0.6, base_color, base_color);
-        va.AddRect(sx-radius*0.6, sy, sx+radius*0.6, sy-radius*2, base_color);
+        va.AddTrianglesCircle(sx, sy, scale*sf*0.6, base_color, base_color);
+        va.AddRect(sx-scale*sf*0.6, sy, sx+scale*sf*0.6, sy-scale*sf*2, base_color);
 
         // draw pan marker
         dmxPoint p7(7, 2, sx, sy, scale, pan_angle);
@@ -489,43 +512,14 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         va.AddVertex(sx, sy, marker_color);
         va.AddVertex(p7.x, p7.y, marker_color);
         va.AddVertex(p8.x, p8.y, marker_color);
-    } else if( dmx_style_val == DMX_STYLE_MOVING_HEAD_BARS ) {
-        // draw head
-        scale /= 2.0f;
-        dmxPoint p1(12, -13, sx, sy, scale, angle);
-        dmxPoint p2(12, +13, sx, sy, scale, angle);
-        dmxPoint p3(-12, +10, sx, sy, scale, angle);
-        dmxPoint p4(-15, +5, sx, sy, scale, angle);
-        dmxPoint p5(-15, -5, sx, sy, scale, angle);
-        dmxPoint p6(-12, -10, sx, sy, scale, angle);
+    }
+    if( dmx_style_val == DMX_STYLE_MOVING_HEAD_BARS ||
+        dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS ||
+        dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS ) {
 
-        va.AddVertex(p1.x, p1.y, ccolor);
-        va.AddVertex(p2.x, p2.y, ccolor);
-        va.AddVertex(p6.x, p6.y, ccolor);
-
-        va.AddVertex(p2.x, p2.y, ccolor);
-        va.AddVertex(p3.x, p3.y, ccolor);
-        va.AddVertex(p6.x, p6.y, ccolor);
-
-        va.AddVertex(p3.x, p3.y, ccolor);
-        va.AddVertex(p5.x, p5.y, ccolor);
-        va.AddVertex(p6.x, p6.y, ccolor);
-
-        va.AddVertex(p3.x, p3.y, ccolor);
-        va.AddVertex(p4.x, p4.y, ccolor);
-        va.AddVertex(p5.x, p5.y, ccolor);
-
-        // draw base
-        va.AddTrianglesCircle(sx, sy, radius*0.3, base_color, base_color);
-        va.AddRect(sx-radius*0.3, sy, sx+radius*0.3, sy-radius, base_color);
-
-        // draw pan marker
-        dmxPoint p7(7, 2, sx, sy, scale, pan_angle);
-        dmxPoint p8(7, -2, sx, sy, scale, pan_angle);
-        va.AddVertex(sx, sy, marker_color);
-        va.AddVertex(p7.x, p7.y, marker_color);
-        va.AddVertex(p8.x, p8.y, marker_color);
-
+        if( dmx_style_val == DMX_STYLE_MOVING_HEAD_BARS ) {
+            bars_deltax = 0;
+        }
         // draw the bars
         xlColor proxy;
         xlColor red(xlRED);
@@ -539,13 +533,11 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         ApplyTransparency(pink, trans);
         ApplyTransparency(turqoise, trans);
         float offsetx = 0.0f;
-        int deltax = (int)(radius * 1.0f);
-        int deltay = (int)(radius * 1.1f);
         int stepy = (int)(radius * 0.15f);
         int gapy = (int)(radius * 0.1f);
         if( gapy < 1 ) gapy = 1;
-        va.AddRect(sx+deltax-gapy-2, sy+deltay+gapy+2, sx+deltax+radius+gapy+2, sy+deltay-(stepy+gapy)*(NodeCount-1)-stepy-gapy-2, ccolor);
-        va.AddRect(sx+deltax-gapy, sy+deltay+gapy, sx+deltax+radius+gapy, sy+deltay-(stepy+gapy)*(NodeCount-1)-stepy-gapy, black);
+        va.AddRect(sx+bars_deltax-gapy-2, sy+bars_deltay+gapy+2, sx+bars_deltax+radius+gapy+2, sy+bars_deltay-(stepy+gapy)*(NodeCount-1)-stepy-gapy-2, ccolor);
+        va.AddRect(sx+bars_deltax-gapy, sy+bars_deltay+gapy, sx+bars_deltax+radius+gapy, sy+bars_deltay-(stepy+gapy)*(NodeCount-1)-stepy-gapy, black);
         for( int i = 1; i <= NodeCount; ++i ) {
             Nodes[i-1]->GetColor(proxy);
             float val = (float)proxy.red;
@@ -563,7 +555,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
             } else {
                 proxy = ccolor;
             }
-            va.AddRect(sx+deltax, sy+deltay-(stepy+gapy)*(i-1), sx+deltax+offsetx, sy+deltay-(stepy+gapy)*(i-1)-stepy, proxy);
+            va.AddRect(sx+bars_deltax, sy+bars_deltay-(stepy+gapy)*(i-1), sx+bars_deltax+offsetx, sy+bars_deltay-(stepy+gapy)*(i-1)-stepy, proxy);
         }
     }
 
