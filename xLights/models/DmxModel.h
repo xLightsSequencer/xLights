@@ -33,6 +33,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active);
 
         std::string dmx_style;
+        int dmx_style_val;
         int pan_channel;
         int tilt_channel;
         int red_channel;
