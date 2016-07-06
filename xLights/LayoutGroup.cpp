@@ -147,6 +147,13 @@ void LayoutGroup::ShowPreview(bool show)
     if( !mPreviewCreated ) {
         ignore_size_and_pos = true;
         ModelPreview* modelPreview = xlights->GetLayoutPreview();
+        if (modelPreview == NULL)
+        {
+            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("LayoutGroup::ShowPreview GetLayoutPreview returned NULL");
+            return;
+        }
+
         PreviewPane* preview = new PreviewPane(xlights, wxID_ANY, wxDefaultPosition, wxSize(modelPreview->GetVirtualCanvasWidth(), modelPreview->GetVirtualCanvasHeight()));
         mPreviewPane = preview;
         wxPanel* panel = preview->GetPreviewPanel();

@@ -1474,6 +1474,20 @@ void xLightsFrame::ForceSequencerRefresh()
 }
 
 void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
+
+    if (perspective == NULL)
+    {
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.warn("xLightsFrame::LoadPerspective Null perspective node.");
+        return;
+    }
+    if (PerspectivesNode == NULL)
+    {
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.warn("xLightsFrame::LoadPerspective Null PerspectivesNode.");
+        return;
+    }
+
     wxString name = perspective->GetAttribute("name");
     wxString settings = perspective->GetAttribute("settings");
     if (name != PerspectivesNode->GetAttribute("current")) {
