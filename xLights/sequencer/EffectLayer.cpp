@@ -7,6 +7,7 @@
 #include "../models/Model.h"
 #include "../effects/EffectManager.h"
 #include <log4cpp/Category.hh>
+#include "Element.h"
 
 std::atomic_int EffectLayer::exclusive_index(0);
 const std::string NamedLayer::NO_NAME("");
@@ -93,10 +94,10 @@ Effect* EffectLayer::AddEffect(int id, const std::string &name, const std::strin
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
 
-    if (name != "" && GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name) == -1)
+    if ((GetParentElement()->GetType() == "model") && (name != "" && GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name) == -1))
     {
         log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.warn("Unknown effect: " + name + ". Not loaded.");
+        logger_base.warn("Unknown effect: " + name + ". Not loaded." + GetParentElement()->GetType());
         return NULL;
     }
     else
