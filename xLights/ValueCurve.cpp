@@ -576,7 +576,8 @@ float ValueCurve::GetValueAt(float offset)
     vcSortablePoint last = _values.front();
     auto it = _values.begin();
     it++;
-    while (it != _values.end() && *it < offset)
+
+    while (it != _values.end() && it->x < offset)
     {
         last = *it;
         ++it;
@@ -607,8 +608,14 @@ float ValueCurve::GetValueAt(float offset)
         }
     }
 
-    if (res < 0.0f) res = 0.0f;
-    if (res > 1.0f) res = 1.0f;
+    if (res < 0.0f)
+    {
+        res = 0.0f;
+    }
+    if (res > 1.0f)
+    {
+        res = 1.0f;
+    }
 
     return res;
 }

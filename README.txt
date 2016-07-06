@@ -8,6 +8,17 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (keithsw) Fix value curve problems with some waveforms
+   -- bug (keithsw) Stop custom model leading to crashes if non numerics are entered in grid cells
+   -- enh (keithsw) Add view log to the tools menu so users can easily access the log file
+   -- bug (keithsw) Stop tab dragging on main window
+   -- bug (keithsw) Make video Effect render red if video file does not exist or single line buffer style is used
+   -- enh (keithsw) Add value curve to sparkles
+   -- enh (keithsw) Add preset export/import *.xpreset files
+   -- bug (keithsw) Fix crash in piano when start note > end note
+   -- bug (keithsw) Fix tendril music line effect that was broken in v39
+   -- bug (keithsw) Fix blur effect that was broken in v39
+   -- enh (keithsw) Add model face and state data to xmodel files
    -- enh (gil)     New DMX model added with 5 types so far: Top view, Side view, Bars view, Top w/Bars, and Side w/Bars.
    -- bug (gil)     Prevent scenario where model groups could show up to be added to a model group.
    -- bug (gil)     Delete model and all effects from grid and views when a model is deleted. Fixes #611
