@@ -97,7 +97,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &name, const std::strin
     if ((GetParentElement()->GetType() == "model") && (name != "" && GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name) == -1))
     {
         log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.warn("Unknown effect: " + name + ". Not loaded." + GetParentElement()->GetType());
+        logger_base.warn("Unknown effect: " + name + ". Not loaded. " + GetParentElement()->GetType() + " " + GetParentElement()->GetName());
         return NULL;
     }
     else
