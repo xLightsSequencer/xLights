@@ -1633,6 +1633,8 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
 
     if (!f.Open(params.inp_filename.c_str()))
     {
+        log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
+        logger_conversion.debug("Unable to load sequence: %s.", (const char *)params.inp_filename.c_str());
         params.PlayerError(wxString("Unable to load sequence:\n")+params.inp_filename);
         return;
     }
