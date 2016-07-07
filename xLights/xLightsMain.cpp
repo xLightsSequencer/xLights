@@ -3239,7 +3239,7 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
         return;
     }
 
-    f.Write(_("Model Name,Display As,String Type,String Count,Node Count,Channel Count,Start Channel,Start Channel No,My Display,Controller Type,Controller Description,IP,Universe,Controller Channel,Inactive\n"));
+    f.Write(_("Model Name,Display As,String Type,String Count,Node Count,Channel Count,Start Channel,Start Channel No,End Channel No,My Display,Controller Type,Controller Description,IP,Universe,Controller Channel,Inactive\n"));
 
     for (auto m = PreviewModels.begin(); m != PreviewModels.end(); m++)
     {
@@ -3249,7 +3249,7 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
         std::string type, description, ip, universe, inactive;
         int channeloffset;
         GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive);
-        f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",%d,%d,%d,%s,%d,%s,%s,\"%s\",%s,%s,%d,%s\n",
+        f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",%d,%d,%d,%s,%d,%d,%s,%s,\"%s\",%s,%s,%d,%s\n",
             model->name,
             model->GetDisplayAs(),
             model->GetStringType(),
@@ -3258,6 +3258,7 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
             model->GetChanCount(),
             stch,
             ch,
+            ch+model->GetChanCount(),
             model->GetLayoutGroup(),
             type,
             description,
