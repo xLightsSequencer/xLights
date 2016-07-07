@@ -412,6 +412,8 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 100);
     sp->SetEditor("SpinCtrl");
+
+    DisableUnusedProperties(grid);
 }
 
 static wxString GetColorString(wxPGProperty *p, xlColor &xc) {

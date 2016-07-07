@@ -19,6 +19,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     protected:

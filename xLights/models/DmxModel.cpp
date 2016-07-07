@@ -148,7 +148,37 @@ void DmxModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     grid->Append(new wxEnumProperty("DMX Style", "DmxStyle", DMX_STYLES, dmx_style_val));
 }
 
+void DmxModel::DisableUnusedProperties(wxPropertyGridInterface *grid)
+{
+    // disable string type properties.  Only Single Color White allowed.
+    wxPGProperty *p = grid->GetPropertyByName("ModelStringType");
+    if (p != nullptr) {
+        p->Enable(false);
+    }
+
+    p = grid->GetPropertyByName("ModelStringColor");
+    if (p != nullptr) {
+        p->Enable(false);
+    }
+
+    p = grid->GetPropertyByName("ModelFaces");
+    if (p != nullptr) {
+        p->Enable(false);
+    }
+
+    p = grid->GetPropertyByName("ModelDimmingCurves");
+    if (p != nullptr) {
+        p->Enable(false);
+    }
+
+    p = grid->GetPropertyByName("ModelStates");
+    if (p != nullptr) {
+        p->Enable(false);
+    }
+}
+
 int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+
     if ("DmxStyle" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxStyle");
         dmx_style_val = event.GetPropertyValue().GetLong();
