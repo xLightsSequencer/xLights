@@ -3258,7 +3258,7 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
             model->GetChanCount(),
             stch,
             ch,
-            ch+model->GetChanCount(),
+            ch+model->GetChanCount()-1,
             model->GetLayoutGroup(),
             type,
             description,
