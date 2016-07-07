@@ -8,6 +8,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Add end channel to model export
+   -- enh (keithsw) Log very slow rendered frames
    -- bug (keithsw) Fix value curve problems with some waveforms
    -- bug (keithsw) Stop custom model leading to crashes if non numerics are entered in grid cells
    -- enh (keithsw) Add view log to the tools menu so users can easily access the log file
