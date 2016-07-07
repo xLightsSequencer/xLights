@@ -10,6 +10,8 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../../include/ColorWash.xpm"
+#include "../xLightsMain.h" //xLightsFrame
+#include "../models/DmxModel.h"
 
 #include <sstream>
 
@@ -71,7 +73,7 @@ std::string ColorWashEffect::GetEffectString() {
         ret << p->BitmapButton_ColorWash_CyclesVC->GetValue()->Serialise();
         ret << ",";
     }
-    
+
     if (10 != p->SliderCycles->GetValue()) {
         ret << "E_TEXTCTRL_ColorWash_Cycles=";
         ret << p->CyclesTextCtrl->GetValue();
@@ -152,23 +154,62 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     bool VertFade = SettingsMap.GetBool(CHECKBOX_ColorWash_VFade);
     bool shimmer = SettingsMap.GetBool(CHECKBOX_ColorWash_Shimmer);
     bool circularPalette = SettingsMap.GetBool(CHECKBOX_ColorWash_CircularPalette);
-    
+
     int x,y;
     xlColor color, orig;
-    
+
     double position = buffer.GetEffectTimeIntervalPosition(cycles);
     buffer.GetMultiColorBlend(position, circularPalette, color);
-    
+
     int startX = 0;
     int startY = 0;
     int endX = buffer.BufferWi - 1;
     int endY = buffer.BufferHt - 1;
-    
+
+    ///////////////////////// DMX Support ////////////////////////
+    // if the model is a DMX model this will write the color into
+    // the proper red, green, and blue channels.
+    //////////////////////////////////////////////////////////////
+    if (buffer.cur_model != "") {
+        Model* model_info = buffer.frame->AllModels[buffer.cur_model];
+        if (model_info != nullptr) {
+            if( model_info->GetDisplayAs() == "DMX" ) {
+                xlColor c;
+                DmxModel* dmx = (DmxModel*)model_info;
+                int red_channel = dmx->GetRedChannel();
+                int grn_channel = dmx->GetGreenChannel();
+                int blu_channel = dmx->GetBlueChannel();
+                if( red_channel != 0 ) {
+                    c.red = color.red;
+                    c.green = color.red;
+                    c.blue = color.red;
+                    buffer.SetPixel(red_channel-1, 0, c);
+                }
+                if( grn_channel != 0 ) {
+                    c.red = color.green;
+                    c.green = color.green;
+                    c.blue = color.green;
+                    buffer.SetPixel(grn_channel-1, 0, c);
+                }
+                if( blu_channel != 0 ) {
+                    c.red = color.blue;
+                    c.green = color.blue;
+                    c.blue = color.blue;
+                    buffer.SetPixel(blu_channel-1, 0, c);
+                }
+                return;
+            }
+        }
+    }
+    //////////////////////////////////////////////////////////////
+    ///////////////////// End DMX Support ////////////////////////
+    //////////////////////////////////////////////////////////////
+
     int tot = buffer.curPeriod - buffer.curEffStartPer;
     if (!shimmer || (tot % 2) == 0) {
         double HalfHt=double(endY - startY)/2.0;
         double HalfWi=double(endX - startX)/2.0;
-        
+
         orig = color;
         HSVValue hsvOrig = color.asHSV();
         xlColor color2 = color;

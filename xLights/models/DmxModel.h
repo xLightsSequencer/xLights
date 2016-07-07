@@ -22,6 +22,10 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
+        int GetRedChannel() {return red_channel;}
+        int GetGreenChannel() {return green_channel;}
+        int GetBlueChannel() {return blue_channel;}
+
     protected:
         virtual void AddStyleProperties(wxPropertyGridInterface *grid);
 

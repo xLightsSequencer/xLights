@@ -4,6 +4,8 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../xLightsMain.h" //xLightsFrame
+#include "../models/DmxModel.h"
 
 static const std::string TEXTCTRL_Eff_On_Start("TEXTCTRL_Eff_On_Start");
 static const std::string TEXTCTRL_Eff_On_End("TEXTCTRL_Eff_On_End");
@@ -89,7 +91,7 @@ int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int 
     bg.AddVertex(x1, y1, start);
     bg.AddVertex(x1, y2, start);
     bg.AddVertex(x2, y2, end);
-    
+
     bg.AddVertex(x2, y2, end);
     bg.AddVertex(x2, y1, end);
     bg.AddVertex(x1, y1, start);
@@ -130,9 +132,9 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
             cidx = 1;
         }
     }
-    
+
     double adjust = buffer.GetEffectTimeIntervalPosition(cycles);
-    
+
     xlColor color;
     if (start == 100 && end == 100) {
         buffer.palette.GetColor(cidx, color);
@@ -145,7 +147,46 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
         hsv.value = hsv.value * d;
         color = hsv;
     }
-    
+
+    ///////////////////////// DMX Support ////////////////////////
+    // if the model is a DMX model this will write the color into
+    // the proper red, green, and blue channels.
+    //////////////////////////////////////////////////////////////
+    if (buffer.cur_model != "") {
+        Model* model_info = buffer.frame->AllModels[buffer.cur_model];
+        if (model_info != nullptr) {
+            if( model_info->GetDisplayAs() == "DMX" ) {
+                xlColor c;
+                DmxModel* dmx = (DmxModel*)model_info;
+                int red_channel = dmx->GetRedChannel();
+                int grn_channel = dmx->GetGreenChannel();
+                int blu_channel = dmx->GetBlueChannel();
+                if( red_channel != 0 ) {
+                    c.red = color.red;
+                    c.green = color.red;
+                    c.blue = color.red;
+                    buffer.SetPixel(red_channel-1, 0, c);
+                }
+                if( grn_channel != 0 ) {
+                    c.red = color.green;
+                    c.green = color.green;
+                    c.blue = color.green;
+                    buffer.SetPixel(grn_channel-1, 0, c);
+                }
+                if( blu_channel != 0 ) {
+                    c.red = color.blue;
+                    c.green = color.blue;
+                    c.blue = color.blue;
+                    buffer.SetPixel(blu_channel-1, 0, c);
+                }
+                return;
+            }
+        }
+    }
+    //////////////////////////////////////////////////////////////
+    ///////////////////// End DMX Support ////////////////////////
+    //////////////////////////////////////////////////////////////
+
     //Every Node set to selected color
     for (x=0; x<buffer.BufferWi; x++)
     {
@@ -169,7 +210,7 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
             buffer.palette.GetHSV(cidx,hsv);
             hsv.value = hsv.value * start / 100.0;
             color = hsv;
-            
+
             buffer.palette.GetHSV(cidx,hsv);
             hsv.value = hsv.value * end / 100.0;
             buffer.SetDisplayListHRect(eff, 0, 0.0, 0.0, 1.0, 1.0, color, xlColor(hsv));
