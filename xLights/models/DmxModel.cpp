@@ -440,6 +440,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS ||
         dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS ) {
             scale /= 2.0f;
+            tilt_pos /= 2;
     }
 
     float beam_width = 30.0f;
