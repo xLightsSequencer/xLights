@@ -146,7 +146,7 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
 }
 void RowHeading::rightClick( wxMouseEvent& event)
 {
-    wxMenu *mnuLayer;
+    wxMenu mnuLayer;
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
     if (mSelectedRow >= mSequenceElements->GetVisibleRowInformationSize()) {
         return;
@@ -156,10 +156,9 @@ void RowHeading::rightClick( wxMouseEvent& event)
     Element* element = ri->element;
     if (element->GetType()=="model" || element->GetType()=="view")
     {
-        mnuLayer = new wxMenu();
         if (ri->strandIndex < 0) {
-            mnuLayer->Append(ID_ROW_MNU_INSERT_LAYER_ABOVE,"Insert Layer Above");
-            mnuLayer->Append(ID_ROW_MNU_INSERT_LAYER_BELOW,"Insert Layer Below");
+            mnuLayer.Append(ID_ROW_MNU_INSERT_LAYER_ABOVE,"Insert Layer Above");
+            mnuLayer.Append(ID_ROW_MNU_INSERT_LAYER_BELOW,"Insert Layer Below");
             //if( ri->Index > 0 )
             {
             }
@@ -168,39 +167,39 @@ void RowHeading::rightClick( wxMouseEvent& event)
             }
             if(element->GetEffectLayerCount() > 1)
             {
-                mnuLayer->Append(ID_ROW_MNU_DELETE_LAYER,"Delete Layer");
+                mnuLayer.Append(ID_ROW_MNU_DELETE_LAYER,"Delete Layer");
             }
             if (element->GetType()=="model") {
-                mnuLayer->AppendSeparator();
+                mnuLayer.AppendSeparator();
             }
         }
         if (element->GetType()=="model") {
-            mnuLayer->Append(ID_ROW_MNU_PLAY_MODEL,"Play Model");
-            mnuLayer->Append(ID_ROW_MNU_EXPORT_MODEL,"Export Model");
-            mnuLayer->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export Model");
-            mnuLayer->AppendSeparator();
+            mnuLayer.Append(ID_ROW_MNU_PLAY_MODEL,"Play Model");
+            mnuLayer.Append(ID_ROW_MNU_EXPORT_MODEL,"Export Model");
+            mnuLayer.Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export Model");
+            mnuLayer.AppendSeparator();
             bool canPromote = false;
             if (element->getStrandLayerCount() == 1) {
-                mnuLayer->Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");
+                mnuLayer.Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");
                 canPromote = true;
             } else if (element->getStrandLayerCount() > 1) {
                 canPromote = true;
-                mnuLayer->Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Strands");
+                mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Strands");
                 if (ri->strandIndex >= 0) {
-                    mnuLayer->Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");
+                    mnuLayer.Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");
                 }
             } else {
-                mnuLayer->Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Models");
+                mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Models");
             }
             if (ri->nodeIndex > -1 && element->GetStrandLayer(ri->strandIndex)->GetNodeLayer(ri->nodeIndex)->GetEffectCount() == 0) {
-                mnuLayer->Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
+                mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
             }
             if (canPromote) {
-                mnuLayer->Append(ID_ROW_MNU_PROMOTE_EFFECTS, "Promote Node Effects");
+                mnuLayer.Append(ID_ROW_MNU_PROMOTE_EFFECTS, "Promote Node Effects");
             }
-            mnuLayer->AppendSeparator();
-            mnuLayer->Append(ID_ROW_MNU_COPY_ROW,"Copy Row");
-            wxMenuItem* menu_paste = mnuLayer->Append(ID_ROW_MNU_PASTE_ROW,"Paste Row");
+            mnuLayer.AppendSeparator();
+            mnuLayer.Append(ID_ROW_MNU_COPY_ROW,"Copy Row");
+            wxMenuItem* menu_paste = mnuLayer.Append(ID_ROW_MNU_PASTE_ROW,"Paste Row");
             if( !mCanPaste ) {
                 menu_paste->Enable(false);
             }
@@ -208,31 +207,30 @@ void RowHeading::rightClick( wxMouseEvent& event)
     }
     else
     {
-        mnuLayer = new wxMenu();
-        mnuLayer->Append(ID_ROW_MNU_ADD_TIMING_TRACK,"Add Timing Track");
-        mnuLayer->Append(ID_ROW_MNU_DELETE_TIMING_TRACK,"Delete Timing Track");
-        mnuLayer->Append(ID_ROW_MNU_IMPORT_TIMING_TRACK, "Import Timing Track");
-        mnuLayer->Append(ID_ROW_MNU_EXPORT_TIMING_TRACK, "Export Timing Track");
-        mnuLayer->AppendSeparator();
-        mnuLayer->Append(ID_ROW_MNU_IMPORT_LYRICS,"Import Lyrics");
-        mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES,"Breakdown Phrases");
+        mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK,"Add Timing Track");
+        mnuLayer.Append(ID_ROW_MNU_DELETE_TIMING_TRACK,"Delete Timing Track");
+        mnuLayer.Append(ID_ROW_MNU_IMPORT_TIMING_TRACK, "Import Timing Track");
+        mnuLayer.Append(ID_ROW_MNU_EXPORT_TIMING_TRACK, "Export Timing Track");
+        mnuLayer.AppendSeparator();
+        mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS,"Import Lyrics");
+        mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES,"Breakdown Phrases");
         if( element->GetEffectLayerCount() > 1 )
         {
-            mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_WORDS,"Breakdown Words");
+            mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_WORDS,"Breakdown Words");
         }
-        mnuLayer->AppendSeparator();
-        mnuLayer->Append(ID_ROW_MNU_COPY_ROW,"Copy Row");
-        wxMenuItem* menu_paste = mnuLayer->Append(ID_ROW_MNU_PASTE_ROW,"Paste Row");
+        mnuLayer.AppendSeparator();
+        mnuLayer.Append(ID_ROW_MNU_COPY_ROW,"Copy Row");
+        wxMenuItem* menu_paste = mnuLayer.Append(ID_ROW_MNU_PASTE_ROW,"Paste Row");
         if( !mCanPaste ) {
             menu_paste->Enable(false);
         }
     }
 
-    mnuLayer->AppendSeparator();
-    mnuLayer->Append(ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS,"Edit Display Elements");
-    mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, NULL, this);
+    mnuLayer.AppendSeparator();
+    mnuLayer.Append(ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS,"Edit Display Elements");
+    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, NULL, this);
     Draw();
-    PopupMenu(mnuLayer);
+    PopupMenu(&mnuLayer);
 }
 
 void RowHeading::OnLayerPopup(wxCommandEvent& event)

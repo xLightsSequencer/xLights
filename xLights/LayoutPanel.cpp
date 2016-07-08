@@ -1280,25 +1280,25 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     modelPreview->SetFocus();
 
     wxMenu mnu;
-    wxMenu mnuAlign;
-    wxMenu mnuDistribute;
     int selectedModelCnt = ModelsSelectedCount();
     if (selectedModelCnt > 1)
     {
-        mnuAlign.Append(ID_PREVIEW_ALIGN_TOP,"Top");
-        mnuAlign.Append(ID_PREVIEW_ALIGN_BOTTOM,"Bottom");
-        mnuAlign.Append(ID_PREVIEW_ALIGN_LEFT,"Left");
-        mnuAlign.Append(ID_PREVIEW_ALIGN_RIGHT,"Right");
-        mnuAlign.Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
-        mnuAlign.Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
-        mnuAlign.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
+        wxMenu* mnuAlign = new wxMenu();
+        wxMenu* mnuDistribute = new wxMenu();
+        mnuAlign->Append(ID_PREVIEW_ALIGN_TOP,"Top");
+        mnuAlign->Append(ID_PREVIEW_ALIGN_BOTTOM,"Bottom");
+        mnuAlign->Append(ID_PREVIEW_ALIGN_LEFT,"Left");
+        mnuAlign->Append(ID_PREVIEW_ALIGN_RIGHT,"Right");
+        mnuAlign->Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
+        mnuAlign->Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
+        mnuAlign->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
 
-        mnuDistribute.Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
-        mnuDistribute.Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
-        mnuDistribute.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
+        mnuDistribute->Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
+        mnuDistribute->Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
+        mnuDistribute->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
 
-        mnu.Append(ID_PREVIEW_ALIGN, 	        "Align", &mnuAlign,"");
-        mnu.Append(ID_PREVIEW_DISTRIBUTE,"Distribute", &mnuDistribute,"");
+        mnu.Append(ID_PREVIEW_ALIGN, 	        "Align", mnuAlign,"");
+        mnu.Append(ID_PREVIEW_DISTRIBUTE,"Distribute", mnuDistribute,"");
         mnu.AppendSeparator();
     }
     if (selectedModelCnt > 0) {

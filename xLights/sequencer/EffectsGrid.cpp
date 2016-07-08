@@ -145,7 +145,6 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         return;
     }
     SetFocus();
-    wxMenu *mnuLayer = nullptr;
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
     if (mSelectedRow >= mSequenceElements->GetVisibleRowInformationSize()) {
         return;
@@ -155,10 +154,10 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
     Element* element = ri->element;
     if (element->GetType()=="model")
     {
-        mnuLayer = new wxMenu();
-        wxMenuItem* menu_copy = mnuLayer->Append(ID_GRID_MNU_COPY,"Copy");
-        wxMenuItem* menu_paste = mnuLayer->Append(ID_GRID_MNU_PASTE,"Paste");
-        wxMenuItem* menu_delete = mnuLayer->Append(ID_GRID_MNU_DELETE,"Delete");
+        wxMenu mnuLayer;
+        wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY,"Copy");
+        wxMenuItem* menu_paste = mnuLayer.Append(ID_GRID_MNU_PASTE,"Paste");
+        wxMenuItem* menu_delete = mnuLayer.Append(ID_GRID_MNU_DELETE,"Delete");
         if( mSelectedEffect == nullptr && !MultipleEffectsSelected() ) {
             menu_copy->Enable(false);
             menu_delete->Enable(false);
@@ -166,22 +165,25 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         if( !mCanPaste || !(mCellRangeSelected || mPartialCellSelected) ) {
             menu_paste->Enable(false);
         }
-        mnuLayer->AppendSeparator();
+        mnuLayer.AppendSeparator();
         wxString undo_string = mSequenceElements->get_undo_mgr().GetUndoString();
-        wxMenuItem* menu_undo = mnuLayer->Append(ID_GRID_MNU_UNDO,undo_string);
+        wxMenuItem* menu_undo = mnuLayer.Append(ID_GRID_MNU_UNDO,undo_string);
         if( !mSequenceElements->get_undo_mgr().CanUndo() ) {
             menu_undo->Enable(false);
         }
-        mnuLayer->AppendSeparator();
-        mnuLayer->Append(ID_GRID_MNU_PRESETS,"Effect Presets");
-        wxMenuItem* menu_random = mnuLayer->Append(ID_GRID_MNU_RANDOM_EFFECTS,"Create Random Effects");
+        mnuLayer.AppendSeparator();
+        mnuLayer.Append(ID_GRID_MNU_PRESETS,"Effect Presets");
+        wxMenuItem* menu_random = mnuLayer.Append(ID_GRID_MNU_RANDOM_EFFECTS,"Create Random Effects");
         if( !(mCellRangeSelected || mPartialCellSelected) ) {
             menu_random->Enable(false);
         }
+        mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, NULL, this);
+        Draw();
+        PopupMenu(&mnuLayer);
     }
     else if (element->GetType()=="timing")
     {
-        mnuLayer = new wxMenu();
+        wxMenu mnuLayer;
         int effectIndex;
         HitLocation selectionType;
         int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
@@ -189,21 +191,21 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == "timing") {
             if( ri->layerIndex == 0 )
             {
-                mnuLayer->Append(ID_GRID_MNU_BREAKDOWN_PHRASE,"Breakdown Phrase");
+                mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_PHRASE,"Breakdown Phrase");
             }
             else if( ri->layerIndex == 1 )
             {
-                mnuLayer->Append(ID_GRID_MNU_BREAKDOWN_WORD,"Breakdown Word");
+                mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORD,"Breakdown Word");
                 if (selectedEffect->GetParentEffectLayer()->GetSelectedEffectCount() > 1) {
-                    mnuLayer->Append(ID_GRID_MNU_BREAKDOWN_WORDS,"Breakdown Selected Words");
+                    mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORDS,"Breakdown Selected Words");
                 }
             }
             mSelectedEffect = selectedEffect;
         }
-        mnuLayer->AppendSeparator();
-        wxMenuItem* menu_copy = mnuLayer->Append(ID_GRID_MNU_COPY,"Copy");
-        wxMenuItem* menu_paste = mnuLayer->Append(ID_GRID_MNU_PASTE,"Paste");
-        wxMenuItem* menu_delete = mnuLayer->Append(ID_GRID_MNU_DELETE,"Delete");
+        mnuLayer.AppendSeparator();
+        wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY,"Copy");
+        wxMenuItem* menu_paste = mnuLayer.Append(ID_GRID_MNU_PASTE,"Paste");
+        wxMenuItem* menu_delete = mnuLayer.Append(ID_GRID_MNU_DELETE,"Delete");
         if( mSelectedEffect == nullptr && !MultipleEffectsSelected() ) {
             menu_copy->Enable(false);
             menu_delete->Enable(false);
@@ -211,12 +213,9 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         if( !mCanPaste || !(mCellRangeSelected || mPartialCellSelected) ) {
             menu_paste->Enable(false);
         }
-    }
-
-    if (mnuLayer != nullptr) {
-        mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, NULL, this);
+        mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, NULL, this);
         Draw();
-        PopupMenu(mnuLayer);
+        PopupMenu(&mnuLayer);
     }
 }
 

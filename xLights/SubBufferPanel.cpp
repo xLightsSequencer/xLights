@@ -42,7 +42,7 @@ void SubBufferPanel::SetValue(const std::string &val) {
     y1 = v.size() > 1 ? wxAtof(v[1]) : 0.0;
     x2 = v.size() > 2 ? wxAtof(v[2]) : 100.0;
     y2 = v.size() > 3 ? wxAtof(v[3]) : 100.0;
-    
+
     if (x1 > x2) std::swap(x1, x2);
     if (y1 > y2) std::swap(y1, y2);
 
@@ -67,23 +67,21 @@ void SubBufferPanel::Convert(float &x, float &y, wxMouseEvent& event) {
     float startY = size.GetHeight() / 10.0;
     float bw = size.GetWidth()*0.8;
     float bh = size.GetHeight()*0.8;
-    
+
     x = (event.GetX() - startX) * 100.0/ bw ;
     y = 100.0 - (event.GetY() - startY) * 100.0/ bh ;
 }
 void SubBufferPanel::ContextMenu(wxContextMenuEvent& event) {
-    wxMenu *menu = new wxMenu();
-    menu->Append(wxNewId(), "Full Buffer");
-    menu->AppendSeparator();
-    menu->Append(wxNewId(), "Top Half");
-    menu->Append(wxNewId(), "Bottom Half");
-    menu->Append(wxNewId(), "Left Half");
-    menu->Append(wxNewId(), "Right Half");
-    menu->AppendSeparator();
-    menu->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, NULL, this);
-    PopupMenu(menu);
-    delete menu;
-    
+    wxMenu menu;
+    menu.Append(wxNewId(), "Full Buffer");
+    menu.AppendSeparator();
+    menu.Append(wxNewId(), "Top Half");
+    menu.Append(wxNewId(), "Bottom Half");
+    menu.Append(wxNewId(), "Left Half");
+    menu.Append(wxNewId(), "Right Half");
+    menu.AppendSeparator();
+    menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, NULL, this);
+    PopupMenu(&menu);
 }
 void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
     wxMenu *m = (wxMenu*)event.GetEventObject();
@@ -121,12 +119,12 @@ int SubBufferPanel::OverMouseHandle(wxMouseEvent& event) {
     float startY = size.GetHeight() / 10.0;
     float bw = size.GetWidth()*0.8;
     float bh = size.GetHeight()*0.8;
-    
+
     float x1b = (x1 * bw)/100.0 + startX;
     float x2b = (x2 * bw)/100.0 + startX;
     float y1b = ((100.0-y1) * bh)/100.0 + startY;
     float y2b = ((100.0-y2) * bh)/100.0 + startY;
-    
+
     if (IsWithin(event.GetX(), event.GetY(), x1b, y1b)) {
         return 0;
     } else if (IsWithin(event.GetX(), event.GetY(), x1b, y2b)) {
@@ -204,7 +202,7 @@ void SubBufferPanel::Paint( wxPaintEvent& event ) {
     if (!IsShownOnScreen()) {
         return;
     }
-    
+
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     wxSize size = GetSize();
@@ -221,35 +219,35 @@ void SubBufferPanel::Paint( wxPaintEvent& event ) {
     float bw = size.GetWidth()*0.8;
     float bh = size.GetHeight()*0.8;
     dc.DrawRectangle(startX, startY, bw, bh);
-    
+
     if (!IsEnabled()) {
         return;
     }
     dc.SetBrush(*wxYELLOW_BRUSH);
     dc.SetPen(*wxYELLOW_PEN);
-    
+
     float x1b = (x1 * bw)/100.0 + startX;
     float x2b = (x2 * bw)/100.0 + startX;
-    
+
     float y1b = ((100.0-y1) * bh)/100.0 + startY;
     float y2b = ((100.0-y2) * bh)/100.0 + startY;
-    
+
     dc.DrawCircle(x1b, y1b, 2);
     dc.DrawCircle(x1b, y2b, 2);
     dc.DrawCircle(x2b, y2b, 2);
     dc.DrawCircle(x2b, y1b, 2);
-    
+
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.SetPen(wxPen(*wxYELLOW, 1, wxPENSTYLE_DOT));
     dc.DrawRectangle(x1b, y1b, x2b-x1b,y2b-y1b);
-    
+
     dc.SetTextForeground(*wxYELLOW);
     dc.SetFont(wxFont(wxSize(0, 8), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
     wxString str = wxString::Format("%dx%d", (int)x2, (int)y2);
     wxSize sz = dc.GetTextExtent(str);
     dc.DrawText(wxString::Format("%dx%d", (int)x1, (int)y1), x1b + 2, y1b - sz.GetHeight() - 1);
     dc.DrawText(wxString::Format("%dx%d", (int)x1, (int)y2), x1b + 2, y2b);
-    
+
     dc.DrawText(str, x2b - 3 - sz.GetWidth(), y2b);
     str = wxString::Format("%dx%d", (int)x2, (int)y1);
     sz = dc.GetTextExtent(str);
