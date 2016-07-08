@@ -176,9 +176,11 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 	FlexGridSizer45->Fit(this);
 	FlexGridSizer45->SetSizeHints(this);
 
+	Connect(ID_SLIDER_Spirals_Count,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&SpiralsPanel::UpdateLinkedTextCtrlVC);
 	Connect(ID_VALUECURVE_Spirals_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Spirals_Count,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SpiralsPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnLockButtonClick);
+	Connect(ID_SLIDER_Spirals_Rotation,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&SpiralsPanel::UpdateLinkedTextCtrlFloatVC);
 	Connect(ID_VALUECURVE_Spirals_Rotation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Spirals_Rotation,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SpiralsPanel::UpdateLinkedSliderFloat);
 	Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Rotation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnLockButtonClick);
