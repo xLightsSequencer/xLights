@@ -1280,10 +1280,11 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     modelPreview->SetFocus();
 
     wxMenu mnu;
+    wxMenu mnuAlign;
+    wxMenu mnuDistribute;
     int selectedModelCnt = ModelsSelectedCount();
     if (selectedModelCnt > 1)
     {
-        wxMenu mnuAlign;
         mnuAlign.Append(ID_PREVIEW_ALIGN_TOP,"Top");
         mnuAlign.Append(ID_PREVIEW_ALIGN_BOTTOM,"Bottom");
         mnuAlign.Append(ID_PREVIEW_ALIGN_LEFT,"Left");
@@ -1292,7 +1293,6 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnuAlign.Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
         mnuAlign.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
 
-        wxMenu mnuDistribute;
         mnuDistribute.Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
         mnuDistribute.Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
         mnuDistribute.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
