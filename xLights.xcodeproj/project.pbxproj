@@ -292,6 +292,7 @@
 		67E42C1F1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E42C1D1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp */; };
 		67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */; };
 		67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C7969017B5791700CEE775 /* TabConvert.cpp */; };
+		67EB24B11D2F399200C7C4A1 /* DmxModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67EB24B01D2F399200C7C4A1 /* DmxModel.cpp */; };
 		67EE95B21C848A3600C62C95 /* VideoPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67EE95AF1C848A3600C62C95 /* VideoPanel.cpp */; };
 		67EE95B31C848A3600C62C95 /* VideoEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67EE95B11C848A3600C62C95 /* VideoEffect.cpp */; };
 		67EE95B51C848BF000C62C95 /* libswscale.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67EE95B41C848BF000C62C95 /* libswscale.4.dylib */; };
@@ -860,6 +861,8 @@
 		67E7087517B51AB400A22034 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		67E7087817B51AB400A22034 /* xLights-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "xLights-Info.plist"; sourceTree = "<group>"; };
 		67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SeqFileUtilities.cpp; sourceTree = "<group>"; };
+		67EB24AF1D2F399200C7C4A1 /* DmxModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DmxModel.h; path = models/DmxModel.h; sourceTree = "<group>"; };
+		67EB24B01D2F399200C7C4A1 /* DmxModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DmxModel.cpp; path = models/DmxModel.cpp; sourceTree = "<group>"; };
 		67EE95AE1C848A3600C62C95 /* VideoPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VideoPanel.h; path = effects/VideoPanel.h; sourceTree = "<group>"; };
 		67EE95AF1C848A3600C62C95 /* VideoPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VideoPanel.cpp; path = effects/VideoPanel.cpp; sourceTree = "<group>"; };
 		67EE95B01C848A3600C62C95 /* VideoEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VideoEffect.h; path = effects/VideoEffect.h; sourceTree = "<group>"; };
@@ -912,6 +915,8 @@
 		670C827C1C44554E000AA5D8 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				67EB24AF1D2F399200C7C4A1 /* DmxModel.h */,
+				67EB24B01D2F399200C7C4A1 /* DmxModel.cpp */,
 				6792BF351D0B253B00A5A0CC /* SpinnerModel.cpp */,
 				6792BF361D0B253B00A5A0CC /* SpinnerModel.h */,
 				67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */,
@@ -1856,6 +1861,7 @@
 				67B2CFE01C3A186A003C17CA /* ShockwaveEffect.cpp in Sources */,
 				675AB4261B5ACEDA00853A28 /* PluginBufferingAdapter.cpp in Sources */,
 				6784F9291A5653670018EC0C /* EffectsGrid.cpp in Sources */,
+				67EB24B11D2F399200C7C4A1 /* DmxModel.cpp in Sources */,
 				677421DA1A6A8FBE0082DA5B /* EffectIconPanel.cpp in Sources */,
 				67B2CF961C39D98A003C17CA /* ButterflyEffect.cpp in Sources */,
 				67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */,
