@@ -1280,27 +1280,25 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     modelPreview->SetFocus();
 
     wxMenu mnu;
-    wxMenu *mnuAlign;
-    wxMenu *mnuDistribute;
     int selectedModelCnt = ModelsSelectedCount();
     if (selectedModelCnt > 1)
     {
-        mnuAlign = new wxMenu();
-        mnuAlign->Append(ID_PREVIEW_ALIGN_TOP,"Top");
-        mnuAlign->Append(ID_PREVIEW_ALIGN_BOTTOM,"Bottom");
-        mnuAlign->Append(ID_PREVIEW_ALIGN_LEFT,"Left");
-        mnuAlign->Append(ID_PREVIEW_ALIGN_RIGHT,"Right");
-        mnuAlign->Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
-        mnuAlign->Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
-        mnuAlign->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
+        wxMenu mnuAlign;
+        mnuAlign.Append(ID_PREVIEW_ALIGN_TOP,"Top");
+        mnuAlign.Append(ID_PREVIEW_ALIGN_BOTTOM,"Bottom");
+        mnuAlign.Append(ID_PREVIEW_ALIGN_LEFT,"Left");
+        mnuAlign.Append(ID_PREVIEW_ALIGN_RIGHT,"Right");
+        mnuAlign.Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
+        mnuAlign.Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
+        mnuAlign.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
 
-        mnuDistribute = new wxMenu();
-        mnuDistribute->Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
-        mnuDistribute->Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
-        mnuDistribute->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
+        wxMenu mnuDistribute;
+        mnuDistribute.Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
+        mnuDistribute.Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
+        mnuDistribute.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
 
-        mnu.Append(ID_PREVIEW_ALIGN, 	        "Align", mnuAlign,"");
-        mnu.Append(ID_PREVIEW_DISTRIBUTE,"Distribute", mnuDistribute,"");
+        mnu.Append(ID_PREVIEW_ALIGN, 	        "Align", &mnuAlign,"");
+        mnu.Append(ID_PREVIEW_DISTRIBUTE,"Distribute", &mnuDistribute,"");
         mnu.AppendSeparator();
     }
     if (selectedModelCnt > 0) {
@@ -2122,10 +2120,10 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
 
 void LayoutPanel::OnListBoxElementListItemRClick(wxListEvent& event)
 {
-    wxMenu *mnuLayer = new wxMenu();
-    mnuLayer->Append(ID_MNU_DELETE_MODEL,"Delete");
-    mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelPopup, NULL, this);
-    PopupMenu(mnuLayer);
+    wxMenu mnuLayer;
+    mnuLayer.Append(ID_MNU_DELETE_MODEL,"Delete");
+    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelPopup, NULL, this);
+    PopupMenu(&mnuLayer);
 }
 
 void LayoutPanel::OnModelPopup(wxCommandEvent& event)
@@ -2279,19 +2277,19 @@ void LayoutPanel::DeselectModelList()
 void LayoutPanel::OnModelGroupRightDown(wxMouseEvent& event)
 {
     DeselectModelGroupList();
-    wxMenu *mnuLayer = new wxMenu();
+    wxMenu mnuLayer;
     wxPoint pos = event.GetPosition();
     int flags = wxLIST_HITTEST_ONITEMLABEL;
     long index = ListBoxModelGroups->HitTest(pos,flags,NULL); // got to use it at last
-    mnuLayer->Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
+    mnuLayer.Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
     mSelectedGroup = index;
     if( mSelectedGroup != -1 ) {
         ListBoxModelGroups->SetItemState( index, wxLIST_STATE_SELECTED, -1 );
-        mnuLayer->Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
-        mnuLayer->Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
+        mnuLayer.Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
+        mnuLayer.Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
     }
-    mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelGroupPopup, NULL, this);
-    PopupMenu(mnuLayer);
+    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelGroupPopup, NULL, this);
+    PopupMenu(&mnuLayer);
 }
 
 LayoutGroup* LayoutPanel::GetLayoutGroup(const std::string &name)
