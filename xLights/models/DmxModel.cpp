@@ -253,14 +253,13 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
 
 void DmxModel::InitModel() {
     DisplayAs = "DMX";
-    StringType=="Single Color White";
+    StringType = "Single Color White";
     parm2 = 1;
     parm3 = 1;
 
     int numChannels = parm1;
     SetNodeCount(numChannels, 1, rgbOrder);
 
-    int width = 0;
     int curNode = 0;
     for (int x = 0; x < numChannels; x++) {
         Nodes[curNode]->ActChan = stringStartChan[0] + curNode*GetNodeChannelCount(StringType);
@@ -303,7 +302,6 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
     if(success) {
         DrawGLUtils::xlAccumulator va(maxVertexCount);
 
-        size_t NodeCount=Nodes.size();
         float sx,sy;
         xlColor color, proxy;
         int w, h;
@@ -389,7 +387,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         Nodes[blue_channel-1]->GetColor(proxy);
         beam_color.blue = proxy.red;
     }
-    if( beam_color.red == 0 && beam_color.green == 0 && beam_color.blue == 0 || !active ) {
+    if( (beam_color.red == 0 && beam_color.green == 0 && beam_color.blue == 0) || !active ) {
         beam_color = xlWHITE;
         beam_off = true;
     } else {

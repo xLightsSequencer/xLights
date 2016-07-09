@@ -239,7 +239,6 @@ void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& typ
     wxXmlNode* e = NetworkXML.GetRoot();
     long currentcontrollerstartchannel = 0;
     long currentcontrollerendchannel = 0;
-    int nullcount = 1;
 
     for (e = e->GetChildren(); e != NULL; e = e->GetNext())
     {

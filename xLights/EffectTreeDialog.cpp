@@ -500,7 +500,7 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
         wxTreeItemId id = TreeCtrl1->GetSelection();
         wxTreeItemId insertPoint = treeRootID;
 
-        if (id.IsOk() && id == treeRootID || TreeCtrl1->HasChildren(id))
+        if ((id.IsOk() && id == treeRootID) || TreeCtrl1->HasChildren(id))
         {
             insertPoint = id;
         }
