@@ -602,6 +602,30 @@ void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, uint
     start = count;
 }
 
+void DrawGLUtils::xlVertexColorAccumulator::AddDottedLinesRect(float x1, float y1, float x2, float y2, const xlColor &color) {
+    // Line 1
+    float xs = x1<x2?x1:x2;
+    float xf = x1>x2?x1:x2;
+    for(float x = xs; x <= xf; x += 8)
+    {
+        AddVertex(x, y1, color);
+        AddVertex(x + 4 < xf ? x + 4 : xf, y1, color);
+        AddVertex(x, y2, color);
+        AddVertex(x + 4 < xf ? x + 4 : xf, y2, color);
+    }
+    // Line 2
+    int ys = y1<y2?y1:y2;
+    int yf = y1>y2?y1:y2;
+    for(int y=ys;y<=yf;y+=8)
+    {
+        AddVertex(x1, y, color);
+        AddVertex(x1, y + 4 < yf ? y + 4 : yf, color);
+        AddVertex(x2, y, color);
+        AddVertex(x2, y + 4 < yf ? y + 4 : yf, color);
+    }
+}
+
+
 void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, int offset) {
     xlColor start;
     xlColor end;

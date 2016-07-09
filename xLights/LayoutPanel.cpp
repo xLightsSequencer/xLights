@@ -494,11 +494,12 @@ void LayoutPanel::UpdatePreview()
 {
     SetDirtyHiLight(xlights->UnsavedRgbEffectsChanges);
     if(!modelPreview->StartDrawing(mPointSize)) return;
+    modelPreview->Render();
     if(m_creating_bound_rect)
     {
-        DrawGLUtils::DrawRectangle(xlYELLOW,true,m_bound_start_x,m_bound_start_y,m_bound_end_x,m_bound_end_y);
+        modelPreview->GetAccumulator().AddDottedLinesRect(m_bound_start_x,m_bound_start_y,m_bound_end_x,m_bound_end_y, xlYELLOW);
+        modelPreview->GetAccumulator().Finish(GL_LINES);
     }
-    modelPreview->Render();
     modelPreview->EndDrawing();
 }
 

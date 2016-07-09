@@ -67,6 +67,7 @@ public:
     void SetActive(bool show);
     bool GetActive();
 
+    DrawGLUtils::xlAccumulator &GetAccumulator() {return accumulator;}
 protected:
     virtual void InitializeGLCanvas();
     virtual bool UsesVertexTextureAccumulator() {return true;}
