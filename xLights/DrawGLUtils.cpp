@@ -512,44 +512,24 @@ void DrawGLUtils::DrawRectangle(const xlColor &color, bool dashed, int x1, int y
         // Line 1
         int xs = x1<x2?x1:x2;
         int xf = x1>x2?x1:x2;
-        for(int x=xs;x<=xf;x++)
+        for(int x=xs;x<=xf; x += 8)
         {
-            if(x%8<4)
-            {
-                currentCache->addVertex(x, y1, color);
-            }
+            currentCache->addVertex(x, y1, color);
+            currentCache->addVertex(x + 4 < xf ? x + 4 : xf, y1, color);
+            currentCache->addVertex(x, y2, color);
+            currentCache->addVertex(x + 4 < xf ? x + 4 : xf, y2, color);
         }
         // Line 2
         int ys = y1<y2?y1:y2;
         int yf = y1>y2?y1:y2;
-        for(int y=ys;y<=yf;y++)
+        for(int y=ys;y<=yf;y+=8)
         {
-            if(y%8<4)
-            {
-                currentCache->addVertex(x2, y, color);
-            }
+            currentCache->addVertex(x1, y, color);
+            currentCache->addVertex(x1, y + 4 < yf ? y + 4 : yf, color);
+            currentCache->addVertex(x2, y, color);
+            currentCache->addVertex(x2, y + 4 < yf ? y + 4 : yf, color);
         }
-        // Line 3
-        xs = x1<x2?x1:x2;
-        xf = x1>x2?x1:x2;
-        for(int x=xs;x<=xf;x++)
-        {
-            if(x%8<4)
-            {
-                currentCache->addVertex(x, y2, color);
-            }
-        }
-        // Line 4
-        ys = y1<y2?y1:y2;
-        yf = y1>y2?y1:y2;
-        for(int y=ys;y<=yf;y++)
-        {
-            if(y%8<4)
-            {
-                currentCache->addVertex(x1, y, color);
-            }
-        }
-        currentCache->flush(GL_POINTS);
+        currentCache->flush(GL_LINES);
     }
 }
 
