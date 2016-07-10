@@ -21,6 +21,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keithsw) Fix tendril music line effect that was broken in v39
    -- bug (keithsw) Fix blur effect that was broken in v39
    -- enh (keithsw) Add model face and state data to xmodel files
+   -- bug (gil)     Fix conversion to LOR format.
    -- enh (gil)     Modify On and Colorwash effects to support DMX models.
    -- enh (gil)     New DMX model added with 5 types so far: Top view, Side view, Bars view, Top w/Bars, and Side w/Bars.
    -- bug (gil)     Prevent scenario where model groups could show up to be added to a model group.

@@ -495,9 +495,9 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
         //		if (ch < CheckListBoxTestChannels->GetCount())
         if (ch < ChNames.Count())
         {
-            TestName = ChNames[ch];
+            TestName = wxString::Format("%s",ChNames[ch]);
             if (TestName == "") {
-                TestName = NetInfo.GetChannelName(ch);
+                TestName = wxString::Format("%s",NetInfo.GetChannelName(ch));
             }
         }
         else
