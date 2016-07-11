@@ -32,6 +32,24 @@ public:
     Model(const ModelManager &manger);
     virtual ~Model();
 
+    static std::string SafeModelName(std::string& name)
+    {
+        wxString n(name.c_str());
+        n.Replace(",", "", true);
+        n.Replace("~", "", true);
+        n.Replace("!", "", true);
+        n.Replace(";", "", true);
+        n.Replace("<", "", true);
+        n.Replace(">", "", true);
+        n.Replace("\"", "", true);
+        n.Replace("\'", "", true);
+        n.Replace("&", "", true);
+        n.Replace(":", "", true);
+        n.Replace("|", "", true);
+        // Other characters I could remove
+        //@#$%^*()?/|][{}`.
+        return n.ToStdString();
+    }
 
     std::string name;
     xlColor customColor;

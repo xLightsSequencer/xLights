@@ -424,16 +424,25 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     } else if (selectedModel != nullptr) {
         //model property
         if ("ModelName" == name) {
-            if (selectedModel->name != event.GetValue().GetString().ToStdString()) {
+            std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
+            if (safename != event.GetValue().GetString().ToStdString())
+            {
+                // need to update the property grid with the modified name
+                wxPGProperty* prop = propertyEditor->GetPropertyByName("ModelName");
+                if (prop != nullptr) {
+                    prop->SetValue(safename);
+                }
+            }
+            if (selectedModel->name != safename) {
                 for(int i=0;i<ListBoxElementList->GetItemCount();i++) {
                     if (selectedModel->name == ListBoxElementList->GetItemText(i)) {
-                        ListBoxElementList->SetItemText(i, event.GetValue().GetString());
+                        ListBoxElementList->SetItemText(i, wxString(safename.c_str()));
                     }
                 }
                 if (selectedModel->name == lastModelName) {
-                    lastModelName = event.GetValue().GetString().ToStdString();
+                    lastModelName = safename;
                 }
-                if (xlights->RenameModel(selectedModel->name, event.GetValue().GetString().ToStdString())) {
+                if (xlights->RenameModel(selectedModel->name, safename)) {
                     CallAfter(&LayoutPanel::UpdateModelList, true);
                 }
             }
@@ -2164,12 +2173,12 @@ void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
             wxString sel = ListBoxModelGroups->GetItemText(item, 1);
             wxTextEntryDialog dlg(this, "Enter new name for group " + sel, "Rename " + sel, sel);
             if (dlg.ShowModal() == wxID_OK) {
-                wxString name = dlg.GetValue();
+                wxString name = wxString(Model::SafeModelName(dlg.GetValue().ToStdString()));
 
                 while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr) {
                     wxTextEntryDialog dlg2(this, "Model or Group of name " + name + " already exists. Enter new name for group", "Enter new name for group");
                     if (dlg2.ShowModal() == wxID_OK) {
-                        name = dlg2.GetValue();
+                        name = wxString(Model::SafeModelName(dlg2.GetValue().ToStdString()));
                     } else {
                         return;
                     }
@@ -2185,11 +2194,11 @@ void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
     {
         wxTextEntryDialog dlg(this, "Enter name for new group", "Enter name for new group");
         if (dlg.ShowModal() == wxID_OK) {
-            wxString name = dlg.GetValue();
+            wxString name = wxString(Model::SafeModelName(dlg.GetValue().ToStdString()));
             while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr) {
                 wxTextEntryDialog dlg2(this, "Model of name " + name + " already exists. Enter name for new group", "Enter name for new group");
                 if (dlg2.ShowModal() == wxID_OK) {
-                    name = dlg2.GetValue();
+                    name = wxString(Model::SafeModelName(dlg2.GetValue().ToStdString()));
                 } else {
                     return;
                 }
