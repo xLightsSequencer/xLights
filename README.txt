@@ -8,6 +8,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.40  Jul 10, 2016
+   -- bug (gil)  Make the initial pane size larger for Model Preview, House Preview, and Effect Assist windows.  Fixes #617
+   -- bug (dkulp) Fix dotted lines in model preview selection stuff
    -- enh (keithsw) Add end channel to model export
    -- enh (keithsw) Log very slow rendered frames
    -- bug (keithsw) Fix value curve problems with some waveforms
