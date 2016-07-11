@@ -32,6 +32,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (gil)     Improve SuperStar import settings for Fan effect.  This effect is close but not an exact duplicate.
    -- enh (gil)     Fix proper start/end angles for flowys imported from Superstar for horizontal layout.
    -- bug (gil)     Fix potential crashes with right-click popup menus in Layout page.
+   -- enh (gil)     Make the initial pane size larger for Model Preview, House Preview, and Effect Assist windows.  Fixes #617.
 2016.39  Jun 30, 2016
    -- enh (keithsw) Make network setup save button work like the layout panel ... red when it needs saving.
    -- bug (dkulp) Fix background brightness setting with OpenGL 1.1

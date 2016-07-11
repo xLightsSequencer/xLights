@@ -43,10 +43,10 @@ void xLightsFrame::CreateSequencer()
 
     sPreview1 = new ModelPreview(PanelSequencer);
     m_mgr->AddPane(sPreview1,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
-                   Left().Layer(1).PaneBorder(true));
+                   Left().Layer(1).PaneBorder(true).BestSize(250,250));
     sPreview2 = new ModelPreview(PanelSequencer, PreviewModels, false);
     m_mgr->AddPane(sPreview2,wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
-                   Left().Layer(1));
+                   Left().Layer(1).BestSize(250,250));
 
     effectsPnl = new TopEffectsPanel(PanelSequencer);
     effectsPnl->BitmapButtonSelectedEffect->SetEffect(effectManager[0], mIconSize);
@@ -59,7 +59,7 @@ void xLightsFrame::CreateSequencer()
 
     sEffectAssist = new EffectAssist(PanelSequencer);
     m_mgr->AddPane(sEffectAssist,wxAuiPaneInfo().Name(wxT("EffectAssist")).Caption(wxT("Effect Assist")).
-                   Left().Layer(1));
+                   Left().Layer(1).BestSize(250,250));
     sEffectAssist->Layout();
 
     colorPanel = new ColorPanel(PanelSequencer);
