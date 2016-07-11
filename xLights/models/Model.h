@@ -32,7 +32,7 @@ public:
     Model(const ModelManager &manger);
     virtual ~Model();
 
-    static std::string SafeModelName(std::string& name)
+    static std::string SafeModelName(const std::string& name)
     {
         wxString n(name.c_str());
         n.Replace(",", "", true);
