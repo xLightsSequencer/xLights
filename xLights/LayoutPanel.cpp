@@ -425,6 +425,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         //model property
         if ("ModelName" == name) {
             std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
+
             if (safename != event.GetValue().GetString().ToStdString())
             {
                 // need to update the property grid with the modified name
@@ -477,8 +478,10 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
     if (selectedModel != nullptr) {
         if ("ModelName" == name) {
-            if (xlights->AllModels[event.GetValue().GetString().ToStdString()] != nullptr) {
-                CreateUndoPoint("ModelName", selectedModel->name, event.GetProperty()->GetValue().GetString().ToStdString());
+            std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
+            // refuse clashing names or names with unsafe characters
+            if (xlights->AllModels[safename] != nullptr || safename != event.GetValue().GetString().ToStdString()) {
+                CreateUndoPoint("ModelName", selectedModel->name, safename);
                 event.Veto();
             }
         } else {
