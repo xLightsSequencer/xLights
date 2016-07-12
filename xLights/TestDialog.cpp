@@ -12,6 +12,7 @@
 
 #include "models/Model.h"
 #include "models/ModelGroup.h"
+#include <log4cpp/Category.hh>
 
 //
 //
@@ -1595,13 +1596,17 @@ void TestDialog::OnButton_SaveClick(wxCommandEvent& event)
 			c = TreeListCtrl_Channels->GetNextSibling(c);
 		}
 
-		if (_network->Save(_networkFile.GetFullPath()))
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug("Saving test preset: " + name);
+        if (_network->Save(_networkFile.GetFullPath()))
 		{
-			//UnsavedNetworkChanges = false;
+            logger_base.debug("   Save done.");
+            //UnsavedNetworkChanges = false;
 		}
 		else
 		{
-			wxMessageBox(_("Unable to save network definition file"), _("Error"));
+            logger_base.debug("   Unable to save network definition file.");
+            wxMessageBox(_("Unable to save network definition file"), _("Error"));
 		}
 	}
 }
