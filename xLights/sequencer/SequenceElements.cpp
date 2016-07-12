@@ -597,11 +597,20 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 {
                     collapsed = element->GetAttribute("collapsed")=='1'?true:false;
                 }
-                Element* elem = AddElement(name,type,visible,collapsed,active,selected);
-                if (type==STR_TIMING)
+                if (ElementExists(name))
                 {
-                    std::string views = element->GetAttribute("views", "").ToStdString();
-                    elem->SetViews(views);
+                    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                    logger_base.warn("Duplicate "+type+": '" + name + "'. Second instance ignored.");
+                    wxMessageBox("Duplicate "+type+": '" + name + "'. Second instance ignored.", _("ERROR"));
+                }
+                else
+                {
+                    Element* elem = AddElement(name, type, visible, collapsed, active, selected);
+                    if (type == STR_TIMING)
+                    {
+                        std::string views = element->GetAttribute("views", "").ToStdString();
+                        elem->SetViews(views);
+                    }
                 }
             }
        }
