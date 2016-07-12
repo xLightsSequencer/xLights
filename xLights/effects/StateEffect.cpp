@@ -6,11 +6,12 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../xLightsMain.h" //xLightsFrame
-#include "../../include/state.xpm"
+#include "../../include/state-16.xpm"
+#include "../../include/state-64.xpm"
 
 #include <wx/tokenzr.h>
 
-StateEffect::StateEffect(int id) : RenderableEffect(id, "State", state_16, state_16, state_16, state_16, state_16)
+StateEffect::StateEffect(int id) : RenderableEffect(id, "State", state_16, state_64, state_64, state_64, state_64)
 {
     //ctor
 }
@@ -66,7 +67,7 @@ std::list<std::string> StateEffect::GetStates(Model *cls, std::string model) {
     std::list<std::string> res;
 
     if (cls != nullptr) {
-        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->stateInfo.begin(); it != cls->stateInfo.end(); it++) 
+        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->stateInfo.begin(); it != cls->stateInfo.end(); it++)
         {
             if (model == it->first)
             {
