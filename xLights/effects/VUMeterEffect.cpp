@@ -89,6 +89,16 @@ void VUMeterEffect::SetDefaultParameters(Model *cls)
     vp->BitmapButton_VUMeter_YOffsetVC->SetActive(false);
 }
 
+void VUMeterEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
+{
+    wxString timing = effect->GetSettings().Get("E_CHOICE_VUMeter_TimingTrack", "");
+
+    if (timing.ToStdString() == oldname)
+    {
+        effect->GetSettings()["E_CHOICE_VUMeter_TimingTrack"] = wxString(newname);
+    }
+}
+
 void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,

@@ -15,6 +15,7 @@ class FacesEffect : public RenderableEffect
         virtual void SetPanelStatus(Model *cls) override;
         virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:

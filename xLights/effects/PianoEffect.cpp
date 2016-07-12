@@ -112,6 +112,21 @@ void PianoEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(pp->Slider_Piano_XOffset, 0);
 }
 
+void PianoEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
+{
+    wxString type = effect->GetSettings().Get("E_CHOICE_Piano_Notes_Source", "");
+
+    if (type == "Timing Track")
+    {
+        wxString timing = effect->GetSettings().Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "");
+
+        if (timing.ToStdString() == oldname)
+        {
+            effect->GetSettings()["E_CHOICE_Piano_MIDITrack_APPLYLAST"] = wxString(newname);
+        }
+    }
+}
+
 void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     RenderPiano(buffer,

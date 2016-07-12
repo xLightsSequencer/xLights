@@ -100,6 +100,16 @@ void StateEffect::SetDefaultParameters(Model *cls) {
     SetChoiceValue(sp->Choice_State_Color, "Graduate");
 }
 
+void StateEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
+{
+    wxString timing = effect->GetSettings().Get("E_CHOICE_State_TimingTrack", "");
+
+    if (timing.ToStdString() == oldname)
+    {
+        effect->GetSettings()["E_CHOICE_State_TimingTrack"] = wxString(newname);
+    }
+}
+
 void StateEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     RenderState(buffer,
                 effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),

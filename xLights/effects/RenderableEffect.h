@@ -48,6 +48,7 @@ class RenderableEffect
         //Methods for rendering the effect
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) { return true; }
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) = 0;
+        virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect *effect) { }
 
         virtual bool CanBeRandom() {return true;}
 

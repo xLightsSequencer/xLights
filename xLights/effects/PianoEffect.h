@@ -18,6 +18,7 @@ class PianoEffect : public RenderableEffect
 		static std::vector<float> Parse(wxString& l);
         virtual void SetDefaultParameters(Model *cls) override;
         virtual void SetPanelStatus(Model *cls) override;
+        virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

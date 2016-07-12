@@ -9,7 +9,7 @@
 #include "../xLightsMain.h"
 #include "../LyricsDialog.h"
 #include "../xLightsXmlFile.h"
-
+#include "../effects/RenderableEffect.h"
 
 static const std::string STR_EMPTY("");
 static const std::string STR_NAME("name");
@@ -155,6 +155,52 @@ bool SequenceElements::ElementExists(const std::string &elementName, int view)
         }
     }
     return false;
+}
+
+void SequenceElements::RenameTimingTrack(std::string oldname, std::string newname)
+{
+    // actual timing track name already updated ... we just need to update any effects that care about the timing track name
+    // faces, state, piano, vumeter
+
+    std::vector<RenderableEffect*> effects(GetEffectManager().size());
+    int count = 0;
+    for (int x = 0; x < GetEffectManager().size(); x++) {
+        RenderableEffect *eff = GetEffectManager()[x];
+        effects[x] = eff;
+    }
+
+    for (size_t i = 0; i < GetElementCount(); i++) {
+        Element* elem = GetElement(i);
+        if (elem->GetType() == "model") {
+            for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
+                EffectLayer* layer = elem->GetEffectLayer(j);
+                for (int k = 0; k < layer->GetEffectCount(); k++) {
+                    Effect* eff = layer->GetEffect(k);
+                    if (effects[eff->GetEffectIndex()] != nullptr) {
+                        effects[eff->GetEffectIndex()]->RenameTimingTrack(oldname, newname, eff);
+                    }
+                }
+            }
+            for (int j = 0; j < elem->getStrandLayerCount(); j++) {
+                StrandLayer* layer = elem->GetStrandLayer(j);
+                for (int k = 0; k < layer->GetEffectCount(); k++) {
+                    Effect* eff = layer->GetEffect(k);
+                    if (effects[eff->GetEffectIndex()] != nullptr) {
+                        effects[eff->GetEffectIndex()]->RenameTimingTrack(oldname, newname, eff);
+                    }
+                }
+                for (int k = 0; k < layer->GetNodeLayerCount(); k++) {
+                    NodeLayer* nlayer = layer->GetNodeLayer(k);
+                    for (int l = 0; l < nlayer->GetEffectCount(); l++) {
+                        Effect* eff = nlayer->GetEffect(l);
+                        if (effects[eff->GetEffectIndex()] != nullptr) {
+                            effects[eff->GetEffectIndex()]->RenameTimingTrack(oldname, newname, eff);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 bool SequenceElements::TimingIsPartOfView(Element* timing, int view)

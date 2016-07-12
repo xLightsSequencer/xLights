@@ -119,6 +119,7 @@ class SequenceElements : public ChangeListener
         int GetNumberOfTimingRows();
         int GetNumberOfTimingElements();
         bool ElementExists(const std::string &elementName, int view = MASTER_VIEW);
+        void RenameTimingTrack(std::string oldname, std::string newname);
         bool TimingIsPartOfView(Element* timing, int view);
         std::string GetViewName(int view) const;
 

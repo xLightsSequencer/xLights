@@ -32,6 +32,7 @@ const long RowHeading::ID_ROW_MNU_PASTE_ROW = wxNewId();
 
 // Timing Track popup menu
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
+const long RowHeading::ID_ROW_MNU_RENAME_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_TIMING_TRACK = wxNewId();
@@ -208,6 +209,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
     else
     {
         mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK,"Add Timing Track");
+        mnuLayer.Append(ID_ROW_MNU_RENAME_TIMING_TRACK, "Rename Timing Track");
         mnuLayer.Append(ID_ROW_MNU_DELETE_TIMING_TRACK,"Delete Timing Track");
         mnuLayer.Append(ID_ROW_MNU_IMPORT_TIMING_TRACK, "Import Timing Track");
         mnuLayer.Append(ID_ROW_MNU_EXPORT_TIMING_TRACK, "Export Timing Track");
@@ -289,6 +291,22 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                                                        "timing",true,false,true,false);
             e->AddEffectLayer();
             mSequenceElements->AddTimingToAllViews(name);
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        }
+    }
+    else if (id == ID_ROW_MNU_RENAME_TIMING_TRACK)
+    {
+        std::string name = wxGetTextFromUser("What is the new name of the timing track?", "Timing Track Name").ToStdString();
+        if (mSequenceElements->ElementExists(name))
+        {
+            wxMessageBox("Timing name already exists in sequence as a model or another timing.", "ERROR");
+        }
+        else if (name.size()>0)
+        {
+            std::string oldname = element->GetName();
+            element->SetName(name);
+            mSequenceElements->RenameTimingTrack(oldname, name);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }

@@ -16,6 +16,7 @@ class VUMeterEffect : public RenderableEffect
                     int bars, const std::string& type, const std::string& timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset);
 		virtual void SetDefaultParameters(Model *cls) override;
         virtual void SetPanelStatus(Model *cls) override;
+        virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
 		int DecodeType(std::string type);
