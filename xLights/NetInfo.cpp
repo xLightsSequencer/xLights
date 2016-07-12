@@ -26,6 +26,14 @@ inline std::string string_format(const std::string fmt, ...) {
 void NetInfoClass::Clear()
 {
     NetMaxChannel.clear();
+    NetUniverse.clear();
+    NetUniverseChannel.clear();
+}
+
+void NetInfoClass::AddUniverseNetwork(size_t Universe, size_t NumChannels)
+{
+    NetUniverse.push_back(Universe);
+    NetUniverseChannel.push_back(NumChannels);
 }
 
 void NetInfoClass::AddNetwork(size_t NumChannels)
@@ -63,6 +71,22 @@ int NetInfoClass::CalcAbsChannel(int NetNum, int NetCh) const
             AbsChannel += NetMaxChannel[i];
         }
     }
+    return AbsChannel;
+}
+
+// first channel starts with 0
+int NetInfoClass::CalcUniverseChannel(size_t Universe, int Ch) const
+{
+    int AbsChannel = -1;
+    for (size_t i = 0; i < NetUniverse.size(); i++)
+    {
+        if (NetUniverse[i] == Universe)
+        {
+            return AbsChannel + Ch + 1;
+        }
+        AbsChannel += NetUniverseChannel[i];
+    }
+
     return AbsChannel;
 }
 

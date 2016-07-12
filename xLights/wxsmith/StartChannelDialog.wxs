@@ -73,6 +73,25 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
+								<object class="wxRadioButton" name="ID_RADIOBUTTON5" variable="UniverseButton" member="yes">
+									<label>Universe Number</label>
+									<handler function="OnButtonSelect" entry="EVT_RADIOBUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSpinCtrl" name="ID_SPINCTRL3" variable="UniverseSpin" member="yes">
+									<value>1</value>
+									<min>1</min>
+									<max>65534</max>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
 								<object class="wxRadioButton" name="ID_RADIOBUTTON3" variable="ModelButton" member="yes">
 									<label>End of Model</label>
 									<handler function="OnButtonSelect" entry="EVT_RADIOBUTTON" />

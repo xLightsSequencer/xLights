@@ -24,10 +24,12 @@ class StartChannelDialog: public wxDialog
 		wxRadioButton* NoneButton;
 		wxChoice* ModelChoice;
 		wxSpinCtrl* StartChannel;
+		wxSpinCtrl* UniverseSpin;
 		wxSpinCtrl* OutputSpin;
 		wxRadioButton* OutputButton;
 		wxRadioButton* ModelButton;
 		wxRadioButton* StartModelButton;
+		wxRadioButton* UniverseButton;
 		//*)
     
         void Set(const wxString &start, const ModelManager &models);
@@ -40,6 +42,8 @@ class StartChannelDialog: public wxDialog
 		static const long ID_RADIOBUTTON1;
 		static const long ID_RADIOBUTTON2;
 		static const long ID_SPINCTRL2;
+		static const long ID_RADIOBUTTON5;
+		static const long ID_SPINCTRL3;
 		static const long ID_RADIOBUTTON3;
 		static const long ID_CHOICE1;
 		static const long ID_RADIOBUTTON4;

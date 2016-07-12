@@ -46,8 +46,10 @@ public:
         n.Replace("&", "", true);
         n.Replace(":", "", true);
         n.Replace("|", "", true);
+        n.Replace("#", "", true);
+        n.Replace("@", "", true);
         // Other characters I could remove
-        //@#$%^*()?/|][{}`.
+        // $%^*()?/|][{}`.
         return n.ToStdString();
     }
 

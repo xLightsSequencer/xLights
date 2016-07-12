@@ -11,6 +11,8 @@ const long StartChannelDialog::ID_SPINCTRL1 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON1 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON2 = wxNewId();
 const long StartChannelDialog::ID_SPINCTRL2 = wxNewId();
+const long StartChannelDialog::ID_RADIOBUTTON5 = wxNewId();
+const long StartChannelDialog::ID_SPINCTRL3 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON3 = wxNewId();
 const long StartChannelDialog::ID_CHOICE1 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON4 = wxNewId();
@@ -57,6 +59,11 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	OutputSpin = new wxSpinCtrl(this, ID_SPINCTRL2, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 9999, 1, _T("ID_SPINCTRL2"));
 	OutputSpin->SetValue(_T("1"));
 	FlexGridSizer3->Add(OutputSpin, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	UniverseButton = new wxRadioButton(this, ID_RADIOBUTTON5, _("Universe Number"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON5"));
+	FlexGridSizer3->Add(UniverseButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	UniverseSpin = new wxSpinCtrl(this, ID_SPINCTRL3, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 65534, 1, _T("ID_SPINCTRL3"));
+	UniverseSpin->SetValue(_T("1"));
+	FlexGridSizer3->Add(UniverseSpin, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ModelButton = new wxRadioButton(this, ID_RADIOBUTTON3, _("End of Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
 	FlexGridSizer3->Add(ModelButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ModelChoice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
@@ -77,6 +84,7 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 
 	Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
+	Connect(ID_RADIOBUTTON5,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	//*)
@@ -102,16 +110,28 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models) {
             ModelChoice->Enable();
             StartModelButton->SetValue(true);
             OutputSpin->Disable();
+            UniverseSpin->Disable();
             ModelChoice->SetStringSelection(sNet.SubString(1, sNet.size()));
-        } else if (sNet[0] == '>' || sNet[0] == '<' || models[sNet.ToStdString()] != nullptr) {
+        }
+        else if (sNet[0] == '#')
+        {
+            ModelChoice->Disable();
+            OutputSpin->Disable();
+            UniverseSpin->Enable();
+            UniverseButton->SetValue(true);
+            UniverseSpin->SetValue(sNet.SubString(1, sNet.size()));
+        }
+        else if (sNet[0] == '>' || sNet[0] == '<' || models[sNet.ToStdString()] != nullptr) {
             ModelChoice->Enable();
             ModelButton->SetValue(true);
             OutputSpin->Disable();
+            UniverseSpin->Disable();
             ModelChoice->SetStringSelection(sNet[0] == '<' || sNet[0] == '>'  ? sNet.SubString(1, sNet.size()) : sNet);
         } else {
             OutputSpin->SetValue(sNet);
             ModelChoice->Disable();
             OutputSpin->Enable();
+            UniverseSpin->Disable();
             OutputButton->SetValue(true);
         }
         start = start.SubString(start.Find(":") + 1, start.size());
@@ -119,13 +139,19 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models) {
         NoneButton->SetValue(true);
         OutputSpin->Disable();
         ModelChoice->Disable();
+        UniverseSpin->Disable();
     }
     StartChannel->SetValue(start);
 }
 std::string StartChannelDialog::Get() {
     if (OutputButton->GetValue() && OutputSpin->GetValue() != 1) {
         return std::to_string(OutputSpin->GetValue()) + ":" + std::to_string(StartChannel->GetValue());
-    } else if (ModelButton->GetValue()) {
+    }
+    else if (UniverseButton->GetValue() && UniverseSpin->GetValue() != 1)
+    {
+        return "#" + std::to_string(UniverseSpin->GetValue()) + ":" + std::to_string(StartChannel->GetValue());
+    }
+     else if (ModelButton->GetValue()) {
         return ">" + ModelChoice->GetStringSelection().ToStdString() + ":" + std::to_string(StartChannel->GetValue());
     } else if (StartModelButton->GetValue()) {
         return "@" + ModelChoice->GetStringSelection().ToStdString() + ":" + std::to_string(StartChannel->GetValue());
@@ -133,17 +159,23 @@ std::string StartChannelDialog::Get() {
     return std::to_string(StartChannel->GetValue());
 }
 
-
 void StartChannelDialog::OnButtonSelect(wxCommandEvent& event)
 {
     if (NoneButton->GetValue()) {
         ModelChoice->Disable();
         OutputSpin->Disable();
+        UniverseSpin->Disable();
     } else if (OutputButton->GetValue()) {
         ModelChoice->Disable();
         OutputSpin->Enable();
+        UniverseSpin->Disable();
+    } else if (UniverseButton->GetValue()) {
+        ModelChoice->Disable();
+        OutputSpin->Disable();
+        UniverseSpin->Enable();
     } else {
         ModelChoice->Enable();
         OutputSpin->Disable();
+        UniverseSpin->Disable();
     }
 }

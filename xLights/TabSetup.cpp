@@ -248,7 +248,8 @@ void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& typ
             wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
             long MaxChannels;
             MaxChannelsStr.ToLong(&MaxChannels);
-            currentcontrollerendchannel = currentcontrollerstartchannel + MaxChannels - 1;
+            int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
+            currentcontrollerendchannel = currentcontrollerstartchannel + (MaxChannels * ucount) - 1;
 
             if (channel >= currentcontrollerstartchannel && channel <= currentcontrollerendchannel)
             {
@@ -263,13 +264,18 @@ void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& typ
                 else if (type == "E131")
                 {
                     ip = std::string(e->GetAttribute("ComPort", ""));
-                    u = std::string(e->GetAttribute("BaudRate", ""));
+                    int uu = wxAtoi(e->GetAttribute("BaudRate", ""));
+                    if (ucount > 1)
+                    {
+                        uu += (channel - currentcontrollerstartchannel) / MaxChannels;
+                        channeloffset -= (channel - currentcontrollerstartchannel) / MaxChannels * MaxChannels;
+                    }
+                    u = wxString::Format("%d", uu).ToStdString();
                 }
                 else if (type == "DMX")
                 {
                     ip = std::string(e->GetAttribute("ComPort", ""));
                     u = std::string(e->GetAttribute("BaudRate", ""));
-                    int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
                     // adjust end channel because this has multiple universes
                     currentcontrollerendchannel = currentcontrollerendchannel + (ucount - 1) * MaxChannels;
                     if (ucount > 1)
@@ -309,7 +315,8 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 			wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
 			long MaxChannels;
 			MaxChannelsStr.ToLong(&MaxChannels);
-			currentcontrollerendchannel = currentcontrollerstartchannel + MaxChannels - 1;
+            int universes = wxAtoi(e->GetAttribute("NumUniverses", "1"));
+            currentcontrollerendchannel = currentcontrollerstartchannel + (MaxChannels * universes) - 1;
 
 			if (channel >= currentcontrollerstartchannel && channel <= currentcontrollerendchannel)
 			{
@@ -330,9 +337,14 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 				{
 					s = s + "Type: E1.31\n";
 					std::string ip = std::string(e->GetAttribute("ComPort", ""));
-					std::string u = std::string(e->GetAttribute("BaudRate", ""));
-					s = s + "IP: " + ip + "\n";
-					s = s + "Universe: " + u + "\n";
+					int u = wxAtoi(e->GetAttribute("BaudRate", ""));
+                    if (universes > 1)
+                    {
+                        u += (channel - currentcontrollerstartchannel) / MaxChannels;
+                        channeloffset -= (channel - currentcontrollerstartchannel) / MaxChannels * MaxChannels;
+                    }
+                    s = s + "IP: " + ip + "\n";
+					s = s + "Universe: " + wxString::Format("%d", u).ToStdString() + "\n";
 					s = s + "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
 				}
 				else if (type == "DMX")
@@ -394,9 +406,21 @@ void xLightsFrame::UpdateNetworkList()
                 int u = wxAtoi(e->GetAttribute("BaudRate", "1"));
                 GridNetwork->SetItem(newidx,2,wxString::Format("%d-%d",u,(u + i - 1)));
                 MaxChannelsStr = MaxChannelsStr + "x" + e->GetAttribute("NumUniverses");
+                if (NetName == "E131")
+                {
+                    for (int x = 0; x < i; x++)
+                    {
+                        NetInfo.AddUniverseNetwork(u + x, MaxChannels);
+                    }
+                }
                 MaxChannels *= i;
             } else {
                 GridNetwork->SetItem(newidx,2,e->GetAttribute("BaudRate", ""));
+                if (NetName == "E131")
+                {
+                    int u = wxAtoi(e->GetAttribute("BaudRate", "1"));
+                    NetInfo.AddUniverseNetwork(u, MaxChannels);
+                }
             }
             GridNetwork->SetItem(newidx,3,MaxChannelsStr);
 

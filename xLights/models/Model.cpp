@@ -847,13 +847,22 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
             if (m != nullptr && m->CouldComputeStartChannel) {
                 if (fromStart) {
                     return m->GetFirstChannel() + returnChannel;
-                } else {
+                }
+                else {
                     return m->GetLastChannel() + returnChannel + 1;
                 }
-            } else {
+            }
+            else {
                 valid = false;
                 output = 1;
             }
+        }
+        else if (start[0] == '#'){
+            int returnChannel = wxAtoi(sc);
+            int universe = wxAtoi(wxString(start).SubString(1, wxString(start).Find(":") - 1));
+
+            // find output based on universe number ...
+            return modelManager.GetNetInfo().CalcUniverseChannel(universe, returnChannel);
         } else {
             output = wxAtoi(start);
             if (output == 0) {
