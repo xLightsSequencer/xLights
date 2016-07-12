@@ -3239,7 +3239,7 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
         return;
     }
 
-    f.Write(_("Model Name,Display As,String Type,String Count,Node Count,Channel Count,Start Channel,Start Channel No,End Channel No,My Display,Controller Type,Controller Description,IP,Universe,Controller Channel,Inactive\n"));
+    f.Write(_("Model Name,Display As,String Type,String Count,Node Count,Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,My Display,Controller Type,Controller Description,Output,IP,Universe,Controller Channel,Inactive\n"));
 
     for (auto m = PreviewModels.begin(); m != PreviewModels.end(); m++)
     {
@@ -3247,14 +3247,15 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
         wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
         int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
         std::string type, description, ip, universe, inactive;
-        int channeloffset;
-        GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive);
-        f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",%d,%d,%d,%s,%d,%d,%s,%s,\"%s\",%s,%s,%d,%s\n",
+        int channeloffset, output;
+        GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output);
+        f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",%d,%d,%d,%d,%s,%d,%d,%s,%s,\"%s\",%d,%s,%s,%d,%s\n",
             model->name,
             model->GetDisplayAs(),
             model->GetStringType(),
             model->GetNodeCount() / model->NodesPerString(),
             model->GetNodeCount(),
+            model->GetChanCountPerNode(),
             model->GetChanCount(),
             stch,
             ch,
@@ -3262,6 +3263,7 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
             model->GetLayoutGroup(),
             type,
             description,
+            output,
             ip,
             universe,
             channeloffset,

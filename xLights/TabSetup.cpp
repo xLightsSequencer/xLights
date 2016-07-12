@@ -227,7 +227,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
     FileNameText->SetLabel(newdir);
 }
 
-void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& type, std::string& description, int& channeloffset, std::string &ip, std::string& u, std::string& inactive)
+void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& type, std::string& description, int& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output)
 {
     type = "Unknown";
     description = "";
@@ -235,6 +235,7 @@ void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& typ
     ip = "";
     u = "";
     inactive = "";
+    output = 0;
 
     wxXmlNode* e = NetworkXML.GetRoot();
     long currentcontrollerstartchannel = 0;
@@ -244,6 +245,7 @@ void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& typ
     {
         if (e->GetName() == "network")
         {
+            output++;
             currentcontrollerstartchannel = currentcontrollerendchannel + 1;
             wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
             long MaxChannels;
@@ -295,9 +297,12 @@ void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& typ
                 {
                     inactive = "FALSE";
                 }
+                return;
             }
         }
     }
+
+    output = -1;
 }
 
 std::string xLightsFrame::GetChannelToControllerMapping(long channel)
