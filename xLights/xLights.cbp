@@ -460,6 +460,8 @@
 		<Unit filename="ChannelLayoutDialog.cpp" />
 		<Unit filename="ChannelLayoutDialog.h" />
 		<Unit filename="Color.cpp" />
+		<Unit filename="ColorGradientDialog.cpp" />
+		<Unit filename="ColorGradientDialog.h" />
 		<Unit filename="ColorPanel.cpp" />
 		<Unit filename="ColorPanel.h" />
 		<Unit filename="ConvertDialog.cpp" />
@@ -960,6 +962,7 @@
 		<Unit filename="wxsmith/BufferPanel.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
+		<Unit filename="wxsmith/ColorGradientDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
 		<Unit filename="wxsmith/ColorWashPanel.wxs" />
 		<Unit filename="wxsmith/ConvertDialog.wxs" />
@@ -1185,6 +1188,7 @@
 					<wxDialog wxs="wxsmith/ValueCurveDialog.wxs" src="ValueCurveDialog.cpp" hdr="ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ModelGroupPanel.wxs" src="ModelGroupPanel.cpp" hdr="ModelGroupPanel.h" fwddecl="0" i18n="1" name="ModelGroupPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/PreviewPane.wxs" src="PreviewPane.cpp" hdr="PreviewPane.h" fwddecl="0" i18n="1" name="PreviewPane" language="CPP" />
+					<wxDialog wxs="wxsmith/ColorGradientDialog.wxs" src="ColorGradientDialog.cpp" hdr="ColorGradientDialog.h" fwddecl="0" i18n="1" name="ColorGradientDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

@@ -159,6 +159,8 @@
     <ClCompile Include="BufferPanel.cpp" />
     <ClCompile Include="ChannelLayoutDialog.cpp" />
     <ClCompile Include="Color.cpp" />
+    <ClCompile Include="ColorCurve.cpp" />
+    <ClCompile Include="ColorGradientDialog.cpp" />
     <ClCompile Include="ColorPanel.cpp" />
     <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="ConvertLogDialog.cpp" />
@@ -414,6 +416,8 @@
     <ClInclude Include="BufferPanel.h" />
     <ClInclude Include="ChannelLayoutDialog.h" />
     <ClInclude Include="Color.h" />
+    <ClInclude Include="ColorCurve.h" />
+    <ClInclude Include="ColorGradientDialog.h" />
     <ClInclude Include="ColorPanel.h" />
     <ClInclude Include="ConvertDialog.h" />
     <ClInclude Include="ConvertLogDialog.h" />
