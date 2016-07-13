@@ -1028,22 +1028,28 @@ void xLightsFrame::SaveFPPUniverses(std::string path)
                 if (type == "E131")
                 {
                     std::string ip = std::string(e->GetAttribute("ComPort", ""));
-                    std::string universe = std::string(e->GetAttribute("BaudRate", ""));
+                    int universe = wxAtoi(e->GetAttribute("BaudRate", ""));
                     wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
                     long chan;
                     MaxChannelsStr.ToLong(&chan);
-                    long end = count + chan - 1;
 
-                    if (ip == "MULTICAST")
-                    {
-                        universes.Write("1," + universe + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",0,,\r\n");
-                    }
-                    else
-                    {
-                        universes.Write("1," + universe + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",1," + ip + ",\r\n");
-                    }
+                    int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
 
-                    count = end + 1;
+                    for (size_t i = 0; i < ucount; i++)
+                    {
+                        long end = count + chan - 1;
+
+                        if (ip == "MULTICAST")
+                        {
+                            universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",0,,\r\n");
+                        }
+                        else
+                        {
+                            universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",1," + ip + ",\r\n");
+                        }
+
+                        count = end + 1;
+                    }
                 }
             }
         }
