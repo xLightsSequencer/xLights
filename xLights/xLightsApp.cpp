@@ -305,7 +305,10 @@ void handleCrash(void *data) {
     if (wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").Exists()) {
         report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
     }
-	
+    if (topFrame->UnsavedRgbEffectsChanges &&  wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp").Exists()) {
+        report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
+    }
+
     wxString dir;
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);
@@ -320,6 +323,7 @@ void handleCrash(void *data) {
 #ifdef __LINUX__
     std::string filename = "/tmp/xLights_l4cpp.log";
 #endif
+    
     if (wxFile::Exists(filename))
     {
         report->AddFile(filename, "xLights_l4cpp.log");
@@ -332,10 +336,32 @@ void handleCrash(void *data) {
     {
         report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
     }
+
     if (topFrame->GetSeqXmlFileName() != "") {
         wxFileName fn(topFrame->GetSeqXmlFileName());
         if (fn.Exists() && !fn.IsDir()) {
             report->AddFile(topFrame->GetSeqXmlFileName(), fn.GetName());
+            wxFileName fnb(fn.GetPath() + "/" + fn.GetName() + ".xbkp");
+            if (fnb.Exists())
+            {
+                report->AddFile(fnb.GetFullPath(), fnb.GetName());
+            }
+        }
+        else
+        {
+            wxFileName fnb(topFrame->CurrentDir + "/" + "__.xbkp");
+            if (fnb.Exists())
+            {
+                report->AddFile(fnb.GetFullPath(), fnb.GetName());
+            }
+        }
+    }
+    else
+    {
+        wxFileName fnb(topFrame->CurrentDir + "/" + "__.xbkp");
+        if (fnb.Exists())
+        {
+            report->AddFile(fnb.GetFullPath(), fnb.GetName());
         }
     }
     wxString trace = wxString::Format("xLights version %s\n", xlights_version_string);

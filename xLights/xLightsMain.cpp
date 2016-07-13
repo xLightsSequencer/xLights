@@ -2963,6 +2963,9 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
     if (wxFileName(CurrentDir, "xlights_rgbeffects.xml").Exists()) {
         report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
     }
+    if (UnsavedRgbEffectsChanges &&  wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").Exists()) {
+        report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
+    }
 
     AddLogFile(CurrentDir, "xLights_l4cpp.log", report);
     //if the rolled log exists, add it to just in case it has the information we need
@@ -2972,9 +2975,39 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
         wxFileName fn(GetSeqXmlFileName());
         if (fn.Exists() && !fn.IsDir()) {
             report.AddFile(GetSeqXmlFileName(), fn.GetName());
+            if (mSavedChangeCount != mSequenceElements.GetChangeCount())
+            {
+                wxFileName fnb(fn.GetPath() + "/" + fn.GetName() + ".xbkp");
+                if (fnb.Exists())
+                {
+                    report.AddFile(fnb.GetFullPath(), fnb.GetName());
+                }
+            }
+        }
+        else
+        {
+            if (mSavedChangeCount != mSequenceElements.GetChangeCount())
+            {
+                wxFileName fnb(CurrentDir + "/" + "__.xbkp");
+                if (fnb.Exists())
+                {
+                    report.AddFile(fnb.GetFullPath(), fnb.GetName());
+                }
+            }
         }
     }
-    report.AddAll(wxDebugReport::Context_Current);
+    else
+    {
+        if (mSavedChangeCount != mSequenceElements.GetChangeCount())
+        {
+            wxFileName fnb(CurrentDir + "/" + "__.xbkp");
+            if (fnb.Exists())
+            {
+                report.AddFile(fnb.GetFullPath(), fnb.GetName());
+            }
+        }
+    }
+    //report.AddAll(wxDebugReport::Context_Current);
 }
 
 void xLightsFrame::OnMenuOpenGLSelected(wxCommandEvent& event)
@@ -3028,7 +3061,7 @@ void xLightsFrame::SaveWorking()
     else
     {
         wxFileName fnp(fn);
-        tmp = p + "/" + fnp.GetName()+ fnp.GetExt() + ".xbkp";
+        tmp = p + "/" + fnp.GetName() + ".xbkp";
     }
     wxFileName ftmp(tmp);
 
