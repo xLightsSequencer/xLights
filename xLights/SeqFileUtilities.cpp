@@ -36,7 +36,7 @@ void xLightsFrame::NewSequence()
     }
 	else
 	{
-		if (CurrentSeqXmlFile->GetMedia() != NULL)
+        if (CurrentSeqXmlFile->GetMedia() != NULL)
 		{
 			if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
 			{
@@ -53,6 +53,10 @@ void xLightsFrame::NewSequence()
 
     wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
     int ms = atoi(mss.c_str());
+
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("New sequence created Type %s Timing %dms.", (const char *)(CurrentSeqXmlFile->GetSequenceType().c_str()), ms);
+
     LoadSequencer(*CurrentSeqXmlFile);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
     std::string new_timing = "New Timing";
