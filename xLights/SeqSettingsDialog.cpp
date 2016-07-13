@@ -788,7 +788,6 @@ void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
         timing_list = xml_file->GetTimingList();
     }
     xLightsParent->RenameTimingElement(timing_list[selection].ToStdString(), new_name);
-    xml_file->SetTimingSectionName(timing_list[selection].ToStdString(), new_name);
 }
 
 void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)

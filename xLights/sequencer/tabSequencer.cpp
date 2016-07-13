@@ -1774,8 +1774,10 @@ void xLightsFrame::RenameTimingElement(const std::string& old_name, const std::s
 {
     Element* element = mSequenceElements.GetElement(old_name);
     if( element ) element->SetName(new_name);
+    mSequenceElements.RenameTimingTrack(old_name, new_name);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
+    CurrentSeqXmlFile->SetTimingSectionName(old_name, new_name);
 }
 
 void xLightsFrame::ExecuteImportTimingElement(wxCommandEvent &command) {

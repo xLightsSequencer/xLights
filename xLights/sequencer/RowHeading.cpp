@@ -305,10 +305,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         else if (name.size()>0)
         {
             std::string oldname = element->GetName();
-            element->SetName(name);
-            mSequenceElements->RenameTimingTrack(oldname, name);
-            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-            wxPostEvent(GetParent(), eventRowHeaderChanged);
+            mSequenceElements->GetXLightsFrame()->RenameTimingElement(oldname, name);
         }
     }
     else if(id == ID_ROW_MNU_DELETE_TIMING_TRACK)
