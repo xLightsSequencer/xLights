@@ -436,7 +436,7 @@ void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
     wxFileDialog dlg(this, "Choose Image File for " + key, fname.GetPath(),
                      wxEmptyString,
                      strSupportedImageTypes,
-                     wxFD_OPEN);
+                     wxFD_OPEN | wxFD_CHANGE_DIR);
     if (dlg.ShowModal() == wxID_OK) {
         wxString new_filename = dlg.GetPath();
         key.Replace(" ", "");
