@@ -35,7 +35,7 @@ RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 LIBDIR_LINUX_RELEASE = $(LIBDIR)
 LIB_LINUX_RELEASE = $(LIB)
-LDFLAGS_LINUX_RELEASE =  -s -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat $(LDFLAGS)
+LDFLAGS_LINUX_RELEASE =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat $(LDFLAGS)
 OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../bin/xLights
@@ -1770,7 +1770,7 @@ sequencer/MainSequencer.cpp: xLightsMain.h sequencer/MainSequencer.h RenderComma
 
 sequencer/RowHeading.cpp: sequencer/RowHeading.h sequencer/Waveform.h xLightsMain.h sequencer/EffectDropTarget.h BitmapCache.h sequencer/TimeLine.h
 
-sequencer/SequenceElements.cpp: sequencer/SequenceElements.h sequencer/TimeLine.h xLightsMain.h LyricsDialog.h xLightsXmlFile.h
+sequencer/SequenceElements.cpp: sequencer/SequenceElements.h sequencer/TimeLine.h xLightsMain.h LyricsDialog.h xLightsXmlFile.h effects/RenderableEffect.h
 
 effects/StrobePanel.cpp: effects/StrobePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
@@ -1778,7 +1778,7 @@ effects/SpirographPanel.cpp: effects/SpirographPanel.h ../include/padlock16x16-b
 
 effects/SpirographPanel.h: ValueCurveButton.h
 
-effects/StateEffect.cpp: effects/StateEffect.h effects/StatePanel.h models/Model.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h xLightsMain.h ../include/state.xpm
+effects/StateEffect.cpp: effects/StateEffect.h effects/StatePanel.h models/Model.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h xLightsMain.h ../include/state-16.xpm ../include/state-64.xpm
 
 effects/StateEffect.h: effects/RenderableEffect.h
 
@@ -2200,7 +2200,7 @@ effects/OffEffect.h: effects/RenderableEffect.h
 
 effects/OffPanel.cpp: effects/OffPanel.h
 
-effects/OnEffect.cpp: effects/OnEffect.h effects/OnPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/On.xpm
+effects/OnEffect.cpp: effects/OnEffect.h effects/OnPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h xLightsMain.h models/DmxModel.h ../include/On.xpm
 
 effects/OnEffect.h: effects/RenderableEffect.h
 
@@ -2306,7 +2306,7 @@ effects/FireworksEffect.h: effects/RenderableEffect.h
 
 effects/CirclesPanel.cpp: effects/CirclesPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
-effects/ColorWashEffect.cpp: effects/ColorWashEffect.h effects/ColorWashPanel.h sequencer/Effect.h sequencer/EffectLayer.h sequencer/Element.h RenderBuffer.h UtilClasses.h ../include/ColorWash.xpm
+effects/ColorWashEffect.cpp: effects/ColorWashEffect.h effects/ColorWashPanel.h sequencer/Effect.h sequencer/EffectLayer.h sequencer/Element.h RenderBuffer.h UtilClasses.h ../include/ColorWash.xpm xLightsMain.h models/DmxModel.h
 
 effects/ColorWashEffect.h: effects/RenderableEffect.h
 
