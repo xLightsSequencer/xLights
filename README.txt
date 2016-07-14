@@ -8,6 +8,13 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Add new #x.y format for specifying start channel x = universe, y = channel within universe
+   -- enh (keithsw) Include xbkp files in log packaging and crash dumps
+   -- bug (keithsw) Fix handling of multiple e131 universes in a single output
+   -- enh (keithsw) Add timing track renaming on sequencer window and make it automatically update any effects that were using the timing track
+   -- bug (keithsw) Prevent illegal characters in model and model group names
+   -- bug (keithsw) Handle duplicate timing tracks in XML file without crashing
+   -- enh (keithsw) Add additional columns to models export
 2016.40  Jul 10, 2016
    -- bug (gil)  Make the initial pane size larger for Model Preview, House Preview, and Effect Assist windows.  Fixes #617
    -- bug (dkulp) Fix dotted lines in model preview selection stuff
