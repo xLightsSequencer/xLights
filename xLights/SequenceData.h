@@ -64,6 +64,7 @@ private:
     
     unsigned char *invalidData;
     unsigned char *data;
+    unsigned int bytesPerFrame;
     unsigned int numChannels;
     unsigned int numFrames;
     unsigned int frameTime;

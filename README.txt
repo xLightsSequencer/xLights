@@ -8,6 +8,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (dkulp) Write all data in fseq file direcly in one call instead of copied by frame
+   -- enh (dkulp) Read from fseq files full frames at a time directly into data buffer instead of by channel
    -- enh (keithsw) Add new #x.y format for specifying start channel x = universe, y = channel within universe
    -- enh (keithsw) Include xbkp files in log packaging and crash dumps
    -- bug (keithsw) Fix handling of multiple e131 universes in a single output

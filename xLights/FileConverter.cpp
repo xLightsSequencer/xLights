@@ -112,7 +112,7 @@ static double rand01()
     return (double)rand()/(double)RAND_MAX;
 }
 
-static int rountTo4(int i)  {
+static unsigned int rountTo4(unsigned int i)  {
     int remainder = i % 4;
     if (remainder == 0) {
         return i;
@@ -1691,30 +1691,38 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     tmpBuf = new char[numChannels];
     while (periodsRead < falconPeriods)
     {
-        readcnt = f.Read(tmpBuf, numChannels);
-        if (readcnt < numChannels)
-        {
-            params.PlayerError(wxString("Unable to read all event data from:\n")+params.inp_filename);
-        }
-
-        int new_index;
-        for (i = 0; i < numChannels; i++)
-        {
-            new_index = i + channel_offset;
-            if( (new_index < 0) || (new_index >= numChannels) ) continue;
-            if(params.read_mode == ConvertParameters::READ_MODE_IGNORE_BLACK )
+        if (channel_offset == 0 && params.read_mode != ConvertParameters::READ_MODE_IGNORE_BLACK) {
+            readcnt = f.Read(&params.seq_data[periodsRead][0], numChannels);
+            if (readcnt < numChannels)
             {
-                if( tmpBuf[i] != 0 )
+                params.PlayerError(wxString("Unable to read all event data from:\n")+params.inp_filename);
+            }
+            
+        } else {
+            readcnt = f.Read(tmpBuf, numChannels);
+            if (readcnt < numChannels)
+            {
+                params.PlayerError(wxString("Unable to read all event data from:\n")+params.inp_filename);
+            }
+
+            int new_index;
+            for (i = 0; i < numChannels; i++)
+            {
+                new_index = i + channel_offset;
+                if( (new_index < 0) || (new_index >= numChannels) ) continue;
+                if(params.read_mode == ConvertParameters::READ_MODE_IGNORE_BLACK )
+                {
+                    if( tmpBuf[i] != 0 )
+                    {
+                        params.seq_data[periodsRead][new_index] = tmpBuf[i];
+                    }
+                }
+                else
                 {
                     params.seq_data[periodsRead][new_index] = tmpBuf[i];
                 }
             }
-            else
-            {
-                params.seq_data[periodsRead][new_index] = tmpBuf[i];
-            }
         }
-
         periodsRead++;
     }
     delete []tmpBuf;
@@ -1733,7 +1741,7 @@ void FileConverter::WriteFalconPiFile( ConvertParameters& params )
 	wxUint8 vMinor = 0;
     wxUint8 vMajor = 1;
     wxUint16 fixedHeaderLength = 28;
-    wxUint32 stepSize = rountTo4(params.seq_data.NumChannels());
+    size_t stepSize = rountTo4(params.seq_data.NumChannels());
 
     wxUint16 stepTime = params.seq_data.FrameTime();
     // Ignored by Pi Player
@@ -1749,7 +1757,6 @@ void FileConverter::WriteFalconPiFile( ConvertParameters& params )
     // Step Size must be multiple of 4
     //wxUint8 buf[stepSize];
 
-    size_t ch;
     if (!f.Create(params.out_filename,true))
     {
         params.ConversionError(wxString("Unable to create file: ")+params.out_filename);
@@ -1757,7 +1764,7 @@ void FileConverter::WriteFalconPiFile( ConvertParameters& params )
     }
 
     wxUint8* buf;
-    buf = (wxUint8 *)calloc(sizeof(wxUint8),stepSize < 1024 ? 1024 : stepSize);
+    buf = (wxUint8 *)calloc(sizeof(wxUint8), 1024);
 
     // Header Information
     // Format Identifier
@@ -1814,15 +1821,10 @@ void FileConverter::WriteFalconPiFile( ConvertParameters& params )
     buf[5] = (wxUint8)(fixedHeaderLength/256);
     f.Write(buf,fixedHeaderLength);
 
-
-    for (unsigned long period=0; period < params.seq_data.NumFrames(); period++)
-    {
-        for(ch=0; ch<stepSize; ch++)
-        {
-            buf[ch] = params.seq_data[period][ch];
-        }
-        f.Write(buf,stepSize);
-    }
+    size_t size = params.seq_data.NumFrames();
+    size *= stepSize;
+    
+    f.Write(&params.seq_data[0][0], size);
     f.Close();
     free(buf);
 	logger_conversion.debug("End fseq write");

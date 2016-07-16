@@ -13,11 +13,22 @@
 
 const unsigned char FrameData::constzero = 0;
 
+
+
+static unsigned int rountTo4(unsigned int i)  {
+    int remainder = i % 4;
+    if (remainder == 0) {
+        return i;
+    }
+    return i + 4 - remainder;
+}
+
 SequenceData::SequenceData() {
     data = NULL;
     invalidData = NULL;
     numFrames = 0;
     numChannels = 0;
+    bytesPerFrame = 0;
     frameTime = 50;
 }
 
@@ -42,9 +53,10 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
     this->numChannels = numChannels;
     this->numFrames = numFrames;
     this->frameTime = frameTime;
+    this->bytesPerFrame = rountTo4(numChannels);
 
     if (numFrames > 0 && numChannels > 0) {
-        unsigned long tmp = numChannels;
+        unsigned long tmp = bytesPerFrame;
         tmp *= numFrames;
         size_t sz = tmp;
         wxASSERT((unsigned long)sz == tmp); // if this fails then we are asking for more memory than the system can address
@@ -60,7 +72,7 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
             logger_base.debug("Memory allocated for frame data. Frames=%d, Channels=%d, Memory=%ld.", numFrames, numChannels, tmp);
         }
     }
-    invalidData = (unsigned char *)calloc(1, numChannels);
+    invalidData = (unsigned char *)calloc(1, bytesPerFrame);
 }
 
 FrameData SequenceData::operator[](unsigned int frame) {
@@ -68,7 +80,7 @@ FrameData SequenceData::operator[](unsigned int frame) {
         return FrameData(numChannels, invalidData);
     }
     std::ptrdiff_t offset = frame;
-    offset *= numChannels;
+    offset *= bytesPerFrame;
     return FrameData(numChannels, &data[offset]);
 }
 const FrameData SequenceData::operator[](unsigned int frame) const {
@@ -76,6 +88,6 @@ const FrameData SequenceData::operator[](unsigned int frame) const {
         return FrameData(numChannels, invalidData);
     }
     std::ptrdiff_t offset = frame;
-    offset *= numChannels;
+    offset *= bytesPerFrame;
     return FrameData(numChannels, &data[offset]);
 }

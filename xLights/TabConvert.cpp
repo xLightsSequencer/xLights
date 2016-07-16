@@ -638,7 +638,6 @@ void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, 
     wxUint32 stepSize = rountTo4(numChans);
     wxFile f;
 
-    size_t ch;
     if (!f.Create(filename, true))
     {
         ConversionError(wxString("Unable to create file: ") + filename);
@@ -675,17 +674,12 @@ void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, 
     buf[18] = (wxUint8)((modelSize >> 16) & 0xFF);
     buf[19] = (wxUint8)((modelSize >> 24) & 0xFF);
     f.Write(buf, fixedHeaderLength);
+    
+    size_t size = dataBuf->NumFrames();
+    size *= stepSize;
+    
+    f.Write(&(*dataBuf)[0][0], size);
 
-    for (long period = 0; period < numPeriods; period++)
-    {
-        //if (period % 500 == 499) AppendConvertStatus (string_format("Writing time period %ld\n",period+1));
-        wxYield();
-        for (ch = 0; ch<stepSize; ch++)
-        {
-            buf[ch] = (*dataBuf)[period][ch];
-        }
-        f.Write(buf, stepSize);
-    }
     f.Close();
     free(buf);
 }
@@ -777,7 +771,6 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
     // Step Size must be multiple of 4
     //wxUint8 buf[stepSize];
 
-    size_t ch;
     if (!f.Create(filename, true))
     {
         ConversionError(wxString("Unable to create file: ") + filename);
@@ -840,15 +833,10 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
     buf[5] = (wxUint8)(fixedHeaderLength / 256);
     f.Write(buf, fixedHeaderLength);
 
-
-    for (unsigned long period = 0; period < SeqData.NumFrames(); period++)
-    {
-        for (ch = 0; ch<stepSize; ch++)
-        {
-            buf[ch] = SeqData[period][ch];
-        }
-        f.Write(buf, stepSize);
-    }
+    size_t size = SeqData.NumFrames();
+    size *= stepSize;
+    
+    f.Write(&SeqData[0][0], size);
     f.Close();
     free(buf);
 }
