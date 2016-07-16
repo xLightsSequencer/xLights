@@ -66,14 +66,26 @@ void IciclesModel::InitModel() {
             curCoord++;
         }
     }
+    if (!IsLtoR) {
+        for(size_t n=0; n < Nodes.size(); n++) {
+            for (auto cd = Nodes[n]->Coords.begin(); cd != Nodes[n]->Coords.end(); cd++) {
+                cd->bufX = width - cd->bufX;
+                cd->screenX = width - cd->screenX;
+            }
+        }
+    }
     SetBufferSize(maxH, width+1);
     screenLocation.SetRenderSize(width, maxH);
 }
 
 
 
-
+static wxPGChoices LEFT_RIGHT;
 void IciclesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+    if (LEFT_RIGHT.GetCount() == 0) {
+        LEFT_RIGHT.Add("Left");
+        LEFT_RIGHT.Add("Right");
+    }
     
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "IciclesStrings", parm1));
     p->SetAttribute("Min", 1);
@@ -86,6 +98,8 @@ void IciclesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetEditor("SpinCtrl");
     
     p = grid->Append(new wxStringProperty("Drop Pattern", "IciclesDrops", GetModelXml()->GetAttribute("DropPattern", "3,4,5,4")));
+    
+    p = grid->Append(new wxEnumProperty("Starting Location", "IciclesStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
 }
 
 int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -102,6 +116,11 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     } else if ("IciclesDrops" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DropPattern");
         ModelXml->AddAttribute("DropPattern", event.GetPropertyValue().GetString());
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("IciclesStart" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("Dir");
+        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }
