@@ -320,9 +320,11 @@ class GenerateCustomModelDialog: public wxDialog
 		wxSlider* Slider_AdjustBlur;
 		wxButton* Button_GCM_SelectFile;
 		wxFlexGridSizer* FlexGridSizer14;
+		wxButton* ButtonBumpFwd;
 		wxPanel* Panel_Generate;
 		wxButton* Button_MI_NextFrame;
 		wxAuiNotebook* AuiNotebook1;
+		wxButton* ButtonBumpBack;
 		wxButton* Button_SF_Next;
 		wxStaticText* StaticText_StartFrameOk;
 		wxPanel* Panel_CustomModel;
@@ -401,6 +403,8 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_STATICTEXT11;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON1;
+		static const long ID_BUTTON7;
+		static const long ID_BUTTON8;
 		static const long ID_STATICTEXT4;
 		static const long ID_BUTTON2;
 		static const long ID_BUTTON4;
@@ -472,6 +476,8 @@ class GenerateCustomModelDialog: public wxDialog
 		void OnButton_MI_NextClick(wxCommandEvent& event);
 		void OnButton_CV_ManualClick(wxCommandEvent& event);
 		void OnButton_SF_ManualClick(wxCommandEvent& event);
+		void OnButtonBumpBackClick(wxCommandEvent& event);
+		void OnButtonBumpFwdClick(wxCommandEvent& event);
 		//*)
 
         void OnStaticBitmapLeftUp(wxMouseEvent& event);

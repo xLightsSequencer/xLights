@@ -135,6 +135,8 @@ const long GenerateCustomModelDialog::ID_PANEL_BulbIdentify = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT11 = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON3 = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON1 = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON7 = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON8 = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT4 = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON2 = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON4 = wxNewId();
@@ -194,6 +196,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer17;
 	wxStaticText* StaticText4;
+	wxFlexGridSizer* FlexGridSizer31;
 	wxFlexGridSizer* FlexGridSizer28;
 	wxFlexGridSizer* FlexGridSizer26;
 
@@ -419,6 +422,12 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Button_MI_NextFrame = new wxButton(Panel2, ID_BUTTON1, _("Next Frame"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer8->Add(Button_MI_NextFrame, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31 = new wxFlexGridSizer(0, 3, 0, 0);
+	ButtonBumpBack = new wxButton(Panel2, ID_BUTTON7, _("< Bump"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
+	FlexGridSizer31->Add(ButtonBumpBack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonBumpFwd = new wxButton(Panel2, ID_BUTTON8, _("Bump >"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
+	FlexGridSizer31->Add(ButtonBumpFwd, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(FlexGridSizer31, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer28 = new wxFlexGridSizer(0, 3, 0, 0);
 	StaticText12 = new wxStaticText(Panel2, ID_STATICTEXT4, _("Current Number: "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer28->Add(StaticText12, 1, wxALL|wxEXPAND, 5);
@@ -514,6 +523,8 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Connect(ID_BUTTON_BI_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BI_NextClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MI_PriorFrameClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MI_NextFrameClick);
+	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButtonBumpBackClick);
+	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButtonBumpFwdClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MI_UndoBulbClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MI_BackClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MI_NextClick);
@@ -1687,7 +1698,8 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         else
         {
             // handle videos here
-            int currentTime = _startframetime + LEADON + FLAGOFF + FLAGON + (0.9 * (float)FLAGOFF);
+            int zerotime = _startframetime + LEADON + FLAGOFF + FLAGON + (0.9 * (float)FLAGOFF);
+            int currentTime = zerotime;
             int n = 1;
             wxImage frame;
 
@@ -1695,13 +1707,15 @@ void GenerateCustomModelDialog::DoBulbIdentify()
             while (currentTime < _vr->GetLengthMS() && !_warned && sincefound < BLANKFRAMESBEFOREABORT)
             {
                 Gauge_Progress->SetValue((currentTime * 100) / _vr->GetLengthMS());
-                logger_gcm.info("   Looking for frame at %d.", currentTime);
+                logger_gcm.info("   Looking for frame at %d for node %d.", currentTime, n);
                 wxImage bwFrame;
                 wxImage grey;
                 int advance = 0;
                 bool toobright = false;
 
-                while ((!bwFrame.IsOk() || CountWhite(bwFrame) < 50 || toobright) && currentTime < _vr->GetLengthMS() && sincefound < BLANKFRAMESBEFOREABORT)
+                while ((!bwFrame.IsOk() || CountWhite(bwFrame) < 50 || toobright) &&
+                       currentTime < _vr->GetLengthMS() &&
+                       sincefound < BLANKFRAMESBEFOREABORT)
                 {
                     toobright = false;
                     sincefound++;
@@ -1713,7 +1727,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                             logger_gcm.info("   No bulb found so assuming bulb %d is not visible.", n);
                             advance = 0;
                             n++;
-                            currentTime = currentTime + (0.9 * (float)(NODEON + NODEOFF) - FRAMEMS);
+                            currentTime = zerotime + (n - 1)*(NODEON + NODEOFF);
                         }
                         else
                         {
@@ -1747,9 +1761,34 @@ void GenerateCustomModelDialog::DoBulbIdentify()
 
                 if (sincefound < BLANKFRAMESBEFOREABORT)
                 {
+                    int delta = currentTime - (zerotime + (n - 1)*(NODEON + NODEOFF));
+
                     sincefound = 0;
                     FindLights(bwFrame, n++, grey, frame.Copy());
-                    currentTime = currentTime + (0.9 * (float)(NODEON + NODEOFF));
+
+                    if (n == 1)
+                    {
+                        zerotime = currentTime - FRAMEMS;
+                    }
+                    else
+                    {
+                        // This helps correct for video drift
+                        if (abs(delta) > 2 * FRAMEMS)
+                        {
+                            if (delta < 0)
+                            {
+                                logger_gcm.info("   *** Video drift %d adjusting by %d.", delta, -1 * FRAMEMS);
+                                zerotime -= FRAMEMS;
+                            }
+                            else
+                            {
+                                logger_gcm.info("   *** Video drift %d adjusting by %d.", delta, FRAMEMS);
+                                zerotime += FRAMEMS;
+                            }
+                        }
+                    }
+
+                    currentTime = zerotime + (n - 1)*(NODEON + NODEOFF);
                 }
             }
 
@@ -2926,6 +2965,8 @@ void GenerateCustomModelDialog::MITabEntry(bool erase)
     {
         Button_MI_NextFrame->Hide();
         Button_MI_PriorFrame->Hide();
+        ButtonBumpBack->Hide();
+        ButtonBumpFwd->Hide();
         // static bitmap
         _MI_CurrentFrame = _startFrame;
         StaticText12->Hide();
@@ -2934,6 +2975,8 @@ void GenerateCustomModelDialog::MITabEntry(bool erase)
     {
         Button_MI_NextFrame->Show();
         Button_MI_PriorFrame->Show();
+        ButtonBumpBack->Show();
+        ButtonBumpFwd->Show();
         StaticText12->Show();
         StaticText12->SetLabel("Current: " + wxString::Format("%d", _MI_CurrentNode));
         _MI_CurrentTime = _startframetime + LEADON + FLAGOFF + FLAGON + FLAGOFF + (NODEON / 2) - (NODEON + NODEOFF) + (_MI_CurrentNode - 1) * (NODEON + NODEOFF);
@@ -3038,4 +3081,30 @@ void GenerateCustomModelDialog::MIValidateWindow()
             Button_MI_NextFrame->Enable();
         }
     }
+}
+
+void GenerateCustomModelDialog::OnButtonBumpBackClick(wxCommandEvent& event)
+{
+    _MI_CurrentTime -= FRAMEMS;
+    if (_MI_CurrentTime < _startframetime + LEADON + FLAGOFF + FLAGON + FLAGOFF + (NODEON / 2))
+    {
+        _MI_CurrentTime = _startframetime + LEADON + FLAGOFF + FLAGON + FLAGOFF + (NODEON / 2);
+    }
+    _MI_CurrentFrame = CreateImageFromFrame(_vr->GetNextFrame(_MI_CurrentTime)).Copy();
+    _biFrame = CreateManualMask(_MI_CurrentFrame);
+    ShowImage(_biFrame);
+    MIValidateWindow();
+}
+
+void GenerateCustomModelDialog::OnButtonBumpFwdClick(wxCommandEvent& event)
+{
+    _MI_CurrentTime += FRAMEMS;
+    if (_MI_CurrentTime > _vr->GetLengthMS())
+    {
+        _MI_CurrentTime -= FRAMEMS;
+    }
+    _MI_CurrentFrame = CreateImageFromFrame(_vr->GetNextFrame(_MI_CurrentTime)).Copy();
+    _biFrame = CreateManualMask(_MI_CurrentFrame);
+    ShowImage(_biFrame);
+    MIValidateWindow();
 }
