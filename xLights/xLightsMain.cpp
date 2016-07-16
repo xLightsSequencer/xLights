@@ -1285,7 +1285,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     mBackupOnSaveMenuItem->Check(mBackupOnSave);
     logger_base.debug("Backup on save: %s.", mBackupOnSave? "true" : "false");
 
-    config->Read("xLightsBackupOnLauncg", &mBackupOnLaunch, true);
+    config->Read("xLightsBackupOnLaunch", &mBackupOnLaunch, true);
     MenuItem_BackupOnLaunch->Check(mBackupOnLaunch);
     logger_base.debug("Backup on launch: %s.", mBackupOnLaunch? "true" : "false");
 
