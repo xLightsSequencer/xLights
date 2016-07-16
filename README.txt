@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp) Strobe node types not working correctly
    -- enh (dkulp) Add Left/Right starting locations for Icicles
    -- enh (dkulp) Write all data in fseq file direcly in one call instead of copied by frame
    -- enh (dkulp) Read from fseq files full frames at a time directly into data buffer instead of by channel

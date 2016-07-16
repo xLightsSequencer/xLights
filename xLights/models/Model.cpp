@@ -1140,7 +1140,7 @@ NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t N
         ret = new NodeClassWhite(ns,NodesPerString);
     } else if (StringType[0] == '#') {
         ret = new NodeClassCustom(ns,NodesPerString, xlColor(StringType));
-    } else if (StringType=="Strobes White 3fps") {
+    } else if (StringType=="Strobes White 3fps" || StringType=="Strobes") {
         ret = new NodeClassWhite(ns,NodesPerString);
     } else if (StringType=="4 Channel RGBW" || StringType == "RGBW") {
         ret = new NodeClassRGBW(ns,NodesPerString);
@@ -1348,7 +1348,7 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString, GetNextName())));
                 Nodes.back()->model = this;
             }
-        } else if (StringType=="Strobes White 3fps") {
+        } else if (StringType=="Strobes White 3fps" || StringType=="Strobes") {
             StrobeRate=7;  // 1 out of every 7 frames
             for(n=0; n<NumStrings; n++) {
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString, GetNextName())));
@@ -1387,6 +1387,8 @@ int Model::GetNodeChannelCount(const std::string & nodeType) {
     if (nodeType.compare(0, 12, "Single Color") == 0) {
         return 1;
     } else if (nodeType == "Strobes White 3fps") {
+        return 1;
+    } else if (nodeType == "Strobes") {
         return 1;
     } else if (nodeType == "4 Channel RGBW") {
         return 4;
