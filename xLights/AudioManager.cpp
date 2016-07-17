@@ -18,11 +18,14 @@ using namespace Vamp;
 Uint64  __audio_len;
 Uint8  *__audio_pos;
 float __playbackrate = 1.0f;
+std::mutex __audio_Lock;
 
 void  fill_audio(void *udata, Uint8 *stream, int len)
 {
 	//SDL 2.0
 	SDL_memset(stream, 0, len);
+
+    std::unique_lock<std::mutex> locker(__audio_Lock);
 
 	if (__audio_len == 0)		/*  Only  play  if  we  have  data  left  */
 	{
@@ -35,12 +38,16 @@ void  fill_audio(void *udata, Uint8 *stream, int len)
 	__audio_pos += len;
 	__audio_len -= len;
 }
+
 void AudioManager::Seek(int pos)
 {
 	if (pos < 0 || pos > _lengthMS)
 	{
 		return;
 	}
+
+    std::unique_lock<std::mutex> locker(__audio_Lock);
+
 	__audio_len = _pcmdatasize - (Uint64)pos * _rate * 2 * 2 / 1000;
 	// ensure it is aligned to 4 byte boundary as 2 channels with 2 bytes per channel is how the data is organised
 	__audio_len -= __audio_len % 4;
@@ -59,9 +66,13 @@ void AudioManager::Play(int posms, int lenms)
         return;
     }
 
-    __audio_len = lenms * _rate * 2 * 2 / 1000;
-    __audio_len -= __audio_len % 4;
-    __audio_pos = _pcmdata + ((Uint64)posms * _rate * 2 * 2 / 1000);
+    {
+        std::unique_lock<std::mutex> locker(__audio_Lock);
+        __audio_len = lenms * _rate * 2 * 2 / 1000;
+        __audio_len -= __audio_len % 4;
+        __audio_pos = _pcmdata + ((Uint64)posms * _rate * 2 * 2 / 1000);
+    }
+
     SDL_PauseAudio(0);
     _media_state = MEDIAPLAYINGSTATE::PLAYING;
 }
@@ -128,7 +139,9 @@ MEDIAPLAYINGSTATE AudioManager::GetPlayingState()
 // return where in the file we are up to playing
 int AudioManager::Tell()
 {
-	return (((_pcmdatasize - __audio_len) / 4) * _lengthMS)/ _trackSize;
+    std::unique_lock<std::mutex> locker(__audio_Lock);
+    
+    return (((_pcmdatasize - __audio_len) / 4) * _lengthMS)/ _trackSize;
 }
 
 AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int step = 1024, int block = 1024)

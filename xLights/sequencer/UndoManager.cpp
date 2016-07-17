@@ -1,6 +1,7 @@
 #include "UndoManager.h"
 #include "Element.h"
 #include "SequenceElements.h"
+#include <log4cpp/Category.hh>
 
 DeletedEffectInfo::DeletedEffectInfo( const std::string &element_name_, int layer_index_, const std::string &name_, const std::string &settings_,
                                       const std::string &palette_, int &startTimeMS_, int &endTimeMS_, int Selected_, bool Protected_ )
@@ -175,19 +176,35 @@ void UndoManager::UndoLastStep()
             {
             Element* element = mParentSequence->GetElement(next_action->moved_effect_info[0]->element_name);
             EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->moved_effect_info[0]->layer_index);
-            Effect* eff = el->GetEffectFromID(next_action->moved_effect_info[0]->id);
-            eff->SetStartTimeMS(next_action->moved_effect_info[0]->startTimeMS);
-            eff->SetEndTimeMS(next_action->moved_effect_info[0]->endTimeMS);
+            if (el == NULL)
+            {
+                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("UndoLastStep:UNDO_EFFECT_MOVED Element not found %d.", next_action->moved_effect_info[0]->layer_index);
+            }
+            else
+            {
+                Effect* eff = el->GetEffectFromID(next_action->moved_effect_info[0]->id);
+                eff->SetStartTimeMS(next_action->moved_effect_info[0]->startTimeMS);
+                eff->SetEndTimeMS(next_action->moved_effect_info[0]->endTimeMS);
+            }
             }
             break;
         case UNDO_EFFECT_MODIFIED:
-            {
+        {
             Element* element = mParentSequence->GetElement(next_action->modified_effect_info[0]->element_name);
             EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->modified_effect_info[0]->layer_index);
-            Effect* eff = el->GetEffectFromID(next_action->modified_effect_info[0]->id);
-            eff->SetSettings(next_action->modified_effect_info[0]->settings);
-            eff->SetPalette(next_action->modified_effect_info[0]->palette);
+            if (el == NULL)
+            {
+                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("UndoLastStep:UNDO_EFFECT_MODIFIED Element not found %d.", next_action->moved_effect_info[0]->layer_index);
             }
+            else
+            {
+                Effect* eff = el->GetEffectFromID(next_action->modified_effect_info[0]->id);
+                eff->SetSettings(next_action->modified_effect_info[0]->settings);
+                eff->SetPalette(next_action->modified_effect_info[0]->palette);
+            }
+         }
             break;
         }
         mUndoSteps.pop_back();
