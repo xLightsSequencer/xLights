@@ -1,9 +1,9 @@
 #include "SeqExportDialog.h"
 
 //(*InternalHeaders(SeqExportDialog)
+#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
-#include <wx/intl.h>
 //*)
 
 //(*IdInit(SeqExportDialog)
@@ -21,8 +21,8 @@ END_EVENT_TABLE()
 SeqExportDialog::SeqExportDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     //(*Initialize(SeqExportDialog)
-    wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, wxID_ANY, _("Export Sequence"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
@@ -39,6 +39,7 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     ChoiceFormat->Append(_("HLS, Hinkle Lighte Sequencer *.hlsnc"));
     ChoiceFormat->Append(_("xLights, *.xseq"));
     ChoiceFormat->Append(_("Falcon, *.fseq"));
+    ChoiceFormat->Append(_("Video, *.avi"));
     FlexGridSizer2->Add(ChoiceFormat, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("File name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);

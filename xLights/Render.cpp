@@ -927,6 +927,14 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         fullpath=oName.GetFullPath();
         WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels());
     }
+    else if (Out3 == "Vid")
+    {
+        wxString tempstr = GetModel(model)->ModelStartChannel;
+        int stChan = wxAtoi(tempstr);
+        oName.SetExt(_("avi"));
+        fullpath = oName.GetFullPath();
+        WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model));
+    }
     SetStatusText(_("Finished writing model: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
 
     delete data;

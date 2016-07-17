@@ -27,6 +27,7 @@
 								<item>HLS, Hinkle Lighte Sequencer *.hlsnc</item>
 								<item>xLights, *.xseq</item>
 								<item>Falcon, *.fseq</item>
+								<item>Video, *.avi</item>
 							</content>
 							<selection>0</selection>
 							<handler function="OnChoiceFormatSelect" entry="EVT_CHOICE" />
@@ -45,12 +46,12 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrlFilename" member="yes" />
-						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

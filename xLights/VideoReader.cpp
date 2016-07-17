@@ -83,7 +83,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	int lastframe = _videoStream->nb_frames;
     if (lastframe == 0 || _videoStream->avg_frame_rate.den == 0)
     {
-        logger_base.warn("VideoReader: dtspersec calc error _videoStream->nb_frames %d and _videoStream->avg_frame_rate.den %d cannot be zero. %s", _videoStream->nb_frames, _videoStream->avg_frame_rate.den, filename.c_str());
+        logger_base.warn("VideoReader: dtspersec calc error _videoStream->nb_frames %d and _videoStream->avg_frame_rate.den %d cannot be zero. %s", (int)_videoStream->nb_frames, (int)_videoStream->avg_frame_rate.den, (const char *)filename.c_str());
         logger_base.warn("VideoReader: Video seeking will only work back to the start of the video.");
         _dtspersec = 1;
     }
