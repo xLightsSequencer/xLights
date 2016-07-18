@@ -1936,6 +1936,7 @@ wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
     mainSequencer->GetSelectedEffectsData(copy_data);
     NewXml->AddAttribute("settings", copy_data);
     NewXml->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
+    NewXml->AddAttribute("xLightsVersion", xlights_version_string);
     return NewXml;
 }
 
@@ -1944,11 +1945,13 @@ void xLightsFrame::UpdateEffectNode(wxXmlNode* node)
     wxString copy_data;
     mainSequencer->GetSelectedEffectsData(copy_data);
     node->AddAttribute("settings", copy_data);
+    node->DeleteAttribute("xLightsVersion");
+    node->AddAttribute("xLightsVersion", xlights_version_string);
 }
 
-void xLightsFrame::ApplyEffectsPreset(wxString& data)
+void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion)
 {
-    mainSequencer->PanelEffectGrid->Paste(data);
+    mainSequencer->PanelEffectGrid->Paste(data, pasteDataVersion);
 }
 void xLightsFrame::PromoteEffects(wxCommandEvent &command) {
     Element *el = (Element*)command.GetClientData();

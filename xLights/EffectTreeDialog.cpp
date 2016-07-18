@@ -187,7 +187,7 @@ void EffectTreeDialog::ApplyEffect(bool dblClick)
             settings=ele->GetAttribute("settings");
             if (!settings.IsEmpty())
             {
-                xLightParent->ApplyEffectsPreset(settings);
+                xLightParent->ApplyEffectsPreset(settings, ele->GetAttribute("xLightsVersion", "4.0"));
             }
         }
     }
@@ -448,6 +448,7 @@ void EffectTreeDialog::AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID)
     wxString name = ele->GetAttribute("name");
     wxString settings = ele->GetAttribute("settings");
     wxString version = ele->GetAttribute("version", "0000");
+    wxString xlVer = ele->GetAttribute("xLightsVersion", "4.0");
     if (!name.IsEmpty())
     {
         parentData = (MyTreeItemData *)TreeCtrl1->GetItemData(curGroupID);
@@ -606,7 +607,10 @@ wxString XmlSafe(wxString s)
 
 void EffectTreeDialog::WriteEffect(wxFile& f, wxXmlNode* n)
 {
-    f.Write("<effect name=\"" + n->GetAttribute("name") + "\" settings=\""+XmlSafe(n->GetAttribute("settings"))+"\" version=\""+n->GetAttribute("version")+"\" />\n");
+    f.Write("<effect name=\"" + n->GetAttribute("name") + "\" settings=\""+XmlSafe(n->GetAttribute("settings"))
+            +"\" version=\""+n->GetAttribute("version")
+            +"\" xLightsVersion=\""+n->GetAttribute("xLightsVersion", "4.0")
+            +"\" />\n");
 }
 
 void EffectTreeDialog::WriteGroup(wxFile& f, wxXmlNode* n)

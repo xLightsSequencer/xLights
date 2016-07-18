@@ -437,10 +437,10 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                 PanelTimeLine->ZoomOut();
                 break;
             case RANDOM_EFFECT:
-                PanelEffectGrid->Paste("Random\t\t\n");
+                PanelEffectGrid->Paste("Random\t\t\n", xlights_version_string);
                 break;
             case EFFECT_STRING:
-                PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + "\t\n");
+                PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + "\t\n", binding->GetEffectDataVersion());
                 break;
         }
     }
@@ -649,7 +649,8 @@ void MainSequencer::Paste() {
     wxTextDataObject data;
     if (wxTheClipboard->Open()) {
         if (wxTheClipboard->GetData(data)) {
-            PanelEffectGrid->Paste(data.GetText());
+            //assume clipboard always has data from same version of xLights
+            PanelEffectGrid->Paste(data.GetText(), xlights_version_string);
         }
         wxTheClipboard->Close();
     }

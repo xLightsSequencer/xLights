@@ -8,6 +8,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp) When applying effect presets or key bindings, adjust for the xLights version that was used to create that effect/binding
+   -- bug (dkulp) Crash when trying to delete the background image
    -- bug (dkulp) Strobe node types not working correctly
    -- enh (dkulp) Add Left/Right starting locations for Icicles
    -- enh (dkulp) Write all data in fseq file direcly in one call instead of copied by frame

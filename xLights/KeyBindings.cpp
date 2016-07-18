@@ -5,7 +5,7 @@
 #include "wx/file.h"
 #include <wx/xml/xml.h>
 #include "KeyBindings.h"
-
+#include "xLightsMain.h"
 
 void KeyBindingMap::LoadDefaults() {
     bindings.push_back(KeyBinding('t', TIMING_ADD));
@@ -13,24 +13,24 @@ void KeyBindingMap::LoadDefaults() {
     bindings.push_back(KeyBinding('+', KEY_ZOOM_IN));
     bindings.push_back(KeyBinding('-', KEY_ZOOM_OUT));
     bindings.push_back(KeyBinding('R', RANDOM_EFFECT));
-    bindings.push_back(KeyBinding('o', "On", "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100"));
-    bindings.push_back(KeyBinding('u', "On", "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0"));
-    bindings.push_back(KeyBinding('d', "On", "E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100"));
-    bindings.push_back(KeyBinding('m', "Morph", ""));
-    bindings.push_back(KeyBinding('c', "Curtain", ""));
-    bindings.push_back(KeyBinding('i', "Circles", ""));
-    bindings.push_back(KeyBinding('b', "Bars", ""));
-    bindings.push_back(KeyBinding('y', "Butterfly", ""));
-    bindings.push_back(KeyBinding('f', "Fire", ""));
-    bindings.push_back(KeyBinding('g', "Garlands", ""));
-    bindings.push_back(KeyBinding('p', "Pinwheel", ""));
-    bindings.push_back(KeyBinding('r', "Ripple", ""));
-    bindings.push_back(KeyBinding('x', "Text", ""));
-    bindings.push_back(KeyBinding('S', "Spirals", ""));
-    bindings.push_back(KeyBinding('w', "Color Wash", ""));
-    bindings.push_back(KeyBinding('n', "Snowflakes", ""));
-	bindings.push_back(KeyBinding('O', "Off", ""));
-	bindings.push_back(KeyBinding('F', "Fan", ""));
+    bindings.push_back(KeyBinding('o', "On", "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100", xlights_version_string));
+    bindings.push_back(KeyBinding('u', "On", "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0", xlights_version_string));
+    bindings.push_back(KeyBinding('d', "On", "E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100", xlights_version_string));
+    bindings.push_back(KeyBinding('m', "Morph", "", xlights_version_string));
+    bindings.push_back(KeyBinding('c', "Curtain", "", xlights_version_string));
+    bindings.push_back(KeyBinding('i', "Circles", "", xlights_version_string));
+    bindings.push_back(KeyBinding('b', "Bars", "", xlights_version_string));
+    bindings.push_back(KeyBinding('y', "Butterfly", "", xlights_version_string));
+    bindings.push_back(KeyBinding('f', "Fire", "", xlights_version_string));
+    bindings.push_back(KeyBinding('g', "Garlands", "", xlights_version_string));
+    bindings.push_back(KeyBinding('p', "Pinwheel", "", xlights_version_string));
+    bindings.push_back(KeyBinding('r', "Ripple", "", xlights_version_string));
+    bindings.push_back(KeyBinding('x', "Text", "", xlights_version_string));
+    bindings.push_back(KeyBinding('S', "Spirals", "", xlights_version_string));
+    bindings.push_back(KeyBinding('w', "Color Wash", "", xlights_version_string));
+    bindings.push_back(KeyBinding('n', "Snowflakes", "", xlights_version_string));
+	bindings.push_back(KeyBinding('O', "Off", "", xlights_version_string));
+	bindings.push_back(KeyBinding('F', "Fan", "", xlights_version_string));
 }
 
 void KeyBindingMap::Load(wxFileName &fileName) {
@@ -61,7 +61,7 @@ void KeyBindingMap::Load(wxFileName &fileName) {
                         if (child->GetChildren() != NULL) {
                             settings = child->GetChildren()->GetContent();
                         }
-                        bindings.push_back(KeyBinding(k, effect, settings));
+                        bindings.push_back(KeyBinding(k, effect, settings, child->GetAttribute("xLightsVersion", "4.0")));
                     }
                 }
 
@@ -98,6 +98,7 @@ void KeyBindingMap::Save(wxFileName &fileName) {
         default:
             child->AddAttribute("type", "EFFECT");
             child->AddAttribute("effect", binding.GetEffectName());
+            child->AddAttribute("xLightsVersion", binding.GetEffectDataVersion());
             child->AddChild(new wxXmlNode(wxXML_TEXT_NODE, "", binding.GetEffectString()));
             break;
         }

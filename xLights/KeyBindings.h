@@ -21,22 +21,24 @@ enum KeyBindingType {
 
 class KeyBinding {
 public:
-    KeyBinding(unsigned char k, KeyBindingType t) : key(k), type(t) {
+    KeyBinding(unsigned char k, KeyBindingType t) : key(k), type(t), effectDataVersion() {
     }
-    KeyBinding(unsigned char k, const wxString &name, const wxString &eff) : key(k), type(EFFECT_STRING), effectName(name), effectString(eff) {
+    KeyBinding(unsigned char k, const wxString &name, const wxString &eff, const wxString &ver)
+        : key(k), type(EFFECT_STRING), effectName(name), effectString(eff), effectDataVersion(ver) {
     }
     
     KeyBindingType GetType() const { return type; }
     unsigned char GetKey() const { return key; }
     const wxString &GetEffectString() const { return effectString;}
     const wxString &GetEffectName() const { return effectName;}
-    
+    const wxString &GetEffectDataVersion() const { return effectDataVersion;}
     
 private:
     unsigned char key;
     KeyBindingType type;
     wxString effectName;
     wxString effectString;
+    wxString effectDataVersion;
 };
 
 class KeyBindingMap {

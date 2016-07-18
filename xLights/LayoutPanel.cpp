@@ -747,6 +747,7 @@ public:
         if (fn != lastFileName) {
             lastFileName = fn;
             delete m_pImage;
+            m_pImage = nullptr;
             if (fn.Exists()) {
                 m_pImage = new wxImage(fn.GetFullPath());
             }
