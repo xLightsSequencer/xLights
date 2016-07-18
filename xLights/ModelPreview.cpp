@@ -259,10 +259,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     mIsDrawing = true;
     SetCurrentGLContext();
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    if( mWindowResized )
-    {
-        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    }
+    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+    
     LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
     DrawGLUtils::PushMatrix();
     // Rotate Axis and translate

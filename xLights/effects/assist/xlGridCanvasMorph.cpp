@@ -348,10 +348,7 @@ void xlGridCanvasMorph::render( wxPaintEvent& event )
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    if( mWindowResized )
-    {
-        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    }
+    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
 
     if( mEffect != nullptr )
     {

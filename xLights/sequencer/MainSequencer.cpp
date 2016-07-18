@@ -116,10 +116,7 @@ protected:
         
         SetCurrentGLContext();
         glClear(GL_COLOR_BUFFER_BIT);
-        if( mWindowResized )
-        {
-            prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-        }
+        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
         static int fs = 14;
         DrawGLUtils::xlVertexTextAccumulator va;
         va.AddVertex(5, 3 + fs, time);

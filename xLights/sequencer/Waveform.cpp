@@ -259,11 +259,7 @@ void Waveform::renderGL( )
     SetCurrentGLContext();
 
     glClear(GL_COLOR_BUFFER_BIT);
-    
-    if( mWindowResized )
-    {
-        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    }
+    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
 
 	if (mCurrentWaveView >= 0)
 	{
