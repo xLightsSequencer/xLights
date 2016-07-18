@@ -694,6 +694,48 @@ void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, 
     free(buf);
 }
 
+class YCbCr
+{
+public:
+    float Y;
+    float Cb;
+    float Cr;
+
+    YCbCr(float y, float cb, float cr)
+    {
+        Y = y;
+        Cb = cb;
+        Cr = cr;
+    }
+
+    YCbCr(byte r, byte g, byte b)
+    {
+        float fr = (float)r / 255.0;
+        float fg = (float)g / 255.0;
+        float fb = (float)b / 255.0;
+
+        Y = (float)(0.2989 * fr + 0.5866 * fg + 0.1145 * fb);
+        Cb = (float)(-0.1687 * fr - 0.3313 * fg + 0.5000 * fb);
+        Cr = (float)(0.5000 * fr - 0.4184 * fg - 0.0816 * fb);
+    }
+
+    YCbCr(wxColor c)
+    {
+        YCbCr(c.Red(), c.Green(), c.Blue());
+    }
+};
+
+void my_av_log_callback(void *ptr, int level, const char *fmt, va_list vargs)
+{
+    static char message[8192];
+
+    // Create the actual message
+    vsnprintf_s(message, sizeof(message), fmt, vargs);
+
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("av: lvl: %d msg: %s.", level, (const char *)message);
+}
+
 void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, long numPeriods,
     SeqDataType *dataBuf, int startAddr, int modelSize, Model* model)
 {
@@ -712,59 +754,60 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     if (width % 2 > 0) width++;
     if (height % 2 > 0) height++;
     logger_base.debug("   Video dimensions %dx%d.", width, height);
+    logger_base.debug("   Video frames %ld.", numPeriods);
+
+    av_log_set_callback(my_av_log_callback);
 
     av_register_all();
 
-    AVOutputFormat* fmt = av_guess_format(NULL, filename, NULL);
-    if (!fmt) {
+    AVFormatContext* oc;
+    avformat_alloc_output_context2(&oc, NULL, NULL, filename);
+    if (!oc) 
+    {
         logger_base.warn("   Could not deduce output format from file extension : using MPEG.");
-        fmt = av_guess_format("mpeg", NULL, NULL);
+        avformat_alloc_output_context2(&oc, NULL, "mpeg", filename);
     }
-    if (!fmt) 
+
+    if (!oc)
     {
         logger_base.error("   Could not find suitable output format.");
         return;
     }
+    AVOutputFormat* fmt = oc->oformat;
 
-    AVFormatContext* oc = avformat_alloc_context();
-    if (!oc) 
+    AVCodec * codec = avcodec_find_encoder(fmt->video_codec);
+    if (!codec)
     {
-        logger_base.error("   Cannot allocate AVFormatContext.");
+        logger_base.error("   Cannot find codec %d.", fmt->video_codec);
         return;
     }
-    oc->oformat = fmt;
-    snprintf(oc->filename, sizeof(oc->filename), "%s", filename);
 
-    AVStream* st = avformat_new_stream(oc, NULL);
-    if (!st) 
+    AVStream* video_st = avformat_new_stream(oc, codec);
+    if (!video_st)
     {
         logger_base.error("   Cannot allocate stream.");
         return;
     }
+    video_st->id = oc->nb_streams - 1;
 
-    AVCodecContext* codecContext = st->codec;
+    video_st->time_base.num = 1;
+    video_st->time_base.den = 1000 / dataBuf->FrameTime();
+
+    AVCodecContext* codecContext = video_st->codec;
+
+    avcodec_get_context_defaults3(codecContext, codec);
     codecContext->codec_id = fmt->video_codec;
-    //codecContext->codec_type = CODEC_TYPE_VIDEO;
-
     codecContext->bit_rate = 400000;
     codecContext->width = width;
     codecContext->height = height;
     codecContext->time_base.num = 1;
     codecContext->time_base.den = 1000 / dataBuf->FrameTime();
-    codecContext->gop_size = 10; /* emit one intra frame every ten frames */
+    codecContext->gop_size = 12; /* emit one intra frame every ten frames */
     codecContext->max_b_frames = 1;
     codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
-    if (codecContext->codec_id == AV_CODEC_ID_H264)
-        av_opt_set(codecContext->priv_data, "preset", "slow", 0);
 
-    av_dump_format(oc, 0, filename, 1);
-
-    AVCodec * codec = avcodec_find_encoder(codecContext->codec_id);
-    if (!codec)
-    {
-        logger_base.error("   Cannot find codec %d.", codecContext->codec_id);
-        return;
-    }
+    if (oc->oformat->flags & AVFMT_GLOBALHEADER)
+        codecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
 
     int ret = avcodec_open2(codecContext, codec, NULL);
     if (ret < 0)
@@ -778,46 +821,57 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         logger_base.error("   Cannot not allocate frame.");
         return;
     }
-
     frame->format = codecContext->pix_fmt;
     frame->width = codecContext->width;
     frame->height = codecContext->height;
 
-    ret = av_image_alloc(frame->data, frame->linesize, codecContext->width, codecContext->height, codecContext->pix_fmt, 32);
-    if (ret < 0) 
-    {
-        logger_base.error("   Could not allocate raw picture buffer.");
+    AVPicture picture;
+
+    ret = avpicture_alloc(&picture, codecContext->pix_fmt, codecContext->width, codecContext->height);
+    if (ret < 0) {
+        logger_base.error("   Could not allocate picture buffer.");
         return;
     }
 
-    AVPacket pkt;
+    *((AVPicture *)frame) = picture;
 
-    avformat_write_header(oc, NULL);
+    av_dump_format(oc, 0, filename, 1);
+
+    /* open the output file, if needed */
+    if (!(fmt->flags & AVFMT_NOFILE)) {
+        if (avio_open(&oc->pb, filename, AVIO_FLAG_WRITE) < 0) {
+            logger_base.error("   Could open file %s.", (const char *)filename.c_str());
+            return;
+        }
+    }
+
+    /* Write the stream header, if any. */
+    if (avformat_write_header(oc, NULL) < 0) {
+        logger_base.error("   Could not write video file header.");
+        return;
+    }
+
+    frame->pts = 0;
 
     size_t i = 0;
     for (i = 0; i < numPeriods; i++)
     {
-        av_init_packet(&pkt);
-        pkt.data = NULL;    // packet data will be allocated by the encoder
-        pkt.size = 0;
+        double video_pts = (double)video_st->pts.val * video_st->time_base.num / video_st->time_base.den;
 
         /* prepare image */
         for (size_t y = 0; y < origheight; y++) {
             for (size_t x = 0; x < origwidth; x++) {
                 int rgboffset = (y * origwidth + x) * 3;
                 wxColor c((*dataBuf)[i][rgboffset], (*dataBuf)[i][rgboffset + 1], (*dataBuf)[i][rgboffset + 2], 255);
-                int Y = (float)c.Red() * 0.299000 + (float)c.Green() * 0.587000 + (float)c.Blue() * 0.114000;
+                YCbCr ycb(c);
 
-                if (Y < 0) Y = 0;
-                if (Y > 255) Y = 255;
-
-                frame->data[0][y * frame->linesize[0] + x] = Y; // Y
+                picture.data[0][y * picture.linesize[0] + x] = ycb.Y * 255; // Y
             }
 
             // fill in any unused area
             for (size_t x = origwidth; x < width; x++)
             {
-                frame->data[0][y * frame->linesize[0] + x] = 0; // Y
+                picture.data[0][y * picture.linesize[0] + x] = 0; // Y
             }
         }
 
@@ -826,7 +880,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         {
             for (size_t x = 0; x < width; x++)
             {
-                frame->data[0][y * frame->linesize[0] + x] = 0; // Y
+                picture.data[0][y * picture.linesize[0] + x] = 0; // Y
             }
         }
 
@@ -834,60 +888,80 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
             for (size_t x = 0; x < width / 2; x++) {
                 int rgboffset = (2 * y * origwidth + 2 * x) * 3;
                 wxColor c((*dataBuf)[i][rgboffset], (*dataBuf)[i][rgboffset + 1], (*dataBuf)[i][rgboffset + 2], 255);
-                int cb = (float)c.Red() * -0.168736 + (float)c.Green() * -0.331264 + (float)c.Blue() *  0.500000 + 128;
-                int cr = (float)c.Red() * 0.500000 + (float)c.Green() * -0.418688 + (float)c.Blue() * -0.081312 + 128;
+                YCbCr ycb(c);
 
-                if (cb < 0) cb = 0;
-                if (cb > 255) cb = 255;
-                if (cr < 0) cr = 0;
-                if (cr > 255) cr = 255;
-
-                frame->data[1][y * frame->linesize[0] + x] = cb; // Cb
-                frame->data[2][y * frame->linesize[0] + x] = cr; // Cr
+                picture.data[1][y * picture.linesize[0] + x] = ycb.Cb * 255; // Cb
+                picture.data[2][y * picture.linesize[0] + x] = ycb.Cr * 255; // Cr
             }
         }
 
-        frame->pts = i;
+        if (oc->oformat->flags & AVFMT_RAWPICTURE)
+        {
+            AVPacket pkt;
+            av_init_packet(&pkt);
 
-        /* encode the image */
-        int got_output;
-        ret = avcodec_encode_video2(codecContext, &pkt, frame, &got_output);
-        if (ret < 0) {
-            logger_base.error("   Error encoding frame %d.", ret);
+            pkt.flags |= AV_PKT_FLAG_KEY;
+            pkt.stream_index = video_st->index;
+            pkt.data = picture.data[0];
+            pkt.size = sizeof(picture);
+            ret = av_interleaved_write_frame(oc, &pkt);
+        }
+        else
+        {
+            /* encode the image */
+            AVPacket pkt;
+            int got_output;
+            av_init_packet(&pkt);
+            pkt.data = NULL;    // packet data will be allocated by the encoder
+            pkt.size = 0;
+
+            ret = avcodec_encode_video2(codecContext, &pkt, frame, &got_output);
+            if (ret < 0) {
+                logger_base.error("   Error encoding frame %d.", ret);
+                return;
+            }
+
+            /* If size is zero, it means the image was buffered. */
+            if (got_output) {
+                if (codecContext->coded_frame->key_frame)
+                    pkt.flags |= AV_PKT_FLAG_KEY;
+
+                pkt.stream_index = video_st->index;
+
+                /* Write the compressed frame to the media file. */
+                ret = av_interleaved_write_frame(oc, &pkt);
+                logger_base.debug("   Video frame %d written.", i);
+            }
+            else {
+                ret = 0;
+            }
+        }
+
+        if (ret != 0)
+        {
+            logger_base.error("   Error writing video frame %d. %d.", i, ret);
             return;
         }
 
-        if (got_output) {
-            logger_base.debug("   Write frame %3d (size=%5d).", i, pkt.size);
-            ret = av_interleaved_write_frame(oc, &pkt);
-            av_free_packet(&pkt);
-        }
-    }
-
-    /* get the delayed frames */
-    for (int got_output = 1; got_output; i++) {
-        ret = avcodec_encode_video2(codecContext, &pkt, NULL, &got_output);
-        if (ret < 0) {
-            logger_base.error("   Error encoding frame %d.", ret);
-            return;
-        }
-
-        if (got_output) {
-            logger_base.debug("   Write frame %3d (size=%5d).", i, pkt.size);
-            ret = av_interleaved_write_frame(oc, &pkt);
-            av_free_packet(&pkt);
-        }
+        frame->pts += av_rescale_q(1, video_st->codec->time_base, video_st->time_base);
     }
 
     av_write_trailer(oc);
 
-    avcodec_close(st->codec);
-    av_free(frame->data[0]);
+    av_dump_format(oc, 0, filename, 1);
+
+    avcodec_close(video_st->codec);
+    av_free(picture.data[0]);
     av_free(frame);
+
     for (i = 0; i < oc->nb_streams; i++) {
         av_freep(&oc->streams[i]->codec);
         av_freep(&oc->streams[i]);
     }
+
+    if (!(fmt->flags & AVFMT_NOFILE))
+        /* Close the output file. */
+        avio_close(oc->pb);
 
     av_free(oc);
 }
