@@ -29,10 +29,12 @@ static DrawGLUtils::xlGLCacheInfo *currentCache;
 
 void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-    static bool isDebugEnabled = logger_opengl.isDebugEnabled();
+    static log4cpp::Category &logger_opengl_trace = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
+    static bool isTraceDebugEnabled = logger_opengl_trace.isDebugEnabled();
+    static bool isDebugEnabled = logger_opengl.isDebugEnabled() | isTraceDebugEnabled;
     if (isDebugEnabled) {
         int er = glGetError();
-        if (er) {
+        if (er || isTraceDebugEnabled) {
             const char *f2 = file + strlen(file);
             while (f2 > file && *f2 != '\\' && *f2 != '/') {
                 f2--;
@@ -43,8 +45,10 @@ void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
             
             if (msg) {
                 DO_LOG_GL_MSG("%s/%d - %s:   %X", f2, line, msg, er);
+                logger_opengl_trace.debug("%s/%d - %s:   %X", f2, line, msg, er);
             } else {
                 DO_LOG_GL_MSG("%s/%d:   %X", f2, line, er);
+                logger_opengl_trace.debug("%s/%d:   %X", f2, line, er);
             }
         }
     }

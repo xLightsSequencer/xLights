@@ -64,11 +64,6 @@ xlGLCanvas::~xlGLCanvas()
 
 
 #ifdef __WXMSW__
-//   #define USE_DEBUG_GLCONTEXT
-#endif
-
-
-#ifdef USE_DEBUG_GLCONTEXT
 static const char * getStringForSource(GLenum source) {
 
     switch(source) {
@@ -128,7 +123,7 @@ static const char * getStringForType(GLenum type) {
 void CALLBACK DebugLog(GLenum source , GLenum type , GLuint id , GLenum severity ,
                        GLsizei length , const GLchar * message , const GLvoid * userParam)
 {
-    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
 
     logger_opengl.info("Type : %s; Source : %s; ID : %d; Severity : % s\n Message: %s",
                         getStringForType( type ),
@@ -138,7 +133,7 @@ void CALLBACK DebugLog(GLenum source , GLenum type , GLuint id , GLenum severity
                         message);
 }
 void CALLBACK DebugLogAMD(GLuint id,GLenum category,GLenum severity,GLsizei length,const GLchar *message,void *userParam) {
-    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
     
     logger_opengl.info("%s; ID : %d; Severity : % s\n Message: %s",
                         getStringForType( category ),
@@ -149,7 +144,7 @@ void CALLBACK DebugLogAMD(GLuint id,GLenum category,GLenum severity,GLsizei leng
 
 
 void AddDebugLog(xlGLCanvas *c) {
-    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
     PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKARBPROC)wglGetProcAddress("glDebugMessageCallbackARB");
     PFNGLDEBUGMESSAGECONTROLARBPROC glDebugMessageControlARB = (PFNGLDEBUGMESSAGECONTROLARBPROC)wglGetProcAddress("glDebugMessageControlARB");
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -259,6 +254,7 @@ void xlGLCanvas::SetCurrentGLContext() {
 
 
 void xlGLCanvas::CreateGLContext() {
+    static log4cpp::Category &logger_opengl_trace = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
     if (m_context == nullptr) {
         //trying to detect OGL verions and stuff can result in unwanted logs
         wxLogLevel cur = wxLog::GetLogLevel();
@@ -275,11 +271,9 @@ void xlGLCanvas::CreateGLContext() {
             wxGLContextAttrs atts;
             log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
             atts.PlatformDefaults().OGLVersion(3, 3).CoreProfile();
-#ifdef USE_DEBUG_GLCONTEXT
-            if (logger_opengl.isDebugEnabled()) {
+            if (logger_opengl_trace.isDebugEnabled()) {
                 atts.ForwardCompatible().DebugCtx().EndList();
             }
-#endif
             atts.EndList();
             glGetError();
             LOG_GL_ERRORV(m_context = new wxGLContext(this, nullptr, &atts));
