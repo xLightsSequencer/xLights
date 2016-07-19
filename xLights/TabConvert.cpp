@@ -697,26 +697,18 @@ void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, 
 class YCbCr
 {
 public:
-    float Y;
-    float Cb;
-    float Cr;
+    short Y;
+    short Cb;
+    short Cr;
 
-    YCbCr(float y, float cb, float cr)
+    YCbCr(uint8_t r, uint8_t g, uint8_t b)
     {
-        Y = y;
-        Cb = cb;
-        Cr = cr;
-    }
-
-    YCbCr(byte r, byte g, byte b)
-    {
-        float fr = (float)r / 255.0;
-        float fg = (float)g / 255.0;
-        float fb = (float)b / 255.0;
-
-        Y = (float)(0.2989 * fr + 0.5866 * fg + 0.1145 * fb);
-        Cb = (float)(-0.1687 * fr - 0.3313 * fg + 0.5000 * fb);
-        Cr = (float)(0.5000 * fr - 0.4184 * fg - 0.0816 * fb);
+        Y = (short)(0.257f * (float)r + 0.504f * (float)g + 0.098f * (float)b + 16.0f);
+        if (Y > 255) Y = 255;
+        Cb = (short)(-0.148f * (float)r - 0.291f * (float)g + 0.439f * (float)b + 128);
+        if (Cb > 255) Cb = 255;
+        Cr = (short)(0.439f * (float)r - 0.368f * (float)g - 0.071f * (float)b + 128);
+        if (Cr > 255) Cr = 255;
     }
 
     YCbCr(wxColor c)
@@ -753,7 +745,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     // must be a multiple of 2
     if (width % 2 > 0) width++;
     if (height % 2 > 0) height++;
-    logger_base.debug("   Video dimensions %dx%d.", width, height);
+    logger_base.debug("   Video dimensions %dx%d => %dx%d.", origwidth, origheight, width, height);
     logger_base.debug("   Video frames %ld.", numPeriods);
 
     av_log_set_callback(my_av_log_callback);
@@ -806,6 +798,13 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     codecContext->max_b_frames = 1;
     codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
 
+    if (codecContext->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
+        /* Needed to avoid using macroblocks in which some coeffs overflow.
+         * This does not happen with normal video, it just happens here as
+         * the motion of the chroma plane does not match the luma plane. */
+        codecContext->mb_decision = 2;
+    }
+
     if (oc->oformat->flags & AVFMT_GLOBALHEADER)
         codecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
 
@@ -825,15 +824,32 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     frame->width = codecContext->width;
     frame->height = codecContext->height;
 
-    AVPicture picture;
+    int sws_flags = SWS_BICUBIC;
+    AVPixelFormat informat = AV_PIX_FMT_RGB24;
+    struct SwsContext *sws_ctx = sws_getContext(origwidth, origheight, informat,
+        codecContext->width, codecContext->height, codecContext->pix_fmt,
+        sws_flags, NULL, NULL, NULL);
+    if (!sws_ctx) {
+        logger_base.error("   Could not create image conversion context.");
+        return;
+    }
 
-    ret = avpicture_alloc(&picture, codecContext->pix_fmt, codecContext->width, codecContext->height);
+    AVPicture src_picture;
+    AVPicture dst_picture;
+
+    ret = avpicture_alloc(&src_picture, informat, origwidth, origheight);
     if (ret < 0) {
         logger_base.error("   Could not allocate picture buffer.");
         return;
     }
 
-    *((AVPicture *)frame) = picture;
+    ret = avpicture_alloc(&dst_picture, codecContext->pix_fmt, codecContext->width, codecContext->height);
+    if (ret < 0) {
+        logger_base.error("   Could not allocate picture buffer.");
+        return;
+    }
+
+    *((AVPicture *)frame) = dst_picture;
 
     av_dump_format(oc, 0, filename, 1);
 
@@ -858,41 +874,22 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     {
         double video_pts = (double)video_st->pts.val * video_st->time_base.num / video_st->time_base.den;
 
-        /* prepare image */
-        for (size_t y = 0; y < origheight; y++) {
-            for (size_t x = 0; x < origwidth; x++) {
-                int rgboffset = (y * origwidth + x) * 3;
-                wxColor c((*dataBuf)[i][rgboffset], (*dataBuf)[i][rgboffset + 1], (*dataBuf)[i][rgboffset + 2], 255);
-                YCbCr ycb(c);
-
-                picture.data[0][y * picture.linesize[0] + x] = ycb.Y * 255; // Y
-            }
-
-            // fill in any unused area
-            for (size_t x = origwidth; x < width; x++)
-            {
-                picture.data[0][y * picture.linesize[0] + x] = 0; // Y
-            }
+        ret = avpicture_fill(&src_picture, (const uint8_t*)&(*dataBuf)[i][0], informat, origwidth, origheight);
+        if (ret < 0) {
+            logger_base.error("   Error filling source image data %d.", ret);
+            return;
         }
 
-        // fill in any unused area
-        for (size_t y = origheight; y < height; y++)
-        {
-            for (size_t x = 0; x < width; x++)
-            {
-                picture.data[0][y * picture.linesize[0] + x] = 0; // Y
-            }
-        }
+        // invert the image, scale image and convert colour space
+        uint8_t * data = src_picture.data[0] + (origwidth * 3 * (origheight - 1));
+        uint8_t* tmp[4] = { data, NULL, NULL, NULL };
+        int stride[4] = { - 1 * src_picture.linesize[0], 0, 0, 0 }; 
+        ret = sws_scale(sws_ctx, tmp, stride,
+            0, origheight, dst_picture.data, dst_picture.linesize);
 
-        for (size_t y = 0; y < height / 2; y++) {
-            for (size_t x = 0; x < width / 2; x++) {
-                int rgboffset = (2 * y * origwidth + 2 * x) * 3;
-                wxColor c((*dataBuf)[i][rgboffset], (*dataBuf)[i][rgboffset + 1], (*dataBuf)[i][rgboffset + 2], 255);
-                YCbCr ycb(c);
-
-                picture.data[1][y * picture.linesize[0] + x] = ycb.Cb * 255; // Cb
-                picture.data[2][y * picture.linesize[0] + x] = ycb.Cr * 255; // Cr
-            }
+        if (ret != codecContext->height) {
+            logger_base.error("   Error resizing frame %d.", ret);
+            return;
         }
 
         if (oc->oformat->flags & AVFMT_RAWPICTURE)
@@ -902,8 +899,8 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
 
             pkt.flags |= AV_PKT_FLAG_KEY;
             pkt.stream_index = video_st->index;
-            pkt.data = picture.data[0];
-            pkt.size = sizeof(picture);
+            pkt.data = dst_picture.data[0];
+            pkt.size = sizeof(dst_picture);
             ret = av_interleaved_write_frame(oc, &pkt);
         }
         else
@@ -950,8 +947,10 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
 
     av_dump_format(oc, 0, filename, 1);
 
+    sws_freeContext(sws_ctx);
     avcodec_close(video_st->codec);
-    av_free(picture.data[0]);
+    av_free(src_picture.data[0]);
+    av_free(dst_picture.data[0]);
     av_free(frame);
 
     for (i = 0; i < oc->nb_streams; i++) {
