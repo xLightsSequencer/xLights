@@ -132,6 +132,7 @@ protected:
     int pixelSize = 2;
     int transparency = 0;
     int blackTransparency = 0;
+    bool splitRGB;
 
     int StrobeRate;      // 0=no strobing
     bool zeroBased;

@@ -28,7 +28,8 @@ const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Pre
 
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), ModelXml(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
-    StrobeRate(0), changeCount(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0)
+    StrobeRate(0), changeCount(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
+    splitRGB(false)
 {
 }
 
@@ -1773,6 +1774,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     int first = 0; int last = NodeCount;
     int buffFirst = -1; int buffLast = -1;
     bool left = true;
+    
     while (first < last) {
         int n = 0;
         if (left) {
@@ -1815,9 +1817,33 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
             if (pixelStyle < 2) {
                 started = true;
-                xlColor c(color);
-                ApplyTransparency(c, color == xlBLACK ? blackTransparency : transparency);
-                va.AddVertex(sx, sy, c);
+                if (splitRGB) {
+                    if ((color.Red() == color.Blue()) && (color.Blue() == color.Green())) {
+                        xlColor c(color);
+                        ApplyTransparency(c, color == xlBLACK ? blackTransparency : transparency);
+                        va.AddVertex(sx, sy, c);
+                    } else {
+                        xlColor c(color.Red(), 0 , 0);
+                        if (c != xlBLACK) {
+                            ApplyTransparency(c, transparency);
+                            va.AddVertex(sx-pixelSize, sy+pixelSize/2.0f, c);
+                        }
+                        c.Set(0, color.Green(), 0);
+                        if (c != xlBLACK) {
+                            ApplyTransparency(c, transparency);
+                            va.AddVertex(sx, sy-pixelSize, c);
+                        }
+                        c.Set(0, 0, color.Blue());
+                        if (c != xlBLACK) {
+                            ApplyTransparency(c, transparency);
+                            va.AddVertex(sx+pixelSize, sy+pixelSize/2.0f, c);
+                        }
+                    }
+                } else {
+                    xlColor c(color);
+                    ApplyTransparency(c, color == xlBLACK ? blackTransparency : transparency);
+                    va.AddVertex(sx, sy, c);
+                }
             } else {
                 xlColor ccolor(color);
                 xlColor ecolor(color);
@@ -1946,11 +1972,39 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
 
 
                 if (lastPixelStyle < 2) {
-                    xlColor c(color);
-                    ApplyTransparency(c, color == xlBLACK ? Nodes[n]->model->blackTransparency
-                                                        : Nodes[n]->model->transparency);
+                    if (splitRGB) {
+                        float sxn = (sx*scale)+(w/2);
+                        float syn = newsy;
+                        
+                        if ((color.Red() == color.Blue()) && (color.Blue() == color.Green())) {
+                            xlColor c(color);
+                            ApplyTransparency(c, color == xlBLACK ? blackTransparency : transparency);
+                            va.AddVertex(sxn, syn, c);
+                        } else {
+                            xlColor c(color.Red(), 0 , 0);
+                            ApplyTransparency(c, transparency);
+                            if (c != xlBLACK) {
+                                ApplyTransparency(c, transparency);
+                                va.AddVertex(sxn-pixelSize, syn+pixelSize/2.0f, c);
+                            }
+                            c.Set(0, color.Green(), 0);
+                            if (c != xlBLACK) {
+                                ApplyTransparency(c, transparency);
+                                va.AddVertex(sxn, syn-pixelSize, c);
+                            }
+                            c.Set(0, 0, color.Blue());
+                            if (c != xlBLACK) {
+                                ApplyTransparency(c, transparency);
+                                va.AddVertex(sxn+pixelSize, syn+pixelSize/2.0f, c);
+                            }
+                        }
+                    } else {
+                        xlColor c(color);
+                        ApplyTransparency(c, color == xlBLACK ? Nodes[n]->model->blackTransparency
+                                                            : Nodes[n]->model->transparency);
 
-                    va.AddVertex((sx*scale)+(w/2), newsy, c);
+                        va.AddVertex((sx*scale)+(w/2), newsy, c);
+                    }
                 } else {
                     xlColor ccolor(color);
                     xlColor ecolor(color);
