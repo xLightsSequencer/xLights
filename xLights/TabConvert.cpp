@@ -850,13 +850,9 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         return;
     }
 
-    frame->pts = 0;
-
     size_t i = 0;
     for (i = 0; i < numPeriods; i++)
     {
-        double video_pts = (double)video_st->pts.val * video_st->time_base.num / video_st->time_base.den;
-
         ret = av_image_fill_arrays(src_picture.data, src_picture.linesize, (const uint8_t*)&(*dataBuf)[i][0], informat, origwidth, origheight, 1);
         if (ret < 0) {
             logger_base.error("   Error filling source image data %d.", ret);
@@ -903,9 +899,6 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
 
             /* If size is zero, it means the image was buffered. */
             if (got_output) {
-                if (codecContext->coded_frame->key_frame)
-                    pkt.flags |= AV_PKT_FLAG_KEY;
-
                 pkt.stream_index = video_st->index;
 
                 /* Write the compressed frame to the media file. */
@@ -922,8 +915,6 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
             logger_base.error("   Error writing video frame %d. %d.", i, ret);
             return;
         }
-
-        frame->pts += av_rescale_q(1, video_st->codec->time_base, video_st->time_base);
     }
 
     av_write_trailer(oc);
