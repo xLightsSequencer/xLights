@@ -684,38 +684,15 @@ void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, 
     buf[18] = (wxUint8)((modelSize >> 16) & 0xFF);
     buf[19] = (wxUint8)((modelSize >> 24) & 0xFF);
     f.Write(buf, fixedHeaderLength);
-    
+
     size_t size = dataBuf->NumFrames();
     size *= stepSize;
-    
+
     f.Write(&(*dataBuf)[0][0], size);
 
     f.Close();
     free(buf);
 }
-
-class YCbCr
-{
-public:
-    short Y;
-    short Cb;
-    short Cr;
-
-    YCbCr(uint8_t r, uint8_t g, uint8_t b)
-    {
-        Y = (short)(0.257f * (float)r + 0.504f * (float)g + 0.098f * (float)b + 16.0f);
-        if (Y > 255) Y = 255;
-        Cb = (short)(-0.148f * (float)r - 0.291f * (float)g + 0.439f * (float)b + 128);
-        if (Cb > 255) Cb = 255;
-        Cr = (short)(0.439f * (float)r - 0.368f * (float)g - 0.071f * (float)b + 128);
-        if (Cr > 255) Cr = 255;
-    }
-
-    YCbCr(wxColor c)
-    {
-        YCbCr(c.Red(), c.Green(), c.Blue());
-    }
-};
 
 void my_av_log_callback(void *ptr, int level, const char *fmt, va_list vargs)
 {
@@ -752,20 +729,29 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
 
     av_register_all();
 
-    AVFormatContext* oc;
-    avformat_alloc_output_context2(&oc, NULL, NULL, filename);
-    if (!oc) 
+    AVOutputFormat* fmt = av_guess_format(NULL, filename, NULL);
+    if (!fmt)
     {
         logger_base.warn("   Could not deduce output format from file extension : using MPEG.");
-        avformat_alloc_output_context2(&oc, NULL, "mpeg", filename);
+        fmt = av_guess_format("mpeg", filename, NULL);
     }
-
-    if (!oc)
+    if (!fmt)
     {
         logger_base.error("   Could not find suitable output format.");
         return;
     }
-    AVOutputFormat* fmt = oc->oformat;
+    //fmt->video_codec = AV_CODEC_ID_FFV1; // ? supported pixel formats?
+    //fmt->video_codec = AV_CODEC_ID_HUFFYUV;
+    fmt->video_codec = AV_CODEC_ID_MPEG4;
+    //fmt->video_codec = AV_CODEC_ID_LAGARITH; // not found
+
+    AVFormatContext* oc;
+    avformat_alloc_output_context2(&oc, fmt, NULL, filename);
+    if (!oc)
+    {
+        logger_base.warn("   Could not create output context.");
+        return;
+    }
 
     AVCodec * codec = avcodec_find_encoder(fmt->video_codec);
     if (!codec)
@@ -796,6 +782,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     codecContext->time_base.den = 1000 / dataBuf->FrameTime();
     codecContext->gop_size = 12; /* emit one intra frame every ten frames */
     codecContext->max_b_frames = 1;
+    //codecContext->pix_fmt = AV_PIX_FMT_RGB24;
     codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
 
     if (codecContext->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
@@ -834,22 +821,18 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         return;
     }
 
-    AVPicture src_picture;
-    AVPicture dst_picture;
-
-    ret = avpicture_alloc(&src_picture, informat, origwidth, origheight);
+    AVFrame src_picture;
+    ret = av_image_alloc(src_picture.data, src_picture.linesize, origwidth, origheight, informat, 1);
     if (ret < 0) {
         logger_base.error("   Could not allocate picture buffer.");
         return;
     }
 
-    ret = avpicture_alloc(&dst_picture, codecContext->pix_fmt, codecContext->width, codecContext->height);
+    ret = av_image_alloc(frame->data, frame->linesize, codecContext->width, codecContext->height, codecContext->pix_fmt, 1);
     if (ret < 0) {
         logger_base.error("   Could not allocate picture buffer.");
         return;
     }
-
-    *((AVPicture *)frame) = dst_picture;
 
     av_dump_format(oc, 0, filename, 1);
 
@@ -874,7 +857,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     {
         double video_pts = (double)video_st->pts.val * video_st->time_base.num / video_st->time_base.den;
 
-        ret = avpicture_fill(&src_picture, (const uint8_t*)&(*dataBuf)[i][0], informat, origwidth, origheight);
+        ret = av_image_fill_arrays(src_picture.data, src_picture.linesize, (const uint8_t*)&(*dataBuf)[i][0], informat, origwidth, origheight, 1);
         if (ret < 0) {
             logger_base.error("   Error filling source image data %d.", ret);
             return;
@@ -883,9 +866,9 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         // invert the image, scale image and convert colour space
         uint8_t * data = src_picture.data[0] + (origwidth * 3 * (origheight - 1));
         uint8_t* tmp[4] = { data, NULL, NULL, NULL };
-        int stride[4] = { - 1 * src_picture.linesize[0], 0, 0, 0 }; 
+        int stride[4] = { - 1 * src_picture.linesize[0], 0, 0, 0 };
         ret = sws_scale(sws_ctx, tmp, stride,
-            0, origheight, dst_picture.data, dst_picture.linesize);
+            0, origheight, frame->data, frame->linesize);
 
         if (ret != codecContext->height) {
             logger_base.error("   Error resizing frame %d.", ret);
@@ -899,8 +882,8 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
 
             pkt.flags |= AV_PKT_FLAG_KEY;
             pkt.stream_index = video_st->index;
-            pkt.data = dst_picture.data[0];
-            pkt.size = sizeof(dst_picture);
+            pkt.data = frame->data[0];
+            pkt.size = sizeof(*frame);
             ret = av_interleaved_write_frame(oc, &pkt);
         }
         else
@@ -950,7 +933,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     sws_freeContext(sws_ctx);
     avcodec_close(video_st->codec);
     av_free(src_picture.data[0]);
-    av_free(dst_picture.data[0]);
+    av_free(frame->data[0]);
     av_free(frame);
 
     for (i = 0; i < oc->nb_streams; i++) {
@@ -1116,7 +1099,7 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
 
     size_t size = SeqData.NumFrames();
     size *= stepSize;
-    
+
     f.Write(&SeqData[0][0], size);
     f.Close();
     free(buf);

@@ -163,7 +163,7 @@ void AddDebugLog(xlGLCanvas *c) {
         }
     }
     PFNGLDEBUGMESSAGECALLBACKAMDPROC glDebugMessageCallbackAMD = (PFNGLDEBUGMESSAGECALLBACKAMDPROC)wglGetProcAddress("glDebugMessageCallbackAMD");
-    if (glDebugMessageCallbackARB != nullptr) {
+    if (glDebugMessageCallbackAMD != nullptr) {
         logger_opengl.debug("Adding AMD debug callback");
         LOG_GL_ERRORV(glDebugMessageCallbackAMD(DebugLogAMD, c));
     }
