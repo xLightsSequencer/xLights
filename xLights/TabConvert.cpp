@@ -740,10 +740,8 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         logger_base.error("   Could not find suitable output format.");
         return;
     }
-    //fmt->video_codec = AV_CODEC_ID_FFV1; // ? supported pixel formats?
-    //fmt->video_codec = AV_CODEC_ID_HUFFYUV;
-    fmt->video_codec = AV_CODEC_ID_MPEG4;
-    //fmt->video_codec = AV_CODEC_ID_LAGARITH; // not found
+    fmt->video_codec = AV_CODEC_ID_FFV1;
+    //fmt->video_codec = AV_CODEC_ID_MPEG4;
 
     AVFormatContext* oc;
     avformat_alloc_output_context2(&oc, fmt, NULL, filename);
@@ -780,10 +778,11 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     codecContext->height = height;
     codecContext->time_base.num = 1;
     codecContext->time_base.den = 1000 / dataBuf->FrameTime();
-    codecContext->gop_size = 12; /* emit one intra frame every ten frames */
+    codecContext->gop_size = 12; // key frame gap ... 1 is all key frames
     codecContext->max_b_frames = 1;
     //codecContext->pix_fmt = AV_PIX_FMT_RGB24;
-    codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
+    //codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
+    codecContext->pix_fmt = AV_PIX_FMT_YUV444P;
 
     if (codecContext->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
         /* Needed to avoid using macroblocks in which some coeffs overflow.
@@ -850,6 +849,8 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         return;
     }
 
+    frame->pts = 0;
+
     size_t i = 0;
     for (i = 0; i < numPeriods; i++)
     {
@@ -915,6 +916,8 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
             logger_base.error("   Error writing video frame %d. %d.", i, ret);
             return;
         }
+
+        frame->pts += av_rescale_q(1, video_st->codec->time_base, video_st->time_base);
     }
 
     av_write_trailer(oc);
