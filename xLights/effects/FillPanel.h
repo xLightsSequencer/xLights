@@ -3,6 +3,7 @@
 
 //(*Headers(FillPanel)
 #include <wx/panel.h>
+class wxCheckBox;
 class wxTextCtrl;
 class wxStaticText;
 class wxSlider;
@@ -21,8 +22,15 @@ class FillPanel: public wxPanel
 		virtual ~FillPanel();
 
 		//(*Declarations(FillPanel)
+		ValueCurveButton* BitmapButton_Fill_Band_Size;
+		wxSlider* Slider_Fill_Offset;
+		wxCheckBox* CheckBox_Fill_Offset_In_Pixels;
+		ValueCurveButton* BitmapButton_Fill_Offset;
 		wxChoice* Choice_Fill_Direction;
+		wxSlider* Slider_Fill_Skip_Size;
+		ValueCurveButton* BitmapButton_Fill_Skip_Size;
 		ValueCurveButton* BitmapButton_Fill_Position;
+		wxSlider* Slider_Fill_Band_Size;
 		wxSlider* Slider_Fill_Position;
 		//*)
 
@@ -33,6 +41,19 @@ class FillPanel: public wxPanel
 		static const long ID_VALUECURVE_Fill_Position;
 		static const long IDD_TEXTCTRL_Fill_Position;
 		static const long ID_BITMAPBUTTON_SLIDER_Fill_Position;
+		static const long ID_SLIDER_Fill_Band_Size;
+		static const long ID_VALUECURVE_Fill_Band_Size;
+		static const long IDD_TEXTCTRL_Fill_Band_Size;
+		static const long ID_BITMAPBUTTON_SLIDER_Fill_Band_Size;
+		static const long ID_SLIDER_Fill_Skip_Size;
+		static const long ID_VALUECURVE_Fill_Skip_Size;
+		static const long IDD_TEXTCTRL_Fill_Skip_Size;
+		static const long ID_BITMAPBUTTON_SLIDER_Fill_Skip_Size;
+		static const long ID_SLIDER_Fill_Offset;
+		static const long ID_VALUECURVE_Fill_Offset;
+		static const long IDD_TEXTCTRL_Fill_Offset;
+		static const long ID_BITMAPBUTTON_SLIDER_Fill_Offset;
+		static const long ID_CHECKBOX_Fill_Offset_In_Pixels;
 		static const long ID_CHOICE_Fill_Direction;
 		static const long ID_BITMAPBUTTON_CHOICE_Fill_Direction;
 		//*)
