@@ -58,6 +58,7 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqExportDialog::OnChoiceFormatSelect);
     //*)
 
+    StdDialogButtonSizer1->GetAffirmativeButton()->SetDefault();
 }
 
 SeqExportDialog::~SeqExportDialog()
@@ -78,4 +79,5 @@ void SeqExportDialog::ModelExportTypes()
 
 void SeqExportDialog::OnChoiceFormatSelect(wxCommandEvent& event)
 {
+    TextCtrlFilename->SetFocus();
 }
