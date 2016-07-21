@@ -701,8 +701,14 @@ void my_av_log_callback(void *ptr, int level, const char *fmt, va_list vargs)
     // Create the actual message
     vsnprintf(message, sizeof(message), fmt, vargs);
 
+    // strip off carriage return
+    if (message[strlen(message)-1] == '\n')
+    {
+        message[strlen(message)-1] = 0x00;
+    }
+
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("av: lvl: %d msg: %s.", level, (const char *)message);
+    logger_base.debug("WriteVideoModelFile: lvl: %d msg: %s.", level, (const char *)message);
 }
 
 void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, long numPeriods,
@@ -740,8 +746,8 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         logger_base.error("   Could not find suitable output format.");
         return;
     }
-    fmt->video_codec = AV_CODEC_ID_FFV1;
     //fmt->video_codec = AV_CODEC_ID_MPEG4;
+    fmt->video_codec = AV_CODEC_ID_H264;
 
     AVFormatContext* oc;
     avformat_alloc_output_context2(&oc, fmt, NULL, filename);
@@ -780,11 +786,20 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     codecContext->time_base.den = 1000 / dataBuf->FrameTime();
     codecContext->gop_size = 12; // key frame gap ... 1 is all key frames
     codecContext->max_b_frames = 1;
-    //codecContext->pix_fmt = AV_PIX_FMT_RGB24;
     //codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
     codecContext->pix_fmt = AV_PIX_FMT_YUV444P;
 
-    if (codecContext->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
+    if (fmt->video_codec == AV_CODEC_ID_H264)
+    {
+        av_opt_set(codecContext->priv_data, "preset", "ultrafast", 0);
+        av_opt_set(codecContext->priv_data, "qp", "0", 0);
+        av_opt_set(codecContext->priv_data, "crf", "0", AV_OPT_SEARCH_CHILDREN);
+    }
+    else if (codecContext->codec_id == AV_CODEC_ID_MPEG4) {
+        av_opt_set(codecContext->priv_data, "qp", "0", 0);
+        av_opt_set(codecContext->priv_data, "crf", "0", AV_OPT_SEARCH_CHILDREN);
+    }
+    else if (codecContext->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
         /* Needed to avoid using macroblocks in which some coeffs overflow.
          * This does not happen with normal video, it just happens here as
          * the motion of the chroma plane does not match the luma plane. */
@@ -874,6 +889,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
 
         if (oc->oformat->flags & AVFMT_RAWPICTURE)
         {
+            logger_base.warn("   We should never end up here.");
             AVPacket pkt;
             av_init_packet(&pkt);
 
@@ -904,7 +920,6 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
 
                 /* Write the compressed frame to the media file. */
                 ret = av_interleaved_write_frame(oc, &pkt);
-                logger_base.debug("   Video frame %d written.", i);
             }
             else {
                 ret = 0;
@@ -940,6 +955,8 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         avio_close(oc->pb);
 
     av_free(oc);
+
+    av_log_set_callback(NULL);
 }
 
 void FRAMECLASS ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg)
