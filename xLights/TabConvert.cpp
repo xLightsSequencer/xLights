@@ -699,7 +699,7 @@ void my_av_log_callback(void *ptr, int level, const char *fmt, va_list vargs)
     static char message[8192];
 
     // Create the actual message
-    vsnprintf_s(message, sizeof(message), fmt, vargs);
+    vsnprintf(message, sizeof(message), fmt, vargs);
 
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("av: lvl: %d msg: %s.", level, (const char *)message);
