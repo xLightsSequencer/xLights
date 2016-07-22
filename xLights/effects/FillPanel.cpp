@@ -36,6 +36,7 @@ const long FillPanel::ID_VALUECURVE_Fill_Offset = wxNewId();
 const long FillPanel::IDD_TEXTCTRL_Fill_Offset = wxNewId();
 const long FillPanel::ID_BITMAPBUTTON_SLIDER_Fill_Offset = wxNewId();
 const long FillPanel::ID_CHECKBOX_Fill_Offset_In_Pixels = wxNewId();
+const long FillPanel::ID_CHECKBOX_Fill_Color_Time = wxNewId();
 const long FillPanel::ID_CHOICE_Fill_Direction = wxNewId();
 const long FillPanel::ID_BITMAPBUTTON_CHOICE_Fill_Direction = wxNewId();
 //*)
@@ -135,11 +136,16 @@ FillPanel::FillPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	BitmapButton_FillOffset->SetDefault();
 	BitmapButton_FillOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer35->Add(BitmapButton_FillOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer35->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer35->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Fill_Offset_In_Pixels = new wxCheckBox(this, ID_CHECKBOX_Fill_Offset_In_Pixels, _("Offset in Pixels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Fill_Offset_In_Pixels"));
 	CheckBox_Fill_Offset_In_Pixels->SetValue(true);
-	FlexGridSizer35->Add(CheckBox_Fill_Offset_In_Pixels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer35->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer35->Add(CheckBox_Fill_Offset_In_Pixels, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer35->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer35->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Fill_Color_Time = new wxCheckBox(this, ID_CHECKBOX_Fill_Color_Time, _("Change Color based on Time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Fill_Color_Time"));
+	CheckBox_Fill_Color_Time->SetValue(false);
+	FlexGridSizer35->Add(CheckBox_Fill_Color_Time, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer35->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText24 = new wxStaticText(this, wxID_ANY, _("Direction:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer35->Add(StaticText24, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Fill_Direction = new wxChoice(this, ID_CHOICE_Fill_Direction, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Fill_Direction"));

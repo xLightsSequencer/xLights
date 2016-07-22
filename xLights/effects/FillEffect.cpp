@@ -23,6 +23,28 @@ wxPanel *FillEffect::CreatePanel(wxWindow *parent) {
     return new FillPanel(parent);
 }
 
+bool FillEffect::needToAdjustSettings(const std::string &version)
+{
+    return true;
+}
+
+void FillEffect::adjustSettings(const std::string &version, Effect *effect)
+{
+    // give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect);
+    }
+
+    SettingsMap &settings = effect->GetSettings();
+
+    if (IsVersionOlder("2016.41", version))
+    {
+        settings["E_CHECKBOX_Fill_Color_Time"] = "1";
+    }
+}
+
+
 static void UpdateFillColor(int &position, int &band_color, int colorcnt, int color_size, int shift)
 {
     if( shift == 0 ) return;
@@ -58,6 +80,21 @@ static void UpdateFillColor(int &position, int &band_color, int colorcnt, int co
     }
 }
 
+void GetColorFromPosition(double pos, xlColor& color, size_t colorcnt, RenderBuffer &buffer)
+{
+    double color_val = pos * (colorcnt-1);
+    int color_int = (int)color_val;
+    double color_pct = color_val - (double)color_int;
+    int color2 = std::min(color_int+1, (int)colorcnt-1);
+    if( color_int < color2 )
+    {
+        buffer.Get2ColorBlend(color_int, color2, std::min( color_pct, 1.0), color);
+    }
+    else
+    {
+        buffer.palette.GetColor(color2, color);
+    }
+}
 
 static inline int GetDirection(const std::string & DirectionString) {
     if ("Up" == DirectionString) {
@@ -82,6 +119,8 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     int SkipSize = GetValueCurveInt("Fill_Skip_Size", 0, SettingsMap, eff_pos);
     int offset = GetValueCurveInt("Fill_Offset", 0, SettingsMap, eff_pos);
     int offset_in_pixels = SettingsMap.GetBool("CHECKBOX_Fill_Offset_In_Pixels", true);
+    int color_by_time = SettingsMap.GetBool("CHECKBOX_Fill_Color_Time", false);
+
     switch (Direction)
     {
         default:
@@ -115,18 +154,7 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     int current_pos = 0;
 
     if( BandSize == 0 ) {
-        double color_val = eff_pos * (colorcnt-1);
-        int color_int = (int)color_val;
-        double color_pct = color_val - (double)color_int;
-        int color2 = std::min(color_int+1, (int)colorcnt-1);
-        if( color_int < color2 )
-        {
-            buffer.Get2ColorBlend(color_int, color2, std::min( color_pct, 1.0), color);
-        }
-        else
-        {
-            buffer.palette.GetColor(color2, color);
-        }
+        GetColorFromPosition(eff_pos, color, colorcnt, buffer);
     }
 
     switch (Direction)
@@ -148,6 +176,10 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 }
                 int y_pos = y;
                 if( y_pos >= buffer.BufferHt ) y_pos -= buffer.BufferHt;
+                if( !color_by_time ) {
+                    double pos = (double)y / (double)(buffer.BufferHt+offset-1);
+                    GetColorFromPosition(pos, color, colorcnt, buffer);
+                }
                 for (x=0; x<buffer.BufferWi; x++)
                 {
                     buffer.SetPixel(x, y_pos, color);
@@ -170,6 +202,10 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 }
                 int y_pos = y;
                 if( y_pos < 0 ) y_pos += buffer.BufferHt;
+                if( !color_by_time ) {
+                    double pos = 1.0 - (double)y / (double)(buffer.BufferHt+offset-1);
+                    GetColorFromPosition(pos, color, colorcnt, buffer);
+                }
                 for (x=0; x<buffer.BufferWi; x++)
                 {
                     buffer.SetPixel(x, y_pos, color);
@@ -192,6 +228,10 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 }
                 int x_pos = x;
                 if( x_pos < 0 ) x_pos += buffer.BufferWi;
+                if( !color_by_time ) {
+                    double pos = 1.0 - (double)x / (double)(buffer.BufferWi+offset-1);
+                    GetColorFromPosition(pos, color, colorcnt, buffer);
+                }
                 for( y=0; y<buffer.BufferHt; y++)
                 {
                     buffer.SetPixel(x_pos, y, color);
@@ -214,6 +254,10 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 }
                 int x_pos = x;
                 if( x_pos >= buffer.BufferWi ) x_pos -= buffer.BufferWi;
+                if( !color_by_time ) {
+                    double pos = (double)x / (double)(buffer.BufferWi+offset-1);
+                    GetColorFromPosition(pos, color, colorcnt, buffer);
+                }
                 for( y=0; y<buffer.BufferHt; y++)
                 {
                     buffer.SetPixel(x_pos, y, color);

@@ -22,6 +22,7 @@ class FillPanel: public wxPanel
 		virtual ~FillPanel();
 
 		//(*Declarations(FillPanel)
+		wxCheckBox* CheckBox_Fill_Color_Time;
 		ValueCurveButton* BitmapButton_Fill_Band_Size;
 		wxSlider* Slider_Fill_Offset;
 		wxCheckBox* CheckBox_Fill_Offset_In_Pixels;
@@ -54,6 +55,7 @@ class FillPanel: public wxPanel
 		static const long IDD_TEXTCTRL_Fill_Offset;
 		static const long ID_BITMAPBUTTON_SLIDER_Fill_Offset;
 		static const long ID_CHECKBOX_Fill_Offset_In_Pixels;
+		static const long ID_CHECKBOX_Fill_Color_Time;
 		static const long ID_CHOICE_Fill_Direction;
 		static const long ID_BITMAPBUTTON_CHOICE_Fill_Direction;
 		//*)
