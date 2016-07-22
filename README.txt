@@ -10,6 +10,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- bug (keithsw) Fix video drift in auto custom model generation
    -- enh (keithsw) Add video export of a models effects
+   -- enh (gil)   Allow effects to be dropped without timing marks while a timing track is active.
    -- enh (gil)   Add new options to the Fill Effect: Band Size, Skip Size, and Offset.
    -- bug (dkulp) When applying effect presets or key bindings, adjust for the xLights version that was used to create that effect/binding
    -- bug (dkulp) Crash when trying to delete the background image
