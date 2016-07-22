@@ -31,6 +31,7 @@ TreeController::TreeController(int channel, CONTROLLERTYPE type, int xLightsChan
 	_type = type;
 	_startchannel = channel;
 	_startxlightschannel = xLightsChannel;
+    _endxlightschannel = xLightsChannel;
 	_inactive = false;
 	_nodes = -1;
 	_doesNotExist = false;
@@ -217,15 +218,22 @@ std::string TreeController::GenerateName()
 			_name += "UNAVAILABLE ";
 		}
 		_name += _modelName;
-		if (_nodes > 0)
-		{
-			_name += " [1-" + std::string(wxString::Format(wxT("%i"), _nodes)) + "]";
-		}
+        if (_nodes > 0)
+        {
+            if (_nodes == 1)
+            {
+                _name += " [1]";
+            }
+            else
+            {
+                _name += " [1-" + std::string(wxString::Format(wxT("%i"), _nodes)) + "]";
+            }
+        }
 		if (_startxlightschannel < 1)
 		{
 			// dont add anything
 		}
-		else if (_endxlightschannel < _startxlightschannel)
+		else if (_endxlightschannel <= _startxlightschannel)
 		{
 			_name += " (" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + ")";
 		}
@@ -1038,28 +1046,32 @@ void TestDialog::PopulateModelsTree(ModelManager* modelManager)
 			modelcontroller->SetTreeListItem(modelitem);
 			_modelLookup[modelcontroller->ModelName()].push_back(modelcontroller);
 			int modelendchannel = 0;
-			int modelstartchannel = 0xFFFFFFF;
+			int modelstartchannel = m->GetNumberFromChannelString(m->ModelStartChannel);
             int msc = m->GetNumberFromChannelString(m->ModelStartChannel);
 
 			if (m->SingleChannel)
 			{
-				TreeController* tc = new TreeController(-1, TreeController::CONTROLLERTYPE::CT_CHANNEL, msc);
-				xlColor col(m->GetNodeColor(0));
-				tc->SetColour(DoEncodeColour(col));
-				CascadeColour(tc);
-				modelendchannel = std::max(modelendchannel, tc->EndXLightsChannel());
-				modelstartchannel = std::min(modelstartchannel, tc->StartXLightsChannel());
-				if (_channelLookup[tc->StartXLightsChannel()].size() == 0)
-				{
-					// no existing item ... this means either channel not defned or has been excluded because controller is NULL or INACTIVE
-					delete tc;
-				}
-				else
-				{
-					wxTreeListItem mc = TreeListCtrl_Channels->AppendItem(modelitem, tc->Name(), -1, -1, (wxClientData*)tc);
-					tc->SetTreeListItem(mc);
-					_channelLookup[tc->StartXLightsChannel()].push_back(tc);
-				}
+                modelcontroller->SetNodes(m->GetNodeCount());
+                for (int i = 0; i < m->GetNodeCount(); i++)
+                {
+                    TreeController* tc = new TreeController(i+1, TreeController::CONTROLLERTYPE::CT_CHANNEL, msc + i);
+                    xlColor col(m->GetNodeColor(i));
+                    tc->SetColour(DoEncodeColour(col));
+                    CascadeColour(tc);
+                    modelendchannel = std::max(modelendchannel, tc->EndXLightsChannel());
+                    modelstartchannel = std::min(modelstartchannel, tc->StartXLightsChannel());
+                    if (_channelLookup[tc->StartXLightsChannel()].size() == 0)
+                    {
+                        // no existing item ... this means either channel not defned or has been excluded because controller is NULL or INACTIVE
+                        delete tc;
+                    }
+                    else
+                    {
+                        wxTreeListItem mc = TreeListCtrl_Channels->AppendItem(modelitem, tc->Name(), -1, -1, (wxClientData*)tc);
+                        tc->SetTreeListItem(mc);
+                        _channelLookup[tc->StartXLightsChannel()].push_back(tc);
+                    }
+                }
 			}
 			else
 			{
