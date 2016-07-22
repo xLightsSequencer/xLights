@@ -14,12 +14,12 @@
 
 
 //(*InternalHeaders(SeqSettingsDialog)
-#include <wx/string.h>
-#include <wx/intl.h>
-#include <wx/font.h>
-#include <wx/bitmap.h>
-#include <wx/image.h>
 #include <wx/artprov.h>
+#include <wx/bitmap.h>
+#include <wx/font.h>
+#include <wx/intl.h>
+#include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 #include <list>
@@ -91,10 +91,14 @@ const long SeqSettingsDialog::ID_BITMAPBUTTON_gled = wxNewId();
 const long SeqSettingsDialog::ID_BITMAPBUTTON_hls = wxNewId();
 const long SeqSettingsDialog::ID_BITMAPBUTTON_lynx = wxNewId();
 const long SeqSettingsDialog::ID_BITMAPBUTTON_xlights = wxNewId();
+const long SeqSettingsDialog::ID_BITMAPBUTTON_quick_start = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_skip_import = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_edit_metadata = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_import_timings = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_wizard_done = wxNewId();
+const long SeqSettingsDialog::ID_CHOICE_Models = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_models_next = wxNewId();
+
 
 wxDEFINE_EVENT(EVT_DELETE_ROW, wxCommandEvent);
 wxDEFINE_EVENT(EVT_NAME_CHANGE, wxCommandEvent);
@@ -124,7 +128,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	media_directory(media_dir),
 	xLightsParent((xLightsFrame*)parent),
 	selected_branch_index(-1),
-	wizard_active(wizard_active_)
+	wizard_active(wizard_active_),
+	selected_view("All Models")
 {
     _plog = NULL;
 
@@ -144,23 +149,24 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	hls = wxBITMAP_PNG_FROM_DATA(hls);
 	lynx = wxBITMAP_PNG_FROM_DATA(lynx);
 	xlights_logo = wxBITMAP_PNG_FROM_DATA(xlights_logo);
+	quick_start = wxBITMAP_PNG_FROM_DATA(quick_start);
 
 	//(*Initialize(SeqSettingsDialog)
-	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer_Timing_Page;
-	wxFlexGridSizer* FlexGridSizer11;
-	wxFlexGridSizer* FlexGridSizer7;
-	wxStaticText* StaticText_Xml_Seq_Timing;
 	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer_Timing_Grid;
-	wxFlexGridSizer* FlexGridSizer10;
 	wxGridBagSizer* GridBagSizer1;
+	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxStaticText* StaticText_Xml_Seq_Timing;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer11;
+	wxFlexGridSizer* FlexGridSizer_Timing_Grid;
+	wxFlexGridSizer* FlexGridSizer_Timing_Page;
 
 	Create(parent, wxID_ANY, _("Sequence Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -524,6 +530,47 @@ void SeqSettingsDialog::WizardPage2()
 void SeqSettingsDialog::WizardPage3()
 {
     GridBagSizerWizard->Clear(true);
+    GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridSizerWizButtons = new wxGridSizer(0, 1, 5, 10);
+    wxStaticText* StaticText_Page3Optional = new wxStaticText(Panel_Wizard, wxID_ANY, _("Select a View:"), wxDefaultPosition, wxDefaultSize, 0, _T(""));
+    wxFont Page3OptionalFont(14,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD);
+    StaticText_Page3Optional->SetFont(Page3OptionalFont);
+    GridSizerWizButtons->Add(StaticText_Page3Optional, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	ModelsChoice = new wxChoice(Panel_Wizard, ID_CHOICE_Models, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Models"));
+	ModelsChoice->Append(_("All Models"));
+	ModelsChoice->Append(_("Empty"));
+	wxXmlNode* all_views = xLightsParent->GetViewsNode();
+    for(wxXmlNode* view=all_views->GetChildren(); view!=NULL; view=view->GetNext() )
+    {
+        wxString viewName = view->GetAttribute("name");
+        ModelsChoice->Append(viewName);
+    }
+	ModelsChoice->SetSelection(0);
+	GridSizerWizButtons->Add(ModelsChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    BitmapButton_quick_start = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_quick_start, quick_start, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_quick_start"));
+    GridSizerWizButtons->Add(BitmapButton_quick_start, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ModelsChoiceNext = new wxButton(Panel_Wizard, ID_BUTTON_models_next, _("More Options >>"), wxDefaultPosition, wxSize(185,30), 0, wxDefaultValidator, _T("ID_BUTTON_models_next"));
+    GridSizerWizButtons->Add(ModelsChoiceNext, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    wxFont SkipImportFont(16,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD);
+    ModelsChoiceNext->SetFont(SkipImportFont);
+    GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel_Wizard->SetSizer(GridBagSizerWizard);
+    GridBagSizerWizard->Fit(Panel_Wizard);
+    GridBagSizerWizard->SetSizeHints(Panel_Wizard);
+
+    Connect(ID_BUTTON_models_next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_ModelsChoiceNext);
+    Connect(ID_BITMAPBUTTON_quick_start,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_quick_startClick);
+    ModelsChoice->Connect(wxEVT_CHOICE, (wxObjectEventFunction)&SeqSettingsDialog::OnViewSelect, NULL, this);
+
+    StaticText_Info->SetLabelText("This option is used to select which models will populate the grid. \nPress Quick Start to begin sequencing and skip option steps.");
+    StaticText_Info->Show();
+    Fit();
+    Refresh();
+}
+
+void SeqSettingsDialog::WizardPage4()
+{
+    GridBagSizerWizard->Clear(true);
     GridBagSizerWizard->Add(493,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     wxStaticText* StaticText_Page3Optional = new wxStaticText(Panel_Wizard, wxID_ANY, _("Import Data (Optional):"), wxDefaultPosition, wxDefaultSize, 0, _T(""));
     wxFont Page3OptionalFont(12,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD);
@@ -564,7 +611,7 @@ void SeqSettingsDialog::WizardPage3()
     Refresh();
 }
 
-void SeqSettingsDialog::WizardPage4()
+void SeqSettingsDialog::WizardPage5()
 {
     GridBagSizerWizard->Clear(true);
     GridBagSizerWizard->Add(493,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -1266,7 +1313,7 @@ void SeqSettingsDialog::OnBitmapButton_lorClick(wxCommandEvent& event)
 {
     Notebook_Seq_Settings->SetSelection(4);
     const wxString strFileTypes = "LOR Sequences (*.lms,*.las)|*.lms;*.las";
-    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done();  WizardPage4(); }
+    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done();  WizardPage5(); }
     Notebook_Seq_Settings->SetSelection(0);
 }
 
@@ -1274,7 +1321,7 @@ void SeqSettingsDialog::OnBitmapButton_vixenClick(wxCommandEvent& event)
 {
     Notebook_Seq_Settings->SetSelection(4);
     const wxString strFileTypes = "Vixen Sequences (*.vix)|*.vix";
-    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done(); WizardPage4(); }
+    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done(); WizardPage5(); }
     Notebook_Seq_Settings->SetSelection(0);
 }
 
@@ -1282,7 +1329,7 @@ void SeqSettingsDialog::OnBitmapButton_gledClick(wxCommandEvent& event)
 {
     Notebook_Seq_Settings->SetSelection(4);
     const wxString strFileTypes = "Glediator Record File (*.gled)|*.gled";
-    if( ImportDataLayer(strFileTypes, _plog) ) { WizardPage4(); }
+    if( ImportDataLayer(strFileTypes, _plog) ) { WizardPage5(); }
     Notebook_Seq_Settings->SetSelection(0);
 }
 
@@ -1290,7 +1337,7 @@ void SeqSettingsDialog::OnBitmapButton_hlsClick(wxCommandEvent& event)
 {
     Notebook_Seq_Settings->SetSelection(4);
     const wxString strFileTypes = "HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata";
-    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done(); WizardPage4(); }
+    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done(); WizardPage5(); }
     Notebook_Seq_Settings->SetSelection(0);
 }
 
@@ -1298,7 +1345,7 @@ void SeqSettingsDialog::OnBitmapButton_lynxClick(wxCommandEvent& event)
 {
     Notebook_Seq_Settings->SetSelection(4);
     const wxString strFileTypes = "Lynx Conductor Sequences (*.seq)|*.seq";
-    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done(); WizardPage4(); }
+    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done(); WizardPage5(); }
     Notebook_Seq_Settings->SetSelection(0);
 }
 
@@ -1306,11 +1353,21 @@ void SeqSettingsDialog::OnBitmapButton_xlightsClick(wxCommandEvent& event)
 {
     Notebook_Seq_Settings->SetSelection(4);
     const wxString strFileTypes = "xLights Sequences(*.xseq, *.iseq, *.fseq)|*.xseq;*.iseq;*.fseq";
-    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done(); WizardPage4(); }
+    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done(); WizardPage5(); }
     Notebook_Seq_Settings->SetSelection(0);
 }
 
+void SeqSettingsDialog::OnBitmapButton_quick_startClick(wxCommandEvent& event)
+{
+	EndModal(wxID_OK);
+}
+
 void SeqSettingsDialog::OnButton_skip_importClick(wxCommandEvent& event)
+{
+    WizardPage5();
+}
+
+void SeqSettingsDialog::OnButton_ModelsChoiceNext(wxCommandEvent& event)
 {
     WizardPage4();
 }
@@ -1333,4 +1390,9 @@ void SeqSettingsDialog::OnButton_Button_WizardDoneClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
     EndModal(wxID_CANCEL);
+}
+
+void SeqSettingsDialog::OnViewSelect(wxCommandEvent& event)
+{
+    selected_view = (ModelsChoice->GetString(ModelsChoice->GetSelection())).ToStdString();
 }

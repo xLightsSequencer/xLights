@@ -8,16 +8,17 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Add page to new sequence wizard to allow selection of a view or all models.
+   -- enh (gil)     Allow effects to be dropped without timing marks while a timing track is active.
+   -- enh (gil)     Add new options to the Fill Effect: Band Size, Skip Size, and Offset.
+   -- bug (dkulp)   When applying effect presets or key bindings, adjust for the xLights version that was used to create that effect/binding
+   -- bug (dkulp)   Crash when trying to delete the background image
+   -- bug (dkulp)   Strobe node types not working correctly
+   -- enh (dkulp)   Add Left/Right starting locations for Icicles
+   -- enh (dkulp)   Write all data in fseq file direcly in one call instead of copied by frame
+   -- enh (dkulp)   Read from fseq files full frames at a time directly into data buffer instead of by channel
    -- bug (keithsw) Fix video drift in auto custom model generation
    -- enh (keithsw) Add video export of a models effects
-   -- enh (gil)   Allow effects to be dropped without timing marks while a timing track is active.
-   -- enh (gil)   Add new options to the Fill Effect: Band Size, Skip Size, and Offset.
-   -- bug (dkulp) When applying effect presets or key bindings, adjust for the xLights version that was used to create that effect/binding
-   -- bug (dkulp) Crash when trying to delete the background image
-   -- bug (dkulp) Strobe node types not working correctly
-   -- enh (dkulp) Add Left/Right starting locations for Icicles
-   -- enh (dkulp) Write all data in fseq file direcly in one call instead of copied by frame
-   -- enh (dkulp) Read from fseq files full frames at a time directly into data buffer instead of by channel
    -- enh (keithsw) Add new #x.y format for specifying start channel x = universe, y = channel within universe
    -- enh (keithsw) Include xbkp files in log packaging and crash dumps
    -- bug (keithsw) Fix handling of multiple e131 universes in a single output

@@ -13,6 +13,43 @@
 #include <wx/zipstrm.h>
 #include <wx/tokenzr.h>
 
+void xLightsFrame::AddAllModelsToSequence()
+{
+    std::string models_to_add = "";
+    bool first_model = true;
+    for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "modelGroup")
+        {
+            wxString name=e->GetAttribute("name");
+            if (!mSequenceElements.ElementExists(name.ToStdString(), 0))
+            {
+                if( !first_model ) {
+                    models_to_add += ",";
+                }
+                models_to_add += name;
+                first_model = false;
+            }
+        }
+    }
+    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "model")
+        {
+            wxString name=e->GetAttribute("name");
+            if (!mSequenceElements.ElementExists(name.ToStdString(), 0))
+            {
+                if( !first_model ) {
+                    models_to_add += ",";
+                }
+                models_to_add += name;
+                first_model = false;
+            }
+        }
+    }
+    mSequenceElements.AddMissingModelsToSequence(models_to_add);
+}
+
 void xLightsFrame::NewSequence()
 {
     // close any open sequences
@@ -77,6 +114,15 @@ void xLightsFrame::NewSequence()
     }
     Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
     displayElementsPanel->Initialize();
+    const std::string view = setting_dlg.GetView();
+    if( view == "All Models" )
+    {
+        AddAllModelsToSequence();
+    }
+    else if( view != "Empty" )
+    {
+        displayElementsPanel->SelectView(view);
+    }
 	SetAudioControls();
     Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
 }

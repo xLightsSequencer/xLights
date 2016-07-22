@@ -7,18 +7,18 @@
 #include "FlickerFreeBitmapButton.h"
 
 //(*Headers(SeqSettingsDialog)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/dialog.h>
-#include <wx/sizer.h>
+#include <wx/treectrl.h>
 #include <wx/notebook.h>
-#include <wx/button.h>
-#include <wx/panel.h>
-#include <wx/gbsizer.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/panel.h>
 #include <wx/choice.h>
-#include <wx/treectrl.h>
+#include <wx/bmpbuttn.h>
+#include <wx/gbsizer.h>
+#include <wx/button.h>
+#include <wx/dialog.h>
 //*)
 
 class ConvertLogDialog;
@@ -31,56 +31,58 @@ class SeqSettingsDialog: public wxDialog
 		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning, bool wizard_active_ = false);
 		virtual ~SeqSettingsDialog();
 
+        const std::string GetView() {return selected_view;}
+
 		//(*Declarations(SeqSettingsDialog)
-		wxStaticText* StaticText_Xml_Song;
-		wxPanel* Panel_DataLayers;
-		wxStaticText* StaticText_Xml_Artist;
-		wxPanel* Panel1;
-		wxStaticText* StaticText_XML_Version;
-		wxButton* Button_Close;
-		wxTextCtrl* TextCtrl_Xml_Album;
-		wxStaticText* StaticText_Num_Models_Label;
-		wxStaticText* StaticText_Warn_No_Media;
-		wxStaticText* StaticText_Xml_Comment;
-		wxStaticText* StaticText_Xml_MediaFile;
-		wxChoice* Choice_Xml_Seq_Type;
-		wxNotebook* Notebook_Seq_Settings;
-		wxStaticText* StaticText_Info;
-		wxButton* Button_Cancel;
-		wxStaticText* StaticText_Warning;
-		wxPanel* Panel2;
-		wxStaticText* StaticText_Num_Models;
-		wxStaticText* StaticText_File;
-		wxStaticText* StaticText_Xml_Website;
-		wxStaticText* StaticText_XML_Type_Version;
-		wxTextCtrl* TextCtrl_Xml_Artist;
-		wxButton* Button_Layer_Delete;
-		wxTreeCtrl* TreeCtrl_Data_Layers;
-		wxTextCtrl* TextCtrl_Xml_Song;
-		wxTextCtrl* TextCtrl_Xml_Author_Email;
 		wxButton* Button_Layer_Import;
-		wxButton* Button_Xml_Import_Timing;
-		wxPanel* Panel3;
-		wxStaticText* StaticText_Xml_Author;
-		wxChoice* Choice_Xml_Seq_Timing;
-		wxTextCtrl* TextCtrl_Xml_Comment;
-		wxCheckBox* CheckBox_Overwrite_Tags;
-		wxTextCtrl* TextCtrl_Xml_Website;
-		wxStaticText* StaticText_Xml_Total_Length;
-		wxButton* Button_Xml_New_Timing;
-		wxTextCtrl* TextCtrl_Xml_Media_File;
-		wxTextCtrl* TextCtrl_Xml_Seq_Duration;
-		wxBitmapButton* BitmapButton_Xml_Media_File;
-		wxStaticText* StaticText_Filename;
-		wxButton* Button_Move_Down;
-		wxStaticText* StaticText_Xml_Seq_Type;
-		wxTextCtrl* TextCtrl_Xml_Music_Url;
-		wxButton* Button_Reimport;
-		wxButton* Button_Move_Up;
-		wxTextCtrl* TextCtrl_Xml_Author;
 		wxStaticText* StaticText_Xml_Author_Email;
+		wxStaticText* StaticText_Num_Models_Label;
+		wxStaticText* StaticText_Xml_Seq_Type;
+		wxStaticText* StaticText_XML_Version;
+		wxStaticText* StaticText_Xml_MediaFile;
+		wxTreeCtrl* TreeCtrl_Data_Layers;
+		wxChoice* Choice_Xml_Seq_Timing;
+		wxTextCtrl* TextCtrl_Xml_Album;
+		wxStaticText* StaticText_Xml_Artist;
+		wxStaticText* StaticText_Warning;
+		wxStaticText* StaticText_Xml_Website;
+		wxNotebook* Notebook_Seq_Settings;
+		wxStaticText* StaticText_Xml_Total_Length;
 		wxStaticText* StaticText_Xml_Music_Url;
+		wxPanel* Panel1;
+		wxTextCtrl* TextCtrl_Xml_Author_Email;
+		wxStaticText* StaticText_Num_Models;
+		wxCheckBox* CheckBox_Overwrite_Tags;
+		wxPanel* Panel3;
+		wxTextCtrl* TextCtrl_Xml_Song;
+		wxButton* Button_Layer_Delete;
+		wxStaticText* StaticText_File;
+		wxStaticText* StaticText_Xml_Author;
 		wxStaticText* StaticText_Xml_Album;
+		wxStaticText* StaticText_XML_Type_Version;
+		wxStaticText* StaticText_Info;
+		wxTextCtrl* TextCtrl_Xml_Music_Url;
+		wxButton* Button_Xml_Import_Timing;
+		wxTextCtrl* TextCtrl_Xml_Seq_Duration;
+		wxButton* Button_Cancel;
+		wxTextCtrl* TextCtrl_Xml_Media_File;
+		wxStaticText* StaticText_Filename;
+		wxTextCtrl* TextCtrl_Xml_Comment;
+		wxButton* Button_Reimport;
+		wxStaticText* StaticText_Xml_Comment;
+		wxPanel* Panel_DataLayers;
+		wxTextCtrl* TextCtrl_Xml_Author;
+		wxStaticText* StaticText_Warn_No_Media;
+		wxStaticText* StaticText_Xml_Song;
+		wxPanel* Panel2;
+		wxChoice* Choice_Xml_Seq_Type;
+		wxTextCtrl* TextCtrl_Xml_Website;
+		wxButton* Button_Close;
+		wxButton* Button_Move_Down;
+		wxTextCtrl* TextCtrl_Xml_Artist;
+		wxButton* Button_Move_Up;
+		wxBitmapButton* BitmapButton_Xml_Media_File;
+		wxButton* Button_Xml_New_Timing;
 		//*)
 
 		tmGrid* Grid_Timing;
@@ -98,10 +100,13 @@ class SeqSettingsDialog: public wxDialog
 		FlickerFreeBitmapButton* BitmapButton_hls;
 		FlickerFreeBitmapButton* BitmapButton_lynx;
 		FlickerFreeBitmapButton* BitmapButton_xlights;
+		FlickerFreeBitmapButton* BitmapButton_quick_start;
 		wxButton* Button_SkipImport;
         wxButton* Button_EditMetadata;
         wxButton* Button_ImportTimings;
         wxButton* Button_WizardDone;
+        wxChoice* ModelsChoice;
+		wxButton* ModelsChoiceNext;
 
 	protected:
 
@@ -169,11 +174,14 @@ class SeqSettingsDialog: public wxDialog
         static const long ID_BITMAPBUTTON_hls;
         static const long ID_BITMAPBUTTON_lynx;
         static const long ID_BITMAPBUTTON_xlights;
+        static const long ID_BITMAPBUTTON_quick_start;
         static const long ID_BUTTON_skip_import;
         static const long ID_BUTTON_edit_metadata;
         static const long ID_BUTTON_import_timings;
         static const long ID_BUTTON_wizard_done;
         static const long ID_PANEL_Wizard;
+        static const long ID_CHOICE_Models;
+        static const long ID_BUTTON_models_next;
 
 	private:
 
@@ -223,10 +231,13 @@ class SeqSettingsDialog: public wxDialog
 		void OnBitmapButton_hlsClick(wxCommandEvent& event);
 		void OnBitmapButton_lynxClick(wxCommandEvent& event);
 		void OnBitmapButton_xlightsClick(wxCommandEvent& event);
+		void OnBitmapButton_quick_startClick(wxCommandEvent& event);
 		void OnButton_skip_importClick(wxCommandEvent& event);
 		void OnButton_EditMetadataClick(wxCommandEvent& event);
 		void OnButton_ImportTimingsClick(wxCommandEvent& event);
 		void OnButton_Button_WizardDoneClick(wxCommandEvent& event);
+		void OnButton_ModelsChoiceNext(wxCommandEvent& event);
+		void OnViewSelect(wxCommandEvent& event);
 
         DECLARE_EVENT_TABLE()
 
@@ -253,6 +264,7 @@ class SeqSettingsDialog: public wxDialog
         wxBitmap hls;
         wxBitmap lynx;
         wxBitmap xlights_logo;
+        wxBitmap quick_start;
 
         std::vector<wxGridCellButtonRenderer*> mCellRenderers;
 
@@ -266,7 +278,9 @@ class SeqSettingsDialog: public wxDialog
         void WizardPage2();
         void WizardPage3();
         void WizardPage4();
+        void WizardPage5();
         bool ImportDataLayer(const wxString& filetypes, ConvertLogDialog* plog);
+        std::string selected_view;
 };
 
 #endif

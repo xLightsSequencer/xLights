@@ -1211,6 +1211,7 @@ protected:
     void SaveSequence();
     void SaveAsSequence();
     bool CloseSequence();
+    void AddAllModelsToSequence();
     void InsertRow();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
@@ -1236,6 +1237,8 @@ public:
     wxXmlNode* ModelsNode;
     wxXmlNode* ModelGroupsNode;
     wxXmlNode* LayoutGroupsNode;
+    wxXmlNode* GetViewsNode() {return ViewsNode;}
+
 private:
     wxXmlNode* SettingsNode;
 
