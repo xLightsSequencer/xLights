@@ -22,7 +22,6 @@ class wxCheckedListCtrl : public wxListCtrl
         void SetImages( char** ImageChecked,char** ImageUnchecked);
         void AddImage( char** ImageXPM);
 
-    protected:
     private:
         wxImageList m_imageList;
         char** mImageChecked;

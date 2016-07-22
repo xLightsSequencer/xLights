@@ -11,9 +11,6 @@ class xlCustomControl
 
     
         virtual void SetValue(const std::string &val) = 0;
-    protected:
-
-    private:
 };
 
 #endif // XLCUSTOMCONTROL_H

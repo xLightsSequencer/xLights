@@ -130,7 +130,6 @@ class xLightsXmlFile : public wxFileName
         static void FixEffectPresets(wxXmlNode* effects_node);
         static bool IsXmlSequence(wxFileName &fname);
 
-    protected:
     private:
 		wxXmlDocument seqDocument;
         wxArrayString models;

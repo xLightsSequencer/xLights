@@ -27,6 +27,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keithsw) Handle duplicate timing tracks in XML file without crashing
    -- enh (keithsw) Add additional columns to models export
    -- bug (keithsw) Fix test tab handling of models which are single node but multiple nodes such as DMX model
+   -- enh (keithsw) Add count of effect layers on presets window
 2016.40  Jul 10, 2016
    -- bug (gil)  Make the initial pane size larger for Model Preview, House Preview, and Effect Assist windows.  Fixes #617
    -- bug (dkulp) Fix dotted lines in model preview selection stuff

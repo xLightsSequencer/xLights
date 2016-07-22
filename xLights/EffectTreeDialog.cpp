@@ -119,6 +119,7 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
         else if (ele->GetName() == "effect")
         {
             name = ele->GetAttribute("name");
+            name += " [" + ParseLayers(ele->GetAttribute("settings")) + "]";
             if (!name.IsEmpty())
             {
                 TreeCtrl1->AppendItem(treeRootID, name,-1,-1, new MyTreeItemData(ele));
@@ -142,6 +143,7 @@ void EffectTreeDialog::AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeIt
             name=ele->GetAttribute("name");
             if (!name.IsEmpty())
             {
+                name += " [" + ParseLayers(ele->GetAttribute("settings")) + "]";
                 TreeCtrl1->AppendItem(curGroupID, name,-1,-1, new MyTreeItemData(ele));
             }
         }
@@ -236,7 +238,7 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     wxTreeItemId parentID;
     MyTreeItemData *parentData, *itemData;
 
-    if ( !itemID.IsOk() )
+    if (!itemID.IsOk())
     {
         wxMessageBox(_("A preset cannot be added at the currently selected location"), _("ERROR"));
         ValidateWindow();
@@ -247,25 +249,69 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     wxString name;
     if (!PromptForName(this, &name, prompt, errMsg)) return;
 
-    itemData = (MyTreeItemData *) TreeCtrl1->GetItemData(itemID);
-    if( itemData->IsGroup())
+    itemData = (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
+    if (itemData->IsGroup())
     {
-        parentID=itemID;
-        parentData=itemData;
+        parentID = itemID;
+        parentData = itemData;
     }
     else
     {
         parentID = TreeCtrl1->GetItemParent(itemID);
-        parentData=(MyTreeItemData *)TreeCtrl1->GetItemData(parentID);
+        parentData = (MyTreeItemData *)TreeCtrl1->GetItemData(parentID);
     }
 
-    wxXmlNode *node=parentData->GetElement();
-    wxXmlNode *newNode=xLightParent->CreateEffectNode(name);
+    wxXmlNode *node = parentData->GetElement();
+    wxXmlNode *newNode = xLightParent->CreateEffectNode(name);
     node->AddChild(newNode);
+    name += " [" + ParseLayers(newNode->GetAttribute("settings")) +"]";
     TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode));
 
     EffectsFileDirty();
     ValidateWindow();
+}
+
+wxString EffectTreeDialog::ParseLayers(wxString settings)
+{
+    wxString res = "0";
+
+    int start = 9999;
+    int end = -1;
+
+    wxArrayString all_efdata = wxSplit(settings, '\n');
+
+    for (int i = 1; i < all_efdata.size(); i++)
+    {
+        wxArrayString efdata = wxSplit(all_efdata[i], '\t');
+        if (efdata.size() >= 6)
+        {
+            int row = wxAtoi(efdata[5]);
+            if (row < start) start = row;
+            if (row > end) end = row;
+        }
+    }
+
+    if (end != -1)
+    {
+        res = wxString::Format("%d", end - start + 1);
+    }
+
+    return res;
+}
+
+wxString StripLayers(wxString s)
+{
+    wxString res = s;
+    if (s.EndsWith("]"))
+    {
+        res = s.BeforeLast('[');
+        if (res.EndsWith(" "))
+        {
+            res = res.BeforeLast(' ');
+        }
+    }
+
+    return res;
 }
 
 void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
@@ -284,6 +330,8 @@ void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
 
     xml_node->DeleteAttribute("settings");
     xLightParent->UpdateEffectNode(xml_node);
+
+    TreeCtrl1->SetItemText(itemID, StripLayers(name) + " [" + ParseLayers(xml_node->GetAttribute("settings")) + "]");
 
     EffectsFileDirty();
     ValidateWindow();
@@ -308,6 +356,7 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
     wxXmlNode* e=(wxXmlNode*)itemData->GetElement();
     e->DeleteAttribute("name");
     e->AddAttribute("name",newName);
+    newName += " [" + ParseLayers(e->GetAttribute("settings")) + "]";
     TreeCtrl1->SetItemText(itemID, newName);
     EffectsFileDirty();
     ValidateWindow();
@@ -459,6 +508,7 @@ void EffectTreeDialog::AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID)
         newNode->AddAttribute("version", version);
 
         node->AddChild(newNode);
+        name += " [" + ParseLayers(newNode->GetAttribute("settings")) + "]";
         TreeCtrl1->AppendItem(curGroupID, name, -1, -1, new MyTreeItemData(newNode));
     }
 }
@@ -607,7 +657,7 @@ wxString XmlSafe(wxString s)
 
 void EffectTreeDialog::WriteEffect(wxFile& f, wxXmlNode* n)
 {
-    f.Write("<effect name=\"" + n->GetAttribute("name") + "\" settings=\""+XmlSafe(n->GetAttribute("settings"))
+    f.Write("<effect name=\"" + StripLayers(n->GetAttribute("name")) + "\" settings=\""+XmlSafe(n->GetAttribute("settings"))
             +"\" version=\""+n->GetAttribute("version")
             +"\" xLightsVersion=\""+n->GetAttribute("xLightsVersion", "4.0")
             +"\" />\n");
@@ -639,7 +689,7 @@ void EffectTreeDialog::OnbtExportClick(wxCommandEvent& event)
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
 
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Preset files (*.xpreset)|*.xpreset", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, StripLayers(name), wxEmptyString, "Preset files (*.xpreset)|*.xpreset", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
     

@@ -83,6 +83,8 @@ class EffectTreeDialog : public wxDialog
 
 		DECLARE_EVENT_TABLE()
 
+        wxString ParseLayers(wxString settings);
+
     public:
         static bool PromptForName(wxWindow* parent, wxString *name, wxString prompt, wxString errorMsg); //static to allow re-use elsewhere -DJ
 };
