@@ -93,6 +93,7 @@ private:
 
     void sendRenderEvent(const std::string &model, int start, int end, bool clear = true);
     void render(wxPaintEvent& evt);
+    void magnify(wxMouseEvent& event);
 	void mouseMoved(wxMouseEvent& event);
 	void mouseDown(wxMouseEvent& event);
 	void mouseWheelMoved(wxMouseEvent& event);
@@ -187,6 +188,7 @@ private:
     int mDragStartY;
     int mDragEndX;
     int mDragEndY;
+    float magSinceLast;
 
     EffectLayer* mEffectLayer;
     int mResizeEffectIndex;

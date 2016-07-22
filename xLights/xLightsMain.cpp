@@ -2853,6 +2853,45 @@ void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
     SetFocus();
 }
 
+void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report) {
+    wxHTTP http;
+    http.Connect("dankulp.com");
+    
+    const char *bound = "--------------------------b29a7c2fe47b9481";
+    int i = wxGetUTCTimeMillis().GetLo();
+    i &= 0xFFFFFFF;
+    wxString fn = wxString::Format("xlights-%s_%d.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), i);
+    const char *ct = "Content-Type: application/octet-stream\n";
+    std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
+    
+    wxMemoryBuffer memBuff;
+    memBuff.AppendData(bound, strlen(bound));
+    memBuff.AppendData("\n", 1);
+    memBuff.AppendData(ct, strlen(ct));
+    memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
+    
+    
+    wxFile f_in(report.GetCompressedFileName());
+    wxFileOffset fLen=f_in.Length();
+    void* tmp=memBuff.GetAppendBuf(fLen);
+    size_t iRead=f_in.Read(tmp, fLen);
+    memBuff.UngetAppendBuf(iRead);
+    f_in.Close();
+    
+    memBuff.AppendData("\n", 1);
+    memBuff.AppendData(bound, strlen(bound));
+    memBuff.AppendData("--\n", 3);
+    
+    http.SetMethod("POST");
+    http.SetPostBuffer("multipart/form-data; boundary=------------------------b29a7c2fe47b9481", memBuff);
+    wxInputStream * is = http.GetInputStream("/" + loc + "/index.php");
+    char buf[1024];
+    is->Read(buf, 1024);
+    //printf("%s\n", buf);
+    delete is;
+    http.Close();
+}
+
 void xLightsFrame::MaybePackageAndSendDebugFiles() {
     wxString message = "You forced the OpenGL setting to a non-default value.  Is it OK to send the debug logs to the developers for analysis?";
     wxMessageDialog dlg(this, message, "Send Debug Files",wxYES_NO|wxCENTRE);
@@ -2869,45 +2908,8 @@ void xLightsFrame::MaybePackageAndSendDebugFiles() {
         report.AddText("description", ted.GetValue(), "description");
         AddDebugFilesToReport(report);
         report.Process();
-
-        wxHTTP http;
-        http.Connect("dankulp.com");
-
-
-        const char *bound = "--------------------------b29a7c2fe47b9481";
-        int i = wxGetUTCTimeMillis().GetLo();
-        i &= 0xFFFFFFF;
-        wxString fn = wxString::Format("xlights_%d.zip", i);
-        const char *ct = "Content-Type: application/octet-stream\n";
-        std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
-
-        wxMemoryBuffer memBuff;
-        memBuff.AppendData(bound, strlen(bound));
-        memBuff.AppendData("\n", 1);
-        memBuff.AppendData(ct, strlen(ct));
-        memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
-
-
-        wxFile f_in(wxFileName::GetTempDir() + "/xlights_debug.zip");
-        wxFileOffset fLen=f_in.Length();
-        void* tmp=memBuff.GetAppendBuf(fLen);
-        size_t iRead=f_in.Read(tmp, fLen);
-        memBuff.UngetAppendBuf(iRead);
-        f_in.Close();
-
-        memBuff.AppendData("\n", 1);
-        memBuff.AppendData(bound, strlen(bound));
-        memBuff.AppendData("--\n", 3);
-
-        http.SetMethod("POST");
-        http.SetPostBuffer("multipart/form-data; boundary=------------------------b29a7c2fe47b9481", memBuff);
-        wxInputStream * is = http.GetInputStream("/oglUpload/index.php");
-        char buf[1024];
-        is->Read(buf, 1024);
-        //printf("%s\n", buf);
-        delete is;
-        http.Close();
-        wxRemoveFile(wxFileName::GetTempDir() + "/xlights_debug.zip");
+        SendReport("oglUpload", report);
+        wxRemoveFile(report.GetCompressedFileName());
     }
 }
 void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)

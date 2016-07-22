@@ -621,6 +621,7 @@ private:
 	void SetEffectAssistWindowState(bool show);
     void UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect);
     void MaybePackageAndSendDebugFiles();
+    void SendReport(const wxString &loc, wxDebugReportCompress &report);
     void AddDebugFilesToReport(wxDebugReport &report);
 //    void ConnectOnChar(wxWindow* pclComponent);
 

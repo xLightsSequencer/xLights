@@ -37,6 +37,7 @@
 
 BEGIN_EVENT_TABLE(EffectsGrid, xlGLCanvas)
 EVT_MOTION(EffectsGrid::mouseMoved)
+EVT_MAGNIFY(EffectsGrid::magnify)
 EVT_MOUSEWHEEL(EffectsGrid::mouseWheelMoved)
 EVT_LEFT_DOWN(EffectsGrid::mouseDown)
 EVT_LEFT_UP(EffectsGrid::mouseReleased)
@@ -82,6 +83,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mRangeEndCol = -1;
     mResizeEffectIndex = -1;
     mTimeline = nullptr;
+    magSinceLast = 0.0f;
 
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
@@ -2761,8 +2763,28 @@ void EffectsGrid::DeleteEffectIconTextures()
     m_EffectTextures.clear();
 }
 
+void EffectsGrid::magnify(wxMouseEvent& event) {
+    printf("EG Mag %f\n", event.GetMagnification());
+    magSinceLast += event.GetMagnification();
+    if (magSinceLast > 0.05f)
+    {
+        wxCommandEvent eventZoom(EVT_ZOOM);
+        eventZoom.SetInt(ZOOM_IN);
+        wxPostEvent(mParent, eventZoom);
+        magSinceLast = 0;
+    }
+    else if(magSinceLast < -0.05f)
+    {
+        wxCommandEvent eventZoom(EVT_ZOOM);
+        eventZoom.SetInt(ZOOM_OUT);
+        wxPostEvent(mParent, eventZoom);
+        magSinceLast = 0;
+    }
+}
+
 void EffectsGrid::mouseWheelMoved(wxMouseEvent& event)
 {
+    magSinceLast = 0;
     if(event.CmdDown())
     {
         int i = event.GetWheelRotation();

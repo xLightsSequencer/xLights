@@ -402,6 +402,7 @@ wxString xLightsFrame::GetThreadStatusReport() {
 void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
     if (wxDebugReportPreviewStd().Show(*report)) {
         report->Process();
+        SendReport("crashUpload", *report);
         wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
     }
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
