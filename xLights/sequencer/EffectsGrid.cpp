@@ -486,6 +486,7 @@ bool EffectsGrid::DragOver(int x, int y)
         else
         {
             int selectedTimingIndex = mSequenceElements->GetSelectedTimingRow();
+            bool freeform_drop = false;
             if(selectedTimingIndex >= 0)
             {
                 EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(selectedTimingIndex);
@@ -504,8 +505,16 @@ bool EffectsGrid::DragOver(int x, int y)
                         mDropRow = row;
                     }
                 }
+                else
+                {
+                    freeform_drop = true;
+                }
             }
             else
+            {
+                    freeform_drop = true;
+            }
+            if( freeform_drop )
             {
                 EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
                 if( el != nullptr )
