@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 47;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -58,8 +58,6 @@
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
 		674ACA7C1C5ADE4000B54B32 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674ACA7B1C5ADE4000B54B32 /* Node.cpp */; };
 		674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D1C1C207B9F000D632B /* OpenGL.framework */; };
-		674D3D1E1C207BBD000D632B /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67E7087017B51AB400A22034 /* Cocoa.framework */; };
-		674D3D1F1C207BBD000D632B /* Cocoa.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67E7087017B51AB400A22034 /* Cocoa.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D211C207BCC000D632B /* IOKit.framework */; };
 		674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D231C207BD7000D632B /* AudioToolbox.framework */; };
 		674D3D261C207C25000D632B /* libpthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D251C207C25000D632B /* libpthread.tbd */; };
@@ -279,6 +277,7 @@
 		67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D678FC1A7E628400421B05 /* tmGridCell.cpp */; };
 		67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D7DD031B23C586007A3F20 /* UndoManager.cpp */; };
 		67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B317C45BAF00FE40EA /* TabSequence.cpp */; };
+		67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67E7087017B51AB400A22034 /* Cocoa.framework */; };
 		67DAFDDB1CA1A63C004B3237 /* Binasc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DAFDCE1CA1A63C004B3237 /* Binasc.cpp */; };
 		67DAFDDC1CA1A63C004B3237 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 67DAFDD01CA1A63C004B3237 /* LICENSE.txt */; };
 		67DAFDDD1CA1A63C004B3237 /* MidiEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DAFDD11CA1A63C004B3237 /* MidiEvent.cpp */; };
@@ -317,7 +316,6 @@
 				67AA37AF1C7E4107001D2377 /* libavformat.57.dylib in Embed Frameworks */,
 				67AA37B01C7E4107001D2377 /* libavcodec.57.dylib in Embed Frameworks */,
 				67AA37B11C7E4107001D2377 /* libswresample.2.dylib in Embed Frameworks */,
-				674D3D1F1C207BBD000D632B /* Cocoa.framework in Embed Frameworks */,
 				67AA379F1C7E3703001D2377 /* SDL2.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -882,6 +880,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */,
 				676C5EAB1C99D6D20031A033 /* liblog4cpp.5.dylib in Frameworks */,
 				67EE95B51C848BF000C62C95 /* libswscale.4.dylib in Frameworks */,
 				67AA37AD1C7E40D3001D2377 /* libswresample.2.dylib in Frameworks */,
@@ -903,7 +902,6 @@
 				674D3D261C207C25000D632B /* libpthread.tbd in Frameworks */,
 				674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */,
 				674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */,
-				674D3D1E1C207BBD000D632B /* Cocoa.framework in Frameworks */,
 				674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */,
 				679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */,
 			);
@@ -1611,9 +1609,14 @@
 				CLASSPREFIX = xl;
 				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Daniel Kulp";
+				TargetAttributes = {
+					67E7086C17B51AB400A22034 = {
+						DevelopmentTeam = U8ZT9RPC6S;
+					};
+				};
 			};
 			buildConfigurationList = 67E7086817B51AB400A22034 /* Build configuration list for PBXProject "xLights" */;
-			compatibilityVersion = "Xcode 3.2";
+			compatibilityVersion = "Xcode 6.3";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -2041,7 +2044,7 @@
 					"-ferror-limit=0",
 				);
 				OTHER_LDFLAGS = "-headerpad_max_install_names";
-				PRODUCT_BUNDLE_IDENTIFIER = "xLights.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_BUNDLE_IDENTIFIER = org.xlights;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				VALID_ARCHS = x86_64;
@@ -2097,7 +2100,7 @@
 					"-ferror-limit=0",
 				);
 				OTHER_LDFLAGS = "-headerpad_max_install_names";
-				PRODUCT_BUNDLE_IDENTIFIER = "xLights.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_BUNDLE_IDENTIFIER = org.xlights;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				VALID_ARCHS = x86_64;
