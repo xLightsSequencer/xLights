@@ -711,8 +711,31 @@ void my_av_log_callback(void *ptr, int level, const char *fmt, va_list vargs)
     logger_base.debug("WriteVideoModelFile: lvl: %d msg: %s.", level, (const char *)message);
 }
 
+void FillImage(wxImage& image, Model* model, uint8_t* framedata)
+{
+    int width = 0;
+    int height = 0;
+    model->GetBufferSize("Default", "None", width, height);
+
+    uint8_t* imagedata = image.GetData();
+
+    for (int i = 0; i < model->GetNodeCount(); i++)
+    {
+        std::vector<wxPoint> pts;
+        model->GetNodeCoords(i, pts);
+        uint8_t* ps = framedata + i * 3;
+        for (auto it = pts.begin(); it != pts.end(); it++)
+        {
+            uint8_t* p = imagedata + (it->y * width + it->x) * 3;
+            *p = *ps;
+            *(p + 1) = *(ps + 1);
+            *(p + 2) = *(ps + 2);
+        }
+    }
+}
+
 void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, long numPeriods,
-    SeqDataType *dataBuf, int startAddr, int modelSize, Model* model)
+    SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Writing model video.");
@@ -746,8 +769,15 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         logger_base.error("   Could not find suitable output format.");
         return;
     }
-    //fmt->video_codec = AV_CODEC_ID_MPEG4;
-    fmt->video_codec = AV_CODEC_ID_H264;
+    if (compressed)
+    {
+        fmt->video_codec = AV_CODEC_ID_H264;
+    }
+    else
+    {
+        fmt->video_codec = AV_CODEC_ID_RAWVIDEO;
+    }
+    //fmt->video_codec = AV_CODEC_ID_MPEG4; // this is the default for AVI
 
     AVFormatContext* oc;
     avformat_alloc_output_context2(&oc, fmt, NULL, filename);
@@ -786,16 +816,22 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     codecContext->time_base.den = 1000 / dataBuf->FrameTime();
     codecContext->gop_size = 12; // key frame gap ... 1 is all key frames
     codecContext->max_b_frames = 1;
-    //codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
-    codecContext->pix_fmt = AV_PIX_FMT_YUV444P;
+    codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
 
     if (fmt->video_codec == AV_CODEC_ID_H264)
     {
+        codecContext->pix_fmt = AV_PIX_FMT_YUV444P;
         av_opt_set(codecContext->priv_data, "preset", "ultrafast", 0);
         av_opt_set(codecContext->priv_data, "qp", "0", 0);
         av_opt_set(codecContext->priv_data, "crf", "0", AV_OPT_SEARCH_CHILDREN);
     }
     else if (codecContext->codec_id == AV_CODEC_ID_MPEG4) {
+        av_opt_set(codecContext->priv_data, "qp", "0", 0);
+        av_opt_set(codecContext->priv_data, "crf", "0", AV_OPT_SEARCH_CHILDREN);
+    }
+    else if (codecContext->codec_id == AV_CODEC_ID_RAWVIDEO)
+    {
+        codecContext->pix_fmt = AV_PIX_FMT_BGR24;
         av_opt_set(codecContext->priv_data, "qp", "0", 0);
         av_opt_set(codecContext->priv_data, "crf", "0", AV_OPT_SEARCH_CHILDREN);
     }
@@ -869,7 +905,11 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     size_t i = 0;
     for (i = 0; i < numPeriods; i++)
     {
-        ret = av_image_fill_arrays(src_picture.data, src_picture.linesize, (const uint8_t*)&(*dataBuf)[i][0], informat, origwidth, origheight, 1);
+        wxImage image(origwidth, origheight, true);
+        FillImage(image, model, (uint8_t*)&(*dataBuf)[i][0]);
+
+        //ret = av_image_fill_arrays(src_picture.data, src_picture.linesize, (const uint8_t*)&(*dataBuf)[i][0], informat, origwidth, origheight, 1);
+        ret = av_image_fill_arrays(src_picture.data, src_picture.linesize, image.GetData(), informat, origwidth, origheight, 1);
         if (ret < 0) {
             logger_base.error("   Error filling source image data %d.", ret);
             return;
@@ -941,7 +981,6 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
 
     sws_freeContext(sws_ctx);
     avcodec_close(video_st->codec);
-    av_free(src_picture.data[0]);
     av_free(frame->data[0]);
     av_free(frame);
 

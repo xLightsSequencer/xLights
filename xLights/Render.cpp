@@ -630,7 +630,7 @@ private:
     volatile int statusStrand;
     volatile int statusNode;
     log4cpp::Category &renderLog;
-    
+
     wxGauge *gauge;
     int currentFrame;
 
@@ -927,13 +927,21 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         fullpath=oName.GetFullPath();
         WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels());
     }
-    else if (Out3 == "Vid")
+    else if (Out3 == "Com")
     {
         wxString tempstr = GetModel(model)->ModelStartChannel;
         int stChan = wxAtoi(tempstr);
         oName.SetExt(_("avi"));
         fullpath = oName.GetFullPath();
-        WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model));
+        WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), true);
+    }
+    else if (Out3 == "Unc")
+    {
+        wxString tempstr = GetModel(model)->ModelStartChannel;
+        int stChan = wxAtoi(tempstr);
+        oName.SetExt(_("avi"));
+        fullpath = oName.GetFullPath();
+        WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), false);
     }
     SetStatusText(_("Finished writing model: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
 

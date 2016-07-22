@@ -2,11 +2,11 @@
 #define SEQEXPORTDIALOG_H
 
 //(*Headers(SeqExportDialog)
-#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/choice.h>
+#include <wx/dialog.h>
 //*)
 
 class SeqExportDialog: public wxDialog
@@ -19,9 +19,9 @@ public:
 
     //(*Declarations(SeqExportDialog)
     wxTextCtrl* TextCtrlFilename;
-    wxChoice* ChoiceFormat;
     wxStaticText* StaticText1;
     wxStaticText* StaticText3;
+    wxChoice* ChoiceFormat;
     //*)
 
 protected:
