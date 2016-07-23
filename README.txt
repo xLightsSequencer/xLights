@@ -3,8 +3,8 @@ LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers
 xLights has a extensive scheduler. Nutcracker is a program that generates animated effects
 on massive RGB devices such as megatrees, matrices, and arches.
 
-Latest releases are found at http://nutcracker123.com/nutcracker/releases/
-Issue Tracker is found here: https://github.com/smeighan/xLights/issues
+Latest releases are found at www.xlights.org
+Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
