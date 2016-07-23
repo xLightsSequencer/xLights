@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.41  Jul 22, 2016
    -- enh (dkulp)   Add pinch-to-zoom on Mac trackpad
    -- enh (gil)     Add page to new sequence wizard to allow selection of a view or all models.
    -- enh (gil)     Allow effects to be dropped without timing marks while a timing track is active.
