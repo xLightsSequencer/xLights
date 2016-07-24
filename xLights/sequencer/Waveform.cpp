@@ -258,14 +258,14 @@ void Waveform::renderGL( )
 
     SetCurrentGLContext();
 
-    glClear(GL_COLOR_BUFFER_BIT);
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
 
 	if (mCurrentWaveView >= 0)
 	{
 		DrawWaveView(views[mCurrentWaveView]);
 	}
-    SwapBuffers();
+    LOG_GL_ERRORV(SwapBuffers());
 }
 
 void Waveform::DrawWaveView(const WaveView &wv)
