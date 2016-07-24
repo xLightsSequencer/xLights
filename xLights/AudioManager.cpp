@@ -659,7 +659,7 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
 	std::list<float>* rc = NULL;
 	try
 	{
-		if (_frameData.size() > 0)
+		if (frame < _frameData.size())
 		{
 			std::vector<std::list<float>>* framedata = &_frameData[frame];
 
@@ -688,7 +688,7 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
 	}
 	catch (...)
 	{
-		rc = NULL;
+		rc = nullptr;
 	}
 
 	return rc;
@@ -913,23 +913,23 @@ void AudioManager::SetStepBlock(int step, int block)
 // Clean up our data buffers
 AudioManager::~AudioManager()
 {
-	if (_pcmdata != NULL)
+	if (_pcmdata != nullptr)
 	{
 		Stop();
 		SDL_CloseAudio();
 		free(_pcmdata);
-		_pcmdata = NULL;
+		_pcmdata = nullptr;
 		SDL_Quit();
 	}
-	if (_data[1] != _data[0] && _data[1] != NULL)
+	if (_data[1] != _data[0] && _data[1] != nullptr)
 	{
 		free(_data[1]);
-		_data[1] = NULL;
+		_data[1] = nullptr;
 	}
-	if (_data[0] != NULL)
+	if (_data[0] != nullptr)
 	{
 		free(_data[0]);
-		_data[0] = NULL;
+		_data[0] = nullptr;
 	}
 
 	// I am not deleting _job as I think JobPool takes care of this
@@ -972,27 +972,27 @@ int AudioManager::OpenMediaFile()
 {
 	int err = 0;
 
-	if (_pcmdata != NULL)
+	if (_pcmdata != nullptr)
 	{
 		Stop();
 		SDL_CloseAudio();
 		free(_pcmdata);
-		_pcmdata = NULL;
+		_pcmdata = nullptr;
 	}
 
 	// Initialize FFmpeg codecs
 	av_register_all();
 	//avformat_network_init();
 
-	AVFormatContext* formatContext = NULL;
-	int res = avformat_open_input(&formatContext, _audio_file.c_str(), NULL, NULL);
+	AVFormatContext* formatContext = nullptr;
+	int res = avformat_open_input(&formatContext, _audio_file.c_str(), nullptr, nullptr);
 	if (res != 0)
 	{
 		std::cout << "Error opening the file" << std::endl;
 		return 1;
 	}
 
-	if (avformat_find_stream_info(formatContext, NULL) < 0)
+	if (avformat_find_stream_info(formatContext, nullptr) < 0)
 	{
 		avformat_close_input(&formatContext);
 		std::cout << "Error finding the stream info" << std::endl;
@@ -1013,7 +1013,7 @@ int AudioManager::OpenMediaFile()
 	AVCodecContext* codecContext = audioStream->codec;
 	codecContext->codec = cdc;
 
-	if (avcodec_open2(codecContext, codecContext->codec, NULL) != 0)
+	if (avcodec_open2(codecContext, codecContext->codec, nullptr) != 0)
 	{
 		avformat_close_input(&formatContext);
 		std::cout << "Couldn't open the context with the decoder" << std::endl;
@@ -1028,15 +1028,15 @@ int AudioManager::OpenMediaFile()
 	GetTrackMetrics(formatContext, codecContext, audioStream);
 
 	// Check if we have read this before ... if so dump the old data
-	if (_data[1] != NULL && _data[1] != _data[0])
+	if (_data[1] != nullptr && _data[1] != _data[0])
 	{
 		free(_data[1]);
-		_data[1] = NULL;
+		_data[1] = nullptr;
 	}
-	if (_data[0] != NULL)
+	if (_data[0] != nullptr)
 	{
 		free(_data[0]);
-		_data[0] = NULL;
+		_data[0] = nullptr;
 	}
 
 	_data[0] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
@@ -1090,7 +1090,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 
 	_pcmdatasize = _trackSize * out_channels * 2;
 	_pcmdata = (Uint8*)malloc(_pcmdatasize + 16384); // 16384 is a fudge because some ogg files dont read consistently
-	if (_pcmdata == NULL)
+	if (_pcmdata == nullptr)
 	{
 		return;
 	}
@@ -1101,7 +1101,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 	int64_t in_channel_layout = av_get_default_channel_layout(codecContext->channels);
 	struct SwrContext *au_convert_ctx = swr_alloc();
 	au_convert_ctx = swr_alloc_set_opts(au_convert_ctx, out_channel_layout, out_sample_fmt, out_sample_rate,
-		in_channel_layout, codecContext->sample_fmt, codecContext->sample_rate, 0, NULL);
+		in_channel_layout, codecContext->sample_fmt, codecContext->sample_rate, 0, nullptr);
 	swr_init(au_convert_ctx);
 
 	// start at the beginning
@@ -1297,18 +1297,18 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 
 void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext)
 {
-	AVDictionaryEntry* tag = av_dict_get(formatContext->metadata, "title", NULL, 0);
-	if (tag != NULL)
+	AVDictionaryEntry* tag = av_dict_get(formatContext->metadata, "title", nullptr, 0);
+	if (tag != nullptr)
 	{
 		_title = tag->value;
 	}
-	tag = av_dict_get(formatContext->metadata, "album", NULL, 0);
-	if (tag != NULL)
+	tag = av_dict_get(formatContext->metadata, "album", nullptr, 0);
+	if (tag != nullptr)
 	{
 		_album = tag->value;
 	}
-	tag = av_dict_get(formatContext->metadata, "artist", NULL, 0);
-	if (tag != NULL)
+	tag = av_dict_get(formatContext->metadata, "artist", nullptr, 0);
+	if (tag != nullptr)
 	{
 		_artist = tag->value;
 	}

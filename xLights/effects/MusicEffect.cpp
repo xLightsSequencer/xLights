@@ -224,7 +224,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
     bool fade)
 {
     // no point if we have no media
-    if (buffer.GetMedia() == NULL)
+    if (buffer.GetMedia() == nullptr)
     {
         return;
     }
@@ -307,7 +307,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
 void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<MusicEvent*>*>& events, int startNote, int endNote, int bars, int scalenotes, int sensitivity)
 {
     // must have media
-    if (buffer.GetMedia() == NULL)
+    if (buffer.GetMedia() == nullptr)
     {
         return;
     }
@@ -330,25 +330,28 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
     {
         std::list<float>* pdata = buffer.GetMedia()->GetFrameData(f, FRAMEDATATYPE::FRAMEDATA_VU, "");
 
-        auto pn = pdata->begin();
-
-        // skip to start note
-        for (int i = 0; i < startNote; i++)
+        if (pdata != nullptr)
         {
-            ++pn;
-        }
+            auto pn = pdata->begin();
 
-        for (int b = 0; b < bars && pn != pdata->end(); b++)
-        {
-            float val = 0.0;
-            for (int n = 0; n < (int)notesperbar; n++)
+            // skip to start note
+            for (int i = 0; i < startNote; i++)
             {
-                val = std::max(val, *pn);
                 ++pn;
             }
-            data[b][f] = val;
-            max[b] = std::max(max[b], val);
-            overallmax = std::max(overallmax, val);
+
+            for (int b = 0; b < bars && pn != pdata->end(); b++)
+            {
+                float val = 0.0;
+                for (auto n = 0; n < static_cast<int>(notesperbar); n++)
+                {
+                    val = std::max(val, *pn);
+                    ++pn;
+                }
+                data[b][f] = val;
+                max[b] = std::max(max[b], val);
+                overallmax = std::max(overallmax, val);
+            }
         }
     }
 
