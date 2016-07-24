@@ -25,6 +25,8 @@ extern "C"
 #include <libavutil/imgutils.h>
 }
 
+#include "Models/ModelGroup.h"
+
 void FRAMECLASS ConversionError(const wxString& msg)
 {
     wxMessageBox(msg, wxString("Error"), wxOK | wxICON_EXCLAMATION);
@@ -694,6 +696,7 @@ void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, 
     free(buf);
 }
 
+// Log messages from libav*
 void my_av_log_callback(void *ptr, int level, const char *fmt, va_list vargs)
 {
     static char message[8192];
@@ -702,35 +705,142 @@ void my_av_log_callback(void *ptr, int level, const char *fmt, va_list vargs)
     vsnprintf(message, sizeof(message), fmt, vargs);
 
     // strip off carriage return
-    if (message[strlen(message)-1] == '\n')
+    if (strlen(message) > 0)
     {
-        message[strlen(message)-1] = 0x00;
+        if (message[strlen(message) - 1] == '\n')
+        {
+            message[strlen(message) - 1] = 0x00;
+        }
     }
 
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("WriteVideoModelFile: lvl: %d msg: %s.", level, (const char *)message);
+    logger_base.debug("WriteVideoModelFile: lvl: %d msg: %s.", level, static_cast<const char *>(message));
 }
 
-void FillImage(wxImage& image, Model* model, uint8_t* framedata)
+// Render a model into our image
+void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr, int x = 0, int y = 0)
 {
-    int width = 0;
-    int height = 0;
-    model->GetBufferSize("Default", "None", width, height);
+    int outheight = image.GetHeight();
+    int outwidth = image.GetWidth();
+
+    //log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("Writing model frame. Model=%s, startAddr=%d, x=%d, y=%d, w=%d, h=%d, ow=%d, oh=%d", (const char *)model->name.c_str(), startAddr, x, y, width, height, outwidth, outheight);
 
     uint8_t* imagedata = image.GetData();
 
-    for (int i = 0; i < model->GetNodeCount(); i++)
+    // model should be simpler as all channels should be together ... but are they
+    int chs = model->GetChanCountPerNode();
+    uint8_t* ps = framedata + startAddr; // pointer to the channel data in the frame
+
+    // Work out the colour order
+    wxByte r = model->GetChannelColorLetter(0);
+    int rr = 0;
+    int gg = 1;
+    int bb = 2;
+    if (r == 'G')
     {
+        gg = 0;
+    }
+    else if (r == 'B')
+    {
+        bb = 0;
+    }
+    wxByte g = model->GetChannelColorLetter(1);
+    if (g == 'R')
+    {
+        rr = 1;
+    }
+    else if (g == 'B')
+    {
+        bb = 1;
+    }
+    wxByte b = model->GetChannelColorLetter(2);
+    if (b == 'R')
+    {
+        rr = 2;
+    }
+    else if (b == 'G')
+    {
+        gg = 2;
+    }
+
+    // Now process each node
+    for (auto i = 0; i < model->GetNodeCount(); i++)
+    {
+        xlColor c = model->GetNodeColor(i);
+
+        // Get all the bulbs attached to these nodes
         std::vector<wxPoint> pts;
         model->GetNodeCoords(i, pts);
-        uint8_t* ps = framedata + i * 3;
-        for (auto it = pts.begin(); it != pts.end(); it++)
+
+        // for each bulb
+        for (auto it = pts.begin(); it != pts.end(); ++it)
         {
-            uint8_t* p = imagedata + (it->y * width + it->x) * 3;
-            *p = *ps;
-            *(p + 1) = *(ps + 1);
-            *(p + 2) = *(ps + 2);
+            // work out where we should display it in the output image
+            int xx = x + it->x;
+            int yy = y + it->y;
+
+            // make sure it is within the image bounds
+            if (xx >= 0 && xx < outwidth && yy >= 0 && yy < outheight)
+            {
+                // calculate a pointer to the pixal in the image
+                uint8_t* p = imagedata + (yy * outwidth + xx) * 3;
+
+                if (chs == 1)
+                {
+                    // for single channels we use the node colour
+                    *p = c.Red();
+                    *(p + 1) = c.Green();
+                    *(p + 2) = c.Blue();
+                }
+                else
+                {
+                    // set the bulb colour to the pixel ... taking into account colour layout
+                    *(p) = *(ps + rr);
+                    *(p + 1) = *(ps + gg);
+                    *(p + 2) = *(ps + bb);
+                }
+            }
+            else
+            {
+                // this shouldnt happen
+                wxASSERT(false);
+            }
         }
+
+        ps += chs;
+    }
+}
+
+void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr)
+{
+    int width = image.GetWidth();
+    int height = image.GetHeight();
+
+    uint8_t* imagedata = image.GetData();
+
+    if (model->GetDisplayAs() == "ModelGroup")
+    {
+        ModelGroup* mg = static_cast<ModelGroup*>(model);
+
+        // Render each model
+        for (auto m = mg->Models().begin(); m != mg->Models().end(); ++m)
+        {
+            // work out this models start channel relative to the buffer
+            int start = (*m)->GetFirstChannel() - startAddr;
+
+            // Work out where the zero point is for this model
+            ModelScreenLocation& msl = (*m)->GetModelScreenLocation();
+            int x = ((float)width * msl.GetHcenterOffset());
+            int y = ((float)height * (1.0 - msl.GetVcenterOffset()));
+
+            RenderModelOnImage(image, *m, framedata, start, x, y);
+        }
+    }
+    else
+    {
+        // Render the model
+        RenderModelOnImage(image, model, framedata, model->GetFirstChannel() - startAddr + 1);
     }
 }
 
@@ -740,10 +850,9 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Writing model video.");
 
-    int origwidth = 0;
-    int origheight = 0;
-
-    model->GetBufferSize("Default", "None", origwidth, origheight);
+    ModelScreenLocation& msl = model->GetModelScreenLocation();
+    int origwidth = msl.RenderWi;
+    int origheight = msl.RenderHt;
 
     int width = origwidth;
     int height = origheight;
@@ -758,17 +867,19 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
 
     av_register_all();
 
-    AVOutputFormat* fmt = av_guess_format(NULL, filename, NULL);
+    AVOutputFormat* fmt = av_guess_format(nullptr, filename, nullptr);
     if (!fmt)
     {
         logger_base.warn("   Could not deduce output format from file extension : using MPEG.");
-        fmt = av_guess_format("mpeg", filename, NULL);
+        fmt = av_guess_format("mpeg", filename, nullptr);
     }
     if (!fmt)
     {
         logger_base.error("   Could not find suitable output format.");
         return;
     }
+
+    // Choose the output video formate
     if (compressed)
     {
         fmt->video_codec = AV_CODEC_ID_H264;
@@ -779,14 +890,16 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     }
     //fmt->video_codec = AV_CODEC_ID_MPEG4; // this is the default for AVI
 
+    // Create the codec context that will configure the codec
     AVFormatContext* oc;
-    avformat_alloc_output_context2(&oc, fmt, NULL, filename);
+    avformat_alloc_output_context2(&oc, fmt, nullptr, filename);
     if (!oc)
     {
         logger_base.warn("   Could not create output context.");
         return;
     }
 
+    // Find the output codec
     AVCodec * codec = avcodec_find_encoder(fmt->video_codec);
     if (!codec)
     {
@@ -794,6 +907,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         return;
     }
 
+    // Create a video stream
     AVStream* video_st = avformat_new_stream(oc, codec);
     if (!video_st)
     {
@@ -801,19 +915,18 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         return;
     }
     video_st->id = oc->nb_streams - 1;
-
     video_st->time_base.num = 1;
     video_st->time_base.den = 1000 / dataBuf->FrameTime();
 
+    // Configure the codec
     AVCodecContext* codecContext = video_st->codec;
-
     avcodec_get_context_defaults3(codecContext, codec);
     codecContext->codec_id = fmt->video_codec;
     codecContext->bit_rate = 400000;
     codecContext->width = width;
     codecContext->height = height;
     codecContext->time_base.num = 1;
-    codecContext->time_base.den = 1000 / dataBuf->FrameTime();
+    codecContext->time_base.den = 1000 / dataBuf->FrameTime(); // This is the same as the sequence ms
     codecContext->gop_size = 12; // key frame gap ... 1 is all key frames
     codecContext->max_b_frames = 1;
     codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
@@ -845,13 +958,14 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     if (oc->oformat->flags & AVFMT_GLOBALHEADER)
         codecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
 
-    int ret = avcodec_open2(codecContext, codec, NULL);
+    int ret = avcodec_open2(codecContext, codec, nullptr);
     if (ret < 0)
     {
         logger_base.error("   Cannot not open codec context %d.", ret);
         return;
     }
 
+    // Create the frame object which will be placed in the packet
     AVFrame* frame = av_frame_alloc();
     if (!frame) {
         logger_base.error("   Cannot not allocate frame.");
@@ -861,16 +975,18 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     frame->width = codecContext->width;
     frame->height = codecContext->height;
 
+    // Initialise image converter
     int sws_flags = SWS_BICUBIC;
     AVPixelFormat informat = AV_PIX_FMT_RGB24;
     struct SwsContext *sws_ctx = sws_getContext(origwidth, origheight, informat,
         codecContext->width, codecContext->height, codecContext->pix_fmt,
-        sws_flags, NULL, NULL, NULL);
+        sws_flags, nullptr, nullptr, nullptr);
     if (!sws_ctx) {
         logger_base.error("   Could not create image conversion context.");
         return;
     }
 
+    // Create source and final image frames
     AVFrame src_picture;
     ret = av_image_alloc(src_picture.data, src_picture.linesize, origwidth, origheight, informat, 1);
     if (ret < 0) {
@@ -884,18 +1000,19 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         return;
     }
 
+    // Dump to the log the video format
     av_dump_format(oc, 0, filename, 1);
 
     /* open the output file, if needed */
     if (!(fmt->flags & AVFMT_NOFILE)) {
         if (avio_open(&oc->pb, filename, AVIO_FLAG_WRITE) < 0) {
-            logger_base.error("   Could open file %s.", (const char *)filename.c_str());
+            logger_base.error("   Could open file %s.", static_cast<const char *>(filename.c_str()));
             return;
         }
     }
 
     /* Write the stream header, if any. */
-    if (avformat_write_header(oc, NULL) < 0) {
+    if (avformat_write_header(oc, nullptr) < 0) {
         logger_base.error("   Could not write video file header.");
         return;
     }
@@ -905,10 +1022,11 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     size_t i = 0;
     for (i = 0; i < numPeriods; i++)
     {
+        // Create a bitmap with the current frame
         wxImage image(origwidth, origheight, true);
-        FillImage(image, model, (uint8_t*)&(*dataBuf)[i][0]);
+        FillImage(image, model, (uint8_t*)&(*dataBuf)[i][0], startAddr);
 
-        //ret = av_image_fill_arrays(src_picture.data, src_picture.linesize, (const uint8_t*)&(*dataBuf)[i][0], informat, origwidth, origheight, 1);
+        // place it in a frame
         ret = av_image_fill_arrays(src_picture.data, src_picture.linesize, image.GetData(), informat, origwidth, origheight, 1);
         if (ret < 0) {
             logger_base.error("   Error filling source image data %d.", ret);
@@ -917,53 +1035,38 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
 
         // invert the image, scale image and convert colour space
         uint8_t * data = src_picture.data[0] + (origwidth * 3 * (origheight - 1));
-        uint8_t* tmp[4] = { data, NULL, NULL, NULL };
+        uint8_t* tmp[4] = { data, nullptr, nullptr, nullptr };
         int stride[4] = { - 1 * src_picture.linesize[0], 0, 0, 0 };
         ret = sws_scale(sws_ctx, tmp, stride,
             0, origheight, frame->data, frame->linesize);
-
         if (ret != codecContext->height) {
             logger_base.error("   Error resizing frame %d.", ret);
             return;
         }
 
-        if (oc->oformat->flags & AVFMT_RAWPICTURE)
-        {
-            logger_base.warn("   We should never end up here.");
-            AVPacket pkt;
-            av_init_packet(&pkt);
+        /* create a packet to put the frame in */
+        AVPacket pkt;
+        int got_output;
+        av_init_packet(&pkt);
+        pkt.data = nullptr;    // packet data will be allocated by the encoder
+        pkt.size = 0;
 
-            pkt.flags |= AV_PKT_FLAG_KEY;
+        // Encode it
+        ret = avcodec_encode_video2(codecContext, &pkt, frame, &got_output);
+        if (ret < 0) {
+            logger_base.error("   Error encoding frame %d.", ret);
+            return;
+        }
+
+        /* If size is zero, it means the image was buffered. */
+        if (got_output) {
             pkt.stream_index = video_st->index;
-            pkt.data = frame->data[0];
-            pkt.size = sizeof(*frame);
+
+            /* Write the compressed frame to the media file. */
             ret = av_interleaved_write_frame(oc, &pkt);
         }
-        else
-        {
-            /* encode the image */
-            AVPacket pkt;
-            int got_output;
-            av_init_packet(&pkt);
-            pkt.data = NULL;    // packet data will be allocated by the encoder
-            pkt.size = 0;
-
-            ret = avcodec_encode_video2(codecContext, &pkt, frame, &got_output);
-            if (ret < 0) {
-                logger_base.error("   Error encoding frame %d.", ret);
-                return;
-            }
-
-            /* If size is zero, it means the image was buffered. */
-            if (got_output) {
-                pkt.stream_index = video_st->index;
-
-                /* Write the compressed frame to the media file. */
-                ret = av_interleaved_write_frame(oc, &pkt);
-            }
-            else {
-                ret = 0;
-            }
+        else {
+            ret = 0;
         }
 
         if (ret != 0)
@@ -975,27 +1078,28 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
         frame->pts += av_rescale_q(1, video_st->codec->time_base, video_st->time_base);
     }
 
+    // Write the video trailer
     av_write_trailer(oc);
 
-    av_dump_format(oc, 0, filename, 1);
-
+    // Free and close everything
     sws_freeContext(sws_ctx);
     avcodec_close(video_st->codec);
     av_free(frame->data[0]);
     av_free(frame);
-
     for (i = 0; i < oc->nb_streams; i++) {
         av_freep(&oc->streams[i]->codec);
         av_freep(&oc->streams[i]);
     }
-
-    if (!(fmt->flags & AVFMT_NOFILE))
+    if (!(fmt->flags & AVFMT_NOFILE)) {
         /* Close the output file. */
         avio_close(oc->pb);
-
+    }
     av_free(oc);
 
-    av_log_set_callback(NULL);
+    // Remove the log function
+    av_log_set_callback(nullptr);
+
+    logger_base.debug("Model video written successfully.");
 }
 
 void FRAMECLASS ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg)

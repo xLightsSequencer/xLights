@@ -109,6 +109,9 @@ public:
      *     0x0010  -  Update all model lists
      */
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
+    virtual const ModelScreenLocation &GetModelScreenLocation() const = 0;
+    virtual ModelScreenLocation &GetModelScreenLocation() = 0;
+
 protected:
     void AdjustStringProperties(wxPropertyGridInterface *grid, int newNum);
     std::string ComputeStringStartChannel(int x);
@@ -148,9 +151,6 @@ protected:
     int StrobeRate;      // 0=no strobing
     bool zeroBased;
     wxXmlNode* ModelXml;
-
-    virtual const ModelScreenLocation &GetModelScreenLocation() const = 0;
-    virtual ModelScreenLocation &GetModelScreenLocation() = 0;
 
     std::vector<std::string> strandNames;
     std::vector<std::string> nodeNames;
@@ -314,16 +314,16 @@ protected:
 
 template <class ScreenLocation>
 class ModelWithScreenLocation : public Model {
-protected:
-    ModelWithScreenLocation(const ModelManager &manager) : Model(manager) {}
-    virtual ~ModelWithScreenLocation() {}
-    virtual const ModelScreenLocation &GetModelScreenLocation() const  {
+public:
+    virtual const ModelScreenLocation &GetModelScreenLocation() const {
         return screenLocation;
     }
     virtual ModelScreenLocation &GetModelScreenLocation() {
         return screenLocation;
     }
 protected:
+    ModelWithScreenLocation(const ModelManager &manager) : Model(manager) {}
+    virtual ~ModelWithScreenLocation() {}
     ScreenLocation screenLocation;
 };
 
