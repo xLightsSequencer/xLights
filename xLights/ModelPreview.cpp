@@ -56,10 +56,10 @@ void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
 void ModelPreview::render( wxPaintEvent& event )
 {
     if(mIsDrawing) return;
+
     //if(!mIsInitialized) { InitializeGLCanvas(); }
     //SetCurrentGLContext();
     //wxPaintDC(this);
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if(!StartDrawing(mPointSize)) return;
     Render();
@@ -181,7 +181,6 @@ void ModelPreview::InitializeGLCanvas()
         LOG_GL_ERRORV(glClearColor(0.0, 0.0, 0.0, 1.0f)); // Black Background
     }
     LOG_GL_ERRORV(glEnable(GL_BLEND));
-    LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
 
     mIsInitialized = true;
@@ -334,9 +333,9 @@ void ModelPreview::EndDrawing()
         maxVertexCount= accumulator.count;
     }
     DrawGLUtils::Draw(accumulator);
-    accumulator.Reset();
     DrawGLUtils::PopMatrix();
-    SwapBuffers();
+    LOG_GL_ERRORV(SwapBuffers());
+    accumulator.Reset();
     mIsDrawing = false;
 }
 

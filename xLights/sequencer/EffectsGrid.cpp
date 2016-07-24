@@ -2232,8 +2232,7 @@ void EffectsGrid::InitializeGLCanvas()
     if(!IsShownOnScreen() || xlights == nullptr) return;
     SetCurrentGLContext();
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // Black Background
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     CreateEffectIconTextures();
     mIsInitialized = true;
@@ -2705,7 +2704,7 @@ void EffectsGrid::Draw()
         DrawGLUtils::DrawRectangle(xlYELLOW,true,mDragStartX,mDragStartY,mDragEndX,mDragEndY);
     }
 
-    SwapBuffers();
+    LOG_GL_ERRORV(SwapBuffers());
 }
 
 void EffectsGrid::DrawSelectedCells()

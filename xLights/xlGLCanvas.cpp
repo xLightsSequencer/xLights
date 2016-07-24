@@ -15,10 +15,19 @@ END_EVENT_TABLE()
 
 static wxGLAttributes GetAttributes() {
     wxGLAttributes atts;
-    atts.PlatformDefaults().RGBA().MinRGBA(8, 8, 8, 8).DoubleBuffer().Depth(16).EndList();
+    atts.PlatformDefaults()
+        .RGBA()
+        .MinRGBA(8, 8, 8, 8)
+        .DoubleBuffer()
+        //.Depth(16)
+        .EndList();
     if (!wxGLCanvas::IsDisplaySupported(atts)) {
         atts.Reset();
-        atts.PlatformDefaults().RGBA().DoubleBuffer().Depth(16).EndList();
+        atts.PlatformDefaults()
+            .RGBA()
+            .DoubleBuffer()
+            //.Depth(16)
+            .EndList();
     }
     return atts;
 }
