@@ -2764,7 +2764,6 @@ void EffectsGrid::DeleteEffectIconTextures()
 }
 
 void EffectsGrid::magnify(wxMouseEvent& event) {
-    printf("EG Mag %f\n", event.GetMagnification());
     magSinceLast += event.GetMagnification();
     if (magSinceLast > 0.05f)
     {

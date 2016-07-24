@@ -246,6 +246,7 @@ namespace DrawGLUtils
             tvertices.clear();
         }
 
+        bool HasMoreVertices() { return count != start; }
         void Finish(int type, int enableCapability = 0, float extra = 1);
         
         

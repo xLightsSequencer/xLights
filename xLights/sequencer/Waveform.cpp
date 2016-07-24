@@ -378,8 +378,10 @@ void Waveform::DrawWaveView(const WaveView &wv)
         vac.AddVertex(play_marker, 1, color);
         vac.AddVertex(play_marker, mWindowHeight-1, color);
     }
-    if (vac.count > 0) {
+    if (vac.HasMoreVertices()) {
         vac.Finish(GL_LINES, 0, 1);
+    }
+    if (vac.count > 0) {
         DrawGLUtils::Draw(vac);
     }
 }

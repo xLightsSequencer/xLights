@@ -42,13 +42,19 @@ void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
             if (*f2 == '\\' || *f2 == '/') {
                 f2++;
             }
-            
-            if (msg) {
-                DO_LOG_GL_MSG("%s/%d - %s:   %X", f2, line, msg, er);
-                logger_opengl_trace.debug("%s/%d - %s:   %X", f2, line, msg, er);
-            } else {
-                DO_LOG_GL_MSG("%s/%d:   %X", f2, line, er);
-                logger_opengl_trace.debug("%s/%d:   %X", f2, line, er);
+            if (isTraceDebugEnabled) {
+                if (msg) {
+                    logger_opengl_trace.debug("%s/%d - %s:   %X", f2, line, msg, er);
+                } else {
+                    logger_opengl_trace.debug("%s/%d:   %X", f2, line, er);
+                }
+            }
+            if (er) {
+                if (msg) {
+                    DO_LOG_GL_MSG("%s/%d - %s:   %X", f2, line, msg, er);
+                } else {
+                    DO_LOG_GL_MSG("%s/%d:   %X", f2, line, er);
+                }
             }
         }
     }

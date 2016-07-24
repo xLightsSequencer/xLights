@@ -98,7 +98,25 @@ TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mZoomLevel = 0;
     mFrequency = 40;
     m_dragging = false;
-    // most variable initialization is done in the Initialize() function
+    
+    
+    mStartPixelOffset = 0;
+    mZoomLevel = 0;
+    mStartTimeMS = 0;
+    mEndTimeMS = 0;
+    mMousePosition = -1;
+    mCurrentPlayMarkerStart = -1;
+    mCurrentPlayMarkerEnd = -1;
+    mSelectedPlayMarkerStart = -1;
+    mSelectedPlayMarkerEnd = -1;
+    mCurrentPlayMarker = -1;
+    mCurrentPlayMarkerStartMS = -1;
+    mCurrentPlayMarkerEndMS = -1;
+    mSelectedPlayMarkerStartMS = -1;
+    mSelectedPlayMarkerEndMS = -1;
+    mCurrentPlayMarkerMS = -1;
+    timeline_initiated_play = false;
+    m_dragging = false;
 }
 
 TimeLine::~TimeLine()
@@ -615,8 +633,6 @@ void TimeLine::render( wxPaintEvent& event )
     render(dc);
 }
 void TimeLine::render( wxDC& dc ) {
-    if (!mIsInitialized)
-        return;
     wxCoord w,h;
     float t;
     int labelCount=0;
@@ -631,6 +647,9 @@ void TimeLine::render( wxDC& dc ) {
     wxBrush brush_past_end(wxColor(153, 204, 255),wxBRUSHSTYLE_CROSSDIAG_HATCH);
     dc.SetBrush(brush);
     dc.DrawRectangle(0,0,w,h+1);
+
+    if (!mIsInitialized)
+        return;
 
     wxFont f = dc.GetFont();
     f.SetPointSize(7.0);
