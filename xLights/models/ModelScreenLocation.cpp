@@ -1225,7 +1225,7 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
     return 0;
 }
 
-int PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
+void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
     xlPolyPoint new_point;
     new_point.x = (float)mouseX/(float)previewW;
     new_point.y = (float)mouseY/(float)previewH;
@@ -1240,7 +1240,7 @@ int PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int mo
     num_points++;
 }
 
-int PolyPointScreenLocation::DeleteHandle(int handle) {
+void PolyPointScreenLocation::DeleteHandle(int handle) {
     mPos.erase(mPos.begin() + handle);
     mHandlePosition.erase(mHandlePosition.begin() + handle);
     num_points--;

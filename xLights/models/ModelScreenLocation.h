@@ -38,8 +38,8 @@ public:
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const = 0;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
-    virtual int AddHandle(ModelPreview* preview, int mouseX, int mouseY) = 0;
-    virtual int DeleteHandle(int handle) = 0;
+    virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) = 0;
+    virtual void DeleteHandle(int handle) = 0;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) = 0;
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
@@ -101,8 +101,8 @@ public:
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
-    virtual int AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
-    virtual int DeleteHandle(int handle) override {}
+    virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
+    virtual void DeleteHandle(int handle) override {}
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
@@ -201,8 +201,8 @@ public:
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
-    virtual int AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
-    virtual int DeleteHandle(int handle) override {}
+    virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
+    virtual void DeleteHandle(int handle) override {}
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
@@ -311,8 +311,8 @@ public:
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
-    virtual int AddHandle(ModelPreview* preview, int mouseX, int mouseY) override;
-    virtual int DeleteHandle(int handle) override;
+    virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override;
+    virtual void DeleteHandle(int handle) override;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
