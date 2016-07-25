@@ -1774,7 +1774,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     int first = 0; int last = NodeCount;
     int buffFirst = -1; int buffLast = -1;
     bool left = true;
-    
+
     while (first < last) {
         int n = 0;
         if (left) {
@@ -1975,7 +1975,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                     if (splitRGB) {
                         float sxn = (sx*scale)+(w/2);
                         float syn = newsy;
-                        
+
                         if ((color.Red() == color.Blue()) && (color.Blue() == color.Green())) {
                             xlColor c(color);
                             ApplyTransparency(c, color == xlBLACK ? blackTransparency : transparency);
@@ -2048,6 +2048,13 @@ void Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, 
     IncrementChangeCount();
 }
 
+void Model::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
+    GetModelScreenLocation().AddHandle(preview, mouseX, mouseY);
+}
+
+void Model::DeleteHandle(int handle) {
+    GetModelScreenLocation().DeleteHandle(handle);
+}
 
 void Model::SetTop(ModelPreview* preview,int y) {
     SetMinMaxModelScreenCoordinates(preview);

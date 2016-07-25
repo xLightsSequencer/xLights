@@ -15,4 +15,5 @@
 #include "canes.xpm"
 #include "icicles.xpm"
 #include "import.xpm"
+#include "polyline.xpm"
 #endif

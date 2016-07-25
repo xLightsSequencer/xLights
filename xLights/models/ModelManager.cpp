@@ -14,6 +14,7 @@
 #include "DmxModel.h"
 #include "WholeHouseModel.h"
 #include "SingleLineModel.h"
+#include "PolyLineModel.h"
 #include "ModelGroup.h"
 #include "WindowFrameModel.h"
 #include "WreathModel.h"
@@ -248,6 +249,8 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         model = new SphereModel(node, *this, false);
     } else if (type == "Single Line") {
         model = new SingleLineModel(node, *this, false);
+    } else if (type == "Poly Line") {
+        model = new PolyLineModel(node, *this, false);
     } else if (type == "Custom") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "5");
@@ -316,6 +319,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, bool zeroBased) const {
         model = new SphereModel(node, *this, zeroBased);
     } else if (type == "Single Line") {
         model = new SingleLineModel(node, *this, zeroBased);
+    } else if (type == "Poly Line") {
+        model = new PolyLineModel(node, *this, zeroBased);
     } else if (type == "Custom") {
         model = new CustomModel(node, *this, zeroBased);
     } else if (type.find("Tree") == 0) {

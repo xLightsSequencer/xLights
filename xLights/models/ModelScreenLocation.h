@@ -38,6 +38,8 @@ public:
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const = 0;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
+    virtual int AddHandle(ModelPreview* preview, int mouseX, int mouseY) = 0;
+    virtual int DeleteHandle(int handle) = 0;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) = 0;
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
@@ -99,6 +101,8 @@ public:
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual int AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
+    virtual int DeleteHandle(int handle) override {}
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
@@ -197,6 +201,8 @@ public:
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual int AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
+    virtual int DeleteHandle(int handle) override {}
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
@@ -285,6 +291,61 @@ private:
     float height;
     int angle;
     float shear;
+};
+
+//Location that uses multiple points
+class PolyPointScreenLocation : public ModelScreenLocation {
+public:
+    PolyPointScreenLocation();
+    virtual ~PolyPointScreenLocation();
+
+    virtual void Read(wxXmlNode *node) override;
+    virtual void Write(wxXmlNode *node) override;
+
+    virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) override;
+    virtual void PrepareToDraw() const override;
+    virtual void TranslatePoint(float &x, float &y) const override;
+
+    virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
+    virtual bool HitTest(int x,int y) const override;
+    virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
+    virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
+    virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual int AddHandle(ModelPreview* preview, int mouseX, int mouseY) override;
+    virtual int DeleteHandle(int handle) override;
+    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
+
+    virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
+    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+
+    virtual float GetHcenterOffset() const override;
+    virtual float GetVcenterOffset() const override;
+    virtual void SetHcenterOffset(float f) override;
+    virtual void SetVcenterOffset(float f) override;
+    virtual bool IsCenterBased() const override {return false;};
+
+    virtual void SetOffset(float xPct, float yPct) override;
+    virtual void AddOffset(float xPct, float yPct) override;
+    virtual int GetTop() const override;
+    virtual int GetLeft() const override;
+    virtual int GetRight() const override;
+    virtual int GetBottom() const override;
+    virtual void SetTop(int i) override;
+    virtual void SetLeft(int i) override;
+    virtual void SetRight(int i) override;
+    virtual void SetBottom(int i) override;
+
+    virtual float GetYShear() const {return 0.0;}
+
+protected:
+    struct xlPolyPoint {
+        float x;
+        float y;
+        mutable glm::mat3 *matrix;
+    };
+    mutable std::vector<xlPolyPoint> mPos;
+    int num_points;
+
 };
 
 #endif // MODELSCREENLOCATION_H

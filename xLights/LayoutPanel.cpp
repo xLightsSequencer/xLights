@@ -123,7 +123,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
     mSelectedGroup(-1), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
-    previewBackgroundBrightness(100)
+    previewBackgroundBrightness(100), m_polyline_active(false)
 {
     background = nullptr;
 
@@ -282,7 +282,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     ListBoxElementList->SetColumnWidth(1,10);
     ListBoxElementList->SetColumnWidth(2,10);
 
-    ToolSizer->SetCols(14);
+    ToolSizer->SetCols(15);
     AddModelButton("Arches", arches);
     AddModelButton("Candy Canes", canes);
     AddModelButton("Circle", circles);
@@ -291,6 +291,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Icicles", icicles_xpm);
     AddModelButton("Matrix", matrix);
     AddModelButton("Single Line", singleline);
+    AddModelButton("Poly Line", polyline);
     AddModelButton("Spinner", spinner);
     AddModelButton("Star", star);
     AddModelButton("Tree", tree);
@@ -1090,6 +1091,21 @@ void LayoutPanel::SetSelectedModelToGroupSelected()
 
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
+    if( m_polyline_active )
+    {
+        Model *m = newModel;
+        int y = event.GetY();
+        y = modelPreview->GetVirtualCanvasHeight() - y;
+        m->AddHandle(modelPreview, event.GetPosition().x, y);
+        m->UpdateXmlWithScale();
+        m->InitModel();
+        xlights->MarkEffectsFileDirty();
+        UpdatePreview();
+        m_over_handle++;
+        return;
+    }
+
+
     ShowPropGrid(true);
     modelPreview->SetFocus();
     int y = event.GetY();
@@ -1124,10 +1140,15 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 
             m_moving_handle = true;
             m_creating_bound_rect = false;
-            newModel = CreateNewModel(selectedButton->GetModelType());
+            const std::string& model_type = selectedButton->GetModelType();
+            newModel = CreateNewModel(model_type);
             newModel->SetLayoutGroup(currentLayoutGroup);
 
             if (newModel != nullptr) {
+                if( model_type == "Poly Line" ) {
+                    m_polyline_active = true;
+                }
+
                 newModel->Selected = true;
                 if (wi > 0 && ht > 0)
                 {
@@ -1162,10 +1183,13 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 {
+    if( m_polyline_active ) return;
+
     int y = event.GetY();
 
-    m_moving_handle = false;
-    m_dragging = false;
+    //m_moving_handle = false;
+    //m_dragging = false;
+
     if(m_creating_bound_rect)
     {
         m_bound_end_x = event.GetPosition().x;
@@ -1174,6 +1198,20 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
         m_creating_bound_rect = false;
         UpdatePreview();
     }
+    FinalizeModel();
+}
+
+void LayoutPanel::FinalizeModel()
+{
+    if( m_polyline_active && m_over_handle > 1 ) {
+        Model *m = newModel;
+        m->DeleteHandle(m_over_handle);
+    }
+    m_moving_handle = false;
+    m_dragging = false;
+    m_polyline_active = false;
+
+
     if (newModel != nullptr) {
         if (selectedButton->GetModelType() == "Import Custom")
         {
@@ -1217,7 +1255,6 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
         }
     }
 }
-
 
 void LayoutPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 {
@@ -1863,6 +1900,10 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
                 xlights->MarkEffectsFileDirty();
                 UpdatePreview();
             }
+            break;
+
+        case WXK_ESCAPE:
+            FinalizeModel();
             break;
 
         default:
