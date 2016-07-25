@@ -82,13 +82,13 @@ public:
     VideoRenderCache()
 	{
 		_videoframerate = -1;
-		_videoreader = NULL;
+		_videoreader = nullptr;
 	};
     virtual ~VideoRenderCache() {
-		if (_videoreader != NULL)
+		if (_videoreader != nullptr)
 		{
 			delete _videoreader;
-			_videoreader = NULL;
+			_videoreader = nullptr;
 		}
 	};
 
@@ -133,10 +133,10 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 		_durationTreatment = durationTreatment;
 		_loops = 0;
         _frameMS = buffer.frameTimeInMs;
-		if (_videoreader != NULL)
+		if (_videoreader != nullptr)
 		{
 			delete _videoreader;
-			_videoreader = NULL;
+			_videoreader = nullptr;
 		}
 
         if (buffer.BufferHt == 1)
@@ -149,7 +149,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 			// have to open the file
 			_videoreader = new VideoReader(_filename, buffer.BufferWi, buffer.BufferHt, _aspectratio);
 
-            if (_videoreader == NULL)
+            if (_videoreader == nullptr)
             {
                 log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("VideoEffect: Failed to load video file %s.", (const char *)_filename.c_str());
@@ -159,7 +159,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
                 // extract the video length
                 int videolen = _videoreader->GetLengthMS();
 
-                VideoPanel *fp = (VideoPanel*)panel;
+                VideoPanel *fp = static_cast<VideoPanel*>(panel);
                 if (fp != nullptr)
                 {
                     fp->addVideoTime(filename, videolen);
@@ -181,12 +181,15 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 		}
         else
         {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn("VideoEffect: Video file %s not found.", (const char *)_filename.c_str());
+            if (buffer.curPeriod == buffer.curEffStartPer)
+            {
+                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("VideoEffect: Video file %s not found.", (const char *)_filename.c_str());
+            }
         }
 	}
 
-	if (_videoreader != NULL)
+	if (_videoreader != nullptr)
 	{
 		// get the image for the current frame
 		AVFrame* image = _videoreader->GetNextFrame(_starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * _videoreader->GetLengthMS());
@@ -204,7 +207,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 		int starty = (buffer.BufferHt - _videoreader->GetHeight()) / 2;
 
 		// check it looks valid
-		if (image != NULL)
+		if (image != nullptr)
 		{
 			// draw the image
 			xlColor c;

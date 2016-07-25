@@ -233,7 +233,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
     int nTreatment = DecodeColourTreatment(colourtreatment);
 
     // Grab our cache
-    MusicRenderCache *cache = (MusicRenderCache*)buffer.infoCache[id];
+    MusicRenderCache *cache = static_cast<MusicRenderCache*>(buffer.infoCache[id]);
     if (cache == nullptr) {
         cache = new MusicRenderCache();
         buffer.infoCache[id] = cache;
