@@ -121,7 +121,7 @@ void PolyLineModel::InitModel() {
                 offset -= scale / (float)num;
             }
             size_t CoordCount=GetCoordCount(idx);
-            int x_pos = IsLtoR ? seg_idx : (SingleNode ? seg_idx : numLights-seg_idx-1);
+            int x_pos = IsLtoR ? seg_idx : (SingleNode ? seg_idx : polyLineSizes[m]-seg_idx-1);
             for(size_t c=0; c < CoordCount; c++) {
                 Nodes[idx]->Coords[c].screenY = Nodes[idx]->Coords[c].bufY;
                 if (num > 1) {
@@ -202,7 +202,7 @@ void PolyLineModel::InitPolyLine() {
             size_t CoordCount=GetCoordCount(idx);
             int location = seg_idx * scale + scale / 2.0;
             for(size_t c=0; c < CoordCount; c++) {
-                Nodes[idx]->Coords[c].bufX=IsLtoR ? location : (SingleNode ? location : numLights-location-1);
+                Nodes[idx]->Coords[c].bufX=IsLtoR ? location : (SingleNode ? location : longest_segment-location-1);
                 Nodes[idx]->Coords[c].bufY=m;
             }
             idx++;
