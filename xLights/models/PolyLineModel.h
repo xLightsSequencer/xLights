@@ -13,20 +13,24 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         PolyLineModel(const ModelManager &manager);
         virtual ~PolyLineModel();
 
-        void InitLine();
+        virtual int GetStrandLength(int strand) const override;
+        virtual int MapToNodeIndex(int strand, int node) const override;
 
+        int GetPolyLineSize(int polyLineLayer) const {
+            return polyLineSizes[polyLineLayer];
+        }
+        virtual int GetNumStrands() const override;
+
+        void InitPolyLine();
         void Reset(int lights, const Model &base, int strand, int node = -1, bool forceDirection = false);
-        virtual const std::vector<std::string> &GetBufferStyles() const override;
-
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     protected:
-        static std::vector<std::string> LINE_BUFFER_STYLES;
         virtual void InitModel() override;
-
         int num_segments;
+        int longest_segment;
 
     private:
         std::vector<int> polyLineSizes;

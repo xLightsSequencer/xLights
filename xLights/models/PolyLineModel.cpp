@@ -6,9 +6,6 @@
 
 #include "ModelScreenLocation.h"
 
-std::vector<std::string> PolyLineModel::LINE_BUFFER_STYLES;
-
-
 PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     parm1 = parm2 = parm3 = 0;
 }
@@ -20,6 +17,7 @@ PolyLineModel::PolyLineModel(int lights, const Model &pbc, int strand, int node)
 {
     Reset(lights, pbc, strand, node);
 }
+
 void PolyLineModel::Reset(int lights, const Model &pbc, int strand, int node, bool forceDirection)
 {
     parm1 = lights;
@@ -72,68 +70,127 @@ PolyLineModel::~PolyLineModel()
     //dtor
 }
 
-const std::vector<std::string> &PolyLineModel::GetBufferStyles() const {
-    struct Initializer {
-        Initializer() {
-            LINE_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
-            auto it = std::find(LINE_BUFFER_STYLES.begin(), LINE_BUFFER_STYLES.end(), "Single Line");
-            if (it != LINE_BUFFER_STYLES.end()) {
-                LINE_BUFFER_STYLES.erase(it);
-            }
-        }
-    };
-    static Initializer ListInitializationGuard;
-    return LINE_BUFFER_STYLES;
+int PolyLineModel::GetStrandLength(int strand) const {
+    return SingleNode ? 1 : GetPolyLineSize(strand);
 }
 
+int PolyLineModel::MapToNodeIndex(int strand, int node) const {
+    int idx = 0;
+    for (int x = 0; x < strand; x++) {
+        idx += GetPolyLineSize(x);
+    }
+    idx += node;
+    return idx;
+}
+
+int PolyLineModel::GetNumStrands() const {
+    return polyLineSizes.size();
+}
 
 void PolyLineModel::InitModel() {
-    Nodes.clear();
-    InitLine();
-
-    for (auto node = Nodes.begin(); node != Nodes.end(); node++) {
-        int count = 0;
-        int num = node->get()->Coords.size();
-        float offset = 0.0;
-        if (num == 1) {
-            offset = 0.5;
+    wxString tempstr=ModelXml->GetAttribute("polyLineSizes");
+    polyLineSizes.resize(0);
+    while (tempstr.size() > 0) {
+        wxString t2 = tempstr;
+        if (tempstr.Contains(",")) {
+            t2 = tempstr.SubString(0, tempstr.Find(","));
+            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
         } else {
-            offset = (float)1 / (float)num / 2.0;
+            tempstr = "";
         }
-        for (auto coord = node->get()->Coords.begin(); coord != node->get()->Coords.end(); coord++) {
-            coord->screenY = coord->bufY;
-            if (num > 1) {
-                coord->screenX = coord->bufX + (float)count / (float)num + offset ;
-                count++;
-            } else {
-                coord->screenX = coord->bufX + offset ;
+        long i2 = 0;
+        t2.ToLong(&i2);
+        polyLineSizes.resize(polyLineSizes.size() + 1);
+        polyLineSizes[polyLineSizes.size() - 1] = i2;
+    }
+
+    Nodes.clear();
+    InitPolyLine();
+
+    int idx = 0;
+    int numLights = parm1 * parm2;
+    for(size_t m=0; m<num_segments; m++) {
+        int seg_idx = 0;
+        int end_node = idx + polyLineSizes[m];
+        float scale = (float)longest_segment / (float)polyLineSizes[m];
+        for(size_t n=idx; n<end_node; n++) {
+            int count = 0;
+            int num = Nodes[idx].get()->Coords.size();
+            float offset = scale / 2.0;
+            if( num > 1 ) {
+                offset -= scale / (float)num;
             }
+            size_t CoordCount=GetCoordCount(idx);
+            int x_pos = IsLtoR ? seg_idx : (SingleNode ? seg_idx : numLights-seg_idx-1);
+            for(size_t c=0; c < CoordCount; c++) {
+                Nodes[idx]->Coords[c].screenY = Nodes[idx]->Coords[c].bufY;
+                if (num > 1) {
+                    Nodes[idx]->Coords[c].screenX = x_pos * scale + offset + ((float)count * scale / (float)num);
+                    count++;
+                } else {
+                    Nodes[idx]->Coords[c].screenX = x_pos * scale + offset;
+                }
+            }
+            idx++;
+            seg_idx++;
         }
     }
+
     screenLocation.SetRenderSize(BufferWi, BufferHt);
 }
 
 
 // initialize buffer coordinates
-// parm1=Number of Strings/Arches/Canes
-// parm2=Pixels Per String/Arch/Cane
-void PolyLineModel::InitLine() {
-    int numLights = parm1 * parm2;
-	num_segments = wxAtoi(ModelXml->GetAttribute("NumPoints", "2")) - 1;
+// parm1=Number of Strings
+// parm2=Pixels Per Stringp
+void PolyLineModel::InitPolyLine() {
     SetNodeCount(parm1,parm2,rgbOrder);
     size_t NodeCount=GetNodeCount();
+
+    int numLights = parm1 * parm2;
+	num_segments = wxAtoi(ModelXml->GetAttribute("NumPoints", "2")) - 1;
     int nodes_per_segment = NodeCount/num_segments;
     int remainder = NodeCount - nodes_per_segment*num_segments;
     int nodes_this_segment = nodes_per_segment + ((remainder-- > 0) ? 1 : 0);
-    SetBufferSize(num_segments,(SingleNode?parm1:nodes_this_segment));
+
+    //SetBufferSize(num_segments,(SingleNode?parm1:nodes_this_segment));
     int LastStringNum=-1;
     int chan = 0,idx;
     int ChanIncr=SingleChannel ?  1 : 3;
 
+    longest_segment = 0;
+    int cnt = 0;
+
+    if (polyLineSizes.size() == 0) {
+        polyLineSizes.resize(num_segments);
+        longest_segment = nodes_this_segment;
+        for(size_t m=0; m<num_segments; m++) {
+            polyLineSizes[m] = nodes_this_segment;
+            nodes_this_segment = nodes_per_segment + ((remainder-- > 0) ? 1 : 0);
+        }
+    } else {
+        for (int x = 0; x < polyLineSizes.size(); x++) {
+            if ((cnt + polyLineSizes[x]) > numLights) {
+                polyLineSizes[x] = numLights - cnt;
+            }
+            cnt += polyLineSizes[x];
+            if (polyLineSizes[x] > longest_segment) {
+                longest_segment = polyLineSizes[x];
+            }
+        }
+    }
+    while( polyLineSizes.size() < num_segments ) {
+        polyLineSizes.resize(polyLineSizes.size() + 1);
+        polyLineSizes[polyLineSizes.size() - 1] = 0;
+    }
+
+    SetBufferSize(num_segments, longest_segment);
+
     idx = 0;
     for(size_t m=0; m<num_segments; m++) {
         int seg_idx = 0;
-        int end_node = idx + nodes_this_segment;
+        int end_node = idx + polyLineSizes[m];
+        float scale = (float)longest_segment / (float)polyLineSizes[m];
         for(size_t n=idx; n<end_node; n++) {
             if (Nodes[idx]->StringNum != LastStringNum) {
                 LastStringNum=Nodes[idx]->StringNum;
@@ -143,14 +200,14 @@ void PolyLineModel::InitLine() {
             chan+=ChanIncr;
             Nodes[idx]->Coords.resize(SingleNode?parm2:parm3);
             size_t CoordCount=GetCoordCount(idx);
+            int location = seg_idx * scale + scale / 2.0;
             for(size_t c=0; c < CoordCount; c++) {
-                Nodes[idx]->Coords[c].bufX=IsLtoR ? seg_idx : (SingleNode ? seg_idx : numLights-seg_idx-1);
+                Nodes[idx]->Coords[c].bufX=IsLtoR ? location : (SingleNode ? location : numLights-location-1);
                 Nodes[idx]->Coords[c].bufY=m;
             }
             idx++;
             seg_idx++;
         }
-        nodes_this_segment = nodes_per_segment + ((remainder-- > 0) ? 1 : 0);
     }
 }
 
