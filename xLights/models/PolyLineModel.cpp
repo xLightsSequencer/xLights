@@ -241,7 +241,7 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     }
 
     p = grid->Append(new wxEnumProperty("Starting Location", "SingleLineStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
-    p = grid->Append(new wxStringProperty("Layer Sizes", "PolyLayerSizes", ModelXml->GetAttribute("polyLineSizes")));
+    p = grid->Append(new wxStringProperty("Segment Sizes", "PolyLayerSizes", ModelXml->GetAttribute("polyLineSizes")));
 }
 int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("SingleLineCount" == event.GetPropertyName()) {
