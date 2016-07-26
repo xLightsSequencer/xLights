@@ -1,5 +1,6 @@
 #include "EffectTreeDialog.h"
 #include "xLightsMain.h"
+//#include <log4cpp/Category.hh>
 
 //(*InternalHeaders(EffectTreeDialog)
 #include <wx/intl.h>
@@ -36,8 +37,10 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
+	FlexGridSizer1->AddGrowableRow(0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
+	FlexGridSizer2->AddGrowableRow(0);
 	TreeCtrl1 = new wxTreeCtrl(this, ID_TREECTRL1, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL1"));
 	TreeCtrl1->SetMinSize(wxDLG_UNIT(this,wxSize(80,-1)));
 	FlexGridSizer2->Add(TreeCtrl1, 1, wxALL|wxEXPAND, 5);
@@ -107,7 +110,7 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
 
     TreeCtrl1->SetItemData( treeRootID, new MyTreeItemData(EffectsNode, true));
 
-    for(wxXmlNode *ele = EffectsNode->GetChildren(); ele!=NULL; ele=ele->GetNext() )
+    for(wxXmlNode *ele = EffectsNode->GetChildren(); ele!=nullptr; ele=ele->GetNext() )
     {
         if (ele->GetName() == "effectGroup")
         {
@@ -119,7 +122,7 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
         else if (ele->GetName() == "effect")
         {
             name = ele->GetAttribute("name");
-            name += " [" + ParseLayers(ele->GetAttribute("settings")) + "]";
+            name += " [" + ParseLayers(name, ele->GetAttribute("settings")) + "]";
             if (!name.IsEmpty())
             {
                 TreeCtrl1->AppendItem(treeRootID, name,-1,-1, new MyTreeItemData(ele));
@@ -136,14 +139,14 @@ void EffectTreeDialog::AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeIt
     wxString name;
     wxTreeItemId nextGroupID;
 
-    for(wxXmlNode *ele = EffectsNode->GetChildren(); ele!=NULL; ele=ele->GetNext() )
+    for(wxXmlNode *ele = EffectsNode->GetChildren(); ele!=nullptr; ele=ele->GetNext() )
     {
         if (ele->GetName() == "effect")
         {
             name=ele->GetAttribute("name");
             if (!name.IsEmpty())
             {
-                name += " [" + ParseLayers(ele->GetAttribute("settings")) + "]";
+                name += " [" + ParseLayers(name, ele->GetAttribute("settings")) + "]";
                 TreeCtrl1->AppendItem(curGroupID, name,-1,-1, new MyTreeItemData(ele));
             }
         }
@@ -182,7 +185,7 @@ void EffectTreeDialog::ApplyEffect(bool dblClick)
     {
         MyTreeItemData *item = (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
         wxXmlNode *ele;
-        if ( item != NULL )
+        if ( item != nullptr )
         {
             ele = item->GetElement();
             wxString settings;
@@ -264,15 +267,18 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     wxXmlNode *node = parentData->GetElement();
     wxXmlNode *newNode = xLightParent->CreateEffectNode(name);
     node->AddChild(newNode);
-    name += " [" + ParseLayers(newNode->GetAttribute("settings")) +"]";
+    name += " [" + ParseLayers(name, newNode->GetAttribute("settings")) +"]";
     TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode));
 
     EffectsFileDirty();
     ValidateWindow();
 }
 
-wxString EffectTreeDialog::ParseLayers(wxString settings)
+wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
 {
+    //log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("Name: %s", (const char *)name.c_str());
+
     wxString res = "0";
 
     int start = 9999;
@@ -280,12 +286,15 @@ wxString EffectTreeDialog::ParseLayers(wxString settings)
 
     wxArrayString all_efdata = wxSplit(settings, '\n');
 
-    for (int i = 1; i < all_efdata.size(); i++)
+    for (int i = 0; i < all_efdata.size(); i++)
     {
+        //logger_base.debug("    %d: %s", i, (const char *)all_efdata[i].c_str());
+
         wxArrayString efdata = wxSplit(all_efdata[i], '\t');
-        if (efdata.size() >= 6)
+        if (efdata.size() >= 6 && efdata[0] != "CopyFormat1" && efdata[0] != "None")
         {
             int row = wxAtoi(efdata[5]);
+            //logger_base.debug("        %d", row);
             if (row < start) start = row;
             if (row > end) end = row;
         }
@@ -295,6 +304,8 @@ wxString EffectTreeDialog::ParseLayers(wxString settings)
     {
         res = wxString::Format("%d", end - start + 1);
     }
+
+    //logger_base.debug("    **** %s", (const char *)res.c_str());
 
     return res;
 }
@@ -331,7 +342,7 @@ void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
     xml_node->DeleteAttribute("settings");
     xLightParent->UpdateEffectNode(xml_node);
 
-    TreeCtrl1->SetItemText(itemID, StripLayers(name) + " [" + ParseLayers(xml_node->GetAttribute("settings")) + "]");
+    TreeCtrl1->SetItemText(itemID, StripLayers(name) + " [" + ParseLayers(StripLayers(name), xml_node->GetAttribute("settings")) + "]");
 
     EffectsFileDirty();
     ValidateWindow();
@@ -356,7 +367,7 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
     wxXmlNode* e=(wxXmlNode*)itemData->GetElement();
     e->DeleteAttribute("name");
     e->AddAttribute("name",newName);
-    newName += " [" + ParseLayers(e->GetAttribute("settings")) + "]";
+    newName += " [" + ParseLayers(newName, e->GetAttribute("settings")) + "]";
     TreeCtrl1->SetItemText(itemID, newName);
     EffectsFileDirty();
     ValidateWindow();
@@ -508,7 +519,7 @@ void EffectTreeDialog::AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID)
         newNode->AddAttribute("version", version);
 
         node->AddChild(newNode);
-        name += " [" + ParseLayers(newNode->GetAttribute("settings")) + "]";
+        name += " [" + ParseLayers(name, newNode->GetAttribute("settings")) + "]";
         TreeCtrl1->AppendItem(curGroupID, name, -1, -1, new MyTreeItemData(newNode));
     }
 }
@@ -528,7 +539,7 @@ void EffectTreeDialog::AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID)
         wxTreeItemId nextGroupID = TreeCtrl1->AppendItem(curGroupID, name, -1, -1, new MyTreeItemData(newNode, true));
         TreeCtrl1->SetItemHasChildren(nextGroupID);
 
-        for (wxXmlNode *ele2 = ele->GetChildren(); ele2 != NULL; ele2 = ele2->GetNext())
+        for (wxXmlNode *ele2 = ele->GetChildren(); ele2 != nullptr; ele2 = ele2->GetNext())
         {
             if (ele2->GetName() == "effect")
             {
@@ -579,7 +590,7 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
 
         if (name_and_path.GetExt().Lower() == "xpreset")
         {
-            for (wxXmlNode *ele = input_root->GetChildren(); ele != NULL; ele = ele->GetNext())
+            for (wxXmlNode *ele = input_root->GetChildren(); ele != nullptr; ele = ele->GetNext())
             {
                 if (ele->GetName() == "effectGroup")
                 {
@@ -593,11 +604,11 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
         }
         else
         {
-            for (wxXmlNode* e = input_root->GetChildren(); e != NULL; e = e->GetNext())
+            for (wxXmlNode* e = input_root->GetChildren(); e != nullptr; e = e->GetNext())
             {
                 if (e->GetName() == "effects")
                 {
-                    for (wxXmlNode *ele = e->GetChildren(); ele != NULL; ele = ele->GetNext())
+                    for (wxXmlNode *ele = e->GetChildren(); ele != nullptr; ele = ele->GetNext())
                     {
                         if (ele->GetName() == "effectGroup")
                         {
@@ -666,7 +677,7 @@ void EffectTreeDialog::WriteEffect(wxFile& f, wxXmlNode* n)
 void EffectTreeDialog::WriteGroup(wxFile& f, wxXmlNode* n)
 {
     f.Write("<effectGroup name=\"" + n->GetAttribute("name") + "\" >\n");
-    for (auto it = n->GetChildren(); it != NULL; it = it->GetNext())
+    for (auto it = n->GetChildren(); it != nullptr; it = it->GetNext())
     {
         if (it->GetName() == "effectGroup")
         {
