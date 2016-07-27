@@ -859,12 +859,27 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
             }
         }
         else if (start[0] == '#'){
-            int returnChannel = wxAtoi(sc);
-            int universe = wxAtoi(wxString(start).SubString(1, wxString(start).Find(":") - 1));
-
-            // find output based on universe number ...
-            return modelManager.GetNetInfo().CalcUniverseChannel(universe, returnChannel);
-        } else {
+            wxString ss = wxString(str);
+            wxArrayString cs = wxSplit(ss.SubString(1, ss.Length()), ':');
+            int returnChannel = 1;
+            int returnUniverse = 1;
+            if (cs.Count() == 3)
+            {
+                // #ip:universe:channel
+                returnUniverse = wxAtoi(cs[1]);
+                returnChannel = wxAtoi(cs[2]);
+                return modelManager.GetNetInfo().CalcUniverseChannel(cs[0].Trim(false).Trim(true), returnUniverse, returnChannel);
+            }
+            else if (cs.Count() == 2)
+            {
+                // #universe:channel
+                returnChannel = wxAtoi(sc);
+                returnUniverse = wxAtoi(ss.SubString(1, ss.Find(":") - 1));
+                
+                // find output based on universe number ...
+                return modelManager.GetNetInfo().CalcUniverseChannel(returnUniverse, returnChannel);
+            }
+            } else {
             output = wxAtoi(start);
             if (output == 0) {
                 output = 1; // 1 based

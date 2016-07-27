@@ -402,7 +402,8 @@ void xLightsFrame::UpdateNetworkList()
         {
             NetName=e->GetAttribute("NetworkType", "");
             newidx = GridNetwork->InsertItem(GridNetwork->GetItemCount(), NetName);
-            GridNetwork->SetItem(newidx,1,e->GetAttribute("ComPort", ""));
+            wxString ip = e->GetAttribute("ComPort", "");
+            GridNetwork->SetItem(newidx,1,ip);
             int i = wxAtoi(e->GetAttribute("NumUniverses", "1"));
 
             MaxChannelsStr=e->GetAttribute("MaxChannels", "0");
@@ -415,7 +416,7 @@ void xLightsFrame::UpdateNetworkList()
                 {
                     for (int x = 0; x < i; x++)
                     {
-                        NetInfo.AddUniverseNetwork(u + x, MaxChannels);
+                        NetInfo.AddUniverseNetwork(ip, u + x, MaxChannels);
                     }
                 }
                 MaxChannels *= i;
@@ -424,7 +425,7 @@ void xLightsFrame::UpdateNetworkList()
                 if (NetName == "E131")
                 {
                     int u = wxAtoi(e->GetAttribute("BaudRate", "1"));
-                    NetInfo.AddUniverseNetwork(u, MaxChannels);
+                    NetInfo.AddUniverseNetwork(ip, u, MaxChannels);
                 }
             }
             GridNetwork->SetItem(newidx,3,MaxChannelsStr);

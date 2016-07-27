@@ -30,8 +30,9 @@ void NetInfoClass::Clear()
     NetUniverseChannel.clear();
 }
 
-void NetInfoClass::AddUniverseNetwork(size_t Universe, size_t NumChannels)
+void NetInfoClass::AddUniverseNetwork(wxString ip, size_t Universe, size_t NumChannels)
 {
+    NetIP.push_back(ip);
     NetUniverse.push_back(Universe);
     NetUniverseChannel.push_back(NumChannels);
 }
@@ -87,7 +88,24 @@ int NetInfoClass::CalcUniverseChannel(size_t Universe, int Ch) const
         AbsChannel += NetUniverseChannel[i];
     }
 
-    return AbsChannel;
+    // return 1 if not found
+    return 1;
+}
+
+int NetInfoClass::CalcUniverseChannel(wxString ip, size_t Universe, int Ch) const
+{
+    int AbsChannel = -1;
+    for (size_t i = 0; i < NetUniverse.size(); i++)
+    {
+        if (NetIP[i] == ip && NetUniverse[i] == Universe)
+        {
+            return AbsChannel + Ch + 1;
+        }
+        AbsChannel += NetUniverseChannel[i];
+    }
+
+    // return 1 if not found
+    return 1;
 }
 
 unsigned int NetInfoClass::GetTotChannels() const
