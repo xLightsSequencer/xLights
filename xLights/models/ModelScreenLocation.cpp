@@ -1286,45 +1286,46 @@ wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, 
     return wxCURSOR_SIZING;
 }
 
-
 void PolyPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
-/*    wxPGProperty *prop = propertyEditor->Append(new wxFloatProperty("X1 (%)", "ModelX1", x1 * 100.0));
+    wxPGProperty *prop = propertyEditor->Append(new wxFloatProperty("X1 (%)", "ModelX1", mPos[0].x * 100.0));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
-    prop = propertyEditor->Append(new wxFloatProperty("Y1 (%)", "ModelY1", y1 * 100.0));
+    prop = propertyEditor->Append(new wxFloatProperty("Y1 (%)", "ModelY1", mPos[0].y * 100.0));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
 
-    prop = propertyEditor->Append(new wxFloatProperty("X2 (%)", "ModelX2", x2 * 100.0));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxBLUE);
-    prop = propertyEditor->Append(new wxFloatProperty("Y2 (%)", "ModelY2", y2 * 100.0));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxBLUE);*/
+    for( int i = 1; i < num_points; ++i ) {
+        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("X%d (%%)",i+1), wxString::Format("ModelX%d",i+1), mPos[i].x * 100.0));
+        prop->SetAttribute("Precision", 2);
+        prop->SetAttribute("Step", 0.5);
+        prop->SetEditor("SpinCtrl");
+        prop->SetTextColour(*wxBLUE);
+        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Y%d (%%)",i+1), wxString::Format("ModelY%d",i+1), mPos[i].y * 100.0));
+        prop->SetAttribute("Precision", 2);
+        prop->SetAttribute("Step", 0.5);
+        prop->SetEditor("SpinCtrl");
+        prop->SetTextColour(*wxBLUE);
+    }
 }
+
 int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-   /* std::string name = event.GetPropertyName().ToStdString();
-    if ("ModelX1" == name) {
-        x1 = event.GetValue().GetDouble() / 100.0;
-        return 3;
-    } else if ("ModelY1" == name) {
-        y1 = event.GetValue().GetDouble() / 100.0;
-        return 3;
-    } else if ("ModelX2" == name) {
-        x2 = event.GetValue().GetDouble() / 100.0;
-        return 3;
-    } else if ("ModelY2" == name) {
-        y2 = event.GetValue().GetDouble() / 100.0;
-        return 3;
-    }*/
+    std::string name = event.GetPropertyName().ToStdString();
+    if( name.length() > 6 ) {
+        selected_handle = wxAtoi(name.substr(6, name.length()-6)) - 1;
+        selected_segment = -1;
+        if (name.find("ModelX") != std::string::npos) {
+            mPos[selected_handle].x = event.GetValue().GetDouble() / 100.0;
+            return 3;
+        }
+        else if (name.find("ModelY") != std::string::npos) {
+            mPos[selected_handle].y = event.GetValue().GetDouble() / 100.0;
+            return 3;
+        }
+    }
     return 0;
 }
 
