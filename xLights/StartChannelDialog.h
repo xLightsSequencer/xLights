@@ -12,6 +12,7 @@
 
 #include <string>
 class ModelManager;
+class NetInfoClass;
 
 class StartChannelDialog: public wxDialog
 {
@@ -23,17 +24,20 @@ class StartChannelDialog: public wxDialog
 		//(*Declarations(StartChannelDialog)
 		wxRadioButton* NoneButton;
 		wxChoice* ModelChoice;
+		wxChoice* ipChoice;
+		wxChoice* universeChoice;
 		wxSpinCtrl* StartChannel;
-		wxSpinCtrl* UniverseSpin;
-		wxSpinCtrl* OutputSpin;
 		wxRadioButton* OutputButton;
 		wxRadioButton* ModelButton;
+		wxChoice* OutputChoice;
 		wxRadioButton* StartModelButton;
 		wxRadioButton* UniverseButton;
 		//*)
     
         void Set(const wxString &start, const ModelManager &models);
+        void SetUniverseOptionsBasedOnIP(wxString ip);
         std::string Get();
+        NetInfoClass* netInfo;
 
 	protected:
 
@@ -41,9 +45,10 @@ class StartChannelDialog: public wxDialog
 		static const long ID_SPINCTRL1;
 		static const long ID_RADIOBUTTON1;
 		static const long ID_RADIOBUTTON2;
-		static const long ID_SPINCTRL2;
+		static const long ID_CHOICE2;
 		static const long ID_RADIOBUTTON5;
-		static const long ID_SPINCTRL3;
+		static const long ID_CHOICE3;
+		static const long ID_CHOICE4;
 		static const long ID_RADIOBUTTON3;
 		static const long ID_CHOICE1;
 		static const long ID_RADIOBUTTON4;
@@ -53,6 +58,7 @@ class StartChannelDialog: public wxDialog
 
 		//(*Handlers(StartChannelDialog)
 		void OnButtonSelect(wxCommandEvent& event);
+		void OnipChoiceSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

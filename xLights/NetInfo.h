@@ -21,6 +21,9 @@ protected:
     std::vector<size_t> NetUniverseChannel;
 
 public:
+    std::vector<size_t> GetUniverses() const { return NetUniverse; }
+    std::vector<size_t> GetUniversesForIP(wxString& ip) const;
+    std::vector<wxString> GetIPs() const { return NetIP; }
     void Clear();
     void AddNetwork(size_t NumChannels);
     void AddUniverseNetwork(wxString ip, size_t Universe, size_t NumChannels);

@@ -63,12 +63,8 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="OutputSpin" member="yes">
-									<value>1</value>
-									<min>1</min>
-									<max>9999</max>
-								</object>
-								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<object class="wxChoice" name="ID_CHOICE2" variable="OutputChoice" member="yes" />
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -82,12 +78,28 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSpinCtrl" name="ID_SPINCTRL3" variable="UniverseSpin" member="yes">
-									<value>1</value>
-									<min>1</min>
-									<max>65534</max>
+								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+									<cols>2</cols>
+									<growablecols>0</growablecols>
+									<object class="sizeritem">
+										<object class="wxChoice" name="ID_CHOICE3" variable="ipChoice" member="yes">
+											<style>wxCB_SORT</style>
+											<handler function="OnipChoiceSelect" entry="EVT_CHOICE" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxChoice" name="ID_CHOICE4" variable="universeChoice" member="yes">
+											<style>wxCB_SORT</style>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
 								</object>
-								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>

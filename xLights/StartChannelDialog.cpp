@@ -1,4 +1,6 @@
 #include "StartChannelDialog.h"
+#include "NetInfo.h"
+#include <vector>
 
 //(*InternalHeaders(StartChannelDialog)
 #include <wx/intl.h>
@@ -10,9 +12,10 @@
 const long StartChannelDialog::ID_SPINCTRL1 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON1 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON2 = wxNewId();
-const long StartChannelDialog::ID_SPINCTRL2 = wxNewId();
+const long StartChannelDialog::ID_CHOICE2 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON5 = wxNewId();
-const long StartChannelDialog::ID_SPINCTRL3 = wxNewId();
+const long StartChannelDialog::ID_CHOICE3 = wxNewId();
+const long StartChannelDialog::ID_CHOICE4 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON3 = wxNewId();
 const long StartChannelDialog::ID_CHOICE1 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON4 = wxNewId();
@@ -28,7 +31,10 @@ END_EVENT_TABLE()
 
 StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    netInfo = nullptr;
+
 	//(*Initialize(StartChannelDialog)
+	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText1;
@@ -56,14 +62,17 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	OutputButton = new wxRadioButton(this, ID_RADIOBUTTON2, _("Output Number"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
 	FlexGridSizer3->Add(OutputButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	OutputSpin = new wxSpinCtrl(this, ID_SPINCTRL2, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 9999, 1, _T("ID_SPINCTRL2"));
-	OutputSpin->SetValue(_T("1"));
-	FlexGridSizer3->Add(OutputSpin, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	OutputChoice = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	FlexGridSizer3->Add(OutputChoice, 1, wxALL|wxEXPAND, 5);
 	UniverseButton = new wxRadioButton(this, ID_RADIOBUTTON5, _("Universe Number"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON5"));
 	FlexGridSizer3->Add(UniverseButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	UniverseSpin = new wxSpinCtrl(this, ID_SPINCTRL3, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 65534, 1, _T("ID_SPINCTRL3"));
-	UniverseSpin->SetValue(_T("1"));
-	FlexGridSizer3->Add(UniverseSpin, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer4->AddGrowableCol(0);
+	ipChoice = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE3"));
+	FlexGridSizer4->Add(ipChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	universeChoice = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE4"));
+	FlexGridSizer4->Add(universeChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ModelButton = new wxRadioButton(this, ID_RADIOBUTTON3, _("End of Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
 	FlexGridSizer3->Add(ModelButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ModelChoice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
@@ -85,6 +94,7 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	Connect(ID_RADIOBUTTON5,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
+	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnipChoiceSelect);
 	Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	//*)
@@ -95,61 +105,124 @@ StartChannelDialog::~StartChannelDialog()
 	//(*Destroy(StartChannelDialog)
 	//*)
 }
+
 void StartChannelDialog::Set(const wxString &s, const ModelManager &models) {
+    netInfo = &(models.GetNetInfo());
     wxString start = s;
+
     wxArrayString  list;
-    for (auto it = models.begin(); it != models.end(); it++) {
+    for (auto it = models.begin(); it != models.end(); ++it) {
         if (it->second->GetDisplayAs() != "ModelGroup") {
             list.push_back(it->first);
         }
     }
+
+    OutputChoice->Clear();
+    for (int i = 1; i <= models.GetNetInfo().GetNumNetworks(); i++)
+    {
+        OutputChoice->AppendString(wxString::Format("%d", i));
+    }
+
+    ipChoice->Clear();
+    ipChoice->AppendString("ANY");
+    std::vector<wxString> ips = models.GetNetInfo().GetIPs();
+    for (auto it = ips.begin(); it != ips.end(); ++it)
+    {
+        if (*it != "MULTICAST")
+        {
+            if (!ipChoice->SetStringSelection(*it))
+            {
+                ipChoice->AppendString(*it);
+            }
+        }
+    }
+    ipChoice->SetStringSelection("ANY");
+    SetUniverseOptionsBasedOnIP(ipChoice->GetStringSelection());
+
     ModelChoice->Append(list);
     if (start.Contains(":")) {
         wxString sNet = start.SubString(0, start.Find(":")-1);
         if (sNet[0] == '@') {
             ModelChoice->Enable();
             StartModelButton->SetValue(true);
-            OutputSpin->Disable();
-            UniverseSpin->Disable();
+            OutputChoice->Disable();
+            ipChoice->Disable();
+            universeChoice->Disable();
             ModelChoice->SetStringSelection(sNet.SubString(1, sNet.size()));
         }
         else if (sNet[0] == '#')
         {
             ModelChoice->Disable();
-            OutputSpin->Disable();
-            UniverseSpin->Enable();
+            OutputChoice->Disable();
+            ipChoice->Enable();
+            universeChoice->Enable();
             UniverseButton->SetValue(true);
-            UniverseSpin->SetValue(sNet.SubString(1, sNet.size()));
+            wxArrayString cs = wxSplit(start.SubString(1, start.Length()), ':');
+            if (cs.Count() == 3)
+            {
+                ipChoice->SetStringSelection(cs[0].Trim(false).Trim(true));
+                SetUniverseOptionsBasedOnIP(ipChoice->GetStringSelection());
+                universeChoice->SetStringSelection(cs[1].Trim(false).Trim(true));
+                if (universeChoice->GetStringSelection() == "" && universeChoice->GetCount() > 0)
+                {
+                    universeChoice->SetSelection(0);
+                }
+            }
+            else if (cs.Count() == 2)
+            {
+                ipChoice->SetStringSelection("ANY");
+                SetUniverseOptionsBasedOnIP(ipChoice->GetStringSelection());
+                universeChoice->SetStringSelection(cs[0].Trim(false).Trim(true));
+                if (universeChoice->GetStringSelection() == "" && universeChoice->GetCount() > 0)
+                {
+                    universeChoice->SetSelection(0);
+                }
+            }
         }
         else if (sNet[0] == '>' || sNet[0] == '<' || models[sNet.ToStdString()] != nullptr) {
             ModelChoice->Enable();
             ModelButton->SetValue(true);
-            OutputSpin->Disable();
-            UniverseSpin->Disable();
+            OutputChoice->Disable();
+            ipChoice->Disable();
+            universeChoice->Disable();
             ModelChoice->SetStringSelection(sNet[0] == '<' || sNet[0] == '>'  ? sNet.SubString(1, sNet.size()) : sNet);
         } else {
-            OutputSpin->SetValue(sNet);
+            OutputChoice->SetStringSelection(sNet);
+            if (OutputChoice->GetStringSelection() == "" && OutputChoice->GetCount() > 0)
+            {
+                OutputChoice->SetSelection(0);
+            }
             ModelChoice->Disable();
-            OutputSpin->Enable();
-            UniverseSpin->Disable();
+            OutputChoice->Enable();
+            ipChoice->Disable();
+            universeChoice->Disable();
             OutputButton->SetValue(true);
         }
-        start = start.SubString(start.Find(":") + 1, start.size());
+        start = start.SubString(start.Find(':', true) + 1, start.size());
     } else {
         NoneButton->SetValue(true);
-        OutputSpin->Disable();
+        OutputChoice->Disable();
         ModelChoice->Disable();
-        UniverseSpin->Disable();
+        ipChoice->Disable();
+        universeChoice->Disable();
     }
     StartChannel->SetValue(start);
 }
+
 std::string StartChannelDialog::Get() {
-    if (OutputButton->GetValue() && OutputSpin->GetValue() != 1) {
-        return std::to_string(OutputSpin->GetValue()) + ":" + std::to_string(StartChannel->GetValue());
+    if (OutputButton->GetValue() && OutputChoice->GetStringSelection() != "1") {
+        return std::string(OutputChoice->GetStringSelection().c_str()) + ":" + std::to_string(StartChannel->GetValue());
     }
-    else if (UniverseButton->GetValue() && UniverseSpin->GetValue() != 1)
+    else if (UniverseButton->GetValue())
     {
-        return "#" + std::to_string(UniverseSpin->GetValue()) + ":" + std::to_string(StartChannel->GetValue());
+        if (ipChoice->GetStringSelection() == "ANY")
+        {
+            return "#" + std::string(universeChoice->GetStringSelection().c_str()) + ":" + std::to_string(StartChannel->GetValue());
+        }
+        else
+        {
+            return "#" + std::string(ipChoice->GetStringSelection().c_str()) + ":" + std::string(universeChoice->GetStringSelection().c_str()) + ":" + std::to_string(StartChannel->GetValue());
+        }
     }
      else if (ModelButton->GetValue()) {
         return ">" + ModelChoice->GetStringSelection().ToStdString() + ":" + std::to_string(StartChannel->GetValue());
@@ -163,19 +236,68 @@ void StartChannelDialog::OnButtonSelect(wxCommandEvent& event)
 {
     if (NoneButton->GetValue()) {
         ModelChoice->Disable();
-        OutputSpin->Disable();
-        UniverseSpin->Disable();
+        OutputChoice->Disable();
+        ipChoice->Disable();
+        universeChoice->Disable();
     } else if (OutputButton->GetValue()) {
         ModelChoice->Disable();
-        OutputSpin->Enable();
-        UniverseSpin->Disable();
+        OutputChoice->Enable();
+        ipChoice->Disable();
+        universeChoice->Disable();
     } else if (UniverseButton->GetValue()) {
         ModelChoice->Disable();
-        OutputSpin->Disable();
-        UniverseSpin->Enable();
+        OutputChoice->Disable();
+        ipChoice->Enable();
+        universeChoice->Enable();
     } else {
         ModelChoice->Enable();
-        OutputSpin->Disable();
-        UniverseSpin->Disable();
+        OutputChoice->Disable();
+        ipChoice->Disable();
+        universeChoice->Disable();
     }
+}
+
+void StartChannelDialog::SetUniverseOptionsBasedOnIP(wxString ip)
+{
+    if (netInfo == nullptr)
+        return;
+
+    wxString uu = universeChoice->GetStringSelection();
+
+    universeChoice->Clear();
+    if (ip == "ANY")
+    {
+        std::vector<size_t> us = netInfo->GetUniverses();
+        for (auto it = us.begin(); it != us.end(); ++it)
+        {
+            wxString u = wxString::Format("%d", *it);
+            if (!universeChoice->SetStringSelection(u))
+            {
+                universeChoice->AppendString(u);
+            }
+        }
+    }
+    else
+    {
+        std::vector<size_t> us = netInfo->GetUniversesForIP(ip);
+        for (auto it = us.begin(); it != us.end(); ++it)
+        {
+            wxString u = wxString::Format("%d", *it);
+            if (!universeChoice->SetStringSelection(u))
+            {
+                universeChoice->AppendString(u);
+            }
+        }
+    }
+
+    universeChoice->SetStringSelection(uu);
+    if (universeChoice->GetStringSelection() == "" && universeChoice->GetCount() > 0)
+    {
+        universeChoice->SetSelection(0);
+    }
+}
+
+void StartChannelDialog::OnipChoiceSelect(wxCommandEvent& event)
+{
+    SetUniverseOptionsBasedOnIP(ipChoice->GetStringSelection());
 }

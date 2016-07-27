@@ -108,6 +108,21 @@ int NetInfoClass::CalcUniverseChannel(wxString ip, size_t Universe, int Ch) cons
     return 1;
 }
 
+std::vector<size_t> NetInfoClass::GetUniversesForIP(wxString& ip) const
+{
+    std::vector<size_t> res;
+
+    for (size_t i = 0; i < NetUniverse.size(); i++)
+    {
+        if (NetIP[i] == ip)
+        {
+            res.push_back(NetUniverse[i]);
+        }
+    }
+
+    return res;
+}
+
 unsigned int NetInfoClass::GetTotChannels() const
 {
     unsigned tot=0;
