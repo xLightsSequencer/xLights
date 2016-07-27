@@ -169,7 +169,9 @@ public:
             name = row->GetName();
             mainBuffer = new PixelBufferClass(xframe, false);
             Model *model = xframe->GetModel(name);
-            if (xframe->InitPixelBuffer(name, *mainBuffer, rowToRender->GetEffectLayerCount(), zeroBased)) {
+            numLayers = rowToRender->GetEffectLayerCount();
+
+            if (xframe->InitPixelBuffer(name, *mainBuffer, numLayers, zeroBased)) {
 
                 for (int x = 0; x < row->getStrandLayerCount(); x++) {
                     StrandLayer *sl = row->GetStrandLayer(x);
@@ -376,7 +378,6 @@ public:
         if (startFrame < 0) startFrame = 0;
         if (endFrame > seqData->NumFrames()) endFrame = seqData->NumFrames();
 
-        int numLayers = rowToRender->GetEffectLayerCount();
         std::vector<Effect*> currentEffects(numLayers, nullptr);
         std::vector<int> currentEffectIdxs(numLayers, 0);
         std::vector<SettingsMap> settingsMaps(numLayers);
@@ -587,6 +588,9 @@ private:
     }
 
     Effect *findEffectForFrame(EffectLayer* layer, int frame, int &lastIdx) {
+        if (layer == nullptr) {
+            return nullptr;
+        }
         int time = frame * seqData->FrameTime();
         for (int e = lastIdx; e < layer->GetEffectCount(); e++) {
             Effect *effect = layer->GetEffect(e);
@@ -596,7 +600,7 @@ private:
                 return effect;
             }
         }
-        return NULL;
+        return nullptr;
     }
     Effect *findEffectForFrame(int layer, int frame, int &lastIdx) {
         return findEffectForFrame(rowToRender->GetEffectLayer(layer), frame, lastIdx);
@@ -614,6 +618,7 @@ private:
     int startFrame;
     int endFrame;
     PixelBufferClass *mainBuffer;
+    int numLayers;
     xLightsFrame *xLights;
     SequenceData *seqData;
     bool clearAllFrames;

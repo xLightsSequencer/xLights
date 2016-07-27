@@ -239,6 +239,7 @@ EffectLayer* Element::GetEffectLayer(int index)
 
 EffectLayer* Element::AddEffectLayer()
 {
+    std::unique_lock<std::recursive_mutex> lock(GetRenderLock());
     EffectLayer* new_layer = new EffectLayer(this);
     mEffectLayers.push_back(new_layer);
     IncrementChangeCount(-1, -1);
@@ -247,6 +248,7 @@ EffectLayer* Element::AddEffectLayer()
 
 EffectLayer* Element::InsertEffectLayer(int index)
 {
+    std::unique_lock<std::recursive_mutex> lock(GetRenderLock());
     EffectLayer* new_layer = new EffectLayer(this);
     mEffectLayers.insert(mEffectLayers.begin()+index, new_layer);
     IncrementChangeCount(-1, -1);
@@ -255,6 +257,7 @@ EffectLayer* Element::InsertEffectLayer(int index)
 
 void Element::RemoveEffectLayer(int index)
 {
+    std::unique_lock<std::recursive_mutex> lock(GetRenderLock());
     EffectLayer *l = GetEffectLayer(index);
     mEffectLayers.erase(mEffectLayers.begin()+index);
     delete l;
