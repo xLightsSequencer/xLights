@@ -410,7 +410,7 @@ public:
                 currentFrame = frame;
                 SetGenericStatus("%s: Starting frame %d", frame, true);
 
-                if (HasNext() &&
+                if (!HasNext() &&
                         (origChangeCount != rowToRender->getChangeCount()
                          || rowToRender->GetWaitCount())) {
                     //we're bailing out but make sure this range is reconsidered
