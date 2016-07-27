@@ -38,7 +38,10 @@ public:
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const = 0;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
+    virtual void SelectHandle(int handle) = 0;
+    virtual int GetSelectedSegment() = 0;
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) = 0;
+    virtual void InsertHandle(int after_handle) = 0;
     virtual void DeleteHandle(int handle) = 0;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) = 0;
 
@@ -101,7 +104,10 @@ public:
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual void SelectHandle(int handle) override {}
+    virtual int GetSelectedSegment() override {return -1;}
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
+    virtual void InsertHandle(int after_handle) override {}
     virtual void DeleteHandle(int handle) override {}
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
 
@@ -201,7 +207,10 @@ public:
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual void SelectHandle(int handle) override {}
+    virtual int GetSelectedSegment() override {return -1;}
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
+    virtual void InsertHandle(int after_handle) override {}
     virtual void DeleteHandle(int handle) override {}
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
 
@@ -311,7 +320,10 @@ public:
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual void SelectHandle(int handle) override;
+    virtual int GetSelectedSegment() override {return selected_segment;}
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override;
+    virtual void InsertHandle(int after_handle) override;
     virtual void DeleteHandle(int handle) override;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
 
@@ -345,6 +357,8 @@ protected:
     };
     mutable std::vector<xlPolyPoint> mPos;
     int num_points;
+    int selected_handle;
+    mutable int selected_segment;
 
 };
 

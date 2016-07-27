@@ -87,6 +87,44 @@ int PolyLineModel::GetNumStrands() const {
     return polyLineSizes.size();
 }
 
+void PolyLineModel::SavePolyLineSizes() {
+    ModelXml->DeleteAttribute("polyLineSizes");
+    wxString tempstr = "";
+    for( int i = 0; i < polyLineSizes.size(); ++i ) {
+        if( i == polyLineSizes.size()-1 ) {
+            tempstr += wxString::Format("%d", polyLineSizes[i]);
+        } else {
+            tempstr += wxString::Format("%d,", polyLineSizes[i]);
+        }
+    }
+    ModelXml->AddAttribute("polyLineSizes", tempstr);
+}
+
+void PolyLineModel::InsertHandle(int after_handle) {
+    std::string sizes = ModelXml->GetAttribute("polyLineSizes").ToStdString();
+    if( sizes != "" ) {
+        if( polyLineSizes.size() > after_handle ) {
+            int segment1_size = polyLineSizes[after_handle] / 2;
+            int segment2_size = polyLineSizes[after_handle] - segment1_size;
+            polyLineSizes[after_handle] = segment1_size;
+            polyLineSizes.insert(polyLineSizes.begin() + after_handle + 1, segment2_size);
+            SavePolyLineSizes();
+        }
+    }
+    GetModelScreenLocation().InsertHandle(after_handle);
+}
+
+void PolyLineModel::DeleteHandle(int handle) {
+    std::string sizes = ModelXml->GetAttribute("polyLineSizes").ToStdString();
+    if( sizes != "" ) {
+        if( polyLineSizes.size() > handle ) {
+            polyLineSizes.erase(polyLineSizes.begin() + handle);
+            SavePolyLineSizes();
+        }
+    }
+    GetModelScreenLocation().DeleteHandle(handle);
+}
+
 void PolyLineModel::InitModel() {
     wxString tempstr=ModelXml->GetAttribute("polyLineSizes");
     polyLineSizes.resize(0);

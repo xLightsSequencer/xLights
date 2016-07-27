@@ -93,6 +93,8 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_H_DISTRIBUTE;
         static const long ID_PREVIEW_V_DISTRIBUTE;
         static const long ID_PREVIEW_DELETE_ACTIVE;
+        static const long ID_PREVIEW_MODEL_ADDPOINT;
+        static const long ID_PREVIEW_MODEL_DELETEPOINT;
 
 	public:
 
@@ -183,6 +185,7 @@ class LayoutPanel: public wxPanel
         int m_bound_end_x;
         int m_bound_end_y;
         int m_over_handle;
+        int m_sel_handle;
         bool m_moving_handle;
         bool m_polyline_active;
         int m_previous_mouse_x, m_previous_mouse_y;
@@ -239,6 +242,7 @@ class LayoutPanel: public wxPanel
         bool previewBackgroundScaled;
         int previewBackgroundBrightness;
         wxPanel* main_sequencer;
+        Model *lastSelectedModel;
 
         static const long ID_MNU_DELETE_MODEL;
         static const long ID_MNU_DELETE_MODEL_GROUP;

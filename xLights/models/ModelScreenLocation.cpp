@@ -1021,7 +1021,7 @@ void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
 }
 
 PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
-   num_points(2) {
+   num_points(2), selected_handle(-1), selected_segment(-1) {
     mPos.resize(2);
     mPos[0].x = 0.4f;
     mPos[0].y = 0.6f;
@@ -1132,7 +1132,6 @@ bool PolyPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const 
 }
 
 bool PolyPointScreenLocation::HitTest(int sx,int sy) const {
-    bool return_value = false;
     for( int i = 0; i < num_points-1; ++i ) {
         //invert the matrix, get into render space
         glm::mat3 m = glm::inverse(*mPos[i].matrix);
@@ -1140,27 +1139,24 @@ bool PolyPointScreenLocation::HitTest(int sx,int sy) const {
 
         float min, max;
 
-        if (RenderHt < 4) {
-            float sx1 = (mPos[i].x + mPos[i+1].x) * previewW / 2.0;
-            float sy1 = (mPos[i].y + mPos[i+1].y) * previewH / 2.0;
+        float sx1 = (mPos[i].x + mPos[i+1].x) * previewW / 2.0;
+        float sy1 = (mPos[i].y + mPos[i+1].y) * previewH / 2.0;
 
-            glm::vec3 v2 = m * glm::vec3(sx1 + 3, sy1 + 3, 1);
-            glm::vec3 v3 = m * glm::vec3(sx1 + 3, sy1 - 3, 1);
-            glm::vec3 v4 = m * glm::vec3(sx1 - 3, sy1 + 3, 1);
-            glm::vec3 v5 = m * glm::vec3(sx1 - 3, sy1 - 3, 1);
-            max = std::max(std::max(v2.y, v3.y), std::max(v4.y, v5.y));
-            min = std::min(std::min(v2.y, v3.y), std::min(v4.y, v5.y));
-        } else {
-            min = -1;
-            max = RenderHt;
-        }
+        glm::vec3 v2 = m * glm::vec3(sx1 + 3, sy1 + 3, 1);
+        glm::vec3 v3 = m * glm::vec3(sx1 + 3, sy1 - 3, 1);
+        glm::vec3 v4 = m * glm::vec3(sx1 - 3, sy1 + 3, 1);
+        glm::vec3 v5 = m * glm::vec3(sx1 - 3, sy1 - 3, 1);
+        max = std::max(std::max(v2.y, v3.y), std::max(v4.y, v5.y));
+        min = std::min(std::min(v2.y, v3.y), std::min(v4.y, v5.y));
 
         float y = v.y;
         if (v.x >= -1 && v.x <= (RenderWi+1) && y >= min && y <= max) {
-            return_value = true;
+            selected_segment = i;
+            return true;
         }
     }
-    return return_value;
+    selected_segment = -1;
+    return false;
 }
 
 wxCursor PolyPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) const {
@@ -1182,7 +1178,13 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
         int y1_pos = mPos[i].y * previewH;
         int y2_pos = mPos[i+1].y * previewH;
 
-        if( y2_pos - y1_pos == 0 )
+        if( i == selected_segment ) {
+            va.AddVertex(x1_pos, y1_pos, xlMAGENTA);
+            va.AddVertex(x2_pos, y2_pos, xlMAGENTA);
+            va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+        }
+        // draw red line for horizontal segments and blue for vertical segments
+        /*if( y2_pos - y1_pos == 0 )
         {
             va.AddVertex(x1_pos, y1_pos, xlRED);
             va.AddVertex(x2_pos, y2_pos, xlRED);
@@ -1193,12 +1195,12 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
             va.AddVertex(x1_pos, y1_pos, xlBLUE);
             va.AddVertex(x2_pos, y2_pos, xlBLUE);
             va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
-        }
+        }*/
 
         // add handle for start of this vector
         float sx = mPos[i].x * previewW - RECT_HANDLE_WIDTH / 2;
         float sy = mPos[i].y * previewH - RECT_HANDLE_WIDTH / 2;
-        va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, i == 0 ? xlGREEN : xlBLUE);
+        va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, i == selected_handle ? xlMAGENTA : (i == 0 ? xlGREEN : xlBLUE));
         mHandlePosition[i].x = sx;
         mHandlePosition[i].y = sy;
 
@@ -1206,7 +1208,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
         if( i == num_points-2 ) {
             sx = mPos[i+1].x * previewW - RECT_HANDLE_WIDTH / 2;
             sy = mPos[i+1].y * previewH - RECT_HANDLE_WIDTH / 2;
-            va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
+            va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, i+1 == selected_handle ? xlMAGENTA : xlBLUE);
             mHandlePosition[i+1].x = sx;
             mHandlePosition[i+1].y = sy;
         }
@@ -1225,6 +1227,13 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
     return 0;
 }
 
+void PolyPointScreenLocation::SelectHandle(int handle) {
+    selected_handle = handle;
+    if( handle != -1 ) {
+        selected_segment = -1;
+    }
+}
+
 void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
     xlPolyPoint new_point;
     new_point.x = (float)mouseX/(float)previewW;
@@ -1240,10 +1249,32 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
     num_points++;
 }
 
+void PolyPointScreenLocation::InsertHandle(int after_handle) {
+    float x1_pos = mPos[after_handle].x;
+    float x2_pos = mPos[after_handle+1].x;
+    float y1_pos = mPos[after_handle].y;
+    float y2_pos = mPos[after_handle+1].y;
+    xlPolyPoint new_point;
+    new_point.x = (x1_pos+x2_pos)/2.0;
+    new_point.y = (y1_pos+y2_pos)/2.0;
+    new_point.matrix = nullptr;
+    mPos.insert(mPos.begin() + after_handle + 1, new_point);
+    xlPoint new_handle;
+    float sx = mPos[after_handle+1].x * previewW - RECT_HANDLE_WIDTH / 2;
+    float sy = mPos[after_handle+1].y * previewH - RECT_HANDLE_WIDTH / 2;
+    new_handle.x = sx;
+    new_handle.y = sy;
+    mHandlePosition.insert(mHandlePosition.begin() + after_handle + 1, new_handle);
+    num_points++;
+    selected_handle = after_handle+1;
+    selected_segment = -1;
+}
+
 void PolyPointScreenLocation::DeleteHandle(int handle) {
     mPos.erase(mPos.begin() + handle);
     mHandlePosition.erase(mHandlePosition.begin() + handle);
     num_points--;
+    selected_handle = -1;
 }
 
 wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) {

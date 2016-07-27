@@ -2048,8 +2048,20 @@ void Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, 
     IncrementChangeCount();
 }
 
+void Model::SelectHandle(int handle) {
+    GetModelScreenLocation().SelectHandle(handle);
+}
+
+int Model::GetSelectedSegment() {
+    return GetModelScreenLocation().GetSelectedSegment();
+}
+
 void Model::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
     GetModelScreenLocation().AddHandle(preview, mouseX, mouseY);
+}
+
+void Model::InsertHandle(int after_handle) {
+    GetModelScreenLocation().InsertHandle(after_handle);
 }
 
 void Model::DeleteHandle(int handle) {

@@ -73,6 +73,8 @@ const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_RENAME_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETE_ACTIVE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_DELETEPOINT = wxNewId();
 
 class NewModelBitmapButton : public wxBitmapButton
 {
@@ -123,7 +125,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
     mSelectedGroup(-1), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
-    previewBackgroundBrightness(100), m_polyline_active(false)
+    previewBackgroundBrightness(100), m_polyline_active(false), lastSelectedModel(nullptr)
 {
     background = nullptr;
 
@@ -765,6 +767,8 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     {
         modelPreview->GetModels()[i]->Selected = false;
         modelPreview->GetModels()[i]->GroupSelected = false;
+        modelPreview->GetModels()[i]->SelectHandle(-1);
+        m_sel_handle = -1;
     }
     UpdatePreview();
     selectedModel = nullptr;
@@ -1125,6 +1129,13 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     else if (m_over_handle != -1)
     {
         m_moving_handle = true;
+        int sel=ListBoxElementList->GetFirstSelected();
+        if (sel != wxNOT_FOUND) {
+            lastSelectedModel=(Model*)ListBoxElementList->GetItemData(sel);
+            lastSelectedModel->SelectHandle(m_over_handle);
+            m_sel_handle = m_over_handle;
+            UpdatePreview();
+        }
     }
     else if (selectedButton != nullptr)
     {
@@ -1157,11 +1168,16 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                 }
                 lastModelName = newModel->name;
                 modelPreview->GetModels().push_back(newModel);
+                lastSelectedModel = nullptr;
             }
         }
     }
     else
     {
+        if (lastSelectedModel != nullptr) {
+            lastSelectedModel->SelectHandle(-1);
+            m_sel_handle = -1;
+        }
         m_moving_handle = false;
         m_creating_bound_rect = false;
 
@@ -1353,12 +1369,25 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnu.AppendSeparator();
     }
     if (selectedModelCnt > 0) {
-        mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT,"Node Layout");
-        mnu.Append(ID_PREVIEW_MODEL_EXPORTCSV,"Export CSV");
+        Model* model = nullptr;
         int sel = ListBoxElementList->GetFirstSelected();
         if (sel != wxNOT_FOUND)
         {
-            Model* model = (Model*)ListBoxElementList->GetItemData(sel);
+            model = (Model*)ListBoxElementList->GetItemData(sel);
+        }
+        if (model != nullptr)
+        {
+            if( model->GetSelectedSegment() != -1 ) {
+                mnu.Append(ID_PREVIEW_MODEL_ADDPOINT,"Add Point");
+            }
+        }
+        if( m_sel_handle != -1 ) {
+            mnu.Append(ID_PREVIEW_MODEL_DELETEPOINT,"Delete Point");
+        }
+        mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT,"Node Layout");
+        mnu.Append(ID_PREVIEW_MODEL_EXPORTCSV,"Export CSV");
+        if (model != nullptr)
+        {
             if (model->IsCustom())
             {
                 mnu.Append(ID_PREVIEW_MODEL_EXPORTCUSTOMMODEL, "Export Custom Model");
@@ -1427,6 +1456,32 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     {
         DeleteCurrentPreview();
     }
+    else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT)
+    {
+        int sel = ListBoxElementList->GetFirstSelected();
+        if (sel == wxNOT_FOUND) return;
+        Model* md=(Model*)ListBoxElementList->GetItemData(sel);
+        int handle = md->GetSelectedSegment();
+        md->InsertHandle(handle);
+        m_sel_handle = handle+1;
+        md->UpdateXmlWithScale();
+        md->InitModel();
+        SetupPropGrid(md);
+        UpdatePreview();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_DELETEPOINT)
+    {
+        int sel = ListBoxElementList->GetFirstSelected();
+        if (sel == wxNOT_FOUND) return;
+        Model* md=(Model*)ListBoxElementList->GetItemData(sel);
+        md->DeleteHandle(m_sel_handle);
+        m_sel_handle = -1;
+        md->UpdateXmlWithScale();
+        md->InitModel();
+        SetupPropGrid(md);
+        UpdatePreview();
+    }
+
 }
 
 

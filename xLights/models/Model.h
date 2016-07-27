@@ -193,8 +193,11 @@ public:
     void SetLayoutGroup(const std::string &grp);
 
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
+    void SelectHandle(int handle);
+    int GetSelectedSegment();
     void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
-    void DeleteHandle(int handle);
+    virtual void InsertHandle(int after_handle);
+    virtual void DeleteHandle(int handle);
 
     bool HitTest(ModelPreview* preview,int x,int y);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);

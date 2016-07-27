@@ -23,12 +23,15 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
 
         void InitPolyLine();
         void Reset(int lights, const Model &base, int strand, int node = -1, bool forceDirection = false);
+        virtual void InsertHandle(int after_handle) override;
+        virtual void DeleteHandle(int handle) override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     protected:
         virtual void InitModel() override;
+        void SavePolyLineSizes();
         int num_segments;
         int longest_segment;
 
