@@ -165,4 +165,32 @@ public:
     bool NearPoint(float x);
 };
 
+wxDECLARE_EVENT(EVT_CC_CHANGED, wxCommandEvent);
+
+class ColorCurveButton :
+    public wxBitmapButton
+{
+    ColorCurve* _cc;
+    void NotifyChange();
+
+
+    void RenderNewBitmap();
+public:
+    ColorCurveButton(wxWindow *parent,
+        wxWindowID id,
+        const wxBitmap& bitmap,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxBU_AUTODRAW,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxButtonNameStr);
+    ~ColorCurveButton();
+    virtual void SetValue(const wxString& value);
+    ColorCurve* GetValue();
+    void ToggleActive();
+    void SetActive(bool active);
+    void UpdateState();
+    void UpdateBitmap();
+};
+
 #endif

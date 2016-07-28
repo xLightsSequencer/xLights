@@ -19,6 +19,7 @@ class PianoEffect : public RenderableEffect
         virtual void SetDefaultParameters(Model *cls) override;
         virtual void SetPanelStatus(Model *cls) override;
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
+        virtual int GetColorSupportedCount() const override { return 5; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

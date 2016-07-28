@@ -1265,6 +1265,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     EffectsPanel1->SetEffectPanelStatus(model, effectName);
     SetEffectControls(settings);
     SetEffectControls(palette);
+    colorPanel->SetColorCount(GetEffectManager().GetEffect(effectName)->GetColorSupportedCount());
 }
 
 void xLightsFrame::ApplySetting(wxString name, wxString value)

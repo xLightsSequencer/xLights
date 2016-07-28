@@ -14,11 +14,10 @@
 //*)
 
 #include <wx/colordlg.h>
-#include <wx/checkbox.h>
 #include <unordered_map>
 #include "ValueCurveButton.h"
 #include "ValueCurveDialog.h"
-#include "ValueCurve.h"
+#include "ColorCurve.h"
 
 #include <vector>
 #include <map>
@@ -35,6 +34,7 @@ public:
 		ColorPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ColorPanel();
 
+        void SetColorCount(int count);
         void SetDefaultSettings();
 		wxString GetColorString();
         wxString GetRandomColorString();
@@ -107,7 +107,8 @@ public:
 
 		//(*Handlers(ColorPanel)
 		void OnCheckBox_PaletteClick(wxCommandEvent& event);
-		void OnButton_PaletteNumberClick(wxCommandEvent& event);
+        void OnButton_PaletteNumberClick(wxCommandEvent& event);
+        void OnButton_PaletteNumberDClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnUpdateColorClick(wxCommandEvent& event);
 		void UpdateLinkedSliderFloat(wxCommandEvent& event);
@@ -128,7 +129,7 @@ public:
         wxButton* GetPaletteButton(int idx);
         wxColourData colorData;
     
-        std::vector<wxBitmapButton*> buttons;
+        std::vector<ColorCurveButton*> buttons;
         std::vector<wxCheckBox*> checkBoxes;
         std::map<int, std::string> lastColors;
 

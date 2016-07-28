@@ -4,7 +4,7 @@
 #include "../include/padlock16x16-green.xpm" //-DJ
 #include "../include/padlock16x16-red.xpm" //-DJ
 #include "../include/padlock16x16-blue.xpm" //-DJ
-
+#include "ColorCurve.h"
 
 class xLightsFrame;
 //(*InternalHeaders(ColorPanel)
@@ -203,11 +203,12 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
     for (int x = 0; x < PALETTE_SIZE; x++) {
         wxString ids = wxString::Format("ID_BUTTON_Palette%d", (x + 1));
         long id = wxNewId();
-        wxBitmapButton *bb = new wxBitmapButton(ColorScrollWindow, id, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, ids);
+        ColorCurveButton *bb = new ColorCurveButton(ColorScrollWindow, id, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, ids);
         bb->SetDefault();
         FlexGridSizer_Palette->Add(bb, 0, wxALIGN_LEFT|wxALIGN_TOP, 0);
         buttons.push_back(bb);
-        Connect(id,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnButton_PaletteNumberClick);
+        Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnButton_PaletteNumberClick);
+        Connect(id, wxEVT_COMMAND_LEFT_DCLICK, (wxObjectEventFunction)&ColorPanel::OnButton_PaletteNumberDClick);
     }
     for (int x = 0; x < PALETTE_SIZE; x++) {
         wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_Palette%d", (x + 1));
@@ -234,6 +235,55 @@ ColorPanel::~ColorPanel()
 
 
 PANEL_EVENT_HANDLERS(ColorPanel)
+
+void ColorPanel::SetColorCount(int count)
+{
+    // Disabling this as we dont really want to limit the colours to from left to right ... but it would be clearer
+    return;
+
+    if (count == -1)
+    {
+        for (int i = 0; i < PALETTE_SIZE; i++)
+        {
+            wxString ids = wxString::Format("ID_CHECKBOX_Palette%d", (i + 1));
+            wxWindow* CtrlWin = wxWindow::FindWindowByName(ids, this);
+            CtrlWin->Enable();
+            ids = wxString::Format("ID_BUTTON_Palette%d", (i + 1));
+            CtrlWin = wxWindow::FindWindowByName(ids, this);
+            CtrlWin->Enable();
+            ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_Palette%d", (i + 1));
+            CtrlWin = wxWindow::FindWindowByName(ids, this);
+            CtrlWin->Enable();
+        }
+    }
+    else
+    {
+        for (int i = 0; i < count; i++)
+        {
+            wxString ids = wxString::Format("ID_CHECKBOX_Palette%d", (i + 1));
+            wxWindow* CtrlWin = wxWindow::FindWindowByName(ids, this);
+            CtrlWin->Enable();
+            ids = wxString::Format("ID_BUTTON_Palette%d", (i + 1));
+            CtrlWin = wxWindow::FindWindowByName(ids, this);
+            CtrlWin->Enable();
+            ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_Palette%d", (i + 1));
+            CtrlWin = wxWindow::FindWindowByName(ids, this);
+            CtrlWin->Enable();
+        }
+        for (int i = count; i < PALETTE_SIZE; i++)
+        {
+            wxString ids = wxString::Format("ID_CHECKBOX_Palette%d", (i + 1));
+            wxWindow* CtrlWin = wxWindow::FindWindowByName(ids, this);
+            CtrlWin->Disable();
+            ids = wxString::Format("ID_BUTTON_Palette%d", (i + 1));
+            CtrlWin = wxWindow::FindWindowByName(ids, this);
+            CtrlWin->Disable();
+            ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_Palette%d", (i + 1));
+            CtrlWin = wxWindow::FindWindowByName(ids, this);
+            CtrlWin->Disable();
+        }
+    }
+}
 
 void ColorPanel::SetButtonColor(wxBitmapButton* btn, const std::string& cstr)
 {
@@ -400,7 +450,8 @@ void ColorPanel::OnCheckBox_PaletteClick(wxCommandEvent& event)
 
 void ColorPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
 {
-    wxBitmapButton* w=(wxBitmapButton*)event.GetEventObject();
+    ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
+    w->SetActive(false);
     wxColour color = w->GetBackgroundColour();
     colorData.SetColour(color);
     wxColourDialog dialog(this, &colorData);
@@ -412,7 +463,19 @@ void ColorPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
         SetButtonColor(w, c);
         PaletteChanged=true;
     }
+}
 
+void ColorPanel::OnButton_PaletteNumberDClick(wxCommandEvent& event)
+{
+    ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
+
+    w->SetActive(true);
+
+    ColorCurveDialog ccd(this, w->GetValue());
+    if (ccd.ShowModal() == wxID_OK)
+    {
+        PaletteChanged = true;
+    }
 }
 
 void ColorPanel::OnResize(wxSizeEvent& event)

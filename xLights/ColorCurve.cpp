@@ -388,3 +388,81 @@ ccSortableColorPoint* ColorCurve::GetNextActivePoint(float x, float& duration)
 
     return NULL;
 }
+
+#pragma region ColorCurveButton
+#include <wx/dcmemory.h>
+
+wxDEFINE_EVENT(EVT_CC_CHANGED, wxCommandEvent);
+
+ColorCurveButton::ColorCurveButton(wxWindow *parent,
+    wxWindowID id,
+    const wxBitmap& bitmap,
+    const wxPoint& pos,
+    const wxSize& size,
+    long style,
+    const wxValidator& validator,
+    const wxString& name) : wxBitmapButton(parent, id, bitmap, pos, size, style, validator, name)
+{
+    _cc = new ColorCurve(name.ToStdString());
+}
+
+
+ColorCurveButton::~ColorCurveButton()
+{
+    if (_cc != NULL)
+    {
+        delete _cc;
+    }
+}
+
+void ColorCurveButton::SetActive(bool active)
+{
+    _cc->SetActive(active);
+    UpdateState();
+}
+
+void ColorCurveButton::ToggleActive()
+{
+    _cc->ToggleActive();
+    UpdateState();
+}
+
+void ColorCurveButton::UpdateBitmap() {
+    if (GetValue()->IsActive())
+    {
+        RenderNewBitmap();
+    }
+}
+
+void ColorCurveButton::UpdateState()
+{
+    UpdateBitmap();
+    NotifyChange();
+}
+
+void ColorCurveButton::RenderNewBitmap() {
+
+    wxSize s = GetSize();
+    wxBitmap img = _cc->GetImage(s.GetWidth(), s.GetHeight());
+    SetBitmap(img);
+}
+
+
+void ColorCurveButton::SetValue(const wxString& value)
+{
+    _cc->Deserialise(value.ToStdString());
+    UpdateState();
+}
+
+void ColorCurveButton::NotifyChange()
+{
+    wxCommandEvent eventCCChange(EVT_CC_CHANGED);
+    eventCCChange.SetEventObject(this);
+    wxPostEvent(GetParent(), eventCCChange);
+}
+
+ColorCurve* ColorCurveButton::GetValue()
+{
+    return _cc;
+}
+#pragma endregion
