@@ -1602,7 +1602,9 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
     if (mSequenceElements == nullptr) {
         return;
     }
-
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Pasting data: %s", data.ToStdString().c_str());
+    
     wxArrayString all_efdata = wxSplit(data, '\n');
     if (all_efdata.size() == 0) {
         return;
@@ -1648,6 +1650,9 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
     }
 
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
+    
+    logger_base.info("mPartialCellSelected %d,   OneCellSelected: %d    paste_by_cell:  %d", (int)mPartialCellSelected, (int)OneCellSelected(), paste_by_cell);
+
     if (mPartialCellSelected || OneCellSelected()) {
         if( (number_of_timings + number_of_effects) > 1 )  // multi-effect paste
         {
@@ -1755,7 +1760,13 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
                             new_end_time,
                             EFFECT_NOT_SELECTED,
                             false);
-                        if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
+                        logger_base.info("(1) Created effect %s  %s  %s  %d %d -->  %X",
+                                         efdata[0].ToStdString().c_str(),
+                                         efdata[1].ToStdString().c_str(),
+                                         efdata[2].ToStdString().c_str(),
+                                         new_start_time,
+                                         new_end_time, ef);
+                        if (!is_timing_effect && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
                             xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
                         }
                         mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID());
@@ -1781,6 +1792,8 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
             }
             else
             {
+                logger_base.info("mCellRangeSelected: %d   mPartialCellSelected: %d", mCellRangeSelected, mPartialCellSelected);
+
                 if(mCellRangeSelected && !mPartialCellSelected)
                 {
                     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
@@ -1796,6 +1809,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
                 }
                 EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
                 int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
+                logger_base.info("mDropRow: %d   effectIndex: %d", mDropRow, effectIndex);
                 if (effectIndex >= 0) {
                     int end_time = mDropEndTimeMS;
                     if( ((efdata.size() >= 7) && GetActiveTimingElement() == nullptr) || !paste_by_cell )  // use original effect length if no timing track is active
@@ -1815,6 +1829,13 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
                                       end_time,
                                       EFFECT_SELECTED,
                                       false);
+                        
+                        logger_base.info("(2) Created effect %s  %s  %s  %d %d -->  %X",
+                                         efdata[0].ToStdString().c_str(),
+                                         efdata[1].ToStdString().c_str(),
+                                         efdata[2].ToStdString().c_str(),
+                                         mDropStartTimeMS,
+                                         end_time, ef);
                         if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
                             xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
                         }
@@ -1859,10 +1880,20 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
                 if( col1 > col2 ) {
                     std::swap(col1, col2);
                 }
+                logger_base.info("row1: %d   row2: %d   col1: %d   col2: %d", row1, row2, col1, col2);
+
                 for( int row = row1; row <= row2; row++ )
                 {
                     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+                    if (tel->GetEffect(col1) == nullptr) {
+                        logger_base.info("No start time");
+                        break;
+                    }
                     start_time = tel->GetEffect(col1)->GetStartTimeMS();
+                    if (tel->GetEffect(col2) == nullptr) {
+                        logger_base.info("No end time");
+                        break;
+                    }
                     end_time = tel->GetEffect(col2)->GetEndTimeMS();
                     if( !paste_by_cell )  // use original effect length if paste by time
                     {
@@ -1884,6 +1915,12 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
                                       end_time,
                                       EFFECT_SELECTED,
                                       false);
+                            logger_base.info("(3) Created effect %s  %s  %s  %d %d -->  %X",
+                                             efdata[0].ToStdString().c_str(),
+                                             efdata[1].ToStdString().c_str(),
+                                             efdata[2].ToStdString().c_str(),
+                                             mDropStartTimeMS,
+                                             end_time, ef);
                             if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
                                 xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
                             }
@@ -2691,18 +2728,19 @@ void EffectsGrid::Draw()
         DrawLines();
         DrawEffects();
         DrawPlayMarker();
-    }
-
-    if((mDragging || mCellRangeSelected) && !mPartialCellSelected)
-    {
-        if (mSequenceElements->GetSelectedTimingRow() >= 0 && mRangeStartCol >= 0) {
-            DrawSelectedCells();
+        
+        if((mDragging || mCellRangeSelected) && !mPartialCellSelected)
+        {
+            if (mSequenceElements->GetSelectedTimingRow() >= 0 && mRangeStartCol >= 0) {
+                DrawSelectedCells();
+            }
+        }
+        if(mDragging && (mSequenceElements->GetSelectedTimingRow() == -1))
+        {
+            DrawGLUtils::DrawRectangle(xlYELLOW,true,mDragStartX,mDragStartY,mDragEndX,mDragEndY);
         }
     }
-    if(mDragging && (mSequenceElements->GetSelectedTimingRow() == -1))
-    {
-        DrawGLUtils::DrawRectangle(xlYELLOW,true,mDragStartX,mDragStartY,mDragEndX,mDragEndY);
-    }
+
 
     LOG_GL_ERRORV(SwapBuffers());
 }

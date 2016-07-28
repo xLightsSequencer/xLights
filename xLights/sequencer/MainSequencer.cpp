@@ -646,12 +646,14 @@ void MainSequencer::Cut() {
 
 void MainSequencer::Paste() {
     wxTextDataObject data;
-    if (wxTheClipboard->Open()) {
-        if (wxTheClipboard->GetData(data)) {
+    wxClipboard *cbd = wxClipboard::Get();
+    if (cbd && cbd->Open()) {
+        if ((cbd->IsSupported(wxDF_TEXT) || cbd->IsSupported(wxDF_UNICODETEXT))
+            && cbd->GetData(data)) {
             //assume clipboard always has data from same version of xLights
             PanelEffectGrid->Paste(data.GetText(), xlights_version_string);
         }
-        wxTheClipboard->Close();
+        cbd->Close();
     }
 }
 
