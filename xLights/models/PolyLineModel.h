@@ -37,9 +37,10 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         struct xlPolyPoint {
             float x;
             float y;
+            float length;
             mutable glm::mat3 *matrix;
         };
-
+        float total_length;
 
     private:
         std::vector<int> polyLineSizes;

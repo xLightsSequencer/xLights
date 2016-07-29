@@ -126,8 +126,9 @@ void PolyLineModel::DeleteHandle(int handle) {
     }
     GetModelScreenLocation().DeleteHandle(handle);
 }
-/*
+
 void PolyLineModel::InitModel() {
+    // read the lights per line segment from xml
     wxString tempstr=ModelXml->GetAttribute("polyLineSizes");
     polyLineSizes.resize(0);
     while (tempstr.size() > 0) {
@@ -144,63 +145,18 @@ void PolyLineModel::InitModel() {
         polyLineSizes[polyLineSizes.size() - 1] = i2;
     }
 
+    // reset node information
     Nodes.clear();
-    InitPolyLine();
+    SetNodeCount(parm1,parm2,rgbOrder);
+    size_t NodeCount=GetNodeCount();
 
-    int idx = 0;
+    // establish light and segment counts
     int numLights = parm1 * parm2;
-    for(size_t m=0; m<num_segments; m++) {
-        int seg_idx = 0;
-        int end_node = idx + polyLineSizes[m];
-        float scale = (float)longest_segment / (float)polyLineSizes[m];
-        for(size_t n=idx; n<end_node; n++) {
-            int count = 0;
-            int num = Nodes[idx].get()->Coords.size();
-            float offset = scale / 2.0;
-            if( num > 1 ) {
-                offset -= scale / (float)num;
-            }
-            size_t CoordCount=GetCoordCount(idx);
-            int x_pos = IsLtoR ? seg_idx : (SingleNode ? seg_idx : polyLineSizes[m]-seg_idx-1);
-            for(size_t c=0; c < CoordCount; c++) {
-                Nodes[idx]->Coords[c].screenY = Nodes[idx]->Coords[c].bufY;
-                if (num > 1) {
-                    Nodes[idx]->Coords[c].screenX = x_pos * scale + offset + ((float)count * scale / (float)num);
-                    count++;
-                } else {
-                    Nodes[idx]->Coords[c].screenX = x_pos * scale + offset;
-                }
-            }
-            idx++;
-            seg_idx++;
-        }
-    }
-
-    screenLocation.SetRenderSize(BufferWi, BufferHt);
-}
-*/
-void PolyLineModel::InitModel() {
-    wxString tempstr=ModelXml->GetAttribute("polyLineSizes");
-    polyLineSizes.resize(0);
-    while (tempstr.size() > 0) {
-        wxString t2 = tempstr;
-        if (tempstr.Contains(",")) {
-            t2 = tempstr.SubString(0, tempstr.Find(","));
-            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-        } else {
-            tempstr = "";
-        }
-        long i2 = 0;
-        t2.ToLong(&i2);
-        polyLineSizes.resize(polyLineSizes.size() + 1);
-        polyLineSizes[polyLineSizes.size() - 1] = i2;
-    }
-
-    Nodes.clear();
-    InitPolyLine();
-
-    std::vector<xlPolyPoint> pPos;
     int num_points = wxAtoi(ModelXml->GetAttribute("NumPoints", "2"));
+	num_segments = num_points - 1;
+
+    // read in the point data from xml
+    std::vector<xlPolyPoint> pPos;
     pPos.resize(num_points);
     wxString point_data = ModelXml->GetAttribute("PointData", "0.4, 0.6, 0.4, 0.6");
     wxArrayString point_array = wxSplit(point_data, ',');
@@ -209,10 +165,11 @@ void PolyLineModel::InitModel() {
         pPos[i].y = wxAtof(point_array[i*2+1]);
     }
 
-    float minX = 100.0;
-    float minY = 100.0;
-    float maxX = 0.0;
-    float maxY = 0.0;
+    // calculate min/max for the model
+    float minX = 100.0f;
+    float minY = 100.0f;
+    float maxX = 0.0f;
+    float maxY = 0.0f;
 
     for( int i = 0; i < num_points; ++i ) {
         if( pPos[i].x < minX ) minX = pPos[i].x;
@@ -222,7 +179,10 @@ void PolyLineModel::InitModel() {
     }
     float deltax = maxX-minX;
     float deltay = maxY-minY;
+    total_length = 0.0f;
 
+    // normalize all points from 0.0 to 1.0 and create
+    // a matrix for each line segment
     for( int i = 0; i < num_points-1; ++i ) {
         float x1p = (pPos[i].x - minX) / deltax;
         float x2p = (pPos[i+1].x - minX) / deltax;
@@ -240,6 +200,8 @@ void PolyLineModel::InitModel() {
             angle += (float)M_PI;
         }
         float scale = std::sqrt((y2p - y1p)*(y2p - y1p) + (x2p - x1p)*(x2p - x1p));
+        pPos[i].length = scale;
+        total_length += scale;
 
         glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2(scale, 1.0));
         glm::mat3 rotationMatrix = glm::rotate(glm::mat3(1.0f), (float)angle);
@@ -252,43 +214,137 @@ void PolyLineModel::InitModel() {
         pPos[i].matrix = new glm::mat3(mat3);
     }
 
+    // setup number of lights per line segment
+    int cnt = 0;
+    longest_segment = 0;
+    if (polyLineSizes.size() != 0) {
+        for (int x = 0; x < polyLineSizes.size(); x++) {
+            if ((cnt + polyLineSizes[x]) > numLights) {
+                polyLineSizes[x] = numLights - cnt;
+            }
+            cnt += polyLineSizes[x];
+            if (polyLineSizes[x] > longest_segment) {
+                longest_segment = polyLineSizes[x];
+            }
+        }
+        while( polyLineSizes.size() < num_segments ) {
+            polyLineSizes.resize(polyLineSizes.size() + 1);
+            polyLineSizes[polyLineSizes.size() - 1] = 0;
+        }
+    }
+
+    // define the buffer positions
+    SetBufferSize(1, numLights);
+    int chan = 0;
+    int LastStringNum=-1;
+    int ChanIncr=SingleChannel ?  1 : 3;
+    for(size_t idx=0; idx<numLights; idx++) {
+        if (Nodes[idx]->StringNum != LastStringNum) {
+            LastStringNum=Nodes[idx]->StringNum;
+            chan=stringStartChan[LastStringNum];
+        }
+        Nodes[idx]->ActChan=chan;
+        chan+=ChanIncr;
+        Nodes[idx]->Coords.resize(SingleNode?parm2:parm3);
+        size_t CoordCount=GetCoordCount(idx);
+        for(size_t c=0; c < CoordCount; c++) {
+            Nodes[idx]->Coords[c].bufX=IsLtoR ? idx : (SingleNode ? idx : numLights-idx-1);
+            Nodes[idx]->Coords[c].bufY=0;
+        }
+    }
+
+    // place the nodes/coords along each line segment
     int idx = 0;
-    int numLights = parm1 * parm2;
-    float loc_x, loc_y;
+    float loc_x;
+    if (polyLineSizes.size() != 0) {
+        // distribute the lights as defined by the polysize string
+        for(size_t m=0; m<num_segments; m++) {
+            int seg_idx = 0;
+            for(size_t n=0; n<polyLineSizes[m]; n++) {
+                int count = 0;
+                int num = Nodes[idx].get()->Coords.size();
+                float offset = 0.5f;
+                if( num > 1 ) {
+                    offset -= 1.0f / (float)num;
+                }
+                size_t CoordCount=GetCoordCount(idx);
+                int x_pos = IsLtoR ? seg_idx : (SingleNode ? seg_idx : polyLineSizes[m]-seg_idx-1);
+                for(size_t c=0; c < CoordCount; c++) {
+                    if (num > 1) {
+                        loc_x = x_pos + offset + ((float)count / (float)num);
+                        count++;
+                    } else {
+                        loc_x = x_pos + offset;
+                    }
+
+                    glm::vec3 v = *pPos[m].matrix * glm::vec3(loc_x / (float)polyLineSizes[m], 0, 1);
+
+                    Nodes[idx]->Coords[c].screenX = v.x;
+                    Nodes[idx]->Coords[c].screenY = v.y;
+                }
+                idx++;
+                seg_idx++;
+            }
+        }
+    } else {
+        // distribute the lights evenly across the line segments
+        int coords_per_node = Nodes[0].get()->Coords.size();
+        int lights_to_distribute = numLights * coords_per_node;
+        float offset = total_length / lights_to_distribute;
+        float current_pos = offset / 2.0f;
+        size_t idx=0;
+        size_t c=0;
+        int segment = 0;
+        float seg_start = current_pos;
+        float seg_end = seg_start + pPos[segment].length;
+        for(size_t m=0; m<lights_to_distribute; m++) {
+            if( current_pos > seg_end ) {
+                segment++;
+                seg_start = seg_end;
+                seg_end = seg_start + pPos[segment].length;
+            }
+            glm::vec3 v = *pPos[segment].matrix * glm::vec3((current_pos - seg_start) / pPos[segment].length, 0, 1);
+            Nodes[idx]->Coords[c].screenX = v.x;
+            Nodes[idx]->Coords[c].screenY = v.y;
+            if( c < coords_per_node-1 ) {
+                c++;
+            } else {
+                c = 0;
+                idx++;
+            }
+            current_pos += offset;
+        }
+    }
+    screenLocation.SetRenderSize(1.0, 1.0);
+}
+/*    // define the buffer positions
+    SetBufferSize(1, numLights);
+    int idx = 0;
+    int chan = 0;
+    int LastStringNum=-1;
+    int ChanIncr=SingleChannel ?  1 : 3;
     for(size_t m=0; m<num_segments; m++) {
         int seg_idx = 0;
         int end_node = idx + polyLineSizes[m];
         float scale = (float)longest_segment / (float)polyLineSizes[m];
         for(size_t n=idx; n<end_node; n++) {
-            int count = 0;
-            int num = Nodes[idx].get()->Coords.size();
-            float offset = scale / 2.0;
-            if( num > 1 ) {
-                offset -= scale / (float)num;
+            if (Nodes[idx]->StringNum != LastStringNum) {
+                LastStringNum=Nodes[idx]->StringNum;
+                chan=stringStartChan[LastStringNum];
             }
+            Nodes[idx]->ActChan=chan;
+            chan+=ChanIncr;
+            Nodes[idx]->Coords.resize(SingleNode?parm2:parm3);
             size_t CoordCount=GetCoordCount(idx);
-            int x_pos = IsLtoR ? seg_idx : (SingleNode ? seg_idx : polyLineSizes[m]-seg_idx-1);
+            int location = seg_idx * scale + scale / 2.0;
             for(size_t c=0; c < CoordCount; c++) {
-                loc_y = Nodes[idx]->Coords[c].bufY;
-                if (num > 1) {
-                    loc_x = x_pos * scale + offset + ((float)count * scale / (float)num);
-                    count++;
-                } else {
-                    loc_x = x_pos * scale + offset;
-                }
-
-                glm::vec3 v = *pPos[m].matrix * glm::vec3(loc_x / (float)BufferWi, 0, 1);
-
-                Nodes[idx]->Coords[c].screenX = v.x;
-                Nodes[idx]->Coords[c].screenY = v.y;
+                Nodes[idx]->Coords[c].bufX=IsLtoR ? location : (SingleNode ? location : longest_segment-location-1);
+                Nodes[idx]->Coords[c].bufY=m;
             }
             idx++;
             seg_idx++;
         }
-    }
-
-    screenLocation.SetRenderSize(1.0, 1.0);
-}
+    }*/
 
 // initialize buffer coordinates
 // parm1=Number of Strings
