@@ -125,7 +125,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
     mSelectedGroup(-1), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
-    previewBackgroundBrightness(100), m_polyline_active(false), lastSelectedModel(nullptr)
+    previewBackgroundBrightness(100), m_polyline_active(false)
 {
     background = nullptr;
 
@@ -1131,8 +1131,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         m_moving_handle = true;
         int sel=ListBoxElementList->GetFirstSelected();
         if (sel != wxNOT_FOUND) {
-            lastSelectedModel=(Model*)ListBoxElementList->GetItemData(sel);
-            lastSelectedModel->SelectHandle(m_over_handle);
+            ((Model*)ListBoxElementList->GetItemData(sel))->SelectHandle(m_over_handle);
             m_sel_handle = m_over_handle;
             UpdatePreview();
         }
@@ -1168,16 +1167,12 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                 }
                 lastModelName = newModel->name;
                 modelPreview->GetModels().push_back(newModel);
-                lastSelectedModel = nullptr;
             }
         }
     }
     else
     {
-        if (lastSelectedModel != nullptr) {
-            lastSelectedModel->SelectHandle(-1);
-            m_sel_handle = -1;
-        }
+        m_sel_handle = -1;
         m_moving_handle = false;
         m_creating_bound_rect = false;
 
@@ -1202,9 +1197,6 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     if( m_polyline_active ) return;
 
     int y = event.GetY();
-
-    //m_moving_handle = false;
-    //m_dragging = false;
 
     if(m_creating_bound_rect)
     {
