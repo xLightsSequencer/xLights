@@ -22,7 +22,7 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 {
-    OpenSequence("", NULL);
+    OpenSequence("", nullptr);
 }
 
 void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
@@ -41,7 +41,7 @@ void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
         ReadXlightsFile(filename);
         fn.SetExt("fseq");
     } else {
-        ReadFalconFile(filename, NULL);
+        ReadFalconFile(filename, nullptr);
     }
     DisplayXlightsFilename(fn.GetFullPath());
     SeqBaseChannel=1;
@@ -52,14 +52,14 @@ void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
 
 void xLightsFrame::ResetEffectsXml()
 {
-    ModelsNode=NULL;
-    EffectsNode=NULL;
-    PalettesNode=NULL;
-    ViewsNode=NULL;
-    ModelGroupsNode=NULL;
-    LayoutGroupsNode=NULL;
-    SettingsNode=NULL;
-    PerspectivesNode = NULL;
+    ModelsNode=nullptr;
+    EffectsNode=nullptr;
+    PalettesNode=nullptr;
+    ViewsNode=nullptr;
+    ModelGroupsNode=nullptr;
+    LayoutGroupsNode=nullptr;
+    SettingsNode=nullptr;
+    PerspectivesNode = nullptr;
 }
 
 wxString xLightsFrame::LoadEffectsFileNoCheck()
@@ -90,7 +90,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         wxMessageBox(_("Invalid RGB effects file. Press Save File button to start a new file."), _("Error"));
         CreateDefaultEffectsXml();
     }
-    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "models") ModelsNode=e;
         if (e->GetName() == "effects") EffectsNode=e;
@@ -189,7 +189,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
     // validate stored preview exists
     bool found_saved_preview = false;
-    for(wxXmlNode* e=LayoutGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    for(wxXmlNode* e=LayoutGroupsNode->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "layoutGroup")
         {
@@ -212,7 +212,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     LayoutGroups.clear();
     layoutPanel->Reset();
     AllModels.SetLayoutsNode(LayoutGroupsNode);  // provides easy access to layout names for the model class
-    for(wxXmlNode* e=LayoutGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    for(wxXmlNode* e=LayoutGroupsNode->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "layoutGroup")
         {
@@ -758,6 +758,7 @@ void xLightsFrame::SaveSequence()
             DisplayXlightsFilename(xlightsFilename);
             float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
             wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
+            logger_base.info("%s", (const char *) displayBuff.c_str());
             CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
             EnableSequenceControls(true);
             mSavedChangeCount = mSequenceElements.GetChangeCount();
@@ -766,9 +767,11 @@ void xLightsFrame::SaveSequence()
     }
     SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
     WriteFalconPiFile(xlightsFilename);
-	DisplayXlightsFilename(xlightsFilename);
+    logger_base.info("fseq file done.");
+    DisplayXlightsFilename(xlightsFilename);
     float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
+    logger_base.info("%s", (const char *)displayBuff.c_str());
     CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
     EnableSequenceControls(true);
     mSavedChangeCount = mSequenceElements.GetChangeCount();
@@ -833,14 +836,14 @@ void xLightsFrame::RenderAll()
     GaugeSizer->Layout();
     SetStatusText(_("Rendering all layers"));
     logger_base.debug("Rendering all.");
-    RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
+    RenderIseqData(true, nullptr); // render ISEQ layers below the Nutcracker layer
     logger_base.info("   iseq below effects done.");
     ProgressBar->SetValue(10);
     RenderGridToSeqData([this, sw] {
         log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("   Effects done.");
         ProgressBar->SetValue(90);
-        RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
+        RenderIseqData(false, nullptr);  // render ISEQ layers above the Nutcracker layer
         logger_base.info("   iseq above effects done. Render all complete.");
         ProgressBar->SetValue(100);
         float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
