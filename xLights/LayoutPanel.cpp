@@ -1462,6 +1462,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         if (sel == wxNOT_FOUND) return;
         Model* md=(Model*)ListBoxElementList->GetItemData(sel);
         int handle = md->GetSelectedSegment();
+        CreateUndoPoint("SingleModel", md->name, std::to_string(handle));
         md->InsertHandle(handle);
         m_sel_handle = handle+1;
         md->UpdateXmlWithScale();
@@ -1474,6 +1475,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         int sel = ListBoxElementList->GetFirstSelected();
         if (sel == wxNOT_FOUND) return;
         Model* md=(Model*)ListBoxElementList->GetItemData(sel);
+        CreateUndoPoint("SingleModel", md->name, std::to_string(m_sel_handle));
         md->DeleteHandle(m_sel_handle);
         m_sel_handle = -1;
         md->UpdateXmlWithScale();

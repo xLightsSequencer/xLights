@@ -1029,6 +1029,7 @@ PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
     mPos[1].x = 0.4f;
     mPos[1].y = 0.6f;
     mPos[1].matrix = nullptr;
+    main_matrix = nullptr;
 }
 PolyPointScreenLocation::~PolyPointScreenLocation() {
     for( int i = 0; i < mPos.size(); ++i ) {
@@ -1037,6 +1038,9 @@ PolyPointScreenLocation::~PolyPointScreenLocation() {
         }
     }
     mPos.clear();
+    if (main_matrix != nullptr) {
+        delete main_matrix;
+    }
 }
 void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
     num_points = wxAtoi(ModelNode->GetAttribute("NumPoints", "2"));
@@ -1065,11 +1069,28 @@ void PolyPointScreenLocation::Write(wxXmlNode *node) {
 }
 
 void PolyPointScreenLocation::PrepareToDraw() const {
+    float minX = 100.0;
+    float minY = 100.0;
+    float maxX = 0.0;
+    float maxY = 0.0;
+
     for( int i = 0; i < num_points-1; ++i ) {
         float x1p = mPos[i].x * (float)previewW;
         float x2p = mPos[i+1].x * (float)previewW;
         float y1p = mPos[i].y * (float)previewH;
         float y2p = mPos[i+1].y * (float)previewH;
+
+        if( mPos[i].x < minX ) minX = mPos[i].x;
+        if( mPos[i].y < minY ) minY = mPos[i].y;
+        if( mPos[i].x > maxX ) maxX = mPos[i].x;
+        if( mPos[i].y > maxY ) maxY = mPos[i].y;
+
+        if( i == num_points-2 ) {
+            if( mPos[i+1].x < minX ) minX = mPos[i+1].x;
+            if( mPos[i+1].y < minY ) minY = mPos[i+1].y;
+            if( mPos[i+1].x > maxX ) maxX = mPos[i+1].x;
+            if( mPos[i+1].y > maxY ) maxY = mPos[i+1].y;
+        }
 
         float angle = (float)M_PI/2.0f;
         if (mPos[i+1].x != mPos[i].x) {
@@ -1095,9 +1116,17 @@ void PolyPointScreenLocation::PrepareToDraw() const {
         }
         mPos[i].matrix = new glm::mat3(mat3);
     }
+    glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2((maxX-minX) * previewW, (maxY-minY) * previewH));
+    glm::mat3 translateMatrix = glm::translate(glm::mat3(1.0f), glm::vec2(minX * previewW, minY * previewH));
+    glm::mat3 mat3 = translateMatrix * scalingMatrix;
+    if (main_matrix != nullptr) {
+        delete main_matrix;
+    }
+    main_matrix = new glm::mat3(mat3);
 }
+
 void PolyPointScreenLocation::TranslatePoint(float &x, float &y) const {
-    glm::vec3 v = *mPos[y].matrix * glm::vec3(x, 0, 1);
+    glm::vec3 v = *main_matrix * glm::vec3(x, y, 1);
     x = v.x;
     y = v.y;
 }
@@ -1224,7 +1253,7 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
     mPos[handle].x = newx;
     mPos[handle].y = newy;
 
-    return 0;
+    return 1;
 }
 
 void PolyPointScreenLocation::SelectHandle(int handle) {

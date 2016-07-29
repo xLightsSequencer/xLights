@@ -359,6 +359,7 @@ protected:
     int num_points;
     int selected_handle;
     mutable int selected_segment;
+    mutable glm::mat3 *main_matrix;
 
 };
 

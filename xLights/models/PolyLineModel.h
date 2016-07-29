@@ -34,6 +34,12 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         void SavePolyLineSizes();
         int num_segments;
         int longest_segment;
+        struct xlPolyPoint {
+            float x;
+            float y;
+            mutable glm::mat3 *matrix;
+        };
+
 
     private:
         std::vector<int> polyLineSizes;
