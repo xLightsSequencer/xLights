@@ -813,6 +813,9 @@
     <ClCompile Include="ColorGradientDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ColorCurveDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1560,6 +1563,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ColorGradientDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="colorcurvedialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

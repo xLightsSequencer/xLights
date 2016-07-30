@@ -4,9 +4,8 @@
 #include <wx/position.h>
 #include <wx/string.h>
 #include <wx/wx.h>
-#include <string>
+#include <wx/colour.h>
 #include <list>
-#include "Color.h"
 
 class ccSortableColorPoint
 {
@@ -16,27 +15,15 @@ public:
     {
         return std::round(v * 40.0) / 40.0;
     }
-    
-	float x; // 0-1 ... the start point of this point
-	xlColor color; // the colour of the mid point of this 
-	float fadein; // % of the duration of this point that should fade in
-	float fadeout; // % of the duration of this point that should fade out
 
-    std::string Serialise()
+	float x; // 0-1 ... the start point of this point
+	wxColor color; // the colour of the mid point of this
+
+    std::string Serialise() const
     {
         std::string res = "";
         res += "x=" + wxString::Format("%.2f", x).ToStdString();
-        res += "|c=" + ((wxString)color).ToStdString();
-
-        if (fadein != 0)
-        {
-            res += "|fi=" + wxString::Format("%.2f", fadein).ToStdString();
-        }
-
-        if (fadeout != 0)
-        {
-            res += "|fo=" + wxString::Format("%.2f", fadeout).ToStdString();
-        }
+        res += "|c=" + color.GetAsString().ToStdString();
 
         return res;
     }
@@ -53,8 +40,6 @@ public:
         }
         else
         {
-            fadein = 0;
-            fadeout = 0;
             wxArrayString v = wxSplit(wxString(s.c_str()), '|');
             for (auto vs = v.begin(); vs != v.end(); vs++)
             {
@@ -74,29 +59,19 @@ public:
         }
         else if (k == "c")
         {
-            color.SetFromString(v);
-        }
-        else if (k == "fi")
-        {
-            fadein = wxAtof(wxString(v));
-        }
-        else if (k == "fo")
-        {
-            fadeout = wxAtof(wxString(v));
+            color = wxColor(v);
         }
     }
     ccSortableColorPoint(std::string& s)
     {
         Deserialise(s);
     }
-    ccSortableColorPoint(float xx, xlColor c, float fi, float fo)
+    ccSortableColorPoint(float xx, wxColor c)
     {
         x = Normalise(xx);
 		color = c;
-		fadein = fi;
-		fadeout = fo;
     }
-    bool IsNear(float xx)
+    bool IsNear(float xx) const
     {
         return (x == Normalise(xx));
     }
@@ -144,24 +119,29 @@ class ColorCurve
     ccSortableColorPoint* GetNextActivePoint(float x, float& duration);
 
 public:
-    ColorCurve() { ColorCurve(""); };
+    ColorCurve() { ColorCurve(""); _active = false; };
     ColorCurve(const std::string& serialised);
-    ColorCurve(const std::string& id, const std::string type, xlColor c = xlBLACK);
+    ColorCurve(const std::string& id, const std::string type, wxColor c = *wxBLACK);
     std::string Serialise();
-    bool IsOk() { return _id != ""; }
+    bool IsOk() const
+    { return _id != ""; }
     void Deserialise(const std::string& s);
     void SetType(std::string type);
-    xlColor GetValueAt(float offset);
-	wxImage GetImage(int x, int y);
+    wxColor GetValueAt(float offset);
+	wxBitmap GetImage(int x, int y);
     void SetActive(bool a) { _active = a; }
-    bool IsActive() { return IsOk() && _active; }
+    bool IsActive() const
+    { return IsOk() && _active; }
     void ToggleActive() { _active = !_active; }
-    void SetValueAt(float offset, xlColor x, float fi, float fo);
+    void SetValueAt(float offset, wxColor x);
     void DeletePoint(float offset);
     bool IsSetPoint(float offset);
-    int GetPointCount() { return _values.size(); }
-    std::string GetType() { return _type; }
-    std::list<ccSortableColorPoint> GetPoints() { return _values; }
+    int GetPointCount() const
+    { return _values.size(); }
+    std::string GetType() const
+    { return _type; }
+    std::list<ccSortableColorPoint> GetPoints() const
+    { return _values; }
     bool NearPoint(float x);
 };
 
@@ -171,10 +151,12 @@ class ColorCurveButton :
     public wxBitmapButton
 {
     ColorCurve* _cc;
+    std::string _color;
     void NotifyChange();
-
-
+    void LeftClick(wxCommandEvent& event);
+    void RightClick(wxContextMenuEvent& event);
     void RenderNewBitmap();
+
 public:
     ColorCurveButton(wxWindow *parent,
         wxWindowID id,
@@ -191,6 +173,8 @@ public:
     void SetActive(bool active);
     void UpdateState();
     void UpdateBitmap();
+    std::string GetColor() const { return _color; }
+    void SetValue(std::string color);
 };
 
 #endif

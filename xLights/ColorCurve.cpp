@@ -1,11 +1,13 @@
 #include "ColorCurve.h"
-#include <sstream>
-#include <iostream>
 #include <wx/wx.h>
 #include <wx/string.h>
 #include <log4cpp/Category.hh>
 #include <wx/bitmap.h>
+#include "ColorCurveDialog.h"
 
+#include <wx/colour.h>
+#include <wx/colourdata.h>
+#include <wx/colordlg.h>
 #include <wx/graphics.h>
 #if wxUSE_GRAPHICS_CONTEXT == 0
 #error Please refer to README.windows to make necessary changes to wxWidgets setup.h file.
@@ -17,11 +19,11 @@ float ColorCurve::Safe01(float v)
     return std::min(1.0f, std::max(0.0f, v));
 }
 
-ColorCurve::ColorCurve(const std::string& id, const std::string type, xlColor c)
+ColorCurve::ColorCurve(const std::string& id, const std::string type, wxColor c)
 {
     _type = type;
     _id = id;
-    _values.push_back(ccSortableColorPoint(0, c, 0, 0));
+    _values.push_back(ccSortableColorPoint(0, c));
     _active = false;
 }
 
@@ -61,7 +63,7 @@ void ColorCurve::Deserialise(const std::string& s)
 
     if (_values.size() == 0)
     {
-        _values.push_back(ccSortableColorPoint(0, xlBLACK, 0, 0));
+        _values.push_back(ccSortableColorPoint(0, *wxBLACK));
     }
 }
 std::string ColorCurve::Serialise()
@@ -123,10 +125,11 @@ void ColorCurve::SetSerialisedValue(std::string k, std::string s)
 
             for (auto p = points.begin(); p != points.end(); p++)
             {
-                _values.push_back(ccSortableColorPoint(p->ToStdString()));
+                std::string s = p->ToStdString();
+                _values.push_back(ccSortableColorPoint(s));
             }
         }
-    
+
     _values.sort();
     //_active = true;
 }
@@ -141,19 +144,19 @@ uint8_t ChannelBlend(uint8_t c1, uint8_t c2, float ratio)
     return c1 + floor(ratio*(c2 - c1) + 0.5);
 }
 
-xlColor GetGradientColor(float ratio, xlColor& c1, xlColor& c2)
+wxColor GetGradientColor(float ratio, wxColor& c1, wxColor& c2)
 {
-    return xlColor(ChannelBlend(c1.Red(), c2.Red(), ratio), ChannelBlend(c1.Green(), c2.Green(), ratio), ChannelBlend(c1.Blue(), c2.Blue(), ratio));
+    return wxColor(ChannelBlend(c1.Red(), c2.Red(), ratio), ChannelBlend(c1.Green(), c2.Green(), ratio), ChannelBlend(c1.Blue(), c2.Blue(), ratio));
 }
 
-xlColor ColorCurve::GetValueAt(float offset)
+wxColor ColorCurve::GetValueAt(float offset)
 {
     if (_type == "Gradient")
     {
         float start = 0;
         float end = 1;
-        xlColor startc = xlBLACK;
-        xlColor endc = xlBLACK;
+        wxColor startc = *wxBLACK;
+        wxColor endc = *wxBLACK;
 
         // find the value before the offset
         float d = 0;
@@ -200,66 +203,15 @@ xlColor ColorCurve::GetValueAt(float offset)
 
         return GetGradientColor((offset - start) / (end - start), startc, endc);
     }
-    else if (_type == "Sharp")
+    else if (_type == "None")
     {
         // find the value immediately before the offset ... that is the color to return
         float d = 0;
         ccSortableColorPoint* pt = GetActivePoint(offset, d);
         return pt->color;
     }
-    else if (_type == "Fade")
-    {
-        // find the value immediately before the offset
-        float d = 0;
-        ccSortableColorPoint* pt = GetActivePoint(offset, d);
 
-        if (d * pt->fadein > offset - pt->x)
-        {
-            // in fade in
-            xlColor lastc = xlBLACK;
-            float dp = 0;
-            ccSortableColorPoint* ptp = GetPriorActivePoint(offset, dp);
-            if (ptp == NULL)
-            {
-                lastc = pt->color;
-            }
-            else
-            {
-                if (ptp->fadeout == 0)
-                {
-                    lastc = ptp->color;
-                }
-            }
-            return xlColor(lastc.red + pt->color.red * (offset - pt->x) / (d * pt->fadein),
-                lastc.green + pt->color.green * (offset - pt->x) / (d * pt->fadein),
-                lastc.blue + pt->color.blue * (offset - pt->x) / (d * pt->fadein)
-                );
-        }
-        else if (d * pt->fadeout < offset - pt->x)
-        {
-            // in fade out
-            xlColor nextc = xlBLACK;
-            float dn = 0;
-            ccSortableColorPoint* ptn = GetNextActivePoint(offset, dn);
-            if (ptn == NULL)
-            {
-                nextc = pt->color;
-            }
-            else
-            {
-                if (ptn->fadein == 0)
-                {
-                    nextc = ptn->color;
-                }
-            }
-            return xlColor(nextc.red + pt->color.red * (offset - pt->x) / (d - d * pt->fadeout),
-                nextc.green + pt->color.green * (offset - pt->x) / (d - d * pt->fadeout),
-                nextc.blue + pt->color.blue * (offset - pt->x) / (d - d * pt->fadeout)
-            );
-        }
-    }
-
-    return xlBLACK;
+    return *wxBLACK;
 }
 
 bool ColorCurve::IsSetPoint(float offset)
@@ -294,7 +246,7 @@ void ColorCurve::DeletePoint(float offset)
     }
 }
 
-void ColorCurve::SetValueAt(float offset, xlColor c, float fadein, float fadeout)
+void ColorCurve::SetValueAt(float offset, wxColor c)
 {
     auto it = _values.begin();
     while (it != _values.end() && *it <= offset)
@@ -307,11 +259,11 @@ void ColorCurve::SetValueAt(float offset, xlColor c, float fadein, float fadeout
         it++;
     }
 
-    _values.push_back(ccSortableColorPoint(offset, c, fadein, fadeout));
+    _values.push_back(ccSortableColorPoint(offset, c));
     _values.sort();
 }
 
-wxImage ColorCurve::GetImage(int x, int y)
+wxBitmap ColorCurve::GetImage(int x, int y)
 {
     wxImage bmp(x, y);
     wxBitmap b(bmp);
@@ -319,10 +271,10 @@ wxImage ColorCurve::GetImage(int x, int y)
 
     for (int i = 0; i < x; i++)
     {
-        dc.SetPen(wxPen(GetValueAt((float)i / (float)x).asWxColor(), 1, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(GetValueAt((float)i / (float)x), 1, wxPENSTYLE_SOLID));
         dc.DrawLine(wxPoint(i, 0), wxPoint(i, y));
     }
-    return bmp;
+    return b;
 }
 
 bool ColorCurve::NearPoint(float x)
@@ -404,8 +356,49 @@ ColorCurveButton::ColorCurveButton(wxWindow *parent,
     const wxString& name) : wxBitmapButton(parent, id, bitmap, pos, size, style, validator, name)
 {
     _cc = new ColorCurve(name.ToStdString());
+    Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorCurveButton::LeftClick);
+    Connect(id, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ColorCurveButton::RightClick);
 }
 
+void ColorCurveButton::LeftClick(wxCommandEvent& event)
+{
+    ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
+    _cc->SetActive(false);
+    wxColour color = w->GetBackgroundColour();
+    wxColourData colorData;
+    colorData.SetColour(color);
+    wxColourDialog dialog(this, &colorData);
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        wxColourData retData = dialog.GetColourData();
+        color = retData.GetColour();
+
+        _color = color.GetAsString();
+
+        w->SetBackgroundColour(color);
+        w->SetForegroundColour(color);
+        wxImage image(18, 18);
+        image.SetRGB(wxRect(0, 0, 18, 18),
+            color.Red(), color.Green(), color.Blue());
+        wxBitmap bmp(image);
+
+        w->SetBitmap(bmp);
+        NotifyChange();
+    }
+}
+
+void ColorCurveButton::RightClick(wxContextMenuEvent& event)
+{
+    ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
+
+    w->SetActive(true);
+
+    ColorCurveDialog ccd(this, w->GetValue());
+    if (ccd.ShowModal() == wxID_OK)
+    {
+        NotifyChange();
+    }
+}
 
 ColorCurveButton::~ColorCurveButton()
 {

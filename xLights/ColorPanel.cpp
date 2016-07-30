@@ -5,6 +5,7 @@
 #include "../include/padlock16x16-red.xpm" //-DJ
 #include "../include/padlock16x16-blue.xpm" //-DJ
 #include "ColorCurve.h"
+#include "ColorCurveDialog.h"
 
 class xLightsFrame;
 //(*InternalHeaders(ColorPanel)
@@ -207,8 +208,9 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
         bb->SetDefault();
         FlexGridSizer_Palette->Add(bb, 0, wxALIGN_LEFT|wxALIGN_TOP, 0);
         buttons.push_back(bb);
-        Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnButton_PaletteNumberClick);
-        Connect(id, wxEVT_COMMAND_LEFT_DCLICK, (wxObjectEventFunction)&ColorPanel::OnButton_PaletteNumberDClick);
+        //Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnButton_PaletteNumberClick);
+        //Connect(id, wxEVT_COMMAND_RIGHT_CLICK, (wxObjectEventFunction)&ColorPanel::OnButton_PaletteNumberRClick);
+        Connect(wxID_ANY, EVT_CC_CHANGED, (wxObjectEventFunction)&ColorPanel::OnCCChanged, 0, this);
     }
     for (int x = 0; x < PALETTE_SIZE; x++) {
         wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_Palette%d", (x + 1));
@@ -448,35 +450,42 @@ void ColorPanel::OnCheckBox_PaletteClick(wxCommandEvent& event)
     PaletteChanged=true;
 }
 
-void ColorPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
+void ColorPanel::OnCCChanged(wxCommandEvent& event)
 {
     ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
-    w->SetActive(false);
-    wxColour color = w->GetBackgroundColour();
-    colorData.SetColour(color);
-    wxColourDialog dialog(this, &colorData);
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        wxColourData retData = dialog.GetColourData();
-        wxColour color = retData.GetColour();
-        xlColor c(color);
-        SetButtonColor(w, c);
-        PaletteChanged=true;
-    }
+    lastColors[w->GetId()] = w->GetColor();
+    Refresh();
 }
 
-void ColorPanel::OnButton_PaletteNumberDClick(wxCommandEvent& event)
-{
-    ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
+//void ColorPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
+//{
+//    ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
+//    w->SetActive(false);
+//    wxColour color = w->GetBackgroundColour();
+//    colorData.SetColour(color);
+//    wxColourDialog dialog(this, &colorData);
+//    if (dialog.ShowModal() == wxID_OK)
+//    {
+//        wxColourData retData = dialog.GetColourData();
+//        color = retData.GetColour();
+//        xlColor c(color);
+//        SetButtonColor(w, c);
+//        PaletteChanged=true;
+//    }
+//}
 
-    w->SetActive(true);
-
-    ColorCurveDialog ccd(this, w->GetValue());
-    if (ccd.ShowModal() == wxID_OK)
-    {
-        PaletteChanged = true;
-    }
-}
+//void ColorPanel::OnButton_PaletteNumberRClick(wxCommandEvent& event)
+//{
+//    ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
+//
+//    w->SetActive(true);
+//
+//    ColorCurveDialog ccd(this, w->GetValue());
+//    if (ccd.ShowModal() == wxID_OK)
+//    {
+//        PaletteChanged = true;
+//    }
+//}
 
 void ColorPanel::OnResize(wxSizeEvent& event)
 {

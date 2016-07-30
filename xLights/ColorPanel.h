@@ -14,9 +14,7 @@
 //*)
 
 #include <wx/colordlg.h>
-#include <unordered_map>
 #include "ValueCurveButton.h"
-#include "ValueCurveDialog.h"
 #include "ColorCurve.h"
 
 #include <vector>
@@ -27,6 +25,7 @@ wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 class ColorPanel: public wxPanel
 {
     void OnVCChanged(wxCommandEvent& event);
+    void OnCCChanged(wxCommandEvent& event);
 
     int __brightness;
 public:
@@ -107,8 +106,7 @@ public:
 
 		//(*Handlers(ColorPanel)
 		void OnCheckBox_PaletteClick(wxCommandEvent& event);
-        void OnButton_PaletteNumberClick(wxCommandEvent& event);
-        void OnButton_PaletteNumberDClick(wxCommandEvent& event);
+        //void OnButton_PaletteNumberClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnUpdateColorClick(wxCommandEvent& event);
 		void UpdateLinkedSliderFloat(wxCommandEvent& event);
@@ -124,7 +122,8 @@ public:
 		void OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& event);
 		void OnBitmapButton_VCBrightnessClick(wxCommandEvent& event);
         void OnVCButtonClick(wxCommandEvent& event);
-        //*)
+            //*)
+
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
         wxColourData colorData;
