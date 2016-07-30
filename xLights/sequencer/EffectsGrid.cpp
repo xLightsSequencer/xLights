@@ -811,9 +811,6 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
                     mSelectedRow = -1;
                 }
             }
-            if( mSequenceElements->GetSelectedTimingRow() >= 0 ) {
-                mCellRangeSelected = true;
-            }
             mDragging = true;
             mDragEndX = event.GetX();
             mDragEndY = event.GetY();
@@ -901,6 +898,22 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                 mSequenceElements->UnSelectAllEffects();
                 wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
                 wxPostEvent(mParent, eventUnSelected);
+            }
+            else if( !mCellRangeSelected )
+            {
+                EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
+                if (el != nullptr) {
+                    mDropStartTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+                    mDropEndTimeMS = mDropStartTimeMS + 1000;
+                    mDropStartX = mTimeline->GetPositionFromTimeMS(mDropStartTimeMS);
+                    mDropEndX = mTimeline->GetPositionFromTimeMS(mDropEndTimeMS);
+                    AdjustDropLocations(event.GetX(), el);
+                    mPartialCellSelected = true;
+                    mDropRow = row;
+                    mSequenceElements->UnSelectAllEffects();
+                    wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
+                    wxPostEvent(mParent, eventUnSelected);
+                }
             }
         }
         else if (row >= 0 && row < mSequenceElements->GetVisibleRowInformationSize()) {
@@ -1604,7 +1617,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
     }
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Pasting data: %s", data.ToStdString().c_str());
-    
+
     wxArrayString all_efdata = wxSplit(data, '\n');
     if (all_efdata.size() == 0) {
         return;
@@ -1650,7 +1663,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
     }
 
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
-    
+
     logger_base.info("mPartialCellSelected %d,   OneCellSelected: %d    paste_by_cell:  %d", (int)mPartialCellSelected, (int)OneCellSelected(), paste_by_cell);
 
     if (mPartialCellSelected || OneCellSelected()) {
@@ -1829,7 +1842,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
                                       end_time,
                                       EFFECT_SELECTED,
                                       false);
-                        
+
                         logger_base.info("(2) Created effect %s  %s  %s  %d %d -->  %X",
                                          efdata[0].ToStdString().c_str(),
                                          efdata[1].ToStdString().c_str(),
@@ -2174,6 +2187,7 @@ void EffectsGrid::EstablishSelectionRectangle()
         if(tel->HitTestEffectByTime(startTime, timingIndex1)
            && tel->HitTestEffectByTime(endTime, timingIndex2))
         {
+            mCellRangeSelected = true;
             mRangeStartCol = timingIndex1;
             mRangeEndCol = timingIndex2;
             mDropStartTimeMS = tel->GetEffect(mRangeStartCol)->GetStartTimeMS();  // set for paste
@@ -2728,7 +2742,7 @@ void EffectsGrid::Draw()
         DrawLines();
         DrawEffects();
         DrawPlayMarker();
-        
+
         if((mDragging || mCellRangeSelected) && !mPartialCellSelected)
         {
             if (mSequenceElements->GetSelectedTimingRow() >= 0 && mRangeStartCol >= 0) {

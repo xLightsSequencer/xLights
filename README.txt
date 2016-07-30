@@ -8,6 +8,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix crash when trying to paste with active timing track and no cell selected. Fixes #634.
+                    Corrected by allowing a 1 second target to be selected when outside of a cell.
 2016.41  Jul 22, 2016
    -- enh (dkulp)   Add pinch-to-zoom on Mac trackpad
    -- enh (gil)     Add page to new sequence wizard to allow selection of a view or all models.
