@@ -11,6 +11,8 @@
 #include <log4cpp/Category.hh>
 #include <wx/colordlg.h>
 
+wxDEFINE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);
+
 BEGIN_EVENT_TABLE(ColorCurvePanel, wxWindow)
 EVT_MOTION(ColorCurvePanel::mouseMoved)
 EVT_LEFT_DOWN(ColorCurvePanel::mouseLeftDown)
@@ -37,6 +39,7 @@ ColorCurvePanel::ColorCurvePanel(wxWindow* parent, wxWindowID id, const wxPoint 
 
 void ColorCurvePanel::Select(float x)
 {
+    //_originalGrabbedPoint = x;
     _grabbedPoint = x;
     Refresh();
 }
@@ -48,6 +51,7 @@ void ColorCurvePanel::Convert(float &x, wxMouseEvent& event) const
     float bw = size.GetWidth(); //  *0.8;
 
     x = (event.GetX() - startX) / bw;
+    x = ccSortableColorPoint::Normalise(x);
 }
 
 //(*IdInit(ColorCurveDialog)
@@ -74,12 +78,12 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer1;
 
-    Create(parent, id, _("Value Curve"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
+    Create(parent, id, _("Color Curve"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
     SetClientSize(wxDefaultSize);
     Move(wxDefaultPosition);
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
-    FlexGridSizer1->AddGrowableRow(0);
+    FlexGridSizer1->AddGrowableRow(1);
     FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer6->AddGrowableCol(0);
     FlexGridSizer6->AddGrowableRow(0);
@@ -126,7 +130,7 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&ColorCurveDialog::OnResize);
     //*)
 
-    Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ColorCurveDialog::OnChar), (wxObject*)NULL, this);
+    Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ColorCurveDialog::OnChar), (wxObject*)nullptr, this);
 
     _ccp = new ColorCurvePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
     _ccp->SetMinSize(wxSize(200, 100));
@@ -140,6 +144,11 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
 
     Choice1->SetStringSelection(wxString(_cc->GetType().c_str()));
     Choice1->SetFocus();
+
+    LoadGrid();
+
+    Connect(wxID_ANY, EVT_CCP_CHANGED, (wxObjectEventFunction)&ColorCurveDialog::OnCCPChanged, 0, this);
+
     ValidateWindow();
 }
 
@@ -149,6 +158,40 @@ ColorCurveDialog::~ColorCurveDialog()
 	//*)
 }
 
+void ColorCurveDialog::LoadGrid()
+{
+    Grid1->BeginBatch();
+    Grid1->ClearGrid();
+
+    auto pts = _cc->GetPoints();
+    int addrows = pts.size() - Grid1->GetNumberRows();
+    if (addrows > 0)
+    {
+        Grid1->AppendRows(addrows);
+    }
+    else if (addrows < 0)
+    {
+        Grid1->DeleteRows(0, addrows * -1, true);
+    }
+
+    size_t row = 0;
+
+    for (auto it = pts.begin(); it != pts.end(); ++it)
+    {
+        Grid1->SetCellValue(row, 0, wxString::Format("%.2f", it->x));
+        Grid1->SetCellBackgroundColour(row, 1, it->color);
+
+        row++;
+    }
+
+    Grid1->EndBatch();
+    Grid1->Refresh();
+}
+
+void ColorCurveDialog::OnCCPChanged(wxCommandEvent& event)
+{
+    LoadGrid();
+}
 
 void ColorCurveDialog::OnButton_OkClick(wxCommandEvent& event)
 {
@@ -189,20 +232,27 @@ void ColorCurvePanel::Undo()
     }
 }
 
-void ColorCurvePanel::SaveUndo(float x)
+void ColorCurvePanel::SaveUndo(float x, bool selected)
 {
-    _undo.push_back(x);
+    if (selected)
+    {
+        _undo.push_back(x);
+    }
+    else
+    {
+        _undo.push_back(-1 * x);
+    }
 }
 
 void ColorCurvePanel::SaveUndoSelected()
 {
     if (_cc->IsSetPoint(_grabbedPoint))
     {
-        SaveUndo(_grabbedPoint);
+        SaveUndo(_grabbedPoint, true);
     }
     else
     {
-        SaveUndo(_grabbedPoint);
+        SaveUndo(_grabbedPoint, false);
     }
 }
 
@@ -210,25 +260,30 @@ void ColorCurvePanel::mouseLeftDown(wxMouseEvent& event)
 {
     float x;
     Convert(x, event);
+    x = ccSortableColorPoint::Normalise(x);
+
     _grabbedPoint = x;
-    if (_grabbedPoint < 0.0f)
+
+    if (_cc->IsSetPoint(_grabbedPoint))
     {
-        _grabbedPoint = 0.0f;
+        
     }
-    else if (_grabbedPoint > 1.0f)
+    else
     {
-        _grabbedPoint = 1.0f;
+        _cc->SetValueAt(_grabbedPoint, *wxBLACK);
     }
-    _grabbedPoint = ccSortableColorPoint::Normalise(_grabbedPoint);
-    _originalGrabbedPoint = _grabbedPoint;
+
+    _minGrabbedPoint = _cc->FindMinPointLessThan(_grabbedPoint);
+    _maxGrabbedPoint = _cc->FindMaxPointGreaterThan(_grabbedPoint);
+
     SaveUndoSelected();
     CaptureMouse();
-    mouseMoved(event);
     Refresh();
 }
 
 void ColorCurvePanel::mouseCaptureLost(wxMouseCaptureLostEvent& event)
 {
+    //_originalGrabbedPoint = -1;
     Refresh();
 }
 
@@ -238,9 +293,34 @@ void ColorCurvePanel::mouseLeftUp(wxMouseEvent& event)
     {
         float x;
         Convert(x, event);
-        //_cc->SetValueAt(_grabbedPoint);
-        //_grabbedPoint = -1;
+        x = ccSortableColorPoint::Normalise(x);
+
+        if (x <= _minGrabbedPoint)
+        {
+            x = _minGrabbedPoint;
+        }
+        else if (x > _maxGrabbedPoint)
+        {
+            x = _maxGrabbedPoint;
+        }
+
+        if (x != _grabbedPoint)
+        {
+            wxColor c = *wxBLACK;
+
+            // find the original grabbed point in the grid
+            if (_cc->IsSetPoint(_grabbedPoint))
+            {
+                c = _cc->GetValueAt(_grabbedPoint);
+            }
+            _cc->SetValueAt(x, c);
+            if (_cc->IsSetPoint(_grabbedPoint))
+            {
+                _cc->DeletePoint(_grabbedPoint);
+            }
+        }
         ReleaseMouse();
+        NotifyChange();
     }
     Refresh();
 }
@@ -252,6 +332,8 @@ void ColorCurvePanel::Delete()
         _cc->DeletePoint(_grabbedPoint);
         _grabbedPoint = -1;
         Refresh();
+        NotifyChange();
+        //_originalGrabbedPoint = -1;
     }
 }
 
@@ -270,6 +352,7 @@ void ColorCurvePanel::mouseMoved(wxMouseEvent& event)
 {
     float x;
     Convert(x, event);
+    x = ccSortableColorPoint::Normalise(x);
 
     if (_cc->NearPoint(x))
     {
@@ -282,18 +365,35 @@ void ColorCurvePanel::mouseMoved(wxMouseEvent& event)
 
     if (HasCapture())
     {
-        if (_originalGrabbedPoint == 0 || _originalGrabbedPoint == 1.0)
+        if (x <= _minGrabbedPoint)
         {
-            // dont allow x to change
+            x = _minGrabbedPoint;
         }
-        else
+        else if (x > _maxGrabbedPoint)
         {
-            _cc->DeletePoint(_grabbedPoint);
-            _grabbedPoint = x;
+            x = _maxGrabbedPoint;
         }
-        //_cc->SetValueAt(_grabbedPoint);
 
-        Refresh();
+        if (x != _grabbedPoint)
+        {
+            wxColor c = _cc->GetValueAt(_grabbedPoint);
+
+            if (_cc->IsSetPoint(_grabbedPoint))
+            {
+                _cc->SetValueAt(x, c);
+            }
+            else
+            {
+                _cc->SetValueAt(x, *wxBLACK);
+            }
+            if (_cc->IsSetPoint(_grabbedPoint))
+            {
+                _cc->DeletePoint(_grabbedPoint);
+            }
+            _grabbedPoint = x;
+
+            Refresh();
+        }
     }
 }
 #pragma endregion Mouse Control
@@ -303,13 +403,13 @@ void ColorCurvePanel::Paint(wxPaintEvent& event)
     //wxPaintDC pdc(this);
     wxAutoBufferedPaintDC pdc(this);
     wxSize s = GetSize();
-    if (_cc != NULL)
+    if (_cc != nullptr)
     {
         wxBitmap bmp = _cc->GetImage(s.GetWidth(), s.GetHeight());
         pdc.DrawBitmap(bmp, 0, 0);
 
-        pdc.SetPen(wxPen(*wxRED, 2, wxPENSTYLE_SOLID));
-        pdc.SetLogicalFunction(wxXOR);
+        pdc.SetPen(wxPen(*wxRED, 3, wxPENSTYLE_SOLID));
+        //pdc.SetLogicalFunction(wxXOR);
 
         std::list<ccSortableColorPoint> pts = _cc->GetPoints();
 
@@ -318,14 +418,14 @@ void ColorCurvePanel::Paint(wxPaintEvent& event)
             std::list<ccSortableColorPoint>::iterator last = pts.begin();
             for (auto p = pts.begin()++; p != pts.end(); p++)
             {
-                pdc.DrawLine(p->x, 0, p->x, s.GetHeight());
+                pdc.DrawLine(p->x * s.GetWidth(), 0, p->x * s.GetWidth(), s.GetHeight());
             }
         }
 
         if (HasCapture())
         {
-            pdc.SetPen(wxPen(*wxBLUE, 2, wxPENSTYLE_SOLID));
-            pdc.DrawLine(_grabbedPoint, 0, _grabbedPoint, s.GetHeight());
+            pdc.SetPen(wxPen(*wxBLUE, 3, wxPENSTYLE_SOLID));
+            pdc.DrawLine(_grabbedPoint * s.GetWidth(), 0, _grabbedPoint * s.GetWidth(), s.GetHeight());
         }
     }
 }
@@ -357,12 +457,12 @@ void ColorCurveDialog::OnResize(wxSizeEvent& event)
 
 void ColorCurveDialog::OnGrid1CellSelect(wxGridEvent& event)
 {
-    _ccp->Select(wxAtof(Grid1->GetCellValue(event.GetRow(), 1)));
+    _ccp->Select(wxAtof(Grid1->GetCellValue(event.GetRow(), 0)));
 }
 
 void ColorCurveDialog::OnGrid1CellLeftDClick(wxGridEvent& event)
 {
-    _ccp->Select(wxAtof(Grid1->GetCellValue(event.GetRow(), 1)));
+    _ccp->Select(wxAtof(Grid1->GetCellValue(event.GetRow(), 0)));
     if (event.GetCol() == 1)
     {
         wxColourData& c = ColourDialog1->GetColourData();
@@ -370,7 +470,7 @@ void ColorCurveDialog::OnGrid1CellLeftDClick(wxGridEvent& event)
         if (ColourDialog1->ShowModal() == wxID_OK)
         {
             Grid1->SetCellBackgroundColour(event.GetRow(), event.GetCol(), c.GetColour());
-            _cc->SetValueAt(wxAtof(Grid1->GetCellValue(event.GetRow(), 1)), c.GetColour());
+            _cc->SetValueAt(wxAtof(Grid1->GetCellValue(event.GetRow(), 0)), c.GetColour());
             Grid1->Refresh();
         }
     }
@@ -379,6 +479,6 @@ void ColorCurveDialog::OnGrid1CellLeftDClick(wxGridEvent& event)
 
 void ColorCurveDialog::OnGrid1CellLeftClick(wxGridEvent& event)
 {
-    _ccp->Select(wxAtof(Grid1->GetCellValue(event.GetRow(), 1)));
+    _ccp->Select(wxAtof(Grid1->GetCellValue(event.GetRow(), 0)));
     _ccp->Refresh();
 }

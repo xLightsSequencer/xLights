@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxDialog" name="ColorCurveDialog">
-		<title>Value Curve</title>
+		<title>Color Curve</title>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
 		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
@@ -9,7 +9,7 @@
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
-			<growablerows>0</growablerows>
+			<growablerows>1</growablerows>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
 					<cols>1</cols>
@@ -18,6 +18,7 @@
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
+				<minsize>100,20</minsize>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">

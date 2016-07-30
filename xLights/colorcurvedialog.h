@@ -14,6 +14,8 @@
 #include "xlCustomControl.h"
 #include "ColorCurve.h"
 
+wxDECLARE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);
+
 class ColorCurvePanel : public wxWindow, public xlCustomControl
 {
 public:
@@ -25,7 +27,7 @@ public:
     void SetType(std::string type) { _type = type; }
     void Delete();
     void Undo();
-    void SaveUndo(float x);
+    void SaveUndo(float x, bool selected);
     void SaveUndoSelected();
     void Select(float x);
 
@@ -41,9 +43,17 @@ protected:
     void mouseCaptureLost(wxMouseCaptureLostEvent& event);
 private:
     void Convert(float &x, wxMouseEvent& event) const;
+    void NotifyChange()
+    {
+        wxCommandEvent eventCCPChange(EVT_CCP_CHANGED);
+        eventCCPChange.SetEventObject(this);
+        wxPostEvent(GetParent(), eventCCPChange);
+    }
     ColorCurve *_cc;
-    float _originalGrabbedPoint;
+    //float _originalGrabbedPoint;
     float _grabbedPoint;
+    float _minGrabbedPoint;
+    float _maxGrabbedPoint;
     std::string _type;
     std::list<float> _undo;
 };
@@ -53,13 +63,14 @@ class ColorCurveDialog: public wxDialog
     ColorCurve* _cc;
     ColorCurve _backup;
     void ValidateWindow();
-    void SetParameter(int p, int v);
+    void LoadGrid();
     ColorCurvePanel* _ccp;
 
     public:
 
 		ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ColorCurveDialog();
+        void OnCCPChanged(wxCommandEvent& event);
 
 		//(*Declarations(ColorCurveDialog)
 		wxButton* Button_Ok;

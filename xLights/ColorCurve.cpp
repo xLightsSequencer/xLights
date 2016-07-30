@@ -29,6 +29,9 @@ ColorCurve::ColorCurve(const std::string& id, const std::string type, wxColor c)
 
 ColorCurve::ColorCurve(const std::string& s)
 {
+    _type = "Gradient";
+    _values.clear();
+    _active = false;
     Deserialise(s);
 }
 
@@ -36,6 +39,7 @@ void ColorCurve::Deserialise(const std::string& s)
 {
     if (s == "")
     {
+        _type = "Gradient";
         _active = false;
         _values.clear();
     }
@@ -74,7 +78,7 @@ std::string ColorCurve::Serialise()
     {
         res += "Active=TRUE|";
         res += "Id=" + _id + "|";
-        if (_type != "Flat")
+        if (_type != "Gradient")
         {
             res += "Type=" + _type + "|";
         }
@@ -162,7 +166,16 @@ wxColor ColorCurve::GetValueAt(float offset)
         float d = 0;
         ccSortableColorPoint* pt = GetActivePoint(offset, d);
 
-        if (offset - pt->x < 0.5 * d)
+        if (pt == nullptr)
+        {
+            ccSortableColorPoint* ptp = GetNextActivePoint(offset, d);
+            return ptp->color;
+        }
+        else if (pt->x == offset)
+        {
+            return pt->color;
+        }
+        else if (offset - pt->x < 0.5 * d)
         {
             end = pt->x + 0.5 *d;
             endc = pt->color;
@@ -170,7 +183,7 @@ wxColor ColorCurve::GetValueAt(float offset)
             float dp = 0;
             ccSortableColorPoint* ptp = GetPriorActivePoint(offset, dp);
 
-            if (ptp == NULL)
+            if (ptp == nullptr)
             {
                 start = 0;
                 startc = pt->color;
@@ -189,7 +202,7 @@ wxColor ColorCurve::GetValueAt(float offset)
             float dn = 0;
             ccSortableColorPoint* ptn = GetNextActivePoint(offset, dn);
 
-            if (ptn == NULL)
+            if (ptn == nullptr)
             {
                 end = 1.0;
                 endc = pt->color;
@@ -231,7 +244,7 @@ bool ColorCurve::IsSetPoint(float offset)
 
 void ColorCurve::DeletePoint(float offset)
 {
-    if (GetPointCount() > 2)
+    if (GetPointCount() > 1)
     {
         auto it = _values.begin();
         while (it != _values.end() && *it <= offset)
@@ -243,6 +256,10 @@ void ColorCurve::DeletePoint(float offset)
             }
             it++;
         }
+    }
+    else
+    {
+        wxBell();
     }
 }
 
@@ -272,7 +289,7 @@ wxBitmap ColorCurve::GetImage(int x, int y)
     for (int i = 0; i < x; i++)
     {
         dc.SetPen(wxPen(GetValueAt((float)i / (float)x), 1, wxPENSTYLE_SOLID));
-        dc.DrawLine(wxPoint(i, 0), wxPoint(i, y));
+        dc.DrawLine(wxPoint(i, y*0.05), wxPoint(i, y*0.95));
     }
     return b;
 }
@@ -292,7 +309,7 @@ bool ColorCurve::NearPoint(float x)
 
 ccSortableColorPoint* ColorCurve::GetActivePoint(float x, float& duration)
 {
-    ccSortableColorPoint* candidate = NULL;
+    ccSortableColorPoint* candidate = nullptr;
     for (auto it = _values.begin(); it != _values.end(); it++)
     {
         if (*it <= x)
@@ -310,8 +327,8 @@ ccSortableColorPoint* ColorCurve::GetActivePoint(float x, float& duration)
 
 ccSortableColorPoint* ColorCurve::GetPriorActivePoint(float x, float& duration)
 {
-    ccSortableColorPoint* candidate = NULL;
-    ccSortableColorPoint* last = NULL;
+    ccSortableColorPoint* candidate = nullptr;
+    ccSortableColorPoint* last = nullptr;
     for (auto it = _values.begin(); it != _values.end(); it++)
     {
         if (*it <= x)
@@ -338,7 +355,7 @@ ccSortableColorPoint* ColorCurve::GetNextActivePoint(float x, float& duration)
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 #pragma region ColorCurveButton
@@ -402,7 +419,7 @@ void ColorCurveButton::RightClick(wxContextMenuEvent& event)
 
 ColorCurveButton::~ColorCurveButton()
 {
-    if (_cc != NULL)
+    if (_cc != nullptr)
     {
         delete _cc;
     }
@@ -457,5 +474,35 @@ void ColorCurveButton::NotifyChange()
 ColorCurve* ColorCurveButton::GetValue()
 {
     return _cc;
+}
+
+float ColorCurve::FindMinPointLessThan(float point)
+{
+    float res = 0.0;
+
+    for (auto it = _values.begin(); it != _values.end(); it++)
+    {
+        if (it->x < point)
+        {
+            res = it->x + 0.025;
+        }
+    }
+
+    return ccSortableColorPoint::Normalise(res);
+}
+float ColorCurve::FindMaxPointGreaterThan(float point)
+{
+    float res = 1.0;
+
+    for (auto it = _values.begin(); it != _values.end(); it++)
+    {
+        if (it->x > point)
+        {
+            res = it->x - 0.025;
+            break;
+        }
+    }
+
+    return ccSortableColorPoint::Normalise(res);
 }
 #pragma endregion

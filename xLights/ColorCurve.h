@@ -13,6 +13,9 @@ public:
 
     static float Normalise(float v)
     {
+        if (v < 0) v = 0;
+        if (v > 1) v = 1;
+
         return std::round(v * 40.0) / 40.0;
     }
 
@@ -143,6 +146,8 @@ public:
     std::list<ccSortableColorPoint> GetPoints() const
     { return _values; }
     bool NearPoint(float x);
+    float FindMinPointLessThan(float point);
+    float FindMaxPointGreaterThan(float point);
 };
 
 wxDECLARE_EVENT(EVT_CC_CHANGED, wxCommandEvent);
