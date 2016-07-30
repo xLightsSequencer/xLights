@@ -39,7 +39,7 @@ const std::vector<std::string> &PolyLineModel::GetBufferStyles() const {
 void PolyLineModel::InitRenderBufferNodes(const std::string &type,
                                           const std::string &transform,
                                           std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
-    if (type == "Line Segments") {
+    if (type == "Line Segments" && hasIndivSeg) {
         BufferHi = num_segments;
         BufferWi = 0;
         for (int x = 0; x < num_segments; x++) {
@@ -149,12 +149,12 @@ void PolyLineModel::InitModel() {
     int numLights = parm2;
     int num_points = wxAtoi(ModelXml->GetAttribute("NumPoints", "2"));
 	num_segments = num_points - 1;
-	parm1 = num_segments;
     hasIndivSeg = ModelXml->GetAttribute("IndivSegs", "0") == "1";
 
     // setup number of lights per line segment
     polyLineSizes.resize(num_segments);
     if (hasIndivSeg) {
+        parm1 = num_segments;
         numLights = 0;
         for (int x = 0; x < num_segments; x++) {
             wxString val = ModelXml->GetAttribute(SegAttrName(x));
@@ -170,8 +170,9 @@ void PolyLineModel::InitModel() {
         parm2 = numLights;
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", parm2));
+    } else {
+        parm1 = 1;
     }
-
 
     // reset node information
     Nodes.clear();
@@ -193,6 +194,16 @@ void PolyLineModel::InitModel() {
                 CouldComputeStartChannel &= b;
             } else {
                 stringStartChan[i] = (zeroBased? 0 : StartChannel-1) + polyLineSizes[i]*GetNodeChannelCount(StringType);
+            }
+        }
+    }
+
+    // fix the string numbers for each node since model is non-standard
+    if (HasIndividualStartChans && hasIndivSeg) {
+        int idx = 0;
+        for (int x = 0; x < num_segments; x++) {
+            for( int n = 0; n < polyLineSizes[x]; ++n ) {
+                Nodes[idx++]->StringNum = x;
             }
         }
     }
@@ -413,6 +424,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         ModelXml->DeleteAttribute("IndivSegs");
         if (event.GetValue().GetBool()) {
             hasIndivSeg = true;
+            segs_collapsed = false;
             ModelXml->AddAttribute("IndivSegs", "1");
             for (int x = 0; x < num_segments; x++) {
                 if (ModelXml->GetAttribute(SegAttrName(x)) == "") {
