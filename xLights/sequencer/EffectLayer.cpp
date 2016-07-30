@@ -89,27 +89,29 @@ void EffectLayer::RemoveAllEffects()
 }
 
 
-Effect* EffectLayer::AddEffect(int id, const std::string &name, const std::string &settings, const std::string &palette,
+Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &settings, const std::string &palette,
                                int startTimeMS, int endTimeMS, int Selected, bool Protected)
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
+    std::string name(n);
 
-    if ((GetParentElement()->GetType() == "model") &&
-        (name != "" && GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name) == -1) &&
-        (name != "Random"))
-    {
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.warn("Unknown effect: " + name + ". Not loaded. " + GetParentElement()->GetType() + " " + GetParentElement()->GetName());
-        return NULL;
+    if (GetParentElement()->GetType() == "model") {
+        if (name == "") {
+            name = "Off";
+        }
+        if ((GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name) == -1) &&
+            (name != "Random"))
+        {
+            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("Unknown effect: " + name + ". Not loaded. " + GetParentElement()->GetType() + " " + GetParentElement()->GetName());
+            return NULL;
+        }
     }
-    else
-    {
-        Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
-        mEffects.push_back(e);
-        SortEffects();
-        IncrementChangeCount(startTimeMS, endTimeMS);
-        return e;
-    }
+    Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
+    mEffects.push_back(e);
+    SortEffects();
+    IncrementChangeCount(startTimeMS, endTimeMS);
+    return e;
 }
 
 
