@@ -343,34 +343,6 @@ void PolyLineModel::InitModel() {
     }
     screenLocation.SetRenderSize(1.0, 1.0);
 }
-/*    // define the buffer positions
-    SetBufferSize(1, numLights);
-    int idx = 0;
-    int chan = 0;
-    int LastStringNum=-1;
-    int ChanIncr=SingleChannel ?  1 : 3;
-    for(size_t m=0; m<num_segments; m++) {
-        int seg_idx = 0;
-        int end_node = idx + polyLineSizes[m];
-        float scale = (float)longest_segment / (float)polyLineSizes[m];
-        for(size_t n=idx; n<end_node; n++) {
-            if (Nodes[idx]->StringNum != LastStringNum) {
-                LastStringNum=Nodes[idx]->StringNum;
-                chan=stringStartChan[LastStringNum];
-            }
-            Nodes[idx]->ActChan=chan;
-            chan+=ChanIncr;
-            Nodes[idx]->Coords.resize(SingleNode?parm2:parm3);
-            size_t CoordCount=GetCoordCount(idx);
-            int location = seg_idx * scale + scale / 2.0;
-            for(size_t c=0; c < CoordCount; c++) {
-                Nodes[idx]->Coords[c].bufX=IsLtoR ? location : (SingleNode ? location : longest_segment-location-1);
-                Nodes[idx]->Coords[c].bufY=m;
-            }
-            idx++;
-            seg_idx++;
-        }
-    }*/
 
 static wxPGChoices LEFT_RIGHT;
 
