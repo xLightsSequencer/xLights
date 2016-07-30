@@ -8,8 +8,6 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
 {
     public:
         PolyLineModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
-
-        PolyLineModel(int lights, const Model &base, int strand, int node = -1);
         PolyLineModel(const ModelManager &manager);
         virtual ~PolyLineModel();
 
@@ -21,17 +19,19 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         }
         virtual int GetNumStrands() const override;
 
-        void InitPolyLine();
-        void Reset(int lights, const Model &base, int strand, int node = -1, bool forceDirection = false);
         virtual void InsertHandle(int after_handle) override;
         virtual void DeleteHandle(int handle) override;
 
+        virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
+
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        virtual int OnPropertyGridSelection(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     protected:
         virtual void InitModel() override;
-        void SavePolyLineSizes();
         int num_segments;
         int longest_segment;
         struct xlPolyPoint {
@@ -42,8 +42,15 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         };
         float total_length;
 
+        static std::string SegAttrName(int idx)
+        {
+            return wxString::Format(wxT("Seg%d"),idx+1).ToStdString();
+        }
+
     private:
         std::vector<int> polyLineSizes;
+        bool hasIndivSeg;
+        bool segs_collapsed;
 };
 
 #endif // SINGLELINEMODEL_H

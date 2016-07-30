@@ -91,6 +91,9 @@ public:
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) {};
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid);
     virtual void OnPropertyGridChanging(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
+    virtual int OnPropertyGridSelection(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
+    virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
+    virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
     /**
      * Returns a combination of:
      *     0x0001  -  Refresh displays
@@ -121,7 +124,7 @@ protected:
     virtual void InitModel();
     virtual int CalcCannelsPerString();
     virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
-
+    void RecalcStartChannels();
 
     void SetBufferSize(int NewHt, int NewWi);
     void SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::string &rgbOrder);

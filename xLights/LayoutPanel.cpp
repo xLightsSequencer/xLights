@@ -248,6 +248,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     //LeftPanelSizer->AddGrowableRow(13);
     propertyEditor->Connect(wxEVT_PG_CHANGING, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChanging,0,this);
     propertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChange,0,this);
+    propertyEditor->Connect(wxEVT_PG_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridSelection,0,this);
+    propertyEditor->Connect(wxEVT_PG_ITEM_COLLAPSED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridItemCollapsed,0,this);
+    propertyEditor->Connect(wxEVT_PG_ITEM_EXPANDED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridItemExpanded,0,this);
     propertyEditor->SetValidationFailureBehavior(wxPG_VFB_MARK_CELL | wxPG_VFB_BEEP);
 
     wxConfigBase* config = wxConfigBase::Get();
@@ -493,6 +496,32 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
         }
     } else {
         CreateUndoPoint("Background", "", name, event.GetProperty()->GetValue().GetString().ToStdString());
+    }
+}
+
+void LayoutPanel::OnPropertyGridSelection(wxPropertyGridEvent& event) {
+    if (selectedModel != nullptr) {
+        if( selectedModel->GetDisplayAs() == "Poly Line" ) {
+            int segment = selectedModel->OnPropertyGridSelection(propertyEditor, event);
+            selectedModel->GetModelScreenLocation().SelectSegment(segment);
+            UpdatePreview();
+        }
+    }
+}
+
+void LayoutPanel::OnPropertyGridItemCollapsed(wxPropertyGridEvent& event) {
+    if (selectedModel != nullptr) {
+        if( selectedModel->GetDisplayAs() == "Poly Line" ) {
+            selectedModel->OnPropertyGridItemCollapsed(propertyEditor, event);
+        }
+    }
+}
+
+void LayoutPanel::OnPropertyGridItemExpanded(wxPropertyGridEvent& event) {
+    if (selectedModel != nullptr) {
+        if( selectedModel->GetDisplayAs() == "Poly Line" ) {
+            selectedModel->OnPropertyGridItemExpanded(propertyEditor, event);
+        }
     }
 }
 

@@ -127,6 +127,10 @@ class LayoutPanel: public wxPanel
 		void OnButtonLaunchPreviewClick(wxCommandEvent& event);
 		//*)
 
+        void OnPropertyGridSelection(wxPropertyGridEvent& event);
+        void OnPropertyGridItemCollapsed(wxPropertyGridEvent& event);
+        void OnPropertyGridItemExpanded(wxPropertyGridEvent& event);
+
 		DECLARE_EVENT_TABLE()
 
         void DoCopy(wxCommandEvent& event);

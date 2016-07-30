@@ -1263,6 +1263,13 @@ void PolyPointScreenLocation::SelectHandle(int handle) {
     }
 }
 
+void PolyPointScreenLocation::SelectSegment(int segment) {
+    selected_segment = segment;
+    if( segment != -1 ) {
+        selected_handle = -1;
+    }
+}
+
 void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
     xlPolyPoint new_point;
     new_point.x = (float)mouseX/(float)previewW;

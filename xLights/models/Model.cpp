@@ -875,7 +875,7 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
                 // #universe:channel
                 returnChannel = wxAtoi(sc);
                 returnUniverse = wxAtoi(ss.SubString(1, ss.Find(":") - 1));
-                
+
                 // find output based on universe number ...
                 return modelManager.GetNetInfo().CalcUniverseChannel(returnUniverse, returnChannel);
             }
@@ -2164,6 +2164,11 @@ int Model::MapToNodeIndex(int strand, int node) const {
 
 void Model::SetModelStartChan(const std::string &start_channel) {
     ModelStartChannel = start_channel;
+}
+
+void Model::RecalcStartChannels()
+{
+    modelManager.RecalcStartChannels();
 }
 
 void Model::AddSizeLocationProperties(wxPropertyGridInterface *grid) {
