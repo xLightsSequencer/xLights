@@ -18,6 +18,8 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
             return polyLineSizes[polyLineLayer];
         }
         virtual int GetNumStrands() const override;
+        virtual const std::vector<std::string> &GetBufferStyles() const override;
+        virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
 
         virtual void InsertHandle(int after_handle) override;
         virtual void DeleteHandle(int handle) override;
@@ -31,9 +33,9 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     protected:
+        static std::vector<std::string> POLYLINE_BUFFER_STYLES;
         virtual void InitModel() override;
         int num_segments;
-        int longest_segment;
         struct xlPolyPoint {
             float x;
             float y;

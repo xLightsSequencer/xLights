@@ -23,6 +23,58 @@ PolyLineModel::~PolyLineModel()
     //dtor
 }
 
+std::vector<std::string> PolyLineModel::POLYLINE_BUFFER_STYLES;
+
+const std::vector<std::string> &PolyLineModel::GetBufferStyles() const {
+    struct Initializer {
+        Initializer() {
+            POLYLINE_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
+            POLYLINE_BUFFER_STYLES.push_back("Line Segments");
+        }
+    };
+    static Initializer ListInitializationGuard;
+    return POLYLINE_BUFFER_STYLES;
+}
+
+void PolyLineModel::InitRenderBufferNodes(const std::string &type,
+                                          const std::string &transform,
+                                          std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
+    if (type == "Line Segments") {
+        BufferHi = num_segments;
+        BufferWi = 0;
+        for (int x = 0; x < num_segments; x++) {
+            int w = polyLineSizes[x];
+            if (w > BufferWi) {
+                BufferWi = w;
+            }
+        }
+        for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+            newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
+        }
+
+        int idx = 0;
+        for(size_t m=0; m<num_segments; m++) {
+            int seg_idx = 0;
+            int end_node = idx + polyLineSizes[m];
+            float scale = (float)BufferWi / (float)polyLineSizes[m];
+            for(size_t n=idx; n<end_node; n++) {
+                newNodes[idx]->Coords.resize(SingleNode?parm2:parm3);
+                size_t CoordCount=GetCoordCount(idx);
+                int location = seg_idx * scale + scale / 2.0;
+                for(size_t c=0; c < CoordCount; c++) {
+                    newNodes[idx]->Coords[c].bufX=IsLtoR ? location : (SingleNode ? location : BufferWi-location-1);
+                    newNodes[idx]->Coords[c].bufY=m;
+                }
+                idx++;
+                seg_idx++;
+            }
+        }
+        ApplyTransform(transform, newNodes, BufferWi, BufferHi);
+    } else {
+        Model::InitRenderBufferNodes(type, transform, newNodes, BufferWi, BufferHi);
+    }
+}
+
 int PolyLineModel::GetStrandLength(int strand) const {
     return SingleNode ? 1 : GetPolyLineSize(strand);
 }
@@ -101,7 +153,6 @@ void PolyLineModel::InitModel() {
     hasIndivSeg = ModelXml->GetAttribute("IndivSegs", "0") == "1";
 
     // setup number of lights per line segment
-    longest_segment = 0;
     polyLineSizes.resize(num_segments);
     if (hasIndivSeg) {
         numLights = 0;
