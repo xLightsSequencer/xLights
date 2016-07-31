@@ -1166,7 +1166,7 @@ bool PolyPointScreenLocation::HitTest(int sx,int sy) const {
         glm::mat3 m = glm::inverse(*mPos[i].matrix);
         glm::vec3 v = m * glm::vec3(sx, sy, 1);
 
-        float min, max;
+        float minY, maxY;
 
         float sx1 = (mPos[i].x + mPos[i+1].x) * previewW / 2.0;
         float sy1 = (mPos[i].y + mPos[i+1].y) * previewH / 2.0;
@@ -1175,11 +1175,10 @@ bool PolyPointScreenLocation::HitTest(int sx,int sy) const {
         glm::vec3 v3 = m * glm::vec3(sx1 + 3, sy1 - 3, 1);
         glm::vec3 v4 = m * glm::vec3(sx1 - 3, sy1 + 3, 1);
         glm::vec3 v5 = m * glm::vec3(sx1 - 3, sy1 - 3, 1);
-        max = std::max(std::max(v2.y, v3.y), std::max(v4.y, v5.y));
-        min = std::min(std::min(v2.y, v3.y), std::min(v4.y, v5.y));
+        maxY = std::max(std::max(v2.y, v3.y), std::max(v4.y, v5.y));
+        minY = std::min(std::min(v2.y, v3.y), std::min(v4.y, v5.y));
 
-        float y = v.y;
-        if (v.x >= -1 && v.x <= (RenderWi+1) && y >= min && y <= max) {
+        if (v.x >= 0.0 && v.x <= 1.0 && v.y >= minY && v.y <= maxY) {
             selected_segment = i;
             return true;
         }
