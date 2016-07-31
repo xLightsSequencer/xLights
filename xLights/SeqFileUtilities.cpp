@@ -593,6 +593,15 @@ public:
                        && buf[x-1] == 'g'
                        && buf[x] == ' ') {
                 needToClose = true;
+            } else if (x > 6 &&
+                       buf[x-6] == '<'
+                       && buf[x-5] == 'g'
+                       && buf[x-4] == 'r'
+                       && buf[x-3] == 'o'
+                       && buf[x-2] == 'u'
+                       && buf[x-1] == 'p'
+                       && buf[x] == ' ') {
+                needToClose = true;
             } else if (x > 12 &&
                        buf[x-12] == '<'
                        && buf[x-11] == 'i'
