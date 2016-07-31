@@ -94,8 +94,8 @@ int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
 
 
 int MatrixModel::GetNumStrands() const {
-    if (SingleChannel) {
-        return 1;
+    if (SingleChannel || SingleNode) {
+        return parm1;
     }
     return parm1*parm3;
 }

@@ -10,7 +10,6 @@ class TreeModel : public MatrixModel
         TreeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~TreeModel();
     
-        virtual int GetNumStrands() const override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     protected:

@@ -19,9 +19,6 @@ TreeModel::~TreeModel()
 {
 }
 
-int TreeModel::GetNumStrands() const {
-    return parm1*parm3;
-}
 void TreeModel::InitModel() {
     wxStringTokenizer tkz(DisplayAs, " ");
     wxString token = tkz.GetNextToken();

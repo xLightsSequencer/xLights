@@ -91,7 +91,7 @@ public:
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) {};
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid);
     virtual void OnPropertyGridChanging(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
-    virtual int OnPropertyGridSelection(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
+    virtual int OnPropertyGridSelection(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) { return 0; };
     virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
     virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
     /**
