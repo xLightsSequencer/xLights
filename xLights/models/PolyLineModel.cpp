@@ -445,7 +445,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         ModelXml->AddAttribute(str, event.GetValue().GetString());
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
-        return 3;
+        return 3 | 0x0004;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         ModelXml->DeleteAttribute("Advanced");
         if (event.GetValue().GetBool()) {
