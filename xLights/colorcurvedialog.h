@@ -4,8 +4,6 @@
 //(*Headers(ColorCurveDialog)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/colordlg.h>
-#include <wx/grid.h>
 #include <wx/choice.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -19,7 +17,7 @@ wxDECLARE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);
 class ColorCurvePanel : public wxWindow, public xlCustomControl
 {
 public:
-    ColorCurvePanel(wxWindow* parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition,
+    ColorCurvePanel(ColorCurve* cc, wxWindow* parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition,
         const wxSize &size = wxDefaultSize, long style = 0);
     virtual ~ColorCurvePanel() {};
     virtual void SetValue(const std::string &val) override {};
@@ -27,9 +25,9 @@ public:
     void SetType(std::string type) { _type = type; }
     void Delete();
     void Undo();
-    void SaveUndo(float x, bool selected);
-    void SaveUndoSelected();
+    void SaveUndo(ccSortableColorPoint& point, bool del);
     void Select(float x);
+    void Reloaded();
 
 protected:
     DECLARE_EVENT_TABLE()
@@ -37,6 +35,7 @@ protected:
     void mouseEnter(wxMouseEvent& event);
     void mouseLeave(wxMouseEvent& event);
     void mouseLeftDown(wxMouseEvent& event);
+    void mouseLeftDClick(wxMouseEvent& event);
     void mouseLeftUp(wxMouseEvent& event);
     void mouseMoved(wxMouseEvent& event);
     void Paint(wxPaintEvent& event);
@@ -52,10 +51,11 @@ private:
     ColorCurve *_cc;
     //float _originalGrabbedPoint;
     float _grabbedPoint;
+    float _startPoint;
     float _minGrabbedPoint;
     float _maxGrabbedPoint;
     std::string _type;
-    std::list<float> _undo;
+    std::list<ccSortableColorPoint> _undo;
 };
 
 class ColorCurveDialog: public wxDialog
@@ -63,7 +63,6 @@ class ColorCurveDialog: public wxDialog
     ColorCurve* _cc;
     ColorCurve _backup;
     void ValidateWindow();
-    void LoadGrid();
     ColorCurvePanel* _ccp;
 
     public:
@@ -73,11 +72,11 @@ class ColorCurveDialog: public wxDialog
         void OnCCPChanged(wxCommandEvent& event);
 
 		//(*Declarations(ColorCurveDialog)
+		wxButton* ButtonExport;
 		wxButton* Button_Ok;
-		wxColourDialog* ColourDialog1;
 		wxStaticText* StaticText1;
-		wxGrid* Grid1;
 		wxButton* Button_Cancel;
+		wxButton* ButtonLoad;
 		wxChoice* Choice1;
 		//*)
 
@@ -86,7 +85,8 @@ class ColorCurveDialog: public wxDialog
 		//(*Identifiers(ColorCurveDialog)
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE1;
-		static const long ID_GRID1;
+		static const long ID_BUTTON3;
+		static const long ID_BUTTON4;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -97,26 +97,10 @@ class ColorCurveDialog: public wxDialog
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
 		void OnChoice1Select(wxCommandEvent& event);
-		void OnPanel_GraphLeftDown(wxMouseEvent& event);
-		void OnPanel_GraphLeftUp(wxMouseEvent& event);
-		void OnPanel_GraphMouseMove(wxMouseEvent& event);
-		void OnTextCtrl_Parameter1Text(wxCommandEvent& event);
-		void OnTextCtrl_Parameter2Text(wxCommandEvent& event);
-		void OnSlider_Parameter1CmdSliderUpdated(wxScrollEvent& event);
-		void OnSlider_Parameter2CmdSliderUpdated(wxScrollEvent& event);
-		void OnPanel_GraphPaint(wxPaintEvent& event);
-		void OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event);
-		void OnTextCtrl_Parameter3Text(wxCommandEvent& event);
 		void OnChar(wxKeyEvent& event);
-		void OnSlider_Parameter4CmdSliderUpdated(wxScrollEvent& event);
-		void OnTextCtrl_Parameter4Text(wxCommandEvent& event);
-		void OnCheckBox_WrapValuesClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
-		void OnGrid1CellSelect(wxGridEvent& event);
-		void OnGrid1CellLeftDClick(wxGridEvent& event);
-		void OnGrid1CellLeftClick(wxGridEvent& event);
-		void OnButtonAddClick(wxCommandEvent& event);
-		void OnButtonDeleteClick(wxCommandEvent& event);
+		void OnButtonLoadClick(wxCommandEvent& event);
+		void OnButtonExportClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

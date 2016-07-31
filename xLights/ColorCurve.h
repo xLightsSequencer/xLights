@@ -21,12 +21,18 @@ public:
 
 	float x; // 0-1 ... the start point of this point
 	wxColor color; // the colour of the mid point of this
+    bool donext;
+
+    bool DoNext() const
+    {
+        return donext;
+    }
 
     std::string Serialise() const
     {
         std::string res = "";
-        res += "x=" + wxString::Format("%.2f", x).ToStdString();
-        res += "|c=" + color.GetAsString().ToStdString();
+        res += "x=" + wxString::Format("%.3f", x).ToStdString();
+        res += "^c=" + color.GetAsString().ToStdString();
 
         return res;
     }
@@ -37,13 +43,13 @@ public:
         {
             throw;
         }
-        else if (s.find('|') == std::string::npos)
+        else if (s.find('^') == std::string::npos)
         {
             throw;
         }
         else
         {
-            wxArrayString v = wxSplit(wxString(s.c_str()), '|');
+            wxArrayString v = wxSplit(wxString(s.c_str()), '^');
             for (auto vs = v.begin(); vs != v.end(); vs++)
             {
                 wxArrayString v1 = wxSplit(*vs, '=');
@@ -58,7 +64,7 @@ public:
     {
         if (k == "x")
         {
-            x = wxAtof(wxString(v));
+            x = ccSortableColorPoint::Normalise(wxAtof(wxString(v)));
         }
         else if (k == "c")
         {
@@ -69,10 +75,11 @@ public:
     {
         Deserialise(s);
     }
-    ccSortableColorPoint(float xx, wxColor c)
+    ccSortableColorPoint(float xx, wxColor c, bool dn = false)
     {
         x = Normalise(xx);
 		color = c;
+        donext = dn;
     }
     bool IsNear(float xx) const
     {
@@ -115,13 +122,14 @@ class ColorCurve
     std::string _id;
     bool _active;
 
-    float Safe01(float v);
     void SetSerialisedValue(std::string k, std::string v);
     ccSortableColorPoint* GetActivePoint(float x, float& duration);
     ccSortableColorPoint* GetPriorActivePoint(float x, float& duration);
     ccSortableColorPoint* GetNextActivePoint(float x, float& duration);
 
 public:
+    std::string GetId() const { return _id; }
+    void SetId(std::string& id) { _id = id; }
     ColorCurve() { ColorCurve(""); _active = false; };
     ColorCurve(const std::string& serialised);
     ColorCurve(const std::string& id, const std::string type, wxColor c = *wxBLACK);
@@ -131,7 +139,8 @@ public:
     void Deserialise(const std::string& s);
     void SetType(std::string type);
     wxColor GetValueAt(float offset);
-	wxBitmap GetImage(int x, int y);
+    ccSortableColorPoint* GetPointAt(float offset);
+	wxBitmap GetImage(int x, int y, bool bars);
     void SetActive(bool a) { _active = a; }
     bool IsActive() const
     { return IsOk() && _active; }

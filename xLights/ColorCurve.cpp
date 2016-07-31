@@ -14,16 +14,11 @@
 #error You will also need to rebuild wxWidgets once the change is made.
 #endif
 
-float ColorCurve::Safe01(float v)
-{
-    return std::min(1.0f, std::max(0.0f, v));
-}
-
 ColorCurve::ColorCurve(const std::string& id, const std::string type, wxColor c)
 {
     _type = type;
     _id = id;
-    _values.push_back(ccSortableColorPoint(0, c));
+    _values.push_back(ccSortableColorPoint(0.5, c));
     _active = false;
 }
 
@@ -33,6 +28,11 @@ ColorCurve::ColorCurve(const std::string& s)
     _values.clear();
     _active = false;
     Deserialise(s);
+
+    if (_values.size() == 0)
+    {
+        _values.push_back(ccSortableColorPoint(0.5, *wxBLACK));
+    }
 }
 
 void ColorCurve::Deserialise(const std::string& s)
@@ -57,17 +57,22 @@ void ColorCurve::Deserialise(const std::string& s)
         wxArrayString v = wxSplit(wxString(s.c_str()), '|');
         for (auto vs = v.begin(); vs != v.end(); vs++)
         {
-            wxArrayString v1 = wxSplit(*vs, '=');
-            if (v1.size() == 2)
+            if (vs->Find('=') != std::string::npos)
             {
-                SetSerialisedValue(v1[0].ToStdString(), v1[1].ToStdString());
+                wxArrayString v1;
+                v1.Add(vs->SubString(0, vs->Find('=')-1));
+                v1.Add(vs->SubString(vs->Find('=')+1, vs->Length()));
+                if (v1.size() == 2)
+                {
+                    SetSerialisedValue(v1[0].ToStdString(), v1[1].ToStdString());
+                }
             }
         }
     }
 
     if (_values.size() == 0)
     {
-        _values.push_back(ccSortableColorPoint(0, *wxBLACK));
+        _values.push_back(ccSortableColorPoint(0.5, *wxBLACK));
     }
 }
 std::string ColorCurve::Serialise()
@@ -129,8 +134,8 @@ void ColorCurve::SetSerialisedValue(std::string k, std::string s)
 
             for (auto p = points.begin(); p != points.end(); p++)
             {
-                std::string s = p->ToStdString();
-                _values.push_back(ccSortableColorPoint(s));
+                std::string ss = p->ToStdString();
+                _values.push_back(ccSortableColorPoint(ss));
             }
         }
 
@@ -151,6 +156,20 @@ uint8_t ChannelBlend(uint8_t c1, uint8_t c2, float ratio)
 wxColor GetGradientColor(float ratio, wxColor& c1, wxColor& c2)
 {
     return wxColor(ChannelBlend(c1.Red(), c2.Red(), ratio), ChannelBlend(c1.Green(), c2.Green(), ratio), ChannelBlend(c1.Blue(), c2.Blue(), ratio));
+}
+
+ccSortableColorPoint* ColorCurve::GetPointAt(float offset)
+{
+    float x = ccSortableColorPoint::Normalise(offset);
+    for (auto it = _values.begin(); it != _values.end(); ++it)
+    {
+        if (*it == x)
+        {
+            return &(*it);
+        }
+    }
+
+    return nullptr;
 }
 
 wxColor ColorCurve::GetValueAt(float offset)
@@ -221,6 +240,11 @@ wxColor ColorCurve::GetValueAt(float offset)
         // find the value immediately before the offset ... that is the color to return
         float d = 0;
         ccSortableColorPoint* pt = GetActivePoint(offset, d);
+        if (pt == nullptr)
+        {
+            ccSortableColorPoint* ptp = GetNextActivePoint(offset, d);
+            return ptp->color;
+        }
         return pt->color;
     }
 
@@ -280,23 +304,41 @@ void ColorCurve::SetValueAt(float offset, wxColor c)
     _values.sort();
 }
 
-wxBitmap ColorCurve::GetImage(int x, int y)
+wxBitmap ColorCurve::GetImage(int x, int y, bool bars)
 {
     wxImage bmp(x, y);
     wxBitmap b(bmp);
     wxMemoryDC dc(b);
 
+    dc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
+    dc.SetBrush(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
+    dc.DrawRectangle(0, 0, x, y);
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+
     for (int i = 0; i < x; i++)
     {
-        dc.SetPen(wxPen(GetValueAt((float)i / (float)x), 1, wxPENSTYLE_SOLID));
-        dc.DrawLine(wxPoint(i, y*0.05), wxPoint(i, y*0.95));
+        dc.SetPen(wxPen(GetValueAt(static_cast<float>(i) / static_cast<float>(x)), 1, wxPENSTYLE_SOLID));
+        if (bars)
+        {
+            dc.DrawLine(wxPoint(i, static_cast<float>(y)*0.05), wxPoint(i, static_cast<float>(y)*0.95));
+        }
+        else
+        {
+            dc.DrawLine(wxPoint(i, 0), wxPoint(i, y));
+        }
+    }
+
+    if (!bars)
+    {
+        dc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
+        dc.DrawRectangle(0, 0, x, y);
     }
     return b;
 }
 
 bool ColorCurve::NearPoint(float x)
 {
-    for (auto it = _values.begin(); it != _values.end(); it++)
+    for (auto it = _values.begin(); it != _values.end(); ++it)
     {
         if (it->IsNear(x))
         {
@@ -380,26 +422,17 @@ ColorCurveButton::ColorCurveButton(wxWindow *parent,
 void ColorCurveButton::LeftClick(wxCommandEvent& event)
 {
     ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
-    _cc->SetActive(false);
     wxColour color = w->GetBackgroundColour();
     wxColourData colorData;
     colorData.SetColour(color);
     wxColourDialog dialog(this, &colorData);
     if (dialog.ShowModal() == wxID_OK)
     {
+        _cc->SetActive(false);
         wxColourData retData = dialog.GetColourData();
         color = retData.GetColour();
-
         _color = color.GetAsString();
-
-        w->SetBackgroundColour(color);
-        w->SetForegroundColour(color);
-        wxImage image(18, 18);
-        image.SetRGB(wxRect(0, 0, 18, 18),
-            color.Red(), color.Green(), color.Blue());
-        wxBitmap bmp(image);
-
-        w->SetBitmap(bmp);
+        UpdateBitmap();
         NotifyChange();
     }
 }
@@ -408,11 +441,11 @@ void ColorCurveButton::RightClick(wxContextMenuEvent& event)
 {
     ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
 
-    w->SetActive(true);
-
     ColorCurveDialog ccd(this, w->GetValue());
     if (ccd.ShowModal() == wxID_OK)
     {
+        w->SetActive(true);
+        UpdateBitmap();
         NotifyChange();
     }
 }
@@ -438,10 +471,23 @@ void ColorCurveButton::ToggleActive()
 }
 
 void ColorCurveButton::UpdateBitmap() {
+    wxSize sz = GetSize();
     if (GetValue()->IsActive())
     {
-        RenderNewBitmap();
+        SetBitmap(_cc->GetImage(sz.GetWidth(), sz.GetHeight(), false));
     }
+    else
+    {
+        wxColor color(_color);
+        SetBackgroundColour(color);
+        SetForegroundColour(color);
+        wxImage image(sz.GetWidth(), sz.GetHeight());
+        image.SetRGB(wxRect(0, 0, sz.GetWidth(), sz.GetHeight()),
+            color.Red(), color.Green(), color.Blue());
+        wxBitmap bmp(image);
+        SetBitmap(bmp);
+    }
+    Refresh();
 }
 
 void ColorCurveButton::UpdateState()
@@ -449,14 +495,6 @@ void ColorCurveButton::UpdateState()
     UpdateBitmap();
     NotifyChange();
 }
-
-void ColorCurveButton::RenderNewBitmap() {
-
-    wxSize s = GetSize();
-    wxBitmap img = _cc->GetImage(s.GetWidth(), s.GetHeight());
-    SetBitmap(img);
-}
-
 
 void ColorCurveButton::SetValue(const wxString& value)
 {
