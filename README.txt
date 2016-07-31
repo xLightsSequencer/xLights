@@ -8,10 +8,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.42  Jul 30, 2016
    -- bug (gil)     Fix typo that prevented the Layer Star render style from working for Star Model.
    -- enh (gil)     Add PolyLine model.
    -- bug (gil)     Fix crash when trying to paste with active timing track and no cell selected. Fixes #634.
-                    Corrected by allowing a 1 second target to be selected when outside of a cell.
+   -- bug (keithsw) Corrected by allowing a 1 second target to be selected when outside of a cell.
+   -- bug (keithsw) Fix music effect crash when dragged past end of song
+   -- bug (keithsw) Reduce errors when video effect cant find video file to just one on first frame
+   -- bug (keithsw) Add support for model start channel in form #ip:universe:channel
+   -- bug (keithsw) Update start channel dialog for new format + also make it smarter about which outputs and universes exist.
+   -- bug (dkulp)   Don't add/remove layers if the element is being rendered
+   -- bug (dkulp)   Fix a crash when loading an invalid sequence that had effect names of ""
 2016.41  Jul 22, 2016
    -- enh (dkulp)   Add pinch-to-zoom on Mac trackpad
    -- enh (gil)     Add page to new sequence wizard to allow selection of a view or all models.
