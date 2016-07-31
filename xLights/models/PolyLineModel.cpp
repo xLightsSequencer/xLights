@@ -437,7 +437,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         }
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
-        return 3 | 0x0004;
+        return 3 | 0x0004 | 0x0008;
     } else if (event.GetPropertyName().StartsWith("ModelIndividualSegments.")) {
         wxString str = event.GetPropertyName();
         str = str.SubString(str.Find(".") + 1, str.length());
@@ -445,7 +445,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         ModelXml->AddAttribute(str, event.GetValue().GetString());
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
-        return 3 | 0x0004;
+        return 3 | 0x0004 | 0x0008;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         ModelXml->DeleteAttribute("Advanced");
         if (event.GetValue().GetBool()) {
