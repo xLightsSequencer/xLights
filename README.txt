@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix typo that prevented the Layer Star render style from working for Star Model.
    -- enh (gil)     Add PolyLine model.
    -- bug (gil)     Fix crash when trying to paste with active timing track and no cell selected. Fixes #634.
                     Corrected by allowing a 1 second target to be selected when outside of a cell.

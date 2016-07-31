@@ -29,7 +29,7 @@ const std::vector<std::string> &StarModel::GetBufferStyles() const {
 }
 
 void StarModel::GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const {
-    if (type == "Layer Matrix") {
+    if (type == "Layer Star") {
         BufferHi = GetNumStrands();
         BufferWi = 0;
         for (int x = 0; x < BufferHi; x++) {
@@ -46,7 +46,7 @@ void StarModel::GetBufferSize(const std::string &type, const std::string &transf
 void StarModel::InitRenderBufferNodes(const std::string &type,
                                       const std::string &transform,
                                       std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
-    if (type == "Layer Matrix") {
+    if (type == "Layer Star") {
         BufferHi = GetNumStrands();
         BufferWi = 0;
         for (int x = 0; x < BufferHi; x++) {
@@ -58,7 +58,7 @@ void StarModel::InitRenderBufferNodes(const std::string &type,
         for (int x = 0; x < BufferHi; x++) {
             int w = GetStarSize(x);
             for (int z = 0; z < w; z++) {
-                
+
             }
         }
         for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
@@ -71,7 +71,7 @@ void StarModel::InitRenderBufferNodes(const std::string &type,
             if (numlights == 0) {
                 continue;
             }
-            
+
             for(size_t cnt=0; cnt<numlights; cnt++) {
                 int n = cur;
                 if (!SingleNode) {
@@ -134,11 +134,11 @@ void StarModel::InitModel() {
             starSizes[starSizes.size() - 1] = i2;
         }
     }
-    
-    
+
+
     if (parm3 < 2) parm3=2; // need at least 2 arms
     SetNodeCount(parm1,parm2,rgbOrder);
-    
+
     int maxLights = 0;
     int numlights=parm1*parm2;
     int cnt = 0;
@@ -156,20 +156,20 @@ void StarModel::InitModel() {
         }
     }
     SetBufferSize(maxLights+1,maxLights+1);
-    
-    
+
+
     int LastStringNum=-1;
     int chan = 0,cursegment,nextsegment,x,y;
     int start = 0;
-    
+
     for (int cur = 0; cur < starSizes.size(); cur++) {
         numlights = starSizes[cur];
         if (numlights == 0) {
             continue;
         }
-        
+
         int offset=numlights/2;
-        
+
         int coffset = (maxLights - numlights) / 2;
         /*
          if (cur > 0) {
@@ -180,7 +180,7 @@ void StarModel::InitModel() {
          }
          }
          */
-        
+
         int numsegments=parm3*2;
         double segstart_x,segstart_y,segend_x,segend_y,segstart_pct,segend_pct,r,segpct,dseg;
         double dpct=1.0/(double)numsegments;
@@ -242,7 +242,7 @@ void StarModel::InitModel() {
         }
         start += numlights;
     }
-    
+
     CopyBufCoord2ScreenCoord();
 }
 
@@ -261,17 +261,17 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");
-    
+
     p = grid->Append(new wxUIntProperty("Lights/String", "StarLightCount", parm2));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");
-    
+
     p = grid->Append(new wxUIntProperty("# Points", "StarStrandCount", parm3));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
-    
+
     p = grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
     p = grid->Append(new wxStringProperty("Layer Sizes", "StarLayerSizes", ModelXml->GetAttribute("starSizes")));
 }
@@ -305,6 +305,6 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }
-    
+
     return Model::OnPropertyGridChange(grid, event);
 }
