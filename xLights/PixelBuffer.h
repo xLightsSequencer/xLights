@@ -74,7 +74,7 @@ private:
             pivotpointy = 50;
             sparkle_count = 0;
             music_sparkle_count = false;
-            brightness = 0;
+            brightness = 100;
             contrast = 0;
             fadeFactor = 0.0;
             mixType = Mix_Normal;
@@ -194,7 +194,7 @@ public:
     RenderBuffer &BufferForLayer(int i);
 
     void InitBuffer(const Model &pbc, int layers, int timing, bool zeroBased=false);
-    void InitStrandBuffer(const Model &pbc, int strand, int timing);
+    void InitStrandBuffer(const Model &pbc, int strand, int timing, int layers);
     void InitNodeBuffer(const Model &pbc, int strand, int node, int timing);
 
     void Clear(int which);
@@ -209,6 +209,9 @@ public:
 
     void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers);
     void SetColors(int layer, const unsigned char *fdata);
+    
+    void ApplyDimmingCurves(unsigned char *fdata);
+    void GetColors(unsigned char *fdata);
 };
 typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;
 

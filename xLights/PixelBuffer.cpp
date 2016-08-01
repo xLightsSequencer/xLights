@@ -110,7 +110,7 @@ void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, bool
     }
     reset(layers, timing);
 }
-void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing)
+void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing, int layers)
 {
     if (ssModel == nullptr) {
         ssModel = new SingleLineModel(pbc.GetModelManager());
@@ -118,7 +118,7 @@ void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing
         
     ssModel->Reset(pbc.GetStrandLength(strand), pbc, strand);
     model = ssModel;
-    reset(2, timing);
+    reset(layers + 1, timing);
 }
 void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, int timing)
 {
@@ -849,9 +849,10 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
     for (size_t n = 0; n < layers[layer]->Nodes.size(); n++)
     {
         int start = NodeStartChannel(n);
-        SetNodeChannelValues(n, &fdata[start]);
+        layers[layer]->Nodes[n]->SetFromChannels(&fdata[start]);
         xlColor color;
         layers[layer]->Nodes[n]->GetColor(color);
+
         for (size_t x = 0; x < layers[layer]->Nodes[n]->Coords.size(); x++)
         {
             layers[layer]->buffer.SetPixel(layers[layer]->Nodes[n]->Coords[x].bufX,
@@ -945,6 +946,27 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
         }
     }
 }
+void PixelBufferClass::ApplyDimmingCurves(unsigned char *fdata) {
+    xlColor color;
+    for (size_t n = 0; n < layers[0]->Nodes.size(); n++)
+    {
+        DimmingCurve *curve = layers[0]->Nodes[n]->model->modelDimmingCurve;
+        if (curve != nullptr) {
+            int start = NodeStartChannel(n);
+            layers[0]->Nodes[n]->SetFromChannels(&fdata[start]);
+            layers[0]->Nodes[n]->GetColor(color);
+            curve->apply(color);
+            layers[0]->Nodes[n]->SetColor(color);
+            layers[0]->Nodes[n]->GetForChannels(&fdata[start]);
+        }
+    }
+}
+void PixelBufferClass::GetColors(unsigned char *fdata) {
+    for (size_t n = 0; n < layers[0]->Nodes.size(); n++) {
+        size_t start = NodeStartChannel(n);
+        GetNodeChannelValues(n, &fdata[start]);
+    }
+}
 
 void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers)
 {
@@ -1030,13 +1052,6 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                           color,
                           validLayers, EffectPeriod);
 
-            // Apply dimming curve
-            DimmingCurve *curve = layers[0]->Nodes[i]->model->modelDimmingCurve;
-            wxASSERT(layers[0]->Nodes[i]->model != NULL);
-            if (curve != nullptr)
-            {
-                curve->apply(color);
-            }
 
             // set color for physical output
             layers[0]->Nodes[i]->SetColor(color);

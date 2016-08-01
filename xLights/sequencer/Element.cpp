@@ -28,6 +28,21 @@ void Element::SetName(const std::string &name)
     changeCount++;
     listener->IncrementChangeCount(this);
 }
+
+const std::string &Element::GetModelName() const {
+    return mName;
+}
+
+bool Element::HasEffects() const {
+    for (size_t x = 0; x < mEffectLayers.size(); x++) {
+        if (mEffectLayers[x]->GetEffectCount() > 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 EffectLayer* Element::GetEffectLayerFromExclusiveIndex(int index)
 {
     for( size_t i = 0; i < mEffectLayers.size(); i++ )
@@ -101,6 +116,58 @@ TimingElement::~TimingElement() {
 }
 
 
+StrandElement::StrandElement(ModelElement *p, int strand)
+: Element(p->GetSequenceElements(), ""),
+  mStrand(strand),
+  mShowNodes(false),
+  mParentModel(p)
+{
+    AddEffectLayer();
+}
+StrandElement::~StrandElement() {
+    for (size_t x = 0; x < mNodeLayers.size(); x++) {
+        delete mNodeLayers[x];
+    }
+    mNodeLayers.clear();
+}
+NodeLayer *StrandElement::GetNodeLayer(int n, bool create) {
+    while (create && n >= mNodeLayers.size()) {
+        mNodeLayers.push_back(new NodeLayer(this));
+    }
+    if (n < mNodeLayers.size()) {
+        return mNodeLayers[n];
+    }
+    return nullptr;
+}
+void StrandElement::InitFromModel(Model &model) {
+    int nc = model.GetStrandLength(mStrand);
+    SetName(model.GetStrandName(mStrand));
+    for (int x = 0; x < mNodeLayers.size(); x++) {
+        mNodeLayers[x]->SetName(model.GetNodeName(x));
+    }
+    while (mNodeLayers.size() < nc) {
+        NodeLayer *nl = new NodeLayer(this, model.GetNodeName(mNodeLayers.size()));
+        mNodeLayers.push_back(nl);
+    }
+}
+const std::string &StrandElement::GetModelName() const {
+    return mParentModel->GetModelName();
+}
+
+EffectLayer* StrandElement::GetEffectLayerFromExclusiveIndex(int index) {
+    EffectLayer *l = Element::GetEffectLayerFromExclusiveIndex(index);
+    if (l != nullptr) {
+        return l;
+    }
+    for( size_t j = 0; j < mNodeLayers.size(); j++ ) {
+        if (index == mNodeLayers[j]->GetIndex()) {
+            return mNodeLayers[j];
+        }
+    }
+    return nullptr;
+}
+
+
 
 ModelElement::ModelElement(SequenceElements *l, const std::string &name, bool selected)
 :   Element(l, name),
@@ -118,10 +185,10 @@ ModelElement::~ModelElement()
         wxSleep(1);
         lock.lock();
     }
-    
-    for (size_t x = 0; x < mStrandLayers.size(); x++) {
-        delete mStrandLayers[x];
+    for (size_t x = 0; x < mStrands.size(); x++) {
+        delete mStrands[x];
     }
+    mStrands.clear();
 }
 
 
@@ -157,15 +224,10 @@ EffectLayer* ModelElement::GetEffectLayerFromExclusiveIndex(int index) {
     if (l != nullptr) {
         return l;
     }
-    for( size_t j = 0; j < mStrandLayers.size(); j++ )
-    {
-        if( mStrandLayers[j]->GetIndex() == index )
-        return mStrandLayers[j];
-        
-        for( size_t k = 0; k < mStrandLayers[j]->GetNodeLayerCount(); k++ )
-        {
-            if( mStrandLayers[j]->GetNodeLayer(k,false)->GetIndex() == index )
-            return mStrandLayers[j]->GetNodeLayer(k,false);
+    for( size_t j = 0; j < mStrands.size(); j++ ) {
+        l = mStrands[j]->GetEffectLayerFromExclusiveIndex(index);
+        if (l != nullptr) {
+            return l;
         }
     }
     return nullptr;
@@ -253,23 +315,23 @@ void ModelElement::InitStrands(Model &model) {
     }
     int ns = model.GetNumStrands();
     for (int x = 0; x < ns; x++) {
-        GetStrandLayer(x, true)->InitFromModel(model);
+        GetStrand(x, true)->InitFromModel(model);
     }
 }
 
-StrandLayer* ModelElement::GetStrandLayer(int index, bool create) {
-    while (create && index >= mStrandLayers.size()) {
-        StrandLayer* new_layer = new StrandLayer(this, mStrandLayers.size());
-        mStrandLayers.push_back(new_layer);
+StrandElement* ModelElement::GetStrand(int index, bool create) {
+    while (create && index >= mStrands.size()) {
+        StrandElement* new_layer = new StrandElement(this, mStrands.size());
+        mStrands.push_back(new_layer);
         IncrementChangeCount(-1, -1);
     }
-    if (index >= mStrandLayers.size()) {
+    if (index >= mStrands.size()) {
         return nullptr;
     }
-    return mStrandLayers[index];
+    return mStrands[index];
 }
-int ModelElement::getStrandLayerCount() {
-    return mStrandLayers.size();
+int ModelElement::GetStrandCount() const {
+    return mStrands.size();
 }
 
 

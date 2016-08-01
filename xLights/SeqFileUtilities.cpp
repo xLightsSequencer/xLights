@@ -820,7 +820,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
 
     for (auto it = elements.begin(); it != elements.end(); it++) {
         Element *e = *it;
-        if (e->GetType() == "model")
+        if (e->GetType() == ELEMENT_TYPE_MODEL)
         {
             ModelElement *el = dynamic_cast<ModelElement*>(e);
             bool hasEffects = false;
@@ -830,19 +830,20 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             if (hasEffects) {
                 dlg.channelNames.push_back(el->GetName());
             }
-            for (size_t s = 0; s < el->getStrandLayerCount(); s++) {
-                StrandLayer *sl = el->GetStrandLayer(s, true);
-                std::string strandName = sl->GetName();
+            for (size_t s = 0; s < el->GetStrandCount(); s++) {
+                StrandElement *ste = el->GetStrand(s, true);
+                EffectLayer *sl = ste->GetEffectLayer(0);
+                std::string strandName = ste->GetName();
                 if (strandName == "") {
                     strandName = wxString::Format("Strand %d", (s + 1));
                 }
                 if (sl->GetEffectCount() > 0) {
-                    std::string name = sl->GetName();
+                    std::string name = ste->GetName();
                     dlg.channelNames.push_back(el->GetName() + "/" + strandName);
                     layerMap[el->GetName() + "/" + strandName] = sl;
                 }
-                for (size_t n = 0; n < sl->GetNodeLayerCount(); n++) {
-                    NodeLayer *nl = sl->GetNodeLayer(n, true);
+                for (size_t n = 0; n < ste->GetNodeLayerCount(); n++) {
+                    NodeLayer *nl = ste->GetNodeLayer(n, true);
                     if (nl->GetEffectCount() > 0) {
                         std::string nodeName = nl->GetName();
                         if (nodeName == "") {
@@ -871,7 +872,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         std::string modelName = m->_model.ToStdString();
         ModelElement * model = nullptr;
         for (size_t x=0; x<mSequenceElements.GetElementCount();x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == "model"
+            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 break;
@@ -885,7 +886,8 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         for (size_t j = 0; j < m->GetChildCount(); j++)
         {
             xLightsImportModelNode* s = m->GetNthChild(j);
-            StrandLayer *sl = model->GetStrandLayer(str, true);
+            StrandElement *ste =  model->GetStrand(str, true);
+            EffectLayer *sl = ste->GetEffectLayer(0);
 
             if( sl != nullptr ) {
                 if ("" != s->_mapping) {
@@ -896,7 +898,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 for (size_t k = 0; k < s->GetChildCount(); k++)
                 {
                     xLightsImportModelNode* n = s->GetNthChild(k);
-                    NodeLayer *nl = sl->GetNodeLayer(node, true);
+                    NodeLayer *nl = ste->GetNodeLayer(node, true);
 
                     if (nl != nullptr) {
                         if ("" != n->_mapping) {
@@ -1316,7 +1318,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
         for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-            if (mSequenceElements.GetElement(i)->GetType() == "model"
+            if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
             }
@@ -1330,7 +1332,8 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
         row++;
 
         for (int str = 0; str < mc->GetNumStrands(); str++) {
-            StrandLayer *sl = model->GetStrandLayer(str, true);
+            StrandElement *se =  model->GetStrand(str, true);
+            EffectLayer *sl = se->GetEffectLayer(0);
 
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                     MapVixChannelInformation(this, sl,
@@ -1342,7 +1345,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
             row++;
             for (int n = 0; n < mc->GetStrandLength(str); n++) {
                 if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                    MapVixChannelInformation(this, sl->GetNodeLayer(n, true),
+                    MapVixChannelInformation(this, se->GetNodeLayer(n, true),
                                              VixSeqData, frameTime, numFrames,
                                              dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(),
                                              unsortedChannels,
@@ -1449,7 +1452,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
         for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-            if (mSequenceElements.GetElement(i)->GetType() == "model"
+            if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
             }
@@ -1462,7 +1465,8 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
         row++;
 
         for (int str = 0; str < mc->GetNumStrands(); str++) {
-            StrandLayer *sl = model->GetStrandLayer(str, true);
+            StrandElement *se =  model->GetStrand(str, true);
+            EffectLayer *sl = se->GetEffectLayer(0);
 
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                 if (!dlg.MapByStrand->GetValue()) {
@@ -1473,8 +1477,8 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                                              *mc, false);
                 } else {
                     std::string ccrName = dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString();
-                    for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
-                        EffectLayer *layer = sl->GetNodeLayer(n, true);
+                    for (int n = 0; n < se->GetNodeLayerCount(); n++) {
+                        EffectLayer *layer = se->GetNodeLayer(n, true);
 
                         wxString nm = FindHLSStrandName(ccrName, n+1, dlg.channelNames);
 
@@ -1493,7 +1497,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
             if (!dlg.MapByStrand->GetValue()) {
                 for (int n = 0; n < mc->GetStrandLength(str); n++) {
                     if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                        MapHLSChannelInformation(this, sl->GetNodeLayer(n, true),
+                        MapHLSChannelInformation(this, se->GetNodeLayer(n, true),
                                                  totalUniverses, frames, frameTime,
                                                  dlg.ChannelMapGrid->GetCellValue(row, 3),
                                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
@@ -1563,7 +1567,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
     SuperStarImportDialog dlg(this);
 
     for(size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-        if(mSequenceElements.GetElement(i)->GetType()== "model") {
+        if(mSequenceElements.GetElement(i)->GetType()== ELEMENT_TYPE_MODEL) {
             dlg.ChoiceSuperStarImportModel->Append(mSequenceElements.GetElement(i)->GetName());
         }
     }
@@ -1600,7 +1604,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
     Element* model = nullptr;
 
     for(size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-        if(mSequenceElements.GetElement(i)->GetType()== "model") {
+        if(mSequenceElements.GetElement(i)->GetType()== ELEMENT_TYPE_MODEL) {
             model = mSequenceElements.GetElement(i);
             if( model->GetName() == model_name ) {
                 model_found = true;
@@ -1982,7 +1986,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
         for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-            if (mSequenceElements.GetElement(i)->GetType() == "model"
+            if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
             }
@@ -1994,7 +1998,8 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         row++;
 
         for (int str = 0; str < mc->GetNumStrands(); str++) {
-            StrandLayer *sl = model->GetStrandLayer(str, true);
+            StrandElement *se = model->GetStrand(str, true);
+            EffectLayer *sl = se->GetEffectLayer(0);
 
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                 if (!dlg.MapByStrand->GetValue()) {
@@ -2004,8 +2009,8 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                                       dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), *mc);
                 } else {
                     wxString ccrName = dlg.ChannelMapGrid->GetCellValue(row, 3);
-                    for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
-                        EffectLayer *layer = sl->GetNodeLayer(n, true);
+                    for (int n = 0; n < se->GetNodeLayerCount(); n++) {
+                        EffectLayer *layer = se->GetNodeLayer(n, true);
                         wxString nm = ccrName + wxString::Format("-P%02d", (n + 1));
                         if (std::find(dlg.channelNames.begin(), dlg.channelNames.end(), nm) == dlg.channelNames.end()) {
                             nm = ccrName + wxString::Format(" p%02d", (n + 1));
@@ -2031,7 +2036,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
             if (!dlg.MapByStrand->GetValue()) {
                 for (int n = 0; n < mc->GetStrandLength(str); n++) {
                     if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                        MapChannelInformation(effectManager, sl->GetNodeLayer(n, true),
+                        MapChannelInformation(effectManager, se->GetNodeLayer(n, true),
                                               input_xml,
                                               dlg.ChannelMapGrid->GetCellValue(row, 3),
                                               dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
@@ -3039,7 +3044,7 @@ void MapLSPEffects(EffectLayer *layer, wxXmlNode *node, const wxColor &c) {
     }
 }
 
-void MapLSPStrand(StrandLayer *layer, wxXmlNode *node, const wxColor &c) {
+void MapLSPStrand(StrandElement *layer, wxXmlNode *node, const wxColor &c) {
     int nodeNum = 0;
     for (wxXmlNode *nd = node->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
         if (nd->GetName() == "Channels") {
@@ -3144,7 +3149,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
         for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-            if (mSequenceElements.GetElement(i)->GetType() == "model"
+            if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
             }
@@ -3156,14 +3161,14 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
         row++;
 
         for (int str = 0; str < mc->GetNumStrands(); str++) {
-            StrandLayer *sl = model->GetStrandLayer(str, true);
+            StrandElement *se = model->GetStrand(str, true);
 
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                 if (dlg.MapByStrand->IsChecked()) {
-                    MapLSPStrand(sl, strandNodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
+                    MapLSPStrand(se, strandNodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
                                   dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4));
                 } else {
-                    MapLSPEffects(sl, nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
+                    MapLSPEffects(se->GetEffectLayer(0), nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
                                   dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4));
                 }
             }
@@ -3171,7 +3176,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
             if (!dlg.MapByStrand->IsChecked()) {
                 for (int n = 0; n < mc->GetStrandLength(str); n++) {
                     if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                        NodeLayer *nl = sl->GetNodeLayer(n, true);
+                        NodeLayer *nl = se->GetNodeLayer(n, true);
                         MapLSPEffects(nl, nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
                                       dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4));
                     }

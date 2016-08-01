@@ -95,7 +95,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     std::unique_lock<std::recursive_mutex> locker(lock);
     std::string name(n);
 
-    if (GetParentElement()->GetType() == "model") {
+    if (GetParentElement()->GetType() == ELEMENT_TYPE_MODEL) {
         if (name == "") {
             name = "Off";
         }
@@ -103,7 +103,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
             (name != "Random"))
         {
             log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn("Unknown effect: " + name + ". Not loaded. " + GetParentElement()->GetType() + " " + GetParentElement()->GetName());
+            logger_base.warn("Unknown effect: " + name + ". Not loaded. " + GetParentElement()->GetModelName());
             return NULL;
         }
     }
@@ -185,12 +185,9 @@ int EffectLayer::GetMinimumStartTimeMS(int index, bool allow_collapse, int min_p
     }
 }
 
-int EffectLayer::GetEffectCount()
+int EffectLayer::GetEffectCount() const
 {
-    if(mEffects.empty())
-        return 0;
-    else
-        return mEffects.size();
+    return mEffects.size();
 }
 
 bool EffectLayer::HitTestEffectByTime(int timeMS,int &index)
@@ -533,7 +530,7 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
         if(mEffects[i]->GetSelected() == EFFECT_LT_SELECTED && mEffects[i]->GetTagged())
         {
             if( undo_mgr.GetCaptureUndo() ) {
-                undo_mgr.CaptureEffectToBeMoved( mParentElement->GetName(), mIndex, mEffects[i]->GetID(),
+                undo_mgr.CaptureEffectToBeMoved( mParentElement->GetModelName(), mIndex, mEffects[i]->GetID(),
                                                  mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS() );
             }
             mEffects[i]->SetStartTimeMS( mEffects[i]->GetStartTimeMS() + deltaMS);
@@ -541,7 +538,7 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
         else if(mEffects[i]->GetSelected() == EFFECT_RT_SELECTED && mEffects[i]->GetTagged())
         {
             if( undo_mgr.GetCaptureUndo() ) {
-                undo_mgr.CaptureEffectToBeMoved( mParentElement->GetName(), mIndex, mEffects[i]->GetID(),
+                undo_mgr.CaptureEffectToBeMoved( mParentElement->GetModelName(), mIndex, mEffects[i]->GetID(),
                                                  mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS() );
             }
             mEffects[i]->SetEndTimeMS( mEffects[i]->GetEndTimeMS() + deltaMS);
@@ -549,7 +546,7 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
         else if(mEffects[i]->GetSelected() == EFFECT_SELECTED && mEffects[i]->GetTagged())
         {
             if( undo_mgr.GetCaptureUndo() ) {
-                undo_mgr.CaptureEffectToBeMoved( mParentElement->GetName(), mIndex, mEffects[i]->GetID(),
+                undo_mgr.CaptureEffectToBeMoved( mParentElement->GetModelName(), mIndex, mEffects[i]->GetID(),
                                                  mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS() );
             }
             mEffects[i]->SetStartTimeMS( mEffects[i]->GetStartTimeMS() + deltaMS);
@@ -579,7 +576,7 @@ void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
     for (std::vector<Effect*>::iterator it = mEffects.begin(); it != mEffects.end(); it++) {
         if ((*it)->GetSelected() != EFFECT_NOT_SELECTED) {
             IncrementChangeCount((*it)->GetStartTimeMS(), (*it)->GetEndTimeMS());
-            undo_mgr.CaptureEffectToBeDeleted( mParentElement->GetName(), mIndex, (*it)->GetEffectName(),
+            undo_mgr.CaptureEffectToBeDeleted( mParentElement->GetModelName(), mIndex, (*it)->GetEffectName(),
                                                (*it)->GetSettingsAsString(), (*it)->GetPaletteAsString(),
                                                (*it)->GetStartTimeMS(), (*it)->GetEndTimeMS(),
                                                (*it)->GetSelected(), (*it)->GetProtected() );
@@ -617,32 +614,4 @@ bool EffectLayer::SortEffectByStartTime(Effect *e1,Effect *e2)
 void EffectLayer::IncrementChangeCount(int startMS, int endMS)
 {
     mParentElement->IncrementChangeCount(startMS, endMS);
-}
-
-
-StrandLayer::~StrandLayer() {
-    for (int x = 0; x < mNodeLayers.size(); x++) {
-        delete mNodeLayers[x];
-    }
-}
-
-NodeLayer *StrandLayer::GetNodeLayer(int n, bool create) {
-    while (create && n >= mNodeLayers.size()) {
-        mNodeLayers.push_back(new NodeLayer(GetParentElement()));
-    }
-    if (n < mNodeLayers.size()) {
-        return mNodeLayers[n];
-    }
-    return nullptr;
-}
-void StrandLayer::InitFromModel(Model &model) {
-    int nc = model.GetStrandLength(strand);
-    SetName(model.GetStrandName(strand));
-    for (int x = 0; x < mNodeLayers.size(); x++) {
-        mNodeLayers[x]->SetName(model.GetNodeName(x));
-    }
-    while (mNodeLayers.size() < nc) {
-        NodeLayer *nl = new NodeLayer(GetParentElement(), model.GetNodeName(mNodeLayers.size()));
-        mNodeLayers.push_back(nl);
-    }
 }

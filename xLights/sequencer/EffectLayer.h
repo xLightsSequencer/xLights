@@ -30,7 +30,7 @@ class EffectLayer
         void RemoveAllEffects();
 
         int GetIndex();
-        int GetEffectCount();
+        int GetEffectCount() const;
 
         bool IsStartTimeLinked(int index);
         bool IsEndTimeLinked(int index);
@@ -124,29 +124,6 @@ public:
     NodeLayer(Element *parent, const std::string &n) : NamedLayer(parent, n) {}
     virtual ~NodeLayer() {};
 private:
-};
-
-class StrandLayer: public NamedLayer
-{
-public:
-    StrandLayer(Element *parent, int s) : NamedLayer(parent), strand(s) {}
-    virtual ~StrandLayer();
-
-    int GetStrand() { return strand;}
-
-    bool ShowNodes() { return mShowNodes;}
-    void ShowNodes(bool b) { mShowNodes = b;}
-
-    void InitFromModel(Model &model);
-
-    NodeLayer *GetNodeLayer(int n, bool create = false);
-    int GetNodeLayerCount() {
-        return mNodeLayers.size();
-    }
-private:
-    int strand;
-    bool mShowNodes = false;
-    std::vector<NodeLayer*> mNodeLayers;
 };
 
 

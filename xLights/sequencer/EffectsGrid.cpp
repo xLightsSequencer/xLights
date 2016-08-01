@@ -152,7 +152,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     int effectIndex;
     HitLocation selectionType = HitLocation::NONE;
     Effect* selectedEffect = GetEffectAtRowAndTime(row,selectedTimeMS,effectIndex,selectionType);
-    if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == "timing") {
+    if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
         wxString label = selectedEffect->GetEffectName();
 
         wxTextEntryDialog dlg(this, "Edit Label", "Enter new label:", label);
@@ -177,7 +177,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
 
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
     Element* element = ri->element;
-    if (element->GetType()=="model")
+    if (element->GetType() != ELEMENT_TYPE_TIMING)
     {
         wxMenu mnuLayer;
         // Copy / Paste / Delete
@@ -202,12 +202,13 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
 
         // Alignment
         mnuLayer.AppendSeparator();
-        wxMenu mnuAlignment;
-        wxMenuItem* menu_align_start_times = mnuAlignment.Append(ID_GRID_MNU_ALIGN_START_TIMES,"Align Start Times");
-        wxMenuItem* menu_align_end_times = mnuAlignment.Append(ID_GRID_MNU_ALIGN_END_TIMES,"Align End Times");
-        wxMenuItem* menu_align_both_times = mnuAlignment.Append(ID_GRID_MNU_ALIGN_BOTH_TIMES,"Align Both Times");
-        wxMenuItem* menu_align_centerpoints = mnuAlignment.Append(ID_GRID_MNU_ALIGN_CENTERPOINTS,"Align Centerpoints");
-        mnuLayer.AppendSubMenu(&mnuAlignment, "Alignment" );
+        wxMenu *mnuAlignment = new wxMenu();
+        wxMenuItem* menu_align_start_times = mnuAlignment->Append(ID_GRID_MNU_ALIGN_START_TIMES,"Align Start Times");
+        wxMenuItem* menu_align_end_times = mnuAlignment->Append(ID_GRID_MNU_ALIGN_END_TIMES,"Align End Times");
+        wxMenuItem* menu_align_both_times = mnuAlignment->Append(ID_GRID_MNU_ALIGN_BOTH_TIMES,"Align Both Times");
+        wxMenuItem* menu_align_centerpoints = mnuAlignment->Append(ID_GRID_MNU_ALIGN_CENTERPOINTS,"Align Centerpoints");
+        mnuAlignment->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, NULL, this);
+        mnuLayer.AppendSubMenu(mnuAlignment, "Alignment" );
         if( (mSelectedEffect == nullptr) || !MultipleEffectsSelected() ) {
             menu_align_start_times->Enable(false);
             menu_align_end_times->Enable(false);
@@ -226,14 +227,14 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         Draw();
         PopupMenu(&mnuLayer);
     }
-    else if (element->GetType()=="timing")
+    else
     {
         wxMenu mnuLayer;
         int effectIndex;
         HitLocation selectionType;
         int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
         Effect* selectedEffect = GetEffectAtRowAndTime(mSelectedRow,startTime,effectIndex,selectionType);
-        if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == "timing") {
+        if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
             if( ri->layerIndex == 0 )
             {
                 mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_PHRASE,"Breakdown Phrase");
@@ -440,7 +441,7 @@ void EffectsGrid::FillRandomEffects()
                                                   eff->GetEndTimeMS(),
                                                   EFFECT_SELECTED,
                                                   false);
-                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( effectLayer->GetParentElement()->GetName(), effectLayer->GetIndex(), ef->GetID() );
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID() );
                         RaiseSelectedEffectChanged(ef, true);
                         mSelectedEffect = ef;
                     }
@@ -462,11 +463,11 @@ void EffectsGrid::FillRandomEffects()
                                        EFFECT_SELECTED,
                                        false);
             mSequenceElements->get_undo_mgr().CreateUndoStep();
-            mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
+            mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID() );
             RaiseSelectedEffectChanged(ef, true);
             mSelectedEffect = ef;
             if (!ef->GetPaletteMap().empty()) {
-                sendRenderEvent(el->GetParentElement()->GetName(),
+                sendRenderEvent(el->GetParentElement()->GetModelName(),
                                 mDropStartTimeMS,
                                 mDropEndTimeMS, true);
             }
@@ -831,7 +832,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
             Element* element = mEffectLayer->GetParentElement();
 
             mSelectedEffect = selectedEffect;
-            if(element->GetType()=="model")
+            if(element->GetType() != ELEMENT_TYPE_TIMING)
             {
                 mSelectedRow = row;
                 mSelectedEffect = selectedEffect;
@@ -839,7 +840,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
                 RaisePlayModelEffect(element,mSelectedEffect,false);
                 wxCommandEvent eventRowChanged(EVT_SELECTED_ROW_CHANGED);
                 eventRowChanged.SetInt(mSelectedRow);
-                eventRowChanged.SetString(element->GetName());
+                eventRowChanged.SetString(element->GetModelName());
                 wxPostEvent(GetParent(), eventRowChanged);
             }
         }
@@ -894,7 +895,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
     if(mResizing)
     {
         ReleaseMouse();
-        if(mEffectLayer->GetParentElement()->GetType()=="model")
+        if(mEffectLayer->GetParentElement()->GetType() != ELEMENT_TYPE_TIMING)
         {
             int stime = mStartResizeTimeMS;
             int timeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
@@ -917,7 +918,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                     adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetEndTimeMS(), min, max);
                 }
 
-                sendRenderEvent(mEffectLayer->GetParentElement()->GetName(), min, max);
+                sendRenderEvent(mEffectLayer->GetParentElement()->GetModelName(), min, max);
                 RaisePlayModelEffect(mEffectLayer->GetParentElement(), effect, false);
             }
         }
@@ -1099,7 +1100,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
                 mSelectedRow = row;
                 mSelectedEffect = ef;
                 el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-                mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetName(), new_el->GetIndex(), ef->GetID() );
+                mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
                 Refresh(false);
                 return;
             }
@@ -1154,7 +1155,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
                 mSelectedRow = row;
                 mSelectedEffect = ef;
                 el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-                mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetName(), new_el->GetIndex(), ef->GetID() );
+                mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
                 Refresh(false);
                 return;
             }
@@ -1215,7 +1216,7 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift)
                     if( el->GetRangeIsClearMS( start_time_for_check, new_end_time_ms ) )
                     {
                         mSequenceElements->get_undo_mgr().CreateUndoStep();
-                        mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( el->GetParentElement()->GetName(), el->GetIndex(), mSelectedEffect->GetID(),
+                        mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( el->GetParentElement()->GetModelName(), el->GetIndex(), mSelectedEffect->GetID(),
                                                                                   mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS() );
                         mSelectedEffect->SetStartTimeMS(timing_effect->GetStartTimeMS());
                         mSelectedEffect->SetEndTimeMS(new_end_time_ms);
@@ -1236,7 +1237,7 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift)
             if( el->GetRangeIsClearMS( mSelectedEffect->GetEndTimeMS(), mSelectedEffect->GetEndTimeMS() + mSequenceElements->GetMinPeriod() ) )
             {
                 mSequenceElements->get_undo_mgr().CreateUndoStep();
-                mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( el->GetParentElement()->GetName(), el->GetIndex(), mSelectedEffect->GetID(),
+                mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( el->GetParentElement()->GetModelName(), el->GetIndex(), mSelectedEffect->GetID(),
                                                                           mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS() );
                 mSelectedEffect->SetStartTimeMS(mSelectedEffect->GetStartTimeMS() + mSequenceElements->GetMinPeriod());
                 mSelectedEffect->SetEndTimeMS(mSelectedEffect->GetEndTimeMS() + mSequenceElements->GetMinPeriod());
@@ -1304,7 +1305,7 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
                     if( el->GetRangeIsClearMS( timing_effect->GetStartTimeMS(), end_time_for_check))
                     {
                         mSequenceElements->get_undo_mgr().CreateUndoStep();
-                        mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( el->GetParentElement()->GetName(), el->GetIndex(), mSelectedEffect->GetID(),
+                        mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( el->GetParentElement()->GetModelName(), el->GetIndex(), mSelectedEffect->GetID(),
                                                                                   mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS() );
                         mSelectedEffect->SetStartTimeMS(timing_effect->GetStartTimeMS());
                         mSelectedEffect->SetEndTimeMS(new_end_time_ms);
@@ -1327,7 +1328,7 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
                 if( el->GetRangeIsClearMS( mSelectedEffect->GetStartTimeMS() - mSequenceElements->GetMinPeriod(), mSelectedEffect->GetStartTimeMS() ) )
                 {
                     mSequenceElements->get_undo_mgr().CreateUndoStep();
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( el->GetParentElement()->GetName(), el->GetIndex(), mSelectedEffect->GetID(),
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( el->GetParentElement()->GetModelName(), el->GetIndex(), mSelectedEffect->GetID(),
                                                                               mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS() );
                     mSelectedEffect->SetStartTimeMS(mSelectedEffect->GetStartTimeMS() - mSequenceElements->GetMinPeriod());
                     mSelectedEffect->SetEndTimeMS(mSelectedEffect->GetEndTimeMS() - mSequenceElements->GetMinPeriod());
@@ -1362,7 +1363,7 @@ void EffectsGrid::DeleteSelectedEffects()
             }
         }
         if (end > 0) {
-            RenderCommandEvent event(element->GetName(), start, end, true, true);
+            RenderCommandEvent event(element->GetModelName(), start, end, true, true);
             wxPostEvent(mParent, event);
             el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
         }
@@ -1446,15 +1447,15 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
                 }
 
                 if( all_clear || el->GetRangeIsClearMS( str_time_for_check, end_time_for_check) ) {
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID(),
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(),
                                                                               ef->GetStartTimeMS(), ef->GetEndTimeMS() );
                     ef->SetStartTimeMS(align_start);
                     ef->SetEndTimeMS(align_end);
-                } else {
+                } else if (mSequenceElements->GetRowInformation(i)->nodeIndex != -1) {
                     std::string name = ef->GetEffectName();
                     std::string settings = ef->GetSettingsAsString();
                     std::string palette = ef->GetPaletteAsString();
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeDeleted( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetEffectName(),
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeDeleted( el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetEffectName(),
                                                                                 ef->GetSettingsAsString(), ef->GetPaletteAsString(),
                                                                                 ef->GetStartTimeMS(), ef->GetEndTimeMS(),
                                                                                 ef->GetSelected(), ef->GetProtected() );
@@ -1487,7 +1488,7 @@ bool EffectsGrid::PapagayoEffectsSelected()
     for(int i=0;i<mSequenceElements->GetVisibleRowInformationSize();i++)
     {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(i);
-        if( el->GetParentElement()->GetType() == "timing" )
+        if( el->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING )
         {
             if( el->GetParentElement()->GetEffectLayerCount() > 1 )
             {
@@ -1597,9 +1598,9 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                             if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
                                 xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
                             }
-							mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID());
+							mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
 							if (!ef->GetPaletteMap().empty()) {
-								sendRenderEvent(el->GetParentElement()->GetName(),
+								sendRenderEvent(el->GetParentElement()->GetModelName(),
 									new_start_time,
 									new_end_time, true);
 							}
@@ -1654,9 +1655,9 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                             xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
                         }
                         mSequenceElements->get_undo_mgr().CreateUndoStep();
-                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID() );
                         if (!ef->GetPaletteMap().empty()) {
-                            sendRenderEvent(el->GetParentElement()->GetName(),
+                            sendRenderEvent(el->GetParentElement()->GetModelName(),
                                             mDropStartTimeMS,
                                             mDropEndTimeMS, true);
                         }
@@ -1729,7 +1730,7 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                                         if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
                                             xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
                                         }
-                                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( effectLayer->GetParentElement()->GetName(), effectLayer->GetIndex(), ef->GetID() );
+                                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID() );
                                         RaiseSelectedEffectChanged(ef, true);
                                         mSelectedEffect = ef;
                                     }
@@ -1758,9 +1759,9 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                                 if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
                                     xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
                                 }
-                                mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
+                                mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID() );
                                 if (!ef->GetPaletteMap().empty()) {
-                                    sendRenderEvent(el->GetParentElement()->GetName(),
+                                    sendRenderEvent(el->GetParentElement()->GetModelName(),
                                                     start_time,
                                                     end_time, true);
                                 }
@@ -1949,9 +1950,9 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
                         if (!is_timing_effect && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
                             xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
                         }
-                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID());
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                         if (!is_timing_effect && !ef->GetPaletteMap().empty() ) {
-                            sendRenderEvent(el->GetParentElement()->GetName(),
+                            sendRenderEvent(el->GetParentElement()->GetModelName(),
                                 new_start_time,
                                 new_end_time, true);
                         }
@@ -2020,9 +2021,9 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
                             xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
                         }
                         mSequenceElements->get_undo_mgr().CreateUndoStep();
-                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID() );
                         if (!ef->GetPaletteMap().empty()) {
-                            sendRenderEvent(el->GetParentElement()->GetName(),
+                            sendRenderEvent(el->GetParentElement()->GetModelName(),
                                             mDropStartTimeMS,
                                             mDropEndTimeMS, true);
                         }
@@ -2104,9 +2105,9 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
                             if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
                                 xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
                             }
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID() );
                             if (!ef->GetPaletteMap().empty()) {
-                                sendRenderEvent(el->GetParentElement()->GetName(),
+                                sendRenderEvent(el->GetParentElement()->GetModelName(),
                                                 start_time,
                                                 end_time, true);
                             }
@@ -2187,14 +2188,14 @@ void EffectsGrid::ResizeSingleEffect(int position)
             {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex-1);
                 if( mSequenceElements->get_undo_mgr().GetCaptureUndo() ) {
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetName(), mEffectLayer->GetIndex(), eff->GetID(),
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
                                                                               eff->GetStartTimeMS(), eff->GetEndTimeMS() );
                 }
                 eff->SetEndTimeMS(time);
             }
             Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
             if( mSequenceElements->get_undo_mgr().GetCaptureUndo() ) {
-                mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetName(), mEffectLayer->GetIndex(), eff->GetID(),
+                mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
                                                                           eff->GetStartTimeMS(), eff->GetEndTimeMS() );
             }
             eff->SetStartTimeMS(time);
@@ -2205,7 +2206,7 @@ void EffectsGrid::ResizeSingleEffect(int position)
             {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
                 if( mSequenceElements->get_undo_mgr().GetCaptureUndo() ) {
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetName(), mEffectLayer->GetIndex(), eff->GetID(),
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
                                                                               eff->GetStartTimeMS(), eff->GetEndTimeMS() );
                 }
                 eff->SetStartTimeMS(mEffectLayer->GetEffect(mResizeEffectIndex-1)->GetEndTimeMS());
@@ -2226,14 +2227,14 @@ void EffectsGrid::ResizeSingleEffect(int position)
             {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex+1);
                 if( mSequenceElements->get_undo_mgr().GetCaptureUndo() ) {
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetName(), mEffectLayer->GetIndex(), eff->GetID(),
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
                                                                               eff->GetStartTimeMS(), eff->GetEndTimeMS() );
                 }
                 eff->SetStartTimeMS(time);
             }
             Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
             if( mSequenceElements->get_undo_mgr().GetCaptureUndo() ) {
-                mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetName(), mEffectLayer->GetIndex(), eff->GetID(),
+                mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
                                                                           eff->GetStartTimeMS(), eff->GetEndTimeMS() );
             }
             eff->SetEndTimeMS(time);
@@ -2244,7 +2245,7 @@ void EffectsGrid::ResizeSingleEffect(int position)
             {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
                 if( mSequenceElements->get_undo_mgr().GetCaptureUndo() ) {
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetName(), mEffectLayer->GetIndex(), eff->GetID(),
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
                                                                               eff->GetStartTimeMS(), eff->GetEndTimeMS() );
                 }
                 eff->SetEndTimeMS(mEffectLayer->GetEffect(mResizeEffectIndex+1)->GetStartTimeMS());
@@ -2562,11 +2563,10 @@ void EffectsGrid::DrawEffects()
     int width = getWidth();
     for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
     {
-        wxString type = mSequenceElements->GetVisibleRowInformation(row)->element->GetType();
-        wxString name = mSequenceElements->GetVisibleRowInformation(row)->element->GetName();
-        if(type!="view" && type != "model") {
+        if(mSequenceElements->GetVisibleRowInformation(row)->element->GetType() == ELEMENT_TYPE_TIMING) {
             DrawTimingEffects(row);
         } else {
+            wxString name = mSequenceElements->GetVisibleRowInformation(row)->element->GetName();
             Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(row);
             EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(ri);
             lines.PreAlloc(effectLayer->GetEffectCount() * 16);
@@ -2583,7 +2583,7 @@ void EffectsGrid::DrawEffects()
                 std::vector<xlColor> colors;
                 std::vector<double> xs;
                 PixelBufferClass ncls(xlights, true);
-                ncls.InitNodeBuffer(*xlights->GetModel(ri->element->GetName()), ri->strandIndex, ri->nodeIndex, seqData->FrameTime());
+                ncls.InitNodeBuffer(*xlights->GetModel(ri->element->GetModelName()), ri->strandIndex, ri->nodeIndex, seqData->FrameTime());
                 xlColor lastColor;
                 for (size_t f = 0; f < seqData->NumFrames(); f++) {
                     ncls.SetNodeChannelValues(0, (*seqData)[f][ncls.NodeStartChannel(0)]);
@@ -3077,7 +3077,7 @@ Element* EffectsGrid::GetActiveTimingElement()
     for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
     {
         Element* e = mSequenceElements->GetVisibleRowInformation(row)->element;
-        if(e->GetType()== "timing" && dynamic_cast<TimingElement*>(e)->GetActive())
+        if(e->GetType() == ELEMENT_TYPE_TIMING && dynamic_cast<TimingElement*>(e)->GetActive())
         {
             returnValue = e;
             break;

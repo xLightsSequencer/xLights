@@ -1842,7 +1842,7 @@ wxString xLightsXmlFile::UniqueTimingName(xLightsFrame* xLightsParent, wxString 
         for (int i = 0; i < num_elements; ++i)
         {
             Element* element = xLightsParent->GetSequenceElements().GetElement(i);
-            if (element->GetType() == "timing")
+            if (element->GetType() == ELEMENT_TYPE_TIMING)
             {
                 if (element->GetName() == testname)
                 {
@@ -2383,7 +2383,7 @@ wxArrayString xLightsXmlFile::GetTimingList(SequenceElements& seq_elements)
     for(int i = 0; i < num_elements; ++i)
     {
         Element* element = seq_elements.GetElement(i);
-        if( element->GetType() == "timing" )
+        if( element->GetType() == ELEMENT_TYPE_TIMING )
         {
             timing_list.push_back(element->GetName());
         }
@@ -2507,16 +2507,16 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         // Add display elements
         wxXmlNode* display_element_node = AddChildXmlNode(display_node, "Element");
         display_element_node->AddAttribute("collapsed", string_format("%d", element->GetCollapsed()));
-        display_element_node->AddAttribute("type", element->GetType());
+        display_element_node->AddAttribute("type", element->GetType() == ELEMENT_TYPE_TIMING ? "timing" : "model");
         display_element_node->AddAttribute("name", element->GetName());
         display_element_node->AddAttribute("visible", string_format("%d", element->GetVisible()));
 
         // Add element node to ElementEffects
         wxXmlNode* element_effects_node = AddChildXmlNode(elements_node, "Element");
-        element_effects_node->AddAttribute("type", element->GetType());
+        element_effects_node->AddAttribute("type", element->GetType() == ELEMENT_TYPE_TIMING ? "timing" : "model");
         element_effects_node->AddAttribute("name", element->GetName());
 
-        if ( element->GetType() == "timing" ) {
+        if ( element->GetType() == ELEMENT_TYPE_TIMING ) {
             TimingElement *tm = dynamic_cast<TimingElement *>(element);
             display_element_node->AddAttribute("views", tm->GetViews());
             display_element_node->AddAttribute("active", string_format("%d", tm->GetActive()));
@@ -2551,7 +2551,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
 
                 }
             }
-        } else if ( element->GetType() == "model") {
+        } else if ( element->GetType() == ELEMENT_TYPE_MODEL) {
             ModelElement *me = dynamic_cast<ModelElement *>(element);
             int num_layers = me->GetEffectLayerCount();
             for(int j = 0; j < num_layers; ++j) {
@@ -2565,34 +2565,42 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                              effectDB_Node);
             }
             
-            num_layers = me->getStrandLayerCount();
-            for(int j = 0; j < num_layers; ++j)
-            {
-                StrandLayer* layer = me->GetStrandLayer(j);
-                
+            int num_strands = me->GetStrandCount();
+            for (int strand = 0; strand < num_strands; strand++) {
+                StrandElement *se = me->GetStrand(strand);
+                num_layers = se->GetEffectLayerCount();
                 wxXmlNode* effect_layer_node = nullptr;
-                if (layer->GetEffectCount() != 0) {
-                    effect_layer_node = AddChildXmlNode(element_effects_node, "Strand");
-                    effect_layer_node->AddAttribute("index", string_format("%d", layer->GetStrand()));
-                    if (layer->GetName() != "") {
-                        effect_layer_node->AddAttribute("name", layer->GetName());
+                for(int j = 0; j < num_layers; ++j)
+                {
+                    EffectLayer* layer = se->GetEffectLayer(j);
+                    
+                    if (layer->GetEffectCount() != 0) {
+                        wxXmlNode *eln = AddChildXmlNode(element_effects_node, "Strand");
+                        eln->AddAttribute("index", string_format("%d", se->GetStrand()));
+                        if (j > 0) {
+                            eln->AddAttribute("layer", string_format("%d", j));
+                        } else {
+                            effect_layer_node = eln;
+                        }
+                        if (se->GetName() != "") {
+                            eln->AddAttribute("name", se->GetName());
+                        }
+                        WriteEffects(layer, eln, colorPalettes,
+                                     colorPalette_node,
+                                     effectStrings,
+                                     effectDB_Node);
                     }
-                    WriteEffects(layer, effect_layer_node, colorPalettes,
-                                 colorPalette_node,
-                                 effectStrings,
-                                 effectDB_Node);
                 }
-                
-                for (int n = 0; n < layer->GetNodeLayerCount(); n++) {
-                    NodeLayer* nlayer = layer->GetNodeLayer(n);
+                for (int n = 0; n < se->GetNodeLayerCount(); n++) {
+                    NodeLayer* nlayer = se->GetNodeLayer(n);
                     if (nlayer->GetEffectCount() == 0) {
                         continue;
                     }
                     if (effect_layer_node == nullptr) {
                         effect_layer_node = AddChildXmlNode(element_effects_node, "Strand");
-                        effect_layer_node->AddAttribute("index", string_format("%d", layer->GetStrand()));
-                        if (layer->GetName() != "") {
-                            effect_layer_node->AddAttribute("name", layer->GetName());
+                        effect_layer_node->AddAttribute("index", string_format("%d", se->GetStrand()));
+                        if (se->GetName() != "") {
+                            effect_layer_node->AddAttribute("name", se->GetName());
                         }
                     }
                     wxXmlNode* neffect_layer_node = AddChildXmlNode(effect_layer_node, "Node");
@@ -2605,6 +2613,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                                  effectStrings,
                                  effectDB_Node);
                 }
+
             }
         }
     }
@@ -2737,7 +2746,7 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
     if (count > 0) {
         for( size_t i = 0; i < elements.GetElementCount(); i++ )  {
             Element* elem = elements.GetElement(i);
-            if( elem->GetType() == "model" ) {
+            if( elem->GetType() == ELEMENT_TYPE_MODEL ) {
                 ModelElement *me = dynamic_cast<ModelElement*>(elem);
                 for( int j = 0; j < elem->GetEffectLayerCount(); j++ ) {
                     EffectLayer* layer = elem->GetEffectLayer(j);
@@ -2748,16 +2757,19 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
                         }
                     }
                 }
-                for (int j = 0; j < me->getStrandLayerCount(); j++) {
-                    StrandLayer* layer = me->GetStrandLayer(j);
-                    for( int k = 0; k < layer->GetEffectCount(); k++ ) {
-                        Effect* eff = layer->GetEffect(k);
-                        if ( effects[eff->GetEffectIndex()] != nullptr ) {
-                            effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
+                for (int s = 0; s < me->GetStrandCount(); s++) {
+                    StrandElement *se = me->GetStrand(s);
+                    for (int j = 0; j < se->GetEffectLayerCount(); j++) {
+                        EffectLayer* layer = se->GetEffectLayer(j);
+                        for( int k = 0; k < layer->GetEffectCount(); k++ ) {
+                            Effect* eff = layer->GetEffect(k);
+                            if ( effects[eff->GetEffectIndex()] != nullptr ) {
+                                effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
+                            }
                         }
                     }
-                    for (int k = 0; k < layer->GetNodeLayerCount(); k++) {
-                        NodeLayer* nlayer = layer->GetNodeLayer(k);
+                    for (int k = 0; k < se->GetNodeLayerCount(); k++) {
+                        NodeLayer* nlayer = se->GetNodeLayer(k);
                         for( int l = 0; l < nlayer->GetEffectCount(); l++ ) {
                             Effect* eff = nlayer->GetEffect(l);
                             if ( effects[eff->GetEffectIndex()] != nullptr ) {

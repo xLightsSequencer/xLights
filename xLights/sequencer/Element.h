@@ -11,7 +11,9 @@
 enum ElementType
 {
     ELEMENT_TYPE_MODEL,
-    ELEMENT_TYPE_TIMING
+    ELEMENT_TYPE_STRAND,
+    ELEMENT_TYPE_TIMING,
+    
 };
 
 class NetInfoClass;
@@ -32,17 +34,19 @@ public:
     Element(SequenceElements *p, const std::string &name);
     virtual ~Element();
     
-    virtual const std::string GetType() const = 0;
+    virtual ElementType GetType() const = 0;
 
     SequenceElements *GetSequenceElements() const {return parent;}
 
     const std::string &GetName() const;
     void SetName(const std::string &name);
+    virtual const std::string &GetModelName() const;
     
     
     bool GetVisible() const {return mVisible;}
     void SetVisible(bool visible) {mVisible = visible;}
 
+    bool HasEffects() const;
     
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
     EffectLayer* GetEffectLayer(int index);
@@ -118,7 +122,7 @@ public:
     TimingElement(SequenceElements *p, const std::string &name);
     virtual ~TimingElement();
     
-    virtual const std::string GetType() const override { return "timing"; }
+    virtual ElementType GetType() const override { return ELEMENT_TYPE_TIMING; }
 
     int GetFixedTiming() const { return mFixed; }
     void SetFixedTiming(int fixed) { mFixed = fixed; }
@@ -138,27 +142,53 @@ private:
     std::string mViews;
 };
 
+
+class StrandElement : public Element {
+public:
+    StrandElement(ModelElement *model, int strand);
+    virtual ~StrandElement();
+
+    ModelElement *GetModelElement() const { return mParentModel;}
+    void InitFromModel(Model &model);
+    
+    virtual const std::string &GetModelName() const override;
+    virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
+    virtual ElementType GetType() const override { return ELEMENT_TYPE_STRAND; }
+
+    int GetStrand() const { return mStrand; }
+    
+    bool ShowNodes() const { return mShowNodes;}
+    void ShowNodes(bool b) { mShowNodes = b;}
+    NodeLayer *GetNodeLayer(int n, bool create = false);
+    int GetNodeLayerCount() const {
+        return mNodeLayers.size();
+    }
+private:
+    int mStrand;
+    ModelElement *mParentModel;
+
+    bool mShowNodes = false;
+    std::vector<NodeLayer*> mNodeLayers;
+    
+};
+
 class ModelElement : public Element
 {
     public:
         ModelElement(SequenceElements *p, const std::string &name, bool selected);
         virtual ~ModelElement();
     
-
-        virtual const std::string GetType() const override { return "model"; }
-
+        virtual ElementType GetType() const override { return ELEMENT_TYPE_MODEL; }
 
         bool GetSelected();
         void SetSelected(bool selected);
 
-
         virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
 
-    
-        StrandLayer* GetStrandLayer(int index, bool create = false);
-        int getStrandLayerCount();
+        StrandElement *GetStrand(int strand, bool create = false);
+        int GetStrandCount() const;
         void InitStrands(Model &cls);
-        bool ShowStrands() { return mStrandsVisible;}
+        bool ShowStrands() const { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}
     
         std::recursive_mutex &GetRenderLock() { return changeLock; }
@@ -169,11 +199,8 @@ class ModelElement : public Element
     private:
         bool mStrandsVisible = false;
         bool mSelected;
-        std::vector<StrandLayer*> mStrandLayers;
-    
+        std::vector<StrandElement*> mStrands;
         std::atomic_int waitCount;
-
-
 };
 
 #endif // ELEMENT_H

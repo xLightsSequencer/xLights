@@ -221,8 +221,8 @@ void xLightsFrame::CheckForValidModels()
     }
 
     for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
-        if ("model" == mSequenceElements.GetElement(x)->GetType()) {
-            std::string name = mSequenceElements.GetElement(x)->GetName();
+        if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
+            std::string name = mSequenceElements.GetElement(x)->GetModelName();
             //remove the current models from the list so we don't end up with the same model represented twice
             Remove(AllNames, name);
             Remove(ModelNames, name);
@@ -231,8 +231,8 @@ void xLightsFrame::CheckForValidModels()
 
     SeqElementMismatchDialog dialog(this);
     for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
-        if ("model" == mSequenceElements.GetElement(x)->GetType()) {
-            std::string name = mSequenceElements.GetElement(x)->GetName();
+        if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
+            std::string name = mSequenceElements.GetElement(x)->GetModelName();
             Model *m = AllModels[name];
             if (m == nullptr) {
                 dialog.StaticTextMessage->SetLabel("Model '"+name+"'\ndoes not exist in your list of models");
@@ -258,17 +258,19 @@ void xLightsFrame::CheckForValidModels()
         }
     }
     for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
-        if ("model" == mSequenceElements.GetElement(x)->GetType()) {
-            std::string name = mSequenceElements.GetElement(x)->GetName();
+        if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
+            std::string name = mSequenceElements.GetElement(x)->GetModelName();
             Model *m = AllModels[name];
             if (m->GetDisplayAs() == "ModelGroup") {
                 ModelElement * el = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 bool hasStrandEffects = false;
                 bool hasNodeEffects = false;
-                for (int l = 0; l < el->getStrandLayerCount(); l++) {
-                    StrandLayer *sl = el->GetStrandLayer(l);
-                    if (sl->GetEffectCount() > 0) {
-                        hasStrandEffects = true;
+                for (int l = 0; l < el->GetStrandCount(); l++) {
+                    StrandElement *sl = el->GetStrand(l);
+                    for (int l2 = 0; l2 < sl->GetEffectLayerCount(); l2++) {
+                        if (sl->GetEffectLayer(l2)->GetEffectCount() > 0) {
+                            hasStrandEffects = true;
+                        }
                     }
                     for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
                         if (sl->GetNodeLayer(n)->GetEffectCount()) {
@@ -536,7 +538,7 @@ void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
 void xLightsFrame::EffectChanged(wxCommandEvent& event)
 {
     Effect* effect = (Effect*)event.GetClientData();
-    SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
+    SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
                       effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
                       true);
     selectedEffectString = "";  // force update to effect rendering
@@ -568,7 +570,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             effect->SetEffectIndex(effectManager.GetEffectIndex(effectName));
             resetStrings = true;
         }
-        SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
+        SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
                           effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
                           !event.GetInt());
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
@@ -576,7 +578,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         if (effect->GetPaletteMap().empty() || resetStrings) {
             effect->SetPalette(selectedEffectPalette);
             effect->SetSettings(selectedEffectString);
-            RenderEffectForModel(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
+            RenderEffectForModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
                                  effect->GetStartTimeMS(),
                                  effect->GetEndTimeMS());
         }
@@ -590,7 +592,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             playStartTime = effect->GetStartTimeMS();
             playEndTime = effect->GetEndTimeMS();
             playStartMS = -1;
-            playModel = GetModel(effect->GetParentEffectLayer()->GetParentElement()->GetName());
+            playModel = GetModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName());
 			SetAudioControls();
         }
     }
@@ -623,7 +625,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
     {
         EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
-        if (el->GetParentElement()->GetType() != "model") {
+        if (el->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
             continue;
         }
         // Delete Effects that are in same time range as dropped effect
@@ -638,7 +640,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
         last_effect_created = effect;
 
-        mSequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), effect->GetID() );
+        mSequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID() );
 
         mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
 
@@ -652,9 +654,9 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
             playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime;
             playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime;
             playStartMS = -1;
-            RenderEffectForModel(el->GetParentElement()->GetName(),playStartTime,playEndTime);
+            RenderEffectForModel(el->GetParentElement()->GetModelName(),playStartTime,playEndTime);
 
-            playModel = GetModel(el->GetParentElement()->GetName());
+            playModel = GetModel(el->GetParentElement()->GetModelName());
 
 			SetAudioControls();
         }
@@ -662,7 +664,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
     if (playType != PLAY_TYPE_MODEL && last_effect_created != NULL)
     {
-        SetEffectControls(last_effect_created->GetParentEffectLayer()->GetParentElement()->GetName(),
+        SetEffectControls(last_effect_created->GetParentEffectLayer()->GetParentElement()->GetModelName(),
                           last_effect_created->GetEffectName(), last_effect_created->GetSettings(),
                           last_effect_created->GetPaletteMap(), false);
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
@@ -968,14 +970,14 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
     if( playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
     {
         EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
-        playModel = GetModel(args->element->GetName());
+        playModel = GetModel(args->element->GetModelName());
         if (playModel != nullptr) {
             playType = PLAY_TYPE_EFFECT;
             playStartTime = (int)(args->effect->GetStartTimeMS());
             playEndTime = (int)(args->effect->GetEndTimeMS());
             if(args->renderEffect)
             {
-                RenderEffectForModel(args->element->GetName(),playStartTime,playEndTime);
+                RenderEffectForModel(args->element->GetModelName(),playStartTime,playEndTime);
             }
             playStartMS = -1;
         } else {
@@ -989,23 +991,20 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
     for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++)
     {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
-        if(element->GetType() == "model" || element->GetType() == "timing")
+        EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
+        for(int j=0;j< el->GetEffectCount();j++)
         {
-            EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
-            for(int j=0;j< el->GetEffectCount();j++)
+            if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)
             {
-                if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)
-                {
-                    el->GetEffect(j)->SetPalette(palette);
+                el->GetEffect(j)->SetPalette(palette);
 
-                    if(playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
-                    {
-                        playType = PLAY_TYPE_EFFECT;
-                        playStartTime = (int)(el->GetEffect(j)->GetStartTimeMS());
-                        playEndTime = (int)(el->GetEffect(j)->GetEndTimeMS());
-                        playStartMS = -1;
-                        RenderEffectForModel(element->GetName(),playStartTime,playEndTime);
-                    }
+                if(playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
+                {
+                    playType = PLAY_TYPE_EFFECT;
+                    playStartTime = (int)(el->GetEffect(j)->GetStartTimeMS());
+                    playEndTime = (int)(el->GetEffect(j)->GetEndTimeMS());
+                    playStartMS = -1;
+                    RenderEffectForModel(element->GetModelName(),playStartTime,playEndTime);
                 }
             }
         }
@@ -1024,26 +1023,23 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
     for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++)
     {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
-        if(element->GetType() == "model" || element->GetType() == "timing")
+        EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
+        for(int j=0;j< el->GetEffectCount();j++)
         {
-            EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
-            for(int j=0;j< el->GetEffectCount();j++)
+            if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)
             {
-                if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)
-                {
-                    el->GetEffect(j)->SetSettings(effectText);
-                    el->GetEffect(j)->SetEffectIndex(effectIndex);
-                    el->GetEffect(j)->SetEffectName(effectName);
-                    el->GetEffect(j)->SetPalette(palette);
+                el->GetEffect(j)->SetSettings(effectText);
+                el->GetEffect(j)->SetEffectIndex(effectIndex);
+                el->GetEffect(j)->SetEffectName(effectName);
+                el->GetEffect(j)->SetPalette(palette);
 
-                    if(playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
-                    {
-                        playType = PLAY_TYPE_EFFECT;
-                        playStartTime = (int)(el->GetEffect(j)->GetStartTimeMS());
-                        playEndTime = (int)(el->GetEffect(j)->GetEndTimeMS());
-                        playStartMS = -1;
-                        RenderEffectForModel(element->GetName(),playStartTime,playEndTime);
-                    }
+                if(playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
+                {
+                    playType = PLAY_TYPE_EFFECT;
+                    playStartTime = (int)(el->GetEffect(j)->GetStartTimeMS());
+                    playEndTime = (int)(el->GetEffect(j)->GetEndTimeMS());
+                    playStartMS = -1;
+                    RenderEffectForModel(element->GetModelName(),playStartTime,playEndTime);
                 }
             }
         }
@@ -1082,7 +1078,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             if( selectedEffectName != selectedEffect->GetEffectName() )
             {
                 mSequenceElements.get_undo_mgr().CreateUndoStep();
-                mSequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetName(), el->GetIndex(), selectedEffect->GetID(), selectedEffectString, selectedEffectPalette );
+                mSequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetModelName(), el->GetIndex(), selectedEffect->GetID(), selectedEffectString, selectedEffectPalette );
             }
 
             selectedEffect->SetSettings(effectText);
@@ -1102,7 +1098,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
                 sEffectAssist->ForceRefresh();
             }
 
-            RenderEffectForModel(elem->GetName(),playStartTime,playEndTime);
+            RenderEffectForModel(elem->GetModelName(),playStartTime,playEndTime);
             mainSequencer->PanelEffectGrid->ForceRefresh();
             return;
         }
@@ -1117,7 +1113,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         for (std::vector<Element *>::iterator it = elsToRender.begin(); it != elsToRender.end(); it++) {
             int ss, es;
             (*it)->GetDirtyRange(ss, es);
-            RenderEffectForModel((*it)->GetName(), ss, es);
+            RenderEffectForModel((*it)->GetModelName(), ss, es);
         }
     }
 
@@ -1915,11 +1911,11 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
     ModelElement *el = dynamic_cast<ModelElement*>((Element*)event.GetClientData());
     int strand = event.GetInt() >> 16;
     int node = event.GetInt() & 0xFFFF;
-    EffectLayer *layer = el->GetStrandLayer(strand)->GetNodeLayer(node);
+    EffectLayer *layer = el->GetStrand(strand)->GetNodeLayer(node);
 
     xlColorVector colors;
     PixelBufferClass ncls(this, true);
-    Model *model = GetModel(el->GetName());
+    Model *model = GetModel(el->GetModelName());
     for (size_t f = 0; f < SeqData.NumFrames(); f++) {
         model->SetNodeChannelValues(0, &SeqData[f][model->NodeStartChannel(0)]);
         xlColor c = model->GetNodeColor(0);
@@ -1972,22 +1968,22 @@ bool equals(Effect *e, Effect *e2, const wxString &pal, const wxString &set) {
 }
 void xLightsFrame::PromoteEffects(ModelElement *element) {
     //first promote from nodes to strands
-    for (int x = 0;  x < element->getStrandLayerCount(); x++) {
-        StrandLayer *layer = element->GetStrandLayer(x);
-        EffectLayer *target = layer;
-        if (element->getStrandLayerCount() <= 1) {
+    for (int x = 0;  x < element->GetStrandCount(); x++) {
+        StrandElement *se = element->GetStrand(x);
+        EffectLayer *target = se->GetEffectLayer(0);
+        if (element->GetStrandCount() <= 1) {
             if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
                 element->InsertEffectLayer(0);
             }
             target = element->GetEffectLayer(0);
         }
-        if (layer->GetNodeLayerCount() > 0) {
-            NodeLayer *base = layer->GetNodeLayer(0);
+        if (se->GetNodeLayerCount() > 0) {
+            NodeLayer *base = se->GetNodeLayer(0);
             for (int e = base->GetEffectCount() - 1; e >= 0; e--) {
                 Effect *eff = base->GetEffect(e);
                 const std::string &name = eff->GetEffectName();
 
-                if (layer->HasEffectsInTimeRange(eff->GetStartTimeMS(), eff->GetEndTimeMS())) {
+                if (target->HasEffectsInTimeRange(eff->GetStartTimeMS(), eff->GetEndTimeMS())) {
                     //cannot promote, already an effect there
                     continue;
                 }
@@ -1997,8 +1993,8 @@ void xLightsFrame::PromoteEffects(ModelElement *element) {
                     int mp = (eff->GetStartTimeMS() + eff->GetEndTimeMS()) / 2;
                     bool collapse = true;
 
-                    for (int n = 1; n < layer->GetNodeLayerCount() && collapse; n++) {
-                        NodeLayer *node = layer->GetNodeLayer(n);
+                    for (int n = 1; n < se->GetNodeLayerCount() && collapse; n++) {
+                        NodeLayer *node = se->GetNodeLayer(n);
                         int nodeIndex = 0;
                         if (node->HitTestEffectByTime(mp, nodeIndex)) {
                             Effect *nf = node->GetEffect(nodeIndex);
@@ -2011,8 +2007,8 @@ void xLightsFrame::PromoteEffects(ModelElement *element) {
                     }
                     if (collapse) {
                         target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false);
-                        for (int n = 0; n < layer->GetNodeLayerCount() && collapse; n++) {
-                            NodeLayer *node = layer->GetNodeLayer(n);
+                        for (int n = 0; n < se->GetNodeLayerCount() && collapse; n++) {
+                            NodeLayer *node = se->GetNodeLayer(n);
                             int nodeIndex = 0;
                             if (node->HitTestEffectByTime(mp, nodeIndex)) {
                                 node->DeleteEffectByIndex(nodeIndex);
@@ -2023,11 +2019,11 @@ void xLightsFrame::PromoteEffects(ModelElement *element) {
             }
         }
     }
-    if (element->getStrandLayerCount() <= 1) {
+    if (element->GetStrandCount() <= 1) {
         return;
     }
     //OK, we're now promoted to strand level effects, try and promote to Model level
-    StrandLayer *base = element->GetStrandLayer(0);
+    EffectLayer *base = element->GetStrand(0)->GetEffectLayer(0);
     if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
         element->InsertEffectLayer(0);
     }
@@ -2042,25 +2038,34 @@ void xLightsFrame::PromoteEffects(ModelElement *element) {
             int mp = (eff->GetStartTimeMS() + eff->GetEndTimeMS()) / 2;
             bool collapse = true;
 
-            for (int n = 1; n < element->getStrandLayerCount() && collapse; n++) {
-                StrandLayer *node = element->GetStrandLayer(n);
-                int nodeIndex = 0;
-                if (node->HitTestEffectByTime(mp, nodeIndex)) {
-                    Effect *nf = node->GetEffect(nodeIndex);
-                    if (!equals(eff, nf, pal, set)) {
+            for (int n = 0; n < element->GetStrandCount() && collapse; n++) {
+                StrandElement *se = element->GetStrand(n);
+                for (int l = 0; l < se->GetEffectLayerCount(); l++) {
+                    EffectLayer *node = se->GetEffectLayer(l);
+                    if (node == base) {
+                        continue;
+                    }
+                    int nodeIndex = 0;
+                    if (node->HitTestEffectByTime(mp, nodeIndex)) {
+                        Effect *nf = node->GetEffect(nodeIndex);
+                        if (!equals(eff, nf, pal, set)) {
+                            collapse = false;
+                        }
+                    } else {
                         collapse = false;
                     }
-                } else {
-                    collapse = false;
                 }
             }
             if (collapse) {
                 target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false);
-                for (int n = 0; n < element->getStrandLayerCount() && collapse; n++) {
-                    StrandLayer *node = element->GetStrandLayer(n);
-                    int nodeIndex = 0;
-                    if (node->HitTestEffectByTime(mp, nodeIndex)) {
-                        node->DeleteEffectByIndex(nodeIndex);
+                for (int n = 0; n < element->GetStrandCount() && collapse; n++) {
+                    StrandElement *se = element->GetStrand(n);
+                    for (int l = 0; l < se->GetEffectLayerCount(); l++) {
+                        EffectLayer *node = se->GetEffectLayer(l);
+                        int nodeIndex = 0;
+                        if (node->HitTestEffectByTime(mp, nodeIndex)) {
+                            node->DeleteEffectByIndex(nodeIndex);
+                        }
                     }
                 }
             }

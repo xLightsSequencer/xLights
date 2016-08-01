@@ -90,7 +90,7 @@ void ModelViewSelector::PopulateModelsToAdd()
     for(int i = 0; i < mSequenceElements->GetElementCount(); i++ )
     {
         Element* elem = mSequenceElements->GetElement(i);
-        if (elem->GetType() == "timing")
+        if (elem->GetType() == ELEMENT_TYPE_TIMING)
         {
             if (!mSequenceElements->TimingIsPartOfView(dynamic_cast<TimingElement*>(elem), mWhichView))
             {

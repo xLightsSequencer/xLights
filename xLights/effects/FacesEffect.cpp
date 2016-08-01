@@ -39,7 +39,7 @@ void FacesEffect::SetPanelStatus(Model *cls) {
     }
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
         if (mSequenceElements->GetElement(i)->GetEffectLayerCount() == 3
-            && mSequenceElements->GetElement(i)->GetType() == "timing") {
+            && mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_TIMING) {
             fp->Choice_Faces_TimingTrack->Append(mSequenceElements->GetElement(i)->GetName());
         }
     }

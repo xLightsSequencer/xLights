@@ -35,7 +35,7 @@ void StateEffect::SetPanelStatus(Model *cls) {
 
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
         if (mSequenceElements->GetElement(i)->GetEffectLayerCount() == 1
-            && mSequenceElements->GetElement(i)->GetType() == "timing") {
+            && mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_TIMING) {
             fp->Choice_State_TimingTrack->Append(mSequenceElements->GetElement(i)->GetName());
         }
     }

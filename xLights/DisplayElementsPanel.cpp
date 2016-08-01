@@ -299,7 +299,7 @@ void DisplayElementsPanel::PopulateModels()
     for(int i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* elem = mSequenceElements->GetElement(i);
-        if( elem->GetType() == "timing" )
+        if( elem->GetType() == ELEMENT_TYPE_TIMING )
         {
             TimingElement *te = dynamic_cast<TimingElement*>(elem);
             if( current_view == MASTER_VIEW || mSequenceElements->TimingIsPartOfView(te, current_view) )
@@ -340,7 +340,7 @@ void DisplayElementsPanel::PopulateModels()
         for(int i = 0; i < mSequenceElements->GetElementCount(); i++)
         {
             Element* elem = mSequenceElements->GetElement(i);
-            if( elem->GetType() == "model" )
+            if( elem->GetType() == ELEMENT_TYPE_MODEL )
             {
                 AddModelToList(elem);
             }
@@ -583,7 +583,7 @@ void DisplayElementsPanel::OnButtonDeleteModelsClick(wxCommandEvent& event)
 
             // Got a selected item so handle it
             Element* e = (Element*)ListCtrlModels->GetItemData(itemIndex);
-            if( e->GetType() == "model" )
+            if( e->GetType() == ELEMENT_TYPE_MODEL)
             {
                 mSequenceElements->DeleteElementFromView(e->GetName(), mSequenceElements->GetCurrentView());
             }
@@ -608,7 +608,7 @@ int DisplayElementsPanel::GetFirstModelIndex()
     for(int i = 0; i < ListCtrlModels->GetItemCount(); i++)
     {
         Element* e = (Element*)ListCtrlModels->GetItemData(i);
-        if( e->GetType() == "model" )
+        if( e->GetType() == ELEMENT_TYPE_MODEL )
         {
             return i;
         }
@@ -738,7 +738,7 @@ void DisplayElementsPanel::UpdateModelsForSelectedView()
         for(int i = 0; i < mSequenceElements->GetElementCount(current_view); i++)
         {
             Element* elem = mSequenceElements->GetElement(i, current_view);
-            if( elem->GetType() == "model" )
+            if( elem->GetType() == ELEMENT_TYPE_MODEL )
             {
                 if( models != "" )
                 {

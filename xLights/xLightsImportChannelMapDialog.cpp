@@ -312,7 +312,7 @@ bool xLightsImportChannelMapDialog::Init() {
     xLightsImportModelNode* lastmodel;
     int ms = 0;
     for (size_t i = 0; i<mSequenceElements->GetElementCount(); i++) {
-        if (mSequenceElements->GetElement(i)->GetType() == "model") {
+        if (mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_MODEL) {
             Element* e = mSequenceElements->GetElement(i);
             lastmodel = new xLightsImportModelNode(NULL, e->GetName(), "");
             dataModel->Insert(lastmodel, ms++);

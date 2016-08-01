@@ -51,7 +51,7 @@ void PianoEffect::SetPanelStatus(Model *cls)
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
-        if (e->GetEffectLayerCount() == 1 && e->GetType() == "timing")
+        if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
         {
             timingtracks.push_back(e->GetName());
         }
@@ -956,7 +956,7 @@ std::map<int, std::list<float>> PianoEffect::LoadTimingTrack(std::string track, 
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
-        if (e->GetEffectLayerCount() == 1 && e->GetType() == "timing")
+        if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
         {
             if (e->GetName() == track)
             {

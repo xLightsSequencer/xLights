@@ -23,6 +23,29 @@
 //other common strings
 static const std::string STR_EMPTY("");
 
+class EffectLayerInfo {
+public:
+    EffectLayerInfo() {
+        numLayers = 0;
+    }
+    EffectLayerInfo(int l) {
+        resize(l);
+    }
+    void resize(int l) {
+        numLayers = l;
+        currentEffects.resize(l);
+        currentEffectIdxs.resize(l);
+        settingsMaps.resize(l);
+        effectStates.resize(l);
+        validLayers.resize(l);
+    }
+    int numLayers;
+    std::vector<Effect*> currentEffects;
+    std::vector<int> currentEffectIdxs;
+    std::vector<SettingsMap> settingsMaps;
+    std::vector<bool> effectStates;
+    std::vector<bool> validLayers;
+};
 
 class RenderEvent {
 public:
@@ -166,22 +189,22 @@ public:
             gauge(nullptr), currentFrame(0), renderLog(log4cpp::Category::getInstance(std::string("log_render")))
     {
         if (row != NULL) {
-            name = row->GetName();
+            name = row->GetModelName();
             mainBuffer = new PixelBufferClass(xframe, false);
             Model *model = xframe->GetModel(name);
             numLayers = rowToRender->GetEffectLayerCount();
 
             if (xframe->InitPixelBuffer(name, *mainBuffer, numLayers, zeroBased)) {
 
-                for (int x = 0; x < row->getStrandLayerCount(); x++) {
-                    StrandLayer *sl = row->GetStrandLayer(x);
-                    if (sl -> GetEffectCount() > 0) {
+                for (int x = 0; x < row->GetStrandCount(); x++) {
+                    StrandElement *se = row->GetStrand(x);
+                    if (se->HasEffects() > 0) {
                         strandBuffers[x].reset(new PixelBufferClass(xframe, false));
-                        strandBuffers[x]->InitStrandBuffer(*model, x, data.FrameTime());
+                        strandBuffers[x]->InitStrandBuffer(*model, x, data.FrameTime(), se->GetEffectLayerCount());
                     }
-                    for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
+                    for (int n = 0; n < se->GetNodeLayerCount(); n++) {
                         if (n < model->GetStrandLength(x)) {
-                            EffectLayer *nl = sl->GetNodeLayer(n);
+                            EffectLayer *nl = se->GetNodeLayer(n);
                             if (nl -> GetEffectCount() > 0) {
                                 nodeBuffers[SNPair(x, n)].reset(new PixelBufferClass(xframe, false));
                                 nodeBuffers[SNPair(x, n)]->InitNodeBuffer(*model, x, n, data.FrameTime());
@@ -345,7 +368,45 @@ public:
         startFrame = start;
         endFrame = end;
     }
+    
 
+    void ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
+        bool effectsToUpdate = false;
+        int numLayers = el->GetEffectLayerCount();
+        for (int layer = 0; layer < numLayers; layer++) {
+            EffectLayer *elayer = el->GetEffectLayer(layer);
+            Effect *el = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
+            if (el != info.currentEffects[layer]) {
+                info.currentEffects[layer] = el;
+                SetInializingStatus(frame, layer, strand);
+                initialize(layer, frame, el, info.settingsMaps[layer], buffer);
+                info.effectStates[layer] = true;
+            }
+            bool persist = buffer->IsPersistent(layer);
+            if (!persist || info.currentEffects[layer] == nullptr || info.currentEffects[layer]->GetEffectIndex() == -1) {
+                buffer->Clear(layer);
+            }
+            SetRenderingStatus(frame, &info.settingsMaps[layer], layer, strand, -1, true);
+            bool b = info.effectStates[layer];
+            info.validLayers[layer] = xLights->RenderEffectFromMap(el, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);
+            info.effectStates[layer] = b;
+            effectsToUpdate |= info.validLayers[layer];
+        }
+        if (!effectsToUpdate && clearAllFrames) {
+            info.validLayers[0] = true;
+            effectsToUpdate = true;
+        }
+        if (effectsToUpdate) {
+            SetCalOutputStatus(frame, strand);
+            if (blend) {
+                buffer->SetColors(numLayers, &((*seqData)[frame][0]));
+                info.validLayers[numLayers] = true;
+            }
+            buffer->CalcOutput(frame, info.validLayers);
+            buffer->GetColors(&((*seqData)[frame][0]));
+        }
+    }
+    
     virtual void Process() override {
         SetGenericStatus("Initializing rendering thread for %s", 0);
         int maxFrameBeforeCheck = -1;
@@ -378,15 +439,8 @@ public:
         if (startFrame < 0) startFrame = 0;
         if (endFrame > seqData->NumFrames()) endFrame = seqData->NumFrames();
 
-        std::vector<Effect*> currentEffects(numLayers, nullptr);
-        std::vector<int> currentEffectIdxs(numLayers, 0);
-        std::vector<SettingsMap> settingsMaps(numLayers);
-        std::vector<bool> effectStates(numLayers);
-        std::vector<bool> validLayers(numLayers);
-        std::map<int, Effect*> strandEffects;
-        std::map<int, SettingsMap> strandSettingsMaps;
-        std::map<int, bool> strandEffectStates;
-        std::map<int, int> strandEffectidxs;
+        EffectLayerInfo mainModelInfo(numLayers);
+        std::map<int, EffectLayerInfo> strandEffectInfos;
         std::map<SNPair, Effect*> nodeEffects;
         std::map<SNPair, SettingsMap> nodeSettingsMaps;
         std::map<SNPair, bool> nodeEffectStates;
@@ -400,11 +454,11 @@ public:
             for (int layer = 0; layer < numLayers; layer++) {
                 wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame);
                 SetStatus(msg);
-                currentEffects[layer] = findEffectForFrame(layer, startFrame, currentEffectIdxs[layer]);
+                mainModelInfo.currentEffects[layer] = findEffectForFrame(layer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
                 msg = wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, startFrame);
                 SetStatus(msg);
-                initialize(layer, startFrame, currentEffects[layer], settingsMaps[layer], mainBuffer);
-                effectStates[layer] = true;
+                initialize(layer, startFrame, mainModelInfo.currentEffects[layer], mainModelInfo.settingsMaps[layer], mainBuffer);
+                mainModelInfo.effectStates[layer] = true;
             }
 
             for (int frame = startFrame; frame < endFrame; frame++) {
@@ -422,70 +476,16 @@ public:
                 if (frame >= maxFrameBeforeCheck) {
                     maxFrameBeforeCheck = waitForFrame(frame);
                 }
-                bool effectsToUpdate = false;
-                for (int layer = 0; layer < numLayers; layer++) {
-                    SetGenericStatus("%s: Starting frame %d, layer %d", frame, layer, true);
-                    Effect *el = findEffectForFrame(layer, frame, currentEffectIdxs[layer]);
-                    if (el != currentEffects[layer]) {
-                        currentEffects[layer] = el;
-                        SetInializingStatus(frame, layer);
-                        initialize(layer, frame, el, settingsMaps[layer], mainBuffer);
-                        effectStates[layer] = true;
-                    }
-                    bool persist = mainBuffer->IsPersistent(layer);
-                    if (!persist || currentEffects[layer] == nullptr || currentEffects[layer]->GetEffectIndex() == -1) {
-                        mainBuffer->Clear(layer);
-                    }
-                    SetRenderingStatus(frame, &settingsMaps[layer], layer, -1, -1, true);
-                    bool b = effectStates[layer];
-                    validLayers[layer] = xLights->RenderEffectFromMap(el, layer, frame, settingsMaps[layer], *mainBuffer, b, true, &renderEvent);
-                    effectStates[layer] = b;
-                    effectsToUpdate |= validLayers[layer];
-                }
-                if (!effectsToUpdate && clearAllFrames) {
-                    validLayers[0] = true;
-                    effectsToUpdate = true;
-                }
-                if (effectsToUpdate) {
-                    SetCalOutputStatus(frame);
-                    mainBuffer->CalcOutput(frame, validLayers);
-                    size_t nodeCnt = mainBuffer->GetNodeCount();
-                    for(size_t n = 0; n < nodeCnt; n++) {
-                        int start = mainBuffer->NodeStartChannel(n);
-                        mainBuffer->GetNodeChannelValues(n, &((*seqData)[frame][start]));
-                    }
-                }
+                ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer);
                 if (!strandBuffers.empty()) {
                     for (std::map<int, PixelBufferClassPtr>::iterator it = strandBuffers.begin(); it != strandBuffers.end(); it++) {
                         int strand = it->first;
-
                         PixelBufferClass *buffer = it->second.get();
-                        StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
-                        Effect *el = findEffectForFrame(slayer, frame, strandEffectidxs[strand]);
-                        if (el != strandEffects[strand] || frame == startFrame) {
-                            strandEffects[strand] = el;
-                            SetInializingStatus(frame, -1, strand);
-                            initialize(0, frame, el, strandSettingsMaps[strand], buffer);
-                            strandEffectStates[strand] = true;
+                        StrandElement *selement = rowToRender->GetStrand(strand);
+                        if (strandEffectInfos[strand].numLayers != (selement->GetEffectLayerCount() + 1)) {
+                            strandEffectInfos[strand].resize(selement->GetEffectLayerCount() + 1);
                         }
-                        bool persist=buffer->IsPersistent(0);
-                        if (!persist || strandEffects[strand] == nullptr || strandEffects[strand]->GetEffectIndex() == -1) {
-                            buffer->Clear(0);
-                        }
-                        SetRenderingStatus(frame, &strandSettingsMaps[strand], -1, strand, -1, true);
-
-                        if (xLights->RenderEffectFromMap(el, 0, frame, strandSettingsMaps[strand], *buffer, strandEffectStates[strand], true, &renderEvent)) {
-                            //copy to output
-                            std::vector<bool> valid(2, true);
-                            SetCalOutputStatus(frame, strand);
-                            buffer->SetColors(1, &((*seqData)[frame][0]));
-                            buffer->CalcOutput(frame, valid);
-                            size_t nodeCnt = buffer->GetNodeCount();
-                            for(size_t n = 0; n < nodeCnt; n++) {
-                                int start = buffer->NodeStartChannel(n);
-                                buffer->GetNodeChannelValues(n, &((*seqData)[frame][start]));
-                            }
-                        }
+                        ProcessFrame(frame, selement, strandEffectInfos[strand], buffer, strand, true);
                     }
                 }
                 if (!nodeBuffers.empty()) {
@@ -494,7 +494,7 @@ public:
                         PixelBufferClass *buffer = it->second.get();
                         int strand = node.strand;
                         int inode = node.node;
-                        StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
+                        StrandElement *slayer = rowToRender->GetStrand(strand);
                         if (slayer == nullptr) {
                             //deleted strand
                             continue;
@@ -504,6 +504,7 @@ public:
                             //deleted node
                             continue;
                         }
+                        
                         Effect *el = findEffectForFrame(nlayer, frame, nodeEffectIdxs[node]);
                         if (el != nodeEffects[node] || frame == startFrame) {
                             nodeEffects[node] = el;
@@ -523,14 +524,11 @@ public:
                             std::vector<bool> valid(2, true);
                             buffer->SetColors(1, &((*seqData)[frame][0]));
                             buffer->CalcOutput(frame, valid);
-                            size_t nodeCnt = buffer->GetNodeCount();
-                            for(size_t n = 0; n < nodeCnt; n++) {
-                                int start = buffer->NodeStartChannel(n);
-                                buffer->GetNodeChannelValues(n, &((*seqData)[frame][start]));
-                            }
+                            buffer->GetColors(&((*seqData)[frame][0]));
                         }
                     }
                 }
+                mainBuffer->ApplyDimmingCurves(&((*seqData)[frame][0]));
                 if (HasNext()) {
                     SetGenericStatus("%s: Notifying next renderer of frame %d done", frame);
                     FrameDone(frame);
@@ -552,7 +550,7 @@ public:
             //let the next know we're done
             SetGenericStatus("%s: Notifying next renderer of final frame", 0);
             FrameDone(END_OF_RENDER_FRAME);
-            xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()), 0);
+            xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetModelName()), 0);
         } else {
             xLights->CallAfter(&xLightsFrame::RenderDone);
         }
@@ -690,7 +688,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
 
     for (size_t row = 0; row < numRows; row++) {
         Element *rowEl = mSequenceElements.GetElement(row);
-        if (rowEl->GetType() == "model" && rowEl != lastRowEl) {
+        if (rowEl->GetType() == ELEMENT_TYPE_MODEL && rowEl != lastRowEl) {
             ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
             lastRowEl = me;
             RenderJob *job = new RenderJob(me, SeqData, this);
@@ -818,7 +816,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
 	//printf("render model %d %d   %d\n", startms,endms, clear);
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
-    if( el->GetType() != "timing") {
+    if( el->GetType() != ELEMENT_TYPE_TIMING) {
         job = new RenderJob(dynamic_cast<ModelElement*>(el), SeqData, this, false, clear);
         job->SetDeleteWhenComplete();
         if (job->getBuffer() == nullptr) {

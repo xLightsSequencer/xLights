@@ -148,8 +148,6 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     xlColor color;
     size_t colorcnt = buffer.GetColorCount();
     int color_size = BandSize +  SkipSize;
-    int repeat_size = color_size * colorcnt;
-    int band_pos = buffer.curPeriod - buffer.curEffStartPer;
     int current_color = 0;
     int current_pos = 0;
 
