@@ -75,7 +75,8 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
         if(e->GetType()=="model")
         {
             mSequenceElements->UnSelectAllElements();
-            e->SetSelected(true);
+            ModelElement *me = dynamic_cast<ModelElement *>(e);
+            me->SetSelected(true);
             wxCommandEvent playEvent(EVT_MODEL_SELECTED);  // send model selection in case we need to switch playback to this model
             playEvent.SetString(e->GetName());
             wxPostEvent(GetParent(), playEvent);
@@ -90,7 +91,8 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
         else if(HitTestTimingActive(mSelectedRow,event.GetX(),&result))
         {
             mSequenceElements->DeactivateAllTimingElements();
-            e->SetActive(!result);
+            TimingElement *te = dynamic_cast<TimingElement *>(e);
+            te->SetActive(!result);
             // Set the selected timing row.
             int selectedTimingRow = result?mSelectedRow:-1;
             mSequenceElements->SetSelectedTimingRow(selectedTimingRow);
@@ -109,24 +111,25 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
     Element* element = ri->element;
 
     if (element->GetType()=="model") {
+        ModelElement *me = dynamic_cast<ModelElement *>(element);
         if (ri->strandIndex == -1) {
             //dbl click on model
-            if (element->getStrandLayerCount() == 1) {
-                element->GetStrandLayer(0)->ShowNodes(true);
-                element->ShowStrands(!element->ShowStrands());
+            if (me->getStrandLayerCount() == 1) {
+                me->GetStrandLayer(0)->ShowNodes(true);
+                me->ShowStrands(!me->ShowStrands());
             } else {
-                element->ShowStrands(!element->ShowStrands());
+                me->ShowStrands(!me->ShowStrands());
             }
         } else if (ri->nodeIndex >= 0) {
             //dbl click on node
-            if (element->getStrandLayerCount() == 1) {
-                element->ShowStrands(!element->ShowStrands());
+            if (me->getStrandLayerCount() == 1) {
+                me->ShowStrands(!me->ShowStrands());
             } else {
-                element->GetStrandLayer(ri->strandIndex)->ShowNodes(!element->GetStrandLayer(ri->strandIndex)->ShowNodes());
+                me->GetStrandLayer(ri->strandIndex)->ShowNodes(!me->GetStrandLayer(ri->strandIndex)->ShowNodes());
             }
         } else {
             //dbl click on strand
-            element->GetStrandLayer(ri->strandIndex)->ShowNodes(!element->GetStrandLayer(ri->strandIndex)->ShowNodes());
+            me->GetStrandLayer(ri->strandIndex)->ShowNodes(!me->GetStrandLayer(ri->strandIndex)->ShowNodes());
         }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         eventRowHeaderChanged.SetString(element->GetName());
@@ -155,7 +158,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
 
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
     Element* element = ri->element;
-    if (element->GetType()=="model" || element->GetType()=="view")
+    if (element->GetType()=="model")
     {
         if (ri->strandIndex < 0) {
             mnuLayer.Append(ID_ROW_MNU_INSERT_LAYER_ABOVE,"Insert Layer Above");
@@ -180,10 +183,11 @@ void RowHeading::rightClick( wxMouseEvent& event)
             mnuLayer.Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export Model");
             mnuLayer.AppendSeparator();
             bool canPromote = false;
-            if (element->getStrandLayerCount() == 1) {
+            ModelElement *me = dynamic_cast<ModelElement *>(element);
+            if (me->getStrandLayerCount() == 1) {
                 mnuLayer.Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");
                 canPromote = true;
-            } else if (element->getStrandLayerCount() > 1) {
+            } else if (me->getStrandLayerCount() > 1) {
                 canPromote = true;
                 mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Strands");
                 if (ri->strandIndex >= 0) {
@@ -192,7 +196,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
             } else {
                 mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Models");
             }
-            if (ri->nodeIndex > -1 && element->GetStrandLayer(ri->strandIndex)->GetNodeLayer(ri->nodeIndex)->GetEffectCount() == 0) {
+            if (ri->nodeIndex > -1 && me->GetStrandLayer(ri->strandIndex)->GetNodeLayer(ri->nodeIndex)->GetEffectCount() == 0) {
                 mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
             }
             if (canPromote) {
@@ -336,6 +340,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (filename.IsEmpty()) return;
         wxFileName fn(filename);
         log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        TimingElement *te = dynamic_cast<TimingElement *>(element);
         if (fn.GetExt().Lower() == "xtiming")
         {
             wxFile f(filename);
@@ -347,7 +352,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 return;
             }
             wxString name = wxFileName(filename).GetName();
-            wxString td = wxString(mSequenceElements->GetElement(element->GetName())->GetExport().c_str());
+            wxString td = wxString(te->GetExport().c_str());
             wxString v = xlights_version_string;
             f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<timing ");
             f.Write(wxString::Format("name=\"%s\" ", name));
@@ -366,7 +371,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
                 return;
             }
-            wxString td = wxString(mSequenceElements->GetElement(element->GetName())->GetPapagayoExport(mSequenceElements->GetFrequency()).c_str());
+            wxString td = wxString(te->GetPapagayoExport(mSequenceElements->GetFrequency()).c_str());
             f.Write(td);
             f.Close();
         }
@@ -374,16 +379,16 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent playEvent(EVT_IMPORT_TIMING);
         wxPostEvent(GetParent(), playEvent);
     } else if(id == ID_ROW_MNU_IMPORT_LYRICS) {
-        mSequenceElements->ImportLyrics(element, GetParent());
+        mSequenceElements->ImportLyrics(dynamic_cast<TimingElement *>(element), GetParent());
     } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES) {
         int result = wxMessageBox("Breakdown phrases? Any existing words and phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
         if (result == wxOK) {
-            BreakdownTimingPhrases(element);
+            BreakdownTimingPhrases(dynamic_cast<TimingElement *>(element));
         }
     } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_WORDS) {
         int result = wxMessageBox("Breakdown words? Any existing phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
         if (result == wxOK) {
-            BreakdownTimingWords(element);
+            BreakdownTimingWords(dynamic_cast<TimingElement *>(element));
         }
     } else if (id == ID_ROW_MNU_EXPORT_MODEL) {
         wxCommandEvent playEvent(EVT_EXPORT_MODEL);
@@ -412,14 +417,16 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent displayElementEvent(EVT_SHOW_DISPLAY_ELEMENTS);
         wxPostEvent(GetParent(), displayElementEvent);
     } else if (id == ID_ROW_MNU_TOGGLE_STRANDS) {
-        element->ShowStrands(!element->ShowStrands());
+        ModelElement *me = dynamic_cast<ModelElement *>(element);
+        me->ShowStrands(!me->ShowStrands());
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         eventRowHeaderChanged.SetString(element->GetName());
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_TOGGLE_NODES) {
+        ModelElement *me = dynamic_cast<ModelElement *>(element);
         if (mSequenceElements->GetVisibleRowInformation(mSelectedRow)->strandIndex == -1) {
-            element->GetStrandLayer(0)->ShowNodes(true);
-            element->ShowStrands(!element->ShowStrands());
+            me->GetStrandLayer(0)->ShowNodes(true);
+            me->ShowStrands(!me->ShowStrands());
         } else {
             ((StrandLayer*)mSequenceElements->GetVisibleEffectLayer(mSelectedRow))->ShowNodes(!((StrandLayer*)mSequenceElements->GetVisibleEffectLayer(mSelectedRow))->ShowNodes());
         }
@@ -442,7 +449,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     wxPostEvent(GetParent(), eventForceRefresh);
 }
 
-void RowHeading::BreakdownTimingPhrases(Element* element)
+void RowHeading::BreakdownTimingPhrases(TimingElement* element)
 {
     element->SetFixedTiming(0);
     EffectLayer* layer = element->GetEffectLayer(0);
@@ -464,7 +471,7 @@ void RowHeading::BreakdownTimingPhrases(Element* element)
     wxPostEvent(GetParent(), eventRowHeaderChanged);
 }
 
-void RowHeading::BreakdownTimingWords(Element* element)
+void RowHeading::BreakdownTimingWords(TimingElement* element)
 {
     if( element->GetEffectLayerCount() > 2 )
     {
@@ -498,16 +505,13 @@ bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
 
 bool RowHeading::HitTestTimingActive(int row,int x, bool* IsActive)
 {
-    if(mSequenceElements->GetVisibleRowInformation(row)->element->GetType() == "timing" &&
-       x<DEFAULT_ROW_HEADING_MARGIN)
-    {
-        *IsActive = mSequenceElements->GetVisibleRowInformation(row)->Active;
+    if (mSequenceElements->GetVisibleRowInformation(row)->element->GetType() == "timing"
+        && x < DEFAULT_ROW_HEADING_MARGIN) {
+    
+        *IsActive = dynamic_cast<TimingElement*>(mSequenceElements->GetVisibleRowInformation(row)->element)->GetActive();
         return true;
     }
-    else
-    {
-        return false;
-    }
+    return false;
 }
 
 void RowHeading::SetSelectedRow(int row_number)
@@ -626,7 +630,7 @@ void RowHeading::Draw()
             if( mSequenceElements->GetVisibleRowInformation(i)->layerIndex == 0 )
             {
                 dc.SetPen(*wxBLACK_PEN);
-                if(mSequenceElements->GetVisibleRowInformation(i)->Active)
+                if(dynamic_cast<TimingElement*>(mSequenceElements->GetVisibleRowInformation(i)->element)->GetActive())
                 {
                     dc.SetBrush(*wxWHITE_BRUSH);
                     dc.DrawCircle(7,startY + DEFAULT_ROW_HEADING_HEIGHT/2,5);

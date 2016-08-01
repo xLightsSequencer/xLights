@@ -161,7 +161,7 @@ public:
 
 class RenderJob: public Job, public NextRenderer {
 public:
-    RenderJob(Element *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false, bool clear = false)
+    RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false, bool clear = false)
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), deleteWhenComplete(false),
             gauge(nullptr), currentFrame(0), renderLog(log4cpp::Category::getInstance(std::string("log_render")))
     {
@@ -613,7 +613,7 @@ private:
     }
 
 
-    Element *rowToRender;
+    ModelElement *rowToRender;
     std::string name;
     int startFrame;
     int endFrame;
@@ -681,7 +681,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
     RenderJob **jobs = new RenderJob*[numRows];
     AggregatorRenderer **aggregators = new AggregatorRenderer*[numRows];
     std::vector<std::set<int>> channelMaps(SeqData.NumChannels());
-    Element *lastRowEl = NULL;
+    ModelElement *lastRowEl = NULL;
 
     for (size_t row = 0; row < numRows; row++) {
         jobs[row] = nullptr;
@@ -691,8 +691,9 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
     for (size_t row = 0; row < numRows; row++) {
         Element *rowEl = mSequenceElements.GetElement(row);
         if (rowEl->GetType() == "model" && rowEl != lastRowEl) {
-            lastRowEl = rowEl;
-            RenderJob *job = new RenderJob(rowEl, SeqData, this);
+            ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
+            lastRowEl = me;
+            RenderJob *job = new RenderJob(me, SeqData, this);
             job->setRenderRange(0, SeqData.NumFrames());
 
             PixelBufferClass *buffer = job->getBuffer();
@@ -818,7 +819,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
     if( el->GetType() != "timing") {
-        job = new RenderJob(el, SeqData, this, false, clear);
+        job = new RenderJob(dynamic_cast<ModelElement*>(el), SeqData, this, false, clear);
         job->SetDeleteWhenComplete();
         if (job->getBuffer() == nullptr) {
             delete job;
@@ -880,7 +881,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
 
     Element * el = mSequenceElements.GetElement(model);
     NextRenderer wait;
-    RenderJob *job = new RenderJob(el, SeqData, this, true);
+    RenderJob *job = new RenderJob(dynamic_cast<ModelElement*>(el), SeqData, this, true);
     SequenceData *data = job->createExportBuffer();
     int cpn = job->getBuffer()->GetChanCountPerNode();
 

@@ -45,8 +45,8 @@ class RowHeading : public wxWindow
         void DrawHeading(wxPaintDC* dc, wxXmlNode* model,int width,int row);
         bool HitTestCollapseExpand(int row,int x, bool* IsCollapsed);
         bool HitTestTimingActive(int row,int x, bool* IsActive);
-        void BreakdownTimingPhrases(Element* element);
-        void BreakdownTimingWords(Element* element);
+        void BreakdownTimingPhrases(TimingElement* element);
+        void BreakdownTimingWords(TimingElement* element);
         const xlColor* GetHeaderColor(Row_Information_Struct* info);
         const xlColor * mHeaderColorModel;
         const xlColor * mHeaderColorTiming;

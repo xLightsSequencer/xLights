@@ -270,7 +270,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     {
         Effect* phrase_effect = mSelectedEffect;
         EffectLayer* word_layer;
-        Element* element = phrase_effect->GetParentEffectLayer()->GetParentElement();
+        TimingElement* element = dynamic_cast<TimingElement*>(phrase_effect->GetParentEffectLayer()->GetParentElement());
         element->SetFixedTiming(0);
         if( element->GetEffectLayerCount() == 1 )
         {
@@ -2611,7 +2611,7 @@ void EffectsGrid::DrawEffects()
 void EffectsGrid::DrawTimingEffects(int row)
 {
     Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(row);
-    Element* element =ri->element;
+    TimingElement* element = dynamic_cast<TimingElement*>(ri->element);
     EffectLayer* effectLayer=mSequenceElements->GetVisibleEffectLayer(row);
 
     DrawGLUtils::xlVertexAccumulator * linesRight;
@@ -2910,7 +2910,7 @@ Element* EffectsGrid::GetActiveTimingElement()
     for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
     {
         Element* e = mSequenceElements->GetVisibleRowInformation(row)->element;
-        if(e->GetType()== "timing" && e->GetActive())
+        if(e->GetType()== "timing" && dynamic_cast<TimingElement*>(e)->GetActive())
         {
             returnValue = e;
             break;

@@ -16,6 +16,7 @@ enum ElementType
 
 class NetInfoClass;
 class Element;
+class ModelElement;
 class Model;
 
 class ChangeListener {
@@ -25,118 +26,154 @@ public:
 
 class SequenceElements;
 
-class Element
+
+class Element {
+public:
+    Element(SequenceElements *p, const std::string &name);
+    virtual ~Element();
+    
+    virtual const std::string GetType() const = 0;
+
+    SequenceElements *GetSequenceElements() const {return parent;}
+
+    const std::string &GetName() const;
+    void SetName(const std::string &name);
+    
+    
+    bool GetVisible() const {return mVisible;}
+    void SetVisible(bool visible) {mVisible = visible;}
+
+    
+    virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
+    EffectLayer* GetEffectLayer(int index);
+    size_t GetEffectLayerCount();
+    
+    EffectLayer* AddEffectLayer();
+    void RemoveEffectLayer(int index);
+    EffectLayer* InsertEffectLayer(int index);
+
+    
+    bool GetCollapsed() const { return mCollapsed; }
+    void SetCollapsed(bool collapsed) { mCollapsed = collapsed; }
+    
+
+    int GetIndex() const {return mIndex;}
+    void SetIndex(int index) { mIndex = index;}
+    int &Index() { return mIndex;}
+    int Index() const { return mIndex;}
+    
+    
+    std::recursive_mutex &GetChangeLock() { return changeLock; }
+    void IncrementChangeCount(int startMs, int endMS);
+    int getChangeCount() const { return changeCount; }
+    
+    void GetDirtyRange(int &startMs, int &endMs) const {
+        startMs = dirtyStart;
+        endMs = dirtyEnd;
+    }
+    void GetAndResetDirtyRange(int &changes, int &startMs, int &endMs) {
+        changes = changeCount;
+        startMs = dirtyStart;
+        endMs = dirtyEnd;
+        dirtyStart = dirtyEnd = -1;
+    }
+    void SetDirtyRange(int start, int end) {
+        if (dirtyStart == -1) {
+            dirtyStart = start;
+            dirtyEnd = end;
+        } else {
+            if (dirtyEnd < end) {
+                dirtyEnd = end;
+            }
+            if (dirtyStart > start) {
+                dirtyStart = start;
+            }
+        }
+    }
+    void ClearDirtyFlags() {
+        dirtyStart = dirtyEnd = -1;
+    }
+    
+protected:
+    SequenceElements *parent;
+
+    std::string mName;
+    int mIndex;
+    bool mVisible;
+    bool mCollapsed;
+
+    std::vector<EffectLayer*> mEffectLayers;
+    ChangeListener *listener;
+    volatile int changeCount = 0;
+    volatile int dirtyStart = -1;
+    volatile int dirtyEnd = -1;
+
+    std::recursive_mutex changeLock;
+};
+
+
+class TimingElement : public Element
+{
+public:
+    TimingElement(SequenceElements *p, const std::string &name);
+    virtual ~TimingElement();
+    
+    virtual const std::string GetType() const override { return "timing"; }
+
+    int GetFixedTiming() const { return mFixed; }
+    void SetFixedTiming(int fixed) { mFixed = fixed; }
+
+    const std::string &GetViews() const { return mViews; }
+    void SetViews(const std::string &views) { mViews = views; }
+
+    bool GetActive() const { return mActive; }
+    void SetActive(bool active) { mActive = active; }
+
+    std::string GetExport() const;
+    std::string GetPapagayoExport(int ms) const;
+    
+private:
+    int mFixed;
+    bool mActive;
+    std::string mViews;
+};
+
+class ModelElement : public Element
 {
     public:
-        Element(SequenceElements *p, const std::string &name, const std::string &type,bool visible,bool collapsed, bool active, bool selected);
-        virtual ~Element();
+        ModelElement(SequenceElements *p, const std::string &name, bool selected);
+        virtual ~ModelElement();
     
-        SequenceElements *GetSequenceElements() {return parent;}
 
-        std::string GetExport() const;
-        std::string GetPapagayoExport(int ms) const;
-        const std::string &GetName() const;
-        void SetName(const std::string &name);
+        virtual const std::string GetType() const override { return "model"; }
 
-        bool GetVisible();
-        void SetVisible(bool visible);
-
-        bool GetCollapsed();
-        void SetCollapsed(bool collapsed);
-
-        bool GetActive();
-        void SetActive(bool active);
 
         bool GetSelected();
         void SetSelected(bool selected);
 
-        int GetFixedTiming();
-        void SetFixedTiming(int fixed);
 
-        const std::string &GetType() const;
-        void SetType(const std::string &type);
+        virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
 
-        const std::string &GetViews() const;
-        void SetViews(const std::string &views);
-
-        EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
-        EffectLayer* GetEffectLayer(int index);
-        size_t GetEffectLayerCount();
-
-
-        EffectLayer* AddEffectLayer();
-        void RemoveEffectLayer(int index);
-        EffectLayer* InsertEffectLayer(int index);
-
+    
         StrandLayer* GetStrandLayer(int index, bool create = false);
         int getStrandLayerCount();
         void InitStrands(Model &cls);
         bool ShowStrands() { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}
-
     
-        int GetIndex() const {return mIndex;}
-        void SetIndex(int index) { mIndex = index;}
-        int &Index() { return mIndex;}
-        int Index() const { return mIndex;}
-
-        void IncrementChangeCount(int startMs, int endMS);
-        int getChangeCount() const { return changeCount; }
-
-        void GetDirtyRange(int &startMs, int &endMs) {
-            startMs = dirtyStart;
-            endMs = dirtyEnd;
-        }
-        void GetAndResetDirtyRange(int &changes, int &startMs, int &endMs) {
-            changes = changeCount;
-            startMs = dirtyStart;
-            endMs = dirtyEnd;
-            dirtyStart = dirtyEnd = -1;
-        }
-        void SetDirtyRange(int start, int end) {
-            if (dirtyStart == -1) {
-                dirtyStart = start;
-                dirtyEnd = end;
-            } else {
-                if (dirtyEnd < end) {
-                    dirtyEnd = end;
-                }
-                if (dirtyStart > start) {
-                    dirtyStart = start;
-                }
-            }
-        }
-        void ClearDirtyFlags() {
-            dirtyStart = dirtyEnd = -1;
-        }
-    
-        std::recursive_mutex &GetRenderLock() { return renderLock; }
+        std::recursive_mutex &GetRenderLock() { return changeLock; }
         int GetWaitCount();
         void IncWaitCount();
         void DecWaitCount();
     protected:
     private:
-        int mIndex;
-        std::string mName;
-        std::string mElementType;
-        std::string mViews;
-        bool mVisible;
-        bool mCollapsed;
         bool mStrandsVisible = false;
-        bool mActive;
         bool mSelected;
-        int mFixed;
-        std::vector<EffectLayer*> mEffectLayers;
         std::vector<StrandLayer*> mStrandLayers;
     
-        std::recursive_mutex renderLock;
         std::atomic_int waitCount;
 
-        SequenceElements *parent;
-        ChangeListener *listener;
-        volatile int changeCount = 0;
-        volatile int dirtyStart = -1;
-        volatile int dirtyEnd = -1;
+
 };
 
 #endif // ELEMENT_H

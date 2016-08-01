@@ -148,7 +148,7 @@ void StateEffect::RenderState(RenderBuffer &buffer,
     std::recursive_mutex tmpLock;
     std::recursive_mutex *lock = &tmpLock;
     if (track != nullptr) {
-        lock = &track->GetRenderLock();
+        lock = &track->GetChangeLock();
     }
     std::unique_lock<std::recursive_mutex> locker(*lock);
 

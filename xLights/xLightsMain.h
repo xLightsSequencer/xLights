@@ -1175,7 +1175,7 @@ public:
 
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() { return mSequenceElements; }
-    Element* AddTimingElement(const std::string& name);
+    TimingElement* AddTimingElement(const std::string& name);
     void DeleteTimingElement(const std::string& name);
     void RenameTimingElement(const std::string& old_name, const std::string& new_name);
     void ImportTimingElement();
@@ -1183,7 +1183,7 @@ public:
     void ConvertDataRowToEffects(wxCommandEvent &command);
     void ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime);
     void PromoteEffects(wxCommandEvent &command);
-    void PromoteEffects(Element *element);
+    void PromoteEffects(ModelElement *element);
     wxXmlNode* CreateEffectNode(wxString& name);
     void UpdateEffectNode(wxXmlNode* node);
     void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion);

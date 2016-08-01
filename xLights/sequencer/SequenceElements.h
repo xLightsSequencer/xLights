@@ -24,7 +24,6 @@ public:
     int Index;
     int RowNumber;
     bool Collapsed;
-    bool Active;
     int colorIndex;
     int layerIndex;
     int strandIndex = -1;
@@ -102,7 +101,7 @@ class SequenceElements : public ChangeListener
 
         void SetSequenceEnd(int ms);
         int GetSequenceEnd();
-        void ImportLyrics(Element* element, wxWindow* parent);
+        void ImportLyrics(TimingElement* element, wxWindow* parent);
         void BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time, const std::string& phrase);
         void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const std::string& word);
 
@@ -120,7 +119,7 @@ class SequenceElements : public ChangeListener
         int GetNumberOfTimingElements();
         bool ElementExists(const std::string &elementName, int view = MASTER_VIEW);
         void RenameTimingTrack(std::string oldname, std::string newname);
-        bool TimingIsPartOfView(Element* timing, int view);
+        bool TimingIsPartOfView(TimingElement* timing, int view);
         std::string GetViewName(int view) const;
 
         void SetViewsNode(wxXmlNode* viewsNode);
@@ -171,7 +170,7 @@ class SequenceElements : public ChangeListener
         {
             return (element1->GetIndex() < element2->GetIndex());
         }
-        void addTimingElement(Element *elem, std::vector<Row_Information_Struct> &mRowInformation,
+        void addTimingElement(TimingElement *elem, std::vector<Row_Information_Struct> &mRowInformation,
                               int &rowIndex, int &selectedTimingRow, int &timingRowCount, int &timingColorIndex);
 
         void ClearAllViews();

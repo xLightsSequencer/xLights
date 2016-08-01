@@ -819,9 +819,10 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     std::vector<EffectLayer *> mapped;
 
     for (auto it = elements.begin(); it != elements.end(); it++) {
-        Element *el = *it;
-        if (el->GetType() == "model")
+        Element *e = *it;
+        if (e->GetType() == "model")
         {
+            ModelElement *el = dynamic_cast<ModelElement*>(e);
             bool hasEffects = false;
             for (size_t l = 0; l < el->GetEffectLayerCount(); l++) {
                 hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
@@ -868,11 +869,11 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     {
         xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();
-        Element * model = nullptr;
+        ModelElement * model = nullptr;
         for (size_t x=0; x<mSequenceElements.GetElementCount();x++) {
             if (mSequenceElements.GetElement(x)->GetType() == "model"
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
-                model = mSequenceElements.GetElement(x);
+                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 break;
             }
         }
@@ -1313,11 +1314,11 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     for (size_t m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
         Model *mc = GetModel(modelName);
-        Element * model = nullptr;
+        ModelElement * model = nullptr;
         for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
-                model = mSequenceElements.GetElement(i);
+                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
             }
         }
         MapVixChannelInformation(this, model->GetEffectLayer(0),
@@ -1446,11 +1447,11 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
     for (size_t m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
         Model *mc = GetModel(modelName);
-        Element * model = nullptr;
+        ModelElement * model = nullptr;
         for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
-                model = mSequenceElements.GetElement(i);
+                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
             }
         }
         MapHLSChannelInformation(this, model->GetEffectLayer(0),
@@ -1979,11 +1980,11 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
     for (size_t m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
         Model *mc = GetModel(modelName);
-        Element * model = nullptr;
+        ModelElement * model = nullptr;
         for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
-                model = mSequenceElements.GetElement(i);
+                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
             }
         }
         MapChannelInformation(effectManager,
@@ -3141,11 +3142,11 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
     for (size_t m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
         Model *mc = GetModel(modelName);
-        Element * model = nullptr;
+        ModelElement * model = nullptr;
         for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
-                model = mSequenceElements.GetElement(i);
+                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
             }
         }
         if (dlg.ChannelMapGrid->GetCellValue(row, 3) != "" && !dlg.MapByStrand->IsChecked()) {

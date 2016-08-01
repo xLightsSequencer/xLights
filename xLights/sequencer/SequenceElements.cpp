@@ -97,9 +97,11 @@ EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) {
     if (s->strandIndex == -1) {
         return e->GetEffectLayer(s->layerIndex);
     } else if (s->nodeIndex == -1) {
-        return e->GetStrandLayer(s->strandIndex);
+        ModelElement *me = dynamic_cast<ModelElement*>(e);
+        return me->GetStrandLayer(s->strandIndex);
     } else {
-        return e->GetStrandLayer(s->strandIndex)->GetNodeLayer(s->nodeIndex);
+        ModelElement *me = dynamic_cast<ModelElement*>(e);
+        return me->GetStrandLayer(s->strandIndex)->GetNodeLayer(s->nodeIndex);
     }
 }
 
@@ -113,13 +115,29 @@ EffectLayer* SequenceElements::GetVisibleEffectLayer(int row) {
     return GetEffectLayer(GetVisibleRowInformation(row));
 }
 
+static Element* CreateElement(SequenceElements *se, const std::string &name, const std::string &type,
+                              bool visible,bool collapsed,bool active, bool selected) {
+    Element *el;
+    if (type == "timing") {
+        TimingElement *te = new TimingElement(se, name);
+        el = te;
+        te->SetActive(active);
+    } else {
+        ModelElement *me = new ModelElement(se, name, selected);
+        el = me;
+    }
+    el->SetCollapsed(collapsed);
+    el->SetVisible(visible);
+    return el;
+}
+
 Element* SequenceElements::AddElement(const std::string &name, const std::string &type,
                                       bool visible,bool collapsed,bool active, bool selected)
 {
-    if(!ElementExists(name))
-    {
-        mAllViews[MASTER_VIEW].push_back(new Element(this, name,type,visible,collapsed,active,selected));
-        Element *el = mAllViews[MASTER_VIEW][mAllViews[MASTER_VIEW].size()-1];
+    if(!ElementExists(name)) {
+        Element *el = CreateElement(this, name,type,visible,collapsed,active,selected);
+        
+        mAllViews[MASTER_VIEW].push_back(el);
         IncrementChangeCount(el);
         return el;
     }
@@ -132,8 +150,8 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
 {
     if(!ElementExists(name) && index <= mAllViews[MASTER_VIEW].size())
     {
-        mAllViews[MASTER_VIEW].insert(mAllViews[MASTER_VIEW].begin()+index,new Element(this, name,type,visible,collapsed,active,selected));
-        Element *el = mAllViews[MASTER_VIEW][index];
+        Element *el = CreateElement(this, name,type,visible,collapsed,active,selected);
+        mAllViews[MASTER_VIEW].insert(mAllViews[MASTER_VIEW].begin()+index, el);
         IncrementChangeCount(el);
         return el;
     }
@@ -163,15 +181,15 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
     // faces, state, piano, vumeter
 
     std::vector<RenderableEffect*> effects(GetEffectManager().size());
-    int count = 0;
     for (int x = 0; x < GetEffectManager().size(); x++) {
         RenderableEffect *eff = GetEffectManager()[x];
         effects[x] = eff;
     }
 
     for (size_t i = 0; i < GetElementCount(); i++) {
-        Element* elem = GetElement(i);
-        if (elem->GetType() == "model") {
+        Element* e = GetElement(i);
+        if (e->GetType() == "model") {
+            ModelElement *elem = dynamic_cast<ModelElement *>(e);
             for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
                 EffectLayer* layer = elem->GetEffectLayer(j);
                 for (int k = 0; k < layer->GetEffectCount(); k++) {
@@ -203,7 +221,7 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
     }
 }
 
-bool SequenceElements::TimingIsPartOfView(Element* timing, int view)
+bool SequenceElements::TimingIsPartOfView(TimingElement* timing, int view)
 {
     std::string view_name = GetViewName(view);
     wxArrayString views = wxSplit(timing->GetViews(),',');
@@ -350,7 +368,7 @@ void SequenceElements::DeleteElementFromView(const std::string &name, int view)
 void SequenceElements::DeleteTimingFromView(const std::string &name, int view)
 {
     std::string viewName = GetViewName(view);
-    Element* elem = GetElement(name);
+    TimingElement* elem = dynamic_cast<TimingElement*>(GetElement(name));
     if( elem != nullptr && elem->GetType() == "timing" )
     {
         std::string views = elem->GetViews();
@@ -609,7 +627,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                     if (type == STR_TIMING)
                     {
                         std::string views = element->GetAttribute("views", "").ToStdString();
-                        elem->SetViews(views);
+                        dynamic_cast<TimingElement*>(elem)->SetViews(views);
                     }
                 }
             }
@@ -662,7 +680,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                         }
                         if( interval > 0 )
                         {
-                            element->SetFixedTiming(interval);
+                            dynamic_cast<TimingElement*>(element)->SetFixedTiming(interval);
                             EffectLayer* effectLayer = element->AddEffectLayer();
                             int time = 0;
                             int end_time = xml_file.GetSequenceDurationMS();
@@ -686,7 +704,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                     if (effectLayerNode->GetName() == STR_EFFECTLAYER) {
                                         effectLayer = element->AddEffectLayer();
                                     } else {
-                                        effectLayer = element->GetStrandLayer(wxAtoi(effectLayerNode->GetAttribute(STR_INDEX)), true);
+                                        effectLayer = dynamic_cast<ModelElement*>(element)->GetStrandLayer(wxAtoi(effectLayerNode->GetAttribute(STR_INDEX)), true);
                                         if (effectLayerNode->GetAttribute(STR_NAME, STR_EMPTY) != STR_EMPTY) {
                                             ((StrandLayer*)effectLayer)->SetName(effectLayerNode->GetAttribute(STR_NAME).ToStdString());
                                         }
@@ -775,20 +793,21 @@ void SequenceElements::SetTimingVisibility(const std::string& name)
         {
             break;
         }
+        TimingElement *te = dynamic_cast<TimingElement*>(elem);
         if( name == "Master View" )
         {
-            elem->SetVisible(true);
+            te->SetVisible(true);
         }
         else
         {
-            elem->SetVisible(false);
-            wxArrayString views = wxSplit(elem->GetViews(),',');
+            te->SetVisible(false);
+            wxArrayString views = wxSplit(te->GetViews(),',');
             for(size_t v=0;v<views.size();v++)
             {
                 std::string viewName = views[v].ToStdString();
                 if( name == viewName )
                 {
-                    elem->SetVisible(true);
+                    te->SetVisible(true);
                     break;
                 }
             }
@@ -816,9 +835,10 @@ void SequenceElements::AddViewToTimings(std::vector<std::string>& timings, const
 void SequenceElements::AddTimingToView(const std::string& timing, const std::string& name)
 {
     Element* elem = GetElement(timing);
+    TimingElement *te = dynamic_cast<TimingElement*>(elem);
     if( elem != nullptr && elem->GetType() == "timing" )
     {
-        std::string views = elem->GetViews();
+        std::string views = te->GetViews();
         wxArrayString all_views = wxSplit(views,',');
         bool found = false;
         for( size_t j = 0; j < all_views.size(); j++ )
@@ -833,7 +853,7 @@ void SequenceElements::AddTimingToView(const std::string& timing, const std::str
         {
             all_views.push_back(name);
             views = wxJoin(all_views, ',');
-            elem->SetViews(views);
+            te->SetViews(views);
         }
     }
 }
@@ -893,7 +913,7 @@ wxXmlNode *GetModelNode(wxXmlNode *root, const std::string & name) {
     return NULL;
 }
 
-void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInformation,
+void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mRowInformation,
                      int &rowIndex, xLightsFrame *xframe,
                      std::vector <Element*> &elements,
                      bool submodel) {
@@ -905,7 +925,6 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
             ri.element = elem;
             ri.displayName = elem->GetName();
             ri.Collapsed = elem->GetCollapsed();
-            ri.Active = elem->GetActive();
             ri.colorIndex = 0;
             ri.layerIndex = j;
             ri.Index = rowIndex++;
@@ -919,7 +938,6 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
         ri.element = elem;
         ri.Collapsed = elem->GetCollapsed();
         ri.displayName = elem->GetName();
-        ri.Active = elem->GetActive();
         ri.colorIndex = 0;
         ri.layerIndex = 0;
         ri.Index = rowIndex++;
@@ -937,7 +955,7 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
         for(size_t m=0;m<model.size();m++) {
             for (size_t x = 0; x < elements.size(); x++) {
                 if (elements[x]->GetName() == model[m]) {
-                    addModelElement(elements[x], mRowInformation, rowIndex, xframe, elements, true);
+                    addModelElement(dynamic_cast<ModelElement*>(elements[x]), mRowInformation, rowIndex, xframe, elements, true);
                 }
             }
         }
@@ -948,7 +966,6 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
                 Row_Information_Struct ri;
                 ri.element = elem;
                 ri.Collapsed = !elem->ShowStrands();
-                ri.Active = elem->GetActive();
                 ri.displayName = sl->GetName();
 
                 ri.colorIndex = 0;
@@ -964,7 +981,6 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
                     Row_Information_Struct ri;
                     ri.element = elem;
                     ri.Collapsed = sl->ShowNodes();
-                    ri.Active = !elem->GetActive();
                     ri.displayName = sl->GetNodeLayer(n)->GetName();
                     ri.colorIndex = 0;
                     ri.layerIndex = 0;
@@ -979,7 +995,7 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
     }
 }
 
-void SequenceElements::addTimingElement(Element *elem, std::vector<Row_Information_Struct> &mRowInformation,
+void SequenceElements::addTimingElement(TimingElement *elem, std::vector<Row_Information_Struct> &mRowInformation,
                                         int &rowIndex, int &selectedTimingRow, int &timingRowCount, int &timingColorIndex) {
     if( elem->GetEffectLayerCount() > 1 )
     {
@@ -993,12 +1009,11 @@ void SequenceElements::addTimingElement(Element *elem, std::vector<Row_Informati
             Row_Information_Struct ri;
             ri.element = elem;
             ri.Collapsed = elem->GetCollapsed();
-            ri.Active = elem->GetActive();
             ri.colorIndex = timingColorIndex;
             ri.layerIndex = j;
             if(selectedTimingRow<0 && j==0)
             {
-                selectedTimingRow = ri.Active?rowIndex:-1;
+                selectedTimingRow = elem->GetActive()?rowIndex:-1;
             }
 
             ri.Index = rowIndex++;
@@ -1012,12 +1027,11 @@ void SequenceElements::addTimingElement(Element *elem, std::vector<Row_Informati
         ri.element = elem;
         ri.Collapsed = elem->GetCollapsed();
         ri.displayName = elem->GetName();
-        ri.Active = elem->GetActive();
         ri.colorIndex = timingColorIndex;
         ri.layerIndex = 0;
         if(selectedTimingRow<0)
         {
-            selectedTimingRow = ri.Active?rowIndex:-1;
+            selectedTimingRow = elem->GetActive()?rowIndex:-1;
         }
         ri.Index = rowIndex++;
         mRowInformation.push_back(ri);
@@ -1041,9 +1055,9 @@ void SequenceElements::PopulateRowInformation()
 		{
 			if (elem->GetType() == "timing")
 			{
-				if (mCurrentView == MASTER_VIEW || TimingIsPartOfView(elem, mCurrentView))
+                if (mCurrentView == MASTER_VIEW || TimingIsPartOfView(dynamic_cast<TimingElement*>(elem), mCurrentView))
 				{
-					addTimingElement(elem, mRowInformation, rowIndex, mSelectedTimingRow, mTimingRowCount, timingColorIndex);
+					addTimingElement(dynamic_cast<TimingElement*>(elem), mRowInformation, rowIndex, mSelectedTimingRow, mTimingRowCount, timingColorIndex);
 				}
 			}
 		}
@@ -1054,12 +1068,8 @@ void SequenceElements::PopulateRowInformation()
         Element* elem = mAllViews[mCurrentView][i];
 		if (elem != NULL)
 		{
-			if (elem->GetVisible())
-			{
-				if (elem->GetType() == "model")
-				{
-					addModelElement(elem, mRowInformation, rowIndex, xframe, mAllViews[MASTER_VIEW], false);
-				}
+            if (elem->GetVisible() && elem->GetType() == "model") {
+                addModelElement(dynamic_cast<ModelElement*>(elem), mRowInformation, rowIndex, xframe, mAllViews[MASTER_VIEW], false);
 			}
 		}
     }
@@ -1139,7 +1149,7 @@ void SequenceElements::DeactivateAllTimingElements()
     {
         if(mAllViews[mCurrentView][i]->GetType()=="timing")
         {
-            mAllViews[mCurrentView][i]->SetActive(false);
+            dynamic_cast<TimingElement*>(mAllViews[mCurrentView][i])->SetActive(false);
         }
     }
 }
@@ -1193,7 +1203,9 @@ void SequenceElements::UnSelectAllElements()
 {
     for(size_t i=0;i<mAllViews[mCurrentView].size();i++)
     {
-        mAllViews[mCurrentView][i]->SetSelected(false);
+        if(mAllViews[mCurrentView][i]->GetType()=="model") {
+            dynamic_cast<ModelElement*>(mAllViews[mCurrentView][i])->SetSelected(false);
+        }
     }
 }
 
@@ -1310,7 +1322,7 @@ void SequenceElements::MoveElementDown(const std::string &name, int view)
     }
 }
 
-void SequenceElements::ImportLyrics(Element* element, wxWindow* parent)
+void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
 {
     LyricsDialog* dlgLyrics = new LyricsDialog(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 

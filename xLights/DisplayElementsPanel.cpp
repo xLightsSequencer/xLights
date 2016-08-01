@@ -301,7 +301,8 @@ void DisplayElementsPanel::PopulateModels()
         Element* elem = mSequenceElements->GetElement(i);
         if( elem->GetType() == "timing" )
         {
-            if( current_view == MASTER_VIEW || mSequenceElements->TimingIsPartOfView(elem, current_view) )
+            TimingElement *te = dynamic_cast<TimingElement*>(elem);
+            if( current_view == MASTER_VIEW || mSequenceElements->TimingIsPartOfView(te, current_view) )
             {
                 AddTimingToList(elem);
             }

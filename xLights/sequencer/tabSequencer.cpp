@@ -262,7 +262,7 @@ void xLightsFrame::CheckForValidModels()
             std::string name = mSequenceElements.GetElement(x)->GetName();
             Model *m = AllModels[name];
             if (m->GetDisplayAs() == "ModelGroup") {
-                Element * el = mSequenceElements.GetElement(x);
+                ModelElement * el = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 bool hasStrandEffects = false;
                 bool hasNodeEffects = false;
                 for (int l = 0; l < el->getStrandLayerCount(); l++) {
@@ -1749,13 +1749,13 @@ void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
     m_mgr->Update();
 }
 
-Element* xLightsFrame::AddTimingElement(const std::string& name)
+TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
 {
     // Deactivate active timing mark so new one is selected;
     mSequenceElements.DeactivateAllTimingElements();
     int timingCount = mSequenceElements.GetNumberOfTimingElements();
     std::string type = "timing";
-    Element* e = mSequenceElements.AddElement(timingCount,name,type,true,false,true,false);
+    TimingElement* e = dynamic_cast<TimingElement*>(mSequenceElements.AddElement(timingCount,name,type,true,false,true,false));
     e->AddEffectLayer();
     mSequenceElements.AddTimingToAllViews(name);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -1912,7 +1912,7 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
 }
 
 void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
-    Element *el = (Element*)event.GetClientData();
+    ModelElement *el = dynamic_cast<ModelElement*>((Element*)event.GetClientData());
     int strand = event.GetInt() >> 16;
     int node = event.GetInt() & 0xFFFF;
     EffectLayer *layer = el->GetStrandLayer(strand)->GetNodeLayer(node);
@@ -1954,7 +1954,7 @@ void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString &pasteDataV
     mainSequencer->PanelEffectGrid->Paste(data, pasteDataVersion);
 }
 void xLightsFrame::PromoteEffects(wxCommandEvent &command) {
-    Element *el = (Element*)command.GetClientData();
+    ModelElement *el = dynamic_cast<ModelElement*>((Element*)command.GetClientData());
     PromoteEffects(el);
 }
 
@@ -1970,7 +1970,7 @@ bool equals(Effect *e, Effect *e2, const wxString &pal, const wxString &set) {
     }
     return true;
 }
-void xLightsFrame::PromoteEffects(Element *element) {
+void xLightsFrame::PromoteEffects(ModelElement *element) {
     //first promote from nodes to strands
     for (int x = 0;  x < element->getStrandLayerCount(); x++) {
         StrandLayer *layer = element->GetStrandLayer(x);

@@ -92,9 +92,9 @@ void ModelViewSelector::PopulateModelsToAdd()
         Element* elem = mSequenceElements->GetElement(i);
         if (elem->GetType() == "timing")
         {
-            wxString name=elem->GetName();
-            if (!mSequenceElements->TimingIsPartOfView(elem, mWhichView))
+            if (!mSequenceElements->TimingIsPartOfView(dynamic_cast<TimingElement*>(elem), mWhichView))
             {
+                wxString name=elem->GetName();
                 ListBoxTimings->Append(name,elem);
             }
         }
