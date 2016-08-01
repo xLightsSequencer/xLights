@@ -362,6 +362,7 @@ protected:
     mutable std::vector<xlPolyPoint> mPos;
     int num_points;
     int selected_handle;
+    mutable float minX, minY, maxX, maxY;
     mutable int selected_segment;
     mutable glm::mat3 *main_matrix;
 

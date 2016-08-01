@@ -1069,10 +1069,10 @@ void PolyPointScreenLocation::Write(wxXmlNode *node) {
 }
 
 void PolyPointScreenLocation::PrepareToDraw() const {
-    float minX = 100.0;
-    float minY = 100.0;
-    float maxX = 0.0;
-    float maxY = 0.0;
+    minX = 100.0;
+    minY = 100.0;
+    maxX = 0.0;
+    maxY = 0.0;
 
     for( int i = 0; i < num_points-1; ++i ) {
         float x1p = mPos[i].x * (float)previewW;
@@ -1132,29 +1132,20 @@ void PolyPointScreenLocation::TranslatePoint(float &x, float &y) const {
 }
 
 bool PolyPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
-    for( int i = 0; i < num_points-1; ++i ) {
-        float min = 0;
-        float max = RenderHt;
+    int sx1 = std::min(x1,x2);
+    int sx2 = std::max(x1,x2);
+    int sy1 = std::min(y1,y2);
+    int sy2 = std::max(y1,y2);
+    float x1p = minX * (float)previewW;
+    float x2p = maxX * (float)previewW;
+    float y1p = minY * (float)previewH;
+    float y2p = maxY * (float)previewH;
 
-        //invert the matrix, get into render space
-        glm::vec3 v1 = *mPos[i].matrix * glm::vec3(0, min, 1);
-        glm::vec3 v2 = *mPos[i].matrix * glm::vec3(0, max, 1);
-        glm::vec3 v3 = *mPos[i].matrix * glm::vec3(RenderWi, min, 1);
-        glm::vec3 v4 = *mPos[i].matrix * glm::vec3(RenderWi, max, 1);
-
-        int xsi = mPos[i].x<mPos[i+1].x?mPos[i].x:mPos[i+1].x;
-        int xfi = mPos[i].x>mPos[i+1].x?mPos[i].x:mPos[i+1].x;
-        int ysi = mPos[i].y<mPos[i+1].y?mPos[i].y:mPos[i+1].y;
-        int yfi = mPos[i].y>mPos[i+1].y?mPos[i].y:mPos[i+1].y;
-
-        float xs = std::min(std::min(v1.x, v2.x), std::min(v3.x, v4.x));
-        float xf = std::max(std::max(v1.x, v2.x), std::max(v3.x, v4.x));
-        float ys = std::min(std::min(v1.y, v2.y), std::min(v3.y, v4.y));
-        float yf = std::max(std::max(v1.y, v2.y), std::max(v3.y, v4.y));
-
-        if( xsi < xs && xfi > xf && ysi < ys && yfi > yf ) {
-            return true;
-        }
+    if( x1p >= sx1 && x1p <= sx2 &&
+        x2p >= sx1 && x2p <= sx2 &&
+        y1p >= sy1 && y1p <= sy2 &&
+        y2p >= sy1 && y2p <= sy2 ) {
+        return true;
     }
 
     return false;

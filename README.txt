@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix PolyLine selection hotspots and selection with yellow bounding box.
    -- enh (gil)     Account for malformed XML in the new version 6 format of SuperStar files.
 2016.42  Jul 30, 2016
    -- bug (gil)     Fix typo that prevented the Layer Star render style from working for Star Model.
