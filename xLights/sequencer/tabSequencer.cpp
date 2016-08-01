@@ -1350,7 +1350,10 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
 		}
 		else if (name.StartsWith("ID_BUTTON"))
 		{
-			colorPanel->SetButtonColor((wxBitmapButton*)CtrlWin, value.ToStdString());
+            if (name.StartsWith("ID_BUTTON_Palette"))
+            {
+                colorPanel->SetButtonColor((ColorCurveButton*)CtrlWin, value.ToStdString());
+            }
 		}
 		else if (name.StartsWith("ID_CHECKBOX"))
 		{

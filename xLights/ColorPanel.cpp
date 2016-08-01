@@ -287,21 +287,17 @@ void ColorPanel::SetColorCount(int count)
     }
 }
 
-void ColorPanel::SetButtonColor(wxBitmapButton* btn, const std::string& cstr)
+void ColorPanel::SetButtonColor(ColorCurveButton* btn, const std::string& cstr)
 {
-    if (lastColors[btn->GetId()] != cstr) {
-        lastColors[btn->GetId()] = cstr;
-        wxColor c(cstr);
-
-        btn->SetBackgroundColour(c);
-        btn->SetForegroundColour(c);
-
-        wxImage image(18, 18);
-        image.SetRGB(wxRect(0, 0, 18, 18),
-                     c.Red(), c.Green(), c.Blue());
-        wxBitmap bmp(image);
-
-        btn->SetBitmap(bmp);
+    if (cstr.find("Active") != std::string::npos)
+    {
+        btn->GetValue()->Deserialise(cstr);
+        btn->UpdateState();
+    }
+    else
+    {
+        btn->SetActive(false);
+        btn->SetColor(cstr);
     }
 }
 
@@ -342,9 +338,19 @@ wxString ColorPanel::GetColorString()
     wxColour color;
     for (int i=0; i < PALETTE_SIZE; i++)
     {
-        color=GetPaletteColor(i);
-        AttrName.Printf("C_BUTTON_Palette%d=",(i+1));
-        s+=AttrName+color.GetAsString(wxC2S_HTML_SYNTAX) + ",";
+        wxString ids = wxString::Format("ID_BUTTON_Palette%d", (i + 1));
+        ColorCurveButton* btn = (ColorCurveButton*)wxWindow::FindWindowByName(ids, this);
+        if (btn->GetValue()->IsActive())
+        {
+            AttrName.Printf("C_BUTTON_Palette%d=", (i + 1));
+            s += AttrName + btn->GetValue()->Serialise() + ",";
+        }
+        else
+        {
+            color = GetPaletteColor(i);
+            AttrName.Printf("C_BUTTON_Palette%d=", (i + 1));
+            s += AttrName + color.GetAsString(wxC2S_HTML_SYNTAX) + ",";
+        }
 
         if (checkBoxes[i]->IsChecked()) {
             AttrName.Printf("C_CHECKBOX_Palette%d=1,",(i+1));
@@ -456,36 +462,6 @@ void ColorPanel::OnCCChanged(wxCommandEvent& event)
     lastColors[w->GetId()] = w->GetColor();
     Refresh();
 }
-
-//void ColorPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
-//{
-//    ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
-//    w->SetActive(false);
-//    wxColour color = w->GetBackgroundColour();
-//    colorData.SetColour(color);
-//    wxColourDialog dialog(this, &colorData);
-//    if (dialog.ShowModal() == wxID_OK)
-//    {
-//        wxColourData retData = dialog.GetColourData();
-//        color = retData.GetColour();
-//        xlColor c(color);
-//        SetButtonColor(w, c);
-//        PaletteChanged=true;
-//    }
-//}
-
-//void ColorPanel::OnButton_PaletteNumberRClick(wxCommandEvent& event)
-//{
-//    ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
-//
-//    w->SetActive(true);
-//
-//    ColorCurveDialog ccd(this, w->GetValue());
-//    if (ccd.ShowModal() == wxID_OK)
-//    {
-//        PaletteChanged = true;
-//    }
-//}
 
 void ColorPanel::OnResize(wxSizeEvent& event)
 {

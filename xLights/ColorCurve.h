@@ -32,7 +32,9 @@ public:
     {
         std::string res = "";
         res += "x=" + wxString::Format("%.3f", x).ToStdString();
-        res += "^c=" + color.GetAsString().ToStdString();
+        wxString c = color.GetAsString();
+        c.Replace(",", "&comma;", true);
+        res += "^c=" + c.ToStdString();
 
         return res;
     }
@@ -169,7 +171,6 @@ class ColorCurveButton :
     void NotifyChange();
     void LeftClick(wxCommandEvent& event);
     void RightClick(wxContextMenuEvent& event);
-    void RenderNewBitmap();
 
 public:
     ColorCurveButton(wxWindow *parent,
@@ -182,13 +183,13 @@ public:
         const wxString& name = wxButtonNameStr);
     ~ColorCurveButton();
     virtual void SetValue(const wxString& value);
-    ColorCurve* GetValue();
+    ColorCurve* GetValue() const;
     void ToggleActive();
     void SetActive(bool active);
     void UpdateState();
     void UpdateBitmap();
     std::string GetColor() const { return _color; }
-    void SetValue(std::string color);
+    void SetColor(std::string color);
 };
 
 #endif

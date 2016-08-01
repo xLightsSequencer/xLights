@@ -47,7 +47,7 @@ private:
         void ValidateWindow();
         wxColour GetPaletteColor(int idx);
 public:
-        void SetButtonColor(wxBitmapButton* btn, const std::string &v);
+        void SetButtonColor(ColorCurveButton* btn, const std::string &v);
         static const int PALETTE_SIZE = 8;
 
 		//(*Declarations(ColorPanel)

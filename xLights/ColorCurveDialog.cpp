@@ -441,14 +441,28 @@ void ColorCurvePanel::Paint(wxPaintEvent& event)
             std::list<ccSortableColorPoint>::iterator last = pts.begin();
             for (auto p = pts.begin()++; p != pts.end(); p++)
             {
-                pdc.DrawLine(p->x * s.GetWidth(), 0, p->x * s.GetWidth(), s.GetHeight());
+                if (p->x == 1.0)
+                {
+                    pdc.DrawLine(p->x * s.GetWidth() - 2, 0, p->x * s.GetWidth() - 2, s.GetHeight());
+                }
+                else
+                {
+                    pdc.DrawLine(p->x * s.GetWidth(), 0, p->x * s.GetWidth(), s.GetHeight());
+                }
             }
         }
 
         if (_grabbedPoint >= 0)
         {
             pdc.SetPen(wxPen(*wxBLUE, 3, wxPENSTYLE_SOLID));
-            pdc.DrawLine(_grabbedPoint * s.GetWidth(), 0, _grabbedPoint * s.GetWidth(), s.GetHeight());
+            if (_grabbedPoint == 1.0)
+            {
+                pdc.DrawLine(_grabbedPoint * s.GetWidth() - 2, 0, _grabbedPoint * s.GetWidth() - 2, s.GetHeight());
+            }
+            else
+            {
+                pdc.DrawLine(_grabbedPoint * s.GetWidth(), 0, _grabbedPoint * s.GetWidth(), s.GetHeight());
+            }
         }
     }
 }

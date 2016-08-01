@@ -421,7 +421,7 @@ ColorCurveButton::ColorCurveButton(wxWindow *parent,
 
 void ColorCurveButton::LeftClick(wxCommandEvent& event)
 {
-    ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
+    ColorCurveButton* w = static_cast<ColorCurveButton*>(event.GetEventObject());
     wxColour color = w->GetBackgroundColour();
     wxColourData colorData;
     colorData.SetColour(color);
@@ -439,7 +439,7 @@ void ColorCurveButton::LeftClick(wxCommandEvent& event)
 
 void ColorCurveButton::RightClick(wxContextMenuEvent& event)
 {
-    ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
+    ColorCurveButton* w = static_cast<ColorCurveButton*>(event.GetEventObject());
 
     ColorCurveDialog ccd(this, w->GetValue());
     if (ccd.ShowModal() == wxID_OK)
@@ -468,6 +468,14 @@ void ColorCurveButton::ToggleActive()
 {
     _cc->ToggleActive();
     UpdateState();
+}
+
+void ColorCurveButton::SetColor(std::string color)
+{
+    _cc->SetActive(false);
+    _color = color;
+    UpdateBitmap();
+    NotifyChange();
 }
 
 void ColorCurveButton::UpdateBitmap() {
@@ -509,7 +517,7 @@ void ColorCurveButton::NotifyChange()
     wxPostEvent(GetParent(), eventCCChange);
 }
 
-ColorCurve* ColorCurveButton::GetValue()
+ColorCurve* ColorCurveButton::GetValue() const
 {
     return _cc;
 }
@@ -518,7 +526,7 @@ float ColorCurve::FindMinPointLessThan(float point)
 {
     float res = 0.0;
 
-    for (auto it = _values.begin(); it != _values.end(); it++)
+    for (auto it = _values.begin(); it != _values.end(); ++it)
     {
         if (it->x < point)
         {
@@ -532,7 +540,7 @@ float ColorCurve::FindMaxPointGreaterThan(float point)
 {
     float res = 1.0;
 
-    for (auto it = _values.begin(); it != _values.end(); it++)
+    for (auto it = _values.begin(); it != _values.end(); ++it)
     {
         if (it->x > point)
         {
