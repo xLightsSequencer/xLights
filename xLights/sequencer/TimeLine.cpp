@@ -95,11 +95,8 @@ TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mParent = (wxPanel*)parent;
     DOUBLE_BUFFER(this);
     mIsInitialized = false;
-    mZoomLevel = 0;
     mFrequency = 40;
-    m_dragging = false;
-    
-    
+    mZoomMarkerMS = -1;
     mStartPixelOffset = 0;
     mZoomLevel = 0;
     mStartTimeMS = 0;
