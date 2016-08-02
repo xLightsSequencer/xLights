@@ -33,6 +33,12 @@ enum class HitLocation {
     RIGHT_EDGE
 };
 
+enum EFF_ALIGN_MODE {
+    ALIGN_START_TIMES,
+    ALIGN_END_TIMES,
+    ALIGN_BOTH_TIMES,
+    ALIGN_CENTERPOINTS
+};
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
@@ -73,6 +79,8 @@ public:
     void ProcessDroppedEffect(Effect* effect);
     void CopyModelEffects(int row_number);
     void PasteModelEffects(int row_number);
+
+    void AlignSelectedEffects(EFF_ALIGN_MODE align_mode);
 
     void OldPaste(const wxString &data, const wxString &pasteDataVer);
     void Paste(const wxString &data, const wxString &pasteDataVer);
@@ -169,7 +177,7 @@ private:
 
     int mSelectedRow;
     Effect* mSelectedEffect;
-    
+
     DrawGLUtils::xlVertexAccumulator lines;
     DrawGLUtils::xlVertexAccumulator timingEffLines;
     DrawGLUtils::xlVertexColorAccumulator timingLines;
@@ -217,6 +225,10 @@ private:
     static const long ID_GRID_MNU_BREAKDOWN_PHRASE;
     static const long ID_GRID_MNU_BREAKDOWN_WORD;
     static const long ID_GRID_MNU_BREAKDOWN_WORDS;
+    static const long ID_GRID_MNU_ALIGN_START_TIMES;
+    static const long ID_GRID_MNU_ALIGN_END_TIMES;
+    static const long ID_GRID_MNU_ALIGN_BOTH_TIMES;
+    static const long ID_GRID_MNU_ALIGN_CENTERPOINTS;
 
     EventPlayEffectArgs* playArgs;
 

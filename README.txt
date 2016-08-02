@@ -8,6 +8,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Add effect alignment options.
+   -- bug (gil)     Prevent PolyLine point deletion unless there are 3 or more points.
    -- bug (gil)     Fix PolyLine selection hotspots and selection with yellow bounding box.
    -- enh (gil)     Account for malformed XML in the new version 6 format of SuperStar files.
 2016.42  Jul 30, 2016
