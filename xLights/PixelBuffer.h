@@ -208,9 +208,7 @@ public:
     void SetTimes(int layer, int startTime, int endTime);
 
     void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers);
-    void SetColors(int layer, const unsigned char *fdata);
-    
-    void ApplyDimmingCurves(unsigned char *fdata);
+    void SetColors(int layer, const unsigned char *fdata);    
     void GetColors(unsigned char *fdata);
 };
 typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;

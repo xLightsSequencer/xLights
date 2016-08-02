@@ -528,7 +528,7 @@ public:
                         }
                     }
                 }
-                mainBuffer->ApplyDimmingCurves(&((*seqData)[frame][0]));
+                //mainBuffer->ApplyDimmingCurves(&((*seqData)[frame][0]));
                 if (HasNext()) {
                     SetGenericStatus("%s: Notifying next renderer of frame %d done", frame);
                     FrameDone(frame);

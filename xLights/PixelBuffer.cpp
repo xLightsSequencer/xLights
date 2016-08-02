@@ -844,14 +844,33 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 {
     layers[layer]->buffer.SetEffectDuration(startTime, endTime);
 }
+
+void PixelBufferClass::GetColors(unsigned char *fdata) {
+    xlColor color;
+
+    for (size_t n = 0; n < layers[0]->Nodes.size(); n++) {
+        size_t start = NodeStartChannel(n);
+        DimmingCurve *curve = layers[0]->Nodes[n]->model->modelDimmingCurve;
+        if (curve != nullptr) {
+            layers[0]->Nodes[n]->GetColor(color);
+            curve->apply(color);
+            layers[0]->Nodes[n]->SetColor(color);
+        }
+        layers[0]->Nodes[n]->GetForChannels(&fdata[start]);
+    }
+}
 void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 {
+    xlColor color;
     for (size_t n = 0; n < layers[layer]->Nodes.size(); n++)
     {
         int start = NodeStartChannel(n);
         layers[layer]->Nodes[n]->SetFromChannels(&fdata[start]);
-        xlColor color;
         layers[layer]->Nodes[n]->GetColor(color);
+        DimmingCurve *curve = layers[layer]->Nodes[n]->model->modelDimmingCurve;
+        if (curve != nullptr) {
+            curve->reverse(color);
+        }
 
         for (size_t x = 0; x < layers[layer]->Nodes[n]->Coords.size(); x++)
         {
@@ -944,27 +963,6 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
                 }
             }
         }
-    }
-}
-void PixelBufferClass::ApplyDimmingCurves(unsigned char *fdata) {
-    xlColor color;
-    for (size_t n = 0; n < layers[0]->Nodes.size(); n++)
-    {
-        DimmingCurve *curve = layers[0]->Nodes[n]->model->modelDimmingCurve;
-        if (curve != nullptr) {
-            int start = NodeStartChannel(n);
-            layers[0]->Nodes[n]->SetFromChannels(&fdata[start]);
-            layers[0]->Nodes[n]->GetColor(color);
-            curve->apply(color);
-            layers[0]->Nodes[n]->SetColor(color);
-            layers[0]->Nodes[n]->GetForChannels(&fdata[start]);
-        }
-    }
-}
-void PixelBufferClass::GetColors(unsigned char *fdata) {
-    for (size_t n = 0; n < layers[0]->Nodes.size(); n++) {
-        size_t start = NodeStartChannel(n);
-        GetNodeChannelValues(n, &fdata[start]);
     }
 }
 
