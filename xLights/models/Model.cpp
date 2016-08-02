@@ -2067,6 +2067,14 @@ void Model::SelectHandle(int handle) {
     GetModelScreenLocation().SelectHandle(handle);
 }
 
+int Model::GetSelectedHandle() {
+    return GetModelScreenLocation().GetSelectedHandle();
+}
+
+int Model::GetNumHandles() {
+    return GetModelScreenLocation().GetNumHandles();
+}
+
 int Model::GetSelectedSegment() {
     return GetModelScreenLocation().GetSelectedSegment();
 }

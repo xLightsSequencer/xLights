@@ -189,7 +189,6 @@ class LayoutPanel: public wxPanel
         int m_bound_end_x;
         int m_bound_end_y;
         int m_over_handle;
-        int m_sel_handle;
         bool m_moving_handle;
         bool m_polyline_active;
         int m_previous_mouse_x, m_previous_mouse_y;

@@ -197,6 +197,8 @@ public:
 
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
     void SelectHandle(int handle);
+    int GetSelectedHandle();
+    int GetNumHandles();
     int GetSelectedSegment();
     void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
     virtual void InsertHandle(int after_handle);

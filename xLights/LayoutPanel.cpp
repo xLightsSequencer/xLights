@@ -797,7 +797,6 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         modelPreview->GetModels()[i]->Selected = false;
         modelPreview->GetModels()[i]->GroupSelected = false;
         modelPreview->GetModels()[i]->SelectHandle(-1);
-        m_sel_handle = -1;
     }
     UpdatePreview();
     selectedModel = nullptr;
@@ -1161,7 +1160,6 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         int sel=ListBoxElementList->GetFirstSelected();
         if (sel != wxNOT_FOUND) {
             ((Model*)ListBoxElementList->GetItemData(sel))->SelectHandle(m_over_handle);
-            m_sel_handle = m_over_handle;
             UpdatePreview();
         }
     }
@@ -1201,7 +1199,6 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     }
     else
     {
-        m_sel_handle = -1;
         m_moving_handle = false;
         m_creating_bound_rect = false;
 
@@ -1401,9 +1398,9 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             if( model->GetSelectedSegment() != -1 ) {
                 mnu.Append(ID_PREVIEW_MODEL_ADDPOINT,"Add Point");
             }
-        }
-        if( m_sel_handle != -1 ) {
-            mnu.Append(ID_PREVIEW_MODEL_DELETEPOINT,"Delete Point");
+            if( (model->GetSelectedHandle() != -1) && (model->GetNumHandles() > 2) ) {
+                mnu.Append(ID_PREVIEW_MODEL_DELETEPOINT,"Delete Point");
+            }
         }
         mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT,"Node Layout");
         mnu.Append(ID_PREVIEW_MODEL_EXPORTCSV,"Export CSV");
@@ -1482,27 +1479,33 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         int sel = ListBoxElementList->GetFirstSelected();
         if (sel == wxNOT_FOUND) return;
         Model* md=(Model*)ListBoxElementList->GetItemData(sel);
-        int handle = md->GetSelectedSegment();
-        CreateUndoPoint("SingleModel", md->name, std::to_string(handle));
-        md->InsertHandle(handle);
-        m_sel_handle = handle+1;
-        md->UpdateXmlWithScale();
-        md->InitModel();
-        SetupPropGrid(md);
-        UpdatePreview();
+        if( md != nullptr ) {
+            int handle = md->GetSelectedSegment();
+            CreateUndoPoint("SingleModel", md->name, std::to_string(handle));
+            md->InsertHandle(handle);
+            md->UpdateXmlWithScale();
+            md->InitModel();
+            SetupPropGrid(md);
+            UpdatePreview();
+        }
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_DELETEPOINT)
     {
         int sel = ListBoxElementList->GetFirstSelected();
         if (sel == wxNOT_FOUND) return;
         Model* md=(Model*)ListBoxElementList->GetItemData(sel);
-        CreateUndoPoint("SingleModel", md->name, std::to_string(m_sel_handle));
-        md->DeleteHandle(m_sel_handle);
-        m_sel_handle = -1;
-        md->UpdateXmlWithScale();
-        md->InitModel();
-        SetupPropGrid(md);
-        UpdatePreview();
+        if( md != nullptr ) {
+            int selected_handle = md->GetSelectedHandle();
+            if( (selected_handle != -1) && (md->GetNumHandles() > 2) )
+            {
+                CreateUndoPoint("SingleModel", md->name, std::to_string(selected_handle));
+                md->DeleteHandle(selected_handle);
+                md->UpdateXmlWithScale();
+                md->InitModel();
+                SetupPropGrid(md);
+                UpdatePreview();
+            }
+        }
     }
 
 }

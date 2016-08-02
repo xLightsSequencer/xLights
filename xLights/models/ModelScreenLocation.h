@@ -39,6 +39,8 @@ public:
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
     virtual void SelectHandle(int handle) = 0;
+    virtual int GetSelectedHandle() = 0;
+    virtual int GetNumHandles() = 0;
     virtual void SelectSegment(int segment) = 0;
     virtual int GetSelectedSegment() = 0;
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) = 0;
@@ -106,6 +108,8 @@ public:
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual void SelectHandle(int handle) override {}
+    virtual int GetSelectedHandle() override {return -1;}
+    virtual int GetNumHandles() override {return -1;}
     virtual void SelectSegment(int segment) override {}
     virtual int GetSelectedSegment() override {return -1;}
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
@@ -210,6 +214,8 @@ public:
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual void SelectHandle(int handle) override {}
+    virtual int GetSelectedHandle() override {return -1;}
+    virtual int GetNumHandles() override {return -1;}
     virtual void SelectSegment(int segment) override {}
     virtual int GetSelectedSegment() override {return -1;}
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
@@ -324,6 +330,8 @@ public:
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual void SelectHandle(int handle) override;
+    virtual int GetSelectedHandle() override {return selected_handle;}
+    virtual int GetNumHandles() override {return num_points;}
     virtual void SelectSegment(int segment) override;
     virtual int GetSelectedSegment() override {return selected_segment;}
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override;
