@@ -125,9 +125,9 @@ class ColorCurve
     bool _active;
 
     void SetSerialisedValue(std::string k, std::string v);
-    ccSortableColorPoint* GetActivePoint(float x, float& duration);
-    ccSortableColorPoint* GetPriorActivePoint(float x, float& duration);
-    ccSortableColorPoint* GetNextActivePoint(float x, float& duration);
+    const ccSortableColorPoint* GetActivePoint(float x, float& duration) const;
+    const ccSortableColorPoint* GetPriorActivePoint(float x, float& duration) const;
+    const ccSortableColorPoint* GetNextActivePoint(float x, float& duration) const;
 
 public:
     std::string GetId() const { return _id; }
@@ -140,7 +140,7 @@ public:
     { return _id != ""; }
     void Deserialise(const std::string& s);
     void SetType(std::string type);
-    wxColor GetValueAt(float offset);
+    wxColor GetValueAt(float offset) const;
     ccSortableColorPoint* GetPointAt(float offset);
 	wxBitmap GetImage(int x, int y, bool bars);
     void SetActive(bool a) { _active = a; }

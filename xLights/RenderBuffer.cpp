@@ -421,9 +421,9 @@ void RenderBuffer::Clear(const xlColor& bgColor)
     }
 }
 
-void RenderBuffer::SetPalette(xlColorVector& newcolors)
+void RenderBuffer::SetPalette(xlColorVector& newcolors, xlColorCurveVector& newcc)
 {
-    palette.Set(newcolors);
+    palette.Set(newcolors, newcc);
 }
 
 size_t RenderBuffer::GetColorCount()
@@ -868,6 +868,7 @@ void RenderBuffer::SetState(int period, bool ResetState, const std::string& mode
     curPeriod = period;
     cur_model = model_name;
     curPeriod = period;
+    palette.UpdateForProgress((float)(curPeriod - curEffStartPer) / (float)(curEffEndPer - curEffStartPer));
 }
 void RenderBuffer::ClearTempBuf()
 {

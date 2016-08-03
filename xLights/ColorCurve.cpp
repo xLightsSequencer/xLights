@@ -172,7 +172,7 @@ ccSortableColorPoint* ColorCurve::GetPointAt(float offset)
     return nullptr;
 }
 
-wxColor ColorCurve::GetValueAt(float offset)
+wxColor ColorCurve::GetValueAt(float offset) const
 {
     if (_type == "Gradient")
     {
@@ -183,11 +183,11 @@ wxColor ColorCurve::GetValueAt(float offset)
 
         // find the value before the offset
         float d = 0;
-        ccSortableColorPoint* pt = GetActivePoint(offset, d);
+        const ccSortableColorPoint* pt = GetActivePoint(offset, d);
 
         if (pt == nullptr)
         {
-            ccSortableColorPoint* ptp = GetNextActivePoint(offset, d);
+            const ccSortableColorPoint* ptp = GetNextActivePoint(offset, d);
             return ptp->color;
         }
         else if (pt->x == offset)
@@ -200,7 +200,7 @@ wxColor ColorCurve::GetValueAt(float offset)
             endc = pt->color;
 
             float dp = 0;
-            ccSortableColorPoint* ptp = GetPriorActivePoint(offset, dp);
+            const ccSortableColorPoint* ptp = GetPriorActivePoint(offset, dp);
 
             if (ptp == nullptr)
             {
@@ -219,7 +219,7 @@ wxColor ColorCurve::GetValueAt(float offset)
             startc = pt->color;
 
             float dn = 0;
-            ccSortableColorPoint* ptn = GetNextActivePoint(offset, dn);
+            const ccSortableColorPoint* ptn = GetNextActivePoint(offset, dn);
 
             if (ptn == nullptr)
             {
@@ -239,10 +239,10 @@ wxColor ColorCurve::GetValueAt(float offset)
     {
         // find the value immediately before the offset ... that is the color to return
         float d = 0;
-        ccSortableColorPoint* pt = GetActivePoint(offset, d);
+        const ccSortableColorPoint* pt = GetActivePoint(offset, d);
         if (pt == nullptr)
         {
-            ccSortableColorPoint* ptp = GetNextActivePoint(offset, d);
+            const ccSortableColorPoint* ptp = GetNextActivePoint(offset, d);
             return ptp->color;
         }
         return pt->color;
@@ -260,7 +260,7 @@ bool ColorCurve::IsSetPoint(float offset)
         {
             return true;
         }
-        it++;
+        ++it;
     }
 
     return false;
@@ -349,10 +349,10 @@ bool ColorCurve::NearPoint(float x)
     return false;
 }
 
-ccSortableColorPoint* ColorCurve::GetActivePoint(float x, float& duration)
+const ccSortableColorPoint* ColorCurve::GetActivePoint(float x, float& duration) const
 {
-    ccSortableColorPoint* candidate = nullptr;
-    for (auto it = _values.begin(); it != _values.end(); it++)
+    const ccSortableColorPoint* candidate = nullptr;
+    for (auto it = _values.begin(); it != _values.end(); ++it)
     {
         if (*it <= x)
         {
@@ -367,11 +367,11 @@ ccSortableColorPoint* ColorCurve::GetActivePoint(float x, float& duration)
     return candidate;
 }
 
-ccSortableColorPoint* ColorCurve::GetPriorActivePoint(float x, float& duration)
+const ccSortableColorPoint* ColorCurve::GetPriorActivePoint(float x, float& duration) const
 {
-    ccSortableColorPoint* candidate = nullptr;
-    ccSortableColorPoint* last = nullptr;
-    for (auto it = _values.begin(); it != _values.end(); it++)
+    const ccSortableColorPoint* candidate = nullptr;
+    const ccSortableColorPoint* last = nullptr;
+    for (auto it = _values.begin(); it != _values.end(); ++it)
     {
         if (*it <= x)
         {
@@ -387,9 +387,9 @@ ccSortableColorPoint* ColorCurve::GetPriorActivePoint(float x, float& duration)
     return candidate;
 }
 
-ccSortableColorPoint* ColorCurve::GetNextActivePoint(float x, float& duration)
+const ccSortableColorPoint* ColorCurve::GetNextActivePoint(float x, float& duration) const
 {
-    for (auto it = _values.begin(); it != _values.end(); it++)
+    for (auto it = _values.begin(); it != _values.end(); ++it)
     {
         if (!(*it <= x))
         {

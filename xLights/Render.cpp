@@ -569,20 +569,21 @@ private:
                             el,
                             settingsMap);
         }
-        updateBufferPaletteFromMap(layer, el, buffer);
         buffer->SetLayerSettings(layer, settingsMap);
+        updateBufferPaletteFromMap(layer, el, buffer);
 
         if (el != NULL) {
             buffer->SetTimes(layer, el->GetStartTimeMS(), el->GetEndTimeMS());
         }
-
     }
+
     void updateBufferPaletteFromMap(int layer, Effect *effect, PixelBufferClass *buffer) {
         xlColorVector newcolors;
+        xlColorCurveVector newcc;
         if (effect != nullptr) {
-            effect->CopyPalette(newcolors);
+            effect->CopyPalette(newcolors, newcc);
         }
-        buffer->SetPalette(layer, newcolors);
+        buffer->SetPalette(layer, newcolors, newcc);
     }
 
     Effect *findEffectForFrame(EffectLayer* layer, int frame, int &lastIdx) {

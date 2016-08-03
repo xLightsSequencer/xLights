@@ -2,14 +2,14 @@
 #ifndef XLIGHTS_COLOR_H
 #define XLIGHTS_COLOR_H
 
+#include <wx/colour.h>
 #include <vector>
 #include <cstdint>
 #include <string>
 
 class xlColor;
 class wxString;
-class wxColor;
-
+class ColorCurve;
 
 class HSVValue
 {
@@ -77,6 +77,12 @@ public:
         blue = rgb.blue;
         green = rgb.green;
         alpha = rgb.alpha;
+    }
+    xlColor(const wxColor &rgb) {
+        red = rgb.Red();
+        blue = rgb.Blue();
+        green = rgb.Green();
+        alpha = 255;
     }
     xlColor(const std::string &str) {
         SetFromString(str);
@@ -166,7 +172,6 @@ public:
     void SetFromString(const wxString &str);
     operator wxString() const;
     wxColor asWxColor() const;
-    xlColor(const wxColor &c);
     xlColor(const wxString &str) {
         SetFromString(str);
     }
@@ -183,6 +188,7 @@ static const xlColor xlCYAN(0, 255, 255);
 static const xlColor xlMAGENTA(255, 0, 255);
 
 typedef std::vector<xlColor> xlColorVector;
+typedef std::vector<ColorCurve> xlColorCurveVector;
 typedef std::vector<HSVValue> hsvVector;
 
 enum ColorDisplayMode
