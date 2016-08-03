@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Add ability to scale PolyLine models.
    -- enh (gil)     Add effect alignment options.
    -- bug (gil)     Prevent PolyLine point deletion unless there are 3 or more points.
    -- bug (gil)     Fix PolyLine selection hotspots and selection with yellow bounding box.

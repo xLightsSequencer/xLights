@@ -1051,7 +1051,7 @@ void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
         mPos[i].x = wxAtof(point_array[i*2]);
         mPos[i].y = wxAtof(point_array[i*2+1]);
     }
-    mHandlePosition.resize(num_points);
+    mHandlePosition.resize(num_points+4);
 }
 void PolyPointScreenLocation::Write(wxXmlNode *node) {
     node->DeleteAttribute("NumPoints");
@@ -1175,6 +1175,14 @@ bool PolyPointScreenLocation::HitTest(int sx,int sy) const {
         }
     }
     selected_segment = -1;
+
+    // check if inside boundary handles
+    float sx1 = (float)sx / (float)previewW;
+    float sy1 = (float)sy / (float)previewH;
+    if( sx1 >= minX && sx1 <= maxX && sy1 >= minY && sy1 <= maxY ) {
+        return true;
+    }
+
     return false;
 }
 
@@ -1190,7 +1198,26 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) 
     return wxCURSOR_DEFAULT;
 }
 void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
-    va.PreAlloc(10*num_points);
+    va.PreAlloc(10*num_points+12);
+
+    // add boundary handles
+    float x1 = minX * previewW - RECT_HANDLE_WIDTH / 2;
+    float y1 = minY * previewH - RECT_HANDLE_WIDTH / 2;
+    float x2 = maxX * previewW - RECT_HANDLE_WIDTH / 2;
+    float y2 = maxY * previewH - RECT_HANDLE_WIDTH / 2;
+    va.AddRect(x1, y1, x1 + RECT_HANDLE_WIDTH, y1 + RECT_HANDLE_WIDTH, xlBLUE);
+    va.AddRect(x1, y2, x1 + RECT_HANDLE_WIDTH, y2 + RECT_HANDLE_WIDTH, xlBLUE);
+    va.AddRect(x2, y1, x2 + RECT_HANDLE_WIDTH, y1 + RECT_HANDLE_WIDTH, xlBLUE);
+    va.AddRect(x2, y2, x2 + RECT_HANDLE_WIDTH, y2 + RECT_HANDLE_WIDTH, xlBLUE);
+    mHandlePosition[num_points].x = x1;
+    mHandlePosition[num_points].y = y1;
+    mHandlePosition[num_points+1].x = x1;
+    mHandlePosition[num_points+1].y = y2;
+    mHandlePosition[num_points+2].x = x2;
+    mHandlePosition[num_points+2].y = y1;
+    mHandlePosition[num_points+3].x = x2;
+    mHandlePosition[num_points+3].y = y2;
+
     for( int i = 0; i < num_points-1; ++i ) {
         int x1_pos = mPos[i].x * previewW;
         int x2_pos = mPos[i+1].x * previewW;
@@ -1198,6 +1225,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
         int y2_pos = mPos[i+1].y * previewH;
 
         if( i == selected_segment ) {
+            va.Finish(GL_TRIANGLES);
             va.AddVertex(x1_pos, y1_pos, xlMAGENTA);
             va.AddVertex(x2_pos, y2_pos, xlMAGENTA);
             va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
@@ -1236,12 +1264,52 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
 }
 
 int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
-
     float newx = (float)mouseX / (float)previewW;
     float newy = (float)mouseY / (float)previewH;
 
-    mPos[handle].x = newx;
-    mPos[handle].y = newy;
+    if( handle < num_points ) {
+        mPos[handle].x = newx;
+        mPos[handle].y = newy;
+    } else {
+        // move a boundary handle
+        float trans_x = 0.0f;
+        float trans_y = 0.0f;
+        float scale_x = 1.0f;
+        float scale_y = 1.0f;
+        if( handle == num_points ) {  // bottom-left corner
+            if( newx >= maxX-0.01f || newy >= maxY-0.01f ) return 0;
+            trans_x = newx - minX;
+            trans_y = newy - minY;
+            scale_x -= trans_x / (maxX - minX);
+            scale_y -= trans_y / (maxY - minY);
+        } else if( handle == num_points+1 ) {  // top left corner
+            if( newx >= maxX-0.01f || newy <= minY+0.01f ) return 0;
+            trans_x = newx - minX;
+            scale_x -= trans_x / (maxX - minX);
+            scale_y = (newy - minY) / (maxY - minY);
+        } else if( handle == num_points+2 ) {  // bottom right corner
+            if( newx <= minX+0.01f|| newy >= maxY-0.01f ) return 0;
+            trans_y = newy - minY;
+            scale_x = (newx - minX) / (maxX - minX);
+            scale_y -= trans_y / (maxY - minY);
+        } else if( handle == num_points+3 ) {  // bottom right corner
+            if( newx <= minX+0.01f || newy <= minY+0.01f ) return 0;
+            scale_x = (newx - minX) / (maxX - minX);
+            scale_y = (newy - minY) / (maxY - minY);
+        } else {
+            return 0;
+        }
+
+        glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2( scale_x, scale_y));
+        glm::mat3 translateMatrix = glm::translate(glm::mat3(1.0f), glm::vec2( minX + trans_x, minY + trans_y));
+        glm::mat3 mat3 = translateMatrix * scalingMatrix;
+
+        for( int i = 0; i < num_points; ++i ) {
+            glm::vec3 v = mat3 * glm::vec3(mPos[i].x - minX, mPos[i].y - minY, 1);
+            mPos[i].x = v.x;
+            mPos[i].y = v.y;
+        }
+    }
 
     return 1;
 }
@@ -1271,7 +1339,7 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
     float sy = mPos[num_points-1].y * previewH - RECT_HANDLE_WIDTH / 2;
     new_handle.x = sx;
     new_handle.y = sy;
-    mHandlePosition.push_back(new_handle);
+    mHandlePosition.insert(mHandlePosition.begin() + num_points, new_handle);
     num_points++;
 }
 
