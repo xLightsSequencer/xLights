@@ -3,18 +3,18 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(FanPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
 #include <wx/notebook.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(FanPanel)
@@ -85,41 +85,41 @@ END_EVENT_TABLE()
 FanPanel::FanPanel(wxWindow* parent)
 {
 	//(*Initialize(FanPanel)
-	wxFlexGridSizer* GridBagSizerFanPosition;
-	wxTextCtrl* TextCtrl_Fan_Accel;
-	wxSlider* Slider_Fan_Element_Width;
-	wxTextCtrl* TextCtrl_Fan_Num_Blades;
-	wxTextCtrl* TextCtrl_Fan_Num_Elements;
-	wxPanel* Panel11;
-	wxFlexGridSizer* FlexGridSizer109;
-	wxFlexGridSizer* GridBagSizerFanOptions;
-	wxSlider* Slider_Fan_Start_Radius;
-	wxSlider* Slider_Fan_CenterY;
-	wxTextCtrl* TextCtrl_Fan_Start_Radius;
-	wxSlider* Slider_Fan_Revolutions;
-	wxTextCtrl* TextCtrl_Fan_CenterX;
-	wxTextCtrl* TextCtrl_Fan_Blade_Angle;
-	wxPanel* Panel12;
-	wxSlider* Slider_Fan_Blade_Width;
-	wxPanel* Panel9;
-	wxSlider* Slider_Fan_Num_Elements;
-	wxTextCtrl* TextCtrl_Fan_Duration;
-	wxTextCtrl* TextCtrl_Fan_Revolutions;
-	wxFlexGridSizer* GridBagSizerFanBlades;
-	wxTextCtrl* TextCtrl_Fan_CenterY;
-	wxFlexGridSizer* FlexGridSizer103;
-	wxSlider* Slider_Fan_Start_Angle;
 	wxSlider* Slider_Fan_Num_Blades;
-	wxSlider* Slider_Fan_CenterX;
-	wxSlider* Slider_Fan_Accel;
-	wxSlider* Slider_Fan_End_Radius;
-	wxTextCtrl* TextCtrl_Fan_Element_Width;
-	wxTextCtrl* TextCtrl_Fan_Start_Angle;
-	wxSlider* Slider_Fan_Duration;
-	wxTextCtrl* TextCtrl_Fan_End_Radius;
-	wxSlider* Slider_Fan_Blade_Angle;
+	wxFlexGridSizer* GridBagSizerFanPosition;
 	wxTextCtrl* TextCtrl_Fan_Blade_Width;
+	wxSlider* Slider_Fan_Element_Width;
+	wxTextCtrl* TextCtrl_Fan_Accel;
+	wxTextCtrl* TextCtrl_Fan_Num_Elements;
+	wxFlexGridSizer* FlexGridSizer103;
+	wxSlider* Slider_Fan_CenterX;
+	wxFlexGridSizer* FlexGridSizer109;
+	wxSlider* Slider_Fan_Start_Angle;
+	wxPanel* Panel11;
+	wxTextCtrl* TextCtrl_Fan_Blade_Angle;
+	wxSlider* Slider_Fan_Revolutions;
+	wxPanel* Panel9;
+	wxTextCtrl* TextCtrl_Fan_Element_Width;
+	wxTextCtrl* TextCtrl_Fan_Revolutions;
+	wxSlider* Slider_Fan_CenterY;
+	wxSlider* Slider_Fan_Accel;
+	wxSlider* Slider_Fan_Num_Elements;
+	wxFlexGridSizer* GridBagSizerFanBlades;
 	wxStaticText* StaticText133;
+	wxSlider* Slider_Fan_End_Radius;
+	wxTextCtrl* TextCtrl_Fan_CenterY;
+	wxFlexGridSizer* GridBagSizerFanOptions;
+	wxSlider* Slider_Fan_Duration;
+	wxTextCtrl* TextCtrl_Fan_Duration;
+	wxTextCtrl* TextCtrl_Fan_Start_Radius;
+	wxSlider* Slider_Fan_Blade_Width;
+	wxTextCtrl* TextCtrl_Fan_Num_Blades;
+	wxSlider* Slider_Fan_Start_Radius;
+	wxPanel* Panel12;
+	wxSlider* Slider_Fan_Blade_Angle;
+	wxTextCtrl* TextCtrl_Fan_Start_Angle;
+	wxTextCtrl* TextCtrl_Fan_End_Radius;
+	wxTextCtrl* TextCtrl_Fan_CenterX;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer109 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -150,7 +150,7 @@ FanPanel::FanPanel(wxWindow* parent)
 	GridBagSizerFanPosition->Add(BitmapButton_Fan_CenterY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText143 = new wxStaticText(Panel9, ID_STATICTEXT136, _("Radius1:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT136"));
 	GridBagSizerFanPosition->Add(StaticText143, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Fan_Start_Radius = new wxSlider(Panel9, ID_SLIDER_Fan_Start_Radius, 1, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fan_Start_Radius"));
+	Slider_Fan_Start_Radius = new wxSlider(Panel9, ID_SLIDER_Fan_Start_Radius, 1, 0, 500, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fan_Start_Radius"));
 	GridBagSizerFanPosition->Add(Slider_Fan_Start_Radius, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Fan_Start_Radius = new wxTextCtrl(Panel9, IDD_TEXTCTRL_Fan_Start_Radius, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel9,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Fan_Start_Radius"));
 	TextCtrl_Fan_Start_Radius->SetMaxLength(3);
@@ -170,7 +170,7 @@ FanPanel::FanPanel(wxWindow* parent)
 	GridBagSizerFanPosition->Add(BitmapButton_Fan_Start_Angle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText144 = new wxStaticText(Panel9, ID_STATICTEXT141, _("Radius2:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT141"));
 	GridBagSizerFanPosition->Add(StaticText144, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Fan_End_Radius = new wxSlider(Panel9, ID_SLIDER_Fan_End_Radius, 10, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fan_End_Radius"));
+	Slider_Fan_End_Radius = new wxSlider(Panel9, ID_SLIDER_Fan_End_Radius, 10, 0, 500, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fan_End_Radius"));
 	GridBagSizerFanPosition->Add(Slider_Fan_End_Radius, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Fan_End_Radius = new wxTextCtrl(Panel9, IDD_TEXTCTRL_Fan_End_Radius, _("10"), wxDefaultPosition, wxDLG_UNIT(Panel9,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Fan_End_Radius"));
 	TextCtrl_Fan_End_Radius->SetMaxLength(3);

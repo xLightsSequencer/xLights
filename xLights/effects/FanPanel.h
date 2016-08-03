@@ -3,14 +3,14 @@
 
 //(*Headers(FanPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxNotebook;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxNotebookEvent;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxNotebookEvent;
+class wxNotebook;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
 //*)
 
 class FanPanel: public wxPanel
@@ -21,34 +21,34 @@ class FanPanel: public wxPanel
 		virtual ~FanPanel();
 
 		//(*Declarations(FanPanel)
-		wxBitmapButton* BitmapButton_Fan_Element_Width;
-		wxStaticText* StaticText144;
-		wxCheckBox* CheckBox_Fan_Reverse;
-		wxBitmapButton* BitmapButton_Fan_Blade_Width;
-		wxStaticText* StaticText149;
-		wxStaticText* StaticText147;
-		wxStaticText* StaticText152;
-		wxBitmapButton* BitmapButton_Fan_CenterY;
-		wxStaticText* StaticText153;
-		wxStaticText* StaticText145;
+		wxBitmapButton* BitmapButton_Fan_Duration;
+		wxStaticText* StaticText148;
 		wxStaticText* StaticText146;
+		wxStaticText* StaticText147;
 		wxBitmapButton* BitmapButton_Fan_End_Radius;
-		wxCheckBox* CheckBox_Fan_Blend_Edges;
+		wxBitmapButton* BitmapButton_Fan_Start_Radius;
+		wxNotebook* Notebook1;
+		wxBitmapButton* BitmapButton_Fan_Start_Angle;
+		wxBitmapButton* BitmapButton_Fan_CenterX;
+		wxBitmapButton* BitmapButton_Fan_Blade_Width;
+		wxStaticText* StaticText151;
+		wxStaticText* StaticText144;
+		wxStaticText* StaticText153;
+		wxStaticText* StaticText152;
 		wxStaticText* StaticText150;
 		wxBitmapButton* BitmapButton_Fan_Accel;
-		wxBitmapButton* BitmapButton_Fan_Blade_Angle;
+		wxCheckBox* CheckBox_Fan_Reverse;
+		wxStaticText* StaticText149;
+		wxBitmapButton* BitmapButton_Fan_Num_Blades;
 		wxBitmapButton* BitmapButton_Fan_Num_Elements;
-		wxBitmapButton* BitmapButton_Fan_Start_Angle;
-		wxNotebook* Notebook1;
+		wxStaticText* StaticText145;
+		wxBitmapButton* BitmapButton_Fan_Blade_Angle;
+		wxBitmapButton* BitmapButton_Fan_CenterY;
 		wxBitmapButton* BitmapButton_Fan_Revolutions;
+		wxCheckBox* CheckBox_Fan_Blend_Edges;
 		wxStaticText* StaticText143;
 		wxStaticText* StaticText135;
-		wxStaticText* StaticText148;
-		wxBitmapButton* BitmapButton_Fan_Num_Blades;
-		wxBitmapButton* BitmapButton_Fan_Start_Radius;
-		wxBitmapButton* BitmapButton_Fan_CenterX;
-		wxStaticText* StaticText151;
-		wxBitmapButton* BitmapButton_Fan_Duration;
+		wxBitmapButton* BitmapButton_Fan_Element_Width;
 		//*)
 
 	protected:
