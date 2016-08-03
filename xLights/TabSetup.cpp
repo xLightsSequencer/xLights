@@ -41,6 +41,14 @@ void xLightsFrame::SetDir(const wxString& newdir)
     // don't change show directories with an open sequence because models won't match
     CloseSequence();
 
+    // delete any views that were added to the menu
+    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); it++) {
+        LayoutGroup* grp = (LayoutGroup*)(*it);
+        if (grp != nullptr) {
+            RemovePreviewOption(grp);
+        }
+    }
+
     if (newdir != CurrentDir && "" != CurrentDir) {
         wxFileName kbf;
         kbf.AssignDir(CurrentDir);

@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Remove Previews from Menus when switching show directories.
    -- enh (gil)     Add ability to scale PolyLine models.
    -- enh (gil)     Add effect alignment options.
    -- bug (gil)     Prevent PolyLine point deletion unless there are 3 or more points.
