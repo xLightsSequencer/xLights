@@ -136,7 +136,7 @@ Element* SequenceElements::AddElement(const std::string &name, const std::string
 {
     if(!ElementExists(name)) {
         Element *el = CreateElement(this, name,type,visible,collapsed,active,selected);
-        
+
         mAllViews[MASTER_VIEW].push_back(el);
         IncrementChangeCount(el);
         return el;
@@ -981,7 +981,7 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
                     ri.element = se;
                     ri.Collapsed = se->GetCollapsed();
                     ri.displayName = se->GetName();
-                    
+
                     ri.colorIndex = 0;
                     ri.layerIndex = x;
                     ri.Index = rowIndex++;
@@ -1172,15 +1172,15 @@ void SequenceElements::DeactivateAllTimingElements()
 int SequenceElements::SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS)
 {
     int num_selected = 0;
-    if(startRow<mVisibleRowInformation.size())
+    if(startRow<mRowInformation.size())
     {
-        if(endRow>=mVisibleRowInformation.size())
+        if(endRow>=mRowInformation.size())
         {
-            endRow = mVisibleRowInformation.size()-1;
+            endRow = mRowInformation.size()-1;
         }
         for(int i=startRow;i<=endRow;i++)
         {
-            EffectLayer* effectLayer = GetEffectLayer(&mVisibleRowInformation[i]);
+            EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
             num_selected += effectLayer->SelectEffectsInTimeRange(startMS,endMS);
         }
     }

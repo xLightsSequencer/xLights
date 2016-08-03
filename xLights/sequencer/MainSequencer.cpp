@@ -78,7 +78,7 @@ public:
         time = "Time: 00:00:00";
     }
     virtual ~TimeDisplayControl(){};
-    
+
     virtual void SetLabels(const wxString &time, const wxString &fps) {
         this->fps = fps; this->time = time;
         renderGL();
@@ -88,7 +88,7 @@ protected:
     void Paint( wxPaintEvent& event ) {
         renderGL();
     }
-    
+
     virtual bool UsesVertexTextureAccumulator() override {return true;}
     virtual bool UsesVertexColorAccumulator() override {return false;}
     virtual bool UsesVertexAccumulator() override {return false;}
@@ -107,12 +107,12 @@ protected:
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
         mIsInitialized = true;
     }
-    
+
     void renderGL()
     {
         if(!mIsInitialized) { InitializeGLCanvas(); }
         if(!IsShownOnScreen()) return;
-        
+
         SetCurrentGLContext();
         glClear(GL_COLOR_BUFFER_BIT);
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
@@ -124,7 +124,7 @@ protected:
         SwapBuffers();
     }
 
-    
+
 private:
     std::string time;
     std::string fps;
@@ -211,7 +211,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     FlexGridSizer2->Fit(this);
     FlexGridSizer2->SetSizeHints(this);
 
-    
+
     mParent = parent;
     mPlayType = 0;
     SetHandlers(this);
@@ -322,7 +322,7 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
             }
         }
         mSequenceElements->PopulateVisibleRowInformation();
-        PanelEffectGrid->Refresh();
+        PanelEffectGrid->ForceRefresh();  // call this so we can check if we need to update which effects are selected
         PanelRowHeadings->Refresh();
     }
 }

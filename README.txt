@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Improve effect selection and updates when vertical scrolling.  Fixes #638.
    -- bug (gil)     Prevent crash when custom model background image does not exist. Fixes #639.
    -- bug (gil)     Remove Previews from Menus when switching show directories.
    -- enh (gil)     Add ability to scale PolyLine models.
