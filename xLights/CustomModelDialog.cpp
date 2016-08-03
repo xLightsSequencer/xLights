@@ -4,6 +4,7 @@
 #include <wx/msgdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/graphics.h>
+#include <wx/file.h>
 
 //(*InternalHeaders(CustomModelDialog)
 #include <wx/artprov.h>
@@ -213,9 +214,11 @@ void CustomModelDialog::Setup(CustomModel *m) {
     }
 
     if( background_image != "" ) {
-        bkg_image = new wxImage(background_image);
-        renderer = new wxModelGridCellRenderer(bkg_image, *GridCustom);
-        GridCustom->SetDefaultRenderer(renderer);
+        if (wxFile::Exists(background_image)) {
+            bkg_image = new wxImage(background_image);
+            renderer = new wxModelGridCellRenderer(bkg_image, *GridCustom);
+            GridCustom->SetDefaultRenderer(renderer);
+        }
     }
 
     wxArrayString cols;
