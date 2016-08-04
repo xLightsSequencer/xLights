@@ -89,7 +89,7 @@ int PolyLineModel::MapToNodeIndex(int strand, int node) const {
 }
 
 int PolyLineModel::GetNumStrands() const {
-    return polyLineSizes.size();
+    return SingleNode ? 1 : polyLineSizes.size();
 }
 
 void PolyLineModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) {
@@ -154,7 +154,7 @@ void PolyLineModel::InitModel() {
     // setup number of lights per line segment
     polyLineSizes.resize(num_segments);
     if (hasIndivSeg) {
-        parm1 = num_segments;
+        parm1 = SingleNode ? 1 : num_segments;
         numLights = 0;
         for (int x = 0; x < num_segments; x++) {
             wxString val = ModelXml->GetAttribute(SegAttrName(x));
@@ -181,7 +181,7 @@ void PolyLineModel::InitModel() {
     // process our own start channels
     std::string tempstr = ModelXml->GetAttribute("Advanced", "0").ToStdString();
     bool HasIndividualStartChans=tempstr == "1";
-    if( HasIndividualStartChans ) {
+    if( HasIndividualStartChans && !SingleNode) {
         int StartChannel = GetNumberFromChannelString(ModelXml->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel);
         stringStartChan.clear();
         stringStartChan.resize(num_segments);
@@ -198,9 +198,9 @@ void PolyLineModel::InitModel() {
     }
 
     // fix the string numbers for each node since model is non-standard
-    if (HasIndividualStartChans && hasIndivSeg) {
-        int idx = 0;
-        for (int x = 0; x < num_segments; x++) {
+    size_t idx=0;
+    if (HasIndividualStartChans && hasIndivSeg && !SingleNode) {
+        for (int x = 0; x < SingleNode ? 1 : num_segments; x++) {
             for( int n = 0; n < polyLineSizes[x]; ++n ) {
                 Nodes[idx++]->StringNum = x;
             }
@@ -233,6 +233,15 @@ void PolyLineModel::InitModel() {
     float deltay = maxY-minY;
     total_length = 0.0f;
 
+    // calculate segment lengths if we need to auto-distribute lights
+    if (!hasIndivSeg) {
+        for( int i = 0; i < num_points-1; ++i ) {
+            float length = std::sqrt((pPos[i+1].y - pPos[i].y)*(pPos[i+1].y - pPos[i].y) + (pPos[i+1].x - pPos[i].x)*(pPos[i+1].x - pPos[i].x));
+            pPos[i].length = length;
+            total_length += length;
+        }
+    }
+
     // normalize all points from 0.0 to 1.0 and create
     // a matrix for each line segment
     for( int i = 0; i < num_points-1; ++i ) {
@@ -252,8 +261,6 @@ void PolyLineModel::InitModel() {
             angle += (float)M_PI;
         }
         float scale = std::sqrt((y2p - y1p)*(y2p - y1p) + (x2p - x1p)*(x2p - x1p));
-        pPos[i].length = scale;
-        total_length += scale;
 
         glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2(scale, 1.0));
         glm::mat3 rotationMatrix = glm::rotate(glm::mat3(1.0f), (float)angle);
@@ -267,11 +274,11 @@ void PolyLineModel::InitModel() {
     }
 
     // define the buffer positions
-    SetBufferSize(1, numLights);
+    SetBufferSize(1, (SingleNode?1:numLights));
     int chan = 0;
     int LastStringNum=-1;
     int ChanIncr=SingleChannel ?  1 : 3;
-    for(size_t idx=0; idx<numLights; idx++) {
+    for(idx=0; idx<(SingleNode?1:numLights); idx++) {
         if (Nodes[idx]->StringNum != LastStringNum) {
             LastStringNum=Nodes[idx]->StringNum;
             chan=stringStartChan[LastStringNum];
@@ -287,45 +294,83 @@ void PolyLineModel::InitModel() {
     }
 
     // place the nodes/coords along each line segment
-    int idx = 0;
+    idx = 0;
     float loc_x;
     if (hasIndivSeg) {
         // distribute the lights as defined by the polysize string
-        for(size_t m=0; m<num_segments; m++) {
+        if( SingleNode ) {
+            int segment = 0;
             int seg_idx = 0;
-            for(size_t n=0; n<polyLineSizes[m]; n++) {
-                int count = 0;
-                int num = Nodes[idx].get()->Coords.size();
-                float offset = 0.5f;
-                if( num > 1 ) {
-                    offset -= 1.0f / (float)num;
+            int count = 0;
+            int num = Nodes[0].get()->Coords.size();
+            float offset = 0.5f;
+            if( num > 1 ) {
+                offset -= 1.0f / (float)num;
+            }
+            size_t CoordCount=GetCoordCount(0);
+            for(size_t c=0; c < CoordCount; c++) {
+                if (num > 1) {
+                    loc_x = seg_idx + offset + ((float)count / (float)num);
+                    count++;
+                } else {
+                    loc_x = seg_idx + offset;
                 }
-                size_t CoordCount=GetCoordCount(idx);
-                int x_pos = IsLtoR ? seg_idx : (SingleNode ? seg_idx : polyLineSizes[m]-seg_idx-1);
-                for(size_t c=0; c < CoordCount; c++) {
-                    if (num > 1) {
-                        loc_x = x_pos + offset + ((float)count / (float)num);
-                        count++;
-                    } else {
-                        loc_x = x_pos + offset;
-                    }
 
-                    glm::vec3 v = *pPos[m].matrix * glm::vec3(loc_x / (float)polyLineSizes[m], 0, 1);
+                glm::vec3 v = *pPos[segment].matrix * glm::vec3(loc_x / (float)polyLineSizes[segment], 0, 1);
 
-                    Nodes[idx]->Coords[c].screenX = v.x;
-                    Nodes[idx]->Coords[c].screenY = v.y;
-                }
-                idx++;
+                Nodes[0]->Coords[c].screenX = v.x;
+                Nodes[0]->Coords[c].screenY = v.y;
                 seg_idx++;
+                if( seg_idx >= polyLineSizes[segment] ) {
+                    segment++;
+                    seg_idx = 0;
+                    count = 0;
+                    for(int x=segment; x < polyLineSizes.size(); ++x ) {
+                        if( polyLineSizes[x] == 0 ) {
+                            segment++;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            for(size_t m=0; m<num_segments; m++) {
+                int seg_idx = 0;
+                for(size_t n=0; n<polyLineSizes[m]; n++) {
+                    int count = 0;
+                    int num = Nodes[idx].get()->Coords.size();
+                    float offset = 0.5f;
+                    if( num > 1 ) {
+                        offset -= 1.0f / (float)num;
+                    }
+                    size_t CoordCount=GetCoordCount(idx);
+                    int x_pos = IsLtoR ? seg_idx : polyLineSizes[m]-seg_idx-1;
+                    for(size_t c=0; c < CoordCount; c++) {
+                        if (num > 1) {
+                            loc_x = x_pos + offset + ((float)count / (float)num);
+                            count++;
+                        } else {
+                            loc_x = x_pos + offset;
+                        }
+
+                        glm::vec3 v = *pPos[m].matrix * glm::vec3(loc_x / (float)polyLineSizes[m], 0, 1);
+
+                        Nodes[idx]->Coords[c].screenX = v.x;
+                        Nodes[idx]->Coords[c].screenY = v.y;
+                    }
+                    idx++;
+                    seg_idx++;
+                }
             }
         }
     } else {
         // distribute the lights evenly across the line segments
         int coords_per_node = Nodes[0].get()->Coords.size();
-        int lights_to_distribute = numLights * coords_per_node;
+        int lights_to_distribute = SingleNode ? coords_per_node : numLights * coords_per_node;
         float offset = total_length / lights_to_distribute;
         float current_pos = offset / 2.0f;
-        size_t idx=0;
+        idx=0;
         size_t c=0;
         int segment = 0;
         int last_seg_light_num = 0;
@@ -334,7 +379,7 @@ void PolyLineModel::InitModel() {
         for(size_t m=0; m<lights_to_distribute; m++) {
             if( current_pos > seg_end ) {
                 polyLineSizes[segment] = m - last_seg_light_num;
-                last_seg_light_num = m - 1;
+                last_seg_light_num = m;
                 segment++;
                 seg_start = seg_end;
                 seg_end = seg_start + pPos[segment].length;
@@ -350,6 +395,7 @@ void PolyLineModel::InitModel() {
             }
             current_pos += offset;
         }
+        polyLineSizes[segment] = lights_to_distribute - last_seg_light_num;
     }
     screenLocation.SetRenderSize(1.0, 1.0);
 }
@@ -425,7 +471,9 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
             hasIndivSeg = true;
             segs_collapsed = false;
             ModelXml->AddAttribute("IndivSegs", "1");
+            int count = polyLineSizes.size();
             for (int x = 0; x < num_segments; x++) {
+                count = polyLineSizes[x];
                 if (ModelXml->GetAttribute(SegAttrName(x)) == "") {
                     ModelXml->DeleteAttribute(SegAttrName(x));
                     ModelXml->AddAttribute(SegAttrName(x), wxString::Format("%d", polyLineSizes[x]));

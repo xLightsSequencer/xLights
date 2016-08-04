@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix PolyLine not working with single channel nodes.
    -- enh (gil)     Increase Fan radius parameters limits.  Fixes #640.
    -- enh (gil)     Improve effect selection and updates when vertical scrolling.  Fixes #638.
    -- bug (gil)     Prevent crash when custom model background image does not exist. Fixes #639.
