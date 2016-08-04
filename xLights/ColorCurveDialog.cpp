@@ -11,6 +11,7 @@
 #include "ValueCurve.h"
 #include <log4cpp/Category.hh>
 #include <wx/colordlg.h>
+#include <wx/stdpaths.h>
 
 wxDEFINE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);
 
@@ -90,7 +91,7 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     Move(wxDefaultPosition);
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
-    FlexGridSizer1->AddGrowableRow(0);
+    FlexGridSizer1->AddGrowableRow(2);
     FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer6->AddGrowableCol(0);
     FlexGridSizer6->AddGrowableRow(0);
@@ -107,6 +108,8 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     FlexGridSizer4->Add(Choice1, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer2->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
+    PresetSizer = new wxFlexGridSizer(0, 5, 0, 0);
+    FlexGridSizer1->Add(PresetSizer, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
     ButtonLoad = new wxButton(this, ID_BUTTON3, _("Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     FlexGridSizer5->Add(ButtonLoad, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -134,9 +137,10 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ColorCurveDialog::OnChar), (wxObject*)nullptr, this);
 
     _ccp = new ColorCurvePanel(_cc, this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
-    _ccp->SetMinSize(wxSize(300, 150));
+    _ccp->SetMinSize(wxSize(500, 80));
     _ccp->SetType(_cc->GetType());
     FlexGridSizer6->Add(_ccp, 1, wxALL | wxEXPAND, 2);
+    wxTopLevelWindowBase::SetMinSize(wxSize(600, 400));
     wxWindow::Layout();
     wxWindow::Fit();
 
@@ -147,7 +151,68 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
 
     Connect(wxID_ANY, EVT_CCP_CHANGED, (wxObjectEventFunction)&ColorCurveDialog::OnCCPChanged, 0, this);
 
+    PopulatePresets();
+
     ValidateWindow();
+}
+
+void ColorCurveDialog::ProcessPresetDir(wxDir& directory)
+{
+    wxString filename;
+    auto existing = PresetSizer->GetChildren();
+
+    bool cont = directory.GetFirst(&filename, "*.xcc", wxDIR_FILES);
+
+    while (cont)
+    {
+        wxFileName fn(directory.GetNameWithSep() + filename);
+        bool found = false;
+        for (auto it = existing.begin(); it != existing.end(); ++it)
+        {
+            if (it.m_node->GetData()->GetWindow()->GetLabel() == fn.GetFullPath())
+            {
+                // already there
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            ColorCurve cc("");
+            LoadXCC(&cc, fn.GetFullPath());
+            long id = wxNewId();
+            wxBitmapButton* bmb = new wxBitmapButton(this, id, cc.GetImage(30, 30, false), wxDefaultPosition, wxSize(30, 30));
+            bmb->SetLabel(fn.GetFullPath());
+            PresetSizer->Add(bmb);
+            Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorCurveDialog::OnButtonPresetClick);
+        }
+
+        cont = directory.GetNext(&filename);
+    }
+
+    cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+    while (cont)
+    {
+        wxDir dir(directory.GetNameWithSep() + filename);
+        ProcessPresetDir(dir);
+        cont = directory.GetNext(&filename);
+    }
+}
+
+void ColorCurveDialog::PopulatePresets()
+{
+    wxDir dir(xLightsFrame::CurrentDir);
+
+    ProcessPresetDir(dir);
+
+    wxStandardPaths  stdp = wxStandardPaths::Get();
+    dir.Open(wxFileName(stdp.GetExecutablePath()).GetPath());
+
+    ProcessPresetDir(dir);
+
+    PresetSizer->Layout();
+    wxWindow::Layout();
+    //wxWindow::Fit();
 }
 
 ColorCurveDialog::~ColorCurveDialog()
@@ -259,6 +324,11 @@ void ColorCurvePanel::mouseLeftDClick(wxMouseEvent& event)
     }
     Refresh();
     SetToolTip("");
+}
+
+void ColorCurvePanel::ClearUndo()
+{
+    _undo.clear();
 }
 
 void ColorCurvePanel::mouseLeftDown(wxMouseEvent& event)
@@ -422,48 +492,135 @@ void ColorCurvePanel::mouseMoved(wxMouseEvent& event)
 }
 #pragma endregion Mouse Control
 
+void ColorCurvePanel::DrawHouse(wxAutoBufferedPaintDC& pdc, int x, int height, bool selected, const wxColor& c, wxPointList& pl)
+{
+    const float hsel = 0.15;
+
+    // draw filled colour
+    pdc.SetPen(*wxTRANSPARENT_PEN);
+    pdc.SetBrush(wxBrush(c));
+    pdc.DrawPolygon(&pl, x, height);
+
+    HSVValue hsv = xlColor(c).asHSV();
+
+    // draw border
+    if (hsv.value < 0.6)
+    {
+        if (selected)
+        {
+            // draw selected rectangle
+            pdc.SetBrush(*wxYELLOW_BRUSH);
+            pdc.DrawRectangle(x + pl.front()->x, height - (int)(hsel * (float)height), pl.back()->x - pl.front()->x, (int)(hsel * (float)height));
+            pdc.SetPen(wxPen(*wxWHITE, 1));
+            pdc.SetBrush(*wxTRANSPARENT_BRUSH);
+            pdc.DrawLine(x + pl.front()->x, height - (int)(hsel * (float)height), x + pl.back()->x, height - (int)(hsel * (float)height));
+        }
+
+        pdc.SetPen(wxPen(*wxWHITE, 1));
+        pdc.SetBrush(*wxTRANSPARENT_BRUSH);
+        pdc.DrawPolygon(&pl, x, height);
+    }
+    else
+    {
+        if (selected)
+        {
+            // draw selected rectangle
+            pdc.SetBrush(*wxYELLOW_BRUSH);
+            pdc.DrawRectangle(x + pl.front()->x, height - (int)(hsel * (float)height), pl.back()->x - pl.front()->x, (int)(hsel * (float)height));
+            pdc.SetPen(wxPen(*wxBLACK, 1));
+            pdc.SetBrush(*wxTRANSPARENT_BRUSH);
+            pdc.DrawLine(x + pl.front()->x, height - (int)(hsel * (float)height), x + pl.back()->x, height - (int)(hsel * (float)height));
+        }
+
+        // draw black border
+        pdc.SetPen(wxPen(*wxBLACK,1));
+        pdc.SetBrush(*wxTRANSPARENT_BRUSH);
+        pdc.DrawPolygon(&pl, x, height);
+    }
+}
+
+void ColorCurvePanel::DrawStopsAsHouses(wxAutoBufferedPaintDC& pdc)
+{
+    const int housewidth = 7;
+    wxSize s = GetSize();
+    std::list<ccSortableColorPoint> pts = _cc->GetPoints();
+
+    wxPointList pl;
+    pl.push_back(new wxPoint(s.GetWidth()*-0.01, 0));
+    pl.push_back(new wxPoint(s.GetWidth()*-0.01, s.GetHeight()*-0.22));
+    pl.push_back(new wxPoint(0, s.GetHeight()*-0.30));
+    pl.push_back(new wxPoint(s.GetWidth()*0.01, s.GetHeight()*-0.22));
+    pl.push_back(new wxPoint(s.GetWidth()*0.01, 0));
+
+    if (pts.size() > 0)
+    {
+        std::list<ccSortableColorPoint>::iterator last = pts.begin();
+        for (auto p = pts.begin()++; p != pts.end(); ++p)
+        {
+            DrawHouse(pdc, p->x * s.GetWidth(), s.GetHeight(), false, _cc->GetValueAt(p->x), pl);
+        }
+    }
+
+    if (_grabbedPoint >= 0)
+    {
+        DrawHouse(pdc, _grabbedPoint * s.GetWidth(), s.GetHeight(), true, _cc->GetValueAt(_grabbedPoint), pl);
+    }
+}
+
+void ColorCurvePanel::DrawStopsAsLines(wxAutoBufferedPaintDC& pdc)
+{
+    wxSize s = GetSize();
+    std::list<ccSortableColorPoint> pts = _cc->GetPoints();
+
+    if (pts.size() > 0)
+    {
+        pdc.SetPen(wxPen(*wxRED, 3, wxPENSTYLE_SOLID));
+
+        std::list<ccSortableColorPoint>::iterator last = pts.begin();
+        for (auto p = pts.begin()++; p != pts.end(); ++p)
+        {
+            if (p->x == 1.0)
+            {
+                pdc.DrawLine(p->x * s.GetWidth() - 2, 0, p->x * s.GetWidth() - 2, s.GetHeight());
+            }
+            else
+            {
+                pdc.DrawLine(p->x * s.GetWidth(), 0, p->x * s.GetWidth(), s.GetHeight());
+            }
+        }
+    }
+
+    if (_grabbedPoint >= 0)
+    {
+        pdc.SetPen(wxPen(*wxBLUE, 3, wxPENSTYLE_SOLID));
+        if (_grabbedPoint == 1.0)
+        {
+            pdc.DrawLine(_grabbedPoint * s.GetWidth() - 2, 0, _grabbedPoint * s.GetWidth() - 2, s.GetHeight());
+        }
+        else
+        {
+            pdc.DrawLine(_grabbedPoint * s.GetWidth(), 0, _grabbedPoint * s.GetWidth(), s.GetHeight());
+        }
+    }
+}
+
 void ColorCurvePanel::Paint(wxPaintEvent& event)
 {
     wxAutoBufferedPaintDC pdc(this);
     wxSize s = GetSize();
+
+    pdc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
+    pdc.SetBrush(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
+    pdc.DrawRectangle(0, 0, s.GetWidth(), s.GetHeight());
+    pdc.SetBrush(*wxTRANSPARENT_BRUSH);
+
     if (_cc != nullptr)
     {
         wxBitmap bmp = _cc->GetImage(s.GetWidth(), s.GetHeight(), true);
         pdc.DrawBitmap(bmp, 0, 0);
 
-        pdc.SetPen(wxPen(*wxRED, 3, wxPENSTYLE_SOLID));
-        //pdc.SetLogicalFunction(wxXOR);
-
-        std::list<ccSortableColorPoint> pts = _cc->GetPoints();
-
-        if (pts.size() > 0)
-        {
-            std::list<ccSortableColorPoint>::iterator last = pts.begin();
-            for (auto p = pts.begin()++; p != pts.end(); p++)
-            {
-                if (p->x == 1.0)
-                {
-                    pdc.DrawLine(p->x * s.GetWidth() - 2, 0, p->x * s.GetWidth() - 2, s.GetHeight());
-                }
-                else
-                {
-                    pdc.DrawLine(p->x * s.GetWidth(), 0, p->x * s.GetWidth(), s.GetHeight());
-                }
-            }
-        }
-
-        if (_grabbedPoint >= 0)
-        {
-            pdc.SetPen(wxPen(*wxBLUE, 3, wxPENSTYLE_SOLID));
-            if (_grabbedPoint == 1.0)
-            {
-                pdc.DrawLine(_grabbedPoint * s.GetWidth() - 2, 0, _grabbedPoint * s.GetWidth() - 2, s.GetHeight());
-            }
-            else
-            {
-                pdc.DrawLine(_grabbedPoint * s.GetWidth(), 0, _grabbedPoint * s.GetWidth(), s.GetHeight());
-            }
-        }
+        //DrawStopsAsLines(pdc);
+        DrawStopsAsHouses(pdc);
     }
 }
 
@@ -490,16 +647,13 @@ void ColorCurveDialog::OnResize(wxSizeEvent& event)
 {
     OnSize(event);
     _ccp->Refresh();
+    PresetSizer->SetCols((event.m_size.GetWidth() - 10) / 32);
+    PresetSizer->Layout();
     Refresh();
 }
 
-void ColorCurveDialog::OnButtonLoadClick(wxCommandEvent& event)
+void ColorCurveDialog::LoadXCC(ColorCurve* cc, const wxString& filename)
 {
-    std::string id = _cc->GetId(); // save if because it will be overwritten
-
-    wxString filename = wxFileSelector(_("Choose color curve file"), wxEmptyString, wxEmptyString, wxEmptyString, "Color Curve files (*.xcc)|*.xcc", wxFD_OPEN);
-    if (filename.IsEmpty()) return;
-    
     wxXmlDocument doc(filename);
 
     if (doc.IsOk())
@@ -514,20 +668,52 @@ void ColorCurveDialog::OnButtonLoadClick(wxCommandEvent& event)
             // Add any colorcurve version conversion logic here
             // Source version will be the program version that created the custom model
 
-            _cc->Deserialise(data.ToStdString());
-            _cc->SetId(id);
-            _ccp->Reloaded();
-            _ccp->Refresh();
+            cc->Deserialise(data.ToStdString());
+            cc->SetActive(true);
         }
         else
         {
-            wxMessageBox("Failure loading color curve file.");
+            wxMessageBox("Failure loading color curve file " + filename + ".");
         }
     }
     else
     {
-        wxMessageBox("Failure loading color curve file.");
+        wxMessageBox("Failure loading color curve file " + filename + ".");
     }
+}
+
+void ColorCurveDialog::OnButtonLoadClick(wxCommandEvent& event)
+{
+    std::string id = _cc->GetId(); // save if because it will be overwritten
+
+    wxString filename = wxFileSelector(_("Choose color curve file"), wxEmptyString, wxEmptyString, wxEmptyString, "Color Curve files (*.xcc)|*.xcc", wxFD_OPEN);
+    if (filename.IsEmpty()) return;
+
+    LoadXCC(_cc, filename);
+    _ccp->Reloaded();
+    _ccp->Refresh();
+    _ccp->ClearUndo();
+    _cc->SetId(id);
+}
+
+void ColorCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
+{
+    if (_ccp->IsDirty())
+    {
+        if (wxMessageBox("Are you sure you want to discard your current color curve?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO)
+        {
+            return;
+        }
+    }
+
+    wxString filename = ((wxBitmapButton*)event.GetEventObject())->GetLabel();
+
+    std::string id = _cc->GetId(); // save if because it will be overwritten
+    LoadXCC(_cc, filename);
+    _ccp->Reloaded();
+    _ccp->Refresh();
+    _ccp->ClearUndo();
+    _cc->SetId(id);
 }
 
 void ColorCurveDialog::OnButtonExportClick(wxCommandEvent& event)
@@ -547,6 +733,8 @@ void ColorCurveDialog::OnButtonExportClick(wxCommandEvent& event)
         return;
     }
 
+    _cc->SetActive(true);
+
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<colorcurve \n");
     f.Write(wxString::Format("data=\"%s\" ", (const char *)_cc->Serialise().c_str()));
@@ -554,4 +742,8 @@ void ColorCurveDialog::OnButtonExportClick(wxCommandEvent& event)
     f.Write(" >\n");
     f.Write("</colorcurve>");
     f.Close();
+
+    _ccp->ClearUndo();
+
+    PopulatePresets();
 }

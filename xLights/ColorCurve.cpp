@@ -320,7 +320,8 @@ wxBitmap ColorCurve::GetImage(int x, int y, bool bars)
         dc.SetPen(wxPen(GetValueAt(static_cast<float>(i) / static_cast<float>(x)), 1, wxPENSTYLE_SOLID));
         if (bars)
         {
-            dc.DrawLine(wxPoint(i, static_cast<float>(y)*0.05), wxPoint(i, static_cast<float>(y)*0.95));
+            //dc.DrawLine(wxPoint(i, static_cast<float>(y)*0.05), wxPoint(i, static_cast<float>(y)*0.95));
+            dc.DrawLine(wxPoint(i, 0), wxPoint(i, static_cast<float>(y) * 0.75));
         }
         else
         {

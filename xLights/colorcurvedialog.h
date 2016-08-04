@@ -12,6 +12,9 @@
 #include "xlCustomControl.h"
 #include "ColorCurve.h"
 
+class wxDir;
+class wxAutoBufferedPaintDC;
+
 wxDECLARE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);
 
 class ColorCurvePanel : public wxWindow, public xlCustomControl
@@ -28,6 +31,8 @@ public:
     void SaveUndo(ccSortableColorPoint& point, bool del);
     void Select(float x);
     void Reloaded();
+    void ClearUndo();
+    bool IsDirty() { return _undo.size() > 0; }
 
 protected:
     DECLARE_EVENT_TABLE()
@@ -48,6 +53,9 @@ private:
         eventCCPChange.SetEventObject(this);
         wxPostEvent(GetParent(), eventCCPChange);
     }
+    void DrawStopsAsLines(wxAutoBufferedPaintDC& pdc);
+    void DrawStopsAsHouses(wxAutoBufferedPaintDC& pdc);
+    void DrawHouse(wxAutoBufferedPaintDC& pdc, int x, int height, bool selected, const wxColor& c, wxPointList& pl);
     ColorCurve *_cc;
     //float _originalGrabbedPoint;
     float _grabbedPoint;
@@ -65,6 +73,10 @@ class ColorCurveDialog: public wxDialog
     void ValidateWindow();
     ColorCurvePanel* _ccp;
 
+    void LoadXCC(ColorCurve * cc, const wxString& filename);
+    void PopulatePresets();
+    void ProcessPresetDir(wxDir& directory);
+
     public:
 
 		ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
@@ -74,6 +86,7 @@ class ColorCurveDialog: public wxDialog
 		//(*Declarations(ColorCurveDialog)
 		wxButton* ButtonExport;
 		wxButton* Button_Ok;
+		wxFlexGridSizer* PresetSizer;
 		wxStaticText* StaticText1;
 		wxButton* Button_Cancel;
 		wxButton* ButtonLoad;
@@ -101,7 +114,8 @@ class ColorCurveDialog: public wxDialog
 		void OnResize(wxSizeEvent& event);
 		void OnButtonLoadClick(wxCommandEvent& event);
 		void OnButtonExportClick(wxCommandEvent& event);
-		//*)
+        void OnButtonPresetClick(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

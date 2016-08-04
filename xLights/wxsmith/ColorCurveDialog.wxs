@@ -9,7 +9,7 @@
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
-			<growablerows>0</growablerows>
+			<growablerows>2</growablerows>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
 					<cols>1</cols>
@@ -58,6 +58,14 @@
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="PresetSizer" member="yes">
+					<cols>5</cols>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
