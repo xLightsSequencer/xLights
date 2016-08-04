@@ -18,6 +18,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (gil)     Prevent PolyLine point deletion unless there are 3 or more points.
    -- bug (gil)     Fix PolyLine selection hotspots and selection with yellow bounding box.
    -- enh (gil)     Account for malformed XML in the new version 6 format of SuperStar files.
+   -- bug (dkulp) Fix crash when matrix type models have a single node and a Model/Strand render style is used
+   -- enh (dkulp) Allow multiple layers for Strands, strands blend onto the model level effects
 2016.42  Jul 30, 2016
    -- bug (gil)     Fix typo that prevented the Layer Star render style from working for Star Model.
    -- enh (gil)     Add PolyLine model.
