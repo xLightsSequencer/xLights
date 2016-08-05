@@ -20,7 +20,7 @@
 PianoEffect::PianoEffect(int id) : RenderableEffect(id, "Piano", piano_16, piano_64, piano_64, piano_64, piano_64)
 {
     //ctor
-	_panel = NULL;
+	_panel = nullptr;
 }
 
 PianoEffect::~PianoEffect()
@@ -38,7 +38,7 @@ void PianoEffect::SetPanelStatus(Model *cls)
 
     // Tell our panel the media file in case we need to do polyphonic transcription
     xLightsFrame* frame = (xLightsFrame*)fp->GetParent();
-    if (frame != NULL && frame->CurrentSeqXmlFile != NULL)
+    if (frame != nullptr && frame->CurrentSeqXmlFile != nullptr)
         ((PianoPanel*)_panel)->SetAudio(frame->CurrentSeqXmlFile->GetMedia());
 
     if (mSequenceElements == nullptr)
@@ -224,11 +224,11 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, SequenceElements *elements, 
 	}
 
     std::list<float> def;
-	std::list<float>* pdata = NULL;
+	std::list<float>* pdata = nullptr;
 
 	if (_timingsource == "Polyphonic Transcription")
 	{
-		if (buffer.GetMedia() != NULL)
+		if (buffer.GetMedia() != nullptr)
 		{
 			pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_NOTES, "");
 		}
@@ -242,7 +242,7 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, SequenceElements *elements, 
 		}
 	}
 
-    if (pdata == NULL)
+    if (pdata == nullptr)
     {
         pdata = &def;
     }
@@ -380,6 +380,7 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 			}
 		}
 	}
+    if (wkcount == 0) wkcount = 1; // avoid a divide by zero error
 
 	int fwkw = buffer.BufferWi / wkcount;
 	int wkw = fwkw;
@@ -524,6 +525,8 @@ void PianoEffect::DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, b
 			}
 		}
 	}
+
+    if (kcount == 0) kcount = 1; // avoid divide by zero error
 	int fwkw = buffer.BufferWi / kcount;
 
 	// Get the colours
@@ -655,44 +658,47 @@ std::map<int, std::list<float>> PianoEffect::LoadAudacityFile(std::string file, 
 		while (!f.Eof())
 		{
 			wxString l = f.GetNextLine();
-			std::vector<float> components = Parse(l);
-			if (components.size() != 3)
-			{
-				// this is a problem ... there should be 3 floating point numbers
-                logger_pianodata.warn("Invalid data in audacity file - 3 tab separated floating point values expected: '" + l + "'");
-				break;
-			}
-			else
-			{
-                logger_pianodata.debug("%f,%f,%f", components[0], components[1], components[2]);
-                int start = LowerTS(components[0], intervalMS);
-				int end = UpperTS(components[1], intervalMS);
-				for (int i = start; i <= end; i += intervalMS)
-				{
-					if (res.find(i) == res.end())
-					{
-						std::list<float> f;
-						f.push_back(components[2]);
-						res[i] = f;
-					}
-					else
-					{
-                        bool found = false;
-                        for (auto it = res[i].begin(); it != res[i].end(); ++it)
+            if (l != "") // skip blank lines
+            {
+                std::vector<float> components = Parse(l);
+                if (components.size() != 3)
+                {
+                    // this is a problem ... there should be 3 floating point numbers
+                    logger_pianodata.warn("Invalid data in audacity file - 3 tab separated floating point values expected: '" + l + "'");
+                    break;
+                }
+                else
+                {
+                    logger_pianodata.debug("%f,%f,%f", components[0], components[1], components[2]);
+                    int start = LowerTS(components[0], intervalMS);
+                    int end = UpperTS(components[1], intervalMS);
+                    for (int i = start; i <= end; i += intervalMS)
+                    {
+                        if (res.find(i) == res.end())
                         {
-                            if (*it == components[2])
+                            std::list<float> f;
+                            f.push_back(components[2]);
+                            res[i] = f;
+                        }
+                        else
+                        {
+                            bool found = false;
+                            for (auto it = res[i].begin(); it != res[i].end(); ++it)
                             {
-                                found = true;
-                                break;
+                                if (*it == components[2])
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found)
+                            {
+                                res[i].push_back(components[2]);
                             }
                         }
-                        if (!found)
-                        {
-                            res[i].push_back(components[2]);
-                        }
                     }
-				}
-			}
+                }
+            }
 		}
 
         if (logger_pianodata.isDebugEnabled())
@@ -952,7 +958,7 @@ std::map<int, std::list<float>> PianoEffect::LoadTimingTrack(std::string track, 
     }
 
     // Load the names of the timing tracks
-    Element* t = NULL;
+    Element* t = nullptr;
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
@@ -966,7 +972,7 @@ std::map<int, std::list<float>> PianoEffect::LoadTimingTrack(std::string track, 
         }
     }
 
-    if (t == NULL)
+    if (t == nullptr)
     {
         logger_pianodata.debug("Timing track not found.");
         return res;
