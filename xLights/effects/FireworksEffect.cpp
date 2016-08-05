@@ -43,7 +43,7 @@ public:
     float angle;
     bool _bActive;
     int _cycles;
-    HSVValue _hsv;
+    int _colorindex;
     int startPeriod;
     float orig_x;
     float orig_y;
@@ -51,7 +51,7 @@ public:
     float orig_dy;
     float orig_vel;
     float orig_angle;
-    HSVValue orig_hsv;
+    HSVValue _hsv;
 
     void Reset()
     {
@@ -62,11 +62,10 @@ public:
         _dx = orig_dx;
         _dy = orig_dy;
         _cycles = 0;
-        _hsv = orig_hsv;
         _bActive = false;
     }
 
-    void Reset(int x, int y, bool active, float velocity, HSVValue hsv, int start)
+    void Reset(int x, int y, bool active, float velocity, int colorindex, int start)
     {
         _x       = x;
         orig_x = x;
@@ -81,8 +80,7 @@ public:
         _dy      = vel*sin(angle);
         orig_dy = _dy;
         _cycles  = 0;
-        _hsv     = hsv;
-        orig_hsv = _hsv;
+        _colorindex = colorindex;
         startPeriod = start;
         _bActive = false;
     }
@@ -177,9 +175,8 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             
             // Create a new burst
             ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-            buffer.palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
             for(i=0; i<Count; i++) {
-                cache->fireworkBursts[x * Count + i].Reset(startX, startY, false, Velocity, hsv, start);
+                cache->fireworkBursts[x * Count + i].Reset(startX, startY, false, Velocity, ColorIdx, start);
             }
         }
     }
@@ -196,6 +193,8 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                 for (int j = 0; j < Count; j++)
                 {
                     cache->fireworkBursts[Count*next + j]._bActive = true;
+                    buffer.palette.GetHSV(cache->fireworkBursts[Count*next + j]._colorindex, hsv); // Now go and get the hsv value for this ColorIdx
+                    cache->fireworkBursts[Count*next + j]._hsv = hsv;
                 }
 
                 // use the next firework next time
@@ -225,6 +224,8 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         {
             if (cache->fireworkBursts[i].startPeriod == buffer.curPeriod) {
                 cache->fireworkBursts[i]._bActive = true;
+                buffer.palette.GetHSV(cache->fireworkBursts[i]._colorindex, hsv); // Now go and get the hsv value for this ColorIdx
+                cache->fireworkBursts[i]._hsv = hsv;
             }
         }
 
