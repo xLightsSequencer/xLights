@@ -109,6 +109,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Choice_VUMeter_Type->Append(_("Level Shape"));
 	Choice_VUMeter_Type->Append(_("Color On"));
 	Choice_VUMeter_Type->Append(_("Timing Event Color"));
+	Choice_VUMeter_Type->Append(_("Timing Event Jump"));
 	Choice_VUMeter_Type->Append(_("Note On"));
 	Choice_VUMeter_Type->Append(_("Note Level Pulse"));
 	FlexGridSizer31->Add(Choice_VUMeter_Type, 1, wxALL|wxEXPAND, 2);
@@ -275,7 +276,8 @@ void VUMeterPanel::ValidateWindow()
     if (Choice_VUMeter_Type->GetStringSelection() == "Timing Event Spike" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Sweep" ||
         Choice_VUMeter_Type->GetStringSelection() == "Pulse" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color")
+        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Jump")
     {
         Choice_VUMeter_TimingTrack->Enable();
     }

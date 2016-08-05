@@ -125,9 +125,9 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     float sensitivity = (float)SettingsMap.GetInt("SLIDER_Fireworks_Sensitivity", 50) / 100.0;
     if (useMusic)
     {
-        if (buffer.GetMedia() != NULL) {
+        if (buffer.GetMedia() != nullptr) {
             std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-            if (pf != NULL)
+            if (pf != nullptr)
             {
                 f = *pf->begin();
             }

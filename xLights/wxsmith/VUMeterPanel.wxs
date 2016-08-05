@@ -81,6 +81,7 @@
 								<item>Level Shape</item>
 								<item>Color On</item>
 								<item>Timing Event Color</item>
+								<item>Timing Event Jump</item>
 								<item>Note On</item>
 								<item>Note Level Pulse</item>
 							</content>

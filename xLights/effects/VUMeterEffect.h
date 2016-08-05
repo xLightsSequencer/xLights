@@ -36,6 +36,7 @@ class VUMeterEffect : public RenderableEffect
 		void DrawDiamond(RenderBuffer& buffer, int centerx, int centery, int size, xlColor& color1);
         void RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote);
         void RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int _startNote, int _endNote);
+        void RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallframes, std::string timingtrack, float& lastval);
 };
 
 #endif // VUMETEREFFECT_H
