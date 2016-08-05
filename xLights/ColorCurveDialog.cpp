@@ -545,7 +545,6 @@ void ColorCurvePanel::DrawHouse(wxAutoBufferedPaintDC& pdc, int x, int height, b
 
 void ColorCurvePanel::DrawStopsAsHouses(wxAutoBufferedPaintDC& pdc)
 {
-    const int housewidth = 7;
     wxSize s = GetSize();
     std::list<ccSortableColorPoint> pts = _cc->GetPoints();
 
@@ -558,7 +557,6 @@ void ColorCurvePanel::DrawStopsAsHouses(wxAutoBufferedPaintDC& pdc)
 
     if (pts.size() > 0)
     {
-        std::list<ccSortableColorPoint>::iterator last = pts.begin();
         for (auto p = pts.begin()++; p != pts.end(); ++p)
         {
             DrawHouse(pdc, p->x * s.GetWidth(), s.GetHeight(), false, _cc->GetValueAt(p->x), pl);

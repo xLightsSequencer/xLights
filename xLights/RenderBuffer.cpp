@@ -868,7 +868,7 @@ void RenderBuffer::SetState(int period, bool ResetState, const std::string& mode
     curPeriod = period;
     cur_model = model_name;
     curPeriod = period;
-    palette.UpdateForProgress((float)(curPeriod - curEffStartPer) / (float)(curEffEndPer - curEffStartPer));
+    palette.UpdateForProgress(GetEffectTimeIntervalPosition());
 }
 void RenderBuffer::ClearTempBuf()
 {
@@ -877,25 +877,23 @@ void RenderBuffer::ClearTempBuf()
         tempbuf[i].Set(0, 0, 0, 0);
     }
 }
-double RenderBuffer::GetEffectTimeIntervalPosition(float cycles) {
+float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) {
     if (curEffEndPer == curEffStartPer) {
-        return 0.0;
+        return 0.0f;
     }
-    double retval = (double)(curPeriod-curEffStartPer)/(double)(curEffEndPer-curEffStartPer);
+    float retval = (float)(curPeriod-curEffStartPer)/(float)(curEffEndPer-curEffStartPer);
     retval *= cycles;
     while (retval > 1.0) {
         retval -= 1.0;
     }
     return retval;
 }
-double RenderBuffer::GetEffectTimeIntervalPosition()
+float RenderBuffer::GetEffectTimeIntervalPosition()
 {
     if (curEffEndPer == curEffStartPer) {
         return 0.0;
     }
-    double retval = (double)(curPeriod-curEffStartPer)/(double)(curEffEndPer-curEffStartPer);
-//    debug(10, "GetEffTiIntPos(fr last? %d): (cur %d - curst %d)/(curend %d - curst) = %f, (cur - curst)/(next %d - curst) = %f, (cur - prev %d)/(curend - prev) = %f", from_last, curPeriod, curEffStartPer, curEffEndPer, GetEffectPeriodPosition(), nextEffTimePeriod, (double)(curPeriod-curEffStartPer)/(nextEffTimePeriod-curEffStartPer), prevNonBlankStartPeriod, (double)(curPeriod - prevNonBlankStartPeriod) / (curEffEndPer - prevNonBlankStartPeriod));
-    return retval;
+    return (float)(curPeriod-curEffStartPer)/(float)(curEffEndPer-curEffStartPer);
 }
 
 void RenderBuffer::SetEffectDuration(int startMsec, int endMsec)
@@ -910,15 +908,15 @@ void RenderBuffer::GetEffectPeriods( int& start, int& endp)
     endp = curEffEndPer;
 }
 
-void RenderBuffer::SetDisplayListHRect(Effect *eff, int idx, double x1, double y1, double x2, double y2,
+void RenderBuffer::SetDisplayListHRect(Effect *eff, int idx, float x1, float y1, float x2, float y2,
                                      const xlColor &c1, const xlColor &c2) {
     SetDisplayListRect(eff, idx, x1, y1, x2, y2, c1, c1, c2, c2);
 }
-void RenderBuffer::SetDisplayListVRect(Effect *eff, int idx, double x1, double y1, double x2, double y2,
+void RenderBuffer::SetDisplayListVRect(Effect *eff, int idx, float x1, float y1, float x2, float y2,
                                      const xlColor &c1, const xlColor &c2) {
     SetDisplayListRect(eff, idx, x1, y1, x2, y2, c1, c2, c1, c2);
 }
-void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, double x1, double y1, double x2, double y2,
+void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, float x1, float y1, float x2, float y2,
                                     const xlColor &cx1y1, const xlColor &cx1y2,
                                     const xlColor &cx2y1, const xlColor &cx2y2) {
     eff->GetBackgroundDisplayList()[idx].color = cx1y1;
@@ -948,14 +946,14 @@ void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex
 
 
     int total = curEffEndPer - curEffStartPer + 1;
-    double x = double(curPeriod - curEffStartPer) / double(total);
-    double x2 = (curPeriod - curEffStartPer + 1.0) / double(total);
+    float x = float(curPeriod - curEffStartPer) / float(total);
+    float x2 = (curPeriod - curEffStartPer + 1.0) / float(total);
     xlColor c;
 
     int cur = 0;
     for (int p = sx; p <= ex; p += inc) {
-        double y = double(p - sx) / double(ex - sx + 1.0);
-        double y2 = double(p - sx + 1.0) / double(ex - sx + 1.0);
+        float y = float(p - sx) / float(ex - sx + 1.0);
+        float y2 = float(p - sx + 1.0) / float(ex - sx + 1.0);
         GetPixel(p, row, c);
 
         int idx = cur * count + (curPeriod - curEffStartPer);
