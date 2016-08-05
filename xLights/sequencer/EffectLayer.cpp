@@ -296,11 +296,18 @@ Effect*  EffectLayer::GetEffectAfterEmptyTime(int ms)
     }
 }
 
-bool EffectLayer::GetRangeIsClearMS(int startTimeMS, int endTimeMS)
+bool EffectLayer::GetRangeIsClearMS(int startTimeMS, int endTimeMS, bool ignore_selected)
 {
     int i;
     for(i=0; i<mEffects.size();i++)
     {
+        if( ignore_selected )
+        {
+            if( mEffects[i]->GetSelected() )
+            {
+                continue;
+            }
+        }
         // check if start is between effect range
         if( (startTimeMS > mEffects[i]->GetStartTimeMS()) && (startTimeMS < mEffects[i]->GetEndTimeMS()) )
         {

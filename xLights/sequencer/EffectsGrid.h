@@ -145,6 +145,7 @@ private:
     bool PapagayoEffectsSelected();
     void ResizeSingleEffect(int position);
     void ResizeMoveMultipleEffects(int position, bool offset);
+    void ResizeMoveMultipleEffectsByTime(int delta);
     void GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight);
     void MoveAllSelectedEffects(int deltaMS, bool offset);
     int GetRow(int y);

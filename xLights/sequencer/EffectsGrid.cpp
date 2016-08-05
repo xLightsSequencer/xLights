@@ -1058,7 +1058,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
     if (mSequenceElements == nullptr) {
         return;
     }
-    if( mCellRangeSelected )
+    if( mCellRangeSelected && shift )
     {
         if( shift )
         {
@@ -1105,6 +1105,72 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
             row--;
         }
     }
+    else if( MultipleEffectsSelected() )
+    {
+        // check if its clear for all effects
+        bool all_clear = true;
+        int first_model_row = mSequenceElements->GetNumberOfTimingRows();
+        int num_effects = mSequenceElements->GetEffectLayer(first_model_row)->GetEffectCount();
+        if( num_effects > 0 )
+        {
+            all_clear = false;
+        }
+        for(int row=first_model_row+1;row<mSequenceElements->GetRowInformationSize() && all_clear;row++)
+        {
+            EffectLayer* el1 = mSequenceElements->GetEffectLayer(row-1);
+            EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
+            if( mSequenceElements->GetEffectLayer(row)->GetSelectedEffectCount() > 0 )
+            {
+                num_effects = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
+                for( int i = 0; (i < num_effects) && all_clear; ++i )
+                {
+                    Effect* eff = el2->GetEffect(i);
+                    if( eff->GetSelected() )
+                    {
+                        if( !el1->GetRangeIsClearMS( eff->GetStartTimeMS(), eff->GetEndTimeMS(), true) )
+                        {
+                            all_clear = false;
+                        }
+                    }
+                }
+            }
+        }
+        if( all_clear ) // all clear so now move them all up
+        {
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            for(int row=first_model_row+1;row<mSequenceElements->GetRowInformationSize();row++)
+            {
+                EffectLayer* el1 = mSequenceElements->GetEffectLayer(row-1);
+                EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
+                if( mSequenceElements->GetEffectLayer(row)->GetSelectedEffectCount() > 0 )
+                {
+                    num_effects = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
+                    for( int i = 0; (i < num_effects) && all_clear; ++i )
+                    {
+                        Effect* eff = el2->GetEffect(i);
+                        if( eff->GetSelected() )
+                        {
+                            Effect* ef = el1->AddEffect(0,
+                                                    eff->GetEffectName(),
+                                                    eff->GetSettingsAsString(),
+                                                    eff->GetPaletteAsString(),
+                                                    eff->GetStartTimeMS(),
+                                                    eff->GetEndTimeMS(),
+                                                    EFFECT_SELECTED,
+                                                    false);
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect( el1->GetParentElement()->GetModelName(), el1->GetIndex(), ef->GetID() );
+                            mSelectedEffect = ef;
+                        }
+                    }
+                    mSelectedRow = row;
+                    el2->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+                }
+            }
+            mCellRangeSelected = false;
+            mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
+            Refresh(false);
+        }
+    }
 }
 
 void EffectsGrid::MoveSelectedEffectDown(bool shift)
@@ -1113,7 +1179,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
         return;
     }
     int first_row = mSequenceElements->GetFirstVisibleModelRow();
-    if( mCellRangeSelected )
+    if( mCellRangeSelected && shift )
     {
         if( shift )
         {
@@ -1160,6 +1226,72 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
             row++;
         }
     }
+    else if( MultipleEffectsSelected() )
+    {
+        // check if its clear for all effects
+        bool all_clear = true;
+        int first_model_row = mSequenceElements->GetNumberOfTimingRows();
+        int num_effects = mSequenceElements->GetEffectLayer(mSequenceElements->GetRowInformationSize()-1)->GetEffectCount();
+        if( num_effects > 0 )
+        {
+            all_clear = false;
+        }
+        for(int row=mSequenceElements->GetRowInformationSize()-1;row>first_model_row && all_clear;row--)
+        {
+            EffectLayer* el1 = mSequenceElements->GetEffectLayer(row-1);
+            EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
+            if( mSequenceElements->GetEffectLayer(row-1)->GetSelectedEffectCount() > 0 )
+            {
+                num_effects = mSequenceElements->GetEffectLayer(row-1)->GetEffectCount();
+                for( int i = 0; (i < num_effects) && all_clear; ++i )
+                {
+                    Effect* eff = el1->GetEffect(i);
+                    if( eff->GetSelected() )
+                    {
+                        if( !el2->GetRangeIsClearMS( eff->GetStartTimeMS(), eff->GetEndTimeMS(), true) )
+                        {
+                            all_clear = false;
+                        }
+                    }
+                }
+            }
+        }
+        if( all_clear ) // all clear so now move them all up
+        {
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            for(int row=mSequenceElements->GetRowInformationSize()-1;row>first_model_row;row--)
+            {
+                EffectLayer* el1 = mSequenceElements->GetEffectLayer(row-1);
+                EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
+                if( mSequenceElements->GetEffectLayer(row-1)->GetSelectedEffectCount() > 0 )
+                {
+                    num_effects = mSequenceElements->GetEffectLayer(row-1)->GetEffectCount();
+                    for( int i = 0; (i < num_effects) && all_clear; ++i )
+                    {
+                        Effect* eff = el1->GetEffect(i);
+                        if( eff->GetSelected() )
+                        {
+                            Effect* ef = el2->AddEffect(0,
+                                                    eff->GetEffectName(),
+                                                    eff->GetSettingsAsString(),
+                                                    eff->GetPaletteAsString(),
+                                                    eff->GetStartTimeMS(),
+                                                    eff->GetEndTimeMS(),
+                                                    EFFECT_SELECTED,
+                                                    false);
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect( el2->GetParentElement()->GetModelName(), el2->GetIndex(), ef->GetID() );
+                            mSelectedEffect = ef;
+                        }
+                    }
+                    mSelectedRow = row;
+                    el1->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+                }
+            }
+            mCellRangeSelected = false;
+            mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
+            Refresh(false);
+        }
+    }
 }
 
 void EffectsGrid::MoveSelectedEffectRight(bool shift)
@@ -1167,7 +1299,7 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift)
     if (mSequenceElements == nullptr) {
         return;
     }
-    if( mCellRangeSelected )
+    if( mCellRangeSelected && shift )
     {
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
         Effect* eff1 = tel->GetEffect(mRangeStartCol+1);
@@ -1243,6 +1375,11 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift)
             }
         }
     }
+    else if( MultipleEffectsSelected() )
+    {
+        ResizeMoveMultipleEffectsByTime(mSequenceElements->GetMinPeriod());
+        Refresh(false);
+    }
 }
 
 void EffectsGrid::MoveSelectedEffectLeft(bool shift)
@@ -1250,7 +1387,7 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
     if (mSequenceElements == nullptr) {
         return;
     }
-    if( mCellRangeSelected )
+    if( mCellRangeSelected && shift)
     {
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
         Effect* eff = tel->GetEffect(mRangeEndCol-1);
@@ -1334,6 +1471,11 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
                 }
             }
         }
+    }
+    else if( MultipleEffectsSelected() )
+    {
+        ResizeMoveMultipleEffectsByTime(-1 * mSequenceElements->GetMinPeriod());
+        Refresh(false);
     }
 }
 
@@ -2162,6 +2304,37 @@ void EffectsGrid::ResizeMoveMultipleEffects(int position, bool offset)
             MoveAllSelectedEffects(deltaTime, offset);
         }
     }
+    mCellRangeSelected = false;
+    mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
+}
+
+void EffectsGrid::ResizeMoveMultipleEffectsByTime(int delta)
+{
+    int deltaTime = mTimeline->RoundToMultipleOfPeriod(std::abs(delta), mSequenceElements->GetFrequency());
+    if( delta < 0 )
+    {
+        deltaTime *= -1;
+    }
+    int toLeft,toRight;
+    GetRangeOfMovementForSelectedEffects(toLeft,toRight);
+    if(deltaTime < 0.0)
+    {
+        deltaTime = std::max(deltaTime, -toLeft);
+        if( deltaTime < 0.0 )
+        {
+             MoveAllSelectedEffects(deltaTime, false);
+        }
+    }
+    else
+    {
+        deltaTime = std::min(deltaTime, toRight);
+        if (deltaTime > 0.0)
+        {
+            MoveAllSelectedEffects(deltaTime, false);
+        }
+    }
+    mCellRangeSelected = false;
+    mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
 }
 
 void EffectsGrid::ResizeSingleEffect(int position)

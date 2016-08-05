@@ -48,7 +48,7 @@ class EffectLayer
         Effect* GetEffectBeforeEmptyTime(int ms);
         Effect* GetEffectAfterEmptyTime(int ms);
 
-        bool GetRangeIsClearMS(int startTimeMS, int endTimeMS);
+        bool GetRangeIsClearMS(int startTimeMS, int endTimeMS, bool ignore_selected = false);
 
         void GetMaximumRangeOfMovementForSelectedEffects(int &toLeft,int &toRight);
         int SelectEffectsInTimeRange(int startTimeMS, int endTimeMS);
