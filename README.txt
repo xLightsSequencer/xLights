@@ -13,6 +13,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keithsw) Add some built in color curves
    -- enh (keithsw) Add Timing Event Jump effect to VU Meter
    -- enh (keithsw) Make fireworks follow the colour curve
+   -- enh (gil)     Shift+MouseWheel will now scroll grid right/left when in Waveform or Grid.  Fixes #644.
    -- bug (gil)     Fix crashes when switching show directories that contain custom previews.
    -- bug (gil)     Fix default layer mode not saving for Model Group properties.  Fixes #643.
    -- enh (gil)     Allow multiple selected effects to be moved up/down and nudged left/right.  Fixes #642.

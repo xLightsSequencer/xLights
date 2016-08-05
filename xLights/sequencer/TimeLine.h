@@ -9,6 +9,9 @@
 #define ZOOM_OUT        0
 #define ZOOM_IN         1
 
+#define SCROLL_RIGHT    0
+#define SCROLL_LEFT     1
+
 #define MAX_ZOOM_OUT_INDEX      12
 
 enum EFFECT_SCREEN_MODE{

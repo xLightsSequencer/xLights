@@ -130,6 +130,7 @@ class wxDebugReport;
 class RenderCommandEvent;
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
+wxDECLARE_EVENT(EVT_GSCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MOUSE_POSITION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
@@ -1340,6 +1341,7 @@ private:
     void StopSequence();
     // Events
     void Zoom( wxCommandEvent& event);
+    void Scroll( wxCommandEvent& event);
     void WindowResized( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
     void MousePositionUpdated( wxCommandEvent& event);

@@ -730,6 +730,26 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms,int &index, HitLocati
     return eff;
 }
 
+void EffectsGrid::ClearSelection()
+{
+    mDragging = false;
+    mResizing = false;
+    mDragDropping = false;
+    mDropStartX = 0;
+    mDropEndX = 0;
+    mCellRangeSelected = false;
+    mPartialCellSelected = false;
+    mDragStartRow = 0;
+    mDragStartX = -1;
+    mDragStartY = -1;
+    mCanPaste = false;
+    mSelectedEffect = nullptr;
+    mRangeStartRow = -1;
+    mRangeEndRow = -1;
+    mRangeStartCol = -1;
+    mRangeEndCol = -1;
+    mResizeEffectIndex = -1;
+}
 
 void EffectsGrid::mouseDown(wxMouseEvent& event)
 {
@@ -3207,6 +3227,22 @@ void EffectsGrid::mouseWheelMoved(wxMouseEvent& event)
             wxCommandEvent eventZoom(EVT_ZOOM);
             eventZoom.SetInt(ZOOM_IN);
             wxPostEvent(mParent, eventZoom);
+        }
+    }
+    else if(event.ShiftDown())
+    {
+        int i = event.GetWheelRotation();
+        if(i<0)
+        {
+            wxCommandEvent eventScroll(EVT_GSCROLL);
+            eventScroll.SetInt(SCROLL_RIGHT);
+            wxPostEvent(mParent, eventScroll);
+        }
+        else
+        {
+            wxCommandEvent eventScroll(EVT_GSCROLL);
+            eventScroll.SetInt(SCROLL_LEFT);
+            wxPostEvent(mParent, eventScroll);
         }
     }
     else

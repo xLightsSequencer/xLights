@@ -422,6 +422,32 @@ void xLightsFrame::Zoom( wxCommandEvent& event)
     }
 }
 
+void xLightsFrame::Scroll( wxCommandEvent& event)
+{
+    int position = mainSequencer->ScrollBarEffectsHorizontal->GetThumbPosition();
+    int ts = mainSequencer->ScrollBarEffectsHorizontal->GetThumbSize() / 10;
+    if (ts ==0) {
+        ts = 1;
+    }
+    if(event.GetInt() == SCROLL_LEFT)
+    {
+        if (position > 0) {
+            position -= ts;
+        }
+    }
+    else
+    {
+        position += ts;
+        if (position >= mainSequencer->ScrollBarEffectsHorizontal->GetRange()) {
+            position = mainSequencer->ScrollBarEffectsHorizontal->GetRange() - 1;
+        }
+    }
+    mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(position);
+    wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
+    mainSequencer->HorizontalScrollChanged(eventScroll);
+    mainSequencer->PanelEffectGrid->ClearSelection();
+}
+
 
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
 {

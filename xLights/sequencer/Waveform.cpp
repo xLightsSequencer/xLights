@@ -206,6 +206,22 @@ void Waveform::mouseWheelMoved(wxMouseEvent& event)
             wxPostEvent(mParent, eventZoom);
         }
     }
+    else if(event.ShiftDown())
+    {
+        int i = event.GetWheelRotation();
+        if(i<0)
+        {
+            wxCommandEvent eventScroll(EVT_GSCROLL);
+            eventScroll.SetInt(SCROLL_RIGHT);
+            wxPostEvent(mParent, eventScroll);
+        }
+        else
+        {
+            wxCommandEvent eventScroll(EVT_GSCROLL);
+            eventScroll.SetInt(SCROLL_LEFT);
+            wxPostEvent(mParent, eventScroll);
+        }
+    }
     else
     {
         wxPostEvent(GetParent()->GetEventHandler(), event);
@@ -274,13 +290,13 @@ void Waveform::DrawWaveView(const WaveView &wv)
     DrawGLUtils::xlAccumulator vac;
     vac.PreAlloc(18);
     xlColor color(212,208,200);
-    
+
     vac.AddVertex(0, 0, color);
     vac.AddVertex(mWindowWidth, 0, color);
     vac.AddVertex(mWindowWidth, mWindowHeight, color);
     vac.AddVertex(0, mWindowHeight, color);
     vac.Finish(GL_TRIANGLE_FAN);
-    
+
     int max_wave_ht = mWindowHeight - VERTICAL_PADDING;
 
     // Draw Outside rectangle
@@ -290,7 +306,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
     vac.AddVertex(mWindowWidth, mWindowHeight-0.5, color);
     vac.AddVertex(0.25, mWindowHeight-0.5, color);
     vac.Finish(GL_LINE_LOOP, 0, 1);
-    
+
     // Get selection positions from timeline
     int selected_x1 = mTimeline->GetSelectedPositionStart();
     int selected_x2 = mTimeline->GetSelectedPositionEnd();
@@ -316,10 +332,10 @@ void Waveform::DrawWaveView(const WaveView &wv)
             wv.outline.Reset();
             wv.background.PreAlloc((mWindowWidth + 2) * 2);
             wv.outline.PreAlloc((mWindowWidth + 2) + 4);
-            
+
             std::vector<double> vertexes;
             vertexes.resize((mWindowWidth + 2));
-            
+
             for (size_t x=0;x<mWindowWidth && (x)<wv.MinMaxs.size();x++)
             {
                 int index = x;
@@ -328,11 +344,11 @@ void Waveform::DrawWaveView(const WaveView &wv)
                 {
                     double y1 = ((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
                     double y2 = ((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-                    
-                    
+
+
                     wv.background.AddVertex(x, y1);
                     wv.background.AddVertex(x, y2);
-                    
+
                     wv.outline.AddVertex(x, y1);
                     vertexes[x] = y2;
                 }

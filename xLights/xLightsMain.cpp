@@ -305,6 +305,7 @@ const long xLightsFrame::ID_MENU_ITEM_PREVIEWS = wxNewId();
 const long xLightsFrame::ID_MENU_ITEM_PREVIEWS_SHOW_ALL = wxNewId();
 
 wxDEFINE_EVENT(EVT_ZOOM, wxCommandEvent);
+wxDEFINE_EVENT(EVT_GSCROLL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MOUSE_POSITION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
@@ -344,6 +345,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
     //*)
     EVT_COMMAND(wxID_ANY, EVT_ZOOM, xLightsFrame::Zoom)
+    EVT_COMMAND(wxID_ANY, EVT_GSCROLL, xLightsFrame::Scroll)
     EVT_COMMAND(wxID_ANY, EVT_TIME_SELECTED, xLightsFrame::TimeSelected)
     EVT_COMMAND(wxID_ANY, EVT_MOUSE_POSITION, xLightsFrame::MousePositionUpdated)
     EVT_COMMAND(wxID_ANY, EVT_ROW_HEADINGS_CHANGED, xLightsFrame::RowHeadingsChanged)
@@ -2856,32 +2858,32 @@ void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
 void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report) {
     wxHTTP http;
     http.Connect("dankulp.com");
-    
+
     const char *bound = "--------------------------b29a7c2fe47b9481";
     int i = wxGetUTCTimeMillis().GetLo();
     i &= 0xFFFFFFF;
     wxString fn = wxString::Format("xlights-%s_%d.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), i);
     const char *ct = "Content-Type: application/octet-stream\n";
     std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
-    
+
     wxMemoryBuffer memBuff;
     memBuff.AppendData(bound, strlen(bound));
     memBuff.AppendData("\n", 1);
     memBuff.AppendData(ct, strlen(ct));
     memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
-    
-    
+
+
     wxFile f_in(report.GetCompressedFileName());
     wxFileOffset fLen=f_in.Length();
     void* tmp=memBuff.GetAppendBuf(fLen);
     size_t iRead=f_in.Read(tmp, fLen);
     memBuff.UngetAppendBuf(iRead);
     f_in.Close();
-    
+
     memBuff.AppendData("\n", 1);
     memBuff.AppendData(bound, strlen(bound));
     memBuff.AppendData("--\n", 3);
-    
+
     http.SetMethod("POST");
     http.SetPostBuffer("multipart/form-data; boundary=------------------------b29a7c2fe47b9481", memBuff);
     wxInputStream * is = http.GetInputStream("/" + loc + "/index.php");

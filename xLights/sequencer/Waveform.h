@@ -16,6 +16,7 @@ wxDECLARE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SCROLL_RIGHT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
+wxDECLARE_EVENT(EVT_GSCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MOUSE_POSITION, wxCommandEvent);
 
 class TimeLine;
@@ -92,7 +93,7 @@ class Waveform : public xlGLCanvas
             mutable DrawGLUtils::xlVertexAccumulator outline;
             mutable int lastRenderStart;
             mutable int lastRenderSize;
-            
+
             std::vector<MINMAX> MinMaxs;
             WaveView(int ZoomLevel,float SamplesPerPixel, AudioManager* media)
             {

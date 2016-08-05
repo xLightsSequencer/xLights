@@ -41,6 +41,7 @@ enum EFF_ALIGN_MODE {
 };
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
+wxDECLARE_EVENT(EVT_GSCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 
@@ -91,6 +92,9 @@ public:
         seqData = data;
         xlights = xl;
     }
+
+    void ClearSelection();
+
 protected:
     virtual void InitializeGLCanvas();
 
