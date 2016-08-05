@@ -364,7 +364,7 @@ void handleCrash(void *data) {
             report->AddFile(fnb.GetFullPath(), fnb.GetName());
         }
     }
-    wxString trace = wxString::Format("xLights version %s\n", xlights_version_string);
+    wxString trace = wxString::Format("xLights version %s\n\n", xlights_version_string);
 
 #ifndef __WXMSW__
     void* callstack[128];
@@ -376,7 +376,7 @@ void handleCrash(void *data) {
     }
     free(strs);
 #else
-    trace = windows_get_stacktrace(data);
+    trace += windows_get_stacktrace(data);
 #endif
 
     int id = (int)wxThread::GetCurrentId();

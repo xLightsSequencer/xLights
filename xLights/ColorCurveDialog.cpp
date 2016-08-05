@@ -181,7 +181,8 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory)
             ColorCurve cc("");
             LoadXCC(&cc, fn.GetFullPath());
             long id = wxNewId();
-            wxBitmapButton* bmb = new wxBitmapButton(this, id, cc.GetImage(30, 30, false), wxDefaultPosition, wxSize(30, 30));
+            wxBitmapButton* bmb = new wxBitmapButton(this, id, cc.GetImage(30, 30, false), wxDefaultPosition,
+                                                     wxSize(30, 30), wxBU_AUTODRAW|wxNO_BORDER);
             bmb->SetLabel(fn.GetFullPath());
             PresetSizer->Add(bmb);
             Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorCurveDialog::OnButtonPresetClick);
@@ -210,6 +211,9 @@ void ColorCurveDialog::PopulatePresets()
 
     ProcessPresetDir(dir);
 
+    dir.Open(wxFileName(stdp.GetResourcesDir()).GetPath());
+    ProcessPresetDir(dir);
+    
     PresetSizer->Layout();
     wxWindow::Layout();
     //wxWindow::Fit();
@@ -279,7 +283,7 @@ void ColorCurvePanel::Reloaded()
     SetToolTip("");
     if (HasCapture())
     {
-        ReleaseCapture();
+        ReleaseMouse();
     }
     Refresh();
 }
