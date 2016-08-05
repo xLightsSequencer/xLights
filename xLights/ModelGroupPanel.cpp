@@ -193,9 +193,6 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
         }
     }
 
-    wxCommandEvent evt;
-    OnChoiceModelLayoutTypeSelect(evt);
-
     SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
 
 	Panel_Sizer->Fit(this);
@@ -204,6 +201,7 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
 
 void ModelGroupPanel::OnChoiceModelLayoutTypeSelect(wxCommandEvent& event)
 {
+    SaveGroupChanges();
 }
 
 void ModelGroupPanel::OnButtonAddToModelGroupClick(wxCommandEvent& event)
