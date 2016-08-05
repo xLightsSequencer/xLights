@@ -5,10 +5,8 @@
 #include "Element.h"
 #include "SequenceElements.h"
 #include "../effects/EffectManager.h"
-
+#include "../ColorCurve.h"
 #include "../../include/globals.h"
-
-
 #include <unordered_map>
 
 class ControlRenameMap
@@ -85,13 +83,23 @@ static std::vector<std::string> BUTTON_IDS {
     "C_BUTTON_Palette7", "C_BUTTON_Palette8"
 };
 
-static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors) {
+static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors, xlColorCurveVector& mCC) {
     mColors.clear();
+    mCC.clear();
     if (!mPaletteMap.empty()) {
         int sz = BUTTON_IDS.size();
         for (int x = 0; x < sz; ++x) {
             if (mPaletteMap.GetBool(CHECKBOX_IDS[x])) {
-                mColors.push_back(xlColor(mPaletteMap[BUTTON_IDS[x]]));
+                if (mPaletteMap[BUTTON_IDS[x]].find("Active") != std::string::npos)
+                {
+                    mCC.push_back(ColorCurve(mPaletteMap[BUTTON_IDS[x]]));
+                    mColors.push_back(xlBLACK);
+                }
+                else
+                {
+                    mCC.push_back(ColorCurve(""));
+                    mColors.push_back(xlColor(mPaletteMap[BUTTON_IDS[x]]));
+                }
             }
         }
     }
@@ -118,7 +126,7 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     }
 
     mPaletteMap.Parse(palette);
-    ParseColorMap(mPaletteMap, mColors);
+    ParseColorMap(mPaletteMap, mColors, mCC);
 }
 
 
@@ -162,10 +170,11 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
         }
     }
 }
-void Effect::CopyPalette(xlColorVector &target) const
+void Effect::CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const
 {
     std::unique_lock<std::mutex> lock(settingsLock);
     target = mColors;
+    newcc = mCC;
 }
 
 void Effect::SetSettings(const std::string &settings)
@@ -186,22 +195,24 @@ void Effect::SetPalette(const std::string& i)
     std::unique_lock<std::mutex> lock(settingsLock);
     mPaletteMap.Parse(i);
     mColors.clear();
+    mCC.clear();
     IncrementChangeCount();
     if (mPaletteMap.empty())
     {
         return;
     }
-    ParseColorMap(mPaletteMap, mColors);
+    ParseColorMap(mPaletteMap, mColors, mCC);
 }
 void Effect::PaletteMapUpdated() {
     std::unique_lock<std::mutex> lock(settingsLock);
     mColors.clear();
+    mCC.clear();
     IncrementChangeCount();
     if (mPaletteMap.empty())
     {
         return;
     }
-    ParseColorMap(mPaletteMap, mColors);
+    ParseColorMap(mPaletteMap, mColors, mCC);
 }
 
 std::string Effect::GetPaletteAsString() const

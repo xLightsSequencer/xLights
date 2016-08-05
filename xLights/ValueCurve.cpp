@@ -1,6 +1,4 @@
 #include "ValueCurve.h"
-#include <sstream>
-#include <iostream>
 #include <wx/wx.h>
 #include <wx/string.h>
 #include <log4cpp/Category.hh>

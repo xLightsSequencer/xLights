@@ -660,9 +660,10 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
     }
 }
 
-void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors)
+void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors, xlColorCurveVector& newcc)
 {
-    layers[layer]->buffer.SetPalette(newcolors);
+    RenderBuffer& buf = layers[layer]->buffer;
+    buf.SetPalette(newcolors, newcc);
 }
 
 

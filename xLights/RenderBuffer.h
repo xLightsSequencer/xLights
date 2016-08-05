@@ -38,6 +38,7 @@
 #include "../include/globals.h"
 
 #include "Color.h"
+#include "ColorCurve.h"
 
 //added hash_map, queue, vector: -DJ
 #ifdef _MSC_VER
@@ -138,10 +139,30 @@ class PaletteClass
 private:
     xlColorVector color;
     hsvVector hsv;
+    xlColorCurveVector cc;
+    const ColorCurve nilcc;
+
 public:
 
-    void Set(xlColorVector& newcolors)
+    void UpdateForProgress(float progress)
     {
+        int i = 0;
+        for (auto it = cc.begin(); it != cc.end(); ++it)
+        {
+            if (it->IsActive())
+            {
+                color[i] = xlColor(it->GetValueAt(progress));
+                hsv[i] = color[i].asHSV();
+            }
+            i++;
+        }
+    }
+
+    void Set(xlColorVector& newcolors, xlColorCurveVector newcc)
+    {
+        wxASSERT(newcolors.size() == newcc.size());
+
+        cc = newcc;
         color=newcolors;
         hsv.clear();
         for(size_t i=0; i<newcolors.size(); i++)
@@ -157,9 +178,28 @@ public:
         return colorcnt;
     }
 
-    const xlColor &GetColor(size_t idx) const {
+    const ColorCurve& GetColorCurve(size_t idx) const
+    {
+        if (idx >= cc.size()) {
+            return nilcc;
+        }
+        return cc[idx];
+    }
+    const xlColor &GetColor(size_t idx) {
         if (idx >= color.size()) {
             return xlWHITE;
+        }
+
+            return color[idx];
+    }
+    const xlColor GetColor(size_t idx, float progress) {
+        if (idx >= color.size()) {
+            return xlWHITE;
+        }
+
+        if (cc[idx].IsActive())
+        {
+            return cc[idx].GetValueAt(progress);
         }
         return color[idx];
     }
@@ -171,7 +211,25 @@ public:
         }
         else
         {
-            c=color[idx];
+                c = color[idx];
+        }
+    }
+    void GetColor(size_t idx, xlColor& c, float progress)
+    {
+        if (idx >= color.size())
+        {
+            c.Set(255, 255, 255);
+        }
+        else
+        {
+            if (cc[idx].IsActive())
+            {
+                c = cc[idx].GetValueAt(progress);
+            }
+            else
+            {
+                c = color[idx];
+            }
         }
     }
 
@@ -186,7 +244,28 @@ public:
         }
         else
         {
-            c=hsv[idx % hsv.size()];
+                c = hsv[idx % hsv.size()];
+        }
+    }
+    void GetHSV(size_t idx, HSVValue& c, float progress)
+    {
+        if (hsv.size() == 0)
+        {
+            // white
+            c.hue = 0.0;
+            c.saturation = 0.0;
+            c.value = 1.0;
+        }
+        else
+        {
+            if (cc[idx].IsActive())
+            {
+                c = xlColor(cc[idx].GetValueAt(progress)).asHSV();
+            }
+            else
+            {
+                c = hsv[idx % hsv.size()];
+            }
         }
     }
 };
@@ -206,7 +285,7 @@ public:
 	AudioManager* GetMedia();
 
     void Clear(const xlColor& bgColor);
-    void SetPalette(xlColorVector& newcolors);
+    void SetPalette(xlColorVector& newcolors, xlColorCurveVector& newcc);
     size_t GetColorCount();
 	void SetAllowAlphaChannel(bool a);
 
@@ -252,6 +331,7 @@ public:
     void SetRangeColor(const HSVValue& hsv1, const HSVValue& hsv2, HSVValue& newhsv);
     double RandomRange(double num1, double num2);
     void Color2HSV(const xlColor& color, HSVValue& hsv);
+    PaletteClass& GetPalette() { return palette; }
 
     HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2);
     double GetEffectTimeIntervalPosition();

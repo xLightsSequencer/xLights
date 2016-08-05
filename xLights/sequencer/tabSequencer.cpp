@@ -1265,6 +1265,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     EffectsPanel1->SetEffectPanelStatus(model, effectName);
     SetEffectControls(settings);
     SetEffectControls(palette);
+    colorPanel->SetColorCount(GetEffectManager().GetEffect(effectName)->GetColorSupportedCount());
 }
 
 void xLightsFrame::ApplySetting(wxString name, wxString value)
@@ -1349,7 +1350,10 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
 		}
 		else if (name.StartsWith("ID_BUTTON"))
 		{
-			colorPanel->SetButtonColor((wxBitmapButton*)CtrlWin, value.ToStdString());
+            if (name.StartsWith("ID_BUTTON_Palette"))
+            {
+                colorPanel->SetButtonColor((ColorCurveButton*)CtrlWin, value.ToStdString());
+            }
 		}
 		else if (name.StartsWith("ID_CHECKBOX"))
 		{

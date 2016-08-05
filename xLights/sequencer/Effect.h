@@ -60,6 +60,7 @@ class Effect
 
         const SettingsMap &GetSettings() const { return mSettings;}
         const xlColorVector &GetPalette() const { return mColors;}
+        int GetPaletteSize() const { return mColors.size(); }
         const SettingsMap &GetPaletteMap() const { return mPaletteMap;}
 
         /* Do NOT call these on any thread other than the main thread */
@@ -69,7 +70,7 @@ class Effect
         void PaletteMapUpdated();
 
         void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
-        void CopyPalette(xlColorVector &target) const;
+        void CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const;
 
 
         std::string GetPaletteAsString() const;
@@ -101,6 +102,7 @@ class Effect
         SettingsMap mSettings;
         SettingsMap mPaletteMap;
         xlColorVector mColors;
+        xlColorCurveVector mCC;
 
         DrawGLUtils::xlDisplayList background;
 };

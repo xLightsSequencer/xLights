@@ -14,11 +14,8 @@
 //*)
 
 #include <wx/colordlg.h>
-#include <wx/checkbox.h>
-#include <unordered_map>
 #include "ValueCurveButton.h"
-#include "ValueCurveDialog.h"
-#include "ValueCurve.h"
+#include "ColorCurve.h"
 
 #include <vector>
 #include <map>
@@ -28,6 +25,7 @@ wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 class ColorPanel: public wxPanel
 {
     void OnVCChanged(wxCommandEvent& event);
+    void OnCCChanged(wxCommandEvent& event);
 
     int __brightness;
 public:
@@ -35,6 +33,7 @@ public:
 		ColorPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ColorPanel();
 
+        void SetColorCount(int count);
         void SetDefaultSettings();
 		wxString GetColorString();
         wxString GetRandomColorString();
@@ -48,7 +47,7 @@ private:
         void ValidateWindow();
         wxColour GetPaletteColor(int idx);
 public:
-        void SetButtonColor(wxBitmapButton* btn, const std::string &v);
+        void SetButtonColor(ColorCurveButton* btn, const std::string &v);
         static const int PALETTE_SIZE = 8;
 
 		//(*Declarations(ColorPanel)
@@ -107,7 +106,7 @@ public:
 
 		//(*Handlers(ColorPanel)
 		void OnCheckBox_PaletteClick(wxCommandEvent& event);
-		void OnButton_PaletteNumberClick(wxCommandEvent& event);
+        //void OnButton_PaletteNumberClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnUpdateColorClick(wxCommandEvent& event);
 		void UpdateLinkedSliderFloat(wxCommandEvent& event);
@@ -123,12 +122,13 @@ public:
 		void OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& event);
 		void OnBitmapButton_VCBrightnessClick(wxCommandEvent& event);
         void OnVCButtonClick(wxCommandEvent& event);
-        //*)
+            //*)
+
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
         wxColourData colorData;
     
-        std::vector<wxBitmapButton*> buttons;
+        std::vector<ColorCurveButton*> buttons;
         std::vector<wxCheckBox*> checkBoxes;
         std::map<int, std::string> lastColors;
 

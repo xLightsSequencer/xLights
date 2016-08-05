@@ -162,12 +162,6 @@ xlColor::operator wxString() const {
 wxColor xlColor::asWxColor() const {
     return wxColor(red, green, blue, alpha);
 }
-xlColor::xlColor(const wxColor &c) {
-    red = c.Red();
-    green = c.Green();
-    blue = c.Blue();
-    alpha = 255;
-}
 
 // HSL functions
 double Hue2RGB(double v1, double v2, double H) {

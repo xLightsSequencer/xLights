@@ -189,7 +189,8 @@ public:
     PixelBufferClass(xLightsFrame *f, bool onlyOnMainThread);
     virtual ~PixelBufferClass();
 
-    const std::string &GetModelName() { return modelName;};
+    const std::string &GetModelName() const
+    { return modelName;};
 
     RenderBuffer &BufferForLayer(int i);
 
@@ -203,7 +204,7 @@ public:
     bool IsPersistent(int layer);
     
     void SetMixType(int layer, const std::string& MixName);
-    void SetPalette(int layer, xlColorVector& newcolors);
+    void SetPalette(int layer, xlColorVector& newcolors, xlColorCurveVector& newcc);
     void SetLayer(int newlayer, int period, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);
 

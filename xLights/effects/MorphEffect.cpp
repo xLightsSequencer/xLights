@@ -38,7 +38,7 @@ void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlC
 
     int hcols = 0, hcole = 1;
     int tcols = 2, tcole = 3;
-    switch (e->GetPalette().size()) {
+    switch (e->GetPaletteSize()) {
         case 1:  //one color selected, use it for all
             hcols = hcole = tcols = tcole = 0;
             break;
@@ -77,7 +77,7 @@ int MorphEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, i
     GetMorphEffectColors(e, start_h, end_h, start_t, end_t);
     int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
     backgrounds.AddHBlendedRectangle(start_h, end_h, x1, y1+1, x_mid, y2-1);
-    if(e->GetPalette().size() <= 4) {
+    if(e->GetPaletteSize() <= 4) {
         backgrounds.AddHBlendedRectangle(start_t, end_t, x_mid, y1+4, x2, y2-4);
     }
     else {
