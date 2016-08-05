@@ -138,8 +138,13 @@ const long LayoutGroup::AddToPreviewMenu(wxMenu* preview_menu)
 
 void LayoutGroup::RemoveFromPreviewMenu(wxMenu* preview_menu)
 {
-    //preview_menu->Delete(mMenuItemPreview);
-    delete mMenuItemPreview;
+    preview_menu->Destroy(mMenuItemPreview);
+    if( mPreviewPane != nullptr ) {
+        delete mPreviewPane;
+        mPreviewPane = nullptr;
+    }
+    mModelPreview = nullptr;
+    mPreviewCreated = false;
 }
 
 void LayoutGroup::ShowPreview(bool show)

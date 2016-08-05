@@ -48,6 +48,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
             RemovePreviewOption(grp);
         }
     }
+    PreviewWindows.clear();
 
     if (newdir != CurrentDir && "" != CurrentDir) {
         wxFileName kbf;
