@@ -9,6 +9,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- enh (keithsw) Add color curves
+   -- enh (keithsw) Add some built in color curves
+   -- enh (keithsw) Add Timing Event Jump effect to VU Meter
+   -- enh (keithsw) Make fireworks follow the colour curve
    -- bug (gil)     Fix default layer mode not saving for Model Group properties.  Fixes #643.
    -- enh (gil)     Allow multiple selected effects to be moved up/down and nudged left/right.  Fixes #642.
 2016.43  Aug 04, 2016
