@@ -101,7 +101,8 @@ public:
     }
     bool operator<(const float r) const
     {
-        return x < Normalise(r);
+        return x < r;
+        //return x < Normalise(r);
     }
     bool operator<=(const ccSortableColorPoint& r) const
     {
@@ -109,7 +110,8 @@ public:
     }
     bool operator<=(const float r) const
     {
-        return x <= Normalise(r);
+        return x <= r;
+        //return x <= Normalise(r);
     }
     bool operator>(const ccSortableColorPoint& r) const
     {

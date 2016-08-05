@@ -262,7 +262,7 @@ bool ColorCurve::IsSetPoint(float offset)
         }
         ++it;
     }
-
+    
     return false;
 }
 
