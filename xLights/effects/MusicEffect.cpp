@@ -247,6 +247,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
     }
 
     int actualbars = std::min(bars, std::min(endnote - startnote + 1, buffer.BufferWi - offsetx));
+    if (actualbars == 0) actualbars = 1; // stop divide by zero error
     int notesperbar = (endnote - startnote + 1) / actualbars;
     int actualendnote = startnote + std::min(endnote, actualbars * notesperbar);
     int lightsperbar = 0.5 + (float)(buffer.BufferWi - offsetx) / (float)actualbars;
