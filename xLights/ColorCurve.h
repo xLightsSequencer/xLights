@@ -33,7 +33,7 @@ public:
         std::string res = "";
         res += "x=" + wxString::Format("%.3f", x).ToStdString();
         wxString c = color.GetAsString();
-        c.Replace(",", "&comma;", true);
+        c.Replace(",", "@", true);
         res += "^c=" + c.ToStdString();
 
         return res;
@@ -70,7 +70,9 @@ public:
         }
         else if (k == "c")
         {
-            color = wxColor(v);
+            wxString c(v);
+            c.Replace("@", ",", true);
+            color = wxColor(c);
         }
     }
     ccSortableColorPoint(std::string& s)

@@ -714,6 +714,7 @@ void ColorCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
     _ccp->Refresh();
     _ccp->ClearUndo();
     _cc->SetId(id);
+    Choice1->SetStringSelection(wxString(_cc->GetType().c_str()));
 }
 
 void ColorCurveDialog::OnButtonExportClick(wxCommandEvent& event)
