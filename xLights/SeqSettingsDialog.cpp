@@ -22,6 +22,7 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/numdlg.h>
 #include <list>
 #include <string>
 
@@ -794,8 +795,32 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
         }
         else if( !xml_file->TimingAlreadyExists(selected_timing, xLightsParent) )
         {
-            xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
-            AddTimingCell(selected_timing);
+            if (selected_timing == "Metronome")
+            {
+                int base_timing = 1000 / xml_file->GetFrequency();
+                wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
+                if (dlg.ShowModal() == wxID_OK)
+                {
+                    int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
+
+                    if (ms != dlg.GetValue())
+                    {
+                        wxString msg = wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms);
+                        wxMessageBox(msg);
+                    }
+                    wxString ttn = wxString::Format("%dms Metronome", ms);
+                    if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent))
+                    {
+                        xml_file->AddFixedTimingSection(ttn.ToStdString(), xLightsParent);
+                        AddTimingCell(ttn);
+                    }
+                }
+            }
+            else
+            {
+                xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
+                AddTimingCell(selected_timing);
+            }
         }
         else
         {

@@ -2,10 +2,10 @@
 #define NEWTIMINGDIALOG_H
 
 //(*Headers(NewTimingDialog)
-#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/choice.h>
+#include <wx/dialog.h>
 //*)
 
 class NewTimingDialog: public wxDialog
@@ -24,8 +24,8 @@ class NewTimingDialog: public wxDialog
         void RemoveChoice(const wxString selection);
 
 		//(*Declarations(NewTimingDialog)
-		wxStaticText* StaticText1;
 		wxChoice* Choice_New_Fixed_Timing;
+		wxStaticText* StaticText1;
 		//*)
 
 	protected:

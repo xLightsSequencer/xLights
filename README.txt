@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Add metronome arbitrary fixed timing timing tracks
    -- enh (keithsw) Add color curves
    -- enh (keithsw) Add some built in color curves
    -- enh (keithsw) Add Timing Event Jump effect to VU Meter
