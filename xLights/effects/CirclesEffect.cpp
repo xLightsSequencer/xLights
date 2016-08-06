@@ -38,9 +38,9 @@ public:
     float dir;
     float _angle;
     float _spd;
-    HSVValue hsvcolor;
+    int _colorindex;
     
-    void Reset(float x, float y, float speed, float angle, float radius, HSVValue color)
+    void Reset(float x, float y, float speed, float angle, float radius, int colorindex)
     {
         _angle = angle;
         _spd = speed;
@@ -49,10 +49,9 @@ public:
         _dx=speed*cos(angle);
         _dy=speed*sin(angle);
         _radius = radius;
-        hsvcolor = color;
+        _colorindex = colorindex;
         _t=(float)M_PI/6.0;
         dir =1.0f;
-        
     }
     void updatePositionArc(int x,int y, int r)
     {
@@ -178,9 +177,7 @@ void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     }
     
     int ii=0;
-    int colorIdx;
     size_t colorCnt=buffer.GetColorCount();
-    HSVValue hsv;
     float spd;
     float angle;
     
@@ -200,12 +197,12 @@ void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     {
         for(ii=0; ii<number; ii++)
         {
+            int colorIdx = 0;
             if (ii >= cache->numBalls || buffer.needToInit)
             {
                 start_x = rand() % (buffer.BufferWi);
                 start_y = rand() % (buffer.BufferHt);
                 colorIdx = ii%colorCnt;
-                buffer.palette.GetHSV(colorIdx, hsv);
                 angle = rand() % 2 ? rand() % 90 : -rand() % 90;
                 spd = rand() % 3 + 1;
             }
@@ -213,11 +210,11 @@ void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             {
                 start_x = effectObjects[ii]._x;
                 start_y = effectObjects[ii]._y;
-                hsv = effectObjects[ii].hsvcolor;
+                colorIdx = effectObjects[ii]._colorindex;
                 angle = effectObjects[ii]._angle;
                 spd = effectObjects[ii]._spd;
             }
-            effectObjects[ii].Reset((float)start_x, (float)start_y, spd, angle, (float)radius, hsv);
+            effectObjects[ii].Reset((float)start_x, (float)start_y, spd, angle, (float)radius, colorIdx);
             if (bubbles) //keep bubbles going mostly up
             {
                 angle = 90 + rand() % 45 - 22.5; //+/- 22.5 degrees from 90 degrees
@@ -256,7 +253,8 @@ void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     {
         for (ii=0; ii<number; ii++)
         {
-            hsv = cache->balls[ii].hsvcolor;
+            HSVValue hsv;
+            buffer.palette.GetHSV(cache->balls[ii]._colorindex, hsv);
             if( fade )
             {
                 buffer.DrawFadingCircle(cache->balls[ii]._x, cache->balls[ii]._y, cache->balls[ii]._radius, hsv, !bounce && !collide);
@@ -337,7 +335,7 @@ void CirclesEffect::RenderMetaBalls(RenderBuffer &buffer, int numBalls, MetaBall
             {
                 val = metaballs[ii].Equation((float)col,(float)row);
                 sum+= val;
-                temp = metaballs[ii].hsvcolor;
+                buffer.palette.GetHSV(metaballs[ii]._colorindex, temp);
                 if(val > 0.30)
                 {
                     temp.value=val>1.0?1.0:val;
