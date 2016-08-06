@@ -155,6 +155,9 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     int sSpeed = SettingsMap.GetInt("SLIDER_Snowflakes_Speed", 10);
     std::string falling = SettingsMap.Get("CHOICE_Falling", "Driving");
 
+    const xlColor c1(0, 1, 0);
+    const xlColor c2(0, 0, 1);
+
     int i,n,x,x0,y0,y,check,delta_y;
     xlColor color1,color2, color3;
     bool wrapx = false; // set to true if you want snowflakes to draw wrapped around when near edges in the accumulate effect.
@@ -216,7 +219,7 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                         buffer.SetTempPixel(x, y, color1, 0);
                     }
                     else {
-                        buffer.SetTempPixel(x, y, color1);
+                        buffer.SetTempPixel(x, y, c1);
                     }
                     break;
                 case 1:
@@ -229,11 +232,11 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                         buffer.SetTempPixel(x,y,color1, 1);
                     }
                     else {
-                        buffer.SetTempPixel(x,y,color1);
-                        buffer.SetTempPixel(x-1,y,color2);
-                        buffer.SetTempPixel(x+1,y,color2);
-                        buffer.SetTempPixel(x,y-1,color2);
-                        buffer.SetTempPixel(x,y+1,color2);
+                        buffer.SetTempPixel(x,y,c1);
+                        buffer.SetTempPixel(x-1,y,c2);
+                        buffer.SetTempPixel(x+1,y,c2);
+                        buffer.SetTempPixel(x,y-1,c2);
+                        buffer.SetTempPixel(x,y+1,c2);
                     }
                     break;
                 case 2:
@@ -248,16 +251,16 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                     }
                     else
                     {
-                        buffer.SetTempPixel(x,y,color1);
+                        buffer.SetTempPixel(x,y,c1);
                         if (rand() % 100 > 50)      // % 2 was not so random
                         {
-                            buffer.SetTempPixel(x-1,y,color2);
-                            buffer.SetTempPixel(x+1,y,color2);
+                            buffer.SetTempPixel(x-1,y,c2);
+                            buffer.SetTempPixel(x+1,y,c2);
                         }
                         else
                         {
-                            buffer.SetTempPixel(x,y-1,color2);
-                            buffer.SetTempPixel(x,y+1,color2);
+                            buffer.SetTempPixel(x,y-1,c2);
+                            buffer.SetTempPixel(x,y+1,c2);
                         }
                     }
                     break;
@@ -271,13 +274,13 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                         buffer.SetTempPixel(x, y, color1, 3);
                     }
                     else {
-                        buffer.SetTempPixel(x, y, color1);
+                        buffer.SetTempPixel(x, y, c1);
                         for (i=1; i<=2; i++)
                         {
-                            buffer.SetTempPixel(x-i,y,color2);
-                            buffer.SetTempPixel(x+i,y,color2);
-                            buffer.SetTempPixel(x,y-i,color2);
-                            buffer.SetTempPixel(x,y+i,color2);
+                            buffer.SetTempPixel(x-i,y,c2);
+                            buffer.SetTempPixel(x+i,y,c2);
+                            buffer.SetTempPixel(x,y-i,c2);
+                            buffer.SetTempPixel(x,y+i,c2);
                         }
                     }
                     break;
@@ -291,20 +294,20 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                         buffer.SetTempPixel(x, y, color1, 4);
                     }
                     else {
-                        buffer.SetTempPixel(x, y, color1);
-                        buffer.SetTempPixel(x-1,y,color2);
-                        buffer.SetTempPixel(x+1,y,color2);
-                        buffer.SetTempPixel(x,y-1,color2);
-                        buffer.SetTempPixel(x,y+1,color2);
+                        buffer.SetTempPixel(x, y, c1);
+                        buffer.SetTempPixel(x-1,y,c2);
+                        buffer.SetTempPixel(x+1,y,c2);
+                        buffer.SetTempPixel(x,y-1,c2);
+                        buffer.SetTempPixel(x,y+1,c2);
 
-                        buffer.SetTempPixel(x-1,y+2,color2);
-                        buffer.SetTempPixel(x+1,y+2,color2);
-                        buffer.SetTempPixel(x-1,y-2,color2);
-                        buffer.SetTempPixel(x+1,y-2,color2);
-                        buffer.SetTempPixel(x+2,y-1,color2);
-                        buffer.SetTempPixel(x+2,y+1,color2);
-                        buffer.SetTempPixel(x-2,y-1,color2);
-                        buffer.SetTempPixel(x-2,y+1,color2);
+                        buffer.SetTempPixel(x-1,y+2,c2);
+                        buffer.SetTempPixel(x+1,y+2,c2);
+                        buffer.SetTempPixel(x-1,y-2,c2);
+                        buffer.SetTempPixel(x+1,y-2,c2);
+                        buffer.SetTempPixel(x+2,y-1,c2);
+                        buffer.SetTempPixel(x+2,y+1,c2);
+                        buffer.SetTempPixel(x-2,y-1,c2);
+                        buffer.SetTempPixel(x-2,y+1,c2);
                     }
                     break;
                 case 5:
@@ -436,9 +439,16 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
             } else {
                 new_y = (y+movement/10) % buffer.BufferHt;
                 new_y2 = (new_y+buffer.BufferHt/2) % buffer.BufferHt;
-                buffer.GetTempPixel(new_x,new_y,color1);
-                if (color1 == xlBLACK) buffer.GetTempPixel(new_x2,new_y2,color1);                // strip off the alpha channel
-                buffer.SetPixel(x, y, color1);
+                buffer.GetTempPixel(new_x,new_y,color3);
+                if (color3 == xlBLACK) buffer.GetTempPixel(new_x2,new_y2,color3);                // strip off the alpha channel
+                if (color3 == c1)
+                {
+                    buffer.SetPixel(x, y, color1);
+                }
+                else if (color3 == c2)
+                {
+                    buffer.SetPixel(x, y, color2);
+                }
             }
         }
     }
@@ -467,8 +477,8 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
         effectState -= placedFullCount;
 
         // paint my current state
-        for (int y=0; y < buffer.BufferHt; y++) {
-            for (int x=0; x < buffer.BufferWi; x++) {
+        for (y=0; y < buffer.BufferHt; y++) {
+            for (x=0; x < buffer.BufferWi; x++) {
 
                 buffer.GetTempPixel(x, y, color3);
                 if (color3 != xlBLACK)
