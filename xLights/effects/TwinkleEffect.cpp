@@ -31,8 +31,7 @@ public:
     
     int x,y;
     int duration; // How frames strobe light stays on. Will be decremented each frame
-    HSVValue hsv;
-    xlColor color;
+    int colorindex;
 };
 
 class TwinkleRenderCache : public EffectRenderCache {
@@ -57,25 +56,26 @@ void TwinkleEffect::SetDefaultParameters(Model *cls)
 }
 
 void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    
     int Count = SettingsMap.GetInt("SLIDER_Twinkle_Count", 3);
     int Steps = SettingsMap.GetInt("SLIDER_Twinkle_Steps", 30);
     bool Strobe = SettingsMap.GetBool("CHECKBOX_Twinkle_Strobe", false);
     bool reRandomize = SettingsMap.GetBool("CHECKBOX_Twinkle_ReRandom", false);
     
-    int i,ColorIdx;
-    int lights = (buffer.BufferHt*buffer.BufferWi)*(Count/100.0); // Count is in range of 1-100 from slider bar
-    int step;
-    if(lights>0) step=buffer.BufferHt*buffer.BufferWi/lights;
-    else step=1;
-    int max_modulo;
-    max_modulo=Steps;
-    if(max_modulo<2) max_modulo=2;  // scm  could we be getting 0 passed in?
-    int max_modulo2=max_modulo/2;
-    if(max_modulo2<1) max_modulo2=1;
+    int lights = (buffer.BufferHt*buffer.BufferWi)*(Count / 100.0); // Count is in range of 1-100 from slider bar
+    int step = 1;
+    if (lights > 0) {
+        step = buffer.BufferHt*buffer.BufferWi / lights;
+    }
+    int max_modulo = Steps;
+    if (max_modulo<2) 
+        max_modulo = 2;  // scm  could we be getting 0 passed in?
+    int max_modulo2 = max_modulo / 2;
+    if (max_modulo2<1) 
+        max_modulo2 = 1;
     
-    if(step<1) step=1;
-    
-    
+    if(step<1) 
+        step=1;
     
     TwinkleRenderCache *cache = (TwinkleRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -85,7 +85,9 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     std::vector<StrobeClass> &strobe = cache->strobe;
     
     size_t colorcnt=buffer.GetColorCount();
-    i = 0;
+
+    int i = 0;
+
     if (buffer.needToInit) {
         buffer.needToInit = false;
         strobe.clear();
@@ -100,9 +102,7 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
                     strobe[s].x = x;
                     strobe[s].y = y;
                     
-                    ColorIdx=rand()%colorcnt;
-                    buffer.palette.GetHSV(ColorIdx, strobe[s].hsv);
-                    buffer.palette.GetColor(ColorIdx, strobe[s].color);
+                    strobe[s].colorindex = rand() % colorcnt;
                 }
             }
         }
@@ -117,13 +117,13 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             strobe[x].duration = 0;
             if (reRandomize) {
                 strobe[x].duration -= rand() % max_modulo2;
-                ColorIdx=rand()%colorcnt;
-                buffer.palette.GetHSV(ColorIdx, strobe[x].hsv);
-                buffer.palette.GetColor(ColorIdx, strobe[x].color);
+                strobe[x].colorindex = rand() % colorcnt;
             }
         }
         int i7 = strobe[x].duration;
-        double v = strobe[x].hsv.value;
+        HSVValue hsv;
+        buffer.palette.GetHSV(strobe[x].colorindex, hsv);
+        double v = hsv.value;
         if(i7<=max_modulo2)
         {
             if(max_modulo2>0) v = (1.0*i7)/max_modulo2;
@@ -142,11 +142,12 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             else v = 0.0;
         }
         if (buffer.allowAlpha) {
-            xlColor color(strobe[x].color);
+            xlColor color;
+            buffer.palette.GetColor(strobe[x].colorindex, color);
             color.alpha = 255.0 * v;
             buffer.SetPixel(strobe[x].x,strobe[x].y,color); // Turn pixel on
         } else {
-            HSVValue hsv = strobe[x].hsv;
+            buffer.palette.GetHSV(strobe[x].colorindex, hsv);
             //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
             hsv.value = v;
             buffer.SetPixel(strobe[x].x,strobe[x].y,hsv); // Turn pixel on
