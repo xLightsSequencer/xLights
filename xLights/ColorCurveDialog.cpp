@@ -498,7 +498,7 @@ void ColorCurvePanel::mouseMoved(wxMouseEvent& event)
 
 void ColorCurvePanel::DrawHouse(wxAutoBufferedPaintDC& pdc, int x, int height, bool selected, const wxColor& c, wxPointList& pl)
 {
-    const float hsel = 0.15;
+    const float hsel = 0.15f;
 
     // draw filled colour
     pdc.SetPen(*wxTRANSPARENT_PEN);
