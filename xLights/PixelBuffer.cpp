@@ -999,12 +999,12 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
         {
             int effStartPer, effEndPer;
             layers[ii]->buffer.GetEffectPeriods(effStartPer, effEndPer);
-            if (EffectPeriod < (effStartPer)+layers[ii]->fadeInSteps)
+            if (EffectPeriod < (effStartPer)+layers[ii]->fadeInSteps && layers[ii]->fadeInSteps != 0)
             {
                 curStep = EffectPeriod - effStartPer + 1;
                 fadeInFactor = (double)curStep/(double)layers[ii]->fadeInSteps;
             }
-            if (EffectPeriod > (effEndPer)-layers[ii]->fadeOutSteps)
+            if (EffectPeriod > (effEndPer)-layers[ii]->fadeOutSteps && layers[ii]->fadeOutSteps != 0)
             {
                 curStep = EffectPeriod - (effEndPer-layers[ii]->fadeOutSteps);
                 fadeOutFactor = 1-(double)curStep/(double)layers[ii]->fadeOutSteps;

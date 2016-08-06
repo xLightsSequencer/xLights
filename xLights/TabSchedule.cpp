@@ -769,6 +769,10 @@ void xLightsFrame::OnButtonPlayItemClick(wxCommandEvent& event)
 
 void xLightsFrame::PlayerError(const wxString& msg)
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxString m = msg;
+    m.Replace("\n", " ", true);
+    logger_base.warn(m);
     if (play_mode == play_sched)
     {
         TextCtrlLog->AppendText(msg + _("\n"));

@@ -349,12 +349,16 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
             musicLength = mainSequencer->PanelWaveForm->OpenfileMedia(xml_file.GetMedia(), error);
             if(musicLength <=0)
             {
+                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("Media File Missing or Corrupted %s. Details: %s", (const char*) mediaFilename.c_str(), (const char *)error.c_str());
                 wxMessageBox(wxString::Format("Media File Missing or Corrupted.\n\nDetails: %s", error));
             }
         }
         else if (xml_file.GetSequenceType() == "Media")
         {
-           wxMessageBox("Media File must be specified");
+            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("Media File must be specified");
+            wxMessageBox("Media File must be specified");
         }
         if (mMediaLengthMS == 0) {
             mMediaLengthMS = musicLength;
