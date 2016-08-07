@@ -211,7 +211,9 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	Connect(ID_CHOICE_Piano_Notes_Source,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PianoPanel::OnChoice_Piano_Notes_SourceSelect);
 	Connect(ID_BITMAPBUTTON_Piano_Notes_Source,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_Piano_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
+	Connect(ID_SPINCTRL_Piano_StartMIDI,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PianoPanel::OnSpinCtrl_Piano_StartMIDIChange);
 	Connect(ID_BITMAPBUTTON_Piano_StartMIDI,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
+	Connect(ID_SPINCTRL_Piano_EndMIDI,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PianoPanel::OnSpinCtrl_Piano_EndMIDIChange);
 	Connect(ID_BITMAPBUTTON_Piano_EndMIDI,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_Piano_ShowSharps,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
 	Connect(ID_SLIDER_Piano_Scale,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&PianoPanel::UpdateLinkedTextCtrlVC);
@@ -262,6 +264,12 @@ void PianoPanel::OnSpinCtrl_Piano_StartMIDIChange(wxSpinEvent& event)
 	{
 		SpinCtrl_Piano_EndMIDI->SetValue(start);
 	}
+    ValidateWindow();
+
+    // this is slow so we do it outside of the commonly called ValidateWindow
+    MIDIExtraValidateWindow();
+    AudacityExtraValidateWindow();
+    TimingTrackValidateWindow();
 }
 
 void PianoPanel::OnSpinCtrl_Piano_EndMIDIChange(wxSpinEvent& event)
@@ -274,6 +282,12 @@ void PianoPanel::OnSpinCtrl_Piano_EndMIDIChange(wxSpinEvent& event)
 	{
 		SpinCtrl_Piano_StartMIDI->SetValue(end);
 	}
+    ValidateWindow();
+
+    // this is slow so we do it outside of the commonly called ValidateWindow
+    MIDIExtraValidateWindow();
+    AudacityExtraValidateWindow();
+    TimingTrackValidateWindow();
 }
 
 void Progress(wxProgressDialog* pd, int p)
@@ -507,7 +521,11 @@ void PianoPanel::ValidateWindow()
 	{
 		TextCtrl_Piano_File->SetBackgroundColour(*wxRED);
 	}
+
+    SpinCtrl_Piano_StartMIDI->SetToolTip(wxString(xLightsFrame::DecodeMidi(SpinCtrl_Piano_StartMIDI->GetValue()).c_str()));
+    SpinCtrl_Piano_EndMIDI->SetToolTip(wxString(xLightsFrame::DecodeMidi(SpinCtrl_Piano_EndMIDI->GetValue()).c_str()));
 }
+
 void PianoPanel::OnTextCtrl_Piano_FileText(wxCommandEvent& event)
 {
     ValidateWindow();

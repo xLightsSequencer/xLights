@@ -1,6 +1,7 @@
 #include "MusicPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "../xLightsMain.h"
 
 //(*InternalHeaders(MusicPanel)
 #include <wx/sizer.h>
@@ -242,6 +243,8 @@ static inline void EnableControl(wxWindow *w, int id, bool e) {
 
 void MusicPanel::ValidateWindow()
 {
+    Slider_Music_StartNote->SetToolTip(wxString(xLightsFrame::DecodeMidi(Slider_Music_StartNote->GetValue()).c_str()));
+    Slider_Music_EndNote->SetToolTip(wxString(xLightsFrame::DecodeMidi(Slider_Music_EndNote->GetValue()).c_str()));
 }
 
 void MusicPanel::OnChoice_Music_TypeSelect(wxCommandEvent& event)

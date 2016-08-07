@@ -1426,6 +1426,7 @@ public:
 
     wxString GetSeqXmlFileName();
 	void PlaySequence();
+    static std::string DecodeMidi(int midi);
 
     EffectTreeDialog *EffectTreeDlg;
 

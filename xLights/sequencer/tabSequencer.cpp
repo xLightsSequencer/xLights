@@ -2223,7 +2223,7 @@ void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
     }
 }
 
-std::string DecodeMidi(int midi)
+std::string xLightsFrame::DecodeMidi(int midi)
 {
     int n = midi % 12;
     int o = midi / 12 - 1;
@@ -2300,7 +2300,7 @@ std::string xLightsFrame::CreateNotesLabel(const std::list<float>& notes) const
         {
             res += ",";
         }
-        res += DecodeMidi((int)*it);
+        res += xLightsFrame::DecodeMidi((int)*it);
     }
 
     return res;

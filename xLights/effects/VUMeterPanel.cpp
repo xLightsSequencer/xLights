@@ -1,6 +1,7 @@
 #include "VUMeterPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "../xLightsMain.h"
 
 //(*InternalHeaders(VUMeterPanel)
 #include <wx/sizer.h>
@@ -373,6 +374,9 @@ void VUMeterPanel::ValidateWindow()
         TextCtrl_VUMeter_YOffset->Disable();
         BitmapButton_VUMeter_YOffsetVC->Disable();
     }
+
+    Slider_VUMeter_StartNote->SetToolTip(wxString(xLightsFrame::DecodeMidi(Slider_VUMeter_StartNote->GetValue()).c_str()));
+    Slider_VUMeter_EndNote->SetToolTip(wxString(xLightsFrame::DecodeMidi(Slider_VUMeter_EndNote->GetValue()).c_str()));
 }
 
 void VUMeterPanel::OnChoice_VUMeter_TypeSelect(wxCommandEvent& event)

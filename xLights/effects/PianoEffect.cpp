@@ -917,18 +917,27 @@ int PianoEffect::ConvertNote(std::string& note)
         return number;
     }
 
-    int octave = 4;
     n = n.substr(1);
+    int sharp = 0;
+    if (n.find('#') != std::string::npos)
+    {
+        sharp = 1;
+    }
+    else if (n.find('B') != std::string::npos)
+    {
+        sharp = -1;
+    }
+
+    int octave = 4;
+
     if (n != "")
     {
         if (n[0] == '#')
         {
-            nletter++;
             n = n.substr(1);
         }
         else if (n[0] == 'B')
         {
-            nletter--;
             n = n.substr(1);
         }
     }
@@ -938,7 +947,7 @@ int PianoEffect::ConvertNote(std::string& note)
         octave = wxAtoi(n);
     }
 
-    number = 12 + (octave * 12) + nletter;
+    number = 12 + (octave * 12) + nletter + sharp;
     if (number < 0) number = 0;
     if (number > 127) number = 127;
     return number;

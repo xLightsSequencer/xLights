@@ -88,6 +88,7 @@
 						<object class="wxSpinCtrl" name="ID_SPINCTRL_Piano_StartMIDI" variable="SpinCtrl_Piano_StartMIDI" member="yes">
 							<value>60</value>
 							<max>127</max>
+							<handler function="OnSpinCtrl_Piano_StartMIDIChange" entry="EVT_SPINCTRL" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -117,6 +118,7 @@
 						<object class="wxSpinCtrl" name="ID_SPINCTRL_Piano_EndMIDI" variable="SpinCtrl_Piano_EndMIDI" member="yes">
 							<value>72</value>
 							<max>127</max>
+							<handler function="OnSpinCtrl_Piano_EndMIDIChange" entry="EVT_SPINCTRL" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
