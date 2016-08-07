@@ -816,6 +816,12 @@
     <ClCompile Include="ColorCurveDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NoteImportDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MusicXML.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1566,6 +1572,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="colorcurvedialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NoteImportDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MusicXML.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

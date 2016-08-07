@@ -762,6 +762,7 @@ void xLightsFrame::SaveSequence()
             CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
             EnableSequenceControls(true);
             mSavedChangeCount = mSequenceElements.GetChangeCount();
+            mLastAutosaveCount = mSavedChangeCount;
         } );
         return;
     }
@@ -775,6 +776,7 @@ void xLightsFrame::SaveSequence()
     CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
     EnableSequenceControls(true);
     mSavedChangeCount = mSequenceElements.GetChangeCount();
+    mLastAutosaveCount = mSavedChangeCount;
 }
 
 void xLightsFrame::SaveAsSequence()

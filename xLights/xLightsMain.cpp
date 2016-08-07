@@ -336,6 +336,7 @@ wxDEFINE_EVENT(EVT_SEQUENCE_LAST_FRAME, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
+wxDEFINE_EVENT(EVT_IMPORT_NOTES, wxCommandEvent);
 wxDEFINE_EVENT(EVT_RENDER_RANGE, RenderCommandEvent);
 wxDEFINE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
@@ -376,6 +377,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_TOGGLE_PLAY, xLightsFrame::TogglePlay)
     EVT_COMMAND(wxID_ANY, EVT_SHOW_DISPLAY_ELEMENTS, xLightsFrame::ShowDisplayElements)
     EVT_COMMAND(wxID_ANY, EVT_IMPORT_TIMING, xLightsFrame::ExecuteImportTimingElement)
+    EVT_COMMAND(wxID_ANY, EVT_IMPORT_NOTES, xLightsFrame::ExecuteImportNotes)
     EVT_COMMAND(wxID_ANY, EVT_CONVERT_DATA_TO_EFFECTS, xLightsFrame::ConvertDataRowToEffects)
     EVT_COMMAND(wxID_ANY, EVT_PROMOTE_EFFECTS, xLightsFrame::PromoteEffects)
     EVT_COMMAND(wxID_ANY, EVT_RGBEFFECTS_CHANGED, xLightsFrame::PerspectivesChanged)
@@ -1182,6 +1184,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     effGridPrevX = 0;
     effGridPrevY = 0;
     mSavedChangeCount = 0;
+    mLastAutosaveCount = 0;
 
     logger_base.debug("xLightsFrame constructor loading network list.");
 
@@ -3085,13 +3088,29 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("Autosaving backup of sequence.");
         wxStopWatch sw;
-        SaveWorking();
+        if (mSavedChangeCount != mSequenceElements.GetChangeCount())
+        {
+            if (mSequenceElements.GetChangeCount() != mLastAutosaveCount)
+            {
+                SaveWorking();
+                mLastAutosaveCount = mSequenceElements.GetChangeCount();
+            }
+            else
+            {
+                logger_base.debug("    Autosave skipped ... no changes detected since last autosave.");
+            }
+        }
+        else
+        {
+            logger_base.debug("    Autosave skipped ... no changes detected since last save.");
+            mLastAutosaveCount = mSequenceElements.GetChangeCount();
+        }
         if (UnsavedRgbEffectsChanges)
         {
-            logger_base.debug("Autosaving backup of layout.");
+            logger_base.debug("    Autosaving backup of layout.");
             SaveWorkingLayout();
         }
-        logger_base.debug("AutoSave took %d ms.", sw.Time());
+        logger_base.debug("    AutoSave took %d ms.", sw.Time());
     }
     if (AutoSaveInterval > 0) {
         Timer_AutoSave.StartOnce(AutoSaveInterval * 60000);

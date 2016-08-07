@@ -17,17 +17,17 @@
 #include "../DisplayElementsPanel.h"
 #include "../effects/RenderableEffect.h"
 #include "../xlCustomControl.h"
-
-
-
+#include "../NoteImportDialog.h"
+#include "../MIDI/MidiFile.h"
+#include "../MusicXML.h"
 
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
 {
     // Lots of logging here as this function hard crashes
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    EffectsPanel1 = NULL;
-    timingPanel = NULL;
+    EffectsPanel1 = nullptr;
+    timingPanel = nullptr;
 
     logger_base.debug("CreateSequencer: Creating Panels.");
     mainSequencer = new MainSequencer(PanelSequencer);
@@ -128,7 +128,7 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
 
 void xLightsFrame::InitSequencer()
 {
-    if(EffectsPanel1 == NULL || timingPanel == NULL)
+    if(EffectsPanel1 == nullptr || timingPanel == nullptr)
     {
         return;
     }
@@ -161,8 +161,8 @@ bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClas
 void xLightsFrame::CheckForAndCreateDefaultPerpective()
 {
     wxXmlNode* prospectives = PerspectivesNode->GetChildren();
-    mCurrentPerpective = NULL;
-    if (prospectives==NULL)
+    mCurrentPerpective = nullptr;
+    if (prospectives==nullptr)
     {
         if(PerspectivesNode->HasAttribute("current"))
         {
@@ -180,7 +180,7 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
     else
     {
         wxString currentName = PerspectivesNode->GetAttribute("current");
-        for(wxXmlNode* p=PerspectivesNode->GetChildren(); p!=NULL; p=p->GetNext())
+        for(wxXmlNode* p=PerspectivesNode->GetChildren(); p!=nullptr; p=p->GetNext())
         {
             if (p->GetName() == "perspective")
             {
@@ -327,7 +327,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
     {
         int musicLength = 0;
 		mediaFilename = wxEmptyString;
-		if (xml_file.GetMedia() != NULL)
+		if (xml_file.GetMedia() != nullptr)
 		{
 			mediaFilename = xml_file.GetMedia()->FileName();
 			if ((mediaFilename == wxEmptyString) || (!wxFileExists(mediaFilename)))
@@ -398,6 +398,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     }
 
     mSavedChangeCount = mSequenceElements.GetChangeCount();
+    mLastAutosaveCount = mSavedChangeCount;
     CheckForValidModels();
 
     LoadAudioData(xml_file);
@@ -471,7 +472,7 @@ void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
 {
     wxString s = event.GetString();
     if ("" != s) {
-        for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() ) {
+        for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=nullptr; e=e->GetNext() ) {
             if (e->GetName() == "modelGroup") {
                 if (s == e->GetAttribute("name")) {
                     std::string modelString = e->GetAttribute("models").ToStdString();
@@ -557,7 +558,7 @@ void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
         playEndTime = -1;
         playStartMS = -1;
     }
-    selectedEffect = NULL;
+    selectedEffect = nullptr;
     selectedEffectName = "";
     selectedEffectString = "";
     selectedEffectPalette = "";
@@ -648,8 +649,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     std::string name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex).ToStdString();
     std::string palette;
     std::string settings = GetEffectTextFromWindows(palette);
-    selectedEffect = NULL;
-    Effect* last_effect_created = NULL;
+    selectedEffect = nullptr;
+    Effect* last_effect_created = nullptr;
 
     mSequenceElements.get_undo_mgr().CreateUndoStep();
     for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
@@ -692,7 +693,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
         }
     }
 
-    if (playType != PLAY_TYPE_MODEL && last_effect_created != NULL)
+    if (playType != PLAY_TYPE_MODEL && last_effect_created != nullptr)
     {
         SetEffectControls(last_effect_created->GetParentEffectLayer()->GetParentElement()->GetModelName(),
                           last_effect_created->GetEffectName(), last_effect_created->GetSettings(),
@@ -741,7 +742,7 @@ void xLightsFrame::ModelSelected(wxCommandEvent& event)
 
 void xLightsFrame::PlaySequence()
 {
-	if (CurrentSeqXmlFile != NULL)
+	if (CurrentSeqXmlFile != nullptr)
 	{
 		if (playType == PLAY_TYPE_EFFECT_PAUSED)
 		{
@@ -755,7 +756,7 @@ void xLightsFrame::PlaySequence()
 			playStartTime = mainSequencer->PanelTimeLine->GetNewStartTimeMS();
 			playEndTime = mainSequencer->PanelTimeLine->GetNewEndTimeMS();
 			if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-				if (CurrentSeqXmlFile->GetMedia() != NULL)
+				if (CurrentSeqXmlFile->GetMedia() != nullptr)
 				{
 					CurrentSeqXmlFile->GetMedia()->Seek(playStartTime);
 				}
@@ -765,7 +766,7 @@ void xLightsFrame::PlaySequence()
 			}
 			mainSequencer->PanelTimeLine->PlayStarted();
 			if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-				if (CurrentSeqXmlFile->GetMedia() != NULL)
+				if (CurrentSeqXmlFile->GetMedia() != nullptr)
 				{
 					CurrentSeqXmlFile->GetMedia()->Play();
 				}
@@ -785,7 +786,7 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
 {
     if( CurrentSeqXmlFile->GetSequenceType() == "Media" )
     {
-		if (CurrentSeqXmlFile->GetMedia() != NULL)
+		if (CurrentSeqXmlFile->GetMedia() != nullptr)
 		{
 			if (CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING)
 			{
@@ -816,7 +817,7 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
 
 void xLightsFrame::SetAudioControls()
 {
-	if (CurrentSeqXmlFile == NULL || mRendering)
+	if (CurrentSeqXmlFile == nullptr || mRendering)
 	{
 		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
 		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, false);
@@ -857,7 +858,7 @@ void xLightsFrame::SetAudioControls()
 	}
 	else
 	{
-		if (CurrentSeqXmlFile->GetMedia() == NULL)
+		if (CurrentSeqXmlFile->GetMedia() == nullptr)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, false);
@@ -931,7 +932,7 @@ void xLightsFrame::StopSequence()
     if( playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED )
     {
         if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
-			if (CurrentSeqXmlFile->GetMedia() != NULL)
+			if (CurrentSeqXmlFile->GetMedia() != nullptr)
 			{
 				CurrentSeqXmlFile->GetMedia()->Stop();
 				CurrentSeqXmlFile->GetMedia()->Seek(playStartTime);
@@ -1080,7 +1081,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 
 void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
 {
-    if (CurrentSeqXmlFile == NULL) {
+    if (CurrentSeqXmlFile == nullptr) {
         return;
     }
     UpdateRenderStatus();
@@ -1088,7 +1089,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
         return;
     }
 
-    if (selectedEffect != NULL && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
+    if (selectedEffect != nullptr && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
         std::string palette;
         std::string effectText = GetEffectTextFromWindows(palette);
         if (effectText != selectedEffectString
@@ -1151,7 +1152,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
     mainSequencer->SetPlayStatus(playType);
 
     // return if play is stopped
-    if (playType == PLAY_TYPE_STOPPED || CurrentSeqXmlFile == NULL) {
+    if (playType == PLAY_TYPE_STOPPED || CurrentSeqXmlFile == nullptr) {
         return;
     }
 
@@ -1195,7 +1196,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
     if (playType == PLAY_TYPE_MODEL) {
 
         int current_play_time = 0;
-		if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != NULL && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING)
+		if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING)
 		{
 			current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
             curt = current_play_time;
@@ -1328,7 +1329,7 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
 	else
 	{
 		return;
-		//efPanel = NULL;
+		//efPanel = nullptr;
 		//ContextWin=SeqPanelLeft;
 	}
 	name = "ID_" + name.Mid(2);
@@ -1505,13 +1506,13 @@ void xLightsFrame::ForceSequencerRefresh()
 
 void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
 
-    if (perspective == NULL)
+    if (perspective == nullptr)
     {
         log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("xLightsFrame::LoadPerspective Null perspective node.");
         return;
     }
-    if (PerspectivesNode == NULL)
+    if (PerspectivesNode == nullptr)
     {
         log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("xLightsFrame::LoadPerspective Null PerspectivesNode.");
@@ -1587,7 +1588,7 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 {
-    if(mCurrentPerpective != NULL)
+    if(mCurrentPerpective != nullptr)
     {
         wxMessageDialog confirm(this, _("Are you sure you want to save the current view as perpective \"") + mCurrentPerpective->GetAttribute("name") + "\"?", _("Confirm"), wxYES|wxNO);
         if (confirm.ShowModal() == wxID_YES)
@@ -1608,7 +1609,7 @@ void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event
 {
     wxString name = wxGetTextFromUser("Enter name of perspective","Perspective Name");
     if(name.size()>0) {
-        for(wxXmlNode* p=PerspectivesNode->GetChildren(); p!=NULL; p=p->GetNext() )
+        for(wxXmlNode* p=PerspectivesNode->GetChildren(); p!=nullptr; p=p->GetNext() )
         {
             if (p->GetName() == "perspective")
             {
@@ -1808,6 +1809,530 @@ void xLightsFrame::RenameTimingElement(const std::string& old_name, const std::s
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
     CurrentSeqXmlFile->SetTimingSectionName(old_name, new_name);
+}
+
+int LowerTS(float t, int intervalMS)
+{
+    int res = t * 1000;
+    res += intervalMS / 2;
+    res /= intervalMS;
+    res *= intervalMS;
+    return res;
+}
+
+int UpperTS(float t, int intervalMS)
+{
+    int res = t * 1000;
+    res += intervalMS / 2;
+    res /= intervalMS;
+    res *= intervalMS;
+    return res;
+}
+
+void PTProgress(wxProgressDialog* pd, int p)
+{
+    // Update progress dialog
+    if (pd != nullptr)
+    {
+        pd->Update(p);
+    }
+}
+
+std::map<int, std::list<float>> xLightsFrame::LoadPolyphonicTranscription(AudioManager* audio, int intervalMS)
+{
+    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    std::map<int, std::list<float>> res;
+
+    if (audio != nullptr)
+    {
+        try
+        {
+            if (!audio->IsPolyphonicTranscriptionDone())
+            {
+                wxProgressDialog pd("Processing Audio", "");
+                logger_pianodata.info("Processing Polyphonic Transcription to produce notes");
+                audio->DoPolyphonicTranscription(&pd, &PTProgress);
+                logger_pianodata.info("Processing Polyphonic Transcription - DONE");
+            }
+        }
+        catch (...)
+        {
+            logger_pianodata.warn("Exception caught processing Polyphonic Transcription");
+        }
+
+        logger_pianodata.debug("Interval %d.", intervalMS);
+
+        int frames = audio->LengthMS() / intervalMS;
+
+        for (size_t i = 0; i < frames; i++)
+        {
+            std::list<float>* pdata = audio->GetFrameData(i, FRAMEDATA_NOTES, "");
+            if (pdata != nullptr)
+            {
+                res[i*intervalMS] = *pdata;
+            }
+        }
+
+        if (logger_pianodata.isDebugEnabled())
+        {
+            logger_pianodata.debug("Note data calculated:");
+            logger_pianodata.debug("Time MS, Keys");
+            for (auto it = res.begin(); it != res.end(); ++it)
+            {
+                std::string keys = "";
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+                {
+                    keys += " " + std::string(wxString::Format("%f", *it2).c_str());
+                }
+                logger_pianodata.debug("%d,%s", it->first, keys.c_str());
+            }
+        }
+
+    }
+    else
+    {
+        logger_pianodata.warn("Polyphonic Transcription requires a media file to scan.");
+    }
+
+    return res;
+}
+
+std::map<int, std::list<float>> xLightsFrame::LoadAudacityFile(std::string file, int intervalMS)
+{
+    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    std::map<int, std::list<float>> res;
+
+    logger_pianodata.debug("Processing audacity file " + file);
+    logger_pianodata.debug("Interval %d.", intervalMS);
+    logger_pianodata.debug("Start,End,midinote");
+
+    wxTextFile f(file);
+
+    if (f.Open())
+    {
+        wxString l = f.GetFirstLine();
+        while (!f.Eof())
+        {
+            if (l != "") // skip blank lines
+            {
+                std::vector<float> components = NoteImportDialog::Parse(l);
+                if (components.size() != 3)
+                {
+                    // this is a problem ... there should be 3 floating point numbers
+                    logger_pianodata.warn("Invalid data in audacity file - 3 tab separated floating point values expected: '" + l + "'");
+                    break;
+                }
+                else
+                {
+                    int start = LowerTS(components[0], intervalMS);
+                    int end = UpperTS(components[1], intervalMS);
+                    logger_pianodata.debug("%f,%f,%f -> %d,%d", components[0], components[1], components[2], start, end);
+                    for (int i = start; i < end; i += intervalMS)
+                    {
+                        if (res.find(i) == res.end())
+                        {
+                            std::list<float> ff;
+                            ff.push_back(components[2]);
+                            res[i] = ff;
+                        }
+                        else
+                        {
+                            bool found = false;
+                            for (auto it = res[i].begin(); it != res[i].end(); ++it)
+                            {
+                                if (*it == components[2])
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found)
+                            {
+                                res[i].push_back(components[2]);
+                            }
+                        }
+                    }
+                }
+            }
+            l = f.GetNextLine();
+        }
+
+        if (logger_pianodata.isDebugEnabled())
+        {
+            logger_pianodata.debug("Note data calculated:");
+            logger_pianodata.debug("Time MS, Keys");
+            for (auto it = res.begin(); it != res.end(); ++it)
+            {
+                std::string keys = "";
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+                {
+                    keys += " " + std::string(wxString::Format("%f", *it2).c_str());
+                }
+                logger_pianodata.debug("%d,%s", it->first, keys.c_str());
+            }
+        }
+    }
+
+    return res;
+}
+
+std::map<int, std::list<float>> xLightsFrame::LoadMusicXMLFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track)
+{
+    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    std::map<int, std::list<float>> res;
+
+    float speedadjust;
+    if (speedAdjust < 0)
+    {
+        speedadjust = speedAdjust / 200.0 + 1;
+    }
+    else
+    {
+        speedadjust = (speedAdjust + 100.0) / 100.0;
+    }
+
+    MusicXML musicXML(file);
+    
+    if (musicXML.IsOk())
+    {
+        std::list<MusicXmlNote> notes = musicXML.GetNotes(track);
+
+        for (auto it = notes.begin(); it != notes.end(); ++it)
+        {
+            if (!it->IsRest())
+            {
+                float startt = (float)startAdjustMS / 100.0 + (float)it->startMS / 1000.0 * speedadjust;
+                float endt= (float)startAdjustMS / 100.0 + ((float)it->startMS + (float)it->durationMS) / 1000.0 * speedadjust;
+                int start = LowerTS(startt, intervalMS);
+                int end = UpperTS(endt, intervalMS);
+
+                for (int i = start; i < end; i += intervalMS)
+                {
+                    if (i >= 0)
+                    {
+                        if (res.find(i) == res.end())
+                        {
+                            std::list<float> ff;
+                            ff.push_back(it->midi);
+                            res[i] = ff;
+                        }
+                        else
+                        {
+                            bool found = false;
+                            for (auto it2 = res[i].begin(); it2 != res[i].end(); ++it2)
+                            {
+                                if (*it2 == it->midi)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found)
+                            {
+                                res[i].push_back(it->midi);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (logger_pianodata.isDebugEnabled())
+        {
+            logger_pianodata.debug("Note data calculated:");
+            logger_pianodata.debug("Time MS, Keys");
+            for (auto it = res.begin(); it != res.end(); ++it)
+            {
+                std::string keys = "";
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+                {
+                    keys += " " + std::string(wxString::Format("%f", *it2).c_str());
+                }
+                logger_pianodata.debug("%d,%s", it->first, keys.c_str());
+            }
+        }
+    }
+    else
+    {
+        logger_pianodata.warn("Invalid MusicXML file " + file);
+    }
+
+    return res;
+}
+
+std::map<int, std::list<float>> xLightsFrame::LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track)
+{
+    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    std::map<int, std::list<float>> res;
+
+    float speedadjust;
+    if (speedAdjust < 0)
+    {
+        speedadjust = speedAdjust / 200.0 + 1;
+    }
+    else
+    {
+        speedadjust = (speedAdjust + 100.0) / 100.0;
+    }
+
+    int notestate[128];
+    for (int i = 0; i <= 127; i++)
+    {
+        notestate[i] = 0;
+    }
+
+    logger_pianodata.debug("Processing midi file " + file);
+    logger_pianodata.debug("Interval %d.", intervalMS);
+    logger_pianodata.debug("SpeedAdjust %d.", speedAdjust);
+    logger_pianodata.debug("StartAdjustMS %d.", startAdjustMS);
+
+    MidiFile midifile;
+    float lasttime = -1;
+    if (midifile.read(file) != 0)
+    {
+        int ntrack = 0;
+        if (track == "All" || track == "")
+        {
+            midifile.joinTracks();
+        }
+        else
+        {
+            ntrack = wxAtoi(track) - 1;
+            if (ntrack >= midifile.getNumTracks())
+            {
+                ntrack = 0;
+            }
+        }
+        midifile.doTimeAnalysis();
+
+        logger_pianodata.debug("Processing midi track %d.", ntrack);
+        logger_pianodata.debug("Event,time(s)->ms,adjustedtime(s)->ms,isnote,isnoteon,isnoteoff,midinote");
+
+        // process each event
+        for (int i = 0; i < midifile.getNumEvents(ntrack); i++)
+        {
+            MidiEvent e = midifile.getEvent(ntrack, i);
+
+            if (e.isNote())
+            {
+                float time = (float)startAdjustMS / 100.0 + midifile.getTimeInSeconds(ntrack, i) * speedadjust;
+
+                if (logger_pianodata.isDebugEnabled())
+                {
+                    logger_pianodata.debug("%d,%f->%d,%f->%d,%d,%d,%d,%d", i, midifile.getTimeInSeconds(ntrack, i), LowerTS(midifile.getTimeInSeconds(ntrack, i), intervalMS), time, LowerTS(time, intervalMS), e.isNote(), e.isNoteOn(), e.isNoteOff(), e.getKeyNumber());
+                }
+                if (time != lasttime)
+                {
+                    if (lasttime >= 0)
+                    {
+                        // we can update things now
+                        int start = LowerTS(lasttime, intervalMS);
+                        int end = UpperTS(time, intervalMS);
+
+                        for (int j = start; j < end; j += intervalMS)
+                        {
+                            std::list<float> f;
+                            for (int k = 0; k <= 127; k++)
+                            {
+                                if (notestate[k] > 0)
+                                {
+                                    f.push_back(k);
+                                }
+                            }
+                            res[j] = f;
+                        }
+                    }
+
+                    lasttime = time;
+                }
+
+                if (e.isNoteOn())
+                {
+                    notestate[e.getKeyNumber()]++;
+                }
+                else if (e.isNoteOff())
+                {
+                    notestate[e.getKeyNumber()]--;
+                    if (notestate[e.getKeyNumber()] < 0)
+                    {
+                        // this should never happen
+                    }
+                }
+            }
+        }
+
+        if (logger_pianodata.isDebugEnabled())
+        {
+            logger_pianodata.debug("Note data calculated:");
+            logger_pianodata.debug("Time MS, Keys");
+            for (auto it = res.begin(); it != res.end(); ++it)
+            {
+                std::string keys = "";
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+                {
+                    keys += " " + std::string(wxString::Format("%f", *it2).c_str());
+                }
+                logger_pianodata.debug("%d,%s", it->first, keys.c_str());
+            }
+        }
+    }
+    else
+    {
+        logger_pianodata.warn("Invalid MIDI file " + file);
+    }
+
+    return res;
+}
+
+void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
+{
+    NoteImportDialog dlgNoteImport(this, mSequenceElements, (CurrentSeqXmlFile->GetMedia() != nullptr));
+
+    if (dlgNoteImport.ShowModal() == wxID_OK)
+    {
+        wxString name = dlgNoteImport.TextCtrl_TimingName->GetValue();
+        mSequenceElements.DeactivateAllTimingElements();
+        Element* element = AddTimingElement(std::string(name.ToStdString()));
+        EffectLayer* effectLayer = element->GetEffectLayer(0);
+        mSequenceElements.AddTimingToAllViews(name.ToStdString());
+
+        int interval = 1000 / CurrentSeqXmlFile->GetFrequency();
+        wxString type = dlgNoteImport.Choice_Piano_Notes_Source->GetStringSelection();
+        std::map<int, std::list<float>> notes;
+        if (type == "Audacity Timing File")
+        {
+            notes = LoadAudacityFile(dlgNoteImport.TextCtrl_Piano_File->GetValue().ToStdString(), interval);
+        }
+        else if (type == "Music XML File")
+        {
+            notes = LoadMusicXMLFile(dlgNoteImport.TextCtrl_Piano_File->GetValue().ToStdString(), interval, dlgNoteImport.Slider_Piano_MIDI_Speed->GetValue(), dlgNoteImport.Slider_Piano_MIDI_Start->GetValue(), dlgNoteImport.Choice_Piano_MIDITrack_APPLYLAST->GetStringSelection().ToStdString());
+        }
+        else if (type == "MIDI File")
+        {
+            notes = LoadMIDIFile(dlgNoteImport.TextCtrl_Piano_File->GetValue().ToStdString(), interval, dlgNoteImport.Slider_Piano_MIDI_Speed->GetValue(), dlgNoteImport.Slider_Piano_MIDI_Start->GetValue(), dlgNoteImport.Choice_Piano_MIDITrack_APPLYLAST->GetStringSelection().ToStdString());
+        }
+        else if (type == "Polyphonic Transcription")
+        {
+            notes = LoadPolyphonicTranscription(CurrentSeqXmlFile->GetMedia(), interval);
+        }
+
+        CreateNotes(effectLayer, notes, interval, CurrentSeqXmlFile->GetSequenceDurationMS() / interval);
+        
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(this, eventRowHeaderChanged);
+    }
+}
+
+std::string DecodeMidi(int midi)
+{
+    int n = midi % 12;
+    int o = midi / 12 - 1;
+    // dont go below zero ... if so move it up an octave ... the user will never know
+    while (o < 0)
+    {
+        o++;
+    }
+
+    bool sharp = false;
+    char note = '?';
+    switch(n)
+    {
+    case 9:
+        note = 'A';
+        break;
+    case 10:
+        note = 'A';
+        sharp = true;
+        break;
+    case 11:
+        note = 'B';
+        break;
+    case 0:
+        note = 'C';
+        break;
+    case 1:
+        note = 'C';
+        sharp = true;
+        break;
+    case 2:
+        note = 'D';
+        break;
+    case 3:
+        note = 'D';
+        sharp = true;
+        break;
+    case 4:
+        note = 'E';
+        break;
+    case 5:
+        note = 'F';
+        break;
+    case 6:
+        note = 'F';
+        sharp = true;
+        break;
+    case 7:
+        note = 'G';
+        break;
+    case 8:
+        note = 'G';
+        sharp = true;
+        break;
+    }
+    
+    if (sharp)
+    {
+        return wxString::Format("%c#%d", note, o).ToStdString();
+    }
+    else
+    {
+        return wxString::Format("%c%d", note, o).ToStdString();
+    }
+}
+
+std::string xLightsFrame::CreateNotesLabel(const std::list<float>& notes) const
+{
+    std::string res;
+
+    for (auto it = notes.begin(); it != notes.end(); ++it)
+    {
+        if (res != "")
+        {
+            res += ",";
+        }
+        res += DecodeMidi((int)*it);
+    }
+
+    return res;
+}
+
+void xLightsFrame::CreateNotes(EffectLayer* el, std::map<int, std::list<float>>& notes, int interval, int frames)
+{
+    size_t last = 0;
+    std::string lastLabel = "";
+    for (size_t i = 0; i <= frames; i++)
+    {
+        std::string label = "";
+        if (notes.find((float)(i*interval)) != notes.end())
+        {
+            label = CreateNotesLabel(notes[i*interval]);
+        }
+
+        if (label == lastLabel)
+        {
+            // do nothing
+        }
+        else
+        {
+            if (i != 0)
+            {
+                el->AddEffect(0, lastLabel, "", "", last * interval, i*interval, EFFECT_NOT_SELECTED, false);
+            }
+            last = i;
+            lastLabel = label;
+        }
+    }
+    el->AddEffect(0, lastLabel, "", "", last * interval, frames*interval, EFFECT_NOT_SELECTED, false);
 }
 
 void xLightsFrame::ExecuteImportTimingElement(wxCommandEvent &command) {

@@ -97,8 +97,8 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Notes Source"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer27->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Piano_Notes_Source = new wxChoice(this, ID_CHOICE_Piano_Notes_Source, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Piano_Notes_Source"));
-	Choice_Piano_Notes_Source->Append(_("Timing Track"));
-	Choice_Piano_Notes_Source->SetSelection( Choice_Piano_Notes_Source->Append(_("Audacity Timing File")) );
+	Choice_Piano_Notes_Source->SetSelection( Choice_Piano_Notes_Source->Append(_("Timing Track")) );
+	Choice_Piano_Notes_Source->Append(_("Audacity Timing File"));
 	Choice_Piano_Notes_Source->Append(_("MIDI File"));
 	Choice_Piano_Notes_Source->Append(_("Polyphonic Transcription"));
 	FlexGridSizer27->Add(Choice_Piano_Notes_Source, 1, wxALL|wxEXPAND, 2);
@@ -288,6 +288,12 @@ void Progress(wxProgressDialog* pd, int p)
 void PianoPanel::OnChoice_Piano_Notes_SourceSelect(wxCommandEvent& event)
 {
 	wxString notes = Choice_Piano_Notes_Source->GetStringSelection();
+
+    if (notes != "Timing Track")
+    {
+        wxMessageBox("Warning: Using sources other than 'Timing Track' has been deprecated and will be removed in an upcoming release. Use the right click menu on timing track headers and 'Import Notes' to create a notes timing track.", "Warning!", wxICON_WARNING | wxOK, this);
+    }
+
     if (notes == "Polyphonic Transcription")
     {
         // Only do polyphonic transcription if:

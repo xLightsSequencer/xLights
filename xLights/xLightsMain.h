@@ -160,6 +160,7 @@ wxDECLARE_EVENT(EVT_SEQUENCE_LAST_FRAME, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
+wxDECLARE_EVENT(EVT_IMPORT_NOTES, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_RGBEFFECTS_CHANGED, wxCommandEvent);
@@ -956,6 +957,7 @@ private:
     bool UnsavedPlaylistChanges;
     wxColor mDefaultNetworkSaveBtnColor;
     int mSavedChangeCount;
+    int mLastAutosaveCount;
     wxDateTime starttime;
     play_modes play_mode;
     NetInfoClass NetInfo;
@@ -1181,6 +1183,7 @@ public:
     void RenameTimingElement(const std::string& old_name, const std::string& new_name);
     void ImportTimingElement();
     void ExecuteImportTimingElement(wxCommandEvent &command);
+    void ExecuteImportNotes(wxCommandEvent &command);
     void ConvertDataRowToEffects(wxCommandEvent &command);
     void ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime);
     void PromoteEffects(wxCommandEvent &command);
@@ -1371,6 +1374,13 @@ private:
     void ShowDisplayElements(wxCommandEvent& event);
     void ShowHidePreviewWindow(wxCommandEvent& event);
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
+
+    std::map<int, std::list<float>> LoadPolyphonicTranscription(AudioManager* audio, int intervalMS);
+    std::map<int, std::list<float>> LoadAudacityFile(std::string file, int intervalMS);
+    std::map<int, std::list<float>> LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track);
+    std::map<int, std::list<float>> LoadMusicXMLFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track);
+    void CreateNotes(EffectLayer* el, std::map<int, std::list<float>>& notes, int interval, int frames);
+    std::string CreateNotesLabel(const std::list<float>& notes) const;
 
     void CheckForValidModels();
 

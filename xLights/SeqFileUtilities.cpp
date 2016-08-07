@@ -366,6 +366,7 @@ bool xLightsFrame::CloseSequence()
     }
     mSequenceElements.Clear();
     mSavedChangeCount = mSequenceElements.GetChangeCount();
+    mLastAutosaveCount = mSavedChangeCount;
 
     mainSequencer->PanelWaveForm->CloseMedia();
     SeqData.init(0,0,50);

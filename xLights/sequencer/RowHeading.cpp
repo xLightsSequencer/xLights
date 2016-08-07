@@ -36,6 +36,7 @@ const long RowHeading::ID_ROW_MNU_RENAME_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_TIMING_TRACK = wxNewId();
+const long RowHeading::ID_ROW_MNU_IMPORT_NOTES = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_LYRICS = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_WORDS = wxNewId();
@@ -204,6 +205,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
         mnuLayer.Append(ID_ROW_MNU_DELETE_TIMING_TRACK,"Delete Timing Track");
         mnuLayer.Append(ID_ROW_MNU_IMPORT_TIMING_TRACK, "Import Timing Track");
         mnuLayer.Append(ID_ROW_MNU_EXPORT_TIMING_TRACK, "Export Timing Track");
+        mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
         mnuLayer.AppendSeparator();
         mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS,"Import Lyrics");
         mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES,"Breakdown Phrases");
@@ -365,6 +367,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if(id == ID_ROW_MNU_IMPORT_TIMING_TRACK) {
         wxCommandEvent playEvent(EVT_IMPORT_TIMING);
         wxPostEvent(GetParent(), playEvent);
+    }
+    else if (id == ID_ROW_MNU_IMPORT_NOTES) {
+        wxCommandEvent importNotesEvent(EVT_IMPORT_NOTES);
+        wxPostEvent(GetParent(), importNotesEvent);
     } else if(id == ID_ROW_MNU_IMPORT_LYRICS) {
         mSequenceElements->ImportLyrics(dynamic_cast<TimingElement *>(element), GetParent());
     } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES) {

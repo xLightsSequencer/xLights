@@ -25,7 +25,7 @@
 								<item>MIDI File</item>
 								<item>Polyphonic Transcription</item>
 							</content>
-							<selection>1</selection>
+							<selection>0</selection>
 							<handler function="OnChoice_Piano_Notes_SourceSelect" entry="EVT_CHOICE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

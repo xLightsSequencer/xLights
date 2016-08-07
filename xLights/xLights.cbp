@@ -544,12 +544,16 @@
 		<Unit filename="ModelStateDialog.h" />
 		<Unit filename="ModelViewSelector.cpp" />
 		<Unit filename="ModelViewSelector.h" />
+		<Unit filename="MusicXML.cpp" />
+		<Unit filename="MusicXML.h" />
 		<Unit filename="NetInfo.cpp" />
 		<Unit filename="NetInfo.h" />
 		<Unit filename="NewTimingDialog.cpp" />
 		<Unit filename="NewTimingDialog.h" />
 		<Unit filename="NodesGridCellEditor.cpp" />
 		<Unit filename="NodesGridCellEditor.h" />
+		<Unit filename="NoteImportDialog.cpp" />
+		<Unit filename="NoteImportDialog.h" />
 		<Unit filename="NullOutputDialog.cpp" />
 		<Unit filename="NullOutputDialog.h" />
 		<Unit filename="OptionChooser.cpp" />
@@ -1009,6 +1013,7 @@
 		<Unit filename="wxsmith/MorphPanel.wxs" />
 		<Unit filename="wxsmith/MusicPanel.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
+		<Unit filename="wxsmith/NoteImportDialog.wxs" />
 		<Unit filename="wxsmith/OffPanel.wxs" />
 		<Unit filename="wxsmith/OnPanel.wxs" />
 		<Unit filename="wxsmith/OptionChooser.wxs" />
@@ -1196,6 +1201,7 @@
 					<wxPanel wxs="wxsmith/ModelGroupPanel.wxs" src="ModelGroupPanel.cpp" hdr="ModelGroupPanel.h" fwddecl="0" i18n="1" name="ModelGroupPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/PreviewPane.wxs" src="PreviewPane.cpp" hdr="PreviewPane.h" fwddecl="0" i18n="1" name="PreviewPane" language="CPP" />
 					<wxDialog wxs="wxsmith/ColorGradientDialog.wxs" src="ColorGradientDialog.cpp" hdr="ColorGradientDialog.h" fwddecl="0" i18n="1" name="ColorGradientDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/NoteImportDialog.wxs" src="NoteImportDialog.cpp" hdr="NoteImportDialog.h" fwddecl="0" i18n="1" name="NoteImportDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

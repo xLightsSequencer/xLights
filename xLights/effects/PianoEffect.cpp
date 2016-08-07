@@ -436,7 +436,7 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 
 	// Draw white keys
 	int x = truexoffset;
-	for (int i = start; i <= end; i++)
+	for (i = start; i <= end; i++)
 	{
 		if (!IsSharp(i))
 		{
