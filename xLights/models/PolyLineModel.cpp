@@ -200,7 +200,7 @@ void PolyLineModel::InitModel() {
     // fix the string numbers for each node since model is non-standard
     size_t idx=0;
     if (HasIndividualStartChans && hasIndivSeg && !SingleNode) {
-        for (int x = 0; x < SingleNode ? 1 : num_segments; x++) {
+        for (int x = 0; x < (SingleNode ? 1 : num_segments); x++) {
             for( int n = 0; n < polyLineSizes[x]; ++n ) {
                 Nodes[idx++]->StringNum = x;
             }
