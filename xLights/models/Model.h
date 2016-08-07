@@ -200,6 +200,8 @@ public:
     int GetSelectedHandle();
     int GetNumHandles();
     int GetSelectedSegment();
+    bool HasCurve(int segment);
+    void SetCurve(int segment, bool create);
     void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
     virtual void InsertHandle(int after_handle);
     virtual void DeleteHandle(int handle);

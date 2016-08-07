@@ -95,6 +95,8 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_DELETE_ACTIVE;
         static const long ID_PREVIEW_MODEL_ADDPOINT;
         static const long ID_PREVIEW_MODEL_DELETEPOINT;
+        static const long ID_PREVIEW_MODEL_ADDCURVE;
+        static const long ID_PREVIEW_MODEL_DELCURVE;
 
 	public:
 

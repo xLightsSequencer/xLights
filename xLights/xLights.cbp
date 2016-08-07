@@ -858,6 +858,8 @@
 		<Unit filename="models/Node.h" />
 		<Unit filename="models/PolyLineModel.cpp" />
 		<Unit filename="models/PolyLineModel.h" />
+		<Unit filename="models/Shapes.cpp" />
+		<Unit filename="models/Shapes.h" />
 		<Unit filename="models/SingleLineModel.cpp" />
 		<Unit filename="models/SingleLineModel.h" />
 		<Unit filename="models/SphereModel.cpp" />

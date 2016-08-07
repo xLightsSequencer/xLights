@@ -40,6 +40,8 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
             float x;
             float y;
             float length;
+            mutable bool has_curve;
+            mutable BezierCurveCubic* curve;
             mutable glm::mat3 *matrix;
         };
         float total_length;
@@ -53,6 +55,8 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         std::vector<int> polyLineSizes;
         bool hasIndivSeg;
         bool segs_collapsed;
+        void DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos );
+
 };
 
-#endif // SINGLELINEMODEL_H
+#endif // POLYLINEMODEL_H

@@ -75,6 +75,8 @@ const long LayoutPanel::ID_MNU_ADD_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETE_ACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELETEPOINT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_ADDCURVE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_DELCURVE = wxNewId();
 
 class NewModelBitmapButton : public wxBitmapButton
 {
@@ -1395,11 +1397,24 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         }
         if (model != nullptr)
         {
-            if( model->GetSelectedSegment() != -1 ) {
-                mnu.Append(ID_PREVIEW_MODEL_ADDPOINT,"Add Point");
+            bool need_sep = false;
+            int sel_seg = model->GetSelectedSegment();
+            if( sel_seg != -1 ) {
+                if( !model->HasCurve(sel_seg) ) {
+                    mnu.Append(ID_PREVIEW_MODEL_ADDPOINT,"Add Point");
+                    mnu.Append(ID_PREVIEW_MODEL_ADDCURVE,"Define Curve");
+                } else {
+                    mnu.Append(ID_PREVIEW_MODEL_DELCURVE,"Remove Curve");
+                }
+                need_sep = true;
             }
-            if( (model->GetSelectedHandle() != -1) && (model->GetNumHandles() > 2) ) {
+            int sel_hdl = model->GetSelectedHandle();
+            if( (sel_hdl != -1) && (sel_hdl < 0x4000) && (model->GetNumHandles() > 2) ) {
                 mnu.Append(ID_PREVIEW_MODEL_DELETEPOINT,"Delete Point");
+                need_sep = true;
+            }
+            if( need_sep ) {
+                mnu.AppendSeparator();
             }
         }
         mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT,"Node Layout");
@@ -1481,7 +1496,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         Model* md=(Model*)ListBoxElementList->GetItemData(sel);
         if( md != nullptr ) {
             int handle = md->GetSelectedSegment();
-            CreateUndoPoint("SingleModel", md->name, std::to_string(handle));
+            CreateUndoPoint("SingleModel", md->name, std::to_string(handle+0x8000));
             md->InsertHandle(handle);
             md->UpdateXmlWithScale();
             md->InitModel();
@@ -1498,13 +1513,41 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
             int selected_handle = md->GetSelectedHandle();
             if( (selected_handle != -1) && (md->GetNumHandles() > 2) )
             {
-                CreateUndoPoint("SingleModel", md->name, std::to_string(selected_handle));
+                CreateUndoPoint("SingleModel", md->name, std::to_string(selected_handle+0x4000));
                 md->DeleteHandle(selected_handle);
                 md->UpdateXmlWithScale();
                 md->InitModel();
                 SetupPropGrid(md);
                 UpdatePreview();
             }
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_ADDCURVE)
+    {
+        int sel = ListBoxElementList->GetFirstSelected();
+        if (sel == wxNOT_FOUND) return;
+        Model* md=(Model*)ListBoxElementList->GetItemData(sel);
+        if( md != nullptr ) {
+            int seg = md->GetSelectedSegment();
+            CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x2000));
+            md->SetCurve(seg, true);
+            md->UpdateXmlWithScale();
+            md->InitModel();
+            UpdatePreview();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_DELCURVE)
+    {
+        int sel = ListBoxElementList->GetFirstSelected();
+        if (sel == wxNOT_FOUND) return;
+        Model* md=(Model*)ListBoxElementList->GetItemData(sel);
+        if( md != nullptr ) {
+            int seg = md->GetSelectedSegment();
+            CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x1000));
+            md->SetCurve(seg, false);
+            md->UpdateXmlWithScale();
+            md->InitModel();
+            UpdatePreview();
         }
     }
 

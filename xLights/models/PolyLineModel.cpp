@@ -208,13 +208,43 @@ void PolyLineModel::InitModel() {
     }
 
     // read in the point data from xml
-    std::vector<xlPolyPoint> pPos;
-    pPos.resize(num_points);
+    std::vector<xlPolyPoint> pPos(num_points);
     wxString point_data = ModelXml->GetAttribute("PointData", "0.4, 0.6, 0.4, 0.6");
     wxArrayString point_array = wxSplit(point_data, ',');
     for( int i = 0; i < num_points; ++i ) {
         pPos[i].x = wxAtof(point_array[i*2]);
         pPos[i].y = wxAtof(point_array[i*2+1]);
+        pPos[i].has_curve = false;
+        pPos[i].curve = nullptr;
+    }
+    wxString cpoint_data = ModelXml->GetAttribute("cPointData", "");
+    wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
+    int num_curves = cpoint_array.size() / 5;
+    for( int i = 0; i < num_curves; ++i ) {
+        int seg_num = wxAtoi(cpoint_array[i*5]);
+        pPos[seg_num].has_curve = true;
+        pPos[seg_num].curve = new BezierCurveCubic();
+        pPos[seg_num].curve->set_p0(pPos[seg_num].x, pPos[seg_num].y);
+        pPos[seg_num].curve->set_p1(pPos[seg_num+1].x, pPos[seg_num+1].y);
+        pPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*5+1]), wxAtof(cpoint_array[i*5+2]) );
+        pPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*5+3]), wxAtof(cpoint_array[i*5+4]) );
+        pPos[seg_num].curve->SetScale(1.0, 1.0, 1.0);
+        pPos[seg_num].curve->UpdatePoints();
+        pPos[seg_num].curve->UpdateMatrices();
+    }
+
+    // calculate segment lengths if we need to auto-distribute lights
+    total_length = 0.0f;
+    if (!hasIndivSeg) {
+        for( int i = 0; i < num_points-1; ++i ) {
+            if( pPos[i].has_curve ) {
+                total_length += pPos[i].curve->GetLength();
+            } else {
+                float length = std::sqrt((pPos[i+1].y - pPos[i].y)*(pPos[i+1].y - pPos[i].y) + (pPos[i+1].x - pPos[i].x)*(pPos[i+1].x - pPos[i].x));
+                pPos[i].length = length;
+                total_length += length;
+            }
+        }
     }
 
     // calculate min/max for the model
@@ -228,19 +258,12 @@ void PolyLineModel::InitModel() {
         if( pPos[i].y < minY ) minY = pPos[i].y;
         if( pPos[i].x > maxX ) maxX = pPos[i].x;
         if( pPos[i].y > maxY ) maxY = pPos[i].y;
+        if( pPos[i].has_curve ) {
+            pPos[i].curve->check_min_max(minX, maxX, minY, maxY);
+        }
     }
     float deltax = maxX-minX;
     float deltay = maxY-minY;
-    total_length = 0.0f;
-
-    // calculate segment lengths if we need to auto-distribute lights
-    if (!hasIndivSeg) {
-        for( int i = 0; i < num_points-1; ++i ) {
-            float length = std::sqrt((pPos[i+1].y - pPos[i].y)*(pPos[i+1].y - pPos[i].y) + (pPos[i+1].x - pPos[i].x)*(pPos[i+1].x - pPos[i].x));
-            pPos[i].length = length;
-            total_length += length;
-        }
-    }
 
     // normalize all points from 0.0 to 1.0 and create
     // a matrix for each line segment
@@ -271,6 +294,11 @@ void PolyLineModel::InitModel() {
             delete pPos[i].matrix;
         }
         pPos[i].matrix = new glm::mat3(mat3);
+
+        // update any curves
+        if( pPos[i].has_curve ) {
+            pPos[i].curve->CreateNormalizedMatrix(minX, maxX, minY, maxY);
+        }
     }
 
     // define the buffer positions
@@ -333,34 +361,49 @@ void PolyLineModel::InitModel() {
                         }
                     }
                 }
+                if( pPos[segment].has_curve ) {
+                    DistributeLightsAcrossCurveSegment(polyLineSizes[segment], segment, c, pPos );
+                    segment++;
+                    for(int x=segment; x < polyLineSizes.size(); ++x ) {
+                        if( polyLineSizes[x] == 0 ) {
+                            segment++;
+                        } else {
+                            break;
+                        }
+                    }
+                }
             }
         } else {
             for(size_t m=0; m<num_segments; m++) {
-                int seg_idx = 0;
-                for(size_t n=0; n<polyLineSizes[m]; n++) {
-                    int count = 0;
-                    int num = Nodes[idx].get()->Coords.size();
-                    float offset = 0.5f;
-                    if( num > 1 ) {
-                        offset -= 1.0f / (float)num;
-                    }
-                    size_t CoordCount=GetCoordCount(idx);
-                    int x_pos = IsLtoR ? seg_idx : polyLineSizes[m]-seg_idx-1;
-                    for(size_t c=0; c < CoordCount; c++) {
-                        if (num > 1) {
-                            loc_x = x_pos + offset + ((float)count / (float)num);
-                            count++;
-                        } else {
-                            loc_x = x_pos + offset;
+                if( pPos[m].has_curve ) {
+                    DistributeLightsAcrossCurveSegment(polyLineSizes[m], m, idx, pPos );
+                } else {
+                    int seg_idx = 0;
+                    for(size_t n=0; n<polyLineSizes[m]; n++) {
+                        int count = 0;
+                        int num = Nodes[idx].get()->Coords.size();
+                        float offset = 0.5f;
+                        if( num > 1 ) {
+                            offset -= 1.0f / (float)num;
                         }
+                        size_t CoordCount=GetCoordCount(idx);
+                        int x_pos = IsLtoR ? seg_idx : polyLineSizes[m]-seg_idx-1;
+                        for(size_t c=0; c < CoordCount; c++) {
+                            if (num > 1) {
+                                loc_x = x_pos + offset + ((float)count / (float)num);
+                                count++;
+                            } else {
+                                loc_x = x_pos + offset;
+                            }
 
-                        glm::vec3 v = *pPos[m].matrix * glm::vec3(loc_x / (float)polyLineSizes[m], 0, 1);
+                            glm::vec3 v = *pPos[m].matrix * glm::vec3(loc_x / (float)polyLineSizes[m], 0, 1);
 
-                        Nodes[idx]->Coords[c].screenX = v.x;
-                        Nodes[idx]->Coords[c].screenY = v.y;
+                            Nodes[idx]->Coords[c].screenX = v.x;
+                            Nodes[idx]->Coords[c].screenY = v.y;
+                        }
+                        idx++;
+                        seg_idx++;
                     }
-                    idx++;
-                    seg_idx++;
                 }
             }
         }
@@ -368,23 +411,39 @@ void PolyLineModel::InitModel() {
         // distribute the lights evenly across the line segments
         int coords_per_node = Nodes[0].get()->Coords.size();
         int lights_to_distribute = SingleNode ? coords_per_node : numLights * coords_per_node;
-        float offset = total_length / lights_to_distribute;
+        float offset = total_length / (float)lights_to_distribute;
         float current_pos = offset / 2.0f;
         idx=0;
         size_t c=0;
         int segment = 0;
+        int sub_segment = 0;
         int last_seg_light_num = 0;
         float seg_start = current_pos;
-        float seg_end = seg_start + pPos[segment].length;
+        float segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
+        float seg_end = seg_start + segment_length;
         for(size_t m=0; m<lights_to_distribute; m++) {
-            if( current_pos > seg_end ) {
-                polyLineSizes[segment] = m - last_seg_light_num;
-                last_seg_light_num = m;
-                segment++;
-                seg_start = seg_end;
-                seg_end = seg_start + pPos[segment].length;
+            while( current_pos > seg_end ) {
+                sub_segment++;
+                if( pPos[segment].has_curve && (sub_segment < pPos[segment].curve->GetNumSegments()) ) {
+                    seg_start = seg_end;
+                    segment_length = pPos[segment].curve->GetSegLength(sub_segment);
+                    seg_end = seg_start + segment_length;
+                } else {
+                    sub_segment = 0;
+                    polyLineSizes[segment] = m - last_seg_light_num;
+                    last_seg_light_num = m;
+                    segment++;
+                    seg_start = seg_end;
+                    segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
+                    seg_end = seg_start + segment_length;
+                }
             }
-            glm::vec3 v = *pPos[segment].matrix * glm::vec3((current_pos - seg_start) / pPos[segment].length, 0, 1);
+            glm::vec3 v;
+            if( pPos[segment].has_curve ) {
+                v = *pPos[segment].curve->GetMatrix(sub_segment) * glm::vec3((current_pos - seg_start) / segment_length, 0, 1);
+            } else {
+                v = *pPos[segment].matrix * glm::vec3((current_pos - seg_start) / segment_length, 0, 1);
+            }
             Nodes[idx]->Coords[c].screenX = v.x;
             Nodes[idx]->Coords[c].screenY = v.y;
             if( c < coords_per_node-1 ) {
@@ -398,6 +457,53 @@ void PolyLineModel::InitModel() {
         polyLineSizes[segment] = lights_to_distribute - last_seg_light_num;
     }
     screenLocation.SetRenderSize(1.0, 1.0);
+
+    // cleanup curves
+    for( int i = 0; i < num_points; ++i ) {
+        if( pPos[i].has_curve ) {
+            delete pPos[i].curve;
+            pPos[i].curve = nullptr;
+        }
+    }
+}
+
+void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos )
+{
+    // distribute the lights evenly across the line segments
+    int coords_per_node = Nodes[0].get()->Coords.size();
+    int lights_to_distribute = SingleNode ? lights : lights * coords_per_node;
+    float total_length = pPos[segment].curve->GetLength();
+    float offset = total_length / (float)lights_to_distribute;
+    float current_pos = offset / 2.0f;
+    size_t c=0;
+    int sub_segment = 0;
+    float seg_start = current_pos;
+    float segment_length = pPos[segment].curve->GetSegLength(sub_segment);
+    float seg_end = seg_start + segment_length;
+    for(size_t m=0; m<lights_to_distribute; m++) {
+        while( current_pos > seg_end ) {
+            sub_segment++;
+            seg_start = seg_end;
+            segment_length = pPos[segment].curve->GetSegLength(sub_segment);
+            seg_end = seg_start + segment_length;
+        }
+        glm::vec3 v = *pPos[segment].curve->GetMatrix(sub_segment) * glm::vec3((current_pos - seg_start) / segment_length, 0, 1);
+        if( SingleNode ) {
+            Nodes[0]->Coords[idx].screenX = v.x;
+            Nodes[0]->Coords[idx].screenY = v.y;
+            idx++;
+        } else {
+            Nodes[idx]->Coords[c].screenX = v.x;
+            Nodes[idx]->Coords[c].screenY = v.y;
+            if( c < coords_per_node-1 ) {
+                c++;
+            } else {
+                c = 0;
+                idx++;
+            }
+        }
+        current_pos += offset;
+    }
 }
 
 static wxPGChoices LEFT_RIGHT;

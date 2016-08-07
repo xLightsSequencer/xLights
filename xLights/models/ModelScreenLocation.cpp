@@ -1026,9 +1026,13 @@ PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
     mPos[0].x = 0.4f;
     mPos[0].y = 0.6f;
     mPos[0].matrix = nullptr;
+    mPos[0].curve = nullptr;
+    mPos[0].has_curve = false;
     mPos[1].x = 0.4f;
     mPos[1].y = 0.6f;
     mPos[1].matrix = nullptr;
+    mPos[1].curve = nullptr;
+    mPos[1].has_curve = false;
     main_matrix = nullptr;
 }
 PolyPointScreenLocation::~PolyPointScreenLocation() {
@@ -1036,12 +1040,35 @@ PolyPointScreenLocation::~PolyPointScreenLocation() {
         if (mPos[i].matrix != nullptr) {
             delete mPos[i].matrix;
         }
+        if (mPos[i].curve != nullptr) {
+            delete mPos[i].curve;
+        }
     }
     mPos.clear();
     if (main_matrix != nullptr) {
         delete main_matrix;
     }
 }
+
+void PolyPointScreenLocation::SetCurve(int seg_num, bool create) {
+    if( create ) {
+        mPos[seg_num].has_curve = true;
+        if( mPos[seg_num].curve == nullptr ) {
+            mPos[seg_num].curve = new BezierCurveCubic();
+        }
+        mPos[seg_num].curve->set_p0( mPos[seg_num].x, mPos[seg_num].y );
+        mPos[seg_num].curve->set_p1( mPos[seg_num+1].x, mPos[seg_num+1].y );
+        mPos[seg_num].curve->set_cp0( mPos[seg_num].x, mPos[seg_num].y );
+        mPos[seg_num].curve->set_cp1( mPos[seg_num+1].x, mPos[seg_num+1].y );
+    } else {
+        mPos[seg_num].has_curve = false;
+        if( mPos[seg_num].curve != nullptr ) {
+            delete mPos[seg_num].curve;
+            mPos[seg_num].curve = nullptr;
+        }
+    }
+}
+
 void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
     num_points = wxAtoi(ModelNode->GetAttribute("NumPoints", "2"));
     mPos.resize(num_points);
@@ -1050,12 +1077,31 @@ void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
     for( int i = 0; i < num_points; ++i ) {
         mPos[i].x = wxAtof(point_array[i*2]);
         mPos[i].y = wxAtof(point_array[i*2+1]);
+        mPos[i].has_curve = false;
     }
     mHandlePosition.resize(num_points+4);
+    wxString cpoint_data = ModelNode->GetAttribute("cPointData", "");
+    wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
+    int num_curves = cpoint_array.size() / 5;
+    for( int i = 0; i < num_curves; ++i ) {
+        int seg_num = wxAtoi(cpoint_array[i*5]);
+        mPos[seg_num].has_curve = true;
+        if( mPos[seg_num].curve == nullptr ) {
+            mPos[seg_num].curve = new BezierCurveCubic();
+        }
+        mPos[seg_num].curve->set_p0( mPos[seg_num].x, mPos[seg_num].y );
+        mPos[seg_num].curve->set_p1( mPos[seg_num+1].x, mPos[seg_num+1].y );
+        mPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*5+1]), wxAtof(cpoint_array[i*5+2]) );
+        mPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*5+3]), wxAtof(cpoint_array[i*5+4]) );
+        mPos[seg_num].curve->SetScale(previewW, previewH, RenderWi);
+        mPos[seg_num].curve->UpdatePoints();
+    }
 }
+
 void PolyPointScreenLocation::Write(wxXmlNode *node) {
     node->DeleteAttribute("NumPoints");
     node->DeleteAttribute("PointData");
+    node->DeleteAttribute("cPointData");
     wxString point_data = "";
     for( int i = 0; i < num_points; ++i ) {
         point_data += wxString::Format( "%f,", mPos[i].x );
@@ -1064,8 +1110,16 @@ void PolyPointScreenLocation::Write(wxXmlNode *node) {
             point_data += ",";
         }
     }
+    wxString cpoint_data = "";
+    for( int i = 0; i < num_points; ++i ) {
+        if( mPos[i].has_curve ) {
+            cpoint_data += wxString::Format( "%d,%f,%f,%f,%f,", i, mPos[i].curve->get_cp0x(), mPos[i].curve->get_cp0y(),
+                                                                   mPos[i].curve->get_cp1x(), mPos[i].curve->get_cp1y() );
+        }
+    }
     node->AddAttribute("NumPoints", std::to_string(num_points));
     node->AddAttribute("PointData", point_data);
+    node->AddAttribute("cPointData", cpoint_data);
 }
 
 void PolyPointScreenLocation::PrepareToDraw() const {
@@ -1084,6 +1138,10 @@ void PolyPointScreenLocation::PrepareToDraw() const {
         if( mPos[i].y < minY ) minY = mPos[i].y;
         if( mPos[i].x > maxX ) maxX = mPos[i].x;
         if( mPos[i].y > maxY ) maxY = mPos[i].y;
+
+        if( mPos[i].has_curve ) {
+            mPos[i].curve->check_min_max(minX, maxX, minY, maxY);
+        }
 
         if( i == num_points-2 ) {
             if( mPos[i+1].x < minX ) minX = mPos[i+1].x;
@@ -1105,16 +1163,21 @@ void PolyPointScreenLocation::PrepareToDraw() const {
         float scale = std::sqrt((y2p - y1p)*(y2p - y1p) + (x2p - x1p)*(x2p - x1p));
         scale /= RenderWi;
 
-        glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2(scale, scale * GetVScaleFactor()));
+        glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2(scale, scale));
         glm::mat3 rotationMatrix = glm::rotate(glm::mat3(1.0f), (float)angle);
-        glm::mat3 shearMatrix = glm::shearY(glm::mat3(1.0f), GetYShear());
-        glm::mat3 translateMatrix = glm::translate(glm::mat3(1.0f), glm::vec2(mPos[i].x*previewW, mPos[i].y*previewH));
-        glm::mat3 mat3 = translateMatrix * rotationMatrix * shearMatrix * scalingMatrix;
+        glm::mat3 translateMatrix = glm::translate(glm::mat3(1.0f), glm::vec2(x1p, y1p));
+        glm::mat3 mat3 = translateMatrix * rotationMatrix * scalingMatrix;
 
         if (mPos[i].matrix != nullptr) {
             delete mPos[i].matrix;
         }
         mPos[i].matrix = new glm::mat3(mat3);
+
+        // update curve points
+        if( mPos[i].has_curve ) {
+            mPos[i].curve->SetScale(previewW, previewH, RenderWi);
+            mPos[i].curve->UpdatePoints();
+        }
     }
     glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2((maxX-minX) * previewW, (maxY-minY) * previewH));
     glm::mat3 translateMatrix = glm::translate(glm::mat3(1.0f), glm::vec2(minX * previewW, minY * previewH));
@@ -1153,25 +1216,34 @@ bool PolyPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const 
 
 bool PolyPointScreenLocation::HitTest(int sx,int sy) const {
     for( int i = 0; i < num_points-1; ++i ) {
-        //invert the matrix, get into render space
-        glm::mat3 m = glm::inverse(*mPos[i].matrix);
-        glm::vec3 v = m * glm::vec3(sx, sy, 1);
 
-        float minY, maxY;
+        float min_y, max_y;
 
-        float sx1 = (mPos[i].x + mPos[i+1].x) * previewW / 2.0;
-        float sy1 = (mPos[i].y + mPos[i+1].y) * previewH / 2.0;
+        if( mPos[i].has_curve ) {
+            if( mPos[i].curve->HitTest(sx, sy) ) {
+                selected_segment = i;
+                return true;
+            }
+        } else {
+            //invert the matrix, get into render space
+            glm::mat3 m = glm::inverse(*mPos[i].matrix);
+            glm::vec3 v = m * glm::vec3(sx, sy, 1);
 
-        glm::vec3 v2 = m * glm::vec3(sx1 + 3, sy1 + 3, 1);
-        glm::vec3 v3 = m * glm::vec3(sx1 + 3, sy1 - 3, 1);
-        glm::vec3 v4 = m * glm::vec3(sx1 - 3, sy1 + 3, 1);
-        glm::vec3 v5 = m * glm::vec3(sx1 - 3, sy1 - 3, 1);
-        maxY = std::max(std::max(v2.y, v3.y), std::max(v4.y, v5.y));
-        minY = std::min(std::min(v2.y, v3.y), std::min(v4.y, v5.y));
+            // perform normal line segment hit detection
+            float sx1 = (mPos[i].x + mPos[i+1].x) * previewW / 2.0;
+            float sy1 = (mPos[i].y + mPos[i+1].y) * previewH / 2.0;
 
-        if (v.x >= 0.0 && v.x <= 1.0 && v.y >= minY && v.y <= maxY) {
-            selected_segment = i;
-            return true;
+            glm::vec3 v2 = m * glm::vec3(sx1 + 3, sy1 + 3, 1);
+            glm::vec3 v3 = m * glm::vec3(sx1 + 3, sy1 - 3, 1);
+            glm::vec3 v4 = m * glm::vec3(sx1 - 3, sy1 + 3, 1);
+            glm::vec3 v5 = m * glm::vec3(sx1 - 3, sy1 - 3, 1);
+            max_y = std::max(std::max(v2.y, v3.y), std::max(v4.y, v5.y));
+            min_y = std::min(std::min(v2.y, v3.y), std::min(v4.y, v5.y));
+
+            if (v.x >= 0.0 && v.x <= 1.0 && v.y >= min_y && v.y <= max_y) {
+                selected_segment = i;
+                return true;
+            }
         }
     }
     selected_segment = -1;
@@ -1187,6 +1259,22 @@ bool PolyPointScreenLocation::HitTest(int sx,int sy) const {
 }
 
 wxCursor PolyPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) const {
+    // check handle of selected curve first
+    if( selected_segment != -1 ) {
+        if( mPos[selected_segment].has_curve ) {
+            if (x>mPos[selected_segment].cp0.x && x<mPos[selected_segment].cp0.x+RECT_HANDLE_WIDTH &&
+                y>mPos[selected_segment].cp0.y && y<mPos[selected_segment].cp0.y+RECT_HANDLE_WIDTH) {
+                handle = 0x4000 | selected_segment;
+                return wxCURSOR_SIZING;
+            }
+            if (x>mPos[selected_segment].cp1.x && x<mPos[selected_segment].cp1.x+RECT_HANDLE_WIDTH &&
+                y>mPos[selected_segment].cp1.y && y<mPos[selected_segment].cp1.y+RECT_HANDLE_WIDTH) {
+                handle = 0x8000 | selected_segment;
+                return wxCURSOR_SIZING;
+            }
+        }
+    }
+
     for (size_t h = 0; h < mHandlePosition.size(); h++) {
         if (x>mHandlePosition[h].x && x<mHandlePosition[h].x+RECT_HANDLE_WIDTH &&
             y>mHandlePosition[h].y && y<mHandlePosition[h].y+RECT_HANDLE_WIDTH) {
@@ -1226,23 +1314,37 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
 
         if( i == selected_segment ) {
             va.Finish(GL_TRIANGLES);
-            va.AddVertex(x1_pos, y1_pos, xlMAGENTA);
-            va.AddVertex(x2_pos, y2_pos, xlMAGENTA);
+            if( !mPos[i].has_curve ) {
+                va.AddVertex(x1_pos, y1_pos, xlMAGENTA);
+                va.AddVertex(x2_pos, y2_pos, xlMAGENTA);
+            } else {
+                // draw bezier curve
+                x1_pos = mPos[i].curve->get_px(0) * previewW;
+                y1_pos = mPos[i].curve->get_py(0) * previewH;
+                for( int x = 1; x < mPos[i].curve->GetNumPoints(); ++x ) {
+                    x2_pos = mPos[i].curve->get_px(x) * previewW;
+                    y2_pos = mPos[i].curve->get_py(x) * previewH;
+                    va.AddVertex(x1_pos, y1_pos, xlMAGENTA);
+                    va.AddVertex(x2_pos, y2_pos, xlMAGENTA);
+                    x1_pos = x2_pos;
+                    y1_pos = y2_pos;
+                }
+                // draw control lines
+                x1_pos = mPos[i].curve->get_p0x() * previewW;
+                y1_pos = mPos[i].curve->get_p0y() * previewH;
+                x2_pos = mPos[i].curve->get_cp0x() * previewW;
+                y2_pos = mPos[i].curve->get_cp0y() * previewH;
+                va.AddVertex(x1_pos, y1_pos, xlRED);
+                va.AddVertex(x2_pos, y2_pos, xlRED);
+                x1_pos = mPos[i].curve->get_p1x() * previewW;
+                y1_pos = mPos[i].curve->get_p1y() * previewH;
+                x2_pos = mPos[i].curve->get_cp1x() * previewW;
+                y2_pos = mPos[i].curve->get_cp1y() * previewH;
+                va.AddVertex(x1_pos, y1_pos, xlRED);
+                va.AddVertex(x2_pos, y2_pos, xlRED);
+            }
             va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
         }
-        // draw red line for horizontal segments and blue for vertical segments
-        /*if( y2_pos - y1_pos == 0 )
-        {
-            va.AddVertex(x1_pos, y1_pos, xlRED);
-            va.AddVertex(x2_pos, y2_pos, xlRED);
-            va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
-        }
-        else if( x2_pos - x1_pos == 0 )
-        {
-            va.AddVertex(x1_pos, y1_pos, xlBLUE);
-            va.AddVertex(x2_pos, y2_pos, xlBLUE);
-            va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
-        }*/
 
         // add handle for start of this vector
         float sx = mPos[i].x * previewW - RECT_HANDLE_WIDTH / 2;
@@ -1260,6 +1362,24 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
             mHandlePosition[i+1].y = sy;
         }
     }
+
+    if( selected_segment != -1 ) {
+        // add control point handles for selected segments
+        int i = selected_segment;
+        if( mPos[i].has_curve ) {
+            float cx = mPos[i].curve->get_cp0x() * previewW - RECT_HANDLE_WIDTH / 2;
+            float cy = mPos[i].curve->get_cp0y() * previewH - RECT_HANDLE_WIDTH / 2;
+            va.AddRect(cx, cy, cx + RECT_HANDLE_WIDTH, cy + RECT_HANDLE_WIDTH, xlRED);
+            mPos[i].cp0.x = cx;
+            mPos[i].cp0.y = cy;
+            cx = mPos[i].curve->get_cp1x() * previewW - RECT_HANDLE_WIDTH / 2;
+            cy = mPos[i].curve->get_cp1y() * previewH - RECT_HANDLE_WIDTH / 2;
+            va.AddRect(cx, cy, cx + RECT_HANDLE_WIDTH, cy + RECT_HANDLE_WIDTH, xlRED);
+            mPos[i].cp1.x = cx;
+            mPos[i].cp1.y = cy;
+        }
+    }
+
     va.Finish(GL_TRIANGLES);
 }
 
@@ -1267,9 +1387,23 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
     float newx = (float)mouseX / (float)previewW;
     float newy = (float)mouseY / (float)previewH;
 
-    if( handle < num_points ) {
+    // check for control point handles
+    if( handle & 0x4000 ) {
+        int seg = handle & 0x0FFF;
+        mPos[seg].cp0.x = newx;
+        mPos[seg].cp0.y = newy;
+        mPos[seg].curve->set_cp0( newx, newy );
+    } else if( handle & 0x8000 ) {
+        int seg = handle & 0x0FFF;
+        mPos[seg].cp1.x = newx;
+        mPos[seg].cp1.y = newy;
+        mPos[seg].curve->set_cp1( newx, newy );
+
+    // check normal handles
+    } else if( handle < num_points ) {
         mPos[handle].x = newx;
         mPos[handle].y = newy;
+        FixCurveHandles();
     } else {
         // move a boundary handle
         float trans_x = 0.0f;
@@ -1308,7 +1442,18 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
             glm::vec3 v = mat3 * glm::vec3(mPos[i].x - minX, mPos[i].y - minY, 1);
             mPos[i].x = v.x;
             mPos[i].y = v.y;
+            if( mPos[i].has_curve ) {
+                float x1 = mPos[i].curve->get_cp0x();
+                float y1 = mPos[i].curve->get_cp0y();
+                v = mat3 * glm::vec3(x1 - minX, y1 - minY, 1);
+                mPos[i].curve->set_cp0( v.x, v.y );
+                x1 = mPos[i].curve->get_cp1x();
+                y1 = mPos[i].curve->get_cp1y();
+                v = mat3 * glm::vec3(x1 - minX, y1 - minY, 1);
+                mPos[i].curve->set_cp1( v.x, v.y );
+            }
         }
+        FixCurveHandles();
     }
 
     return 1;
@@ -1316,7 +1461,7 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
 
 void PolyPointScreenLocation::SelectHandle(int handle) {
     selected_handle = handle;
-    if( handle != -1 ) {
+    if( handle != -1 && handle < 0x4000 ) {
         selected_segment = -1;
     }
 }
@@ -1333,6 +1478,8 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
     new_point.x = (float)mouseX/(float)previewW;
     new_point.y = (float)mouseY/(float)previewH;
     new_point.matrix = nullptr;
+    new_point.curve = nullptr;
+    new_point.has_curve = false;
     mPos.push_back(new_point);
     xlPoint new_handle;
     float sx = mPos[num_points-1].x * previewW - RECT_HANDLE_WIDTH / 2;
@@ -1352,6 +1499,8 @@ void PolyPointScreenLocation::InsertHandle(int after_handle) {
     new_point.x = (x1_pos+x2_pos)/2.0;
     new_point.y = (y1_pos+y2_pos)/2.0;
     new_point.matrix = nullptr;
+    new_point.curve = nullptr;
+    new_point.has_curve = false;
     mPos.insert(mPos.begin() + after_handle + 1, new_point);
     xlPoint new_handle;
     float sx = mPos[after_handle+1].x * previewW - RECT_HANDLE_WIDTH / 2;
@@ -1365,6 +1514,25 @@ void PolyPointScreenLocation::InsertHandle(int after_handle) {
 }
 
 void PolyPointScreenLocation::DeleteHandle(int handle) {
+    // delete any curves associated with this handle
+    if( mPos[handle].has_curve ) {
+        mPos[handle].has_curve = false;
+        if( mPos[handle].curve != nullptr ) {
+            delete mPos[handle].curve;
+            mPos[handle].curve = nullptr;
+        }
+    }
+    if( handle > 0 ) {
+        if( mPos[handle-1].has_curve ) {
+            mPos[handle-1].has_curve = false;
+            if( mPos[handle-1].curve != nullptr ) {
+                delete mPos[handle-1].curve;
+                mPos[handle-1].curve = nullptr;
+            }
+        }
+    }
+
+    // now delete the handle
     mPos.erase(mPos.begin() + handle);
     mHandlePosition.erase(mHandlePosition.begin() + handle);
     num_points--;
@@ -1447,13 +1615,21 @@ void PolyPointScreenLocation::SetHcenterOffset(float f) {
     float diffx = GetHcenterOffset() - f;
     for(int i = 0; i < num_points; ++i ) {
         mPos[i].x -= diffx;
+        if( mPos[i].has_curve ) {
+            mPos[i].curve->OffsetX(-diffx);
+        }
     }
+    FixCurveHandles();
 }
 void PolyPointScreenLocation::SetVcenterOffset(float f) {
     float diffy = GetVcenterOffset() - f;
     for(int i = 0; i < num_points; ++i ) {
         mPos[i].y -= diffy;
+        if( mPos[i].has_curve ) {
+            mPos[i].curve->OffsetY(-diffy);
+        }
     }
+    FixCurveHandles();
 }
 
 void PolyPointScreenLocation::SetOffset(float xPct, float yPct) {
@@ -1464,7 +1640,12 @@ void PolyPointScreenLocation::AddOffset(float xPct, float yPct) {
     for(int i = 0; i < num_points; ++i ) {
         mPos[i].x += xPct;
         mPos[i].y += yPct;
+        if( mPos[i].has_curve ) {
+            mPos[i].curve->OffsetX(xPct);
+            mPos[i].curve->OffsetY(yPct);
+        }
     }
+    FixCurveHandles();
 }
 int PolyPointScreenLocation::GetTop() const {
     int topy = std::round(mPos[0].y * previewH);
@@ -1540,4 +1721,12 @@ void PolyPointScreenLocation::SetBottom(int i) {
     SetVcenterOffset(diff);
 }
 
-
+void PolyPointScreenLocation::FixCurveHandles() {
+    for(int i = 0; i < num_points; ++i ) {
+        if( mPos[i].has_curve ) {
+            mPos[i].curve->set_p0( mPos[i].x, mPos[i].y );
+            mPos[i].curve->set_p1( mPos[i+1].x, mPos[i+1].y );
+            mPos[i].curve->UpdatePoints();
+        }
+    }
+}

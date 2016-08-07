@@ -17,6 +17,7 @@ class wxCursor;
 
 #include <vector>
 #include "Node.h"
+#include "Shapes.h"
 #include <glm/mat3x3.hpp>
 namespace DrawGLUtils {
     class xlAccumulator;
@@ -43,6 +44,8 @@ public:
     virtual int GetNumHandles() = 0;
     virtual void SelectSegment(int segment) = 0;
     virtual int GetSelectedSegment() = 0;
+    virtual bool HasCurve(int segment) = 0;
+    virtual void SetCurve(int segment, bool create = true) = 0;
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) = 0;
     virtual void InsertHandle(int after_handle) = 0;
     virtual void DeleteHandle(int handle) = 0;
@@ -112,6 +115,8 @@ public:
     virtual int GetNumHandles() override {return -1;}
     virtual void SelectSegment(int segment) override {}
     virtual int GetSelectedSegment() override {return -1;}
+    virtual bool HasCurve(int segment) override {return false;}
+    virtual void SetCurve(int segment, bool create = true) override {}
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
     virtual void InsertHandle(int after_handle) override {}
     virtual void DeleteHandle(int handle) override {}
@@ -218,6 +223,8 @@ public:
     virtual int GetNumHandles() override {return -1;}
     virtual void SelectSegment(int segment) override {}
     virtual int GetSelectedSegment() override {return -1;}
+    virtual bool HasCurve(int segment) override {return false;}
+    virtual void SetCurve(int segment, bool create = true) override {}
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
     virtual void InsertHandle(int after_handle) override {}
     virtual void DeleteHandle(int handle) override {}
@@ -334,6 +341,8 @@ public:
     virtual int GetNumHandles() override {return num_points;}
     virtual void SelectSegment(int segment) override;
     virtual int GetSelectedSegment() override {return selected_segment;}
+    virtual bool HasCurve(int segment) override {return mPos[segment].has_curve;}
+    virtual void SetCurve(int seg_num, bool create = true) override;
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override;
     virtual void InsertHandle(int after_handle) override;
     virtual void DeleteHandle(int handle) override;
@@ -365,6 +374,10 @@ protected:
     struct xlPolyPoint {
         float x;
         float y;
+        mutable xlPoint cp0;
+        mutable xlPoint cp1;
+        mutable bool has_curve;
+        mutable BezierCurveCubic* curve;
         mutable glm::mat3 *matrix;
     };
     mutable std::vector<xlPolyPoint> mPos;
@@ -373,6 +386,7 @@ protected:
     mutable float minX, minY, maxX, maxY;
     mutable int selected_segment;
     mutable glm::mat3 *main_matrix;
+    void FixCurveHandles();
 
 };
 

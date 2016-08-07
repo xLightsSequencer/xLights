@@ -2079,6 +2079,14 @@ int Model::GetSelectedSegment() {
     return GetModelScreenLocation().GetSelectedSegment();
 }
 
+bool Model::HasCurve(int segment) {
+    return GetModelScreenLocation().HasCurve(segment);
+}
+
+void Model::SetCurve(int segment, bool create) {
+    return GetModelScreenLocation().SetCurve(segment, create);
+}
+
 void Model::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
     GetModelScreenLocation().AddHandle(preview, mouseX, mouseY);
 }
