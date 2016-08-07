@@ -314,6 +314,7 @@
     <ClCompile Include="models\ModelScreenLocation.cpp" />
     <ClCompile Include="models\Node.cpp" />
     <ClCompile Include="models\PolyLineModel.cpp" />
+    <ClCompile Include="models\Shapes.cpp" />
     <ClCompile Include="models\SingleLineModel.cpp" />
     <ClCompile Include="models\SphereModel.cpp" />
     <ClCompile Include="models\SpinnerModel.cpp" />
@@ -561,6 +562,7 @@
     <ClInclude Include="models\ModelScreenLocation.h" />
     <ClInclude Include="models\Node.h" />
     <ClInclude Include="models\PolyLineModel.h" />
+    <ClInclude Include="models\Shapes.h" />
     <ClInclude Include="models\SingleLineModel.h" />
     <ClInclude Include="models\SphereModel.h" />
     <ClInclude Include="models\SpinnerModel.h" />

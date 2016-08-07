@@ -822,6 +822,9 @@
     <ClCompile Include="MusicXML.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="models\Shapes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1578,6 +1581,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MusicXML.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\Shapes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
