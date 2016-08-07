@@ -8,6 +8,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Add Import Notes to right click menu on timing tracks ... this will create a timing track containing notes from Polyphonic Transcription, MIDI, Audacity and Music XML files. All sources other than 'Timing Track' will be removed from the piano effect in a future release.
+   -- enh (keithsw) Enhance autosave to be smarter and only save when it needs to
    -- enh (keithsw) Add metronome arbitrary fixed timing timing tracks
    -- enh (keithsw) Add color curves
    -- enh (keithsw) Add some built in color curves
