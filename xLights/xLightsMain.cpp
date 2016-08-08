@@ -2077,12 +2077,15 @@ void xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
     bool cont = srcDir.GetFirst(&fname, wildcard, wxDIR_FILES);
     while (cont)
     {
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug("Backing up file %s.", (const char *)fname.c_str());
+
         srcFile.SetFullName(fname);
 
         wxULongLong fsize = srcFile.GetSize();
         if (fsize > 20 * 1024 * 1024) // skip any xml files > 20 mbytes, they are something other than xml files
         {
-            srcDir.GetNext(&fname);
+            cont = srcDir.GetNext(&fname);
             continue;
         }
         SetStatusText("Copying File \"" + srcFile.GetFullPath());
