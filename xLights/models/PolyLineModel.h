@@ -59,8 +59,8 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         std::vector<int> polyLineSizes;
         bool hasIndivSeg;
         bool segs_collapsed;
-        float minX, maxX, minY, maxY;
         void DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos );
+        void NormalizePointData();
 
 };
 
