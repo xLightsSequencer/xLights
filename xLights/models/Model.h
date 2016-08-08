@@ -18,6 +18,7 @@ class wxPropertyGridInterface;
 class wxPropertyGridEvent;
 class ModelScreenLocation;
 class ModelManager;
+class xLightsFrame;
 
 class NodeBaseClass;
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
@@ -78,6 +79,11 @@ public:
     const ModelManager &GetModelManager() const {
         return modelManager;
     }
+
+    virtual bool SupportsXlightsModel();
+    static Model* GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights);
+    virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
+    virtual void ExportXlightsModel();
 
     static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
 

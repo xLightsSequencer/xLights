@@ -16,6 +16,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keithsw) Add Timing Event Jump effect to VU Meter
    -- enh (keithsw) Make fireworks follow the colour curve
    -- bug (keithsw) Fix crashes in music and piano effects
+   -- enh (gil)     Add ability to import/export PolyLine models to .xmodel files.
    -- enh (gil)     Add ability to PolyLine to create curved segments.
    -- enh (gil)     Shift+MouseWheel will now scroll grid right/left when in Waveform or Grid.  Fixes #644.
    -- bug (gil)     Fix crashes when switching show directories that contain custom previews.

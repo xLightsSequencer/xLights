@@ -82,7 +82,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_ALIGN;
         static const long ID_PREVIEW_MODEL_NODELAYOUT;
         static const long ID_PREVIEW_MODEL_EXPORTCSV;
-        static const long ID_PREVIEW_MODEL_EXPORTCUSTOMMODEL;
+        static const long ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL;
         static const long ID_PREVIEW_ALIGN_TOP;
         static const long ID_PREVIEW_ALIGN_BOTTOM;
         static const long ID_PREVIEW_ALIGN_LEFT;
@@ -214,7 +214,7 @@ class LayoutPanel: public wxPanel
         bool colSizesSet;
         std::vector<NewModelBitmapButton*> buttons;
         NewModelBitmapButton *selectedButton;
-        wxString _lastCustomModel;
+        std::string _lastXlightsModel;
         Model *newModel;
         ModelGroupPanel *model_grp_panel;
         std::string currentLayoutGroup;

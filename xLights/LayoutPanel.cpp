@@ -32,7 +32,6 @@
 #include "models/ModelImages.h"
 #include "PreviewPane.h"
 
-
 //(*IdInit(LayoutPanel)
 const long LayoutPanel::ID_CHECKLISTBOX_MODEL_GROUPS = wxNewId();
 const long LayoutPanel::ID_LISTBOX_ELEMENT_LIST = wxNewId();
@@ -58,7 +57,7 @@ END_EVENT_TABLE()
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTCSV = wxNewId();
-const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTCUSTOMMODEL = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_TOP = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_BOTTOM = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_LEFT = wxNewId();
@@ -131,7 +130,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 {
     background = nullptr;
 
-    _lastCustomModel = "";
+    _lastXlightsModel = "";
     appearanceVisible = sizeVisible = stringPropsVisible = false;
 
 	//(*Initialize(LayoutPanel)
@@ -1251,10 +1250,15 @@ void LayoutPanel::FinalizeModel()
     if (newModel != nullptr) {
         if (selectedButton->GetModelType() == "Import Custom")
         {
-            ImportCustomModel(newModel);
+            float min_x = 0.25;
+            float max_x = 0.50;
+            float min_y = 0.25;
+            float max_y = 0.50;
+            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights);
+            newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
             if (selectedButton->GetState() == 1)
             {
-                _lastCustomModel = "";
+                _lastXlightsModel = "";
             }
         }
         CreateUndoPoint("All", "", "");
@@ -1421,9 +1425,9 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnu.Append(ID_PREVIEW_MODEL_EXPORTCSV,"Export CSV");
         if (model != nullptr)
         {
-            if (model->IsCustom())
+            if (model->SupportsXlightsModel())
             {
-                mnu.Append(ID_PREVIEW_MODEL_EXPORTCUSTOMMODEL, "Export Custom Model");
+                mnu.Append(ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL, "Export xLights Model");
             }
         }
     }
@@ -1481,9 +1485,12 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     {
         ExportModel();
     }
-    else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTCUSTOMMODEL)
+    else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL)
     {
-        ExportCustomModel();
+        int sel = ListBoxElementList->GetFirstSelected();
+        if (sel == wxNOT_FOUND) return;
+        Model* model = (Model*)ListBoxElementList->GetItemData(sel);
+        model->ExportXlightsModel();
     }
     else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE)
     {
@@ -1588,134 +1595,6 @@ void LayoutPanel::ExportModel()
     Model* model=(Model*)ListBoxElementList->GetItemData(sel);
     wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
     f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %s, %d, %s\n", model->name, model->GetDisplayAs(), model->GetStringType(), model->GetNodeCount() / model->NodesPerString(), model->GetNodeCount(), stch, /*WRONG:*/ model->NodeStartChannel(0) / model->NodesPerString() + 1, model->GetLayoutGroup()));
-    f.Close();
-}
-
-void LayoutPanel::ImportCustomModel(Model* newModel)
-{
-    if (_lastCustomModel == "")
-    {
-        wxString filename = wxFileSelector(_("Choose custom model file"), wxEmptyString, wxEmptyString, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_OPEN);
-        if (filename.IsEmpty()) return;
-        _lastCustomModel = filename;
-    }
-    wxXmlDocument doc(_lastCustomModel);
-
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
-
-        if (root->GetName() == "custommodel")
-        {
-            wxString name = root->GetAttribute("name");
-            wxString cm = root->GetAttribute("CustomModel");
-            wxString p1 = root->GetAttribute("parm1");
-            wxString p2 = root->GetAttribute("parm2");
-            wxString st = root->GetAttribute("StringType");
-            wxString ps = root->GetAttribute("PixelSize");
-            wxString t = root->GetAttribute("Transparency");
-            wxString mb = root->GetAttribute("ModelBrightness");
-            wxString a = root->GetAttribute("Antialias");
-            wxString sn = root->GetAttribute("StrandNames");
-            wxString nn = root->GetAttribute("NodeNames");
-            wxString v = root->GetAttribute("SourceVersion");
-
-            // Add any model version conversion logic here
-            // Source version will be the program version that created the custom model
-
-            newModel->SetProperty("CustomModel", cm);
-            newModel->SetProperty("parm1", p1);
-            newModel->SetProperty("parm2", p2);
-            newModel->SetProperty("StringType", st);
-            newModel->SetProperty("PixelSize", ps);
-            newModel->SetProperty("Transparency", t);
-            newModel->SetProperty("ModelBrightness", mb);
-            newModel->SetProperty("Antialias", a);
-            newModel->SetProperty("StrandNames", sn);
-            newModel->SetProperty("NodeNames", nn);
-            wxString newname = name;
-            int cnt = 1;
-            while (xlights->AllModels[std::string(newname.c_str())] != nullptr)
-            {
-                newname = name + "-" + wxString::Format("%d", cnt++);
-            }
-            newModel->SetProperty("name", newname, true);
-
-            for (wxXmlNode* n = root->GetChildren(); n != NULL; n = n->GetNext())
-            {
-                if (n->GetName() == "faceInfo")
-                {
-                    newModel->AddFace(n);
-                }
-                else if (n->GetName() == "stateInfo")
-                {
-                    newModel->AddState(n);
-                }
-            }
-
-            xlights->MarkEffectsFileDirty();
-        }
-        else
-        {
-            wxMessageBox("Failure loading custom model file.");
-        }
-    }
-    else
-    {
-        wxMessageBox("Failure loading custom model file.");
-    }
-}
-
-void LayoutPanel::ExportCustomModel()
-{
-    int sel = ListBoxElementList->GetFirstSelected();
-    if (sel == wxNOT_FOUND) return;
-    Model* model = (Model*)ListBoxElementList->GetItemData(sel);
-    wxString name = model->GetModelXml()->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
-    wxFile f(filename);
-    //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
-    wxString cm = model->GetModelXml()->GetAttribute("CustomModel");
-    wxString p1 = model->GetModelXml()->GetAttribute("parm1");
-    wxString p2 = model->GetModelXml()->GetAttribute("parm2");
-    wxString st = model->GetModelXml()->GetAttribute("StringType");
-    wxString ps = model->GetModelXml()->GetAttribute("PixelSize");
-    wxString t = model->GetModelXml()->GetAttribute("Transparency");
-    wxString mb = model->GetModelXml()->GetAttribute("ModelBrightness");
-    wxString a = model->GetModelXml()->GetAttribute("Antialias");
-    wxString sn = model->GetModelXml()->GetAttribute("StrandNames");
-    wxString nn = model->GetModelXml()->GetAttribute("NodeNames");
-    wxString v = xlights_version_string;
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
-    f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%s\" ", p1));
-    f.Write(wxString::Format("parm2=\"%s\" ", p2));
-    f.Write(wxString::Format("StringType=\"%s\" ", st));
-    f.Write(wxString::Format("Transparency=\"%s\" ", t));
-    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
-    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
-    f.Write(wxString::Format("Antialias=\"%s\" ", a));
-    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
-    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
-    f.Write("CustomModel=\"");
-    f.Write(cm);
-    f.Write("\" ");
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(" >\n");
-    wxString face = model->SerialiseFace();
-    if (face != "")
-    {
-        f.Write(face);
-    }
-    wxString state = model->SerialiseState();
-    if (state != "")
-    {
-        f.Write(state);
-    }
-    f.Write("</custommodel>");
     f.Close();
 }
 
@@ -1875,7 +1754,7 @@ void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
                 modelPreview->SetFocus();
             } else {
                 selectedButton = nullptr;
-                _lastCustomModel = "";
+                _lastXlightsModel = "";
             }
         } else if ((*it)->GetState()) {
             (*it)->SetState(0);

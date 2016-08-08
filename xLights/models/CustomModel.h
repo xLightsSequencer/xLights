@@ -27,6 +27,10 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         long GetCustomLightness() const;
         void SetCustomLightness(long lightness);
 
+        virtual bool SupportsXlightsModel() {return true;}
+        virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
+        virtual void ExportXlightsModel();
+
         virtual std::string ChannelLayoutHtml() override;
 
     protected:

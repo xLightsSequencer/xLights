@@ -7,6 +7,7 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/mat3x3.hpp>
 #include "ModelScreenLocation.h"
+#include "../xLightsMain.h"
 
 PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     parm1 = parm2 = parm3 = 0;
@@ -248,10 +249,10 @@ void PolyLineModel::InitModel() {
     }
 
     // calculate min/max for the model
-    float minX = 100.0f;
-    float minY = 100.0f;
-    float maxX = 0.0f;
-    float maxY = 0.0f;
+    minX = 100.0f;
+    minY = 100.0f;
+    maxX = 0.0f;
+    maxY = 0.0f;
 
     for( int i = 0; i < num_points; ++i ) {
         if( pPos[i].x < minX ) minX = pPos[i].x;
@@ -646,4 +647,244 @@ void PolyLineModel::OnPropertyGridItemExpanded(wxPropertyGridInterface *grid, wx
     if (event.GetPropertyName() == "ModelIndividualSegments") {
         segs_collapsed = false;
     }
+}
+
+void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    wxXmlDocument doc(filename);
+
+    if (doc.IsOk())
+    {
+        wxXmlNode* root = doc.GetRoot();
+
+        if (root->GetName() == "polylinemodel")
+        {
+            wxString name = root->GetAttribute("name");
+            wxString p1 = root->GetAttribute("parm1");
+            wxString p2 = root->GetAttribute("parm2");
+            wxString p3 = root->GetAttribute("parm3");
+            wxString st = root->GetAttribute("StringType");
+            wxString ps = root->GetAttribute("PixelSize");
+            wxString t = root->GetAttribute("Transparency");
+            wxString mb = root->GetAttribute("ModelBrightness");
+            wxString a = root->GetAttribute("Antialias");
+            wxString ss = root->GetAttribute("StartSide");
+            wxString dir = root->GetAttribute("Dir");
+            wxString sn = root->GetAttribute("StrandNames");
+            wxString nn = root->GetAttribute("NodeNames");
+            wxString v = root->GetAttribute("SourceVersion");
+            wxString is = root->GetAttribute("IndivSegs");
+            wxString pts = root->GetAttribute("NumPoints");
+            wxString point_data = root->GetAttribute("PointData");
+            wxString cpoint_data = root->GetAttribute("cPointData");
+
+            // Add any model version conversion logic here
+            // Source version will be the program version that created the custom model
+
+            SetProperty("parm1", p1);
+            SetProperty("parm2", p2);
+            SetProperty("parm3", p3);
+            SetProperty("StringType", st);
+            SetProperty("PixelSize", ps);
+            SetProperty("Transparency", t);
+            SetProperty("ModelBrightness", mb);
+            SetProperty("Antialias", a);
+            SetProperty("StartSide", ss);
+            SetProperty("Dir", dir);
+            SetProperty("StrandNames", sn);
+            SetProperty("NodeNames", nn);
+            wxString newname = name;
+            int cnt = 1;
+            while (xlights->AllModels[std::string(newname.c_str())] != nullptr)
+            {
+                newname = name + "-" + wxString::Format("%d", cnt++);
+            }
+            SetProperty("name", newname, true);
+
+            // handle all the line segments
+            int num_points = wxAtoi(pts);
+            ModelXml->DeleteAttribute("IndivSegs");
+            if( is == "1" ) {
+                ModelXml->AddAttribute("IndivSegs", "1");
+                num_segments = num_points-1;
+                for (int x = 0; x < num_segments; x++) {
+                    ModelXml->DeleteAttribute(SegAttrName(x));
+                    wxString seg = root->GetAttribute(SegAttrName(x), "");
+                    int seg_length = wxAtoi(seg);
+                    ModelXml->AddAttribute(SegAttrName(x), wxString::Format("%d", seg_length));
+                }
+            }
+
+            ModelXml->DeleteAttribute("NumPoints");
+            ModelXml->DeleteAttribute("PointData");
+            ModelXml->DeleteAttribute("cPointData");
+            ModelXml->AddAttribute("NumPoints", pts);
+            ModelXml->AddAttribute("PointData", point_data);
+            ModelXml->AddAttribute("cPointData", cpoint_data);
+
+            // read in the point data from xml
+            std::vector<xlPolyPoint> pPos(num_points);
+            wxArrayString point_array = wxSplit(point_data, ',');
+            for( int i = 0; i < num_points; ++i ) {
+                pPos[i].x = wxAtof(point_array[i*2]);
+                pPos[i].y = wxAtof(point_array[i*2+1]);
+                pPos[i].has_curve = false;
+                pPos[i].curve = nullptr;
+            }
+            wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
+            int num_curves = cpoint_array.size() / 5;
+            for( int i = 0; i < num_curves; ++i ) {
+                int seg_num = wxAtoi(cpoint_array[i*5]);
+                pPos[seg_num].has_curve = true;
+                pPos[seg_num].curve = new BezierCurveCubic();
+                pPos[seg_num].curve->set_p0(pPos[seg_num].x, pPos[seg_num].y);
+                pPos[seg_num].curve->set_p1(pPos[seg_num+1].x, pPos[seg_num+1].y);
+                pPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*5+1]), wxAtof(cpoint_array[i*5+2]) );
+                pPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*5+3]), wxAtof(cpoint_array[i*5+4]) );
+                pPos[seg_num].curve->SetScale(1.0, 1.0, 1.0);
+                pPos[seg_num].curve->UpdatePoints();
+            }
+
+            // get min/max for imported data
+            float _minX = wxAtof(root->GetAttribute("MinX"));
+            float _minY = wxAtof(root->GetAttribute("MaxX"));
+            float _maxX = wxAtof(root->GetAttribute("MinY"));
+            float _maxY = wxAtof(root->GetAttribute("MaxY"));
+
+            float _deltax = _maxX-_minX;
+            float _deltay = _maxY-_minY;
+
+            float deltax = max_x-min_x;
+            float deltay = max_y-min_y;
+
+            // normalize all the incoming point data then adjust for new min/max
+            for( int i = 0; i < num_points; ++i ) {
+                pPos[i].x = (pPos[i].x - _minX) / _deltax;
+                pPos[i].y = (pPos[i].y - _minY) / _deltay;
+                pPos[i].x = (pPos[i].x * deltax) + min_x;
+                pPos[i].y = (pPos[i].y * deltay) + min_y;
+                if( pPos[i].has_curve ) {
+                    float cp0x = pPos[i].curve->get_cp0x();
+                    float cp0y = pPos[i].curve->get_cp0y();
+                    float cp1x = pPos[i].curve->get_cp1x();
+                    float cp1y = pPos[i].curve->get_cp1y();
+                    cp0x = (cp0x - _minX) / _deltax;
+                    cp0y = (cp0y - _minY) / _deltay;
+                    cp1x = (cp1x - _minX) / _deltax;
+                    cp1y = (cp1y - _minY) / _deltay;
+                    cp0x = (cp0x * deltax) + min_x;
+                    cp0y = (cp0y * deltay) + min_y;
+                    cp1x = (cp1x * deltax) + min_x;
+                    cp1y = (cp1y * deltay) + min_y;
+                    pPos[i].curve->set_cp0(cp0x, cp0y);
+                    pPos[i].curve->set_cp1(cp1x, cp1y);
+                }
+            }
+
+            ModelXml->DeleteAttribute("PointData");
+            ModelXml->DeleteAttribute("cPointData");
+            point_data = "";
+            for( int i = 0; i < num_points; ++i ) {
+                point_data += wxString::Format( "%f,", pPos[i].x );
+                point_data += wxString::Format( "%f", pPos[i].y );
+                if( i != num_points-1 ) {
+                    point_data += ",";
+                }
+            }
+            cpoint_data = "";
+            for( int i = 0; i < num_points; ++i ) {
+                if( pPos[i].has_curve ) {
+                    cpoint_data += wxString::Format( "%d,%f,%f,%f,%f,", i, pPos[i].curve->get_cp0x(), pPos[i].curve->get_cp0y(),
+                                                               pPos[i].curve->get_cp1x(), pPos[i].curve->get_cp1y() );
+                }
+            }
+            ModelXml->AddAttribute("PointData", point_data);
+            ModelXml->AddAttribute("cPointData", cpoint_data);
+
+            // cleanup curves
+            for( int i = 0; i < num_points; ++i ) {
+                if( pPos[i].has_curve ) {
+                    delete pPos[i].curve;
+                    pPos[i].curve = nullptr;
+                }
+            }
+
+            GetModelScreenLocation().Read(ModelXml);
+
+            xlights->MarkEffectsFileDirty();
+        }
+        else
+        {
+            wxMessageBox("Failure loading PolyLine model file.");
+        }
+    }
+    else
+    {
+        wxMessageBox("Failure loading PolyLine model file.");
+    }
+}
+
+#define retmsg(msg)  \
+{ \
+wxMessageBox(msg, _("Export Error")); \
+return; \
+}
+
+void PolyLineModel::ExportXlightsModel()
+{
+    wxString name = ModelXml->GetAttribute("name");
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (filename.IsEmpty()) return;
+    wxFile f(filename);
+    //    bool isnew = !wxFile::Exists(filename);
+    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    wxString p1 = ModelXml->GetAttribute("parm1");
+    wxString p2 = ModelXml->GetAttribute("parm2");
+    wxString p3 = ModelXml->GetAttribute("parm3");
+    wxString st = ModelXml->GetAttribute("StringType");
+    wxString ps = ModelXml->GetAttribute("PixelSize");
+    wxString t = ModelXml->GetAttribute("Transparency");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString a = ModelXml->GetAttribute("Antialias");
+    wxString ss = ModelXml->GetAttribute("StartSide");
+    wxString dir = ModelXml->GetAttribute("Dir");
+    wxString sn = ModelXml->GetAttribute("StrandNames");
+    wxString nn = ModelXml->GetAttribute("NodeNames");
+    wxString is = ModelXml->GetAttribute("IndivSegs");
+    wxString pts = ModelXml->GetAttribute("NumPoints");
+    wxString point_data = ModelXml->GetAttribute("PointData");
+    wxString cpoint_data = ModelXml->GetAttribute("cPointData");
+    wxString v = xlights_version_string;
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<polylinemodel \n");
+    f.Write(wxString::Format("name=\"%s\" ", name));
+    f.Write(wxString::Format("parm1=\"%s\" ", p1));
+    f.Write(wxString::Format("parm2=\"%s\" ", p2));
+    f.Write(wxString::Format("parm3=\"%s\" ", p3));
+    f.Write(wxString::Format("StringType=\"%s\" ", st));
+    f.Write(wxString::Format("Transparency=\"%s\" ", t));
+    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
+    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
+    f.Write(wxString::Format("Antialias=\"%s\" ", a));
+    f.Write(wxString::Format("StartSide=\"%s\" ", ss));
+    f.Write(wxString::Format("Dir=\"%s\" ", dir));
+    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
+    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    f.Write(wxString::Format("IndivSegs=\"%s\" ", is));
+    f.Write(wxString::Format("NumPoints=\"%s\" ", pts));
+    int count = wxAtoi(pts);
+    for (int x = 0; x < count; x++) {
+        wxString seg = ModelXml->GetAttribute(SegAttrName(x), "");
+        f.Write(wxString::Format("%s=\"%s\" ", SegAttrName(x), seg));
+    }
+    f.Write(wxString::Format("MinX=\"%s\" ", wxString::Format("%f",minX)));
+    f.Write(wxString::Format("MaxX=\"%s\" ", wxString::Format("%f",maxX)));
+    f.Write(wxString::Format("MinY=\"%s\" ", wxString::Format("%f",minY)));
+    f.Write(wxString::Format("MaxY=\"%s\" ", wxString::Format("%f",maxY)));
+    f.Write(wxString::Format("PointData=\"%s\" ", point_data));
+    f.Write(wxString::Format("cPointData=\"%s\" ", cpoint_data));
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(" >\n");
+    f.Write("</polylinemodel>");
+    f.Close();
 }

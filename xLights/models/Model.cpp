@@ -2198,3 +2198,49 @@ void Model::SetLayoutGroup(const std::string &grp) {
     IncrementChangeCount();
 }
 
+bool Model::SupportsXlightsModel()
+{
+    return false;
+}
+
+void Model::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+}
+
+void Model::ExportXlightsModel()
+{
+}
+
+Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights)
+{
+    if (last_model == "")
+    {
+        wxString filename = wxFileSelector(_("Choose custom model file"), wxEmptyString, wxEmptyString, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_OPEN);
+        if (filename.IsEmpty()) return model;
+        last_model = filename.ToStdString();
+    }
+
+    wxXmlDocument doc(last_model);
+
+    if (doc.IsOk())
+    {
+        wxXmlNode* root = doc.GetRoot();
+
+        if (root->GetName() == "custommodel") {
+            return model;
+        } else {
+            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel","1").ToStdString();
+            if (root->GetName() == "polylinemodel") {
+                // not a custom model so delete the default model that was created
+                if( model != nullptr ) {
+                    delete model;
+                }
+                model = xlights->AllModels.CreateDefaultModel("Poly Line", startChannel);
+                model->SetLayoutGroup(model->GetLayoutGroup());
+                model->Selected = true;
+                return model;
+            }
+        }
+    }
+    return model;
+}
