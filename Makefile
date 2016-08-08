@@ -66,6 +66,8 @@ install:
 	$(foreach share, $(SHARE_FILES), install -D -m 644 bin/$(share) $(DESTDIR)/${PREFIX}/share/xLights/$(share) ;)
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/piano
 	cp -r piano/* $(DESTDIR)/${PREFIX}/share/xLights/piano
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
+	cp -r colorcurves/* $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
 	#install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/songs
 	#cp -r songs/* $(DESTDIR)/${PREFIX}/share/xLights/songs
 	$(foreach size, $(ICON_SIZES), install -D -m 644 xLights/Images.xcassets/AppIcon.appiconset/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
