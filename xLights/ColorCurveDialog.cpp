@@ -578,7 +578,6 @@ void ColorCurvePanel::DrawStopsAsLines(wxAutoBufferedPaintDC& pdc)
     {
         pdc.SetPen(wxPen(*wxRED, 3, wxPENSTYLE_SOLID));
 
-        std::list<ccSortableColorPoint>::iterator last = pts.begin();
         for (auto p = pts.begin()++; p != pts.end(); ++p)
         {
             if (p->x == 1.0)
