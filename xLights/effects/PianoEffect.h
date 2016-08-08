@@ -3,7 +3,6 @@
 
 #include "RenderableEffect.h"
 
-#include <string>
 #include <list>
 class PianoPanel;
 
@@ -29,17 +28,13 @@ class PianoEffect : public RenderableEffect
     private:
     
 		PianoPanel* _panel;
-		void RenderPiano(RenderBuffer &buffer, SequenceElements *elements, const int startmidi, const int endmidi, const bool sharps, const std::string type, std::string timingsource, std::string file, int MIDIAdjustStart, int MIDIAdjustSpeed, int scale, std::string MIDITrack, int xoffset);
+		void RenderPiano(RenderBuffer &buffer, SequenceElements *elements, const int startmidi, const int endmidi, const bool sharps, const std::string type, int scale, std::string MIDITrack, int xoffset);
 		void ReduceChannels(std::list<float>* pdata, int start, int end, bool sharps);
 		void DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end, int scale, int xoffset);
 		void DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end, int scale, int xoffset);
 		bool IsSharp(float f);
 		bool KeyDown(std::list<float>* pdata, int ch);
-		std::map<int, std::list<float>> LoadAudacityFile(std::string file, int intervalMS);
-		std::map<int, std::list<float>> LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string MIDITrack);
         std::map<int, std::list<float>> LoadTimingTrack(std::string track, int intervalMS);
-        int LowerTS(float t, int intervalMS);
-		int UpperTS(float t, int intervalMS);
         std::list<std::string> ExtractNotes(std::string& label);
         int ConvertNote(std::string& note);
 };

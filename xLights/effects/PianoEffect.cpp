@@ -1,7 +1,6 @@
 #include "PianoEffect.h"
 
 #include "PianoPanel.h"
-#include "../AudioManager.h"
 
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
@@ -15,7 +14,6 @@
 #include "../../include/piano-64.xpm"
 
 #include <log4cpp/Category.hh>
-#include "../MIDI/MidiFile.h"
 
 PianoEffect::PianoEffect(int id) : RenderableEffect(id, "Piano", piano_16, piano_64, piano_64, piano_64, piano_64)
 {
@@ -36,11 +34,6 @@ void PianoEffect::SetPanelStatus(Model *cls)
         return;
     }
 
-    // Tell our panel the media file in case we need to do polyphonic transcription
-    xLightsFrame* frame = (xLightsFrame*)fp->GetParent();
-    if (frame != nullptr && frame->CurrentSeqXmlFile != nullptr)
-        ((PianoPanel*)_panel)->SetAudio(frame->CurrentSeqXmlFile->GetMedia());
-
     if (mSequenceElements == nullptr)
     {
         return;
@@ -59,7 +52,6 @@ void PianoEffect::SetPanelStatus(Model *cls)
 
     // Select the first one
     fp->SetTimingTrack(timingtracks);
-    fp->TimingTrackValidateWindow();
 }
 
 void PianoEffect::adjustSettings(const std::string &version, Effect *effect)
@@ -70,14 +62,27 @@ void PianoEffect::adjustSettings(const std::string &version, Effect *effect)
         RenderableEffect::adjustSettings(version, effect);
     }
 
-    SettingsMap &settings = effect->GetSettings();
-    std::string file = settings["E_TEXTCTRL_Piano_File"];
-
-    if (file != "")
+    if (IsVersionOlder("2016.45", version))
     {
-        if (!wxFile::Exists(file))
+        SettingsMap &settings = effect->GetSettings();
+        wxString oldsettings = settings.Get("E_CHOICE_Piano_Notes_Source", "newsettings");
+
+        if (oldsettings != "newsettings")
         {
-            settings["E_TEXTCTRL_Piano_File"] = xLightsXmlFile::FixFile("", file);
+            if (oldsettings == "Timing Track")
+            {
+                wxMessageBox("Piano effect has changed. Old settings have been removed but you should be ok.");
+            }
+            else
+            {
+                wxMessageBox("Piano effect has changed. Old settings have been removed. Please create a notes timing track using 'import notes' by right clicking on the timing track in the sequencer and then adjust piano settings.");
+            }
+
+            // strip out old settings
+            settings.erase("E_CHOICE_Piano_Notes_Source");
+            settings.erase("E_TEXTCTRL_Piano_File");
+            settings.erase("E_SLIDER_Piano_MIDI_Start");
+            settings.erase("E_SLIDER_Piano_MIDI_Speed");
         }
     }
 }
@@ -88,11 +93,6 @@ wxPanel *PianoEffect::CreatePanel(wxWindow *parent) {
 }
 
 bool PianoEffect::CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) {
-    if (settings.Get("CHOICE_Piano_Notes_Source", "Polyphonic Transcription") == "Polyphonic Transcription"
-        && buffer.GetMedia() != nullptr) {
-        //if the Polyphonic data isn't there, we need to flip to the main thread to get that done
-        return buffer.GetMedia()->IsPolyphonicTranscriptionDone();
-    }
     return true;
 }
 
@@ -114,17 +114,12 @@ void PianoEffect::SetDefaultParameters(Model *cls) {
 
 void PianoEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
-    wxString type = effect->GetSettings().Get("E_CHOICE_Piano_Notes_Source", "");
-
-    if (type == "Timing Track")
-    {
         wxString timing = effect->GetSettings().Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "");
 
         if (timing.ToStdString() == oldname)
         {
             effect->GetSettings()["E_CHOICE_Piano_MIDITrack_APPLYLAST"] = wxString(newname);
         }
-    }
 }
 
 void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -135,10 +130,6 @@ void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 		SettingsMap.GetInt("SPINCTRL_Piano_EndMIDI"),
 		SettingsMap.GetBool("CHECKBOX_Piano_ShowSharps"),
 		std::string(SettingsMap.Get("CHOICE_Piano_Type", "True Piano")),
-		std::string(SettingsMap.Get("CHOICE_Piano_Notes_Source", "Polyphonic Transcription")),
-		std::string(SettingsMap.Get("TEXTCTRL_Piano_File", "")),
-		SettingsMap.GetInt("SLIDER_Piano_MIDI_Start"),
-		SettingsMap.GetInt("SLIDER_Piano_MIDI_Speed"),
 		GetValueCurveInt("Piano_Scale", 100, SettingsMap, oset),
 		std::string(SettingsMap.Get("CHOICE_Piano_MIDITrack_APPLYLAST", "")),
         SettingsMap.GetInt("SLIDER_Piano_XOffset", 0)
@@ -151,16 +142,12 @@ public:
 	PianoCache() { };
 	virtual ~PianoCache() { };
 
-	std::string _timingsource;
-	std::string _file;
-	int _MIDIStartAdjust;
-	int _MIDISpeedAdjust;
 	std::map<int, std::list<float>> _timings;
 	std::string _MIDItrack;
 };
 
 //render piano fx during sequence:
-void PianoEffect::RenderPiano(RenderBuffer &buffer, SequenceElements *elements, const int startmidi, const int endmidi, const bool sharps, const std::string type, std::string timingsource, std::string file, int MIDIAdjustStart, int MIDIAdjustSpeed, int scale, std::string MIDITrack, int xoffset)
+void PianoEffect::RenderPiano(RenderBuffer &buffer, SequenceElements *elements, const int startmidi, const int endmidi, const bool sharps, const std::string type, int scale, std::string MIDITrack, int xoffset)
 {
 	PianoCache *cache = (PianoCache*)buffer.infoCache[id];
 	if (cache == nullptr) {
@@ -168,45 +155,19 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, SequenceElements *elements, 
 		buffer.infoCache[id] = cache;
 	}
 
-	std::string& _timingsource = cache->_timingsource;
-	std::string& _file = cache->_file;
-	int& _MIDISpeedAdjust = cache->_MIDISpeedAdjust;
-	int& _MIDIStartAdjust = cache->_MIDIStartAdjust;
 	std::map<int, std::list<float>>& _timings = cache->_timings;
 	std::string& _MIDITrack = cache->_MIDItrack;
 
 	if (buffer.needToInit)
 	{
         buffer.needToInit = false;
-		if (timingsource == "Audacity Timing File" && (_timingsource != timingsource || _file != file))
-		{
-			// need to load timings
-			_timings.clear();
-			if (wxFile::Exists(file))
-			{
-				_timings = LoadAudacityFile(file, buffer.frameTimeInMs);
-			}
-        }
-        else if (timingsource == "MIDI File" && (_timingsource != timingsource || _file != file || _MIDITrack != MIDITrack || _MIDISpeedAdjust != MIDIAdjustSpeed || _MIDIStartAdjust != MIDIAdjustStart))
-        {
-            // need to load timings
-            _timings.clear();
-            if (wxFile::Exists(file))
-            {
-                _timings = LoadMIDIFile(file, buffer.frameTimeInMs, MIDIAdjustSpeed, MIDIAdjustStart * 10, MIDITrack);
-            }
-        }
-        else if (timingsource == "Timing Track" && (_timingsource != timingsource || _MIDITrack != MIDITrack))
+        if (_MIDITrack != MIDITrack)
         {
             _timings.clear();
             _timings = LoadTimingTrack(MIDITrack, buffer.frameTimeInMs);
             elements->AddRenderDependency(MIDITrack, buffer.cur_model);
         }
 
-		_timingsource = timingsource;
-		_MIDISpeedAdjust = MIDIAdjustSpeed;
-		_MIDIStartAdjust = MIDIAdjustStart;
-		_file = file;
 		_MIDITrack = MIDITrack;
 	}
 
@@ -226,20 +187,10 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, SequenceElements *elements, 
     std::list<float> def;
 	std::list<float>* pdata = nullptr;
 
-	if (_timingsource == "Polyphonic Transcription")
+	int time = buffer.curPeriod * buffer.frameTimeInMs;
+	if (_timings.find(time) != _timings.end())
 	{
-		if (buffer.GetMedia() != nullptr)
-		{
-			pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_NOTES, "");
-		}
-	}
-	else
-	{
-		int time = buffer.curPeriod * buffer.frameTimeInMs;
-		if (_timings.find(time) != _timings.end())
-		{
-			pdata = &_timings[time];
-		}
+		pdata = &_timings[time];
 	}
 
     if (pdata == nullptr)
@@ -625,224 +576,6 @@ std::vector<float> PianoEffect::Parse(wxString& l)
 	return res;
 }
 
-int PianoEffect::LowerTS(float t, int intervalMS)
-{
-	int res = t * 1000;
-	res = res - (res % intervalMS);
-    if (t * 1000 - res > intervalMS / 2)
-    {
-        res += intervalMS;
-    }
-	return res;
-}
-int PianoEffect::UpperTS(float t, int intervalMS)
-{
-	int res = t * 1000;
-	res = res + (intervalMS - res % intervalMS);
-	return res;
-}
-
-std::map<int, std::list<float>> PianoEffect::LoadAudacityFile(std::string file, int intervalMS)
-{
-    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
-    std::map<int, std::list<float>> res;
-
-    logger_pianodata.debug("Processing audacity file " + file);
-    logger_pianodata.debug("Interval %d.", intervalMS);
-    logger_pianodata.debug("Start,End,midinote");
-
-	wxTextFile f(file);
-
-	if (f.Open())
-	{
-		while (!f.Eof())
-		{
-			wxString l = f.GetNextLine();
-            if (l != "") // skip blank lines
-            {
-                std::vector<float> components = Parse(l);
-                if (components.size() != 3)
-                {
-                    // this is a problem ... there should be 3 floating point numbers
-                    logger_pianodata.warn("Invalid data in audacity file - 3 tab separated floating point values expected: '" + l + "'");
-                    break;
-                }
-                else
-                {
-                    logger_pianodata.debug("%f,%f,%f", components[0], components[1], components[2]);
-                    int start = LowerTS(components[0], intervalMS);
-                    int end = UpperTS(components[1], intervalMS);
-                    for (int i = start; i <= end; i += intervalMS)
-                    {
-                        if (res.find(i) == res.end())
-                        {
-                            std::list<float> f;
-                            f.push_back(components[2]);
-                            res[i] = f;
-                        }
-                        else
-                        {
-                            bool found = false;
-                            for (auto it = res[i].begin(); it != res[i].end(); ++it)
-                            {
-                                if (*it == components[2])
-                                {
-                                    found = true;
-                                    break;
-                                }
-                            }
-                            if (!found)
-                            {
-                                res[i].push_back(components[2]);
-                            }
-                        }
-                    }
-                }
-            }
-		}
-
-        if (logger_pianodata.isDebugEnabled())
-        {
-            logger_pianodata.debug("Piano data calculated:");
-            logger_pianodata.debug("Time MS, Keys");
-            for (auto it = res.begin(); it != res.end(); ++it)
-            {
-                std::string keys = "";
-                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-                {
-                    keys += " " + std::string(wxString::Format("%f", *it2).c_str());
-                }
-                logger_pianodata.debug("%d,%s", it->first, keys.c_str());
-            }
-        }
-    }
-
-	return res;
-}
-
-std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track)
-{
-    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
-    std::map<int, std::list<float>> res;
-
-	float speedadjust;
-	if (speedAdjust < 0)
-	{
-		speedadjust = speedAdjust / 200.0 + 1;
-	}
-	else
-	{
-		speedadjust = (speedAdjust + 100.0) / 100.0;
-	}
-
-	int notestate[128];
-	for (int i = 0; i <= 127; i++)
-	{
-		notestate[i] = 0;
-	}
-
-    logger_pianodata.debug("Processing midi file " + file);
-    logger_pianodata.debug("Interval %d.", intervalMS);
-    logger_pianodata.debug("SpeedAdjust %d.", speedAdjust);
-    logger_pianodata.debug("StartAdjustMS %d.", startAdjustMS);
-
-	MidiFile midifile;
-	float lasttime = -1;
-	if (midifile.read(file) != 0)
-	{
-		int ntrack = 0;
-		if (track == "All" || track == "")
-		{
-			midifile.joinTracks();
-		}
-		else
-		{
-			ntrack = wxAtoi(track) - 1;
-			if (ntrack >= midifile.getNumTracks())
-			{
-				ntrack = 0;
-			}
-		}
-		midifile.doTimeAnalysis();
-
-        logger_pianodata.debug("Processing midi track %d.", ntrack);
-        logger_pianodata.debug("Event,time(s),adjustedtime(s),isnote,isnoteon,isnoteoff,midinote");
-
-		// process each event
-		for (int i = 0; i < midifile.getNumEvents(ntrack); i++)
-		{
-			MidiEvent e = midifile.getEvent(ntrack, i);
-
-            float time = startAdjustMS + midifile.getTimeInSeconds(ntrack, i) * speedadjust;
-
-            if (logger_pianodata.isDebugEnabled())
-            {
-                logger_pianodata.debug("%d,%f,%f,%d,%d,%d,%d", i, midifile.getTimeInSeconds(ntrack, i), time, e.isNote(), e.isNoteOn(), e.isNoteOff(), e.getKeyNumber());
-            }
-			if (time != lasttime)
-			{
-				if (lasttime >= 0)
-				{
-					// we can update things now
-					int start = LowerTS(lasttime, intervalMS);
-					int end = UpperTS(time, intervalMS);
-
-					for (int j = start; j < end; j += intervalMS)
-					{
-						std::list<float> f;
-						for (int k = 0; k <= 127; k++)
-						{
-							if (notestate[k] > 0)
-							{
-								f.push_back(k);
-							}
-						}
-						res[j] = f;
-					}
-				}
-
-				lasttime = time;
-			}
-			if (e.isNote())
-			{
-				if (e.isNoteOn())
-				{
-					notestate[e.getKeyNumber()]++;
-				}
-				else if (e.isNoteOff())
-				{
-					notestate[e.getKeyNumber()]--;
-					if (notestate[e.getKeyNumber()] < 0)
-					{
-						// this should never happen
-					}
-				}
-			}
-		}
-
-        if (logger_pianodata.isDebugEnabled())
-        {
-            logger_pianodata.debug("Piano data calculated:");
-            logger_pianodata.debug("Time MS, Keys");
-            for (auto it = res.begin(); it != res.end(); ++it)
-            {
-                std::string keys = "";
-                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-                {
-                    keys += " " + std::string(wxString::Format("%f", *it2).c_str());
-                }
-                logger_pianodata.debug("%d,%s", it->first, keys.c_str());
-            }
-        }
-	}
-	else
-	{
-        logger_pianodata.warn("Invalid MIDI file " + file);
-	}
-
-	return res;
-}
-
 std::list<std::string> PianoEffect::ExtractNotes(std::string& label)
 {
     std::string n = label;
@@ -850,7 +583,7 @@ std::list<std::string> PianoEffect::ExtractNotes(std::string& label)
 
     std::list<std::string> res;
 
-    string s = "";
+    std::string s = "";
     for (auto it = n.begin(); it != n.end(); ++it)
     {
         if (*it == ':' || *it == ' ' || *it == ';' || *it == ',')
