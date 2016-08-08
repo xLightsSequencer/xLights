@@ -26,9 +26,9 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
 
         virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
 
-        virtual bool SupportsXlightsModel() {return true;}
-        virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
-        virtual void ExportXlightsModel();
+        virtual bool SupportsXlightsModel() override {return true;}
+        virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ExportXlightsModel() override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
