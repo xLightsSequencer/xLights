@@ -79,15 +79,15 @@ class NoteImportDialog: public wxDialog
 
 		//(*Handlers(NoteImportDialog)
 		void OnChoice_Piano_Notes_SourceSelect(wxCommandEvent& event);
-		void OnSpinCtrl_Piano_StartMIDIChange(wxSpinEvent& event);
-		void OnSpinCtrl_Piano_EndMIDIChange(wxSpinEvent& event);
 		void OnButton_Piano_FileClick(wxCommandEvent& event);
 		void OnTextCtrl_Piano_FileText(wxCommandEvent& event);
-		void UpdateLinkedTextCtrl(wxScrollEvent& event);
-		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnButtonOkClick(wxCommandEvent& event);
 		void OnButtonCancelClick(wxCommandEvent& event);
 		void OnTextCtrl_TimingNameText(wxCommandEvent& event);
+		void OnSlider_Piano_MIDI_SpeedCmdSliderUpdated(wxScrollEvent& event);
+		void OnTextCtrl_Piano_MIDI_SpeedText(wxCommandEvent& event);
+		void OnSlider_Piano_MIDI_StartCmdSliderUpdated(wxScrollEvent& event);
+		void OnTextCtrl_Piano_MIDI_StartText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

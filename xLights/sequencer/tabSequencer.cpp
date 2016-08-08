@@ -1981,15 +1981,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadMusicXMLFile(std::string file,
     log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<float>> res;
 
-    float speedadjust;
-    if (speedAdjust < 0)
-    {
-        speedadjust = speedAdjust / 200.0 + 1;
-    }
-    else
-    {
-        speedadjust = (speedAdjust + 100.0) / 100.0;
-    }
+    float speedadjust = speedAdjust / 100.0;
 
     MusicXML musicXML(file);
     
@@ -2065,15 +2057,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadMIDIFile(std::string file, int
     log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<float>> res;
 
-    float speedadjust;
-    if (speedAdjust < 0)
-    {
-        speedadjust = speedAdjust / 200.0 + 1;
-    }
-    else
-    {
-        speedadjust = (speedAdjust + 100.0) / 100.0;
-    }
+    float speedadjust = speedAdjust / 100.0;
 
     int notestate[128];
     for (int i = 0; i <= 127; i++)

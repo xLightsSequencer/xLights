@@ -117,7 +117,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
-							<label>Start Time Adjust</label>
+							<label>Start Time Adjust (s)</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -127,7 +127,7 @@
 						<object class="wxSlider" name="ID_SLIDER_Piano_MIDI_Start" variable="Slider_Piano_MIDI_Start" member="yes">
 							<min>-1000</min>
 							<max>1000</max>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+							<handler function="OnSlider_Piano_MIDI_StartCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -137,7 +137,7 @@
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Piano_MIDI_Start" variable="TextCtrl_Piano_MIDI_Start" member="yes">
 							<value>0</value>
 							<size>44,24</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+							<handler function="OnTextCtrl_Piano_MIDI_StartText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -145,7 +145,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
-							<label>Speed Adjust</label>
+							<label>Speed Adjust %</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -153,8 +153,10 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_Piano_MIDI_Speed" variable="Slider_Piano_MIDI_Speed" member="yes">
-							<min>-100</min>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+							<value>100</value>
+							<min>1</min>
+							<max>200</max>
+							<handler function="OnSlider_Piano_MIDI_SpeedCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -162,9 +164,9 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Piano_MIDI_Speed" variable="TextCtrl_Piano_MIDI_Speed" member="yes">
-							<value>0</value>
+							<value>100</value>
 							<size>44,24</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+							<handler function="OnTextCtrl_Piano_MIDI_SpeedText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>

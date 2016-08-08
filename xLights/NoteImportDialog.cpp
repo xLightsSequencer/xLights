@@ -87,17 +87,17 @@ NoteImportDialog::NoteImportDialog(wxWindow* parent, SequenceElements& sequenceE
 	Choice_Piano_MIDITrack_APPLYLAST = new wxChoice(this, ID_CHOICE_Piano_MIDITrack_APPLYLAST, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Piano_MIDITrack_APPLYLAST"));
 	FlexGridSizer5->Add(Choice_Piano_MIDITrack_APPLYLAST, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Start Time Adjust"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Start Time Adjust (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer5->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Piano_MIDI_Start = new wxSlider(this, ID_SLIDER_Piano_MIDI_Start, 0, -1000, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano_MIDI_Start"));
 	FlexGridSizer5->Add(Slider_Piano_MIDI_Start, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_Piano_MIDI_Start = new wxTextCtrl(this, IDD_TEXTCTRL_Piano_MIDI_Start, _("0"), wxDefaultPosition, wxSize(44,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Piano_MIDI_Start"));
 	FlexGridSizer5->Add(TextCtrl_Piano_MIDI_Start, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Speed Adjust"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Speed Adjust %"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
 	FlexGridSizer5->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Piano_MIDI_Speed = new wxSlider(this, ID_SLIDER_Piano_MIDI_Speed, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano_MIDI_Speed"));
+	Slider_Piano_MIDI_Speed = new wxSlider(this, ID_SLIDER_Piano_MIDI_Speed, 100, 1, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano_MIDI_Speed"));
 	FlexGridSizer5->Add(Slider_Piano_MIDI_Speed, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Piano_MIDI_Speed = new wxTextCtrl(this, IDD_TEXTCTRL_Piano_MIDI_Speed, _("0"), wxDefaultPosition, wxSize(44,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Piano_MIDI_Speed"));
+	TextCtrl_Piano_MIDI_Speed = new wxTextCtrl(this, IDD_TEXTCTRL_Piano_MIDI_Speed, _("100"), wxDefaultPosition, wxSize(44,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Piano_MIDI_Speed"));
 	FlexGridSizer5->Add(TextCtrl_Piano_MIDI_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
@@ -115,10 +115,10 @@ NoteImportDialog::NoteImportDialog(wxWindow* parent, SequenceElements& sequenceE
 	Connect(ID_CHOICE_Piano_Notes_Source,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&NoteImportDialog::OnChoice_Piano_Notes_SourceSelect);
 	Connect(ID_TEXTCTRL_Piano_File,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&NoteImportDialog::OnTextCtrl_Piano_FileText);
 	Connect(ID_BUTTON_Piano_File,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NoteImportDialog::OnButton_Piano_FileClick);
-	Connect(ID_SLIDER_Piano_MIDI_Start,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&NoteImportDialog::UpdateLinkedTextCtrl);
-	Connect(IDD_TEXTCTRL_Piano_MIDI_Start,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&NoteImportDialog::UpdateLinkedSlider);
-	Connect(ID_SLIDER_Piano_MIDI_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&NoteImportDialog::UpdateLinkedTextCtrl);
-	Connect(IDD_TEXTCTRL_Piano_MIDI_Speed,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&NoteImportDialog::UpdateLinkedSlider);
+	Connect(ID_SLIDER_Piano_MIDI_Start,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&NoteImportDialog::OnSlider_Piano_MIDI_StartCmdSliderUpdated);
+	Connect(IDD_TEXTCTRL_Piano_MIDI_Start,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&NoteImportDialog::OnTextCtrl_Piano_MIDI_StartText);
+	Connect(ID_SLIDER_Piano_MIDI_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&NoteImportDialog::OnSlider_Piano_MIDI_SpeedCmdSliderUpdated);
+	Connect(IDD_TEXTCTRL_Piano_MIDI_Speed,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&NoteImportDialog::OnTextCtrl_Piano_MIDI_SpeedText);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NoteImportDialog::OnButtonOkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NoteImportDialog::OnButtonCancelClick);
 	//*)
@@ -444,73 +444,6 @@ void NoteImportDialog::OnTextCtrl_Piano_FileText(wxCommandEvent& event)
     MusicXMLExtraValidateWindow();
 }
 
-void NoteImportDialog::UpdateLinkedTextCtrl(wxScrollEvent& event)
-{
-    wxSlider * slider = (wxSlider*)event.GetEventObject();
-    wxString name = slider->GetName();
-    if (name.Contains("ID_")) {
-        name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
-    }
-    else {
-        name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
-    }
-
-    wxString val = wxString::Format("%d", slider->GetValue());
-    if (TextCtrl_Piano_MIDI_Speed->GetName() == name)
-    {
-        TextCtrl_Piano_MIDI_Speed->ChangeValue(val);
-    }
-    else if (TextCtrl_Piano_MIDI_Start->GetName() == name)
-    {
-        TextCtrl_Piano_MIDI_Start->ChangeValue(val);
-    }
-    //wxTextCtrl *txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
-    //txt->ChangeValue(val);
-}
-
-void NoteImportDialog::UpdateLinkedSlider(wxCommandEvent& event)
-{
-    wxTextCtrl * txt = (wxTextCtrl*)event.GetEventObject();
-    wxString name = txt->GetName();
-    if (name.Contains("IDD_")) {
-        name.Replace("IDD_TEXTCTRL_", "ID_SLIDER_");
-    }
-    else {
-        name.Replace("ID_TEXTCTRL_", "IDD_SLIDER_");
-    }
-    //wxSlider *slider = (wxSlider*)txt->GetParent()->FindWindowByName(name);
-
-    wxSlider* slider = nullptr;
-    if (Slider_Piano_MIDI_Speed->GetName() == name)
-    {
-        slider = Slider_Piano_MIDI_Speed;
-    }
-    else if (Slider_Piano_MIDI_Start->GetName() == name)
-    {
-        slider = Slider_Piano_MIDI_Start;
-    }
-
-    if (slider == nullptr) {
-        return;
-    }
-
-    int value = wxAtoi(txt->GetValue());
-
-    if (value < slider->GetMin()) {
-        value = slider->GetMin();
-        wxString val_str;
-        val_str << value;
-        txt->ChangeValue(val_str);
-    }
-    else if (value > slider->GetMax()) {
-        value = slider->GetMax();
-        wxString val_str;
-        val_str << value;
-        txt->ChangeValue(val_str);
-    }
-    slider->SetValue(value);
-}
-
 void NoteImportDialog::OnButtonOkClick(wxCommandEvent& event)
 {
     EndDialog(wxID_OK);
@@ -528,4 +461,66 @@ void NoteImportDialog::OnTextCtrl_TimingNameText(wxCommandEvent& event)
     MIDIExtraValidateWindow();
     AudacityExtraValidateWindow();
     MusicXMLExtraValidateWindow();
+}
+
+void NoteImportDialog::OnSlider_Piano_MIDI_SpeedCmdSliderUpdated(wxScrollEvent& event)
+{
+    int value = Slider_Piano_MIDI_Speed->GetValue();
+    wxString val = wxString::Format("%d", value);
+    TextCtrl_Piano_MIDI_Speed->ChangeValue(val);
+}
+
+void NoteImportDialog::OnTextCtrl_Piano_MIDI_SpeedText(wxCommandEvent& event)
+{
+    int value = wxAtoi(TextCtrl_Piano_MIDI_Speed->GetValue());
+
+    if (value > 200)
+    {
+        value = 200;
+        wxString val_str;
+        val_str << value;
+        TextCtrl_Piano_MIDI_Speed->ChangeValue(val_str);
+    }
+    else if (value < 1)
+    {
+        value = 1;
+        wxString val_str;
+        val_str << value;
+        TextCtrl_Piano_MIDI_Speed->ChangeValue(val_str);
+    }
+    Slider_Piano_MIDI_Speed->SetValue(value);
+}
+
+void NoteImportDialog::OnSlider_Piano_MIDI_StartCmdSliderUpdated(wxScrollEvent& event)
+{
+    double value = Slider_Piano_MIDI_Start->GetValue();
+    value /= 100;
+
+    wxString val = wxString::Format("%.2f", value);
+    TextCtrl_Piano_MIDI_Start->ChangeValue(val);
+}
+
+void NoteImportDialog::OnTextCtrl_Piano_MIDI_StartText(wxCommandEvent& event)
+{
+    // 0-2000 - -10.00->10.00 seconds
+
+    double value = wxAtof(TextCtrl_Piano_MIDI_Start->GetValue());
+
+    if (value > 10.00)
+    {
+        value = 10.00;
+        wxString val_str;
+        val_str << value;
+        TextCtrl_Piano_MIDI_Start->ChangeValue(val_str);
+    }
+    else if (value < -10.00)
+    {
+        value = -10.00;
+        wxString val_str;
+        val_str << value;
+        TextCtrl_Piano_MIDI_Start->ChangeValue(val_str);
+    }
+
+    value *= 100.0;
+    Slider_Piano_MIDI_Start->SetValue(value);
 }
