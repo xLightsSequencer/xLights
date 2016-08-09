@@ -22,7 +22,7 @@ ChangesEnvironment=yes
 ; setting to DisableDirPage no makes it so users can change the installation directory
 DisableDirPage=no   
 AppName=xLights
-AppVersion=2016.43
+AppVersion=2016.44
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights.ico
@@ -85,7 +85,7 @@ Source: "include\xLights.ico";     DestDir: "{app}"
 ;mar4 Source: "include\xLights_orig.ico"; DestDir: "{app}"
 Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
 Source: "C:\Users\Sean_Dell\Documents\xLights\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
-Source: "piano/*.*"; DestDir: "{app}/piano" 
+;Source: "piano/*.*"; DestDir: "{app}/piano" 
 Source: "License.txt"; DestDir: "{app}";
 Source: "README.txt";  DestDir: "{app}"; Flags: isreadme
 ;Source: "README.corofaces.txt";  DestDir: "{app}"; Flags: isreadme
