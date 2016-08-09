@@ -608,6 +608,8 @@
 		<Unit filename="StrandNodeNamesDialog.h" />
 		<Unit filename="SubBufferPanel.cpp" />
 		<Unit filename="SubBufferPanel.h" />
+		<Unit filename="SubModelsDialog.cpp" />
+		<Unit filename="SubModelsDialog.h" />
 		<Unit filename="SuperStarImportDialog.cpp" />
 		<Unit filename="SuperStarImportDialog.h" />
 		<Unit filename="TabConvert.cpp" />
@@ -1047,6 +1049,7 @@
 		<Unit filename="wxsmith/StartChannelDialog.wxs" />
 		<Unit filename="wxsmith/StatePanel.wxs" />
 		<Unit filename="wxsmith/StrobePanel.wxs" />
+		<Unit filename="wxsmith/SubModelsDialog.wxs" />
 		<Unit filename="wxsmith/SuperStarImportDialog.wxs" />
 		<Unit filename="wxsmith/TendrilPanel.wxs" />
 		<Unit filename="wxsmith/TestDialog.wxs" />
@@ -1202,6 +1205,7 @@
 					<wxDialog wxs="wxsmith/PreviewPane.wxs" src="PreviewPane.cpp" hdr="PreviewPane.h" fwddecl="0" i18n="1" name="PreviewPane" language="CPP" />
 					<wxDialog wxs="wxsmith/ColorGradientDialog.wxs" src="ColorGradientDialog.cpp" hdr="ColorGradientDialog.h" fwddecl="0" i18n="1" name="ColorGradientDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NoteImportDialog.wxs" src="NoteImportDialog.cpp" hdr="NoteImportDialog.h" fwddecl="0" i18n="1" name="NoteImportDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SubModelsDialog.wxs" src="SubModelsDialog.cpp" hdr="SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

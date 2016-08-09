@@ -186,8 +186,9 @@ void SubModelsDialog::PopupMenu(wxGridEvent& event)
         clickRow = event.GetRow();
         menu.Append(ID_DELETE_ROW, "Delete Row");
     }
-    menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubModelsDialog::OnPopup, NULL, this);
-    wxWindow::PopupMenu(&menu);
+    menu.Connect(wxID_ANY, (wxObjectEventFunction)&SubModelsDialog::OnPopup, NULL, this);
+    menu.Enable(ID_ADD_ROW, true);
+    wxDialog::PopupMenu(&menu);
 }
 void SubModelsDialog::OnPopup(wxCommandEvent& event) {
     wxString name = NameChoice->GetStringSelection();
