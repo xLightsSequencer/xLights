@@ -75,7 +75,7 @@ class ColorCurveDialog: public wxDialog
 
     void LoadXCC(ColorCurve * cc, const wxString& filename);
     void PopulatePresets();
-    void ProcessPresetDir(wxDir& directory);
+    void ProcessPresetDir(wxDir& directory, bool subdirs);
 
     public:
 
