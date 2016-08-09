@@ -227,8 +227,11 @@ void ColorCurveDialog::PopulatePresets()
 
     wxStandardPaths stdp = wxStandardPaths::Get();
 
+#ifndef __WXMSW__
+    d = wxStandardPaths::Get().GetResourcesDir() + "/colorcurves";
+#else
     d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/colorcurves";
-
+#endif
     if (wxDir::Exists(d))
     {
         dir.Open(d);
