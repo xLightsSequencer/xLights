@@ -69,12 +69,19 @@ void WreathModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");
-    
-    p = grid->Append(new wxUIntProperty("Lights/String", "WreathLightCount", parm2));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 640);
-    p->SetEditor("SpinCtrl");
-    
+
+    if (SingleNode) {
+        p = grid->Append(new wxUIntProperty("Lights/String", "WreathLightCount", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 640);
+        p->SetEditor("SpinCtrl");
+    } else {
+        p = grid->Append(new wxUIntProperty("Nodes/String", "WreathLightCount", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 640);
+        p->SetEditor("SpinCtrl");
+    }
+
     p = grid->Append(new wxEnumProperty("Starting Location", "WreathStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
 }
 int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -97,7 +104,7 @@ int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }
-    
+
     return Model::OnPropertyGridChange(grid, event);
 }
 

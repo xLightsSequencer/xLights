@@ -24,7 +24,7 @@ void IciclesModel::InitModel() {
     int lightsPerString = parm2;
 
     SetNodeCount(numStrings, lightsPerString, rgbOrder);
-    
+
     std::vector<unsigned int> dropSizes;
     unsigned int maxH = 0;
     for (int x = 0; x < pat.size(); x++) {
@@ -34,7 +34,7 @@ void IciclesModel::InitModel() {
     if (dropSizes.size() == 0) {
         dropSizes.push_back(5);
     }
-    
+
     int width = 0;
     int curNode = 0;
     int curCoord = 0;
@@ -86,19 +86,26 @@ void IciclesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         LEFT_RIGHT.Add("Left");
         LEFT_RIGHT.Add("Right");
     }
-    
+
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "IciclesStrings", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Lights/String", "IciclesLights", parm2));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 1000);
-    p->SetEditor("SpinCtrl");
-    
+    if (SingleNode) {
+        p = grid->Append(new wxUIntProperty("Lights/String", "IciclesLights", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 1000);
+        p->SetEditor("SpinCtrl");
+    } else {
+        p = grid->Append(new wxUIntProperty("Nodes/String", "IciclesLights", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 1000);
+        p->SetEditor("SpinCtrl");
+    }
+
     p = grid->Append(new wxStringProperty("Drop Pattern", "IciclesDrops", GetModelXml()->GetAttribute("DropPattern", "3,4,5,4")));
-    
+
     p = grid->Append(new wxEnumProperty("Starting Location", "IciclesStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
 }
 
