@@ -30,7 +30,8 @@ namespace DrawGLUtils {
 class Model
 {
     friend class LayoutPanel;
-
+    friend class SubModel;
+    
 public:
     Model(const ModelManager &manger);
     virtual ~Model();
@@ -56,6 +57,9 @@ public:
         return n.ToStdString();
     }
 
+    const std::string &Name() const { return name;}
+    const std::string &GetName() const { return name;}
+    
     std::string name;
     xlColor customColor;
     DimmingCurve *modelDimmingCurve;
@@ -165,7 +169,13 @@ protected:
     std::string layout_group;
 
     unsigned long changeCount;
+    
+    std::vector<Model *> subModels;
+    void ParseSubModel(wxXmlNode *subModelNode);
 public:
+    const std::vector<Model *>& GetSubModels() const { return subModels; }
+    Model *GetSubModel(const std::string &name);
+    
     void IncrementChangeCount() { ++changeCount;};
     unsigned long GetChangeCount() const { return changeCount; }
 

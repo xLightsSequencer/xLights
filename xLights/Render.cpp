@@ -27,9 +27,13 @@ class EffectLayerInfo {
 public:
     EffectLayerInfo() {
         numLayers = 0;
+        buffer.reset(nullptr);
+        strand = -1;
     }
     EffectLayerInfo(int l) {
         resize(l);
+        buffer.reset(nullptr);
+        strand = -1;        
     }
     void resize(int l) {
         numLayers = l;
@@ -40,6 +44,9 @@ public:
         validLayers.resize(l);
     }
     int numLayers;
+    int strand;
+    Element *element;
+    PixelBufferClassPtr buffer;
     std::vector<Effect*> currentEffects;
     std::vector<int> currentEffectIdxs;
     std::vector<SettingsMap> settingsMaps;
@@ -196,18 +203,34 @@ public:
 
             if (xframe->InitPixelBuffer(name, *mainBuffer, numLayers, zeroBased)) {
 
-                for (int x = 0; x < row->GetStrandCount(); x++) {
-                    StrandElement *se = row->GetStrand(x);
+                for (int x = 0; x < row->GetSubModelCount(); x++) {
+                    SubModelElement *se = row->GetSubModel(x);
                     if (se->HasEffects() > 0) {
-                        strandBuffers[x].reset(new PixelBufferClass(xframe, false));
-                        strandBuffers[x]->InitStrandBuffer(*model, x, data.FrameTime(), se->GetEffectLayerCount());
-                    }
-                    for (int n = 0; n < se->GetNodeLayerCount(); n++) {
-                        if (n < model->GetStrandLength(x)) {
-                            EffectLayer *nl = se->GetNodeLayer(n);
-                            if (nl -> GetEffectCount() > 0) {
-                                nodeBuffers[SNPair(x, n)].reset(new PixelBufferClass(xframe, false));
-                                nodeBuffers[SNPair(x, n)]->InitNodeBuffer(*model, x, n, data.FrameTime());
+                        if (se->GetType() == ELEMENT_TYPE_STRAND) {
+                            subModelInfos.push_back(new EffectLayerInfo(se->GetEffectLayerCount() + 1));
+                            subModelInfos.back()->element = se;
+                            subModelInfos.back()->buffer.reset(new PixelBufferClass(xframe, false));
+                            StrandElement *ste = (StrandElement*)se;
+                            subModelInfos.back()->strand = ste->GetStrand();
+                            subModelInfos.back()->buffer->InitStrandBuffer(*model, ste->GetStrand(), data.FrameTime(), se->GetEffectLayerCount());
+                            
+                            for (int n = 0; n < ste->GetNodeLayerCount(); n++) {
+                                if (n < model->GetStrandLength(ste->GetStrand())) {
+                                    EffectLayer *nl = ste->GetNodeLayer(n);
+                                    if (nl -> GetEffectCount() > 0) {
+                                        nodeBuffers[SNPair(ste->GetStrand(), n)].reset(new PixelBufferClass(xframe, false));
+                                        nodeBuffers[SNPair(ste->GetStrand(), n)]->InitNodeBuffer(*model, ste->GetStrand(), n, data.FrameTime());
+                                    }
+                                }
+                            }
+
+                        } else {
+                            Model *subModel = model->GetSubModel(se->GetName());
+                            if (subModel != nullptr) {
+                                subModelInfos.push_back(new EffectLayerInfo(se->GetEffectLayerCount() + 1));
+                                subModelInfos.back()->element = se;
+                                subModelInfos.back()->buffer.reset(new PixelBufferClass(xframe, false));
+                                subModelInfos.back()->buffer->InitBuffer(*subModel, se->GetEffectLayerCount() + 1, data.FrameTime(), false);
                             }
                         }
                     }
@@ -228,6 +251,10 @@ public:
     virtual ~RenderJob() {
         if (mainBuffer != NULL) {
             delete mainBuffer;
+        }
+        for (auto a = subModelInfos.begin(); a != subModelInfos.end(); a++) {
+            EffectLayerInfo *info = *a;
+            delete info;
         }
     }
 
@@ -440,7 +467,6 @@ public:
         if (endFrame > seqData->NumFrames()) endFrame = seqData->NumFrames();
 
         EffectLayerInfo mainModelInfo(numLayers);
-        std::map<int, EffectLayerInfo> strandEffectInfos;
         std::map<SNPair, Effect*> nodeEffects;
         std::map<SNPair, SettingsMap> nodeSettingsMaps;
         std::map<SNPair, bool> nodeEffectStates;
@@ -477,15 +503,10 @@ public:
                     maxFrameBeforeCheck = waitForFrame(frame);
                 }
                 ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer);
-                if (!strandBuffers.empty()) {
-                    for (std::map<int, PixelBufferClassPtr>::iterator it = strandBuffers.begin(); it != strandBuffers.end(); it++) {
-                        int strand = it->first;
-                        PixelBufferClass *buffer = it->second.get();
-                        StrandElement *selement = rowToRender->GetStrand(strand);
-                        if (strandEffectInfos[strand].numLayers != (selement->GetEffectLayerCount() + 1)) {
-                            strandEffectInfos[strand].resize(selement->GetEffectLayerCount() + 1);
-                        }
-                        ProcessFrame(frame, selement, strandEffectInfos[strand], buffer, strand, true);
+                if (!subModelInfos.empty()) {
+                    for (auto a = subModelInfos.begin(); a != subModelInfos.end(); a++) {
+                        EffectLayerInfo *info = *a;
+                        ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, true);
                     }
                 }
                 if (!nodeBuffers.empty()) {
@@ -638,7 +659,8 @@ private:
     wxGauge *gauge;
     int currentFrame;
 
-    std::map<int, PixelBufferClassPtr> strandBuffers;
+    std::vector<EffectLayerInfo *> subModelInfos;
+
     std::map<SNPair, PixelBufferClassPtr> nodeBuffers;
 };
 

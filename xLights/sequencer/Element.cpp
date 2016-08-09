@@ -116,13 +116,26 @@ TimingElement::~TimingElement() {
 }
 
 
-StrandElement::StrandElement(ModelElement *p, int strand)
-: Element(p->GetSequenceElements(), ""),
-  mStrand(strand),
-  mShowNodes(false),
-  mParentModel(p)
+SubModelElement::SubModelElement(ModelElement *p, const std::string &name)
+: Element(p->GetSequenceElements(), name), mParentModel(p)
 {
     AddEffectLayer();
+}
+SubModelElement::~SubModelElement() {
+    
+}
+
+
+const std::string &SubModelElement::GetModelName() const {
+    return mParentModel->GetModelName();
+}
+
+
+StrandElement::StrandElement(ModelElement *p, int strand)
+: SubModelElement(p, ""),
+  mStrand(strand),
+  mShowNodes(false)
+{
 }
 StrandElement::~StrandElement() {
     for (size_t x = 0; x < mNodeLayers.size(); x++) {
@@ -149,9 +162,6 @@ void StrandElement::InitFromModel(Model &model) {
         NodeLayer *nl = new NodeLayer(this, model.GetNodeName(mNodeLayers.size()));
         mNodeLayers.push_back(nl);
     }
-}
-const std::string &StrandElement::GetModelName() const {
-    return mParentModel->GetModelName();
 }
 
 EffectLayer* StrandElement::GetEffectLayerFromExclusiveIndex(int index) {
@@ -307,11 +317,20 @@ bool ModelElement::GetSelected()
     return mSelected;
 }
 
-void ModelElement::InitStrands(Model &model) {
+void ModelElement::Init(Model &model) {
     if (model.GetDisplayAs() == "WholeHouse"
         || model.GetDisplayAs() == "ModelGroup") {
         //no strands for a whole house model
         return;
+    }
+    for (auto sm = model.GetSubModels().begin(); sm != model.GetSubModels().end(); sm++) {
+        bool found = false;
+        for (auto sm2 = mSubModels.begin(); sm2 != mSubModels.end(); sm2++) {
+            found |= ((*sm2)->GetName() == (*sm)->Name());
+        }
+        if (!found) {
+            mSubModels.push_back(new SubModelElement(this, (*sm)->Name()));
+        }
     }
     int ns = model.GetNumStrands();
     for (int x = 0; x < ns; x++) {
@@ -330,8 +349,33 @@ StrandElement* ModelElement::GetStrand(int index, bool create) {
     }
     return mStrands[index];
 }
-int ModelElement::GetStrandCount() const {
-    return mStrands.size();
+
+int ModelElement::GetSubModelCount() const {
+    return mSubModels.size() +  mStrands.size();
 }
+SubModelElement *ModelElement::GetSubModel(int i) {
+    if (i < mSubModels.size()) {
+        return mSubModels[i];
+    }
+    return mStrands[i - mSubModels.size()];
+}
+SubModelElement *ModelElement::GetSubModel(const std::string &name, bool create) {
+    for (auto a = mSubModels.begin(); a != mSubModels.end(); a++) {
+        if (name == (*a)->GetName()) {
+            return *a;
+        }
+    }
+    for (auto a = mStrands.begin(); a != mStrands.end(); a++) {
+        if (name == (*a)->GetName()) {
+            return *a;
+        }
+    }
+    if (create) {
+        mSubModels.push_back(new SubModelElement(this, name));
+        return mSubModels.back();
+    }
+    return nullptr;
+}
+
 
 

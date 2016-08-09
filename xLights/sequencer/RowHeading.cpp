@@ -113,15 +113,12 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
 
     if (element->GetType() == ELEMENT_TYPE_MODEL) {
         ModelElement *me = dynamic_cast<ModelElement *>(element);
-        if (me->GetStrandCount() == 1) {
-            me->GetStrand(0)->ShowNodes(true);
-            me->ShowStrands(!me->ShowStrands());
-        } else {
-            me->ShowStrands(!me->ShowStrands());
-        }
+        me->ShowStrands(!me->ShowStrands());
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         eventRowHeaderChanged.SetString(element->GetModelName());
         wxPostEvent(GetParent(), eventRowHeaderChanged);
+    } else if (element->GetType() == ELEMENT_TYPE_SUBMODEL) {
+        
     } else if (element->GetType() == ELEMENT_TYPE_STRAND) {
         StrandElement *se = dynamic_cast<StrandElement *>(element);
         se->ShowNodes(!se->ShowNodes());
@@ -152,7 +149,9 @@ void RowHeading::rightClick( wxMouseEvent& event)
 
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
     Element* element = ri->element;
-    if (element->GetType()==ELEMENT_TYPE_MODEL || element->GetType()==ELEMENT_TYPE_STRAND)
+    if (element->GetType()==ELEMENT_TYPE_MODEL
+        || element->GetType()==ELEMENT_TYPE_SUBMODEL
+        || element->GetType()==ELEMENT_TYPE_STRAND)
     {
         if (ri->nodeIndex < 0) {
             mnuLayer.Append(ID_ROW_MNU_INSERT_LAYER_ABOVE,"Insert Layer Above");
@@ -173,10 +172,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
         if (element->GetType()==ELEMENT_TYPE_STRAND) {
             me = dynamic_cast<StrandElement *>(element)->GetModelElement();
         }
-        if (me->GetStrandCount() == 1) {
-            mnuLayer.Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");
-            canPromote = true;
-        } else if (me->GetStrandCount() > 1) {
+        if (me->GetSubModelCount() > 1) {
             canPromote = true;
             mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Strands");
             if (ri->strandIndex >= 0) {
@@ -416,14 +412,8 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         eventRowHeaderChanged.SetString(element->GetModelName());
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_TOGGLE_NODES) {
-        if (mSequenceElements->GetVisibleRowInformation(mSelectedRow)->strandIndex == -1) {
-            ModelElement *me = dynamic_cast<ModelElement *>(element);
-            me->GetStrand(0)->ShowNodes(true);
-            me->ShowStrands(!me->ShowStrands());
-        } else {
-            StrandElement *se = dynamic_cast<StrandElement *>(element);
-            se->ShowNodes(!se->ShowNodes());
-        }
+        StrandElement *se = dynamic_cast<StrandElement *>(element);
+        se->ShowNodes(!se->ShowNodes());
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_CONVERT_TO_EFFECTS) {
@@ -578,6 +568,9 @@ void RowHeading::Draw()
         }
         else        // Draw label
         {
+            if (mSequenceElements->GetVisibleRowInformation(i)->element->GetType() == ELEMENT_TYPE_SUBMODEL) {
+                prefix += "  ";
+            }
             wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
             dc.DrawLabel(prefix + mSequenceElements->GetVisibleRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }

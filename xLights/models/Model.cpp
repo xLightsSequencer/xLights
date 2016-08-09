@@ -18,6 +18,7 @@
 #include "../ModelStateDialog.h"
 #include "../ModelDimmingCurveDialog.h"
 #include "../StartChannelDialog.h"
+#include "../SubModelsDialog.h"
 
 #include "ModelScreenLocation.h"
 
@@ -36,6 +37,10 @@ Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), ModelXml
 Model::~Model() {
     if (modelDimmingCurve != nullptr) {
         delete modelDimmingCurve;
+    }
+    for (auto it = subModels.begin(); it != subModels.end(); it++) {
+        Model *m = *it;
+        delete m;
     }
 }
 
@@ -172,7 +177,27 @@ public:
 protected:
     const Model *m_model;
 };
-
+class SubModelsDialogAdapter : public wxPGEditorDialogAdapter
+{
+public:
+    SubModelsDialogAdapter(Model *model)
+    : wxPGEditorDialogAdapter(), m_model(model) {
+    }
+    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
+                              wxPGProperty* WXUNUSED(property) ) override {
+        SubModelsDialog dlg(propGrid);
+        dlg.Setup(m_model);
+        if (dlg.ShowModal() == wxID_OK) {
+            dlg.Save();
+            wxVariant v(CLICK_TO_EDIT);
+            SetValue(v);
+            return true;
+        }
+        return false;
+    }
+protected:
+    Model *m_model;
+};
 class PopupDialogProperty : public wxStringProperty
 {
 public:
@@ -198,6 +223,8 @@ public:
             return new DimmingCurveDialogAdapter(m_model);
         case 4:
             return new StatesDialogAdapter(m_model);
+        case 5:
+            return new SubModelsDialogAdapter(m_model);
         }
         return nullptr;
     }
@@ -367,6 +394,8 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(this, "States", "ModelStates", CLICK_TO_EDIT, 4));
     grid->LimitPropertyEditing(p);
+    p = grid->Append(new PopupDialogProperty(this, "Sub-Models", "SubModels", CLICK_TO_EDIT, 5));
+    grid->LimitPropertyEditing(p);
 
     p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
     p->GetCell(0).SetFgCol(*wxBLACK);
@@ -468,6 +497,10 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
         return 2;
+    } else if (event.GetPropertyName() == "SubModels") {
+        SetFromXml(ModelXml, zeroBased);
+        IncrementChangeCount();
+        return 2;
     } else if (event.GetPropertyName() == "ModelFaces") {
         wxXmlNode *f = ModelXml->GetChildren();
         while (f != nullptr) {
@@ -482,8 +515,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         Model::WriteFaceInfo(ModelXml, faceInfo);
         IncrementChangeCount();
         return 2;
-    }
-    else if (event.GetPropertyName() == "ModelStates") {
+    } else if (event.GetPropertyName() == "ModelStates") {
         wxXmlNode *f = ModelXml->GetChildren();
         while (f != nullptr) {
             if ("stateInfo" == f->GetName()) {
@@ -898,7 +930,12 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
         delete modelDimmingCurve;
         modelDimmingCurve = nullptr;
     }
-
+    for (auto it = subModels.begin(); it != subModels.end(); it++) {
+        Model *m = *it;
+        delete m;
+    }
+    subModels.clear();
+    
     wxString tempstr,channelstr;
     long StartChannel;
 
@@ -1006,6 +1043,9 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
         else if ("dimmingCurve" == f->GetName()) {
             modelDimmingCurve = DimmingCurve::createFromXML(f);
         }
+        else if ("subModel" == f->GetName()) {
+            ParseSubModel(f);
+        }
         f = f->GetNext();
     }
 
@@ -1016,6 +1056,106 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
         }
     }
     IncrementChangeCount();
+}
+
+#include "MatrixModel.h"
+class SubModel : public Model {
+public:
+    SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(p) {
+        ModelXml = n;
+        StrobeRate = 0;
+        Nodes.clear();
+        
+        name = n->GetAttribute("name").ToStdString();
+        parm1 = 1;
+        parm2 = 1;
+        parm3 = 1;
+        
+        bool vert = n->GetAttribute("layout") == "vertical";
+        
+        int row = 0;
+        int col = 0;
+        int line = 0;
+        
+        int maxRow = 0;
+        int maxCol = 0;
+        while (n->HasAttribute(wxString::Format("line%d", line))) {
+            wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
+            wxStringTokenizer wtkz(nodes, ",");
+            while (wtkz.HasMoreTokens()) {
+                wxString valstr = wtkz.GetNextToken();
+                
+                int start, end;
+                if (valstr.Contains("-")) {
+                    int idx = valstr.Index('-');
+                    start = wxAtoi(valstr.Left(idx));
+                    end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+                } else {
+                    start = end = wxAtoi(valstr);
+                }
+                if (start > end) {
+                    start = end;
+                }
+                start--;
+                end--;
+                for (int n = start; n <= end; n++) {
+                    if (n < p->GetNodeCount()) {
+                        NodeBaseClass *node = p->Nodes[n]->clone();
+                        Nodes.push_back(NodeBaseClassPtr(node));
+                        for (auto c = node->Coords.begin(); c != node->Coords.end(); c++) {
+                            c->bufX = col;
+                            c->bufY = row;
+                        }
+                        if (vert) {
+                            row++;
+                        } else {
+                            col++;
+                        }
+                    }
+                }
+            }
+            if (vert) {
+                row--;
+            } else {
+                col--;
+            }
+            if (maxRow < row) {
+                maxRow = row;
+            }
+            if (maxCol < col) {
+                maxCol = col;
+            }
+            if (vert) {
+                row = 0;
+                col++;
+            } else {
+                col = 0;
+                row++;
+            }
+            line++;
+        }
+        SetBufferSize(maxRow + 1, maxCol + 1);
+    };
+    virtual ~SubModel() {}
+    
+    virtual const ModelScreenLocation &GetModelScreenLocation() const override { return parent->GetModelScreenLocation(); }
+    virtual ModelScreenLocation &GetModelScreenLocation() override { return parent->GetModelScreenLocation(); };
+private:
+    Model *parent;
+};
+
+
+Model *Model::GetSubModel(const std::string &name) {
+    for (auto a = subModels.begin(); a != subModels.end(); a++) {
+        if ((*a)->GetName() == name) {
+            return *a;
+        }
+    }
+    return nullptr;
+}
+
+void Model::ParseSubModel(wxXmlNode *node) {
+    subModels.push_back(new SubModel(this, node));
 }
 int Model::CalcCannelsPerString() {
     int ChannelsPerString = parm2*GetNodeChannelCount(StringType);

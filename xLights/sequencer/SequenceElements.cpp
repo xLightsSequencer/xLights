@@ -16,6 +16,7 @@ static const std::string STR_NAME("name");
 static const std::string STR_EFFECT("Effect");
 static const std::string STR_ELEMENT("Element");
 static const std::string STR_EFFECTLAYER("EffectLayer");
+static const std::string STR_SUBMODEL_EFFECTLAYER("SubModelEffectLayer");
 static const std::string STR_COLORPALETTE("ColorPalette");
 static const std::string STR_NODE("Node");
 static const std::string STR_STRAND("Strand");
@@ -199,8 +200,8 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
                     }
                 }
             }
-            for (int j = 0; j < elem->GetStrandCount(); j++) {
-                StrandElement *se = elem->GetStrand(j);
+            for (int j = 0; j < elem->GetSubModelCount(); j++) {
+                SubModelElement *se = elem->GetSubModel(j);
                 for (int l = 0; l < se->GetEffectLayerCount(); l++) {
                     EffectLayer* layer = se->GetEffectLayer(l);
                     for (int k = 0; k < layer->GetEffectCount(); k++) {
@@ -210,12 +211,15 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
                         }
                     }
                 }
-                for (int k = 0; k < se->GetNodeLayerCount(); k++) {
-                    NodeLayer* nlayer = se->GetNodeLayer(k);
-                    for (int l = 0; l < nlayer->GetEffectCount(); l++) {
-                        Effect* eff = nlayer->GetEffect(l);
-                        if (effects[eff->GetEffectIndex()] != nullptr) {
-                            effects[eff->GetEffectIndex()]->RenameTimingTrack(oldname, newname, eff);
+                if (se->GetType() == ELEMENT_TYPE_STRAND) {
+                    StrandElement *ste = dynamic_cast<StrandElement*>(se);
+                    for (int k = 0; k < ste->GetNodeLayerCount(); k++) {
+                        NodeLayer* nlayer = ste->GetNodeLayer(k);
+                        for (int l = 0; l < nlayer->GetEffectCount(); l++) {
+                            Effect* eff = nlayer->GetEffect(l);
+                            if (effects[eff->GetEffectIndex()] != nullptr) {
+                                effects[eff->GetEffectIndex()]->RenameTimingTrack(oldname, newname, eff);
+                            }
                         }
                     }
                 }
@@ -702,22 +706,30 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                         {
                             for(wxXmlNode* effectLayerNode=elementNode->GetChildren(); effectLayerNode!=NULL; effectLayerNode=effectLayerNode->GetNext())
                             {
-                                if (effectLayerNode->GetName() == STR_EFFECTLAYER || effectLayerNode->GetName() == STR_STRAND)
-                                {
-                                    EffectLayer* effectLayer = NULL;
-                                    if (effectLayerNode->GetName() == STR_EFFECTLAYER) {
-                                        effectLayer = element->AddEffectLayer();
-                                    } else {
-                                        StrandElement *se = dynamic_cast<ModelElement*>(element)->GetStrand(wxAtoi(effectLayerNode->GetAttribute(STR_INDEX)), true);
-                                        int layer = wxAtoi(effectLayerNode->GetAttribute("layer", "0"));
-                                        while (layer >= se->GetEffectLayerCount()) {
-                                            se->AddEffectLayer();
-                                        }
-                                        effectLayer = se->GetEffectLayer(layer);
-                                        if (effectLayerNode->GetAttribute(STR_NAME, STR_EMPTY) != STR_EMPTY) {
-                                            se->SetName(effectLayerNode->GetAttribute(STR_NAME).ToStdString());
-                                        }
+
+                                EffectLayer* effectLayer = NULL;
+                                if (effectLayerNode->GetName() == STR_EFFECTLAYER) {
+                                    effectLayer = element->AddEffectLayer();
+                                } else if (effectLayerNode->GetName() == STR_SUBMODEL_EFFECTLAYER) {
+                                    wxString name = effectLayerNode->GetAttribute("name");
+                                    int layer = wxAtoi(effectLayerNode->GetAttribute("layer", "0"));
+                                    SubModelElement *se = dynamic_cast<ModelElement*>(element)->GetSubModel(name.ToStdString(), true);
+                                    while (layer >= se->GetEffectLayerCount()) {
+                                        se->AddEffectLayer();
                                     }
+                                    effectLayer = se->GetEffectLayer(layer);
+                                } else {
+                                    StrandElement *se = dynamic_cast<ModelElement*>(element)->GetStrand(wxAtoi(effectLayerNode->GetAttribute(STR_INDEX)), true);
+                                    int layer = wxAtoi(effectLayerNode->GetAttribute("layer", "0"));
+                                    while (layer >= se->GetEffectLayerCount()) {
+                                        se->AddEffectLayer();
+                                    }
+                                    effectLayer = se->GetEffectLayer(layer);
+                                    if (effectLayerNode->GetAttribute(STR_NAME, STR_EMPTY) != STR_EMPTY) {
+                                        se->SetName(effectLayerNode->GetAttribute(STR_NAME).ToStdString());
+                                    }
+                                }
+                                if (effectLayer != nullptr) {
                                     LoadEffects(effectLayer, elementNode->GetAttribute(STR_TYPE).ToStdString(), effectLayerNode, effectStrings, colorPalettes);
                                 }
                             }
@@ -957,7 +969,7 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
     if (cls == nullptr) {
         return;
     }
-    elem->InitStrands(*cls);
+    elem->Init(*cls);
     if (cls->GetDisplayAs() == "ModelGroup" && elem->ShowStrands()) {
         wxString models = cls->GetModelXml()->GetAttribute("models");
         wxArrayString model=wxSplit(models,',');
@@ -969,34 +981,36 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
             }
         }
     } else if (elem->ShowStrands()) {
-        for (size_t s = 0; s < elem->GetStrandCount(); s++) {
-            StrandElement *se = elem->GetStrand(s);
-            if (elem->GetStrandCount() > 1) {
-                int m = se->GetEffectLayerCount();
-                if (se->GetCollapsed()) {
-                    m = 1;
-                }
-                for (int x = 0; x < m; x++) {
-                    Row_Information_Struct ri;
-                    ri.element = se;
-                    ri.Collapsed = se->GetCollapsed();
-                    ri.displayName = se->GetName();
+        for (size_t s = 0; s < elem->GetSubModelCount(); s++) {
+            SubModelElement *se = elem->GetSubModel(s);
+            int m = se->GetEffectLayerCount();
+            if (se->GetCollapsed()) {
+                m = 1;
+            }
+            for (int x = 0; x < m; x++) {
+                Row_Information_Struct ri;
+                ri.element = se;
+                ri.Collapsed = se->GetCollapsed();
+                ri.displayName = se->GetName();
 
-                    ri.colorIndex = 0;
-                    ri.layerIndex = x;
-                    ri.Index = rowIndex++;
-                    ri.strandIndex = s;
-                    ri.submodel = submodel;
-                    mRowInformation.push_back(ri);
+                ri.colorIndex = 0;
+                ri.layerIndex = x;
+                ri.Index = rowIndex++;
+                ri.strandIndex = -1;
+                if (se->GetType() == ELEMENT_TYPE_STRAND) {
+                    ri.strandIndex = ((StrandElement*)se)->GetStrand();
                 }
+                ri.submodel = submodel;
+                mRowInformation.push_back(ri);
             }
 
-            if (se->ShowNodes()) {
-                for (int n = 0; n < se->GetNodeLayerCount(); n++) {
+            if (se->GetType() == ELEMENT_TYPE_STRAND && ((StrandElement*)se)->ShowNodes()) {
+                StrandElement *ste = dynamic_cast<StrandElement*>(se);
+                for (int n = 0; n < ste->GetNodeLayerCount(); n++) {
                     Row_Information_Struct ri;
                     ri.element = se;
-                    ri.Collapsed = se->ShowNodes();
-                    ri.displayName = se->GetNodeLayer(n)->GetName();
+                    ri.Collapsed = ste->ShowNodes();
+                    ri.displayName = ste->GetNodeLayer(n)->GetName();
                     ri.colorIndex = 0;
                     ri.layerIndex = 0;
                     ri.Index = rowIndex++;

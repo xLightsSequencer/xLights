@@ -11,9 +11,9 @@
 enum ElementType
 {
     ELEMENT_TYPE_MODEL,
+    ELEMENT_TYPE_SUBMODEL,
     ELEMENT_TYPE_STRAND,
     ELEMENT_TYPE_TIMING,
-    
 };
 
 class NetInfoClass;
@@ -143,15 +143,28 @@ private:
 };
 
 
-class StrandElement : public Element {
+class SubModelElement : public Element {
+public:
+    SubModelElement(ModelElement *model, const std::string &name);
+    virtual ~SubModelElement();
+    
+    ModelElement *GetModelElement() const { return mParentModel;}
+    
+    virtual const std::string &GetModelName() const override;
+    virtual ElementType GetType() const override { return ELEMENT_TYPE_SUBMODEL; }
+    
+protected:
+    ModelElement *mParentModel;
+};
+
+
+class StrandElement : public SubModelElement {
 public:
     StrandElement(ModelElement *model, int strand);
     virtual ~StrandElement();
 
-    ModelElement *GetModelElement() const { return mParentModel;}
     void InitFromModel(Model &model);
     
-    virtual const std::string &GetModelName() const override;
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
     virtual ElementType GetType() const override { return ELEMENT_TYPE_STRAND; }
 
@@ -165,7 +178,6 @@ public:
     }
 private:
     int mStrand;
-    ModelElement *mParentModel;
 
     bool mShowNodes = false;
     std::vector<NodeLayer*> mNodeLayers;
@@ -178,6 +190,7 @@ class ModelElement : public Element
         ModelElement(SequenceElements *p, const std::string &name, bool selected);
         virtual ~ModelElement();
     
+        void Init(Model &cls);
         virtual ElementType GetType() const override { return ELEMENT_TYPE_MODEL; }
 
         bool GetSelected();
@@ -185,9 +198,11 @@ class ModelElement : public Element
 
         virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
 
-        StrandElement *GetStrand(int strand, bool create = false);
-        int GetStrandCount() const;
-        void InitStrands(Model &cls);
+        int GetSubModelCount() const;
+        SubModelElement *GetSubModel(int i);
+        SubModelElement *GetSubModel(const std::string &name, bool create = false);
+    
+    
         bool ShowStrands() const { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}
     
@@ -195,10 +210,14 @@ class ModelElement : public Element
         int GetWaitCount();
         void IncWaitCount();
         void DecWaitCount();
+
+        StrandElement *GetStrand(int strand, bool create = false);
+        int GetStrandCount() const { return mStrands.size(); }
     protected:
     private:
         bool mStrandsVisible = false;
         bool mSelected;
+        std::vector<SubModelElement*> mSubModels;
         std::vector<StrandElement*> mStrands;
         std::atomic_int waitCount;
 };

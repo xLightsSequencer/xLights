@@ -93,6 +93,7 @@
 		6761F5F91C4EA041009780DA /* xlGridCanvasPictures.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5F31C4EA041009780DA /* xlGridCanvasPictures.cpp */; };
 		67623E711AD07E320022667B /* KeyBindings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E6F1AD07E320022667B /* KeyBindings.cpp */; };
 		67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E721AD2BF3F0022667B /* BitmapCache.cpp */; };
+		6762EFF51D5A323300F28879 /* SubModelsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6762EFF31D5A323300F28879 /* SubModelsDialog.cpp */; };
 		6764010C1C8FBFC30079A4CF /* LayoutPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */; };
 		67653D5C1CA589830026A30B /* ModelScreenLocation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */; };
 		6766038E1D01CA0800589601 /* FillEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6766038C1D01CA0800589601 /* FillEffect.cpp */; };
@@ -512,6 +513,8 @@
 		67623E6F1AD07E320022667B /* KeyBindings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KeyBindings.cpp; sourceTree = "<group>"; };
 		67623E701AD07E320022667B /* KeyBindings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyBindings.h; sourceTree = "<group>"; };
 		67623E721AD2BF3F0022667B /* BitmapCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BitmapCache.cpp; sourceTree = "<group>"; };
+		6762EFF31D5A323300F28879 /* SubModelsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubModelsDialog.cpp; sourceTree = "<group>"; };
+		6762EFF41D5A323300F28879 /* SubModelsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubModelsDialog.h; sourceTree = "<group>"; };
 		6764010A1C8FBFC30079A4CF /* LayoutPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutPanel.h; sourceTree = "<group>"; };
 		6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutPanel.cpp; sourceTree = "<group>"; };
 		67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelScreenLocation.cpp; path = models/ModelScreenLocation.cpp; sourceTree = "<group>"; };
@@ -1369,6 +1372,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6762EFF31D5A323300F28879 /* SubModelsDialog.cpp */,
+				6762EFF41D5A323300F28879 /* SubModelsDialog.h */,
 				67FF39901D57F5D000290DB4 /* MusicXML.h */,
 				67FF39911D57F5D000290DB4 /* NoteImportDialog.cpp */,
 				67FF39921D57F5D000290DB4 /* NoteImportDialog.h */,
@@ -1829,6 +1834,7 @@
 				67276C481CB424B300A245CA /* DrawGLUtils31.cpp in Sources */,
 				675DE2671B53381800A9BB44 /* EffectAssist.cpp in Sources */,
 				67B2CF951C39D98A003C17CA /* CirclesEffect.cpp in Sources */,
+				6762EFF51D5A323300F28879 /* SubModelsDialog.cpp in Sources */,
 				67DAFDE11CA1A63C004B3237 /* Options.cpp in Sources */,
 				67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */,
 				67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */,
