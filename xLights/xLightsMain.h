@@ -1276,6 +1276,8 @@ private:
     int playOffsetTime;
     int playEndTime;
     bool replaySection;
+    double playSpeed;
+    bool playAnimation;
 
     std::string selectedEffectName;
     std::string selectedEffectString;

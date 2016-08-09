@@ -282,6 +282,11 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             CurrentSeqXmlFile->SetMediaFile(GetShowDirectory(), media_file.GetFullPath(), true);
             int length_ms = CurrentSeqXmlFile->GetMedia()->LengthMS();
             CurrentSeqXmlFile->SetSequenceDurationMS(length_ms);
+            playAnimation = false;
+        }
+        else
+        {
+            playAnimation = true;
         }
 
         if( CurrentSeqXmlFile->WasConverted() )

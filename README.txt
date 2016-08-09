@@ -24,6 +24,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (gil)     Allow multiple selected effects to be moved up/down and nudged left/right.  Fixes #642.
    -- bug (gil)     Fix offscreen effects not moving when dragged or nudged left/right.  Fixes #637.
    -- enh (gil)     Change from Lights/String to Nodes/String based on string type selected.  Fixes #633.
+   -- enh (gil)     Allow playback speed to slow down playback for Animation sequences.
 2016.43  Aug 04, 2016
    -- bug (gil)     Fix PolyLine not working with single channel nodes.
    -- enh (gil)     Increase Fan radius parameters limits.  Fixes #640.
