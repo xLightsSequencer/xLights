@@ -3330,24 +3330,24 @@ void EffectsGrid::GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight
 void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
 {
     // Tag all selected effects so we don't move them twice
-    for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
+    for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
     {
-        EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
+        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
         el->TagAllSelectedEffects();
     }
 
     if( !offset ) {
-        for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
+        for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
         {
-            EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
+            EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             el->MoveAllSelectedEffects(deltaMS, mSequenceElements->get_undo_mgr());
         }
     } else {
         int start_row = -1;
         int end_row = -1;
-        for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
+        for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
         {
-            EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
+            EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             if( el->GetSelectedEffectCount() > 0 ) {
                 if( start_row == -1 ) {
                     start_row = row;
@@ -3360,7 +3360,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
         delta_step = mTimeline->RoundToMultipleOfPeriod(delta_step, mSequenceElements->GetFrequency());
         for(int row=start_row;row<=end_row;row++)
         {
-            EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
+            EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             if( mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_MOVE) {
                 el->MoveAllSelectedEffects(delta_step*(row-start_row), mSequenceElements->get_undo_mgr());
             } else {
