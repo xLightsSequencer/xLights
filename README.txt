@@ -8,6 +8,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp) Prevent crash at startup if preview background image doesn't exist
+
 2016.44  Aug 08, 2016
    -- enh (keithsw) Add Import Notes to right click menu on timing tracks ... this will create a timing track containing notes from Polyphonic Transcription, MIDI, Audacity and Music XML files. All sources other than 'Timing Track' will be removed from the piano effect in a future release.
    -- enh (keithsw) Enhance autosave to be smarter and only save when it needs to
