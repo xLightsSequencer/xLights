@@ -294,10 +294,6 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     {
         FillRandomEffects();
     }
-    else if(id == ID_GRID_MNU_DELETE)
-    {
-        DeleteSelectedEffects();
-    }
     else if(id == ID_GRID_MNU_UNDO)
     {
         mSequenceElements->get_undo_mgr().UndoLastStep();
@@ -2627,6 +2623,36 @@ void EffectsGrid::UpdateSelectedEffects()
             {
                 wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
                 wxPostEvent(mParent, eventUnSelected);
+            }
+            else
+            {
+                // set the selected effect
+                bool found = false;
+                int first_model_row = mSequenceElements->GetNumberOfTimingRows();
+                for(int row=first_model_row; row < mSequenceElements->GetRowInformationSize() && !found;row++)
+                {
+                    EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+                    Element* element = el->GetParentElement();
+                    if( mSequenceElements->GetEffectLayer(row)->GetSelectedEffectCount() > 0 )
+                    {
+                        int num_effects = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
+                        for( int i = 0; i < num_effects && !found; ++i )
+                        {
+                            Effect* eff = el->GetEffect(i);
+                            if( eff->GetSelected() )
+                            {
+                                mSelectedEffect = eff;
+                                RaiseSelectedEffectChanged(mSelectedEffect, false);
+                                RaisePlayModelEffect(element,mSelectedEffect,false);
+                                wxCommandEvent eventRowChanged(EVT_SELECTED_ROW_CHANGED);
+                                eventRowChanged.SetInt(mSelectedRow);
+                                eventRowChanged.SetString(element->GetModelName());
+                                wxPostEvent(GetParent(), eventRowChanged);
+                                found = true;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
