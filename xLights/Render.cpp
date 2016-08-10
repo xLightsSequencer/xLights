@@ -864,116 +864,117 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
 
 
 void xLightsFrame::ExportModel(wxCommandEvent &command) {
-     std::string model = command.GetString().ToStdString();
+     
+    std::string model = command.GetString().ToStdString();
+    Model *m = GetModel(model);
 
+    bool isgroup = (m->GetDisplayAs() == "ModelGroup"); 
 
     SeqExportDialog dialog(this);
-    dialog.ModelExportTypes();
+    dialog.ModelExportTypes(isgroup);
     bool ok;
-    wxString filename;
-    do {
-        ok = true;
-        if (dialog.ShowModal() == wxID_OK) {
-            // validate inputs
-            filename = dialog.TextCtrlFilename->GetValue();
-            filename.Trim();
-            if (filename.IsEmpty()) {
-                ok = false;
-                wxMessageBox(_("The file name cannot be empty"), _("ERROR"));
-            }
-        } else {
-            return;
+
+    if (dialog.ShowModal() == wxID_OK) {
+        wxString filename = dialog.TextCtrlFilename->GetValue();
+        EnableSequenceControls(false);
+        wxString format = dialog.ChoiceFormat->GetStringSelection();
+        wxStopWatch sw;
+        wxString Out3 = format.Left(3);
+
+        if (Out3 == "LSP") {
+            filename = filename + "_USER";
         }
-    } while (!ok);
-    EnableSequenceControls(false);
-    wxString format=dialog.ChoiceFormat->GetStringSelection();
-    wxStopWatch sw;
-    wxString Out3=format.Left(3);
+        wxFileName oName(filename);
 
-    if (Out3 == "LSP") {
-        filename = filename + "_USER";
-    }
-    wxFileName oName(filename);
-    oName.SetPath( CurrentDir );
-    wxString fullpath;
-
-    SetStatusText(_("Starting Export for ") + format + "-" + Out3);
-    wxYield();
-
-    Element * el = mSequenceElements.GetElement(model);
-    NextRenderer wait;
-    RenderJob *job = new RenderJob(dynamic_cast<ModelElement*>(el), SeqData, this, true);
-    SequenceData *data = job->createExportBuffer();
-    int cpn = job->getBuffer()->GetChanCountPerNode();
-
-    if (command.GetInt()) {
-        job->setRenderRange(0, SeqData.NumFrames());
-        job->setPreviousFrameDone(END_OF_RENDER_FRAME);
-        job->addNext(&wait);
-        jobPool.PushJob(job);
-        //wait to complete
-        while (!wait.checkIfDone(SeqData.NumFrames())) {
-            wxYield();
+        if (oName.GetPathWithSep() == "")
+        {
+            oName.SetPath(CurrentDir);
         }
-    } else {
-        Model *m = GetModel(model);
-        for (int frame = 0; frame < SeqData.NumFrames(); frame++) {
-            for (int x = 0; x < job->getBuffer()->GetNodeCount(); x++) {
-                //chan in main buffer
-                int ostart = m->NodeStartChannel(x);
-                int nstart = job->getBuffer()->NodeStartChannel(x);
-                //copy to render buffer for export
-                job->getBuffer()->SetNodeChannelValues(x, &SeqData[frame][ostart]);
-                job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
+        wxString fullpath;
+
+        SetStatusText(_("Starting Export for ") + format + "-" + Out3);
+        wxYield();
+
+        NextRenderer wait;
+        Element * el = mSequenceElements.GetElement(model);
+        RenderJob *job = new RenderJob(dynamic_cast<ModelElement*>(el), SeqData, this, true);
+        SequenceData *data = job->createExportBuffer();
+        int cpn = job->getBuffer()->GetChanCountPerNode();
+
+        if (command.GetInt()) {
+            job->setRenderRange(0, SeqData.NumFrames());
+            job->setPreviousFrameDone(END_OF_RENDER_FRAME);
+            job->addNext(&wait);
+            jobPool.PushJob(job);
+            //wait to complete
+            while (!wait.checkIfDone(SeqData.NumFrames())) {
+                wxYield();
             }
         }
-    }
-    delete job;
+        else {
+            Model *m = GetModel(model);
+            for (int frame = 0; frame < SeqData.NumFrames(); frame++) {
+                for (int x = 0; x < job->getBuffer()->GetNodeCount(); x++) {
+                    //chan in main buffer
+                    int ostart = m->NodeStartChannel(x);
+                    int nstart = job->getBuffer()->NodeStartChannel(x);
+                    //copy to render buffer for export
+                    job->getBuffer()->SetNodeChannelValues(x, &SeqData[frame][ostart]);
+                    job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
+                }
+            }
+        }
+        delete job;
 
 
-    if (Out3 == "Lcb") {
-        oName.SetExt(_("lcb"));
-        fullpath=oName.GetFullPath();
-        WriteLcbFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
-    } else if (Out3 == "Vir") {
-        oName.SetExt(_("vir"));
-        fullpath=oName.GetFullPath();
-        WriteVirFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
-    } else if (Out3 == "LSP") {
-        oName.SetExt(_("xml"));
-        fullpath=oName.GetFullPath();
-        WriteLSPFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, cpn);
-    } else if (Out3 == "HLS") {
-        oName.SetExt(_("hlsnc"));
-        fullpath=oName.GetFullPath();
-        WriteHLSFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
-    } else if (Out3 == "Fal") {
-        wxString tempstr = GetModel(model)->ModelStartChannel;
-        int stChan = wxAtoi(tempstr);
-        oName.SetExt(_("eseq"));
-        fullpath=oName.GetFullPath();
-        WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels());
-    }
-    else if (Out3 == "Com")
-    {
-        wxString tempstr = GetModel(model)->ModelStartChannel;
-        int stChan = wxAtoi(tempstr);
-        oName.SetExt(_("avi"));
-        fullpath = oName.GetFullPath();
-        WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), true);
-    }
-    else if (Out3 == "Unc")
-    {
-        wxString tempstr = GetModel(model)->ModelStartChannel;
-        int stChan = wxAtoi(tempstr);
-        oName.SetExt(_("avi"));
-        fullpath = oName.GetFullPath();
-        WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), false);
-    }
-    SetStatusText(_("Finished writing model: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
+        if (Out3 == "Lcb") {
+            oName.SetExt(_("lcb"));
+            fullpath = oName.GetFullPath();
+            WriteLcbFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
+        }
+        else if (Out3 == "Vir") {
+            oName.SetExt(_("vir"));
+            fullpath = oName.GetFullPath();
+            WriteVirFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
+        }
+        else if (Out3 == "LSP") {
+            oName.SetExt(_("xml"));
+            fullpath = oName.GetFullPath();
+            WriteLSPFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, cpn);
+        }
+        else if (Out3 == "HLS") {
+            oName.SetExt(_("hlsnc"));
+            fullpath = oName.GetFullPath();
+            WriteHLSFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
+        }
+        else if (Out3 == "Fal") {
+            wxString tempstr = GetModel(model)->ModelStartChannel;
+            int stChan = wxAtoi(tempstr);
+            oName.SetExt(_("eseq"));
+            fullpath = oName.GetFullPath();
+            WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels());
+        }
+        else if (Out3 == "Com")
+        {
+            wxString tempstr = GetModel(model)->ModelStartChannel;
+            int stChan = wxAtoi(tempstr);
+            oName.SetExt(_("avi"));
+            fullpath = oName.GetFullPath();
+            WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), true);
+        }
+        else if (Out3 == "Unc")
+        {
+            wxString tempstr = GetModel(model)->ModelStartChannel;
+            int stChan = wxAtoi(tempstr);
+            oName.SetExt(_("avi"));
+            fullpath = oName.GetFullPath();
+            WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), false);
+        }
+        SetStatusText(_("Finished writing model: ") + fullpath + wxString::Format(" in %ld ms ", sw.Time()));
 
-    delete data;
-    EnableSequenceControls(true);
+        delete data;
+        EnableSequenceControls(true);
+    }
 }
 
 
