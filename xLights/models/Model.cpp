@@ -394,8 +394,8 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(this, "States", "ModelStates", CLICK_TO_EDIT, 4));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(this, "Sub-Models", "SubModels", CLICK_TO_EDIT, 5));
-    grid->LimitPropertyEditing(p);
+    //p = grid->Append(new PopupDialogProperty(this, "Sub-Models", "SubModels", CLICK_TO_EDIT, 5));
+    //grid->LimitPropertyEditing(p);
 
     p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
     p->GetCell(0).SetFgCol(*wxBLACK);
@@ -1058,7 +1058,6 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     IncrementChangeCount();
 }
 
-#include "MatrixModel.h"
 class SubModel : public Model {
 public:
     SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(p) {

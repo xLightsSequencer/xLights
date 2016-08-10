@@ -161,6 +161,7 @@ void ModelManager::RecalcStartChannels() const {
             //nothing improved
             return;
         }
+        countValid = newCountValid;
     }
 }
 
