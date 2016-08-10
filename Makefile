@@ -64,8 +64,6 @@ install:
 	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 	$(foreach share, $(SHARE_FILES), install -D -m 644 bin/$(share) $(DESTDIR)/${PREFIX}/share/xLights/$(share) ;)
-	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/piano
-	cp -r piano/* $(DESTDIR)/${PREFIX}/share/xLights/piano
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
 	cp -r colorcurves/* $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
 	#install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/songs
