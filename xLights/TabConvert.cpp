@@ -25,7 +25,7 @@ extern "C"
 #include <libavutil/imgutils.h>
 }
 
-#include "Models/ModelGroup.h"
+#include "models/ModelGroup.h"
 
 void FRAMECLASS ConversionError(const wxString& msg)
 {
