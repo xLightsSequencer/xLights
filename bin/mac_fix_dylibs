@@ -63,9 +63,10 @@ if [ -z "${CODE_SIGN_IDENTITY}" ] ; then
     exit 0
 fi
 
+
 if [ "$CONFIGURATION" == "Release" ]; then
     cd $TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks
-    ls -1 *.dylib | xargs -n 1  /usr/bin/codesign  -f -v -s "$CODE_SIGN_IDENTITY"
+    ls -1 *.dylib | xargs -n 1  /usr/bin/codesign  -f -v -s "$EXPANDED_CODE_SIGN_IDENTITY"
 
-    /usr/bin/codesign  -f -v -s "$CODE_SIGN_IDENTITY" SDL2.framework/Versions/A
+    /usr/bin/codesign  -f -v -s "$EXPANDED_CODE_SIGN_IDENTITY" SDL2.framework/Versions/A
 fi
