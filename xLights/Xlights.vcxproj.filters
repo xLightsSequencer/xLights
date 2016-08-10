@@ -825,6 +825,9 @@
     <ClCompile Include="models\Shapes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SubModelsDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1584,6 +1587,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="models\Shapes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SubModelsDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

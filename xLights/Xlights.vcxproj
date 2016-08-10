@@ -370,6 +370,7 @@
     <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
     <ClCompile Include="SubBufferPanel.cpp" />
+    <ClCompile Include="SubModelsDialog.cpp" />
     <ClCompile Include="SuperStarImportDialog.cpp" />
     <ClCompile Include="TabConvert.cpp" />
     <ClCompile Include="TabPreview.cpp" />
@@ -619,6 +620,7 @@
     <ClInclude Include="StartChannelDialog.h" />
     <ClInclude Include="StrandNodeNamesDialog.h" />
     <ClInclude Include="SubBufferPanel.h" />
+    <ClInclude Include="SubModelsDialog.h" />
     <ClInclude Include="SuperStarImportDialog.h" />
     <ClInclude Include="TestDialog.h" />
     <ClInclude Include="TimingPanel.h" />
