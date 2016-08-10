@@ -26,6 +26,8 @@
 
 // Process Setup Panel Events
 
+#include "osxMacUtils.h"
+
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event)
 {
     int id = event.GetId();
@@ -144,6 +146,8 @@ void xLightsFrame::SetDir(const wxString& newdir)
         return;
     }
 
+    ObtainAccessToURL(newdir.ToStdString());
+    
     // update UI
     CheckBoxLightOutput->SetValue(false);
     CheckBoxRunSchedule->SetValue(false);
@@ -1112,6 +1116,7 @@ void xLightsFrame::ChangeMediaDirectory(wxCommandEvent& event)
     if (dialog.ShowModal() == wxID_OK)
     {
         mediaDirectory = dialog.GetPath();
+        ObtainAccessToURL(mediaDirectory.ToStdString());
         wxConfigBase* config = wxConfigBase::Get();
         config->Write(_("MediaDir"), mediaDirectory);
         MediaDirectoryLabel->SetLabel(mediaDirectory);

@@ -1275,6 +1275,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     {
         mediaDirectory=dir;
     }
+    ObtainAccessToURL(mediaDirectory.ToStdString());
+    
     logger_base.debug("Media directory %s.", mediaDirectory.ToStdString().c_str());
     MediaDirectoryLabel->SetLabel(mediaDirectory);
 

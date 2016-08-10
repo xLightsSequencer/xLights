@@ -27,11 +27,14 @@ private:
 void xlSetOpenGLRetina(xlGLCanvas &win);
 void xlSetRetinaCanvasViewport(xlGLCanvas &win, int &x, int &y, int &x2, int&y2);
 double xlTranslateToRetina(xlGLCanvas &win, double x);
+void ObtainAccessToURL(const std::string &path);
 
 #else
 #define xlSetOpenGLRetina(a)
 #define xlSetRetinaCanvasViewport(w,a,b,c,d)
 #define xlTranslateToRetina(a, x) x
+#define ObtainAccessToURL(x)
+
 #endif
 
 

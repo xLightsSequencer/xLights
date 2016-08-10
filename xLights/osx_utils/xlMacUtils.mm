@@ -9,8 +9,48 @@
 #import <AppKit/NSOpenGL.h>
 #import <AppKit/NSOpenGLView.h>
 
+#include <wx/config.h>
+
 #include "xlGLCanvas.h"
 #include "osxMacUtils.h"
+
+
+void ObtainAccessToURL(const std::string &path) {
+    
+    std::string pathurl = path;
+    wxConfig *config = new wxConfig("xLights-Bookmarks");
+    wxString data = config->Read(pathurl);
+    NSError *error;
+    if ("" == data) {
+        NSString *filePath = [NSString stringWithCString:pathurl.c_str()
+                                                encoding:[NSString defaultCStringEncoding]];
+        NSURL *fileURL = [NSURL fileURLWithPath:filePath];
+        
+        NSData * newData = [fileURL bookmarkDataWithOptions: NSURLBookmarkCreationWithSecurityScope
+                             includingResourceValuesForKeys: nil
+                                              relativeToURL: nil
+                                                      error: &error];
+        NSString *base64 = [newData base64Encoding];
+        const char *cstr = [base64 UTF8String];
+        data = cstr;
+        config->Write(pathurl, data);
+    }
+    NSString* dstr = [NSString stringWithCString:data.ToStdString().c_str()
+                                        encoding:[NSString defaultCStringEncoding]];
+    NSData *nsdata = [[NSData alloc] initWithBase64Encoding:dstr];
+    BOOL isStale = false;
+//options:(NSURLBookmarkResolutionOptions)options
+//relativeToURL:(NSURL *)relativeURL
+    NSURL *fileURL = [NSURL URLByResolvingBookmarkData:nsdata
+                                         options:NSURLBookmarkResolutionWithoutUI | NSURLBookmarkResolutionWithSecurityScope
+                                         relativeToURL:nil
+                                         bookmarkDataIsStale:&isStale
+                                         error:&error];
+    [fileURL startAccessingSecurityScopedResource];
+    
+    
+    delete config;
+}
 
 double xlOSXGetMainScreenContentScaleFactor()
 {
