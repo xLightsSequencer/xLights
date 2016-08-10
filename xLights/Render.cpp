@@ -870,8 +870,15 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
 
     bool isgroup = (m->GetDisplayAs() == "ModelGroup"); 
 
+    bool isboxed = false;
+    if (ModelWithScreenLocation<BoxedScreenLocation>* boxedmodel = dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(m))
+    {
+        // line models, arches etc make no sense for videos
+        isboxed = true;
+    }
+
     SeqExportDialog dialog(this);
-    dialog.ModelExportTypes(isgroup);
+    dialog.ModelExportTypes(isgroup || !isboxed);
     bool ok;
 
     if (dialog.ShowModal() == wxID_OK) {
