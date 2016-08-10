@@ -600,6 +600,7 @@
 		679BD3401C375D9F000539FE /* OnEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OnEffect.cpp; path = effects/OnEffect.cpp; sourceTree = "<group>"; };
 		679BD3411C375D9F000539FE /* OnEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OnEffect.h; path = effects/OnEffect.h; sourceTree = "<group>"; };
 		679BEF1B1A9FCB1D00C37BB4 /* RenderCommandEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderCommandEvent.h; sourceTree = "<group>"; };
+		67A1CE421D5B4C5D00999746 /* xLights.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = xLights.entitlements; sourceTree = "<group>"; };
 		67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils.cpp; sourceTree = "<group>"; };
 		67A260ED1AB71EE3006B140D /* DrawGLUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DrawGLUtils.h; sourceTree = "<group>"; };
 		67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExportModelSelect.cpp; sourceTree = "<group>"; };
@@ -1372,6 +1373,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67A1CE421D5B4C5D00999746 /* xLights.entitlements */,
 				6762EFF31D5A323300F28879 /* SubModelsDialog.cpp */,
 				6762EFF41D5A323300F28879 /* SubModelsDialog.h */,
 				67FF39901D57F5D000290DB4 /* MusicXML.h */,
@@ -1655,6 +1657,11 @@
 				TargetAttributes = {
 					67E7086C17B51AB400A22034 = {
 						DevelopmentTeam = U8ZT9RPC6S;
+						SystemCapabilities = {
+							com.apple.Sandbox = {
+								enabled = 0;
+							};
+						};
 					};
 				};
 			};

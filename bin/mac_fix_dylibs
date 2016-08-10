@@ -17,7 +17,7 @@ do
    rm -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$L-$SRCVER.dylib"
    rm -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$L-$TARGETVER.dylib"
    cp -af /opt/local/lib/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
-   cp -af /opt/local/lib/libwx_$L-$TARGETVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
+   # cp -af /opt/local/lib/libwx_$L-$TARGETVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
 
    install_name_tool -change /opt/local/lib/libwx_$L-$TARGETVER.dylib @executable_path/../Frameworks/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
    install_name_tool -change /opt/local/lib/libwx_$L-$SRCVER.dylib @executable_path/../Frameworks/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
