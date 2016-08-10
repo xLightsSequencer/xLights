@@ -413,11 +413,23 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
     return 0;
 }
 
+int BoxedScreenLocation::GetTop() const {
+    return centery+(RenderHt*scaley/2);
+}
+int BoxedScreenLocation::GetLeft() const {
+    return centerx-(RenderWi*scalex/2);
+}
+int BoxedScreenLocation::GetRight() const {
+    return centerx+(RenderWi*scalex/2);
+}
+int BoxedScreenLocation::GetBottom() const {
+    return centery-(RenderHt*scaley/2);
+}
+
 void BoxedScreenLocation::SetLeft(int x) {
     float screenCenterX = previewW*offsetXpct;
     float newCenterX = screenCenterX + (x-mMinScreenX);
     offsetXpct = newCenterX/(float)previewW;
-
 }
 void BoxedScreenLocation::SetRight(int i) {
     float screenCenterX = previewW * offsetXpct;

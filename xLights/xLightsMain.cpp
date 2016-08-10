@@ -1137,6 +1137,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     playType = 0;
     playModel = nullptr;
 	mLoopAudio = false;
+    playSpeed = 1.0;
+    playAnimation = false;
 
     UnsavedRgbEffectsChanges = false;
     UnsavedPlaylistChanges = false;
@@ -1605,7 +1607,11 @@ void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
     switch (Notebook1->GetSelection())
     {
     case NEWSEQUENCER:
-        TimerRgbSeq(curtime);
+        if( playAnimation ) {
+            TimerRgbSeq(curtime * playSpeed);
+        } else {
+            TimerRgbSeq(curtime);
+        }
         break;
     default:
         OnTimerPlaylist(curtime);
@@ -2077,12 +2083,15 @@ void xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
     bool cont = srcDir.GetFirst(&fname, wildcard, wxDIR_FILES);
     while (cont)
     {
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug("Backing up file %s.", (const char *)fname.c_str());
+
         srcFile.SetFullName(fname);
 
         wxULongLong fsize = srcFile.GetSize();
         if (fsize > 20 * 1024 * 1024) // skip any xml files > 20 mbytes, they are something other than xml files
         {
-            srcDir.GetNext(&fname);
+            cont = srcDir.GetNext(&fname);
             continue;
         }
         SetStatusText("Copying File \"" + srcFile.GetFullPath());
@@ -2540,7 +2549,8 @@ void xLightsFrame::OnSetGridNodeValues(wxCommandEvent& event)
 
 void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
 {
-    double playSpeed = 1.0;
+    playSpeed = 1.0;
+    playAnimation = false;
     if (event.GetId() == ID_PLAY_FULL)
     {
         playSpeed = 1.0;
@@ -2558,9 +2568,16 @@ void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
         playSpeed = 0.25;
     }
 	AudioManager::SetGlobalPlaybackRate(playSpeed);
-	if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
+	if (CurrentSeqXmlFile != NULL)
 	{
-		CurrentSeqXmlFile->GetMedia()->SetPlaybackRate(playSpeed);
+	    if( CurrentSeqXmlFile->GetMedia() != NULL )
+        {
+            CurrentSeqXmlFile->GetMedia()->SetPlaybackRate(playSpeed);
+        }
+        else
+        {
+            playAnimation = true;
+        }
 	}
 }
 

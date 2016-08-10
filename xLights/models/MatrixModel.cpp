@@ -27,28 +27,35 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         TOP_BOT_LEFT_RIGHT.Add("Top Right");
         TOP_BOT_LEFT_RIGHT.Add("Bottom Left");
         TOP_BOT_LEFT_RIGHT.Add("Bottom Right");
-        
+
         MATRIX_STYLES.Add("Horizontal");
         MATRIX_STYLES.Add("Vertical");
     }
-    
+
     AddStyleProperties(grid);
-    
+
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "MatrixStringCount", parm1));
     p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 640);
+    p->SetAttribute("Max", 10000);
     p->SetEditor("SpinCtrl");
-    
-    p = grid->Append(new wxUIntProperty("Lights/String", "MatrixLightCount", parm2));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 640);
-    p->SetEditor("SpinCtrl");
+
+    if (SingleNode) {
+        p = grid->Append(new wxUIntProperty("Lights/String", "MatrixLightCount", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 10000);
+        p->SetEditor("SpinCtrl");
+    } else {
+        p = grid->Append(new wxUIntProperty("Nodes/String", "MatrixLightCount", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 10000);
+        p->SetEditor("SpinCtrl");
+    }
 
     p = grid->Append(new wxUIntProperty("Strands/String", "MatrixStrandCount", parm3));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
-    
+
     p = grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
 }
 void MatrixModel::AddStyleProperties(wxPropertyGridInterface *grid) {
@@ -87,7 +94,7 @@ int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }
-    
+
     return Model::OnPropertyGridChange(grid, event);
 }
 
@@ -164,7 +171,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
                 }
             }
         }
-        
+
         for (x=0; x < NumStrands; x++) {
             stringnum = x / parm3;
             segmentnum = x % parm3;
@@ -196,7 +203,7 @@ void MatrixModel::InitHMatrix() {
     SetBufferSize(NumStrands,PixelsPerStrand);
     SetNodeCount(parm1,PixelsPerString,rgbOrder);
     screenLocation.SetRenderSize(PixelsPerStrand, NumStrands);
-    
+
     // create output mapping
     if (SingleNode) {
         y=0;

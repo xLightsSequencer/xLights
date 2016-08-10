@@ -64,7 +64,7 @@ void CircleModel::InitCircle() {
     int maxLights = 0;
     int numLights = parm1 * parm2;
     int cnt = 0;
-    
+
     if (circleSizes.size() == 0) {
         circleSizes.resize(1);
         circleSizes[0] = numLights;
@@ -78,14 +78,14 @@ void CircleModel::InitCircle() {
             maxLights = circleSizes[x];
         }
     }
-    
+
     SetNodeCount(parm1,parm2,rgbOrder);
     SetBufferSize(circleSizes.size(),maxLights);
     int LastStringNum=-1;
     int chan = 0,idx;
     int ChanIncr=SingleChannel ?  1 : 3;
     size_t NodeCount=GetNodeCount();
-    
+
     size_t node = 0;
     int nodesToMap = NodeCount;
     for (int circle = 0; circle < circleSizes.size(); circle++) {
@@ -149,17 +149,24 @@ void CircleModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
-    
-    p = grid->Append(new wxUIntProperty("Lights/String", "CircleLightCount", parm2));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 1000);
-    p->SetEditor("SpinCtrl");
-    
+
+    if (SingleNode) {
+        p = grid->Append(new wxUIntProperty("Lights/String", "CircleLightCount", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 1000);
+        p->SetEditor("SpinCtrl");
+    } else {
+        p = grid->Append(new wxUIntProperty("Nodes/String", "CircleLightCount", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 1000);
+        p->SetEditor("SpinCtrl");
+    }
+
     p = grid->Append(new wxUIntProperty("Center %", "CircleCenterPercent", parm3));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
-    
+
     p = grid->Append(new wxStringProperty("Layer Sizes", "CircleLayerSizes", ModelXml->GetAttribute("circleSizes")));
 }
 int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -185,6 +192,6 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }
-    
+
     return Model::OnPropertyGridChange(grid, event);
 }

@@ -817,7 +817,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 
         if (background == nullptr) {
             backgroundFile = previewBackgroundFile;
-            if (backgroundFile != "") {
+            if (backgroundFile != "" && wxFileExists(backgroundFile)) {
                 background = new wxImage(backgroundFile);
             }
         }
@@ -1246,14 +1246,13 @@ void LayoutPanel::FinalizeModel()
     m_dragging = false;
     m_polyline_active = false;
 
-
     if (newModel != nullptr) {
         if (selectedButton->GetModelType() == "Import Custom")
         {
-            float min_x = 0.25;
-            float max_x = 0.50;
-            float min_y = 0.25;
-            float max_y = 0.50;
+            float min_x = (float)(newModel->GetModelScreenLocation().GetLeft()) / (float)(newModel->GetModelScreenLocation().previewW);
+            float max_x = (float)(newModel->GetModelScreenLocation().GetRight()) / (float)(newModel->GetModelScreenLocation().previewW);
+            float min_y = (float)(newModel->GetModelScreenLocation().GetBottom()) / (float)(newModel->GetModelScreenLocation().previewH);
+            float max_y = (float)(newModel->GetModelScreenLocation().GetTop()) / (float)(newModel->GetModelScreenLocation().previewH);
             newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights);
             newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
             if (selectedButton->GetState() == 1)

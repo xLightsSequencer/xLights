@@ -156,8 +156,11 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     ValidateWindow();
 }
 
-void ColorCurveDialog::ProcessPresetDir(wxDir& directory)
+void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Scanning directory for *.xcc files: %s.", (const char *)directory.GetNameWithSep().c_str());
+
     wxString filename;
     auto existing = PresetSizer->GetChildren();
 
@@ -191,12 +194,15 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory)
         cont = directory.GetNext(&filename);
     }
 
-    cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
-    while (cont)
+    if (subdirs)
     {
-        wxDir dir(directory.GetNameWithSep() + filename);
-        ProcessPresetDir(dir);
-        cont = directory.GetNext(&filename);
+        cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        while (cont)
+        {
+            wxDir dir(directory.GetNameWithSep() + filename);
+            ProcessPresetDir(dir, subdirs);
+            cont = directory.GetNext(&filename);
+        }
     }
 }
 
@@ -204,16 +210,39 @@ void ColorCurveDialog::PopulatePresets()
 {
     wxDir dir(xLightsFrame::CurrentDir);
 
-    ProcessPresetDir(dir);
+    ProcessPresetDir(dir, false);
 
-    wxStandardPaths  stdp = wxStandardPaths::Get();
-    dir.Open(wxFileName(stdp.GetExecutablePath()).GetPath());
+    wxString d = xLightsFrame::CurrentDir + "/colorcurves";
 
-    ProcessPresetDir(dir);
+    if (wxDir::Exists(d))
+    {
+        dir.Open(d);
+        ProcessPresetDir(dir, true);
+    }
+    else
+    {
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("Directory for *.xcc files not found: %s.", (const char *)d.c_str());
+    }
 
-    dir.Open(wxFileName(stdp.GetResourcesDir()).GetPath());
-    ProcessPresetDir(dir);
-    
+    wxStandardPaths stdp = wxStandardPaths::Get();
+
+#ifndef __WXMSW__
+    d = wxStandardPaths::Get().GetResourcesDir() + "/colorcurves";
+#else
+    d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/colorcurves";
+#endif
+    if (wxDir::Exists(d))
+    {
+        dir.Open(d);
+        ProcessPresetDir(dir, true);
+    }
+    else
+    {
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("Directory for *.xcc files not found: %s.", (const char *)d.c_str());
+    }
+
     PresetSizer->Layout();
     wxWindow::Layout();
     //wxWindow::Fit();
@@ -578,7 +607,6 @@ void ColorCurvePanel::DrawStopsAsLines(wxAutoBufferedPaintDC& pdc)
     {
         pdc.SetPen(wxPen(*wxRED, 3, wxPENSTYLE_SOLID));
 
-        std::list<ccSortableColorPoint>::iterator last = pts.begin();
         for (auto p = pts.begin()++; p != pts.end(); ++p)
         {
             if (p->x == 1.0)

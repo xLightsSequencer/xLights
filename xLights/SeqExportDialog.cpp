@@ -2,15 +2,21 @@
 
 //(*InternalHeaders(SeqExportDialog)
 #include <wx/intl.h>
-#include <wx/button.h>
 #include <wx/string.h>
 //*)
+
+#include <wx/dir.h>
+#include <wx/filename.h>
+#include <wx/filepicker.h>
 
 //(*IdInit(SeqExportDialog)
 const long SeqExportDialog::ID_STATICTEXT1 = wxNewId();
 const long SeqExportDialog::ID_CHOICE1 = wxNewId();
 const long SeqExportDialog::ID_STATICTEXT3 = wxNewId();
 const long SeqExportDialog::ID_TEXTCTRL2 = wxNewId();
+const long SeqExportDialog::ID_BUTTON1 = wxNewId();
+const long SeqExportDialog::ID_BUTTON2 = wxNewId();
+const long SeqExportDialog::ID_BUTTON3 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SeqExportDialog,wxDialog)
@@ -21,9 +27,10 @@ END_EVENT_TABLE()
 SeqExportDialog::SeqExportDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     //(*Initialize(SeqExportDialog)
+    wxFlexGridSizer* FlexGridSizer4;
+    wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer1;
-    wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, wxID_ANY, _("Export Sequence"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -44,22 +51,33 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     FlexGridSizer2->Add(ChoiceFormat, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("File name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer3->AddGrowableCol(0);
     TextCtrlFilename = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
-    FlexGridSizer2->Add(TextCtrlFilename, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer3->Add(TextCtrlFilename, 1, wxALL|wxEXPAND, 2);
+    ButtonFilePick = new wxButton(this, ID_BUTTON1, _("..."), wxDefaultPosition, wxSize(34,28), 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    FlexGridSizer3->Add(ButtonFilePick, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
-    StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
-    StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
-    StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
-    StdDialogButtonSizer1->Realize();
-    FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
+    ButtonOk = new wxButton(this, ID_BUTTON2, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    FlexGridSizer4->Add(ButtonOk, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonCancel = new wxButton(this, ID_BUTTON3, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    FlexGridSizer4->Add(ButtonCancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqExportDialog::OnChoiceFormatSelect);
+    Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqExportDialog::OnTextCtrlFilenameText);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqExportDialog::OnButtonFilePickClick);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqExportDialog::OnButtonOkClick);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqExportDialog::OnButtonCancelClick);
     //*)
 
-    StdDialogButtonSizer1->GetAffirmativeButton()->SetDefault();
+    ButtonOk->SetDefault();
+    ValidateWindow();
 }
 
 SeqExportDialog::~SeqExportDialog()
@@ -68,8 +86,13 @@ SeqExportDialog::~SeqExportDialog()
     //*)
 }
 
-void SeqExportDialog::ModelExportTypes()
+void SeqExportDialog::ModelExportTypes(bool isgroup)
 {
+    if (isgroup)
+    {
+        ChoiceFormat->Delete(ChoiceFormat->FindString(_("Compressed Video, *.avi")));
+        ChoiceFormat->Delete(ChoiceFormat->FindString(_("Uncompressed Video, *.avi")));
+    }
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("LOR. *.lms or *.las")));
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("Vixen, Vixen sequence file *.vix")));
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("xLights, *.xseq")));
@@ -81,4 +104,84 @@ void SeqExportDialog::ModelExportTypes()
 void SeqExportDialog::OnChoiceFormatSelect(wxCommandEvent& event)
 {
     TextCtrlFilename->SetFocus();
+    ValidateWindow();
+}
+
+void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
+{
+    wxString fmt = ChoiceFormat->GetStringSelection();
+
+    if (fmt == "LOR. *.lms or *.las")
+    {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "LOR", wxEmptyString, "LOR (*.lms;*.las)|*.lms;*.las", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+    }
+    else if (fmt == "Lcb, LOR Clipboard *.lcb")
+    {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "LOR Clipboard", wxEmptyString, "LOR Clipboard (*.lcb)|*.lcb", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+    }
+    else if (fmt == "Vixen, Vixen sequence file *.vix")
+    {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "Vixen", wxEmptyString, "Vixen Sequence File (*.vix)|*.vix", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+    }
+    else if (fmt == "Vir, Vixen Routine file. *.vir")
+    {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "VIR", wxEmptyString, "Vixen Routine File (*.vir)|*.vir", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+    }
+    else if (fmt == "LSP, Light Show Pro ")
+    {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "LSP", wxEmptyString, "Light Show Pro (*.*)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+    }
+    else if (fmt == "HLS, Hinkle Lighte Sequencer *.hlsnc")
+    {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "HLS", wxEmptyString, "Hinkle Light Sequencer (*.hlsnc)|*.hlsnc", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+    }
+    else if (fmt == "xLights, *.xseq")
+    {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "xLights", wxEmptyString, "xLights (*.xseq)|*.xseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+    }
+    else if (fmt == "Falcon, *.fseq")
+    {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "Falcon", wxEmptyString, "Falcon (*.fseq)|*.fseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+    }
+    else if (fmt == "Compressed Video, *.avi" || fmt == "Uncompressed Video, *.avi")
+    {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "Video", wxEmptyString, "Video (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+    }
+
+    ValidateWindow();
+}
+
+void SeqExportDialog::OnButtonOkClick(wxCommandEvent& event)
+{
+    EndDialog(wxID_OK);
+}
+
+void SeqExportDialog::OnButtonCancelClick(wxCommandEvent& event)
+{
+    EndDialog(wxID_CANCEL);
+}
+
+void SeqExportDialog::OnTextCtrlFilenameText(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void SeqExportDialog::ValidateWindow()
+{
+    if (TextCtrlFilename->GetValue() != "")
+    {
+        wxFileName fn(TextCtrlFilename->GetValue());
+        if (fn.GetPathWithSep() == "" || wxDir::Exists(fn.GetPathWithSep()))
+        {
+            ButtonOk->Enable();
+        }
+        else
+        {
+            ButtonOk->Disable();
+        }
+    }
+    else
+    {
+        ButtonOk->Disable();
+    }
 }

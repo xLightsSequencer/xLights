@@ -34,7 +34,7 @@ void SphereModel::InitSphere() {
     if (IsLtoR != isBotToTop) pctIncr*=-1.0;    // adjust to ccw
     int ChanIncr=SingleChannel ?  1 : 3;
     size_t NodeCount=GetNodeCount();
-    
+
     /*
      x	=	r * cos(phi);
      y	=	r * sin(phi);
@@ -73,17 +73,24 @@ void SphereModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");
-    
-    p = grid->Append(new wxUIntProperty("Lights/String", "SphereLightCount", parm2));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 640);
-    p->SetEditor("SpinCtrl");
-    
+
+    if (SingleNode) {
+        p = grid->Append(new wxUIntProperty("Lights/String", "SphereLightCount", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 640);
+        p->SetEditor("SpinCtrl");
+    } else {
+        p = grid->Append(new wxUIntProperty("Nodes/String", "SphereLightCount", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 640);
+        p->SetEditor("SpinCtrl");
+    }
+
     p = grid->Append(new wxUIntProperty("Strands/String", "SphereStrandCount", parm3));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
-    
+
     p = grid->Append(new wxEnumProperty("Starting Location", "SphereStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
 }
 int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -111,7 +118,7 @@ int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }
-    
+
     return Model::OnPropertyGridChange(grid, event);
 }
 

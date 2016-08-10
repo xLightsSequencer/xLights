@@ -249,10 +249,10 @@ void PolyLineModel::InitModel() {
     }
 
     // calculate min/max for the model
-    minX = 100.0f;
-    minY = 100.0f;
-    maxX = 0.0f;
-    maxY = 0.0f;
+    float minX = 100.0f;
+    float minY = 100.0f;
+    float maxX = 0.0f;
+    float maxY = 0.0f;
 
     for( int i = 0; i < num_points; ++i ) {
         if( pPos[i].x < minX ) minX = pPos[i].x;
@@ -701,8 +701,11 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             }
             SetProperty("name", newname, true);
 
-            // handle all the line segments
             int num_points = wxAtoi(pts);
+            ModelXml->DeleteAttribute("NumPoints");
+            ModelXml->AddAttribute("NumPoints", pts);
+
+            // handle all the line segments
             ModelXml->DeleteAttribute("IndivSegs");
             if( is == "1" ) {
                 ModelXml->AddAttribute("IndivSegs", "1");
@@ -714,13 +717,6 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
                     ModelXml->AddAttribute(SegAttrName(x), wxString::Format("%d", seg_length));
                 }
             }
-
-            ModelXml->DeleteAttribute("NumPoints");
-            ModelXml->DeleteAttribute("PointData");
-            ModelXml->DeleteAttribute("cPointData");
-            ModelXml->AddAttribute("NumPoints", pts);
-            ModelXml->AddAttribute("PointData", point_data);
-            ModelXml->AddAttribute("cPointData", cpoint_data);
 
             // read in the point data from xml
             std::vector<xlPolyPoint> pPos(num_points);
@@ -745,22 +741,11 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
                 pPos[seg_num].curve->UpdatePoints();
             }
 
-            // get min/max for imported data
-            float _minX = wxAtof(root->GetAttribute("MinX"));
-            float _minY = wxAtof(root->GetAttribute("MaxX"));
-            float _maxX = wxAtof(root->GetAttribute("MinY"));
-            float _maxY = wxAtof(root->GetAttribute("MaxY"));
-
-            float _deltax = _maxX-_minX;
-            float _deltay = _maxY-_minY;
-
             float deltax = max_x-min_x;
             float deltay = max_y-min_y;
 
-            // normalize all the incoming point data then adjust for new min/max
+            // adjust points for new min/max
             for( int i = 0; i < num_points; ++i ) {
-                pPos[i].x = (pPos[i].x - _minX) / _deltax;
-                pPos[i].y = (pPos[i].y - _minY) / _deltay;
                 pPos[i].x = (pPos[i].x * deltax) + min_x;
                 pPos[i].y = (pPos[i].y * deltay) + min_y;
                 if( pPos[i].has_curve ) {
@@ -768,10 +753,6 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
                     float cp0y = pPos[i].curve->get_cp0y();
                     float cp1x = pPos[i].curve->get_cp1x();
                     float cp1y = pPos[i].curve->get_cp1y();
-                    cp0x = (cp0x - _minX) / _deltax;
-                    cp0y = (cp0y - _minY) / _deltay;
-                    cp1x = (cp1x - _minX) / _deltax;
-                    cp1y = (cp1y - _minY) / _deltay;
                     cp0x = (cp0x * deltax) + min_x;
                     cp0y = (cp0y * deltay) + min_y;
                     cp1x = (cp1x * deltax) + min_x;
@@ -853,6 +834,7 @@ void PolyLineModel::ExportXlightsModel()
     wxString nn = ModelXml->GetAttribute("NodeNames");
     wxString is = ModelXml->GetAttribute("IndivSegs");
     wxString pts = ModelXml->GetAttribute("NumPoints");
+    NormalizePointData();
     wxString point_data = ModelXml->GetAttribute("PointData");
     wxString cpoint_data = ModelXml->GetAttribute("cPointData");
     wxString v = xlights_version_string;
@@ -877,14 +859,94 @@ void PolyLineModel::ExportXlightsModel()
         wxString seg = ModelXml->GetAttribute(SegAttrName(x), "");
         f.Write(wxString::Format("%s=\"%s\" ", SegAttrName(x), seg));
     }
-    f.Write(wxString::Format("MinX=\"%s\" ", wxString::Format("%f",minX)));
-    f.Write(wxString::Format("MaxX=\"%s\" ", wxString::Format("%f",maxX)));
-    f.Write(wxString::Format("MinY=\"%s\" ", wxString::Format("%f",minY)));
-    f.Write(wxString::Format("MaxY=\"%s\" ", wxString::Format("%f",maxY)));
     f.Write(wxString::Format("PointData=\"%s\" ", point_data));
     f.Write(wxString::Format("cPointData=\"%s\" ", cpoint_data));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(" >\n");
     f.Write("</polylinemodel>");
     f.Close();
+}
+
+void PolyLineModel::NormalizePointData()
+{
+    // read in the point data from xml
+    int num_points = wxAtoi(ModelXml->GetAttribute("NumPoints"));
+    std::vector<xlPolyPoint> pPos(num_points);
+    wxString point_data = ModelXml->GetAttribute("PointData");
+    wxArrayString point_array = wxSplit(point_data, ',');
+    for( int i = 0; i < num_points; ++i ) {
+        pPos[i].x = wxAtof(point_array[i*2]);
+        pPos[i].y = wxAtof(point_array[i*2+1]);
+        pPos[i].has_curve = false;
+        pPos[i].curve = nullptr;
+    }
+    wxString cpoint_data = ModelXml->GetAttribute("cPointData", "");
+    wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
+    int num_curves = cpoint_array.size() / 5;
+    for( int i = 0; i < num_curves; ++i ) {
+        int seg_num = wxAtoi(cpoint_array[i*5]);
+        pPos[seg_num].has_curve = true;
+        pPos[seg_num].curve = new BezierCurveCubic();
+        pPos[seg_num].curve->set_p0(pPos[seg_num].x, pPos[seg_num].y);
+        pPos[seg_num].curve->set_p1(pPos[seg_num+1].x, pPos[seg_num+1].y);
+        pPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*5+1]), wxAtof(cpoint_array[i*5+2]) );
+        pPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*5+3]), wxAtof(cpoint_array[i*5+4]) );
+        pPos[seg_num].curve->SetScale(1.0, 1.0, 1.0);
+        pPos[seg_num].curve->UpdatePoints();
+    }
+
+    float minX = 100.0f;
+    float minY = 100.0f;
+    float maxX = 0.0f;
+    float maxY = 0.0f;
+
+    for( int i = 0; i < num_points; ++i ) {
+        if( pPos[i].x < minX ) minX = pPos[i].x;
+        if( pPos[i].y < minY ) minY = pPos[i].y;
+        if( pPos[i].x > maxX ) maxX = pPos[i].x;
+        if( pPos[i].y > maxY ) maxY = pPos[i].y;
+        if( pPos[i].has_curve ) {
+            pPos[i].curve->check_min_max(minX, maxX, minY, maxY);
+        }
+    }
+    float deltax = maxX-minX;
+    float deltay = maxY-minY;
+
+    // normalize all the point data
+    for( int i = 0; i < num_points; ++i ) {
+        pPos[i].x = (pPos[i].x - minX) / deltax;
+        pPos[i].y = (pPos[i].y - minY) / deltay;
+        if( pPos[i].has_curve ) {
+            float cp0x = pPos[i].curve->get_cp0x();
+            float cp0y = pPos[i].curve->get_cp0y();
+            float cp1x = pPos[i].curve->get_cp1x();
+            float cp1y = pPos[i].curve->get_cp1y();
+            cp0x = (cp0x - minX) / deltax;
+            cp0y = (cp0y - minY) / deltay;
+            cp1x = (cp1x - minX) / deltax;
+            cp1y = (cp1y - minY) / deltay;
+            pPos[i].curve->set_cp0(cp0x, cp0y);
+            pPos[i].curve->set_cp1(cp1x, cp1y);
+        }
+    }
+
+    ModelXml->DeleteAttribute("PointData");
+    ModelXml->DeleteAttribute("cPointData");
+    point_data = "";
+    for( int i = 0; i < num_points; ++i ) {
+        point_data += wxString::Format( "%f,", pPos[i].x );
+        point_data += wxString::Format( "%f", pPos[i].y );
+        if( i != num_points-1 ) {
+            point_data += ",";
+        }
+    }
+    cpoint_data = "";
+    for( int i = 0; i < num_points; ++i ) {
+        if( pPos[i].has_curve ) {
+            cpoint_data += wxString::Format( "%d,%f,%f,%f,%f,", i, pPos[i].curve->get_cp0x(), pPos[i].curve->get_cp0y(),
+                                                       pPos[i].curve->get_cp1x(), pPos[i].curve->get_cp1y() );
+        }
+    }
+    ModelXml->AddAttribute("PointData", point_data);
+    ModelXml->AddAttribute("cPointData", cpoint_data);
 }

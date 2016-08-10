@@ -156,18 +156,10 @@ public:
         PreviewRotation = r;
     }
 
-    virtual int GetTop() const override {
-        return mMaxScreenY;
-    }
-    virtual int GetLeft() const override {
-        return mMinScreenX;
-    }
-    virtual int GetRight() const override {
-        return mMaxScreenX;
-    }
-    virtual int GetBottom() const override {
-        return mMinScreenY;
-    }
+    virtual int GetTop() const override;
+    virtual int GetLeft() const override;
+    virtual int GetRight() const override;
+    virtual int GetBottom() const override;
     virtual void SetTop(int i) override;
     virtual void SetLeft(int i) override;
     virtual void SetRight(int i) override;
