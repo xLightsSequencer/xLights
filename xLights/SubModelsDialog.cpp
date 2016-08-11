@@ -5,6 +5,7 @@
 #include <wx/textdlg.h>
 #include <wx/msgdlg.h>
 #include <wx/menu.h>
+#include <wx/tokenzr.h>
 
 #include "models/Model.h"
 
@@ -27,6 +28,8 @@ const long SubModelsDialog::ID_BUTTON3 = wxNewId();
 const long SubModelsDialog::ID_BUTTON4 = wxNewId();
 const long SubModelsDialog::ID_CHECKBOX1 = wxNewId();
 const long SubModelsDialog::ID_GRID1 = wxNewId();
+const long SubModelsDialog::ID_BUTTON1 = wxNewId();
+const long SubModelsDialog::ID_BUTTON2 = wxNewId();
 const long SubModelsDialog::ID_PANEL1 = wxNewId();
 //*)
 
@@ -35,16 +38,23 @@ BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
+#include "ModelPreview.h"
+#include "DimmingCurve.h"
+
+
 SubModelsDialog::SubModelsDialog(wxWindow* parent)
 {
 	//(*Initialize(SubModelsDialog)
+	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
-	Create(parent, wxID_ANY, _("Sub Models"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, _("Sub Models"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
+	SetClientSize(wxSize(417,215));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
@@ -65,12 +75,15 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer7->Add(AddButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	DeleteButton = new wxButton(this, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
 	FlexGridSizer7->Add(DeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	LayoutCheckbox = new wxCheckBox(this, ID_CHECKBOX1, _("Vertical Buffer Layout"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	LayoutCheckbox->SetValue(false);
 	FlexGridSizer3->Add(LayoutCheckbox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer4->AddGrowableCol(0);
+	FlexGridSizer4->AddGrowableRow(0);
 	NodesGrid = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_GRID1"));
-	NodesGrid->CreateGrid(2,1);
+	NodesGrid->CreateGrid(5,1);
 	NodesGrid->EnableEditing(true);
 	NodesGrid->EnableGridLines(true);
 	NodesGrid->SetColLabelSize(18);
@@ -79,11 +92,24 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	NodesGrid->SetRowLabelValue(0, _("Strand   1"));
 	NodesGrid->SetDefaultCellFont( NodesGrid->GetFont() );
 	NodesGrid->SetDefaultCellTextColour( NodesGrid->GetForegroundColour() );
-	FlexGridSizer3->Add(NodesGrid, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(NodesGrid, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
+	AddRowButton = new wxButton(this, ID_BUTTON1, _("Add Row"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer5->Add(AddRowButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	DeleteRowButton = new wxButton(this, ID_BUTTON2, _("Delete Row"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	FlexGridSizer5->Add(DeleteRowButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	ModelPreviewPanelLocation = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	ModelPreviewPanelLocation->SetMinSize(wxDLG_UNIT(this,wxSize(100,100)));
-	FlexGridSizer2->Add(ModelPreviewPanelLocation, 1, wxALL|wxEXPAND, 5);
+	PreviewSizer = new wxFlexGridSizer(1, 1, 0, 0);
+	PreviewSizer->AddGrowableCol(0);
+	PreviewSizer->AddGrowableRow(0);
+	ModelPreviewPanelLocation->SetSizer(PreviewSizer);
+	PreviewSizer->Fit(ModelPreviewPanelLocation);
+	PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
+	FlexGridSizer2->Add(ModelPreviewPanelLocation, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
@@ -91,19 +117,32 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	StdDialogButtonSizer1->Realize();
 	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
+	SetSizer(FlexGridSizer1);
+	Layout();
 	Center();
 
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SubModelsDialog::OnNameChoiceSelect);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddButtonClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnDeleteButtonClick);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnLayoutCheckboxClick);
-	Connect(ID_GRID1,wxEVT_GRID_LABEL_RIGHT_CLICK,(wxObjectEventFunction)&SubModelsDialog::PopupMenu);
 	Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellSelect);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddRowButtonClick);
+	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnDeleteRowButtonClick);
 	//*)
 
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
+    
+    modelPreview = new ModelPreview(ModelPreviewPanelLocation);
+    modelPreview->SetMinSize(wxSize(150, 150));
+    PreviewSizer->Add(modelPreview, 1, wxALL|wxEXPAND, 0);
+    PreviewSizer->Fit(ModelPreviewPanelLocation);
+    PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
+
+    FlexGridSizer1->Fit(this);
+    FlexGridSizer1->SetSizeHints(this);
+    Center();
+    
+    NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
 }
 
 SubModelsDialog::~SubModelsDialog()
@@ -146,6 +185,8 @@ void SubModelsDialog::Setup(Model *m)
         DeleteButton->Disable();
         NodesGrid->Disable();
         LayoutCheckbox->Disable();
+        AddRowButton->Disable();
+        DeleteRowButton->Disable();
     }
 }
 void SubModelsDialog::Save()
@@ -170,36 +211,6 @@ void SubModelsDialog::Save()
             child->AddAttribute(wxString::Format("line%d", x), a->second.strands[x]);
         }
         root->AddChild(child);
-    }
-}
-
-static const long ID_ADD_ROW = wxNewId();
-static const long ID_DELETE_ROW = wxNewId();
-void SubModelsDialog::PopupMenu(wxGridEvent& event)
-{
-    if (!NameChoice->IsEnabled()) {
-        return;
-    }
-    wxMenu menu;
-    menu.Append(ID_ADD_ROW, "Add Row");
-    if (event.GetRow() != -1) {
-        clickRow = event.GetRow();
-        menu.Append(ID_DELETE_ROW, "Delete Row");
-    }
-    menu.Connect(wxID_ANY, (wxObjectEventFunction)&SubModelsDialog::OnPopup, NULL, this);
-    menu.Enable(ID_ADD_ROW, true);
-    wxDialog::PopupMenu(&menu);
-}
-void SubModelsDialog::OnPopup(wxCommandEvent& event) {
-    wxString name = NameChoice->GetStringSelection();
-    if (event.GetId() == ID_ADD_ROW) {
-        subModels[name].strands.push_back("");
-        Select(name);
-    } else if (event.GetId() == ID_DELETE_ROW) {
-        int sz = subModels[name].strands.size();
-        subModels[name].strands.erase(subModels[name].strands.begin()+clickRow);
-        subModels[name].strands.resize(sz - 1);
-        Select(name);
     }
 }
 
@@ -238,6 +249,8 @@ void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
             DeleteButton->Disable();
             NodesGrid->Disable();
             LayoutCheckbox->Disable();
+            AddRowButton->Disable();
+            DeleteRowButton->Disable();
         }
     }
 }
@@ -251,18 +264,25 @@ void SubModelsDialog::Select(const wxString &name) {
     DeleteButton->Enable();
     NodesGrid->Enable();
     LayoutCheckbox->Enable();
+    AddRowButton->Enable();
+    DeleteRowButton->Enable(subModels[name].strands.size() > 1);
+
 
     NameChoice->SetStringSelection(name);
 
     LayoutCheckbox->SetValue(subModels[name].vertical);
     NodesGrid->BeginBatch();
-    NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
+    if (NodesGrid->GetNumberRows() > 0) {
+        NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
+    }
     for (int x = 0; x < subModels[name].strands.size(); x++) {
         NodesGrid->AppendRows(1);
         NodesGrid->SetRowLabelValue(x, wxString::Format("Line %d", (x + 1)));
         NodesGrid->SetCellValue(x, 0, subModels[name].strands[x]);
     }
     NodesGrid->EndBatch();
+    NodesGrid->GoToCell(0, 0);
+    SelectRow(0);
 }
 
 
@@ -270,14 +290,70 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
 {
     int r = event.GetRow();
     subModels[NameChoice->GetStringSelection()].strands[r] = NodesGrid->GetCellValue(r, 0);
+    SelectRow(r);
 }
 
 void SubModelsDialog::OnNodesGridCellSelect(wxGridEvent& event)
 {
+    SelectRow(event.GetRow());
+}
+void SubModelsDialog::SelectRow(int r) {
+    wxString v = NodesGrid->GetCellValue(r, 0);
+    int nn = model->GetNodeCount();
+    xlColor c(xlDARK_GREY);
+    if (model->modelDimmingCurve) {
+        model->modelDimmingCurve->apply(c);
+    }
+    for (int node = 0; node < nn; node++) {
+        model->SetNodeColor(node, c);
+    }
 
+    wxStringTokenizer wtkz(v, ",");
+    while (wtkz.HasMoreTokens()) {
+        wxString valstr = wtkz.GetNextToken();
+        
+        int start, end;
+        if (valstr.Contains("-")) {
+            int idx = valstr.Index('-');
+            start = wxAtoi(valstr.Left(idx));
+            end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+        } else {
+            start = end = wxAtoi(valstr);
+        }
+        if (start > end) {
+            start = end;
+        }
+        start--;
+        end--;
+        for (int n = start; n <= end; n++) {
+            if (n < model->GetNodeCount()) {
+                model->SetNodeColor(n, xlWHITE);
+            }
+        }
+    }
+    model->DisplayEffectOnWindow(modelPreview, 2);
 }
 
 void SubModelsDialog::OnLayoutCheckboxClick(wxCommandEvent& event)
 {
     subModels[NameChoice->GetStringSelection()].vertical = LayoutCheckbox->GetValue();
+}
+
+void SubModelsDialog::OnAddRowButtonClick(wxCommandEvent& event)
+{
+    wxString name = NameChoice->GetStringSelection();
+    subModels[name].strands.push_back("");
+    DeleteRowButton->Enable();
+    Select(name);
+}
+
+void SubModelsDialog::OnDeleteRowButtonClick(wxCommandEvent& event)
+{
+    wxString name = NameChoice->GetStringSelection();
+    int row = NodesGrid->GetGridCursorRow();
+    int sz = subModels[name].strands.size();
+    subModels[name].strands.erase(subModels[name].strands.begin()+row);
+    subModels[name].strands.resize(sz - 1);
+    Select(name);
+    DeleteRowButton->Enable(subModels[name].strands.size() > 1);
 }

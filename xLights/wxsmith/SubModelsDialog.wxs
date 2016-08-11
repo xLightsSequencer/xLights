@@ -3,7 +3,9 @@
 	<object class="wxDialog" name="SubModelsDialog">
 		<title>Sub Models</title>
 		<centered>1</centered>
+		<size>417,215</size>
 		<id_arg>0</id_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -59,7 +61,6 @@
 									</object>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -72,36 +73,75 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxGrid" name="ID_GRID1" variable="NodesGrid" member="yes">
-									<cols>1</cols>
-									<rows>2</rows>
-									<labelrowheight>18</labelrowheight>
-									<defaultcolsize>150</defaultcolsize>
-									<collabels>
-										<item>Node Ranges</item>
-									</collabels>
-									<rowlabels>
-										<item>Strand   1</item>
-									</rowlabels>
-									<style>wxVSCROLL</style>
-									<handler function="PopupMenu" entry="EVT_CMD_GRID_LABEL_RIGHT_CLICK" />
-									<handler function="OnNodesGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+									<cols>2</cols>
+									<growablecols>0</growablecols>
+									<growablerows>0</growablerows>
+									<object class="sizeritem">
+										<object class="wxGrid" name="ID_GRID1" variable="NodesGrid" member="yes">
+											<cols>1</cols>
+											<rows>5</rows>
+											<labelrowheight>18</labelrowheight>
+											<defaultcolsize>150</defaultcolsize>
+											<collabels>
+												<item>Node Ranges</item>
+											</collabels>
+											<rowlabels>
+												<item>Strand   1</item>
+											</rowlabels>
+											<style>wxVSCROLL</style>
+											<handler function="OnNodesGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+											<cols>1</cols>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON1" variable="AddRowButton" member="yes">
+													<label>Add Row</label>
+													<handler function="OnAddRowButtonClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON2" variable="DeleteRowButton" member="yes">
+													<label>Delete Row</label>
+													<handler function="OnDeleteRowButtonClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<option>1</option>
+									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
 						<object class="wxPanel" name="ID_PANEL1" variable="ModelPreviewPanelLocation" member="yes">
 							<minsize>100,100d</minsize>
+							<object class="wxFlexGridSizer" variable="PreviewSizer" member="yes">
+								<cols>1</cols>
+								<rows>1</rows>
+								<growablecols>0</growablecols>
+								<growablerows>0</growablerows>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<minsize>100,100d</minsize>
 						<option>1</option>
 					</object>

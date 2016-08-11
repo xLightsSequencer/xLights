@@ -19,6 +19,7 @@ class wxChoice;
 
 
 class Model;
+class ModelPreview;
 
 class SubModelsDialog: public wxDialog
 {
@@ -33,11 +34,14 @@ class SubModelsDialog: public wxDialog
 		//(*Declarations(SubModelsDialog)
 		wxCheckBox* LayoutCheckbox;
 		wxPanel* ModelPreviewPanelLocation;
+		wxButton* AddRowButton;
+		wxFlexGridSizer* PreviewSizer;
 		wxStaticText* StaticText3;
 		wxGrid* NodesGrid;
 		wxButton* AddButton;
 		wxButton* DeleteButton;
 		wxChoice* NameChoice;
+		wxButton* DeleteRowButton;
 		//*)
 
 	protected:
@@ -49,26 +53,30 @@ class SubModelsDialog: public wxDialog
 		static const long ID_BUTTON4;
 		static const long ID_CHECKBOX1;
 		static const long ID_GRID1;
+		static const long ID_BUTTON1;
+		static const long ID_BUTTON2;
 		static const long ID_PANEL1;
 		//*)
 
 	public:
 
 		//(*Handlers(SubModelsDialog)
-		void PopupMenu(wxGridEvent& event);
- 		void OnAddButtonClick(wxCommandEvent& event);
-        void OnPopup(wxCommandEvent& event);
+		void OnAddButtonClick(wxCommandEvent& event);
 		void OnDeleteButtonClick(wxCommandEvent& event);
 		void OnNameChoiceSelect(wxCommandEvent& event);
 		void OnNodesGridCellChange(wxGridEvent& event);
 		void OnNodesGridCellSelect(wxGridEvent& event);
 		void OnLayoutCheckboxClick(wxCommandEvent& event);
+		void OnAddRowButtonClick(wxCommandEvent& event);
+		void OnDeleteRowButtonClick(wxCommandEvent& event);
+		void OnNodesGridCellLeftClick(wxGridEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
     
     
 private:
+    void SelectRow(int r);
     void Select(const wxString &name);
     
     class SubModelInfo {
@@ -79,8 +87,9 @@ private:
     };
     
     Model *model;
+    ModelPreview *modelPreview;
     std::map<wxString, SubModelInfo> subModels;
-    int clickRow;
+    
 };
 
 #endif

@@ -394,8 +394,8 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(this, "States", "ModelStates", CLICK_TO_EDIT, 4));
     grid->LimitPropertyEditing(p);
-    //p = grid->Append(new PopupDialogProperty(this, "Sub-Models", "SubModels", CLICK_TO_EDIT, 5));
-    //grid->LimitPropertyEditing(p);
+    p = grid->Append(new PopupDialogProperty(this, "Sub-Models", "SubModels", CLICK_TO_EDIT, 5));
+    grid->LimitPropertyEditing(p);
 
     p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
     p->GetCell(0).SetFgCol(*wxBLACK);
@@ -1197,6 +1197,9 @@ xlColor Model::GetNodeColor(size_t nodenum) const {
     xlColor color;
     Nodes[nodenum]->GetColor(color);
     return color;
+}
+void Model::SetNodeColor(size_t nodenum, const xlColor &c) {
+    Nodes[nodenum]->SetColor(c);
 }
 
 
