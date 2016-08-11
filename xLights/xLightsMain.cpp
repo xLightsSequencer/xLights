@@ -73,21 +73,7 @@
 
 #define TOOLBAR_SAVE_VERSION "0002:"
 
-#ifdef __WXOSX__
 #include "osxMacUtils.h"
-AppNapSuspender sleepData;
-void EnableSleepModes()
-{
-    sleepData.resume();
-}
-void DisableSleepModes()
-{
-    sleepData.suspend();
-}
-#else
-void EnableSleepModes() {}
-void DisableSleepModes() {}
-#endif
 
 //helper functions
 enum wxbuildinfoformat

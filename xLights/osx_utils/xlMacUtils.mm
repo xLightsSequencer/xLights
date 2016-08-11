@@ -108,6 +108,29 @@ public:
     id<NSObject> activityId;
 };
 
+class AppNapSuspender {
+public:
+    AppNapSuspender();
+    ~AppNapSuspender();
+    
+    void suspend();
+    void resume();
+private:
+    AppNapSuspenderPrivate *p;
+};
+
+
+static AppNapSuspender sleepData;
+void EnableSleepModes()
+{
+    sleepData.resume();
+}
+void DisableSleepModes()
+{
+    sleepData.suspend();
+}
+
+
 AppNapSuspender::AppNapSuspender() :
     p(new AppNapSuspenderPrivate)
 {}

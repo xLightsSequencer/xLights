@@ -336,21 +336,6 @@ class TestDialog: public wxDialog
 		void CascadeColour(TreeController* tc);
 		char DoEncodeColour(xlColor& c);
 
-#ifdef __WXOSX__
-		AppNapSuspender _sleepData;
-		void EnableSleepModes()
-		{
-			_sleepData.resume();
-		}
-		void DisableSleepModes()
-		{
-			_sleepData.suspend();
-		}
-#else
-		void EnableSleepModes() {}
-		void DisableSleepModes() {}
-#endif
-
 		DECLARE_EVENT_TABLE()
 };
 #endif

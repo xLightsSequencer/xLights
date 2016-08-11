@@ -17,6 +17,7 @@
 
 #include "xLightsMain.h"
 #include <log4cpp/Category.hh>
+#include "osxMacUtils.h"
 
 #define GCM_DISPLAYIMAGEWIDTH 800
 #define GCM_DISPLAYIMAGEHEIGHT 600

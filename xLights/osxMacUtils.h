@@ -11,29 +11,21 @@
 
 #ifdef __WXOSX__
 class xlGLCanvas;
-class AppNapSuspenderPrivate;
-
-class AppNapSuspender {
-public:
-    AppNapSuspender();
-    ~AppNapSuspender();
-    
-    void suspend();
-    void resume();
-private:
-    AppNapSuspenderPrivate *p;
-};
 
 void xlSetOpenGLRetina(xlGLCanvas &win);
 void xlSetRetinaCanvasViewport(xlGLCanvas &win, int &x, int &y, int &x2, int&y2);
 double xlTranslateToRetina(xlGLCanvas &win, double x);
 void ObtainAccessToURL(const std::string &path);
+void EnableSleepModes();
+void DisableSleepModes();
 
 #else
 #define xlSetOpenGLRetina(a)
 #define xlSetRetinaCanvasViewport(w,a,b,c,d)
 #define xlTranslateToRetina(a, x) x
 #define ObtainAccessToURL(x)
+#define EnableSleepModes()
+#define DisableSleepModes()
 
 #endif
 

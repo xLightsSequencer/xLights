@@ -251,21 +251,6 @@ class GenerateCustomModelDialog: public wxDialog
 
     void ValidateWindow();
 
-#ifdef __WXOSX__
-    AppNapSuspender _sleepData;
-    void EnableSleepModes()
-    {
-        _sleepData.resume();
-    }
-    void DisableSleepModes()
-    {
-        _sleepData.suspend();
-    }
-#else
-    void EnableSleepModes() {}
-    void DisableSleepModes() {}
-#endif
-
     public:
 		GenerateCustomModelDialog(wxWindow* parent, wxXmlDocument* network, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~GenerateCustomModelDialog();

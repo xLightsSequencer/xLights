@@ -13,6 +13,7 @@
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include <log4cpp/Category.hh>
+#include "osxMacUtils.h"
 
 //
 //
