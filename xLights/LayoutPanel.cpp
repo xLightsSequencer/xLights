@@ -814,7 +814,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 
         if (background == nullptr) {
             backgroundFile = previewBackgroundFile;
-            if (backgroundFile != "" && wxFileExists(backgroundFile)) {
+            if (backgroundFile != "" && wxFileExists(backgroundFile) && wxIsReadable(backgroundFile)) {
                 background = new wxImage(backgroundFile);
             }
         }

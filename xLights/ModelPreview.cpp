@@ -14,7 +14,7 @@
 #include "models/Model.h"
 #include "PreviewPane.h"
 #include "DrawGLUtils.h"
-
+#include "osxMacUtils.h"
 
 BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
 EVT_MOTION(ModelPreview::mouseMoved)
@@ -165,7 +165,7 @@ void ModelPreview::InitializePreview(wxString img,int brightness)
             sprite = nullptr;
         }
         mBackgroundImage = img;
-        mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
+        mBackgroundImageExists = wxFileExists(mBackgroundImage)&&wxIsReadable(mBackgroundImage)?true:false;
     }
     mBackgroundBrightness = brightness;
 }
@@ -197,6 +197,7 @@ void ModelPreview::SetScaleBackgroundImage(bool b) {
 void ModelPreview::SetbackgroundImage(wxString img)
 {
     if (img != mBackgroundImage) {
+        ObtainAccessToURL(img.ToStdString());
         if (image) {
             if (cache) {
                 cache->AddTextureToDelete(image->getID());
@@ -210,7 +211,7 @@ void ModelPreview::SetbackgroundImage(wxString img)
             sprite = nullptr;
         }
         mBackgroundImage = img;
-        mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
+        mBackgroundImageExists = wxFileExists(mBackgroundImage) && wxIsReadable(mBackgroundImage) ? true : false;
     }
 }
 

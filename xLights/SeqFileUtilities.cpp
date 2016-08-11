@@ -13,6 +13,8 @@
 #include <wx/zipstrm.h>
 #include <wx/tokenzr.h>
 
+#include "osxMacUtils.h"
+
 void xLightsFrame::AddAllModelsToSequence()
 {
     std::string models_to_add = "";
@@ -209,10 +211,11 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         if (CurrentSeqXmlFile->GetMediaFile() != "")
         {
             media_file = mapFileName(CurrentSeqXmlFile->GetMediaFile());
+            ObtainAccessToURL(media_file.GetFullPath().ToStdString());
         }
 
         // still no media file?  look for an XSEQ file and load if found
-        if( !wxFileName(media_file).Exists() )
+        if( !wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable() )
         {
             wxFileName xseq_file = selected_file;
             xseq_file.SetExt("xseq");
@@ -223,6 +226,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                 if( mf != "" )
                 {
                     media_file = mapFileName(wxFileName::FileName(mf));
+                    ObtainAccessToURL(media_file.GetFullPath().ToStdString());
                 }
                 DisplayXlightsFilename(xlightsFilename);
                 SeqBaseChannel=1;
@@ -232,7 +236,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         }
 
         // double-check file existence
-        if( !wxFileName(media_file).Exists() )
+        if( !wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable())
         {
             wxFileName detect_media(media_file);
 
@@ -254,7 +258,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         }
 
         // search for missing media file in media directory and show directory
-        if( !wxFileName(media_file).Exists() )
+        if( !wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable() )
         {
             wxFileName detect_media(selected_file);
             detect_media.SetExt("mp3");
@@ -264,6 +268,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             if( detect_media.FileExists() )
             {
                 media_file = detect_media;
+                ObtainAccessToURL(media_file.GetFullPath().ToStdString());
             }
             else
             {
@@ -272,12 +277,15 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                 if( detect_media.FileExists() )
                 {
                     media_file = detect_media;
+                    ObtainAccessToURL(media_file.GetFullPath().ToStdString());
                 }
             }
         }
 
         // if fseq or xseq had media update xml
-        if( !CurrentSeqXmlFile->HasAudioMedia() && wxFileName(media_file).Exists() )
+        if( !CurrentSeqXmlFile->HasAudioMedia()
+           && wxFileName(media_file).Exists()
+           && wxFileName(media_file).IsFileReadable())
         {
             CurrentSeqXmlFile->SetMediaFile(GetShowDirectory(), media_file.GetFullPath(), true);
             int length_ms = CurrentSeqXmlFile->GetMedia()->LengthMS();

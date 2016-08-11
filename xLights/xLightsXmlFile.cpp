@@ -10,6 +10,7 @@
 #include <wx/numdlg.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
+#include "osxMacUtils.h"
 
 #define string_format wxString::Format
 
@@ -211,6 +212,8 @@ void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filen
 		delete audio;
 		audio = nullptr;
 	}
+
+    ObtainAccessToURL(filename.ToStdString());
 	audio = new AudioManager(std::string(filename.c_str()), this, 4096, 32768);
 
 	if( overwrite_tags )
@@ -1270,9 +1273,10 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                             delete audio;
                             audio = nullptr;
                         }
-                        if( mf.FileExists() )
+                        if( mf.FileExists() && mf.IsFileReadable() )
                         {
-                            audio = new AudioManager(std::string(media_file.c_str()), this, 4096, 32768);
+                            ObtainAccessToURL(media_file.ToStdString());
+                            audio = new AudioManager(media_file.ToStdString(), this, 4096, 32768);
                         }
                     }
                 }

@@ -7,6 +7,7 @@
 #define PREVIEWROTATIONFACTOR 3
 
 #include "LayoutPanel.h"
+#include "osxMacUtils.h"
 
 void xLightsFrame::UpdatePreview()
 {
@@ -40,6 +41,7 @@ void xLightsFrame::SetStoredLayoutGroup(const std::string &group)
 
 void xLightsFrame::SetPreviewBackgroundImage(const wxString &filename)
 {
+    ObtainAccessToURL(filename.ToStdString());
     if (mBackgroundImage != filename) {
         mBackgroundImage = filename;
         SetXmlSetting("backgroundImage",mBackgroundImage);

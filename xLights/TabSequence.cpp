@@ -13,6 +13,7 @@
 #include "BufferPanel.h"
 #include "LayoutPanel.h"
 #include "RenderProgressDialog.h"
+#include "osxMacUtils.h"
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 {
@@ -167,9 +168,11 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     SetPreviewSize(previewWidth,previewHeight);
 
     mBackgroundImage = xLightsXmlFile::FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage",""));
-    if (mBackgroundImage != "" && !wxFileExists(mBackgroundImage)) {
+    ObtainAccessToURL(mBackgroundImage.ToStdString());
+    if (mBackgroundImage != "" && (!wxFileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage))) {
         wxString fn = xLightsXmlFile::FixFile(mediaDirectory, GetXmlSetting("backgroundImage",""));
-        if (wxFileExists(fn)) {
+        ObtainAccessToURL(fn.ToStdString());
+        if (wxFileExists(fn) && wxIsReadable(mBackgroundImage)) {
             mBackgroundImage = fn;
         } else {
             //image doesn't exist there, lets look for it in show directory and media directory

@@ -20,6 +20,7 @@
 #include "../NoteImportDialog.h"
 #include "../MIDI/MidiFile.h"
 #include "../MusicXML.h"
+#include "osxMacUtils.h"
 
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
@@ -330,12 +331,14 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 		if (xml_file.GetMedia() != nullptr)
 		{
 			mediaFilename = xml_file.GetMedia()->FileName();
-			if ((mediaFilename == wxEmptyString) || (!wxFileExists(mediaFilename)))
+            ObtainAccessToURL(mediaFilename.ToStdString());
+			if ((mediaFilename == wxEmptyString) || !wxFileExists(mediaFilename) || !wxIsReadable(mediaFilename))
 			{
 				SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"));
 				setting_dlg.Fit();
 				setting_dlg.ShowModal();
 				mediaFilename = xml_file.GetMedia()->FileName();
+                ObtainAccessToURL(mediaFilename.ToStdString());
 				if (xml_file.GetMedia()->GetFrameInterval() < 0)
 				{
 					xml_file.GetMedia()->SetFrameInterval(xml_file.GetSequenceTimingAsInt());
