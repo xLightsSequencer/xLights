@@ -126,7 +126,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
     mSelectedGroup(-1), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
-    previewBackgroundBrightness(100), m_polyline_active(false)
+    previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false)
 {
     background = nullptr;
 
@@ -589,7 +589,6 @@ void LayoutPanel::UpdateModelList(bool update_groups) {
     UnSelectAllModels();
     ListBoxElementList->DeleteAllItems();
 
-
     std::vector<Model *> models;
     std::vector<Model *> dummy_models;
 
@@ -643,55 +642,53 @@ void LayoutPanel::UpdateModelList(bool update_groups) {
 void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering)
 {
     std::set<std::string> modelsAdded;
-    if( mSelectedGroup == -1 || !filtering) {
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
-            Model *model = it->second;
-            if (model->GetDisplayAs() != "ModelGroup") {
-                if (group == "All Models" || model->GetLayoutGroup() == group || (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
-                    prev_models.push_back(model);
-                    modelsAdded.insert(model->name);
-                }
-            }
-        }
 
-        // add in any models that were not in preview but belong to a group that is in the preview
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
-            Model *model = it->second;
-            if (model->GetDisplayAs() == "ModelGroup") {
-                ModelGroup *grp = (ModelGroup*)(model);
-                if (group == "All Models" || model->GetLayoutGroup() == group || (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
-                    for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
-                        if (modelsAdded.find(*it) == modelsAdded.end()) {
-                            Model *m = xlights->AllModels[*it];
-                            if (m != nullptr) {
-                                modelsAdded.insert(*it);
-                                prev_models.push_back(m);
-                            }
-                        }
-                    }
-                }
+    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+        Model *model = it->second;
+        if (model->GetDisplayAs() != "ModelGroup") {
+            if (group == "All Models" || model->GetLayoutGroup() == group || (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
+                prev_models.push_back(model);
+                modelsAdded.insert(model->name);
             }
         }
-    } else {
-        std::string name = ListBoxModelGroups->GetItemText(mSelectedGroup, 1).ToStdString();
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
-            Model *model = it->second;
-            if (model->GetDisplayAs() == "ModelGroup") {
-                ModelGroup *grp = (ModelGroup*)(model);
-                if( grp->name == name ) {
-                    for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
-                        if (modelsAdded.find(*it) == modelsAdded.end()) {
-                            Model *m = xlights->AllModels[*it];
-                            if (m != nullptr) {
-                                modelsAdded.insert(*it);
-                                prev_models.push_back(m);
-                            }
+    }
+
+    // add in any models that were not in preview but belong to a group that is in the preview
+    std::string selected_group_name = "";
+    if( mSelectedGroup != -1 && filtering) {
+        selected_group_name = ListBoxModelGroups->GetItemText(mSelectedGroup, 1).ToStdString();
+    }
+
+    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+        Model *model = it->second;
+        bool mark_selected = false;
+        bool mark_first = true;
+        if( (mSelectedGroup != -1) && filtering && (model->name == selected_group_name) ) {
+            mark_selected = true;
+        }
+        if (model->GetDisplayAs() == "ModelGroup") {
+            ModelGroup *grp = (ModelGroup*)(model);
+            if (group == "All Models" || model->GetLayoutGroup() == group || (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
+                for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
+                    Model *m = xlights->AllModels[*it];
+                    if( mark_selected ) {
+                        if( mark_first ) {
+                            SelectModel(m->name);
+                            mark_first = false;
+                        }
+                        m->GroupSelected = true;
+                    }
+                    if (modelsAdded.find(*it) == modelsAdded.end()) {
+                        if (m != nullptr) {
+                            modelsAdded.insert(*it);
+                            prev_models.push_back(m);
                         }
                     }
                 }
             }
         }
     }
+
     // only run this for layout group previews
     if( layout_grp != nullptr ) {
         layout_grp->SetModels(prev_models);
@@ -958,6 +955,10 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
 
 void LayoutPanel::OnListBoxElementListItemSelect(wxListEvent& event)
 {
+    if( ignore_next_event ) {
+        ignore_next_event = false;
+        return;  // allow us to ignore this event when item state is set programmatically
+    }
     ShowPropGrid(true);
     int sel = ListBoxElementList->GetFirstSelected();
     if (sel == wxNOT_FOUND)
@@ -1088,7 +1089,6 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
         propertyEditor->Freeze();
         clearPropGrid();
         propertyEditor->Thaw();
-
         if(modelPreview->GetModels()[found[0]]->Selected)
         {
             modelPreview->GetModels()[found[0]]->Selected = false;
@@ -1144,6 +1144,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     int y = event.GetY();
     if (event.ControlDown())
     {
+        ignore_next_event = true;
         SelectMultipleModels(event.GetX(),y);
         m_dragging = true;
         m_previous_mouse_x = event.GetX();

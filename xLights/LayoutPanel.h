@@ -247,6 +247,7 @@ class LayoutPanel: public wxPanel
         bool previewBackgroundScaled;
         int previewBackgroundBrightness;
         wxPanel* main_sequencer;
+        bool ignore_next_event;
 
         static const long ID_MNU_DELETE_MODEL;
         static const long ID_MNU_DELETE_MODEL_GROUP;

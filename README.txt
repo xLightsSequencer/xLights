@@ -8,6 +8,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Change how group filtering works. Don't hide everything just highlight items in group.
+                    This also allows you to click on a group and then hold control down to click and move
+                    the group.
 2016.45  Aug 09, 2016
    -- bug (keithsw) Fix colour curve preset scanning.
    -- bug (dkulp)   Prevent crash at startup if preview background image doesn't exist

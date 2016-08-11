@@ -284,6 +284,7 @@ void xLightsFrame::LoadEffectsFile()
                     layout_group = "Default";
                 }
                 model->DeleteAttribute("MyDisplay");
+                model->DeleteAttribute("LayoutGroup");
                 model->AddAttribute("LayoutGroup", layout_group);
              }
         }
@@ -303,6 +304,7 @@ void xLightsFrame::LoadEffectsFile()
             for (wxXmlNode *group = ModelGroupsNode->GetChildren(); group != nullptr; group = group->GetNext()) {
                 if (group->GetName() == "modelGroup") {
                     group->DeleteAttribute("selected");
+                    group->DeleteAttribute("LayoutGroup");
                     group->AddAttribute("LayoutGroup", "Default");
                  }
             }
@@ -323,6 +325,7 @@ void xLightsFrame::LoadEffectsFile()
                         layout_group = "Default";
                     }
                     group->DeleteAttribute("selected");
+                    group->DeleteAttribute("LayoutGroup");
                     group->AddAttribute("LayoutGroup", layout_group);
                  }
             }
