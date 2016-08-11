@@ -861,7 +861,7 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     DisableSleepModes();
 
     _starttime = wxDateTime::UNow();
-    xOutput* xout = new xOutput();
+    xOutput* xout = new xOutput(0);
     InitialiseOutputs(xout);
 
     int totaltime = LEADOFF + LEADON + FLAGOFF + FLAGON + FLAGOFF + count * (NODEON + NODEOFF);

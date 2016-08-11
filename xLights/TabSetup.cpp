@@ -414,7 +414,19 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
     NetInfo.Clear();
     for( e=e->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == "network")
+        if (e->GetName() == "e131sync")
+        {
+            SpinCtrl_SyncUniverse->SetValue(e->GetAttribute("universe"));
+            if (xout != nullptr)
+            {
+                xout->SetSyncUniverse(SpinCtrl_SyncUniverse->GetValue());
+            }
+            else
+            {
+                xNetwork_E131::SetSyncUniverseStatic(SpinCtrl_SyncUniverse->GetValue());
+            }
+        }
+        else if (e->GetName() == "network")
         {
             NetName=e->GetAttribute("NetworkType", "");
             newidx = GridNetwork->InsertItem(GridNetwork->GetItemCount(), NetName);
@@ -1139,3 +1151,31 @@ void xLightsFrame::ChangeMediaDirectory(wxCommandEvent& event)
     }
 }
 
+
+void xLightsFrame::OnSpinCtrl_SyncUniverseChange(wxSpinEvent& event)
+{
+    if (xout != nullptr)
+    {
+        xout->SetSyncUniverse(SpinCtrl_SyncUniverse->GetValue());
+    }
+    else
+    {
+        xNetwork_E131::SetSyncUniverseStatic(SpinCtrl_SyncUniverse->GetValue());
+    }
+    wxXmlNode* root = NetworkXML.GetRoot();
+    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
+    {
+        if (e->GetName() == "e131sync")
+        {
+            root->RemoveChild(e);
+            break;
+        }
+    }
+    if (SpinCtrl_SyncUniverse->GetValue() != 0)
+    {
+        wxXmlNode* newNode = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "e131sync");
+        newNode->AddAttribute("universe", wxString::Format("%d", SpinCtrl_SyncUniverse->GetValue()));
+        root->AddChild(newNode);
+    }
+    NetworkChange();
+}

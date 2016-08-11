@@ -26,7 +26,6 @@
 
 #include "xlights_out.h"
 #include "xLightsMain.h"
-#include <wx/socket.h>
 #include <wx/msgdlg.h> //debug only -DJ
 #include <wx/filename.h> //-DJ
 #include <vector> //-DJ
@@ -234,7 +233,6 @@ public:
 };
 
 
-#define E131_PACKET_LEN 638
 #define E131_SYNCPACKET_LEN 49
 #define E131_PORT 5568
 #define XLIGHTS_UUID "c0de0080-c69b-11e0-9572-0800200c9a66"
@@ -243,20 +241,7 @@ public:
 // * This class represents a single universe for E1.31
 // * Methods should be called with: 0 <= chindex <= 511
 // ******************************************************
-class xNetwork_E131: public xNetwork
-{
-protected:
-    static wxUint16 _syncuniverse;
-    wxByte data[E131_PACKET_LEN];
-    wxByte SequenceNum;
-    int SkipCount;
-    wxIPV4address remoteAddr;
-    wxDatagramSocket *datagram;
-    bool changed;
-
-public:
-
-    static void Sync()
+    void xNetwork_E131::Sync()
     {
         static wxByte syncdata[E131_SYNCPACKET_LEN];
         static wxByte syncSequenceNum = 0;
@@ -267,6 +252,9 @@ public:
 
         if (!initialised)
         {
+            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug("Initialising e131 Sync.");
+
             initialised = true;
             syncdata[0] = 0x00;   // RLP preamble size (high)
             syncdata[1] = 0x10;   // RLP preamble size (low)
@@ -343,6 +331,9 @@ public:
                 wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d", 239, 255, syncdata[45], syncdata[46]);
                 syncremoteAddr.Hostname(ipaddrWithUniv);
                 syncremoteAddr.Service(E131_PORT);
+
+                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.debug("e131 Sync sync universe changed to %d => %s:%d.", _syncuniverse, (const char *)ipaddrWithUniv.c_str(), E131_PORT);
             }
             syncdata[44] = syncSequenceNum++;   // sequence number
             syncdata[45] = _syncuniverse >> 8;
@@ -351,7 +342,7 @@ public:
         }
     }
 
-    void SetIntensity(size_t chindex, wxByte intensity)
+    void xNetwork_E131::SetIntensity(size_t chindex, wxByte intensity)
     {
         if (data[chindex+126] != intensity) {
             data[chindex+126] = intensity;
@@ -359,19 +350,19 @@ public:
         }
     };
 
-    xNetwork_E131()
+    xNetwork_E131::xNetwork_E131()
     {
         datagram=0;
         memset(data,0,sizeof(data));
         changed = true;
     };
 
-    ~xNetwork_E131()
+    xNetwork_E131::~xNetwork_E131()
     {
         if (datagram) delete datagram;
     };
 
-    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse)
+    void xNetwork_E131::InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse)
     {
         if (UniverseNumber == 0 || UniverseNumber >= 64000)
         {
@@ -382,7 +373,11 @@ public:
         InitRemoteAddr(ipaddr, UniverseNumber, NetNum);
         SetChannelCount(num_channels);
     }
-    void SetSyncUniverse(wxUint16 syncuniverse)
+    void xNetwork_E131::SetSyncUniverseStatic(wxUint16 syncuniverse)
+    {
+        _syncuniverse = syncuniverse;
+    }
+    void xNetwork_E131::SetSyncUniverse(wxUint16 syncuniverse)
     {
         _syncuniverse = syncuniverse;
         if (syncuniverse > 0)
@@ -398,8 +393,7 @@ public:
             data[112] &= 0xef;
         }
     }
-private:
-    void InitData(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
+    void xNetwork_E131::InitData(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
         SequenceNum=0;
         SkipCount=0;
         wxByte UnivHi = UniverseNumber >> 8;   // Universe Number (high)
@@ -539,7 +533,7 @@ private:
         data[124]=0x01;  // Property value count (low)
         data[125]=0x00;  // DMX512-A START Code
     }
-    void InitRemoteAddr(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
+    void xNetwork_E131::InitRemoteAddr(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
         wxByte UnivHi = UniverseNumber >> 8;   // Universe Number (high)
         wxByte UnivLo = UniverseNumber & 0xff; // Universe Number (low)
 
@@ -563,8 +557,7 @@ private:
         remoteAddr.Service (E131_PORT);
     };
 
-public:
-    void SetChannelCount(size_t numchannels)
+    void xNetwork_E131::SetChannelCount(size_t numchannels)
     {
         if (numchannels > 512)
         {
@@ -599,7 +592,7 @@ public:
         data[116]=lo;  // 0x20b = 638 - 115
     };
 
-    void TimerEnd()
+    void xNetwork_E131::TimerEnd()
     {
         if (!enabled) {
             return;
@@ -619,15 +612,15 @@ public:
         }
     };
 
-    size_t TxNonEmptyCount(void)
+    size_t xNetwork_E131::TxNonEmptyCount(void)
     {
         return 0;
     }
-    bool TxEmpty()
+    bool xNetwork_E131::TxEmpty()
     {
         return true;
     }
-};
+
 wxUint16 xNetwork_E131::_syncuniverse = 0;
 
 class xMultiE131Network : public xNetwork {

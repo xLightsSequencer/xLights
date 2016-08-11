@@ -30,7 +30,7 @@
 #include <wx/string.h>
 #include <wx/dynarray.h>
 #include <vector>
-
+#include <wx/socket.h>
 
 typedef std::pair<int, int> ChannelPair; // first is network #, second is channel #
 typedef std::vector<ChannelPair> ChannelVector;
@@ -101,6 +101,38 @@ public:
     bool TxEmpty();
     size_t TxNonEmptyCount(void);
     void SetSyncUniverse(wxUint16 syncuniverse);
+};
+
+#define E131_PACKET_LEN 638
+class xNetwork_E131 : public xNetwork
+{
+protected:
+    static wxUint16 _syncuniverse;
+    wxByte data[E131_PACKET_LEN];
+    wxByte SequenceNum;
+    int SkipCount;
+    wxIPV4address remoteAddr;
+    wxDatagramSocket *datagram;
+    bool changed;
+
+public:
+
+    static void Sync();
+    void SetIntensity(size_t chindex, wxByte intensity);
+    xNetwork_E131();
+    ~xNetwork_E131();
+    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse);
+    static void SetSyncUniverseStatic(wxUint16 syncuniverse);
+    void SetSyncUniverse(wxUint16 syncuniverse);
+private:
+    void InitData(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum);
+    void InitRemoteAddr(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum);
+
+public:
+    void SetChannelCount(size_t numchannels);
+    void TimerEnd();
+    size_t TxNonEmptyCount(void);
+    bool TxEmpty();
 };
 
 #endif // XLIGHTSOUT_H

@@ -25,6 +25,7 @@
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/splitter.h>
+#include <wx/spinctrl.h>
 #include <wx/aui/aui.h>
 #include <wx/panel.h>
 #include <wx/bmpbuttn.h>
@@ -610,6 +611,7 @@ private:
     void OnMenuItem_BackupOnLaunchSelected(wxCommandEvent& event);
     void OnMenuItem_ViewLogSelected(wxCommandEvent& event);
     void OnMenuItemCheckSequenceSelected(wxCommandEvent& event);
+    void OnSpinCtrl_SyncUniverseChange(wxSpinEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -677,6 +679,8 @@ private:
     static const long ID_BUTTON_NETWORK_CHANGE;
     static const long ID_BUTTON_NETWORK_DELETE;
     static const long ID_BUTTON_NETWORK_DELETE_ALL;
+    static const long ID_STATICTEXT8;
+    static const long ID_SPINCTRL1;
     static const long ID_BITMAPBUTTON1;
     static const long ID_BITMAPBUTTON2;
     static const long ID_LISTCTRL_NETWORKS;
@@ -889,6 +893,7 @@ private:
     wxButton* ButtonNetworkDelete;
     wxBitmapButton* BitmapButton_Link_Dirs;
     wxMenuItem* MenuItemEffectAssistAlwaysOff;
+    wxStaticText* StaticText5;
     wxTreeCtrl* ListBoxSched;
     wxListCtrl* GridNetwork;
     wxStaticText* ShowDirectoryLabel;
@@ -938,6 +943,7 @@ private:
     xlAuiToolBar* EditToolBar;
     wxMenuItem* MenuItemGridIconBackgroundOff;
     wxMenuBar* MenuBar;
+    wxSpinCtrl* SpinCtrl_SyncUniverse;
     //*)
 
     AUIToolbarButtonWrapper *CheckBoxLightOutput;

@@ -568,6 +568,24 @@
 															<border>3</border>
 															<option>1</option>
 														</object>
+														<object class="sizeritem">
+															<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText5" member="yes">
+																<label>&#x0A;E1.31 Sync Universe:</label>
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_SyncUniverse" member="yes">
+																<value>0</value>
+																<max>63999</max>
+																<tooltip>This should be left as 0 unless you have controllers which support it.</tooltip>
+																<handler function="OnSpinCtrl_SyncUniverseChange" entry="EVT_SPINCTRL" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
 													</object>
 													<flag>wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 													<option>1</option>
