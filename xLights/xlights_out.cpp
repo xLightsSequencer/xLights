@@ -65,7 +65,7 @@ void xNetwork::InitSerialPort(const wxString& portname, int baudrate)
 {
 }
 
-void xNetwork::InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum)
+void xNetwork::InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse)
 {
 }
 
@@ -235,6 +235,7 @@ public:
 
 
 #define E131_PACKET_LEN 638
+#define E131_SYNCPACKET_LEN 49
 #define E131_PORT 5568
 #define XLIGHTS_UUID "c0de0080-c69b-11e0-9572-0800200c9a66"
 
@@ -245,6 +246,7 @@ public:
 class xNetwork_E131: public xNetwork
 {
 protected:
+    static wxUint16 _syncuniverse;
     wxByte data[E131_PACKET_LEN];
     wxByte SequenceNum;
     int SkipCount;
@@ -253,6 +255,102 @@ protected:
     bool changed;
 
 public:
+
+    static void Sync()
+    {
+        static wxByte syncdata[E131_SYNCPACKET_LEN];
+        static wxByte syncSequenceNum = 0;
+        static bool initialised = false;
+        static wxUint16 _lastsyncuniverse = 0;
+        static wxIPV4address syncremoteAddr;
+        static wxDatagramSocket *syncdatagram = nullptr;
+
+        if (!initialised)
+        {
+            initialised = true;
+            syncdata[0] = 0x00;   // RLP preamble size (high)
+            syncdata[1] = 0x10;   // RLP preamble size (low)
+            syncdata[2] = 0x00;   // RLP postamble size (high)
+            syncdata[3] = 0x00;   // RLP postamble size (low)
+            syncdata[4] = 0x41;   // ACN Packet Identifier (12 bytes)
+            syncdata[5] = 0x53;
+            syncdata[6] = 0x43;
+            syncdata[7] = 0x2d;
+            syncdata[8] = 0x45;
+            syncdata[9] = 0x31;
+            syncdata[10] = 0x2e;
+            syncdata[11] = 0x31;
+            syncdata[12] = 0x37;
+            syncdata[13] = 0x00;
+            syncdata[14] = 0x00;
+            syncdata[15] = 0x00;
+            syncdata[16] = 0x70;  // RLP Protocol flags and length (high)
+            syncdata[17] = 0x21;  // 0x021 = 49 - 16
+            syncdata[18] = 0x00;  // VECTOR_ROOT_E131_EXTENDED 
+            syncdata[19] = 0x00;
+            syncdata[20] = 0x00;
+            syncdata[21] = 0x08;
+
+            // CID/UUID
+
+            wxChar msb, lsb;
+            wxString id = XLIGHTS_UUID;
+            id.Replace("-", "");
+            id.MakeLower();
+            if (id.Len() != 32) throw "invalid CID";
+            for (int i = 0, j = 22; i < 32; i += 2)
+            {
+                msb = id.GetChar(i);
+                lsb = id.GetChar(i + 1);
+                msb -= isdigit(msb) ? 0x30 : 0x57;
+                lsb -= isdigit(lsb) ? 0x30 : 0x57;
+                syncdata[j++] = (wxByte)((msb << 4) | lsb);
+            }
+
+            syncdata[38] = 0x70;  // Framing Protocol flags and length (high)
+            syncdata[39] = 0x0b;  // 0x00B = 49 - 38
+            syncdata[40] = 0x00;  // VECTOR_E131_EXTENDED_SYNCHRONIZATION 
+            syncdata[41] = 0x00;
+            syncdata[42] = 0x00;
+            syncdata[43] = 0x01;
+            syncdata[44] = 0x00;   // sequence number
+            syncdata[45] = 0x00;   // sync universe
+            syncdata[46] = 0x00;
+            syncdata[47] = 0x00;
+            syncdata[48] = 0x00;
+        }
+
+        if (_syncuniverse > 0)
+        {
+            if (_syncuniverse != _lastsyncuniverse)
+            {
+                _lastsyncuniverse = _syncuniverse;
+                syncSequenceNum = 0;   // sequence number
+                syncdata[45] = _syncuniverse >> 8;
+                syncdata[46] = _syncuniverse & 0xff;
+
+                wxIPV4address localaddr;
+                localaddr.AnyAddress();
+
+                if (syncdatagram != nullptr)
+                {
+                    delete syncdatagram;
+                    syncdatagram = nullptr;
+                }
+                syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+
+                // multicast - universe number must be in lower 2 bytes
+                wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d", 239, 255, syncdata[45], syncdata[46]);
+                syncremoteAddr.Hostname(ipaddrWithUniv);
+                syncremoteAddr.Service(E131_PORT);
+            }
+            syncdata[44] = syncSequenceNum++;   // sequence number
+            syncdata[45] = _syncuniverse >> 8;
+            syncdata[46] = _syncuniverse & 0xff;
+            syncdatagram->SendTo(syncremoteAddr, syncdata, E131_SYNCPACKET_LEN);
+        }
+    }
+
     void SetIntensity(size_t chindex, wxByte intensity)
     {
         if (data[chindex+126] != intensity) {
@@ -273,15 +371,32 @@ public:
         if (datagram) delete datagram;
     };
 
-    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum)
+    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse)
     {
         if (UniverseNumber == 0 || UniverseNumber >= 64000)
         {
             throw "universe number must be between 1 and 63999";
         }
         InitData(ipaddr, UniverseNumber, NetNum);
+        SetSyncUniverse(syncuniverse);
         InitRemoteAddr(ipaddr, UniverseNumber, NetNum);
         SetChannelCount(num_channels);
+    }
+    void SetSyncUniverse(wxUint16 syncuniverse)
+    {
+        _syncuniverse = syncuniverse;
+        if (syncuniverse > 0)
+        {
+            data[109] = syncuniverse >> 8;
+            data[110] = syncuniverse & 0xff;
+            data[112] |= 0x10;
+        }
+        else
+        {
+            data[109] = 0x00;
+            data[110] = 0x00;
+            data[112] &= 0xef;
+        }
     }
 private:
     void InitData(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
@@ -513,6 +628,7 @@ public:
         return true;
     }
 };
+wxUint16 xNetwork_E131::_syncuniverse = 0;
 
 class xMultiE131Network : public xNetwork {
 public:
@@ -522,16 +638,23 @@ public:
     virtual bool TxEmpty() {return true;};
     virtual size_t TxNonEmptyCount() {return 0;};
     
-    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
+    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse) {
         for (int x = 0; x < ucount; x++) {
             xNetwork_E131 *ptr = new xNetwork_E131();
             ptr->SetChannelCount(chanPerNet);
-            ptr->InitNetwork(ipaddr, UniverseNumber, NetNum);
+            ptr->InitNetwork(ipaddr, UniverseNumber, NetNum, syncuniverse);
             UniverseNumber++;
             networks.push_back(std::unique_ptr<xNetwork_E131>(ptr));
         }
     }
     
+    void SetSyncUniverse(wxUint16 syncuniverse)
+    {
+        for (auto it = networks.begin(); it != networks.end(); ++it) {
+            it->get()->SetSyncUniverse(syncuniverse);
+        }
+    }
+
     virtual void SetChannelCount(size_t numchannels) {
         num_channels = ucount * numchannels;
         chanPerNet = numchannels;
@@ -880,8 +1003,9 @@ public:
 
 // xOutput should be a singleton
 // It contains references to all of the networks
-xOutput::xOutput()
+xOutput::xOutput(wxUint16 syncuniverse)
 {
+    _syncuniverse = syncuniverse;
 }
 
 xOutput::~xOutput()
@@ -956,7 +1080,7 @@ size_t xOutput::addnetwork(const wxString& NetworkType, int chcount, const wxStr
     netobj->SetNetworkDesc(description);
     if (nettype3 == "E13")
     {
-        netobj->InitNetwork(portname, baudrate, (wxUint16) netnum);  // portname is ip address and baudrate is universe number
+        netobj->InitNetwork(portname, baudrate, (wxUint16) netnum, _syncuniverse);  // portname is ip address and baudrate is universe number
     }
     else
     {
@@ -1051,11 +1175,40 @@ void xOutput::TimerStart(long msec)
     }
 }
 
+void xOutput::SetSyncUniverse(wxUint16 syncuniverse)
+{
+    _syncuniverse = syncuniverse;
+    for (size_t i = 0; i < networks.GetCount(); ++i)
+    {
+        if (xNetwork_E131* n = dynamic_cast<xNetwork_E131*>(networks[i]))
+        {
+            n->SetSyncUniverse(syncuniverse);
+        }
+        else if (xMultiE131Network* n = dynamic_cast<xMultiE131Network*>(networks[i]))
+        {
+            n->SetSyncUniverse(syncuniverse);
+        }
+    }
+};
+
 void xOutput::TimerEnd()
 {
     for(size_t i=0; i < networks.GetCount(); ++i)
     {
         networks[i]->TimerEnd();
+    }
+
+    // send e131 sync if required
+    if (_syncuniverse > 0)
+    {
+        for (size_t i = 0; i < networks.GetCount(); ++i)
+        {
+            if (dynamic_cast<xNetwork_E131*>(networks[i]) || dynamic_cast <xMultiE131Network*> (networks[i]))
+            {
+                xNetwork_E131::Sync();
+                break;
+            }
+        }
     }
 }
 

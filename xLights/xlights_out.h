@@ -56,7 +56,7 @@ public:
     size_t GetChannelCount();
     virtual void SetChannelCount(size_t numchannels) = 0;
     virtual void InitSerialPort(const wxString& portname, int baudrate);
-    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum);
+    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse);
     virtual void TimerStart(long msec);
     long GetTimer();
     virtual void TimerEnd() = 0;
@@ -76,9 +76,10 @@ protected:
     WX_DEFINE_ARRAY_PTR(xNetwork*, xNetworkArray);
     xNetworkArray networks;
     ChannelVector channels;
+    wxUint16 _syncuniverse;
 
 public:
-    xOutput();
+    xOutput(wxUint16 syncuniverse = 0);
     ~xOutput();
     void EnableOutput(size_t network, bool en = true);
     size_t NetworkCount();
@@ -99,6 +100,7 @@ public:
     void ClosePorts();
     bool TxEmpty();
     size_t TxNonEmptyCount(void);
+    void SetSyncUniverse(wxUint16 syncuniverse);
 };
 
 #endif // XLIGHTSOUT_H
