@@ -59,6 +59,7 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mZoomLevel=0;
     mStartPixelOffset = 0;
     mFrequency = 40;
+    _media = nullptr;
 }
 
 Waveform::~Waveform()

@@ -2799,11 +2799,11 @@ void EffectsGrid::DrawEffects()
     int width = getWidth();
     for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
     {
-        if(mSequenceElements->GetVisibleRowInformation(row)->element->GetType() == ELEMENT_TYPE_TIMING) {
+        Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
+        if(ri->element->GetType() == ELEMENT_TYPE_TIMING) {
             DrawTimingEffects(row);
         } else {
-            wxString name = mSequenceElements->GetVisibleRowInformation(row)->element->GetName();
-            Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(row);
+            wxString name = ri->element->GetName();
             EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(ri);
             lines.PreAlloc(effectLayer->GetEffectCount() * 16);
             selectedLines.PreAlloc(effectLayer->GetEffectCount() * 16);

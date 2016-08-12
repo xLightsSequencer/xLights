@@ -2643,7 +2643,7 @@ void xLightsFrame::SetEffectAssistWindowState(bool show)
 
 void xLightsFrame::UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect)
 {
-    if( effect == nullptr )
+    if( effect == nullptr || ren_effect == nullptr )
     {
         sEffectAssist->SetPanel(nullptr);
         return;

@@ -92,9 +92,21 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
     {
         mEffect = effect_;
         EffectLayer* layer = mEffect->GetParentEffectLayer();
+        if (layer == nullptr) {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.error("No layer found for effect %s", mEffect->GetEffectName().c_str());
+        }
         Element* elem = layer->GetParentElement();
+        if (elem == nullptr) {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.error("No element found for effect %s", mEffect->GetEffectName().c_str());
+        }
         std::string model_name = elem->GetModelName();
         Model *cls = xlights_parent->GetModel(model_name);
+        if (cls == nullptr) {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.error("No model found for effect %s for model %s", mEffect->GetEffectName().c_str(), model_name.c_str());
+        }
         mGridCanvas->SetModel(cls);
         
         int bw, bh;

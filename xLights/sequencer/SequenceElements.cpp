@@ -93,15 +93,27 @@ int SequenceElements::GetSequenceEnd()
 }
 
 EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) {
-
+    if (s == nullptr) {
+        return nullptr;
+    }
     Element* e = s->element;
     if (s->strandIndex == -1) {
         return e->GetEffectLayer(s->layerIndex);
     } else if (s->nodeIndex == -1) {
-        StrandElement *se = dynamic_cast<StrandElement*>(e);
+        SubModelElement *se = dynamic_cast<SubModelElement*>(e);
+        if (se == nullptr) {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.error("Expected a SubModelElment be found %d", e->GetType());
+            return nullptr;
+        }
         return se->GetEffectLayer(s->layerIndex);
     } else {
         StrandElement *me = dynamic_cast<StrandElement*>(e);
+        if (me == nullptr) {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.error("Expected a StrandElement be found %d", e->GetType());
+            return nullptr;
+        }
         return me->GetNodeLayer(s->nodeIndex);
     }
 }
