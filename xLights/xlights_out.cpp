@@ -86,13 +86,13 @@ class xNullNetwork : public xNetwork {
 public:
     xNullNetwork() {};
     virtual ~xNullNetwork() {};
-    
+
     virtual bool TxEmpty() {return true;};
     virtual size_t TxNonEmptyCount() {return 0;};
     virtual void SetChannelCount(size_t numchannels) {num_channels = numchannels;};
     virtual void TimerEnd() {}
     virtual void SetIntensity (size_t chindex, wxByte intensity) {}
-    
+
 };
 
 // ***************************************************************************************
@@ -274,7 +274,7 @@ public:
             syncdata[15] = 0x00;
             syncdata[16] = 0x70;  // RLP Protocol flags and length (high)
             syncdata[17] = 0x21;  // 0x021 = 49 - 16
-            syncdata[18] = 0x00;  // VECTOR_ROOT_E131_EXTENDED 
+            syncdata[18] = 0x00;  // VECTOR_ROOT_E131_EXTENDED
             syncdata[19] = 0x00;
             syncdata[20] = 0x00;
             syncdata[21] = 0x08;
@@ -297,7 +297,7 @@ public:
 
             syncdata[38] = 0x70;  // Framing Protocol flags and length (high)
             syncdata[39] = 0x0b;  // 0x00B = 49 - 38
-            syncdata[40] = 0x00;  // VECTOR_E131_EXTENDED_SYNCHRONIZATION 
+            syncdata[40] = 0x00;  // VECTOR_E131_EXTENDED_SYNCHRONIZATION
             syncdata[41] = 0x00;
             syncdata[42] = 0x00;
             syncdata[43] = 0x01;
@@ -348,19 +348,19 @@ public:
             data[chindex+126] = intensity;
             changed=true;
         }
-    };
+    }
 
     xNetwork_E131::xNetwork_E131()
     {
         datagram=0;
         memset(data,0,sizeof(data));
         changed = true;
-    };
+    }
 
     xNetwork_E131::~xNetwork_E131()
     {
         if (datagram) delete datagram;
-    };
+    }
 
     void xNetwork_E131::InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse)
     {
@@ -555,7 +555,7 @@ public:
             remoteAddr.Hostname (ipaddr);
         }
         remoteAddr.Service (E131_PORT);
-    };
+    }
 
     void xNetwork_E131::SetChannelCount(size_t numchannels)
     {
@@ -590,7 +590,7 @@ public:
         lo = i & 0xff; // (low)
         data[115]=hi + 0x70;  // DMP Protocol flags and length (high)
         data[116]=lo;  // 0x20b = 638 - 115
-    };
+    }
 
     void xNetwork_E131::TimerEnd()
     {
@@ -610,7 +610,7 @@ public:
         {
             SkipCount++;
         }
-    };
+    }
 
     size_t xNetwork_E131::TxNonEmptyCount(void)
     {
@@ -627,10 +627,10 @@ class xMultiE131Network : public xNetwork {
 public:
     xMultiE131Network(int univCount) { ucount = univCount;};
     virtual ~xMultiE131Network() {};
-    
+
     virtual bool TxEmpty() {return true;};
     virtual size_t TxNonEmptyCount() {return 0;};
-    
+
     virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse) {
         for (int x = 0; x < ucount; x++) {
             xNetwork_E131 *ptr = new xNetwork_E131();
@@ -640,7 +640,7 @@ public:
             networks.push_back(std::unique_ptr<xNetwork_E131>(ptr));
         }
     }
-    
+
     void SetSyncUniverse(wxUint16 syncuniverse)
     {
         for (auto it = networks.begin(); it != networks.end(); ++it) {
@@ -652,7 +652,7 @@ public:
         num_channels = ucount * numchannels;
         chanPerNet = numchannels;
     };
-    
+
     virtual void TimerStart(long msec)
     {
         timer_msec=msec;
@@ -674,7 +674,7 @@ public:
         int ch = chindex % chanPerNet;
         networks[net]->SetIntensity(ch, intensity);
     }
-    
+
     int chanPerNet;
     int ucount;
     std::vector<std::unique_ptr<xNetwork_E131>> networks;
@@ -688,13 +688,13 @@ public:
     {
         data = std::vector<wxByte>(1024);
 #ifdef __WXMSW__ //TODO: generalize this for dynamically loaded output plug-ins on all platforms -DJ
-        hPlugin = NULL;
+        hPlugin = nullptr;
         wxString path;
         { //inner scope to destroy pathbuf
             wxStringBuffer pathbuf(path, MAX_PATH + 1);
 //        path.Alloc(MAX_PATH + 1);
 //        char* pathbuf = path.GetWriteBuf(MAX_PATH + 1);
-            GetModuleFileName(GetModuleHandle(NULL), pathbuf, MAX_PATH); //my exe path
+            GetModuleFileName(GetModuleHandle(nullptr), pathbuf, MAX_PATH); //my exe path
 //        path.Truncate(strlen(pathbuf));
 //        path.UngetWriteBuf(strlen(pathbuf));
         }
@@ -702,7 +702,7 @@ public:
         path += wxFileName::GetPathSeparator();
         path += "Plugin.dll"; //TODO: enumerate DLLs in a Plugins subfolder; for now, just load one generic name
         SetErrorMode(SEM_FAILCRITICALERRORS); //don't display errors
-        if ((hPlugin = LoadLibrary(path.c_str())) != NULL)
+        if ((hPlugin = LoadLibrary(path.c_str())) != nullptr)
         {
             incoming = (plugin_entpt_in)GetProcAddress(hPlugin, "InputHook");
             fmtout = (plugin_entpt_out)GetProcAddress(hPlugin, "FormatOutput");
@@ -724,8 +724,8 @@ public:
         fmtout = 0;
         incoming = 0;
 #ifdef __WXMSW__ //TODO: generalize this for dynamically loaded output plug-ins on all platforms -DJ
-        if (hPlugin != NULL) FreeLibrary(hPlugin);
-        hPlugin = NULL;
+        if (hPlugin != nullptr) FreeLibrary(hPlugin);
+        hPlugin = nullptr;
 #endif
     }
 protected:
@@ -1182,7 +1182,7 @@ void xOutput::SetSyncUniverse(wxUint16 syncuniverse)
             n->SetSyncUniverse(syncuniverse);
         }
     }
-};
+}
 
 void xOutput::TimerEnd()
 {

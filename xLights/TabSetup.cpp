@@ -68,10 +68,10 @@ void xLightsFrame::SetDir(const wxString& newdir)
     CheckUnsavedChanges();
 
     // Force update of Preset dialog
-    if( EffectTreeDlg != NULL ) {
+    if( EffectTreeDlg != nullptr ) {
         delete EffectTreeDlg;
     }
-    EffectTreeDlg = NULL;
+    EffectTreeDlg = nullptr;
 
     // update most recently used array
     idx=mru.Index(newdir);
@@ -103,11 +103,11 @@ void xLightsFrame::SetDir(const wxString& newdir)
     for (i=0; i<MRU_LENGTH; i++)
     {
         mru_name=wxString::Format("mru%d",i);
-        if (mru_MenuItem[i] != NULL)
+        if (mru_MenuItem[i] != nullptr)
         {
             Disconnect(mru_MenuItem[i]->GetId(), wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
             MenuFile->Delete(mru_MenuItem[i]);
-            mru_MenuItem[i] = NULL;
+            mru_MenuItem[i] = nullptr;
         }
         if (i < cnt)
         {
@@ -257,7 +257,7 @@ void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& typ
     long currentcontrollerstartchannel = 0;
     long currentcontrollerendchannel = 0;
 
-    for (e = e->GetChildren(); e != NULL; e = e->GetNext())
+    for (e = e->GetChildren(); e != nullptr; e = e->GetNext())
     {
         if (e->GetName() == "network")
         {
@@ -328,7 +328,7 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 	long currentcontrollerendchannel = 0;
 	int nullcount = 1;
 
-	for (e = e->GetChildren(); e != NULL; e = e->GetNext())
+	for (e = e->GetChildren(); e != nullptr; e = e->GetNext())
 	{
 		if (e->GetName() == "network")
 		{
@@ -412,7 +412,7 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
     wxXmlNode* e=NetworkXML.GetRoot();
     GridNetwork->DeleteAllItems();
     NetInfo.Clear();
-    for( e=e->GetChildren(); e!=NULL; e=e->GetNext() )
+    for( e=e->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "e131sync")
         {
@@ -499,7 +499,7 @@ void xLightsFrame::UpdateChannelNames()
     // update names with RGB models where MyDisplay is checked
 #if 0 // Seans code to show absolute channel number
 
-    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "model" && ModelClass::IsMyDisplay(e))
         {
@@ -609,11 +609,11 @@ long xLightsFrame::GetNetworkSelection()
 void xLightsFrame::MoveNetworkRow(int fromRow, int toRow)
 {
     wxXmlNode* root=NetworkXML.GetRoot();
-    wxXmlNode* fromNode = NULL;
-    wxXmlNode* toNode = NULL;
+    wxXmlNode* fromNode = nullptr;
+    wxXmlNode* toNode = nullptr;
     int cnt=0;
     //wxMessageBox(wxString::Format("Move from %d to %d",fromRow,toRow));
-    for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    for( wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         //Network XML can have nodes other than "network" nodes. (like "testpreset") We
         //need to make sure we only consider the "network" nodes.
@@ -653,7 +653,7 @@ void xLightsFrame::OnButtonNetworkChangeClick(wxCommandEvent& event)
     }
     wxXmlNode* root=NetworkXML.GetRoot();
     long cnt=0;
-    for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    for( wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "network")
         {
@@ -691,7 +691,7 @@ void xLightsFrame::OnButtonNetworkDeleteClick(wxCommandEvent& event)
     }
     wxXmlNode* root=NetworkXML.GetRoot();
     long cnt=0;
-    for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    for( wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "network")
         {
@@ -719,9 +719,12 @@ void xLightsFrame::OnButtonNetworkDeleteAllClick(wxCommandEvent& event)
 {
     wxXmlNode* e;
     wxXmlNode* root=NetworkXML.GetRoot();
-    while ( (e=root->GetChildren()) != NULL )
+    while ( (e=root->GetChildren()) != nullptr )
     {
-        root->RemoveChild(e);
+        if (e->GetName() == "network")
+        {
+            root->RemoveChild(e);
+        }
     }
     NetworkChange();
     UpdateNetworkList(true);
@@ -758,7 +761,7 @@ void xLightsFrame::OnGridNetworkDragEnd(wxMouseEvent& event)
 {
     wxPoint pos = event.GetPosition();  // must reference the event
     int flags = wxLIST_HITTEST_ONITEM;
-    long index = GridNetwork->HitTest(pos,flags,NULL); // got to use it at last
+    long index = GridNetwork->HitTest(pos,flags,nullptr); // got to use it at last
     if(index >= 0 && index != DragRowIdx)
     {
         MoveNetworkRow(DragRowIdx, index);
@@ -782,7 +785,7 @@ void xLightsFrame::OnGridNetworkItemActivated(wxListEvent& event)
     wxXmlNode* e=NetworkXML.GetRoot();
     GridNetwork->DeleteAllItems();
     NetInfo.Clear();
-    for( e=e->GetChildren(); e!=NULL; e=e->GetNext() )
+    for( e=e->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "network") {
             item--;
@@ -820,10 +823,10 @@ void xLightsFrame::OnGridNetworkBeginDrag(wxListEvent& event)
     // ...
     // trigger when user releases left button (drop)
     GridNetwork->Connect(wxEVT_LEFT_UP,
-                         wxMouseEventHandler(xLightsFrame::OnGridNetworkDragEnd), NULL,this);
+                         wxMouseEventHandler(xLightsFrame::OnGridNetworkDragEnd), nullptr,this);
     // trigger when user leaves window to abort drag
     GridNetwork->Connect(wxEVT_LEAVE_WINDOW,
-                         wxMouseEventHandler(xLightsFrame::OnGridNetworkDragQuit), NULL,this);
+                         wxMouseEventHandler(xLightsFrame::OnGridNetworkDragQuit), nullptr,this);
     // give visual feedback that we are doing something
     GridNetwork->SetCursor(wxCursor(wxCURSOR_HAND));
 }
@@ -1058,7 +1061,7 @@ void xLightsFrame::SaveFPPUniverses(std::string path)
         wxXmlNode* e = NetworkXML.GetRoot();
         long count = 1;
 
-        for (e = e->GetChildren(); e != NULL; e = e->GetNext())
+        for (e = e->GetChildren(); e != nullptr; e = e->GetNext())
         {
             if (e->GetName() == "network")
             {
