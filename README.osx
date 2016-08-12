@@ -80,3 +80,10 @@ Next, you will use Xcode to compile xLights. Most of the steps are listed here:
   http://wiki.wxwidgets.org/Creating_Xcode_projects_for_wxWidgets_applications
 
 However, if you have the XCode command line tools installed, you should just be able to run "xcodebuild" and it should build and compile xLights automatically.
+
+
+
+Other library notes:
+If you need to rebuild ffmpeg:
+./configure --disable-yasm --disable-securetransport --enable-shared --disable-indev=qtkit --extra-cflags="-mmacosx-version-min=10.7"
+
