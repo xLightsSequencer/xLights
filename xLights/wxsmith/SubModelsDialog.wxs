@@ -19,7 +19,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>2</growablerows>
+							<growablerows>1</growablerows>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
 									<cols>4</cols>
@@ -64,62 +64,94 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX1" variable="LayoutCheckbox" member="yes">
-									<label>Vertical Buffer Layout</label>
-									<handler function="OnLayoutCheckboxClick" entry="EVT_CHECKBOX" />
-								</object>
-								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-									<cols>2</cols>
-									<growablecols>0</growablecols>
-									<growablerows>0</growablerows>
-									<object class="sizeritem">
-										<object class="wxGrid" name="ID_GRID1" variable="NodesGrid" member="yes">
-											<cols>1</cols>
-											<rows>5</rows>
-											<labelrowheight>18</labelrowheight>
-											<defaultcolsize>150</defaultcolsize>
-											<collabels>
-												<item>Node Ranges</item>
-											</collabels>
-											<rowlabels>
-												<item>Strand   1</item>
-											</rowlabels>
-											<style>wxVSCROLL</style>
-											<handler function="OnNodesGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+								<object class="wxNotebook" name="ID_NOTEBOOK1" variable="TypeNotebook" member="yes">
+									<handler function="OnTypeNotebookPageChanged" entry="EVT_NOTEBOOK_PAGE_CHANGED" />
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL2" variable="Panel1" member="no">
+											<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+												<cols>2</cols>
+												<growablecols>0</growablecols>
+												<growablerows>0</growablerows>
+												<object class="sizeritem">
+													<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
+														<cols>1</cols>
+														<rows>2</rows>
+														<growablecols>0</growablecols>
+														<growablerows>1</growablerows>
+														<object class="sizeritem">
+															<object class="wxCheckBox" name="ID_CHECKBOX1" variable="LayoutCheckbox" member="yes">
+																<label>Vertical Buffer Layout</label>
+																<handler function="OnLayoutCheckboxClick" entry="EVT_CHECKBOX" />
+															</object>
+															<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxGrid" name="ID_GRID1" variable="NodesGrid" member="yes">
+																<cols>1</cols>
+																<rows>5</rows>
+																<labelrowheight>18</labelrowheight>
+																<defaultcolsize>160</defaultcolsize>
+																<collabels>
+																	<item>Node Ranges</item>
+																</collabels>
+																<rowlabels>
+																	<item>Strand   1</item>
+																</rowlabels>
+																<style>wxVSCROLL</style>
+																<handler function="OnNodesGridLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
+																<handler function="OnNodesGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+														<cols>1</cols>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON1" variable="AddRowButton" member="yes">
+																<label>Add Row</label>
+																<handler function="OnAddRowButtonClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON2" variable="DeleteRowButton" member="yes">
+																<label>Delete Row</label>
+																<handler function="OnDeleteRowButtonClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<option>1</option>
+												</object>
+											</object>
 										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-										<option>1</option>
+										<label>Node Ranges</label>
 									</object>
-									<object class="sizeritem">
-										<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
-											<cols>1</cols>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON1" variable="AddRowButton" member="yes">
-													<label>Add Row</label>
-													<handler function="OnAddRowButtonClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON2" variable="DeleteRowButton" member="yes">
-													<label>Delete Row</label>
-													<handler function="OnDeleteRowButtonClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL3" variable="SubBufferPanelHolder" member="yes">
+											<pos>90,10</pos>
+											<object class="wxFlexGridSizer" variable="SubBufferSizer" member="yes">
+												<cols>1</cols>
+												<rows>1</rows>
+												<growablecols>0</growablecols>
+												<growablerows>0</growablerows>
 											</object>
 										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<option>1</option>
+										<label>SubBuffer</label>
 									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
@@ -127,7 +159,7 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">

@@ -10,6 +10,8 @@ class wxPanel;
 class wxGrid;
 class wxStdDialogButtonSizer;
 class wxCheckBox;
+class wxNotebookEvent;
+class wxNotebook;
 class wxStaticText;
 class wxFlexGridSizer;
 class wxButton;
@@ -18,8 +20,11 @@ class wxChoice;
 //*)
 
 
+class wxBookCtrlEvent;
+
 class Model;
 class ModelPreview;
+class SubBufferPanel;
 
 class SubModelsDialog: public wxDialog
 {
@@ -34,11 +39,14 @@ class SubModelsDialog: public wxDialog
 		//(*Declarations(SubModelsDialog)
 		wxCheckBox* LayoutCheckbox;
 		wxPanel* ModelPreviewPanelLocation;
+		wxFlexGridSizer* SubBufferSizer;
 		wxButton* AddRowButton;
+		wxPanel* SubBufferPanelHolder;
 		wxFlexGridSizer* PreviewSizer;
 		wxStaticText* StaticText3;
 		wxGrid* NodesGrid;
 		wxButton* AddButton;
+		wxNotebook* TypeNotebook;
 		wxButton* DeleteButton;
 		wxChoice* NameChoice;
 		wxButton* DeleteRowButton;
@@ -55,6 +63,9 @@ class SubModelsDialog: public wxDialog
 		static const long ID_GRID1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
+		static const long ID_PANEL2;
+		static const long ID_PANEL3;
+		static const long ID_NOTEBOOK1;
 		static const long ID_PANEL1;
 		//*)
 
@@ -69,7 +80,10 @@ class SubModelsDialog: public wxDialog
 		void OnLayoutCheckboxClick(wxCommandEvent& event);
 		void OnAddRowButtonClick(wxCommandEvent& event);
 		void OnDeleteRowButtonClick(wxCommandEvent& event);
+		void OnSubBufferRangeChange(wxCommandEvent& event);
 		void OnNodesGridCellLeftClick(wxGridEvent& event);
+		void OnTypeNotebookPageChanged(wxBookCtrlEvent& event);
+		void OnNodesGridLabelLeftClick(wxGridEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
@@ -78,16 +92,20 @@ class SubModelsDialog: public wxDialog
 private:
     void SelectRow(int r);
     void Select(const wxString &name);
+    void DisplayRange(const wxString &range);
     
     class SubModelInfo {
     public:
         wxString name;
         bool vertical;
+        bool isRanges;
+        wxString subBuffer;
         std::vector<wxString> strands;
     };
     
     Model *model;
     ModelPreview *modelPreview;
+    SubBufferPanel *subBufferPanel;
     std::map<wxString, SubModelInfo> subModels;
     
 };

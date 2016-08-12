@@ -169,11 +169,13 @@ void RowHeading::rightClick( wxMouseEvent& event)
         mnuLayer.AppendSeparator();
         bool canPromote = false;
         ModelElement *me = dynamic_cast<ModelElement *>(element);
-        if (element->GetType()==ELEMENT_TYPE_STRAND) {
-            me = dynamic_cast<StrandElement *>(element)->GetModelElement();
+        if (element->GetType()==ELEMENT_TYPE_STRAND || element->GetType()==ELEMENT_TYPE_SUBMODEL) {
+            me = dynamic_cast<SubModelElement *>(element)->GetModelElement();
         }
         if (me->GetSubModelCount() > 1) {
-            canPromote = true;
+            if (element->GetType() != ELEMENT_TYPE_SUBMODEL) {
+                canPromote = true;
+            }
             mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Strands");
             if (ri->strandIndex >= 0) {
                 mnuLayer.Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");

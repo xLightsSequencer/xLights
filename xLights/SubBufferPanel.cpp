@@ -5,6 +5,9 @@
 #include <wx/arrstr.h>
 
 
+wxDEFINE_EVENT(SUBBUFFER_RANGE_CHANGED, wxCommandEvent);
+
+
 BEGIN_EVENT_TABLE(SubBufferPanel, wxWindow)
 EVT_MOTION(SubBufferPanel::mouseMoved)
 EVT_LEFT_DOWN(SubBufferPanel::mouseLeftDown)
@@ -29,9 +32,16 @@ SubBufferPanel::SubBufferPanel(wxPanel* parent, wxWindowID id,
 SubBufferPanel::~SubBufferPanel()
 {
 }
+void SubBufferPanel::SendChangeEvent() {
+    wxCommandEvent ev(SUBBUFFER_RANGE_CHANGED, GetId());
+    ev.SetString(GetValue());
+    GetEventHandler()->ProcessEvent(ev);
+}
+
 void SubBufferPanel::SetDefaults() {
     x1 = y1 = 0.0;
     x2 = y2 = 100.0;
+    SendChangeEvent();
     Refresh();
 }
 
@@ -108,6 +118,7 @@ void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
             y1 = 0.0;
             x2 = y2 = 100.0;
         }
+        SendChangeEvent();
         Refresh();
     }
 }
@@ -193,6 +204,7 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
     if (draggingHandle >= 0) {
         if (x2 < x1) std::swap(x1, x2);
         if (y2 < y1) std::swap(y1, y2);
+        SendChangeEvent();
         Refresh();
     }
 }

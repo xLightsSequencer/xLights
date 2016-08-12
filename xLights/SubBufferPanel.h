@@ -5,6 +5,8 @@
 
 #include "xlCustomControl.h"
 
+wxDECLARE_EVENT(SUBBUFFER_RANGE_CHANGED, wxCommandEvent);
+
 class SubBufferPanel : public wxWindow, public xlCustomControl
 {
     public:
@@ -28,6 +30,7 @@ class SubBufferPanel : public wxWindow, public xlCustomControl
         void ContextMenu(wxContextMenuEvent& event);
         void MenuItemSelected(wxCommandEvent &event);
     private:
+        void SendChangeEvent();
         int OverMouseHandle(wxMouseEvent& event);
         void Convert(float &x, float &y, wxMouseEvent& event);
     

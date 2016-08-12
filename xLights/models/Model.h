@@ -116,6 +116,8 @@ public:
     virtual const ModelScreenLocation &GetModelScreenLocation() const = 0;
     virtual ModelScreenLocation &GetModelScreenLocation() = 0;
 
+    
+    bool IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2);
 protected:
     void AdjustStringProperties(wxPropertyGridInterface *grid, int newNum);
     std::string ComputeStringStartChannel(int x);
