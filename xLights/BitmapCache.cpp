@@ -75,6 +75,40 @@
 #include "../include/backward-24.xpm"
 #include "../include/backward-24_off.xpm"
 
+#include "../include/group-open-24.xpm"
+#include "../include/group-open-64.xpm"
+#include "../include/group-closed-24.xpm"
+#include "../include/group-closed-64.xpm"
+
+#include "../include/arch-icon-24.xpm"
+#include "../include/arch-icon-64.xpm"
+#include "../include/cane-icon-24.xpm"
+#include "../include/cane-icon-64.xpm"
+#include "../include/circle-icon-24.xpm"
+#include "../include/circle-icon-64.xpm"
+#include "../include/custom-icon-24.xpm"
+#include "../include/custom-icon-64.xpm"
+#include "../include/dmx-icon-24.xpm"
+#include "../include/dmx-icon-64.xpm"
+#include "../include/icicle-icon-24.xpm"
+#include "../include/icicle-icon-64.xpm"
+#include "../include/line-icon-24.xpm"
+#include "../include/line-icon-64.xpm"
+#include "../include/matrix-icon-24.xpm"
+#include "../include/matrix-icon-64.xpm"
+#include "../include/poly-icon-24.xpm"
+#include "../include/poly-icon-64.xpm"
+#include "../include/spinner-icon-24.xpm"
+#include "../include/spinner-icon-64.xpm"
+#include "../include/star-icon-24.xpm"
+#include "../include/star-icon-64.xpm"
+#include "../include/tree-icon-24.xpm"
+#include "../include/tree-icon-64.xpm"
+#include "../include/window-icon-24.xpm"
+#include "../include/window-icon-64.xpm"
+#include "../include/wreath-icon-24.xpm"
+#include "../include/wreath-icon-64.xpm"
+
 #include "../include/link-48.xpm"
 #include "../include/unlink-48.xpm"
 
@@ -293,6 +327,38 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm);
     } else if ("xlART_RENDER_ALL" == id) {
         return effectBitmaps.get(24, false, id, render_all_24_xpm, render_all_24_xpm, render_all_24_xpm, render_all_24_xpm, render_all_24_xpm);
+    } else if ("xlART_GROUP_CLOSED" == id) {
+        return effectBitmaps.get(24, false, id, group_closed_24_xpm, group_closed_24_xpm, group_closed_64_xpm, group_closed_64_xpm, group_closed_64_xpm);
+    } else if ("xlART_GROUP_OPEN" == id) {
+        return effectBitmaps.get(24, false, id, group_open_24_xpm, group_open_24_xpm, group_open_64_xpm, group_open_64_xpm, group_open_64_xpm);
+    } else if ("xlART_ARCH_ICON" == id) {
+        return effectBitmaps.get(24, false, id, arch_icon_24_xpm, arch_icon_24_xpm, arch_icon_64_xpm, arch_icon_64_xpm, arch_icon_64_xpm);
+    } else if ("xlART_CANE_ICON" == id) {
+        return effectBitmaps.get(24, false, id, cane_icon_24_xpm, cane_icon_24_xpm, cane_icon_64_xpm, cane_icon_64_xpm, cane_icon_64_xpm);
+    } else if ("xlART_CIRCLE_ICON" == id) {
+        return effectBitmaps.get(24, false, id, circle_icon_24_xpm, circle_icon_24_xpm, circle_icon_64_xpm, circle_icon_64_xpm, circle_icon_64_xpm);
+    } else if ("xlART_CUSTOM_ICON" == id) {
+        return effectBitmaps.get(24, false, id, custom_icon_24_xpm, custom_icon_24_xpm, custom_icon_64_xpm, custom_icon_64_xpm, custom_icon_64_xpm);
+    } else if ("xlART_DMX_ICON" == id) {
+        return effectBitmaps.get(24, false, id, dmx_icon_24_xpm, dmx_icon_24_xpm, dmx_icon_64_xpm, dmx_icon_64_xpm, dmx_icon_64_xpm);
+    } else if ("xlART_ICICLE_ICON" == id) {
+        return effectBitmaps.get(24, false, id, icicle_icon_24_xpm, icicle_icon_24_xpm, icicle_icon_64_xpm, icicle_icon_64_xpm, icicle_icon_64_xpm);
+    } else if ("xlART_LINE_ICON" == id) {
+        return effectBitmaps.get(24, false, id, line_icon_24_xpm, line_icon_24_xpm, line_icon_64_xpm, line_icon_64_xpm, line_icon_64_xpm);
+    } else if ("xlART_MATRIX_ICON" == id) {
+        return effectBitmaps.get(24, false, id, matrix_icon_24_xpm, matrix_icon_24_xpm, matrix_icon_64_xpm, matrix_icon_64_xpm, matrix_icon_64_xpm);
+    } else if ("xlART_POLY_ICON" == id) {
+        return effectBitmaps.get(24, false, id, poly_icon_24_xpm, poly_icon_24_xpm, poly_icon_64_xpm, poly_icon_64_xpm, poly_icon_64_xpm);
+    } else if ("xlART_SPINNER_ICON" == id) {
+        return effectBitmaps.get(24, false, id, spinner_icon_24_xpm, spinner_icon_24_xpm, spinner_icon_64_xpm, spinner_icon_64_xpm, spinner_icon_64_xpm);
+    } else if ("xlART_STAR_ICON" == id) {
+        return effectBitmaps.get(24, false, id, star_icon_24_xpm, star_icon_24_xpm, star_icon_64_xpm, star_icon_64_xpm, star_icon_64_xpm);
+    } else if ("xlART_TREE_ICON" == id) {
+        return effectBitmaps.get(24, false, id, tree_icon_24_xpm, tree_icon_24_xpm, tree_icon_64_xpm, tree_icon_64_xpm, tree_icon_64_xpm);
+    } else if ("xlART_WINDOW_ICON" == id) {
+        return effectBitmaps.get(24, false, id, window_icon_24_xpm, window_icon_24_xpm, window_icon_64_xpm, window_icon_64_xpm, window_icon_64_xpm);
+    } else if ("xlART_WREATH_ICON" == id) {
+        return effectBitmaps.get(24, false, id, wreath_icon_24_xpm, wreath_icon_24_xpm, wreath_icon_64_xpm, wreath_icon_64_xpm, wreath_icon_64_xpm);
 #ifndef __WXOSX__
         //don't use these on OSX as the OSX supplied Icons look MUCH better and more inline with expectations on a Mac
     } else if (wxART_FOLDER_OPEN == id) {

@@ -310,7 +310,7 @@ void ModelGroupPanel::SaveGroupChanges()
             break;
     }
     g->Reset();
-    xlights->UpdateModelsList(false);
+    xlights->UpdateModelsList();
     xlights->UnsavedRgbEffectsChanges = true;
     xlights->UpdatePreview();
 }
@@ -321,7 +321,7 @@ void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
     wxXmlNode *e = g->GetModelXml();
     e->DeleteAttribute("LayoutGroup");
     e->AddAttribute("LayoutGroup", ChoicePreviews->GetString(ChoicePreviews->GetCurrentSelection()));
-    xlights->UpdateModelsList(true);
+    xlights->UpdateModelsList();
     xlights->UnsavedRgbEffectsChanges = true;
     xlights->UpdatePreview();
     xlights->RefreshLayout();

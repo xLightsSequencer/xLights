@@ -542,7 +542,7 @@ static std::string chooseNewName(xLightsFrame *parent, std::vector<std::string> 
     return curval;
 }
 
-void xLightsFrame::UpdateModelsList(bool update_groups)
+void xLightsFrame::UpdateModelsList()
 {
     playModel = nullptr;
     PreviewModels.clear();
@@ -671,7 +671,7 @@ void xLightsFrame::UpdateModelsList(bool update_groups)
         }
     }
 
-    layoutPanel->UpdateModelList(update_groups);
+    layoutPanel->UpdateModelList();
 }
 
 void xLightsFrame::SaveSequence()

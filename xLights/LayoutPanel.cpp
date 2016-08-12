@@ -1,7 +1,6 @@
 #include "LayoutPanel.h"
 
 //(*InternalHeaders(LayoutPanel)
-#include <wx/listctrl.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/checkbox.h>
@@ -18,6 +17,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/tglbtn.h>
 #include <wx/sstream.h>
+#include <wx/artprov.h>
 
 #include "ModelPreview.h"
 #include "xLightsMain.h"
@@ -33,9 +33,7 @@
 #include "PreviewPane.h"
 
 //(*IdInit(LayoutPanel)
-const long LayoutPanel::ID_CHECKLISTBOX_MODEL_GROUPS = wxNewId();
-const long LayoutPanel::ID_LISTBOX_ELEMENT_LIST = wxNewId();
-const long LayoutPanel::ID_SPLITTERWINDOW3 = wxNewId();
+const long LayoutPanel::ID_PANEL3 = wxNewId();
 const long LayoutPanel::ID_PANEL2 = wxNewId();
 const long LayoutPanel::ID_SPLITTERWINDOW1 = wxNewId();
 const long LayoutPanel::ID_CHECKBOXOVERLAP = wxNewId();
@@ -50,10 +48,16 @@ const long LayoutPanel::ID_SPLITTERWINDOW2 = wxNewId();
 BEGIN_EVENT_TABLE(LayoutPanel,wxPanel)
 	//(*EventTable(LayoutPanel)
 	//*)
-    EVT_COMMAND(wxID_ANY, EVT_LISTITEM_CHECKED, LayoutPanel::ModelGroupChecked)
+    EVT_TREELIST_SELECTION_CHANGED(wxID_ANY, LayoutPanel::OnSelectionChanged)
+    EVT_TREELIST_ITEM_CONTEXT_MENU(wxID_ANY, LayoutPanel::OnItemContextMenu)
+    //EVT_TREELIST_ITEM_EXPANDING(wxID_ANY, LayoutPanel::OnItemExpanding)
+    //EVT_TREELIST_ITEM_EXPANDED(wxID_ANY, LayoutPanel::OnSelectionChanged)
+    //EVT_TREELIST_ITEM_CHECKED(wxID_ANY, LayoutPanel::OnItemChecked)
+    //EVT_TREELIST_ITEM_ACTIVATED(wxID_ANY, LayoutPanel::OnSelectionChanged)
 END_EVENT_TABLE()
 
 
+const long LayoutPanel::ID_TREELISTVIEW_MODELS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTCSV = wxNewId();
@@ -125,7 +129,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
-    mSelectedGroup(-1), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
+    mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false)
 {
     background = nullptr;
@@ -156,15 +160,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	ModelSplitter->SetMinSize(wxSize(100,100));
 	ModelSplitter->SetMinimumPaneSize(100);
 	ModelSplitter->SetSashGravity(0.5);
-	GroupSplitter = new wxSplitterWindow(ModelSplitter, ID_SPLITTERWINDOW3, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW3"));
-	GroupSplitter->SetMinSize(wxSize(50,50));
-	GroupSplitter->SetMinimumPaneSize(50);
-	GroupSplitter->SetSashGravity(0.5);
-	ListBoxModelGroups = new wxCheckedListCtrl(GroupSplitter, ID_CHECKLISTBOX_MODEL_GROUPS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_CHECKLISTBOX_MODEL_GROUPS"));
-	ListBoxElementList = new wxListView(GroupSplitter, ID_LISTBOX_ELEMENT_LIST, wxPoint(50,7), wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING, wxDefaultValidator, _T("ID_LISTBOX_ELEMENT_LIST"));
-	GroupSplitter->SplitHorizontally(ListBoxModelGroups, ListBoxElementList);
+	FirstPanel = new wxPanel(ModelSplitter, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	SecondPanel = new wxPanel(ModelSplitter, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-	ModelSplitter->SplitHorizontally(GroupSplitter, SecondPanel);
+	ModelSplitter->SplitHorizontally(FirstPanel, SecondPanel);
 	LeftPanelSizer->Add(ModelSplitter, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 2);
 	CheckBoxOverlap = new wxCheckBox(LeftPanel, ID_CHECKBOXOVERLAP, _("Overlap checks enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXOVERLAP"));
 	CheckBoxOverlap->SetValue(false);
@@ -201,12 +199,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	FlexGridSizerPreview->Fit(this);
 	FlexGridSizerPreview->SetSizeHints(this);
 
-	Connect(ID_CHECKLISTBOX_MODEL_GROUPS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnListBoxModelGroupsItemSelect);
-	Connect(ID_CHECKLISTBOX_MODEL_GROUPS,wxEVT_COMMAND_LIST_ITEM_DESELECTED,(wxObjectEventFunction)&LayoutPanel::OnListBoxModelGroupsItemDeselect);
-	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListItemSelect);
-	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListItemRClick);
-	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListColumnClick);
-	Connect(ID_SPLITTERWINDOW3,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnGroupSplitterSashPosChanged);
 	Connect(ID_SPLITTERWINDOW1,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnModelSplitterSashPosChanged);
 	Connect(ID_CHECKBOXOVERLAP,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBoxOverlapClick);
 	Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonSavePreviewClick);
@@ -241,12 +233,22 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 #else
     propertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE);
 #endif
+    InitImageList();
+    TreeListViewModels = CreateTreeListCtrl(wxTL_DEFAULT_STYLE);
+    comparator.SetFrame(xlights);
+    TreeListViewModels->SetItemComparator(&comparator);
+
+    wxSizer* sizer1 = new wxBoxSizer(wxVERTICAL);
+    sizer1->Add(TreeListViewModels, wxSizerFlags(2).Expand());
+    FirstPanel->SetSizer(sizer1);
+    sizer1->SetSizeHints(FirstPanel);
+
     ModelSplitter->ReplaceWindow(SecondPanel, propertyEditor);
     LeftPanelSizer->Fit(LeftPanel);
     LeftPanelSizer->SetSizeHints(LeftPanel);
+    FlexGridSizerPreview->Fit(this);
+    FlexGridSizerPreview->SetSizeHints(this);
 
-    //LeftPanelSizer->Add(propertyEditor, 1, wxALL|wxEXPAND, 0);
-    //LeftPanelSizer->AddGrowableRow(13);
     propertyEditor->Connect(wxEVT_PG_CHANGING, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChanging,0,this);
     propertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChange,0,this);
     propertyEditor->Connect(wxEVT_PG_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridSelection,0,this);
@@ -266,27 +268,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         ModelSplitter->SetSashGravity(0.0);
         ModelSplitter->SetSashPosition(msp);
     }
-    if (gsp != -1) {
-        GroupSplitter->SetSashGravity(0.0);
-        GroupSplitter->SetSashPosition(gsp);
-    }
-
-    wxListItem elementCol;
-    elementCol.SetText(_T("Element Name"));
-    elementCol.SetImage(-1);
-    elementCol.SetAlign(wxLIST_FORMAT_LEFT);
-    ListBoxElementList->InsertColumn(0, elementCol);
-
-    elementCol.SetText(_T("Start Chan"));
-    elementCol.SetAlign(wxLIST_FORMAT_LEFT);
-    ListBoxElementList->InsertColumn(1, elementCol);
-
-    elementCol.SetText(_T("End Chan"));
-    elementCol.SetAlign(wxLIST_FORMAT_LEFT);
-    ListBoxElementList->InsertColumn(2, elementCol);
-    ListBoxElementList->SetColumnWidth(0,10);
-    ListBoxElementList->SetColumnWidth(1,10);
-    ListBoxElementList->SetColumnWidth(2,10);
 
     ToolSizer->SetCols(15);
     AddModelButton("Arches", arches);
@@ -312,9 +293,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(LayoutPanel::OnCharHook),0,this);
     modelPreview->Connect(wxID_ANY, wxEVT_CHAR, wxKeyEventHandler(LayoutPanel::OnChar),0,this);
 
-    ListBoxModelGroups->SetImages((char**)eye_16,(char**)eye_16_gray);
-    ListBoxModelGroups->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnModelGroupRightDown,0,this);
-
     ModelGroupWindow = new wxScrolledWindow(ModelSplitter);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     ModelGroupWindow->SetSizer(sizer);
@@ -326,6 +304,56 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     mDefaultSaveBtnColor = ButtonSavePreview->GetBackgroundColour();
 
     Reset();
+}
+
+void LayoutPanel::InitImageList()
+{
+    wxSize iconSize = wxArtProvider::GetSizeHint(wxART_LIST);
+    if ( iconSize == wxDefaultSize )
+        iconSize = wxSize(16, 16);
+
+    m_imageList = new wxImageList(iconSize.x, iconSize.y);
+
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NORMAL_FILE")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_GROUP_CLOSED")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_GROUP_OPEN")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_ARCH_ICON")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_CANE_ICON")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_CIRCLE_ICON")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_DMX_ICON")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_ICICLE_ICON")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LINE_ICON")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_MATRIX_ICON")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_POLY_ICON")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_SPINNER_ICON")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_STAR_ICON")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_TREE_ICON")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_WINDOW_ICON")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_WREATH_ICON")), wxART_LIST, iconSize));
+}
+
+wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style)
+{
+    wxTreeListCtrl* const
+        tree = new wxTreeListCtrl(FirstPanel, ID_TREELISTVIEW_MODELS,
+                                  wxDefaultPosition, wxDefaultSize,
+                                  style, "ID_TREELISTVIEW_MODELS");
+    tree->SetImageList(m_imageList);
+
+    tree->AppendColumn("Model / Group",
+                       wxCOL_WIDTH_AUTOSIZE,
+                       wxALIGN_LEFT,
+                       wxCOL_RESIZABLE | wxCOL_SORTABLE);
+    tree->AppendColumn("Start Chan",
+                       tree->WidthFor("1000000000000"),
+                       wxALIGN_CENTER,
+                       wxCOL_RESIZABLE | wxCOL_SORTABLE);
+    tree->AppendColumn("End Chan",
+                       tree->WidthFor("1000000000000"),
+                       wxALIGN_CENTER,
+                       wxCOL_RESIZABLE | wxCOL_SORTABLE);
+
+    return tree;
 }
 
 void LayoutPanel::Reset()
@@ -388,6 +416,8 @@ LayoutPanel::~LayoutPanel()
     if (background != nullptr) {
         delete background;
     }
+    TreeListViewModels->DeleteAllItems();
+    delete m_imageList;
 	//(*Destroy(LayoutPanel)
 	//*)
 }
@@ -442,11 +472,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 }
             }
             if (selectedModel->name != safename) {
-                for(int i=0;i<ListBoxElementList->GetItemCount();i++) {
-                    if (selectedModel->name == ListBoxElementList->GetItemText(i)) {
-                        ListBoxElementList->SetItemText(i, wxString(safename.c_str()));
-                    }
-                }
+                RenameModelInTree(selectedModel->name, safename);
                 if (selectedModel->name == lastModelName) {
                     lastModelName = safename;
                 }
@@ -528,9 +554,6 @@ void LayoutPanel::OnPropertyGridItemExpanded(wxPropertyGridEvent& event) {
 
 void LayoutPanel::RefreshLayout()
 {
-    RemoveModelGroupFilters();
-    DeselectModelGroupList();
-    DeselectModelList();
     xlights->UpdateModelsList();
     ShowPropGrid(true);
 }
@@ -569,25 +592,103 @@ void LayoutPanel::clearPropGrid() {
     }
     propertyEditor->Clear();
 }
-int wxCALLBACK MyCompareFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr WXUNUSED(sortData))
-{
-    wxString a = ((Model*)item1)->name;
-    wxString b = ((Model*)item2)->name;
-    return a.CmpNoCase(b);
-}
+
 void LayoutPanel::refreshModelList() {
-    for (int x = 0; x < ListBoxElementList->GetItemCount(); x++) {
-        Model *model = (Model*)ListBoxElementList->GetItemData(x);
-        std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
-        model->SetModelStartChan(start_channel);
-        int end_channel = model->GetLastChannel()+1;
-        ListBoxElementList->SetItem(x,1, start_channel);
-        ListBoxElementList->SetItem(x,2, wxString::Format(wxT("%i"),end_channel));
+    std::string item_name = "";
+    for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
+          item.IsOk();
+          item = TreeListViewModels->GetNextItem(item) )
+    {
+        item_name = TreeListViewModels->GetItemText(item);
+        Model *model = xlights->AllModels[item_name];
+        if( model != nullptr ) {
+            std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
+            model->SetModelStartChan(start_channel);
+            int end_channel = model->GetLastChannel()+1;
+            if( model->GetDisplayAs() != "ModelGroup" ) {
+                TreeListViewModels->SetItemText(item, Col_StartChan, start_channel);
+                TreeListViewModels->SetItemText(item, Col_EndChan, wxString::Format(wxT("%i"),end_channel));
+            }
+        }
     }
 }
-void LayoutPanel::UpdateModelList(bool update_groups) {
+
+void LayoutPanel::RenameModelInTree(const std::string old_name, const std::string new_name)
+{
+    std::string item_name = "";
+    for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
+          item.IsOk();
+          item = TreeListViewModels->GetNextItem(item) )
+    {
+        item_name = TreeListViewModels->GetItemText(item);
+        if( item_name == old_name ) {
+            TreeListViewModels->SetItemText(item, wxString(new_name.c_str()));
+        }
+    }
+}
+
+int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
+    if( model->GetDisplayAs() == "ModelGroup" ) {
+        return open ? Icon_FolderOpened : Icon_FolderClosed;
+    } else {
+        const std::string type = model->GetDisplayAs();
+        if( type == "Arches" ) {
+            return Icon_Arches;
+        } else if( type == "Circle" ) {
+            return Icon_Circle;
+        } else if( type == "Candy Canes" ) {
+            return Icon_CandyCane;
+        } else if( type == "DMX" ) {
+            return Icon_Dmx;
+        } else if( type == "Icicles" ) {
+            return Icon_Icicle;
+        } else if( type == "Single Line" ) {
+            return Icon_Line;
+        } else if( type == "Matrix" ) {
+            return Icon_Matrix;
+        } else if( type == "Poly Line" ) {
+            return Icon_Poly;
+        } else if( type == "Spinner" ) {
+            return Icon_Spinner;
+        } else if( type == "Star" ) {
+            return Icon_Star;
+        } else if( type == "Tree" ) {
+            return Icon_Tree;
+        } else if( type == "Wreath" ) {
+            return Icon_Wreath;
+        } else if( type == "Window Frame" ) {
+            return Icon_Window;
+        } else {
+            return Icon_File;
+        }
+    }
+    return 0;
+}
+
+void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent) {
+    std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
+    model->SetModelStartChan(start_channel);
+    int end_channel = model->GetLastChannel()+1;
+
+    wxTreeListItem item = TreeListViewModels->AppendItem(*parent, model->name,
+                                                         GetModelTreeIcon(model, false),
+                                                         GetModelTreeIcon(model, true));
+    if( model->GetDisplayAs() != "ModelGroup" ) {
+        TreeListViewModels->SetItemText(item, Col_StartChan, start_channel);
+        TreeListViewModels->SetItemText(item, Col_EndChan, wxString::Format(wxT("%i"),end_channel));
+    }
+
+    if( model->GetDisplayAs() == "ModelGroup" ) {
+        ModelGroup *grp = (ModelGroup*)model;
+        for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
+            Model *m = xlights->AllModels[*it];
+            AddModelToTree(m, &item);
+        }
+    }
+}
+
+void LayoutPanel::UpdateModelList(bool full_refresh) {
     UnSelectAllModels();
-    ListBoxElementList->DeleteAllItems();
 
     std::vector<Model *> models;
     std::vector<Model *> dummy_models;
@@ -608,31 +709,27 @@ void LayoutPanel::UpdateModelList(bool update_groups) {
         UpdateModelsForPreview( currentLayoutGroup, nullptr, models, true );
     }
 
-    for (auto it = models.begin(); it != models.end(); it++) {
-        Model *model = *it;
-        if (model->GetDisplayAs() == "ModelGroup") {
-            continue;
+    if( full_refresh ) {
+        TreeListViewModels->DeleteAllItems();
+        // add all the model groups
+        wxTreeListItem root = TreeListViewModels->GetRootItem();
+        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+            Model *model = it->second;
+            if (model->GetDisplayAs() == "ModelGroup") {
+                if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
+                    || (model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
+                    AddModelToTree(model, &root);
+                }
+            }
         }
-        long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(), model->name);
 
-        std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
-        model->SetModelStartChan(start_channel);
-        int end_channel = model->GetLastChannel()+1;
-        ListBoxElementList->SetItem(itemIndex,1, start_channel);
-        ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
-        ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
-    }
-
-    if( update_groups ) {
-        UpdateModelGroupList();
-    }
-
-    ListBoxElementList->SortItems(MyCompareFunction,0);
-    if (!colSizesSet) {
-        ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE_USEHEADER);
-        ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE_USEHEADER);
-        ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE_USEHEADER);
-        colSizesSet = true;
+        // add all the models
+        for (auto it = models.begin(); it != models.end(); it++) {
+            Model *model = *it;
+            if (model->GetDisplayAs() != "ModelGroup") {
+                AddModelToTree(model, &root);
+            }
+        }
     }
 
     modelPreview->SetModels(models);
@@ -655,15 +752,14 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
 
     // add in any models that were not in preview but belong to a group that is in the preview
     std::string selected_group_name = "";
-    if( mSelectedGroup != -1 && filtering) {
-        selected_group_name = ListBoxModelGroups->GetItemText(mSelectedGroup, 1).ToStdString();
+    if( mSelectedGroup != nullptr && filtering) {
+        selected_group_name = TreeListViewModels->GetItemText(mSelectedGroup);
     }
 
     for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
         Model *model = it->second;
         bool mark_selected = false;
-        bool mark_first = true;
-        if( (mSelectedGroup != -1) && filtering && (model->name == selected_group_name) ) {
+        if( (mSelectedGroup != nullptr) && filtering && (model->name == selected_group_name) ) {
             mark_selected = true;
         }
         if (model->GetDisplayAs() == "ModelGroup") {
@@ -672,10 +768,6 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                 for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
                     Model *m = xlights->AllModels[*it];
                     if( mark_selected ) {
-                        if( mark_first ) {
-                            SelectModel(m->name);
-                            mark_first = false;
-                        }
                         m->GroupSelected = true;
                     }
                     if (modelsAdded.find(*it) == modelsAdded.end()) {
@@ -701,59 +793,6 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
             }
         }
     }
-}
-
-void LayoutPanel::AddModelGroupItem(wxString name, ModelGroup *grp, bool selected)
-{
-    wxListItem li;
-    li.SetId(mNumGroups);
-    ListBoxModelGroups->InsertItem(li);
-    ListBoxModelGroups->SetItemPtrData(mNumGroups,(wxUIntPtr)grp);
-    ListBoxModelGroups->SetItem(mNumGroups,1, name);
-    ListBoxModelGroups->SetChecked(mNumGroups, selected);
-    mNumGroups++;
-}
-
-void LayoutPanel::UpdateModelGroupList()
-{
-    ListBoxModelGroups->ClearAll();
-
-	wxListItem col0;
-	col0.SetId(0);
-	col0.SetText( _("") );
-	col0.SetWidth(28);
-	ListBoxModelGroups->InsertColumn(0, col0);
-
-	wxListItem col1;
-	col1.SetId(1);
-	col1.SetText( _("Model Group") );
-	col1.SetWidth(130);
-	ListBoxModelGroups->InsertColumn(1, col1);
-
-	ListBoxModelGroups->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
-
-    mNumGroups = 0;
-
-    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
-        Model *model = it->second;
-        if (model->GetDisplayAs() == "ModelGroup") {
-            if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
-                || (model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
-                ModelGroup *grp = (ModelGroup*)model;
-                AddModelGroupItem(it->first, grp, grp->IsSelected());
-            }
-        }
-    }
-}
-
-void LayoutPanel::ModelGroupChecked(wxCommandEvent& event)
-{
-    int index = (size_t)event.GetClientObject();
-    bool checked = ListBoxModelGroups->IsChecked(index);
-    if( mSelectedGroup != -1 ) {
-        ListBoxModelGroups->SetItemState(mSelectedGroup, 0, -1);
-    }
-    ListBoxModelGroups->SetItemState(index, checked ? wxLIST_STATE_SELECTED : 0, -1);
 }
 
 class xlImageProperty : public wxImageFileProperty {
@@ -872,54 +911,60 @@ void LayoutPanel::SetupPropGrid(Model *model) {
     propertyEditor->Thaw();
 }
 
-void LayoutPanel::SelectModel(const std::string & name)
+void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
 {
     modelPreview->SetFocus();
     int foundStart = 0;
     int foundEnd = 0;
-    Model* m = nullptr;
-    for(int i=0;i<ListBoxElementList->GetItemCount();i++)
-    {
-        if (name == ListBoxElementList->GetItemText(i))
-        {
-            if (ListBoxElementList->GetItemState(i, wxLIST_STATE_SELECTED) == false) {
-                ListBoxElementList->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-                ListBoxElementList->EnsureVisible(i);
-                return;
+
+    Model *m = xlights->AllModels[name];
+    if( m != nullptr ) {
+        m->Selected = true;
+        std::string item_name = "";
+        if( highlight_tree ) {
+            for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
+                  item.IsOk();
+                  item = TreeListViewModels->GetNextSibling(item) )
+            {
+                item_name = TreeListViewModels->GetItemText(item);
+                if( item_name == m->name ) {
+                    TreeListViewModels->Select(item);
+                    TreeListViewModels->EnsureVisible(item);
+                    break;
+                }
             }
-            m=(Model*)ListBoxElementList->GetItemData(i);
-            m->Selected = true;
-            if (CheckBoxOverlap->GetValue()== true) {
-                foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
-                foundEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2).ToStdString());
-            }
-            SetupPropGrid(m);
-            break;
         }
-    }
-    if (m == nullptr) {
+        if (CheckBoxOverlap->GetValue()== true) {
+            foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
+            foundEnd = m->GetLastChannel();
+        }
+        SetupPropGrid(m);
+    } else {
         propertyEditor->Freeze();
         clearPropGrid();
         propertyEditor->Thaw();
     }
+
     selectedModel = m;
     if (CheckBoxOverlap->GetValue()) {
-        for(int i=0;i<ListBoxElementList->GetItemCount();i++)
+        std::string item_name = "";
+        for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
+              item.IsOk();
+              item = TreeListViewModels->GetNextSibling(item) )
         {
-            if (name != ListBoxElementList->GetItemText(i)) {
-                Model* m=(Model*)ListBoxElementList->GetItemData(i);
-                if (m != NULL) {
-                    int startChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,1).ToStdString());
-                    int endChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2).ToStdString());
-                    if ((startChan >= foundStart) && (endChan <= foundEnd)) {
-                        m->Overlapping = true;
-                    } else if ((startChan >= foundStart) && (startChan <= foundEnd)) {
-                        m->Overlapping = true;
-                    } else if ((endChan >= foundStart) && (endChan <= foundEnd)) {
-                        m->Overlapping = true;
-                    } else {
-                        m->Overlapping = false;
-                    }
+            item_name = TreeListViewModels->GetItemText(item);
+            Model *m = xlights->AllModels[item_name];
+            if( m != nullptr ) {
+                int startChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+                int endChan = m->GetLastChannel();
+                if ((startChan >= foundStart) && (endChan <= foundEnd)) {
+                    m->Overlapping = true;
+                } else if ((startChan >= foundStart) && (startChan <= foundEnd)) {
+                    m->Overlapping = true;
+                } else if ((endChan >= foundStart) && (endChan <= foundEnd)) {
+                    m->Overlapping = true;
+                } else {
+                    m->Overlapping = false;
                 }
             }
         }
@@ -931,11 +976,17 @@ void LayoutPanel::SelectModel(const std::string & name)
 void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
 {
     if (CheckBoxOverlap->GetValue() == false) {
-        for(int i=0;i<ListBoxElementList->GetItemCount();i++)
+        std::string item_name = "";
+        for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
+              item.IsOk();
+              item = TreeListViewModels->GetNextSibling(item) )
         {
-            Model* m=(Model*)ListBoxElementList->GetItemData(i);
-            if (m != NULL) {
-                m->Overlapping = false;
+            item_name = TreeListViewModels->GetItemText(item);
+            Model *model = xlights->AllModels[item_name];
+            if( model != nullptr ) {
+                if( model->GetDisplayAs() != "ModelGroup" ) {
+                    model->Overlapping = false;
+                }
             }
         }
     }
@@ -953,40 +1004,37 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
     SetDirtyHiLight(false);
 }
 
-void LayoutPanel::OnListBoxElementListItemSelect(wxListEvent& event)
+int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn)
 {
-    if( ignore_next_event ) {
-        ignore_next_event = false;
-        return;  // allow us to ignore this event when item state is set programmatically
-    }
-    ShowPropGrid(true);
-    int sel = ListBoxElementList->GetFirstSelected();
-    if (sel == wxNOT_FOUND)
-    {
-        UnSelectAllModels();
-        ListBoxElementList->SetToolTip("");
-        return;
-    }
-    std::string name = ListBoxElementList->GetItemText(sel).ToStdString();
-    UnSelectAllModels(false);
-    SelectModel(name);
+    std::string item_name1 = "";
+    std::string item_name2 = "";
+    item_name1 = treelist->GetItemText(item1);
+    item_name2 = treelist->GetItemText(item2);
+    Model* a = xlights->AllModels[item_name1];
+    Model* b = xlights->AllModels[item_name2];
 
-    for (int i = 0; i < ListBoxElementList->GetItemCount(); i++)
-    {
-        if (name == ListBoxElementList->GetItemText(i))
-        {
-            Model* m = (Model*)ListBoxElementList->GetItemData(i);
-            ListBoxElementList->SetToolTip(xlights->GetChannelToControllerMapping(m->GetNumberFromChannelString(m->ModelStartChannel)));
+    if( a == nullptr || b == nullptr ) return 0;
+
+    if( a->GetDisplayAs() == "ModelGroup" ) {
+        if( b->GetDisplayAs() == "ModelGroup" ) {
+            return 0;
+        } else {
+            return -1;
         }
+    } else if( b->GetDisplayAs() == "ModelGroup" ) {
+        return 1;
     }
-}
-
-int wxCALLBACK SortElementsFunctionASC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortColumn)
-{
-    Model* a = (Model *)item1;
-    Model* b = (Model *)item2;
 
     if (sortColumn == 1) {
+        if( a->GetDisplayAs() == "ModelGroup" ) {
+            if( b->GetDisplayAs() == "ModelGroup" ) {
+                return 0;
+            } else {
+                return 1;
+            }
+        } else if( b->GetDisplayAs() == "ModelGroup" ) {
+            return -1;
+        }
         int ia = a->GetNumberFromChannelString(a->ModelStartChannel);
         int ib = b->GetNumberFromChannelString(b->ModelStartChannel);
         if (ia > ib)
@@ -1003,22 +1051,14 @@ int wxCALLBACK SortElementsFunctionASC(wxIntPtr item1, wxIntPtr item2, wxIntPtr 
             return -1;
         return 0;
     } else {
-        return strcasecmp(a->name.c_str(), b->name.c_str());
+        return strcasecmp(b->name.c_str(), a->name.c_str());
     }
     return 0;
 }
 
-int wxCALLBACK SortElementsFunctionDESC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortColumn)
+int LayoutPanel::ModelListComparator::Compare(wxTreeListCtrl *treelist, unsigned column, wxTreeListItem first, wxTreeListItem second)
 {
-    return SortElementsFunctionASC(item2, item1, sortColumn);
-}
-
-void LayoutPanel::OnListBoxElementListColumnClick(wxListEvent& event)
-{
-    int col = event.GetColumn();
-    static bool x = false;
-    x = !x;
-    x ? ListBoxElementList->SortItems(SortElementsFunctionASC,col):ListBoxElementList->SortItems(SortElementsFunctionDESC,col);
+    return SortElementsFunction( treelist, first, second, column);
 }
 
 int LayoutPanel::FindModelsClicked(int x,int y,std::vector<int> &found)
@@ -1041,6 +1081,7 @@ bool LayoutPanel::SelectSingleModel(int x,int y)
     int modelCount = FindModelsClicked(x,y,found);
     if (modelCount==0)
     {
+        TreeListViewModels->UnselectAll();
         return false;
     }
     else if(modelCount==1)
@@ -1159,9 +1200,8 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     else if (m_over_handle != -1)
     {
         m_moving_handle = true;
-        int sel=ListBoxElementList->GetFirstSelected();
-        if (sel != wxNOT_FOUND) {
-            ((Model*)ListBoxElementList->GetItemData(sel))->SelectHandle(m_over_handle);
+        if( selectedModel != nullptr ) {
+            selectedModel->SelectHandle(m_over_handle);
             UpdatePreview();
         }
     }
@@ -1206,7 +1246,6 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 
         if(!event.wxKeyboardState::ControlDown())
         {
-            DeselectModelList();
             UnSelectAllModels();
         }
 
@@ -1267,15 +1306,6 @@ void LayoutPanel::FinalizeModel()
 
         newModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
 
-        if (mSelectedGroup != -1) {
-            wxString sel = ListBoxModelGroups->GetItemText(mSelectedGroup, 1);
-            ModelGroup *grp = (ModelGroup*)xlights->AllModels[sel.ToStdString()];
-            if (grp != nullptr) {
-                grp->AddModel(newModel->name);
-                model_grp_panel->UpdatePanel(sel.ToStdString());
-            }
-        }
-
         m_over_handle = -1;
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
         if (selectedButton->GetState() == 1) {
@@ -1285,12 +1315,12 @@ void LayoutPanel::FinalizeModel()
                 selectedButton->SetState(0);
                 selectedButton = nullptr;
             }
-            xlights->UpdateModelsList(false);
+            xlights->UpdateModelsList();
             UpdatePreview();
             SelectModel(name);
         } else {
             newModel = nullptr;
-            xlights->UpdateModelsList(false);
+            xlights->UpdateModelsList();
             UpdatePreview();
         }
     }
@@ -1316,9 +1346,8 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 
     Model *m = newModel;
     if (m == nullptr) {
-        int sel=ListBoxElementList->GetFirstSelected();
-        if (sel == wxNOT_FOUND) return;
-        m=(Model*)ListBoxElementList->GetItemData(sel);
+        m = selectedModel;
+        if( m == nullptr ) return;
     }
 
     if(m_moving_handle)
@@ -1393,12 +1422,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnu.AppendSeparator();
     }
     if (selectedModelCnt > 0) {
-        Model* model = nullptr;
-        int sel = ListBoxElementList->GetFirstSelected();
-        if (sel != wxNOT_FOUND)
-        {
-            model = (Model*)ListBoxElementList->GetItemData(sel);
-        }
+        Model* model = selectedModel;
         if (model != nullptr)
         {
             bool need_sep = false;
@@ -1473,9 +1497,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT)
     {
-        int sel = ListBoxElementList->GetFirstSelected();
-        if (sel == wxNOT_FOUND) return;
-        Model* md=(Model*)ListBoxElementList->GetItemData(sel);
+        Model* md=selectedModel;
+        if( md == nullptr ) return;
         wxString html=md->ChannelLayoutHtml();
         ChannelLayoutDialog dialog(this);
         dialog.SetHtmlSource(html);
@@ -1487,10 +1510,9 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL)
     {
-        int sel = ListBoxElementList->GetFirstSelected();
-        if (sel == wxNOT_FOUND) return;
-        Model* model = (Model*)ListBoxElementList->GetItemData(sel);
-        model->ExportXlightsModel();
+        Model* md=selectedModel;
+        if( md == nullptr ) return;
+        md->ExportXlightsModel();
     }
     else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE)
     {
@@ -1498,64 +1520,52 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT)
     {
-        int sel = ListBoxElementList->GetFirstSelected();
-        if (sel == wxNOT_FOUND) return;
-        Model* md=(Model*)ListBoxElementList->GetItemData(sel);
-        if( md != nullptr ) {
-            int handle = md->GetSelectedSegment();
-            CreateUndoPoint("SingleModel", md->name, std::to_string(handle+0x8000));
-            md->InsertHandle(handle);
+        Model* md=selectedModel;
+        if( md == nullptr ) return;
+        int handle = md->GetSelectedSegment();
+        CreateUndoPoint("SingleModel", md->name, std::to_string(handle+0x8000));
+        md->InsertHandle(handle);
+        md->UpdateXmlWithScale();
+        md->InitModel();
+        SetupPropGrid(md);
+        UpdatePreview();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_DELETEPOINT)
+    {
+        Model* md=selectedModel;
+        if( md == nullptr ) return;
+        int selected_handle = md->GetSelectedHandle();
+        if( (selected_handle != -1) && (md->GetNumHandles() > 2) )
+        {
+            CreateUndoPoint("SingleModel", md->name, std::to_string(selected_handle+0x4000));
+            md->DeleteHandle(selected_handle);
             md->UpdateXmlWithScale();
             md->InitModel();
             SetupPropGrid(md);
             UpdatePreview();
         }
     }
-    else if (event.GetId() == ID_PREVIEW_MODEL_DELETEPOINT)
-    {
-        int sel = ListBoxElementList->GetFirstSelected();
-        if (sel == wxNOT_FOUND) return;
-        Model* md=(Model*)ListBoxElementList->GetItemData(sel);
-        if( md != nullptr ) {
-            int selected_handle = md->GetSelectedHandle();
-            if( (selected_handle != -1) && (md->GetNumHandles() > 2) )
-            {
-                CreateUndoPoint("SingleModel", md->name, std::to_string(selected_handle+0x4000));
-                md->DeleteHandle(selected_handle);
-                md->UpdateXmlWithScale();
-                md->InitModel();
-                SetupPropGrid(md);
-                UpdatePreview();
-            }
-        }
-    }
     else if (event.GetId() == ID_PREVIEW_MODEL_ADDCURVE)
     {
-        int sel = ListBoxElementList->GetFirstSelected();
-        if (sel == wxNOT_FOUND) return;
-        Model* md=(Model*)ListBoxElementList->GetItemData(sel);
-        if( md != nullptr ) {
-            int seg = md->GetSelectedSegment();
-            CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x2000));
-            md->SetCurve(seg, true);
-            md->UpdateXmlWithScale();
-            md->InitModel();
-            UpdatePreview();
-        }
+        Model* md=selectedModel;
+        if( md == nullptr ) return;
+        int seg = md->GetSelectedSegment();
+        CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x2000));
+        md->SetCurve(seg, true);
+        md->UpdateXmlWithScale();
+        md->InitModel();
+        UpdatePreview();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_DELCURVE)
     {
-        int sel = ListBoxElementList->GetFirstSelected();
-        if (sel == wxNOT_FOUND) return;
-        Model* md=(Model*)ListBoxElementList->GetItemData(sel);
-        if( md != nullptr ) {
-            int seg = md->GetSelectedSegment();
-            CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x1000));
-            md->SetCurve(seg, false);
-            md->UpdateXmlWithScale();
-            md->InitModel();
-            UpdatePreview();
-        }
+        Model* md=selectedModel;
+        if( md == nullptr ) return;
+        int seg = md->GetSelectedSegment();
+        CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x1000));
+        md->SetCurve(seg, false);
+        md->UpdateXmlWithScale();
+        md->InitModel();
+        UpdatePreview();
     }
 
 }
@@ -1590,9 +1600,8 @@ void LayoutPanel::ExportModel()
     if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
     f.Write(_("Model_name, Display_as, String_type, String_count, Node_count, Start_channel, Start_node, My_display, Brightness+-\n"));
 
-    int sel = ListBoxElementList->GetFirstSelected();
-    if (sel == wxNOT_FOUND) return;
-    Model* model=(Model*)ListBoxElementList->GetItemData(sel);
+    Model* model=selectedModel;
+    if( model == nullptr ) return;
     wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
     f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %s, %d, %s\n", model->name, model->GetDisplayAs(), model->GetStringType(), model->GetNodeCount() / model->NodesPerString(), model->GetNodeCount(), stch, /*WRONG:*/ model->NodeStartChannel(0) / model->NodesPerString() + 1, model->GetLayoutGroup()));
     f.Close();
@@ -2134,12 +2143,11 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     if (type == "SingleModel") {
         Model *m = newModel;
         if (m == nullptr) {
-            int sel=ListBoxElementList->GetFirstSelected();
-            if (sel == wxNOT_FOUND) {
+            if( selectedModel == nullptr ) {
                 undoBuffer.resize(idx);
                 return;
             }
-            m=(Model*)ListBoxElementList->GetItemData(sel);
+            m=selectedModel;
         }
         wxXmlDocument doc;
         wxXmlNode *parent = m->GetModelXml()->GetParent();
@@ -2176,36 +2184,21 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     }
 }
 
-void LayoutPanel::OnListBoxElementListItemRClick(wxListEvent& event)
-{
-    wxMenu mnuLayer;
-    mnuLayer.Append(ID_MNU_DELETE_MODEL,"Delete");
-    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelPopup, NULL, this);
-    PopupMenu(&mnuLayer);
-}
-
-void LayoutPanel::OnModelPopup(wxCommandEvent& event)
+void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
 {
     int id = event.GetId();
     if(id == ID_MNU_DELETE_MODEL)
     {
         DeleteSelectedModel();
     }
-}
-
-void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
-{
-    int id = event.GetId();
-    if(id == ID_MNU_DELETE_MODEL_GROUP)
+    else if(id == ID_MNU_DELETE_MODEL_GROUP)
     {
-        long item = -1;
-        item = ListBoxModelGroups->GetNextItem( -1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-        if( item != -1 ) {
-            wxString name = ListBoxModelGroups->GetItemText(item, 1);
+        if( mSelectedGroup != nullptr ) {
+            wxString name = TreeListViewModels->GetItemText(mSelectedGroup);
             if (wxMessageBox("Are you sure you want to remove the " + name + " group?", "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
                 xlights->AllModels.Delete(name.ToStdString());
                 selectedModel = nullptr;
-                mSelectedGroup = -1;
+                mSelectedGroup = nullptr;
                 UnSelectAllModels();
                 ShowPropGrid(true);
                 xlights->UpdateModelsList();
@@ -2215,10 +2208,8 @@ void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
     }
     else if(id == ID_MNU_RENAME_MODEL_GROUP)
     {
-        long item = -1;
-        item = ListBoxModelGroups->GetNextItem( -1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-        if( item != -1 ) {
-            wxString sel = ListBoxModelGroups->GetItemText(item, 1);
+        if( mSelectedGroup != nullptr ) {
+            wxString sel = TreeListViewModels->GetItemText(mSelectedGroup);
             wxTextEntryDialog dlg(this, "Enter new name for group " + sel, "Rename " + sel, sel);
             if (dlg.ShowModal() == wxID_OK) {
                 wxString name = wxString(Model::SafeModelName(dlg.GetValue().ToStdString()));
@@ -2270,86 +2261,6 @@ void LayoutPanel::OnModelGroupPopup(wxCommandEvent& event)
     }
 }
 
-void LayoutPanel::OnListBoxModelGroupsItemSelect(wxListEvent& event)
-{
-    wxListItem li = event.GetItem();
-    int index = li.GetId();
-    SelectModelGroup(index);
-}
-
-void LayoutPanel::SelectModelGroup(int index)
-{
-    UnSelectAllModels(false);
-    DeselectModelList();
-    mSelectedGroup = index;
-
-    for( int i = 0; i < ListBoxModelGroups->GetItemCount(); i++) {
-        ListBoxModelGroups->SetChecked(i, false);
-    }
-    ListBoxModelGroups->SetChecked(index, true);
-
-    std::string name = ListBoxModelGroups->GetItemText(index, 1).ToStdString();
-    model_grp_panel->UpdatePanel(name);
-    ShowPropGrid(false);
-    xlights->UpdateModelsList(false);
-}
-
-void LayoutPanel::OnListBoxModelGroupsItemDeselect(wxListEvent& event)
-{
-    RemoveModelGroupFilters();
-    xlights->UpdateModelsList(false);
-}
-
-void LayoutPanel::RemoveModelGroupFilters()
-{
-    for( int i = 0; i < ListBoxModelGroups->GetItemCount(); i++) {
-        ListBoxModelGroups->SetChecked(i, false);
-    }
-    mSelectedGroup = -1;
-}
-
-void LayoutPanel::DeselectModelGroupList()
-{
-   long item = -1;
-   while( 1 )
-   {
-      item = ListBoxModelGroups->GetNextItem( -1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-      if( item == -1 )
-         break;
-      ListBoxModelGroups->SetItemState( item, 0, -1 );
-   }
-}
-
-void LayoutPanel::DeselectModelList()
-{
-   long item = -1;
-   while( 1 )
-   {
-      item = ListBoxElementList->GetNextItem( -1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-      if( item == -1 )
-         break;
-      ListBoxElementList->SetItemState( item, 0, -1 );
-   }
-}
-
-void LayoutPanel::OnModelGroupRightDown(wxMouseEvent& event)
-{
-    DeselectModelGroupList();
-    wxMenu mnuLayer;
-    wxPoint pos = event.GetPosition();
-    int flags = wxLIST_HITTEST_ONITEMLABEL;
-    long index = ListBoxModelGroups->HitTest(pos,flags,NULL); // got to use it at last
-    mnuLayer.Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
-    mSelectedGroup = index;
-    if( mSelectedGroup != -1 ) {
-        ListBoxModelGroups->SetItemState( index, wxLIST_STATE_SELECTED, -1 );
-        mnuLayer.Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
-        mnuLayer.Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
-    }
-    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelGroupPopup, NULL, this);
-    PopupMenu(&mnuLayer);
-}
-
 LayoutGroup* LayoutPanel::GetLayoutGroup(const std::string &name)
 {
     for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
@@ -2381,7 +2292,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
             xlights->LayoutGroupsNode->AddChild(node);
             node->AddAttribute("name", name);
 
-            mSelectedGroup = -1;
+            mSelectedGroup = nullptr;
             LayoutGroup* grp = new LayoutGroup(name.ToStdString(), xlights, node);
             grp->SetBackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
             xlights->LayoutGroups.push_back(grp);
@@ -2399,7 +2310,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
         }
     } else {
         SetCurrentLayoutGroup(choice_layout);
-        mSelectedGroup = -1;
+        mSelectedGroup = nullptr;
         UpdateModelList();
     }
     modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
@@ -2489,7 +2400,7 @@ void LayoutPanel::DeleteCurrentPreview()
             }
         }
         xlights->MarkEffectsFileDirty();
-        mSelectedGroup = -1;
+        mSelectedGroup = nullptr;
         for( int i = 0; i < ChoiceLayoutGroups->GetCount(); i++ )
         {
             if( ChoiceLayoutGroups->GetString(i) == currentLayoutGroup )
@@ -2546,3 +2457,72 @@ void LayoutPanel::SetCurrentLayoutGroup(const std::string& group)
         }
     }
 }
+
+//void OnItemExpanding(wxTreeListEvent& event);
+//void OnItemExpanded(wxTreeListEvent& event);
+//void OnItemChecked(wxTreeListEvent& event);
+
+void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
+{
+    wxMenu mnuContext;
+    wxTreeListItem item = event.GetItem();
+    if( item.IsOk() ) {
+        std::string item_name = "";
+        item_name = TreeListViewModels->GetItemText(item);
+        Model *model = xlights->AllModels[item_name];
+        if( model != nullptr ) {
+            if( model->GetDisplayAs() == "ModelGroup" ) {
+                mSelectedGroup = item;
+            } else {
+                mSelectedGroup = nullptr;
+                SelectModel(model->name, false);
+            }
+        }
+    } else {
+        return;
+    }
+    if( selectedModel != nullptr ) {
+        mnuContext.Append(ID_MNU_DELETE_MODEL,"Delete");
+        mnuContext.AppendSeparator();
+    }
+    mnuContext.Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
+    if( mSelectedGroup != nullptr ) {
+        mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
+        mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
+    }
+    mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, NULL, this);
+    PopupMenu(&mnuContext);
+}
+
+void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
+{
+    UnSelectAllModels(false);
+    wxTreeListItem item = event.GetItem();
+    if( item.IsOk() ) {
+        std::string item_name = "";
+        item_name = TreeListViewModels->GetItemText(item);
+        Model *model = xlights->AllModels[item_name];
+        if( model != nullptr ) {
+            if( model->GetDisplayAs() == "ModelGroup" ) {
+                mSelectedGroup = item;
+                model_grp_panel->UpdatePanel(model->name);
+                ShowPropGrid(false);
+                UpdateModelList(false);
+            } else {
+                mSelectedGroup = nullptr;
+                ShowPropGrid(true);
+                SelectModel(model->name, false);
+                TreeListViewModels->SetToolTip(xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)));
+            }
+        } else {
+            mSelectedGroup = nullptr;
+            selectedModel = nullptr;
+            ShowPropGrid(true);
+            UnSelectAllModels(true);
+            TreeListViewModels->SetToolTip("");
+        }
+    } else {
+        TreeListViewModels->SetToolTip("");
+    }
+}
+

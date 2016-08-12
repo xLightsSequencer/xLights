@@ -24,23 +24,7 @@
 									<minsize>100</minsize>
 									<minsize>100,100</minsize>
 									<handler function="OnModelSplitterSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
-									<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW3" variable="GroupSplitter" member="yes">
-										<minsize>50</minsize>
-										<minsize>50,50</minsize>
-										<handler function="OnGroupSplitterSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
-										<object class="wxListCtrl" name="ID_CHECKLISTBOX_MODEL_GROUPS" subclass="wxCheckedListCtrl" variable="ListBoxModelGroups" member="yes">
-											<style>wxLC_REPORT</style>
-											<handler function="OnListBoxModelGroupsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
-											<handler function="OnListBoxModelGroupsItemDeselect" entry="EVT_LIST_ITEM_DESELECTED" />
-										</object>
-										<object class="wxListView" name="ID_LISTBOX_ELEMENT_LIST" variable="ListBoxElementList" member="yes">
-											<pos>50,7</pos>
-											<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING</style>
-											<handler function="OnListBoxElementListItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
-											<handler function="OnListBoxElementListItemRClick" entry="EVT_LIST_ITEM_RIGHT_CLICK" />
-											<handler function="OnListBoxElementListColumnClick" entry="EVT_LIST_COL_CLICK" />
-										</object>
-									</object>
+									<object class="wxPanel" name="ID_PANEL3" variable="FirstPanel" member="yes" />
 									<object class="wxPanel" name="ID_PANEL2" variable="SecondPanel" member="yes" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>

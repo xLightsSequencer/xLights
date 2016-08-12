@@ -7,14 +7,13 @@ class wxSplitterWindow;
 class wxCheckBox;
 class wxSplitterEvent;
 class wxStaticText;
-class wxListCtrl;
-class wxListView;
 class wxFlexGridSizer;
 class wxButton;
 class wxChoice;
 //*)
 
 #include "wxCheckedListCtrl.h"
+#include <wx/treelist.h>
 
 #include <vector>
 
@@ -46,28 +45,25 @@ class LayoutPanel: public wxPanel
     private:
 		//(*Declarations(LayoutPanel)
 		wxFlexGridSizer* ToolSizer;
-		wxListView* ListBoxElementList;
 		wxChoice* ChoiceLayoutGroups;
-		wxCheckedListCtrl* ListBoxModelGroups;
+		wxPanel* FirstPanel;
 		wxSplitterWindow* SplitterWindow2;
 		wxPanel* LeftPanel;
 		wxStaticText* StaticText1;
 		wxCheckBox* CheckBoxOverlap;
 		wxPanel* SecondPanel;
 		wxButton* ButtonSavePreview;
-		wxSplitterWindow* GroupSplitter;
 		wxSplitterWindow* ModelSplitter;
 		wxPanel* PreviewGLPanel;
 		//*)
 
 		wxScrolledWindow* ModelGroupWindow;
+		wxTreeListCtrl* TreeListViewModels;
 
 	protected:
 
 		//(*Identifiers(LayoutPanel)
-		static const long ID_CHECKLISTBOX_MODEL_GROUPS;
-		static const long ID_LISTBOX_ELEMENT_LIST;
-		static const long ID_SPLITTERWINDOW3;
+		static const long ID_PANEL3;
 		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
 		static const long ID_CHECKBOXOVERLAP;
@@ -79,6 +75,7 @@ class LayoutPanel: public wxPanel
 		static const long ID_SPLITTERWINDOW2;
 		//*)
 
+		static const long ID_TREELISTVIEW_MODELS;
         static const long ID_PREVIEW_ALIGN;
         static const long ID_PREVIEW_MODEL_NODELAYOUT;
         static const long ID_PREVIEW_MODEL_EXPORTCSV;
@@ -109,9 +106,6 @@ class LayoutPanel: public wxPanel
 		void OnPreviewModelPopup(wxCommandEvent &event);
 		void OnCheckBoxOverlapClick(wxCommandEvent& event);
 		void OnButtonSavePreviewClick(wxCommandEvent& event);
-		void OnListBoxElementListItemSelect(wxListEvent& event);
-		void OnListBoxElementListColumnClick(wxListEvent& event);
-		void OnListBoxElementItemChecked(wxListEvent& event);
 		void OnPropertyGridChange(wxPropertyGridEvent& event);
 		void OnPropertyGridChanging(wxPropertyGridEvent& event);
 		void OnModelSplitterSashPosChanged(wxSplitterEvent& event);
@@ -119,12 +113,7 @@ class LayoutPanel: public wxPanel
 		void OnNewModelTypeButtonClicked(wxCommandEvent& event);
 		void OnCharHook(wxKeyEvent& event);
 		void OnChar(wxKeyEvent& event);
-		void OnListBoxElementListItemRClick(wxListEvent& event);
-		void OnListBoxModelGroupsItemSelect(wxListEvent& event);
-		void OnListBoxModelGroupsItemFocused(wxListEvent& event);
-		void OnListBoxModelGroupsItemActivated(wxListEvent& event);
 		void OnGroupSplitterSashPosChanged(wxSplitterEvent& event);
-		void OnListBoxModelGroupsItemDeselect(wxListEvent& event);
 		void OnChoiceLayoutGroupsSelect(wxCommandEvent& event);
 		void OnButtonLaunchPreviewClick(wxCommandEvent& event);
 		//*)
@@ -143,7 +132,7 @@ class LayoutPanel: public wxPanel
 
     public:
         void UpdatePreview();
-        void SelectModel(const std::string & name);
+        void SelectModel(const std::string & name, bool highlight_tree = true);
         void UnSelectAllModels(bool addBkgProps = true);
         void SetupPropGrid(Model *model);
         void AddPreviewChoice(const std::string &name);
@@ -159,10 +148,7 @@ class LayoutPanel: public wxPanel
         void ExportCustomModel();
         void ImportCustomModel(Model* model);
         void AddModelButton(const std::string &type, const char *imageData[]);
-        void UpdateModelGroupList();
         void ModelGroupChecked(wxCommandEvent& event);
-        void DeselectModelGroupList();
-        void SelectModelGroup(int index);
         void DeselectModelList();
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
 
@@ -198,7 +184,7 @@ class LayoutPanel: public wxPanel
         int mHitTestNextSelectModelIndex;
         int mNumGroups;
         bool mPropGridActive;
-        int mSelectedGroup;
+        wxTreeListItem mSelectedGroup;
         wxColour mDefaultSaveBtnColor;
 
         wxPropertyGrid *propertyEditor;
@@ -235,11 +221,38 @@ class LayoutPanel: public wxPanel
         void CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key = "", const std::string &data = "");
     public:
         xLightsFrame *xlights;
-        void UpdateModelList(bool update_groups = true);
-        void AddModelGroupItem(wxString name, ModelGroup *grp, bool selected);
+        void UpdateModelList(bool full_refresh = true);
         void RefreshLayout();
 
     private:
+        enum
+        {
+            Icon_File,
+            Icon_FolderClosed,
+            Icon_FolderOpened,
+            Icon_Arches,
+            Icon_CandyCane,
+            Icon_Circle,
+            Icon_Dmx,
+            Icon_Icicle,
+            Icon_Line,
+            Icon_Matrix,
+            Icon_Poly,
+            Icon_Spinner,
+            Icon_Star,
+            Icon_Tree,
+            Icon_Window,
+            Icon_Wreath
+        };
+
+        // Tree list columns.
+        enum
+        {
+            Col_Model,
+            Col_StartChan,
+            Col_EndChan
+        };
+
         ModelPreview *modelPreview;
         wxImage *background;
         wxString backgroundFile;
@@ -247,23 +260,44 @@ class LayoutPanel: public wxPanel
         bool previewBackgroundScaled;
         int previewBackgroundBrightness;
         wxPanel* main_sequencer;
+        wxImageList* m_imageList;
         bool ignore_next_event;
+
+        void OnSelectionChanged(wxTreeListEvent& event);
+        void OnItemContextMenu(wxTreeListEvent& event);
 
         static const long ID_MNU_DELETE_MODEL;
         static const long ID_MNU_DELETE_MODEL_GROUP;
         static const long ID_MNU_RENAME_MODEL_GROUP;
         static const long ID_MNU_ADD_MODEL_GROUP;
-        void OnModelPopup(wxCommandEvent& event);
-        void OnModelGroupPopup(wxCommandEvent& event);
-		void OnModelGroupRightDown(wxMouseEvent& event);
+        void OnModelsPopup(wxCommandEvent& event);
 		LayoutGroup* GetLayoutGroup(const std::string &name);
 		const wxString& GetBackgroundImageForSelectedPreview();
         void SwitchChoiceToCurrentLayoutGroup();
         void DeleteCurrentPreview();
-        void RemoveModelGroupFilters();
         void ShowPropGrid(bool show);
         void SetCurrentLayoutGroup(const std::string& group);
         void FinalizeModel();
+        void InitImageList();
+        wxTreeListCtrl* CreateTreeListCtrl(long style);
+        int GetModelTreeIcon(Model* model, bool open);
+        void AddModelToTree(Model *model, wxTreeListItem* parent);
+        void RenameModelInTree(const std::string old_name, const std::string new_name);
+        int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
+
+        class ModelListComparator : public wxTreeListItemComparator
+        {
+        public:
+            ModelListComparator() {};
+            virtual ~ModelListComparator() {};
+            virtual int Compare(wxTreeListCtrl *treelist, unsigned column, wxTreeListItem first, wxTreeListItem second);
+            int SortElementsFunction(wxTreeListCtrl *treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
+            void SetFrame(xLightsFrame* frame) {xlights = frame;}
+       private:
+            xLightsFrame* xlights;
+        };
+        ModelListComparator comparator;
+
 };
 
 #endif

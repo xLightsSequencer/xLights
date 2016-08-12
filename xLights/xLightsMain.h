@@ -1306,7 +1306,7 @@ public:
     int GetDefaultPreviewBackgroundBrightness();
     void SetPreviewBackgroundBrightness(int i);
     void UpdatePreview();
-    void UpdateModelsList(bool update_groups = true);
+    void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
     int GetTotalChannels() { return _totalChannels; };
     void ForceSequencerRefresh();
