@@ -2307,15 +2307,19 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 num_rows = (double)y_size;
                 num_columns = (double)x_size;
             }
-            if( flip_y )
-            {
-                reverse_rows = true;
-            }
             element->GetAttribute("ribbonOrientation", &attr);
             if( attr == "horizontal" )
             {
                 reverse_xy = true;
                 std::swap(num_columns, num_rows);
+            }
+            else
+            {
+                reverse_rows = true;
+            }
+            if( flip_y )
+            {
+                reverse_rows = ~reverse_rows;
             }
             layout_defined = true;
         }

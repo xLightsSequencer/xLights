@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix the flipping issue for vertical sequences for SuperStar import.  Got broke when fixing horizontal sequences.
    -- bug (gil)     Fix copy/paste row that was broken by 2016.43.
    -- bug (gil)     Fix Pictures WrapX to wrap at model size instead of image size.
    -- enh (gil)     Make the transition smooth if you cancel a model Import.  Fixes #647.
