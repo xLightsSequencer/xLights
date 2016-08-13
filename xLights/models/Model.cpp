@@ -935,7 +935,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
         delete m;
     }
     subModels.clear();
-    
+
     wxString tempstr,channelstr;
     long StartChannel;
 
@@ -1064,15 +1064,15 @@ public:
         ModelXml = n;
         StrobeRate = 0;
         Nodes.clear();
-        
+
         name = n->GetAttribute("name").ToStdString();
         parm1 = 1;
         parm2 = 1;
         parm3 = 1;
-        
+
         bool vert = n->GetAttribute("layout") == "vertical";
         bool isRanges = n->GetAttribute("type", "ranges") == "ranges";
-        
+
         if (isRanges) {
             int row = 0;
             int col = 0;
@@ -1084,7 +1084,7 @@ public:
                 wxStringTokenizer wtkz(nodes, ",");
                 while (wtkz.HasMoreTokens()) {
                     wxString valstr = wtkz.GetNextToken();
-                    
+
                     int start, end;
                     if (valstr.Contains("-")) {
                         int idx = valstr.Index('-');
@@ -1148,10 +1148,10 @@ public:
                 x2 = v.size() > 2 ? wxAtof(v[2]) : 100.0;
                 y2 = v.size() > 3 ? wxAtof(v[3]) : 100.0;
             }
-            
+
             if (x1 > x2) std::swap(x1, x2);
             if (y1 > y2) std::swap(y1, y2);
-            
+
             x1 *= (float) p->GetDefaultBufferWi();
             x2 *= (float) p->GetDefaultBufferWi();
             y1 *= (float) p->GetDefaultBufferHt();
@@ -1160,7 +1160,7 @@ public:
             x2 /= 100.0;
             y1 /= 100.0;
             y2 /= 100.0;
-            
+
             int nn = p->GetNodeCount();
             for (int n = 0; n < nn; n++) {
                 if (p->IsNodeInBufferRange(n, x1, y1, x2, y2)) {
@@ -1178,7 +1178,7 @@ public:
         }
     };
     virtual ~SubModel() {}
-    
+
     virtual const ModelScreenLocation &GetModelScreenLocation() const override { return parent->GetModelScreenLocation(); }
     virtual ModelScreenLocation &GetModelScreenLocation() override { return parent->GetModelScreenLocation(); };
 private:
@@ -2406,12 +2406,15 @@ void Model::ExportXlightsModel()
 {
 }
 
-Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights)
+Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled)
 {
     if (last_model == "")
     {
-        wxString filename = wxFileSelector(_("Choose custom model file"), wxEmptyString, wxEmptyString, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_OPEN);
-        if (filename.IsEmpty()) return model;
+        wxString filename = wxFileSelector(_("Choose xLights model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xLights Model files (*.xmodel)|*.xmodel", wxFD_OPEN);
+        if (filename.IsEmpty()) {
+            cancelled = true;
+            return model;
+        }
         last_model = filename.ToStdString();
     }
 

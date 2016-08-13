@@ -1293,7 +1293,20 @@ void LayoutPanel::FinalizeModel()
             float max_x = (float)(newModel->GetModelScreenLocation().GetRight()) / (float)(newModel->GetModelScreenLocation().previewW);
             float min_y = (float)(newModel->GetModelScreenLocation().GetBottom()) / (float)(newModel->GetModelScreenLocation().previewH);
             float max_y = (float)(newModel->GetModelScreenLocation().GetTop()) / (float)(newModel->GetModelScreenLocation().previewH);
-            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights);
+            bool cancelled = false;
+            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled);
+            if( cancelled ) {
+                newModel = nullptr;
+                m_over_handle = -1;
+                modelPreview->SetCursor(wxCURSOR_DEFAULT);
+                if (selectedButton != nullptr) {
+                    selectedButton->SetState(0);
+                    selectedButton = nullptr;
+                }
+                xlights->UpdateModelsList();
+                UpdatePreview();
+                return;
+            }
             newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
             if (selectedButton->GetState() == 1)
             {
