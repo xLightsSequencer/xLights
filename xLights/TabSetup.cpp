@@ -417,14 +417,7 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
         if (e->GetName() == "e131sync")
         {
             SpinCtrl_SyncUniverse->SetValue(e->GetAttribute("universe"));
-            if (xout != nullptr)
-            {
-                xout->SetSyncUniverse(SpinCtrl_SyncUniverse->GetValue());
-            }
-            else
-            {
-                xNetwork_E131::SetSyncUniverseStatic(SpinCtrl_SyncUniverse->GetValue());
-            }
+            SetSyncUniverse(SpinCtrl_SyncUniverse->GetValue());
         }
         else if (e->GetName() == "network")
         {
@@ -1154,31 +1147,47 @@ void xLightsFrame::ChangeMediaDirectory(wxCommandEvent& event)
     }
 }
 
-
-void xLightsFrame::OnSpinCtrl_SyncUniverseChange(wxSpinEvent& event)
+void xLightsFrame::SetSyncUniverse(int syncUniverse)
 {
     if (xout != nullptr)
     {
-        xout->SetSyncUniverse(SpinCtrl_SyncUniverse->GetValue());
+        xout->SetSyncUniverse(syncUniverse);
     }
     else
     {
-        xNetwork_E131::SetSyncUniverseStatic(SpinCtrl_SyncUniverse->GetValue());
+        xNetwork_E131::SetSyncUniverseStatic(syncUniverse);
     }
+
+    bool addneeded = true;
     wxXmlNode* root = NetworkXML.GetRoot();
     for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
     {
         if (e->GetName() == "e131sync")
         {
-            root->RemoveChild(e);
-            break;
+            if (e->GetAttribute("universe") == wxString::Format("%d", syncUniverse))
+            {
+                addneeded = false;
+                break;
+            }
+            else
+            {
+                root->RemoveChild(e);
+                NetworkChange();
+                break;
+            }
         }
     }
-    if (SpinCtrl_SyncUniverse->GetValue() != 0)
+
+    if (addneeded && syncUniverse != 0)
     {
         wxXmlNode* newNode = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "e131sync");
-        newNode->AddAttribute("universe", wxString::Format("%d", SpinCtrl_SyncUniverse->GetValue()));
+        newNode->AddAttribute("universe", wxString::Format("%d", syncUniverse));
         root->AddChild(newNode);
+        NetworkChange();
     }
-    NetworkChange();
+}
+
+void xLightsFrame::OnSpinCtrl_SyncUniverseChange(wxSpinEvent& event)
+{
+    SetSyncUniverse(SpinCtrl_SyncUniverse->GetValue());
 }

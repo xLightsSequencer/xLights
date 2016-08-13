@@ -612,6 +612,7 @@ private:
     void OnMenuItem_ViewLogSelected(wxCommandEvent& event);
     void OnMenuItemCheckSequenceSelected(wxCommandEvent& event);
     void OnSpinCtrl_SyncUniverseChange(wxSpinEvent& event);
+    void OnMenuItem_e131syncSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -796,6 +797,7 @@ private:
     static const long ID_MENUITEM_AUTOSAVE_15;
     static const long ID_MENUITEM_AUTOSAVE_30;
     static const long ID_MENUITEM20;
+    static const long ID_E131_Sync;
     static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
     static const long ID_TIMER1;
@@ -914,6 +916,7 @@ private:
     wxMenuItem* mRenderOnSaveMenuItem;
     wxMenuItem* MenuItem41;
     wxPanel* PanelSetup;
+    wxMenuItem* MenuItem_e131sync;
     wxButton* ButtonSaveSetup;
     wxPanel* Panel2;
     wxMenuItem* mBackupOnSaveMenuItem;
@@ -1268,6 +1271,7 @@ private:
     bool mRenderOnSave;
     bool mBackupOnSave;
     bool mBackupOnLaunch;
+    bool me131Sync;
     wxString mAltBackupDir;
     int mIconSize;
     int mGridSpacing;
@@ -1385,6 +1389,7 @@ private:
     void ShowDisplayElements(wxCommandEvent& event);
     void ShowHidePreviewWindow(wxCommandEvent& event);
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
+    void ShowHideSync();
 
     std::map<int, std::list<float>> LoadPolyphonicTranscription(AudioManager* audio, int intervalMS);
     std::map<int, std::list<float>> LoadAudacityFile(std::string file, int intervalMS);
@@ -1405,6 +1410,7 @@ private:
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
     std::string GetEffectTextFromWindows(std::string &palette);
+    void SetSyncUniverse(int syncUniverse);
 
     void EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable);
     // Panels
