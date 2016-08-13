@@ -233,6 +233,7 @@ class LayoutPanel: public wxPanel
             Icon_Arches,
             Icon_CandyCane,
             Icon_Circle,
+            Icon_Custom,
             Icon_Dmx,
             Icon_Icicle,
             Icon_Line,

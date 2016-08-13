@@ -320,6 +320,7 @@ void LayoutPanel::InitImageList()
     m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_ARCH_ICON")), wxART_LIST, iconSize));
     m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_CANE_ICON")), wxART_LIST, iconSize));
     m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_CIRCLE_ICON")), wxART_LIST, iconSize));
+    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_CUSTOM_ICON")), wxART_LIST, iconSize));
     m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_DMX_ICON")), wxART_LIST, iconSize));
     m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_ICICLE_ICON")), wxART_LIST, iconSize));
     m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LINE_ICON")), wxART_LIST, iconSize));
@@ -634,10 +635,12 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
         const std::string type = model->GetDisplayAs();
         if( type == "Arches" ) {
             return Icon_Arches;
-        } else if( type == "Circle" ) {
-            return Icon_Circle;
         } else if( type == "Candy Canes" ) {
             return Icon_CandyCane;
+        } else if( type == "Circle" ) {
+            return Icon_Circle;
+        } else if( type == "Custom" ) {
+            return Icon_Custom;
         } else if( type == "DMX" ) {
             return Icon_Dmx;
         } else if( type == "Icicles" ) {
