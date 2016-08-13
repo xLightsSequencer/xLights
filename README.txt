@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix Pictures WrapX to wrap at model size instead of image size.
    -- enh (gil)     Make the transition smooth if you cancel a model Import.  Fixes #647.
    -- enh (gil)     Enhance the Layout page by combining the Model Groups and Models.
 2016.45  Aug 09, 2016

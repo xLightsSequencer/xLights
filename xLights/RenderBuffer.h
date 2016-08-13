@@ -299,7 +299,7 @@ public:
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
     void CopyPixel(int srcx, int srcy, int destx, int desty);
-    void ProcessPixel(int x, int y, const xlColor &color, bool wrap_x, int width);
+    void ProcessPixel(int x, int y, const xlColor &color, bool wrap_x);
 
     void ClearTempBuf();
     const xlColor &GetTempPixelRGB(int x, int y);

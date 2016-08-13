@@ -121,7 +121,7 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             {
                 buffer.palette.GetColor(current_color, color);
             }
-            buffer.ProcessPixel(x_pos + xoffset_adj, corner_y2 + yoffset_adj, color, wrap_x, buffer.BufferWi);
+            buffer.ProcessPixel(x_pos + xoffset_adj, corner_y2 + yoffset_adj, color, wrap_x);
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1*sign);
         }
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*2*sign);
@@ -132,7 +132,7 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             {
                 buffer.palette.GetColor(current_color, color);
             }
-            buffer.ProcessPixel(corner_x2 + xoffset_adj, y_pos + yoffset_adj, color, wrap_x, buffer.BufferWi);
+            buffer.ProcessPixel(corner_x2 + xoffset_adj, y_pos + yoffset_adj, color, wrap_x);
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1*sign);
         }
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*2*sign);
@@ -143,7 +143,7 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             {
                 buffer.palette.GetColor(current_color, color);
             }
-            buffer.ProcessPixel(x_pos + xoffset_adj, corner_y1 + yoffset_adj, color, wrap_x, buffer.BufferWi);
+            buffer.ProcessPixel(x_pos + xoffset_adj, corner_y1 + yoffset_adj, color, wrap_x);
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1*sign);
         }
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*2*sign);
@@ -154,7 +154,7 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             {
                 buffer.palette.GetColor(current_color, color);
             }
-            buffer.ProcessPixel(corner_x1 + xoffset_adj, y_pos + yoffset_adj, color, wrap_x, buffer.BufferWi);
+            buffer.ProcessPixel(corner_x1 + xoffset_adj, y_pos + yoffset_adj, color, wrap_x);
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1*sign);
         }
         corner_x1++;
