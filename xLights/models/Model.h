@@ -31,7 +31,7 @@ class Model
 {
     friend class LayoutPanel;
     friend class SubModel;
-    
+
 public:
     Model(const ModelManager &manger);
     virtual ~Model();
@@ -59,7 +59,7 @@ public:
 
     const std::string &Name() const { return name;}
     const std::string &GetName() const { return name;}
-    
+
     std::string name;
     xlColor customColor;
     DimmingCurve *modelDimmingCurve;
@@ -85,7 +85,7 @@ public:
     }
 
     virtual bool SupportsXlightsModel();
-    static Model* GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights);
+    static Model* GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled);
     virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
     virtual void ExportXlightsModel();
 
@@ -116,7 +116,7 @@ public:
     virtual const ModelScreenLocation &GetModelScreenLocation() const = 0;
     virtual ModelScreenLocation &GetModelScreenLocation() = 0;
 
-    
+
     bool IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2);
 protected:
     void AdjustStringProperties(wxPropertyGridInterface *grid, int newNum);
@@ -171,13 +171,13 @@ protected:
     std::string layout_group;
 
     unsigned long changeCount;
-    
+
     std::vector<Model *> subModels;
     void ParseSubModel(wxXmlNode *subModelNode);
 public:
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);
-    
+
     void IncrementChangeCount() { ++changeCount;};
     unsigned long GetChangeCount() const { return changeCount; }
 
