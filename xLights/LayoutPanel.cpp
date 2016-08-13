@@ -257,7 +257,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     propertyEditor->SetValidationFailureBehavior(wxPG_VFB_MARK_CELL | wxPG_VFB_BEEP);
 
     wxConfigBase* config = wxConfigBase::Get();
-    int gsp = config->Read("LayoutModelGroupSplitterSash", -1);
     int msp = config->Read("LayoutModelSplitterSash", -1);
     int sp = config->Read("LayoutMainSplitterSash", -1);
     if (sp != -1) {
@@ -304,6 +303,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     mDefaultSaveBtnColor = ButtonSavePreview->GetBackgroundColour();
 
     Reset();
+    
+    TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
+    TreeListViewModels->SetColumnWidth(1, TreeListViewModels->WidthFor("1000000000000"));
+    TreeListViewModels->SetColumnWidth(2, TreeListViewModels->WidthFor("1000000000000"));
+
 }
 
 void LayoutPanel::InitImageList()
@@ -713,6 +717,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
     }
 
     if( full_refresh ) {
+
         TreeListViewModels->DeleteAllItems();
         // add all the model groups
         wxTreeListItem root = TreeListViewModels->GetRootItem();
@@ -1762,12 +1767,6 @@ void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)
     config->Write("LayoutMainSplitterSash", event.GetSashPosition());
 }
 
-void LayoutPanel::OnGroupSplitterSashPosChanged(wxSplitterEvent& event)
-{
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Write("LayoutModelGroupSplitterSash", event.GetSashPosition());
-}
-
 void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
     for (auto it = buttons.begin(); it != buttons.end(); it++) {
         if (event.GetId() == (*it)->GetId()) {
@@ -2510,6 +2509,22 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     PopupMenu(&mnuContext);
 }
 
+static inline void SetToolTipForTreeList(wxTreeListCtrl *tv, const std::string &tip) {
+#ifdef __WXMSW__
+    if (tip == "") {
+        tv->GetView()->UnsetToolTip();
+    } else {
+        tv->GetView()->SetToolTip(tip);
+    }
+#else
+    if (tip == "") {
+        tv->UnsetToolTip();
+    } else {
+        tv->SetToolTip(tip);
+    }
+#endif
+}
+
 void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 {
     UnSelectAllModels(false);
@@ -2528,17 +2543,17 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
                 mSelectedGroup = nullptr;
                 ShowPropGrid(true);
                 SelectModel(model->name, false);
-                TreeListViewModels->GetView()->SetToolTip(xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)));
+                SetToolTipForTreeList(TreeListViewModels, xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)));
             }
         } else {
             mSelectedGroup = nullptr;
             selectedModel = nullptr;
             ShowPropGrid(true);
             UnSelectAllModels(true);
-            TreeListViewModels->GetView()->UnsetToolTip();
+            SetToolTipForTreeList(TreeListViewModels, "");
         }
     } else {
-        TreeListViewModels->GetView()->UnsetToolTip();
+        SetToolTipForTreeList(TreeListViewModels, "");
     }
 }
 

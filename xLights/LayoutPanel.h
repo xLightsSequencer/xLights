@@ -113,7 +113,6 @@ class LayoutPanel: public wxPanel
 		void OnNewModelTypeButtonClicked(wxCommandEvent& event);
 		void OnCharHook(wxKeyEvent& event);
 		void OnChar(wxKeyEvent& event);
-		void OnGroupSplitterSashPosChanged(wxSplitterEvent& event);
 		void OnChoiceLayoutGroupsSelect(wxCommandEvent& event);
 		void OnButtonLaunchPreviewClick(wxCommandEvent& event);
 		//*)
