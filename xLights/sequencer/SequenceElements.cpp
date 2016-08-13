@@ -1213,6 +1213,24 @@ int SequenceElements::SelectEffectsInRowAndTimeRange(int startRow, int endRow, i
     return num_selected;
 }
 
+int SequenceElements::SelectVisibleEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS)
+{
+    int num_selected = 0;
+    if(startRow<mVisibleRowInformation.size())
+    {
+        if(endRow>=mVisibleRowInformation.size())
+        {
+            endRow = mVisibleRowInformation.size()-1;
+        }
+        for(int i=startRow;i<=endRow;i++)
+        {
+            EffectLayer* effectLayer = GetEffectLayer(&mVisibleRowInformation[i]);
+            num_selected += effectLayer->SelectEffectsInTimeRange(startMS,endMS);
+        }
+    }
+    return num_selected;
+}
+
 int SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol)
 {
     int num_selected = 0;

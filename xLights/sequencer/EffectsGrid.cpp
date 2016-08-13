@@ -3399,6 +3399,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
 void EffectsGrid::CopyModelEffects(int row_number)
 {
     mSequenceElements->UnSelectAllEffects();
+    int first_row = mSequenceElements->GetFirstVisibleModelRow();
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row_number);
     Effect* effect = effectLayer->GetEffect(0);
     if( effect != NULL )
@@ -3408,8 +3409,7 @@ void EffectsGrid::CopyModelEffects(int row_number)
         mRangeEndCol = -1;
         mRangeStartRow = -1;
         mRangeEndRow = -1;
-        //int first_row = mSequenceElements->GetFirstVisibleModelRow();
-        mSequenceElements->SelectEffectsInRowAndTimeRange(row_number,row_number,mDropStartTimeMS,mSequenceElements->GetSequenceEnd());
+        mSequenceElements->SelectVisibleEffectsInRowAndTimeRange(row_number,row_number,mDropStartTimeMS,mSequenceElements->GetSequenceEnd());
         ((MainSequencer*)mParent)->CopySelectedEffects();
         mCanPaste = true;
         effectLayer->UnSelectAllEffects();

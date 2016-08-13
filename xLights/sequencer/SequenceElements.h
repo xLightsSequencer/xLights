@@ -137,6 +137,7 @@ class SequenceElements : public ChangeListener
         int GetMinPeriod();
 
         int SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS);
+        int SelectVisibleEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS);
         int SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol);
         void UnSelectAllEffects();
         void UnSelectAllElements();
@@ -155,7 +156,7 @@ class SequenceElements : public ChangeListener
 
         void AddRenderDependency(const std::string &layer, const std::string &model);
         bool GetElementsToRender(std::vector<Element *> &models);
-    
+
         wxFileName &GetFileName() { return mFilename;}
         EffectManager &GetEffectManager();
         xLightsFrame *GetXLightsFrame() const { return xframe;};
@@ -197,7 +198,7 @@ class SequenceElements : public ChangeListener
         int mCurrentView;
         bool hasPapagayoTiming;
         int mSequenceEndMS;
-    
+
         wxFileName mFilename;
 
         // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
