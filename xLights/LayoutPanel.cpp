@@ -2528,17 +2528,17 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
                 mSelectedGroup = nullptr;
                 ShowPropGrid(true);
                 SelectModel(model->name, false);
-                TreeListViewModels->SetToolTip(xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)));
+                TreeListViewModels->GetView()->SetToolTip(xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)));
             }
         } else {
             mSelectedGroup = nullptr;
             selectedModel = nullptr;
             ShowPropGrid(true);
             UnSelectAllModels(true);
-            TreeListViewModels->SetToolTip("");
+            TreeListViewModels->GetView()->UnsetToolTip();
         }
     } else {
-        TreeListViewModels->SetToolTip("");
+        TreeListViewModels->GetView()->UnsetToolTip();
     }
 }
 
