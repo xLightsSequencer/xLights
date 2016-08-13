@@ -20,7 +20,7 @@
 #include "../NoteImportDialog.h"
 #include "../MIDI/MidiFile.h"
 #include "../MusicXML.h"
-#include "osxMacUtils.h"
+#include "../osxMacUtils.h"
 
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
