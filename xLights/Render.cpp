@@ -213,17 +213,6 @@ public:
                             StrandElement *ste = (StrandElement*)se;
                             subModelInfos.back()->strand = ste->GetStrand();
                             subModelInfos.back()->buffer->InitStrandBuffer(*model, ste->GetStrand(), data.FrameTime(), se->GetEffectLayerCount());
-                            
-                            for (int n = 0; n < ste->GetNodeLayerCount(); n++) {
-                                if (n < model->GetStrandLength(ste->GetStrand())) {
-                                    EffectLayer *nl = ste->GetNodeLayer(n);
-                                    if (nl -> GetEffectCount() > 0) {
-                                        nodeBuffers[SNPair(ste->GetStrand(), n)].reset(new PixelBufferClass(xframe, false));
-                                        nodeBuffers[SNPair(ste->GetStrand(), n)]->InitNodeBuffer(*model, ste->GetStrand(), n, data.FrameTime());
-                                    }
-                                }
-                            }
-
                         } else {
                             Model *subModel = model->GetSubModel(se->GetName());
                             if (subModel != nullptr) {
@@ -231,6 +220,18 @@ public:
                                 subModelInfos.back()->element = se;
                                 subModelInfos.back()->buffer.reset(new PixelBufferClass(xframe, false));
                                 subModelInfos.back()->buffer->InitBuffer(*subModel, se->GetEffectLayerCount() + 1, data.FrameTime(), false);
+                            }
+                        }
+                    }
+                    if (se->GetType() == ELEMENT_TYPE_STRAND) {
+                        StrandElement *ste = (StrandElement*)se;
+                        for (int n = 0; n < ste->GetNodeLayerCount(); n++) {
+                            if (n < model->GetStrandLength(ste->GetStrand())) {
+                                EffectLayer *nl = ste->GetNodeLayer(n);
+                                if (nl -> GetEffectCount() > 0) {
+                                    nodeBuffers[SNPair(ste->GetStrand(), n)].reset(new PixelBufferClass(xframe, false));
+                                    nodeBuffers[SNPair(ste->GetStrand(), n)]->InitNodeBuffer(*model, ste->GetStrand(), n, data.FrameTime());
+                                }
                             }
                         }
                     }
