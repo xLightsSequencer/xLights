@@ -10,41 +10,6 @@
 					<cols>3</cols>
 					<growablecols>1</growablecols>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
-							<label>Notes Source</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_Piano_Notes_Source" variable="Choice_Piano_Notes_Source" member="yes">
-							<content>
-								<item>Timing Track</item>
-								<item>Audacity Timing File</item>
-								<item>MIDI File</item>
-								<item>Polyphonic Transcription</item>
-							</content>
-							<selection>0</selection>
-							<handler function="OnChoice_Piano_Notes_SourceSelect" entry="EVT_CHOICE" />
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_Notes_Source" variable="BitmapButton_Piano_Notes_Source" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
-							<size>13,13</size>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 							<label>Type</label>
 						</object>
@@ -64,16 +29,9 @@
 						<border>2</border>
 						<option>1</option>
 					</object>
-					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_Type" variable="BitmapButton_Piano_Type" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
-							<size>13,13</size>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-						</object>
+					<object class="spacer">
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
+						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -160,6 +118,25 @@
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText8" member="yes">
+							<label>Track</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE_Piano_MIDITrack_APPLYLAST" variable="Choice_Piano_MIDITrack_APPLYLAST" member="yes" />
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>
@@ -271,165 +248,6 @@
 				<border>2</border>
 				<option>1</option>
 			</object>
-			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-					<cols>3</cols>
-					<growablecols>1</growablecols>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
-							<label>File</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Piano_File" variable="TextCtrl_Piano_File" member="yes">
-							<tooltip>The file should be a Polyphonic Transcription file consisting of 3 floating point numbers per line. #1 is the start time in seconds. #2 the end time. #3 the MIDI channel number.</tooltip>
-							<handler function="OnTextCtrl_Piano_FileText" entry="EVT_TEXT" />
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON_Piano_File" variable="Button_Piano_File" member="yes">
-							<label>...</label>
-							<size>32,28</size>
-							<handler function="OnButton_Piano_FileClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-					<cols>4</cols>
-					<growablecols>1</growablecols>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText8" member="yes">
-							<label>Track</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_Piano_MIDITrack_APPLYLAST" variable="Choice_Piano_MIDITrack_APPLYLAST" member="yes" />
-						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_MIDITrack_APPLYLAST" variable="BitmapButton_Piano_MIDITrack_APPLYLAST" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
-							<size>13,13</size>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
-							<label>MIDI Start Time Adjust</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Piano_MIDI_Start" variable="Slider_Piano_MIDI_Start" member="yes">
-							<min>-1000</min>
-							<max>1000</max>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Piano_MIDI_Start" variable="TextCtrl_Piano_MIDI_Start" member="yes">
-							<value>0</value>
-							<size>44,24</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_MIDI_Start" variable="BitmapButton_Piano_MIDI_Start" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
-							<size>13,13</size>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
-							<label>MIDI Speed Adjust</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Piano_MIDI_Speed" variable="Slider_Piano_MIDI_Speed" member="yes">
-							<min>-100</min>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Piano_MIDI_Speed" variable="TextCtrl_Piano_MIDI_Speed" member="yes">
-							<value>0</value>
-							<size>44,24</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_MIDI_Speed" variable="BitmapButton_Piano_MIDI_Speed" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
-							<size>13,13</size>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
-				<option>1</option>
-			</object>
-		</object>
-		<object class="wxFileDialog" variable="FileDialog1" member="yes">
-			<message>Select Polyphonic Transcription file</message>
-			<wildcard>Text Files|*.txt</wildcard>
 		</object>
 	</object>
 </wxsmith>
