@@ -31,7 +31,8 @@ END_EVENT_TABLE()
 void ModelPreview::mouseMoved(wxMouseEvent& event) {
     if (_model != nullptr)
     {
-        SetToolTip(_model->GetNodeNear(this, event.GetPosition()));
+        wxString tip =_model->GetNodeNear(this, event.GetPosition());
+        SetToolTip(tip);
     }
     event.ResumePropagation(1);
     event.Skip (); // continue the event
@@ -65,9 +66,13 @@ void ModelPreview::render( wxPaintEvent& event )
     //SetCurrentGLContext();
     //wxPaintDC(this);
 
-    if(!StartDrawing(mPointSize)) return;
-    Render();
-    EndDrawing();
+    if (_model != nullptr) {
+        _model->DisplayEffectOnWindow(this, 2);
+    } else {
+        if(!StartDrawing(mPointSize)) return;
+        Render();
+        EndDrawing();
+    }
 }
 
 void ModelPreview::Render() {

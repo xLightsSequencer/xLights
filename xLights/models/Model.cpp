@@ -2076,33 +2076,11 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
 wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
 {
-    wxString res = "";
-
     int w, h;
     preview->GetSize(&w, &h);
     float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
     float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
     float scale = scaleY < scaleX ? scaleY : scaleX;
-
-    float x = pt.x;
-    float y = pt.y;
-
-    float px = x - (w / 2);
-    px /= scale;
-    float py = h - y - (h / 2);
-    py /= scale;
-
-    if (!GetModelScreenLocation().IsCenterBased()) {
-        // THIS DOES NOT WORK ... MODELS LIKE ARCHES DONT CONVERT CORRECTLY
-        px += GetModelScreenLocation().RenderWi / 2.0;
-        py /= GetModelScreenLocation().GetVScaleFactor();
-        if (GetModelScreenLocation().GetVScaleFactor() < 0) {
-            py -= GetModelScreenLocation().RenderHt / 2.0;
-        }
-        else {
-            py += GetModelScreenLocation().RenderHt / 2.0;
-        }
-    }
 
     float pointScale = scale;
     if (pointScale > 2.5) {
@@ -2114,6 +2092,9 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
     if (pointScale > GetModelScreenLocation().RenderWi) {
         pointScale = GetModelScreenLocation().RenderWi;
     }
+    
+    float px = pt.x;
+    float py = h - pt.y;
 
 
     int i = 1;
@@ -2121,16 +2102,30 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
         auto c = it->get()->Coords;
         for (auto it2 = c.begin(); it2 != c.end(); ++it2)
         {
-            if (it2->screenX >= px - pointScale / 2 && it2->screenX <= px + pointScale/ 2  &&
-                it2->screenY >= py - pointScale / 2 && it2->screenY <= py + pointScale / 2)
+            float sx=it2->screenX;
+            float sy=it2->screenY;
+            
+            if (!GetModelScreenLocation().IsCenterBased()) {
+                sx -= GetModelScreenLocation().RenderWi / 2.0;
+                sy *= GetModelScreenLocation().GetVScaleFactor();
+                if (GetModelScreenLocation().GetVScaleFactor() < 0) {
+                    sy += GetModelScreenLocation().RenderHt / 2.0;
+                } else {
+                    sy -= GetModelScreenLocation().RenderHt / 2.0;
+                }
+            }
+            sy = ((sy*scale)+(h/2));
+            sx = (sx*scale)+(w/2);
+            
+            if (sx >= (px - pointScale) && sx <= (px + pointScale)  &&
+                sy >= (py - pointScale) && sy <= (py + pointScale))
             {
-                res = wxString::Format("%d",i);
-                break;
+                return wxString::Format("%d",i);
             }
         }
         i++;
     }
-    return res;
+    return "";
 }
 
 void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
@@ -2272,7 +2267,8 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                         ApplyTransparency(c, color == xlBLACK ? Nodes[n]->model->blackTransparency
                                                             : Nodes[n]->model->transparency);
 
-                        va.AddVertex((sx*scale)+(w/2), newsy, c);
+                        sx = (sx*scale)+(w/2);
+                        va.AddVertex(sx, newsy, c);
                     }
                 } else {
                     xlColor ccolor(color);
