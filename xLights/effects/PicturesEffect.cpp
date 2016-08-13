@@ -311,7 +311,8 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
            SettingsMap.GetInt("SLIDER_Pictures_EndScale", 100),
            SettingsMap.GetBool("CHECKBOX_Pictures_ScaleToFit", false),
            SettingsMap.GetBool("CHECKBOX_Pictures_PixelOffsets", false),
-           SettingsMap.GetBool("CHECKBOX_Pictures_WrapX", false));
+           SettingsMap.GetBool("CHECKBOX_Pictures_WrapX", false),
+           SettingsMap.GetBool("CHECKBOX_Pictures_Shimmer", false));
 }
 
 void PicturesEffect::Render(RenderBuffer &buffer,
@@ -320,7 +321,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                             int xc_adj, int yc_adj,
                             int xce_adj, int yce_adj,
                             int start_scale, int end_scale, bool scale_to_fit,
-                            bool pixelOffsets, bool wrap_x) {
+                            bool pixelOffsets, bool wrap_x, bool shimmer) {
 
     int dir = GetPicturesDirection(dirstr);
     double position = buffer.GetEffectTimeIntervalPosition(movementSpeed);
@@ -643,6 +644,22 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                     default:
                         buffer.ProcessPixel(x-xoffset+xoffset_adj,yoffset+yoffset_adj-y - 1,c, wrap_x);
                         break; // no movement - centered
+                }
+            }
+        }
+    }
+
+    // add shimmer effect which just randomly turns off pixels
+    if(shimmer)
+    {
+        c = xlBLACK;
+        for(int x=0; x<BufferWi; x++)
+        {
+            for(int y=0; y<BufferHt; y++)
+            {
+                if( buffer.rand01() > 0.5 )
+                {
+                    buffer.ProcessPixel(x,y,c, false);
                 }
             }
         }

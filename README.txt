@@ -8,6 +8,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Add Shimmer option to Pictures effect to support Scene imports with shimmer from SuperStar.
+   -- bug (gil)     Fix scene import from SuperStar.  Scenes should never be flipped vertically.  Also remove FlipY option.
    -- bug (gil)     Fix the flipping issue for vertical sequences for SuperStar import.  Got broke when fixing horizontal sequences.
    -- bug (gil)     Fix copy/paste row that was broken by 2016.43.
    -- bug (gil)     Fix Pictures WrapX to wrap at model size instead of image size.

@@ -1631,13 +1631,12 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
         int y_size = wxAtoi(dlg.TextCtrl_SS_Y_Size->GetValue());
         int x_offset = wxAtoi(dlg.TextCtrl_SS_X_Offset->GetValue());
         int y_offset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
-        bool flip_y = dlg.CheckBox_SS_FlipY->GetValue();
         bool average_colors = dlg.CheckBox_AverageColors->GetValue();
         Model *cls = GetModel(model->GetName());
         int bw, bh;
         cls->GetBufferSize("Default", "None", bw, bh);
         wxSize modelSize(bw, bh);
-        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, flip_y, average_colors, dlg.ImageResizeChoice->GetSelection(), modelSize);
+        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, average_colors, dlg.ImageResizeChoice->GetSelection(), modelSize);
     }
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
@@ -2240,7 +2239,7 @@ bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFu
 }
 
 bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int x_size, int y_size,
-                                   int x_offset, int y_offset, bool flip_y, bool average_colors,
+                                   int x_offset, int y_offset, bool average_colors,
                                    int imageResizeType, const wxSize &modelSize)
 {
     double num_rows = 1.0;
@@ -2316,10 +2315,6 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
             else
             {
                 reverse_rows = true;
-            }
-            if( flip_y )
-            {
-                reverse_rows = ~reverse_rows;
             }
             layout_defined = true;
         }
@@ -2718,7 +2713,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         settings += val;
                         settings += "x";
                         val = wxString::Format("%d", rect.y);
-                        if( !CalcBoundedPercentage(val, num_rows, !reverse_rows ^ reverse_xy, y_offset) ) continue;
+                        if( !CalcBoundedPercentage(val, num_rows, reverse_xy, y_offset) ) continue;
                         settings += val;
                         settings += "x";
                         val = wxString::Format("%d", rect.width);
@@ -2726,14 +2721,14 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         settings += val;
                         settings += "x";
                         val = wxString::Format("%d", rect.height);
-                        if( !CalcBoundedPercentage(val, num_rows, !reverse_rows ^ reverse_xy, y_offset) ) continue;
+                        if( !CalcBoundedPercentage(val, num_rows, reverse_xy, y_offset) ) continue;
                         settings += val;
                         settings += blend_string;
 
                         layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
                     } else if (isPartOfModel) {
                         if (startc == xlBLACK || endc == xlBLACK || endc == startc) {
-                            imageName = CreateSceneImage(imagePfx, "", element, num_columns, num_rows, reverse_rows, reverse_xy,
+                            imageName = CreateSceneImage(imagePfx, "", element, num_columns, num_rows, false, reverse_xy,
                                                          (startc == xlBLACK) ? endc : startc, y_offset,
                                                          imageResizeType, modelSize);
                             wxString ramp = wxString::Format("%lf", (double)(end_time - start_time) / 1000.0);
@@ -2755,7 +2750,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                           ChannelBlend(startc.Blue(),endc.Blue(),ratio));
                                 wxString s = CreateSceneImage(imagePfx, wxString::Format("-%d", x+1).ToStdString(),
                                                               element,
-                                                              num_columns, num_rows, reverse_rows, reverse_xy,
+                                                              num_columns, num_rows, false, reverse_xy,
                                                               color, y_offset,
                                                               imageResizeType, modelSize);
                                 if (x == 0) {
@@ -2774,6 +2769,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             ",E_TEXTCTRL_Pictures_Speed=1.0"
                             ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0"
                             ",E_TEXTCTRL_Pictures_Filename=" + imageName;
+                        if( type == "shimmer" ) {
+                            settings += ",E_CHECKBOX_Pictures_Shimmer=1";
+                        }
                         settings += blend_string;
                         if (ru != "0.0") {
                             settings += ",T_TEXTCTRL_Fadein=" + ru;

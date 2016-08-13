@@ -35,6 +35,7 @@ const long PicturesPanel::ID_TEXTCTRL_Pictures_FrameRateAdj = wxNewId();
 const long PicturesPanel::ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_PixelOffsets = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_ScaleToFit = wxNewId();
+const long PicturesPanel::ID_CHECKBOX_Pictures_Shimmer = wxNewId();
 const long PicturesPanel::ID_SLIDER_PicturesXC = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_WrapX = wxNewId();
 const long PicturesPanel::IDD_TEXTCTRL_PicturesXC = wxNewId();
@@ -174,6 +175,9 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	CheckBox_Pictures_ScaleToFit = new wxCheckBox(this, ID_CHECKBOX_Pictures_ScaleToFit, _("Scale To Fit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_ScaleToFit"));
 	CheckBox_Pictures_ScaleToFit->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_Pictures_ScaleToFit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Pictures_Shimmer = new wxCheckBox(this, ID_CHECKBOX_Pictures_Shimmer, _("Shimmer"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_Shimmer"));
+	CheckBox_Pictures_Shimmer->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Pictures_Shimmer, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer102->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
 	Notebook4 = new wxNotebook(this, IDD_NOTEBOOK_Pictures_Positions, wxDefaultPosition, wxDefaultSize, 0, _T("IDD_NOTEBOOK_Pictures_Positions"));
 	PictureStartPositionPanel = new wxPanel(Notebook4, ID_PANEL43, wxPoint(15,49), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL43"));

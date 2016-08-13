@@ -57,6 +57,7 @@ class PicturesPanel: public wxPanel
 		wxSlider* Slider_Pictures_StartScale;
 		xlPictureFilePickerCtrl* FilePickerCtrl1;
 		wxSlider* Slider_PicturesYC;
+		wxCheckBox* CheckBox_Pictures_Shimmer;
 		wxBitmapButton* BitmapButton6;
 		wxPanel* PictureEndPositionPanel;
 		wxBitmapButton* BitmapButton_PicturesFilename;
@@ -83,6 +84,7 @@ class PicturesPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed;
 		static const long ID_CHECKBOX_Pictures_PixelOffsets;
 		static const long ID_CHECKBOX_Pictures_ScaleToFit;
+		static const long ID_CHECKBOX_Pictures_Shimmer;
 		static const long ID_SLIDER_PicturesXC;
 		static const long ID_CHECKBOX_Pictures_WrapX;
 		static const long IDD_TEXTCTRL_PicturesXC;

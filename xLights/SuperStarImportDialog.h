@@ -20,7 +20,6 @@ class SuperStarImportDialog: public wxDialog
 		virtual ~SuperStarImportDialog();
 
 		//(*Declarations(SuperStarImportDialog)
-		wxCheckBox* CheckBox_SS_FlipY;
 		wxTextCtrl* TextCtrl_SS_Y_Size;
 		wxStaticText* StaticText37;
 		wxStaticText* StaticText40;
@@ -54,7 +53,6 @@ class SuperStarImportDialog: public wxDialog
 		static const long ID_TEXTCTRL_SS_X_Size;
 		static const long ID_STATICTEXT41;
 		static const long ID_TEXTCTRL_SS_Y_Size;
-		static const long ID_CHECKBOX_SS_FlipY;
 		static const long ID_STATICTEXT31;
 		static const long ID_CHECKBOX_AverageColors;
 		//*)

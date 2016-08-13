@@ -20,7 +20,6 @@ const long SuperStarImportDialog::ID_STATICTEXT42 = wxNewId();
 const long SuperStarImportDialog::ID_TEXTCTRL_SS_X_Size = wxNewId();
 const long SuperStarImportDialog::ID_STATICTEXT41 = wxNewId();
 const long SuperStarImportDialog::ID_TEXTCTRL_SS_Y_Size = wxNewId();
-const long SuperStarImportDialog::ID_CHECKBOX_SS_FlipY = wxNewId();
 const long SuperStarImportDialog::ID_STATICTEXT31 = wxNewId();
 const long SuperStarImportDialog::ID_CHECKBOX_AverageColors = wxNewId();
 //*)
@@ -77,9 +76,6 @@ SuperStarImportDialog::SuperStarImportDialog(wxWindow* parent,wxWindowID id,cons
 	GridBagSizer1->Add(StaticText42, wxGBPosition(2, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_SS_Y_Size = new wxTextCtrl(this, ID_TEXTCTRL_SS_Y_Size, _("50"), wxDefaultPosition, wxSize(50,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_SS_Y_Size"));
 	GridBagSizer1->Add(TextCtrl_SS_Y_Size, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_SS_FlipY = new wxCheckBox(this, ID_CHECKBOX_SS_FlipY, _("Flip Y"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_SS_FlipY"));
-	CheckBox_SS_FlipY->SetValue(false);
-	GridBagSizer1->Add(CheckBox_SS_FlipY, wxGBPosition(3, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText39 = new wxStaticText(this, ID_STATICTEXT31, _("SuperStar: This is currently designed to work with SuperStar sequences\nfor CCR ribbon trees.  X/Y Size and Offset only apply to SuperStar. \nX/Y Size is ignored unless the sequence type is a Visualization.\n"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT31"));
 	GridBagSizer1->Add(StaticText39, wxGBPosition(8, 0), wxGBSpan(1, 5), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_AverageColors = new wxCheckBox(this, ID_CHECKBOX_AverageColors, _("Average Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_AverageColors"));
