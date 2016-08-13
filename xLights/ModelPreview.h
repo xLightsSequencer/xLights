@@ -56,6 +56,7 @@ public:
         previewModels = models;
         PreviewModels = &previewModels;
     }
+    void SetModel(Model* model) { _model = model; }
     std::vector<Model*> &GetModels() {
         if (PreviewModels == nullptr) {
             return previewModels;
@@ -103,6 +104,7 @@ private:
     bool allowSelected;
     PreviewPane* mPreviewPane;
     DrawGLUtils::xlAccumulator accumulator;
+    Model* _model;
 
     double currentPixelScaleFactor = 1.0;
     

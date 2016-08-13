@@ -194,6 +194,7 @@ void SubModelsDialog::Setup(Model *m)
     NameChoice->Clear();
 
     model = m;
+    modelPreview->SetModel(m);
     wxXmlNode * root = m->GetModelXml();
     wxXmlNode * child = root->GetChildren();
     while (child != nullptr) {

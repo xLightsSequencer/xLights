@@ -2074,6 +2074,65 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     }
 }
 
+wxString Model::GetNodeNear(ModelPreview* preview, wxPoint& pt)
+{
+    wxString res = "";
+
+    int w, h;
+    preview->GetSize(&w, &h);
+    float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
+    float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
+    float scale = scaleY < scaleX ? scaleY : scaleX;
+
+    float x = pt.x;
+    float y = pt.y;
+
+    float px = x - (w / 2);
+    px /= scale;
+    float py = h - y - (h / 2);
+    py /= scale;
+
+    if (!GetModelScreenLocation().IsCenterBased()) {
+        // THIS DOES NOT WORK ... MODELS LIKE ARCHES DONT CONVERT CORRECTLY
+        px += GetModelScreenLocation().RenderWi / 2.0;
+        py /= GetModelScreenLocation().GetVScaleFactor();
+        if (GetModelScreenLocation().GetVScaleFactor() < 0) {
+            py -= GetModelScreenLocation().RenderHt / 2.0;
+        }
+        else {
+            py += GetModelScreenLocation().RenderHt / 2.0;
+        }
+    }
+
+    float pointScale = scale;
+    if (pointScale > 2.5) {
+        pointScale = 2.5;
+    }
+    if (pointScale > GetModelScreenLocation().RenderHt) {
+        pointScale = GetModelScreenLocation().RenderHt;
+    }
+    if (pointScale > GetModelScreenLocation().RenderWi) {
+        pointScale = GetModelScreenLocation().RenderWi;
+    }
+
+
+    int i = 1;
+    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+        auto c = it->get()->Coords;
+        for (auto it2 = c.begin(); it2 != c.end(); ++it2)
+        {
+            if (it2->screenX >= px - pointScale / 2 && it2->screenX <= px + pointScale/ 2  && 
+                it2->screenY >= py - pointScale / 2 && it2->screenY <= py + pointScale / 2)
+            {
+                res = wxString::Format("%d",i);
+                break;
+            }
+        }
+        i++;
+    }
+    return res;
+}
+
 void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     bool success = preview->StartDrawing(pointSize);
 

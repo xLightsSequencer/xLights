@@ -29,6 +29,10 @@ EVT_PAINT(ModelPreview::render)
 END_EVENT_TABLE()
 
 void ModelPreview::mouseMoved(wxMouseEvent& event) {
+    if (_model != nullptr)
+    {
+        SetToolTip(_model->GetNodeNear(this, event.GetPosition()));
+    }
     event.ResumePropagation(1);
     event.Skip (); // continue the event
 }
@@ -116,10 +120,12 @@ ModelPreview::ModelPreview(wxPanel* parent, std::vector<Model*> &models, bool a,
     virtualHeight = 0;
     image = nullptr;
     sprite = nullptr;
+    _model = nullptr;
 }
 ModelPreview::ModelPreview(wxPanel* parent)
 : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(NULL), allowSelected(false), image(nullptr)
 {
+    _model = nullptr;
     maxVertexCount = 5000;
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
