@@ -2074,7 +2074,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     }
 }
 
-wxString Model::GetNodeNear(ModelPreview* preview, wxPoint& pt)
+wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
 {
     wxString res = "";
 
@@ -2121,7 +2121,7 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint& pt)
         auto c = it->get()->Coords;
         for (auto it2 = c.begin(); it2 != c.end(); ++it2)
         {
-            if (it2->screenX >= px - pointScale / 2 && it2->screenX <= px + pointScale/ 2  && 
+            if (it2->screenX >= px - pointScale / 2 && it2->screenX <= px + pointScale/ 2  &&
                 it2->screenY >= py - pointScale / 2 && it2->screenY <= py + pointScale / 2)
             {
                 res = wxString::Format("%d",i);
