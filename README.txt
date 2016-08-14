@@ -8,6 +8,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (dkulp)   Add SubModels for defining effects for specific parts of a model
+   -- bug (dkulp)   Check for invalid models before adding the models associated with the current view so those models can be selected for mapping
+   -- bug (dkulp)   Fix node level effect broken in .45
+   -- bug (dkulp)   Add some null ptr checks and logs to try and prevent/diagnose various crashes
+   -- enh (dkulp)   More work on enabling sandboxing on OSX
+   -- enh (dkulp)   Update ffmpeg to new version that doesn't make calls to private API's
    -- bug (gil)     Fix arch selection when rotated upside down. Fixes #645.
    -- enh (gil)     Support mask settings for Text effect imported from SuperStar.
    -- enh (gil)     Add Shimmer option to Pictures effect to support Scene imports with shimmer from SuperStar.
