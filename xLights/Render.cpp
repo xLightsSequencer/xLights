@@ -384,7 +384,7 @@ public:
     }
     SequenceData *createExportBuffer() {
         SequenceData *sb = new SequenceData();
-        sb->init(xLights->GetModel(mainBuffer->GetModelName())->GetChanCount(), seqData->NumFrames(), seqData->FrameTime());
+        sb->init(xLights->GetModel(mainBuffer->GetModelName())->GetActChanCount(), seqData->NumFrames(), seqData->FrameTime());
         seqData = sb;
         return sb;
     }

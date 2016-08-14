@@ -1619,6 +1619,21 @@ size_t Model::GetNodeCount() const {
     return Nodes.size();
 }
 
+size_t Model::GetActChanCount() const
+{
+    size_t NodeCnt = GetNodeCount();
+    if (NodeCnt == 0) {
+        return 0;
+    }
+ 
+    size_t count = 0;
+    for (int x = 0; x < NodeCnt; x++) {
+        count += Nodes[x]->GetChanCount();
+    }
+
+    return count;
+}
+
 int Model::GetChanCount() const {
     size_t NodeCnt=GetNodeCount();
     if (NodeCnt == 0) {

@@ -196,6 +196,7 @@ public:
     virtual bool ModelRenamed(const std::string &oldName, const std::string &newName);
     size_t GetNodeCount() const;
     int GetChanCount() const;
+    size_t GetActChanCount() const;
     int GetChanCountPerNode() const;
     size_t GetCoordCount(size_t nodenum) const;
     int GetNodeStringNumber(size_t nodenum) const;
