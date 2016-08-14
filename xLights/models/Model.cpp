@@ -6,6 +6,7 @@
 #include <wx/tokenzr.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
+#include <wx/propgrid/advprops.h>
 
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsXmlFile.h"
@@ -923,6 +924,37 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
         returnChannel = modelManager.GetNetInfo().CalcAbsChannel(output - 1, returnChannel - 1) + 1;
     }
     return returnChannel;
+}
+
+std::list<int> Model::ParseFaceNodes(std::string channels)
+{
+    std::list<int> res;
+
+    wxStringTokenizer wtkz(channels, ",");
+    while (wtkz.HasMoreTokens())
+    {
+        wxString valstr = wtkz.GetNextToken();
+
+        int start, end;
+        if (valstr.Contains("-")) {
+            int idx = valstr.Index('-');
+            start = wxAtoi(valstr.Left(idx));
+            end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+        }
+        else {
+            start = end = wxAtoi(valstr);
+        }
+        if (start > end) {
+            start = end;
+        }
+        start--;
+        end--;
+        for (int n = start; n <= end; n++) {
+            res.push_back(n);
+        }
+    }
+
+    return res;
 }
 
 void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {

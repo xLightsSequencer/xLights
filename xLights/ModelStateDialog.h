@@ -17,6 +17,7 @@
 #include <map>
 
 class Model;
+class ModelPreview;
 
 class ModelStateDialog: public wxDialog
 {
@@ -37,9 +38,10 @@ class ModelStateDialog: public wxDialog
 		wxChoicebook* StateTypeChoice;
 		wxGrid* NodeRangeGrid;
 		wxChoice* NameChoice;
+        wxPanel* ModelPreviewPanelLocation;
 		//*)
 
-        void SetStateInfo(const Model *cls, std::map<std::string, std::map<std::string, std::string> > &info);
+        void SetStateInfo(Model *cls, std::map<std::string, std::map<std::string, std::string> > &info);
         void GetStateInfo(std::map<std::string, std::map<std::string, std::string> > &info);
 	protected:
 
@@ -55,10 +57,10 @@ class ModelStateDialog: public wxDialog
 		static const long ID_GRID3;
 		static const long ID_PANEL6;
 		static const long ID_CHOICEBOOK1;
+		static const long ID_PANEL_PREVIEW;
 		//*)
 
 	private:
-        Model *model;
 
 		//(*Handlers(ModelStateDialog)
 		void OnMatrixNameChoiceSelect(wxCommandEvent& event);
@@ -74,12 +76,20 @@ class ModelStateDialog: public wxDialog
 		void OnNodeRangeGridCellLeftDClick(wxGridEvent& event);
 		void OnSingleNodeGridCellLeftDClick(wxGridEvent& event);
 		void OnStateTypeChoicePageChanged(wxChoicebookEvent& event);
+		void OnNodeRangeGridCellLeftClick(wxGridEvent& event);
+		void OnSingleNodeGridCellLeftClick(wxGridEvent& event);
+		void OnSingleNodeGridCellSelect(wxGridEvent& event);
+		void OnNodeRangeGridCellSelect(wxGridEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
 
     std::map<std::string, std::map<std::string, std::string> > stateData;
     void SelectStateModel(const std::string &s);
+    ModelPreview *modelPreview;
+    Model *model;
+    void UpdatePreview(const std::string& channels, wxColor c);
+    void GetValue(wxGrid *grid, wxGridEvent &event, std::map<std::string, std::string> &info);
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <list>
 
 #include "ModelScreenLocation.h"
 #include "../Color.h"
@@ -179,7 +180,8 @@ public:
     Model *GetSubModel(const std::string &name);
     int GetNumSubModels() const { return subModels.size();}
     Model *GetSubModel(int i) const { return i < subModels.size() ? subModels[i] : nullptr;}
-    
+    std::list<int> ParseFaceNodes(std::string channels);
+
     void IncrementChangeCount() { ++changeCount;};
     unsigned long GetChangeCount() const { return changeCount; }
 
