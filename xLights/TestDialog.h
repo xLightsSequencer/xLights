@@ -312,7 +312,8 @@ class TestDialog: public wxDialog
 		//*)
 
 		void OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event);
-		void OnTreeListCtrl1ItemActivated(wxTreeListEvent& event);
+        void OnTreeListCtrl1ItemActivated(wxTreeListEvent& event);
+        void OnTreeListCtrl1ItemSelected(wxTreeListEvent& event);
 
 		TreeController::CONTROLLERTYPE GetTreeItemType(const wxTreeListItem& item);
 		void PopulateControllerTree(wxXmlDocument* network);
@@ -335,6 +336,7 @@ class TestDialog: public wxDialog
 		void DeactivateNotClickableModels();
 		void CascadeColour(TreeController* tc);
 		char DoEncodeColour(xlColor& c);
+        void SetTreeTooltip(wxTreeListItem& item);
 
 		DECLARE_EVENT_TABLE()
 };

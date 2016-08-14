@@ -652,7 +652,7 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	// add checkbox events
 	Connect(ID_TREELISTCTRL_Channels,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&TestDialog::OnTreeListCtrl1Checkboxtoggled);
 	Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1Checkboxtoggled);
-	///Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemActivated);
+	Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemSelected);
 #ifdef __WXOSX__
 	Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemActivated);
 #endif
@@ -1198,6 +1198,71 @@ std::list<std::string> TestDialog::GetModelsOnChannels(int start, int end)
 	return res;
 }
 
+void TestDialog::SetTreeTooltip(wxTreeListItem& item)
+{
+    // Don't set tool tips on the mac as the GetView() workaround does not work
+#ifdef __WXOSX__
+    return;
+#endif
+
+    if (item == _controllers || item == _modelGroups || item == _models)
+    {
+        TreeListCtrl_Channels->GetView()->UnsetToolTip();
+    }
+    else
+    {
+        TreeController::CONTROLLERTYPE rootType = GetTreeItemType(item);
+
+        if (rootType == TreeController::CONTROLLERTYPE::CT_CONTROLLERROOT)
+        {
+            TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(item);
+            int start = tc->StartXLightsChannel();
+            int end = tc->EndXLightsChannel();
+            if (tc->IsChannel())
+            {
+                end = start;
+            }
+            std::list<std::string> models = GetModelsOnChannels(start, end);
+            std::string tt = "";
+            for (std::list<std::string>::iterator it = models.begin(); it != models.end(); ++it)
+            {
+                if (tt != "")
+                {
+                    tt += "\n";
+                }
+                tt = tt + *it;
+            }
+            if (tt != "")
+            {
+                if (start == end)
+                {
+                    tt = "[" + std::string(wxString::Format(wxT("%i"), start)) + "] maps to\n" + tt;
+                }
+                else
+                {
+                    tt = "[" + std::string(wxString::Format(wxT("%i"), start)) + "-" + std::string(wxString::Format(wxT("%i"), end)) + "] maps to\n" + tt;
+                }
+                // This does not work ... there is a bug in wxWidgets which prevents tooltip display.
+                TreeListCtrl_Channels->GetView()->SetToolTip(tt);
+            }
+            else
+            {
+                TreeListCtrl_Channels->GetView()->UnsetToolTip();
+            }
+        }
+        else
+        {
+            TreeListCtrl_Channels->GetView()->UnsetToolTip();
+        }
+    }
+}
+
+void TestDialog::OnTreeListCtrl1ItemSelected(wxTreeListEvent& event)
+{
+    wxTreeListItem item = event.GetItem();
+    SetTreeTooltip(item);
+}
+
 void TestDialog::OnTreeListCtrl1ItemActivated(wxTreeListEvent& event)
 {
     //On Mac, the checkboxes aren't working, we'll fake it with the double click activations
@@ -1210,61 +1275,7 @@ void TestDialog::OnTreeListCtrl1ItemActivated(wxTreeListEvent& event)
     }
     OnTreeListCtrl1Checkboxtoggled(event);
 
-#if 0
-    // Tooltips dont work on the TreeListCtrl ... so dont bother
-    return;
-	wxTreeListItem item = event.GetItem();
-	if (item == _controllers || item == _modelGroups || item == _models)
-	{
-		TreeListCtrl_Channels->UnsetToolTip();
-	}
-	else
-	{
-		TreeController::CONTROLLERTYPE rootType = GetTreeItemType(item);
-
-		if (rootType == TreeController::CONTROLLERTYPE::CT_CONTROLLERROOT)
-		{
-			TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(item);
-			int start = tc->StartXLightsChannel();
-			int end = tc->EndXLightsChannel();
-			if (tc->IsChannel())
-			{
-				end = start;
-			}
-			std::list<std::string> models = GetModelsOnChannels(start, end);
-			std::string tt = "";
-			for (std::list<std::string>::iterator it = models.begin(); it != models.end(); ++it)
-			{
-				if (tt != "")
-				{
-					tt += "\n";
-				}
-				tt = tt + *it;
-			}
-			if (tt != "")
-			{
-				if (start == end)
-				{
-					tt = "[" + std::string(wxString::Format(wxT("%i"), start)) + "] maps to\n" + tt;
-				}
-				else
-				{
-					tt = "[" + std::string(wxString::Format(wxT("%i"), start)) + "-" + std::string(wxString::Format(wxT("%i"), end)) + "] maps to\n" + tt;
-				}
-				// This does not work ... there is a bug in wxWidgets which prevents tooltip display.
-				TreeListCtrl_Channels->SetToolTip(tt);
-			}
-			else
-			{
-				TreeListCtrl_Channels->UnsetToolTip();
-			}
-		}
-		else
-		{
-			TreeListCtrl_Channels->UnsetToolTip();
-		}
-	}
-#endif
+    SetTreeTooltip(item);
 }
 
 void TestDialog::OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event)
@@ -1345,6 +1356,8 @@ void TestDialog::OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event)
 	RollUpAll(_modelGroups);
 
 	_checkChannelList = true;
+
+    SetTreeTooltip(item);
 }
 
 wxCheckBoxState TestDialog::RollUpAll(wxTreeListItem start)
