@@ -849,15 +849,21 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 void PixelBufferClass::GetColors(unsigned char *fdata) {
     xlColor color;
 
-    for (size_t n = 0; n < layers[0]->Nodes.size(); n++) {
-        size_t start = NodeStartChannel(n);
-        DimmingCurve *curve = layers[0]->Nodes[n]->model->modelDimmingCurve;
-        if (curve != nullptr) {
-            layers[0]->Nodes[n]->GetColor(color);
-            curve->apply(color);
-            layers[0]->Nodes[n]->SetColor(color);
+    if (layers[0] != nullptr) // I dont like this ... it should never be null
+    {
+        for (size_t n = 0; n < layers[0]->Nodes.size(); n++) {
+            size_t start = NodeStartChannel(n);
+            if (layers[0]->Nodes[n]->model != nullptr) // nor this
+            {
+                DimmingCurve *curve = layers[0]->Nodes[n]->model->modelDimmingCurve;
+                if (curve != nullptr) {
+                    layers[0]->Nodes[n]->GetColor(color);
+                    curve->apply(color);
+                    layers[0]->Nodes[n]->SetColor(color);
+                }
+            }
+            layers[0]->Nodes[n]->GetForChannels(&fdata[start]);
         }
-        layers[0]->Nodes[n]->GetForChannels(&fdata[start]);
     }
 }
 void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
