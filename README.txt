@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Support mask settings for Text effect imported from SuperStar.
    -- enh (gil)     Add Shimmer option to Pictures effect to support Scene imports with shimmer from SuperStar.
    -- bug (gil)     Fix scene import from SuperStar.  Scenes should never be flipped vertically.  Also remove FlipY option.
    -- bug (gil)     Fix the flipping issue for vertical sequences for SuperStar import.  Got broke when fixing horizontal sequences.

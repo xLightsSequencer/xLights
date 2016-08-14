@@ -2845,6 +2845,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     wxString fontName = element->GetAttribute("fontName");
                     int fontSize = wxAtoi(element->GetAttribute("fontCapsHeight", "6"));
                     int fontCellWidth = wxAtoi(element->GetAttribute("fontCellWidth", "6"));
+                    wxString mask = element->GetAttribute("maskType");
 
                     // SuperStar fonts are not as wide as they are listed.  This gets us closer to reality.
                     fontCellWidth = (fontCellWidth * 2) / 3;
@@ -2929,7 +2930,13 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         + "E_SLIDER_Text_Position2=50,E_SLIDER_Text_Position3=50,E_SLIDER_Text_Position4=50,"
                         + "E_TEXTCTRL_Text_Line2=,E_TEXTCTRL_Text_Line3=,E_TEXTCTRL_Text_Line4=,"
                         + "E_TEXTCTRL_Text_Speed2=10,E_TEXTCTRL_Text_Speed3=10,E_TEXTCTRL_Text_Speed4=10";
-                    settings += blend_string;
+                    if( mask == "positiveMask" ) {
+                        settings += ",T_CHOICE_LayerMethod=Normal";
+                    } else if( mask == "negativeMask" ) {
+                        settings += ",T_CHOICE_LayerMethod=1 is Mask";
+                    } else {
+                        settings += blend_string;
+                    }
 
                     layer->AddEffect(0, "Text", settings, palette, start_time, end_time, false, false);
                 }
