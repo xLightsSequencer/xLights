@@ -177,7 +177,9 @@ protected:
 public:
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);
-
+    int GetNumSubModels() const { return subModels.size();}
+    Model *GetSubModel(int i) const { return i < subModels.size() ? subModels[i] : nullptr;}
+    
     void IncrementChangeCount() { ++changeCount;};
     unsigned long GetChangeCount() const { return changeCount; }
 

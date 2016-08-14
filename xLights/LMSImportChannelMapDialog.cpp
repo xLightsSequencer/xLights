@@ -220,6 +220,15 @@ void LMSImportChannelMapDialog::AddModel(Model &cls) {
     ChannelMapGrid->AppendRows(cls.GetNumStrands() + 1);
     ChannelMapGrid->SetCellValue(i, 0, cls.name);
     i++;
+    if (!MapByStrand->GetValue() && cls.GetNumSubModels() > 0) {
+        ChannelMapGrid->AppendRows(cls.GetNumSubModels());
+        for (int s = 0; s < cls.GetNumSubModels(); s++) {
+            ChannelMapGrid->SetCellValue(i, 0, cls.name);
+            Model *sm = cls.GetSubModel(s);
+            ChannelMapGrid->SetCellValue(i, 1, sm->GetName());
+            i++;
+        }
+    }
     for (int s = 0; s < cls.GetNumStrands(); s++) {
         ChannelMapGrid->SetCellValue(i, 0, cls.name);
         wxString sn = cls.GetStrandName(s);

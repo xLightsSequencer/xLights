@@ -91,7 +91,7 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
             //variant = wxVariant(wxDataViewIconText(node->_model));
             variant = wxVariant(node->_model);
         }
-        else if (node->GetChildCount() != 0)
+        else if (node->GetChildCount() != 0 || "" == node->_node)
         {
             //variant = wxVariant(wxDataViewIconText(node->_strand));
             variant = wxVariant(node->_strand);
@@ -317,13 +317,20 @@ bool xLightsImportChannelMapDialog::Init() {
             lastmodel = new xLightsImportModelNode(NULL, e->GetName(), "");
             dataModel->Insert(lastmodel, ms++);
             Model *m = xlights->GetModel(e->GetName());
+            
+            for (int s = 0; s < m->GetNumSubModels(); s++) {
+                Model *subModel = m->GetSubModel(s);
+                xLightsImportModelNode* laststrand = new xLightsImportModelNode(lastmodel, e->GetName(), subModel->GetName(), "");
+                lastmodel->Append(laststrand);
+            }
+            
             for (int s = 0; s < m->GetNumStrands(); s++) {
                 wxString sn = m->GetStrandName(s);
                 if ("" == sn) {
                     sn = wxString::Format("Strand %d", s + 1);
                 }
                 xLightsImportModelNode* laststrand = new xLightsImportModelNode(lastmodel, e->GetName(), sn, "");
-                lastmodel->Insert(laststrand, s);
+                lastmodel->Append(laststrand);
                 for (int n = 0; n < m->GetStrandLength(s); n++)
                 {
                     wxString nn = m->GetNodeName(n);
