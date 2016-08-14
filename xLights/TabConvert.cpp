@@ -817,8 +817,6 @@ void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr)
     int width = image.GetWidth();
     int height = image.GetHeight();
 
-    uint8_t* imagedata = image.GetData();
-
     if (model->GetDisplayAs() == "ModelGroup")
     {
         ModelGroup* mg = static_cast<ModelGroup*>(model);

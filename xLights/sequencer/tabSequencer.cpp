@@ -391,7 +391,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mSequenceElements.SetEffectsNode(EffectsNode);
     mSequenceElements.LoadSequencerFile(xml_file, GetShowDirectory());
     xml_file.AdjustEffectSettingsForVersion(mSequenceElements, this);
-    mSequenceElements.PopulateRowInformation();
+    
 
     Menu_Settings_Sequence->Enable(true);
     MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, true);
@@ -411,6 +411,10 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     CheckForValidModels();
 
     LoadAudioData(xml_file);
+
+
+    mSequenceElements.PrepareViews(xml_file);
+    mSequenceElements.PopulateRowInformation();
 
     mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);

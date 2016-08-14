@@ -3402,7 +3402,6 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
 void EffectsGrid::CopyModelEffects(int row_number)
 {
     mSequenceElements->UnSelectAllEffects();
-    int first_row = mSequenceElements->GetFirstVisibleModelRow();
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row_number);
     Effect* effect = effectLayer->GetEffect(0);
     if( effect != NULL )

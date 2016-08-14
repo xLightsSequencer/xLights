@@ -758,6 +758,9 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
             el->AddEffectLayer();
         }
     }
+    return true;
+}
+void SequenceElements::PrepareViews(xLightsXmlFile& xml_file) {
     // Select view and set current view models as visible
     int last_view = xml_file.GetLastView();
     for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
@@ -780,7 +783,6 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
     }
     // Set to the first model/view
     mFirstVisibleModelRow = 0;
-    return true;
 }
 
 void SequenceElements::AddView(const std::string &viewName)
