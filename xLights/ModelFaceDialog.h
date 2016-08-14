@@ -2,21 +2,22 @@
 #define MODELFACEDIALOG_H
 
 //(*Headers(ModelFaceDialog)
-#include <wx/grid.h>
-#include <wx/checkbox.h>
-#include <wx/dialog.h>
-#include <wx/sizer.h>
 #include <wx/notebook.h>
-#include <wx/button.h>
-#include <wx/panel.h>
-#include <wx/choicebk.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/checkbox.h>
+#include <wx/panel.h>
+#include <wx/grid.h>
 #include <wx/choice.h>
+#include <wx/button.h>
+#include <wx/dialog.h>
+#include <wx/choicebk.h>
 //*)
 
 #include <map>
 
 class Model;
+class ModelPreview;
 
 class ModelFaceDialog: public wxDialog
 {
@@ -26,20 +27,21 @@ class ModelFaceDialog: public wxDialog
 		virtual ~ModelFaceDialog();
 
 		//(*Declarations(ModelFaceDialog)
-		wxPanel* Matrix;
-		wxGrid* SingleNodeGrid;
-		wxGrid* MatrixModelsGrid;
-		wxChoicebook* FaceTypeChoice;
-		wxButton* DeleteButton;
-		wxStaticText* StaticText3;
-		wxChoice* MatrixImagePlacementChoice;
-		wxChoice* NameChoice;
-		wxGrid* NodeRangeGrid;
-		wxCheckBox* CustomColorSingleNode;
 		wxCheckBox* CustomColorNodeRanges;
+		wxPanel* ModelPreviewPanelLocation;
+		wxChoice* MatrixImagePlacementChoice;
+		wxGrid* MatrixModelsGrid;
+		wxGrid* SingleNodeGrid;
+		wxStaticText* StaticText3;
+		wxPanel* Matrix;
+		wxCheckBox* CustomColorSingleNode;
+		wxButton* DeleteButton;
+		wxChoicebook* FaceTypeChoice;
+		wxGrid* NodeRangeGrid;
+		wxChoice* NameChoice;
 		//*)
 
-        void SetFaceInfo(const Model *cls, std::map<std::string, std::map<std::string, std::string> > &info);
+        void SetFaceInfo(Model *cls, std::map<std::string, std::map<std::string, std::string> > &info);
         void GetFaceInfo(std::map<std::string, std::map<std::string, std::string> > &info);
 	protected:
 
@@ -58,10 +60,10 @@ class ModelFaceDialog: public wxDialog
 		static const long ID_GRID1;
 		static const long ID_PANEL3;
 		static const long ID_CHOICEBOOK1;
+		static const long ID_PANEL1;
 		//*)
 
 	private:
-        Model *model;
 
 		//(*Handlers(ModelFaceDialog)
 		void OnMatrixNameChoiceSelect(wxCommandEvent& event);
@@ -76,12 +78,22 @@ class ModelFaceDialog: public wxDialog
 		void OnFaceTypeChoicePageChanged(wxChoicebookEvent& event);
 		void OnNodeRangeGridCellLeftDClick(wxGridEvent& event);
 		void OnSingleNodeGridCellLeftDClick(wxGridEvent& event);
+		void OnMatrixModelsGridCellSelect(wxGridEvent& event);
+		void OnMatrixModelsGridCellLeftClick1(wxGridEvent& event);
+		void OnSingleNodeGridCellSelect(wxGridEvent& event);
+		void OnSingleNodeGridCellLeftClick(wxGridEvent& event);
+		void OnNodeRangeGridCellLeftClick(wxGridEvent& event);
+		void OnNodeRangeGridCellSelect(wxGridEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
     
     std::map<std::string, std::map<std::string, std::string> > faceData;
     void SelectFaceModel(const std::string &s);
+    ModelPreview *modelPreview;
+    Model *model;
+    void UpdatePreview(const std::string& channels, wxColor c);
+    void GetValue(wxGrid *grid, wxGridEvent &event, std::map<std::string, std::string> &info);
 };
 
 #endif
