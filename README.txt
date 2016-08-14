@@ -18,6 +18,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (gil)     Fix Pictures WrapX to wrap at model size instead of image size.
    -- enh (gil)     Make the transition smooth if you cancel a model Import.  Fixes #647.
    -- enh (gil)     Enhance the Layout page by combining the Model Groups and Models.
+   -- enh (keithsw) Add model preview to face and state dialogs to make setting channel ranges easier
+   -- bug (keithsw) Fix crash when importing fseq when creating a new sequence
+   -- bug (keithsw) Fix oversize LCB export. Fixes #648
+   -- bug (keithsw) Fix display of tooltips on test tab to display models against channels.
+   -- enh (keithsw) Remove all but timing track option for piano effect
+   -- bug (keithsw) Strip out video export for models that dont make sense or model groups. Fix colour handling for non RGB colour orders
 2016.45  Aug 09, 2016
    -- bug (keithsw) Fix colour curve preset scanning.
    -- bug (dkulp)   Prevent crash at startup if preview background image doesn't exist
