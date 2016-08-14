@@ -114,6 +114,13 @@ void xLightsFrame::NewSequence()
     {
         SeqData.init(max, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
     }
+
+    // we can render now the sequence data buffers are initialised
+    if (ret_code == NEEDS_RENDER)
+    {
+        RenderAll();
+    }
+
     Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
     displayElementsPanel->Initialize();
     const std::string view = setting_dlg.GetView();
@@ -301,7 +308,13 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         {
             SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT("V3 file was converted. Please check settings!"));
 			setting_dlg.Fit();
-            setting_dlg.ShowModal();
+            int ret_code = setting_dlg.ShowModal();
+
+            if (ret_code == NEEDS_RENDER)
+            {
+                RenderAll();
+            }
+
 			if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
 			{
 				CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetSequenceTimingAsInt());

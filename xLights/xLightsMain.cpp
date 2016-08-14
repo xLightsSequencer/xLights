@@ -2241,7 +2241,15 @@ void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
     // populate dialog
     SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectory, wxEmptyString);
     dialog.Fit();
-    if (dialog.ShowModal() != wxID_OK) return;  // user pressed cancel
+    int ret_code = dialog.ShowModal();
+
+    if (ret_code != wxID_OK) return;  // user pressed cancel
+
+    if (ret_code == NEEDS_RENDER)
+    {
+        RenderAll();
+    }
+
 	if(CurrentSeqXmlFile->GetMedia() != NULL)
 	{
 		if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)

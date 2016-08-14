@@ -21,6 +21,8 @@
 #include <wx/dialog.h>
 //*)
 
+#define NEEDS_RENDER 9998
+
 class ConvertLogDialog;
 
 class SeqSettingsDialog: public wxDialog

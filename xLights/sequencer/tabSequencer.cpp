@@ -336,7 +336,13 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 			{
 				SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"));
 				setting_dlg.Fit();
-				setting_dlg.ShowModal();
+				int ret_val = setting_dlg.ShowModal();
+
+                if (ret_val == NEEDS_RENDER)
+                {
+                    RenderAll();
+                }
+
 				mediaFilename = xml_file.GetMedia()->FileName();
                 ObtainAccessToURL(mediaFilename.ToStdString());
 				if (xml_file.GetMedia()->GetFrameInterval() < 0)

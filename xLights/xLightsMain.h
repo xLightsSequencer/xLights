@@ -392,6 +392,7 @@ public:
     void PlayerError(const wxString& msg);
     void SetMediaFilename(const wxString& filename);
     void RenderIseqData(bool bottom_layers, ConvertLogDialog* plog);
+    bool IsSequenceDataValid() { return SeqData.IsValidData(); }
     void ClearSequenceData();
     void LoadAudioData(xLightsXmlFile& xml_file);
     void CreateDebugReport(wxDebugReportCompress *report);

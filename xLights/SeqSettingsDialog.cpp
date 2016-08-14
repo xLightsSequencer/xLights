@@ -1182,10 +1182,21 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersSelectionChanged(wxTreeEvent& even
 
 void SeqSettingsDialog::OnButton_CloseClick(wxCommandEvent& event)
 {
-    EndModal(wxID_OK);
     if( needs_render )
     {
-        xLightsParent->RenderAll();
+        if (!xLightsParent->IsSequenceDataValid())
+        {
+            EndModal(NEEDS_RENDER);
+        }
+        else
+        {
+            EndModal(wxID_OK);
+            xLightsParent->RenderAll();
+        }
+    }
+    else
+    {
+        EndModal(wxID_OK);
     }
 }
 

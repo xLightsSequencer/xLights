@@ -835,6 +835,13 @@ void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent &evt) {
 void xLightsFrame::RenderAll()
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!SeqData.IsValidData())
+    {
+        logger_base.warn("Aborting render all because sequence data has not been initialised.");
+        return;
+    }
+
     mRendering = true;
     EnableSequenceControls(false);
 	wxYield(); // ensure all controls are disabled.
