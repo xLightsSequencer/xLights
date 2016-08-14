@@ -16,7 +16,7 @@ WindowFrameModel::~WindowFrameModel()
 
 void WindowFrameModel::InitModel() {
     InitFrame();
-    CopyBufCoord2ScreenCoord();
+    //CopyBufCoord2ScreenCoord();
 }
 
 // initialize buffer coordinates
@@ -32,7 +32,11 @@ void WindowFrameModel::InitFrame() {
     screenLocation.SetRenderSize(FrameWidth, parm2);
     int chan=stringStartChan[0];
     int ChanIncr=SingleChannel ?  1 : 3;
-    
+
+    float top_incr = (float)(FrameWidth-1)/(float)(parm1+1);
+    float bot_incr = -1*(float)(FrameWidth-1)/(float)(parm3+1);
+
+    float screenxincr[4]= {0.0f,top_incr,0.0f,bot_incr}; // indexed by side
     int xincr[4]= {0,1,0,-1}; // indexed by side
     int yincr[4]= {1,0,-1,0};
     x=IsLtoR ? 0 : FrameWidth-1;
@@ -45,7 +49,7 @@ void WindowFrameModel::InitFrame() {
         dir=-1;
         SideIncr=3;
     }
-    
+
     // determine starting position
     if (parm1 > parm3) {
         // more nodes on top, must start at bottom
@@ -64,7 +68,13 @@ void WindowFrameModel::InitFrame() {
             side=1;
         }
     }
-    
+
+    int xoffset=BufferWi/2;
+    int yoffset=BufferHt/2;
+
+    float screenx = x - xoffset;
+    float new_screenx = x;
+
     size_t NodeCount=GetNodeCount();
     for(size_t n=0; n<NodeCount; n++) {
         Nodes[n]->ActChan=chan;
@@ -73,6 +83,9 @@ void WindowFrameModel::InitFrame() {
         for(size_t c=0; c < CoordCount; c++) {
             Nodes[n]->Coords[c].bufX=x;
             Nodes[n]->Coords[c].bufY=y;
+            Nodes[n]->Coords[c].screenX=screenx;
+            Nodes[n]->Coords[c].screenY=y-yoffset;
+            new_screenx=screenx+(screenxincr[side]*(float)dir);
             newx=x+xincr[side]*dir;
             newy=y+yincr[side]*dir;
             if (newx < 0 || newx >= FrameWidth || newy < 0 || newy >= parm2) {
@@ -80,9 +93,11 @@ void WindowFrameModel::InitFrame() {
                 side=(side+SideIncr) % 4;
                 newx=x+xincr[side]*dir;
                 newy=y+yincr[side]*dir;
+                new_screenx=screenx+(screenxincr[side]*(float)dir);
             }
             x=newx;
             y=newy;
+            screenx = new_screenx;
         }
     }
 }
@@ -101,17 +116,17 @@ void WindowFrameModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
-    
+
     p = grid->Append(new wxUIntProperty("# Lights Left/Right", "WFLeftRightCount", parm2));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
-    
+
     p = grid->Append(new wxUIntProperty("# Lights Bottom", "WFBottomCount", parm3));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
-    
+
     p = grid->Append(new wxEnumProperty("Starting Location", "WFStartLocation", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
 }
 int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -138,7 +153,7 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }
-    
+
     return Model::OnPropertyGridChange(grid, event);
 }
 
