@@ -36,7 +36,7 @@ class MainSequencer: public wxPanel
 
         void Cut();
         void Copy();
-        void Paste();
+        void Paste(bool row_paste = false);
 
         void DoCopy(wxCommandEvent& event);
         void DoCut(wxCommandEvent& event);

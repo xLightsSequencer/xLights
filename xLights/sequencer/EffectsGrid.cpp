@@ -1935,7 +1935,7 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
     Refresh();
 }
 
-void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) {
+void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, bool row_paste) {
     if (mSequenceElements == nullptr) {
         return;
     }
@@ -1955,7 +1955,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
 
     bool contains_cell_info = (banner_data[6] != "NO_PASTE_BY_CELL");
     bool paste_by_cell = ((MainSequencer*)mParent)->PasteByCellActive();
-    if( paste_by_cell )
+    if( paste_by_cell && !row_paste )
     {
         if( !contains_cell_info )
         {
@@ -1991,13 +1991,16 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
     logger_base.info("mPartialCellSelected %d,   OneCellSelected: %d    paste_by_cell:  %d", (int)mPartialCellSelected, (int)OneCellSelected(), paste_by_cell);
 
     if (mPartialCellSelected || OneCellSelected()) {
-        if( (number_of_timings + number_of_effects) > 1 )  // multi-effect paste
+        if( ((number_of_timings + number_of_effects) > 1) || row_paste )  // multi-effect paste or row_paste
         {
             wxArrayString eff1data = wxSplit(all_efdata[1], '\t');
             int drop_time_offset, new_start_time, new_end_time, column_start_time;
             column_start_time = wxAtoi(eff1data[6]);
             drop_time_offset = wxAtoi(eff1data[3]);
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            if( row_paste ) {
+                mDropStartTimeMS = drop_time_offset;
+            }
             if (column_start_time < 0 || tel == nullptr)
             {
                 drop_time_offset = mDropStartTimeMS - drop_time_offset;
@@ -2030,7 +2033,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
                     return;
                 }
             }
-            if( paste_by_cell )
+            if( paste_by_cell && !row_paste)
             {
                 bool found_selected_start_column = tel->HitTestEffectByTime(mDropStartTimeMS+1, selected_start_column);
                 if( !found_selected_start_column )
@@ -2050,7 +2053,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion) 
                 bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
                 new_start_time = wxAtoi(efdata[3]);
                 new_end_time = wxAtoi(efdata[4]);
-                if( paste_by_cell && !is_timing_effect )
+                if( paste_by_cell && !is_timing_effect && !row_paste)
                 {
                     int eff_start_column = wxAtoi(efdata[7]);
                     int eff_end_column = wxAtoi(efdata[8]);
@@ -3425,7 +3428,7 @@ void EffectsGrid::CopyModelEffects(int row_number)
 void EffectsGrid::PasteModelEffects(int row_number)
 {
     mDropRow = row_number;
-    ((MainSequencer*)mParent)->Paste();
+    ((MainSequencer*)mParent)->Paste(true);
     mPartialCellSelected = true;
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
 }

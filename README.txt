@@ -14,6 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (gil)     Fix scene import from SuperStar.  Scenes should never be flipped vertically.  Also remove FlipY option.
    -- bug (gil)     Fix the flipping issue for vertical sequences for SuperStar import.  Got broke when fixing horizontal sequences.
    -- bug (gil)     Fix copy/paste row that was broken by 2016.43.
+   -- enh (gil)     Modify row copy/paste to work cross sequence and when Paste by Cell is active.  Fixes #650.
    -- bug (gil)     Fix Pictures WrapX to wrap at model size instead of image size.
    -- enh (gil)     Make the transition smooth if you cancel a model Import.  Fixes #647.
    -- enh (gil)     Enhance the Layout page by combining the Model Groups and Models.

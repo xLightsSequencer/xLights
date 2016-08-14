@@ -84,7 +84,7 @@ public:
     void AlignSelectedEffects(EFF_ALIGN_MODE align_mode);
 
     void OldPaste(const wxString &data, const wxString &pasteDataVer);
-    void Paste(const wxString &data, const wxString &pasteDataVer);
+    void Paste(const wxString &data, const wxString &pasteDataVer, bool row_paste = false);
     void SetCanPaste() { mCanPaste = true; }
     int GetStartColumn() { return mRangeStartCol < mRangeEndCol ? mRangeStartCol : mRangeEndCol; }
 
