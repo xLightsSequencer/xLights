@@ -923,6 +923,70 @@ static void rotate_point(float cx,float cy, float angle, float &x, float &y)
     y = ynew + cy;
 }
 
+bool ThreePointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
+    float min = ymin;
+    float max = ymax;
+    if (!minMaxSet) {
+        if( angle > -270 && angle < -90 ) {
+            min = -RenderHt;
+            max = 0;
+        } else {
+            min = 0;
+            max = RenderHt;
+        }
+    }
+    //invert the matrix, get into render space
+    glm::vec3 v1 = *matrix * glm::vec3(0, min, 1);
+    glm::vec3 v2 = *matrix * glm::vec3(0, max, 1);
+    glm::vec3 v3 = *matrix * glm::vec3(RenderWi, min, 1);
+    glm::vec3 v4 = *matrix * glm::vec3(RenderWi, max, 1);
+
+    int xsi = x1<x2?x1:x2;
+    int xfi = x1>x2?x1:x2;
+    int ysi = y1<y2?y1:y2;
+    int yfi = y1>y2?y1:y2;
+
+    float xs = std::min(std::min(v1.x, v2.x), std::min(v3.x, v4.x));
+    float xf = std::max(std::max(v1.x, v2.x), std::max(v3.x, v4.x));
+    float ys = std::min(std::min(v1.y, v2.y), std::min(v3.y, v4.y));
+    float yf = std::max(std::max(v1.y, v2.y), std::max(v3.y, v4.y));
+
+    return xsi < xs && xfi > xf && ysi < ys && yfi > yf;
+}
+
+bool ThreePointScreenLocation::HitTest(int sx,int sy) const {
+    //invert the matrix, get into render space
+    glm::mat3 m = glm::inverse(*matrix);
+    glm::vec3 v = m * glm::vec3(sx, sy, 1);
+
+    float min = ymin;
+    float max = ymax;
+    if (!minMaxSet) {
+        if (RenderHt < 4) {
+            float sx1 = (x1 + x2) * previewW / 2.0;
+            float sy1 = (y1 + y2) * previewH / 2.0;
+
+            glm::vec3 v2 = m * glm::vec3(sx1 + 3, sy1 + 3, 1);
+            glm::vec3 v3 = m * glm::vec3(sx1 + 3, sy1 - 3, 1);
+            glm::vec3 v4 = m * glm::vec3(sx1 - 3, sy1 + 3, 1);
+            glm::vec3 v5 = m * glm::vec3(sx1 - 3, sy1 - 3, 1);
+            max = std::max(std::max(v2.y, v3.y), std::max(v4.y, v5.y));
+            min = std::min(std::min(v2.y, v3.y), std::min(v4.y, v5.y));
+        } else {
+            if( angle > -270 && angle < -90 ) {
+                min = -RenderHt;
+                max = 1;
+            } else {
+                min = -1;
+                max = RenderHt;
+            }
+        }
+    }
+
+    float y = v.y;
+    return (v.x >= -1 && v.x <= (RenderWi+1) && y >= min && y <= max);
+}
+
 void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
 
     float sx1 = (x1 + x2) * previewW / 2.0;

@@ -273,6 +273,8 @@ public:
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
+    virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
+    virtual bool HitTest(int x,int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual float GetVScaleFactor() const override;
