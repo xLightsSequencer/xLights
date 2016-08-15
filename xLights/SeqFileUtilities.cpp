@@ -868,7 +868,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             int s = 0;
             for (size_t sm = 0; sm < el->GetSubModelCount(); sm++) {
                 SubModelElement *sme = el->GetSubModel(sm);
-                
+
                 StrandElement *ste = dynamic_cast<StrandElement *>(sme);
                 std::string smName = ste->GetName();
                 if (ste != nullptr) {
@@ -929,8 +929,8 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         {
             xLightsImportModelNode* s = m->GetNthChild(j);
             SubModelElement *ste =  model->GetSubModel(str);
-            
-            
+
+
             if( ste != nullptr ) {
                 if ("" != s->_mapping) {
                     MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
@@ -1378,7 +1378,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
         for (int str = 0; str < mc->GetNumSubModels(); str++) {
             SubModelElement *se =  model->GetSubModel(str);
             EffectLayer *sl = se->GetEffectLayer(0);
-            
+
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                 MapVixChannelInformation(this, sl,
                                          VixSeqData, frameTime, numFrames,
@@ -1525,7 +1525,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
             for (int str = 0; str < mc->GetNumSubModels(); str++) {
                 SubModelElement *se =  model->GetSubModel(str);
                 EffectLayer *sl = se->GetEffectLayer(0);
-                
+
                 MapHLSChannelInformation(this, sl,
                                          totalUniverses, frames, frameTime,
                                          dlg.ChannelMapGrid->GetCellValue(row, 3),
@@ -2779,7 +2779,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         settings += val;
                         settings += "x";
                         val = wxString::Format("%d", rect.y);
-                        if( !CalcBoundedPercentage(val, num_rows, reverse_xy, y_offset) ) continue;
+                        if( !CalcBoundedPercentage(val, num_rows, reverse_rows ^ reverse_xy, y_offset) ) continue;
                         settings += val;
                         settings += "x";
                         val = wxString::Format("%d", rect.width);
@@ -2787,7 +2787,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         settings += val;
                         settings += "x";
                         val = wxString::Format("%d", rect.height);
-                        if( !CalcBoundedPercentage(val, num_rows, reverse_xy, y_offset) ) continue;
+                        if( !CalcBoundedPercentage(val, num_rows, reverse_rows ^ reverse_xy, y_offset) ) continue;
                         settings += val;
                         settings += blend_string;
 
@@ -3252,7 +3252,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
         if (!dlg.MapByStrand->IsChecked()) {
             for (int str = 0; str < mc->GetNumSubModels(); str++) {
                 SubModelElement *se = model->GetSubModel(str);
-                
+
                 if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                     MapLSPEffects(se->GetEffectLayer(0), nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
                                   dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4));
