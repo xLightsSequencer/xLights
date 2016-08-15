@@ -874,7 +874,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 if (ste != nullptr) {
                     s++;
                     if (smName == "") {
-                        smName = wxString::Format("Strand %d", (s + 1));
+                        smName = wxString::Format("Strand %d", s);
                     }
                 }
                 if (sme->HasEffects()) {
@@ -906,7 +906,6 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     if (!ok || dlg.ShowModal() != wxID_OK) {
         return;
     }
-    int row = 0;
     for (size_t i = 0; i < dlg.dataModel->GetChildCount(); i++)
     {
         xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
@@ -920,22 +919,28 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             }
         }
         if (m->_mapping != "") {
+            if (model == nullptr) {
+                mSequenceElements.AddMissingModelsToSequence(modelName, false);
+                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(modelName));
+            }
             MapXLightsEffects(model, m->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
         }
-        row++;
 
         int str = 0;
         for (size_t j = 0; j < m->GetChildCount(); j++)
         {
             xLightsImportModelNode* s = m->GetNthChild(j);
-            SubModelElement *ste =  model->GetSubModel(str);
 
 
-            if( ste != nullptr ) {
-                if ("" != s->_mapping) {
+            if ("" != s->_mapping) {
+                if (model == nullptr) {
+                    mSequenceElements.AddMissingModelsToSequence(modelName, false);
+                    model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(modelName));
+                }
+                SubModelElement *ste =  model->GetSubModel(str);
+                if( ste != nullptr ) {
                     MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
                 }
-                row++;
                 int node = 0;
                 StrandElement *stre = dynamic_cast<StrandElement *>(ste);
                 if (stre != nullptr) {
@@ -948,7 +953,6 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                             if ("" != n->_mapping) {
                                 MapXLightsStrandEffects(nl, n->_mapping.ToStdString(), layerMap, se, mapped);
                             }
-                            row++;
                         }
                         node++;
                     }

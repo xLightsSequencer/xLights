@@ -21,6 +21,7 @@
 		670F163F1CDBC53F0039D4DB /* xlights.mac.properties in Resources */ = {isa = PBXBuildFile; fileRef = 670F163E1CDBC53F0039D4DB /* xlights.mac.properties */; };
 		670F23661CCE664500A09765 /* DrawGLUtils21.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670F23651CCE664500A09765 /* DrawGLUtils21.cpp */; };
 		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
+		671859E31D61FFF5008F52AA /* SevenSegmentDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */; };
 		6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */; };
 		6719BF4B1CCB1D8800899A4B /* MusicEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF471CCB1D8800899A4B /* MusicEffect.cpp */; };
 		6719BF4C1CCB1D8800899A4B /* MusicPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF491CCB1D8800899A4B /* MusicPanel.cpp */; };
@@ -359,6 +360,8 @@
 		670F23651CCE664500A09765 /* DrawGLUtils21.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils21.cpp; sourceTree = "<group>"; };
 		6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StrandNodeNamesDialog.cpp; sourceTree = "<group>"; };
 		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
+		671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SevenSegmentDialog.cpp; sourceTree = "<group>"; };
+		671859E21D61FFF5008F52AA /* SevenSegmentDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SevenSegmentDialog.h; sourceTree = "<group>"; };
 		6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubBufferPanel.cpp; sourceTree = "<group>"; };
 		6718EE721CDA4BD400A6E842 /* SubBufferPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubBufferPanel.h; sourceTree = "<group>"; };
 		6718EE741CDA600B00A6E842 /* xlCustomControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlCustomControl.h; sourceTree = "<group>"; };
@@ -1367,6 +1370,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */,
+				671859E21D61FFF5008F52AA /* SevenSegmentDialog.h */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
 				67FA9FD11C67837500FED13B /* AudioManager.h */,
@@ -1856,6 +1861,7 @@
 				6719BF521CCB1DAB00899A4B /* ConvertLogDialog.cpp in Sources */,
 				67447D9C1C6666A00095CDB5 /* SphereModel.cpp in Sources */,
 				67B2CFE91C3A186A003C17CA /* MarqueeEffect.cpp in Sources */,
+				671859E31D61FFF5008F52AA /* SevenSegmentDialog.cpp in Sources */,
 				6761F5F61C4EA041009780DA /* PicturesAssistPanel.cpp in Sources */,
 				672E62B11C4D2FCF006A4966 /* TendrilPanel.cpp in Sources */,
 				67B2CF821C39D98A003C17CA /* RipplePanel.cpp in Sources */,

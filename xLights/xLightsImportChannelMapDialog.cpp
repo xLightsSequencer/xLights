@@ -2,6 +2,7 @@
 #include "sequencer/SequenceElements.h"
 #include "xLightsMain.h"
 #include "models/Model.h"
+#include "models/ModelGroup.h"
 #include <log4cpp/Category.hh>
 
 #include <wx/wfstream.h>
@@ -309,43 +310,61 @@ bool xLightsImportChannelMapDialog::Init() {
     //Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_ACTIVATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnItemActivated);
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnValueChanged);
 
-    xLightsImportModelNode* lastmodel;
     int ms = 0;
     for (size_t i = 0; i<mSequenceElements->GetElementCount(); i++) {
         if (mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_MODEL) {
             Element* e = mSequenceElements->GetElement(i);
-            lastmodel = new xLightsImportModelNode(NULL, e->GetName(), "");
-            dataModel->Insert(lastmodel, ms++);
+            
             Model *m = xlights->GetModel(e->GetName());
-            
-            for (int s = 0; s < m->GetNumSubModels(); s++) {
-                Model *subModel = m->GetSubModel(s);
-                xLightsImportModelNode* laststrand = new xLightsImportModelNode(lastmodel, e->GetName(), subModel->GetName(), "");
-                lastmodel->Append(laststrand);
-            }
-            
-            for (int s = 0; s < m->GetNumStrands(); s++) {
-                wxString sn = m->GetStrandName(s);
-                if ("" == sn) {
-                    sn = wxString::Format("Strand %d", s + 1);
-                }
-                xLightsImportModelNode* laststrand = new xLightsImportModelNode(lastmodel, e->GetName(), sn, "");
-                lastmodel->Append(laststrand);
-                for (int n = 0; n < m->GetStrandLength(s); n++)
-                {
-                    wxString nn = m->GetNodeName(n);
-                    if ("" == nn)
-                    {
-                        nn = wxString::Format("Node %d", n + 1);
-                    }
-                    xLightsImportModelNode* lastnode = new xLightsImportModelNode(laststrand, e->GetName(), sn, nn, "");
-                    laststrand->Insert(lastnode, n);
-                }
-            }
+            AddModel(m, ms);
         }
     }
-
+    
     return true;
+}
+void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
+    for (int x = 0; x < dataModel->GetChildCount(); x++) {
+        xLightsImportModelNode * tmp = dataModel->GetNthChild(x);
+        if (tmp->_model == m->GetName()) {
+            return;
+        }
+    }
+    
+    
+    xLightsImportModelNode *lastmodel = new xLightsImportModelNode(NULL, m->GetName(), "");
+    dataModel->Insert(lastmodel, ms++);
+            
+    for (int s = 0; s < m->GetNumSubModels(); s++) {
+        Model *subModel = m->GetSubModel(s);
+        xLightsImportModelNode* laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), "");
+        lastmodel->Append(laststrand);
+    }
+    
+    for (int s = 0; s < m->GetNumStrands(); s++) {
+        wxString sn = m->GetStrandName(s);
+        if ("" == sn) {
+            sn = wxString::Format("Strand %d", s + 1);
+        }
+        xLightsImportModelNode* laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, "");
+        lastmodel->Append(laststrand);
+        for (int n = 0; n < m->GetStrandLength(s); n++)
+        {
+            wxString nn = m->GetNodeName(n);
+            if ("" == nn)
+            {
+                nn = wxString::Format("Node %d", n + 1);
+            }
+            xLightsImportModelNode* lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, "");
+            laststrand->Insert(lastnode, n);
+        }
+    }
+    if (dynamic_cast<ModelGroup *>(m) != nullptr) {
+        ModelGroup *grp = dynamic_cast<ModelGroup *>(m);
+        std::vector<Model *> models =  grp->Models();
+        for (auto a = models.begin(); a != models.end(); a++) {
+            AddModel(*a, ms);
+        }
+    }
 }
 
 void xLightsImportChannelMapDialog::OnItemActivated(wxDataViewEvent& event)

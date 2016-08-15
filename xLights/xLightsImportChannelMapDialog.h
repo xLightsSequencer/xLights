@@ -294,7 +294,8 @@ protected:
 
 	private:
         wxString FindTab(wxString &line);
-
+        void AddModel(Model *model, int &cnt);
+    
 		//(*Handlers(xLightsImportChannelMapDialog)
 		void LoadMapping(wxCommandEvent& event);
 		void SaveMapping(wxCommandEvent& event);

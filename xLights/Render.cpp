@@ -225,12 +225,14 @@ public:
                     }
                     if (se->GetType() == ELEMENT_TYPE_STRAND) {
                         StrandElement *ste = (StrandElement*)se;
-                        for (int n = 0; n < ste->GetNodeLayerCount(); n++) {
-                            if (n < model->GetStrandLength(ste->GetStrand())) {
-                                EffectLayer *nl = ste->GetNodeLayer(n);
-                                if (nl -> GetEffectCount() > 0) {
-                                    nodeBuffers[SNPair(ste->GetStrand(), n)].reset(new PixelBufferClass(xframe, false));
-                                    nodeBuffers[SNPair(ste->GetStrand(), n)]->InitNodeBuffer(*model, ste->GetStrand(), n, data.FrameTime());
+                        if (ste->GetStrand() < model->GetNumStrands()) {
+                            for (int n = 0; n < ste->GetNodeLayerCount(); n++) {
+                                if (n < model->GetStrandLength(ste->GetStrand())) {
+                                    EffectLayer *nl = ste->GetNodeLayer(n);
+                                    if (nl -> GetEffectCount() > 0) {
+                                        nodeBuffers[SNPair(ste->GetStrand(), n)].reset(new PixelBufferClass(xframe, false));
+                                        nodeBuffers[SNPair(ste->GetStrand(), n)]->InitNodeBuffer(*model, ste->GetStrand(), n, data.FrameTime());
+                                    }
                                 }
                             }
                         }

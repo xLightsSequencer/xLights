@@ -357,7 +357,11 @@ SubModelElement *ModelElement::GetSubModel(int i) {
     if (i < mSubModels.size()) {
         return mSubModels[i];
     }
-    return mStrands[i - mSubModels.size()];
+    i -= mSubModels.size();
+    if (i >= mStrands.size()) {
+        return nullptr;
+    }
+    return mStrands[i];
 }
 SubModelElement *ModelElement::GetSubModel(const std::string &name, bool create) {
     for (auto a = mSubModels.begin(); a != mSubModels.end(); a++) {
