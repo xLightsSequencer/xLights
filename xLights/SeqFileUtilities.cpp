@@ -843,6 +843,13 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
+
+ModelElement * AddModel(Model *m, SequenceElements &se) {
+    se.AddMissingModelsToSequence(m->GetName(), false);
+    ModelElement * model = dynamic_cast<ModelElement*>(se.GetElement(m->GetName()));
+    model->Init(*m);
+    return model;
+}
 void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
                                  bool allowAllModels, bool clearSrc) {
     std::map<std::string, EffectLayer *> layerMap;
@@ -920,8 +927,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         }
         if (m->_mapping != "") {
             if (model == nullptr) {
-                mSequenceElements.AddMissingModelsToSequence(modelName, false);
-                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(modelName));
+                model = AddModel(GetModel(modelName), mSequenceElements);
             }
             MapXLightsEffects(model, m->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
         }
@@ -934,8 +940,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
 
             if ("" != s->_mapping) {
                 if (model == nullptr) {
-                    mSequenceElements.AddMissingModelsToSequence(modelName, false);
-                    model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(modelName));
+                    model = AddModel(GetModel(modelName), mSequenceElements);
                 }
                 SubModelElement *ste =  model->GetSubModel(str);
                 if( ste != nullptr ) {

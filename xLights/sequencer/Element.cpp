@@ -165,7 +165,7 @@ void StrandElement::InitFromModel(Model &model) {
 }
 
 EffectLayer* StrandElement::GetEffectLayerFromExclusiveIndex(int index) {
-    EffectLayer *l = Element::GetEffectLayerFromExclusiveIndex(index);
+    EffectLayer *l = SubModelElement::GetEffectLayerFromExclusiveIndex(index);
     if (l != nullptr) {
         return l;
     }
@@ -233,6 +233,12 @@ EffectLayer* ModelElement::GetEffectLayerFromExclusiveIndex(int index) {
     EffectLayer *l = Element::GetEffectLayerFromExclusiveIndex(index);
     if (l != nullptr) {
         return l;
+    }
+    for( size_t j = 0; j < mSubModels.size(); j++ ) {
+        l = mSubModels[j]->GetEffectLayerFromExclusiveIndex(index);
+        if (l != nullptr) {
+            return l;
+        }
     }
     for( size_t j = 0; j < mStrands.size(); j++ ) {
         l = mStrands[j]->GetEffectLayerFromExclusiveIndex(index);
