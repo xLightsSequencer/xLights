@@ -600,6 +600,8 @@
 		<Unit filename="SequenceData.h" />
 		<Unit filename="SerialPortWithRate.cpp" />
 		<Unit filename="SerialPortWithRate.h" />
+		<Unit filename="SevenSegmentDialog.cpp" />
+		<Unit filename="SevenSegmentDialog.h" />
 		<Unit filename="ShowDatesDialog.cpp" />
 		<Unit filename="ShowDatesDialog.h" />
 		<Unit filename="StartChannelDialog.cpp" />
@@ -1039,6 +1041,7 @@
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
+		<Unit filename="wxsmith/SevenSegmentDialog.wxs" />
 		<Unit filename="wxsmith/ShimmerPanel.wxs" />
 		<Unit filename="wxsmith/ShockwavePanel.wxs" />
 		<Unit filename="wxsmith/SingleStrandPanel.wxs" />
@@ -1206,6 +1209,7 @@
 					<wxDialog wxs="wxsmith/ColorGradientDialog.wxs" src="ColorGradientDialog.cpp" hdr="ColorGradientDialog.h" fwddecl="0" i18n="1" name="ColorGradientDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NoteImportDialog.wxs" src="NoteImportDialog.cpp" hdr="NoteImportDialog.h" fwddecl="0" i18n="1" name="NoteImportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SubModelsDialog.wxs" src="SubModelsDialog.cpp" hdr="SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SevenSegmentDialog.wxs" src="SevenSegmentDialog.cpp" hdr="SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

@@ -28,8 +28,6 @@ class ModelStateDialog: public wxDialog
 
 		//(*Declarations(ModelFaceDialog)
 		wxCheckBox* CustomColorNodeRanges;
-		wxChoice* MatrixImagePlacementChoice;
-		wxGrid* MatrixModelsGrid;
 		wxGrid* SingleNodeGrid;
 		wxStaticText* StaticText3;
 		wxPanel* Matrix;
@@ -39,7 +37,9 @@ class ModelStateDialog: public wxDialog
 		wxGrid* NodeRangeGrid;
 		wxChoice* NameChoice;
         wxPanel* ModelPreviewPanelLocation;
-		//*)
+        wxButton* Button_7Segment;
+        wxButton* Button_7Seg;
+        //*)
 
         void SetStateInfo(Model *cls, std::map<std::string, std::map<std::string, std::string> > &info);
         void GetStateInfo(std::map<std::string, std::map<std::string, std::string> > &info);
@@ -51,9 +51,11 @@ class ModelStateDialog: public wxDialog
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
 		static const long ID_CHECKBOX1;
+		static const long ID_BUTTON1;
 		static const long ID_GRID_COROSTATES;
 		static const long ID_PANEL2;
 		static const long ID_CHECKBOX2;
+		static const long ID_BUTTON2;
 		static const long ID_GRID3;
 		static const long ID_PANEL6;
 		static const long ID_CHOICEBOOK1;
@@ -80,6 +82,7 @@ class ModelStateDialog: public wxDialog
 		void OnSingleNodeGridCellLeftClick(wxGridEvent& event);
 		void OnSingleNodeGridCellSelect(wxGridEvent& event);
 		void OnNodeRangeGridCellSelect(wxGridEvent& event);
+		void OnButton_7SegmentClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
@@ -90,6 +93,8 @@ class ModelStateDialog: public wxDialog
     Model *model;
     void UpdatePreview(const std::string& channels, wxColor c);
     void GetValue(wxGrid *grid, wxGridEvent &event, std::map<std::string, std::string> &info);
+    void AddLabel(wxString label);
+    void ValidateWindow();
 };
 
 #endif

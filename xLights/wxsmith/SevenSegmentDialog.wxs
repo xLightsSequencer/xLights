@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="SevenSegmentDialog">
+		<title>Select Labels to Include:</title>
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<style>wxCAPTION</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>6</cols>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_Thousands" member="yes">
+							<label>    </label>
+							<tooltip>1000&apos;s</tooltip>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_Hundreds" member="yes">
+							<label>  </label>
+							<tooltip>100&apos;s</tooltip>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_Colon" member="yes">
+							<tooltip>Colon</tooltip>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_Tens" member="yes">
+							<tooltip>10&apos;s</tooltip>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_Decimal" member="yes">
+							<tooltip>Decimal Point</tooltip>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX6" variable="CheckBox_Ones" member="yes">
+							<tooltip>1&apos;s</tooltip>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticBitmap" name="ID_STATICBITMAP1" variable="StaticBitmap1" member="yes">
+					<bitmap>C:\Users\keith\Documents\xLights\include\sevensegment.xpm</bitmap>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStdDialogButtonSizer" variable="StdDialogButtonSizer1" member="no">
+					<object class="button">
+						<object class="wxButton" name="wxID_OK">
+							<label></label>
+						</object>
+					</object>
+					<object class="button">
+						<object class="wxButton" name="wxID_CANCEL">
+							<label></label>
+						</object>
+					</object>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

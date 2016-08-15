@@ -828,6 +828,9 @@
     <ClCompile Include="SubModelsDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SevenSegmentDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1590,6 +1593,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SubModelsDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SevenSegmentDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

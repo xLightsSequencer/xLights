@@ -33,6 +33,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keithsw) Fix display of tooltips on test tab to display models against channels.
    -- enh (keithsw) Remove all but timing track option for piano effect
    -- bug (keithsw) Strip out video export for models that dont make sense or model groups. Fix colour handling for non RGB colour orders
+   -- enh (keithsw) Add simple way to add 7 segment labels to model state definition
 2016.45  Aug 09, 2016
    -- bug (keithsw) Fix colour curve preset scanning.
    -- bug (dkulp)   Prevent crash at startup if preview background image doesn't exist

@@ -3,6 +3,7 @@
 #include "NodesGridCellEditor.h"
 #include "ModelPreview.h"
 #include "DimmingCurve.h"
+#include "SevenSegmentDialog.h"
 
 //(*InternalHeaders(ModelStateDialog)
 #include <wx/intl.h>
@@ -25,9 +26,11 @@ const long ModelStateDialog::ID_CHOICE3 = wxNewId();
 const long ModelStateDialog::ID_BUTTON3 = wxNewId();
 const long ModelStateDialog::ID_BUTTON4 = wxNewId();
 const long ModelStateDialog::ID_CHECKBOX1 = wxNewId();
+const long ModelStateDialog::ID_BUTTON1 = wxNewId();
 const long ModelStateDialog::ID_GRID_COROSTATES = wxNewId();
 const long ModelStateDialog::ID_PANEL2 = wxNewId();
 const long ModelStateDialog::ID_CHECKBOX2 = wxNewId();
+const long ModelStateDialog::ID_BUTTON2 = wxNewId();
 const long ModelStateDialog::ID_GRID3 = wxNewId();
 const long ModelStateDialog::ID_PANEL6 = wxNewId();
 const long ModelStateDialog::ID_CHOICEBOOK1 = wxNewId();
@@ -66,12 +69,14 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	//(*Initialize(ModelStateDialog)
 	wxFlexGridSizer* FlexGridSizer4;
 	wxPanel* CoroPanel;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxPanel* NodeRangePanel;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* PreviewSizer;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxButton* AddButton;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
@@ -99,9 +104,15 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(1);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer3->AddGrowableCol(1);
 	CustomColorSingleNode = new wxCheckBox(CoroPanel, ID_CHECKBOX1, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CustomColorSingleNode->SetValue(false);
-	FlexGridSizer2->Add(CustomColorSingleNode, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(CustomColorSingleNode, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_7Segment = new wxButton(CoroPanel, ID_BUTTON1, _("7 Segment Display"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer3->Add(Button_7Segment, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	SingleNodeGrid = new wxGrid(CoroPanel, ID_GRID_COROSTATES, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID_COROSTATES"));
 	SingleNodeGrid->CreateGrid(40,3);
 	SingleNodeGrid->SetMinSize(wxDLG_UNIT(CoroPanel,wxSize(-1,200)));
@@ -122,9 +133,15 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer5->AddGrowableCol(0);
 	FlexGridSizer5->AddGrowableRow(1);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer6->AddGrowableCol(1);
 	CustomColorNodeRanges = new wxCheckBox(NodeRangePanel, ID_CHECKBOX2, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CustomColorNodeRanges->SetValue(false);
-	FlexGridSizer5->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_7Seg = new wxButton(NodeRangePanel, ID_BUTTON2, _("7 Segment Display"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	FlexGridSizer6->Add(Button_7Seg, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
 	NodeRangeGrid = new wxGrid(NodeRangePanel, ID_GRID3, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID3"));
 	NodeRangeGrid->CreateGrid(40,3);
 	NodeRangeGrid->SetMinSize(wxDLG_UNIT(NodeRangePanel,wxSize(-1,200)));
@@ -166,11 +183,13 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButtonMatrixAddClicked);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButtonMatrixDeleteClick);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnCustomColorCheckboxClick);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButton_7SegmentClick);
 	Connect(ID_GRID_COROSTATES,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellLeftClick);
 	Connect(ID_GRID_COROSTATES,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellLeftDClick);
 	Connect(ID_GRID_COROSTATES,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellChange);
 	Connect(ID_GRID_COROSTATES,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellSelect);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnCustomColorCheckboxClick);
+	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButton_7SegmentClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellLeftClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellLeftDClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellChange);
@@ -189,6 +208,8 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
     Center();
+
+    ValidateWindow();
 }
 
 ModelStateDialog::~ModelStateDialog()
@@ -196,6 +217,7 @@ ModelStateDialog::~ModelStateDialog()
     //(*Destroy(ModelStateDialog)
     //*)
 }
+
 void ModelStateDialog::SetStateInfo(Model *cls, std::map< std::string, std::map<std::string, std::string> > &finfo) {
     NodeRangeGrid->SetColSize(COLOUR_COL, 50);
     SingleNodeGrid->SetColSize(COLOUR_COL, 50);
@@ -273,6 +295,8 @@ void ModelStateDialog::SetStateInfo(Model *cls, std::map< std::string, std::map<
         NodeRangeGrid->SetCellEditor(x, CHANNEL_COL, reditor);
         NodeRangeGrid->SetReadOnly(x, COLOUR_COL);
     }
+
+    ValidateWindow();
 }
 
 void ModelStateDialog::GetStateInfo(std::map< std::string, std::map<std::string, std::string> > &finfo) {
@@ -332,6 +356,7 @@ void ModelStateDialog::SelectStateModel(const std::string &name) {
 void ModelStateDialog::OnMatrixNameChoiceSelect(wxCommandEvent& event)
 {
     SelectStateModel(NameChoice->GetString(NameChoice->GetSelection()).ToStdString());
+    ValidateWindow();
 }
 
 void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
@@ -348,6 +373,7 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             DeleteButton->Enable();
         }
     }
+    ValidateWindow();
 }
 
 void ModelStateDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
@@ -369,6 +395,7 @@ void ModelStateDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
             DeleteButton->Disable();
         }
     }
+    ValidateWindow();
 }
 
 void ModelStateDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
@@ -545,4 +572,105 @@ void ModelStateDialog::OnNodeRangeGridCellSelect(wxGridEvent& event)
     UpdatePreview(NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL).ToStdString(), NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL));
     event.ResumePropagation(1);
     event.Skip(); // continue the event
+}
+
+void ModelStateDialog::AddLabel(wxString label)
+{
+    int free = -1;
+    wxGrid* grid = nullptr;
+    if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
+        grid = SingleNodeGrid;
+    }
+    else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
+        grid = NodeRangeGrid;
+    }
+
+    for (int i = 0; i < grid->GetNumberRows(); i++)
+    {
+        if (grid->GetCellValue(i, NAME_COL) == label)
+        {
+            free = -1;
+            break;
+        }
+
+        if (grid->GetCellValue(i,NAME_COL) == "" && free == -1)
+        {
+            free = i;
+        }
+    }
+
+    if (free != -1)
+    {
+        grid->SetCellValue(free, NAME_COL, label);
+    }
+}
+
+void ModelStateDialog::OnButton_7SegmentClick(wxCommandEvent& event)
+{
+    SevenSegmentDialog dialog(this);
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        if (dialog.CheckBox_Ones->IsChecked())
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                AddLabel(wxString::Format("%d", i));
+            }
+        }
+        if (dialog.CheckBox_Tens->IsChecked())
+        {
+            AddLabel("00");
+            for (int i = 10; i < 100; i += 10)
+            {
+                AddLabel(wxString::Format("%d", i));
+            }
+        }
+        if (dialog.CheckBox_Hundreds->IsChecked())
+        {
+            AddLabel("000");
+            for (int i = 100; i < 1000; i += 100)
+            {
+                AddLabel(wxString::Format("%d", i));
+            }
+        }
+        if (dialog.CheckBox_Colon->IsChecked())
+        {
+            AddLabel("colon");
+        }
+        if (dialog.CheckBox_Decimal->IsChecked())
+        {
+            AddLabel("dot");
+        }
+        if (dialog.CheckBox_Thousands->IsChecked())
+        {
+            AddLabel("0000");
+            for (int i = 1000; i < 10000; i += 1000)
+            {
+                AddLabel(wxString::Format("%d", i));
+            }
+        }
+    }
+}
+
+void ModelStateDialog::ValidateWindow()
+{
+    if (NameChoice->GetStringSelection() == "")
+    {
+        NodeRangeGrid->Disable();
+        SingleNodeGrid->Disable();
+        Button_7Seg->Disable();
+        Button_7Segment->Disable();
+        CustomColorSingleNode->Disable();
+        CustomColorNodeRanges->Disable();
+    }
+    else
+    {
+        NodeRangeGrid->Enable();
+        SingleNodeGrid->Enable();
+        Button_7Seg->Enable();
+        Button_7Segment->Enable();
+        CustomColorSingleNode->Enable();
+        CustomColorNodeRanges->Enable();
+    }
 }

@@ -366,6 +366,7 @@
     <ClCompile Include="sequencer\Waveform.cpp" />
     <ClCompile Include="serial.cpp" />
     <ClCompile Include="SerialPortWithRate.cpp" />
+    <ClCompile Include="SevenSegmentDialog.cpp" />
     <ClCompile Include="ShowDatesDialog.cpp" />
     <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
@@ -616,6 +617,7 @@
     <ClInclude Include="sequencer\Waveform.h" />
     <ClInclude Include="serial.h" />
     <ClInclude Include="SerialPortWithRate.h" />
+    <ClInclude Include="SevenSegmentDialog.h" />
     <ClInclude Include="ShowDatesDialog.h" />
     <ClInclude Include="StartChannelDialog.h" />
     <ClInclude Include="StrandNodeNamesDialog.h" />
