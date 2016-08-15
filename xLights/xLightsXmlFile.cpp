@@ -2773,7 +2773,6 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
                     for( int k = 0; k < layer->GetEffectCount(); k++ ) {
                         Effect* eff = layer->GetEffect(k);
                         if (eff != nullptr &&  effects[eff->GetEffectIndex()] != nullptr ) {
-                            FixOldTextEffects(eff, elem, ver, effects);
                             effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
                         }
                     }
@@ -2785,7 +2784,6 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
                         for( int k = 0; k < layer->GetEffectCount(); k++ ) {
                             Effect* eff = layer->GetEffect(k);
                             if (eff != nullptr && effects[eff->GetEffectIndex()] != nullptr ) {
-                               FixOldTextEffects(eff, elem, ver, effects);
                                effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
                             }
                         }
@@ -2797,7 +2795,6 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
                             for( int l = 0; l < nlayer->GetEffectCount(); l++ ) {
                                 Effect* eff = nlayer->GetEffect(l);
                                 if (eff != nullptr && effects[eff->GetEffectIndex()] != nullptr ) {
-                                    FixOldTextEffects(eff, elem, ver, effects);
                                     effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
                                 }
                             }
@@ -2807,110 +2804,6 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
             }
         }
     }
-}
-
-void xLightsXmlFile::FixOldTextEffects(Effect* eff, Element* elem, const std::string& ver, std::vector<RenderableEffect*> effects) {
-    if( eff->GetEffectName() != "Text" ) return;
-
-    SettingsMap &settings = eff->GetSettings();
-    if ( settings["Conv"] == "1" ) return;
-
-    std::string line2 = settings["E_TEXTCTRL_Text_Line2"];
-    std::string line3 = settings["E_TEXTCTRL_Text_Line3"];
-    std::string line4 = settings["E_TEXTCTRL_Text_Line4"];
-
-    if( line2 == "" && line3 == "" && line4 == "" ) return;
-
-    std::string palette = eff->GetPaletteAsString();
-    UncheckFirstColor(palette);
-    if( line2 != "" ) {
-        EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, eff->GetStartTimeMS(), eff->GetEndTimeMS());
-        Effect* new_eff = layer->AddEffect(0, "Text", eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false);
-        effects[new_eff->GetEffectIndex()]->adjustSettings(ver, new_eff);
-        SettingsMap &new_settings = new_eff->GetSettings();
-        new_settings["Conv"] = "1";
-        new_settings["E_TEXTCTRL_Text"] = line2;
-        new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
-        new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter2"];
-        new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count2"];
-        new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir2"];
-        new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect2"];
-        new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font2"];
-        new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed2"];
-        int pos = (wxAtoi(settings["E_SLIDER_Text_Position2"]) * 2) - 100;
-        wxString strpos = wxString::Format("%d", pos);
-        new_settings["E_SLIDER_Text_XStart"] = strpos;
-        new_settings["E_SLIDER_Text_XEnd"] = strpos;
-        new_settings["E_SLIDER_Text_YStart"] = strpos;
-        new_settings["E_SLIDER_Text_YEnd"] = strpos;
-        new_eff->SetPalette(palette);
-    }
-    UncheckFirstColor(palette);
-    if( line3 != "" ) {
-        EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, eff->GetStartTimeMS(), eff->GetEndTimeMS());
-        Effect* new_eff = layer->AddEffect(0, "Text", eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false);
-        effects[new_eff->GetEffectIndex()]->adjustSettings(ver, new_eff);
-        SettingsMap &new_settings = new_eff->GetSettings();
-        new_settings["Conv"] = "1";
-        new_settings["E_TEXTCTRL_Text"] = line3;
-        new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
-        new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter3"];
-        new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count3"];
-        new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir3"];
-        new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect3"];
-        new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font3"];
-        new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed3"];
-        int pos = (wxAtoi(settings["E_SLIDER_Text_Position3"]) * 2) - 100;
-        wxString strpos = wxString::Format("%d", pos);
-        new_settings["E_SLIDER_Text_XStart"] = strpos;
-        new_settings["E_SLIDER_Text_XEnd"] = strpos;
-        new_settings["E_SLIDER_Text_YStart"] = strpos;
-        new_settings["E_SLIDER_Text_YEnd"] = strpos;
-        new_eff->SetPalette(palette);
-    }
-    UncheckFirstColor(palette);
-    if( line4 != "" ) {
-        EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, eff->GetStartTimeMS(), eff->GetEndTimeMS());
-        Effect* new_eff = layer->AddEffect(0, "Text", eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false);
-        effects[new_eff->GetEffectIndex()]->adjustSettings(ver, new_eff);
-        SettingsMap &new_settings = new_eff->GetSettings();
-        new_settings["Conv"] = "1";
-        new_settings["E_TEXTCTRL_Text"] = line4;
-        new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
-        new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter4"];
-        new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count4"];
-        new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir4"];
-        new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect4"];
-        new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font4"];
-        new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed4"];
-        int pos = (wxAtoi(settings["E_SLIDER_Text_Position4"]) * 2) - 100;
-        wxString strpos = wxString::Format("%d", pos);
-        new_settings["E_SLIDER_Text_XStart"] = strpos;
-        new_settings["E_SLIDER_Text_XEnd"] = strpos;
-        new_settings["E_SLIDER_Text_YStart"] = strpos;
-        new_settings["E_SLIDER_Text_YEnd"] = strpos;
-        new_eff->SetPalette(palette);
-    }
-}
-
-void xLightsXmlFile::UncheckFirstColor(std::string& palette)
-{
-    wxString new_palette = "";
-    wxArrayString palette_array = wxSplit(palette, ',');
-    bool found_color = false;
-    for( int i=0; i < palette_array.size(); i++ ) {
-        if( !found_color ) {
-            if( palette_array[i].StartsWith("C_CHECKBOX_Palette") ) {
-                found_color = true;
-                continue;
-            }
-        }
-        new_palette += palette_array[i];
-        if( i < palette_array.size() - 1 ) {
-            new_palette += ",";
-        }
-    }
-    palette = new_palette;
 }
 
 wxString xLightsXmlFile::InsertMissing(wxString str,wxString missing_array,bool INSERT)
