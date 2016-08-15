@@ -2464,10 +2464,9 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
 }
 
 void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
-    ModelElement *el = dynamic_cast<ModelElement*>((Element*)event.GetClientData());
-    int strand = event.GetInt() >> 16;
+    StrandElement *el = dynamic_cast<StrandElement*>((Element*)event.GetClientData());
     int node = event.GetInt() & 0xFFFF;
-    EffectLayer *layer = el->GetStrand(strand)->GetNodeLayer(node);
+    EffectLayer *layer = el->GetNodeLayer(node);
 
     xlColorVector colors;
     PixelBufferClass ncls(this, true);

@@ -183,8 +183,11 @@ void RowHeading::rightClick( wxMouseEvent& event)
         } else {
             mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Models");
         }
-        if (ri->nodeIndex > -1 && me->GetStrand(ri->strandIndex)->GetNodeLayer(ri->nodeIndex)->GetEffectCount() == 0) {
-            mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
+        if (ri->nodeIndex > -1) {
+            StrandElement *se = dynamic_cast<StrandElement*>(element);
+            if (se && se->GetNodeLayer(ri->nodeIndex)->GetEffectCount() == 0) {
+                mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
+            }
         }
         if (canPromote) {
             mnuLayer.Append(ID_ROW_MNU_PROMOTE_EFFECTS, "Promote Node Effects");
@@ -426,7 +429,12 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxPostEvent(GetParent(), evt);
     } else if (id == ID_ROW_MNU_PROMOTE_EFFECTS) {
         wxCommandEvent evt(EVT_PROMOTE_EFFECTS);
-        evt.SetClientData(element);
+        SubModelElement *se = dynamic_cast<SubModelElement *>(element);
+        if (se != nullptr) {
+            evt.SetClientData(se->GetModelElement());
+        } else {
+            evt.SetClientData(element);
+        }
         wxPostEvent(GetParent(), evt);
     }
 
