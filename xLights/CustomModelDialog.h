@@ -5,7 +5,6 @@
 #include <wx/dialog.h>
 class wxGrid;
 class wxSpinEvent;
-class wxStdDialogButtonSizer;
 class wxCheckBox;
 class wxStaticText;
 class wxSlider;
@@ -60,10 +59,13 @@ class CustomModelDialog: public wxDialog
 		wxButton* Button_CustomModelZoomIn;
 		wxGrid* GridCustom;
 		wxBitmapButton* BitmapButtonCustomPaste;
+		wxButton* ButtonCancel;
 		wxBitmapButton* BitmapButtonCustomCopy;
 		wxSpinCtrl* HeightSpin;
+		wxButton* ButtonOk;
 		wxSlider* SliderCustomLightness;
 		wxBitmapButton* BitmapButtonCustomCut;
+		wxCheckBox* CheckBox_RearView;
 		wxButton* Button_CustomModelZoomOut;
 		wxFlexGridSizer* Sizer1;
 		wxSpinCtrl* WidthSpin;
@@ -81,6 +83,7 @@ class CustomModelDialog: public wxDialog
 		//(*Identifiers(CustomModelDialog)
 		static const long ID_SPINCTRL1;
 		static const long ID_SPINCTRL2;
+		static const long ID_CHECKBOX1;
 		static const long ID_BITMAPBUTTON_CUSTOM_CUT;
 		static const long ID_BITMAPBUTTON_CUSTOM_COPY;
 		static const long ID_BITMAPBUTTON_CUSTOM_PASTE;
@@ -91,6 +94,8 @@ class CustomModelDialog: public wxDialog
 		static const long ID_CHECKBOX_AUTO_NUMBER;
 		static const long ID_CHECKBOX_AUTO_INCREMENT;
 		static const long ID_SPINCTRL_NEXT_CHANNEL;
+		static const long ID_BUTTON1;
+		static const long ID_BUTTON2;
 		static const long ID_GRID_Custom;
 		//*)
 
@@ -122,6 +127,9 @@ class CustomModelDialog: public wxDialog
 		void OnCheckBoxAutoIncrementClick(wxCommandEvent& event);
 		void OnSpinCtrlNextChannelChange(wxSpinEvent& event);
 		void OnGridCustomCellLeftClick(wxGridEvent& event);
+		void OnCheckBox_RearViewClick(wxCommandEvent& event);
+		void OnButtonCancelClick(wxCommandEvent& event);
+		void OnButtonOkClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
