@@ -24,7 +24,7 @@ class TextEffect : public RenderableEffect
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
-        void UncheckFirstColor(std::string& palette);
+        void SelectTextColor(std::string& palette, int index);
 
         void RenderTextLine(RenderBuffer &buffer,
                             TextDrawingContext* dc, const wxString& Line_orig, int dir,

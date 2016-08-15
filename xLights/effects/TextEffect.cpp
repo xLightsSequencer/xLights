@@ -80,9 +80,8 @@ void TextEffect::adjustSettings(const std::string &version, Effect *effect) {
         std::string line3 = settings["E_TEXTCTRL_Text_Line3"];
         std::string line4 = settings["E_TEXTCTRL_Text_Line4"];
 
-        std::string palette = effect->GetPaletteAsString();
-        UncheckFirstColor(palette);
         if( line2 != "" ) {
+            std::string palette = effect->GetPaletteAsString();
             EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
             Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
             SettingsMap &new_settings = new_eff->GetSettings();
@@ -101,10 +100,11 @@ void TextEffect::adjustSettings(const std::string &version, Effect *effect) {
             new_settings["E_SLIDER_Text_XEnd"] = strpos;
             new_settings["E_SLIDER_Text_YStart"] = strpos;
             new_settings["E_SLIDER_Text_YEnd"] = strpos;
+            SelectTextColor(palette, 2);
             new_eff->SetPalette(palette);
         }
-        UncheckFirstColor(palette);
         if( line3 != "" ) {
+            std::string palette = effect->GetPaletteAsString();
             EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
             Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
             SettingsMap &new_settings = new_eff->GetSettings();
@@ -123,10 +123,11 @@ void TextEffect::adjustSettings(const std::string &version, Effect *effect) {
             new_settings["E_SLIDER_Text_XEnd"] = strpos;
             new_settings["E_SLIDER_Text_YStart"] = strpos;
             new_settings["E_SLIDER_Text_YEnd"] = strpos;
+            SelectTextColor(palette, 3);
             new_eff->SetPalette(palette);
         }
-        UncheckFirstColor(palette);
         if( line4 != "" ) {
+            std::string palette = effect->GetPaletteAsString();
             EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
             Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
             SettingsMap &new_settings = new_eff->GetSettings();
@@ -145,8 +146,12 @@ void TextEffect::adjustSettings(const std::string &version, Effect *effect) {
             new_settings["E_SLIDER_Text_XEnd"] = strpos;
             new_settings["E_SLIDER_Text_YStart"] = strpos;
             new_settings["E_SLIDER_Text_YEnd"] = strpos;
+            SelectTextColor(palette, 4);
             new_eff->SetPalette(palette);
         }
+        std::string palette = effect->GetPaletteAsString();
+        SelectTextColor(palette, 1);
+        effect->SetPalette(palette);
 
         settings.erase("E_CHECKBOX_TextToCenter1");
         settings.erase("E_CHECKBOX_TextToCenter2");
@@ -187,15 +192,15 @@ void TextEffect::adjustSettings(const std::string &version, Effect *effect) {
     }
 }
 
-void TextEffect::UncheckFirstColor(std::string& palette)
+void TextEffect::SelectTextColor(std::string& palette, int index)
 {
     wxString new_palette = "";
     wxArrayString palette_array = wxSplit(palette, ',');
-    bool found_color = false;
+    int found_color = 0;
     for( int i=0; i < palette_array.size(); i++ ) {
-        if( !found_color ) {
-            if( palette_array[i].StartsWith("C_CHECKBOX_Palette") ) {
-                found_color = true;
+        if( palette_array[i].StartsWith("C_CHECKBOX_Palette") ) {
+            found_color++;
+            if( found_color != index ) {
                 continue;
             }
         }
