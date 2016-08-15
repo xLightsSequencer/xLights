@@ -653,13 +653,17 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     if(shimmer)
     {
         c = xlBLACK;
+        xlColor color;
         for(int x=0; x<BufferWi; x++)
         {
             for(int y=0; y<BufferHt; y++)
             {
                 if( buffer.rand01() > 0.5 )
                 {
-                    buffer.ProcessPixel(x,y,c, false);
+                    buffer.GetPixel(x,y, color);
+                    if( color != xlBLACK ) {
+                        buffer.ProcessPixel(x,y,c, false);
+                    }
                 }
             }
         }
