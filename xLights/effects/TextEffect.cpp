@@ -40,53 +40,97 @@ static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
     c->ProcessWindowEvent(evt);
 }
 
+bool TextEffect::needToAdjustSettings(const std::string &version) {
+    return IsVersionOlder("2016.46", version) || RenderableEffect::needToAdjustSettings(version);
+}
+void TextEffect::adjustSettings(const std::string &version, Effect *effect) {
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect);
+    }
+
+    SettingsMap &settings = effect->GetSettings();
+
+    // helps the code work in xLightsXmlFile for splitting the text effect
+    if( settings["Conv"] == "1" ) {
+        settings["Conv"] = "0";
+        return;
+    }
+    settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter1"];
+    settings["E_CHECKBOX_Text_PixelOffsets"] = settings["E_CHECKBOX_Text_PixelOffsets1"];
+    settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count1"];
+    settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir1"];
+    settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect1"];
+    settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font1"];
+    settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font1"];
+    settings["E_SLIDER_Text_XEnd"] = settings["E_SLIDER_Text_XEnd1"];
+    settings["E_SLIDER_Text_XStart"] = settings["E_SLIDER_Text_XStart1"];
+    settings["E_SLIDER_Text_YEnd"] = settings["E_SLIDER_Text_YEnd1"];
+    settings["E_SLIDER_Text_YStart"] = settings["E_SLIDER_Text_YStart1"];
+    settings["E_TEXTCTRL_Text"] = settings["E_TEXTCTRL_Text_Line1"];
+    settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed1"];
+
+    settings.erase("E_CHECKBOX_TextToCenter1");
+    settings.erase("E_CHECKBOX_TextToCenter2");
+    settings.erase("E_CHECKBOX_TextToCenter3");
+    settings.erase("E_CHECKBOX_TextToCenter4");
+    settings.erase("E_CHECKBOX_Text_PixelOffsets1");
+    settings.erase("E_CHOICE_Text_Count1");
+    settings.erase("E_CHOICE_Text_Count2");
+    settings.erase("E_CHOICE_Text_Count3");
+    settings.erase("E_CHOICE_Text_Count4");
+    settings.erase("E_CHOICE_Text_Dir1");
+    settings.erase("E_CHOICE_Text_Dir2");
+    settings.erase("E_CHOICE_Text_Dir3");
+    settings.erase("E_CHOICE_Text_Dir4");
+    settings.erase("E_CHOICE_Text_Effect1");
+    settings.erase("E_CHOICE_Text_Effect2");
+    settings.erase("E_CHOICE_Text_Effect3");
+    settings.erase("E_CHOICE_Text_Effect4");
+    settings.erase("E_FONTPICKER_Text_Font1");
+    settings.erase("E_FONTPICKER_Text_Font2");
+    settings.erase("E_FONTPICKER_Text_Font3");
+    settings.erase("E_FONTPICKER_Text_Font4");
+    settings.erase("E_SLIDER_Text_Position2");
+    settings.erase("E_SLIDER_Text_Position3");
+    settings.erase("E_SLIDER_Text_Position4");
+    settings.erase("E_SLIDER_Text_XEnd1");
+    settings.erase("E_SLIDER_Text_XStart1");
+    settings.erase("E_SLIDER_Text_YEnd1");
+    settings.erase("E_SLIDER_Text_YStart1");
+    settings.erase("E_TEXTCTRL_Text_Line1");
+    settings.erase("E_TEXTCTRL_Text_Line2");
+    settings.erase("E_TEXTCTRL_Text_Line3");
+    settings.erase("E_TEXTCTRL_Text_Line4");
+    settings.erase("E_TEXTCTRL_Text_Speed1");
+    settings.erase("E_TEXTCTRL_Text_Speed2");
+    settings.erase("E_TEXTCTRL_Text_Speed3");
+    settings.erase("E_TEXTCTRL_Text_Speed4");
+    settings.erase("Conv");
+}
+
 void TextEffect::SetDefaultParameters(Model *cls) {
     TextPanel *tp = (TextPanel*)panel;
     if (tp == nullptr) {
         return;
     }
 
-    SetTextValue(tp->TextCtrl_Text_Line1, "");
-    SetTextValue(tp->TextCtrl_Text_Line2, "");
-    SetTextValue(tp->TextCtrl_Text_Line3, "");
-    SetTextValue(tp->TextCtrl_Text_Line4, "");
-    SetChoiceValue(tp->Choice_Text_Dir1, "none");
-    SetChoiceValue(tp->Choice_Text_Dir2, "none");
-    SetChoiceValue(tp->Choice_Text_Dir3, "none");
-    SetChoiceValue(tp->Choice_Text_Dir4, "none");
-    SetSliderValue(tp->Slider_Text_Speed1, 10);
-    SetSliderValue(tp->Slider_Text_Speed2, 10);
-    SetSliderValue(tp->Slider_Text_Speed3, 10);
-    SetSliderValue(tp->Slider_Text_Speed4, 10);
-    SetChoiceValue(tp->Choice_Text_Effect1, "normal");
-    SetChoiceValue(tp->Choice_Text_Effect2, "normal");
-    SetChoiceValue(tp->Choice_Text_Effect3, "normal");
-    SetChoiceValue(tp->Choice_Text_Effect4, "normal");
-    SetChoiceValue(tp->Choice_Text_Count1, "none");
-    SetChoiceValue(tp->Choice_Text_Count2, "none");
-    SetChoiceValue(tp->Choice_Text_Count3, "none");
-    SetChoiceValue(tp->Choice_Text_Count4, "none");
-    SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter1, false);
-    SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter2, false);
-    SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter3, false);
-    SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter4, false);
-    SetCheckBoxValue(tp->CheckBox_Text_PixelOffsets1, false);
-    SetSliderValue(tp->Slider_Text_XStart1, 0);
-    SetSliderValue(tp->Slider_Text_YStart1, 0);
-    SetSliderValue(tp->Slider_Text_XEnd1, 0);
-    SetSliderValue(tp->Slider_Text_YEnd1, 0);
-    SetSliderValue(tp->Slider_Text_Position2, 50);
-    SetSliderValue(tp->Slider_Text_Position3, 50);
-    SetSliderValue(tp->Slider_Text_Position4, 50);
+    SetTextValue(tp->TextCtrl_Text, "");
+    SetChoiceValue(tp->Choice_Text_Dir, "none");
+    SetSliderValue(tp->Slider_Text_Speed, 10);
+    SetChoiceValue(tp->Choice_Text_Effect, "normal");
+    SetChoiceValue(tp->Choice_Text_Count, "none");
+    SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter, false);
+    SetCheckBoxValue(tp->CheckBox_Text_PixelOffsets, false);
+    SetSliderValue(tp->Slider_Text_XStart, 0);
+    SetSliderValue(tp->Slider_Text_YStart, 0);
+    SetSliderValue(tp->Slider_Text_XEnd, 0);
+    SetSliderValue(tp->Slider_Text_YEnd, 0);
 }
 
 //formatting notes:
 //countdown == seconds: put a non-0 value in text line 1 to count down
 //countdown == any of the "to date" options: put "Sat, 18 Dec 1999 00:48:30 +0100" in the text line
 //countdown = !to date!%fmt: put delimiter + target date + same delimiter + format string with %x markers in it (described down below)
-
-
-#define WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
 
 std::mutex FONT_MAP_LOCK;
 std::map<std::string, wxFontInfo> FONT_MAP;
@@ -176,55 +220,36 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     buffer.textDrawingContext->Clear();
     size_t colorcnt=buffer.GetColorCount();
 
-    for (int pass = 0; pass < 2; ++pass)
-    {
-#ifndef WANT_TEXT_LINES_SYNCED
-        if (!pass) continue; //don't need 2 passes
-#endif // WANT_TEXT_LINES_SYNCED
-        buffer.palette.GetColor(0,c);
+    buffer.palette.GetColor(0,c);
 
-        for (int line = 1;  line <= 4; line++) {
-            wxString lp = wxString::Format("%d", line);
-            wxString text = SettingsMap["TEXTCTRL_Text_Line" + lp];
-            if (text != "") {
-                if (colorcnt >= line) {
-                    buffer.palette.GetColor(line - 1, c);
-                }
-                std::string fontString = SettingsMap["FONTPICKER_Text_Font" + lp];
-                SetFont(buffer.textDrawingContext,fontString,c);
+    wxString text = SettingsMap["TEXTCTRL_Text"];
+    if (text != "") {
+        std::string fontString = SettingsMap["FONTPICKER_Text_Font"];
+        SetFont(buffer.textDrawingContext,fontString,c);
 
-                bool pixelOffsets = false;
-                int startx = 0;
-                int starty = 0;
-                int endx = 0;
-                int endy = 0;
+        bool pixelOffsets = false;
+        int startx = 0;
+        int starty = 0;
+        int endx = 0;
+        int endy = 0;
 
-                if (line == 1) {
-                    starty = wxAtoi(SettingsMap.Get("SLIDER_Text_YStart" + lp, "0"));
-                    startx = wxAtoi(SettingsMap.Get("SLIDER_Text_XStart" + lp, "0"));
-                    endy = wxAtoi(SettingsMap.Get("SLIDER_Text_YEnd" + lp, "0"));
-                    endx = wxAtoi(SettingsMap.Get("SLIDER_Text_XEnd" + lp, "0"));
-                    pixelOffsets = wxAtoi(SettingsMap.Get("CHECKBOX_Text_PixelOffsets" + lp, "0"));
-                } else {
-                    starty = wxAtoi(SettingsMap["SLIDER_Text_Position" + lp]) * 2 - 100;
-                    endy = starty;
-                    startx = starty;
-                    endx = endy;
-                }
+        starty = wxAtoi(SettingsMap.Get("SLIDER_Text_YStart", "0"));
+        startx = wxAtoi(SettingsMap.Get("SLIDER_Text_XStart", "0"));
+        endy = wxAtoi(SettingsMap.Get("SLIDER_Text_YEnd", "0"));
+        endx = wxAtoi(SettingsMap.Get("SLIDER_Text_XEnd", "0"));
+        pixelOffsets = wxAtoi(SettingsMap.Get("CHECKBOX_Text_PixelOffsets", "0"));
 
-                RenderTextLine(buffer,
-                               buffer.textDrawingContext, line - 1,
-                               text,
-                               TextEffectDirectionsIndex(SettingsMap["CHOICE_Text_Dir" + lp]),
-                               wxAtoi(SettingsMap["CHECKBOX_TextToCenter" + lp]),
-                               TextEffectsIndex(SettingsMap["CHOICE_Text_Effect" + lp]),
-                               TextCountDownIndex(SettingsMap["CHOICE_Text_Count" + lp]),
-                               pass,
-                               wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed" + lp, "10")),
-                               startx, starty, endx, endy, pixelOffsets);
-            }
-        }
+        RenderTextLine(buffer,
+                       buffer.textDrawingContext,
+                       text,
+                       TextEffectDirectionsIndex(SettingsMap["CHOICE_Text_Dir"]),
+                       wxAtoi(SettingsMap["CHECKBOX_TextToCenter"]),
+                       TextEffectsIndex(SettingsMap["CHOICE_Text_Effect"]),
+                       TextCountDownIndex(SettingsMap["CHOICE_Text_Count"]),
+                       wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed", "10")),
+                       startx, starty, endx, endy, pixelOffsets);
     }
+
     wxImage * i = buffer.textDrawingContext->FlushAndGetImage();
 
     bool ha = i->HasAlpha();
@@ -461,7 +486,7 @@ class TextRenderCache : public EffectRenderCache {
 public:
     TextRenderCache() {};
     virtual ~TextRenderCache() {};
-    int timer_countdown[4];
+    int timer_countdown;
     wxSize synced_textsize;
 };
 
@@ -476,8 +501,8 @@ TextRenderCache *GetCache(RenderBuffer &buffer, int id) {
 
 
 void TextEffect::RenderTextLine(RenderBuffer &buffer,
-                                TextDrawingContext* dc, int idx, const wxString& Line_orig, int dir,
-                                bool center, int Effect, int Countdown, bool WantRender, int tspeed,
+                                TextDrawingContext* dc, const wxString& Line_orig, int dir,
+                                bool center, int Effect, int Countdown, int tspeed,
                                 int startx, int starty, int endx, int endy,
                                 bool isPixelBased)
 {
@@ -500,9 +525,9 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
             if (state==0)
             {
                 if (!Line.ToLong(&tempLong)) tempLong=0;
-                GetCache(buffer,id)->timer_countdown[idx] = buffer.curPeriod+tempLong*framesPerSec+framesPerSec-1;  // capture 0 period
+                GetCache(buffer,id)->timer_countdown = buffer.curPeriod+tempLong*framesPerSec+framesPerSec-1;  // capture 0 period
             }
-            seconds=(GetCache(buffer,id)->timer_countdown[idx]-buffer.curPeriod)/framesPerSec;
+            seconds=(GetCache(buffer,id)->timer_countdown-buffer.curPeriod)/framesPerSec;
             if(seconds < 0) seconds=0;
             msg=wxString::Format("%i",seconds);
             break;
@@ -591,11 +616,11 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
                     // invalid date/time
                     longsecs = 0;
                 }
-                GetCache(buffer,id)->timer_countdown[idx]=longsecs;
+                GetCache(buffer,id)->timer_countdown=longsecs;
             }
             else
             {
-                longsecs=GetCache(buffer,id)->timer_countdown[idx];
+                longsecs=GetCache(buffer,id)->timer_countdown;
                 ts = wxTimeSpan(0, 0, longsecs, 0); //reconstruct wxTimeSpan so we can call .Format method -DJ
             }
             if (!longsecs)
@@ -693,23 +718,6 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
             break;
     }
     //msg.Printf(wxS("w=%d, h=%d"),textsize.GetWidth(),textsize.GetHeight());
-
-#ifdef WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
-    if (!WantRender)   //for synced text lines, collect info first and then render after info is available
-    {
-        wxSize &synced_textsize = GetCache(buffer,id)->synced_textsize;
-        if (!idx) synced_textsize = textsize;
-        else   //keep max value
-        {
-            if (textsize.x > synced_textsize.x) synced_textsize.x = textsize.x;
-            if (textsize.y > synced_textsize.y) synced_textsize.y = textsize.y;
-        }
-        //        debug(1, "text[%d]: pass %d, txtsiz %d/%d, synced %d/%d", idx, WantRender, textsize.x, textsize.y, synced_textsize.x, synced_textsize.y);
-        return;
-    }
-    else textsize.x = GetCache(buffer,id)->synced_textsize.x;   //use composite size
-    //    debug(1, "text[%d]: pass %d, synced txtsiz %d/%d", idx, WantRender, textsize.x, textsize.y);
-#endif // WANT_TEXT_LINES_SYNCED
 
     int txtwidth=textsize.GetWidth();
     int totwidth=buffer.BufferWi+txtwidth;

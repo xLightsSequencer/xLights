@@ -18,13 +18,16 @@ class TextEffect : public RenderableEffect
 #endif
         virtual bool CanBeRandom() override {return false;}
 
+        virtual bool needToAdjustSettings(const std::string &version) override;
+        virtual void adjustSettings(const std::string &version, Effect *effect) override;
+
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
-    
+
         void RenderTextLine(RenderBuffer &buffer,
-                            TextDrawingContext* dc, int idx, const wxString& Line_orig, int dir,
-                            bool center, int Effect, int Countdown, bool WantRender, int tspeed,
+                            TextDrawingContext* dc, const wxString& Line_orig, int dir,
+                            bool center, int Effect, int Countdown, int tspeed,
                             int startx, int starty, int endx, int endy,
                             bool isPixelBased);
 

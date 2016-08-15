@@ -119,7 +119,7 @@ EffectsGrid::~EffectsGrid()
 	delete mSelectionColor;
 }
 
-static EffectLayer* FindOpenLayer(Element* elem, int startTimeMS, int endTimeMS)
+EffectLayer* EffectsGrid::FindOpenLayer(Element* elem, int startTimeMS, int endTimeMS)
 {
     EffectLayer* layer;
 
@@ -1616,7 +1616,7 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
                                                                                 ef->GetStartTimeMS(), ef->GetEndTimeMS(),
                                                                                 ef->GetSelected(), ef->GetProtected() );
                     el->DeleteEffect(ef->GetID());
-                    EffectLayer* new_el = FindOpenLayer(element, align_start, align_end);
+                    EffectLayer* new_el = EffectsGrid::FindOpenLayer(element, align_start, align_end);
                     element->SetCollapsed(false);
                     Effect* new_ef = new_el->AddEffect(0,
                                                        name,

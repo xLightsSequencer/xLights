@@ -95,6 +95,8 @@ public:
 
     void ClearSelection();
 
+    static EffectLayer* FindOpenLayer(Element* elem, int startTimeMS, int endTimeMS);
+
 protected:
     virtual void InitializeGLCanvas();
 

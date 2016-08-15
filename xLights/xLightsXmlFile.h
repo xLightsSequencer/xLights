@@ -10,7 +10,7 @@
 
 class SequenceElements;  // forward declaration needed due to circular dependency
 class xLightsFrame;
-
+class RenderableEffect;
 
 WX_DECLARE_STRING_HASH_MAP( int, StringIntMap );
 
@@ -180,6 +180,8 @@ class xLightsXmlFile : public wxFileName
         void UpdateNextId( const wxString& value );
 
         void FixVersionDifferences();
+        void FixOldTextEffects(Effect* eff, Element* elem, const std::string& ver, std::vector<RenderableEffect*> effects);
+        void UncheckFirstColor(std::string& palette);
 
         void SetSequenceDuration(const wxString& length, wxXmlNode* node);
 

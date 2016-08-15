@@ -14,6 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp)   Add some null ptr checks and logs to try and prevent/diagnose various crashes
    -- enh (dkulp)   More work on enabling sandboxing on OSX
    -- enh (dkulp)   Update ffmpeg to new version that doesn't make calls to private API's
+   -- enh (gil)     Text effect is now 1 line only.  Old effects have been split with new layers added when necessary.
    -- bug (gil)     Fix window frame rendering when top and bottom sizes don't match.  Fixes #599.
    -- bug (gil)     Fix arch selection when rotated upside down. Fixes #645.
    -- enh (gil)     Support mask settings for Text effect imported from SuperStar.
