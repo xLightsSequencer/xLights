@@ -984,7 +984,7 @@ private:
     void OnMenuMRU(wxCommandEvent& event);
     void SetDir(const wxString& dirname);
     void PromptForShowDirectory();
-    void UpdateNetworkList();
+    void UpdateNetworkList(bool updateModels);
     long GetNetworkSelection();
     void MoveNetworkRow(int fromRow, int toRow);
     void OnGridNetworkDragQuit(wxMouseEvent& event);

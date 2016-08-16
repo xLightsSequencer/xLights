@@ -2905,8 +2905,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     std::string eff = "normal";
                     if (fontName.Contains("Vertical")) {
                         eff = "vert text down";
-                        lorWidth = fontSize;
-                        lorHeight = text.size() * fontCellWidth;
+                        lorWidth = fontCellWidth;
+                        lorHeight = text.size() * fontSize;
                     } else if (rotation == 90) {
                         eff = "rotate down 90";
                         lorWidth = fontSize;
@@ -2931,27 +2931,20 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     yStart = CalcUnBoundedPercentage(yStart, num_rows) - 50;
                     yEnd = CalcUnBoundedPercentage(yEnd, num_rows) - 50;
 
-                    std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",C_CHECKBOX_Palette1=1";
+                    std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",C_CHECKBOX_Palette1=1"
+                        + ",C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0"
+                        + ",C_CHECKBOX_Palette6=0,C_CHECKBOX_Palette7=0,C_CHECKBOX_Palette8=0";
                     std::string settings =
-                        "E_CHECKBOX_TextToCenter1=0,E_TEXTCTRL_Text_Line1=" + text
-                        + ",E_TEXTCTRL_Text_Speed1=26,"
-                        + "E_CHOICE_Text_Count1=none,"
-                        + "E_CHOICE_Text_Dir1=vector,E_CHECKBOX_Text_PixelOffsets1=0,"
-                        + "E_CHOICE_Text_Effect1=" + eff + ","
-                        + "E_FONTPICKER_Text_Font1=" + font + ","
-                        + "E_SLIDER_Text_XStart1=" + wxString::Format("%d", xStart).ToStdString() + ","
-                        + "E_SLIDER_Text_YStart1=" + wxString::Format("%d", yStart).ToStdString() + ","
-                        + "E_SLIDER_Text_XEnd1=" + wxString::Format("%d", xEnd).ToStdString() + ","
-                        + "E_SLIDER_Text_YEnd1=" + wxString::Format("%d", yEnd).ToStdString() + ","
-                        + "E_CHECKBOX_TextToCenter2=0,E_CHECKBOX_TextToCenter3=0,E_CHECKBOX_TextToCenter4=0,"
-                        + "E_CHOICE_Text_Count2=none,E_CHOICE_Text_Count3=none,E_CHOICE_Text_Count4=none,"
-                        + "E_CHOICE_Text_Dir2=left,E_CHOICE_Text_Dir3=left,E_CHOICE_Text_Dir4=left,"
-                        + "E_CHOICE_Text_Effect2=normal,E_CHOICE_Text_Effect3=normal,"
-                        + "E_CHOICE_Text_Effect4=normal,E_FONTPICKER_Text_Font2='.sf ns text' macroman,"
-                        + "E_FONTPICKER_Text_Font3='.sf ns text' macroman,E_FONTPICKER_Text_Font4='.sf ns text' macroman,"
-                        + "E_SLIDER_Text_Position2=50,E_SLIDER_Text_Position3=50,E_SLIDER_Text_Position4=50,"
-                        + "E_TEXTCTRL_Text_Line2=,E_TEXTCTRL_Text_Line3=,E_TEXTCTRL_Text_Line4=,"
-                        + "E_TEXTCTRL_Text_Speed2=10,E_TEXTCTRL_Text_Speed3=10,E_TEXTCTRL_Text_Speed4=10";
+                        "E_CHECKBOX_TextToCenter=0,E_TEXTCTRL_Text=" + text
+                        + ",E_TEXTCTRL_Text_Speed=26,"
+                        + "E_CHOICE_Text_Count=none,"
+                        + "E_CHOICE_Text_Dir=vector,E_CHECKBOX_Text_PixelOffsets=0,"
+                        + "E_CHOICE_Text_Effect=" + eff + ","
+                        + "E_FONTPICKER_Text_Font=" + font + ","
+                        + "E_SLIDER_Text_XStart=" + wxString::Format("%d", xStart).ToStdString() + ","
+                        + "E_SLIDER_Text_YStart=" + wxString::Format("%d", yStart).ToStdString() + ","
+                        + "E_SLIDER_Text_XEnd=" + wxString::Format("%d", xEnd).ToStdString() + ","
+                        + "E_SLIDER_Text_YEnd=" + wxString::Format("%d", yEnd).ToStdString();
                     if( mask == "positiveMask" ) {
                         settings += ",T_CHOICE_LayerMethod=Normal";
                     } else if( mask == "negativeMask" ) {

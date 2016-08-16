@@ -223,7 +223,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
     // load sequence effects
 //~    EffectsPanel1->SetDefaultPalette();
 //~    EffectsPanel2->SetDefaultPalette();
-    UpdateNetworkList();
+    UpdateNetworkList(false);
     LoadEffectsFile();
 
     wxFileName kbf;
@@ -232,6 +232,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
     mainSequencer->keyBindings.Load(kbf);
 
     EnableSequenceControls(true);
+    layoutPanel->RefreshLayout();
 
     Notebook1->ChangeSelection(SETUPTAB);
     SetStatusText("");
@@ -395,7 +396,7 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 	return "Channel does not map to a controller.";
 }
 
-void xLightsFrame::UpdateNetworkList()
+void xLightsFrame::UpdateNetworkList(bool updateModels)
 {
     long newidx,MaxChannels;
     long TotChannels=0;
@@ -464,8 +465,10 @@ void xLightsFrame::UpdateNetworkList()
 	_totalChannels = TotChannels;
 
     // Now notify the layout as the model start numbers may have been impacted
-    AllModels.RecalcStartChannels();
-    layoutPanel->RefreshLayout();
+    if (updateModels) {
+        AllModels.RecalcStartChannels();
+        layoutPanel->RefreshLayout();
+    }
 }
 
 // reset test channel listbox
@@ -621,7 +624,7 @@ void xLightsFrame::MoveNetworkRow(int fromRow, int toRow)
         root->InsertChildAfter(fromNode,toNode);
     }
     NetworkChange();
-    UpdateNetworkList();
+    UpdateNetworkList(true);
 }
 
 void xLightsFrame::OnButtonNetworkChangeClick(wxCommandEvent& event)
@@ -688,7 +691,7 @@ void xLightsFrame::OnButtonNetworkDeleteClick(wxCommandEvent& event)
         }
     }
     NetworkChange();
-    UpdateNetworkList();
+    UpdateNetworkList(true);
     cnt=GridNetwork->GetItemCount();
     if (cnt > 0)
     {
@@ -705,7 +708,7 @@ void xLightsFrame::OnButtonNetworkDeleteAllClick(wxCommandEvent& event)
         root->RemoveChild(e);
     }
     NetworkChange();
-    UpdateNetworkList();
+    UpdateNetworkList(true);
 }
 
 void xLightsFrame::OnButtonNetworkMoveUpClick(wxCommandEvent& event)
@@ -774,7 +777,7 @@ void xLightsFrame::OnGridNetworkItemActivated(wxListEvent& event)
                 if (xout != nullptr) {
                     xout->EnableOutput(i, b == "No");
                 }
-                UpdateNetworkList();
+                UpdateNetworkList(true);
                 return;
             }
         }
@@ -847,7 +850,7 @@ void xLightsFrame::SetupNullOutput(wxXmlNode* e) {
 		e->AddAttribute("MaxChannels", LastChannelStr);
 		e->DeleteAttribute("Description");
 		e->AddAttribute("Description", Description);
-		UpdateNetworkList();
+		UpdateNetworkList(true);
         NetworkChange();
     }
 }
@@ -945,7 +948,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
                         }
                     }
                 }
-                UpdateNetworkList();
+                UpdateNetworkList(true);
                 NetworkChange();
             }
             else
@@ -1015,7 +1018,7 @@ void xLightsFrame::SetupDongle(wxXmlNode* e)
                 e->AddAttribute("MaxChannels",LastChannel);
 				e->DeleteAttribute("Description");
 				e->AddAttribute("Description", Description);
-                UpdateNetworkList();
+                UpdateNetworkList(true);
                 NetworkChange();
                 ok=true;
             }
