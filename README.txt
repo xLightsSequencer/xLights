@@ -35,6 +35,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keithsw) Strip out video export for models that dont make sense or model groups. Fix colour handling for non RGB colour orders
    -- enh (keithsw) Add simple way to add 7 segment labels to model state definition
    -- enh (keithsw) Add a view from rear option on custom model dialog to help you insert pixels correctly into your coro models Fix #646
+   -- bug (keithsw) Fix #u:ch format calc when non e131 controllers are present.
+   -- bug (keithsw) Fix accidentally disabled prompt for missing media file.
+   -- enh (keithsw) Add state and submodel settings to xmodel files.
+   -- bug (keithsw) Fix channel count on models export when channels are not contiguous
+   -- bug (keithsw) Trigger start channel recalculation if setup tab is changed ... this helps if you are using o:c or #u:c formats for start channel
 2016.45  Aug 09, 2016
    -- bug (keithsw) Fix colour curve preset scanning.
    -- bug (dkulp)   Prevent crash at startup if preview background image doesn't exist
