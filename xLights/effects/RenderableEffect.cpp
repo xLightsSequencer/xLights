@@ -471,9 +471,9 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
             if (settings.Get("E_SLIDER_Text_Position1", "") != "") {
                 int pos = wxAtoi(settings.Get("E_SLIDER_Text_Position1", "50")) * 2 - 100;
                 settings.erase("E_SLIDER_Text_Position1");
+                settings["E_SLIDER_Text_XStart1"] = wxString::Format("%d", 0);
                 settings["E_SLIDER_Text_YStart1"] = wxString::Format("%d", pos);
-                settings["E_SLIDER_Text_XStart1"] = wxString::Format("%d", pos);
-                settings["E_SLIDER_Text_XEnd1"] = wxString::Format("%d", pos);
+                settings["E_SLIDER_Text_XEnd1"] = wxString::Format("%d", 0);
                 settings["E_SLIDER_Text_YEnd1"] = wxString::Format("%d", pos);
             }
             break;

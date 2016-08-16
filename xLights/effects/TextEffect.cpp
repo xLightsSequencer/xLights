@@ -46,20 +46,19 @@ bool TextEffect::needToAdjustSettings(const std::string &version) {
     return IsVersionOlder("2016.46", version) || RenderableEffect::needToAdjustSettings(version);
 }
 void TextEffect::adjustSettings(const std::string &version, Effect *effect) {
+    SettingsMap &settings = effect->GetSettings();
+    // this is to prevent recursive adjustments since we are adding
+    // layers and may be called by for loops based on number of layers
+    if ( settings["Converted"] == "1" ) {
+        settings.erase("Converted");
+        return;
+    }
+
     if (RenderableEffect::needToAdjustSettings(version)) {
         RenderableEffect::adjustSettings(version, effect);
     }
 
     if( IsVersionOlder("2016.46", version) ) {
-        SettingsMap &settings = effect->GetSettings();
-
-        // this is to prevent recursive adjustments since we are adding
-        // layers and may be called by for loops based on number of layers
-        if ( settings["Converted"] == "1" ) {
-            settings.erase("Converted");
-            return;
-        }
-
         settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter1"];
         settings["E_CHECKBOX_Text_PixelOffsets"] = settings["E_CHECKBOX_Text_PixelOffsets1"];
         settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count1"];
@@ -96,8 +95,8 @@ void TextEffect::adjustSettings(const std::string &version, Effect *effect) {
             new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed2"];
             int pos = (wxAtoi(settings["E_SLIDER_Text_Position2"]) * 2) - 100;
             wxString strpos = wxString::Format("%d", pos);
-            new_settings["E_SLIDER_Text_XStart"] = strpos;
-            new_settings["E_SLIDER_Text_XEnd"] = strpos;
+            new_settings["E_SLIDER_Text_XStart"] = "0";
+            new_settings["E_SLIDER_Text_XEnd"] = "0";
             new_settings["E_SLIDER_Text_YStart"] = strpos;
             new_settings["E_SLIDER_Text_YEnd"] = strpos;
             SelectTextColor(palette, 2);
@@ -119,8 +118,8 @@ void TextEffect::adjustSettings(const std::string &version, Effect *effect) {
             new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed3"];
             int pos = (wxAtoi(settings["E_SLIDER_Text_Position3"]) * 2) - 100;
             wxString strpos = wxString::Format("%d", pos);
-            new_settings["E_SLIDER_Text_XStart"] = strpos;
-            new_settings["E_SLIDER_Text_XEnd"] = strpos;
+            new_settings["E_SLIDER_Text_XStart"] = "0";
+            new_settings["E_SLIDER_Text_XEnd"] = "0";
             new_settings["E_SLIDER_Text_YStart"] = strpos;
             new_settings["E_SLIDER_Text_YEnd"] = strpos;
             SelectTextColor(palette, 3);
@@ -142,8 +141,8 @@ void TextEffect::adjustSettings(const std::string &version, Effect *effect) {
             new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed4"];
             int pos = (wxAtoi(settings["E_SLIDER_Text_Position4"]) * 2) - 100;
             wxString strpos = wxString::Format("%d", pos);
-            new_settings["E_SLIDER_Text_XStart"] = strpos;
-            new_settings["E_SLIDER_Text_XEnd"] = strpos;
+            new_settings["E_SLIDER_Text_XStart"] = "0";
+            new_settings["E_SLIDER_Text_XEnd"] = "0";
             new_settings["E_SLIDER_Text_YStart"] = strpos;
             new_settings["E_SLIDER_Text_YEnd"] = strpos;
             SelectTextColor(palette, 4);

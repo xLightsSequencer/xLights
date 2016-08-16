@@ -258,66 +258,80 @@ void xLightsFrame::CheckForValidModels()
             }
         }
     }
-    for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
-        if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
-            std::string name = mSequenceElements.GetElement(x)->GetModelName();
-            Model *m = AllModels[name];
-            if (m->GetDisplayAs() == "ModelGroup") {
-                ModelElement * el = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
-                bool hasStrandEffects = false;
-                bool hasNodeEffects = false;
-                for (int l = 0; l < el->GetStrandCount(); l++) {
-                    StrandElement *sl = el->GetStrand(l);
-                    for (int l2 = 0; l2 < sl->GetEffectLayerCount(); l2++) {
-                        if (sl->GetEffectLayer(l2)->GetEffectCount() > 0) {
-                            hasStrandEffects = true;
+    std::vector<Element*> toMap;
+    std::vector<Element*> ignore;
+    do {
+        if (!toMap.empty()) {
+            ImportXLights(mSequenceElements, toMap, wxFileName(), true, true);
+        }
+        toMap.clear();
+        for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
+            if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
+                std::string name = mSequenceElements.GetElement(x)->GetModelName();
+                Model *m = AllModels[name];
+                if (m->GetDisplayAs() == "ModelGroup") {
+                    ModelElement * el = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+                    bool hasStrandEffects = false;
+                    bool hasNodeEffects = false;
+                    for (int l = 0; l < el->GetStrandCount(); l++) {
+                        StrandElement *sl = el->GetStrand(l);
+                        for (int l2 = 0; l2 < sl->GetEffectLayerCount(); l2++) {
+                            if (sl->GetEffectLayer(l2)->GetEffectCount() > 0) {
+                                hasStrandEffects = true;
+                            }
+                        }
+                        for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
+                            if (sl->GetNodeLayer(n)->GetEffectCount()) {
+                                hasNodeEffects = true;
+                            }
                         }
                     }
-                    for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
-                        if (sl->GetNodeLayer(n)->GetEffectCount()) {
-                            hasNodeEffects = true;
+                    for (auto a = ignore.begin(); a != ignore.end(); a++) {
+                        if (el == *a) {
+                            hasNodeEffects = false;
+                            hasStrandEffects = false;
                         }
                     }
-                }
-                if (hasNodeEffects || hasStrandEffects) {
-                    wxArrayString choices;
-                    choices.push_back("Rename the model in the sequence");
-                    choices.push_back("Delete the model in the sequence");
-                    choices.push_back("Map the Strand/Node effects to different models");
-                    choices.push_back("Ignore (Handle Later) - Effects will not render");
+                    if (hasNodeEffects || hasStrandEffects) {
+                        wxArrayString choices;
+                        choices.push_back("Rename the model in the sequence");
+                        choices.push_back("Delete the model in the sequence");
+                        choices.push_back("Map the Strand/Node effects to different models");
+                        choices.push_back("Ignore (Handle Later) - Effects will not render");
 
-                    wxSingleChoiceDialog dlg(this, "Model " + name + " is a Model Group but has Node/Strand effects.\n"
-                                             + "How should we handle this?",
-                                             "Warning", choices);
-                    if (dlg.ShowModal() == wxID_OK) {
-                        switch (dlg.GetSelection()) {
-                            case 0: {
-                                    wxSingleChoiceDialog namedlg(this, "Choose the model to use instead:",
-                                                             "Select Model", ToArrayString(ModelNames));
-                                    if (namedlg.ShowModal() == wxID_OK) {
-                                        std::string newName = namedlg.GetStringSelection().ToStdString();
-                                        mSequenceElements.GetElement(x)->SetName(newName);
-                                        Remove(AllNames, newName);
-                                        Remove(ModelNames, newName);
+                        wxSingleChoiceDialog dlg(this, "Model " + name + " is a Model Group but has Node/Strand effects.\n"
+                                                 + "How should we handle this?",
+                                                 "Warning", choices);
+                        if (dlg.ShowModal() == wxID_OK) {
+                            switch (dlg.GetSelection()) {
+                                case 0: {
+                                        wxSingleChoiceDialog namedlg(this, "Choose the model to use instead:",
+                                                                 "Select Model", ToArrayString(ModelNames));
+                                        if (namedlg.ShowModal() == wxID_OK) {
+                                            std::string newName = namedlg.GetStringSelection().ToStdString();
+                                            mSequenceElements.GetElement(x)->SetName(newName);
+                                            Remove(AllNames, newName);
+                                            Remove(ModelNames, newName);
+                                        }
                                     }
-                                }
-                                break;
-                            case 1:
-                                mSequenceElements.DeleteElement(name);
-                                break;
-                            case 2:
-                                ImportXLights(mSequenceElements, std::vector<Element *> {el}, wxFileName(), true, true);
-                                //relo
-                                x++;
-                                break;
-                            case 3:
-                                break;
+                                    break;
+                                case 1:
+                                    mSequenceElements.DeleteElement(name);
+                                    break;
+                                case 2:
+                                    toMap.push_back(el);
+                                    //relo
+                                    break;
+                                case 3:
+                                    ignore.push_back(el);
+                                    break;
+                            }
                         }
                     }
                 }
             }
         }
-    }
+    } while (!toMap.empty());
 }
 
 void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
