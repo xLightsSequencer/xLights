@@ -149,7 +149,7 @@ void SpinnerModel::GetBufferSize(const std::string &type, const std::string &tra
 
 int SpinnerModel::GetNumStrands() const {
     if (SingleChannel) {
-        return 1;
+        return parm1;
     }
     return parm1*parm3;
 }
