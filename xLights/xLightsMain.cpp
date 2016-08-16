@@ -3325,7 +3325,7 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
             model->GetNodeCount() / model->NodesPerString(),
             model->GetNodeCount(),
             model->GetChanCountPerNode(),
-            model->GetChanCount(),
+            model->GetActChanCount(),
             stch,
             ch,
             ch+model->GetChanCount()-1,
