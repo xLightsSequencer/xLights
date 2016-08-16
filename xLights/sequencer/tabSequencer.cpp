@@ -342,9 +342,9 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
     {
         int musicLength = 0;
 		mediaFilename = wxEmptyString;
-		if (xml_file.GetMedia() != nullptr)
+		if (xml_file.GetMedia() == nullptr)
 		{
-			mediaFilename = xml_file.GetMedia()->FileName();
+			mediaFilename = xml_file.GetMediaFile();
             ObtainAccessToURL(mediaFilename.ToStdString());
 			if ((mediaFilename == wxEmptyString) || !wxFileExists(mediaFilename) || !wxIsReadable(mediaFilename))
 			{
@@ -352,20 +352,26 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 				setting_dlg.Fit();
 				int ret_val = setting_dlg.ShowModal();
 
+                mediaFilename = xml_file.GetMediaFile();
+
+                if (xml_file.GetMedia() != nullptr)
+                {
+                    mediaFilename = xml_file.GetMedia()->FileName();
+                    ObtainAccessToURL(mediaFilename.ToStdString());
+                    if (xml_file.GetMedia() != nullptr && xml_file.GetMedia()->GetFrameInterval() < 0)
+                    {
+                        xml_file.GetMedia()->SetFrameInterval(xml_file.GetSequenceTimingAsInt());
+                    }
+                    SetAudioControls();
+                }
+
                 if (ret_val == NEEDS_RENDER)
                 {
                     RenderAll();
                 }
-
-				mediaFilename = xml_file.GetMedia()->FileName();
-                ObtainAccessToURL(mediaFilename.ToStdString());
-				if (xml_file.GetMedia()->GetFrameInterval() < 0)
-				{
-					xml_file.GetMedia()->SetFrameInterval(xml_file.GetSequenceTimingAsInt());
-				}
-				SetAudioControls();
-			}
+            }
 		}
+ 
         if( mediaFilename != wxEmptyString )
         {
 			wxString error;
@@ -374,7 +380,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
             {
                 log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("Media File Missing or Corrupted %s. Details: %s", (const char*) mediaFilename.c_str(), (const char *)error.c_str());
-                wxMessageBox(wxString::Format("Media File Missing or Corrupted.\n\nDetails: %s", error));
+                wxMessageBox(wxString::Format("Media File Missing or Corrupted %s.\n\nDetails: %s", mediaFilename, error));
             }
         }
         else if (xml_file.GetSequenceType() == "Media")
@@ -383,6 +389,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
             logger_base.warn("Media File must be specified");
             wxMessageBox("Media File must be specified");
         }
+
         if (mMediaLengthMS == 0) {
             mMediaLengthMS = musicLength;
         }
