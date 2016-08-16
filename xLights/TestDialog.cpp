@@ -1200,14 +1200,13 @@ std::list<std::string> TestDialog::GetModelsOnChannels(int start, int end)
 
 void TestDialog::SetTreeTooltip(wxTreeListItem& item)
 {
-    // Don't set tool tips on the mac as the GetView() workaround does not work
-#ifdef __WXOSX__
-    return;
-#endif
-
     if (item == _controllers || item == _modelGroups || item == _models)
     {
+#ifdef __WXOSX__
+        TreeListCtrl_Channels->UnsetToolTip();
+#else
         TreeListCtrl_Channels->GetView()->UnsetToolTip();
+#endif
     }
     else
     {
@@ -1243,16 +1242,28 @@ void TestDialog::SetTreeTooltip(wxTreeListItem& item)
                     tt = "[" + std::string(wxString::Format(wxT("%i"), start)) + "-" + std::string(wxString::Format(wxT("%i"), end)) + "] maps to\n" + tt;
                 }
                 // This does not work ... there is a bug in wxWidgets which prevents tooltip display.
+#ifdef __WXOSX__
+                TreeListCtrl_Channels->SetToolTip(tt);
+#else
                 TreeListCtrl_Channels->GetView()->SetToolTip(tt);
+#endif
             }
             else
             {
+#ifdef __WXOSX__
+                TreeListCtrl_Channels->UnsetToolTip();
+#else
                 TreeListCtrl_Channels->GetView()->UnsetToolTip();
+#endif
             }
         }
         else
         {
+#ifdef __WXOSX__
+            TreeListCtrl_Channels->UnsetToolTip();
+#else
             TreeListCtrl_Channels->GetView()->UnsetToolTip();
+#endif
         }
     }
 }
