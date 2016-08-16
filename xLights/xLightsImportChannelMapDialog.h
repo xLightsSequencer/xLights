@@ -252,7 +252,7 @@ private:
 class xLightsImportChannelMapDialog: public wxDialog
 {
     xLightsImportModelNode* TreeContainsModel(std::string model, std::string strand = "", std::string node = "");
-    wxDataViewItem* FindItem(std::string model, std::string strand = "", std::string node = "");
+    wxDataViewItem FindItem(std::string model, std::string strand = "", std::string node = "");
     void OnSelectionChanged(wxDataViewEvent& event);
     void OnValueChanged(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);

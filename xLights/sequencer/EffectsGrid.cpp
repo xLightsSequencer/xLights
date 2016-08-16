@@ -2822,7 +2822,8 @@ void EffectsGrid::DrawEffects()
                 std::vector<xlColor> colors;
                 std::vector<double> xs;
                 PixelBufferClass ncls(xlights, true);
-                ncls.InitNodeBuffer(*xlights->GetModel(ri->element->GetModelName()), ri->strandIndex, ri->nodeIndex, seqData->FrameTime());
+                StrandElement *se = dynamic_cast<StrandElement*>(ri->element);
+                ncls.InitNodeBuffer(*xlights->GetModel(ri->element->GetModelName()), se->GetStrand(), ri->nodeIndex, seqData->FrameTime());
                 xlColor lastColor;
                 for (size_t f = 0; f < seqData->NumFrames(); f++) {
                     ncls.SetNodeChannelValues(0, (*seqData)[f][ncls.NodeStartChannel(0)]);

@@ -400,7 +400,7 @@ wxString xLightsImportChannelMapDialog::FindTab(wxString &line) {
     return line;
 }
 
-wxDataViewItem* xLightsImportChannelMapDialog::FindItem(std::string model, std::string strand, std::string node)
+wxDataViewItem xLightsImportChannelMapDialog::FindItem(std::string model, std::string strand, std::string node)
 {
     wxDataViewItemArray models;
     dataModel->GetChildren(wxDataViewItem(0), models);
@@ -411,7 +411,7 @@ wxDataViewItem* xLightsImportChannelMapDialog::FindItem(std::string model, std::
         {
             if (strand == "")
             {
-                return &models[i];
+                return models[i];
             }
             else
             {
@@ -424,7 +424,7 @@ wxDataViewItem* xLightsImportChannelMapDialog::FindItem(std::string model, std::
                     {
                         if (node == "")
                         {
-                            return &strands[j];
+                            return strands[j];
                         }
                         else
                         {
@@ -435,7 +435,7 @@ wxDataViewItem* xLightsImportChannelMapDialog::FindItem(std::string model, std::
                                 xLightsImportModelNode* anode = (xLightsImportModelNode*)nodes[k].GetID();
                                 if (anode->_node == node)
                                 {
-                                    return &nodes[j];
+                                    return nodes[j];
                                 }
                             }
                         }
@@ -445,7 +445,7 @@ wxDataViewItem* xLightsImportChannelMapDialog::FindItem(std::string model, std::
         }
     }
 
-    return NULL;
+    return wxDataViewItem(nullptr);
 }
 
 xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::string model, std::string strand, std::string node)
@@ -544,6 +544,12 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                 mapping = FindTab(line);
             }
             Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
+            if (modelEl == nullptr && xlights->GetModel(model.ToStdString()) != nullptr) {
+                mSequenceElements->AddMissingModelsToSequence(model.ToStdString(), false);
+                ModelElement *mel = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(model.ToStdString()));
+                mel->Init(*xlights->GetModel(model.ToStdString()));
+                modelEl = mel;
+            }
             //if (modelEl == nullptr) {
             //    modelEl = mSequenceElements->AddElement(model.ToStdString(), "model", false, false, false, false);
             //    modelEl->AddEffectLayer();
@@ -566,21 +572,21 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                 {
                     if (mni != NULL)
                     {
-                        wxDataViewItem* item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
+                        wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
                         mni->_mapping = mapping;
-                        dataModel->ValueChanged(*item, 1);
+                        dataModel->ValueChanged(item, 1);
                     }
                     else if (msi != NULL)
                     {
-                        wxDataViewItem* item = FindItem(model.ToStdString(), strand.ToStdString());
+                        wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString());
                         msi->_mapping = mapping;
-                        dataModel->ValueChanged(*item, 1);
+                        dataModel->ValueChanged(item, 1);
                     }
                     else
                     {
-                        wxDataViewItem* item = FindItem(model.ToStdString());
+                        wxDataViewItem item = FindItem(model.ToStdString());
                         mi->_mapping = mapping;
-                        dataModel->ValueChanged(*item, 1);
+                        dataModel->ValueChanged(item, 1);
                     }
                 }
             }
