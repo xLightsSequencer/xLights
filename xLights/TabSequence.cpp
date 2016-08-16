@@ -544,6 +544,8 @@ static std::string chooseNewName(xLightsFrame *parent, std::vector<std::string> 
 
 void xLightsFrame::UpdateModelsList()
 {
+    if (ModelsNode == nullptr) return; // this happens when xlights is first loaded
+
     playModel = nullptr;
     PreviewModels.clear();
     layoutPanel->GetMainPreview()->GetModels().clear();

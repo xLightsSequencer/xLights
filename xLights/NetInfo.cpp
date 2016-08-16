@@ -88,8 +88,8 @@ int NetInfoClass::CalcUniverseChannel(size_t Universe, int Ch) const
         AbsChannel += NetUniverseChannel[i];
     }
 
-    // return 1 if not found
-    return 1;
+    // return -1 if not found
+    return -1;
 }
 
 int NetInfoClass::CalcUniverseChannel(wxString ip, size_t Universe, int Ch) const

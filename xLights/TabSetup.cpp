@@ -11,13 +11,11 @@
 #include "xLightsMain.h"
 #include <wx/msgdlg.h>
 #include <wx/config.h>
-#include <wx/dir.h>
-#include <wx/textdlg.h>
 #include <wx/numdlg.h>
 #include <wx/persist.h>
-#include <wx/persist/toplevel.h>
-#include <wx/valnum.h>
 #include <wx/artprov.h>
+
+#include "LayoutPanel.h"
 
 // dialogs
 #include "SerialPortWithRate.h"
@@ -457,9 +455,13 @@ void xLightsFrame::UpdateNetworkList()
 			GridNetwork->SetColumnWidth(6, wxLIST_AUTOSIZE);
 		}
     }
-    //GridNetwork->SetColumnWidth(0,wxLIST_AUTOSIZE);
+
     GridNetwork->SetColumnWidth(1,NetCnt > 0 ? wxLIST_AUTOSIZE : 100);
 	_totalChannels = TotChannels;
+
+    // Now notify the layout as the model start numbers may have been impacted
+    AllModels.RecalcStartChannels();
+    layoutPanel->RefreshLayout();
 }
 
 // reset test channel listbox
