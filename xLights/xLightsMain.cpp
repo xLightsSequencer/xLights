@@ -1251,7 +1251,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
         //}
         //FileDialogConvert->SetDirectory(ConvertDir);
     }
-    logger_base.debug("Show directory %s.", dir.ToStdString().c_str());
+    logger_base.debug("Show directory %s.", (const char *)dir.c_str());
 
     if (!xLightsApp::mediaDir.IsNull())
     {
@@ -1263,7 +1263,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     }
     ObtainAccessToURL(mediaDirectory.ToStdString());
     
-    logger_base.debug("Media directory %s.", mediaDirectory.ToStdString().c_str());
+    logger_base.debug("Media directory %s.", (const char *)mediaDirectory.c_str());
     MediaDirectoryLabel->SetLabel(mediaDirectory);
 
     wxString tbData = config->Read("ToolbarLocations");
@@ -1463,8 +1463,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     if (!xLightsApp::sequenceFile.IsNull())
     {
-        logger_base.debug("Opening sequence: %s.", xLightsApp::sequenceFile.ToStdString().c_str());
-        OpenSequence(xLightsApp::sequenceFile, NULL);
+        logger_base.debug("Opening sequence: %s.", (const char *)xLightsApp::sequenceFile.c_str());
+        OpenSequence(xLightsApp::sequenceFile, nullptr);
     }
 
 	SetAudioControls();

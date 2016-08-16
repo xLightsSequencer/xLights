@@ -640,6 +640,8 @@
 		<Unit filename="VideoReader.h" />
 		<Unit filename="ViewsDialog.cpp" />
 		<Unit filename="ViewsDialog.h" />
+		<Unit filename="WiringDialog.cpp" />
+		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
 		<Unit filename="djdebug.cpp" />
@@ -1067,6 +1069,7 @@
 		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/WavePanel.wxs" />
+		<Unit filename="wxsmith/WiringDialog.wxs" />
 		<Unit filename="wxsmith/xLightsImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/xLightsframe.wxs" />
 		<Unit filename="wxsmith/xlColorPickerFields.wxs" />
@@ -1210,6 +1213,7 @@
 					<wxDialog wxs="wxsmith/NoteImportDialog.wxs" src="NoteImportDialog.cpp" hdr="NoteImportDialog.h" fwddecl="0" i18n="1" name="NoteImportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SubModelsDialog.wxs" src="SubModelsDialog.cpp" hdr="SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SevenSegmentDialog.wxs" src="SevenSegmentDialog.cpp" hdr="SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/WiringDialog.wxs" src="WiringDialog.cpp" hdr="WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

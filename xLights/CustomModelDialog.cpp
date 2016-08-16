@@ -23,11 +23,13 @@
 //*)
 
 #include "models/CustomModel.h"
+#include "WiringDialog.h"
 
 //(*IdInit(CustomModelDialog)
 const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
 const long CustomModelDialog::ID_SPINCTRL2 = wxNewId();
 const long CustomModelDialog::ID_CHECKBOX1 = wxNewId();
+const long CustomModelDialog::ID_BUTTON3 = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_CUT = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_COPY = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_PASTE = wxNewId();
@@ -69,6 +71,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText3;
 	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer8;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxStaticBoxSizer* StaticBoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
@@ -94,10 +97,14 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	HeightSpin->SetValue(_T("10"));
 	FlexGridSizer2->Add(HeightSpin, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
 	CheckBox_RearView = new wxCheckBox(this, ID_CHECKBOX1, _("Rear View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_RearView->SetValue(false);
 	CheckBox_RearView->SetToolTip(_("Display the pixel order view from behind of your model."));
-	Sizer2->Add(CheckBox_RearView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
+	FlexGridSizer8->Add(CheckBox_RearView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonWiring = new wxButton(this, ID_BUTTON3, _("Wiring View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	FlexGridSizer8->Add(ButtonWiring, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Sizer2->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 7, 0, 0);
 	BitmapButtonCustomCut = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_CUT, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_CUT")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_CUT"));
 	FlexGridSizer5->Add(BitmapButtonCustomCut, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -171,6 +178,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnWidthSpinChange);
 	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnHeightSpinChange);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnCheckBox_RearViewClick);
+	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButtonWiringClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCutClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCopyClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomPasteClick);
@@ -755,4 +763,10 @@ void CustomModelDialog::OnButtonCancelClick(wxCommandEvent& event)
 void CustomModelDialog::OnButtonOkClick(wxCommandEvent& event)
 {
     EndDialog(wxID_OK);
+}
+
+void CustomModelDialog::OnButtonWiringClick(wxCommandEvent& event)
+{
+    WiringDialog dlg(this, GridCustom, CheckBox_RearView->IsChecked());
+    dlg.ShowModal();
 }

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="WiringDialog">
+		<title>Custom Model Wiring</title>
+		<size>500,500</size>
+		<minsize>500,500</minsize>
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX</style>
+		<handler function="OnResize" entry="EVT_SIZE" />
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxStaticBitmap" name="ID_STATICBITMAP1" variable="StaticBitmap_Wiring" member="yes">
+					<size>500,500</size>
+				</object>
+				<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+				<border>5</border>
+				<minsize>500,500</minsize>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

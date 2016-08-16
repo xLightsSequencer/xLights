@@ -40,6 +40,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keithsw) Add state and submodel settings to xmodel files.
    -- bug (keithsw) Fix channel count on models export when channels are not contiguous
    -- bug (keithsw) Trigger start channel recalculation if setup tab is changed ... this helps if you are using o:c or #u:c formats for start channel
+   -- enh (keithsw) Add model wiring dialog for custom models ... shows you a reverse view of the model with the wiring.
 2016.45  Aug 09, 2016
    -- bug (keithsw) Fix colour curve preset scanning.
    -- bug (dkulp)   Prevent crash at startup if preview background image doesn't exist

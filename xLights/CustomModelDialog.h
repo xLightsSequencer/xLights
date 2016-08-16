@@ -53,6 +53,7 @@ class CustomModelDialog: public wxDialog
 
 		//(*Declarations(CustomModelDialog)
 		wxCheckBox* CheckBoxAutoNumber;
+		wxButton* ButtonWiring;
 		wxCheckBox* CheckBoxAutoIncrement;
 		wxBitmapButton* BitmapButtonCustomBkgrd;
 		wxSpinCtrl* SpinCtrlNextChannel;
@@ -84,6 +85,7 @@ class CustomModelDialog: public wxDialog
 		static const long ID_SPINCTRL1;
 		static const long ID_SPINCTRL2;
 		static const long ID_CHECKBOX1;
+		static const long ID_BUTTON3;
 		static const long ID_BITMAPBUTTON_CUSTOM_CUT;
 		static const long ID_BITMAPBUTTON_CUSTOM_COPY;
 		static const long ID_BITMAPBUTTON_CUSTOM_PASTE;
@@ -130,6 +132,7 @@ class CustomModelDialog: public wxDialog
 		void OnCheckBox_RearViewClick(wxCommandEvent& event);
 		void OnButtonCancelClick(wxCommandEvent& event);
 		void OnButtonOkClick(wxCommandEvent& event);
+		void OnButtonWiringClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

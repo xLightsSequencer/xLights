@@ -400,6 +400,7 @@
     <ClCompile Include="VAMPPluginDialog.cpp" />
     <ClCompile Include="VideoReader.cpp" />
     <ClCompile Include="ViewsDialog.cpp" />
+    <ClCompile Include="WiringDialog.cpp" />
     <ClCompile Include="wxCheckedListCtrl.cpp" />
     <ClCompile Include="xlColorCanvas.cpp" />
     <ClCompile Include="xlColorPicker.cpp" />
@@ -656,6 +657,7 @@
     <ClInclude Include="VideoReader.h" />
     <ClInclude Include="ViewsDialog.h" />
     <ClInclude Include="wininet.h" />
+    <ClInclude Include="WiringDialog.h" />
     <ClInclude Include="wxCheckedListCtrl.h" />
     <ClInclude Include="xlColorCanvas.h" />
     <ClInclude Include="xlColorPicker.h" />
