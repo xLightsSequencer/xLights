@@ -385,7 +385,7 @@ public:
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
     static wxString xlightsFilename; //expose current path name -DJ
     static xLightsXmlFile* CurrentSeqXmlFile; // global object for currently opened XML file
-    wxString GetShowDirectory() { return showDirectory; }
+    const wxString &GetShowDirectory() const { return showDirectory; }
     NetInfoClass& GetNetInfo() { return NetInfo; }
     void ConversionInit();
     void ConversionError(const wxString& msg);

@@ -370,7 +370,10 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
                     RenderAll();
                 }
             }
-		}
+        } else {
+            mediaFilename = xml_file.GetMediaFile();
+            ObtainAccessToURL(mediaFilename.ToStdString());
+        }
  
         if( mediaFilename != wxEmptyString )
         {

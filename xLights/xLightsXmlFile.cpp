@@ -214,7 +214,10 @@ void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filen
 	}
 
     ObtainAccessToURL(filename.ToStdString());
-	audio = new AudioManager(std::string(filename.c_str()), this, 4096, 32768);
+    if ((filename != wxEmptyString) && wxFileExists(filename) && wxIsReadable(filename))
+    {
+        audio = new AudioManager(std::string(filename.c_str()), this, 4096, 32768);
+    }
 
 	if( overwrite_tags )
     {
