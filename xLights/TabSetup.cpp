@@ -438,6 +438,10 @@ void xLightsFrame::UpdateNetworkList()
                     int u = wxAtoi(e->GetAttribute("BaudRate", "1"));
                     NetInfo.AddUniverseNetwork(ip, u, MaxChannels);
                 }
+                else
+                {
+                    NetInfo.AddUniverseNetwork("", -1, MaxChannels);
+                }
             }
             GridNetwork->SetItem(newidx,3,MaxChannelsStr);
 
