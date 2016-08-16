@@ -76,6 +76,9 @@ public:
     std::map<std::string, std::map<std::string, std::string> > stateInfo;
     void AddFace(wxXmlNode* n);
     void AddState(wxXmlNode* n);
+    void AddSubmodel(wxXmlNode* n);
+
+    wxString SerialiseSubmodel();
 
     virtual const std::vector<std::string> &GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
     virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const;

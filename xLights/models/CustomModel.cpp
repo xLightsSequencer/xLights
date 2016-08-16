@@ -336,6 +336,10 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
                 {
                     AddState(n);
                 }
+                else if (n->GetName() == "subModel")
+                {
+                    AddSubmodel(n);
+                }
             }
 
             xlights->MarkEffectsFileDirty();
@@ -396,6 +400,11 @@ void CustomModel::ExportXlightsModel()
     if (state != "")
     {
         f.Write(state);
+    }
+    wxString submodel = SerialiseSubmodel();
+    if (submodel != "")
+    {
+        f.Write(submodel);
     }
     f.Write("</custommodel>");
     f.Close();

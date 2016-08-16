@@ -701,6 +701,18 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             }
             SetProperty("name", newname, true);
 
+            for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
+            {
+                if (n->GetName() == "stateInfo")
+                {
+                    AddState(n);
+                }
+                else if (n->GetName() == "subModel")
+                {
+                    AddSubmodel(n);
+                }
+            }
+
             int num_points = wxAtoi(pts);
             ModelXml->DeleteAttribute("NumPoints");
             ModelXml->AddAttribute("NumPoints", pts);
@@ -863,6 +875,16 @@ void PolyLineModel::ExportXlightsModel()
     f.Write(wxString::Format("cPointData=\"%s\" ", cpoint_data));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(" >\n");
+    wxString state = SerialiseState();
+    if (state != "")
+    {
+        f.Write(state);
+    }
+    wxString submodel = SerialiseSubmodel();
+    if (submodel != "")
+    {
+        f.Write(submodel);
+    }
     f.Write("</polylinemodel>");
     f.Close();
 }

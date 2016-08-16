@@ -22,6 +22,7 @@
 #include "../SubModelsDialog.h"
 
 #include "ModelScreenLocation.h"
+#include <wx/sstream.h>
 
 
 const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Preview", "Single Line"};
@@ -713,6 +714,18 @@ void Model::AddState(wxXmlNode* n)
 {
     ParseStateInfo(n, stateInfo);
     Model::WriteStateInfo(ModelXml, stateInfo);
+}
+
+void Model::AddSubmodel(wxXmlNode* n)
+{
+    ParseSubModel(n);
+    
+    // this may break if the submodel format changes and the user loads an old format ... if that happens this needs to go through a upgrade routine
+    wxXmlNode *f = new wxXmlNode(ModelXml, wxXML_ELEMENT_NODE, "subModel");
+    for (auto a = n->GetAttributes(); a!= nullptr; a = a->GetNext())
+    {
+        f->AddAttribute(a->GetName(), a->GetValue());
+    }
 }
 
 wxString Model::SerialiseFace()
@@ -2569,3 +2582,26 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
     }
     return model;
 }
+
+wxString Model::SerialiseSubmodel()
+{
+    wxString res = "";
+
+    wxXmlNode * root = GetModelXml();
+    wxXmlNode * child = root->GetChildren();
+    while (child != nullptr) {
+        if (child->GetName() == "subModel") {
+            wxXmlDocument new_doc;
+            new_doc.SetRoot(new wxXmlNode(*child));
+            wxStringOutputStream stream;
+            new_doc.Save(stream);
+            wxString s = stream.GetString();
+            s = s.SubString(s.Find("\n")+1, s.Length()); // skip over xml format header
+            res += s;
+        }
+        child = child->GetNext();
+    }
+
+    return res;
+}
+
