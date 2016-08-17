@@ -44,8 +44,7 @@ void EffectAssist::ForceRefresh()
 {
     if( mAssistPanel != nullptr )
     {
-        mAssistPanel->Refresh();
-        mAssistPanel->Update();
+        mAssistPanel->RefreshEffect();
     }
 }
 AssistPanel *EffectAssist::GetDefaultAssistPanel() {

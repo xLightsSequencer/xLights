@@ -10,6 +10,7 @@
 #include "../../xlGridCanvas.h"
 
 class xLightsFrame;
+class Model;
 
 class AssistPanel: public wxPanel
 {
@@ -22,6 +23,7 @@ class AssistPanel: public wxPanel
         wxWindow* GetCanvasParent() { return ScrolledWindowAssist; }
         void SetGridCanvas(xlGridCanvas* canvas);
         void SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent);
+        void RefreshEffect();
         void AddPanel(wxPanel* panel);
 
 		//(*Declarations(AssistPanel)
@@ -34,6 +36,7 @@ class AssistPanel: public wxPanel
         xlGridCanvas* mGridCanvas;
         wxPanel* mPanel;
         Effect* mEffect;
+        Model *mModel;
 
 		//(*Identifiers(AssistPanel)
 		static const long ID_SCROLLEDWINDOW_Assist;

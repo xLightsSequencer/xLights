@@ -16,7 +16,7 @@ BEGIN_EVENT_TABLE(AssistPanel,wxPanel)
 END_EVENT_TABLE()
 
 AssistPanel::AssistPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
-: mGridCanvas(nullptr)
+: mGridCanvas(nullptr), mModel(nullptr), mEffect(nullptr)
 {
 	//(*Initialize(AssistPanel)
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("id"));
@@ -85,6 +85,24 @@ void AssistPanel::AddPanel(wxPanel* panel)
     FlexGridSizer2->SetSizeHints(ScrolledWindowAssist);
     SetHandlers(this);
 }
+void AssistPanel::RefreshEffect() {
+    if( mGridCanvas != nullptr && mModel != nullptr && mEffect != nullptr )
+    {
+        mGridCanvas->SetModel(mModel);
+        
+        int bw, bh;
+        mModel->GetBufferSize(mEffect->GetSettings().Get("B_CHOICE_BufferStyle", "Default"),
+                              mEffect->GetSettings().Get("B_CHOICE_BufferTransform", "None"),
+                              bw, bh);
+        
+        wxSize sz = GetSize();
+        mGridCanvas->SetNumColumns(bw);
+        mGridCanvas->SetNumRows(bh);
+        mGridCanvas->SetEffect(mEffect);
+        mGridCanvas->AdjustSize(sz);
+        mGridCanvas->Refresh();
+    }
+}
 
 void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
 {
@@ -102,27 +120,18 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
             logger_base.error("No element found for effect %s", mEffect->GetEffectName().c_str());
         }
         std::string model_name = elem->GetModelName();
-        Model *cls = xlights_parent->GetModel(model_name);
-        if (cls != nullptr && dynamic_cast<SubModelElement*>(elem) != nullptr) {
-            Model *scls = cls->GetSubModel(dynamic_cast<SubModelElement*>(elem)->GetName());
+        mModel = xlights_parent->GetModel(model_name);
+        if (mModel != nullptr && dynamic_cast<SubModelElement*>(elem) != nullptr) {
+            Model *scls = mModel->GetSubModel(dynamic_cast<SubModelElement*>(elem)->GetName());
             if (scls != nullptr) {
-                cls = scls;
+                mModel = scls;
             }
         }
-        if (cls == nullptr) {
+        if (mModel == nullptr) {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.error("No model found for effect %s for model %s", mEffect->GetEffectName().c_str(), model_name.c_str());
         }
-        mGridCanvas->SetModel(cls);
-        
-        int bw, bh;
-        cls->GetBufferSize(mEffect->GetSettings().Get("B_CHOICE_BufferStyle", "Default"),
-                           mEffect->GetSettings().Get("B_CHOICE_BufferTransform", "None"),
-                           bw, bh);
-        
-        mGridCanvas->SetNumColumns(bw);
-        mGridCanvas->SetNumRows(bh);
-        mGridCanvas->SetEffect(mEffect);
+        RefreshEffect();
     }
 }
 
