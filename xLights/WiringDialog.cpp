@@ -44,7 +44,7 @@ WiringDialog::WiringDialog(wxWindow* parent, wxGrid* grid, bool reverse, wxWindo
 
     wxScreenDC sdc;
     wxSize s = sdc.GetSize();
-    bmp.Create(s);
+    bmp.CreateScaled(s.GetWidth(), s.GetHeight(), wxBITMAP_SCREEN_DEPTH, GetContentScaleFactor());
 
     std::map<int, std::list<wxPoint>> points = ExtractPoints(grid, reverse);
 
@@ -78,9 +78,9 @@ void WiringDialog::RenderNodes(std::map<int, std::list<wxPoint>>& points, int wi
 
     dc.SetPen(*wxBLACK_PEN);
     dc.SetBrush(*wxBLACK_BRUSH);
-    dc.DrawRectangle(wxPoint(0, 0), bmp.GetSize());
+    dc.DrawRectangle(wxPoint(0, 0), bmp.GetScaledSize());
 
-    int r = 0.6 * std::min(bmp.GetWidth() / width / 2, bmp.GetHeight() / height / 2);
+    int r = 0.6 * std::min(bmp.GetScaledWidth() / width / 2, bmp.GetScaledHeight() / height / 2);
     if (r == 0) r = 1;
 
     dc.SetTextForeground(*wxGREEN);
@@ -94,16 +94,16 @@ void WiringDialog::RenderNodes(std::map<int, std::list<wxPoint>>& points, int wi
     {
         dc.SetBrush(*wxWHITE_BRUSH);
         dc.SetPen(*wxBLACK_PEN);
-        int x = (width-it->second.front().x) * (bmp.GetWidth()-40) / width - 20;
-        int y = 20 + it->second.front().y * (bmp.GetHeight()-40) / height;
+        int x = (width-it->second.front().x) * (bmp.GetScaledWidth()-40) / width - 20;
+        int y = 20 + it->second.front().y * (bmp.GetScaledHeight()-40) / height;
         dc.DrawCircle(x, y, r);
         dc.DrawText(wxString::Format("%d", it->first), x + r + 2, y);
 
         if (it->first == last + 1)
         {
             dc.SetPen(*wxYELLOW_PEN);
-            int lastx = (width - lastpt.x) * (bmp.GetWidth()-40) / width - 20;
-            int lasty = 20 + lastpt.y * (bmp.GetHeight()-40) / height;
+            int lastx = (width - lastpt.x) * (bmp.GetScaledWidth()-40) / width - 20;
+            int lasty = 20 + lastpt.y * (bmp.GetScaledHeight()-40) / height;
             dc.DrawLine(lastx, lasty, x, y);
         }
 
@@ -121,14 +121,14 @@ void WiringDialog::RenderMultiLight(std::map<int, std::list<wxPoint>>& points, i
 
     dc.SetPen(*wxBLACK_PEN);
     dc.SetBrush(*wxBLACK_BRUSH);
-    dc.DrawRectangle(wxPoint(0, 0), bmp.GetSize());
+    dc.DrawRectangle(wxPoint(0, 0), bmp.GetScaledSize());
 
     dc.SetTextForeground(*wxGREEN);
     dc.DrawText("CAUTION: Reverse view", 20, 20);
 
     int cindex = 0;
 
-    int r = 0.6 * std::min(bmp.GetWidth() / width / 2, bmp.GetHeight() / height / 2);
+    int r = 0.6 * std::min(bmp.GetScaledWidth() / width / 2, bmp.GetScaledHeight() / height / 2);
     if (r == 0) r = 1;
     dc.SetTextForeground(*wxLIGHT_GREY);
 
@@ -138,8 +138,8 @@ void WiringDialog::RenderMultiLight(std::map<int, std::list<wxPoint>>& points, i
 
         for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
-            int x = (width - it2->x) * (bmp.GetWidth()-40) / width - 20;
-            int y = 20 + it2->y * (bmp.GetHeight()-40) / height;
+            int x = (width - it2->x) * (bmp.GetScaledWidth()-40) / width - 20;
+            int y = 20 + it2->y * (bmp.GetScaledHeight()-40) / height;
             dc.DrawCircle(x, y, r);
             dc.DrawText(wxString::Format("%d", it->first), x + r + 2, y);
         }
@@ -194,8 +194,9 @@ void WiringDialog::ResizeBitmap(void)
     sizedbmp = bmp;
 
     wxImage img = bmp.ConvertToImage();
-    img = img.Scale(s.x, s.y, wxIMAGE_QUALITY_HIGH);
-    sizedbmp = wxBitmap(img);
+    float factor = GetContentScaleFactor();
+    img = img.Scale(s.x * factor, s.y * factor, wxIMAGE_QUALITY_HIGH);
+    sizedbmp = wxBitmap(img, -1 , factor);
 }
 
 void WiringDialog::OnResize(wxSizeEvent& event)

@@ -183,6 +183,7 @@
 		67AAF8FA1B63785900585431 /* phoneme_mapping in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F61B63785900585431 /* phoneme_mapping */; };
 		67AAF8FB1B63785900585431 /* standard_dictionary in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F71B63785900585431 /* standard_dictionary */; };
 		67AAF8FD1B642E6C00585431 /* LyricsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AAF8FC1B642E6C00585431 /* LyricsDialog.cpp */; };
+		67AB294B1D649008007F7CF3 /* WiringDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AB29491D649008007F7CF3 /* WiringDialog.cpp */; };
 		67ACBAB21C63D84500BFA7D6 /* CustomModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67ACBAB11C63D84500BFA7D6 /* CustomModel.cpp */; };
 		67ACBAB51C63DAD400BFA7D6 /* WholeHouseModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67ACBAB41C63DAD400BFA7D6 /* WholeHouseModel.cpp */; };
 		67ACBAB81C63DDA400BFA7D6 /* SingleLineModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67ACBAB71C63DDA400BFA7D6 /* SingleLineModel.cpp */; };
@@ -657,6 +658,8 @@
 		67AAF8F71B63785900585431 /* standard_dictionary */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = standard_dictionary; path = bin/standard_dictionary; sourceTree = "<group>"; };
 		67AAF8FC1B642E6C00585431 /* LyricsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LyricsDialog.cpp; sourceTree = "<group>"; };
 		67AAF8FE1B642E7D00585431 /* LyricsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LyricsDialog.h; sourceTree = "<group>"; };
+		67AB29491D649008007F7CF3 /* WiringDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WiringDialog.cpp; sourceTree = "<group>"; };
+		67AB294A1D649008007F7CF3 /* WiringDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WiringDialog.h; sourceTree = "<group>"; };
 		67ACBAB01C63D84500BFA7D6 /* CustomModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CustomModel.h; path = models/CustomModel.h; sourceTree = "<group>"; };
 		67ACBAB11C63D84500BFA7D6 /* CustomModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CustomModel.cpp; path = models/CustomModel.cpp; sourceTree = "<group>"; };
 		67ACBAB31C63DAD400BFA7D6 /* WholeHouseModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WholeHouseModel.h; path = models/WholeHouseModel.h; sourceTree = "<group>"; };
@@ -1370,6 +1373,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67AB29491D649008007F7CF3 /* WiringDialog.cpp */,
+				67AB294A1D649008007F7CF3 /* WiringDialog.h */,
 				671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */,
 				671859E21D61FFF5008F52AA /* SevenSegmentDialog.h */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
@@ -1831,6 +1836,7 @@
 				679BD33A1C37555C000539FE /* OffEffect.cpp in Sources */,
 				67447D991C6664900095CDB5 /* WindowFrameModel.cpp in Sources */,
 				67BC8BBB1D2152EC009B660F /* NodesGridCellEditor.cpp in Sources */,
+				67AB294B1D649008007F7CF3 /* WiringDialog.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
 				675AC53D1C987AA700C4AFE9 /* CustomModelDialog.cpp in Sources */,
 				6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */,
