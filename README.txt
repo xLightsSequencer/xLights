@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.46  Aug 17, 2016
    -- enh (dkulp)   Add SubModels for defining effects for specific parts of a model
    -- bug (dkulp)   Check for invalid models before adding the models associated with the current view so those models can be selected for mapping
    -- bug (dkulp)   Fix node level effect broken in .45
