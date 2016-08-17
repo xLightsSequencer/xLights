@@ -75,7 +75,44 @@ void TreeModel::SetTreeCoord(long degrees) {
             StartAngle += toRadians(rotation);
         }
         
-        double offsetPerNode = spiralRotations * 2.0 * M_PI / BufferHt;
+        std::vector<float> yPos(BufferHt);
+        std::vector<float> xInc(BufferHt);
+        for (int x = 0; x < BufferHt; x ++) {
+            yPos[x] = x;
+            xInc[x] = 0;
+        }
+        if (spiralRotations != 0.0f) {
+            std::vector<float> lengths(10);
+            float rgap = (radius - topradius)/ 10.0;
+            float total = 0;
+            for (int x = 0; x < 10; x++) {
+                lengths[x] = 2.0*M_PI*(radius - rgap*x) - rgap/2.0;
+                lengths[x] *= spiralRotations / 10.0;
+                lengths[x] = sqrt(lengths[x]*lengths[x]+(float)BufferHt/10.0*(float)BufferHt/10.0);
+                total += lengths[x];
+            }
+            int lights = 0;
+            for (int x = 0; x < 10; x++) {
+                lengths[x] /= total;
+                lights += (int)std::round(lengths[x]*BufferHt);
+            }
+            int curSeg = 0;
+            float lightsInSeg = std::round(lengths[0]*BufferHt);
+            int curLightInSeg = 0;
+            for (int x = 1; x < BufferHt; x++) {
+                if (curLightInSeg >= lightsInSeg) {
+                    curSeg++;
+                    curLightInSeg = 0;
+                    lightsInSeg = std::round(lengths[curSeg]*BufferHt);
+                }
+                float ang = spiralRotations * 2.0 * M_PI / 10.0;
+                ang /= (float)lightsInSeg;
+                yPos[x] = yPos[x-1] + (BufferHt/10.0/lightsInSeg);
+                xInc[x] = xInc[x-1] + ang;
+                curLightInSeg++;
+            }
+        }
+        
         
         double topYoffset = std::abs(perspective * topradius * cos(M_PI));
         double ytop = RenderHt - topYoffset;
@@ -87,14 +124,14 @@ void TreeModel::SetTreeCoord(long degrees) {
             for(size_t c=0; c < CoordCount; c++) {
                 bufferX=Nodes[n]->Coords[c].bufX;
                 bufferY=Nodes[n]->Coords[c].bufY;
-                angle=StartAngle + double(bufferX) * AngleIncr + (offsetPerNode * bufferY);
+                angle=StartAngle + double(bufferX) * AngleIncr + xInc[bufferY];
                 double xb=radius * sin(angle);
                 double xt=topradius * sin(angle);
                 double yb = ybot - perspective * radius * cos(angle);
                 double yt = ytop - perspective * topradius * cos(angle);
                 double posOnString = 0.5;
                 if (BufferHt > 1) {
-                    posOnString = (bufferY/(double)(BufferHt-1.0));
+                    posOnString = yPos[bufferY]/(double)(BufferHt-1.0);
                 }
 
                 Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
@@ -248,8 +285,8 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->Enable(treeType == 0);
     
     p = grid->Append(new wxFloatProperty("Spiral Wraps", "TreeSpiralRotations", treeType == 0 ? spiralRotations : 0.0));
-    p->SetAttribute("Min", "-10");
-    p->SetAttribute("Max", "10");
+    p->SetAttribute("Min", "-20");
+    p->SetAttribute("Max", "20");
     p->SetAttribute("Precision", 2);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
