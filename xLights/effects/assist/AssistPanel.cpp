@@ -103,6 +103,12 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
         }
         std::string model_name = elem->GetModelName();
         Model *cls = xlights_parent->GetModel(model_name);
+        if (cls != nullptr && dynamic_cast<SubModelElement*>(elem) != nullptr) {
+            Model *scls = cls->GetSubModel(dynamic_cast<SubModelElement*>(elem)->GetName());
+            if (scls != nullptr) {
+                cls = scls;
+            }
+        }
         if (cls == nullptr) {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.error("No model found for effect %s for model %s", mEffect->GetEffectName().c_str(), model_name.c_str());
@@ -110,8 +116,8 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
         mGridCanvas->SetModel(cls);
         
         int bw, bh;
-        cls->GetBufferSize(mEffect->GetSettings().Get("T_CHOICE_BufferStyle", "Default"),
-                           mEffect->GetSettings().Get("T_CHOICE_BufferTransform", "None"),
+        cls->GetBufferSize(mEffect->GetSettings().Get("B_CHOICE_BufferStyle", "Default"),
+                           mEffect->GetSettings().Get("B_CHOICE_BufferTransform", "None"),
                            bw, bh);
         
         mGridCanvas->SetNumColumns(bw);
