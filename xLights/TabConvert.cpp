@@ -848,9 +848,9 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Writing model video.");
 
-    ModelScreenLocation& msl = model->GetModelScreenLocation();
-    int origwidth = msl.RenderWi;
-    int origheight = msl.RenderHt;
+    int origwidth;
+    int origheight;
+    model->GetBufferSize("Default", "None", origwidth, origheight);
 
     int width = origwidth;
     int height = origheight;
