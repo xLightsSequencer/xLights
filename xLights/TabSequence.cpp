@@ -828,6 +828,7 @@ void xLightsFrame::SaveAsSequence()
     CurrentSeqXmlFile->SetPath(oName.GetPath());
     CurrentSeqXmlFile->SetFullName(oName.GetFullName());
     SaveSequence();
+    SetTitle(xlights_base_name + " - " + NewFilename);
 }
 void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent &evt) {
     if (renderProgressDialog) {

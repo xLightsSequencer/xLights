@@ -19,6 +19,8 @@ void ObtainAccessToURL(const std::string &path);
 void EnableSleepModes();
 void DisableSleepModes();
 
+void AddWindowsMenu();
+
 #else
 #define xlSetOpenGLRetina(a)
 #define xlSetRetinaCanvasViewport(w,a,b,c,d)
@@ -26,6 +28,7 @@ void DisableSleepModes();
 #define ObtainAccessToURL(x)
 #define EnableSleepModes()
 #define DisableSleepModes()
+#define AddWindowsMenu()
 
 #endif
 

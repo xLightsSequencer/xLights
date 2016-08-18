@@ -351,6 +351,8 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         float elapsedTime = sw.Time()/1000.0; //msec => sec
         SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
+        SetTitle(xlights_base_name + " - " + filename);
+
         EnableSequenceControls(true);
         Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
     }
@@ -401,6 +403,9 @@ bool xLightsFrame::CloseSequence()
     SetStatusText(CurrentDir, 1);
     sPreview1->Refresh();
     sPreview2->Refresh();
+
+    SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + ") " + xlights_build_date );
+
     return true;
 }
 
