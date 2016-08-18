@@ -463,8 +463,6 @@
 		<Unit filename="ColorCurve.cpp" />
 		<Unit filename="ColorCurveDialog.cpp" />
 		<Unit filename="ColorCurveDialog.h" />
-		<Unit filename="ColorGradientDialog.cpp" />
-		<Unit filename="ColorGradientDialog.h" />
 		<Unit filename="ColorPanel.cpp" />
 		<Unit filename="ColorPanel.h" />
 		<Unit filename="ConvertDialog.cpp" />
@@ -978,7 +976,6 @@
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
-		<Unit filename="wxsmith/ColorGradientDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
 		<Unit filename="wxsmith/ColorWashPanel.wxs" />
 		<Unit filename="wxsmith/ConvertDialog.wxs" />
@@ -1209,7 +1206,6 @@
 					<wxDialog wxs="wxsmith/ValueCurveDialog.wxs" src="ValueCurveDialog.cpp" hdr="ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ModelGroupPanel.wxs" src="ModelGroupPanel.cpp" hdr="ModelGroupPanel.h" fwddecl="0" i18n="1" name="ModelGroupPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/PreviewPane.wxs" src="PreviewPane.cpp" hdr="PreviewPane.h" fwddecl="0" i18n="1" name="PreviewPane" language="CPP" />
-					<wxDialog wxs="wxsmith/ColorGradientDialog.wxs" src="ColorGradientDialog.cpp" hdr="ColorGradientDialog.h" fwddecl="0" i18n="1" name="ColorGradientDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NoteImportDialog.wxs" src="NoteImportDialog.cpp" hdr="NoteImportDialog.h" fwddecl="0" i18n="1" name="NoteImportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SubModelsDialog.wxs" src="SubModelsDialog.cpp" hdr="SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SevenSegmentDialog.wxs" src="SevenSegmentDialog.cpp" hdr="SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
