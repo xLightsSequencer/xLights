@@ -14,6 +14,7 @@
 
 #include "xlCustomControl.h"
 #include "ValueCurve.h"
+#include <wx/dir.h>
 
 class ValueCurvePanel : public wxWindow, public xlCustomControl
 {
@@ -28,6 +29,8 @@ public:
     void Undo();
     void SaveUndo(float x, float y);
     void SaveUndoSelected();
+    void ClearUndo() { _undo.clear(); }
+    bool IsDirty() { return _undo.size() > 0; }
 
 protected:
     DECLARE_EVENT_TABLE()
@@ -59,6 +62,9 @@ class ValueCurveDialog: public wxDialog
     ValueCurvePanel* _vcp;
     void UpdateLinkedTextCtrl(wxScrollEvent& event);
     void UpdateLinkedSlider(wxCommandEvent& event);
+    void PopulatePresets();
+    void LoadXVC(ValueCurve* vc, const wxString& filename);
+    void ProcessPresetDir(wxDir& directory, bool subdirs);
 
     public:
 
@@ -67,10 +73,12 @@ class ValueCurveDialog: public wxDialog
 
 		//(*Declarations(ValueCurveDialog)
 		wxStaticText* StaticText_P3;
+		wxButton* ButtonExport;
 		wxTextCtrl* TextCtrl_Parameter3;
 		wxSlider* Slider_Parameter2;
 		wxButton* Button_Ok;
 		wxStaticText* StaticText_P2;
+		wxFlexGridSizer* PresetSizer;
 		wxTextCtrl* TextCtrl_Parameter2;
 		wxStaticText* StaticText_BottomValue;
 		wxButton* Button_Cancel;
@@ -79,6 +87,7 @@ class ValueCurveDialog: public wxDialog
 		wxStaticText* StaticText_TopValue;
 		wxStaticText* StaticText_P4;
 		wxSlider* Slider_Parameter4;
+		wxButton* ButtonLoad;
 		wxCheckBox* CheckBox_WrapValues;
 		wxChoice* Choice1;
 		wxSlider* Slider_Parameter1;
@@ -105,6 +114,8 @@ class ValueCurveDialog: public wxDialog
 		static const long ID_SLIDER_Parameter4;
 		static const long IDD_TEXTCTRL_Parameter4;
 		static const long ID_CHECKBOX_WrapValues;
+		static const long ID_BUTTON3;
+		static const long ID_BUTTON4;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -130,7 +141,10 @@ class ValueCurveDialog: public wxDialog
 		void OnTextCtrl_Parameter4Text(wxCommandEvent& event);
 		void OnCheckBox_WrapValuesClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
-		//*)
+		void OnButtonLoadClick(wxCommandEvent& event);
+		void OnButtonExportClick(wxCommandEvent& event);
+        void OnButtonPresetClick(wxCommandEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

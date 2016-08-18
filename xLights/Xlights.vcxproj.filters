@@ -810,9 +810,6 @@
     <ClCompile Include="ColorCurve.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ColorGradientDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ColorCurveDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1578,9 +1575,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ColorCurve.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ColorGradientDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="colorcurvedialog.h">

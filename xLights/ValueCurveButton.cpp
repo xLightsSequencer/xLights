@@ -67,29 +67,13 @@ void ValueCurveButton::RenderNewBitmap() {
     if (GetContentScaleFactor() > 1.9) {
         sz *= GetContentScaleFactor();
     }
-    wxBitmap bmp(sz, sz);
-    
-    wxMemoryDC dc(bmp);
-    dc.SetBrush(*wxLIGHT_GREY_BRUSH);
-    dc.DrawRectangle(0, 0, sz - 1, sz - 1);
-    dc.SetPen(*wxBLACK_PEN);
-    float lastY = sz - 1 - (GetValue()->GetValueAt(0)) * sz;
-    
-    for (int x = 1; x < sz; x++) {
-        float x1 = x;
-        x1 /= sz;
-        float y = (GetValue()->GetValueAt(x1)) * sz;
-        y = sz - 1 - y;
-        dc.DrawLine(x - 1, lastY, x, y);
-        lastY = y;
-    }
+    wxBitmap bmp = _vc->GetImage(sz, sz);
     if (GetContentScaleFactor() > 1.9) {
         SetBitmap(wxBitmap(bmp.ConvertToImage(), -1, GetContentScaleFactor()));
     } else {
         SetBitmap(bmp);
     }
 }
-
 
 void ValueCurveButton::SetValue(const wxString& value)
 {

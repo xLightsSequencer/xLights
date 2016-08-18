@@ -1,4 +1,5 @@
 #include "ValueCurveDialog.h"
+#include "xLightsMain.h"
 
 //(*InternalHeaders(ValueCurveDialog)
 #include <wx/intl.h>
@@ -8,6 +9,9 @@
 #include <wx/dcbuffer.h>
 #include <wx/valnum.h>
 #include <wx/settings.h>
+#include <wx/filedlg.h>
+#include <wx/file.h>
+#include <wx/msgdlg.h>
 #include "ValueCurve.h"
 #include <log4cpp/Category.hh>
 
@@ -63,6 +67,8 @@ const long ValueCurveDialog::ID_STATICTEXT6 = wxNewId();
 const long ValueCurveDialog::ID_SLIDER_Parameter4 = wxNewId();
 const long ValueCurveDialog::IDD_TEXTCTRL_Parameter4 = wxNewId();
 const long ValueCurveDialog::ID_CHECKBOX_WrapValues = wxNewId();
+const long ValueCurveDialog::ID_BUTTON3 = wxNewId();
+const long ValueCurveDialog::ID_BUTTON4 = wxNewId();
 const long ValueCurveDialog::ID_BUTTON1 = wxNewId();
 const long ValueCurveDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -81,6 +87,8 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer7;
+    wxFlexGridSizer* FlexGridSizer8;
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer1;
 
@@ -156,6 +164,18 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     FlexGridSizer2->Add(CheckBox_WrapValues, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer7->AddGrowableCol(0);
+    FlexGridSizer7->AddGrowableRow(0);
+    PresetSizer = new wxFlexGridSizer(0, 5, 0, 0);
+    FlexGridSizer7->Add(PresetSizer, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
+    ButtonLoad = new wxButton(this, ID_BUTTON3, _("Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    FlexGridSizer8->Add(ButtonLoad, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonExport = new wxButton(this, ID_BUTTON4, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    FlexGridSizer8->Add(ButtonExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer7->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer3->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -176,6 +196,8 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     Connect(ID_SLIDER_Parameter4,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter4CmdSliderUpdated);
     Connect(IDD_TEXTCTRL_Parameter4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter4Text);
     Connect(ID_CHECKBOX_WrapValues,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnCheckBox_WrapValuesClick);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButtonLoadClick);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButtonExportClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_OkClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_CancelClick);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&ValueCurveDialog::OnResize);
@@ -242,6 +264,9 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     TextCtrl_Parameter4->SetValue(wxString::Format("%d", (int)_vc->GetParameter4()));
     Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
     Choice1->SetFocus();
+
+    PopulatePresets();
+
     ValidateWindow();
 }
 
@@ -920,5 +945,220 @@ void ValueCurveDialog::OnCheckBox_WrapValuesClick(wxCommandEvent& event)
 void ValueCurveDialog::OnResize(wxSizeEvent& event)
 {
     OnSize(event);
+    if (PresetSizer->GetChildren().GetCount() > 0)
+    {
+        int cols = (PresetSizer->GetSize().GetWidth() - 10) / 32;
+        if (cols == 0) cols = 1;
+        int rows = PresetSizer->GetChildren().GetCount() / cols + 1;
+        PresetSizer->SetRows(std::max(1, rows));
+        PresetSizer->SetCols(cols);
+        PresetSizer->Layout();
+    }
     Refresh();
+}
+
+void ValueCurveDialog::OnButtonLoadClick(wxCommandEvent& event)
+{
+    std::string id = _vc->GetId(); // save if because it will be overwritten
+
+    wxString filename = wxFileSelector(_("Choose value curve file"), wxEmptyString, wxEmptyString, wxEmptyString, "Value Curve files (*.xvc)|*.xvc", wxFD_OPEN);
+    if (filename.IsEmpty()) return;
+
+    LoadXVC(_vc, filename);
+    _vcp->Refresh();
+    _vcp->ClearUndo();
+    _vc->SetId(id);
+    CheckBox_WrapValues->SetValue(_vc->GetWrap());
+    Slider_Parameter1->SetValue((int)_vc->GetParameter1());
+    Slider_Parameter2->SetValue((int)_vc->GetParameter2());
+    Slider_Parameter3->SetValue((int)_vc->GetParameter3());
+    Slider_Parameter4->SetValue((int)_vc->GetParameter4());
+    TextCtrl_Parameter1->SetValue(wxString::Format("%d", (int)_vc->GetParameter1()));
+    TextCtrl_Parameter2->SetValue(wxString::Format("%d", (int)_vc->GetParameter2()));
+    TextCtrl_Parameter3->SetValue(wxString::Format("%d", (int)_vc->GetParameter3()));
+    TextCtrl_Parameter4->SetValue(wxString::Format("%d", (int)_vc->GetParameter4()));
+    Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
+}
+
+void ValueCurveDialog::OnButtonExportClick(wxCommandEvent& event)
+{
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "ValueCurve", wxEmptyString, "Value Curves (*.xvc)|*.xvc", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (filename.IsEmpty()) return;
+
+    wxFile f(filename);
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Saving to xvc file %s.", std::string(filename.c_str()).c_str());
+
+    if (!f.Create(filename, true) || !f.IsOpened())
+    {
+        logger_base.info("Unable to create file %s. Error %d\n", std::string(filename.c_str()).c_str(), f.GetLastError());
+        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+        return;
+    }
+
+    _vc->SetActive(true);
+
+    wxString v = xlights_version_string;
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<valuecurve \n");
+    f.Write(wxString::Format("data=\"%s\" ", (const char *)_vc->Serialise().c_str()));
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(" >\n");
+    f.Write("</valuecurve>");
+    f.Close();
+
+    _vcp->ClearUndo();
+
+    PopulatePresets();
+}
+
+void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Scanning directory for *.xvc files: %s.", (const char *)directory.GetNameWithSep().c_str());
+
+    wxString filename;
+    auto existing = PresetSizer->GetChildren();
+
+    bool cont = directory.GetFirst(&filename, "*.xvc", wxDIR_FILES);
+
+    while (cont)
+    {
+        wxFileName fn(directory.GetNameWithSep() + filename);
+        bool found = false;
+        for (auto it = existing.begin(); it != existing.end(); ++it)
+        {
+            if (it.m_node->GetData()->GetWindow()->GetLabel() == fn.GetFullPath())
+            {
+                // already there
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            ValueCurve vc("");
+            LoadXVC(&vc, fn.GetFullPath());
+            long id = wxNewId();
+            wxBitmapButton* bmb = new wxBitmapButton(this, id, vc.GetImage(30, 30), wxDefaultPosition,
+                wxSize(30, 30), wxBU_AUTODRAW | wxNO_BORDER);
+            bmb->SetLabel(fn.GetFullPath());
+            PresetSizer->Add(bmb);
+            Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ValueCurveDialog::OnButtonPresetClick);
+        }
+
+        cont = directory.GetNext(&filename);
+    }
+
+    if (subdirs)
+    {
+        cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        while (cont)
+        {
+            wxDir dir(directory.GetNameWithSep() + filename);
+            ProcessPresetDir(dir, subdirs);
+            cont = directory.GetNext(&filename);
+        }
+    }
+}
+
+void ValueCurveDialog::PopulatePresets()
+{
+    wxDir dir(xLightsFrame::CurrentDir);
+
+    ProcessPresetDir(dir, false);
+
+    wxString d = xLightsFrame::CurrentDir + "/valuecurves";
+
+    if (wxDir::Exists(d))
+    {
+        dir.Open(d);
+        ProcessPresetDir(dir, true);
+    }
+    else
+    {
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("Directory for *.vcc files not found: %s.", (const char *)d.c_str());
+    }
+
+    wxStandardPaths stdp = wxStandardPaths::Get();
+
+#ifndef __WXMSW__
+    d = wxStandardPaths::Get().GetResourcesDir() + "/valuecurves";
+#else
+    d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/valuecurves";
+#endif
+    if (wxDir::Exists(d))
+    {
+        dir.Open(d);
+        ProcessPresetDir(dir, true);
+    }
+    else
+    {
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("Directory for *.xcc files not found: %s.", (const char *)d.c_str());
+    }
+
+    PresetSizer->Layout();
+    wxWindow::Layout();
+    //wxWindow::Fit();
+}
+
+void ValueCurveDialog::LoadXVC(ValueCurve* vc, const wxString& filename)
+{
+    wxXmlDocument doc(filename);
+
+    if (doc.IsOk())
+    {
+        wxXmlNode* root = doc.GetRoot();
+
+        if (root->GetName() == "valuecurve")
+        {
+            wxString data = root->GetAttribute("data");
+            wxString v = root->GetAttribute("SourceVersion");
+
+            // Add any valuecurve version conversion logic here
+            // Source version will be the program version that created the custom model
+
+            vc->Deserialise(data.ToStdString());
+            vc->SetActive(true);
+        }
+        else
+        {
+            wxMessageBox("Failure loading value curve file " + filename + ".");
+        }
+    }
+    else
+    {
+        wxMessageBox("Failure loading value curve file " + filename + ".");
+    }
+}
+
+void ValueCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
+{
+    if (_vcp->IsDirty())
+    {
+        if (wxMessageBox("Are you sure you want to discard your current value curve?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO)
+        {
+            return;
+        }
+    }
+
+    wxString filename = ((wxBitmapButton*)event.GetEventObject())->GetLabel();
+
+    std::string id = _vc->GetId(); // save if because it will be overwritten
+    LoadXVC(_vc, filename);
+    _vcp->Refresh();
+    _vcp->ClearUndo();
+    _vc->SetId(id);
+    CheckBox_WrapValues->SetValue(_vc->GetWrap());
+    Slider_Parameter1->SetValue((int)_vc->GetParameter1());
+    Slider_Parameter2->SetValue((int)_vc->GetParameter2());
+    Slider_Parameter3->SetValue((int)_vc->GetParameter3());
+    Slider_Parameter4->SetValue((int)_vc->GetParameter4());
+    TextCtrl_Parameter1->SetValue(wxString::Format("%d", (int)_vc->GetParameter1()));
+    TextCtrl_Parameter2->SetValue(wxString::Format("%d", (int)_vc->GetParameter2()));
+    TextCtrl_Parameter3->SetValue(wxString::Format("%d", (int)_vc->GetParameter3()));
+    TextCtrl_Parameter4->SetValue(wxString::Format("%d", (int)_vc->GetParameter4()));
+    Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
 }
