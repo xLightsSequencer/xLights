@@ -216,6 +216,9 @@ void DMXEffect::SetPanelStatus(Model *cls) {
     if (p == nullptr) {
         return;
     }
+    if (cls == nullptr) {
+        return;
+    }
 
     int num_channels = cls->GetNumChannels();
 

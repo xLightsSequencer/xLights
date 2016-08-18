@@ -1330,10 +1330,18 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
             colorPanel->SetDefaultSettings();
         }
     }
+
     EffectsPanel1->SetEffectPanelStatus(model, effectName);
     SetEffectControls(settings);
     SetEffectControls(palette);
-    colorPanel->SetColorCount(GetEffectManager().GetEffect(effectName)->GetColorSupportedCount());
+    RenderableEffect *ef = GetEffectManager().GetEffect(effectName);
+    if (ef != nullptr) {
+        colorPanel->SetColorCount(ef->GetColorSupportedCount());
+    } else {
+        colorPanel->SetColorCount(8);
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.warn("Setting effect controls for unknown effect type: %s", effectName.c_str());
+    }
 }
 
 void xLightsFrame::ApplySetting(wxString name, wxString value)
