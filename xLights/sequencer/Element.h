@@ -206,6 +206,7 @@ class ModelElement : public Element
         int GetSubModelCount() const;
         SubModelElement *GetSubModel(int i);
         SubModelElement *GetSubModel(const std::string &name, bool create = false);
+        void RemoveSubModel(const std::string &name);
     
     
         bool ShowStrands() const { return mStrandsVisible;}

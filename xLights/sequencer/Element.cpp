@@ -376,6 +376,15 @@ StrandElement* ModelElement::GetStrand(int index, bool create) {
 int ModelElement::GetSubModelCount() const {
     return mSubModels.size() +  mStrands.size();
 }
+void ModelElement::RemoveSubModel(const std::string &name) {
+    for (auto a = mSubModels.begin(); a != mSubModels.end(); a++) {
+        if (name == (*a)->GetName()) {
+            delete *a;
+            mSubModels.erase(a);
+        }
+    }
+}
+
 SubModelElement *ModelElement::GetSubModel(int i) {
     if (i < mSubModels.size()) {
         return mSubModels[i];

@@ -1130,6 +1130,15 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     IncrementChangeCount();
 }
 
+void Model::RemoveSubModel(const std::string &name) {
+    for (auto a = subModels.begin(); a != subModels.end(); a++) {
+        Model *m = *a;
+        if (m->GetName() == name) {
+            delete m;
+            subModels.erase(a);
+        }
+    }
+}
 
 Model *Model::GetSubModel(const std::string &name) {
     for (auto a = subModels.begin(); a != subModels.end(); a++) {

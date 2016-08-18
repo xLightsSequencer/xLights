@@ -184,6 +184,7 @@ public:
     Model *GetSubModel(const std::string &name);
     int GetNumSubModels() const { return subModels.size();}
     Model *GetSubModel(int i) const { return i < subModels.size() ? subModels[i] : nullptr;}
+    void RemoveSubModel(const std::string &name);
     std::list<int> ParseFaceNodes(std::string channels);
 
     void IncrementChangeCount() { ++changeCount;};

@@ -207,6 +207,65 @@ static void Remove(std::vector<std::string> &names, const std::string &str) {
     names.erase(std::remove(names.begin(), names.end(), str), names.end());
 }
 
+static void HandleChoices(xLightsFrame *frame,
+                          std::vector<std::string> &AllNames,
+                          std::vector<std::string> &ModelNames,
+                          Element *element,
+                          const std::string &msg,
+                          std::vector<Element*> &toMap,
+                          std::vector<Element*> &ignore)
+{
+    wxArrayString choices;
+    choices.push_back("Rename the model in the sequence");
+    choices.push_back("Delete the model in the sequence");
+    choices.push_back("Map the effects to different models");
+    choices.push_back("Ignore (Handle Later) - Effects will not render");
+    
+    bool ok = false;
+    wxSingleChoiceDialog dlg(frame, msg,
+                             "Warning", choices);
+    while (!ok) {
+        ok = true;
+        if (dlg.ShowModal() == wxID_OK) {
+            switch (dlg.GetSelection()) {
+                case 0: {
+                    wxSingleChoiceDialog namedlg(frame, "Choose the model to use instead:",
+                                                 "Select Model", ToArrayString(ModelNames));
+                    if (namedlg.ShowModal() == wxID_OK) {
+                        std::string newName = namedlg.GetStringSelection().ToStdString();
+                        element->SetName(newName);
+                        Remove(AllNames, newName);
+                        Remove(ModelNames, newName);
+                    } else {
+                        ok = false;
+                    }
+                }
+                    break;
+                case 1:
+                    if (dynamic_cast<SubModelElement*>(element) != nullptr) {
+                        SubModelElement *sme = dynamic_cast<SubModelElement*>(element) ;
+                        sme->GetModelElement()->RemoveSubModel(sme->GetName());
+                    } else {
+                        frame->GetSequenceElements().DeleteElement(element->GetName());
+                    }
+                    break;
+                case 2:
+                    if (dynamic_cast<SubModelElement*>(element) != nullptr) {
+                        SubModelElement *sme = dynamic_cast<SubModelElement*>(element) ;
+                        toMap.push_back(sme->GetModelElement());
+                    } else {
+                        toMap.push_back(element);
+                    }
+                    //relo
+                    break;
+                case 3:
+                    ignore.push_back(element);
+                    break;
+            }
+        }
+    }
+}
+
 void xLightsFrame::CheckForValidModels()
 {
     //bool cancelled = cancelled_in;
@@ -233,7 +292,8 @@ void xLightsFrame::CheckForValidModels()
     SeqElementMismatchDialog dialog(this);
     for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
         if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
-            std::string name = mSequenceElements.GetElement(x)->GetModelName();
+            ModelElement *me = (ModelElement*)mSequenceElements.GetElement(x);
+            std::string name = me->GetModelName();
             Model *m = AllModels[name];
             if (m == nullptr) {
                 dialog.StaticTextMessage->SetLabel("Model '"+name+"'\ndoes not exist in your list of models");
@@ -268,9 +328,14 @@ void xLightsFrame::CheckForValidModels()
         for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
             if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
                 std::string name = mSequenceElements.GetElement(x)->GetModelName();
+                ModelElement * el = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 Model *m = AllModels[name];
-                if (m->GetDisplayAs() == "ModelGroup") {
-                    ModelElement * el = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+                if (m == nullptr) {
+                    HandleChoices(this, AllNames, ModelNames, el,
+                                  "Model " + name + " does not exist in your layout.\n"
+                                  + "How should we handle this?",
+                                  toMap, ignore);
+                } else if (m->GetDisplayAs() == "ModelGroup") {
                     bool hasStrandEffects = false;
                     bool hasNodeEffects = false;
                     for (int l = 0; l < el->GetStrandCount(); l++) {
@@ -293,39 +358,30 @@ void xLightsFrame::CheckForValidModels()
                         }
                     }
                     if (hasNodeEffects || hasStrandEffects) {
-                        wxArrayString choices;
-                        choices.push_back("Rename the model in the sequence");
-                        choices.push_back("Delete the model in the sequence");
-                        choices.push_back("Map the Strand/Node effects to different models");
-                        choices.push_back("Ignore (Handle Later) - Effects will not render");
-
-                        wxSingleChoiceDialog dlg(this, "Model " + name + " is a Model Group but has Node/Strand effects.\n"
-                                                 + "How should we handle this?",
-                                                 "Warning", choices);
-                        if (dlg.ShowModal() == wxID_OK) {
-                            switch (dlg.GetSelection()) {
-                                case 0: {
-                                        wxSingleChoiceDialog namedlg(this, "Choose the model to use instead:",
-                                                                 "Select Model", ToArrayString(ModelNames));
-                                        if (namedlg.ShowModal() == wxID_OK) {
-                                            std::string newName = namedlg.GetStringSelection().ToStdString();
-                                            mSequenceElements.GetElement(x)->SetName(newName);
-                                            Remove(AllNames, newName);
-                                            Remove(ModelNames, newName);
-                                        }
-                                    }
-                                    break;
-                                case 1:
-                                    mSequenceElements.DeleteElement(name);
-                                    break;
-                                case 2:
-                                    toMap.push_back(el);
-                                    //relo
-                                    break;
-                                case 3:
-                                    ignore.push_back(el);
-                                    break;
+                        HandleChoices(this, AllNames, ModelNames, el,
+                                      "Model " + name + " is a Model Group but has Node/Strand effects.\n"
+                                      + "How should we handle this?",
+                                      toMap, ignore);
+                    }
+                } else {
+                    for (int x = 0; x < el->GetSubModelCount(); x++) {
+                        SubModelElement *sme = el->GetSubModel(x);
+                        if (dynamic_cast<StrandElement*>(sme) == nullptr
+                            && m->GetSubModel(sme->GetName()) == nullptr) {
+                            std::vector<std::string> AllSMNames;
+                            std::vector<std::string> ModelSMNames;
+                            for (int z = 0; z < m->GetNumSubModels(); z++) {
+                                AllSMNames.push_back(m->GetSubModel(z)->GetName());
+                                ModelSMNames.push_back(m->GetSubModel(z)->GetName());
                             }
+                            for (int z = 0; z < el->GetSubModelCount(); z++) {
+                                Remove(AllSMNames, el->GetSubModel(z)->GetName());
+                                Remove(ModelSMNames, el->GetSubModel(z)->GetName());
+                            }
+                            HandleChoices(this, AllSMNames, ModelSMNames, el,
+                                          "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
+                                          + "How should we handle this?",
+                                          toMap, ignore);
                         }
                     }
                 }
