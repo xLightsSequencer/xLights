@@ -2643,7 +2643,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         double duration = (1.0 - (double)tailms/((double)endms-(double)startms)) * 100.0;
                         int startWidth = wxAtoi(element->GetAttribute("startDotSize"));
                         int endWidth = wxAtoi(element->GetAttribute("endDotSize"));
-                        std::string settings = "E_CHECKBOX_Galaxy_Reverse=" + wxString::Format("%d", startAngle < endAngle).ToStdString()
+                        std::string settings = "E_CHECKBOX_Galaxy_Reverse=" + wxString::Format("%d", endAngle < startAngle).ToStdString()
                                             + ",E_CHECKBOX_Galaxy_Blend_Edges=1"
                                             + ",E_CHECKBOX_Galaxy_Inward=1"
                                             + ",E_NOTEBOOK_Galaxy=Start,E_SLIDER_Galaxy_Accel=" + wxString::Format("%d", acceleration).ToStdString()
