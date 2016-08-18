@@ -41,6 +41,7 @@ public:
     const std::string &GetName() const;
     void SetName(const std::string &name);
     virtual const std::string &GetModelName() const;
+    virtual std::string GetFullName() const;
     
     
     bool GetVisible() const {return mVisible;}
@@ -155,6 +156,8 @@ public:
     virtual const std::string &GetModelName() const override;
     virtual ElementType GetType() const override { return ELEMENT_TYPE_SUBMODEL; }
     
+    virtual std::string GetFullName() const override;
+
 protected:
     ModelElement *mParentModel;
 };

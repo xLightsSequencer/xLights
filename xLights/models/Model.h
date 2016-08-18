@@ -60,7 +60,8 @@ public:
 
     const std::string &Name() const { return name;}
     const std::string &GetName() const { return name;}
-
+    virtual std::string GetFullName() const { return name;}
+    
     std::string name;
     xlColor customColor;
     DimmingCurve *modelDimmingCurve;

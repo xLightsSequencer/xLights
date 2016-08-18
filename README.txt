@@ -8,6 +8,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Update the EffectAssist when the effect settings change, EffectAssist considers submodel buffer sizes
+   -- enh (dkulp)   Add submodels to Tree on LayoutPage, allow renaming
+   -- enh (dkulp)   Put the currently open sequence filename in titlebar
+   -- enh (dkulp)   Add standard OSX "Window" menu item
+   -- bug (dkulp)   Fix prompt of modified sequence when closing an unmodified sequence
    -- bug (gil)     Fix import of Superstar Spirals spin direction.
    -- bug (keithsw) Fix seven segment bitmap
    -- bug (keithsw) Fix video export of model for non matrices

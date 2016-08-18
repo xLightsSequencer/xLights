@@ -18,6 +18,10 @@ Element::~Element() {
     }
     mEffectLayers.clear();
 }
+std::string Element::GetFullName() const {
+    return mName;
+}
+
 const std::string &Element::GetName() const
 {
     return mName;
@@ -133,6 +137,10 @@ SubModelElement::~SubModelElement() {
 
 const std::string &SubModelElement::GetModelName() const {
     return mParentModel->GetModelName();
+}
+
+std::string SubModelElement::GetFullName() const {
+    return GetModelName() + "/" + GetName();
 }
 
 

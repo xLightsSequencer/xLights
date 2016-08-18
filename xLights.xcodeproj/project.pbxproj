@@ -21,6 +21,7 @@
 		670F163F1CDBC53F0039D4DB /* xlights.mac.properties in Resources */ = {isa = PBXBuildFile; fileRef = 670F163E1CDBC53F0039D4DB /* xlights.mac.properties */; };
 		670F23661CCE664500A09765 /* DrawGLUtils21.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670F23651CCE664500A09765 /* DrawGLUtils21.cpp */; };
 		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
+		67145C2D1D6607AE00A35D4B /* SubModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67145C2B1D6607AE00A35D4B /* SubModel.cpp */; };
 		671859E31D61FFF5008F52AA /* SevenSegmentDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */; };
 		6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */; };
 		6719BF4B1CCB1D8800899A4B /* MusicEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF471CCB1D8800899A4B /* MusicEffect.cpp */; };
@@ -361,6 +362,8 @@
 		670F23651CCE664500A09765 /* DrawGLUtils21.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils21.cpp; sourceTree = "<group>"; };
 		6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StrandNodeNamesDialog.cpp; sourceTree = "<group>"; };
 		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
+		67145C2B1D6607AE00A35D4B /* SubModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SubModel.cpp; path = models/SubModel.cpp; sourceTree = "<group>"; };
+		67145C2C1D6607AE00A35D4B /* SubModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SubModel.h; path = models/SubModel.h; sourceTree = "<group>"; };
 		671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SevenSegmentDialog.cpp; sourceTree = "<group>"; };
 		671859E21D61FFF5008F52AA /* SevenSegmentDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SevenSegmentDialog.h; sourceTree = "<group>"; };
 		6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubBufferPanel.cpp; sourceTree = "<group>"; };
@@ -942,18 +945,6 @@
 		670C827C1C44554E000AA5D8 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				67FF398B1D57F54D00290DB4 /* Shapes.cpp */,
-				67FF398C1D57F54D00290DB4 /* Shapes.h */,
-				6786DC741D45D00100672F70 /* PolyLineModel.cpp */,
-				6786DC751D45D00100672F70 /* PolyLineModel.h */,
-				67EB24AF1D2F399200C7C4A1 /* DmxModel.h */,
-				67EB24B01D2F399200C7C4A1 /* DmxModel.cpp */,
-				6792BF351D0B253B00A5A0CC /* SpinnerModel.cpp */,
-				6792BF361D0B253B00A5A0CC /* SpinnerModel.h */,
-				67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */,
-				67BE75121CAC2EB200D7BA82 /* IciclesModel.h */,
-				67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */,
-				67653D5B1CA589830026A30B /* ModelScreenLocation.h */,
 				670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */,
 				670C827E1C45C48B000AA5D8 /* ArchesModel.h */,
 				676C5EAD1C99D8AF0031A033 /* CandyCaneModel.cpp */,
@@ -962,6 +953,10 @@
 				670E47401C62F4AD008F4C60 /* CircleModel.h */,
 				67ACBAB11C63D84500BFA7D6 /* CustomModel.cpp */,
 				67ACBAB01C63D84500BFA7D6 /* CustomModel.h */,
+				67EB24B01D2F399200C7C4A1 /* DmxModel.cpp */,
+				67EB24AF1D2F399200C7C4A1 /* DmxModel.h */,
+				67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */,
+				67BE75121CAC2EB200D7BA82 /* IciclesModel.h */,
 				67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */,
 				67C0EEE11C755ABE002FE25E /* MatrixModel.h */,
 				670C82851C45C48B000AA5D8 /* Model.cpp */,
@@ -970,14 +965,24 @@
 				670E473D1C62A901008F4C60 /* ModelGroup.h */,
 				670C82831C45C48B000AA5D8 /* ModelManager.cpp */,
 				670C82841C45C48B000AA5D8 /* ModelManager.h */,
+				67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */,
+				67653D5B1CA589830026A30B /* ModelScreenLocation.h */,
 				674ACA7B1C5ADE4000B54B32 /* Node.cpp */,
 				670C828C1C45C70B000AA5D8 /* Node.h */,
+				6786DC741D45D00100672F70 /* PolyLineModel.cpp */,
+				6786DC751D45D00100672F70 /* PolyLineModel.h */,
+				67FF398B1D57F54D00290DB4 /* Shapes.cpp */,
+				67FF398C1D57F54D00290DB4 /* Shapes.h */,
 				67ACBAB71C63DDA400BFA7D6 /* SingleLineModel.cpp */,
 				67ACBAB61C63DDA400BFA7D6 /* SingleLineModel.h */,
 				67447D9B1C6666A00095CDB5 /* SphereModel.cpp */,
 				67447D9A1C6666970095CDB5 /* SphereModel.h */,
+				6792BF351D0B253B00A5A0CC /* SpinnerModel.cpp */,
+				6792BF361D0B253B00A5A0CC /* SpinnerModel.h */,
 				670C827F1C45C48B000AA5D8 /* StarModel.cpp */,
 				670C82801C45C48B000AA5D8 /* StarModel.h */,
+				67145C2B1D6607AE00A35D4B /* SubModel.cpp */,
+				67145C2C1D6607AE00A35D4B /* SubModel.h */,
 				670C82811C45C48B000AA5D8 /* TreeModel.cpp */,
 				670C82821C45C48B000AA5D8 /* TreeModel.h */,
 				67ACBAB41C63DAD400BFA7D6 /* WholeHouseModel.cpp */,
@@ -1909,6 +1914,7 @@
 				675AB42C1B5ACEDA00853A28 /* PluginInputDomainAdapter.cpp in Sources */,
 				67B2CF721C39D98A003C17CA /* FacesPanel.cpp in Sources */,
 				67D11C791BEA691900000A7F /* ModelDimmingCurveDialog.cpp in Sources */,
+				67145C2D1D6607AE00A35D4B /* SubModel.cpp in Sources */,
 				675AB42E1B5ACEDA00853A28 /* PluginSummarisingAdapter.cpp in Sources */,
 				670C82891C45C48B000AA5D8 /* TreeModel.cpp in Sources */,
 				67B2CF751C39D98A003C17CA /* FireworksPanel.cpp in Sources */,

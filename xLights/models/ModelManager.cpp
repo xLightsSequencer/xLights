@@ -5,6 +5,8 @@
 #include <wx/arrstr.h>
 #include <wx/msgdlg.h>
 
+#include "SubModel.h"
+
 #include "StarModel.h"
 #include "ArchesModel.h"
 #include "CandyCaneModel.h"
@@ -44,6 +46,16 @@ void ModelManager::clear() {
 Model *ModelManager::GetModel(const std::string &name) const {
     auto it = models.find(name);
     if (it == models.end()) {
+        size_t pos = name.find("/");
+        if (pos != std::string::npos) {
+            std::string mname = name.substr(0, pos);
+            std::string smname = name.substr(pos + 1);
+            
+            Model *m = GetModel(mname);
+            if (m != nullptr) {
+                return m->GetSubModel(smname);
+            }
+        }
         return nullptr;
     }
     return it->second;
@@ -53,24 +65,21 @@ Model *ModelManager::operator[](const std::string &name) const {
 }
 
 bool ModelManager::Rename(const std::string &oldName, const std::string &newName) {
-    for (auto it = models.begin(); it != models.end(); it++) {
-        if (it->first == oldName) {
-            Model *model = it->second;
-
-            if (model != nullptr) {
-                model->GetModelXml()->DeleteAttribute("name");
-                model->GetModelXml()->AddAttribute("name",newName);
-                model->name = newName;
-
-                bool changed = false;
-                for (auto it2 = models.begin(); it2 != models.end(); it2++) {
-                    changed |= it2->second->ModelRenamed(oldName, newName);
-                }
-                models.erase(it);
-                models[newName] = model;
-                return changed;
-            }
+    Model *model = GetModel(oldName);
+    if (model == nullptr) {
+        return false;
+    }
+    model->GetModelXml()->DeleteAttribute("name");
+    model->GetModelXml()->AddAttribute("name",newName);
+    model->name = newName;
+    if (dynamic_cast<SubModel*>(model) == nullptr) {
+        bool changed = false;
+        for (auto it2 = models.begin(); it2 != models.end(); it2++) {
+            changed |= it2->second->ModelRenamed(oldName, newName);
         }
+        models.erase(models.find(oldName));
+        models[newName] = model;
+        return changed;
     }
     return false;
 }

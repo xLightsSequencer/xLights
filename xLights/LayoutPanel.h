@@ -132,6 +132,7 @@ class LayoutPanel: public wxPanel
     public:
         void UpdatePreview();
         void SelectModel(const std::string & name, bool highlight_tree = true);
+        void SelectModel(Model *model, bool highlight_tree = true);
         void UnSelectAllModels(bool addBkgProps = true);
         void SetupPropGrid(Model *model);
         void AddPreviewChoice(const std::string &name);
@@ -282,7 +283,7 @@ class LayoutPanel: public wxPanel
         wxTreeListCtrl* CreateTreeListCtrl(long style);
         int GetModelTreeIcon(Model* model, bool open);
         void AddModelToTree(Model *model, wxTreeListItem* parent);
-        void RenameModelInTree(const std::string old_name, const std::string new_name);
+        void RenameModelInTree(Model* model, const std::string new_name);
         int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
 
         class ModelListComparator : public wxTreeListItemComparator

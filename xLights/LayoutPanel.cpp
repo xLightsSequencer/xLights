@@ -31,6 +31,7 @@
 
 #include "models/ModelImages.h"
 #include "PreviewPane.h"
+#include "models/SubModel.h"
 
 //(*IdInit(LayoutPanel)
 const long LayoutPanel::ID_PANEL3 = wxNewId();
@@ -80,6 +81,15 @@ const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELETEPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELCURVE = wxNewId();
+
+
+class ModelTreeData : public wxTreeItemData {
+public:
+    ModelTreeData(Model *m) :wxTreeItemData(), model(m) {};
+    virtual ~ModelTreeData() {};
+    
+    Model *model;
+};
 
 class NewModelBitmapButton : public wxBitmapButton
 {
@@ -477,11 +487,11 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 }
             }
             if (selectedModel->name != safename) {
-                RenameModelInTree(selectedModel->name, safename);
+                RenameModelInTree(selectedModel, safename);
                 if (selectedModel->name == lastModelName) {
                     lastModelName = safename;
                 }
-                if (xlights->RenameModel(selectedModel->name, safename)) {
+                if (xlights->RenameModel(selectedModel->GetFullName(), safename)) {
                     CallAfter(&LayoutPanel::UpdateModelList, true);
                 }
             }
@@ -618,15 +628,14 @@ void LayoutPanel::refreshModelList() {
     }
 }
 
-void LayoutPanel::RenameModelInTree(const std::string old_name, const std::string new_name)
+void LayoutPanel::RenameModelInTree(Model *model, const std::string new_name)
 {
-    std::string item_name = "";
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
           item.IsOk();
           item = TreeListViewModels->GetNextItem(item) )
     {
-        item_name = TreeListViewModels->GetItemText(item);
-        if( item_name == old_name ) {
+        ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+        if (data->model == model) {
             TreeListViewModels->SetItemText(item, wxString(new_name.c_str()));
         }
     }
@@ -673,19 +682,26 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
 }
 
 
+
 void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent) {
-    std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
-    model->SetModelStartChan(start_channel);
+    if (dynamic_cast<SubModel*>(model) == nullptr) {
+        std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
+        model->SetModelStartChan(start_channel);
+    }
+    
     int end_channel = model->GetLastChannel()+1;
 
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, model->name,
                                                          GetModelTreeIcon(model, false),
-                                                         GetModelTreeIcon(model, true));
+                                                         GetModelTreeIcon(model, true),
+                                                         new ModelTreeData(model));
     if( model->GetDisplayAs() != "ModelGroup" ) {
-        TreeListViewModels->SetItemText(item, Col_StartChan, start_channel);
+        TreeListViewModels->SetItemText(item, Col_StartChan, model->ModelStartChannel);
         TreeListViewModels->SetItemText(item, Col_EndChan, wxString::Format(wxT("%i"),end_channel));
     }
-
+    for (int x = 0; x < model->GetNumSubModels(); x++) {
+        AddModelToTree(model->GetSubModel(x), &item);
+    }
     if( model->GetDisplayAs() == "ModelGroup" ) {
         ModelGroup *grp = (ModelGroup*)model;
         for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
@@ -915,23 +931,25 @@ void LayoutPanel::SetupPropGrid(Model *model) {
 
     model->AddProperties(propertyEditor);
 
-    wxPGProperty *p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));
-    p2->GetCell(0).SetFgCol(*wxBLACK);
+    if (dynamic_cast<SubModel*>(model) == nullptr) {
+        wxPGProperty *p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));
+        p2->GetCell(0).SetFgCol(*wxBLACK);
 
-    model->AddSizeLocationProperties(propertyEditor);
-    if (!sizeVisible) {
-        propertyEditor->Collapse(p2);
-    }
-    if (!appearanceVisible) {
-        prop = propertyEditor->GetPropertyByName("ModelAppearance");
-        if (prop != nullptr) {
-            propertyEditor->Collapse(prop);
+        model->AddSizeLocationProperties(propertyEditor);
+        if (!sizeVisible) {
+            propertyEditor->Collapse(p2);
         }
-    }
-    if (!stringPropsVisible) {
-        prop = propertyEditor->GetPropertyByName("ModelStringProperties");
-        if (prop != nullptr) {
-            propertyEditor->Collapse(prop);
+        if (!appearanceVisible) {
+            prop = propertyEditor->GetPropertyByName("ModelAppearance");
+            if (prop != nullptr) {
+                propertyEditor->Collapse(prop);
+            }
+        }
+        if (!stringPropsVisible) {
+            prop = propertyEditor->GetPropertyByName("ModelStringProperties");
+            if (prop != nullptr) {
+                propertyEditor->Collapse(prop);
+            }
         }
     }
     propertyEditor->Thaw();
@@ -939,21 +957,27 @@ void LayoutPanel::SetupPropGrid(Model *model) {
 
 void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
 {
+    Model *m = xlights->AllModels[name];
+    SelectModel(m, highlight_tree);
+}
+void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
+
     modelPreview->SetFocus();
     int foundStart = 0;
     int foundEnd = 0;
-
-    Model *m = xlights->AllModels[name];
-    if( m != nullptr ) {
-        m->Selected = true;
-        std::string item_name = "";
+    
+    if (m) {
+        SubModel *subModel = dynamic_cast<SubModel*>(m);
+        if (subModel != nullptr) {
+            subModel->GetParent()->Selected = true;
+        }
         if( highlight_tree ) {
             for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
                   item.IsOk();
                   item = TreeListViewModels->GetNextSibling(item) )
             {
-                item_name = TreeListViewModels->GetItemText(item);
-                if( item_name == m->name ) {
+                ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+                if( mitem->model == m ) {
                     TreeListViewModels->Select(item);
                     TreeListViewModels->EnsureVisible(item);
                     break;
@@ -1112,7 +1136,7 @@ bool LayoutPanel::SelectSingleModel(int x,int y)
     }
     else if(modelCount==1)
     {
-        SelectModel(modelPreview->GetModels()[found[0]]->name);
+        SelectModel(modelPreview->GetModels()[found[0]]);
         mHitTestNextSelectModelIndex = 0;
         return true;
     }
@@ -1122,7 +1146,7 @@ bool LayoutPanel::SelectSingleModel(int x,int y)
         {
             if(mHitTestNextSelectModelIndex==i)
             {
-                SelectModel(modelPreview->GetModels()[found[i]]->name);
+                SelectModel(modelPreview->GetModels()[found[i]]);
                 mHitTestNextSelectModelIndex += 1;
                 mHitTestNextSelectModelIndex %= modelCount;
                 return true;
@@ -1165,7 +1189,7 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
         {
             SetSelectedModelToGroupSelected();
             modelPreview->GetModels()[found[0]]->Selected = true;
-            SelectModel(modelPreview->GetModels()[found[0]]->name);
+            SelectModel(modelPreview->GetModels()[found[0]]);
         }
         else
         {
@@ -2500,15 +2524,14 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     wxMenu mnuContext;
     wxTreeListItem item = event.GetItem();
     if( item.IsOk() ) {
-        std::string item_name = "";
-        item_name = TreeListViewModels->GetItemText(item);
-        Model *model = xlights->AllModels[item_name];
+        ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+        Model *model = data->model;
         if( model != nullptr ) {
             if( model->GetDisplayAs() == "ModelGroup" ) {
                 mSelectedGroup = item;
             } else {
                 mSelectedGroup = nullptr;
-                SelectModel(model->name, false);
+                SelectModel(model, false);
             }
         }
     } else {
@@ -2548,9 +2571,9 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
     UnSelectAllModels(false);
     wxTreeListItem item = event.GetItem();
     if( item.IsOk() ) {
-        std::string item_name = "";
-        item_name = TreeListViewModels->GetItemText(item);
-        Model *model = xlights->AllModels[item_name];
+        
+        ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
+        Model *model = data->model;
         if( model != nullptr ) {
             if( model->GetDisplayAs() == "ModelGroup" ) {
                 mSelectedGroup = item;
@@ -2560,7 +2583,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
             } else {
                 mSelectedGroup = nullptr;
                 ShowPropGrid(true);
-                SelectModel(model->name, false);
+                SelectModel(model, false);
                 SetToolTipForTreeList(TreeListViewModels, xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)));
             }
         } else {
