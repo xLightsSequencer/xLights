@@ -99,6 +99,8 @@ public:
     }
     
 protected:
+    EffectLayer* AddEffectLayerInternal();
+
     SequenceElements *parent;
 
     std::string mName;

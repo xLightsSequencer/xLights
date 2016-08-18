@@ -66,10 +66,15 @@ EffectLayer* Element::GetEffectLayer(int index)
 
 EffectLayer* Element::AddEffectLayer()
 {
+    EffectLayer* new_layer = AddEffectLayerInternal();
+    IncrementChangeCount(-1, -1);
+    return new_layer;
+}
+EffectLayer* Element::AddEffectLayerInternal()
+{
     std::unique_lock<std::recursive_mutex> lock(changeLock);
     EffectLayer* new_layer = new EffectLayer(this);
     mEffectLayers.push_back(new_layer);
-    IncrementChangeCount(-1, -1);
     return new_layer;
 }
 
@@ -119,7 +124,7 @@ TimingElement::~TimingElement() {
 SubModelElement::SubModelElement(ModelElement *p, const std::string &name)
 : Element(p->GetSequenceElements(), name), mParentModel(p)
 {
-    AddEffectLayer();
+    AddEffectLayerInternal();
 }
 SubModelElement::~SubModelElement() {
     
@@ -154,7 +159,7 @@ NodeLayer *StrandElement::GetNodeLayer(int n, bool create) {
 }
 void StrandElement::InitFromModel(Model &model) {
     int nc = model.GetStrandLength(mStrand);
-    SetName(model.GetStrandName(mStrand));
+    mName = model.GetStrandName(mStrand);
     for (int x = 0; x < mNodeLayers.size(); x++) {
         mNodeLayers[x]->SetName(model.GetNodeName(x));
     }
@@ -340,7 +345,11 @@ void ModelElement::Init(Model &model) {
     }
     int ns = model.GetNumStrands();
     for (int x = 0; x < ns; x++) {
-        GetStrand(x, true)->InitFromModel(model);
+        if (x >= mStrands.size()) {
+            StrandElement* new_layer = new StrandElement(this, mStrands.size());
+            mStrands.push_back(new_layer);
+        }
+        mStrands[x]->InitFromModel(model);
     }
 }
 
