@@ -1202,6 +1202,7 @@ public:
     void RenderAll();
 
     void SetXmlSetting(const wxString& settingName,const wxString& value);
+    unsigned int GetMaxNumChannels();
 
 protected:
     void ClearEffectWindow();
@@ -1230,7 +1231,6 @@ protected:
     bool GetGroupName(wxString& grpname);
     void SetSelectedModelToGroupSelected();
     void ShowModelProperties();
-    unsigned int GetMaxNumChannels();
 
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
@@ -1294,7 +1294,6 @@ private:
 	wxArrayString ChNames;
 	int _totalChannels;
 
-    wxGridCellCoords *curCell;
     int PlaybackPeriod; //used to be able to record the frame being played in an animation preview
 
 public:

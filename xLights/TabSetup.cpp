@@ -157,7 +157,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
     CurrentDir=newdir;
     showDirectory=newdir;
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Show directory set to : %s.", (const char *)showDirectory.c_str());
 
     if (mBackupOnLaunch)
@@ -203,6 +203,8 @@ void xLightsFrame::SetDir(const wxString& newdir)
         if (!NetworkXML.Load( networkFile.GetFullPath() ))
         {
             wxMessageBox(_("Unable to load network definition file"), _("Error"));
+        } else {
+            logger_base.debug("Loaded network config %s", networkFile.GetFullPath().ToStdString().c_str());
         }
     }
 
@@ -216,7 +218,9 @@ void xLightsFrame::SetDir(const wxString& newdir)
     scheduleFile.SetFullName(_(XLIGHTS_SCHEDULE_FILE));
     if (scheduleFile.FileExists())
     {
+        logger_base.debug("Loading schedule %s", scheduleFile.GetFullPath().ToStdString().c_str());
         LoadScheduleFile();
+        logger_base.debug("Loaded schedule %s", scheduleFile.GetFullPath().ToStdString().c_str());
     }
     DisplaySchedule();
 

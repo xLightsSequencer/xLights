@@ -149,7 +149,7 @@ void* JobPoolWorker::Entry()
 
 void JobPoolWorker::ProcessJob(Job *job)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_jobpool"));
     if (job) {
 		logger_base.debug("Starting job on background thread.");
 		currentJob = job;
@@ -194,6 +194,7 @@ void JobPool::PushJob(Job *job)
 
 void JobPool::Start(size_t poolSize)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_jobpool"));
     if (poolSize > 250) {
         poolSize = 250;
     }
@@ -203,6 +204,7 @@ void JobPool::Start(size_t poolSize)
     maxNumThreads = poolSize;
     idleThreads = 0;
     numThreads = 0;
+    logger_base.info("Background thread pool started with %d threads", maxNumThreads);
 }
 
 void JobPool::Stop()

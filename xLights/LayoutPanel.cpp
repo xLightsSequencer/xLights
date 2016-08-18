@@ -672,6 +672,7 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
     return 0;
 }
 
+
 void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent) {
     std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
     model->SetModelStartChan(start_channel);
@@ -718,6 +719,10 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
 
     if( full_refresh ) {
 
+        TreeListViewModels->Freeze();
+        //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
+        TreeListViewModels->SetColumnWidth(0, 10);
+
         TreeListViewModels->DeleteAllItems();
         // add all the model groups
         wxTreeListItem root = TreeListViewModels->GetRootItem();
@@ -738,6 +743,19 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
                 AddModelToTree(model, &root);
             }
         }
+ 
+        unsigned int mc = xlights->GetMaxNumChannels();
+        wxString mcs = wxString::Format("%ld", mc);
+        int sz = TreeListViewModels->WidthFor(mcs);
+        int sz2 = TreeListViewModels->WidthFor("Start Chan");
+        if (sz2 > sz) {
+            sz = sz2;
+        }
+        
+        TreeListViewModels->SetColumnWidth(2, sz);
+        TreeListViewModels->SetColumnWidth(1, sz);
+        TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
+        TreeListViewModels->Thaw();
     }
 
     modelPreview->SetModels(models);
