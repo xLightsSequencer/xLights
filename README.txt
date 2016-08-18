@@ -9,6 +9,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- bug (gil)     Fix import of Superstar Spirals spin direction.
+   -- bug (keithsw) Fix seven segment bitmap
+   -- bug (keithsw) Fix video export of model for non matrices
+   -- enh (keithsw) Add value curve user definable presets
 2016.46  Aug 17, 2016
    -- enh (dkulp)   Add SubModels for defining effects for specific parts of a model
    -- bug (dkulp)   Check for invalid models before adding the models associated with the current view so those models can be selected for mapping

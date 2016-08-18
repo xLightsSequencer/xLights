@@ -1078,7 +1078,7 @@ void ValueCurveDialog::PopulatePresets()
     else
     {
         log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Directory for *.vcc files not found: %s.", (const char *)d.c_str());
+        logger_base.info("Directory for *.xvc files not found: %s.", (const char *)d.c_str());
     }
 
     wxStandardPaths stdp = wxStandardPaths::Get();
@@ -1096,7 +1096,7 @@ void ValueCurveDialog::PopulatePresets()
     else
     {
         log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Directory for *.xcc files not found: %s.", (const char *)d.c_str());
+        logger_base.info("Directory for *.xvc files not found: %s.", (const char *)d.c_str());
     }
 
     PresetSizer->Layout();
