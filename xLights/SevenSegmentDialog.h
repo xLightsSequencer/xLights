@@ -17,11 +17,11 @@ class SevenSegmentDialog: public wxDialog
 
 		//(*Declarations(SevenSegmentDialog)
 		wxCheckBox* CheckBox_Thousands;
-		wxStaticBitmap* StaticBitmap1;
 		wxCheckBox* CheckBox_Hundreds;
 		wxCheckBox* CheckBox_Tens;
 		wxCheckBox* CheckBox_Ones;
 		wxCheckBox* CheckBox_Decimal;
+		wxStaticBitmap* StaticBitmap_7Segment;
 		wxCheckBox* CheckBox_Colon;
 		//*)
 

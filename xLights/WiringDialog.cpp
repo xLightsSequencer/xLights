@@ -114,7 +114,8 @@ void WiringDialog::RenderNodes(std::map<int, std::list<wxPoint>>& points, int wi
 
 void WiringDialog::RenderMultiLight(std::map<int, std::list<wxPoint>>& points, int width, int height)
 {
-    static const wxColor* colors[] = { wxRED, wxBLUE, wxGREEN, wxYELLOW, wxLIGHT_GREY, wxCYAN, wxWHITE};
+    static wxColor magenta(255, 0, 255);
+    static const wxColor* colors[] = { wxRED, wxBLUE, wxGREEN, wxYELLOW, wxLIGHT_GREY, wxCYAN, wxWHITE, &magenta};
     static int colorcnt = sizeof(colors) / sizeof(wxColor*);
     wxMemoryDC dc;
     dc.SelectObject(bmp);
@@ -128,7 +129,7 @@ void WiringDialog::RenderMultiLight(std::map<int, std::list<wxPoint>>& points, i
 
     int cindex = 0;
 
-    int r = 0.6 * std::min(bmp.GetScaledWidth() / width / 2, bmp.GetScaledHeight() / height / 2);
+    int r = 0.8 * std::min(bmp.GetScaledWidth() / width / 2, bmp.GetScaledHeight() / height / 2);
     if (r == 0) r = 1;
     dc.SetTextForeground(*wxLIGHT_GREY);
 

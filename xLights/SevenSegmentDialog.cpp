@@ -1,12 +1,13 @@
 #include "SevenSegmentDialog.h"
 
 //(*InternalHeaders(SevenSegmentDialog)
-#include <wx/bitmap.h>
 #include <wx/intl.h>
 #include <wx/button.h>
-#include <wx/image.h>
 #include <wx/string.h>
 //*)
+
+#include <wx/image.h>
+#include "../include/sevensegment.xpm"
 
 //(*IdInit(SevenSegmentDialog)
 const long SevenSegmentDialog::ID_CHECKBOX1 = wxNewId();
@@ -35,11 +36,11 @@ SevenSegmentDialog::SevenSegmentDialog(wxWindow* parent,wxWindowID id,const wxPo
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 6, 0, 0);
-	CheckBox_Thousands = new wxCheckBox(this, ID_CHECKBOX1, _("    "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_Thousands = new wxCheckBox(this, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_Thousands->SetValue(false);
 	CheckBox_Thousands->SetToolTip(_("1000\'s"));
 	FlexGridSizer2->Add(CheckBox_Thousands, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_Hundreds = new wxCheckBox(this, ID_CHECKBOX2, _("  "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CheckBox_Hundreds = new wxCheckBox(this, ID_CHECKBOX2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_Hundreds->SetValue(false);
 	CheckBox_Hundreds->SetToolTip(_("100\'s"));
 	FlexGridSizer2->Add(CheckBox_Hundreds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -60,8 +61,8 @@ SevenSegmentDialog::SevenSegmentDialog(wxWindow* parent,wxWindowID id,const wxPo
 	CheckBox_Ones->SetToolTip(_("1\'s"));
 	FlexGridSizer2->Add(CheckBox_Ones, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
-	StaticBitmap1 = new wxStaticBitmap(this, ID_STATICBITMAP1, wxBitmap(wxImage(_T("C:\\Users\\keith\\Documents\\xLights\\include\\sevensegment.xpm"))), wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
-	FlexGridSizer1->Add(StaticBitmap1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticBitmap_7Segment = new wxStaticBitmap(this, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
+	FlexGridSizer1->Add(StaticBitmap_7Segment, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
@@ -71,6 +72,20 @@ SevenSegmentDialog::SevenSegmentDialog(wxWindow* parent,wxWindowID id,const wxPo
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
+
+    wxImage i;
+    i.Create(sevensegment);
+    wxBitmap ss(i);
+    StaticBitmap_7Segment->SetBitmap(ss);
+
+    CheckBox_Thousands->SetLabel("      ");
+    CheckBox_Hundreds->SetLabel("   ");
+    CheckBox_Colon->SetLabel("");
+    CheckBox_Tens->SetLabel("");
+    CheckBox_Decimal->SetLabel("");
+    CheckBox_Ones->SetLabel("  ");
+
+    FlexGridSizer1->Fit(this);
 }
 
 SevenSegmentDialog::~SevenSegmentDialog()
