@@ -87,7 +87,7 @@ class ModelTreeData : public wxTreeItemData {
 public:
     ModelTreeData(Model *m) :wxTreeItemData(), model(m) {};
     virtual ~ModelTreeData() {};
-    
+
     Model *model;
 };
 
@@ -313,7 +313,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     mDefaultSaveBtnColor = ButtonSavePreview->GetBackgroundColour();
 
     Reset();
-    
+
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     TreeListViewModels->SetColumnWidth(1, TreeListViewModels->WidthFor("1000000000000"));
     TreeListViewModels->SetColumnWidth(2, TreeListViewModels->WidthFor("1000000000000"));
@@ -688,7 +688,7 @@ void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent) {
         std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
         model->SetModelStartChan(start_channel);
     }
-    
+
     int end_channel = model->GetLastChannel()+1;
 
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, model->name,
@@ -759,7 +759,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
                 AddModelToTree(model, &root);
             }
         }
- 
+
         unsigned int mc = xlights->GetMaxNumChannels();
         wxString mcs = wxString::Format("%ld", mc);
         int sz = TreeListViewModels->WidthFor(mcs);
@@ -767,7 +767,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
         if (sz2 > sz) {
             sz = sz2;
         }
-        
+
         TreeListViewModels->SetColumnWidth(2, sz);
         TreeListViewModels->SetColumnWidth(1, sz);
         TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
@@ -879,6 +879,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     }
     UpdatePreview();
     selectedModel = nullptr;
+    mSelectedGroup = nullptr;
 
     if (!updatingProperty && addBkgProps) {
         propertyEditor->Freeze();
@@ -965,7 +966,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
     modelPreview->SetFocus();
     int foundStart = 0;
     int foundEnd = 0;
-    
+
     if (m) {
         SubModel *subModel = dynamic_cast<SubModel*>(m);
         if (subModel != nullptr) {
@@ -2573,7 +2574,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
     UnSelectAllModels(false);
     wxTreeListItem item = event.GetItem();
     if( item.IsOk() ) {
-        
+
         ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
         Model *model = data != nullptr ? data->model : nullptr;
         if( model != nullptr ) {
