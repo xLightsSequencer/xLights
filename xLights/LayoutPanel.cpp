@@ -970,6 +970,8 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
         SubModel *subModel = dynamic_cast<SubModel*>(m);
         if (subModel != nullptr) {
             subModel->GetParent()->Selected = true;
+        } else {
+            m->Selected = true;
         }
         if( highlight_tree ) {
             for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
@@ -2525,7 +2527,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     wxTreeListItem item = event.GetItem();
     if( item.IsOk() ) {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-        Model *model = data->model;
+        Model *model = data != nullptr ? data->model : nullptr;
         if( model != nullptr ) {
             if( model->GetDisplayAs() == "ModelGroup" ) {
                 mSelectedGroup = item;
@@ -2573,7 +2575,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
     if( item.IsOk() ) {
         
         ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
-        Model *model = data->model;
+        Model *model = data != nullptr ? data->model : nullptr;
         if( model != nullptr ) {
             if( model->GetDisplayAs() == "ModelGroup" ) {
                 mSelectedGroup = item;
