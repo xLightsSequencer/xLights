@@ -9,15 +9,15 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
     ModelXml = n;
     StrobeRate = 0;
     Nodes.clear();
-    
+
     name = n->GetAttribute("name").ToStdString();
     parm1 = 1;
     parm2 = 1;
     parm3 = 1;
-    
+
     bool vert = n->GetAttribute("layout") == "vertical";
     bool isRanges = n->GetAttribute("type", "ranges") == "ranges";
-    
+
     unsigned int startChannel = UINT32_MAX;
     if (isRanges) {
         int row = 0;
@@ -30,7 +30,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
             wxStringTokenizer wtkz(nodes, ",");
             while (wtkz.HasMoreTokens()) {
                 wxString valstr = wtkz.GetNextToken();
-                
+
                 int start, end;
                 if (valstr.Contains("-")) {
                     int idx = valstr.Index('-');
@@ -95,10 +95,10 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
             x2 = v.size() > 2 ? wxAtof(v[2]) : 100.0;
             y2 = v.size() > 3 ? wxAtof(v[3]) : 100.0;
         }
-        
+
         if (x1 > x2) std::swap(x1, x2);
         if (y1 > y2) std::swap(y1, y2);
-        
+
         x1 *= (float) p->GetDefaultBufferWi();
         x2 *= (float) p->GetDefaultBufferWi();
         y1 *= (float) p->GetDefaultBufferHt();
@@ -107,7 +107,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
         x2 /= 100.0;
         y1 /= 100.0;
         y2 /= 100.0;
-        
+
         int nn = p->GetNodeCount();
         for (int n = 0; n < nn; n++) {
             if (p->IsNodeInBufferRange(n, x1, y1, x2, y2)) {
@@ -125,7 +125,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
         SetBufferSize(y2, x2);
     }
     this->ModelStartChannel = wxString::Format("%u", startChannel);
-};
+}
 
 void SubModel::AddProperties(wxPropertyGridInterface *grid) {
 }

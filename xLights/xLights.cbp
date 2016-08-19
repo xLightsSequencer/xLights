@@ -876,6 +876,8 @@
 		<Unit filename="models/SpinnerModel.h" />
 		<Unit filename="models/StarModel.cpp" />
 		<Unit filename="models/StarModel.h" />
+		<Unit filename="models/SubModel.cpp" />
+		<Unit filename="models/SubModel.h" />
 		<Unit filename="models/TreeModel.cpp" />
 		<Unit filename="models/TreeModel.h" />
 		<Unit filename="models/WholeHouseModel.cpp" />
