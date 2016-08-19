@@ -195,6 +195,8 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	//*)
     Connect(ID_GRID_Custom,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellChange);
 
+    name = "";
+
     ValidateWindow();
 }
 
@@ -262,6 +264,7 @@ void CustomModelDialog::ValidateWindow()
 }
 
 void CustomModelDialog::Setup(CustomModel *m) {
+    name = m->GetName();
     background_image = m->GetCustomBackground();
     lightness = m->GetCustomLightness();
     SliderCustomLightness->SetValue(lightness);
@@ -767,6 +770,6 @@ void CustomModelDialog::OnButtonOkClick(wxCommandEvent& event)
 
 void CustomModelDialog::OnButtonWiringClick(wxCommandEvent& event)
 {
-    WiringDialog dlg(this, GridCustom, CheckBox_RearView->IsChecked());
+    WiringDialog dlg(this, GridCustom, CheckBox_RearView->IsChecked(), name);
     dlg.ShowModal();
 }

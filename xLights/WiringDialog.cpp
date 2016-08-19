@@ -11,17 +11,21 @@
 #include <wx/dcmemory.h>
 #include <wx/dcscreen.h>
 #include <wx/image.h>
+#include <wx/menu.h>
+#include <wx/filepicker.h>
 
 //(*IdInit(WiringDialog)
 const long WiringDialog::ID_STATICBITMAP1 = wxNewId();
 //*)
+
+const long WiringDialog::ID_MNU_EXPORT = wxNewId();
 
 BEGIN_EVENT_TABLE(WiringDialog,wxDialog)
 	//(*EventTable(WiringDialog)
 	//*)
 END_EVENT_TABLE()
 
-WiringDialog::WiringDialog(wxWindow* parent, wxGrid* grid, bool reverse, wxWindowID id,const wxPoint& pos,const wxSize& size)
+WiringDialog::WiringDialog(wxWindow* parent, wxGrid* grid, bool reverse, wxString modelname, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(WiringDialog)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -41,6 +45,10 @@ WiringDialog::WiringDialog(wxWindow* parent, wxGrid* grid, bool reverse, wxWindo
 
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&WiringDialog::OnResize);
 	//*)
+
+    Connect(ID_STATICBITMAP1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&WiringDialog::RightClick);
+
+    _modelname = modelname;
 
     wxScreenDC sdc;
     wxSize s = sdc.GetSize();
@@ -70,9 +78,27 @@ WiringDialog::WiringDialog(wxWindow* parent, wxGrid* grid, bool reverse, wxWindo
     StaticBitmap_Wiring->SetBitmap(sizedbmp);
 }
 
+//wxBitmap WiringDialog::RenderBitmap(std::map<int, std::list<wxPoint>>& points, int w, int h)
+//{
+    
+//}
+
+
+void RenderText(const wxString& text, wxMemoryDC& dc, int x, int y, wxColor fore, wxColor back)
+{
+    dc.SetTextForeground(back);
+    dc.DrawText(text, x - 1, y);
+    dc.DrawText(text, x+1, y);
+    dc.DrawText(text, x, y-1);
+    dc.DrawText(text, x, y+1);
+
+    dc.SetTextForeground(fore);
+    dc.DrawText(text, x, y);
+}
+
+
 void WiringDialog::RenderNodes(std::map<int, std::list<wxPoint>>& points, int width, int height)
 {
-
     wxMemoryDC dc;
     dc.SelectObject(bmp);
 
@@ -82,34 +108,53 @@ void WiringDialog::RenderNodes(std::map<int, std::list<wxPoint>>& points, int wi
 
     int r = 0.6 * std::min(bmp.GetScaledWidth() / width / 2, bmp.GetScaledHeight() / height / 2);
     if (r == 0) r = 1;
+    if (r > 5) r = 5;
 
-    dc.SetTextForeground(*wxGREEN);
-    dc.DrawText("CAUTION: Reverse view", 20, 20);
+    wxFont font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT);
+    dc.SetFont(font);
 
     int last = -10;
     wxPoint lastpt = wxPoint(0, 0);
-    dc.SetTextForeground(*wxLIGHT_GREY);
+    wxPen yellowPen(*wxYELLOW, 2);
 
+    // draw the lines
     for (auto it = points.begin(); it != points.end(); ++it)
     {
         dc.SetBrush(*wxWHITE_BRUSH);
         dc.SetPen(*wxBLACK_PEN);
-        int x = (width-it->second.front().x) * (bmp.GetScaledWidth()-40) / width - 20;
-        int y = 20 + it->second.front().y * (bmp.GetScaledHeight()-40) / height;
-        dc.DrawCircle(x, y, r);
-        dc.DrawText(wxString::Format("%d", it->first), x + r + 2, y);
+        int x = (width - it->second.front().x) * (bmp.GetScaledWidth() - 40) / width - 20;
+        int y = 20 + it->second.front().y * (bmp.GetScaledHeight() - 40) / height;
 
         if (it->first == last + 1)
         {
-            dc.SetPen(*wxYELLOW_PEN);
-            int lastx = (width - lastpt.x) * (bmp.GetScaledWidth()-40) / width - 20;
-            int lasty = 20 + lastpt.y * (bmp.GetScaledHeight()-40) / height;
+            dc.SetPen(yellowPen);
+            int lastx = (width - lastpt.x) * (bmp.GetScaledWidth() - 40) / width - 20;
+            int lasty = 20 + lastpt.y * (bmp.GetScaledHeight() - 40) / height;
             dc.DrawLine(lastx, lasty, x, y);
         }
 
         last = it->first;
         lastpt = it->second.front();
     }
+
+    // now the circles
+    for (auto it = points.begin(); it != points.end(); ++it)
+    {
+        int x = (width - it->second.front().x) * (bmp.GetScaledWidth() - 40) / width - 20;
+        int y = 20 + it->second.front().y * (bmp.GetScaledHeight() - 40) / height;
+        dc.DrawCircle(x, y, r);
+    }
+
+    // render the text after the lines so the text is not drawn over
+    for (auto it = points.begin(); it != points.end(); ++it)
+    {
+        int x = (width - it->second.front().x) * (bmp.GetScaledWidth() - 40) / width - 20;
+        int y = 20 + it->second.front().y * (bmp.GetScaledHeight() - 40) / height;
+        RenderText(wxString::Format("%d", it->first), dc, x + r + 2, y, *wxLIGHT_GREY, *wxBLACK);
+    }
+
+    RenderText("CAUTION: Reverse view", dc, 20, 20, *wxGREEN, *wxBLACK);
+    RenderText("Model: " + _modelname, dc, 20, 40, *wxGREEN, *wxBLACK);
 }
 
 void WiringDialog::RenderMultiLight(std::map<int, std::list<wxPoint>>& points, int width, int height)
@@ -124,14 +169,14 @@ void WiringDialog::RenderMultiLight(std::map<int, std::list<wxPoint>>& points, i
     dc.SetBrush(*wxBLACK_BRUSH);
     dc.DrawRectangle(wxPoint(0, 0), bmp.GetScaledSize());
 
-    dc.SetTextForeground(*wxGREEN);
-    dc.DrawText("CAUTION: Reverse view", 20, 20);
+    wxFont font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT);
+    dc.SetFont(font);
 
     int cindex = 0;
 
     int r = 0.8 * std::min(bmp.GetScaledWidth() / width / 2, bmp.GetScaledHeight() / height / 2);
     if (r == 0) r = 1;
-    dc.SetTextForeground(*wxLIGHT_GREY);
+    if (r > 5) r = 5;
 
     for (auto it = points.begin(); it != points.end(); ++it)
     {
@@ -142,12 +187,25 @@ void WiringDialog::RenderMultiLight(std::map<int, std::list<wxPoint>>& points, i
             int x = (width - it2->x) * (bmp.GetScaledWidth()-40) / width - 20;
             int y = 20 + it2->y * (bmp.GetScaledHeight()-40) / height;
             dc.DrawCircle(x, y, r);
-            dc.DrawText(wxString::Format("%d", it->first), x + r + 2, y);
         }
 
         cindex++;
         cindex %= colorcnt;
     }
+
+    for (auto it = points.begin(); it != points.end(); ++it)
+    {
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        {
+            int x = (width - it2->x) * (bmp.GetScaledWidth() - 40) / width - 20;
+            int y = 20 + it2->y * (bmp.GetScaledHeight() - 40) / height;
+
+            RenderText(wxString::Format("%d", it->first), dc, x + r + 2, y, *wxLIGHT_GREY, *wxBLACK);
+        }
+    }
+
+    RenderText("CAUTION: Reverse view", dc, 20, 20, *wxGREEN, *wxBLACK);
+    RenderText("Model: " + _modelname, dc, 20, 40, *wxGREEN, *wxBLACK);
 }
 
 std::map<int, std::list<wxPoint>> WiringDialog::ExtractPoints(wxGrid* grid, bool reverse)
@@ -205,4 +263,26 @@ void WiringDialog::OnResize(wxSizeEvent& event)
     ResizeBitmap();
     StaticBitmap_Wiring->SetBitmap(sizedbmp);
     event.Skip();
+}
+
+void WiringDialog::RightClick(wxContextMenuEvent& event)
+{
+    wxMenu mnuLayer;
+    wxMenuItem* menu_export = mnuLayer.Append(ID_MNU_EXPORT, "Export");
+    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&WiringDialog::OnPopup, nullptr, this);
+    PopupMenu(&mnuLayer);
+}
+
+void WiringDialog::OnPopup(wxCommandEvent& event)
+{
+    int id = event.GetId();
+    if (id == ID_MNU_EXPORT)
+    {
+        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _modelname, wxEmptyString, "PNG File (*.png)|*.png", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        if (filename != "")
+        {
+            wxImage img = bmp.ConvertToImage();
+            img.SaveFile(filename, wxBITMAP_TYPE_PNG);
+        }
+    }
 }

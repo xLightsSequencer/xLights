@@ -14,16 +14,20 @@
 
 class WiringDialog: public wxDialog
 {
+    wxString _modelname;
     wxBitmap bmp;
     wxBitmap sizedbmp;
     void RenderMultiLight(std::map<int, std::list<wxPoint>>& points, int width, int height);
     void RenderNodes(std::map<int, std::list<wxPoint>>& points, int width, int height);
     std::map<int, std::list<wxPoint>> ExtractPoints(wxGrid* grid, bool reverse);
     void ResizeBitmap(void);
+    void RightClick(wxContextMenuEvent& event);
+    void OnPopup(wxCommandEvent& event);
+    static const long ID_MNU_EXPORT;
 
     public:
 
-		WiringDialog(wxWindow* parent, wxGrid* grid, bool reverse,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		WiringDialog(wxWindow* parent, wxGrid* grid, bool reverse, wxString modelname,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~WiringDialog();
 
 		//(*Declarations(WiringDialog)

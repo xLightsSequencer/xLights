@@ -109,6 +109,7 @@ class CustomModelDialog: public wxDialog
         bool autonumber;
         bool autoincrement;
         int next_channel;
+        wxString name;
 
 	public:
 
