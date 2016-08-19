@@ -1104,7 +1104,7 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
     TextCtrl_GCM_Filename->Disable();
 
     log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-    logger_gcm.info("File: %s.", std::string(TextCtrl_GCM_Filename->GetValue().c_str()).c_str());
+    logger_gcm.info("File: %s.", (const char *)TextCtrl_GCM_Filename->GetValue().c_str());
 
     if (RadioBox2->GetSelection() == 2)
     {
@@ -1815,7 +1815,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         Button_BI_Back->Enable();
         Gauge_Progress->Hide();
         SetCursor(wxCURSOR_ARROW);
-        logger_gcm.info("Result: %s.", std::string(TextCtrl_BI_Status->GetValue().c_str()).c_str());
+        logger_gcm.info("Result: %s.", (const char *)TextCtrl_BI_Status->GetValue().c_str());
         _busy = false;
     }
 }
@@ -2586,10 +2586,10 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     if (filename.IsEmpty()) return;
     wxFile f(filename);
     log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-    logger_gcm.info("Saving to xmodel file %s.", std::string(filename.c_str()).c_str());
+    logger_gcm.info("Saving to xmodel file %s.", (const char *)filename.c_str());
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        logger_gcm.info("Unable to create file %s. Error %d\n", std::string(filename.c_str()).c_str(), f.GetLastError());
+        logger_gcm.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
         wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
         return;
     }
@@ -3000,7 +3000,7 @@ void GenerateCustomModelDialog::OnButton_CV_ManualClick(wxCommandEvent& event)
     _manual = true;
 
     log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-    logger_gcm.info("File: %s.", std::string(TextCtrl_GCM_Filename->GetValue().c_str()).c_str());
+    logger_gcm.info("File: %s.", (const char *)TextCtrl_GCM_Filename->GetValue().c_str());
 
     MITabEntry(true);
     SwapPage(PAGE_CHOOSEVIDEO, PAGE_MANUALIDENTIFY);

@@ -557,7 +557,7 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
                     int ref = wxAtoi(effect->GetAttribute(STR_REF));
                     if (ref >= effectStrings.size())
                     {
-                        logger_base.warn("Effect string not found for effect %s between %d and %d. Settings ignored.", effectName.c_str(), (int)startTime, (int)endTime);
+                        logger_base.warn("Effect string not found for effect %s between %d and %d. Settings ignored.", (const char *)effectName.c_str(), (int)startTime, (int)endTime);
                         settings = "";
                     }
                     else

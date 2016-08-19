@@ -204,7 +204,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
         {
             wxMessageBox(_("Unable to load network definition file"), _("Error"));
         } else {
-            logger_base.debug("Loaded network config %s", networkFile.GetFullPath().ToStdString().c_str());
+            logger_base.debug("Loaded network config %s", (const char*)networkFile.GetFullPath().ToStdString().c_str());
         }
     }
 
@@ -218,9 +218,9 @@ void xLightsFrame::SetDir(const wxString& newdir)
     scheduleFile.SetFullName(_(XLIGHTS_SCHEDULE_FILE));
     if (scheduleFile.FileExists())
     {
-        logger_base.debug("Loading schedule %s", scheduleFile.GetFullPath().ToStdString().c_str());
+        logger_base.debug("Loading schedule %s", (const char *)scheduleFile.GetFullPath().ToStdString().c_str());
         LoadScheduleFile();
-        logger_base.debug("Loaded schedule %s", scheduleFile.GetFullPath().ToStdString().c_str());
+        logger_base.debug("Loaded schedule %s", (const char *)scheduleFile.GetFullPath().ToStdString().c_str());
     }
     DisplaySchedule();
 

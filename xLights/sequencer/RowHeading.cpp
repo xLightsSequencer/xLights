@@ -334,10 +334,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (fn.GetExt().Lower() == "xtiming")
         {
             wxFile f(filename);
-            logger_base.info("Saving to xtiming file %s.", std::string(filename.c_str()).c_str());
+            logger_base.info("Saving to xtiming file %s.", (const char *)filename.c_str());
             if (!f.Create(filename, true) || !f.IsOpened())
             {
-                logger_base.info("Unable to create file %s. Error %d\n", std::string(filename.c_str()).c_str(), f.GetLastError());
+                logger_base.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
                 wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
                 return;
             }
@@ -354,10 +354,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         else if (fn.GetExt().Lower() == "pgo")
         {
             wxFile f(filename);
-            logger_base.info("Saving to papagayo file %s.", std::string(filename.c_str()).c_str());
+            logger_base.info("Saving to papagayo file %s.", (const char *)filename.c_str());
             if (!f.Create(filename, true) || !f.IsOpened())
             {
-                logger_base.info("Unable to create file %s. Error %d\n", std::string(filename.c_str()).c_str(), f.GetLastError());
+                logger_base.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
                 wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
                 return;
             }

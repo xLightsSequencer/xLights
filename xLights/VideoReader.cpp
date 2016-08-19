@@ -62,7 +62,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	{
         if (_codecContext->width == 0 || _codecContext->height == 0)
         {
-            logger_base.error("VideoReader: Invalid input reader dimensions (%d,%d) %s", _codecContext->width, _codecContext->height, filename.c_str());
+            logger_base.error("VideoReader: Invalid input reader dimensions (%d,%d) %s", _codecContext->width, _codecContext->height, (const char *)filename.c_str());
             return;
         }
 

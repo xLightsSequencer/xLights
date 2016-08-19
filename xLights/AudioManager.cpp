@@ -394,7 +394,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                     {
                         keys += " " + std::string(wxString::Format("%f", *it2).c_str());
                     }
-                    logger_pianodata.debug("%d,%s", ms, keys.c_str());
+                    logger_pianodata.debug("%d,%s", ms, (const char *)keys.c_str());
                 }
             }
             //printf("Total points: %u", total);

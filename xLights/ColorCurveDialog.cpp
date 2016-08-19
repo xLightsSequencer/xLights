@@ -755,11 +755,11 @@ void ColorCurveDialog::OnButtonExportClick(wxCommandEvent& event)
 
     wxFile f(filename);
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Saving to xcc file %s.", std::string(filename.c_str()).c_str());
+    logger_base.info("Saving to xcc file %s.", (const char *)filename.c_str());
 
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        logger_base.info("Unable to create file %s. Error %d\n", std::string(filename.c_str()).c_str(), f.GetLastError());
+        logger_base.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
         wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
         return;
     }

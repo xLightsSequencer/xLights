@@ -1396,7 +1396,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     } else {
         colorPanel->SetColorCount(8);
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.warn("Setting effect controls for unknown effect type: %s", effectName.c_str());
+        logger_base.warn("Setting effect controls for unknown effect type: %s", (const char *)effectName.c_str());
     }
 }
 
@@ -1985,7 +1985,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadPolyphonicTranscription(AudioM
                 {
                     keys += " " + std::string(wxString::Format("%f", *it2).c_str());
                 }
-                logger_pianodata.debug("%d,%s", it->first, keys.c_str());
+                logger_pianodata.debug("%d,%s", it->first, (const char *)keys.c_str());
             }
         }
 
@@ -2069,7 +2069,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadAudacityFile(std::string file,
                 {
                     keys += " " + std::string(wxString::Format("%f", *it2).c_str());
                 }
-                logger_pianodata.debug("%d,%s", it->first, keys.c_str());
+                logger_pianodata.debug("%d,%s", it->first, (const char *)keys.c_str());
             }
         }
     }
@@ -2141,7 +2141,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadMusicXMLFile(std::string file,
                 {
                     keys += " " + std::string(wxString::Format("%f", *it2).c_str());
                 }
-                logger_pianodata.debug("%d,%s", it->first, keys.c_str());
+                logger_pianodata.debug("%d,%s", it->first, (const char *)keys.c_str());
             }
         }
     }
@@ -2257,7 +2257,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadMIDIFile(std::string file, int
                 {
                     keys += " " + std::string(wxString::Format("%f", *it2).c_str());
                 }
-                logger_pianodata.debug("%d,%s", it->first, keys.c_str());
+                logger_pianodata.debug("%d,%s", it->first, (const char *)keys.c_str());
             }
         }
     }

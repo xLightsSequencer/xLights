@@ -112,12 +112,12 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
         EffectLayer* layer = mEffect->GetParentEffectLayer();
         if (layer == nullptr) {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("No layer found for effect %s", mEffect->GetEffectName().c_str());
+            logger_base.error("No layer found for effect %s", (const char *)mEffect->GetEffectName().c_str());
         }
         Element* elem = layer->GetParentElement();
         if (elem == nullptr) {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("No element found for effect %s", mEffect->GetEffectName().c_str());
+            logger_base.error("No element found for effect %s", (const char *)mEffect->GetEffectName().c_str());
         }
         std::string model_name = elem->GetModelName();
         mModel = xlights_parent->GetModel(model_name);
@@ -129,7 +129,7 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
         }
         if (mModel == nullptr) {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("No model found for effect %s for model %s", mEffect->GetEffectName().c_str(), model_name.c_str());
+            logger_base.error("No model found for effect %s for model %s", (const char *)mEffect->GetEffectName().c_str(), (const char *)model_name.c_str());
         }
         RefreshEffect();
     }
