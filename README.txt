@@ -14,6 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (dkulp)   Add standard OSX "Window" menu item
    -- bug (dkulp)   Fix prompt of modified sequence when closing an unmodified sequence
    -- bug (gil)     Fix import of Superstar Spirals spin direction.
+   -- bug (gil)     Fix PolyLine when controller is position is right.
    -- bug (keithsw) Fix seven segment bitmap
    -- bug (keithsw) Fix video export of model for non matrices
    -- enh (keithsw) Add value curve user definable presets
