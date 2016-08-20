@@ -305,7 +305,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     ModelGroupWindow = new wxScrolledWindow(ModelSplitter);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     ModelGroupWindow->SetSizer(sizer);
-    model_grp_panel = new ModelGroupPanel(ModelGroupWindow, xlights->AllModels, xlights);
+    model_grp_panel = new ModelGroupPanel(ModelGroupWindow, xlights->AllModels, this);
     sizer->Add( model_grp_panel, 1, wxEXPAND | wxALL, 1 );
     ModelGroupWindow->SetScrollRate(5,5);
     ModelGroupWindow->Hide();
@@ -609,14 +609,14 @@ void LayoutPanel::clearPropGrid() {
 }
 
 void LayoutPanel::refreshModelList() {
-    std::string item_name = "";
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
           item.IsOk();
           item = TreeListViewModels->GetNextItem(item) )
     {
-        item_name = TreeListViewModels->GetItemText(item);
-        Model *model = xlights->AllModels[item_name];
-        if( model != nullptr ) {
+        ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+        Model *model = data != nullptr ? data->model : nullptr;
+
+        if (model != nullptr ) {
             std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
             model->SetModelStartChan(start_channel);
             int end_channel = model->GetLastChannel()+1;
@@ -635,7 +635,7 @@ void LayoutPanel::RenameModelInTree(Model *model, const std::string new_name)
           item = TreeListViewModels->GetNextItem(item) )
     {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-        if (data->model == model) {
+        if (data != nullptr && data->model == model) {
             TreeListViewModels->SetItemText(item, wxString(new_name.c_str()));
         }
     }
@@ -712,7 +712,9 @@ void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent) {
 }
 
 void LayoutPanel::UpdateModelList(bool full_refresh) {
-    UnSelectAllModels();
+    if (full_refresh) {
+        UnSelectAllModels();
+    }
 
     std::vector<Model *> models;
     std::vector<Model *> dummy_models;
@@ -794,14 +796,14 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
 
     // add in any models that were not in preview but belong to a group that is in the preview
     std::string selected_group_name = "";
-    if( mSelectedGroup != nullptr && filtering) {
+    if( mSelectedGroup.IsOk() && filtering) {
         selected_group_name = TreeListViewModels->GetItemText(mSelectedGroup);
     }
 
     for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
         Model *model = it->second;
         bool mark_selected = false;
-        if( (mSelectedGroup != nullptr) && filtering && (model->name == selected_group_name) ) {
+        if( mSelectedGroup.IsOk() && filtering && (model->name == selected_group_name) ) {
             mark_selected = true;
         }
         if (model->GetDisplayAs() == "ModelGroup") {
@@ -980,7 +982,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
                   item = TreeListViewModels->GetNextSibling(item) )
             {
                 ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-                if( mitem->model == m ) {
+                if( mitem != nullptr && mitem->model == m ) {
                     TreeListViewModels->Select(item);
                     TreeListViewModels->EnsureVisible(item);
                     break;
@@ -1000,13 +1002,12 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
 
     selectedModel = m;
     if (CheckBoxOverlap->GetValue()) {
-        std::string item_name = "";
         for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
               item.IsOk();
               item = TreeListViewModels->GetNextSibling(item) )
         {
-            item_name = TreeListViewModels->GetItemText(item);
-            Model *m = xlights->AllModels[item_name];
+            ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+            Model *m = data != nullptr ? data->model : nullptr;
             if( m != nullptr ) {
                 int startChan = m->GetNumberFromChannelString(m->ModelStartChannel);
                 int endChan = m->GetLastChannel();
@@ -1029,13 +1030,13 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
 void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
 {
     if (CheckBoxOverlap->GetValue() == false) {
-        std::string item_name = "";
         for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
               item.IsOk();
               item = TreeListViewModels->GetNextSibling(item) )
         {
-            item_name = TreeListViewModels->GetItemText(item);
-            Model *model = xlights->AllModels[item_name];
+            ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+            Model *model = data != nullptr ? data->model : nullptr;
+
             if( model != nullptr ) {
                 if( model->GetDisplayAs() != "ModelGroup" ) {
                     model->Overlapping = false;
@@ -2253,7 +2254,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
     }
     else if(id == ID_MNU_DELETE_MODEL_GROUP)
     {
-        if( mSelectedGroup != nullptr ) {
+        if( mSelectedGroup.IsOk() ) {
             wxString name = TreeListViewModels->GetItemText(mSelectedGroup);
             if (wxMessageBox("Are you sure you want to remove the " + name + " group?", "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
                 xlights->AllModels.Delete(name.ToStdString());
@@ -2268,7 +2269,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
     }
     else if(id == ID_MNU_RENAME_MODEL_GROUP)
     {
-        if( mSelectedGroup != nullptr ) {
+        if( mSelectedGroup.IsOk() ) {
             wxString sel = TreeListViewModels->GetItemText(mSelectedGroup);
             wxTextEntryDialog dlg(this, "Enter new name for group " + sel, "Rename " + sel, sel);
             if (dlg.ShowModal() == wxID_OK) {
@@ -2545,7 +2546,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         mnuContext.AppendSeparator();
     }
     mnuContext.Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
-    if( mSelectedGroup != nullptr ) {
+    if( mSelectedGroup.IsOk() ) {
         mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
         mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
     }
@@ -2601,3 +2602,29 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
     }
 }
 
+void LayoutPanel::ModelGroupUpdated(ModelGroup *grp) {
+    for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
+         item.IsOk();
+         item = TreeListViewModels->GetNextItem(item) )
+    {
+        ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+        if (data != nullptr && data->model == grp) {
+            bool expanded = TreeListViewModels->IsExpanded(item);
+            wxTreeListItem child = TreeListViewModels->GetFirstChild(item);
+            while (child.IsOk()) {
+                TreeListViewModels->DeleteItem(child);
+                child = TreeListViewModels->GetFirstChild(item);
+            }
+            for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
+                Model *m = xlights->AllModels[*it];
+                AddModelToTree(m, &item);
+            }
+            if (expanded) {
+                TreeListViewModels->Expand(item);
+            }
+        }
+    }
+    
+    xlights->UnsavedRgbEffectsChanges = true;
+    UpdateModelList(false);
+}

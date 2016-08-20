@@ -11,6 +11,7 @@
 #include "xLightsMain.h"
 #include "models/ModelManager.h"
 #include "models/ModelGroup.h"
+#include "LayoutPanel.h"
 #include <wx/xml/xml.h>
 
 //(*IdInit(ModelGroupPanel)
@@ -36,8 +37,8 @@ BEGIN_EVENT_TABLE(ModelGroupPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFrame *xl,wxWindowID id,const wxPoint& pos,const wxSize& size)
-:   xlights(xl), mModels(Models)
+ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPanel *xl,wxWindowID id,const wxPoint& pos,const wxSize& size)
+:   layoutPanel(xl), mModels(Models)
 {
 	//(*Initialize(ModelGroupPanel)
 	wxFlexGridSizer* FlexGridSizer3;
@@ -310,9 +311,7 @@ void ModelGroupPanel::SaveGroupChanges()
             break;
     }
     g->Reset();
-    xlights->UpdateModelsList();
-    xlights->UnsavedRgbEffectsChanges = true;
-    xlights->UpdatePreview();
+    layoutPanel->ModelGroupUpdated(g);
 }
 
 void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
@@ -321,8 +320,5 @@ void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
     wxXmlNode *e = g->GetModelXml();
     e->DeleteAttribute("LayoutGroup");
     e->AddAttribute("LayoutGroup", ChoicePreviews->GetString(ChoicePreviews->GetCurrentSelection()));
-    xlights->UpdateModelsList();
-    xlights->UnsavedRgbEffectsChanges = true;
-    xlights->UpdatePreview();
-    xlights->RefreshLayout();
+    layoutPanel->ModelGroupUpdated(g);
 }

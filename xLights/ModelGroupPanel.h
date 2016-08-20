@@ -12,13 +12,13 @@
 //*)
 
 class ModelManager;
-class xLightsFrame;
+class LayoutPanel;
 
 class ModelGroupPanel: public wxPanel
 {
 	public:
 
-		ModelGroupPanel(wxWindow* parent,ModelManager &Models,xLightsFrame *xl,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPanel *xl,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ModelGroupPanel();
 
 		void UpdatePanel(const std::string group);
@@ -60,7 +60,7 @@ class ModelGroupPanel: public wxPanel
 		//*)
 
 	private:
-        xLightsFrame *xlights;
+        LayoutPanel *layoutPanel;
         ModelManager &mModels;
         std::string mGroup;
         void SaveGroupChanges();

@@ -142,6 +142,8 @@ class LayoutPanel: public wxPanel
         const std::string& GetCurrentLayoutGroup() {return currentLayoutGroup;}
         void Reset();
         void SetDirtyHiLight(bool dirty);
+    
+        void ModelGroupUpdated(ModelGroup *group);
 
     protected:
         void ExportModel();
