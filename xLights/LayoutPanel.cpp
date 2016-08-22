@@ -663,8 +663,14 @@ void LayoutPanel::refreshModelList() {
         if (model != nullptr ) {
             int end_channel = model->GetLastChannel()+1;
             if( model->GetDisplayAs() != "ModelGroup" ) {
-                TreeListViewModels->SetItemText(item, Col_StartChan, model->ModelStartChannel);
-                TreeListViewModels->SetItemText(item, Col_EndChan, wxString::Format(wxT("%i"),end_channel));
+                wxString cv = TreeListViewModels->GetItemText(item, Col_StartChan);
+                if (cv != model->ModelStartChannel) {
+                    TreeListViewModels->SetItemText(item, Col_StartChan, model->ModelStartChannel);
+                }
+                cv = TreeListViewModels->GetItemText(item, Col_EndChan);
+                if (cv != model->ModelStartChannel) {
+                    TreeListViewModels->SetItemText(item, Col_EndChan, wxString::Format(wxT("%i"),end_channel));
+                }
             }
         }
     }
@@ -813,6 +819,12 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
         TreeListViewModels->SetColumnWidth(1, sz);
         TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
         TreeListViewModels->Thaw();
+        
+        // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
+        int i = TreeListViewModels->GetColumnWidth(0);
+        if (i > 10) {
+            TreeListViewModels->SetColumnWidth(0, i);
+        }
     }
 
     modelPreview->SetModels(models);

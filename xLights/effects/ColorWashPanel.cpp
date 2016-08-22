@@ -121,9 +121,3 @@ ColorWashPanel::~ColorWashPanel()
 }
 
 PANEL_EVENT_HANDLERS(ColorWashPanel)
-
-
-static inline void EnableControl(wxWindow *w, int id, bool e) {
-    wxWindow *c = w->FindWindowById(id);
-    if (c) c->Enable(e);
-}

@@ -108,10 +108,6 @@ void VideoPanel::addVideoTime(std::string fn, unsigned long ms) {
 
 PANEL_EVENT_HANDLERS(VideoPanel)
 
-static inline void EnableControl(wxWindow *w, int id, bool e) {
-    wxWindow *c = w->FindWindowById(id);
-    if (c) c->Enable(e);
-}
 
 void VideoPanel::OnSlider_Video_StarttimeCmdSliderUpdated(wxScrollEvent& event)
 {

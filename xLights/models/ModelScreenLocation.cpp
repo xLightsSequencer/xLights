@@ -17,14 +17,6 @@ static inline void TranslatePointDoubles(float radians,float x, float y,float &x
     x1 = c*x-(s*y);
     y1 = s*x+(c*y);
 }
-static inline void RotatePoint(float radians, float &x1, float &y1) {
-    float x = x1;
-    float y = y1;
-    float s = sin(radians);
-    float c = cos(radians);
-    x1 = c*x-(s*y);
-    y1 = s*x+(c*y);
-}
 
 static inline float toRadians(long degrees) {
     return 2.0*M_PI*float(degrees)/360.0f;

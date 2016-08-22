@@ -157,9 +157,6 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
 
     switch (Direction)
     {
-        if( BandSize > 0 ) {
-            UpdateFillColor(current_pos, current_color, colorcnt, color_size, 1);
-        }
         default:
         case 0:  // Up
             offset %= buffer.BufferHt;

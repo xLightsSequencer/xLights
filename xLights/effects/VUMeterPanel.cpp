@@ -267,11 +267,6 @@ VUMeterPanel::~VUMeterPanel()
 
 PANEL_EVENT_HANDLERS(VUMeterPanel)
 
-static inline void EnableControl(wxWindow *w, int id, bool e) {
-    wxWindow *c = w->FindWindowById(id);
-    if (c) c->Enable(e);
-}
-
 void VUMeterPanel::ValidateWindow()
 {
     if (Choice_VUMeter_Type->GetStringSelection() == "Timing Event Spike" ||

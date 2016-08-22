@@ -241,8 +241,7 @@ PANEL_EVENT_HANDLERS(ColorPanel)
 void ColorPanel::SetColorCount(int count)
 {
     // Disabling this as we dont really want to limit the colours to from left to right ... but it would be clearer
-    return;
-
+#if 0
     if (count == -1)
     {
         for (int i = 0; i < PALETTE_SIZE; i++)
@@ -285,6 +284,7 @@ void ColorPanel::SetColorCount(int count)
             CtrlWin->Disable();
         }
     }
+#endif
 }
 
 void ColorPanel::SetButtonColor(ColorCurveButton* btn, const std::string& cstr)

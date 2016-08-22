@@ -317,20 +317,6 @@ void xLightsXmlFile::AddTimingDisplayElement( const wxString& name, const wxStri
     }
 
 }
-static wxString GetContent(wxXmlNode *node) {
-    wxString s = node->GetContent();
-    if (s.IsEmpty()) {
-        node = node->GetChildren();
-        while (node != nullptr) {
-            s = node->GetContent();
-            if (!s.IsEmpty()) {
-                return s;
-            }
-            node = node->GetNext();
-        }
-    }
-    return s;
-}
 
 int xLightsXmlFile::AddColorPalette(StringIntMap &paletteCache, const wxString &palette) {
     int cnt = 0;

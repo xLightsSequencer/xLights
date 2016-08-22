@@ -236,11 +236,6 @@ MusicPanel::~MusicPanel()
 
 PANEL_EVENT_HANDLERS(MusicPanel)
 
-static inline void EnableControl(wxWindow *w, int id, bool e) {
-    wxWindow *c = w->FindWindowById(id);
-    if (c) c->Enable(e);
-}
-
 void MusicPanel::ValidateWindow()
 {
     Slider_Music_StartNote->SetToolTip(wxString(xLightsFrame::DecodeMidi(Slider_Music_StartNote->GetValue()).c_str()));

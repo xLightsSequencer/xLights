@@ -268,7 +268,7 @@ void WiringDialog::OnResize(wxSizeEvent& event)
 void WiringDialog::RightClick(wxContextMenuEvent& event)
 {
     wxMenu mnuLayer;
-    wxMenuItem* menu_export = mnuLayer.Append(ID_MNU_EXPORT, "Export");
+    mnuLayer.Append(ID_MNU_EXPORT, "Export");
     mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&WiringDialog::OnPopup, nullptr, this);
     PopupMenu(&mnuLayer);
 }

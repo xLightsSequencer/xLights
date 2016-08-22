@@ -321,7 +321,6 @@ static int TextEffectsIndex(const wxString &st) {
 void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     xlColor c;
     buffer.textDrawingContext->Clear();
-    size_t colorcnt=buffer.GetColorCount();
 
     buffer.palette.GetColor(0,c);
 

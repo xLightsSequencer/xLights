@@ -262,14 +262,6 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
     //delete dataModel;
 }
 
-static wxArrayString Convert(const std::vector<std::string> arr) {
-    wxArrayString ret;
-    for (auto it = arr.begin(); it != arr.end(); it++) {
-        ret.push_back(*it);
-    }
-    return ret;
-}
-
 int CountChar(wxString& line, char c)
 {
     int count = 0;

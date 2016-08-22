@@ -365,11 +365,6 @@ TendrilPanel::~TendrilPanel()
 
 PANEL_EVENT_HANDLERS(TendrilPanel)
 
-static inline void EnableControl(wxWindow *w, int id, bool e) {
-    wxWindow *c = w->FindWindowById(id);
-    if (c) c->Enable(e);
-}
-
 void TendrilPanel::OnChoice_Tendril_MovementSelect(wxCommandEvent& event)
 {
     ValidateWindow();
