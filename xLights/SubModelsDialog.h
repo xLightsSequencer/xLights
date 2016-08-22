@@ -96,6 +96,9 @@ private:
     
     class SubModelInfo {
     public:
+        SubModelInfo() {}
+        SubModelInfo(const wxString &n) : name(n) {}
+        
         wxString name;
         bool vertical;
         bool isRanges;
@@ -103,10 +106,13 @@ private:
         std::vector<wxString> strands;
     };
     
+    SubModelInfo &GetSubModelInfo(const wxString &str);
+    int GetSubModelInfoIndex(const wxString &str);
+    
     Model *model;
     ModelPreview *modelPreview;
     SubBufferPanel *subBufferPanel;
-    std::map<wxString, SubModelInfo> subModels;
+    std::vector<SubModelInfo> subModels;
     
 };
 

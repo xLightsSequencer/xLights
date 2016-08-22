@@ -189,6 +189,17 @@ SubModelsDialog::~SubModelsDialog()
 	//*)
 }
 
+SubModelsDialog::SubModelInfo &SubModelsDialog::GetSubModelInfo(const wxString &str) {
+    for (int x = 0; x < subModels.size(); x++) {
+        if (subModels[x].name == str) {
+            return subModels[x];
+        }
+    }
+    subModels.push_back(SubModelInfo(str));
+    return subModels.back();
+}
+
+
 void SubModelsDialog::Setup(Model *m)
 {
     NameChoice->Clear();
@@ -200,18 +211,19 @@ void SubModelsDialog::Setup(Model *m)
     while (child != nullptr) {
         if (child->GetName() == "subModel") {
             wxString name = child->GetAttribute("name");
-            subModels[name].name = name;
-            subModels[name].isRanges = child->GetAttribute("type", "ranges") == "ranges";
-            subModels[name].vertical = child->GetAttribute("layout") == "vertical";
-            subModels[name].subBuffer = child->GetAttribute("subBuffer");
-            subModels[name].strands.resize(1);
-            subModels[name].strands[0] = "";
+            SubModelInfo &sm = GetSubModelInfo(name);
+            sm.name = name;
+            sm.isRanges = child->GetAttribute("type", "ranges") == "ranges";
+            sm.vertical = child->GetAttribute("layout") == "vertical";
+            sm.subBuffer = child->GetAttribute("subBuffer");
+            sm.strands.resize(1);
+            sm.strands[0] = "";
             int x = 0;
             while (child->HasAttribute(wxString::Format("line%d", x))) {
-                if (x >= subModels[name].strands.size()) {
-                    subModels[name].strands.resize(x + 1);
+                if (x >= sm.strands.size()) {
+                    sm.strands.resize(x + 1);
                 }
-                subModels[name].strands[x] = child->GetAttribute(wxString::Format("line%d", x));
+                sm.strands[x] = child->GetAttribute(wxString::Format("line%d", x));
                 x++;
             }
             NameChoice->Append(name);
@@ -248,18 +260,27 @@ void SubModelsDialog::Save()
     }
     for (auto a = subModels.begin(); a != subModels.end(); a++) {
         child = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-        child->AddAttribute("name", a->second.name);
-        child->AddAttribute("layout", a->second.vertical ? "vertical" : "horizontal");
-        child->AddAttribute("type", a->second.isRanges ? "ranges" : "subbuffer");
-        if (a->second.isRanges) {
-            for (int x = 0; x < a->second.strands.size(); x++) {
-                child->AddAttribute(wxString::Format("line%d", x), a->second.strands[x]);
+        child->AddAttribute("name", a->name);
+        child->AddAttribute("layout", a->vertical ? "vertical" : "horizontal");
+        child->AddAttribute("type", a->isRanges ? "ranges" : "subbuffer");
+        if (a->isRanges) {
+            for (int x = 0; x < a->strands.size(); x++) {
+                child->AddAttribute(wxString::Format("line%d", x), a->strands[x]);
             }
         } else {
-            child->AddAttribute("subBuffer", a->second.subBuffer);
+            child->AddAttribute("subBuffer", a->subBuffer);
         }
         root->AddChild(child);
     }
+}
+
+int SubModelsDialog::GetSubModelInfoIndex(const wxString &name) {
+    for (int x = 0; x < subModels.size(); x++) {
+        if (subModels[x].name == name) {
+            return x;
+        }
+    }
+    return -1;
 }
 
 void SubModelsDialog::OnAddButtonClick(wxCommandEvent& event)
@@ -267,16 +288,18 @@ void SubModelsDialog::OnAddButtonClick(wxCommandEvent& event)
     wxTextEntryDialog dlg(this, "Enter name for sub model");
     wxString name = "";
     int id = wxID_OK;
-    while (name == "" && subModels.find(name) == subModels.end() && id == wxID_OK) {
+    while (name == "" && GetSubModelInfoIndex(name) == -1 && id == wxID_OK) {
         id = dlg.ShowModal();
         name= dlg.GetValue();
     }
     if (id == wxID_OK) {
-        subModels[name].name = name;
-        subModels[name].vertical = false;
-        subModels[name].isRanges = true;
-        subModels[name].strands.clear();
-        subModels[name].strands.push_back("");
+        SubModelInfo &sm = GetSubModelInfo(name);
+
+        sm.name = name;
+        sm.vertical = false;
+        sm.isRanges = true;
+        sm.strands.clear();
+        sm.strands.push_back("");
         NameChoice->Append(name);
         Select(name);
     }
@@ -288,7 +311,7 @@ void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
                               "Delete Model",
                               wxYES_NO, this);
     if (answer == wxYES) {
-        subModels.erase(subModels.find(NameChoice->GetStringSelection()));
+        subModels.erase(subModels.begin() + GetSubModelInfoIndex(NameChoice->GetStringSelection()));
         NameChoice->Delete(NameChoice->GetSelection());
         if (NameChoice->GetCount() > 0) {
             NameChoice->SetSelection(0);
@@ -320,29 +343,30 @@ void SubModelsDialog::Select(const wxString &name) {
     subBufferPanel->Enable();
     TypeNotebook->Enable();
 
-    DeleteRowButton->Enable(subModels[name].strands.size() > 1);
+    SubModelInfo &sm = GetSubModelInfo(name);
+    DeleteRowButton->Enable(sm.strands.size() > 1);
 
     NameChoice->SetStringSelection(name);
 
-    if (subModels[name].isRanges) {
+    if (sm.isRanges) {
         TypeNotebook->SetSelection(0);
-        LayoutCheckbox->SetValue(subModels[name].vertical);
+        LayoutCheckbox->SetValue(sm.vertical);
         NodesGrid->BeginBatch();
         if (NodesGrid->GetNumberRows() > 0) {
             NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
         }
-        for (int x = 0; x < subModels[name].strands.size(); x++) {
+        for (int x = 0; x < sm.strands.size(); x++) {
             NodesGrid->AppendRows(1);
             NodesGrid->SetRowLabelValue(x, wxString::Format("Line %d", (x + 1)));
-            NodesGrid->SetCellValue(x, 0, subModels[name].strands[x]);
+            NodesGrid->SetCellValue(x, 0, sm.strands[x]);
         }
         NodesGrid->EndBatch();
         NodesGrid->GoToCell(0, 0);
         SelectRow(0);
     } else {
         TypeNotebook->SetSelection(1);
-        subBufferPanel->SetValue(subModels[name].subBuffer.ToStdString());
-        DisplayRange(subModels[name].subBuffer);
+        subBufferPanel->SetValue(sm.subBuffer.ToStdString());
+        DisplayRange(sm.subBuffer);
     }
 }
 
@@ -350,7 +374,8 @@ void SubModelsDialog::Select(const wxString &name) {
 void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
 {
     int r = event.GetRow();
-    subModels[NameChoice->GetStringSelection()].strands[r] = NodesGrid->GetCellValue(r, 0);
+    SubModelInfo &sm = GetSubModelInfo(NameChoice->GetStringSelection());
+    sm.strands[r] = NodesGrid->GetCellValue(r, 0);
     SelectRow(r);
 }
 
@@ -446,13 +471,15 @@ void SubModelsDialog::SelectRow(int r) {
 
 void SubModelsDialog::OnLayoutCheckboxClick(wxCommandEvent& event)
 {
-    subModels[NameChoice->GetStringSelection()].vertical = LayoutCheckbox->GetValue();
+    SubModelInfo &sm = GetSubModelInfo(NameChoice->GetStringSelection());
+    sm.vertical = LayoutCheckbox->GetValue();
 }
 
 void SubModelsDialog::OnAddRowButtonClick(wxCommandEvent& event)
 {
     wxString name = NameChoice->GetStringSelection();
-    subModels[name].strands.push_back("");
+    SubModelInfo &sm = GetSubModelInfo(name);
+    sm.strands.push_back("");
     DeleteRowButton->Enable();
     Select(name);
 }
@@ -460,27 +487,30 @@ void SubModelsDialog::OnAddRowButtonClick(wxCommandEvent& event)
 void SubModelsDialog::OnDeleteRowButtonClick(wxCommandEvent& event)
 {
     wxString name = NameChoice->GetStringSelection();
+    SubModelInfo &sm = GetSubModelInfo(name);
     int row = NodesGrid->GetGridCursorRow();
-    int sz = subModels[name].strands.size();
-    subModels[name].strands.erase(subModels[name].strands.begin()+row);
-    subModels[name].strands.resize(sz - 1);
+    int sz = sm.strands.size();
+    sm.strands.erase(sm.strands.begin()+row);
+    sm.strands.resize(sz - 1);
     Select(name);
-    DeleteRowButton->Enable(subModels[name].strands.size() > 1);
+    DeleteRowButton->Enable(sm.strands.size() > 1);
 }
 
 void SubModelsDialog::OnTypeNotebookPageChanged(wxBookCtrlEvent& event)
 {
     wxString name = NameChoice->GetStringSelection();
-    subModels[name].isRanges = TypeNotebook->GetSelection() == 0;
+    SubModelInfo &sm = GetSubModelInfo(name);
+    sm.isRanges = TypeNotebook->GetSelection() == 0;
     Select(name);
 }
 
 void SubModelsDialog::OnSubBufferRangeChange(wxCommandEvent& event)
 {
     wxString name = NameChoice->GetStringSelection();
-    subModels[name].isRanges = false;
-    subModels[name].subBuffer = event.GetString();
-    DisplayRange(subModels[name].subBuffer);
+    SubModelInfo &sm = GetSubModelInfo(name);
+    sm.isRanges = false;
+    sm.subBuffer = event.GetString();
+    DisplayRange(sm.subBuffer);
 }
 
 
