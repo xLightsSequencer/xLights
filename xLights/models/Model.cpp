@@ -902,8 +902,6 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
                 }
             }
             else {
-                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                logger_base.warn("Error determining start channel for model %s. %s", (const char*)GetName().c_str(), (const char *)str.c_str());
                 valid = false;
                 output = 1;
             }
@@ -921,8 +919,6 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
                 int res =  modelManager.GetNetInfo().CalcUniverseChannel(cs[0].Trim(false).Trim(true), returnUniverse, returnChannel);
                 if (res < 1)
                 {
-                    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                    logger_base.warn("Error determining start channel for model %s. %s", (const char*)GetName().c_str(), (const char *)str.c_str());
                     valid = false;
                     res = 1;
                 }
@@ -938,8 +934,6 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
                 int res =  modelManager.GetNetInfo().CalcUniverseChannel(returnUniverse, returnChannel);
                 if (res < 1)
                 {
-                    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                    logger_base.warn("Error determining start channel for model %s. %s", (const char*)GetName().c_str(), (const char *)str.c_str());
                     valid = false;
                     res = 1;
                 }
@@ -957,8 +951,6 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
         returnChannel = modelManager.GetNetInfo().CalcAbsChannel(output - 1, returnChannel - 1) + 1;
         if (returnChannel < 1)
         {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn("Error determining start channel for model %s. %s", (const char*)GetName().c_str(), (const char *)str.c_str());
             valid = false;
             returnChannel = 1;
         }

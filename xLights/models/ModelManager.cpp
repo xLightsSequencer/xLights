@@ -113,10 +113,13 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
             }
         }
         if (countValid == newCountValid) {
+            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("Could not calculate start channels for models:");
             std::string msg = "Could not calculate start channels for models:\n";
             for (auto it = models.begin(); it != models.end(); it++) {
                 if (!it->second->CouldComputeStartChannel) {
-                    msg += it->second->name + "\n";
+                    msg += it->second->name +  "\n";
+                    logger_base.warn("     %s : %s", (const char *)it->second->name.c_str(), (const char *)it->second->ModelStartChannel.c_str());
                 }
             }
             wxMessageBox(msg);
