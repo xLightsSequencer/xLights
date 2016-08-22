@@ -2388,11 +2388,6 @@ int Model::MapToNodeIndex(int strand, int node) const {
     return (strand * parm2 / parm3) + node;
 }
 
-
-void Model::SetModelStartChan(const std::string &start_channel) {
-    ModelStartChannel = start_channel;
-}
-
 void Model::RecalcStartChannels()
 {
     modelManager.RecalcStartChannels();

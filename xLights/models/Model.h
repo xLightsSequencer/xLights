@@ -250,7 +250,6 @@ public:
     int NodeStartChannel(size_t nodenum) const;
     const std::string &NodeType(size_t nodenum) const;
     virtual int MapToNodeIndex(int strand, int node) const;
-    void SetModelStartChan(const std::string &start_channel);
     int ChannelStringToNumber(std::string channel);
 
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);

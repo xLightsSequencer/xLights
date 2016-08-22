@@ -9,6 +9,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
     ModelXml = n;
     StrobeRate = 0;
     Nodes.clear();
+    DisplayAs = "SubModel";
 
     name = n->GetAttribute("name").ToStdString();
     parm1 = 1;

@@ -85,10 +85,28 @@ const long LayoutPanel::ID_PREVIEW_MODEL_DELCURVE = wxNewId();
 
 class ModelTreeData : public wxTreeItemData {
 public:
-    ModelTreeData(Model *m) :wxTreeItemData(), model(m) {};
+    ModelTreeData(Model *m) :wxTreeItemData(), model(m) {
+        //a SetFromXML call on the parent (example: recalc start channels) will cause
+        //submodel pointers to be deleted.  Need to not save them, but instead, use the parent
+        //and query by name
+        SubModel *s = dynamic_cast<SubModel*>(m);
+        if (s != nullptr) {
+            model = s->GetParent();
+            subModel = s->GetName();
+        }
+    };
+    ModelTreeData(Model *m, const std::string &sm) :wxTreeItemData(), model(m), subModel(sm) {};
     virtual ~ModelTreeData() {};
-
+    
+    Model *GetModel() {
+        if ("" != subModel) {
+            return model->GetSubModel(subModel);
+        }
+        return model;
+    }
+private:
     Model *model;
+    std::string subModel;
 };
 
 class NewModelBitmapButton : public wxBitmapButton
@@ -320,6 +338,31 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
 }
 
+
+void AddIcon(wxImageList &list, const std::string &id) {
+    wxSize iconSize = list.GetSize();
+    wxBitmap bmp =  wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(id), wxART_LIST, wxDefaultSize);
+    if (bmp.GetSize() != iconSize) {
+        wxImage img = bmp.ConvertToImage();
+        img.Rescale(iconSize.x, iconSize.y);
+        wxBitmap bmp2 = wxBitmap(img);
+        wxIcon icon;
+        icon.CopyFromBitmap(bmp2);
+        int i = list.Add(icon);
+#ifdef __WXOSX__
+        img = bmp.ConvertToImage();
+        img.Rescale(iconSize.x * bmp.GetScaleFactor(), iconSize.y * bmp.GetScaleFactor());
+        bmp2 = wxBitmap(img, -1, bmp.GetScaleFactor());
+        icon.CopyFromBitmap(bmp2);
+        list.Replace(i, icon);
+#endif
+    } else {
+        wxIcon icon;
+        icon.CopyFromBitmap(bmp);
+        list.Add(icon);
+    }
+}
+
 void LayoutPanel::InitImageList()
 {
     wxSize iconSize = wxArtProvider::GetSizeHint(wxART_LIST);
@@ -328,23 +371,24 @@ void LayoutPanel::InitImageList()
 
     m_imageList = new wxImageList(iconSize.x, iconSize.y);
 
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NORMAL_FILE")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_GROUP_CLOSED")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_GROUP_OPEN")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_ARCH_ICON")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_CANE_ICON")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_CIRCLE_ICON")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_CUSTOM_ICON")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_DMX_ICON")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_ICICLE_ICON")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LINE_ICON")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_MATRIX_ICON")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_POLY_ICON")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_SPINNER_ICON")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_STAR_ICON")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_TREE_ICON")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_WINDOW_ICON")), wxART_LIST, iconSize));
-    m_imageList->Add( wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_WREATH_ICON")), wxART_LIST, iconSize));
+    AddIcon(*m_imageList, "wxART_NORMAL_FILE");
+    AddIcon(*m_imageList, "xlART_GROUP_CLOSED");
+    AddIcon(*m_imageList, "xlART_GROUP_OPEN");
+    AddIcon(*m_imageList, "xlART_ARCH_ICON");
+    AddIcon(*m_imageList, "xlART_CANE_ICON");
+    AddIcon(*m_imageList, "xlART_CIRCLE_ICON");
+    AddIcon(*m_imageList, "xlART_CUSTOM_ICON");
+    AddIcon(*m_imageList, "xlART_DMX_ICON");
+    AddIcon(*m_imageList, "xlART_ICICLE_ICON");
+    AddIcon(*m_imageList, "xlART_LINE_ICON");
+    AddIcon(*m_imageList, "xlART_MATRIX_ICON");
+    AddIcon(*m_imageList, "xlART_POLY_ICON");
+    AddIcon(*m_imageList, "xlART_SPINNER_ICON");
+    AddIcon(*m_imageList, "xlART_STAR_ICON");
+    AddIcon(*m_imageList, "xlART_SUBMODEL_ICON");
+    AddIcon(*m_imageList, "xlART_TREE_ICON");
+    AddIcon(*m_imageList, "xlART_WINDOW_ICON");
+    AddIcon(*m_imageList, "xlART_WREATH_ICON");
 }
 
 wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style)
@@ -614,14 +658,12 @@ void LayoutPanel::refreshModelList() {
           item = TreeListViewModels->GetNextItem(item) )
     {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-        Model *model = data != nullptr ? data->model : nullptr;
+        Model *model = data != nullptr ? data->GetModel() : nullptr;
 
         if (model != nullptr ) {
-            std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
-            model->SetModelStartChan(start_channel);
             int end_channel = model->GetLastChannel()+1;
             if( model->GetDisplayAs() != "ModelGroup" ) {
-                TreeListViewModels->SetItemText(item, Col_StartChan, start_channel);
+                TreeListViewModels->SetItemText(item, Col_StartChan, model->ModelStartChannel);
                 TreeListViewModels->SetItemText(item, Col_EndChan, wxString::Format(wxT("%i"),end_channel));
             }
         }
@@ -635,7 +677,7 @@ void LayoutPanel::RenameModelInTree(Model *model, const std::string new_name)
           item = TreeListViewModels->GetNextItem(item) )
     {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-        if (data != nullptr && data->model == model) {
+        if (data != nullptr && data->GetModel() == model) {
             TreeListViewModels->SetItemText(item, wxString(new_name.c_str()));
         }
     }
@@ -668,6 +710,8 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
             return Icon_Spinner;
         } else if( type == "Star" ) {
             return Icon_Star;
+        } else if( type == "SubModel" ) {
+            return Icon_SubModel;
         } else if( type == "Tree" ) {
             return Icon_Tree;
         } else if( type == "Wreath" ) {
@@ -684,11 +728,6 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
 
 
 void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent) {
-    if (dynamic_cast<SubModel*>(model) == nullptr) {
-        std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
-        model->SetModelStartChan(start_channel);
-    }
-
     int end_channel = model->GetLastChannel()+1;
 
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, model->name,
@@ -982,7 +1021,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
                   item = TreeListViewModels->GetNextSibling(item) )
             {
                 ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-                if( mitem != nullptr && mitem->model == m ) {
+                if( mitem != nullptr && mitem->GetModel() == m ) {
                     TreeListViewModels->Select(item);
                     TreeListViewModels->EnsureVisible(item);
                     break;
@@ -1007,7 +1046,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
               item = TreeListViewModels->GetNextSibling(item) )
         {
             ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-            Model *m = data != nullptr ? data->model : nullptr;
+            Model *m = data != nullptr ? data->GetModel() : nullptr;
             if( m != nullptr ) {
                 int startChan = m->GetNumberFromChannelString(m->ModelStartChannel);
                 int endChan = m->GetLastChannel();
@@ -1035,7 +1074,7 @@ void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
               item = TreeListViewModels->GetNextSibling(item) )
         {
             ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-            Model *model = data != nullptr ? data->model : nullptr;
+            Model *model = data != nullptr ? data->GetModel() : nullptr;
 
             if( model != nullptr ) {
                 if( model->GetDisplayAs() != "ModelGroup" ) {
@@ -2529,7 +2568,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     wxTreeListItem item = event.GetItem();
     if( item.IsOk() ) {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-        Model *model = data != nullptr ? data->model : nullptr;
+        Model *model = data != nullptr ? data->GetModel() : nullptr;
         if( model != nullptr ) {
             if( model->GetDisplayAs() == "ModelGroup" ) {
                 mSelectedGroup = item;
@@ -2577,7 +2616,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
     if( item.IsOk() ) {
 
         ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
-        Model *model = data != nullptr ? data->model : nullptr;
+        Model *model = data != nullptr ? data->GetModel() : nullptr;
         if( model != nullptr ) {
             if( model->GetDisplayAs() == "ModelGroup" ) {
                 mSelectedGroup = item;
@@ -2608,7 +2647,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp) {
          item = TreeListViewModels->GetNextItem(item) )
     {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-        if (data != nullptr && data->model == grp) {
+        if (data != nullptr && data->GetModel() == grp) {
             bool expanded = TreeListViewModels->IsExpanded(item);
             wxTreeListItem child = TreeListViewModels->GetFirstChild(item);
             while (child.IsOk()) {

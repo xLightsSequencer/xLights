@@ -243,6 +243,7 @@ class LayoutPanel: public wxPanel
             Icon_Poly,
             Icon_Spinner,
             Icon_Star,
+            Icon_SubModel,
             Icon_Tree,
             Icon_Window,
             Icon_Wreath
