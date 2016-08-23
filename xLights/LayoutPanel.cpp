@@ -94,8 +94,9 @@ public:
             model = s->GetParent();
             subModel = s->GetName();
         }
+        startingChannel = m->GetNumberFromChannelString(m->ModelStartChannel);
+        endingChannel = m->GetLastChannel();
     };
-    ModelTreeData(Model *m, const std::string &sm) :wxTreeItemData(), model(m), subModel(sm) {};
     virtual ~ModelTreeData() {};
     
     Model *GetModel() {
@@ -104,6 +105,9 @@ public:
         }
         return model;
     }
+
+    int startingChannel;
+    int endingChannel;
 private:
     Model *model;
     std::string subModel;
@@ -662,14 +666,17 @@ void LayoutPanel::refreshModelList() {
 
         if (model != nullptr ) {
             int end_channel = model->GetLastChannel()+1;
+            wxString endStr = wxString::Format("%i", end_channel);
             if( model->GetDisplayAs() != "ModelGroup" ) {
                 wxString cv = TreeListViewModels->GetItemText(item, Col_StartChan);
                 if (cv != model->ModelStartChannel) {
+                    data->startingChannel = model->GetNumberFromChannelString(model->ModelStartChannel);
                     TreeListViewModels->SetItemText(item, Col_StartChan, model->ModelStartChannel);
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_EndChan);
-                if (cv != model->ModelStartChannel) {
-                    TreeListViewModels->SetItemText(item, Col_EndChan, wxString::Format(wxT("%i"),end_channel));
+                if (cv != endStr) {
+                    data->endingChannel = end_channel;
+                    TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
                 }
             }
         }
@@ -1111,12 +1118,12 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
 
 int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn)
 {
-    std::string item_name1 = "";
-    std::string item_name2 = "";
-    item_name1 = treelist->GetItemText(item1);
-    item_name2 = treelist->GetItemText(item2);
-    Model* a = xlights->AllModels[item_name1];
-    Model* b = xlights->AllModels[item_name2];
+    
+    ModelTreeData *data1 = dynamic_cast<ModelTreeData*>(treelist->GetItemData(item1));
+    ModelTreeData *data2 = dynamic_cast<ModelTreeData*>(treelist->GetItemData(item2));
+    
+    Model* a = data1->GetModel();
+    Model* b = data2->GetModel();
 
     if( a == nullptr || b == nullptr ) return 0;
 
@@ -1140,16 +1147,16 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
         } else if( b->GetDisplayAs() == "ModelGroup" ) {
             return -1;
         }
-        int ia = a->GetNumberFromChannelString(a->ModelStartChannel);
-        int ib = b->GetNumberFromChannelString(b->ModelStartChannel);
+        int ia = data1->startingChannel;
+        int ib = data2->startingChannel;
         if (ia > ib)
             return 1;
         if (ia < ib)
             return -1;
         return 0;
     } else if (sortColumn == 2) {
-        int ia = a->GetLastChannel();
-        int ib = b->GetLastChannel();
+        int ia = data1->endingChannel;
+        int ib = data2->endingChannel;
         if (ia > ib)
             return 1;
         if (ia < ib)
