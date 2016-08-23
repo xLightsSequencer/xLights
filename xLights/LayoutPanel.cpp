@@ -1163,7 +1163,7 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
             return -1;
         return 0;
     } else {
-        return strcasecmp(b->name.c_str(), a->name.c_str());
+        return a->name.compare(b->name);
     }
     return 0;
 }
