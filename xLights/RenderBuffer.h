@@ -281,7 +281,7 @@ public:
     RenderBuffer(xLightsFrame *frame, bool onlyOnMain);
     ~RenderBuffer();
     RenderBuffer(RenderBuffer& buffer);
-    void InitBuffer(int newBufferHt, int newBufferWi);
+    void InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform);
 	AudioManager* GetMedia();
 
     void Clear(const xlColor& bgColor);
@@ -362,6 +362,7 @@ public:
     int curEffStartPer;    /**< Start period of current effect. */
     int curEffEndPer;      /**<  */
     int frameTimeInMs;
+    bool isTransformed;
 
     int fadeinsteps;
     int fadeoutsteps;

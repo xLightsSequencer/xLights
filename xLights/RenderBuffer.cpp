@@ -377,6 +377,7 @@ RenderBuffer::RenderBuffer(xLightsFrame *f, bool b) : frame(f)
     InhibitClear = false;
     tempInt = tempInt2 = 0;
     onlyOnMain = b;
+    isTransformed = false;
 }
 
 RenderBuffer::~RenderBuffer()
@@ -393,7 +394,7 @@ RenderBuffer::~RenderBuffer()
     }
 }
 
-void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi)
+void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform)
 {
     if (pathDrawingContext == nullptr) {
         pathDrawingContext = new PathDrawingContext(newBufferWi, newBufferHt, onlyOnMain);
@@ -410,6 +411,7 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi)
     int NumPixels=BufferHt * BufferWi;
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
+    isTransformed = (bufferTransform != "None");
 }
 
 void RenderBuffer::Clear(const xlColor& bgColor)

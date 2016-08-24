@@ -673,6 +673,18 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         type = 2;
     }
 
+    if (buffer.curEffStartPer == buffer.curPeriod)
+    {
+        if (modelType != "Matrix" && modelType != "Rendered" && modelType != "Default")
+        {
+            if (buffer.isTransformed)
+            {
+                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("Faces effect starting at %dms until %dms on model %s has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char *)buffer.cur_model.c_str());
+            }
+        }
+    }
+
     std::string phoneme = Phoneme;
     if (phoneme == "") {
         //GET Phoneme from timing track

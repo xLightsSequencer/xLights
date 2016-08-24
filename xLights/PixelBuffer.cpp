@@ -91,7 +91,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
         layers[x]->rotationsValueCurve = "";
         layers[x]->pivotpointxValueCurve = "";
         layers[x]->pivotpointyValueCurve = "";
-        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi);
+        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->bufferTransform);
     }
 }
 
@@ -824,7 +824,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->rotationsValueCurve = rotationsValueCurve;
         inf->pivotpointxValueCurve = pivotpointxValueCurve;
         inf->pivotpointyValueCurve = pivotpointyValueCurve;
-        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi);
+        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->bufferTransform);
     }
 }
 bool PixelBufferClass::IsPersistent(int layer) {
