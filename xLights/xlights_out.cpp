@@ -232,6 +232,141 @@ public:
     };
 };
 
+#define ARTNET_PACKET_LEN 18 + 512
+#define ARTNET_PORT 0x1936
+#define ARTNET_MAXCHANNEL 32768
+
+#define ARTNET_UNIVERSE(a) (a & 0x000F)
+#define ARTNET_SUBNET(a) ((a & 0x00F0) >> 4)
+#define ARTNET_NET(a) ((a & 0x8F00) >> 8)
+
+// ******************************************************
+// * This class represents a single universe for ArtNET
+// * Methods should be called with: 0 <= chindex <= 511
+// ******************************************************
+class xNetwork_ArtNET : public xNetwork
+{
+protected:
+    wxByte data[ARTNET_PACKET_LEN];
+    wxByte SequenceNum;
+    int SkipCount;
+    wxIPV4address remoteAddr;
+    wxDatagramSocket *datagram;
+    bool changed;
+
+public:
+    void SetIntensity(size_t chindex, wxByte intensity)
+    {
+        if (data[chindex + 126] != intensity) {
+            data[chindex + 126] = intensity;
+            changed = true;
+        }
+    };
+
+    xNetwork_ArtNET()
+    {
+        datagram = 0;
+        memset(data, 0, sizeof(data));
+        changed = true;
+    };
+
+    ~xNetwork_ArtNET()
+    {
+        if (datagram) delete datagram;
+    };
+
+    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum)
+    {
+        if (UniverseNumber == 0 || UniverseNumber >= ARTNET_MAXCHANNEL)
+        {
+            throw "universe number must be between 1 and 32768";
+        }
+        InitData(ipaddr, UniverseNumber, NetNum);
+        InitRemoteAddr(ipaddr, UniverseNumber, NetNum);
+        SetChannelCount(num_channels);
+    }
+private:
+    void InitData(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
+        SequenceNum = 0;
+        SkipCount = 0;
+        wxByte UnivHi = UniverseNumber >> 8;   // Universe Number (high)
+        wxByte UnivLo = UniverseNumber & 0xff; // Universe Number (low)
+
+        data[0] = 'A';   // ID[8]
+        data[1] = 'r';   
+        data[2] = 't';   
+        data[3] = '-'; 
+        data[4] = 'N'; 
+        data[5] = 'e';
+        data[6] = 't';
+        data[7] = 0x00;
+        data[8] = 0x50; //Opcode
+        data[9] = 0x00;
+        data[10] = 0x00; // Protocol version high
+        data[11] = 0x14; // Protocol version Low
+        data[12] = 0x00; // Sequence
+        data[13] = 0x00; // Physical
+        data[14] = (UniverseNumber & 0xFF);
+        data[15] = ((UniverseNumber &0xFF00) >> 8);
+        data[16] = 0x01; // we are going to send all 512 bytes
+        data[17] = 0x00;  
+    }
+
+    void InitRemoteAddr(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
+        wxIPV4address localaddr;
+        localaddr.AnyAddress();
+        datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+        remoteAddr.Hostname(ipaddr);
+        remoteAddr.Service(ARTNET_PORT);
+    }
+
+public:
+    void SetChannelCount(size_t numchannels)
+    {
+        if (numchannels > 512)
+        {
+            throw "max channels on ArtNET is 512";
+        }
+        num_channels = numchannels;
+
+        int i = num_channels + 1;
+        wxByte NumHi = i >> 8;   // Channels (high)
+        wxByte NumLo = i & 0xff; // Channels (low)
+
+        data[16] = NumHi;  // Property value count (high)
+        data[17] = NumLo;  // Property value count (low)
+    };
+
+    void TimerEnd()
+    {
+        if (!enabled) {
+            return;
+        }
+        // skipping would cause ECG-DR4 (firmware version 1.30) to timeout
+        if (changed || SkipCount > 10)
+        {
+            data[12] = SequenceNum;
+            datagram->SendTo(remoteAddr, data, ARTNET_PACKET_LEN - (512 - num_channels));
+            SequenceNum = SequenceNum == 255 ? 0 : SequenceNum + 1;
+            SkipCount = 0;
+            //changed = false;
+        }
+        else
+        {
+            SkipCount++;
+        }
+    };
+
+    size_t TxNonEmptyCount(void)
+    {
+        return 0;
+    }
+    bool TxEmpty()
+    {
+        return true;
+    }
+};
+
 
 #define E131_SYNCPACKET_LEN 49
 #define E131_PORT 5568
@@ -1057,6 +1192,10 @@ size_t xOutput::addnetwork(const wxString& NetworkType, int chcount, const wxStr
         } else {
             netobj = new xNetwork_E131();
         }
+    }
+    else if (nettype3 =="ART")
+    {
+        netobj = new xNetwork_ArtNET();
     }
     else if (nettype3 == "NUL")
     {
