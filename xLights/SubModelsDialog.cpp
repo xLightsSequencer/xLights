@@ -334,6 +334,17 @@ void SubModelsDialog::OnNameChoiceSelect(wxCommandEvent& event)
     Select(event.GetString());
 }
 void SubModelsDialog::Select(const wxString &name) {
+    if (name == "") {
+        NameChoice->Disable();
+        DeleteButton->Disable();
+        NodesGrid->Disable();
+        LayoutCheckbox->Disable();
+        AddRowButton->Disable();
+        DeleteRowButton->Disable();
+        subBufferPanel->Disable();
+        TypeNotebook->Disable();
+        return;
+    }
     NameChoice->Enable();
     DeleteButton->Enable();
     NodesGrid->Enable();
@@ -478,6 +489,10 @@ void SubModelsDialog::OnLayoutCheckboxClick(wxCommandEvent& event)
 void SubModelsDialog::OnAddRowButtonClick(wxCommandEvent& event)
 {
     wxString name = NameChoice->GetStringSelection();
+    if (name == "") {
+        return;
+    }
+
     SubModelInfo &sm = GetSubModelInfo(name);
     sm.strands.push_back("");
     DeleteRowButton->Enable();
@@ -487,6 +502,9 @@ void SubModelsDialog::OnAddRowButtonClick(wxCommandEvent& event)
 void SubModelsDialog::OnDeleteRowButtonClick(wxCommandEvent& event)
 {
     wxString name = NameChoice->GetStringSelection();
+    if (name == "") {
+        return;
+    }
     SubModelInfo &sm = GetSubModelInfo(name);
     int row = NodesGrid->GetGridCursorRow();
     int sz = sm.strands.size();
@@ -499,6 +517,9 @@ void SubModelsDialog::OnDeleteRowButtonClick(wxCommandEvent& event)
 void SubModelsDialog::OnTypeNotebookPageChanged(wxBookCtrlEvent& event)
 {
     wxString name = NameChoice->GetStringSelection();
+    if (name == "") {
+        return;
+    }
     SubModelInfo &sm = GetSubModelInfo(name);
     sm.isRanges = TypeNotebook->GetSelection() == 0;
     Select(name);
@@ -507,6 +528,9 @@ void SubModelsDialog::OnTypeNotebookPageChanged(wxBookCtrlEvent& event)
 void SubModelsDialog::OnSubBufferRangeChange(wxCommandEvent& event)
 {
     wxString name = NameChoice->GetStringSelection();
+    if (name == "") {
+        return;
+    }
     SubModelInfo &sm = GetSubModelInfo(name);
     sm.isRanges = false;
     sm.subBuffer = event.GetString();
