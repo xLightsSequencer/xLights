@@ -7,6 +7,7 @@
 #include "assist/xlGridCanvasPictures.h"
 #include "assist/PicturesAssistPanel.h"
 #include "../xLightsXmlFile.h"
+#include "../models/Model.h"
 
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
@@ -31,6 +32,20 @@ PicturesEffect::PicturesEffect(int id) : RenderableEffect(id, "Pictures", pictur
 PicturesEffect::~PicturesEffect()
 {
     //dtor
+}
+
+std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    wxString PictureFilename = settings.Get("E_FILEPICKER_Pictures_Filename", "");
+
+    if (PictureFilename == "" || !wxFile::Exists(PictureFilename))
+    {
+        res.push_back(wxString::Format("ERR: Picture effect cant find image file '%s'. Model '%s', Start %dms", PictureFilename, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+    }
+
+    return res;
 }
 
 wxPanel *PicturesEffect::CreatePanel(wxWindow *parent) {

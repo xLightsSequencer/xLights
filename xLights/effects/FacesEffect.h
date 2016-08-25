@@ -16,7 +16,8 @@ class FacesEffect : public RenderableEffect
         virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
-    protected:
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
         void mouth(RenderBuffer &buffer, int Phoneme,int BufferHt, int BufferWt);

@@ -5,6 +5,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
+#include "../models/Model.h"
 
 #include "../../include/fireworks-16.xpm"
 #include "../../include/fireworks-24.xpm"
@@ -20,6 +21,18 @@ FireworksEffect::FireworksEffect(int id) : RenderableEffect(id, "Fireworks", fir
 FireworksEffect::~FireworksEffect()
 {
     //dtor
+}
+
+std::list<std::string> FireworksEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    if (media == nullptr && settings.GetBool("E_CHECKBOX_Fireworks_UseMusic", false))
+    {
+        res.push_back(wxString::Format("WARN: Fireworks effect cant grow to music if there is no music. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+    }
+
+    return res;
 }
 
 wxPanel *FireworksEffect::CreatePanel(wxWindow *parent) {

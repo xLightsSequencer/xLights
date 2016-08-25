@@ -6,6 +6,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../models/Model.h"
 
 #include "../../include/music-16.xpm"
 #include "../../include/music-24.xpm"
@@ -23,6 +24,18 @@ MusicEffect::MusicEffect(int id) : RenderableEffect(id, "Music Effect", music_16
 
 MusicEffect::~MusicEffect()
 {
+}
+
+std::list<std::string> MusicEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    if (media == nullptr)
+    {
+        res.push_back(wxString::Format("ERR: Music effect is pointless if there is no music. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+    }
+
+    return res;
 }
 
 wxPanel *MusicEffect::CreatePanel(wxWindow *parent) {

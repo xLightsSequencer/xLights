@@ -27,6 +27,7 @@ class PicturesEffect : public RenderableEffect
         virtual bool HasAssistPanel() override { return true; }
         virtual bool needToAdjustSettings(const std::string &version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

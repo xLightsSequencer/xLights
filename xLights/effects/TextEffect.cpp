@@ -10,6 +10,7 @@
 #include "../sequencer/EffectsGrid.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../models/Model.h"
 
 #include "../../include/text-16.xpm"
 #include "../../include/text-24.xpm"
@@ -26,6 +27,18 @@ TextEffect::TextEffect(int id) : RenderableEffect(id, "Text", text_16, text_24, 
 TextEffect::~TextEffect()
 {
     //dtor
+}
+
+std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    if (settings.Get("E_TEXTCTRL_Text", "") == "")
+    {
+        res.push_back(wxString::Format("ERR: Text effect has no actual text. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+    }
+
+    return res;
 }
 
 wxPanel *TextEffect::CreatePanel(wxWindow *parent) {

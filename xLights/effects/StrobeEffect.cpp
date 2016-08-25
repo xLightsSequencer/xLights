@@ -5,7 +5,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
-
+#include "../models/Model.h"
 #include "../../include/strobe.xpm"
 
 StrobeEffect::StrobeEffect(int id) : RenderableEffect(id, "Strobe", strobe, strobe, strobe, strobe, strobe)
@@ -16,6 +16,18 @@ StrobeEffect::StrobeEffect(int id) : RenderableEffect(id, "Strobe", strobe, stro
 StrobeEffect::~StrobeEffect()
 {
     //dtor
+}
+
+std::list<std::string> StrobeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    if (media == nullptr && settings.GetBool("E_CHECKBOX_Strobe_Music", false))
+    {
+        res.push_back(wxString::Format("WARN: Strobe effect cant follow music if there is no music. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+    }
+
+    return res;
 }
 
 wxPanel *StrobeEffect::CreatePanel(wxWindow *parent) {
