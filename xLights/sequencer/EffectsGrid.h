@@ -37,7 +37,8 @@ enum EFF_ALIGN_MODE {
     ALIGN_START_TIMES,
     ALIGN_END_TIMES,
     ALIGN_BOTH_TIMES,
-    ALIGN_CENTERPOINTS
+    ALIGN_CENTERPOINTS,
+    ALIGN_MATCH_DURATION
 };
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
@@ -237,6 +238,7 @@ private:
     static const long ID_GRID_MNU_ALIGN_END_TIMES;
     static const long ID_GRID_MNU_ALIGN_BOTH_TIMES;
     static const long ID_GRID_MNU_ALIGN_CENTERPOINTS;
+    static const long ID_GRID_MNU_ALIGN_MATCH_DURATION;
 
     EventPlayEffectArgs* playArgs;
 
