@@ -11,7 +11,7 @@ bool MusicXML::IsOk()
 
 void MusicXmlNote::Dump()
 {
-    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     logger_pianodata.info("%d, %d, %d", startMS, startMS + durationMS, midi);
 }
 
@@ -19,7 +19,7 @@ MusicXML::MusicXML(std::string file)
 {
     if (file != "" && wxFile::Exists(file))
     {
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Loading music XML file: %s", (const char *)file.c_str());
         wxFileInputStream fin(file);
         wxZipInputStream zin(fin);
@@ -105,7 +105,7 @@ std::list<MusicXmlNote> MusicXML::GetNotes(std::string track)
         }
     }
 
-    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     logger_pianodata.info("BeatTime %dms", timeperduration);
     logger_pianodata.info("StartMS, EndMS, Note");
     for (auto it = res.begin(); it != res.end(); ++it)

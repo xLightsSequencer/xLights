@@ -26,7 +26,7 @@
 void xLightsFrame::CreateSequencer()
 {
     // Lots of logging here as this function hard crashes
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     EffectsPanel1 = nullptr;
     timingPanel = nullptr;
 
@@ -392,6 +392,7 @@ void xLightsFrame::CheckForValidModels()
 
 void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     mMediaLengthMS = xml_file.GetSequenceDurationMS();
 
     if(xml_file.GetSequenceType()=="Media")
@@ -437,14 +438,12 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
             musicLength = mainSequencer->PanelWaveForm->OpenfileMedia(xml_file.GetMedia(), error);
             if(musicLength <=0)
             {
-                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("Media File Missing or Corrupted %s. Details: %s", (const char*) mediaFilename.c_str(), (const char *)error.c_str());
                 wxMessageBox(wxString::Format("Media File Missing or Corrupted %s.\n\nDetails: %s", mediaFilename, error));
             }
         }
         else if (xml_file.GetSequenceType() == "Media")
         {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Media File must be specified");
             wxMessageBox("Media File must be specified");
         }
@@ -1402,7 +1401,8 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
 
 void xLightsFrame::ApplySetting(wxString name, wxString value)
 {
-	long TempLong;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    long TempLong;
 	wxWindow *CtrlWin, *ContextWin;
 
 	if (name.StartsWith("E_"))
@@ -1538,7 +1538,6 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
         else
 		{
 			wxMessageBox("Unknown type: " + name, "Internal Error");
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Unknown type: " + name);
         }
 	}
@@ -1551,7 +1550,6 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
 		}
 		if (CtrlWin == nullptr) {
 			wxMessageBox("Unable to find: " + name, "Internal Error");
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Unable to find : " + name);
         }
 	}
@@ -1607,15 +1605,14 @@ void xLightsFrame::ForceSequencerRefresh()
 
 void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
 
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (perspective == nullptr)
     {
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("xLightsFrame::LoadPerspective Null perspective node.");
         return;
     }
     if (PerspectivesNode == nullptr)
     {
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("xLightsFrame::LoadPerspective Null PerspectivesNode.");
         return;
     }
@@ -1941,7 +1938,7 @@ void PTProgress(wxProgressDialog* pd, int p)
 
 std::map<int, std::list<float>> xLightsFrame::LoadPolyphonicTranscription(AudioManager* audio, int intervalMS)
 {
-    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<float>> res;
 
     if (audio != nullptr)
@@ -2000,7 +1997,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadPolyphonicTranscription(AudioM
 
 std::map<int, std::list<float>> xLightsFrame::LoadAudacityFile(std::string file, int intervalMS)
 {
-    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<float>> res;
 
     logger_pianodata.debug("Processing audacity file " + file);
@@ -2079,7 +2076,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadAudacityFile(std::string file,
 
 std::map<int, std::list<float>> xLightsFrame::LoadMusicXMLFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track)
 {
-    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<float>> res;
 
     float speedadjust = speedAdjust / 100.0;
@@ -2155,7 +2152,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadMusicXMLFile(std::string file,
 
 std::map<int, std::list<float>> xLightsFrame::LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track)
 {
-    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<float>> res;
 
     float speedadjust = speedAdjust / 100.0;

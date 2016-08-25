@@ -642,7 +642,7 @@ wxImage GenerateCustomModelDialog::CreateImageFromFrame(AVFrame* frame)
     }
     else
     {
-        log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+        static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
         logger_gcm.info("Video returned no frame.");
         if (_startFrame.IsOk())
         {
@@ -835,7 +835,7 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
 {
     wxMessageBox("Please prepare to video the model ... press ok when ready to start.", "", 5L, this);
 
-    log4cpp::Category &logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
+    static log4cpp::Category &logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
     logger_pcm.info("Running lights to be videoed.");
 
     wxProgressDialog pd("Running light patterns", "", 100, this);
@@ -982,7 +982,7 @@ void GenerateCustomModelDialog::MTTabEntry()
 
 void GenerateCustomModelDialog::OnButton_MT_NextClick(wxCommandEvent& event)
 {
-    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     logger_gcm.info("Generating custom model.");
     switch (RadioBox2->GetSelection())
     {
@@ -1090,7 +1090,7 @@ void GenerateCustomModelDialog::SetStartFrame(int time)
     int darkframetime = time + FLAGON + (FLAGOFF / 2);
     wxImage df = CreateImageFromFrame(_vr->GetNextFrame(darkframetime)).Copy();
     _darkFrame = df.ConvertToGreyscale();
-    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     logger_gcm.info("Start frame set to time %dms brightness %f.", time, _startframebrightness);
     logger_gcm.info("   Dark frame set to time %dms.", darkframetime);
 }
@@ -1103,7 +1103,7 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
     Button_CV_Back->Disable();
     TextCtrl_GCM_Filename->Disable();
 
-    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     logger_gcm.info("File: %s.", (const char *)TextCtrl_GCM_Filename->GetValue().c_str());
 
     if (RadioBox2->GetSelection() == 2)
@@ -1142,7 +1142,7 @@ void GenerateCustomModelDialog::OnButton_CV_BackClick(wxCommandEvent& event)
 
 void GenerateCustomModelDialog::DoStartFrameIdentify()
 {
-    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     if (_vr != NULL)
     {
         delete _vr;
@@ -1185,7 +1185,7 @@ void GenerateCustomModelDialog::SFTabEntry()
 // A frame looks like a valid start frame if another frame LEADON + FLAGOFF MS in the future is about as bright
 bool GenerateCustomModelDialog::LooksLikeStartFrame(int candidateframe)
 {
-    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     wxImage image = CreateImageFromFrame(_vr->GetNextFrame(candidateframe)).Copy();
     float fimage = CalcFrameBrightness(image);
 
@@ -1230,7 +1230,7 @@ float GenerateCustomModelDialog::CalcFrameBrightness(const wxImage& image)
 #define EXTRABRIGHTTHRESHOLD 0.2
 int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
 {
-    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     std::list<float> framebrightness;
 
     StaticBitmap_Preview->SetEraseBackground(false);
@@ -1441,7 +1441,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
 
 void GenerateCustomModelDialog::ValidateStartFrame()
 {
-    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     if (LooksLikeStartFrame(_startframetime))
     {
         logger_gcm.info("Start frame look ok.");
@@ -1470,7 +1470,7 @@ void GenerateCustomModelDialog::MoveStartFrame(int by)
         _startframetime = _vr->GetLengthMS();
     }
 
-    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     logger_gcm.info("Start frame moved manually to %d.", _startframetime);
 }
 
@@ -1644,7 +1644,7 @@ void GenerateCustomModelDialog::ApplyContrast(wxImage& grey, int contrast)
 
 void GenerateCustomModelDialog::DoBulbIdentify()
 {
-    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
 
     if (!_busy)
     {
@@ -2103,7 +2103,7 @@ void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, u
         if (!_warned)
         {
             _warned = true;
-            log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+            static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
             logger_gcm.info("Too many pixels are looking like bulbs ... this could take forever ... you need to change your settings ... maybe increase sensitivity.");
             wxMessageBox("Too many pixels are looking like bulbs ... this could take forever ... you need to change your settings ... maybe increase sensitivity.");
         }
@@ -2122,7 +2122,7 @@ GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3
 
 void GenerateCustomModelDialog::FindLights(const wxImage& bwimage, int num, const wxImage& greyimage, const wxImage& frame)
 {
-    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
 
     wxImage temp = bwimage;
     int w = temp.GetWidth();
@@ -2585,7 +2585,7 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "NewCustomModel", wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
-    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     logger_gcm.info("Saving to xmodel file %s.", (const char *)filename.c_str());
     if (!f.Create(filename, true) || !f.IsOpened())
     {
@@ -2999,7 +2999,7 @@ void GenerateCustomModelDialog::OnButton_CV_ManualClick(wxCommandEvent& event)
     TextCtrl_GCM_Filename->Disable();
     _manual = true;
 
-    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     logger_gcm.info("File: %s.", (const char *)TextCtrl_GCM_Filename->GetValue().c_str());
 
     MITabEntry(true);

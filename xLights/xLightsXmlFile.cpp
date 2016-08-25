@@ -161,7 +161,7 @@ int xLightsXmlFile::GetSequenceTimingAsInt()
 
 void xLightsXmlFile::SetSequenceTiming( const wxString& timing )
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Sequence timing set to " + timing + "ms");
 
     seq_timing = timing;
@@ -835,7 +835,7 @@ bool xLightsXmlFile::Open(const wxString& ShowDir, bool ignore_audio)
 
 wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // This is cheating ... saves me from having every call know the showdir as long as an early one passes it in
 	static wxString RememberShowDir;
 	wxString sd;
@@ -1183,7 +1183,7 @@ void xLightsXmlFile::ConvertToFixedPointTiming()
 
 bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Loading sequence " + GetFullPath());
 
 	if (!seqDocument.Load(GetFullPath()))
@@ -1690,6 +1690,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
 void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
+    static  log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxTextFile f;
     wxString line;
     int time;
@@ -1701,7 +1702,6 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
 
         if (!f.Open(next_file.GetFullPath().c_str()))
         {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("ProcessLorTiming: Failed to open file: %s", (const char *)next_file.GetFullPath().c_str());
             wxMessageBox("Failed to open file: " + next_file.GetFullPath());
             return;
@@ -1715,7 +1715,6 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
         wxXmlDocument input_xml;
         if( !input_xml.Load(next_file.GetFullPath()) )
         {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("ProcessLorTiming: Failed to load XML file: %s", (const char *)next_file.GetFullPath().c_str());
             wxMessageBox("Failed to load XML file: " + next_file.GetFullPath());
             return;
@@ -1857,6 +1856,7 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
 {
     wxTextFile f;
     wxString line;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
@@ -1865,7 +1865,6 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
 
         if (!f.Open(next_file.GetFullPath().c_str()))
         {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("ProcessXTiming: Failed to open file: %s", (const char *)next_file.GetFullPath().c_str());
             wxMessageBox("Failed to open file: " + next_file.GetFullPath());
             return;
@@ -1876,7 +1875,6 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
         wxXmlDocument input_xml;
         if (!input_xml.Load(next_file.GetFullPath()))
         {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("ProcessXTiming: Failed to load XML file: %s", (const char *)next_file.GetFullPath().c_str());
             wxMessageBox("Failed to load XML file: " + next_file.GetFullPath());
             return;
@@ -1952,7 +1950,7 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
 
 void xLightsXmlFile::ProcessError(const wxString& s)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.error(std::string(s.c_str()));
     wxMessageBox(s);
 }
@@ -1973,7 +1971,7 @@ wxString RemoveTabs(const wxString& s, size_t tabs)
 
 void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxTextFile f;
     wxString line;
     wxString desc;
@@ -2249,7 +2247,7 @@ wxString DecodeLSPTTColour(int att)
 
 void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxTextFile f;
     wxString line;
     wxString desc;

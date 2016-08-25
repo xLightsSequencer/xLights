@@ -329,7 +329,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, element->GetModelName(), wxEmptyString, filetypes, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (filename.IsEmpty()) return;
         wxFileName fn(filename);
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         TimingElement *te = dynamic_cast<TimingElement *>(element);
         if (fn.GetExt().Lower() == "xtiming")
         {

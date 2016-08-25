@@ -987,7 +987,7 @@ void ValueCurveDialog::OnButtonExportClick(wxCommandEvent& event)
     if (filename.IsEmpty()) return;
 
     wxFile f(filename);
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Saving to xvc file %s.", (const char *)filename.c_str());
 
     if (!f.Create(filename, true) || !f.IsOpened())
@@ -1014,7 +1014,7 @@ void ValueCurveDialog::OnButtonExportClick(wxCommandEvent& event)
 
 void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Scanning directory for *.xvc files: %s.", (const char *)directory.GetNameWithSep().c_str());
 
     wxString filename;
@@ -1064,6 +1064,7 @@ void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 
 void ValueCurveDialog::PopulatePresets()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxDir dir(xLightsFrame::CurrentDir);
 
     ProcessPresetDir(dir, false);
@@ -1077,7 +1078,6 @@ void ValueCurveDialog::PopulatePresets()
     }
     else
     {
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Directory for *.xvc files not found: %s.", (const char *)d.c_str());
     }
 
@@ -1095,7 +1095,6 @@ void ValueCurveDialog::PopulatePresets()
     }
     else
     {
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Directory for *.xvc files not found: %s.", (const char *)d.c_str());
     }
 

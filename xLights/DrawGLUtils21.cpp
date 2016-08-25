@@ -172,7 +172,7 @@ public:
             l.Trim();
             if (l.length() > 0) {
                 printf("Shader Log(2.1): %s\n", &VertexShaderErrorMessage[0]);
-                log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+                static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
                 logger_opengl.error(std::string(&VertexShaderErrorMessage[0]));
             }
         }
@@ -197,7 +197,7 @@ public:
             l.Trim();
             if (l.length() > 0) {
                 printf("Program Log(2.1): %s\n", &ProgramErrorMessage[0]);
-                log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+                static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
                 logger_opengl.error(std::string(&ProgramErrorMessage[0]));
             }
         }

@@ -217,7 +217,7 @@ void ConvertDialog::OnButtonChooseFileClick(wxCommandEvent& event)
 
 void ConvertDialog::OnButtonStartConversionClick(wxCommandEvent& event)
 {
-    log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
+    static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
     logger_conversion.info("Conversion starting.");
 
     ButtonStartConversion->Enable(false);
@@ -269,7 +269,7 @@ void ConvertDialog::AppendConvertStatus(const wxString &msg, bool flushBuffer) {
         }
     }
 
-    log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
+    static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
     logger_conversion.info("ConvertStatus: " + msg);
 }
 

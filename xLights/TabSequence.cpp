@@ -678,7 +678,7 @@ void xLightsFrame::UpdateModelsList()
 
 void xLightsFrame::SaveSequence()
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (SeqData.NumFrames() == 0)
     {
@@ -750,7 +750,7 @@ void xLightsFrame::SaveSequence()
         logger_base.info("   iseq below effects done.");
         ProgressBar->SetValue(10);
         RenderGridToSeqData([this, sw] {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.info("   Effects done.");
             ProgressBar->SetValue(90);
             RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
@@ -837,7 +837,7 @@ void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent &evt) {
 }
 void xLightsFrame::RenderAll()
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!SeqData.IsValidData())
     {
@@ -858,7 +858,7 @@ void xLightsFrame::RenderAll()
     logger_base.info("   iseq below effects done.");
     ProgressBar->SetValue(10);
     RenderGridToSeqData([this, sw] {
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("   Effects done.");
         ProgressBar->SetValue(90);
         RenderIseqData(false, nullptr);  // render ISEQ layers above the Nutcracker layer

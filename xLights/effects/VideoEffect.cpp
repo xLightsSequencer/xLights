@@ -105,7 +105,8 @@ public:
 void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	double starttime, bool aspectratio, std::string durationTreatment)
 {
-	VideoRenderCache *cache = (VideoRenderCache*)buffer.infoCache[id];
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    VideoRenderCache *cache = (VideoRenderCache*)buffer.infoCache[id];
 	if (cache == nullptr) {
 		cache = new VideoRenderCache();
 		buffer.infoCache[id] = cache;
@@ -141,7 +142,6 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 
         if (buffer.BufferHt == 1)
         {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("VideoEffect::Cannot render video onto a 1 pixel high model. Have you set it to single line?");
         }
         else if (wxFileExists(_filename))
@@ -151,7 +151,6 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 
             if (_videoreader == nullptr)
             {
-                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("VideoEffect: Failed to load video file %s.", (const char *)_filename.c_str());
             }
             else
@@ -183,7 +182,6 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
         {
             if (buffer.curPeriod == buffer.curEffStartPer)
             {
-                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("VideoEffect: Video file %s not found.", (const char *)_filename.c_str());
             }
         }

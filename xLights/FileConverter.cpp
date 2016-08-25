@@ -31,7 +31,7 @@ void ConvertParameters::AppendConvertStatus(const wxString& msg, bool flushbuffe
     {
         convertLogDialog->AppendConvertStatus(msg + "\n", flushbuffer);
     }
-    log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
+    static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
     logger_conversion.info("Convert Status: " + msg);
 }
 
@@ -1617,6 +1617,7 @@ void FileConverter::ReadConductorFile(ConvertParameters& params)
 
 void FileConverter::ReadFalconFile(ConvertParameters& params)
 {
+    static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
     wxUint16 fixedHeaderLength = 28;
     wxFile f;
     size_t readcnt;
@@ -1633,7 +1634,6 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
 
     if (!f.Open(params.inp_filename.c_str()))
     {
-        log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
         logger_conversion.debug("Unable to load sequence: %s.", (const char *)params.inp_filename.c_str());
         params.PlayerError(wxString("Unable to load sequence:\n")+params.inp_filename);
         return;
@@ -1736,7 +1736,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
 
 void FileConverter::WriteFalconPiFile( ConvertParameters& params )
 {
-    log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
+    static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
     logger_conversion.debug("Start fseq write");
 	wxUint8 vMinor = 0;
     wxUint8 vMajor = 1;

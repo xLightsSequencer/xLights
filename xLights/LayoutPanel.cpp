@@ -2130,7 +2130,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
             }
             else
             {
-                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("LayoutPanel: Error trying to parse XML for paste. Paste request ignored. %s.", (const char *)data.GetText().c_str());
                 wxTheClipboard->Close();
             }

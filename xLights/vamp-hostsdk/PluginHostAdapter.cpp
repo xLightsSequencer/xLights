@@ -52,18 +52,15 @@ PluginHostAdapter::PluginHostAdapter(const VampPluginDescriptor *descriptor,
     Plugin(inputSampleRate),
     m_descriptor(descriptor)
 {
-//    std::cerr << "PluginHostAdapter::PluginHostAdapter (plugin = " << descriptor->name << ")" << std::endl;
     m_handle = m_descriptor->instantiate(m_descriptor, inputSampleRate);
     if (!m_handle) {
-//        std::cerr << "WARNING: PluginHostAdapter: Plugin instantiation failed for plugin " << m_descriptor->name << std::endl;
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("PluginHostAdapter: Plugin instantiation failed for plugin " + std::string(m_descriptor->name));
     }
 }
 
 PluginHostAdapter::~PluginHostAdapter()
 {
-//    std::cerr << "PluginHostAdapter::~PluginHostAdapter (plugin = " << m_descriptor->name << ")" << std::endl;
     if (m_handle) m_descriptor->cleanup(m_handle);
 }
 

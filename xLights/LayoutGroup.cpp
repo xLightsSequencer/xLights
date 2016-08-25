@@ -154,7 +154,7 @@ void LayoutGroup::ShowPreview(bool show)
         ModelPreview* modelPreview = xlights->GetLayoutPreview();
         if (modelPreview == NULL)
         {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("LayoutGroup::ShowPreview GetLayoutPreview returned NULL");
             return;
         }

@@ -142,6 +142,7 @@ void UndoManager::CaptureModifiedEffect( const std::string &element_name, int la
 
 void UndoManager::UndoLastStep()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool done = false;
     while( mUndoSteps.size() > 0 && !done )
     {
@@ -178,7 +179,6 @@ void UndoManager::UndoLastStep()
             EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->moved_effect_info[0]->layer_index);
             if (el == NULL)
             {
-                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("UndoLastStep:UNDO_EFFECT_MOVED Element not found %d.", next_action->moved_effect_info[0]->layer_index);
             }
             else
@@ -195,7 +195,6 @@ void UndoManager::UndoLastStep()
             EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->modified_effect_info[0]->layer_index);
             if (el == NULL)
             {
-                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("UndoLastStep:UNDO_EFFECT_MODIFIED Element not found %d.", next_action->moved_effect_info[0]->layer_index);
             }
             else

@@ -107,7 +107,7 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
         break;
     default:
         {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("xLightsImportTreeModel::GetValue: wrong column %d", col);
             wxLogError("xLightsImportTreeModel::GetValue: wrong column %d", col);
         }

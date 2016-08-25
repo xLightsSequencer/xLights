@@ -276,7 +276,7 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
 
 wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
 {
-    //log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("Name: %s", (const char *)name.c_str());
 
     wxString res = "0";

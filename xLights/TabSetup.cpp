@@ -1134,7 +1134,7 @@ void xLightsFrame::ChangeMediaDirectory(wxCommandEvent& event)
         config->Write(_("MediaDir"), mediaDirectory);
         MediaDirectoryLabel->SetLabel(mediaDirectory);
         MediaDirectoryLabel->GetParent()->Layout();
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
     }
 }

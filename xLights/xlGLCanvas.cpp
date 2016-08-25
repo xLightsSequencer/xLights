@@ -207,7 +207,7 @@ void xlGLCanvas::SetCurrentGLContext() {
         int ver = 99;
         config->Read("ForceOpenGLVer", &ver, 99);
 
-        log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+        static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         const GLubyte* str = glGetString(GL_VERSION);
         const GLubyte* rend = glGetString(GL_RENDERER);
         const GLubyte* vend = glGetString(GL_VENDOR);
@@ -278,7 +278,7 @@ void xlGLCanvas::CreateGLContext() {
 
         if (supportsCoreProfile && m_coreProfile && ver >= 3) {
             wxGLContextAttrs atts;
-            log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+            static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
             atts.PlatformDefaults().OGLVersion(3, 3).CoreProfile();
             if (logger_opengl_trace.isDebugEnabled()) {
                 atts.ForwardCompatible().DebugCtx().EndList();
@@ -320,7 +320,7 @@ void xlGLCanvas::CreateGLContext() {
 
         if (m_context == nullptr)
         {
-            log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+            static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
             logger_opengl.error("Error creating GL context.");
         }
     }

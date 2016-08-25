@@ -93,7 +93,7 @@ void xLightsFrame::NewSequence()
     wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
     int ms = atoi(mss.c_str());
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("New sequence created Type %s Timing %dms.", (const char *)(CurrentSeqXmlFile->GetSequenceType().c_str()), ms);
 
     LoadSequencer(*CurrentSeqXmlFile);
@@ -1031,7 +1031,7 @@ void MapHLSChannelInformation(xLightsFrame *xlights, EffectLayer *layer, wxXmlNo
     if (cn == "") {
         return;
     }
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxXmlNode *redNode = nullptr;
     wxXmlNode *greenNode = nullptr;
     wxXmlNode *blueNode = nullptr;
@@ -3220,7 +3220,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
                     }
                 }
             } else {
-                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("Could not parse XML file %s.", (const char *)ent->GetName().c_str());
                 wxLogError("Could not parse XML file %s", ent->GetName().c_str());
             }

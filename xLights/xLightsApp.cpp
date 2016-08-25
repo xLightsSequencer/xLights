@@ -213,7 +213,7 @@ std::string DecodeOS(wxOperatingSystemId o)
 
 void DumpConfig()
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Version: " + std::string(xlights_version_string.c_str()));
     logger_base.info("Build Date: " + std::string(xlights_build_date.c_str()));
     logger_base.info("Machine configuration:");
@@ -267,7 +267,7 @@ int main(int argc, char **argv)
     // it needs to be:
     //     a folder the user can write to
     //     predictable ... as we want the handleCrash function to be able to locate the file to include it in the crash
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* XLights main function executing.");
 
 #ifdef LINUX
@@ -291,7 +291,7 @@ wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 
 xLightsFrame *topFrame = NULL;
 void handleCrash(void *data) {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Crash handler called.");
 	wxDebugReportCompress *report = new wxDebugReportCompress();
     report->SetCompressedFileDirectory(topFrame->CurrentDir);
@@ -405,7 +405,7 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
         SendReport("crashUpload", *report);
         wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
     }
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Exiting after creating debug report: " + report->GetCompressedFileName());
 	delete report;
 	exit(1);
@@ -425,7 +425,7 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 bool xLightsApp::OnInit()
 {
     InitialiseLogging(false);
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: XLights started.");
     DumpConfig();
 

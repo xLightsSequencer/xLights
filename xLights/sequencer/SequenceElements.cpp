@@ -526,7 +526,7 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
                                    wxXmlNode *effectLayerNode,
                                    const std::vector<std::string> & effectStrings,
                                    const std::vector<std::string> & colorPalettes) {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for(wxXmlNode* effect=effectLayerNode->GetChildren(); effect!=NULL; effect=effect->GetNext())
     {
         if (effect->GetName() == STR_EFFECT)
@@ -647,7 +647,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 }
                 if (ElementExists(name))
                 {
-                    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                     logger_base.warn("Duplicate "+type+": '" + name + "'. Second instance ignored.");
                     wxMessageBox("Duplicate "+type+": '" + name + "'. Second instance ignored.", _("ERROR"));
                 }

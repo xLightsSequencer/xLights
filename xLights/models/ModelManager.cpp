@@ -2,7 +2,6 @@
 #include "Model.h"
 
 #include <wx/xml/xml.h>
-#include <wx/arrstr.h>
 #include <wx/msgdlg.h>
 
 #include "SubModel.h"
@@ -85,6 +84,7 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
 }
 
 void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     clear();
     previewWidth = previewW;
     previewHeight = previewH;
@@ -113,7 +113,6 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
             }
         }
         if (countValid == newCountValid) {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Could not calculate start channels for models:");
             std::string msg = "Could not calculate start channels for models:\n";
             for (auto it = models.begin(); it != models.end(); it++) {
@@ -391,8 +390,7 @@ Model *ModelManager::createAndAddModel(wxXmlNode *node) {
 void ModelManager::Delete(const std::string &name) {
 
     if( xlights->CurrentSeqXmlFile != nullptr ) {
-        int result = wxNO;
-        result = wxMessageBox("Delete all effects and layers for the selected model(s)?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO);
+        int result = wxMessageBox("Delete all effects and layers for the selected model(s)?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO);
         if( result != wxYES ) return;
 
         // Delete the model from the sequencer grid and views
@@ -411,7 +409,7 @@ void ModelManager::Delete(const std::string &name) {
             if (model != nullptr) {
                 model->GetModelXml()->GetParent()->RemoveChild(model->GetModelXml());
 
-                for (auto it = models.begin(); it != models.end(); it++) {
+                for (auto it = models.begin(); it != models.end(); ++it) {
                     if (it->second->GetDisplayAs() == "ModelGroup") {
                         ModelGroup *group = (ModelGroup*)it->second;
                         group->ModelRemoved(name);

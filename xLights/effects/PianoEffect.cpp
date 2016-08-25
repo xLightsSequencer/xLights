@@ -688,7 +688,7 @@ int PianoEffect::ConvertNote(std::string& note)
 
 std::map<int, std::list<float>> PianoEffect::LoadTimingTrack(std::string track, int intervalMS)
 {
-    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<float>> res;
 
     logger_pianodata.debug("Loading timings from timing track " + track);

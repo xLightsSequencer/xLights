@@ -399,7 +399,7 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 
 xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this), AllModels(NetInfo, this)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
     _fps = -1;
     mCurrentPerpective = NULL;
@@ -1542,7 +1542,7 @@ void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {
 
 void xLightsFrame::OnQuit(wxCommandEvent& event)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Quit");
 	wxCloseEvent evt;
     if (QuitMenuItem->IsEnabled())
@@ -1985,7 +1985,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
         return;
     }
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 	logger_base.info("xLights Closing");
 
 	StopNow();
@@ -1996,14 +1996,14 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 		event.Veto();
         return;
     }
-    selectedEffect = NULL;
+    selectedEffect = nullptr;
 
     CheckUnsavedChanges();
 
     ShowHideAllSequencerWindows(false);
 
     // destroy preview windows
-    for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); it++) {
+    for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); ++it) {
         ModelPreview* preview = *it;
         delete preview;
     }
@@ -2066,6 +2066,7 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
 
 void xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString fname;
     wxString srcDirName = CurrentDir + wxFileName::GetPathSeparator();
     wxFileName srcFile;
@@ -2074,7 +2075,6 @@ void xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
     bool cont = srcDir.GetFirst(&fname, wildcard, wxDIR_FILES);
     while (cont)
     {
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("Backing up file %s.", (const char *)fname.c_str());
 
         srcFile.SetFullName(fname);
@@ -2364,7 +2364,7 @@ void xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event
 
 void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Closing sequence.");
 	CloseSequence();
 	logger_base.info("Sequence closed.");
@@ -2600,7 +2600,7 @@ void xLightsFrame::OnBitmapButton_Link_DirsClick(wxCommandEvent& event)
         config->Write(_("MediaDir"), mediaDirectory);
         MediaDirectoryLabel->SetLabel(mediaDirectory);
         MediaDirectoryLabel->GetParent()->Layout();
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
     }
     config->Write(_("LinkFlag"), LinkFlag);
@@ -3226,7 +3226,7 @@ void xLightsFrame::OnmAltBackupLocationMenuItemSelected(wxCommandEvent& event)
     if (dir.ShowModal() == wxID_OK)
     {
         mAltBackupDir = dir.GetPath();
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Alternate backup location set to %s.", (const char *)mAltBackupDir.c_str());
     }
 
@@ -3387,7 +3387,7 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
         wxString command = ft->GetOpenCommand("foo.txt");
         command.Replace("foo.txt", fn);
 
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("Viewing log file %s.", (const char *)fn.c_str());
 
         wxExecute(command);

@@ -267,10 +267,10 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
         return;
     }
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Polyphonic transcription started on file " + _audio_file);
 
-    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     logger_pianodata.debug("Processing polyphonic transcription on file " + _audio_file);
     logger_pianodata.debug("Interval %d.", _intervalMS);
     logger_pianodata.debug("BitRate %d.", GetRate());
@@ -329,7 +329,6 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
             
             if (first && features.size() > 0)
             {
-                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("Polyphonic transcription data process oddly retrieved data.");
                 first = false;
             }
@@ -415,7 +414,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 // process audio data and build data for each frame
 void AudioManager::DoPrepareFrameData()
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Start processing audio frame data.");
 
 	// lock the mutex
@@ -474,21 +473,21 @@ void AudioManager::DoPrepareFrameData()
 			std::list<float> subspectrogram;
 			pdata[0] = GetLeftDataPtr(pos);
 			pdata[1] = GetRightDataPtr(pos);
-			float max = 0;
+			float max2 = 0;
 
-			if (pdata[0] == NULL)
+			if (pdata[0] == nullptr)
 			{
 				subspectrogram.clear();
 			}
 			else
 			{
-				subspectrogram = CalculateSpectrumAnalysis(pdata[0], step, max, i);
+				subspectrogram = CalculateSpectrumAnalysis(pdata[0], step, max2, i);
 			}
 
 			// and keep track of the larges value so we can normalise it
-			if (max > _bigspectogrammax)
+			if (max2 > _bigspectogrammax)
 			{
-				_bigspectogrammax = max;
+				_bigspectogrammax = max2;
 			}
 			pos += step;
 
@@ -1068,7 +1067,7 @@ int AudioManager::OpenMediaFile()
 
 void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // setup our conversion format ... we need to conver the input to a standard format before we can process anything
 	uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;

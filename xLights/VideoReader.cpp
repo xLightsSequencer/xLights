@@ -7,7 +7,7 @@
 
 VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool keepaspectratio)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _valid = false;
 	_lengthMS = 0;
 	_formatContext = NULL;
@@ -213,7 +213,7 @@ void VideoReader::Seek(int timestampMS)
 	// we have to be valid
 	if (_valid)
 	{
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         //logger_base.info("       VideoReader: Seeking to %d ms.", timestampMS);
         if (timestampMS < _lengthMS)
 		{

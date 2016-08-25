@@ -15,7 +15,7 @@ GLuint loadImage(wxString path, int &imageWidth, int &imageHeight, int &textureW
     if(!wxFileExists(path))
     {
         wxMessageBox( _("Failed to load resource image") );
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.crit("Failed to load resource image: " + path);
 		exit(1);
     }

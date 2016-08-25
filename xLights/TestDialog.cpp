@@ -1633,7 +1633,7 @@ void TestDialog::OnButton_SaveClick(wxCommandEvent& event)
 			c = TreeListCtrl_Channels->GetNextSibling(c);
 		}
 
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("Saving test preset: " + name);
         if (_network->Save(_networkFile.GetFullPath()))
 		{

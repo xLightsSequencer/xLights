@@ -54,7 +54,7 @@ void FRAMECLASS ConversionInit()
 
 void FRAMECLASS SetMediaFilename(const wxString& filename)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Setting media file to: " + filename);
 
     mediaFilename=filename;
@@ -713,7 +713,7 @@ void my_av_log_callback(void *ptr, int level, const char *fmt, va_list vargs)
         }
     }
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("WriteVideoModelFile: lvl: %d msg: %s.", level, static_cast<const char *>(message));
 }
 
@@ -723,7 +723,7 @@ void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int st
     int outheight = image.GetHeight();
     int outwidth = image.GetWidth();
 
-    //log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("Writing model frame. Model=%s, startAddr=%d, x=%d, y=%d, w=%d, h=%d, ow=%d, oh=%d", (const char *)model->name.c_str(), startAddr, x, y, width, height, outwidth, outheight);
 
     uint8_t* imagedata = image.GetData();
@@ -845,7 +845,7 @@ void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr)
 void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, long numPeriods,
     SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Writing model video.");
 
     int origwidth;
@@ -1160,7 +1160,7 @@ void FRAMECLASS ReadXlightsFile(const wxString& FileName, wxString *mediaFilenam
         }
         delete[] buf;
 #ifndef NDEBUG
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug(string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"), SeqData.NumFrames(), SeqData.NumChannels()));
 #endif
     }
