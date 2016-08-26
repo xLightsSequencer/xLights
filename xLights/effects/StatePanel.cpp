@@ -113,17 +113,17 @@ void StatePanel::UpdateStateList()
 {
     if (_effect != NULL)
     {
+        wxString selected = Choice_State_State->GetStringSelection();
         Choice_State_State->Clear();
         std::list<std::string> states = _effect->GetStates(_model, Choice_StateDefinitonChoice->GetStringSelection().ToStdString());
 
-        for (auto it = states.begin(); it != states.end(); it++)
+        for (auto it = states.begin(); it != states.end(); ++it)
         {
-            Choice_State_State->Append(*it);
-        }
-
-        if (Choice_State_State->GetCount() > 0)
-        {
-            Choice_State_State->SetSelection(0);
+            int item = Choice_State_State->Append(*it);
+            if (*it == selected)
+            {
+                Choice_State_State->SetSelection(item);
+            }
         }
     }
 }
