@@ -3496,6 +3496,34 @@ void xLightsFrame::CheckSequence(bool display)
         }
     }
 
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Model Groups containing models in different previews");
+
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() == "ModelGroup")
+        {
+            std::string mgp = it->second->GetLayoutGroup();
+
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
+            auto models = mg->ModelNames();
+
+            for (auto it2 = models.begin(); it2 != models.end(); ++it2)
+            {
+                Model* m = AllModels.GetModel(*it2);
+                if (m->GetDisplayAs() != "ModelGroup")
+                {
+                    if (mgp != m->GetLayoutGroup())
+                    {
+                        wxString msg = wxString::Format("WARN: Model Group '%s' in preview '%s' contains model '%s' in preview '%s'. This will cause the model to also appear in the model groups preview.", mg->GetName(), mg->GetLayoutGroup(), m->GetName(), m->GetLayoutGroup());
+                        LogAndWrite(f, msg.ToStdString());
+                        warncount++;
+                    }
+                }
+            }
+        }
+    }
+
     if (CurrentSeqXmlFile != nullptr)
     {
         LogAndWrite(f, "");
@@ -3549,6 +3577,33 @@ void xLightsFrame::CheckSequence(bool display)
 
                         SettingsMap& sm = ef->GetSettings();
                         RenderableEffect* re = em.GetEffect(ef->GetEffectIndex());
+
+                        // check excessive fadein/fadeout time
+                        float fadein = sm.GetFloat("T_TEXTCTRL_Fadein", 0.0);
+                        float fadeout = sm.GetFloat("T_TEXTCTRL_Fadein", 0.0);
+                        float efdur = (ef->GetEndTimeMS() - ef->GetStartTimeMS()) / 1000.0;
+
+                        if (fadein > efdur)
+                        {
+                            wxString msg = wxString::Format("WARN: Transition in time %.2f on effect %s at start time %d  on Model '%s' is greater than effect duration %.2f.", fadein, ef->GetEffectName(), ef->GetStartTimeMS(), e->GetModelName(), efdur);
+                            LogAndWrite(f, msg.ToStdString());
+                            warncount++;
+                        }
+                        if (fadeout > efdur)
+                        {
+                            wxString msg = wxString::Format("WARN: Transition out time %.2f on effect %s at start time %d  on Model '%s' is greater than effect duration %.2f.", fadeout, ef->GetEffectName(), ef->GetStartTimeMS(), e->GetModelName(), efdur);
+                            LogAndWrite(f, msg.ToStdString());
+                            warncount++;
+                        }
+
+                        // effect that runs past end of the sequence
+                        if (ef->GetEndTimeMS() > CurrentSeqXmlFile->GetSequenceDurationMS())
+                        {
+                            wxString msg = wxString::Format("WARN: Effect %s ends at %dms after the sequence end %dms. Model: '%s' Start: %d", ef->GetEffectName(), ef->GetEndTimeMS(), CurrentSeqXmlFile->GetSequenceDurationMS(), e->GetModelName(), ef->GetStartTimeMS());
+                            LogAndWrite(f, msg.ToStdString());
+                            warncount++;
+                        }
+
                         std::list<std::string> warnings = re->CheckEffectSettings(sm, CurrentSeqXmlFile->GetMedia(), AllModels.GetModel(e->GetModelName()), ef);
                         for (auto s = warnings.begin(); s != warnings.end(); ++s)
                         {
@@ -3569,6 +3624,7 @@ void xLightsFrame::CheckSequence(bool display)
     }
     else
     {
+        LogAndWrite(f, "");
         LogAndWrite(f, "No sequence loaded so sequence checks skipped.");
     }
 

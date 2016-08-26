@@ -6,6 +6,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../xLightsXmlFile.h"
+#include "../models/Model.h"
 #include <log4cpp/Category.hh>
 
 #include "../../include/video-16.xpm"
@@ -20,6 +21,59 @@ VideoEffect::VideoEffect(int id) : RenderableEffect(id, "Video", video_16, video
 
 VideoEffect::~VideoEffect()
 {
+}
+
+std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    wxString filename = settings.Get("E_FILEPICKERCTRL_Video_Filename", "");
+
+    if (!wxFileExists(filename))
+    {
+        res.push_back(wxString::Format("ERR: Video effect video file '%s' does not exist. Model '%s', Start %dms", filename, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+    }
+    else
+    {
+        VideoReader* videoreader = new VideoReader(filename.ToStdString(), 100, 100, false);
+
+        if (videoreader == nullptr || videoreader->GetLengthMS() == 0)
+        {
+            res.push_back(wxString::Format("ERR: Video effect video file '%s' could not be understood. Format may not be supported. Model '%s', Start %dms", filename, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        }
+        else
+        {
+            double starttime = settings.GetDouble("E_TEXTCTRL_Video_Starttime", 0.0);
+            wxString treatment = settings.Get("E_CHOICE_Video_DurationTreatment", "Normal");
+
+            if (treatment == "Normal")
+            {
+                int videoduration = videoreader->GetLengthMS() - starttime;
+                int effectduration = eff->GetEndTimeMS() - eff->GetStartTimeMS();
+                if (videoduration < effectduration)
+                {
+                    res.push_back(wxString::Format("WARN: Video effect video file '%s' is shorter %dms than effect duration %dms. Model '%s', Start %dms", filename, videoduration, effectduration, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+                }
+            }
+        }
+
+        if (videoreader != nullptr)
+        {
+            delete videoreader;
+        }
+    }
+
+    wxString bufferstyle = settings.Get("B_CHOICE_BufferStyle", "Default");
+    wxString transform = settings.Get("B_CHOICE_BufferTransform", "None");
+    int w, h;
+    model->GetBufferSize(bufferstyle.ToStdString(), transform.ToStdString(), w, h);
+
+    if (w < 2 || h < 2)
+    {
+        res.push_back(wxString::Format("ERR: Video effect video file '%s' cannot render onto model as it is not high or wide enough (%d,%d). Model '%s', Start %dms", filename, w, h, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+    }
+
+    return res;
 }
 
 wxPanel *VideoEffect::CreatePanel(wxWindow *parent) {

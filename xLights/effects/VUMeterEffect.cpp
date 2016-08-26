@@ -6,6 +6,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../models/Model.h"
 
 #include "../../include/vumeter-16.xpm"
 #include "../../include/vumeter-24.xpm"
@@ -21,6 +22,42 @@ VUMeterEffect::VUMeterEffect(int id) : RenderableEffect(id, "VU Meter", vumeter_
 
 VUMeterEffect::~VUMeterEffect()
 {
+}
+
+std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    wxString type = settings.Get("E_CHOICE_VUMeter_Type", "Waveform");
+
+    if (media == nullptr && 
+        (type == "Spectrogram" ||
+         type == "Volume Bars" || 
+         type == "Waveform" ||
+         type == "On" || 
+        type == "Intensity Wave" ||
+        type == "Level Pulse" ||
+        type == "Level Shape" ||
+        type == "Color On" ||
+        type == "Note On" ||
+        type == "Note Level Pulse" ||
+        type == "Timing Event Jump"))
+    {
+        res.push_back(wxString::Format("ERR: VU Meter effect '%s' is pointless if there is no music. Model '%s', Start %dms", type, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+    }
+
+    wxString timing = settings.Get("E_CHOICE_VUMeter_TimingTrack", "");
+
+    if (timing == "" &&
+        (type == "Timing Event Spike" ||
+         type == "Timing Event Sweep" ||
+         type == "Timing Event Color" ||
+         type == "Timing Event Jump"))
+    {
+        res.push_back(wxString::Format("ERR: VU Meter effect '%s' needs a timing track. Model '%s', Start %dms", type, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+    }
+
+    return res;
 }
 
 wxPanel *VUMeterEffect::CreatePanel(wxWindow *parent) {
@@ -195,12 +232,6 @@ int VUMeterEffect::DecodeType(std::string type)
 
 void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset)
 {
-	// no point if we have no media
-	if (buffer.GetMedia() == nullptr)
-	{
-		return;
-	}
-
 	int nType = DecodeType(type);
 
 	// Grab our cache
@@ -296,6 +327,8 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 
 void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, bool slowdownfalls, int startNote, int endNote, int xoffset)
 {
+    if (buffer.GetMedia() == nullptr) return;
+
     int truexoffset = xoffset * buffer.BufferWi / 100;
 	std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
 
@@ -407,6 +440,8 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 
 void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars)
 {
+    if (buffer.GetMedia() == nullptr) return;
+
 	int start = buffer.curPeriod - usebars;
 	int cols = buffer.BufferWi / usebars;
 	int x = 0;
@@ -442,6 +477,8 @@ void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars)
 
 void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars, int yoffset)
 {
+    if (buffer.GetMedia() == nullptr) return;
+
     int trueyoffset = yoffset * buffer.BufferHt / 2 / 100;
 	int start = buffer.curPeriod - usebars;
 	int cols = buffer.BufferWi / usebars;
@@ -516,7 +553,7 @@ void VUMeterEffect::RenderTimingEventFrame(RenderBuffer &buffer, int usebars, in
 				if (start + i >= 0)
 				{
 					EffectLayer* el = t->GetEffectLayer(0);
-					int ms = (start + i)*buffer.GetMedia()->GetFrameInterval();
+					int ms = (start + i)*buffer.frameTimeInMs;
 					bool effectPresent = false;
 					for (int j = 0; j < el->GetEffectCount(); j++)
 					{
@@ -608,7 +645,9 @@ void VUMeterEffect::RenderTimingEventFrame(RenderBuffer &buffer, int usebars, in
 
 void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer)
 {
-	float f = 0.0;
+    if (buffer.GetMedia() == nullptr) return;
+   
+    float f = 0.0;
 	std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
 	if (pf != nullptr)
 	{
@@ -629,6 +668,8 @@ void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer)
 
 void VUMeterEffect::RenderOnColourFrame(RenderBuffer& buffer)
 {
+    if (buffer.GetMedia() == nullptr) return;
+
     float f = 0.0;
     std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
     if (pf != nullptr)
@@ -667,7 +708,7 @@ void VUMeterEffect::RenderPulseFrame(RenderBuffer &buffer, int fadeframes, std::
 		if (t != nullptr)
 		{
 			EffectLayer* el = t->GetEffectLayer(0);
-			int ms = buffer.curPeriod*buffer.GetMedia()->GetFrameInterval();
+			int ms = buffer.curPeriod*buffer.frameTimeInMs;
 			bool effectPresent = false;
 			for (int j = 0; j < el->GetEffectCount(); j++)
 			{
@@ -713,6 +754,8 @@ void VUMeterEffect::RenderPulseFrame(RenderBuffer &buffer, int fadeframes, std::
 
 void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer &buffer, int usebars)
 {
+    if (buffer.GetMedia() == nullptr) return;
+
 	int start = buffer.curPeriod - usebars;
 	int cols = buffer.BufferWi / usebars;
 	int x = 0;
@@ -754,7 +797,9 @@ void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer &buffer, int usebars)
 
 void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark)
 {
-	float f = 0.0;
+    if (buffer.GetMedia() == nullptr) return;
+    
+    float f = 0.0;
 	std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
 	if (pf != nullptr)
 	{
@@ -894,6 +939,8 @@ void VUMeterEffect::DrawDiamond(RenderBuffer& buffer, int centerx, int centery, 
 
 void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset)
 {
+    if (buffer.GetMedia() == nullptr) return;
+
     int truexoffset = xoffset * buffer.BufferWi / 2 / 100;
     int trueyoffset = yoffset * buffer.BufferHt / 2 / 100;
     float scaling = (float)scale / 100.0 * 7.0;
@@ -1127,6 +1174,8 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 
 void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallframes, std::string timingtrack, float& lastsize)
 {
+    if (buffer.GetMedia() == nullptr) return;
+
     if (timingtrack != "")
     {
         Element* t = nullptr;
@@ -1144,7 +1193,7 @@ void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallfra
         if (t != nullptr)
         {
             EffectLayer* el = t->GetEffectLayer(0);
-            int ms = buffer.curPeriod*buffer.GetMedia()->GetFrameInterval();
+            int ms = buffer.curPeriod*buffer.frameTimeInMs;
             bool effectPresent = false;
             for (int j = 0; j < el->GetEffectCount(); j++)
             {
@@ -1207,7 +1256,7 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colo
         if (t != nullptr)
         {
             EffectLayer* el = t->GetEffectLayer(0);
-            int ms = buffer.curPeriod*buffer.GetMedia()->GetFrameInterval();
+            int ms = buffer.curPeriod*buffer.frameTimeInMs;
             bool effectPresent = false;
             for (int j = 0; j < el->GetEffectCount(); j++)
             {
@@ -1243,6 +1292,8 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colo
 
 void VUMeterEffect::RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote)
 {
+    if (buffer.GetMedia() == nullptr) return;
+
     std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
 
     if (pdata != nullptr && pdata->size() != 0)
@@ -1274,6 +1325,8 @@ void VUMeterEffect::RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int e
 
 void VUMeterEffect::RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote)
 {
+    if (buffer.GetMedia() == nullptr) return;
+
     std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
 
     if (pdata != nullptr && pdata->size() != 0)
