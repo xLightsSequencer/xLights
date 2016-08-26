@@ -4,7 +4,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
-
+#include "../models/Model.h"
 
 #include "../../include/fill-16.xpm"
 #include "../../include/fill-64.xpm"
@@ -17,6 +17,18 @@ FillEffect::FillEffect(int i) : RenderableEffect(i, "Fill", fill_16, fill_64, fi
 FillEffect::~FillEffect()
 {
     //dtor
+}
+
+std::list<std::string> FillEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    if (settings.Get("E_VALUECURVE_Fill_Position", "").find("Active=FALSE") != std::string::npos)
+    {
+        res.push_back(wxString::Format("WARN: Fill effect without a position value curve. Was that intentional? Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+    }
+
+    return res;
 }
 
 wxPanel *FillEffect::CreatePanel(wxWindow *parent) {

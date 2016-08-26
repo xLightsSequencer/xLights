@@ -11,7 +11,8 @@ class FireworksEffect : public RenderableEffect
         virtual ~FireworksEffect();
         virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
-    protected:
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
 
     private:

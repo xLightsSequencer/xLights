@@ -288,12 +288,27 @@ void SequenceElements::SetEffectsNode(wxXmlNode* effectsNode)
 std::string SequenceElements::GetViewModels(const std::string &viewName) const
 {
     std::string result="";
-    for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
+
+    if (viewName == "Master View")
     {
-        if(view->GetAttribute(STR_NAME)==viewName)
+        for (auto it = mAllViews[MASTER_VIEW].begin(); it != mAllViews[MASTER_VIEW].end(); ++it)
         {
-            result = view->GetAttribute("models");
-            break;
+            if ((*it)->GetType() == ELEMENT_TYPE_MODEL)
+            {
+                result += (*it)->GetName() + ",";
+            }
+        }
+        result = result.substr(0, result.size() - 1);
+    }
+    else
+    {
+        for (wxXmlNode* view = mViewsNode->GetChildren(); view != NULL; view = view->GetNext())
+        {
+            if (view->GetAttribute(STR_NAME) == viewName)
+            {
+                result = view->GetAttribute("models");
+                break;
+            }
         }
     }
     return result;

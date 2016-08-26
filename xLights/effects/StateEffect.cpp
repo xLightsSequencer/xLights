@@ -21,6 +21,30 @@ StateEffect::~StateEffect()
     //dtor
 }
 
+std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    // -Buffer not rotated
+    wxString bufferTransform = settings.Get("B_CHOICE_BufferTransform", "None");
+
+    if (bufferTransform != "None")
+    {
+        res.push_back(wxString::Format("WARN: State effect with transformed buffer '%s' may not render correctly. Model '%s', Start %dms", model->GetName(), bufferTransform, eff->GetStartTimeMS()).ToStdString());
+    }
+
+    wxString timing = settings.Get("E_CHOICE_State_TimingTrack", "");
+    wxString state = settings.Get("E_CHOICE_State_State", "");
+
+    // - Face chosen or specific phoneme
+    if (state == "" && timing == "")
+    {
+        res.push_back(wxString::Format("ERR: State effect with no timing selected. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+    }
+
+    return res;
+}
+
 void StateEffect::SetPanelStatus(Model *cls) {
     StatePanel *fp = (StatePanel*)panel;
     if (fp == nullptr) {

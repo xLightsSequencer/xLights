@@ -8,7 +8,7 @@
 #include "../UtilClasses.h"
 
 #include "../xLightsMain.h" //xLightsFrame
-
+#include <list>
 
 #include "PicturesEffect.h"
 
@@ -25,6 +25,79 @@ FacesEffect::FacesEffect(int id) : RenderableEffect(id, "Faces", corofaces, coro
 FacesEffect::~FacesEffect()
 {
     //dtor
+}
+
+std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    wxString definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
+    if (definition == "Default" && !model->faceInfo.empty() && model->faceInfo.begin()->first != "") {
+        definition = model->faceInfo.begin()->first;
+    }
+    bool found = true;
+    std::map<std::string, std::map<std::string, std::string> >::iterator it = model->faceInfo.find(definition.ToStdString());
+    if (it == model->faceInfo.end()) {
+        //not found
+        found = false;
+    }
+    if (!found) {
+        if ("Coro" == definition && model->faceInfo.find("SingleNode") != model->faceInfo.end()) {
+            definition = "SingleNode";
+            found = true;
+        }
+        else if ("SingleNode" == definition && model->faceInfo.find("Coro") != model->faceInfo.end()) {
+            definition = "Coro";
+            found = true;
+        }
+    }
+
+    wxString modelType = found ? wxString(model->faceInfo[definition.ToStdString()]["Type"].c_str()) : definition;
+    if (modelType == "") {
+        modelType = definition;
+    }
+
+    if (modelType != "Matrix" && modelType != "Rendered")
+    {
+        // -Buffer not rotated
+        wxString bufferTransform = settings.Get("B_CHOICE_BufferTransform", "None");
+
+        if (bufferTransform != "None")
+        {
+            res.push_back(wxString::Format("WARN: Face effect with transformed buffer '%s' may not render correctly. Model '%s', Start %dms", model->GetName(), bufferTransform, eff->GetStartTimeMS()).ToStdString());
+        }
+    }
+
+    if (modelType == "Matrix")
+    {
+        auto images = model->faceInfo[definition.ToStdString()];
+        for (auto it2 = images.begin(); it2 != images.end(); ++it2)
+        {
+            if ((*it2).first.find("Mouth") == 0)
+            {
+                std::string picture = (*it2).second;
+
+                if (picture != "")
+                {
+                    if (!wxFileExists(picture))
+                    {
+                        res.push_back(wxString::Format("ERR: Face effect image file not found '%s'. Model '%s', Start %dms", picture, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+                    }
+                }
+            }
+        }
+    }
+
+    wxString timing = settings.Get("E_CHOICE_Faces_TimingTrack", "");
+    wxString phoneme = settings.Get("E_CHOICE_Faces_Phoneme", "");
+
+    // - Face chosen or specific phoneme
+    if (phoneme == "" && timing == "")
+    {
+        res.push_back(wxString::Format("ERR: Face effect with no timing selected. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+    }
+
+    return res;
 }
 
 void FacesEffect::SetPanelStatus(Model *cls) {

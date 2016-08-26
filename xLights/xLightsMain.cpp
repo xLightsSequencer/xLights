@@ -10,6 +10,7 @@
 #include "xLightsMain.h"
 #include <wx/msgdlg.h>
 #include <wx/config.h>
+#include <wx/tokenzr.h>
 #include <wx/dir.h>
 #include <wx/textdlg.h>
 #include <wx/numdlg.h>
@@ -30,7 +31,7 @@
 #include "BitmapCache.h"
 #include "effects/RenderableEffect.h"
 #include "LayoutPanel.h"
-
+#include "Models/ModelGroup.h"
 
 #include "TestDialog.h"
 #include "ConvertDialog.h"
@@ -194,6 +195,7 @@ const long xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
 const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
+const long xLightsFrame::ID_MNU_CHECKSEQ = wxNewId();
 const long xLightsFrame::ID_MENU_VIEW_LOG = wxNewId();
 const long xLightsFrame::ID_MENUITEM18 = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
@@ -757,6 +759,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1->Append(MenuItemConvert);
     Menu_GenerateCustomModel = new wxMenuItem(Menu1, ID_MENUITEM_GenerateCustomModel, _("&Generate Custom Model"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(Menu_GenerateCustomModel);
+    MenuItemCheckSequence = new wxMenuItem(Menu1, ID_MNU_CHECKSEQ, _("C&heck Sequence"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItemCheckSequence);
     MenuItem_ViewLog = new wxMenuItem(Menu1, ID_MENU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_ViewLog);
     MenuItem38 = new wxMenuItem(Menu1, ID_MENUITEM18, _("&Package Log FIles"), _("Packages up current configuration, logs and sequence for reporting a problem to development team."), wxITEM_NORMAL);
@@ -925,7 +929,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem13 = new wxMenuItem(MenuSettings, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(MenuItem13);
     MenuBar->Append(MenuSettings, _("&Settings"));
-    
     MenuHelp = new wxMenu();
     MenuItem4 = new wxMenuItem(MenuHelp, idMenuHelpContent, _("Content\tF1"), wxEmptyString, wxITEM_NORMAL);
     MenuHelp->Append(MenuItem4);
@@ -1006,6 +1009,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM13,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
     Connect(ID_MENUITEM_CONVERT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MENUITEM_GenerateCustomModel,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
+    Connect(ID_MNU_CHECKSEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemCheckSequenceSelected);
     Connect(ID_MENU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MENUITEM18,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemPackageDebugFiles);
     Connect(ID_EXPORT_MODELS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmExportModelsMenuItemSelected);
@@ -1078,8 +1082,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
-    
-    
+
+
     AddWindowsMenu();
 
     logger_base.debug("xLightsFrame constructor UI code done.");
@@ -1266,7 +1270,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
         mediaDirectory=dir;
     }
     ObtainAccessToURL(mediaDirectory.ToStdString());
-    
+
     logger_base.debug("Media directory %s.", (const char *)mediaDirectory.c_str());
     MediaDirectoryLabel->SetLabel(mediaDirectory);
 
@@ -2939,6 +2943,9 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
 
     if (fd.ShowModal() == wxID_CANCEL) return;
 
+    // check the curent sequence to ensure this analysis is in the log
+    CheckSequence(false);
+
     wxDebugReportCompress report;
     report.SetCompressedFileBaseName(wxFileName(fd.GetFilename()).GetName());
     report.SetCompressedFileDirectory(fd.GetDirectory());
@@ -3352,6 +3359,7 @@ void xLightsFrame::OnMenuItem_BackupOnLaunchSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString dir;
     wxString fileName = "xLights_l4cpp.log";
 #ifdef __WXMSW__
@@ -3387,7 +3395,6 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
         wxString command = ft->GetOpenCommand("foo.txt");
         command.Replace("foo.txt", fn);
 
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("Viewing log file %s.", (const char *)fn.c_str());
 
         wxExecute(command);
@@ -3395,6 +3402,203 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     }
     else
     {
+        logger_base.warn("Unable to view log file %s.", (const char *)fn.c_str());
         wxMessageBox(_("Unable to show log file."), _("Error"));
     }
+}
+
+void LogAndWrite(wxFile& f, const std::string& msg)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("CheckSequence: " + msg);
+    if (f.IsOpened())
+    {
+        f.Write(msg + "\r\n");
+    }
+}
+
+void xLightsFrame::CheckSequence(bool display)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    int errcount = 0;
+    int warncount = 0;
+
+    wxFile f;
+    wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
+
+    if (display)
+    {
+        f.Open(filename, wxFile::write);
+        if (!f.IsOpened())
+        {
+            logger_base.warn("Unable to create results file for Check Sequence. Aborted.");
+            wxMessageBox(_("Unable to create results file for Check Sequence. Aborted."), _("Error"));
+            return;
+        }
+    }
+
+    LogAndWrite(f, "Checking sequence.");
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Inactive Outputs");
+
+    // Check for inactive outputs
+    wxXmlNode* n = NetworkXML.GetRoot();
+    int i = 0;
+    for (n = n->GetChildren(); n != nullptr; n = n->GetNext())
+    {
+        if (n->GetName() == "network")
+        {
+            i++;
+
+            if (n->GetAttribute("Enabled", "Yes") != "Yes")
+            {
+                wxString NetType = n->GetAttribute("NetworkType", "");
+                wxString ip = n->GetAttribute("ComPort", "");
+                wxString universe = n->GetAttribute("BaudRate", "1");
+                wxString desc = n->GetAttribute("Description", "");
+                    
+                wxString msg = wxString::Format("WARN: Inactive output %d %s:%s:%s:'%s'.", i, NetType, ip, universe, desc);
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+        }
+    }
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Overlapping model channels");
+
+    // Check for overlapping channels in models
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            int m1start = it->second->GetFirstChannel();
+            int m1end = it->second->GetLastChannel();
+
+            auto it2 = it;
+            ++it2;
+            for (; it2 != AllModels.end(); ++it2)
+            {
+                if (it2->second->GetDisplayAs() != "ModelGroup")
+                {
+                    int m2start = it2->second->GetFirstChannel();
+                    int m2end = it2->second->GetLastChannel();
+
+                    if (m1start <= m2end  && m1end >= m2end || m1end >= m2start && m1start <= m2start)
+                    {
+                        wxString msg = wxString::Format("WARN: Probable model overlap '%s' (%d-%d) and '%s' (%d-%d).", it->first, m1start, m1end, it2->first, m2start, m2end);
+                        LogAndWrite(f, msg.ToStdString());
+                        warncount++;
+                    }
+                }
+            }
+        }
+    }
+
+    if (CurrentSeqXmlFile != nullptr)
+    {
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Models hidden by effects on groups");
+
+        // Check for groups that contain models that have appeared before the group at the bottom of the master view
+        wxString models = mSequenceElements.GetViewModels(mSequenceElements.GetViewName(0));
+        wxArrayString modelnames = wxSplit(models, ',');
+
+        std::list<std::string> seenmodels;
+        for (auto it = modelnames.begin(); it != modelnames.end(); ++it)
+        {
+            Model* m = AllModels.GetModel(it->ToStdString());
+            if (m->GetDisplayAs() == "ModelGroup")
+            {
+                ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
+                auto cm = mg->Models();
+                for (auto it2 = cm.begin(); it2 != cm.end(); ++it2)
+                {
+                    if (std::find(seenmodels.begin(), seenmodels.end(), (*it2)->GetName()) != seenmodels.end())
+                    {
+                        wxString msg = wxString::Format("WARN: Model Group '%s' will hide effects on model '%s'.", mg->GetName(), (*it2)->GetName());
+                        LogAndWrite(f, msg.ToStdString());
+                        warncount++;
+                    }
+                }
+            }
+            else
+            {
+                seenmodels.push_back(m->GetName());
+            }
+        }
+
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Effect problems");
+
+        // check all effects 
+        EffectManager& em = mSequenceElements.GetEffectManager();
+        for (i = 0; i < mSequenceElements.GetElementCount(0); i++)
+        {
+            Element* e = mSequenceElements.GetElement(i);
+            if (e->GetType() != ELEMENT_TYPE_TIMING)
+            {
+                for (int j = 0; j < e->GetEffectLayerCount(); j++)
+                {
+                    EffectLayer* el = e->GetEffectLayer(j);
+
+                    for (int k = 0; k < el->GetEffectCount(); k++)
+                    {
+                        Effect* ef = el->GetEffect(k);
+
+                        SettingsMap& sm = ef->GetSettings();
+                        RenderableEffect* re = em.GetEffect(ef->GetEffectIndex());
+                        std::list<std::string> warnings = re->CheckEffectSettings(sm, CurrentSeqXmlFile->GetMedia(), AllModels.GetModel(e->GetModelName()), ef);
+                        for (auto s = warnings.begin(); s != warnings.end(); ++s)
+                        {
+                            LogAndWrite(f, *s);
+                            if (s->find("WARN") == 0)
+                            {
+                                warncount++;
+                            }
+                            else if (s->find("ERR")  == 0)
+                            {
+                                errcount++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        LogAndWrite(f, "No sequence loaded so sequence checks skipped.");
+    }
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Check sequence done.");
+    LogAndWrite(f, wxString::Format("Errors: %d. Warnings: %d", errcount, warncount).ToStdString());
+
+    if (f.IsOpened())
+    {
+        f.Close();
+
+        wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+        if (ft)
+        {
+            wxString command = ft->GetOpenCommand(filename);
+
+            logger_base.debug("Viewing xLights Check Sequence results %s.", (const char *)filename.c_str());
+
+            wxExecute(command);
+            delete ft;
+        }
+        else
+        {
+            logger_base.warn("Unable to view xLights Check Sequence results %s.", (const char *)filename.c_str());
+            wxMessageBox(_("Unable to show xLights Check Sequence results."), _("Error"));
+        }
+    }
+}
+
+void xLightsFrame::OnMenuItemCheckSequenceSelected(wxCommandEvent& event)
+{
+    CheckSequence(true);
 }

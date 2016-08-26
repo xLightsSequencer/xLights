@@ -50,6 +50,7 @@ class RenderableEffect
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) { return true; }
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) = 0;
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect *effect) { }
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) { std::list<std::string> res; return res; };
 
         virtual bool CanBeRandom() {return true;}
 

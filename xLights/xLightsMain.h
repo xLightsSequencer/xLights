@@ -609,6 +609,7 @@ private:
     void OnmExportModelsMenuItemSelected(wxCommandEvent& event);
     void OnMenuItem_BackupOnLaunchSelected(wxCommandEvent& event);
     void OnMenuItem_ViewLogSelected(wxCommandEvent& event);
+    void OnMenuItemCheckSequenceSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -719,6 +720,7 @@ private:
     static const long ID_MENUITEM13;
     static const long ID_MENUITEM_CONVERT;
     static const long ID_MENUITEM_GenerateCustomModel;
+    static const long ID_MNU_CHECKSEQ;
     static const long ID_MENU_VIEW_LOG;
     static const long ID_MENUITEM18;
     static const long ID_EXPORT_MODELS;
@@ -842,6 +844,7 @@ private:
     wxMenuItem* mAltBackupLocationMenuItem;
     wxMenuItem* MenuItem_File_Save_Sequence;
     wxMenuItem* MenuItem36;
+    wxMenuItem* MenuItemCheckSequence;
     wxButton* ButtonNetworkDeleteAll;
     wxTimer EffectSettingsTimer;
     wxMenuItem* MenuItemGridIconBackgroundOn;
@@ -1383,6 +1386,7 @@ private:
     std::map<int, std::list<float>> LoadMusicXMLFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track);
     void CreateNotes(EffectLayer* el, std::map<int, std::list<float>>& notes, int interval, int frames);
     std::string CreateNotesLabel(const std::list<float>& notes) const;
+    void CheckSequence(bool display);
 
     void CheckForValidModels();
 
