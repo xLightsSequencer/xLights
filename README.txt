@@ -9,6 +9,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- enh (gil)     Add match duration effect alignment option.  Fixes #670.
+   -- enh (keithsw) Add sequence checker. This scans your Setup/Layout/Open sequence and highlights any items that might cause issues or unexpected behaviour in xLights.
 2016.47  Aug 22, 2016
    -- bug (dkulp)   Update the EffectAssist when the effect settings change, EffectAssist considers submodel buffer sizes
    -- enh (dkulp)   Add submodels to Tree on LayoutPage, allow renaming
