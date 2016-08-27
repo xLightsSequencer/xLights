@@ -238,7 +238,7 @@ public:
 
 #define ARTNET_UNIVERSE(a) (a & 0x000F)
 #define ARTNET_SUBNET(a) ((a & 0x00F0) >> 4)
-#define ARTNET_NET(a) ((a & 0x8F00) >> 8)
+#define ARTNET_NET(a) ((a & 0x7F00) >> 8)
 
 // ******************************************************
 // * This class represents a single universe for ArtNET
@@ -293,10 +293,10 @@ private:
         wxByte UnivLo = UniverseNumber & 0xff; // Universe Number (low)
 
         data[0] = 'A';   // ID[8]
-        data[1] = 'r';   
-        data[2] = 't';   
-        data[3] = '-'; 
-        data[4] = 'N'; 
+        data[1] = 'r';
+        data[2] = 't';
+        data[3] = '-';
+        data[4] = 'N';
         data[5] = 'e';
         data[6] = 't';
         data[7] = 0x00;
@@ -309,7 +309,7 @@ private:
         data[14] = (UniverseNumber & 0xFF);
         data[15] = ((UniverseNumber &0xFF00) >> 8);
         data[16] = 0x01; // we are going to send all 512 bytes
-        data[17] = 0x00;  
+        data[17] = 0x00;
     }
 
     void InitRemoteAddr(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {

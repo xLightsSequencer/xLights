@@ -488,6 +488,7 @@ private:
     void OnMenuItemCheckSequenceSelected(wxCommandEvent& event);
     void OnSpinCtrl_SyncUniverseChange(wxSpinEvent& event);
     void OnMenuItem_e131syncSelected(wxCommandEvent& event);
+    void OnButtonArtNETClick(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -544,6 +545,7 @@ private:
     static const long ID_BUTTON_ADD_DONGLE;
     static const long ID_BUTTON_ADD_E131;
     static const long ID_BUTTON1;
+    static const long ID_BUTTON2;
     static const long ID_BUTTON_NETWORK_CHANGE;
     static const long ID_BUTTON_NETWORK_DELETE;
     static const long ID_BUTTON_NETWORK_DELETE_ALL;
@@ -689,6 +691,7 @@ private:
     xlAuiToolBar* OutputToolBar;
     wxButton* ButtonAddE131;
     wxMenuItem* MenuItemViewSavePerspective;
+    wxButton* ButtonArtNET;
     wxMenuItem* QuitMenuItem;
     wxMenuItem* MenuItem33;
     wxMenuItem* MenuItemLoadEditPerspective;
