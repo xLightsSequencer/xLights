@@ -98,10 +98,6 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
         res.push_back(wxString::Format("ERR: Face effect with no timing selected. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
     }
 
-    if (dynamic_cast<CustomModel*>(model) != nullptr &&  settings.Get("B_CHOICE_BufferStyle", "Default") != "Default") {
-        res.push_back(wxString::Format("ERR: Face effect with Render Style set to non-Default. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
-        
-    }
     return res;
 }
 
@@ -942,10 +938,8 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
                     wxString nn = model_info->GetNodeName(n, true);
                     if (nn == valstr) {
-                        std::vector<wxPoint> pts;
-                        model_info->GetNodeCoords(n, pts);
-                        for (size_t x = 0; x < pts.size(); x++) {
-                            buffer.SetPixel(pts[x].x, pts[x].y, colors[t]);
+                        for (auto a = buffer.Nodes[n]->Coords.begin() ; a != buffer.Nodes[n]->Coords.end(); a++) {
+                            buffer.SetPixel(a->bufX, a->bufY, colors[t]);
                         }
                     }
                 }
@@ -964,11 +958,9 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 start--;
                 end--;
                 for (int n = start; n <= end; n++) {
-                    std::vector<wxPoint> pts;
-                    if (n < model_info->GetNodeCount()) {
-                        model_info->GetNodeCoords(n, pts);
-                        for (size_t x = 0; x < pts.size(); x++) {
-                            buffer.SetPixel(pts[x].x, pts[x].y, colors[t]);
+                    if (n < buffer.Nodes.size()) {
+                        for (auto a = buffer.Nodes[n]->Coords.begin() ; a != buffer.Nodes[n]->Coords.end(); a++) {
+                            buffer.SetPixel(a->bufX, a->bufY, colors[t]);
                         }
                     }
                 }

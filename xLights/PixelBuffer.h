@@ -110,7 +110,6 @@ private:
         ValueCurve RotationsValueCurve;
         ValueCurve PivotPointXValueCurve;
         ValueCurve PivotPointYValueCurve;
-        std::vector<NodeBaseClassPtr> Nodes;
         int sparkle_count;
         bool music_sparkle_count;
 		int blur;

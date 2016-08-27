@@ -79,7 +79,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
     {
         layers[x] = new LayerInfo(frame, onlyOnMain);
         layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
-        model->InitRenderBufferNodes("Default", "None", layers[x]->Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
+        model->InitRenderBufferNodes("Default", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
         layers[x]->bufferType = "Default";
         layers[x]->bufferTransform = "None";
         layers[x]->subBuffer = "";
@@ -149,25 +149,25 @@ void PixelBufferClass::Clear(int which)
 
 void PixelBufferClass::GetNodeChannelValues(size_t nodenum, unsigned char *buf)
 {
-    layers[0]->Nodes[nodenum]->GetForChannels(buf);
+    layers[0]->buffer.Nodes[nodenum]->GetForChannels(buf);
 }
 void PixelBufferClass::SetNodeChannelValues(size_t nodenum, const unsigned char *buf)
 {
-    layers[0]->Nodes[nodenum]->SetFromChannels(buf);
+    layers[0]->buffer.Nodes[nodenum]->SetFromChannels(buf);
 }
 xlColor PixelBufferClass::GetNodeColor(size_t nodenum) const
 {
     xlColor color;
-    layers[0]->Nodes[nodenum]->GetColor(color);
+    layers[0]->buffer.Nodes[nodenum]->GetColor(color);
     return color;
 }
 int PixelBufferClass::NodeStartChannel(size_t nodenum) const
 {
-    return layers[0]->Nodes.size() && nodenum < layers[0]->Nodes.size() ? layers[0]->Nodes[nodenum]->ActChan: 0;
+    return layers[0]->buffer.Nodes.size() && nodenum < layers[0]->buffer.Nodes.size() ? layers[0]->buffer.Nodes[nodenum]->ActChan: 0;
 }
 int PixelBufferClass::GetNodeCount() const
 {
-    return layers[0]->Nodes.size();
+    return layers[0]->buffer.Nodes.size();
 }
 int PixelBufferClass::GetChanCountPerNode() const
 {
@@ -176,7 +176,7 @@ int PixelBufferClass::GetChanCountPerNode() const
     {
         return 0;
     }
-    return layers[0]->Nodes[0]->GetChanCount();
+    return layers[0]->buffer.Nodes[0]->GetChanCount();
 }
 
 
@@ -471,7 +471,7 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
 void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod)
 {
 
-    unsigned short &sparkle = layers[0]->Nodes[node]->sparkle;
+    unsigned short &sparkle = layers[0]->buffer.Nodes[node]->sparkle;
     HSVValue hsv;
     int cnt = 0;
     xlColor color;
@@ -485,8 +485,8 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
             float offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
             offset = std::min(offset, 1.0f);
 
-            int x = layers[layer]->Nodes[node]->Coords[0].bufX;
-            int y = layers[layer]->Nodes[node]->Coords[0].bufY;
+            int x = layers[layer]->buffer.Nodes[node]->Coords[0].bufX;
+            int y = layers[layer]->buffer.Nodes[node]->Coords[0].bufY;
 
             if (x < 0 || y < 0
                 || x >= layers[layer]->BufferWi
@@ -802,9 +802,9 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
     if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve || inf->sparklesValueCurve != sparklesValueCurve || inf->zoomValueCurve != zoomValueCurve || inf->rotationValueCurve != rotationValueCurve || inf->rotationsValueCurve != rotationsValueCurve || inf->pivotpointxValueCurve != pivotpointxValueCurve || inf->pivotpointyValueCurve != pivotpointyValueCurve || inf->brightnessValueCurve != brightnessValueCurve)
     {
-        inf->Nodes.clear();
-        model->InitRenderBufferNodes(type, transform, inf->Nodes, inf->BufferWi, inf->BufferHt);
-        ComputeSubBuffer(subBuffer, inf->Nodes, inf->BufferWi, inf->BufferHt);
+        inf->buffer.Nodes.clear();
+        model->InitRenderBufferNodes(type, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+        ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
         ComputeValueCurve(blurValueCurve, inf->BlurValueCurve);
         ComputeValueCurve(sparklesValueCurve, inf->SparklesValueCurve);
@@ -851,38 +851,38 @@ void PixelBufferClass::GetColors(unsigned char *fdata) {
 
     if (layers[0] != nullptr) // I dont like this ... it should never be null
     {
-        for (size_t n = 0; n < layers[0]->Nodes.size(); n++) {
+        for (size_t n = 0; n < layers[0]->buffer.Nodes.size(); n++) {
             size_t start = NodeStartChannel(n);
-            if (layers[0]->Nodes[n]->model != nullptr) // nor this
+            if (layers[0]->buffer.Nodes[n]->model != nullptr) // nor this
             {
-                DimmingCurve *curve = layers[0]->Nodes[n]->model->modelDimmingCurve;
+                DimmingCurve *curve = layers[0]->buffer.Nodes[n]->model->modelDimmingCurve;
                 if (curve != nullptr) {
-                    layers[0]->Nodes[n]->GetColor(color);
+                    layers[0]->buffer.Nodes[n]->GetColor(color);
                     curve->apply(color);
-                    layers[0]->Nodes[n]->SetColor(color);
+                    layers[0]->buffer.Nodes[n]->SetColor(color);
                 }
             }
-            layers[0]->Nodes[n]->GetForChannels(&fdata[start]);
+            layers[0]->buffer.Nodes[n]->GetForChannels(&fdata[start]);
         }
     }
 }
 void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 {
     xlColor color;
-    for (size_t n = 0; n < layers[layer]->Nodes.size(); n++)
+    for (size_t n = 0; n < layers[layer]->buffer.Nodes.size(); n++)
     {
         int start = NodeStartChannel(n);
-        layers[layer]->Nodes[n]->SetFromChannels(&fdata[start]);
-        layers[layer]->Nodes[n]->GetColor(color);
-        DimmingCurve *curve = layers[layer]->Nodes[n]->model->modelDimmingCurve;
+        layers[layer]->buffer.Nodes[n]->SetFromChannels(&fdata[start]);
+        layers[layer]->buffer.Nodes[n]->GetColor(color);
+        DimmingCurve *curve = layers[layer]->buffer.Nodes[n]->model->modelDimmingCurve;
         if (curve != nullptr) {
             curve->reverse(color);
         }
 
-        for (size_t x = 0; x < layers[layer]->Nodes[n]->Coords.size(); x++)
+        for (size_t x = 0; x < layers[layer]->buffer.Nodes[n]->Coords.size(); x++)
         {
-            layers[layer]->buffer.SetPixel(layers[layer]->Nodes[n]->Coords[x].bufX,
-                                           layers[layer]->Nodes[n]->Coords[x].bufY, color);
+            layers[layer]->buffer.SetPixel(layers[layer]->buffer.Nodes[n]->Coords[x].bufX,
+                                           layers[layer]->buffer.Nodes[n]->Coords[x].bufY, color);
         }
     }
 }
@@ -1042,13 +1042,13 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
     }
 
     // layer calculation and map to output
-    size_t NodeCount = layers[0]->Nodes.size();
+    size_t NodeCount = layers[0]->buffer.Nodes.size();
     for(size_t i = 0; i < NodeCount; i++)
     {
-        if (!layers[0]->Nodes[i]->IsVisible())
+        if (!layers[0]->buffer.Nodes[i]->IsVisible())
         {
             // unmapped pixel - set to black
-            layers[0]->Nodes[i]->SetColor(xlBLACK);
+            layers[0]->buffer.Nodes[i]->SetColor(xlBLACK);
         }
         else
         {
@@ -1059,7 +1059,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
 
 
             // set color for physical output
-            layers[0]->Nodes[i]->SetColor(color);
+            layers[0]->buffer.Nodes[i]->SetColor(color);
         }
     }
 }

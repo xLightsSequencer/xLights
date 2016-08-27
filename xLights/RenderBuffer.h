@@ -39,6 +39,7 @@
 
 #include "Color.h"
 #include "ColorCurve.h"
+#include "models/Node.h"
 
 //added hash_map, queue, vector: -DJ
 #ifdef _MSC_VER
@@ -378,6 +379,8 @@ public:
     std::map<int, EffectRenderCache*> infoCache;
     int tempInt;
     int tempInt2;
+
+    std::vector<NodeBaseClassPtr> Nodes;
 
 private:
     bool onlyOnMain;

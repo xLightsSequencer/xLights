@@ -469,10 +469,8 @@ void StateEffect::RenderState(RenderBuffer &buffer,
                     for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
                         wxString nn = model_info->GetNodeName(n, true);
                         if (nn == valstr) {
-                            std::vector<wxPoint> pts;
-                            model_info->GetNodeCoords(n, pts);
-                            for (size_t x = 0; x < pts.size(); x++) {
-                                buffer.SetPixel(pts[x].x, pts[x].y, color);
+                            for (auto a = buffer.Nodes[n]->Coords.begin() ; a != buffer.Nodes[n]->Coords.end(); a++) {
+                                buffer.SetPixel(a->bufX, a->bufY, color);
                             }
                         }
                     }
@@ -493,11 +491,9 @@ void StateEffect::RenderState(RenderBuffer &buffer,
                     start--;
                     end--;
                     for (int n = start; n <= end; n++) {
-                        std::vector<wxPoint> pts;
-                        if (n < model_info->GetNodeCount()) {
-                            model_info->GetNodeCoords(n, pts);
-                            for (size_t x = 0; x < pts.size(); x++) {
-                                buffer.SetPixel(pts[x].x, pts[x].y, color);
+                        if (n < buffer.Nodes.size()) {
+                            for (auto a = buffer.Nodes[n]->Coords.begin() ; a != buffer.Nodes[n]->Coords.end(); a++) {
+                                buffer.SetPixel(a->bufX, a->bufY, color);
                             }
                         }
                     }
