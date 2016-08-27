@@ -143,6 +143,7 @@ void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect)
     if (settingsMap.GetFloat("E_TEXTCTRL_ColorWash_Cycles", 0.0f) == 1.0f) {
         settingsMap.erase("E_TEXTCTRL_ColorWash_Cycles");
     }
+    RenderableEffect::RemoveDefaults(version, effect);
 }
 
 void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
