@@ -3513,7 +3513,8 @@ void xLightsFrame::CheckSequence(bool display)
                 Model* m = AllModels.GetModel(*it2);
                 if (m->GetDisplayAs() != "ModelGroup")
                 {
-                    if (mgp != m->GetLayoutGroup())
+                    // If model is in all previews dont report it as a problem
+                    if (m->GetLayoutGroup() != "All Previews" && mgp != m->GetLayoutGroup())
                     {
                         wxString msg = wxString::Format("WARN: Model Group '%s' in preview '%s' contains model '%s' in preview '%s'. This will cause the model to also appear in the model groups preview.", mg->GetName(), mg->GetLayoutGroup(), m->GetName(), m->GetLayoutGroup());
                         LogAndWrite(f, msg.ToStdString());
