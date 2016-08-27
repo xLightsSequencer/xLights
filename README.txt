@@ -8,6 +8,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Fix WaveForm rendering beyond the end of the sequence
+   -- bug (dkulp)   Fix crash in SubModel dialog flipping notebook pages when no submodels defined
    -- enh (gil)     Add match duration effect alignment option.  Fixes #670.
    -- enh (keithsw) Add sequence checker. This scans your Setup/Layout/Open sequence and highlights any items that might cause issues or unexpected behaviour in xLights.
 2016.47  Aug 22, 2016

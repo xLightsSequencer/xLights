@@ -1,6 +1,7 @@
 #include "FacesEffect.h"
 #include "FacesPanel.h"
 #include "../models/Model.h"
+#include "../models/CustomModel.h"
 #include "../sequencer/SequenceElements.h"
 
 #include "../sequencer/Effect.h"
@@ -97,6 +98,10 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
         res.push_back(wxString::Format("ERR: Face effect with no timing selected. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
     }
 
+    if (dynamic_cast<CustomModel*>(model) != nullptr &&  settings.Get("B_CHOICE_BufferStyle", "Default") != "Default") {
+        res.push_back(wxString::Format("ERR: Face effect with Render Style set to non-Default. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        
+    }
     return res;
 }
 

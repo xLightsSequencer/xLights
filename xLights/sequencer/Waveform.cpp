@@ -355,7 +355,9 @@ void Waveform::DrawWaveView(const WaveView &wv)
                 }
             }
             for(int x=mWindowWidth;x >= 0 ; x--) {
-                if (x<(int)wv.MinMaxs.size()) {
+                int index = x;
+                index += mStartPixelOffset;
+                if (index >= 0 && index < wv.MinMaxs.size()) {
                     wv.outline.AddVertex(x, vertexes[x]);
                 }
             }
