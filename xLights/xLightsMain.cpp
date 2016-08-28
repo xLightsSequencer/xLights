@@ -3482,8 +3482,8 @@ void xLightsFrame::CheckSequence(bool display)
     {
         if (it->second->GetDisplayAs() != "ModelGroup")
         {
-            int m1start = it->second->GetFirstChannel();
-            int m1end = it->second->GetLastChannel();
+            int m1start = it->second->GetFirstChannel()+1;
+            int m1end = it->second->GetLastChannel()+1;
 
             auto it2 = it;
             ++it2;
@@ -3491,8 +3491,8 @@ void xLightsFrame::CheckSequence(bool display)
             {
                 if (it2->second->GetDisplayAs() != "ModelGroup")
                 {
-                    int m2start = it2->second->GetFirstChannel();
-                    int m2end = it2->second->GetLastChannel();
+                    int m2start = it2->second->GetFirstChannel()+1;
+                    int m2end = it2->second->GetLastChannel()+1;
 
                     if (m1start <= m2end  && m1end >= m2end || m1end >= m2start && m1start <= m2start)
                     {
