@@ -3623,6 +3623,27 @@ void xLightsFrame::CheckSequence(bool display)
     if (CurrentSeqXmlFile != nullptr)
     {
         LogAndWrite(f, "");
+        LogAndWrite(f, "Checking autosave");
+
+        // set to log if >1MB and autosave is more than every 10 minutes
+        wxULongLong size = CurrentSeqXmlFile->GetSize();
+        if (size > 1000000 && AutoSaveInterval < 10)
+        {
+            wxULongLong mbull = size / 100000;
+            double mb = mbull.ToDouble() / 10.0;
+            wxString msg = wxString::Format("    WARN: Sequence file size %.1fMb is large. Consider making autosave less frequent to prevent xlights pausing too often when it autosaves.", mb);
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+
+        if (errcount + warncount == errcountsave + warncountsave)
+        {
+            LogAndWrite(f, "    No problems found");
+        }
+        errcountsave = errcount;
+        warncountsave = warncount;
+
+        LogAndWrite(f, "");
         LogAndWrite(f, "Models hidden by effects on groups");
 
         // Check for groups that contain models that have appeared before the group at the bottom of the master view
