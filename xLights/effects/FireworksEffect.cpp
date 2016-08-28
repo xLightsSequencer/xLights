@@ -29,7 +29,7 @@ std::list<std::string> FireworksEffect::CheckEffectSettings(const SettingsMap& s
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Fireworks_UseMusic", false))
     {
-        res.push_back(wxString::Format("WARN: Fireworks effect cant grow to music if there is no music. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    WARN: Fireworks effect cant grow to music if there is no music. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
     }
 
     return res;

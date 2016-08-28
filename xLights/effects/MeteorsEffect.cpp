@@ -29,7 +29,7 @@ std::list<std::string> MeteorsEffect::CheckEffectSettings(const SettingsMap& set
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Meteors_UseMusic", false))
     {
-        res.push_back(wxString::Format("WARN: Meteors effect cant follow music if there is no music. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    WARN: Meteors effect cant follow music if there is no music. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
     }
 
     return res;

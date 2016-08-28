@@ -32,7 +32,7 @@ std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& s
 
     if (GledFilename == "" || !wxFile::Exists(GledFilename))
     {
-        res.push_back(wxString::Format("ERR: Glediator effect cant find glediator file '%s'. Model '%s', Start %dms", GledFilename, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: Glediator effect cant find glediator file '%s'. Model '%s', Start %dms", GledFilename, model->GetName(), eff->GetStartTimeMS()).ToStdString());
     }
 
     return res;

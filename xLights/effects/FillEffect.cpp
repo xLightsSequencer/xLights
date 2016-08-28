@@ -25,7 +25,7 @@ std::list<std::string> FillEffect::CheckEffectSettings(const SettingsMap& settin
 
     if (settings.Get("E_VALUECURVE_Fill_Position", "").find("Active=FALSE") != std::string::npos)
     {
-        res.push_back(wxString::Format("WARN: Fill effect without a position value curve. Was that intentional? Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    WARN: Fill effect without a position value curve. Was that intentional? Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
     }
 
     return res;

@@ -32,7 +32,7 @@ std::list<std::string> MusicEffect::CheckEffectSettings(const SettingsMap& setti
 
     if (media == nullptr)
     {
-        res.push_back(wxString::Format("ERR: Music effect is pointless if there is no music. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: Music effect is pointless if there is no music. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
     }
 
     return res;

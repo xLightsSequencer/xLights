@@ -35,7 +35,7 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
 
     if (settings.Get("E_TEXTCTRL_Text", "") == "")
     {
-        res.push_back(wxString::Format("ERR: Text effect has no actual text. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: Text effect has no actual text. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
     }
 
     return res;

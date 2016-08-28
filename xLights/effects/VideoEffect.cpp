@@ -31,7 +31,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
 
     if (!wxFileExists(filename))
     {
-        res.push_back(wxString::Format("ERR: Video effect video file '%s' does not exist. Model '%s', Start %dms", filename, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: Video effect video file '%s' does not exist. Model '%s', Start %dms", filename, model->GetName(), eff->GetStartTimeMS()).ToStdString());
     }
     else
     {
@@ -39,7 +39,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
 
         if (videoreader == nullptr || videoreader->GetLengthMS() == 0)
         {
-            res.push_back(wxString::Format("ERR: Video effect video file '%s' could not be understood. Format may not be supported. Model '%s', Start %dms", filename, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+            res.push_back(wxString::Format("    ERR: Video effect video file '%s' could not be understood. Format may not be supported. Model '%s', Start %dms", filename, model->GetName(), eff->GetStartTimeMS()).ToStdString());
         }
         else
         {
@@ -52,7 +52,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
                 int effectduration = eff->GetEndTimeMS() - eff->GetStartTimeMS();
                 if (videoduration < effectduration)
                 {
-                    res.push_back(wxString::Format("WARN: Video effect video file '%s' is shorter %dms than effect duration %dms. Model '%s', Start %dms", filename, videoduration, effectduration, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+                    res.push_back(wxString::Format("    WARN: Video effect video file '%s' is shorter %dms than effect duration %dms. Model '%s', Start %dms", filename, videoduration, effectduration, model->GetName(), eff->GetStartTimeMS()).ToStdString());
                 }
             }
         }
@@ -70,7 +70,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
 
     if (w < 2 || h < 2)
     {
-        res.push_back(wxString::Format("ERR: Video effect video file '%s' cannot render onto model as it is not high or wide enough (%d,%d). Model '%s', Start %dms", filename, w, h, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: Video effect video file '%s' cannot render onto model as it is not high or wide enough (%d,%d). Model '%s', Start %dms", filename, w, h, model->GetName(), eff->GetStartTimeMS()).ToStdString());
     }
 
     return res;

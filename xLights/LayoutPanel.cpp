@@ -741,6 +741,7 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
 
 
 void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int end_channel = model->GetLastChannel()+1;
 
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, model->name,
@@ -756,9 +757,18 @@ void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent) {
     }
     if( model->GetDisplayAs() == "ModelGroup" ) {
         ModelGroup *grp = (ModelGroup*)model;
-        for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
+        for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); ++it) {
             Model *m = xlights->AllModels[*it];
-            AddModelToTree(m, &item);
+
+            if (m == grp)
+            {
+                // This is bad ... a model group contains itself
+                logger_base.error("Model group contains itself. '%s'", (const char *)grp->GetName().c_str());
+            }
+            else
+            {
+                AddModelToTree(m, &item);
+            }
         }
     }
 }

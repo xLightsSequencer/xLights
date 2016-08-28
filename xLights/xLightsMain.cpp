@@ -3423,6 +3423,8 @@ void xLightsFrame::CheckSequence(bool display)
 
     int errcount = 0;
     int warncount = 0;
+    int errcountsave = 0;
+    int warncountsave = 0;
 
     wxFile f;
     wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
@@ -3458,12 +3460,19 @@ void xLightsFrame::CheckSequence(bool display)
                 wxString universe = n->GetAttribute("BaudRate", "1");
                 wxString desc = n->GetAttribute("Description", "");
                     
-                wxString msg = wxString::Format("WARN: Inactive output %d %s:%s:%s:'%s'.", i, NetType, ip, universe, desc);
+                wxString msg = wxString::Format("    WARN: Inactive output %d %s:%s:%s:'%s'.", i, NetType, ip, universe, desc);
                 LogAndWrite(f, msg.ToStdString());
                 warncount++;
             }
         }
     }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Overlapping model channels");
@@ -3487,7 +3496,7 @@ void xLightsFrame::CheckSequence(bool display)
 
                     if (m1start <= m2end  && m1end >= m2end || m1end >= m2start && m1start <= m2start)
                     {
-                        wxString msg = wxString::Format("WARN: Probable model overlap '%s' (%d-%d) and '%s' (%d-%d).", it->first, m1start, m1end, it2->first, m2start, m2end);
+                        wxString msg = wxString::Format("    WARN: Probable model overlap '%s' (%d-%d) and '%s' (%d-%d).", it->first, m1start, m1end, it2->first, m2start, m2end);
                         LogAndWrite(f, msg.ToStdString());
                         warncount++;
                     }
@@ -3495,9 +3504,15 @@ void xLightsFrame::CheckSequence(bool display)
             }
         }
     }
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
 
     LogAndWrite(f, "");
-    LogAndWrite(f, "Model Groups containing models in different previews");
+    LogAndWrite(f, "Model Groups containing models from different previews");
 
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
     {
@@ -3516,7 +3531,7 @@ void xLightsFrame::CheckSequence(bool display)
                     // If model is in all previews dont report it as a problem
                     if (m->GetLayoutGroup() != "All Previews" && mgp != m->GetLayoutGroup())
                     {
-                        wxString msg = wxString::Format("WARN: Model Group '%s' in preview '%s' contains model '%s' in preview '%s'. This will cause the model to also appear in the model groups preview.", mg->GetName(), mg->GetLayoutGroup(), m->GetName(), m->GetLayoutGroup());
+                        wxString msg = wxString::Format("    WARN: Model Group '%s' in preview '%s' contains model '%s' which is in preview '%s'. This will cause the '%s' model to also appear in the '%s' preview.", mg->GetName(), mg->GetLayoutGroup(), m->GetName(), m->GetLayoutGroup(), m->GetName(), mg->GetLayoutGroup());
                         LogAndWrite(f, msg.ToStdString());
                         warncount++;
                     }
@@ -3524,6 +3539,86 @@ void xLightsFrame::CheckSequence(bool display)
             }
         }
     }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Check for duplicate model/model group names
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Model/Model Groups without distinct names");
+
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        auto it2 = it;
+        ++it2;
+        for (; it2 != AllModels.end(); ++it2)
+        {
+            if (it->second->GetName() == it2->second->GetName())
+            {
+                wxString msg = wxString::Format("    ERR: Duplicate Model/Model Group Name '%s'.", it->second->GetName());
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Check for model groups containing itself or other model groups
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Model Groups containing other model groups or non existent models");
+
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() == "ModelGroup")
+        {
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
+            auto models = mg->ModelNames();
+            
+            for (auto m = models.begin(); m != models.end(); ++m)
+            {
+                Model* model = AllModels.GetModel(*m);
+
+                if (model == nullptr)
+                {
+                    wxString msg = wxString::Format("    ERR: Model group '%s' refers to non existent model '%s'.", mg->GetName(), model->GetName());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+                else
+                {
+                    if (model->GetDisplayAs() == "ModelGroup")
+                    {
+                        wxString msg = wxString::Format("    ERR: Model group '%s' contains another model group '%s'. Nested model groups are not supported at this time.", mg->GetName(), model->GetName());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                    if (model->GetName() == mg->GetName())
+                    {
+                        wxString msg = wxString::Format("    ERR: Model group '%s' contains reference to itself.", mg->GetName());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
 
     if (CurrentSeqXmlFile != nullptr)
     {
@@ -3546,7 +3641,7 @@ void xLightsFrame::CheckSequence(bool display)
                 {
                     if (std::find(seenmodels.begin(), seenmodels.end(), (*it2)->GetName()) != seenmodels.end())
                     {
-                        wxString msg = wxString::Format("WARN: Model Group '%s' will hide effects on model '%s'.", mg->GetName(), (*it2)->GetName());
+                        wxString msg = wxString::Format("    WARN: Model Group '%s' will hide effects on model '%s'.", mg->GetName(), (*it2)->GetName());
                         LogAndWrite(f, msg.ToStdString());
                         warncount++;
                     }
@@ -3557,6 +3652,13 @@ void xLightsFrame::CheckSequence(bool display)
                 seenmodels.push_back(m->GetName());
             }
         }
+
+        if (errcount + warncount == errcountsave + warncountsave)
+        {
+            LogAndWrite(f, "    No problems found");
+        }
+        errcountsave = errcount;
+        warncountsave = warncount;
 
         LogAndWrite(f, "");
         LogAndWrite(f, "Effect problems");
@@ -3586,13 +3688,13 @@ void xLightsFrame::CheckSequence(bool display)
 
                         if (fadein > efdur)
                         {
-                            wxString msg = wxString::Format("WARN: Transition in time %.2f on effect %s at start time %d  on Model '%s' is greater than effect duration %.2f.", fadein, ef->GetEffectName(), ef->GetStartTimeMS(), e->GetModelName(), efdur);
+                            wxString msg = wxString::Format("    WARN: Transition in time %.2f on effect %s at start time %d  on Model '%s' is greater than effect duration %.2f.", fadein, ef->GetEffectName(), ef->GetStartTimeMS(), e->GetModelName(), efdur);
                             LogAndWrite(f, msg.ToStdString());
                             warncount++;
                         }
                         if (fadeout > efdur)
                         {
-                            wxString msg = wxString::Format("WARN: Transition out time %.2f on effect %s at start time %d  on Model '%s' is greater than effect duration %.2f.", fadeout, ef->GetEffectName(), ef->GetStartTimeMS(), e->GetModelName(), efdur);
+                            wxString msg = wxString::Format("    WARN: Transition out time %.2f on effect %s at start time %d  on Model '%s' is greater than effect duration %.2f.", fadeout, ef->GetEffectName(), ef->GetStartTimeMS(), e->GetModelName(), efdur);
                             LogAndWrite(f, msg.ToStdString());
                             warncount++;
                         }
@@ -3600,7 +3702,7 @@ void xLightsFrame::CheckSequence(bool display)
                         // effect that runs past end of the sequence
                         if (ef->GetEndTimeMS() > CurrentSeqXmlFile->GetSequenceDurationMS())
                         {
-                            wxString msg = wxString::Format("WARN: Effect %s ends at %dms after the sequence end %dms. Model: '%s' Start: %d", ef->GetEffectName(), ef->GetEndTimeMS(), CurrentSeqXmlFile->GetSequenceDurationMS(), e->GetModelName(), ef->GetStartTimeMS());
+                            wxString msg = wxString::Format("    WARN: Effect %s ends at %dms after the sequence end %dms. Model: '%s' Start: %d", ef->GetEffectName(), ef->GetEndTimeMS(), CurrentSeqXmlFile->GetSequenceDurationMS(), e->GetModelName(), ef->GetStartTimeMS());
                             LogAndWrite(f, msg.ToStdString());
                             warncount++;
                         }
@@ -3609,11 +3711,11 @@ void xLightsFrame::CheckSequence(bool display)
                         for (auto s = warnings.begin(); s != warnings.end(); ++s)
                         {
                             LogAndWrite(f, *s);
-                            if (s->find("WARN") == 0)
+                            if (s->find("WARN:") != std::string::npos)
                             {
                                 warncount++;
                             }
-                            else if (s->find("ERR")  == 0)
+                            else if (s->find("ERR:")  != std::string::npos)
                             {
                                 errcount++;
                             }
@@ -3622,6 +3724,13 @@ void xLightsFrame::CheckSequence(bool display)
                 }
             }
         }
+
+        if (errcount + warncount == errcountsave + warncountsave)
+        {
+            LogAndWrite(f, "    No problems found");
+        }
+        errcountsave = errcount;
+        warncountsave = warncount;
     }
     else
     {

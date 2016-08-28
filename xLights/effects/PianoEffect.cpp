@@ -32,14 +32,14 @@ std::list<std::string> PianoEffect::CheckEffectSettings(const SettingsMap& setti
 
     if (settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "") == "")
     {
-        res.push_back(wxString::Format("ERR: Piano effect needs a timing track. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: Piano effect needs a timing track. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
     }
     else
     {
         std::map<int, std::list<float>> timings = LoadTimingTrack(settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), 50);
         if (timings.size() == 0)
         {
-            res.push_back(wxString::Format("ERR: Piano effect timing track '%s' has no notes. Model '%s', Start %dms", settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), model->GetName(), eff->GetStartTimeMS()).ToStdString());
+            res.push_back(wxString::Format("    ERR: Piano effect timing track '%s' has no notes. Model '%s', Start %dms", settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), model->GetName(), eff->GetStartTimeMS()).ToStdString());
         }
     }
 

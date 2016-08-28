@@ -42,7 +42,7 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
 
     if (PictureFilename == "" || !wxFile::Exists(PictureFilename))
     {
-        res.push_back(wxString::Format("ERR: Picture effect cant find image file '%s'. Model '%s', Start %dms", PictureFilename, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: Picture effect cant find image file '%s'. Model '%s', Start %dms", PictureFilename, model->GetName(), eff->GetStartTimeMS()).ToStdString());
     }
 
     return res;

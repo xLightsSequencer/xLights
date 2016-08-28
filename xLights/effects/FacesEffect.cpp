@@ -65,7 +65,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 
         if (bufferTransform != "None")
         {
-            res.push_back(wxString::Format("WARN: Face effect with transformed buffer '%s' may not render correctly. Model '%s', Start %dms", model->GetName(), bufferTransform, eff->GetStartTimeMS()).ToStdString());
+            res.push_back(wxString::Format("    WARN: Face effect with transformed buffer '%s' may not render correctly. Model '%s', Start %dms", model->GetName(), bufferTransform, eff->GetStartTimeMS()).ToStdString());
         }
     }
 
@@ -82,7 +82,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
                 {
                     if (!wxFileExists(picture))
                     {
-                        res.push_back(wxString::Format("ERR: Face effect image file not found '%s'. Model '%s', Start %dms", picture, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+                        res.push_back(wxString::Format("    ERR: Face effect image file not found '%s'. Model '%s', Start %dms", picture, model->GetName(), eff->GetStartTimeMS()).ToStdString());
                     }
                 }
             }
@@ -95,7 +95,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
     // - Face chosen or specific phoneme
     if (phoneme == "" && timing == "")
     {
-        res.push_back(wxString::Format("ERR: Face effect with no timing selected. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: Face effect with no timing selected. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
     }
 
     return res;
