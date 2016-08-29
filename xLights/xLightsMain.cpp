@@ -3494,7 +3494,7 @@ void xLightsFrame::CheckSequence(bool display)
                     int m2start = it2->second->GetFirstChannel()+1;
                     int m2end = it2->second->GetLastChannel()+1;
 
-                    if (m1start <= m2end  && m1end >= m2end || m1end >= m2start && m1start <= m2start)
+                    if (m2start <= m1end && m2end >= m1start)
                     {
                         wxString msg = wxString::Format("    WARN: Probable model overlap '%s' (%d-%d) and '%s' (%d-%d).", it->first, m1start, m1end, it2->first, m2start, m2end);
                         LogAndWrite(f, msg.ToStdString());
