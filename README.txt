@@ -8,10 +8,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.47  Aug 29, 2016
+   -- enh (keithsw) Add sequence checker, "Tools,Check Sequence". This scans your Setup/Layout/Open sequence and highlights any 
+                    items that might cause issues or unexpected behaviour in xLights.
    -- bug (dkulp)   Fix WaveForm rendering beyond the end of the sequence
+   -- bug (dkulp)   Add error check for faces effect with non-default buffer style
+   -- bug (dkulp) ColorWash needs to remove lower level defaults as well
    -- bug (dkulp)   Fix crash in SubModel dialog flipping notebook pages when no submodels defined
    -- enh (gil)     Add match duration effect alignment option.  Fixes #670.
-   -- enh (keithsw) Add sequence checker. This scans your Setup/Layout/Open sequence and highlights any items that might cause issues or unexpected behaviour in xLights.
 2016.47  Aug 22, 2016
    -- bug (dkulp)   Update the EffectAssist when the effect settings change, EffectAssist considers submodel buffer sizes
    -- enh (dkulp)   Add submodels to Tree on LayoutPage, allow renaming
