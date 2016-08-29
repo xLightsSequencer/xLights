@@ -8,7 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-2016.47  Aug 29, 2016
+2016.48  Aug 29, 2016
    -- enh (keithsw) Add sequence checker, "Tools,Check Sequence". This scans your Setup/Layout/Open sequence and highlights any 
                     items that might cause issues or unexpected behaviour in xLights.
    -- bug (dkulp)   Fix WaveForm rendering beyond the end of the sequence
