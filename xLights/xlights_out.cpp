@@ -232,7 +232,8 @@ public:
     };
 };
 
-#define ARTNET_PACKET_LEN 18 + 512
+#define ARTNET_PACKET_HEADER_LEN 18
+#define ARTNET_PACKET_LEN (ARTNET_PACKET_HEADER_LEN + 512)
 #define ARTNET_PORT 0x1936
 #define ARTNET_MAXCHANNEL 32768
 
@@ -253,8 +254,8 @@ protected:
 public:
     void SetIntensity(size_t chindex, wxByte intensity)
     {
-        if (data[chindex + 126] != intensity) {
-            data[chindex + 126] = intensity;
+        if (data[chindex + ARTNET_PACKET_HEADER_LEN] != intensity) {
+            data[chindex + ARTNET_PACKET_HEADER_LEN] = intensity;
             changed = true;
         }
     };
@@ -296,15 +297,15 @@ private:
         data[5] = 'e';
         data[6] = 't';
         data[7] = 0x00;
-        data[8] = 0x50; //Opcode
-        data[9] = 0x00;
+        data[8] = 0x00; //Opcode
+        data[9] = 0x50;
         data[10] = 0x00; // Protocol version high
-        data[11] = 0x14; // Protocol version Low
+        data[11] = 0x0E; // Protocol version Low
         data[12] = 0x00; // Sequence
         data[13] = 0x00; // Physical
         data[14] = (UniverseNumber & 0xFF);
         data[15] = ((UniverseNumber &0xFF00) >> 8);
-        data[16] = 0x01; // we are going to send all 512 bytes
+        data[16] = 0x02; // we are going to send all 512 bytes
         data[17] = 0x00;
     }
 
@@ -325,7 +326,7 @@ public:
         }
         num_channels = numchannels;
 
-        int i = num_channels + 1;
+        int i = num_channels;
         wxByte NumHi = i >> 8;   // Channels (high)
         wxByte NumLo = i & 0xff; // Channels (low)
 
@@ -1206,7 +1207,7 @@ size_t xOutput::addnetwork(const wxString& NetworkType, int chcount, const wxStr
     netobj->SetChannelCount(chcount);
     wxString description = NetworkType + " on " + portname;
     netobj->SetNetworkDesc(description);
-    if (nettype3 == "E13")
+    if (nettype3 == "E13" || nettype3 == "ART")
     {
         netobj->InitNetwork(portname, baudrate, (wxUint16) netnum, _syncuniverse);  // portname is ip address and baudrate is universe number
     }
