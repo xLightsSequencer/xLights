@@ -866,6 +866,7 @@ private:
     void OnGridNetworkDragEnd(wxMouseEvent& event);
     void SetupDongle(wxXmlNode* e);
     void SetupE131(wxXmlNode* e);
+    void SetupArtNet(wxXmlNode* e);
     void SetupNullOutput(wxXmlNode* e);
     bool SaveNetworksFile();
     void NetworkChange();

@@ -154,6 +154,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AddShowDialog.cpp" />
+    <ClCompile Include="ArtNetDialog.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
     <ClCompile Include="BufferPanel.cpp" />
@@ -418,6 +419,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddShowDialog.h" />
+    <ClInclude Include="ArtNetDialog.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
     <ClInclude Include="BufferPanel.h" />

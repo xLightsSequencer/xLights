@@ -236,10 +236,6 @@ public:
 #define ARTNET_PORT 0x1936
 #define ARTNET_MAXCHANNEL 32768
 
-#define ARTNET_UNIVERSE(a) (a & 0x000F)
-#define ARTNET_SUBNET(a) ((a & 0x00F0) >> 4)
-#define ARTNET_NET(a) ((a & 0x7F00) >> 8)
-
 // ******************************************************
 // * This class represents a single universe for ArtNET
 // * Methods should be called with: 0 <= chindex <= 511

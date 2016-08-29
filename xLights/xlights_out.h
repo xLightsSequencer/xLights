@@ -35,6 +35,10 @@
 typedef std::pair<int, int> ChannelPair; // first is network #, second is channel #
 typedef std::vector<ChannelPair> ChannelVector;
 
+#define ARTNET_UNIVERSE(a) (a & 0x000F)
+#define ARTNET_SUBNET(a) ((a & 0x00F0) >> 4)
+#define ARTNET_NET(a) ((a & 0x7F00) >> 8)
+#define ARTNET_MAKEU(n, s, u) (((n&0x007F) << 8) + ((s &0x000F) << 4) + (u & 0x000F))
 
 class xNetwork
 {

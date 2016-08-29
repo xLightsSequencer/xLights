@@ -12,6 +12,8 @@
 
 class ArtNetDialog: public wxDialog
 {
+    void ValidateWindow();
+
 	public:
 
 		ArtNetDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);

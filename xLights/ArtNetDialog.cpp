@@ -4,6 +4,8 @@
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/socket.h>
+#include <wx/regex.h>
 
 //(*IdInit(ArtNetDialog)
 const long ArtNetDialog::ID_STATICTEXT1 = wxNewId();
@@ -35,7 +37,7 @@ ArtNetDialog::ArtNetDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, id, _("ArtNET Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
+	Create(parent, id, _("ArtNET Setup"), wxDefaultPosition, wxDefaultSize, wxCAPTION, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -88,6 +90,8 @@ ArtNetDialog::ArtNetDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ArtNetDialog::OnButtonOkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ArtNetDialog::OnButtonCancelClick);
 	//*)
+
+    ValidateWindow();
 }
 
 ArtNetDialog::~ArtNetDialog()
@@ -99,12 +103,38 @@ ArtNetDialog::~ArtNetDialog()
 
 void ArtNetDialog::OnTextCtrlIPAddressText(wxCommandEvent& event)
 {
+    ValidateWindow();
 }
 
 void ArtNetDialog::OnButtonOkClick(wxCommandEvent& event)
 {
+    EndDialog(wxID_OK);
 }
 
 void ArtNetDialog::OnButtonCancelClick(wxCommandEvent& event)
 {
+    EndDialog(wxID_CANCEL);
+}
+
+void ArtNetDialog::ValidateWindow()
+{
+    wxString ips = TextCtrlIPAddress->GetValue().Trim(false).Trim(true);
+    if (ips == "")
+    {
+        ButtonOk->Disable();
+    }
+    else
+    {
+        wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
+        //wxRegEx regex("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
+
+        if (regxIPAddr.Matches(ips))
+        {
+            ButtonOk->Enable();
+        }
+        else
+        {
+            ButtonOk->Disable();
+        }
+    }
 }

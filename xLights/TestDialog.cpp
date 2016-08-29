@@ -135,6 +135,12 @@ TreeController::TreeController(wxXmlNode* n, int startchannel, int nullcount)
 		_universe = std::string(n->GetAttribute("BaudRate", ""));
         _universes = wxAtoi(n->GetAttribute("NumUniverses", "1"));
     }
+    else if (type == "ArtNet")
+    {
+        _type = CONTROLLERTYPE::CT_ARTNET;
+        _ipaddress = std::string(n->GetAttribute("ComPort", ""));
+        _universe = std::string(n->GetAttribute("BaudRate", ""));
+    }
 	else if (type == "DMX")
 	{
 		_type = CONTROLLERTYPE::CT_DMX;
@@ -199,7 +205,15 @@ std::string TreeController::GenerateName()
 		_name += "[1-" + std::string(wxString::Format(wxT("%i"), _endchannel)) + "] ";
 		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
 		break;
-	case CONTROLLERTYPE::CT_DMX:
+    case CONTROLLERTYPE::CT_ARTNET:
+        {
+            int uu = wxAtoi(wxString(_universe.c_str()));
+            _name += "ArtNet " + _ipaddress + " {" + wxString::Format("%d", ARTNET_NET(uu)).ToStdString() + ":" + wxString::Format("%d", ARTNET_SUBNET(uu)).ToStdString() + ":" + wxString::Format("%d", ARTNET_UNIVERSE(uu)).ToStdString() + "} ";
+            _name += "[1-" + std::string(wxString::Format(wxT("%i"), _endchannel)) + "] ";
+            _name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
+        }
+        break;
+    case CONTROLLERTYPE::CT_DMX:
 		_name += "DMX " + _comport;
 		if (_multiuniversedmx)
 		{
