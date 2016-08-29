@@ -11,6 +11,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
+#include "../SequenceCheck.h"
 
 #include "../../include/text-16.xpm"
 #include "../../include/text-24.xpm"
@@ -35,7 +36,7 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
 
     if (settings.Get("E_TEXTCTRL_Text", "") == "")
     {
-        res.push_back(wxString::Format("    ERR: Text effect has no actual text. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: Text effect has no actual text. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

@@ -10,6 +10,7 @@
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../xLightsXmlFile.h"
+#include "../SequenceCheck.h"
 
 #include "../../include/glediator-16.xpm"
 #include "../../include/glediator-64.xpm"
@@ -32,7 +33,7 @@ std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& s
 
     if (GledFilename == "" || !wxFile::Exists(GledFilename))
     {
-        res.push_back(wxString::Format("    ERR: Glediator effect cant find glediator file '%s'. Model '%s', Start %dms", GledFilename, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: Glediator effect cant find glediator file '%s'. Model '%s', Start %s", GledFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

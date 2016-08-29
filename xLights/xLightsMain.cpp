@@ -36,6 +36,7 @@
 #include "TestDialog.h"
 #include "ConvertDialog.h"
 #include "GenerateCustomModelDialog.h"
+#include "SequenceCheck.h"
 
 // scripting language
 #include "xLightsBasic.cpp"
@@ -3709,13 +3710,13 @@ void xLightsFrame::CheckSequence(bool display)
 
                         if (fadein > efdur)
                         {
-                            wxString msg = wxString::Format("    WARN: Transition in time %.2f on effect %s at start time %d  on Model '%s' is greater than effect duration %.2f.", fadein, ef->GetEffectName(), ef->GetStartTimeMS(), e->GetModelName(), efdur);
+                            wxString msg = wxString::Format("    WARN: Transition in time %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadein, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), e->GetModelName(), efdur);
                             LogAndWrite(f, msg.ToStdString());
                             warncount++;
                         }
                         if (fadeout > efdur)
                         {
-                            wxString msg = wxString::Format("    WARN: Transition out time %.2f on effect %s at start time %d  on Model '%s' is greater than effect duration %.2f.", fadeout, ef->GetEffectName(), ef->GetStartTimeMS(), e->GetModelName(), efdur);
+                            wxString msg = wxString::Format("    WARN: Transition out time %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadeout, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), e->GetModelName(), efdur);
                             LogAndWrite(f, msg.ToStdString());
                             warncount++;
                         }
@@ -3723,7 +3724,7 @@ void xLightsFrame::CheckSequence(bool display)
                         // effect that runs past end of the sequence
                         if (ef->GetEndTimeMS() > CurrentSeqXmlFile->GetSequenceDurationMS())
                         {
-                            wxString msg = wxString::Format("    WARN: Effect %s ends at %dms after the sequence end %dms. Model: '%s' Start: %d", ef->GetEffectName(), ef->GetEndTimeMS(), CurrentSeqXmlFile->GetSequenceDurationMS(), e->GetModelName(), ef->GetStartTimeMS());
+                            wxString msg = wxString::Format("    WARN: Effect %s ends at %s after the sequence end %s. Model: '%s' Start: %s", ef->GetEffectName(), FORMATTIME(ef->GetEndTimeMS()), FORMATTIME(CurrentSeqXmlFile->GetSequenceDurationMS()), e->GetModelName(), FORMATTIME(ef->GetStartTimeMS()));
                             LogAndWrite(f, msg.ToStdString());
                             warncount++;
                         }

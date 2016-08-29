@@ -7,6 +7,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
+#include "../SequenceCheck.h"
 
 #include "../../include/vumeter-16.xpm"
 #include "../../include/vumeter-24.xpm"
@@ -43,7 +44,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
         type == "Note Level Pulse" ||
         type == "Timing Event Jump"))
     {
-        res.push_back(wxString::Format("    ERR: VU Meter effect '%s' is pointless if there is no music. Model '%s', Start %dms", type, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: VU Meter effect '%s' is pointless if there is no music. Model '%s', Start %s", type, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     wxString timing = settings.Get("E_CHOICE_VUMeter_TimingTrack", "");
@@ -54,7 +55,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
          type == "Timing Event Color" ||
          type == "Timing Event Jump"))
     {
-        res.push_back(wxString::Format("    ERR: VU Meter effect '%s' needs a timing track. Model '%s', Start %dms", type, model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: VU Meter effect '%s' needs a timing track. Model '%s', Start %s", type, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

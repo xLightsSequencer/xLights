@@ -594,6 +594,7 @@
 		<Unit filename="SeqFileUtilities.cpp" />
 		<Unit filename="SeqSettingsDialog.cpp" />
 		<Unit filename="SeqSettingsDialog.h" />
+		<Unit filename="SequenceCheck.h" />
 		<Unit filename="SequenceData.cpp" />
 		<Unit filename="SequenceData.h" />
 		<Unit filename="SerialPortWithRate.cpp" />

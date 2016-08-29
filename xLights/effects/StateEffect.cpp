@@ -8,6 +8,7 @@
 #include "../xLightsMain.h" //xLightsFrame
 #include "../../include/state-16.xpm"
 #include "../../include/state-64.xpm"
+#include "../SequenceCheck.h"
 
 #include <wx/tokenzr.h>
 
@@ -30,7 +31,7 @@ std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& setti
 
     if (bufferTransform != "None")
     {
-        res.push_back(wxString::Format("    WARN: State effect with transformed buffer '%s' may not render correctly. Model '%s', Start %dms", model->GetName(), bufferTransform, eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    WARN: State effect with transformed buffer '%s' may not render correctly. Model '%s', Start %s", model->GetName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     wxString timing = settings.Get("E_CHOICE_State_TimingTrack", "");
@@ -39,7 +40,7 @@ std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& setti
     // - Face chosen or specific phoneme
     if (state == "" && timing == "")
     {
-        res.push_back(wxString::Format("    ERR: State effect with no timing selected. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: State effect with no timing selected. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

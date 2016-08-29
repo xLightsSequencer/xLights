@@ -7,6 +7,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
+#include "../SequenceCheck.h"
 
 #include "../../include/music-16.xpm"
 #include "../../include/music-24.xpm"
@@ -32,7 +33,7 @@ std::list<std::string> MusicEffect::CheckEffectSettings(const SettingsMap& setti
 
     if (media == nullptr)
     {
-        res.push_back(wxString::Format("    ERR: Music effect is pointless if there is no music. Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    ERR: Music effect is pointless if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

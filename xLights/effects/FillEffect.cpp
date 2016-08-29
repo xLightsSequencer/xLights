@@ -5,6 +5,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
+#include "../SequenceCheck.h"
 
 #include "../../include/fill-16.xpm"
 #include "../../include/fill-64.xpm"
@@ -25,7 +26,7 @@ std::list<std::string> FillEffect::CheckEffectSettings(const SettingsMap& settin
 
     if (settings.Get("E_VALUECURVE_Fill_Position", "").find("Active=FALSE") != std::string::npos)
     {
-        res.push_back(wxString::Format("    WARN: Fill effect without a position value curve. Was that intentional? Model '%s', Start %dms", model->GetName(), eff->GetStartTimeMS()).ToStdString());
+        res.push_back(wxString::Format("    WARN: Fill effect without a position value curve. Was that intentional? Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;
