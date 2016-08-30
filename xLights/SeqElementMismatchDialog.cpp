@@ -9,6 +9,7 @@
 //(*IdInit(SeqElementMismatchDialog)
 const long SeqElementMismatchDialog::ID_STATICTEXT1 = wxNewId();
 const long SeqElementMismatchDialog::ID_RADIOBUTTON2 = wxNewId();
+const long SeqElementMismatchDialog::ID_RADIOBUTTON1 = wxNewId();
 const long SeqElementMismatchDialog::ID_RADIOBUTTON3 = wxNewId();
 const long SeqElementMismatchDialog::ID_CHOICE1 = wxNewId();
 //*)
@@ -38,6 +39,8 @@ SeqElementMismatchDialog::SeqElementMismatchDialog(wxWindow* parent,wxWindowID i
     RadioButtonDelete = new wxRadioButton(this, ID_RADIOBUTTON2, _("Delete this element from the sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
     RadioButtonDelete->SetValue(true);
     FlexGridSizer1->Add(RadioButtonDelete, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    RadioButtonMap = new wxRadioButton(this, ID_RADIOBUTTON1, _("Map effects to other elements"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
+    FlexGridSizer1->Add(RadioButtonMap, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     RadioButtonRename = new wxRadioButton(this, ID_RADIOBUTTON3, _("Rename this element to:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
     FlexGridSizer1->Add(RadioButtonRename, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ChoiceModels = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE1"));

@@ -599,6 +599,202 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
     }
 }
 
+
+//http://blog.ivank.net/fastest-gaussian-blur.html
+
+static void boxesForGauss(int d, int n, std::vector<float> &boxes)  // standard deviation, number of boxes
+{
+    switch (d) {
+        case 2:
+        case 3:
+            boxes.push_back(1.0);
+            break;
+        case 4:
+        case 5:
+        case 6:
+            boxes.push_back(3.0);
+            break;
+        case 7:
+        case 8:
+        case 9:
+            boxes.push_back(5.0);
+            break;
+        case 10:
+        case 11:
+        case 12:
+            boxes.push_back(7.0);
+            break;
+        case 13:
+        case 14:
+        case 15:
+            boxes.push_back(9.0);
+            break;
+    }
+    float b = boxes.back();
+    switch (d) {
+        case 2:
+        case 4:
+        case 5:
+        case 7:
+        case 8:
+        case 10:
+        case 11:
+        case 13:
+        case 14:
+            boxes.push_back(b);
+            break;
+        default:
+            boxes.push_back(b + 2.0);
+            break;
+    }
+    switch (d) {
+        case 4:
+        case 7:
+        case 10:
+        case 13:
+            boxes.push_back(b);
+            break;
+        default:
+            boxes.push_back(b + 2.0);
+    }
+
+    
+    
+    /*
+    float wIdeal = std::sqrt((12.0f*sigma*sigma/n)+1.0f);  // Ideal averaging filter width
+    float wl = std::floor(wIdeal);
+    if ( (((int)wl)%2) == 0) {
+        wl -= 1.0;
+    }
+    float wu = wl+2;
+				
+    float mIdeal = (12.0f*sigma*sigma - n*wl*wl - 4.0f*n*wl - 3.0f*n)/(-4.0f*wl - 4.0f);
+    int m = std::round(mIdeal);
+				
+    for(int i=1; i<(n+1); i++) {
+        boxes.push_back(i<=m?wl:wu);
+        printf("%f  %d:    %f\n", sigma, i,  boxes.back());
+    }
+    */
+}
+
+
+static void boxBlurH_4 (xlColorVector &scl, xlColorVector &tcl, int w, int h, float r) {
+    float iarr = 1.0f / (r+r+1.0f);
+    for(int i=0; i<h; i++) {
+        int ti = i*w;
+        int li = ti;
+        int ri = ti+r;
+        xlColor fv = scl[ti];
+        xlColor lv = scl[ti+w-1];
+        float valr = (r+1)*fv.red;
+        float valg = (r+1)*fv.green;
+        float valb = (r+1)*fv.blue;
+        float vala = (r+1)*fv.alpha;
+
+        for (int j=0; j<r; j++) {
+            xlColor &c = scl[ti+j];
+            valr += c.red;
+            valg += c.green;
+            valb += c.blue;
+            vala += c.alpha;
+        }
+        for (int j=0  ; j<=r ; j++) {
+            xlColor &c = scl[ri++];
+            valr += c.red - fv.red;
+            valg += c.green - fv.green;
+            valb += c.blue - fv.blue;
+            vala += c.alpha - fv.alpha;
+
+            tcl[ti++].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+        }
+        for (int j=r+1; j<w-r; j++) {
+            xlColor &c = scl[ri++];
+            xlColor &c2 = scl[li++];
+            valr += c.red - c2.red;
+            valg += c.green - c2.green;
+            valb += c.blue - c2.blue;
+            vala += c.alpha - c2.alpha;
+            tcl[ti++].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+        }
+        
+        for (int j=w-r; j<w  ; j++) {
+            xlColor &c2 = scl[li++];
+            valr += lv.red - c2.red;
+            valg += lv.green - c2.green;
+            valb += lv.blue - c2.blue;
+            vala += lv.alpha - c2.alpha;
+            tcl[ti++].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+        }
+    }
+}
+static void boxBlurT_4 (xlColorVector &scl, xlColorVector &tcl, int w, int h, float r) {
+    float iarr = 1.0f / (r+r+1.0f);
+    for(int i=0; i<w; i++) {
+        int ti = i;
+        int li = ti;
+        int ri = ti+r*w;
+        xlColor fv = scl[ti];
+        xlColor lv = scl[ti+w*(h-1)];
+        float valr = (r+1)*fv.red;
+        float valg = (r+1)*fv.green;
+        float valb = (r+1)*fv.blue;
+        float vala = (r+1)*fv.alpha;
+        
+        for(int j=0; j<r; j++) {
+            xlColor &c = scl[ti+j*w];
+            valr += c.red;
+            valg += c.green;
+            valb += c.blue;
+            vala += c.alpha;
+        }
+        for(int j=0  ; j<=r ; j++) {
+            xlColor &c = scl[ri];
+            valr += c.red - fv.red;
+            valg += c.green - fv.green;
+            valb += c.blue - fv.blue;
+            vala += c.alpha - fv.alpha;
+            tcl[ti].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            ri+=w;
+            ti+=w;
+        }
+        for(int j=r+1; j<h-r; j++) {
+            xlColor &c = scl[ri];
+            xlColor &c2 = scl[li];
+            valr += c.red - c2.red;
+            valg += c.green - c2.green;
+            valb += c.blue - c2.blue;
+            vala += c.alpha - c2.alpha;
+            tcl[ti].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            li+=w; ri+=w; ti+=w;
+        }
+        for(int j=h-r; j<h  ; j++) {
+            xlColor &c2 = scl[li];
+            valr += lv.red - c2.red;
+            valg += lv.green - c2.green;
+            valb += lv.blue - c2.blue;
+            vala += lv.alpha - c2.alpha;
+            tcl[ti].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            li += w;
+            ti += w;
+        }
+    }
+}
+static void boxBlur_4(xlColorVector &scl, xlColorVector &tcl, int w, int h, float r) {
+    tcl = scl;
+    boxBlurH_4(tcl, scl, w, h, r);
+    boxBlurT_4(scl, tcl, w, h, r);
+}
+
+static void gaussBlur_4(xlColorVector &scl, xlColorVector &tcl, int w, int h, int r) {
+    std::vector<float> bxs;
+    boxesForGauss(r - 1, 3, bxs);
+    
+    boxBlur_4 (scl, tcl, w, h, (bxs[0]-1)/2);
+    boxBlur_4 (tcl, scl, w, h, (bxs[1]-1)/2);
+    boxBlur_4 (scl, tcl, w, h, (bxs[2]-1)/2);
+}
+
 void PixelBufferClass::Blur(LayerInfo* layer, float offset)
 {
     int b = 0;
@@ -612,50 +808,54 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
     }
     wxASSERT(b <= 15);
 
-    int d = 0;
-    int u = 0;
-    if (b % 2 == 0)
-    {
-        d = b / 2;
-        u = (b - 1) / 2;
-    }
-    else
-    {
-        d = (b - 1) / 2;
-        u = (b - 1) / 2;
-    }
 
-    xlColor c;
-    RenderBuffer orig(layer->buffer);
-    for (int x = 0; x < layer->BufferWi; x++)
-    {
-        for (int y = 0; y < layer->BufferHt; y++)
+    if (b != 2) {
+        xlColorVector tmp;
+        tmp.resize(layer->buffer.pixels.size());
+        gaussBlur_4(layer->buffer.pixels, tmp, layer->BufferWi, layer->BufferHt, b);
+    } else {
+        int d = 0;
+        int u = 0;
+        if (b % 2 == 0)
         {
-            int r = 0;
-            int g = 0;
-            int b = 0;
-            int a = 0;
-            int sm = 0;
-            for (int i = x - d; i <= x + u; i++)
+            d = b / 2;
+            u = (b - 1) / 2;
+        }
+        else
+        {
+            d = (b - 1) / 2;
+            u = (b - 1) / 2;
+        }
+        RenderBuffer orig(layer->buffer);
+        for (int x = 0; x < layer->BufferWi; x++)
+        {
+            for (int y = 0; y < layer->BufferHt; y++)
             {
-                if (i >= 0 && i < layer->BufferWi)
+                int r = 0;
+                int g = 0;
+                int b = 0;
+                int a = 0;
+                int sm = 0;
+                for (int i = x - d; i <= x + u; i++)
                 {
-                    for (int j = y - d; j <= y + u; j++)
+                    if (i >= 0 && i < layer->BufferWi)
                     {
-                        if (j >=0 && j < layer->BufferHt)
+                        for (int j = y - d; j <= y + u; j++)
                         {
-                            orig.GetPixel(i, j, c);
-                            r += c.Red();
-                            g += c.Green();
-                            b += c.Blue();
-                            a += c.Alpha();
-                            ++sm;
+                            if (j >=0 && j < layer->BufferHt)
+                            {
+                                const xlColor &c = orig.GetPixel(i, j);
+                                r += c.red;
+                                g += c.green;
+                                b += c.blue;
+                                a += c.alpha;
+                                ++sm;
+                            }
                         }
                     }
                 }
+                layer->buffer.SetPixel(x, y, xlColor(r/sm, g/sm, b/sm, a/sm));
             }
-            xlColor newc(r/sm, g/sm, b/sm, a/sm);
-            layer->buffer.SetPixel(x, y, newc);
         }
     }
 }

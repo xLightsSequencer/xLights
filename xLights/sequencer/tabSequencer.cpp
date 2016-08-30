@@ -266,6 +266,29 @@ static void HandleChoices(xLightsFrame *frame,
     }
 }
 
+static bool HasEffects(ModelElement *el) {
+    if (el->HasEffects()) {
+        return true;
+    }
+    for (size_t sm = 0; sm < el->GetSubModelCount(); sm++) {
+        SubModelElement *sme = el->GetSubModel(sm);
+        
+        if (sme->HasEffects()) {
+            return true;
+        }
+        StrandElement *ste = dynamic_cast<StrandElement *>(sme);
+        if (ste != nullptr) {
+            for (size_t n = 0; n < ste->GetNodeLayerCount(); n++) {
+                NodeLayer *nl = ste->GetNodeLayer(n, true);
+                if (nl->GetEffectCount() > 0) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 void xLightsFrame::CheckForValidModels()
 {
     //bool cancelled = cancelled_in;
@@ -289,6 +312,7 @@ void xLightsFrame::CheckForValidModels()
         }
     }
 
+    std::vector<Element*> mapLater;
     SeqElementMismatchDialog dialog(this);
     for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
         if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
@@ -300,20 +324,20 @@ void xLightsFrame::CheckForValidModels()
                 dialog.ChoiceModels->Set(ToArrayString(AllNames));
                 dialog.Fit();
 
-                if (!cancelled)
+                if (!cancelled && HasEffects(me))
                 {
                     cancelled = (dialog.ShowModal() == wxID_CANCEL);
                 }
 
-                if (cancelled || dialog.RadioButtonDelete->GetValue()) {
+                if (cancelled || !HasEffects(me) || dialog.RadioButtonDelete->GetValue()) {
                     mSequenceElements.DeleteElement(name);
-                    x = mSequenceElements.GetElementCount();
+                } else if (dialog.RadioButtonMap->GetValue()) {
+                    mapLater.push_back(me);
                 } else {
                     std::string newName = dialog.ChoiceModels->GetStringSelection().ToStdString();
                     mSequenceElements.GetElement(x)->SetName(newName);
                     Remove(AllNames, newName);
                     Remove(ModelNames, newName);
-                    x = mSequenceElements.GetElementCount();
                 }
             }
         }
@@ -325,16 +349,24 @@ void xLightsFrame::CheckForValidModels()
             ImportXLights(mSequenceElements, toMap, wxFileName(), true, true);
         }
         toMap.clear();
+        for (auto a = mapLater.begin(); a != mapLater.end(); a++) {
+            toMap.push_back(*a);
+        }
+        mapLater.clear();
         for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
             if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
                 std::string name = mSequenceElements.GetElement(x)->GetModelName();
                 ModelElement * el = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 Model *m = AllModels[name];
                 if (m == nullptr) {
-                    HandleChoices(this, AllNames, ModelNames, el,
-                                  "Model " + name + " does not exist in your layout.\n"
-                                  + "How should we handle this?",
-                                  toMap, ignore);
+                    if (HasEffects(el)) {
+                        HandleChoices(this, AllNames, ModelNames, el,
+                                      "Model " + name + " does not exist in your layout.\n"
+                                      + "How should we handle this?",
+                                      toMap, ignore);
+                    } else {
+                        mSequenceElements.DeleteElement(name);
+                    }
                 } else if (m->GetDisplayAs() == "ModelGroup") {
                     bool hasStrandEffects = false;
                     bool hasNodeEffects = false;

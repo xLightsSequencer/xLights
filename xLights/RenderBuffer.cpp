@@ -817,7 +817,13 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color)
         color=pixels[y*BufferWi+x];
     }
 }
-
+const xlColor &RenderBuffer::GetPixel(int x, int y) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    {
+        return pixels[y*BufferWi+x];
+    }
+    return xlBLACK;
+}
 
 // 0,0 is lower left
 void RenderBuffer::SetTempPixel(int x, int y, const xlColor &color)

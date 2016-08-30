@@ -296,6 +296,7 @@ public:
     void GetEffectPeriods( int& curEffStartPer, int& curEffEndPer);  // nobody wants endPer?
     void SetFrameTimeInMs(int i);
 
+    const xlColor &GetPixel(int x, int y);
     void GetPixel(int x, int y, xlColor &color);
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);

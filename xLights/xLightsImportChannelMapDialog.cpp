@@ -308,7 +308,9 @@ bool xLightsImportChannelMapDialog::Init() {
             Element* e = mSequenceElements->GetElement(i);
             
             Model *m = xlights->GetModel(e->GetName());
-            AddModel(m, ms);
+            if (m != nullptr) {
+                AddModel(m, ms);
+            }
         }
     }
     
