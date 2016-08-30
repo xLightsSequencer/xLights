@@ -608,6 +608,15 @@ void RowHeading::Draw()
             {
                 dc.DrawBitmap(model_group_icon, getWidth()-25, startY+3, true);
             }
+            else
+            {
+                if (m->GetStringType().find("Single Color") == 0)
+                {
+                    xlColor color = m->GetNodeColor(0);
+                    dc.SetBrush(wxBrush(color.asWxColor()));
+                    dc.DrawRectangle(getWidth() - 25, startY + 3, 16, 16);
+                }
+            }
         }
         else if(mSequenceElements->GetVisibleRowInformation(i)->element->GetType()==ELEMENT_TYPE_TIMING)
         {

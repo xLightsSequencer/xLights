@@ -568,6 +568,24 @@
 															<border>3</border>
 															<option>1</option>
 														</object>
+														<object class="sizeritem">
+															<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText5" member="yes">
+																<label>&#x0A;E1.31 Sync Universe:</label>
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_SyncUniverse" member="yes">
+																<value>0</value>
+																<max>63999</max>
+																<tooltip>This should be left as 0 unless you have controllers which support it.</tooltip>
+																<handler function="OnSpinCtrl_SyncUniverseChange" entry="EVT_SPINCTRL" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
 													</object>
 													<flag>wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 													<option>1</option>
@@ -1423,6 +1441,12 @@
 						<handler function="AutoSaveIntervalSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
+				</object>
+				<object class="wxMenuItem" name="ID_E131_Sync" variable="MenuItem_e131sync" member="yes">
+					<label>e1.31 Sync</label>
+					<help>Only enable this if your controllers support e1.31 sync. You will also need to set the synchronisation universe on the setup tab.</help>
+					<handler function="OnMenuItem_e131syncSelected" entry="EVT_MENU" />
+					<checkable>1</checkable>
 				</object>
 				<object class="wxMenuItem" name="ID_MENUITEM5" variable="MenuItem13" member="no">
 					<label>Reset Toolbars</label>

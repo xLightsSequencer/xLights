@@ -153,6 +153,8 @@ const long xLightsFrame::ID_BUTTON1 = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_CHANGE = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_DELETE = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_DELETE_ALL = wxNewId();
+const long xLightsFrame::ID_STATICTEXT8 = wxNewId();
+const long xLightsFrame::ID_SPINCTRL1 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON1 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON2 = wxNewId();
 const long xLightsFrame::ID_LISTCTRL_NETWORKS = wxNewId();
@@ -268,6 +270,7 @@ const long xLightsFrame::ID_MENUITEM_AUTOSAVE_10 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_15 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_30 = wxNewId();
 const long xLightsFrame::ID_MENUITEM20 = wxNewId();
+const long xLightsFrame::ID_E131_Sync = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
@@ -568,6 +571,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     BoxSizer1->Add(ButtonNetworkDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
     ButtonNetworkDeleteAll = new wxButton(PanelSetup, ID_BUTTON_NETWORK_DELETE_ALL, _("Delete All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_DELETE_ALL"));
     BoxSizer1->Add(ButtonNetworkDeleteAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
+    StaticText5 = new wxStaticText(PanelSetup, ID_STATICTEXT8, _("\nE1.31 Sync Universe:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+    BoxSizer1->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 0);
+    SpinCtrl_SyncUniverse = new wxSpinCtrl(PanelSetup, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 63999, 0, _T("ID_SPINCTRL1"));
+    SpinCtrl_SyncUniverse->SetValue(_T("0"));
+    SpinCtrl_SyncUniverse->SetToolTip(_("This should be left as 0 unless you have controllers which support it."));
+    BoxSizer1->Add(SpinCtrl_SyncUniverse, 1, wxALL|wxEXPAND, 5);
     FlexGridSizerNetworks->Add(BoxSizer1, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 0);
     FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
     BitmapButtonMoveNetworkUp = new wxBitmapButton(PanelSetup, ID_BITMAPBUTTON1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_UP")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
@@ -927,6 +936,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem48 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_30, _("30 Minutes"), wxEmptyString, wxITEM_RADIO);
     AutoSaveMenu->Append(MenuItem48);
     MenuSettings->Append(ID_MENUITEM20, _("Auto Save"), AutoSaveMenu, wxEmptyString);
+    MenuItem_e131sync = new wxMenuItem(MenuSettings, ID_E131_Sync, _("e1.31 Sync"), _("Only enable this if your controllers support e1.31 sync. You will also need to set the synchronisation universe on the setup tab."), wxITEM_CHECK);
+    MenuSettings->Append(MenuItem_e131sync);
     MenuItem13 = new wxMenuItem(MenuSettings, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(MenuItem13);
     MenuBar->Append(MenuSettings, _("&Settings"));
@@ -982,6 +993,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_BUTTON_NETWORK_CHANGE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkChangeClick);
     Connect(ID_BUTTON_NETWORK_DELETE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteClick);
     Connect(ID_BUTTON_NETWORK_DELETE_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteAllClick);
+    Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSpinCtrl_SyncUniverseChange);
     Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveUpClick);
     Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveDownClick);
     Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkBeginDrag);
@@ -1074,6 +1086,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM_AUTOSAVE_10,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_15,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_30,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
+    Connect(ID_E131_Sync,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_e131syncSelected);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
@@ -1116,8 +1129,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     mRenderOnSave = true;
     mBackupOnSave = false;
     mBackupOnLaunch = true;
+    me131Sync = false;
     mAltBackupDir = "";
     mIconSize = 16;
+    xout = 0;
 
     StatusBarSizer->AddGrowableCol(0,2);
     StatusBarSizer->AddGrowableCol(2,1);
@@ -1417,7 +1432,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     EffectTreeDlg = NULL;  // must be before any call to SetDir
 
     // Check if schedule should be running
-    xout=0;
     long RunFlag=0;
 
     config->Read(_("RunSchedule"), &RunFlag);
@@ -1459,6 +1473,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
         EnableNetworkChanges();
     }
     wxImage::AddHandler(new wxGIFHandler);
+
+    config->Read("xLightse131Sync", &me131Sync, false);
+    MenuItem_e131sync->Check(me131Sync);
+    logger_base.debug("e1.31 Sync: %s.", me131Sync ? "true" : "false");
+    ShowHideSync();
 
     //start out with 50ms timer, once we load a file or create a new one, we'll reset
     //to whatever the timing that is selected
@@ -1502,6 +1521,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsRenderOnSave", mRenderOnSave);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
+    config->Write("xLightse131Sync", me131Sync);
     config->Write("xLightsEffectAssistMode", mEffectAssistMode);
     config->Write("xLightsAltBackupDir", mAltBackupDir);
 
@@ -1798,8 +1818,7 @@ bool xLightsFrame::EnableOutputs()
     if (CheckBoxLightOutput->IsChecked() && xout==0)
     {
         DisableSleepModes();
-        xout = new xOutput();
-
+        xout = new xOutput(SpinCtrl_SyncUniverse->GetValue());
 
         for( wxXmlNode* e=NetworkXML.GetRoot()->GetChildren(); e!=NULL && ok; e=e->GetNext() )
         {
@@ -3815,4 +3834,26 @@ void xLightsFrame::CheckSequence(bool display)
 void xLightsFrame::OnMenuItemCheckSequenceSelected(wxCommandEvent& event)
 {
     CheckSequence(true);
+}
+
+void xLightsFrame::OnMenuItem_e131syncSelected(wxCommandEvent& event)
+{
+    me131Sync = event.IsChecked();
+    ShowHideSync();
+}
+
+void xLightsFrame::ShowHideSync()
+{
+    if (me131Sync)
+    {
+        SpinCtrl_SyncUniverse->Show();
+        StaticText5->Show();
+        SetSyncUniverse(SpinCtrl_SyncUniverse->GetValue());
+    }
+    else
+    {
+        SpinCtrl_SyncUniverse->Hide();
+        StaticText5->Hide();
+        SetSyncUniverse(0);
+    }
 }

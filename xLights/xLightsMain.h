@@ -25,6 +25,7 @@
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/splitter.h>
+#include <wx/spinctrl.h>
 #include <wx/aui/aui.h>
 #include <wx/panel.h>
 #include <wx/bmpbuttn.h>
@@ -610,6 +611,8 @@ private:
     void OnMenuItem_BackupOnLaunchSelected(wxCommandEvent& event);
     void OnMenuItem_ViewLogSelected(wxCommandEvent& event);
     void OnMenuItemCheckSequenceSelected(wxCommandEvent& event);
+    void OnSpinCtrl_SyncUniverseChange(wxSpinEvent& event);
+    void OnMenuItem_e131syncSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -677,6 +680,8 @@ private:
     static const long ID_BUTTON_NETWORK_CHANGE;
     static const long ID_BUTTON_NETWORK_DELETE;
     static const long ID_BUTTON_NETWORK_DELETE_ALL;
+    static const long ID_STATICTEXT8;
+    static const long ID_SPINCTRL1;
     static const long ID_BITMAPBUTTON1;
     static const long ID_BITMAPBUTTON2;
     static const long ID_LISTCTRL_NETWORKS;
@@ -792,6 +797,7 @@ private:
     static const long ID_MENUITEM_AUTOSAVE_15;
     static const long ID_MENUITEM_AUTOSAVE_30;
     static const long ID_MENUITEM20;
+    static const long ID_E131_Sync;
     static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
     static const long ID_TIMER1;
@@ -889,6 +895,7 @@ private:
     wxButton* ButtonNetworkDelete;
     wxBitmapButton* BitmapButton_Link_Dirs;
     wxMenuItem* MenuItemEffectAssistAlwaysOff;
+    wxStaticText* StaticText5;
     wxTreeCtrl* ListBoxSched;
     wxListCtrl* GridNetwork;
     wxStaticText* ShowDirectoryLabel;
@@ -909,6 +916,7 @@ private:
     wxMenuItem* mRenderOnSaveMenuItem;
     wxMenuItem* MenuItem41;
     wxPanel* PanelSetup;
+    wxMenuItem* MenuItem_e131sync;
     wxButton* ButtonSaveSetup;
     wxPanel* Panel2;
     wxMenuItem* mBackupOnSaveMenuItem;
@@ -938,6 +946,7 @@ private:
     xlAuiToolBar* EditToolBar;
     wxMenuItem* MenuItemGridIconBackgroundOff;
     wxMenuBar* MenuBar;
+    wxSpinCtrl* SpinCtrl_SyncUniverse;
     //*)
 
     AUIToolbarButtonWrapper *CheckBoxLightOutput;
@@ -1262,6 +1271,7 @@ private:
     bool mRenderOnSave;
     bool mBackupOnSave;
     bool mBackupOnLaunch;
+    bool me131Sync;
     wxString mAltBackupDir;
     int mIconSize;
     int mGridSpacing;
@@ -1379,6 +1389,7 @@ private:
     void ShowDisplayElements(wxCommandEvent& event);
     void ShowHidePreviewWindow(wxCommandEvent& event);
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
+    void ShowHideSync();
 
     std::map<int, std::list<float>> LoadPolyphonicTranscription(AudioManager* audio, int intervalMS);
     std::map<int, std::list<float>> LoadAudacityFile(std::string file, int intervalMS);
@@ -1399,6 +1410,7 @@ private:
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
     std::string GetEffectTextFromWindows(std::string &palette);
+    void SetSyncUniverse(int syncUniverse);
 
     void EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable);
     // Panels
