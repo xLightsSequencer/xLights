@@ -3705,7 +3705,7 @@ void xLightsFrame::CheckSequence(bool display)
 
                         // check excessive fadein/fadeout time
                         float fadein = sm.GetFloat("T_TEXTCTRL_Fadein", 0.0);
-                        float fadeout = sm.GetFloat("T_TEXTCTRL_Fadein", 0.0);
+                        float fadeout = sm.GetFloat("T_TEXTCTRL_Fadeout", 0.0);
                         float efdur = (ef->GetEndTimeMS() - ef->GetStartTimeMS()) / 1000.0;
 
                         if (fadein > efdur)
