@@ -1606,9 +1606,9 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
                 if( align_start >= ef->GetStartTimeMS() && align_end <= ef->GetEndTimeMS() ) {
                     all_clear = true;
                 } else {
-                    if( align_end > ef->GetStartTimeMS() && align_end < ef->GetEndTimeMS() ) {
+                    if( align_end > ef->GetStartTimeMS() && align_end <= ef->GetEndTimeMS() ) {
                         end_time_for_check = mSelectedEffect->GetStartTimeMS();
-                    } else if( align_start > ef->GetStartTimeMS() && align_start < ef->GetEndTimeMS() ) {
+                    } else if( align_start >= ef->GetStartTimeMS() && align_start < ef->GetEndTimeMS() ) {
                         str_time_for_check = mSelectedEffect->GetEndTimeMS();
                     }
                 }
