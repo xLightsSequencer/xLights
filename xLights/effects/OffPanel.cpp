@@ -2,9 +2,9 @@
 
 //(*InternalHeaders(OffPanel)
 #include <wx/sizer.h>
-#include <wx/string.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
+#include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(OffPanel)
@@ -18,8 +18,8 @@ END_EVENT_TABLE()
 OffPanel::OffPanel(wxWindow* parent)
 {
 	//(*Initialize(OffPanel)
-	wxStaticText* StaticText1;
 	wxFlexGridSizer* FlexGridSizer77;
+	wxStaticText* StaticText1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer77 = new wxFlexGridSizer(0, 3, 0, 0);

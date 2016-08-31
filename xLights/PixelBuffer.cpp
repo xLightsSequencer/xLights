@@ -243,6 +243,14 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
     {
         MixType=Mix_Normal;
     }
+    else if (MixName == "Additive")
+    {
+        MixType=Mix_Addititve;
+    }
+    else if (MixName == "Subtractive")
+    {
+        MixType=Mix_Subtractive;
+    }
     else if (MixName == "Average")
     {
         MixType=Mix_Average;
@@ -458,6 +466,28 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
     case Mix_2_reveals_1:
         c1.toHSV(hsv1);
         c = hsv1.value > layers[layer]->effectMixThreshold ? c1 : c0; // if effect 2 is non black
+        break;
+    case Mix_Addititve:
+        {
+            int r = c0.red + c1.red;
+            int g = c0.green + c1.green;
+            int b = c0.blue + c1.blue;
+            if (r > 255) r = 255;
+            if (g > 255) g = 255;
+            if (b > 255) b = 255;
+            c.Set(r, g, b);
+        }
+        break;
+    case Mix_Subtractive:
+        {
+            int r = c1.red - c0.red;
+            int g = c1.green - c0.green;
+            int b = c1.blue - c0.blue;
+            if (r < 0) r = 0;
+            if (g < 0) g = 0;
+            if (b < 0) b = 0;
+            c.Set(r, g, b);
+        }
         break;
     }
     if (layers[layer]->effectMixVaries)

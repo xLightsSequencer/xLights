@@ -4,12 +4,15 @@
 
 //(*Headers(OnPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
-class wxSlider;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
 //*)
+
+#include "../ValueCurveButton.h"
 
 
 class OnPanel: public wxPanel
@@ -20,13 +23,16 @@ class OnPanel: public wxPanel
 		virtual ~OnPanel();
 
 		//(*Declarations(OnPanel)
-		wxSlider* SliderCycles;
 		wxCheckBox* CheckBoxShimmer;
 		wxTextCtrl* TextCtrlEnd;
-		wxTextCtrl* TextCtrlCycles;
-		wxTextCtrl* TextCtrlStart;
+		wxSlider* Slider_On_Transparency;
 		wxSlider* SliderStart;
 		wxSlider* SliderEnd;
+		ValueCurveButton* BitmapButton_On_Transparency;
+		wxTextCtrl* TextCtrlCycles;
+		wxTextCtrl* TextCtrlStart;
+		wxSlider* SliderCycles;
+		wxTextCtrl* TextCtrlOnTransparency;
 		//*)
 
 	protected:
@@ -36,6 +42,9 @@ class OnPanel: public wxPanel
 		static const long ID_TEXTCTRL_Eff_On_Start;
 		static const long IDD_SLIDER_Eff_On_End;
 		static const long ID_TEXTCTRL_Eff_On_End;
+		static const long IDD_SLIDER_On_Transparency;
+		static const long ID_VALUECURVE_On_Transparency;
+		static const long ID_TEXTCTRL_On_Transparency;
 		static const long IDD_SLIDER_On_Cycles;
 		static const long ID_TEXTCTRL_On_Cycles;
 		static const long ID_CHECKBOX_On_Shimmer;

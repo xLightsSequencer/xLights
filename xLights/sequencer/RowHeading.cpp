@@ -575,6 +575,8 @@ void RowHeading::Draw()
                     dc.DrawLabel(prefix + "  " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 }
             }
+            dc.SetPen(penOutline);
+            dc.SetBrush(brush);
         }
         else        // Draw label
         {
@@ -612,9 +614,13 @@ void RowHeading::Draw()
             {
                 if (m->GetStringType().find("Single Color") == 0)
                 {
+                    m->SetNodeColor(0, xlWHITE);
                     xlColor color = m->GetNodeColor(0);
+                    dc.SetPen(*wxBLACK_PEN);
                     dc.SetBrush(wxBrush(color.asWxColor()));
-                    dc.DrawRectangle(getWidth() - 25, startY + 3, 16, 16);
+                    dc.DrawRectangle(getWidth() - 21, startY + 3, 12, 12);
+                    dc.SetPen(penOutline);
+                    dc.SetBrush(brush);
                 }
             }
         }

@@ -37,6 +37,11 @@ void OnEffect::SetDefaultParameters(Model *cls) {
     p->TextCtrlStart->SetValue("100");
     p->TextCtrlEnd->SetValue("100");
     p->TextCtrlCycles->SetValue("1.0");
+    
+    
+    p->BitmapButton_On_Transparency->SetActive(false);
+    
+    SetSliderValue(p->Slider_On_Transparency, 0);
 }
 std::string OnEffect::GetEffectString() {
     OnPanel *p = (OnPanel*)panel;
@@ -58,6 +63,15 @@ std::string OnEffect::GetEffectString() {
     }
     if (p->CheckBoxShimmer->GetValue()) {
         ret << "E_CHECKBOX_On_Shimmer=1,";
+    }
+    if (p->BitmapButton_On_Transparency->GetValue()->IsActive()) {
+        ret << "E_VALUECURVE_On_Transparency=";
+        ret << p->BitmapButton_On_Transparency->GetValue()->Serialise();
+        ret << ",";
+    } else if (p->Slider_On_Transparency->GetValue() > 0) {
+        ret << "E_TEXTCTRL_On_Transparency=";
+        ret << p->TextCtrlOnTransparency->GetValue();
+        ret << ",";
     }
     return ret.str();
 }
@@ -135,6 +149,7 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
 
     double adjust = buffer.GetEffectTimeIntervalPosition(cycles);
 
+
     xlColor color;
     if (start == 100 && end == 100) {
         buffer.palette.GetColor(cidx, color);
@@ -146,6 +161,13 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
         d = d / 100.0;
         hsv.value = hsv.value * d;
         color = hsv;
+    }
+    
+    int transparency = GetValueCurveInt("On_Transparency", 0, SettingsMap, adjust);
+    if (transparency) {
+        transparency *= 255;
+        transparency /= 100;
+        color.alpha = 255 - transparency;
     }
 
     ///////////////////////// DMX Support ////////////////////////

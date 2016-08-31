@@ -51,7 +51,9 @@ enum MixTypes
     Mix_BottomTop,
     Mix_LeftRight,
     Mix_Shadow_1on2, /**< Take value and saturation from Effect 1 and put them onto effect 2, leave hue alone on effect 2 */
-    Mix_Shadow_2on1 /**< Take value and saturation from Effect 3 and put them onto effect 2, leave hue alone on effect 1 */
+    Mix_Shadow_2on1, /**< Take value and saturation from Effect 3 and put them onto effect 2, leave hue alone on effect 1 */
+    Mix_Addititve,
+    Mix_Subtractive
 
 };
 class Effect;
