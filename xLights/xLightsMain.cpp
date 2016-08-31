@@ -1446,7 +1446,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     UpdateShowDates(wxDateTime::Now(),wxDateTime::Now());
     if (ok && !dir.IsEmpty())
     {
-        SetDir(dir);
+        if (!SetDir(dir)) {
+            while (!PromptForShowDirectory()) {}
+        }
     }
     else
     {

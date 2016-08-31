@@ -994,8 +994,8 @@ private:
 
     // setup
     void OnMenuMRU(wxCommandEvent& event);
-    void SetDir(const wxString& dirname);
-    void PromptForShowDirectory();
+    bool SetDir(const wxString& dirname);
+    bool PromptForShowDirectory();
     void UpdateNetworkList(bool updateModels);
     long GetNetworkSelection();
     void MoveNetworkRow(int fromRow, int toRow);

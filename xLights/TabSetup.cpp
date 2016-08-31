@@ -33,7 +33,7 @@ void xLightsFrame::OnMenuMRU(wxCommandEvent& event)
     SetDir(newdir);
 }
 
-void xLightsFrame::SetDir(const wxString& newdir)
+bool xLightsFrame::SetDir(const wxString& newdir)
 {
     static bool HasMenuSeparator=false;
     int idx, cnt, i;
@@ -61,7 +61,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
     if (play_mode == play_sched || play_mode == play_list || play_mode == play_single)
     {
         wxMessageBox(_("Cannot change directories during playback"),_("Error"));
-        return;
+        return false;
     }
 
     // Check to see if any show directory files need to be saved
@@ -141,7 +141,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
     {
         wxString msg=_("The show directory '") + newdir + ("' no longer exists.\nPlease choose a new show directory.");
         wxMessageBox(msg);
-        return;
+        return false;
     }
 
     ObtainAccessToURL(newdir.ToStdString());
@@ -241,6 +241,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
     Notebook1->ChangeSelection(SETUPTAB);
     SetStatusText("");
     FileNameText->SetLabel(newdir);
+    return true;
 }
 
 void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& type, std::string& description, int& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output)
@@ -582,15 +583,16 @@ void xLightsFrame::OnMenuOpenFolderSelected(wxCommandEvent& event)
     PromptForShowDirectory();
 }
 
-void xLightsFrame::PromptForShowDirectory()
+bool xLightsFrame::PromptForShowDirectory()
 {
     wxString newdir;
     if (DirDialog1->ShowModal() == wxID_OK)
     {
         newdir=DirDialog1->GetPath();
-        if (newdir == CurrentDir) return;
-        SetDir(newdir);
+        if (newdir == CurrentDir) return true;
+        return SetDir(newdir);
     }
+    return false;
 }
 
 // returns -1 if not found
@@ -1160,6 +1162,9 @@ void xLightsFrame::SetSyncUniverse(int syncUniverse)
 
     bool addneeded = true;
     wxXmlNode* root = NetworkXML.GetRoot();
+    if (root == nullptr) {
+        return;
+    }
     for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
     {
         if (e->GetName() == "e131sync")
