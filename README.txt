@@ -8,7 +8,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (dkulp)   Optimise blur - speeds rendering
+   -- enh (dkulp)   Add additive/subtractive blend modes to on effect
    -- bug (gil)     Fix align both times boundary problem.  Fixes #669.
+   -- enh (keithsw) Implement e1.31 sync
+   -- enh (keithsw) Add more checks in check sequence
+   -- enh (keithsw) Show single colour string colour in sequencer row heading
 2016.48  Aug 29, 2016
    -- enh (keithsw) Add sequence checker, "Tools,Check Sequence". This scans your Setup/Layout/Open sequence and highlights any
                     items that might cause issues or unexpected behaviour in xLights.

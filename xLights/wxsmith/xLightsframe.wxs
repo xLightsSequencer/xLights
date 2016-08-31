@@ -1443,7 +1443,7 @@
 					</object>
 				</object>
 				<object class="wxMenuItem" name="ID_E131_Sync" variable="MenuItem_e131sync" member="yes">
-					<label>e1.31 Sync</label>
+					<label>Frame Sync</label>
 					<help>Only enable this if your controllers support e1.31 sync. You will also need to set the synchronisation universe on the setup tab.</help>
 					<handler function="OnMenuItem_e131syncSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>

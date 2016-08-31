@@ -936,7 +936,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem48 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_30, _("30 Minutes"), wxEmptyString, wxITEM_RADIO);
     AutoSaveMenu->Append(MenuItem48);
     MenuSettings->Append(ID_MENUITEM20, _("Auto Save"), AutoSaveMenu, wxEmptyString);
-    MenuItem_e131sync = new wxMenuItem(MenuSettings, ID_E131_Sync, _("e1.31 Sync"), _("Only enable this if your controllers support e1.31 sync. You will also need to set the synchronisation universe on the setup tab."), wxITEM_CHECK);
+    MenuItem_e131sync = new wxMenuItem(MenuSettings, ID_E131_Sync, _("Frame Sync"), _("Only enable this if your controllers support e1.31 sync. You will also need to set the synchronisation universe on the setup tab."), wxITEM_CHECK);
     MenuSettings->Append(MenuItem_e131sync);
     MenuItem13 = new wxMenuItem(MenuSettings, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(MenuItem13);
@@ -3481,7 +3481,7 @@ void xLightsFrame::CheckSequence(bool display)
                 wxString ip = n->GetAttribute("ComPort", "");
                 wxString universe = n->GetAttribute("BaudRate", "1");
                 wxString desc = n->GetAttribute("Description", "");
-                    
+
                 wxString msg = wxString::Format("    WARN: Inactive output %d %s:%s:%s:'%s'.", i, NetType, ip, universe, desc);
                 LogAndWrite(f, msg.ToStdString());
                 warncount++;
@@ -3605,7 +3605,7 @@ void xLightsFrame::CheckSequence(bool display)
         {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
             auto models = mg->ModelNames();
-            
+
             for (auto m = models.begin(); m != models.end(); ++m)
             {
                 Model* model = AllModels.GetModel(*m);
@@ -3732,7 +3732,7 @@ void xLightsFrame::CheckSequence(bool display)
         LogAndWrite(f, "");
         LogAndWrite(f, "Effect problems");
 
-        // check all effects 
+        // check all effects
         EffectManager& em = mSequenceElements.GetEffectManager();
         for (i = 0; i < mSequenceElements.GetElementCount(0); i++)
         {
