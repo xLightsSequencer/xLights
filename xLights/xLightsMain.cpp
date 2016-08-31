@@ -31,7 +31,7 @@
 #include "BitmapCache.h"
 #include "effects/RenderableEffect.h"
 #include "LayoutPanel.h"
-#include "Models/ModelGroup.h"
+#include "models/ModelGroup.h"
 
 #include "TestDialog.h"
 #include "ConvertDialog.h"
