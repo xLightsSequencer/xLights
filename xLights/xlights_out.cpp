@@ -232,47 +232,40 @@ public:
     };
 };
 
-#define ARTNET_PACKET_HEADER_LEN 18
-#define ARTNET_PACKET_LEN (ARTNET_PACKET_HEADER_LEN + 512)
 #define ARTNET_PORT 0x1936
 #define ARTNET_MAXCHANNEL 32768
+#define ARTNET_SYNCPACKET_LEN 14
 
 // ******************************************************
 // * This class represents a single universe for ArtNET
 // * Methods should be called with: 0 <= chindex <= 511
 // ******************************************************
-class xNetwork_ArtNET : public xNetwork
-{
-protected:
-    wxByte data[ARTNET_PACKET_LEN];
-    wxByte SequenceNum;
-    int SkipCount;
-    wxIPV4address remoteAddr;
-    wxDatagramSocket *datagram;
-    bool changed;
-
-public:
-    void SetIntensity(size_t chindex, wxByte intensity)
+    void xNetwork_ArtNET::SetIntensity(size_t chindex, wxByte intensity)
     {
         if (data[chindex + ARTNET_PACKET_HEADER_LEN] != intensity) {
             data[chindex + ARTNET_PACKET_HEADER_LEN] = intensity;
             changed = true;
         }
-    };
+    }
 
-    xNetwork_ArtNET()
+    xNetwork_ArtNET::xNetwork_ArtNET()
     {
         datagram = 0;
         memset(data, 0, sizeof(data));
         changed = true;
-    };
+    }
 
-    ~xNetwork_ArtNET()
+    xNetwork_ArtNET::~xNetwork_ArtNET()
     {
         if (datagram) delete datagram;
-    };
+    }
 
-    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum)
+    int xNetwork_ArtNET::_ip1 = -1;
+    int xNetwork_ArtNET::_ip2 = -1;
+    int xNetwork_ArtNET::_ip3 = -1;
+    bool xNetwork_ArtNET::_initialised = false;
+
+    void xNetwork_ArtNET::InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse)
     {
         if (UniverseNumber == 0 || UniverseNumber >= ARTNET_MAXCHANNEL)
         {
@@ -282,8 +275,8 @@ public:
         InitRemoteAddr(ipaddr, UniverseNumber, NetNum);
         SetChannelCount(num_channels);
     }
-private:
-    void InitData(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
+
+    void xNetwork_ArtNET::InitData(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
         SequenceNum = 0;
         SkipCount = 0;
         wxByte UnivHi = UniverseNumber >> 8;   // Universe Number (high)
@@ -309,16 +302,46 @@ private:
         data[17] = 0x00;
     }
 
-    void InitRemoteAddr(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
+    void xNetwork_ArtNET::InitRemoteAddr(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
         wxIPV4address localaddr;
         localaddr.AnyAddress();
         datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
         remoteAddr.Hostname(ipaddr);
         remoteAddr.Service(ARTNET_PORT);
+
+        // work out our broascast address
+        wxArrayString ipc = wxSplit(ipaddr, '.');
+        if (_ip1 == -1)
+        {
+            _ip1 = wxAtoi(ipc[0]);
+            _ip2 = wxAtoi(ipc[1]);
+            _ip3 = wxAtoi(ipc[2]);
+        }
+        else if (wxAtoi(ipc[0]) != _ip1)
+        {
+            _ip1 = 255;
+            _ip2 = 255;
+            _ip3 = 255;
+        }
+        else
+        {
+            if (wxAtoi(ipc[1]) != _ip2)
+            {
+                _ip2 = 255;
+                _ip3 = 255;
+            }
+            else
+            {
+                if (wxAtoi(ipc[2]) != _ip3)
+                {
+                    _ip3 = 255;
+                }
+            }
+        }
+        _initialised = false;
     }
 
-public:
-    void SetChannelCount(size_t numchannels)
+    void xNetwork_ArtNET::SetChannelCount(size_t numchannels)
     {
         if (numchannels > 512)
         {
@@ -332,9 +355,9 @@ public:
 
         data[16] = NumHi;  // Property value count (high)
         data[17] = NumLo;  // Property value count (low)
-    };
+    }
 
-    void TimerEnd()
+    void xNetwork_ArtNET::TimerEnd()
     {
         if (!enabled) {
             return;
@@ -352,18 +375,66 @@ public:
         {
             SkipCount++;
         }
-    };
+    }
 
-    size_t TxNonEmptyCount(void)
+    void xNetwork_ArtNET::Sync()
+    {
+        static wxByte syncdata[ARTNET_SYNCPACKET_LEN];
+        static wxIPV4address syncremoteAddr;
+        static wxDatagramSocket *syncdatagram = nullptr;
+
+        if (!_initialised)
+        {
+            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug("Initialising artNet Sync.");
+
+            _initialised = true;
+            syncdata[0] = 'A';   // ARTNET flag
+            syncdata[1] = 'r';
+            syncdata[2] = 't';
+            syncdata[3] = '-';
+            syncdata[4] = 'N';
+            syncdata[5] = 'e';
+            syncdata[6] = 't';
+            syncdata[7] = 0x00;
+            syncdata[8] = 0x00; // opode
+            syncdata[9] = 0x52;
+            syncdata[10] = 0x00; // Protocol version high
+            syncdata[11] = 0x0E; // Protocol version Low
+            syncdata[12] = 0x00;
+            syncdata[13] = 0x00;
+
+            wxIPV4address localaddr;
+            localaddr.AnyAddress();
+
+            if (syncdatagram != nullptr)
+            {
+                delete syncdatagram;
+                syncdatagram = nullptr;
+            }
+
+            syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+
+            // broadcast ... this is not really in line with the spec
+            // I should use the net mask but i cant find a good way to do that
+            //syncremoteAddr.BroadcastAddress();
+            wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d", _ip1, _ip2, _ip3, 255);
+            logger_base.debug("artNet Sync broadcasting to %s.", (const char *)ipaddrWithUniv.c_str());
+            syncremoteAddr.Hostname(ipaddrWithUniv);
+            syncremoteAddr.Service(ARTNET_PORT);
+        }
+
+        syncdatagram->SendTo(syncremoteAddr, syncdata, ARTNET_SYNCPACKET_LEN);
+    }
+
+    size_t xNetwork_ArtNET::TxNonEmptyCount(void)
     {
         return 0;
     }
-    bool TxEmpty()
+    bool xNetwork_ArtNET::TxEmpty()
     {
         return true;
     }
-};
-
 
 #define E131_SYNCPACKET_LEN 49
 #define E131_PORT 5568
@@ -1128,8 +1199,9 @@ public:
 
 // xOutput should be a singleton
 // It contains references to all of the networks
-xOutput::xOutput(wxUint16 syncuniverse)
+xOutput::xOutput(bool sync, wxUint16 syncuniverse)
 {
+    _sync = sync;
     _syncuniverse = syncuniverse;
 }
 
@@ -1327,14 +1399,25 @@ void xOutput::TimerEnd()
         networks[i]->TimerEnd();
     }
 
-    // send e131 sync if required
-    if (_syncuniverse > 0)
+    if (_sync)
     {
+        // send e131 sync if required
+        if (_syncuniverse > 0)
+        {
+            for (size_t i = 0; i < networks.GetCount(); ++i)
+            {
+                if (dynamic_cast<xNetwork_E131*>(networks[i]) || dynamic_cast <xMultiE131Network*> (networks[i]))
+                {
+                    xNetwork_E131::Sync();
+                    break;
+                }
+            }
+        }
         for (size_t i = 0; i < networks.GetCount(); ++i)
         {
-            if (dynamic_cast<xNetwork_E131*>(networks[i]) || dynamic_cast <xMultiE131Network*> (networks[i]))
+            if (dynamic_cast<xNetwork_ArtNET*>(networks[i]))
             {
-                xNetwork_E131::Sync();
+                xNetwork_ArtNET::Sync();
                 break;
             }
         }

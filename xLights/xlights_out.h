@@ -81,9 +81,10 @@ protected:
     xNetworkArray networks;
     ChannelVector channels;
     wxUint16 _syncuniverse;
+    bool _sync;
 
 public:
-    xOutput(wxUint16 syncuniverse = 0);
+    xOutput(bool sync = false, wxUint16 syncuniverse = 0);
     ~xOutput();
     void EnableOutput(size_t network, bool en = true);
     size_t NetworkCount();
@@ -107,6 +108,40 @@ public:
     void SetSyncUniverse(wxUint16 syncuniverse);
 };
 
+#define ARTNET_PACKET_HEADER_LEN 18
+#define ARTNET_PACKET_LEN (ARTNET_PACKET_HEADER_LEN + 512)
+class xNetwork_ArtNET : public xNetwork
+{
+protected:
+    wxByte data[ARTNET_PACKET_LEN];
+    wxByte SequenceNum;
+    int SkipCount;
+    wxIPV4address remoteAddr;
+    wxDatagramSocket *datagram;
+    bool changed;
+    static int _ip1;
+    static int _ip2;
+    static int _ip3;
+    static bool _initialised;
+
+public:
+    void SetIntensity(size_t chindex, wxByte intensity);
+    xNetwork_ArtNET();
+    ~xNetwork_ArtNET();
+    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse = 0) override;
+
+private:
+    void InitData(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum);
+    void InitRemoteAddr(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum);
+
+public:
+    void SetChannelCount(size_t numchannels);
+    void TimerEnd();
+    static void Sync();
+    size_t TxNonEmptyCount(void);
+    bool TxEmpty();
+};
+
 #define E131_PACKET_LEN 638
 class xNetwork_E131 : public xNetwork
 {
@@ -125,7 +160,7 @@ public:
     void SetIntensity(size_t chindex, wxByte intensity);
     xNetwork_E131();
     ~xNetwork_E131();
-    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse);
+    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse) override;
     static void SetSyncUniverseStatic(wxUint16 syncuniverse);
     void SetSyncUniverse(wxUint16 syncuniverse);
 private:

@@ -1826,7 +1826,7 @@ bool xLightsFrame::EnableOutputs()
     if (CheckBoxLightOutput->IsChecked() && xout==0)
     {
         DisableSleepModes();
-        xout = new xOutput(SpinCtrl_SyncUniverse->GetValue());
+        xout = new xOutput(me131Sync, SpinCtrl_SyncUniverse->GetValue());
 
         for( wxXmlNode* e=NetworkXML.GetRoot()->GetChildren(); e!=nullptr && ok; e=e->GetNext() )
         {
@@ -1923,12 +1923,14 @@ void xLightsFrame::EnableNetworkChanges()
     bool flag=(xout==0 && !CurrentDir.IsEmpty());
     ButtonAddDongle->Enable(flag);
     ButtonAddE131->Enable(flag);
+    ButtonArtNET->Enable(flag);
     ButtonAddNull->Enable(flag);
     ButtonNetworkChange->Enable(flag);
     ButtonNetworkDelete->Enable(flag);
     ButtonNetworkDeleteAll->Enable(flag);
     BitmapButtonMoveNetworkUp->Enable(flag);
     BitmapButtonMoveNetworkDown->Enable(flag);
+    SpinCtrl_SyncUniverse->Enable(flag);
     ButtonSaveSetup->Enable(!CurrentDir.IsEmpty());
     ButtonSaveSchedule->Enable(!CurrentDir.IsEmpty());
     CheckBoxLightOutput->Enable(!CurrentDir.IsEmpty());
@@ -3884,8 +3886,14 @@ void xLightsFrame::OnMenuItemCheckSequenceSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_e131syncSelected(wxCommandEvent& event)
 {
+    NetworkChange();
     me131Sync = event.IsChecked();
     ShowHideSync();
+    if (me131Sync)
+    {
+        // recycle output connections if necessary
+        EnableOutputs();
+    }
 }
 
 void xLightsFrame::ShowHideSync()
