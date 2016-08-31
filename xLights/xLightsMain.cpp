@@ -3767,6 +3767,12 @@ void xLightsFrame::CheckSequence(bool display)
                             LogAndWrite(f, msg.ToStdString());
                             warncount++;
                         }
+                        if (fadein <= efdur && fadeout <= efdur && fadein + fadeout > efdur)
+                        {
+                            wxString msg = wxString::Format("    WARN: Transition in time %.2f + transition out time %.2f = %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadein, fadeout, fadein + fadeout, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), e->GetModelName(), efdur);
+                            LogAndWrite(f, msg.ToStdString());
+                            warncount++;
+                        }
 
                         // effect that runs past end of the sequence
                         if (ef->GetEndTimeMS() > CurrentSeqXmlFile->GetSequenceDurationMS())
