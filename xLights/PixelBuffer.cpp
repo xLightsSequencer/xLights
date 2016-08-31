@@ -245,7 +245,7 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
     }
     else if (MixName == "Additive")
     {
-        MixType=Mix_Addititve;
+        MixType=Mix_Additive;
     }
     else if (MixName == "Subtractive")
     {
@@ -262,6 +262,14 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
     else if (MixName == "Left-Right")
     {
         MixType=Mix_LeftRight;
+    }
+    else if (MixName == "Max")
+    {
+        MixType=Mix_Max;
+    }
+    else if (MixName == "Min")
+    {
+        MixType=Mix_Min;
     }
     else
     {
@@ -467,7 +475,7 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
         c1.toHSV(hsv1);
         c = hsv1.value > layers[layer]->effectMixThreshold ? c1 : c0; // if effect 2 is non black
         break;
-    case Mix_Addititve:
+    case Mix_Additive:
         {
             int r = c0.red + c1.red;
             int g = c0.green + c1.green;
@@ -489,6 +497,24 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
             c.Set(r, g, b);
         }
         break;
+            
+    case Mix_Min:
+        {
+            int r = std::min(c0.red, c1.red);
+            int g = std::min(c0.green, c1.green);
+            int b = std::min(c0.blue, c1.blue);
+            c.Set(r, g, b);
+        }
+        break;
+    case Mix_Max:
+        {
+            int r = std::max(c0.red, c1.red);
+            int g = std::max(c0.green, c1.green);
+            int b = std::max(c0.blue, c1.blue);
+            c.Set(r, g, b);
+        }
+        break;
+            
     }
     if (layers[layer]->effectMixVaries)
     {
@@ -715,6 +741,7 @@ static void boxBlurH_4 (xlColorVector &scl, xlColorVector &tcl, int w, int h, fl
         int ti = i*w;
         int li = ti;
         int ri = ti+r;
+        int maxri = ti + w - 1;
         xlColor fv = scl[ti];
         xlColor lv = scl[ti+w-1];
         float valr = (r+1)*fv.red;
@@ -723,38 +750,44 @@ static void boxBlurH_4 (xlColorVector &scl, xlColorVector &tcl, int w, int h, fl
         float vala = (r+1)*fv.alpha;
 
         for (int j=0; j<r; j++) {
-            xlColor &c = scl[ti+j];
+            xlColor &c = j < w ? scl[ti+j] : lv;
             valr += c.red;
             valg += c.green;
             valb += c.blue;
             vala += c.alpha;
         }
         for (int j=0  ; j<=r ; j++) {
-            xlColor &c = scl[ri++];
+            xlColor &c = ri <= maxri ? scl[ri++] : lv;
             valr += c.red - fv.red;
             valg += c.green - fv.green;
             valb += c.blue - fv.blue;
             vala += c.alpha - fv.alpha;
 
-            tcl[ti++].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            if (ti <= maxri) {
+                tcl[ti++].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            }
         }
         for (int j=r+1; j<w-r; j++) {
-            xlColor &c = scl[ri++];
-            xlColor &c2 = scl[li++];
+            xlColor &c = ri <= maxri ? scl[ri++] : lv;
+            xlColor &c2 = li <= maxri ? scl[li++] : lv;
             valr += c.red - c2.red;
             valg += c.green - c2.green;
             valb += c.blue - c2.blue;
             vala += c.alpha - c2.alpha;
-            tcl[ti++].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            if (ti <= maxri) {
+                tcl[ti++].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            }
         }
         
         for (int j=w-r; j<w  ; j++) {
-            xlColor &c2 = scl[li++];
+            xlColor &c2 = li <= maxri ? scl[li++]: lv;
             valr += lv.red - c2.red;
             valg += lv.green - c2.green;
             valb += lv.blue - c2.blue;
             vala += lv.alpha - c2.alpha;
-            tcl[ti++].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            if (ti <= maxri) {
+                tcl[ti++].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            }
         }
     }
 }
@@ -764,6 +797,8 @@ static void boxBlurT_4 (xlColorVector &scl, xlColorVector &tcl, int w, int h, fl
         int ti = i;
         int li = ti;
         int ri = ti+r*w;
+        
+        int maxri = ti+w*(h-1);
         xlColor fv = scl[ti];
         xlColor lv = scl[ti+w*(h-1)];
         float valr = (r+1)*fv.red;
@@ -772,39 +807,45 @@ static void boxBlurT_4 (xlColorVector &scl, xlColorVector &tcl, int w, int h, fl
         float vala = (r+1)*fv.alpha;
         
         for(int j=0; j<r; j++) {
-            xlColor &c = scl[ti+j*w];
+            xlColor &c = j < h ? scl[ti+j*w] : lv;
             valr += c.red;
             valg += c.green;
             valb += c.blue;
             vala += c.alpha;
         }
         for(int j=0  ; j<=r ; j++) {
-            xlColor &c = scl[ri];
+            xlColor &c = ri <= maxri ? scl[ri] : lv;
             valr += c.red - fv.red;
             valg += c.green - fv.green;
             valb += c.blue - fv.blue;
             vala += c.alpha - fv.alpha;
-            tcl[ti].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            if (ti <= maxri) {
+                tcl[ti].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            }
             ri+=w;
             ti+=w;
         }
         for(int j=r+1; j<h-r; j++) {
-            xlColor &c = scl[ri];
-            xlColor &c2 = scl[li];
+            xlColor &c = ri <= maxri ? scl[ri] : lv;
+            xlColor &c2 = li <= maxri ? scl[li] : lv;
             valr += c.red - c2.red;
             valg += c.green - c2.green;
             valb += c.blue - c2.blue;
             vala += c.alpha - c2.alpha;
-            tcl[ti].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            if (ti <= maxri) {
+                tcl[ti].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            }
             li+=w; ri+=w; ti+=w;
         }
         for(int j=h-r; j<h  ; j++) {
-            xlColor &c2 = scl[li];
+            xlColor &c2 = li <= maxri ? scl[li] : lv;
             valr += lv.red - c2.red;
             valg += lv.green - c2.green;
             valb += lv.blue - c2.blue;
             vala += lv.alpha - c2.alpha;
-            tcl[ti].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            if (ti <= maxri) {
+                tcl[ti].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+            }
             li += w;
             ti += w;
         }
@@ -838,7 +879,10 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
     }
     wxASSERT(b <= 15);
 
-
+    if (layer->BufferWi == 1 && layer->BufferHt == 1) {
+        return;
+    }
+    
     if (b != 2) {
         xlColorVector tmp;
         tmp.resize(layer->buffer.pixels.size());

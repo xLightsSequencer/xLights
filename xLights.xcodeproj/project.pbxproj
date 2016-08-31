@@ -1661,9 +1661,10 @@
 				TargetAttributes = {
 					67E7086C17B51AB400A22034 = {
 						DevelopmentTeam = U8ZT9RPC6S;
+						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.Sandbox = {
-								enabled = 1;
+								enabled = 0;
 							};
 						};
 					};

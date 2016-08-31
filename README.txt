@@ -9,7 +9,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- enh (dkulp)   Optimise blur - speeds rendering
-   -- enh (dkulp)   Add additive/subtractive blend modes to on effect
+   -- enh (dkulp)   Add additive/subtractive/min/max blend modes to on effect
    -- bug (gil)     Fix align both times boundary problem.  Fixes #669.
    -- enh (keithsw) Implement e1.31 sync
    -- enh (keithsw) Add more checks in check sequence
