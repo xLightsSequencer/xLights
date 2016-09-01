@@ -136,7 +136,7 @@ void CurrentPreviewModels::OnAddButtonClick(wxCommandEvent& event)
         node->AddAttribute("selected", "0");
         node->AddAttribute("name", name);
         node->AddAttribute("models", "");
-        node->AddAttribute("layout", "grid");
+        node->AddAttribute("layout", "minimalGrid");
         node->AddAttribute("GridSize", "400");
 
         mModels.AddModel(mModels.CreateModel(node));

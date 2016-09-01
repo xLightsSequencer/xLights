@@ -118,11 +118,11 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
         eventRowHeaderChanged.SetString(element->GetModelName());
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (element->GetType() == ELEMENT_TYPE_SUBMODEL) {
-        
+
     } else if (element->GetType() == ELEMENT_TYPE_STRAND) {
         StrandElement *se = dynamic_cast<StrandElement *>(element);
         se->ShowNodes(!se->ShowNodes());
-        
+
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         eventRowHeaderChanged.SetString(element->GetName());
         wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -501,7 +501,7 @@ bool RowHeading::HitTestTimingActive(int row,int x, bool* IsActive)
 {
     if (mSequenceElements->GetVisibleRowInformation(row)->element->GetType() == ELEMENT_TYPE_TIMING
         && x < DEFAULT_ROW_HEADING_MARGIN) {
-    
+
         *IsActive = dynamic_cast<TimingElement*>(mSequenceElements->GetVisibleRowInformation(row)->element)->GetActive();
         return true;
     }
@@ -618,7 +618,7 @@ void RowHeading::Draw()
                     xlColor color = m->GetNodeColor(0);
                     dc.SetPen(*wxBLACK_PEN);
                     dc.SetBrush(wxBrush(color.asWxColor()));
-                    dc.DrawRectangle(getWidth() - 21, startY + 3, 12, 12);
+                    dc.DrawRectangle(getWidth() - 21, startY + 5, 12, 12);
                     dc.SetPen(penOutline);
                     dc.SetBrush(brush);
                 }
@@ -663,7 +663,7 @@ const xlColor* RowHeading::GetHeaderColor(Row_Information_Struct* info)
     {
         return GetTimingColor(info->colorIndex);
     }
-    
+
     if (info->RowNumber == mSelectedRow )
     //if (info->element->GetSelected())
     {

@@ -142,8 +142,8 @@ class LayoutPanel: public wxPanel
         const std::string& GetCurrentLayoutGroup() {return currentLayoutGroup;}
         void Reset();
         void SetDirtyHiLight(bool dirty);
-    
-        void ModelGroupUpdated(ModelGroup *group);
+
+        void ModelGroupUpdated(ModelGroup *group, bool unselect);
 
     protected:
         void ExportModel();
@@ -223,7 +223,7 @@ class LayoutPanel: public wxPanel
         void CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key = "", const std::string &data = "");
     public:
         xLightsFrame *xlights;
-        void UpdateModelList(bool full_refresh = true);
+        void UpdateModelList(bool unselect, bool update_list);
         void RefreshLayout();
 
     private:

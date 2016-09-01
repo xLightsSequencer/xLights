@@ -37,8 +37,8 @@ END_EVENT_TABLE()
 PreviewModels::PreviewModels(wxWindow* parent,const std::string &group, ModelManager &Models, wxWindowID id,const wxPoint& pos,const wxSize& size) :
     mModels(Models), mGroup(group)
 {
-    
-    
+
+
 	//(*Initialize(PreviewModels)
 	wxBitmapButton* BitmapButton2;
 	wxFlexGridSizer* FlexGridSizer1;
@@ -132,25 +132,25 @@ PreviewModels::PreviewModels(wxWindow* parent,const std::string &group, ModelMan
 	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PreviewModels::OnButtonUpClick);
 	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PreviewModels::OnButtonDownClick);
 	//*)
-    
+
     SetTitle(group);
-	
+
     ChoiceModelLayoutType->SetSelection(1);
-    
+
     ModelGroup *g = (ModelGroup*)mModels[group];
     wxXmlNode *e = g->GetModelXml();
     for (auto it = g->ModelNames().begin(); it != g->ModelNames().end(); it++) {
         ListBoxModelsInGroup->Append(*it);
     }
     for (auto it = mModels.begin(); it != mModels.end(); it++) {
-        
+
         if (it->second->GetDisplayAs() != "ModelGroup"
             && std::find(g->ModelNames().begin(), g->ModelNames().end(), it->first) == g->ModelNames().end()) {
              ListBoxAddToModelGroup->Append(it->first);
         }
     }
-    
-    wxString v = e->GetAttribute("layout", "grid");
+
+    wxString v = e->GetAttribute("layout", "minimalGrid");
     if (v == "grid") {
         ChoiceModelLayoutType->SetSelection(0);
     }else if (v == "minimalGrid") {
@@ -168,10 +168,10 @@ PreviewModels::PreviewModels(wxWindow* parent,const std::string &group, ModelMan
             ChoiceModelLayoutType->SetSelection(ChoiceModelLayoutType->GetCount() - 1);
         }
     }
-    
+
     wxCommandEvent evt;
     OnChoiceModelLayoutTypeSelect(evt);
-    
+
     SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
 
 }
@@ -237,7 +237,7 @@ void PreviewModels::UpdateModelGroup()
     }
     e->DeleteAttribute("models");
     e->AddAttribute("models", ModelsInGroup);
-    
+
     e->DeleteAttribute("GridSize");
     e->DeleteAttribute("layout");
     e->AddAttribute("GridSize", wxString::Format("%d", SizeSpinCtrl->GetValue()));

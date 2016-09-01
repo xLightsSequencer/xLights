@@ -166,7 +166,7 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
         }
     }
 
-    wxString v = e->GetAttribute("layout", "grid");
+    wxString v = e->GetAttribute("layout", "minimalGrid");
     if (v == "grid") {
         ChoiceModelLayoutType->SetSelection(0);
     }else if (v == "minimalGrid") {
@@ -311,7 +311,7 @@ void ModelGroupPanel::SaveGroupChanges()
             break;
     }
     g->Reset();
-    layoutPanel->ModelGroupUpdated(g);
+    layoutPanel->ModelGroupUpdated(g, false);
 }
 
 void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
@@ -319,6 +319,8 @@ void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
     ModelGroup *g = (ModelGroup*)mModels[mGroup];
     wxXmlNode *e = g->GetModelXml();
     e->DeleteAttribute("LayoutGroup");
-    e->AddAttribute("LayoutGroup", ChoicePreviews->GetString(ChoicePreviews->GetCurrentSelection()));
-    layoutPanel->ModelGroupUpdated(g);
+    std::string layout_group = std::string(ChoicePreviews->GetString(ChoicePreviews->GetCurrentSelection()).mb_str());
+    e->AddAttribute("LayoutGroup", layout_group);
+    mModels[mGroup]->SetLayoutGroup(layout_group);
+    layoutPanel->ModelGroupUpdated(g, true);
 }

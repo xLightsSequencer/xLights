@@ -50,7 +50,7 @@ void ModelGroup::Reset() {
     StringType = "RGB Nodes";
 
     int gridSize = wxAtoi(ModelXml->GetAttribute("GridSize", "400"));
-    std::string layout = ModelXml->GetAttribute("layout", "grid").ToStdString();
+    std::string layout = ModelXml->GetAttribute("layout", "minimalGrid").ToStdString();
     defaultBufferStyle = layout;
     if (layout == "grid" || layout == "minimalGrid") {
         defaultBufferStyle = "Default";

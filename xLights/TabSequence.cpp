@@ -673,7 +673,7 @@ void xLightsFrame::UpdateModelsList()
         }
     }
 
-    layoutPanel->UpdateModelList();
+    layoutPanel->UpdateModelList(true, true);
 }
 
 void xLightsFrame::SaveSequence()

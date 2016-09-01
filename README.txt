@@ -11,6 +11,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (dkulp)   Optimise blur - speeds rendering
    -- enh (dkulp)   Add additive/subtractive/min/max blend modes to on effect
    -- bug (gil)     Fix align both times boundary problem.  Fixes #669.
+   -- bug (gil)     Fix layout group change to model group not taking effect till restart.
+   -- enh (gil)     Change default model group back to minimal grid.
    -- enh (keithsw) Implement e1.31 sync
    -- enh (keithsw) Add more checks in check sequence
    -- enh (keithsw) Show single colour string colour in sequencer row heading
