@@ -18,10 +18,13 @@
 
 class Model;
 class ModelPreview;
+class FaceGrid;
 
 class ModelFaceDialog: public wxDialog
 {
-	public:
+    void PaintFace(wxDC& dc, int x, int y, const char* xpm[]);
+    
+    public:
 
 		ModelFaceDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ModelFaceDialog();
@@ -29,7 +32,10 @@ class ModelFaceDialog: public wxDialog
 		//(*Declarations(ModelFaceDialog)
 		wxCheckBox* CustomColorNodeRanges;
 		wxPanel* ModelPreviewPanelLocation;
+		wxPanel* Panel_SingleNode;
 		wxChoice* MatrixImagePlacementChoice;
+		wxPanel* Panel_Matrix;
+		wxPanel* Panel_NodeRanges;
 		wxGrid* MatrixModelsGrid;
 		wxGrid* SingleNodeGrid;
 		wxStaticText* StaticText3;
@@ -50,12 +56,15 @@ class ModelFaceDialog: public wxDialog
 		static const long ID_CHOICE3;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
+		static const long ID_PANEL4;
 		static const long ID_CHECKBOX1;
 		static const long ID_GRID_COROFACES;
 		static const long ID_PANEL2;
+		static const long ID_PANEL5;
 		static const long ID_CHECKBOX2;
 		static const long ID_GRID3;
 		static const long ID_PANEL6;
+		static const long ID_PANEL7;
 		static const long ID_CHOICE2;
 		static const long ID_GRID1;
 		static const long ID_PANEL3;
@@ -84,6 +93,7 @@ class ModelFaceDialog: public wxDialog
 		void OnSingleNodeGridCellLeftClick(wxGridEvent& event);
 		void OnNodeRangeGridCellLeftClick(wxGridEvent& event);
 		void OnNodeRangeGridCellSelect(wxGridEvent& event);
+		void Paint(wxPaintEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -63,52 +63,68 @@
 							<object class="choicebookpage">
 								<object class="wxPanel" name="ID_PANEL2" variable="CoroPanel" member="no">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-										<cols>1</cols>
-										<growablecols>0</growablecols>
-										<growablerows>1</growablerows>
+										<cols>2</cols>
+										<growablecols>1</growablecols>
+										<growablerows>0</growablerows>
 										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CustomColorSingleNode" member="yes">
-												<label>Force Custom Colors</label>
-												<handler function="OnCustomColorCheckboxClick" entry="EVT_CHECKBOX" />
+											<object class="wxPanel" name="ID_PANEL4" variable="Panel_SingleNode" member="yes">
+												<size>36,0</size>
+												<handler function="Paint" entry="EVT_PAINT" />
 											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<flag>wxALL|wxEXPAND</flag>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxGrid" name="ID_GRID_COROFACES" variable="SingleNodeGrid" member="yes">
-												<cols>2</cols>
-												<rows>13</rows>
-												<labelrowheight>20</labelrowheight>
-												<labelcolwidth>100</labelcolwidth>
-												<defaultcolsize>200</defaultcolsize>
-												<collabels>
-													<item>Nodes</item>
-													<item>Color</item>
-												</collabels>
-												<rowlabels>
-													<item>Face Outline</item>
-													<item>Mouth - AI</item>
-													<item>Mouth - E</item>
-													<item>Mouth - etc</item>
-													<item>Mouth - FV</item>
-													<item>Mouth - L</item>
-													<item>Mouth - MBP</item>
-													<item>Mouth - O</item>
-													<item>Mouth - rest</item>
-													<item>Mouth - U</item>
-													<item>Mouth - WQ</item>
-													<item>Eyes - Open</item>
-													<item>Eyes - Closed</item>
-												</rowlabels>
-												<minsize>-1,200d</minsize>
-												<handler function="OnSingleNodeGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
-												<handler function="OnSingleNodeGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
-												<handler function="OnSingleNodeGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
-												<handler function="OnSingleNodeGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+											<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
+												<cols>1</cols>
+												<growablecols>0</growablecols>
+												<growablerows>1</growablerows>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CustomColorSingleNode" member="yes">
+														<label>Force Custom Colors</label>
+														<handler function="OnCustomColorCheckboxClick" entry="EVT_CHECKBOX" />
+													</object>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxGrid" name="ID_GRID_COROFACES" variable="SingleNodeGrid" member="yes">
+														<cols>2</cols>
+														<rows>13</rows>
+														<labelrowheight>20</labelrowheight>
+														<labelcolwidth>150</labelcolwidth>
+														<defaultcolsize>200</defaultcolsize>
+														<collabels>
+															<item>Nodes</item>
+															<item>Color</item>
+														</collabels>
+														<rowlabels>
+															<item>Face Outline</item>
+															<item>Mouth - AI</item>
+															<item>Mouth - E</item>
+															<item>Mouth - etc</item>
+															<item>Mouth - FV</item>
+															<item>Mouth - L</item>
+															<item>Mouth - MBP</item>
+															<item>Mouth - O</item>
+															<item>Mouth - rest</item>
+															<item>Mouth - U</item>
+															<item>Mouth - WQ</item>
+															<item>Eyes - Open</item>
+															<item>Eyes - Closed</item>
+														</rowlabels>
+														<minsize>-1,200d</minsize>
+														<handler function="OnSingleNodeGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
+														<handler function="OnSingleNodeGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
+														<handler function="OnSingleNodeGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
+														<handler function="OnSingleNodeGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<option>1</option>
+												</object>
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
-											<border>5</border>
 											<option>1</option>
 										</object>
 									</object>
@@ -118,52 +134,68 @@
 							<object class="choicebookpage">
 								<object class="wxPanel" name="ID_PANEL6" variable="NodeRangePanel" member="no">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
-										<cols>1</cols>
-										<growablecols>0</growablecols>
-										<growablerows>1</growablerows>
+										<cols>2</cols>
+										<growablecols>1</growablecols>
+										<growablerows>0</growablerows>
 										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CustomColorNodeRanges" member="yes">
-												<label>Force Custom Colors</label>
-												<handler function="OnCustomColorCheckboxClick" entry="EVT_CHECKBOX" />
+											<object class="wxPanel" name="ID_PANEL5" variable="Panel_NodeRanges" member="yes">
+												<size>36,0</size>
+												<handler function="Paint" entry="EVT_PAINT" />
 											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<flag>wxALL|wxEXPAND</flag>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxGrid" name="ID_GRID3" variable="NodeRangeGrid" member="yes">
-												<cols>2</cols>
-												<rows>13</rows>
-												<labelrowheight>20</labelrowheight>
-												<labelcolwidth>100</labelcolwidth>
-												<defaultcolsize>200</defaultcolsize>
-												<collabels>
-													<item>Nodes</item>
-													<item>Color</item>
-												</collabels>
-												<rowlabels>
-													<item>Face Outline</item>
-													<item>Mouth - AI</item>
-													<item>Mouth - E</item>
-													<item>Mouth - etc</item>
-													<item>Mouth - FV</item>
-													<item>Mouth - L</item>
-													<item>Mouth - MBP</item>
-													<item>Mouth - O</item>
-													<item>Mouth - rest</item>
-													<item>Mouth - U</item>
-													<item>Mouth - WQ</item>
-													<item>Eyes - Open</item>
-													<item>Eyes - Closed</item>
-												</rowlabels>
-												<minsize>-1,200d</minsize>
-												<handler function="OnNodeRangeGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
-												<handler function="OnNodeRangeGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
-												<handler function="OnNodeRangeGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
-												<handler function="OnNodeRangeGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+											<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
+												<cols>1</cols>
+												<growablecols>0</growablecols>
+												<growablerows>1</growablerows>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CustomColorNodeRanges" member="yes">
+														<label>Force Custom Colors</label>
+														<handler function="OnCustomColorCheckboxClick" entry="EVT_CHECKBOX" />
+													</object>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxGrid" name="ID_GRID3" variable="NodeRangeGrid" member="yes">
+														<cols>2</cols>
+														<rows>13</rows>
+														<labelrowheight>20</labelrowheight>
+														<labelcolwidth>150</labelcolwidth>
+														<defaultcolsize>200</defaultcolsize>
+														<collabels>
+															<item>Nodes</item>
+															<item>Color</item>
+														</collabels>
+														<rowlabels>
+															<item>Face Outline</item>
+															<item>Mouth - AI</item>
+															<item>Mouth - E</item>
+															<item>Mouth - etc</item>
+															<item>Mouth - FV</item>
+															<item>Mouth - L</item>
+															<item>Mouth - MBP</item>
+															<item>Mouth - O</item>
+															<item>Mouth - rest</item>
+															<item>Mouth - U</item>
+															<item>Mouth - WQ</item>
+															<item>Eyes - Open</item>
+															<item>Eyes - Closed</item>
+														</rowlabels>
+														<minsize>-1,200d</minsize>
+														<handler function="OnNodeRangeGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
+														<handler function="OnNodeRangeGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
+														<handler function="OnNodeRangeGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
+														<handler function="OnNodeRangeGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<option>1</option>
+												</object>
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
-											<border>5</border>
 											<option>1</option>
 										</object>
 									</object>
@@ -173,69 +205,85 @@
 							<object class="choicebookpage">
 								<object class="wxPanel" name="ID_PANEL3" variable="Matrix" member="yes">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-										<cols>1</cols>
-										<growablecols>0</growablecols>
-										<growablerows>1</growablerows>
+										<cols>2</cols>
+										<growablecols>1</growablecols>
+										<growablerows>0</growablerows>
 										<object class="sizeritem">
-											<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
-												<cols>3</cols>
-												<object class="sizeritem">
-													<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
-														<label>Image Placement:</label>
-													</object>
-													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
-												<object class="sizeritem">
-													<object class="wxChoice" name="ID_CHOICE2" variable="MatrixImagePlacementChoice" member="yes">
-														<content>
-															<item>Centered</item>
-															<item>Scaled</item>
-														</content>
-														<selection>0</selection>
-														<handler function="OnMatricImagePlacementChoiceSelect" entry="EVT_CHOICE" />
-													</object>
-													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
+											<object class="wxPanel" name="ID_PANEL7" variable="Panel_Matrix" member="yes">
+												<size>36,0</size>
+												<handler function="Paint" entry="EVT_PAINT" />
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<flag>wxALL|wxEXPAND</flag>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxGrid" name="ID_GRID1" variable="MatrixModelsGrid" member="yes">
-												<cols>2</cols>
-												<rows>10</rows>
-												<labelrowheight>20</labelrowheight>
-												<labelcolwidth>100</labelcolwidth>
-												<defaultcolsize>200</defaultcolsize>
-												<collabels>
-													<item>Eyes Open</item>
-													<item>Eyes Closed</item>
-												</collabels>
-												<rowlabels>
-													<item>Mouth - AI</item>
-													<item>Mouth - E</item>
-													<item>Mouth - etc</item>
-													<item>Mouth - FV</item>
-													<item>Mouth - L</item>
-													<item>Mouth - MBP</item>
-													<item>Mouth - O</item>
-													<item>Mouth - rest</item>
-													<item>Mouth - U</item>
-													<item>Mouth - WQ</item>
-												</rowlabels>
-												<minsize>-1,200d</minsize>
-												<handler function="OnMatrixModelsGridCellLeftClick1" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
-												<handler function="OnMatrixModelsGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
-												<handler function="OnMatrixModelsGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
-												<handler function="OnMatrixModelsGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+											<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
+												<cols>1</cols>
+												<growablecols>0</growablecols>
+												<growablerows>1</growablerows>
+												<object class="sizeritem">
+													<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+														<cols>3</cols>
+														<object class="sizeritem">
+															<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
+																<label>Image Placement:</label>
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxChoice" name="ID_CHOICE2" variable="MatrixImagePlacementChoice" member="yes">
+																<content>
+																	<item>Centered</item>
+																	<item>Scaled</item>
+																</content>
+																<selection>0</selection>
+																<handler function="OnMatricImagePlacementChoiceSelect" entry="EVT_CHOICE" />
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxGrid" name="ID_GRID1" variable="MatrixModelsGrid" member="yes">
+														<cols>2</cols>
+														<rows>10</rows>
+														<labelrowheight>20</labelrowheight>
+														<labelcolwidth>150</labelcolwidth>
+														<defaultcolsize>200</defaultcolsize>
+														<collabels>
+															<item>Eyes Open</item>
+															<item>Eyes Closed</item>
+														</collabels>
+														<rowlabels>
+															<item>Mouth - AI</item>
+															<item>Mouth - E</item>
+															<item>Mouth - etc</item>
+															<item>Mouth - FV</item>
+															<item>Mouth - L</item>
+															<item>Mouth - MBP</item>
+															<item>Mouth - O</item>
+															<item>Mouth - rest</item>
+															<item>Mouth - U</item>
+															<item>Mouth - WQ</item>
+														</rowlabels>
+														<minsize>-1,200d</minsize>
+														<handler function="OnMatrixModelsGridCellLeftClick1" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
+														<handler function="OnMatrixModelsGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
+														<handler function="OnMatrixModelsGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
+														<handler function="OnMatrixModelsGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<option>1</option>
+												</object>
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
-											<border>5</border>
 											<option>1</option>
 										</object>
 									</object>

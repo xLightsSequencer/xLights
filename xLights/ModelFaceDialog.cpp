@@ -17,7 +17,17 @@
 #include <wx/filedlg.h>
 #include <wx/colordlg.h>
 #include <wx/tokenzr.h>
-#include <wx/listbox.h>
+
+#include "../include/AI.xpm"
+#include "../include/E.xpm"
+#include "../include/ETC.xpm"
+#include "../include/FV.xpm"
+#include "../include/L.xpm"
+#include "../include/MBP.xpm"
+#include "../include/O.xpm"
+#include "../include/REST.xpm"
+#include "../include/U.xpm"
+#include "../include/WQ.xpm"
 
 #define CHANNEL_COL 0
 #define COLOR_COL 1
@@ -27,12 +37,15 @@ const long ModelFaceDialog::ID_STATICTEXT2 = wxNewId();
 const long ModelFaceDialog::ID_CHOICE3 = wxNewId();
 const long ModelFaceDialog::ID_BUTTON3 = wxNewId();
 const long ModelFaceDialog::ID_BUTTON4 = wxNewId();
+const long ModelFaceDialog::ID_PANEL4 = wxNewId();
 const long ModelFaceDialog::ID_CHECKBOX1 = wxNewId();
 const long ModelFaceDialog::ID_GRID_COROFACES = wxNewId();
 const long ModelFaceDialog::ID_PANEL2 = wxNewId();
+const long ModelFaceDialog::ID_PANEL5 = wxNewId();
 const long ModelFaceDialog::ID_CHECKBOX2 = wxNewId();
 const long ModelFaceDialog::ID_GRID3 = wxNewId();
 const long ModelFaceDialog::ID_PANEL6 = wxNewId();
+const long ModelFaceDialog::ID_PANEL7 = wxNewId();
 const long ModelFaceDialog::ID_CHOICE2 = wxNewId();
 const long ModelFaceDialog::ID_GRID1 = wxNewId();
 const long ModelFaceDialog::ID_PANEL3 = wxNewId();
@@ -52,7 +65,6 @@ enum {
     MATRIX_FACE
 };
 
-
 #include "models/Model.h"
 
 #ifndef wxEVT_GRID_CELL_CHANGE
@@ -67,12 +79,15 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	wxFlexGridSizer* FlexGridSizer4;
 	wxPanel* CoroPanel;
 	wxStaticText* StaticText2;
+	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxPanel* NodeRangePanel;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer9;
 	wxFlexGridSizer* PreviewSizer;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer8;
 	wxButton* AddButton;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
@@ -99,19 +114,24 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer4->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FaceTypeChoice = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
 	CoroPanel = new wxPanel(FaceTypeChoice, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer2->AddGrowableCol(0);
-	FlexGridSizer2->AddGrowableRow(1);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer2->AddGrowableCol(1);
+	FlexGridSizer2->AddGrowableRow(0);
+	Panel_SingleNode = new wxPanel(CoroPanel, ID_PANEL4, wxDefaultPosition, wxSize(36,0), wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+	FlexGridSizer2->Add(Panel_SingleNode, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer8->AddGrowableCol(0);
+	FlexGridSizer8->AddGrowableRow(1);
 	CustomColorSingleNode = new wxCheckBox(CoroPanel, ID_CHECKBOX1, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CustomColorSingleNode->SetValue(false);
-	FlexGridSizer2->Add(CustomColorSingleNode, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(CustomColorSingleNode, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SingleNodeGrid = new wxGrid(CoroPanel, ID_GRID_COROFACES, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID_COROFACES"));
 	SingleNodeGrid->CreateGrid(13,2);
 	SingleNodeGrid->SetMinSize(wxDLG_UNIT(CoroPanel,wxSize(-1,200)));
 	SingleNodeGrid->EnableEditing(true);
 	SingleNodeGrid->EnableGridLines(true);
 	SingleNodeGrid->SetColLabelSize(20);
-	SingleNodeGrid->SetRowLabelSize(100);
+	SingleNodeGrid->SetRowLabelSize(150);
 	SingleNodeGrid->SetDefaultColSize(200, true);
 	SingleNodeGrid->SetColLabelValue(0, _("Nodes"));
 	SingleNodeGrid->SetColLabelValue(1, _("Color"));
@@ -130,24 +150,30 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	SingleNodeGrid->SetRowLabelValue(12, _("Eyes - Closed"));
 	SingleNodeGrid->SetDefaultCellFont( SingleNodeGrid->GetFont() );
 	SingleNodeGrid->SetDefaultCellTextColour( SingleNodeGrid->GetForegroundColour() );
-	FlexGridSizer2->Add(SingleNodeGrid, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8->Add(SingleNodeGrid, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer2->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 0);
 	CoroPanel->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(CoroPanel);
 	FlexGridSizer2->SetSizeHints(CoroPanel);
 	NodeRangePanel = new wxPanel(FaceTypeChoice, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
-	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer5->AddGrowableCol(0);
-	FlexGridSizer5->AddGrowableRow(1);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer5->AddGrowableCol(1);
+	FlexGridSizer5->AddGrowableRow(0);
+	Panel_NodeRanges = new wxPanel(NodeRangePanel, ID_PANEL5, wxDefaultPosition, wxSize(36,0), wxTAB_TRAVERSAL, _T("ID_PANEL5"));
+	FlexGridSizer5->Add(Panel_NodeRanges, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer9->AddGrowableCol(0);
+	FlexGridSizer9->AddGrowableRow(1);
 	CustomColorNodeRanges = new wxCheckBox(NodeRangePanel, ID_CHECKBOX2, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CustomColorNodeRanges->SetValue(false);
-	FlexGridSizer5->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	NodeRangeGrid = new wxGrid(NodeRangePanel, ID_GRID3, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID3"));
 	NodeRangeGrid->CreateGrid(13,2);
 	NodeRangeGrid->SetMinSize(wxDLG_UNIT(NodeRangePanel,wxSize(-1,200)));
 	NodeRangeGrid->EnableEditing(true);
 	NodeRangeGrid->EnableGridLines(true);
 	NodeRangeGrid->SetColLabelSize(20);
-	NodeRangeGrid->SetRowLabelSize(100);
+	NodeRangeGrid->SetRowLabelSize(150);
 	NodeRangeGrid->SetDefaultColSize(200, true);
 	NodeRangeGrid->SetColLabelValue(0, _("Nodes"));
 	NodeRangeGrid->SetColLabelValue(1, _("Color"));
@@ -166,14 +192,20 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	NodeRangeGrid->SetRowLabelValue(12, _("Eyes - Closed"));
 	NodeRangeGrid->SetDefaultCellFont( NodeRangeGrid->GetFont() );
 	NodeRangeGrid->SetDefaultCellTextColour( NodeRangeGrid->GetForegroundColour() );
-	FlexGridSizer5->Add(NodeRangeGrid, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer9->Add(NodeRangeGrid, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer5->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 0);
 	NodeRangePanel->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(NodeRangePanel);
 	FlexGridSizer5->SetSizeHints(NodeRangePanel);
 	Matrix = new wxPanel(FaceTypeChoice, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
-	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer3->AddGrowableCol(0);
-	FlexGridSizer3->AddGrowableRow(1);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer3->AddGrowableCol(1);
+	FlexGridSizer3->AddGrowableRow(0);
+	Panel_Matrix = new wxPanel(Matrix, ID_PANEL7, wxDefaultPosition, wxSize(36,0), wxTAB_TRAVERSAL, _T("ID_PANEL7"));
+	FlexGridSizer3->Add(Panel_Matrix, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer10->AddGrowableCol(0);
+	FlexGridSizer10->AddGrowableRow(1);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
 	StaticText2 = new wxStaticText(Matrix, wxID_ANY, _("Image Placement:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -181,14 +213,14 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	MatrixImagePlacementChoice->SetSelection( MatrixImagePlacementChoice->Append(_("Centered")) );
 	MatrixImagePlacementChoice->Append(_("Scaled"));
 	FlexGridSizer6->Add(MatrixImagePlacementChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	MatrixModelsGrid = new wxGrid(Matrix, ID_GRID1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID1"));
 	MatrixModelsGrid->CreateGrid(10,2);
 	MatrixModelsGrid->SetMinSize(wxDLG_UNIT(Matrix,wxSize(-1,200)));
 	MatrixModelsGrid->EnableEditing(true);
 	MatrixModelsGrid->EnableGridLines(true);
 	MatrixModelsGrid->SetColLabelSize(20);
-	MatrixModelsGrid->SetRowLabelSize(100);
+	MatrixModelsGrid->SetRowLabelSize(150);
 	MatrixModelsGrid->SetDefaultColSize(200, true);
 	MatrixModelsGrid->SetColLabelValue(0, _("Eyes Open"));
 	MatrixModelsGrid->SetColLabelValue(1, _("Eyes Closed"));
@@ -204,7 +236,8 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	MatrixModelsGrid->SetRowLabelValue(9, _("Mouth - WQ"));
 	MatrixModelsGrid->SetDefaultCellFont( MatrixModelsGrid->GetFont() );
 	MatrixModelsGrid->SetDefaultCellTextColour( MatrixModelsGrid->GetForegroundColour() );
-	FlexGridSizer3->Add(MatrixModelsGrid, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer10->Add(MatrixModelsGrid, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer3->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 0);
 	Matrix->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Matrix);
 	FlexGridSizer3->SetSizeHints(Matrix);
@@ -233,16 +266,19 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixNameChoiceSelect);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixAddClicked);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixDeleteClick);
+	Panel_SingleNode->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ModelFaceDialog::Paint,0,this);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnCustomColorCheckboxClick);
 	Connect(ID_GRID_COROFACES,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellLeftClick);
 	Connect(ID_GRID_COROFACES,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellLeftDClick);
 	Connect(ID_GRID_COROFACES,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellChange);
 	Connect(ID_GRID_COROFACES,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellSelect);
+	Panel_NodeRanges->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ModelFaceDialog::Paint,0,this);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnCustomColorCheckboxClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellLeftClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellLeftDClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellChange);
 	Connect(ID_GRID3,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellSelect);
+	Panel_Matrix->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ModelFaceDialog::Paint,0,this);
 	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelFaceDialog::OnMatricImagePlacementChoiceSelect);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellLeftClick1);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellLeftClick);
@@ -261,7 +297,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
-    Center(); 
+    Center();
 }
 
 ModelFaceDialog::~ModelFaceDialog()
@@ -669,4 +705,93 @@ void ModelFaceDialog::OnNodeRangeGridCellSelect(wxGridEvent& event)
     UpdatePreview(NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL).ToStdString(), NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOR_COL));
     event.ResumePropagation(1);
     event.Skip();
+}
+
+void ModelFaceDialog::PaintFace(wxDC& dc, int x, int y, const char* xpm[])
+{
+    wxImage i(xpm);
+    wxBitmap bmp(i);
+
+    dc.DrawBitmap(bmp, x, y);
+}
+
+void ModelFaceDialog::Paint(wxPaintEvent& event)
+{
+    wxPanel* p = (wxPanel*)event.GetEventObject();
+    wxPaintDC dc(p);
+
+    wxGrid* grid = nullptr;
+
+    if (FaceTypeChoice->GetSelection() == SINGLE_NODE_FACE)
+    {
+        grid = SingleNodeGrid;
+        if (event.GetEventObject() != Panel_SingleNode) return;
+    }
+    else if (FaceTypeChoice->GetSelection() == NODE_RANGE_FACE)
+    {
+        grid = NodeRangeGrid;
+        if (event.GetEventObject() != Panel_NodeRanges) return;
+    }
+    else if (FaceTypeChoice->GetSelection() == MATRIX_FACE)
+    {
+        grid = MatrixModelsGrid;
+        if (event.GetEventObject() != Panel_Matrix) return;
+    }
+    else
+    {
+        return;
+    }
+
+    int x = 2;
+    int dummy = 0;
+    int y = 0;
+    grid->GetPosition(&dummy, &y);
+    y += grid->GetColLabelSize();
+
+    for (int i = 0; i < grid->GetNumberRows(); i++)
+    {
+        wxString CellValue = grid->GetRowLabelValue(i);
+
+        if (CellValue.EndsWith("AI"))
+        {
+            PaintFace(dc, x, y, AI_xpm);
+        }
+        else if (CellValue.EndsWith("E"))
+        {
+            PaintFace(dc, x, y, E_xpm);
+        }
+        else if (CellValue.EndsWith("etc"))
+        {
+            PaintFace(dc, x, y, ETC_xpm);
+        }
+        else if (CellValue.EndsWith("FV"))
+        {
+            PaintFace(dc, x, y, FV_xpm);
+        }
+        else if (CellValue.EndsWith("L"))
+        {
+            PaintFace(dc, x, y, L_xpm);
+        }
+        else if (CellValue.EndsWith("MBP"))
+        {
+            PaintFace(dc, x, y, MBP_xpm);
+        }
+        else if (CellValue.EndsWith("O"))
+        {
+            PaintFace(dc, x, y, O_xpm);
+        }
+        else if (CellValue.EndsWith("rest"))
+        {
+            PaintFace(dc, x, y, REST_xpm);
+        }
+        else if (CellValue.EndsWith("U"))
+        {
+            PaintFace(dc, x, y, U_xpm);
+        }
+        else if (CellValue.EndsWith("WQ"))
+        {
+            PaintFace(dc, x, y, WQ_xpm);
+        }
+        y += grid->GetRowHeight(i);
+    }
 }
