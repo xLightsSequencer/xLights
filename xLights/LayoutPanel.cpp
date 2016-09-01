@@ -2700,5 +2700,5 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool unselect) {
     }
 
     xlights->UnsavedRgbEffectsChanges = true;
-    UpdateModelList(unselect, true);
+    UpdateModelList(unselect, false);
 }
