@@ -774,11 +774,13 @@ void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent) {
 }
 
 void LayoutPanel::UpdateModelList(bool unselect, bool update_list) {
+    std::vector<Model *> models;
+    UpdateModelList(unselect, update_list, models);
+}
+void LayoutPanel::UpdateModelList(bool unselect, bool update_list, std::vector<Model*> &models) {
     if (unselect) {
         UnSelectAllModels();
     }
-
-    std::vector<Model *> models;
     std::vector<Model *> dummy_models;
 
     // Update all the custom previews
@@ -796,9 +798,7 @@ void LayoutPanel::UpdateModelList(bool unselect, bool update_list) {
     if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
         UpdateModelsForPreview( currentLayoutGroup, nullptr, models, true );
     }
-
     if( update_list ) {
-
         TreeListViewModels->Freeze();
         //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
         TreeListViewModels->SetColumnWidth(0, 10);
@@ -843,7 +843,6 @@ void LayoutPanel::UpdateModelList(bool unselect, bool update_list) {
             TreeListViewModels->SetColumnWidth(0, i);
         }
     }
-
     modelPreview->SetModels(models);
     UpdatePreview();
 }
@@ -2677,31 +2676,57 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 }
 
 void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool unselect) {
+    xlights->UnsavedRgbEffectsChanges = true;
+    std::vector<Model *> models;
+    UpdateModelList(unselect, false, models);
+    std::vector<Model *> modelsToAdd(models);
+    wxTreeListItem root = TreeListViewModels->GetRootItem();
+
+    std::vector<wxTreeListItem> toRemove;
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
          item.IsOk();
          item = TreeListViewModels->GetNextItem(item) )
     {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-        if (data != nullptr && data->GetModel() == grp) {
-            bool expanded = TreeListViewModels->IsExpanded(item);
-            wxTreeListItem child = TreeListViewModels->GetFirstChild(item);
-            while (child.IsOk()) {
-                TreeListViewModels->DeleteItem(child);
-                child = TreeListViewModels->GetFirstChild(item);
-            }
-            for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
-                Model *m = xlights->AllModels[*it];
-                if (currentLayoutGroup == "All Models" || m->GetLayoutGroup() == currentLayoutGroup
-                    || (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
-                    AddModelToTree(m, &item);
+        if (data != nullptr) {
+            if (data->GetModel() == grp) {
+                bool expanded = TreeListViewModels->IsExpanded(item);
+                wxTreeListItem child = TreeListViewModels->GetFirstChild(item);
+                while (child.IsOk()) {
+                    TreeListViewModels->DeleteItem(child);
+                    child = TreeListViewModels->GetFirstChild(item);
+                }
+                for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
+                    Model *m = xlights->AllModels[*it];
+                    if (currentLayoutGroup == "All Models" || m->GetLayoutGroup() == currentLayoutGroup
+                        || (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
+                        AddModelToTree(m, &item);
+                    }
+                }
+                if (expanded) {
+                    TreeListViewModels->Expand(item);
+                }
+            } else if (data->GetModel()->GetDisplayAs() != "ModelGroup"
+                       && data->GetModel()->GetDisplayAs() != "SubModel") {
+                if (std::find(models.begin(), models.end(), data->GetModel()) == models.end()) {
+                    toRemove.push_back(item);
                 }
             }
-            if (expanded) {
-                TreeListViewModels->Expand(item);
+            wxTreeListItem parent = TreeListViewModels->GetItemParent(item);
+            if (!parent.IsOk() || parent == root) {
+                //root item, see if we have this
+                if (std::find(modelsToAdd.begin(), modelsToAdd.end(), data->GetModel()) != modelsToAdd.end()) {
+                    modelsToAdd.erase(std::find(modelsToAdd.begin(), modelsToAdd.end(), data->GetModel()));
+                }
             }
         }
     }
+    for (auto a = toRemove.begin(); a != toRemove.end(); a++) {
+        TreeListViewModels->DeleteItem(*a);
+    }
+    for (auto a = modelsToAdd.begin(); a != modelsToAdd.end(); a++) {
+        TreeListViewModels->GetRootItem();
+        AddModelToTree(*a, &root);
+    }
 
-    xlights->UnsavedRgbEffectsChanges = true;
-    UpdateModelList(unselect, false);
 }

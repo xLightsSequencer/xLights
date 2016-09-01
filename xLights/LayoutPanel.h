@@ -224,6 +224,7 @@ class LayoutPanel: public wxPanel
     public:
         xLightsFrame *xlights;
         void UpdateModelList(bool unselect, bool update_list);
+        void UpdateModelList(bool unselect, bool update_list, std::vector<Model*> &modelList);
         void RefreshLayout();
 
     private:
