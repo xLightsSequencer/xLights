@@ -2691,7 +2691,10 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool unselect) {
             }
             for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
                 Model *m = xlights->AllModels[*it];
-                AddModelToTree(m, &item);
+                if (currentLayoutGroup == "All Models" || m->GetLayoutGroup() == currentLayoutGroup
+                    || (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
+                    AddModelToTree(m, &item);
+                }
             }
             if (expanded) {
                 TreeListViewModels->Expand(item);
