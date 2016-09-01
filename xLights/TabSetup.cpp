@@ -1038,6 +1038,7 @@ void xLightsFrame::SetupArtNet(wxXmlNode* e)
         ArtNetDlg.SpinCtrlChannels->SetValue(LastChannelStr);
         ArtNetDlg.TextCtrlDescription->SetValue(Description);
         ArtNetDlg.TextCtrlIPAddress->SetValue(IpAddr);
+        ArtNetDlg.SpinCtrlUniverseOnly->SetValue(ARTNET_MAKEU(net, subnet, universe));
     }
 
     do

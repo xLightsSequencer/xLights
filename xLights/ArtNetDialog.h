@@ -2,10 +2,12 @@
 #define ARTNETDIALOG_H
 
 //(*Headers(ArtNetDialog)
+#include <wx/notebook.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/spinctrl.h>
+#include <wx/panel.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
 //*)
@@ -13,6 +15,7 @@
 class ArtNetDialog: public wxDialog
 {
     void ValidateWindow();
+    void UniverseChange();
 
 	public:
 
@@ -20,10 +23,14 @@ class ArtNetDialog: public wxDialog
 		virtual ~ArtNetDialog();
 
 		//(*Declarations(ArtNetDialog)
+		wxSpinCtrl* SpinCtrlUniverseOnly;
+		wxNotebook* Notebook1;
 		wxSpinCtrl* SpinCtrlSubnet;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText6;
 		wxTextCtrl* TextCtrlIPAddress;
+		wxStaticText* StaticText8;
+		wxPanel* Panel1;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrlDescription;
@@ -33,6 +40,7 @@ class ArtNetDialog: public wxDialog
 		wxSpinCtrl* SpinCtrlNet;
 		wxStaticText* StaticText7;
 		wxButton* ButtonOk;
+		wxPanel* Panel2;
 		wxStaticText* StaticText4;
 		wxSpinCtrl* SpinCtrlChannels;
 		//*)
@@ -49,6 +57,11 @@ class ArtNetDialog: public wxDialog
 		static const long ID_SPINCTRL2;
 		static const long ID_STATICTEXT6;
 		static const long ID_SPINCTRL3;
+		static const long ID_PANEL1;
+		static const long ID_STATICTEXT8;
+		static const long ID_SPINCTRL5;
+		static const long ID_PANEL2;
+		static const long ID_NOTEBOOK1;
 		static const long ID_STATICTEXT7;
 		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT3;
@@ -63,6 +76,9 @@ class ArtNetDialog: public wxDialog
 		void OnTextCtrlIPAddressText(wxCommandEvent& event);
 		void OnButtonOkClick(wxCommandEvent& event);
 		void OnButtonCancelClick(wxCommandEvent& event);
+		void OnCheckBoxUseNetSubnetClick(wxCommandEvent& event);
+		void OnUniverseChange(wxSpinEvent& event);
+		void OnNotebook1PageChanging(wxNotebookEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
