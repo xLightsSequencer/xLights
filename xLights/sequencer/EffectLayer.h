@@ -41,6 +41,7 @@ class EffectLayer
         int GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period);
 
         bool HitTestEffectByTime(int timeMS,int &index);
+        bool HitTestEffectBetweenTime(int t1MS, int t2MS);
 
         Effect* GetEffectAtTime(int ms);
         Effect* GetEffectBeforeTime(int ms);

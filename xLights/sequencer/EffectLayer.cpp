@@ -204,6 +204,20 @@ bool EffectLayer::HitTestEffectByTime(int timeMS,int &index)
     return false;
 }
 
+bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS)
+{
+    for (int i = 0; i<mEffects.size(); i++)
+    {
+        if ((mEffects[i]->GetStartTimeMS() > t1MS && mEffects[i]->GetStartTimeMS() < t2MS) ||
+            (mEffects[i]->GetEndTimeMS() > t1MS && mEffects[i]->GetEndTimeMS() < t2MS) ||
+            (mEffects[i]->GetStartTimeMS() == t1MS && mEffects[i]->GetEndTimeMS() == t2MS))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 Effect* EffectLayer::GetEffectBeforeTime(int ms)
 {
     int i;

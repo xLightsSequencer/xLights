@@ -16,6 +16,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keithsw) Implement e1.31 sync
    -- enh (keithsw) Add more checks in check sequence
    -- enh (keithsw) Show single colour string colour in sequencer row heading
+   -- enh (keithsw) Add mouth image hints to faces dialog
+   -- enh (keithsw) Show waveform selected duration under Time/FPS display
+   -- bug (keithsw) Fix dropping of ranged timing tracks between two existing ranges. Also prevent spanning ranges.
 2016.48  Aug 29, 2016
    -- enh (keithsw) Add sequence checker, "Tools,Check Sequence". This scans your Setup/Layout/Open sequence and highlights any
                     items that might cause issues or unexpected behaviour in xLights.

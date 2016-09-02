@@ -30,10 +30,10 @@
 #include "Waveform.h"
 #include "TimeLine.h"
 #include <wx/file.h>
-
 #include "../DrawGLUtils.h"
 
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_WAVE_FORM_HIGHLIGHT, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(Waveform, xlGLCanvas)
 EVT_MOTION(Waveform::mouseMoved)
@@ -128,6 +128,10 @@ void Waveform::mouseLeftDown( wxMouseEvent& event)
     }
     SetFocus();
     Refresh(false);
+
+    wxCommandEvent eventSelected(EVT_WAVE_FORM_HIGHLIGHT);
+    eventSelected.SetInt(0);
+    wxPostEvent(mParent, eventSelected);
 }
 
 void Waveform::mouseLeftUp( wxMouseEvent& event)
@@ -139,8 +143,18 @@ void Waveform::mouseLeftUp( wxMouseEvent& event)
     }
 
     mTimeline->LatchSelectedPositions();
-
     Refresh(false);
+
+    wxCommandEvent eventSelected(EVT_WAVE_FORM_HIGHLIGHT);
+    if (mTimeline->GetNewEndTimeMS() == -1)
+    {
+        eventSelected.SetInt(0);
+    }
+    else
+    {
+        eventSelected.SetInt(abs(mTimeline->GetNewStartTimeMS() - mTimeline->GetNewEndTimeMS()));
+    }
+    wxPostEvent(mParent, eventSelected);
 }
 
 void Waveform::mouseMoved( wxMouseEvent& event)
@@ -157,6 +171,9 @@ void Waveform::mouseMoved( wxMouseEvent& event)
             mTimeline->SetSelectedPositionEnd(event.GetX());
         }
         Refresh(false);
+        wxCommandEvent eventSelected(EVT_WAVE_FORM_HIGHLIGHT);
+        eventSelected.SetInt(abs(mTimeline->GetNewStartTimeMS() - mTimeline->GetNewEndTimeMS()));
+        wxPostEvent(mParent, eventSelected);
     }
     else
     {

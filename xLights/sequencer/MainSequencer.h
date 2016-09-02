@@ -27,6 +27,7 @@ class MainSequencer: public wxPanel
 		void SetSequenceElements(SequenceElements* elements);
         void UpdateEffectGridVerticalScrollBar();
         void UpdateTimeDisplay(int time_ms, float fps);
+        void UpdateSelectedDisplay(int selected);
         void SetPlayStatus(int play_type);
         void GetSelectedEffectsData(wxString& copy_data);
         bool CopySelectedEffects();
@@ -82,7 +83,7 @@ class MainSequencer: public wxPanel
 		DECLARE_EVENT_TABLE()
 
         void mouseWheelMoved(wxMouseEvent& event);
-        void TimeLineChanged( wxCommandEvent& event);
+        void TimeLineSelectionChanged(wxCommandEvent& event);
         void InsertTimingMarkFromRange();
         void SplitTimingMark();
         void SetHandlers(wxWindow *);

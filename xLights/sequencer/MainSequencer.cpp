@@ -2,6 +2,7 @@
 #include "MainSequencer.h"
 #include "../RenderCommandEvent.h"
 #include "TimeLine.h"
+#include "../SequenceCheck.h"
 #include <wx/event.h>
 #include <wx/clipbrd.h>
 
@@ -32,6 +33,7 @@ BEGIN_EVENT_TABLE(MainSequencer,wxPanel)
     EVT_COMMAND(wxID_ANY, EVT_HORIZ_SCROLL, MainSequencer::HorizontalScrollChanged)
     EVT_COMMAND(wxID_ANY, EVT_SCROLL_RIGHT, MainSequencer::ScrollRight)
     EVT_COMMAND(wxID_ANY, EVT_TIME_LINE_CHANGED, MainSequencer::TimelineChanged)
+    EVT_COMMAND(wxID_ANY, EVT_WAVE_FORM_HIGHLIGHT, MainSequencer::TimeLineSelectionChanged)
 
 END_EVENT_TABLE()
 
@@ -76,11 +78,18 @@ public:
     : xlGLCanvas(parent, id, pos, size, style, "TimeDisplay", true) {
         SetBackgroundStyle(wxBG_STYLE_PAINT);
         time = "Time: 00:00:00";
+        selected = "";
+        fps = "";
     }
     virtual ~TimeDisplayControl(){};
 
     virtual void SetLabels(const wxString &time, const wxString &fps) {
         this->fps = fps; this->time = time;
+        renderGL();
+    }
+    void SetSelected(const wxString &sel)
+    {
+        selected = sel;
         renderGL();
     }
 protected:
@@ -120,6 +129,7 @@ protected:
         DrawGLUtils::xlVertexTextAccumulator va;
         va.AddVertex(5, 3 + fs, time);
         va.AddVertex(5, 2 * (3 + fs), fps);
+        va.AddVertex(5, 3 * (3 + fs), selected);
         DrawGLUtils::Draw(va, fs, GetContentScaleFactor());
         SwapBuffers();
     }
@@ -128,6 +138,7 @@ protected:
 private:
     std::string time;
     std::string fps;
+    std::string selected;
 };
 
 BEGIN_EVENT_TABLE(TimeDisplayControl, xlGLCanvas)
@@ -257,6 +268,18 @@ void MainSequencer::UpdateTimeDisplay(int time_ms, float fps)
         fpsStr = wxString::Format("FPS: %5.1f",fps);
     }
     timeDisplay->SetLabels(play_time, fpsStr);
+}
+
+void MainSequencer::UpdateSelectedDisplay(int selected)
+{
+    if (selected == 0)
+    {
+        timeDisplay->SetSelected("");
+    }
+    else
+    {
+        timeDisplay->SetSelected(wxString::Format("Selected: %s", FORMATTIME(selected)));
+    }
 }
 
 void MainSequencer::SetPlayStatus(int play_type)
@@ -679,12 +702,22 @@ void MainSequencer::InsertTimingMarkFromRange()
     {
         int t1 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(x1);
         int t2 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(x2);
+        if (t2 > PanelTimeLine->GetTimeLength())
+        {
+            t2 = PanelTimeLine->GetTimeLength();
+        }
         if(is_range)
         {
             Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
             EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
-            int index;
-            if(!el->HitTestEffectByTime(t1,index) && !el->HitTestEffectByTime(t2,index))
+            int i1 = -1;
+            int i2 = -1;
+
+            el->HitTestEffectByTime(t1, i1);
+            el->HitTestEffectByTime(t2, i2);
+
+            if ((!el->HitTestEffectByTime(t1,i1) && !el->HitTestEffectByTime(t2,i2) && !el->HitTestEffectBetweenTime(t1,t2)) || 
+                (!el->HitTestEffectBetweenTime(t1,t2) && i1 != i2))
             {
                 std::string name,settings;
                 el->AddEffect(0,name,settings,"",t1,t2,false,false);
@@ -707,26 +740,26 @@ void MainSequencer::InsertTimingMarkFromRange()
                 std::string name,settings;
                 Effect * effect = nullptr;
                 for (int x = 0; x < el->GetEffectCount(); x++) {
-                    Effect * e = el->GetEffect(x);
-                    if (e->GetStartTimeMS() > t2 && x > 0) {
+                    Effect * eff = el->GetEffect(x);
+                    if (eff->GetStartTimeMS() > t2 && x > 0) {
                         effect = el->GetEffect(x - 1);
                         break;
                     }
                 }
                 if(effect!=nullptr)
                 {
-                    int t1 = effect->GetEndTimeMS();
-                    el->AddEffect(0,name,settings,"",t1,t2,false,false);
+                    int tend = effect->GetEndTimeMS();
+                    el->AddEffect(0,name,settings,"",tend,t2,false,false);
                 }
                 // No effect to left start at time = 0
                 else
                 {
-                    int t1 = 0;
+                    int tend = 0;
                     if (el->GetEffectCount() > 0) {
-                        Effect *e = el->GetEffect(el->GetEffectCount() - 1);
-                        t1 = e->GetEndTimeMS();
+                        Effect *eff = el->GetEffect(el->GetEffectCount() - 1);
+                        tend = eff->GetEndTimeMS();
                     }
-                    el->AddEffect(0,name,settings,"",t1,t2,false,false);
+                    el->AddEffect(0,name,settings,"",tend,t2,false,false);
                 }
                 PanelEffectGrid->ForceRefresh();
             }
@@ -848,6 +881,10 @@ void MainSequencer::ScrollRight(wxCommandEvent& event)
     }
 }
 
+void MainSequencer::TimeLineSelectionChanged(wxCommandEvent& event)
+{
+    UpdateSelectedDisplay(event.GetInt());
+}
 
 void MainSequencer::TimelineChanged( wxCommandEvent& event)
 {
