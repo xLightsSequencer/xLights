@@ -540,7 +540,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                     lastModelName = safename;
                 }
                 if (xlights->RenameModel(selectedModel->GetFullName(), safename)) {
-                    CallAfter(&LayoutPanel::UpdateModelList, true, true);
+                    CallAfter(&LayoutPanel::UpdateModelList, true);
                 }
             }
         } else {
@@ -773,12 +773,12 @@ void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent) {
     }
 }
 
-void LayoutPanel::UpdateModelList(bool unselect, bool update_list) {
+void LayoutPanel::UpdateModelList(bool full_refresh) {
     std::vector<Model *> models;
-    UpdateModelList(unselect, update_list, models);
+    UpdateModelList(full_refresh, models);
 }
-void LayoutPanel::UpdateModelList(bool unselect, bool update_list, std::vector<Model*> &models) {
-    if (unselect) {
+void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models) {
+    if (full_refresh) {
         UnSelectAllModels();
     }
     std::vector<Model *> dummy_models;
@@ -798,7 +798,7 @@ void LayoutPanel::UpdateModelList(bool unselect, bool update_list, std::vector<M
     if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
         UpdateModelsForPreview( currentLayoutGroup, nullptr, models, true );
     }
-    if( update_list ) {
+    if( full_refresh ) {
         TreeListViewModels->Freeze();
         //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
         TreeListViewModels->SetColumnWidth(0, 10);
@@ -2445,7 +2445,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
     } else {
         SetCurrentLayoutGroup(choice_layout);
         mSelectedGroup = nullptr;
-        UpdateModelList(true, true);
+        UpdateModelList(true);
     }
     modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
     modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
@@ -2555,7 +2555,7 @@ void LayoutPanel::DeleteCurrentPreview()
         ChoiceLayoutGroups->SetSelection(0);
         xlights->SetStoredLayoutGroup(currentLayoutGroup);
 
-        UpdateModelList(true, true);
+        UpdateModelList(true);
         modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
         modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
         modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview());
@@ -2656,7 +2656,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
                 mSelectedGroup = item;
                 model_grp_panel->UpdatePanel(model->name);
                 ShowPropGrid(false);
-                UpdateModelList(false, false);
+                UpdateModelList(false);
             } else {
                 mSelectedGroup = nullptr;
                 ShowPropGrid(true);
@@ -2675,10 +2675,11 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
     }
 }
 
-void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool unselect) {
+void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     xlights->UnsavedRgbEffectsChanges = true;
     std::vector<Model *> models;
-    UpdateModelList(unselect, false, models);
+    UpdateModelList(full_refresh, models);
+    if( full_refresh ) return;
     std::vector<Model *> modelsToAdd(models);
     wxTreeListItem root = TreeListViewModels->GetRootItem();
 
