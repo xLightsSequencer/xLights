@@ -570,7 +570,8 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
         for (int x = 0; x < el->GetEffectCount(); x++) {
             Effect *ef = el->GetEffect(x);
             if( ef == nullptr ) break;
-            if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
+            if (ef->GetSelected() != EFFECT_NOT_SELECTED && !ef->GetTagged()) {
+                ef->SetTagged(true);
                 wxString start_time = wxString::Format("%d",ef->GetStartTimeMS());
                 wxString end_time = wxString::Format("%d",ef->GetEndTimeMS());
                 wxString row = wxString::Format("%d",row_number);
@@ -640,6 +641,7 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
     else {
         copy_data += "\tNO_PASTE_BY_CELL\n" + effect_data;
     }
+    UnTagAllEffects();
 }
 
 bool MainSequencer::CopySelectedEffects() {
@@ -716,7 +718,7 @@ void MainSequencer::InsertTimingMarkFromRange()
             el->HitTestEffectByTime(t1, i1);
             el->HitTestEffectByTime(t2, i2);
 
-            if ((!el->HitTestEffectByTime(t1,i1) && !el->HitTestEffectByTime(t2,i2) && !el->HitTestEffectBetweenTime(t1,t2)) || 
+            if ((!el->HitTestEffectByTime(t1,i1) && !el->HitTestEffectByTime(t2,i2) && !el->HitTestEffectBetweenTime(t1,t2)) ||
                 (!el->HitTestEffectBetweenTime(t1,t2) && i1 != i2))
             {
                 std::string name,settings;
@@ -945,3 +947,21 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
     ScrollBarEffectsHorizontal->Refresh();
 }
 
+void MainSequencer::TagAllSelectedEffects()
+{
+    for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
+    {
+        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+        el->TagAllSelectedEffects();
+    }
+}
+
+void MainSequencer::UnTagAllEffects()
+{
+    for(int i=0;i<mSequenceElements->GetRowInformationSize();i++) {
+        EffectLayer* el = mSequenceElements->GetEffectLayer(i);
+        if( el != nullptr ) {
+            el->UnTagAllEffects();
+        }
+    }
+}

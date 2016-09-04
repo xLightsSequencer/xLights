@@ -1107,23 +1107,26 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
         while( row >= mSequenceElements->GetNumberOfTimingRows() )
         {
             EffectLayer* new_el = mSequenceElements->GetVisibleEffectLayer(row);
-            if( new_el->GetRangeIsClearMS( mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS()))
+            if( new_el != nullptr )
             {
-                mSequenceElements->get_undo_mgr().CreateUndoStep();
-                Effect* ef = new_el->AddEffect(0,
-                                               mSelectedEffect->GetEffectName(),
-                                               mSelectedEffect->GetSettingsAsString(),
-                                               mSelectedEffect->GetPaletteAsString(),
-                                               mSelectedEffect->GetStartTimeMS(),
-                                               mSelectedEffect->GetEndTimeMS(),
-                                               EFFECT_SELECTED,
-                                               false);
-                mSelectedRow = row;
-                mSelectedEffect = ef;
-                el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-                mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
-                Refresh(false);
-                return;
+                if( new_el->GetRangeIsClearMS( mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS()))
+                {
+                    mSequenceElements->get_undo_mgr().CreateUndoStep();
+                    Effect* ef = new_el->AddEffect(0,
+                                                   mSelectedEffect->GetEffectName(),
+                                                   mSelectedEffect->GetSettingsAsString(),
+                                                   mSelectedEffect->GetPaletteAsString(),
+                                                   mSelectedEffect->GetStartTimeMS(),
+                                                   mSelectedEffect->GetEndTimeMS(),
+                                                   EFFECT_SELECTED,
+                                                   false);
+                    mSelectedRow = row;
+                    mSelectedEffect = ef;
+                    el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+                    mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
+                    Refresh(false);
+                    return;
+                }
             }
             row--;
         }
@@ -1160,19 +1163,23 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
         }
         if( all_clear ) // all clear so now move them all up
         {
+            // Tag all selected effects so we don't move them twice
+            ((MainSequencer*)mParent)->TagAllSelectedEffects();
+
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             for(int row=first_model_row+1;row<mSequenceElements->GetRowInformationSize();row++)
             {
                 EffectLayer* el1 = mSequenceElements->GetEffectLayer(row-1);
                 EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
-                if( mSequenceElements->GetEffectLayer(row)->GetSelectedEffectCount() > 0 )
+                if( mSequenceElements->GetEffectLayer(row)->GetTaggedEffectCount() > 0 )
                 {
                     num_effects = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
                     for( int i = 0; (i < num_effects) && all_clear; ++i )
                     {
                         Effect* eff = el2->GetEffect(i);
-                        if( eff->GetSelected() )
+                        if( eff->GetSelected() && eff->GetTagged() )
                         {
+                            eff->SetTagged(false);
                             Effect* ef = el1->AddEffect(0,
                                                     eff->GetEffectName(),
                                                     eff->GetSettingsAsString(),
@@ -1228,29 +1235,33 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
         while( row < mSequenceElements->GetVisibleRowInformationSize() )
         {
             EffectLayer* new_el = mSequenceElements->GetVisibleEffectLayer(row);
-            if( new_el->GetRangeIsClearMS( mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS()))
+            if( new_el != nullptr )
             {
-                mSequenceElements->get_undo_mgr().CreateUndoStep();
-                Effect* ef = new_el->AddEffect(0,
-                                               mSelectedEffect->GetEffectName(),
-                                               mSelectedEffect->GetSettingsAsString(),
-                                               mSelectedEffect->GetPaletteAsString(),
-                                               mSelectedEffect->GetStartTimeMS(),
-                                               mSelectedEffect->GetEndTimeMS(),
-                                               EFFECT_SELECTED,
-                                               false);
-                mSelectedRow = row;
-                mSelectedEffect = ef;
-                el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-                mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
-                Refresh(false);
-                return;
+                if( new_el->GetRangeIsClearMS( mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS()))
+                {
+                    mSequenceElements->get_undo_mgr().CreateUndoStep();
+                    Effect* ef = new_el->AddEffect(0,
+                                                   mSelectedEffect->GetEffectName(),
+                                                   mSelectedEffect->GetSettingsAsString(),
+                                                   mSelectedEffect->GetPaletteAsString(),
+                                                   mSelectedEffect->GetStartTimeMS(),
+                                                   mSelectedEffect->GetEndTimeMS(),
+                                                   EFFECT_SELECTED,
+                                                   false);
+                    mSelectedRow = row;
+                    mSelectedEffect = ef;
+                    el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+                    mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
+                    Refresh(false);
+                    return;
+                }
             }
             row++;
         }
     }
     else if( MultipleEffectsSelected() )
     {
+
         // check if its clear for all effects
         bool all_clear = true;
         int first_model_row = mSequenceElements->GetNumberOfTimingRows();
@@ -1281,19 +1292,23 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
         }
         if( all_clear ) // all clear so now move them all up
         {
+            // Tag all selected effects so we don't move them twice
+            ((MainSequencer*)mParent)->TagAllSelectedEffects();
+
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             for(int row=mSequenceElements->GetRowInformationSize()-1;row>first_model_row;row--)
             {
                 EffectLayer* el1 = mSequenceElements->GetEffectLayer(row-1);
                 EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
-                if( mSequenceElements->GetEffectLayer(row-1)->GetSelectedEffectCount() > 0 )
+                if( mSequenceElements->GetEffectLayer(row-1)->GetTaggedEffectCount() > 0 )
                 {
                     num_effects = mSequenceElements->GetEffectLayer(row-1)->GetEffectCount();
                     for( int i = 0; (i < num_effects) && all_clear; ++i )
                     {
                         Effect* eff = el1->GetEffect(i);
-                        if( eff->GetSelected() )
+                        if( eff->GetSelected() && eff->GetTagged() )
                         {
+                            eff->SetTagged(false);
                             Effect* ef = el2->AddEffect(0,
                                                     eff->GetEffectName(),
                                                     eff->GetSettingsAsString(),
@@ -3371,11 +3386,7 @@ void EffectsGrid::GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight
 void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
 {
     // Tag all selected effects so we don't move them twice
-    for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
-    {
-        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-        el->TagAllSelectedEffects();
-    }
+    ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
     if( !offset ) {
         for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)

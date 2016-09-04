@@ -532,6 +532,20 @@ int EffectLayer::GetSelectedEffectCount()
     return count;
 }
 
+int EffectLayer::GetTaggedEffectCount()
+{
+    wxString s;
+    int count=0;
+    for(int i=0; i<mEffects.size();i++)
+    {
+        if(mEffects[i]->GetTagged())
+        {
+           count++;
+        }
+    }
+    return count;
+}
+
 void EffectLayer::UpdateAllSelectedEffects(const std::string& palette)
 {
     for(int i=0; i<mEffects.size();i++)
@@ -588,6 +602,15 @@ void EffectLayer::TagAllSelectedEffects()
         {
             mEffects[i]->SetTagged(true);
         }
+    }
+}
+
+void EffectLayer::UnTagAllEffects()
+{
+    std::unique_lock<std::recursive_mutex> locker(lock);
+    for(int i=0; i<mEffects.size();i++)
+    {
+        mEffects[i]->SetTagged(false);
     }
 }
 

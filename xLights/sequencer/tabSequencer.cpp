@@ -220,7 +220,7 @@ static void HandleChoices(xLightsFrame *frame,
     choices.push_back("Delete the model in the sequence");
     choices.push_back("Map the effects to different models");
     choices.push_back("Ignore (Handle Later) - Effects will not render");
-    
+
     bool ok = false;
     wxSingleChoiceDialog dlg(frame, msg,
                              "Warning", choices);
@@ -272,7 +272,7 @@ static bool HasEffects(ModelElement *el) {
     }
     for (size_t sm = 0; sm < el->GetSubModelCount(); sm++) {
         SubModelElement *sme = el->GetSubModel(sm);
-        
+
         if (sme->HasEffects()) {
             return true;
         }
@@ -437,7 +437,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
             ObtainAccessToURL(mediaFilename.ToStdString());
 			if ((mediaFilename == wxEmptyString) || !wxFileExists(mediaFilename) || !wxIsReadable(mediaFilename))
 			{
-				SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"));
+				SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT(""));
 				setting_dlg.Fit();
 				int ret_val = setting_dlg.ShowModal();
 
@@ -463,7 +463,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
             mediaFilename = xml_file.GetMediaFile();
             ObtainAccessToURL(mediaFilename.ToStdString());
         }
- 
+
         if( mediaFilename != wxEmptyString )
         {
 			wxString error;
@@ -502,7 +502,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mSequenceElements.SetEffectsNode(EffectsNode);
     mSequenceElements.LoadSequencerFile(xml_file, GetShowDirectory());
     xml_file.AdjustEffectSettingsForVersion(mSequenceElements, this);
-    
+
 
     Menu_Settings_Sequence->Enable(true);
     MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, true);
@@ -2114,7 +2114,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadMusicXMLFile(std::string file,
     float speedadjust = speedAdjust / 100.0;
 
     MusicXML musicXML(file);
-    
+
     if (musicXML.IsOk())
     {
         std::list<MusicXmlNote> notes = musicXML.GetNotes(track);
@@ -2331,7 +2331,7 @@ void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
         }
 
         CreateNotes(effectLayer, notes, interval, CurrentSeqXmlFile->GetSequenceDurationMS() / interval);
-        
+
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(this, eventRowHeaderChanged);
     }
@@ -2393,7 +2393,7 @@ std::string xLightsFrame::DecodeMidi(int midi)
         sharp = true;
         break;
     }
-    
+
     if (sharp)
     {
         return wxString::Format("%c#%d", note, o).ToStdString();

@@ -34,6 +34,8 @@ class MainSequencer: public wxPanel
         bool PasteByCellActive() { return mPasteByCell; }
         void SetPasteByCell(bool state) { mPasteByCell = state; }
         void HorizontalScrollChanged( wxCommandEvent& event);
+        void TagAllSelectedEffects();
+        void UnTagAllEffects();
 
         void Cut();
         void Copy();
