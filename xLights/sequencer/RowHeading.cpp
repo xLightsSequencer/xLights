@@ -172,7 +172,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
         if (element->GetType()==ELEMENT_TYPE_STRAND || element->GetType()==ELEMENT_TYPE_SUBMODEL) {
             me = dynamic_cast<SubModelElement *>(element)->GetModelElement();
         }
-        if (me->GetSubModelCount() > 1) {
+        if (me->GetSubModelCount() > 0) {
             if (element->GetType() != ELEMENT_TYPE_SUBMODEL) {
                 canPromote = true;
             }
