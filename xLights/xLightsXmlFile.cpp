@@ -140,6 +140,7 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
     }
     if( type == "Animation" )
     {
+        SetMediaFile("", "", false);
         if (audio != nullptr)
         {
             delete audio;
@@ -2733,9 +2734,12 @@ void xLightsXmlFile::AddFixedTimingSection(const std::string & interval_name, xL
 
 void xLightsXmlFile::SetMetaMP3Tags()
 {
-	SetHeaderInfo(SONG, audio->Title());
-	SetHeaderInfo(ARTIST, audio->Artist());
-	SetHeaderInfo(ALBUM, audio->Album());
+    if (audio != nullptr)
+    {
+        SetHeaderInfo(SONG, audio->Title());
+        SetHeaderInfo(ARTIST, audio->Artist());
+        SetHeaderInfo(ALBUM, audio->Album());
+    }
 }
 
 void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, xLightsFrame* xLightsParent)
