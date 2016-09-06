@@ -2834,6 +2834,9 @@ void EffectsGrid::DrawEffects()
         } else {
             wxString name = ri->element->GetName();
             EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(ri);
+            if (effectLayer == nullptr) {
+                continue;
+            }
             lines.PreAlloc(effectLayer->GetEffectCount() * 16);
             selectedLines.PreAlloc(effectLayer->GetEffectCount() * 16);
 
