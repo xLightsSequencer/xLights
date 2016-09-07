@@ -10,11 +10,11 @@
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 #include "RenderCommandEvent.h"
-#include "BitmapCache.h"
 #include <map>
 #include <memory>
 #include "effects/RenderableEffect.h"
 #include "RenderProgressDialog.h"
+#include "SeqExportDialog.h"
 
 #define END_OF_RENDER_FRAME INT_MAX
 

@@ -12,6 +12,7 @@
 
 #include <map>
 #include <wx/base64.h>
+#include <wx/confbase.h>
 
 //(*InternalHeaders(ConvertDialog)
 #include <wx/intl.h>

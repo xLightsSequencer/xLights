@@ -1,4 +1,4 @@
-                              /***************************************************************
+/***************************************************************
  * Name:      xLightsMain.h
  * Purpose:   Defines Application Frame
  * Author:    Matt Brown (dowdybrown@yahoo.com)
@@ -37,15 +37,12 @@
 #include <wx/gauge.h>
 //*)
 
-#include <wx/config.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
-#include <wx/choicdlg.h>
 #include <wx/xml/xml.h>
 #include <wx/fontdlg.h>
 #include <wx/dir.h>
 #include <unordered_map> //-DJ
-#include <wx/grid.h>
 
 #ifdef LINUX
 #include <unistd.h>
@@ -59,24 +56,12 @@
 #include <vector>
 
 #include "EffectTreeDialog.h"
-#include "../include/globals.h"
 #include "xlights_out.h"
 #include "PlayerFrame.h"
 #include "EffectsPanel.h"
 #include "AddShowDialog.h"
-#include "ShowDatesDialog.h"
-#include "PlaybackOptionsDialog.h"
-#include "EffectListDialog.h"
-#include "SeqExportDialog.h"
-#include "ViewsDialog.h"
-#include "SeqElementMismatchDialog.h"
 #include "PixelBuffer.h"
 #include "NetInfo.h"
-#include "PaletteMgmtDialog.h"
-#include "ExportModelSelect.h"
-#include "ViewsDialog.h"
-#include "CurrentPreviewModels.h"
-#include "PreviewModels.h"
 #include "ModelPreview.h"
 #include "EffectAssist.h"
 #include "SequenceData.h"
@@ -85,8 +70,6 @@
 
 #include "sequencer/EffectsGrid.h"
 #include "sequencer/MainSequencer.h"
-#include "sequencer/RowHeading.h"
-#include "sequencer/TimeLine.h"
 #include "sequencer/Waveform.h"
 #include "TopEffectsPanel.h"
 #include "TimingPanel.h"
@@ -98,7 +81,6 @@
 #include "models/ModelManager.h"
 #include "LayoutGroup.h"
 #include "xLightsTimer.h"
-#include "wx/aui/aui.h"
 #include "JobPool.h"
 #include <log4cpp/Category.hh>
 
@@ -187,18 +169,6 @@ enum play_modes
     play_sched
 };
 
-//enum TestFunctions
-//{
-//    OFF,
-//    CHASE,
-//    CHASE2,
-//    CHASE3,
-//    CHASE4,
-//    DIM,
-//    TWINKLE,
-//    SHIMMER
-//};
-
 enum SeqPlayerStates
 {
     NO_SEQ,
@@ -228,19 +198,11 @@ public:
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
                  long style = wxAUI_TB_DEFAULT_STYLE) :
-    wxAuiToolBar(parent, id, pos, size, style)
-    {
-    }
-    virtual ~xlAuiToolBar() {
+    wxAuiToolBar(parent, id, pos, size, style) {}
+    virtual ~xlAuiToolBar() {}
 
-    }
-
-    wxSize &GetAbsoluteMinSize() {
-        return m_absoluteMinSize;
-    }
-    wxSize GetMinSize() {
-        return m_absoluteMinSize;
-    }
+    wxSize &GetAbsoluteMinSize() {return m_absoluteMinSize;}
+    wxSize GetMinSize() const {return m_absoluteMinSize;}
 };
 
 class FPSEvent
@@ -262,14 +224,8 @@ protected:
     wxString eventString;
 
 public:
-    SchedTreeData(const wxString& EventData = wxT(""))
-    {
-        eventString = EventData;
-    };
-    wxString GetString()
-    {
-        return eventString;
-    };
+    SchedTreeData(const wxString& EventData = wxT("")) {eventString = EventData;};
+    wxString GetString() const {return eventString;};
 };
 
 #ifdef __WXOSX__
@@ -428,7 +384,6 @@ private:
     void OnButtonUpdateShowClick(wxCommandEvent& event);
     void OnButtonDeleteShowClick(wxCommandEvent& event);
     void OnButtonShowDatesChangeClick(wxCommandEvent& event);
-    void OnNotebook1PageChanged(wxNotebookEvent& event);
     void OnButtonClearLogClick(wxCommandEvent& event);
     void OnButtonSaveLogClick(wxCommandEvent& event);
     void OnMenuItemRenameListSelected(wxCommandEvent& event);
@@ -441,108 +396,29 @@ private:
     void OnGridNetworkBeginDrag(wxListEvent& event);
     void OnButtonAddE131Click(wxCommandEvent& event);
     void OnButtonAddDongleClick(wxCommandEvent& event);
-    void OnButtonTestSelectAllClick(wxCommandEvent& event);
-    void OnButtonTestClearClick(wxCommandEvent& event);
-    void OnButtonTestLoadClick(wxCommandEvent& event);
-    void OnButtonTestSaveClick(wxCommandEvent& event);
-    void OnRadioButtonOffSelect(wxCommandEvent& event);
-    void OnRadioButtonChaseSelect(wxCommandEvent& event);
-    void OnRadioButtonChase3Select(wxCommandEvent& event);
-    void OnRadioButtonChase4Select(wxCommandEvent& event);
-    void OnRadioButtonChase5Select(wxCommandEvent& event);
-    void OnRadioButtonAltSelect(wxCommandEvent& event);
-    void OnRadioButtonTwinkle05Select(wxCommandEvent& event);
-    void OnRadioButtonTwinkle10Select(wxCommandEvent& event);
-    void OnRadioButtonTwinkle25Select(wxCommandEvent& event);
-    void OnRadioButtonTwinkle50Select(wxCommandEvent& event);
-    void OnRadioButtonShimmerSelect(wxCommandEvent& event);
-    void OnRadioButtonDimSelect(wxCommandEvent& event);
-    void OnCheckListBoxTestChannelsToggled(wxCommandEvent& event);
     void OnButtonSaveSetupClick(wxCommandEvent& event);
     void OnBitmapButtonTabInfoClick(wxCommandEvent& event);
     void OnMenuItemDelListSelected(wxCommandEvent& event);
     void OnMenuItemAddListSelected(wxCommandEvent& event);
     void OnButtonLightsOffClick(wxCommandEvent& event);
     void OnCheckBoxLightOutputClick(wxCommandEvent& event);
-    //void OnButtonStartConversionClick(wxCommandEvent& event);
-    //void OnButtonChooseFileClick(wxCommandEvent& event);
     void OnButtonStopNowClick(wxCommandEvent& event);
     void OnButtonGracefulStopClick(wxCommandEvent& event);
     void OnButtonSaveScheduleClick(wxCommandEvent& event);
     void OnMenuItemSavePlaylistsSelected(wxCommandEvent& event);
     void OnButtonNetworkDeleteAllClick(wxCommandEvent& event);
-    void OnButton_PlayAllClick(wxCommandEvent& event);
-    void OnButton_PlayEffectClick(wxCommandEvent& event);
-    void OnButton_PresetsClick(wxCommandEvent& event);
-    void OnChoice_PresetsSelect(wxCommandEvent& event);
-    void OnButton_PresetAddClick(wxCommandEvent& event);
-    void OnButton_PresetUpdateClick(wxCommandEvent& event);
-    void OnChoice_LayerMethodSelect(wxCommandEvent& event);
-    void OnButton_ModelsClick(wxCommandEvent& event);
-    void OnButton_UpdateGridClick(wxCommandEvent& event);
-    void OnButton_ChannelMapClick(wxCommandEvent& event);
     void OnBitmapButtonOpenSeqClick(wxCommandEvent& event);
     void OnBitmapButtonSaveSeqClick(wxCommandEvent& event);
-    void OnBitmapButtonInsertRowClick(wxCommandEvent& event);
-    void OnBitmapButtonDeleteRowClick(wxCommandEvent& event);
-    void OnButtonDisplayElementsClick(wxCommandEvent& event);
-    void OnGrid1CellChange(wxGridEvent& event);
-    void OnGrid1CellLeftClick(wxGridEvent& event);
-    void OnButtonSeqExportClick(wxCommandEvent& event);
-    void OnGrid1CellRightClick(wxGridEvent& event);
-    void OnbtRandomEffectClick(wxCommandEvent& event);
     void OnClose(wxCloseEvent& event);
-    void OnButton_PaletteClick(wxCommandEvent& event);
-    void OnSlider_EffectLayerMixCmdScroll(wxScrollEvent& event);
-    void OnSlider_SparkleFrequencyCmdScroll(wxScrollEvent& event);
-    void OnSlider_BrightnessCmdScroll(wxScrollEvent& event);
-    void OnSlider_ContrastCmdScroll(wxScrollEvent& event);
     void OnMenuItemBackupSelected(wxCommandEvent& event);
-    void OnButtonAddElementClick(wxCommandEvent& event);
-    void OnButtonChangeElementClick(wxCommandEvent& event);
-    void OnButtonRenameElementClick(wxCommandEvent& event);
-    void OnButtonDeleteElementClick(wxCommandEvent& event);
-    void OnButtonNodeLayoutClick(wxCommandEvent& event);
-    void OnButtonSetBackgroundClick(wxCommandEvent& event);
-    void OnButtonClearBackgroundClick(wxCommandEvent& event);
-    void OnListBoxElementListSelect(wxCommandEvent& event);
-    void OnScrolledWindow1Resize(wxSizeEvent& event);
-    void OnBitmapButton_EffectLayerMixClick(wxCommandEvent& event);
-    void OnBitmapButton_SparkleFrequencyClick(wxCommandEvent& event);
-    void OnBitmapButton_BrightnessClick(wxCommandEvent& event);
-    void OnBitmapButton_ContrastClick(wxCommandEvent& event);
-    void OnButtonModelExportClick(wxCommandEvent& event);
-    void OnBitmapButtonGridCutClick(wxCommandEvent& event);
-    void OnBitmapButtonGridCopyClick(wxCommandEvent& event);
-    void OnBitmapButtonGridPasteClick(wxCommandEvent& event);
     void OnEffectsPanel1Paint(wxPaintEvent& event);
     void OnGrid1SetFocus(wxFocusEvent& event);
     void OnGrid1KillFocus(wxFocusEvent& event);
-    void OnBitmapButton_CheckBox_LayerMorphClick(wxCommandEvent& event);
-    void OnBitmapButton_LayerMorphClick(wxCommandEvent& event);
-    void OnNotebook2PageChanged(wxNotebookEvent& event);
-    void OnButtonStartPapagayoClick(wxCommandEvent& event);
-    void OnTextCtrl1Text(wxCommandEvent& event);
-    void OnTextCtrl20Text(wxCommandEvent& event);
     void OntxtCtrlSparkleFreqText(wxCommandEvent& event);
-    void OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event);
-    void OnBitmapButton_OpenCoroGroupClick(wxCommandEvent& event);
-    void OnButton_CoroGroupDeleteClick(wxCommandEvent& event);
-    void OnButton_CoroGroupClearClick(wxCommandEvent& event);
-    void OnGridCoroFacesCellSelect(wxGridEvent& event);
-    void OnbtEditViewsClick(wxCommandEvent& event);
-    void OnChoice_ViewsSelect(wxCommandEvent& event);
-    void OnButtonBuildCustomModelClick(wxCommandEvent& event);
-    void OnGrid1LabelRightClick(wxGridEvent& event);
-    void OnGridCoroFacesLabelLeftClick(wxGridEvent& event);
     void OnPanelSequencerPaint(wxPaintEvent& event);
-    void OnBitmapButton1Click(wxCommandEvent& event);
-    void OnBitmapButton3Click(wxCommandEvent& event);
-    void OnMainToolBarDropdown(wxAuiToolBarEvent& event);
     void OnButtonNewSequenceClick(wxCommandEvent& event);
     void OnButtonClickSaveAs(wxCommandEvent& event);
     void OnNotebook1PageChanged1(wxAuiNotebookEvent& event);
-    void OnMenuXmlConversionSettings(wxCommandEvent& event);
     void ChangeMediaDirectory(wxCommandEvent& event);
     void OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event);
     void OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event);
@@ -591,7 +467,6 @@ private:
     void ShowHideBufferSettingsWindow(wxCommandEvent& event);
     void ResetWindowsToDefaultPositions(wxCommandEvent& event);
     void OnActionTestMenuItemSelected(wxCommandEvent& event);
-    void OnAuiToolBarShowHideEffectSettings(wxCommandEvent& event);
     void OnAuiToolBarItemShowHideEffects(wxCommandEvent& event);
     void OnAuiToolBarItemPasteByTimeClick(wxCommandEvent& event);
     void OnAuiToolBarItemPasteByCellClick(wxCommandEvent& event);
@@ -616,13 +491,6 @@ private:
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
-    void OnPopupClick(wxCommandEvent &evt);
-    void DeleteSelectedEffects(wxCommandEvent &evt);
-    void InsertRandomEffects(wxCommandEvent &evt);
-    void UnprotectSelectedEffects(wxCommandEvent& evt);
-    void ProtectSelectedEffects(wxCommandEvent& evt);
-    void CopyEffectAcrossRow(wxCommandEvent& evt); //-DJ
-    void ClearEffectRow(wxCommandEvent& evt); //-DJ
 	void ShowHideAllSequencerWindows(bool show);
 	void ResetAllSequencerWindows();
 	void SetEffectAssistWindowState(bool show);
@@ -630,7 +498,6 @@ private:
     void MaybePackageAndSendDebugFiles();
     void SendReport(const wxString &loc, wxDebugReportCompress &report);
     void AddDebugFilesToReport(wxDebugReport &report);
-//    void ConnectOnChar(wxWindow* pclComponent);
 
     //(*Identifiers(xLightsFrame)
     static const long ID_AUITOOLBAR_OPENSHOW;
@@ -818,10 +685,6 @@ private:
     static const long ID_COPYROW_EFFECT; //copy random effect across row -DJ
     static const long ID_CLEARROW_EFFECT; //clear all effects on this row -DJ
 
-
-
-
-
     //(*Declarations(xLightsFrame)
     xlAuiToolBar* OutputToolBar;
     wxButton* ButtonAddE131;
@@ -974,11 +837,8 @@ private:
     wxDateTime starttime;
     play_modes play_mode;
     NetInfoClass NetInfo;
-
     ModelPreview* modelPreview;
-
     EffectManager effectManager;
-
     int effGridPrevX;
     int effGridPrevY;
 
@@ -986,7 +846,7 @@ private:
     void DoBackup(bool prompt = true, bool startup = false);
     void DoAltBackup(bool prompt = true);
     void SetPlayMode(play_modes newmode);
-    double rand01();
+    static double rand01();
     bool EnableOutputs();
     void EnableNetworkChanges();
     void AllLightsOff();
@@ -1012,16 +872,6 @@ private:
     void OnProgressBarDoubleClick(wxMouseEvent& event);
     RenderProgressInfo *renderProgressInfo;
     RenderProgressDialog *renderProgressDialog;
-    // test
-    //void SetTestCheckboxes(bool NewValue);
-    //void GetCheckedItems(wxArrayInt& chArray);
-    //void GetTestPresetNames(wxArrayString& PresetNames);
-    //void TestButtonsOff();
-    //bool CheckChannelList;
-    //int ChaseGrouping;
-    //int TwinkleRatio;
-    //TestFunctions TestFunc;
-    //void OnTimerTest(long curtime);
 
     wxString mediaFilename;
     wxString showDirectory;
@@ -1042,9 +892,6 @@ private:
 public:
     bool UnsavedRgbEffectsChanges;
 
-    //void ReadLorFile(const wxString& filename, int LORImportInterval);
-    //void WriteLorFile(const wxString& filename);  //      LOR *.lms, *.las
-
     void ClearLastPeriod();
     void WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf); //       Vixen *.vir
     void WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      HLS *.hlsnc
@@ -1058,30 +905,10 @@ public:
 
 private:
 
-    bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString &VixChannelNames);
-    //void ReadVixFile(const wxString& filename);
-    //void ReadHLSFile(const wxString& filename);
-    //void ReadGlediatorFile(const wxString& FileName);
-    //void ReadConductorFile(const wxString& FileName);
-    int GetLorTrack1Length(const char* filename);
-    //bool WriteVixenFile(const wxString& filename); //     Vixen *.vix
-    //void WriteVirFile(const wxString& filename);
-    //void WriteHLSFile(const wxString& filename);  //      HLS *.hlsnc
-    //void WriteXLightsFile(const wxString& filename); //   xLights *.xseq
     void WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
                                 SeqDataType *dataBuf, int startAddr, int modelSize); //Falcon Pi sub sequence .eseq
     void WriteVideoModelFile(const wxString& filename, long numChans, long numPeriods,
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed); //.avi file
-    void WriteConductorFile(const wxString& filename); // Conductor *.seq
-    void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
-    void WriteLcbFile(const wxString& filename);  //      LOR *.lcb
-    void DoConversion(const wxString& FileName, const wxString& OutputFormat);
-    bool mapEmptyChannels();
-    bool showChannelMapping();
-    bool isSetOffAtEnd();
-
-
-    wxXmlNode* SelectModelToExport();
 
     JobPool jobPool;
 
@@ -1136,44 +963,15 @@ private:
     void OnTimerPlaylist(long msec);
 
     // sequence
-//    void OnCheckBox_PaletteClick(wxCommandEvent& event);
-    void PresetsSelect();
     void LoadEffectsFile();
-    void BackupEffectsFile();
     wxString LoadEffectsFileNoCheck();
     void CreateDefaultEffectsXml();
-    void UpdateEffectsList();
-    void UpdateView();
-    void ShowAllModelsView();
-    void ShowModelsView();
-    void ViewHideAllModels();
-    void ChooseColor(wxTextCtrl* TextCtrl);
-    void LoadSizerControlsToAttr(wxSizer* sizer,wxXmlNode* x);
-    void PlayRgbEffect(int EffectPeriod, SettingsMap &SettingsMap);
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
-    void UpdateGrid();
     wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue);
 
-    wxString CreateEffectString();
-    void OpenPaletteDialog(const wxString& id1, const wxString& id2, wxSizer* PrimarySizer,wxSizer* SecondarySizer);
-    void ChooseModelsForSequence();
-    void GetGridColumnLabels(wxArrayString& a);
-
     void DisplayXlightsFilename(const wxString& filename);
-    void CopyRow(int row1, int row2);
-    void NumericSort();
-    double GetGridStartTime(int row);
-    long GetGridStartTimeMSec(int row);
-    void UpdateRgbPlaybackStatus(int seconds, long msec, int EffectPeriod, const wxString& seqtype);
-    //void SetTextColor(wxWindow* w);
     int ChooseRandomEffect();
-
-    void GridCellChanged(int row, int col);
-    void UpdateBufferFadesFromCtrl(PixelBufferClass &buffer);
-    int UpdateEffectDuration(bool new_effect_starts, int startRow, PixelBufferClass &buffer, int playCol);
-    void ResetEffectDuration(PixelBufferClass &buffer);
-
 
 public:
     bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
@@ -1217,7 +1015,6 @@ public:
     unsigned int GetMaxNumChannels();
 
 protected:
-    void ClearEffectWindow();
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
     void ResetEffectsXml();
@@ -1231,19 +1028,11 @@ protected:
     void SaveAsSequence();
     bool CloseSequence();
     void AddAllModelsToSequence();
-    void InsertRow();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
     void TimerOutput(int period);
-    void GetSeqModelNames(wxArrayString& a);
     void UpdateChannelNames();
     void StopNow(void);
-    void PlayRgbSequence(void);
-    bool IsValidEffectString(wxString& s);
-    bool GetGroupName(wxString& grpname);
-    void SetSelectedModelToGroupSelected();
-    void ShowModelProperties();
-
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;
@@ -1255,7 +1044,7 @@ public:
     wxXmlNode* ModelsNode;
     wxXmlNode* ModelGroupsNode;
     wxXmlNode* LayoutGroupsNode;
-    wxXmlNode* GetViewsNode() {return ViewsNode;}
+    wxXmlNode* GetViewsNode() const {return ViewsNode;}
 
 private:
     wxXmlNode* SettingsNode;
@@ -1321,14 +1110,14 @@ public:
     void UpdatePreview();
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
-    int GetTotalChannels() { return _totalChannels; };
+    int GetTotalChannels() const { return _totalChannels; };
     void ForceSequencerRefresh();
     void RefreshLayout();
     void AddPreviewOption(LayoutGroup* grp);
     void RemovePreviewOption(LayoutGroup* grp);
-    ModelPreview* GetLayoutPreview() {return modelPreview;}
+    ModelPreview* GetLayoutPreview() const {return modelPreview;}
     void SetStoredLayoutGroup(const std::string &group);
-    const std::string& GetStoredLayoutGroup() {return mStoredLayoutGroup;}
+    const std::string& GetStoredLayoutGroup() const {return mStoredLayoutGroup;}
 
 private:
 
@@ -1400,13 +1189,12 @@ private:
     void CheckSequence(bool display);
 
     void CheckForValidModels();
+    void ExportModels(wxString filename);
 
     void LoadSequencer(xLightsXmlFile& xml_file);
     void LoadPerspective(wxXmlNode *p);
 
     void CheckForAndCreateDefaultPerpective();
-    void ZoomIn();
-    void ZoomOut();
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
     std::string GetEffectTextFromWindows(std::string &palette);

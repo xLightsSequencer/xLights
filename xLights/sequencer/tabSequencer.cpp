@@ -21,6 +21,7 @@
 #include "../MIDI/MidiFile.h"
 #include "../MusicXML.h"
 #include "../osxMacUtils.h"
+#include "../SeqElementMismatchDialog.h"
 
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()

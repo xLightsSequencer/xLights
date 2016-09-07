@@ -22,7 +22,8 @@
 **************************************************************/
 
 #include "wx/artprov.h"
-
+#include "PlaybackOptionsDialog.h"
+#include "ShowDatesDialog.h"
 
 void xLightsFrame::BasicPrompt(char* prompt, char* buff, int size)
 {

@@ -78,7 +78,6 @@ class LayoutPanel: public wxPanel
 		static const long ID_TREELISTVIEW_MODELS;
         static const long ID_PREVIEW_ALIGN;
         static const long ID_PREVIEW_MODEL_NODELAYOUT;
-        static const long ID_PREVIEW_MODEL_EXPORTCSV;
         static const long ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL;
         static const long ID_PREVIEW_ALIGN_TOP;
         static const long ID_PREVIEW_ALIGN_BOTTOM;
@@ -114,7 +113,6 @@ class LayoutPanel: public wxPanel
 		void OnCharHook(wxKeyEvent& event);
 		void OnChar(wxKeyEvent& event);
 		void OnChoiceLayoutGroupsSelect(wxCommandEvent& event);
-		void OnButtonLaunchPreviewClick(wxCommandEvent& event);
 		//*)
 
         void OnPropertyGridSelection(wxPropertyGridEvent& event);
@@ -136,22 +134,17 @@ class LayoutPanel: public wxPanel
         void UnSelectAllModels(bool addBkgProps = true);
         void SetupPropGrid(Model *model);
         void AddPreviewChoice(const std::string &name);
-        ModelPreview* GetMainPreview() {return modelPreview;}
+        ModelPreview* GetMainPreview() const {return modelPreview;}
         bool GetBackgroundScaledForSelectedPreview();
         int GetBackgroundBrightnessForSelectedPreview();
-        const std::string& GetCurrentLayoutGroup() {return currentLayoutGroup;}
+        const std::string& GetCurrentLayoutGroup() const {return currentLayoutGroup;}
         void Reset();
         void SetDirtyHiLight(bool dirty);
 
         void ModelGroupUpdated(ModelGroup *group, bool full_refresh);
 
     protected:
-        void ExportModel();
-        void ExportCustomModel();
-        void ImportCustomModel(Model* model);
         void AddModelButton(const std::string &type, const char *imageData[]);
-        void ModelGroupChecked(wxCommandEvent& event);
-        void DeselectModelList();
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
 
         bool SelectSingleModel(int x,int y);

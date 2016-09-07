@@ -61,7 +61,6 @@ END_EVENT_TABLE()
 const long LayoutPanel::ID_TREELISTVIEW_MODELS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
-const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTCSV = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_TOP = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_BOTTOM = wxNewId();
@@ -1580,7 +1579,6 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             }
         }
         mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT,"Node Layout");
-        mnu.Append(ID_PREVIEW_MODEL_EXPORTCSV,"Export CSV");
         if (model != nullptr)
         {
             if (model->SupportsXlightsModel())
@@ -1637,10 +1635,6 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         ChannelLayoutDialog dialog(this);
         dialog.SetHtmlSource(html);
         dialog.ShowModal();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTCSV)
-    {
-        ExportModel();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL)
     {
@@ -1709,36 +1703,6 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
 { \
 wxMessageBox(msg, _("Export Error")); \
 return; \
-}
-
-void LayoutPanel::ExportModel()
-{
-#if 0
-    model name
-    display as
-    type of strings
-#strings
-#nodes
-    start channel
-    start node = (channel+2)/3;
-    my display
-    brightness
-#endif // 0
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, wxEmptyString, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    //    if (filename.IsEmpty()) retmsg(wxString("Please choose an output file name."));
-    if (filename.IsEmpty()) return;
-
-    wxFile f(filename);
-    //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
-    f.Write(_("Model_name, Display_as, String_type, String_count, Node_count, Start_channel, Start_node, My_display, Brightness+-\n"));
-
-    Model* model=selectedModel;
-    if( model == nullptr ) return;
-    wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
-    f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %s, %d, %s\n", model->name, model->GetDisplayAs(), model->GetStringType(), model->GetNodeCount() / model->NodesPerString(), model->GetNodeCount(), stch, /*WRONG:*/ model->NodeStartChannel(0) / model->NodesPerString() + 1, model->GetLayoutGroup()));
-    f.Close();
 }
 
 void LayoutPanel::PreviewModelAlignTops()

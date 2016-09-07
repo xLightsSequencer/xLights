@@ -408,7 +408,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
     _fps = -1;
-    mCurrentPerpective = NULL;
+    mCurrentPerpective = nullptr;
     MenuItemPreviews = nullptr;
 
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
@@ -1097,7 +1097,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
 
-
     AddWindowsMenu();
 
     logger_base.debug("xLightsFrame constructor UI code done.");
@@ -1141,7 +1140,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     renderProgressDialog = nullptr;
     renderProgressInfo = nullptr;
     selectedEffectPalette = "";
-    selectedEffect = NULL;
+    selectedEffect = nullptr;
     playStartTime = playEndTime = 0;
     replaySection = false;
     playType = 0;
@@ -1188,7 +1187,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     SetName("xLights");
     wxPersistenceManager::Get().RegisterAndRestore(this);
     wxConfigBase* config = wxConfigBase::Get();
-    if (config == NULL)
+    if (config == nullptr)
     {
         logger_base.error("Null config ... this wont end well.");
     }
@@ -1253,7 +1252,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
                 if (idx == wxNOT_FOUND) mru.Add(dir);
             }
         }
-        mru_MenuItem[i] = NULL;
+        mru_MenuItem[i] = nullptr;
     }
 
     logger_base.debug("xLightsFrame constructor loading config.");
@@ -1429,7 +1428,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     InitEffectsPanel(EffectsPanel1);
     logger_base.debug("Effects panel initialised.");
 
-    EffectTreeDlg = NULL;  // must be before any call to SetDir
+    EffectTreeDlg = nullptr;  // must be before any call to SetDir
 
     // Check if schedule should be running
     long RunFlag=0;
@@ -1485,9 +1484,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     //to whatever the timing that is selected
     Timer1.Start(50, wxTIMER_CONTINUOUS);
 
-//    ConnectOnChar(PaneNutcracker);
-//    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
-
     jobPool.Start(wxThread::GetCPUCount() * 4);
 
     if (!xLightsApp::sequenceFile.IsNull())
@@ -1505,7 +1501,7 @@ xLightsFrame::~xLightsFrame()
 {
     Timer_AutoSave.Stop();
     Timer1.Stop();
-    selectedEffect = NULL;
+    selectedEffect = nullptr;
 
     wxConfigBase* config = wxConfigBase::Get();
     if (mResetToolbars)
@@ -1541,7 +1537,7 @@ xLightsFrame::~xLightsFrame()
     if( CurrentSeqXmlFile )
     {
         delete CurrentSeqXmlFile;
-        CurrentSeqXmlFile = NULL;
+        CurrentSeqXmlFile = nullptr;
     }
 
     delete CheckBoxLightOutput;
@@ -1593,7 +1589,7 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
 // return a random number between 0 and 1 inclusive
 double xLightsFrame::rand01()
 {
-    return (double)rand()/(double)RAND_MAX;
+    return static_cast<double>(rand())/ static_cast<double>(RAND_MAX);
 }
 
 void xLightsFrame::SetPlayMode(play_modes newmode)
@@ -1822,7 +1818,7 @@ bool xLightsFrame::EnableOutputs()
         DisableSleepModes();
         xout = new xOutput(SpinCtrl_SyncUniverse->GetValue());
 
-        for( wxXmlNode* e=NetworkXML.GetRoot()->GetChildren(); e!=NULL && ok; e=e->GetNext() )
+        for( wxXmlNode* e=NetworkXML.GetRoot()->GetChildren(); e!=nullptr && ok; e=e->GetNext() )
         {
             wxString tagname=e->GetName();
             if (tagname == "network")
@@ -1844,7 +1840,7 @@ bool xLightsFrame::EnableOutputs()
                 /*byte*/TCHAR portname[32];
                 DWORD vallen = sizeof(valname);
                 DWORD portlen = sizeof(portname);
-                HKEY hkey = NULL;
+                HKEY hkey = nullptr;
                 DWORD err = 0;
 
 //enum serial comm ports (more user friendly, especially if USB-to-serial ports change):
@@ -1852,7 +1848,7 @@ bool xLightsFrame::EnableOutputs()
                 if (choices.empty()) //should this be cached?  it's not really that expensive
                 {
                     if (!(err = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"), 0, KEY_READ, &hkey)))
-                        for (DWORD inx = 0; !(err = RegEnumValue(hkey, inx, (LPTSTR)valname, &vallen, NULL, NULL, (LPBYTE)portname, &portlen)) || (err == ERROR_MORE_DATA); ++inx)
+                        for (DWORD inx = 0; !(err = RegEnumValue(hkey, inx, (LPTSTR)valname, &vallen, nullptr, nullptr, (LPBYTE)portname, &portlen)) || (err == ERROR_MORE_DATA); ++inx)
                         {
                             if (err == ERROR_MORE_DATA) portname[sizeof(portname)/sizeof(portname[0]) - 1] = '\0'; //need to enlarge read buf if this happens; just truncate string for now
 //                            debug(3, "found port[%d] %d:'%s' = %d:'%s', err 0x%x", inx, vallen, valname, portlen, portname, err);
@@ -1940,7 +1936,7 @@ void xLightsFrame::OnCheckBoxLightOutputClick(wxCommandEvent& event)
 void xLightsFrame::StopNow(void)
 {
     int actTab = Notebook1->GetSelection();
-	if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
+	if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetMedia() != nullptr)
 	{
 		CurrentSeqXmlFile->GetMedia()->Stop();
 	}
@@ -1990,7 +1986,7 @@ void xLightsFrame::OnButtonGracefulStopClick(wxCommandEvent& event)
 wxString xLightsFrame::CurrentDir = "";
 wxString xLightsFrame::PlaybackMarker = "";
 wxString xLightsFrame::xlightsFilename = "";
-xLightsXmlFile* xLightsFrame::CurrentSeqXmlFile = NULL;
+xLightsXmlFile* xLightsFrame::CurrentSeqXmlFile = nullptr;
 
 void xLightsFrame::OnButtonSaveScheduleClick(wxCommandEvent& event)
 {
@@ -2188,7 +2184,7 @@ wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const 
     if (parent->GetName() != cached_names.parent) //reload cache
     {
         cached_names.nodes.clear();
-        for (wxXmlNode* node = parent->GetChildren(); node != NULL; node = node->GetNext())
+        for (wxXmlNode* node = parent->GetChildren(); node != nullptr; node = node->GetNext())
             cached_names.nodes[node->GetName()] = node;
         cached_names.parent = parent;
     }
@@ -2199,7 +2195,7 @@ wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const 
     }
     return cached_names.nodes[tag];
 #endif // 0
-    for (wxXmlNode* node = parent->GetChildren(); node != NULL; node = node->GetNext())
+    for (wxXmlNode* node = parent->GetChildren(); node != nullptr; node = node->GetNext())
     {
         if (!tag.empty() && (node->GetName() != tag)) continue;
         if (!value.empty() && (node->GetAttribute(attr) != value)) continue;
@@ -2224,7 +2220,7 @@ void xLightsFrame::SetXmlSetting(const wxString& settingName,const wxString& val
 {
     wxXmlNode* e;
     // Delete existing setting node
-    for(e=SettingsNode->GetChildren(); e!=NULL; e=e->GetNext())
+    for(e=SettingsNode->GetChildren(); e!=nullptr; e=e->GetNext())
     {
         if(e->GetName() == settingName)
         {
@@ -2240,7 +2236,7 @@ wxString xLightsFrame::GetXmlSetting(const wxString& settingName,const wxString&
 {
     wxXmlNode* e;
     // Delete existing setting node
-    for(e=SettingsNode->GetChildren(); e!=NULL; e=e->GetNext())
+    for(e=SettingsNode->GetChildren(); e!=nullptr; e=e->GetNext())
     {
         if(e->GetName() == settingName)
         {
@@ -2257,7 +2253,7 @@ void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
 
 wxString xLightsFrame::GetSeqXmlFileName()
 {
-    if (CurrentSeqXmlFile == NULL)
+    if (CurrentSeqXmlFile == nullptr)
     {
         return "";
     }
@@ -2266,7 +2262,7 @@ wxString xLightsFrame::GetSeqXmlFileName()
 
 void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 {
-    if( xLightsFrame::CurrentSeqXmlFile == NULL ) return;
+    if( xLightsFrame::CurrentSeqXmlFile == nullptr ) return;
     // populate dialog
     SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectory, wxEmptyString);
     dialog.Fit();
@@ -2279,7 +2275,7 @@ void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
         RenderAll();
     }
 
-	if(CurrentSeqXmlFile->GetMedia() != NULL)
+	if(CurrentSeqXmlFile->GetMedia() != nullptr)
 	{
 		if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
 		{
@@ -2302,7 +2298,7 @@ void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
 void xLightsFrame::EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable)
 {
     wxAuiToolBarItem* button = toolbar->FindTool(id);
-	if (button != NULL)
+	if (button != nullptr)
 	{
 		int state = enable ? wxAUI_BUTTON_STATE_NORMAL : wxAUI_BUTTON_STATE_DISABLED;
 		button->SetState(state);
@@ -2375,7 +2371,7 @@ void xLightsFrame::OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event)
 {
-    OpenSequence("", NULL);
+    OpenSequence("", nullptr);
 }
 
 void xLightsFrame::OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event)
@@ -2593,9 +2589,9 @@ void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
         playSpeed = 0.25;
     }
 	AudioManager::SetGlobalPlaybackRate(playSpeed);
-	if (CurrentSeqXmlFile != NULL)
+	if (CurrentSeqXmlFile != nullptr)
 	{
-	    if( CurrentSeqXmlFile->GetMedia() != NULL )
+	    if( CurrentSeqXmlFile->GetMedia() != nullptr )
         {
             CurrentSeqXmlFile->GetMedia()->SetPlaybackRate(playSpeed);
         }
@@ -2780,7 +2776,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 {
 	// save the media playing state and stop it if it is playing
 	MEDIAPLAYINGSTATE mps = MEDIAPLAYINGSTATE::STOPPED;
-	if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
+	if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetMedia() != nullptr)
 	{
 		mps = CurrentSeqXmlFile->GetMedia()->GetPlayingState();
 		if (mps == MEDIAPLAYINGSTATE::PLAYING)
@@ -2851,7 +2847,7 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
 {
     // save the media playing state and stop it if it is playing
     MEDIAPLAYINGSTATE mps = MEDIAPLAYINGSTATE::STOPPED;
-    if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
+    if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetMedia() != nullptr)
     {
         mps = CurrentSeqXmlFile->GetMedia()->GetPlayingState();
         if (mps == MEDIAPLAYINGSTATE::PLAYING)
@@ -2961,6 +2957,7 @@ void xLightsFrame::MaybePackageAndSendDebugFiles() {
 }
 void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
 {
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxFileDialog fd(this, "Zip file to create.", CurrentDir, "xLightsProblem.zip", "zip file(*.zip)|*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (fd.ShowModal() == wxID_CANCEL) return;
@@ -2973,7 +2970,15 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     report.SetCompressedFileDirectory(fd.GetDirectory());
     AddDebugFilesToReport(report);
 
+    // export the models to an easy to read file
+    wxString filename = wxFileName::CreateTempFileName("Models") + ".csv";
+    ExportModels(filename);
+    wxFileName fn(filename);
+    report.AddFile(fn.GetFullPath(), "All Models");
+
     report.Process();
+
+    wxRemoveFile(filename);
 }
 
 static void AddLogFile(const wxString &CurrentDir, const wxString &fileName, wxDebugReport &report) {
@@ -3096,7 +3101,7 @@ void xLightsFrame::SaveWorkingLayout()
 void xLightsFrame::SaveWorking()
 {
     // dont save if no file in existence
-    if (CurrentSeqXmlFile == NULL) return;
+    if (CurrentSeqXmlFile == nullptr) return;
 
     // dont save if currently saving
     std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
@@ -3198,11 +3203,11 @@ void xLightsFrame::AddPreviewOption(LayoutGroup* grp)
         if( first_item->GetId() != ID_MENU_ITEM_PREVIEWS_SHOW_ALL ) {
             wxMenuItem* menu_item = new wxMenuItem(MenuItemPreviews, ID_MENU_ITEM_PREVIEWS_SHOW_ALL, _("Show All"), wxEmptyString, wxITEM_CHECK);
             MenuItemPreviews->Insert(0, menu_item);
-            Connect(ID_MENU_ITEM_PREVIEWS_SHOW_ALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideAllPreviewWindows, NULL, this);
+            Connect(ID_MENU_ITEM_PREVIEWS_SHOW_ALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideAllPreviewWindows, nullptr, this);
         }
     }
     grp->AddToPreviewMenu(MenuItemPreviews);
-    Connect(grp->GetMenuId(),wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePreviewWindow, NULL, this);
+    Connect(grp->GetMenuId(),wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePreviewWindow, nullptr, this);
     if( menu_created ) {
         MenuItemPreviewSeparator = MenuView->InsertSeparator(4);
     }
@@ -3210,10 +3215,10 @@ void xLightsFrame::AddPreviewOption(LayoutGroup* grp)
 
 void xLightsFrame::RemovePreviewOption(LayoutGroup* grp)
 {
-    Disconnect(grp->GetMenuId(),wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePreviewWindow, NULL, this);
+    Disconnect(grp->GetMenuId(),wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePreviewWindow, nullptr, this);
     grp->RemoveFromPreviewMenu(MenuItemPreviews);
     if( LayoutGroups.size() == 1 ) {
-        Disconnect(ID_MENU_ITEM_PREVIEWS_SHOW_ALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideAllPreviewWindows, NULL, this);
+        Disconnect(ID_MENU_ITEM_PREVIEWS_SHOW_ALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideAllPreviewWindows, nullptr, this);
         MenuView->Delete(ID_MENU_ITEM_PREVIEWS);
         MenuItemPreviews = nullptr;
         MenuView->Delete(MenuItemPreviewSeparator);
@@ -3325,13 +3330,8 @@ void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)
     DoAltBackup();
 }
 
-void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
+void xLightsFrame::ExportModels(wxString filename)
 {
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, wxEmptyString, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-
-    if (filename.IsEmpty()) return;
-
     wxFile f(filename);
 
     if (!f.Create(filename, true) || !f.IsOpened())
@@ -3360,7 +3360,7 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
             model->GetActChanCount(),
             stch,
             ch,
-            ch+model->GetChanCount()-1,
+            ch + model->GetChanCount() - 1,
             model->GetLayoutGroup(),
             type,
             description,
@@ -3372,6 +3372,16 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
     }
     f.Write(wxString::Format("\"Model Count\",%d\n", PreviewModels.size()));
     f.Close();
+}
+
+void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
+{
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, wxEmptyString, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (filename.IsEmpty()) return;
+
+    ExportModels(filename);
 }
 
 void xLightsFrame::OnMenuItem_BackupOnLaunchSelected(wxCommandEvent& event)
