@@ -86,9 +86,9 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     if (DMX_STYLES.GetCount() == 0) {
         DMX_STYLES.Add("Moving Head Top");
         DMX_STYLES.Add("Moving Head Side");
-        DMX_STYLES.Add("Moding Head Bars");
-        DMX_STYLES.Add("Moding Head Top Bars");
-        DMX_STYLES.Add("Moding Head Side Bars");
+        DMX_STYLES.Add("Moving Head Bars");
+        DMX_STYLES.Add("Moving Head Top Bars");
+        DMX_STYLES.Add("Moving Head Side Bars");
     }
 
     AddStyleProperties(grid);

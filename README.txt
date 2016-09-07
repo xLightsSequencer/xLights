@@ -14,6 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (gil)     Fix layout group change to model group not taking effect till restart.
    -- enh (gil)     Change default model group back to minimal grid.
    -- bug (gil)     Prevent effects from being copied or moved twice when they exist multiple times in the grid.
+   -- bug (gil)     Fix names for DMX model types in property grid.  Fixes #674.
    -- enh (keithsw) Implement e1.31 sync
    -- enh (keithsw) Add more checks in check sequence
    -- enh (keithsw) Show single colour string colour in sequencer row heading
