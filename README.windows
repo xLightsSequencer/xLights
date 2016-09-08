@@ -97,7 +97,7 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
 Instructions for MS Visual Studio C++
 =====================================
 
-Here are the steps to compile xLights/Nutcracker for Windows using the MinGW compiler.
+Here are the steps to compile xLights/Nutcracker for Windows using the Visual Studio compiler.
 
   a) Install Visual Studio 2015 ... the community edition is fine
 
