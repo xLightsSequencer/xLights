@@ -3473,6 +3473,23 @@ void xLightsFrame::CheckSequence(bool display)
     }
 
     LogAndWrite(f, "Checking sequence.");
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Render Mode");
+
+    if (CurrentSeqXmlFile->GetRenderMode() == xLightsXmlFile::CANVAS_MODE)
+    {
+        wxString msg = wxString::Format("    WARN: Render mode set to canvas mode. Unless you specifically know you need this it is not recommended.");
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+    else
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
     LogAndWrite(f, "");
     LogAndWrite(f, "Inactive Outputs");
 
