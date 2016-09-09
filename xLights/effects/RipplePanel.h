@@ -16,6 +16,8 @@ class wxChoice;
 
 class RipplePanel: public wxPanel
 {
+    void ValidateWindow();
+
 	public:
 
 		RipplePanel(wxWindow* parent);
@@ -24,9 +26,12 @@ class RipplePanel: public wxPanel
 		//(*Declarations(RipplePanel)
 		wxBitmapButton* BitmapButton_Ripple3D;
 		ValueCurveButton* BitmapButton_Ripple_ThicknessVC;
+		wxSlider* Slider_Ripple_Points;
 		wxBitmapButton* BitmapButton_Ripple_Movement;
 		wxChoice* Choice_Ripple_Movement;
 		wxBitmapButton* BitmapButton_RippleThickness;
+		wxBitmapButton* BitmapButton_Ripple_Points;
+		wxStaticText* StaticText1;
 		wxBitmapButton* BitmapButton_Ripple_Object_To_Draw;
 		wxSlider* Slider_Ripple_Cycles;
 		wxStaticText* StaticText72;
@@ -35,6 +40,7 @@ class RipplePanel: public wxPanel
 		wxCheckBox* CheckBox_Ripple3D;
 		wxStaticText* StaticText70;
 		wxChoice* Choice_Ripple_Object_To_Draw;
+		wxTextCtrl* TextCtrl_Ripple_Points;
 		wxSlider* Slider_Ripple_Thickness;
 		//*)
 
@@ -55,6 +61,10 @@ class RipplePanel: public wxPanel
 		static const long IDD_SLIDER_Ripple_Cycles;
 		static const long ID_VALUECURVE_Ripple_Cycles;
 		static const long ID_TEXTCTRL_Ripple_Cycles;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_RIPPLE_POINTS;
+		static const long IDD_TEXTCTRL_RIPPLE_POINTS;
+		static const long ID_BITMAPBUTTON_RIPPLE_POINTS;
 		static const long ID_CHECKBOX_Ripple3D;
 		static const long ID_BITMAPBUTTON17;
 		//*)
@@ -62,18 +72,19 @@ class RipplePanel: public wxPanel
 	public:
 
 		//(*Handlers(RipplePanel)
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
-    void OnLockButtonClick(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		void UpdateLinkedSliderFloat(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
+		void UpdateLinkedSlider360(wxCommandEvent& event);
+		void UpdateLinkedTextCtrl(wxScrollEvent& event);
+		void UpdateLinkedSlider(wxCommandEvent& event);
+		void OnLockButtonClick(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+		void OnVCButtonClick(wxCommandEvent& event);
+		void OnVCChanged(wxCommandEvent& event);
+		void OnChoice_Ripple_Object_To_DrawSelect(wxCommandEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };
