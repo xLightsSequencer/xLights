@@ -2149,6 +2149,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
         else
         {
             wxArrayString efdata = wxSplit(all_efdata[1], '\t');
+            bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
             if (efdata.size() < 3) {
                 return;
             }
@@ -2176,7 +2177,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                 EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
                 int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                 logger_base.info("mDropRow: %d   effectIndex: %d", mDropRow, effectIndex);
-                if (effectIndex >= 0) {
+                if (effectIndex >= 0 || is_timing_effect) {
                     int end_time = mDropEndTimeMS;
                     if( ((efdata.size() >= 7) && GetActiveTimingElement() == nullptr) || !paste_by_cell )  // use original effect length if no timing track is active
                     {
@@ -2202,20 +2203,22 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                             (const char *)efdata[2].ToStdString().c_str(),
                                          mDropStartTimeMS,
                                          end_time, ef);
-                        if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
+                        if (!is_timing_effect && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
                             xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
                         }
                         mSequenceElements->get_undo_mgr().CreateUndoStep();
                         mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID() );
-                        if (!ef->GetPaletteMap().empty()) {
+                        if (!is_timing_effect && !ef->GetPaletteMap().empty()) {
                             sendRenderEvent(el->GetParentElement()->GetModelName(),
                                             mDropStartTimeMS,
                                             mDropEndTimeMS, true);
                         }
-                        RaiseSelectedEffectChanged(ef, true);
-                        mSelectedEffect = ef;
-                        mPartialCellSelected = false;
-                        mSelectedRow = mDropRow;
+                        if( !is_timing_effect ) {
+                            RaiseSelectedEffectChanged(ef, true);
+                            mSelectedEffect = ef;
+                            mPartialCellSelected = false;
+                            mSelectedRow = mDropRow;
+                        }
                     }
                 }
             }
