@@ -65,6 +65,7 @@ public:
     virtual std::string GetFullName() const { return name;}
     
     std::string name;
+    std::string description;
     xlColor customColor;
     DimmingCurve *modelDimmingCurve;
 

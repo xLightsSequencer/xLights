@@ -6,7 +6,6 @@
 #include <wx/tokenzr.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
-#include <wx/propgrid/advprops.h>
 
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsXmlFile.h"
@@ -388,6 +387,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         }
     }
 
+    grid->Append(new wxStringProperty("Description", "Description", description));
     grid->Append(new wxEnumProperty("Preview", "ModelLayoutGroup", LAYOUT_GROUPS, wxArrayInt(), layout_group_number));
 
     p = grid->Append(new PopupDialogProperty(this, "Strand/Node Names", "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
@@ -501,8 +501,19 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
         return 2;
-    } else if (event.GetPropertyName() == "SubModels") {
+    }
+    else if (event.GetPropertyName() == "SubModels") {
         SetFromXml(ModelXml, zeroBased);
+        IncrementChangeCount();
+        return 2;
+    }
+    else if (event.GetPropertyName() == "Description") {
+        description = event.GetValue().GetString();
+        ModelXml->DeleteAttribute("Description");
+        if (description != "")
+        {
+            ModelXml->AddAttribute("Description", description);
+        }
         IncrementChangeCount();
         return 2;
     } else if (event.GetPropertyName() == "ModelFaces") {
@@ -1014,6 +1025,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     SingleNode=HasSingleNode(StringType);
     SingleChannel=HasSingleChannel(StringType);
     rgbOrder = SingleNode ? "RGB" : StringType.substr(0, 3);
+    description = ModelNode->GetAttribute("Description").ToStdString();
 
     tempstr=ModelNode->GetAttribute("parm1");
     tempstr.ToLong(&parm1);

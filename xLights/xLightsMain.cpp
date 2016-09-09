@@ -3340,7 +3340,7 @@ void xLightsFrame::ExportModels(wxString filename)
         return;
     }
 
-    f.Write(_("Model Name,Display As,String Type,String Count,Node Count,Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,My Display,Controller Type,Controller Description,Output,IP,Universe,Controller Channel,Inactive\n"));
+    f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,My Display,Controller Type,Controller Description,Output,IP,Universe,Controller Channel,Inactive\n"));
 
     for (auto m = PreviewModels.begin(); m != PreviewModels.end(); m++)
     {
@@ -3350,8 +3350,9 @@ void xLightsFrame::ExportModels(wxString filename)
         std::string type, description, ip, universe, inactive;
         int channeloffset, output;
         GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output);
-        f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",%d,%d,%d,%d,%s,%d,%d,%s,%s,\"%s\",%d,%s,%s,%d,%s\n",
+        f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%d,%d,%d,%d,%s,%d,%d,%s,%s,\"%s\",%d,%s,%s,%d,%s\n",
             model->name,
+            model->description,
             model->GetDisplayAs(),
             model->GetStringType(),
             model->GetNodeCount() / model->NodesPerString(),
