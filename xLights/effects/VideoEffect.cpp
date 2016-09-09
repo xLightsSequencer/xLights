@@ -237,7 +237,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
         {
             if (buffer.curPeriod == buffer.curEffStartPer)
             {
-                logger_base.warn("VideoEffect: Video file %s not found.", (const char *)_filename.c_str());
+                logger_base.warn("VideoEffect: Video file '%s' not found.", (const char *)_filename.c_str());
             }
         }
 	}
