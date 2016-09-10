@@ -160,7 +160,7 @@ public:
         GLint Result = GL_FALSE;
         int InfoLogLength;
 
-        LOG_GL_ERRORV(glShaderSource(shad, 1, &text , NULL));
+        LOG_GL_ERRORV(glShaderSource(shad, 1, &text , nullptr));
         LOG_GL_ERRORV(glCompileShader(shad));
         
         glGetShaderiv(shad, GL_COMPILE_STATUS, &Result);

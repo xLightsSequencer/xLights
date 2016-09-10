@@ -34,7 +34,7 @@ class TimeLine : public wxWindow
         void Initialize();
 
         void SetStartTimeMS(int time);
-        float GetStartTimeMS();
+        float GetStartTimeMS() const;
 
         bool SetPlayMarkerMS(int ms);
         int GetPlayMarker();
@@ -44,11 +44,12 @@ class TimeLine : public wxWindow
         void SetSelectedPositionStart(int pos, bool reset_end = true);
         void SetSelectedPositionStartMS(int time);
         void SetSelectedPositionEnd(int pos);
-        int GetSelectedPositionStart() { return mSelectedPlayMarkerStart; }
-        int GetSelectedPositionEnd() { return mSelectedPlayMarkerEnd; }
+        void SetSelectedPositionEndMS(int time);
+        int GetSelectedPositionStart() const { return mSelectedPlayMarkerStart; }
+        int GetSelectedPositionEnd() const { return mSelectedPlayMarkerEnd; }
         void LatchSelectedPositions();
         void SetMousePositionMS(int ms);
-        int GetMousePosition() { return mMousePosition; }
+        int GetMousePosition() const { return mMousePosition; }
 
         void ResetMarkers(int ms);
         void RecalcEndTime();
@@ -71,7 +72,7 @@ class TimeLine : public wxWindow
         void ZoomOut();
 
         int TimePerMajorTickInMS();
-        int PixelsPerMajorTick() { return PIXELS_PER_MAJOR_HASH; };
+        int PixelsPerMajorTick() const { return PIXELS_PER_MAJOR_HASH; };
         void GetViewableTimeRange(int &StartTime, int &EndTime);
 
         void GetPositionsFromTimeRange(int startTimeMS,int endTimeMS,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2, int& x3, int& x4);
@@ -93,9 +94,9 @@ class TimeLine : public wxWindow
 
         void PlayStarted();       // signal the start of play so timeline can adjust marks
         void PlayStopped();       // signal play stop so timeline can adjust marks
-        int GetNewStartTimeMS();  // return the time where to begin playing
-        int GetNewEndTimeMS();    // return the time where to end playing
-        int GetCurrentPlayMarkerMS() { return mCurrentPlayMarker;};
+        int GetNewStartTimeMS() const;  // return the time where to begin playing
+        int GetNewEndTimeMS() const;    // return the time where to end playing
+        int GetCurrentPlayMarkerMS() const { return mCurrentPlayMarker;};
 
         void MoveToLeft(int numberOfPixels);
         void MoveToRight(int numberOfPixels);
@@ -103,8 +104,6 @@ class TimeLine : public wxWindow
         void CheckNeedToScrollToPlayStart(bool paused = false);
         const static int ZoomLevelValues[];
 
-
-    protected:
     private:
         DECLARE_EVENT_TABLE()
         void mouseLeftDown( wxMouseEvent& event);
@@ -149,7 +148,6 @@ class TimeLine : public wxWindow
         int GetPositionFromSelection(int position);
         void DrawTriangleMarkerFacingLeft(wxDC& dc, int& play_start_mark, const int& tri_size, int& height);
         void DrawTriangleMarkerFacingRight(wxDC& dc, int& play_start_mark, const int& tri_size, int& height);
-        void DrawTriangleMarkerFacingDown(wxDC& dc, int& play_start_mark, const int& tri_size);
         void DrawRectangle(wxDC& dc, int x1, int y1, int x2, int y2);
         void RecalcMarkerPositions();
         wxPanel* mParent;

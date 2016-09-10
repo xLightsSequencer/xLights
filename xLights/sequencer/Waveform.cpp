@@ -157,6 +157,19 @@ void Waveform::mouseLeftUp( wxMouseEvent& event)
     wxPostEvent(mParent, eventSelected);
 }
 
+void Waveform::SetSelectedInterval(int startMS, int endMS)
+{
+    mTimeline->SetSelectedPositionStart(mTimeline->GetPositionFromTimeMS(startMS), false);
+    mTimeline->SetSelectedPositionEnd(mTimeline->GetPositionFromTimeMS(endMS));
+    mTimeline->LatchSelectedPositions();
+
+    wxCommandEvent eventSelected(EVT_WAVE_FORM_HIGHLIGHT);
+    eventSelected.SetInt(abs(mTimeline->GetNewStartTimeMS() - mTimeline->GetNewEndTimeMS()));
+    wxPostEvent(mParent, eventSelected);
+
+    Refresh(false);
+}
+
 void Waveform::mouseMoved( wxMouseEvent& event)
 {
     if(!mIsInitialized){return;}

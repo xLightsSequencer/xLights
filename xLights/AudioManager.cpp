@@ -116,7 +116,7 @@ void AudioManager::SetPlaybackRate(float rate)
 	wanted_spec.samples = 1024;
 	wanted_spec.callback = fill_audio;
 
-	if (SDL_OpenAudio(&wanted_spec, NULL) < 0)
+	if (SDL_OpenAudio(&wanted_spec, nullptr) < 0)
 	{
 		// a problem
 	}
@@ -167,7 +167,7 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	OpenMediaFile();
 
 	// only initialise if we successfully got data
-	if (_pcmdata != NULL)
+	if (_pcmdata != nullptr)
 	{
 		if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER))
 		{
@@ -184,7 +184,7 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 		wanted_spec.samples = 1024;
 		wanted_spec.callback = fill_audio;
 
-		if (SDL_OpenAudio(&wanted_spec, NULL) < 0)
+		if (SDL_OpenAudio(&wanted_spec, nullptr) < 0)
 		{
 			_resultMessage = "can't open audio.";
 			_state = 0;
@@ -211,9 +211,9 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 	int outcount = n / 2 + 1;
 	kiss_fftr_cfg cfg;
 	kiss_fft_cpx* out = (kiss_fft_cpx*)malloc(sizeof(kiss_fft_cpx) * (outcount));
-	if (out != NULL)
+	if (out != nullptr)
 	{
-		if ((cfg = kiss_fftr_alloc(n, 0/*is_inverse_fft*/, NULL, NULL)) != NULL)
+		if ((cfg = kiss_fftr_alloc(n, 0/*is_inverse_fft*/, NULL, nullptr)) != nullptr)
 		{
 			kiss_fftr(cfg, in, out);
 			free(cfg);
@@ -280,7 +280,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
     Vamp::Plugin* pt = _vamp.GetPlugin("Polyphonic Transcription");
     size_t pref_step = 0;
 
-    if (pt == NULL)
+    if (pt == nullptr)
     {
         logger_base.warn("Unable to load Polyphonic Transcription VAMP plugin.");
     }
@@ -604,7 +604,7 @@ void AudioManager::PrepareFrameData(bool separateThread)
 	if (separateThread)
 	{
 		// if we have not prepared the frame data and no job has been created
-		if (!_frameDataPrepared && _job == NULL)
+		if (!_frameDataPrepared && _job == nullptr)
 		{
 			_job = (Job*)new AudioScanJob(this);
 			_jobPool.PushJob(_job);
@@ -619,7 +619,7 @@ void AudioManager::PrepareFrameData(bool separateThread)
 
 void ProgressFunction(wxProgressDialog* pd, int p)
 {
-    if (pd != NULL)
+    if (pd != nullptr)
     {
         pd->Update(p);
     }
@@ -1528,7 +1528,7 @@ Vamp::Plugin* xLightsVamp::GetPlugin(std::string name)
 {
 	Plugin* p = _plugins[name];
 
-	if (p == NULL)
+	if (p == nullptr)
 	{
 		p = _allplugins[name];
 	}

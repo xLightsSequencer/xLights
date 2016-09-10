@@ -39,6 +39,7 @@ class Waveform : public xlGLCanvas
 
         int SetStartPixelOffset(int startPixel);
         int GetStartPixelOffset();
+        void SetSelectedInterval(int startMS, int endMS);
 
         void SetTimeFrequency(int frequency);
         int GetTimeFrequency();
@@ -67,7 +68,7 @@ class Waveform : public xlGLCanvas
 
     private:
       	DECLARE_EVENT_TABLE()
-        void GetMinMaxSampleSet(int setSize, float*sampleData,int trackSize, MINMAX* minMax);
+        //void GetMinMaxSampleSet(int setSize, float*sampleData,int trackSize, MINMAX* minMax);
         float GetSamplesPerLineFromZoomLevel(int ZoomLevel);
 		TimeLine* mTimeline;
         wxPanel* mParent;
@@ -115,7 +116,7 @@ class Waveform : public xlGLCanvas
             {
             }
 
-            int GetZoomLevel()
+            int GetZoomLevel() const
             {
                 return  mZoomLevel;
             }

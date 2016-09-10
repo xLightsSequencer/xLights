@@ -738,31 +738,43 @@ void MainSequencer::InsertTimingMarkFromRange()
             int index;
             if(!el->HitTestEffectByTime(t2,index))
             {
-                // if there is an effect to left
-                std::string name,settings;
-                Effect * effect = nullptr;
+                // get effect to left and right
+                Effect * lefteffect = nullptr;
+                Effect * righteffect = nullptr;
+
                 for (int x = 0; x < el->GetEffectCount(); x++) {
                     Effect * eff = el->GetEffect(x);
-                    if (eff->GetStartTimeMS() > t2 && x > 0) {
-                        effect = el->GetEffect(x - 1);
+                    if (eff->GetEndTimeMS() < t2 && (lefteffect == nullptr || lefteffect->GetEndTimeMS() < eff->GetEndTimeMS()))
+                    {
+                        lefteffect = eff;
+                    }
+                    if (righteffect == nullptr && eff->GetStartTimeMS() > t2) {
+                        righteffect = eff;
                         break;
                     }
                 }
-                if(effect!=nullptr)
+
+                std::string name;
+                std::string settings;
+                if (lefteffect != nullptr && righteffect != nullptr)
                 {
-                    int tend = effect->GetEndTimeMS();
-                    el->AddEffect(0,name,settings,"",tend,t2,false,false);
+                    // fill to left and right
+                    el->AddEffect(0, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false);
+                    el->AddEffect(0, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false);
                 }
-                // No effect to left start at time = 0
+                else if (lefteffect != nullptr)
+                {
+                    el->AddEffect(0, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false);
+                }
+                else if (righteffect != nullptr)
+                {
+                    el->AddEffect(0, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false);
+                }
                 else
                 {
-                    int tend = 0;
-                    if (el->GetEffectCount() > 0) {
-                        Effect *eff = el->GetEffect(el->GetEffectCount() - 1);
-                        tend = eff->GetEndTimeMS();
-                    }
-                    el->AddEffect(0,name,settings,"",tend,t2,false,false);
+                    el->AddEffect(0, name, settings, "", 0, t2, false, false);
                 }
+
                 PanelEffectGrid->ForceRefresh();
             }
             else

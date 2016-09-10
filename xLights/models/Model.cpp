@@ -1927,7 +1927,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     size_t NodeCount=Nodes.size();
     float sx,sy;
     xlColor color;
-    if (c != NULL) {
+    if (c != nullptr) {
         color = *c;
     }
     int w, h;
@@ -1979,7 +1979,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
                 left = true;
             }
         }
-        if (c == NULL) {
+        if (c == nullptr) {
             Nodes[n]->GetColor(color);
             if (Nodes[n]->model->modelDimmingCurve != nullptr) {
                 Nodes[n]->model->modelDimmingCurve->reverse(color);

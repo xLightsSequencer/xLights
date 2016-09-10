@@ -11,11 +11,6 @@ EVT_MOTION(TimeLine::mouseMoved)
 EVT_LEFT_DOWN(TimeLine::mouseLeftDown)
 EVT_LEFT_UP(TimeLine::mouseLeftUp)
 EVT_MOUSE_CAPTURE_LOST(TimeLine::OnLostMouseCapture)
-//EVT_LEAVE_WINDOW(TimeLine::mouseLeftWindow)
-//EVT_RIGHT_DOWN(TimeLine::rightClick)
-//EVT_KEY_DOWN(TimeLine::keyPressed)
-//EVT_KEY_UP(TimeLine::keyReleased)
-//EVT_MOUSEWHEEL(TimeLine::mouseWheelMoved)
 EVT_PAINT(TimeLine::render)
 END_EVENT_TABLE()
 
@@ -217,6 +212,14 @@ void TimeLine::SetSelectedPositionStartMS(int time)
     Refresh(false);
 }
 
+void TimeLine::SetSelectedPositionEndMS(int time)
+{
+    mSelectedPlayMarkerEndMS = time;
+    mSelectedPlayMarkerEnd = GetPositionFromTimeMS(mSelectedPlayMarkerEndMS);
+    mZoomMarkerMS = mSelectedPlayMarkerStartMS;
+    Refresh(false);
+}
+
 void TimeLine::SetSelectedPositionEnd(int pos)
 {
     mSelectedPlayMarkerEndMS = GetAbsoluteTimeMSfromPosition(pos);
@@ -275,7 +278,7 @@ void TimeLine::PlayStopped()
 }
 
 // return the time where to begin playing
-int TimeLine::GetNewStartTimeMS()
+int TimeLine::GetNewStartTimeMS() const
 {
     int time = 0;
     if( timeline_initiated_play ) {
@@ -289,7 +292,7 @@ int TimeLine::GetNewStartTimeMS()
 }
 
 // return the time where to end playing
-int TimeLine::GetNewEndTimeMS()
+int TimeLine::GetNewEndTimeMS() const
 {
     int time = -1;
     if( timeline_initiated_play )
@@ -317,7 +320,7 @@ void TimeLine::SetStartTimeMS(int time)
     RecalcMarkerPositions();
 }
 
-float TimeLine::GetStartTimeMS()
+float TimeLine::GetStartTimeMS() const
 {
     return mStartTimeMS;
 }

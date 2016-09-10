@@ -3,16 +3,11 @@
 #include "TimeLine.h"
 
 #include "wx/wx.h"
-#include "wx/sizer.h"
 #include "wx/glcanvas.h"
 #ifdef __WXMAC__
  #include "OpenGL/gl.h"
 #else
- //#ifdef _MSC_VER
- // #include "../GL/glut.h"
- //#else
   #include <GL/gl.h>
- //#endif
 #endif
 
 #include  "RowHeading.h"
@@ -44,8 +39,6 @@ EVT_MOUSE_CAPTURE_LOST(EffectsGrid::OnLostMouseCapture)
 EVT_RIGHT_DOWN(EffectsGrid::rightClick)
 EVT_LEFT_DCLICK(EffectsGrid::mouseLeftDClick)
 EVT_LEAVE_WINDOW(EffectsGrid::mouseLeftWindow)
-//EVT_KEY_DOWN(EffectsGrid::keyPressed)
-//EVT_KEY_UP(EffectsGrid::keyReleased)
 EVT_PAINT(EffectsGrid::render)
 END_EVENT_TABLE()
 
@@ -142,11 +135,11 @@ EffectLayer* EffectsGrid::FindOpenLayer(Element* elem, int startTimeMS, int endT
 
 void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
 {
-    if (mSequenceElements == NULL) {
+    if (mSequenceElements == nullptr) {
         return;
     }
     int selectedTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
-    UpdateTimePosition(selectedTimeMS);
+    //UpdateTimePosition(selectedTimeMS);
 
     int row = GetRow(event.GetY());
     if(row>=mSequenceElements->GetVisibleRowInformationSize() || row < 0)
@@ -154,21 +147,29 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     int effectIndex;
     HitLocation selectionType = HitLocation::NONE;
     Effect* selectedEffect = GetEffectAtRowAndTime(row,selectedTimeMS,effectIndex,selectionType);
-    if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
-        wxString label = selectedEffect->GetEffectName();
+    if (selectedEffect != nullptr)
+    {
+        if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
+            wxString label = selectedEffect->GetEffectName();
 
-        wxTextEntryDialog dlg(this, "Edit Label", "Enter new label:", label);
-        if (dlg.ShowModal()) {
-            selectedEffect->SetEffectName(dlg.GetValue().ToStdString());
+            wxTextEntryDialog dlg(this, "Edit Label", "Enter new label:", label);
+            if (dlg.ShowModal()) {
+                selectedEffect->SetEffectName(dlg.GetValue().ToStdString());
+            }
+            Refresh();
         }
-        Refresh();
+        else
+        {
+            // we have double clicked on an effect - highlight that part of the waveform
+            ((MainSequencer*)mParent)->PanelWaveForm->SetSelectedInterval(selectedEffect->GetStartTimeMS(), selectedEffect->GetEndTimeMS());
+            Refresh();
+        }
     }
-
 }
 
 void EffectsGrid::rightClick(wxMouseEvent& event)
 {
-    if (mSequenceElements == NULL) {
+    if (mSequenceElements == nullptr) {
         return;
     }
     SetFocus();
@@ -210,7 +211,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         wxMenuItem* menu_align_both_times = mnuAlignment->Append(ID_GRID_MNU_ALIGN_BOTH_TIMES,"Align Both Times");
         wxMenuItem* menu_align_centerpoints = mnuAlignment->Append(ID_GRID_MNU_ALIGN_CENTERPOINTS,"Align Centerpoints");
         wxMenuItem* menu_align_match_duration = mnuAlignment->Append(ID_GRID_MNU_ALIGN_MATCH_DURATION,"Align Match Duration");
-        mnuAlignment->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, NULL, this);
+        mnuAlignment->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
         mnuLayer.AppendSubMenu(mnuAlignment, "Alignment" );
         if( (mSelectedEffect == nullptr) || !MultipleEffectsSelected() ) {
             menu_align_start_times->Enable(false);
@@ -227,7 +228,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         if( !(mCellRangeSelected || mPartialCellSelected) ) {
             menu_random->Enable(false);
         }
-        mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, NULL, this);
+        mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
         Draw();
         PopupMenu(&mnuLayer);
     }
@@ -263,7 +264,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         if( !mCanPaste || !(mCellRangeSelected || mPartialCellSelected) ) {
             menu_paste->Enable(false);
         }
-        mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, NULL, this);
+        mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
         Draw();
         PopupMenu(&mnuLayer);
     }
@@ -323,7 +324,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     }
     else if(id == ID_GRID_MNU_PRESETS)
     {
-        if( xlights->EffectTreeDlg==NULL )
+        if( xlights->EffectTreeDlg==nullptr )
         {
             xlights->EffectTreeDlg = new EffectTreeDialog(xlights);
             xlights->EffectTreeDlg->InitItems(mSequenceElements->GetEffectsNode());
@@ -614,7 +615,7 @@ void EffectsGrid::OnDrop(int x, int y)
 
 void EffectsGrid::mouseMoved(wxMouseEvent& event)
 {
-    if (!mIsInitialized || mSequenceElements == NULL) {
+    if (!mIsInitialized || mSequenceElements == nullptr) {
         return;
     }
 
@@ -763,7 +764,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
         Refresh();
     }
-    if (mSequenceElements == NULL) {
+    if (mSequenceElements == nullptr) {
         return;
     }
     SetFocus();
@@ -909,7 +910,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
 
 void EffectsGrid::mouseReleased(wxMouseEvent& event)
 {
-    if (mSequenceElements == NULL) {
+    if (mSequenceElements == nullptr) {
         return;
     }
     bool checkForEmptyCell = false;
@@ -3433,7 +3434,7 @@ void EffectsGrid::CopyModelEffects(int row_number)
     mSequenceElements->UnSelectAllEffects();
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row_number);
     Effect* effect = effectLayer->GetEffect(0);
-    if( effect != NULL )
+    if( effect != nullptr)
     {
         mDropStartTimeMS = effect->GetStartTimeMS();
         mRangeStartCol = -1;

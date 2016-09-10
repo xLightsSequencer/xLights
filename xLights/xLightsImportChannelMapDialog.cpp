@@ -65,7 +65,7 @@ void xLightsImportTreeModel::Delete(const wxDataViewItem &item)
     // first remove the node from the parent's array of children;
     // NOTE: xLightsImportModelNodePtrArray is only an array of _pointers_
     //       thus removing the node from it doesn't result in freeing it
-    if (node->GetParent() != NULL)
+    if (node->GetParent() != nullptr)
     {
         node->GetParent()->GetChildren().Remove(node);
     }
@@ -87,7 +87,7 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
     switch (col)
     {
     case 0:
-        if (parent == NULL)
+        if (parent == nullptr)
         {
             //variant = wxVariant(wxDataViewIconText(node->_model));
             variant = wxVariant(node->_model);
@@ -136,7 +136,7 @@ wxDataViewItem xLightsImportTreeModel::GetParent(const wxDataViewItem &item) con
 
     xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
 
-    if (node->GetParent() == NULL)
+    if (node->GetParent() == nullptr)
         return wxDataViewItem(0);
 
     return wxDataViewItem((void*)node->GetParent());
@@ -372,7 +372,7 @@ void xLightsImportChannelMapDialog::OnSelectionChanged(wxDataViewEvent& event)
         // I am pretty sure this doesnt do anything
         // What I am trying to do is single click activate the choice box.
         //wxRect r = TreeListCtrl_Mapping->GetItemRect(event.GetItem(), TreeListCtrl_Mapping->GetColumn(1));
-        //TreeListCtrl_Mapping->GetColumn(1)->GetRenderer()->ActivateCell(r, dataModel, event.GetItem(), 1, NULL);
+        //TreeListCtrl_Mapping->GetColumn(1)->GetRenderer()->ActivateCell(r, dataModel, event.GetItem(), 1, nullptr);
 
         // This also does not work and causes left behind choice boxes which then generate exceptions
         //TreeListCtrl_Mapping->EditItem(event.GetItem(), TreeListCtrl_Mapping->GetColumn(1));
@@ -504,7 +504,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
         int count = wxAtoi(text.ReadLine());
         for (int x = 0; x < count; x++) {
             std::string mn = text.ReadLine().ToStdString();
-            if (TreeContainsModel(mn) == NULL) {
+            if (TreeContainsModel(mn) == nullptr) {
                 if (!modelwarning)
                 {
                     if (wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model. Do you want to see future occurences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
@@ -564,13 +564,13 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                     }
                 } else 
                 {
-                    if (mni != NULL)
+                    if (mni != nullptr)
                     {
                         wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
                         mni->_mapping = mapping;
                         dataModel->ValueChanged(item, 1);
                     }
-                    else if (msi != NULL)
+                    else if (msi != nullptr)
                     {
                         wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString());
                         msi->_mapping = mapping;
