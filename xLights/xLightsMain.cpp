@@ -1201,41 +1201,47 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     // Load headings into network list
     wxListItem itemCol;
-    itemCol.SetText(_T("Network Type"));
+
+    itemCol.SetText(_T("Output #"));
     itemCol.SetImage(-1);
     GridNetwork->InsertColumn(0, itemCol);
 
+    itemCol.SetText(_T("Network Type"));
+    itemCol.SetImage(-1);
+    GridNetwork->InsertColumn(1, itemCol);
+
     itemCol.SetText(_T("Port"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
-    GridNetwork->InsertColumn(1, itemCol);
+    GridNetwork->InsertColumn(2, itemCol);
 
     itemCol.SetText(_T("Baud Rate or E1.31 Univ"));
     itemCol.SetAlign(wxLIST_FORMAT_CENTRE);
-    GridNetwork->InsertColumn(2, itemCol);
+    GridNetwork->InsertColumn(3, itemCol);
 
     itemCol.SetText(_T("Num Channels"));
     itemCol.SetAlign(wxLIST_FORMAT_CENTRE);
-    GridNetwork->InsertColumn(3, itemCol);
+    GridNetwork->InsertColumn(4, itemCol);
 
     itemCol.SetText(_T("xLights/Vixen/FPP Mapping"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
-    GridNetwork->InsertColumn(4, itemCol);
+    GridNetwork->InsertColumn(5, itemCol);
 
     itemCol.SetText(_T("Enabled"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
-    GridNetwork->InsertColumn(5, itemCol);
+    GridNetwork->InsertColumn(6, itemCol);
 
 	itemCol.SetText(_T("Description"));
 	itemCol.SetAlign(wxLIST_FORMAT_LEFT);
-	GridNetwork->InsertColumn(6, itemCol);
+	GridNetwork->InsertColumn(7, itemCol);
 
-    GridNetwork->SetColumnWidth(0,wxLIST_AUTOSIZE_USEHEADER);
-    GridNetwork->SetColumnWidth(1,100);
-    GridNetwork->SetColumnWidth(2,wxLIST_AUTOSIZE_USEHEADER);
-    GridNetwork->SetColumnWidth(3,100);
-    GridNetwork->SetColumnWidth(4,170);
-    GridNetwork->SetColumnWidth(5,wxLIST_AUTOSIZE_USEHEADER);
-	GridNetwork->SetColumnWidth(6, wxLIST_AUTOSIZE);
+    GridNetwork->SetColumnWidth(0, wxLIST_AUTOSIZE_USEHEADER);
+    GridNetwork->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
+    GridNetwork->SetColumnWidth(2, 100);
+    GridNetwork->SetColumnWidth(3, wxLIST_AUTOSIZE_USEHEADER);
+    GridNetwork->SetColumnWidth(4, 100);
+    GridNetwork->SetColumnWidth(5, 170);
+    GridNetwork->SetColumnWidth(6, wxLIST_AUTOSIZE_USEHEADER);
+	GridNetwork->SetColumnWidth(7, wxLIST_AUTOSIZE);
 
     // get list of most recently used directories
     wxString dir,mru_name;

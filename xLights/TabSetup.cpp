@@ -413,6 +413,7 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
     wxXmlNode* e=NetworkXML.GetRoot();
     GridNetwork->DeleteAllItems();
     NetInfo.Clear();
+    size_t output = 0;
     for( e=e->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "e131sync")
@@ -422,17 +423,19 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
         }
         else if (e->GetName() == "network")
         {
+            output++;
+            newidx = GridNetwork->InsertItem(GridNetwork->GetItemCount(), wxString::Format("%d", output));
             NetName=e->GetAttribute("NetworkType", "");
-            newidx = GridNetwork->InsertItem(GridNetwork->GetItemCount(), NetName);
+            GridNetwork->SetItem(newidx, 1, NetName);
             wxString ip = e->GetAttribute("ComPort", "");
-            GridNetwork->SetItem(newidx,1,ip);
+            GridNetwork->SetItem(newidx,2,ip);
             int i = wxAtoi(e->GetAttribute("NumUniverses", "1"));
 
             MaxChannelsStr=e->GetAttribute("MaxChannels", "0");
             MaxChannelsStr.ToLong(&MaxChannels);
             if (i > 1) {
                 int u = wxAtoi(e->GetAttribute("BaudRate", "1"));
-                GridNetwork->SetItem(newidx,2,wxString::Format("%d-%d",u,(u + i - 1)));
+                GridNetwork->SetItem(newidx,3,wxString::Format("%d-%d",u,(u + i - 1)));
                 MaxChannelsStr = MaxChannelsStr + "x" + e->GetAttribute("NumUniverses");
                 if (NetName == "E131")
                 {
@@ -443,7 +446,7 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
                 }
                 MaxChannels *= i;
             } else {
-                GridNetwork->SetItem(newidx,2,e->GetAttribute("BaudRate", ""));
+                GridNetwork->SetItem(newidx,3,e->GetAttribute("BaudRate", ""));
                 if (NetName == "E131")
                 {
                     int u = wxAtoi(e->GetAttribute("BaudRate", "1"));
@@ -454,7 +457,7 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
                     NetInfo.AddUniverseNetwork("", -1, MaxChannels);
                 }
             }
-            GridNetwork->SetItem(newidx,3,MaxChannelsStr);
+            GridNetwork->SetItem(newidx,4,MaxChannelsStr);
 
             NetInfo.AddNetwork(MaxChannels);
             StartChannel=TotChannels+1;
@@ -463,15 +466,15 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
 
             // Vixen mapping
             msg=wxString::Format(_("Channels %d to %ld"), StartChannel, TotChannels);
-            GridNetwork->SetItem(newidx,4,msg);
+            GridNetwork->SetItem(newidx,5,msg);
 
-            GridNetwork->SetItem(newidx,5,e->GetAttribute("Enabled", "Yes"));
-			GridNetwork->SetItem(newidx, 6, e->GetAttribute("Description", ""));
-			GridNetwork->SetColumnWidth(6, wxLIST_AUTOSIZE);
+            GridNetwork->SetItem(newidx,6,e->GetAttribute("Enabled", "Yes"));
+			GridNetwork->SetItem(newidx, 7, e->GetAttribute("Description", ""));
+			GridNetwork->SetColumnWidth(7, wxLIST_AUTOSIZE);
 		}
     }
 
-    GridNetwork->SetColumnWidth(1,NetCnt > 0 ? wxLIST_AUTOSIZE : 100);
+    GridNetwork->SetColumnWidth(2, NetCnt > 0 ? wxLIST_AUTOSIZE : 100);
 	_totalChannels = TotChannels;
 
     // Now notify the layout as the model start numbers may have been impacted
