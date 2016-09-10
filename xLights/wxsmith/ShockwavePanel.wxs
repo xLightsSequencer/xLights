@@ -10,7 +10,7 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL40" variable="Panel10" member="no">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer100" member="no">
-								<cols>4</cols>
+								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="wxID_ANY" variable="StaticText154" member="no">
@@ -25,7 +25,17 @@
 										<value>50</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_CenterX" subclass="ValueCurveButton" variable="BitmapButton_Shockwave_CenterX" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -42,7 +52,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX" variable="BitmapButton_Shockwave_CenterX" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX" variable="BitmapButton_Shockwave_Center_X" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -66,7 +76,17 @@
 										<value>50</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_CenterY" subclass="ValueCurveButton" variable="BitmapButton_Shockwave_CenterY" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -83,7 +103,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY" variable="BitmapButton_Shockwave_CenterY" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY" variable="BitmapButton_Shockwave_Center_Y" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -108,7 +128,17 @@
 										<max>250</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_Start_Radius" subclass="ValueCurveButton" variable="BitmapButton_Shockwave_Start_Radius" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -125,7 +155,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Radius" variable="BitmapButton_Shockwave_Start_Radius" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Radius" variable="BitmapButton_Shockwave_StartRadius" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -150,7 +180,17 @@
 										<max>250</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_End_Radius" subclass="ValueCurveButton" variable="BitmapButton_Shockwave_End_Radius" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -167,7 +207,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_End_Radius" variable="BitmapButton_Shockwave_End_Radius" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_End_Radius" variable="BitmapButton_Shockwave_EndRadius" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -192,7 +232,17 @@
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_Start_Width" subclass="ValueCurveButton" variable="BitmapButton_Shockwave_Start_Width" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -209,7 +259,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Width" variable="BitmapButton_Shockwave_Start_Width" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Width" variable="BitmapButton_Shockwave_StartWidth" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -234,7 +284,17 @@
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_End_Width" subclass="ValueCurveButton" variable="BitmapButton_Shockwave_End_Width" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -251,7 +311,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width" variable="BitmapButton_Shockwave_End_Width" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width" variable="BitmapButton_Shockwave_EndWidth" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -285,7 +345,7 @@
 										<max>10</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -328,7 +388,7 @@
 						<label>Options</label>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

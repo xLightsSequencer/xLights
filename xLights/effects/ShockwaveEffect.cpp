@@ -38,17 +38,17 @@ const double PI  =3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
 void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int center_x = SettingsMap.GetInt("SLIDER_Shockwave_CenterX", 0);
-    int center_y = SettingsMap.GetInt("SLIDER_Shockwave_CenterY", 0);
-    int start_radius = SettingsMap.GetInt("SLIDER_Shockwave_Start_Radius", 0);
-    int end_radius = SettingsMap.GetInt("SLIDER_Shockwave_End_Radius", 0);
-    int start_width = SettingsMap.GetInt("SLIDER_Shockwave_Start_Width", 0);
-    int end_width = SettingsMap.GetInt("SLIDER_Shockwave_End_Width", 0);
+    double eff_pos = buffer.GetEffectTimeIntervalPosition();
+    int center_x = GetValueCurveInt("Shockwave_CenterX", 50, SettingsMap, eff_pos);
+    int center_y = GetValueCurveInt("Shockwave_CenterY", 50, SettingsMap, eff_pos);
+    int start_radius = GetValueCurveInt("Shockwave_Start_Radius", 0, SettingsMap, eff_pos);
+    int end_radius = GetValueCurveInt("Shockwave_End_Radius", 0, SettingsMap, eff_pos);
+    int start_width = GetValueCurveInt("Shockwave_Start_Width", 0, SettingsMap, eff_pos);
+    int end_width = GetValueCurveInt("Shockwave_End_Width", 0, SettingsMap, eff_pos);
     int acceleration = SettingsMap.GetInt("SLIDER_Shockwave_Accel", 0);
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Shockwave_Blend_Edges");
 
     std::vector< std::vector<double> > temp_colors_pct(buffer.BufferWi, std::vector<double>(buffer.BufferHt));
-    double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int num_colors = buffer.palette.Size();
     if( num_colors == 0 )
         num_colors = 1;

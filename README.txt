@@ -16,6 +16,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (gil)     Prevent effects from being copied or moved twice when they exist multiple times in the grid.
    -- bug (gil)     Fix names for DMX model types in property grid.  Fixes #674.
    -- bug (gil)     Fix single timing effect copy/paste not working.  Fixes #677.
+   -- enh (gil)     Add value curves to Shockwave effect.
    -- enh (keithsw) Implement e1.31 sync
    -- enh (keithsw) Add more checks in check sequence
    -- enh (keithsw) Show single colour string colour in sequencer row heading
