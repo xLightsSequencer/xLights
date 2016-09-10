@@ -145,7 +145,7 @@ public:
             }
             f = f->GetNext();
         }
-        if(m_model->GetModelXml()->HasAttribute("ModelBrightness") && dimmingInfo.empty()) {
+        if(dimmingInfo.empty()) {
             wxString b = m_model->GetModelXml()->GetAttribute("ModelBrightness","0");
             dimmingInfo["all"]["gamma"] = "1.0";
             dimmingInfo["all"]["brightness"] = b;

@@ -8,8 +8,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   DimmingCurve dialog not initialized properly for models that don't already have a dimming curve
    -- enh (dkulp)   Optimise blur - speeds rendering
    -- enh (dkulp)   Add additive/subtractive/min/max blend modes to on effect
+   -- bug (dkulp)   Fix "promote node effects" not appearing when it should
+   -- bug (dkulp)   Fix crash when select show models/nodes/strands from menus
    -- bug (gil)     Fix align both times boundary problem.  Fixes #669.
    -- bug (gil)     Fix layout group change to model group not taking effect till restart.
    -- enh (gil)     Change default model group back to minimal grid.
