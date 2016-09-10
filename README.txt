@@ -23,6 +23,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keithsw) Add mouth image hints to faces dialog
    -- enh (keithsw) Show waveform selected duration under Time/FPS display
    -- bug (keithsw) Fix dropping of ranged timing tracks between two existing ranges. Also prevent spanning ranges.
+   -- enh (keithsw) Add star to ripple effect
+   -- enh (keithsw) Add a free model description property which is included in model export. Useful for documenting things like which controller output it should be on or the cable tag or anything else that you may currently record in a spreadsheet.
 2016.48  Aug 29, 2016
    -- enh (keithsw) Add sequence checker, "Tools,Check Sequence". This scans your Setup/Layout/Open sequence and highlights any
                     items that might cause issues or unexpected behaviour in xLights.
