@@ -263,6 +263,22 @@ void RippleEffect::Drawcircle(RenderBuffer &buffer, int Movement,int xc,int yc,d
 
 void RippleEffect::Drawstar(RenderBuffer &buffer, int Movement, int xc, int yc, double radius, int points, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
 {
+    double offsetangle = 0.0;
+    switch (points)
+    {
+    case 4:
+        break;
+    case 5:
+        offsetangle = 90.0 - 360.0 / 5;
+        break;
+    case 6:
+        offsetangle = 30.0;
+        break;
+    case 7:
+        offsetangle = 90.0 - 360.0 / 7;
+        break;
+    }
+
     xlColor color(hsv);
 
     for (double i = 0; i<Ripple_Thickness; i += .5)
@@ -290,17 +306,18 @@ void RippleEffect::Drawstar(RenderBuffer &buffer, int Movement, int xc, int yc, 
 
         for (double degrees = 0.0; degrees<361.0; degrees += increment) // 361 because it allows for small rounding errors
         {
-            double radian = degrees * (M_PI / 180.0);
+            if (degrees > 360.0) degrees = 360.0;
+            double radian = (offsetangle + degrees) * (M_PI / 180.0);
             int xouter = radius * cos(radian) + xc;
             int youter = radius * sin(radian) + yc;
 
-            radian = (degrees + increment / 2.0) * (M_PI / 180.0);
+            radian = (offsetangle + degrees + increment / 2.0) * (M_PI / 180.0);
             int xinner = InnerRadius * cos(radian) + xc;
             int yinner = InnerRadius * sin(radian) + yc;
 
             buffer.DrawLine(xinner, yinner, xouter, youter, color);
 
-            radian = (degrees - increment / 2.0) * (M_PI / 180.0);
+            radian = (offsetangle + degrees - increment / 2.0) * (M_PI / 180.0);
             xinner = InnerRadius * cos(radian) + xc;
             yinner = InnerRadius * sin(radian) + yc;
 

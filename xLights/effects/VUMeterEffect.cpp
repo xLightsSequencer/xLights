@@ -300,7 +300,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 			RenderLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark);
 			break;
 		case 11:
-			RenderLevelShapeFrame(buffer, shape, _lastsize, sensitivity, slowdownfalls, xoffset, yoffset);
+			RenderLevelShapeFrame(buffer, shape, _lastsize, sensitivity, slowdownfalls, xoffset, yoffset, usebars);
 			break;
         case 12:
             RenderOnColourFrame(buffer);
@@ -887,6 +887,53 @@ void VUMeterEffect::DrawCircle(RenderBuffer& buffer, int centerx, int centery, f
 	}
 }
 
+void VUMeterEffect::DrawStar(RenderBuffer& buffer, int centerx, int centery, float radius, xlColor& color1, int points)
+{
+    double offsetangle = 0.0;
+    switch (points)
+    {
+    case 4:
+        break;
+    case 5:
+        offsetangle = 90.0 - 360.0 / 5;
+        break;
+    case 6:
+        offsetangle = 30.0;
+        break;
+    case 7:
+        offsetangle = 90.0 - 360.0 / 7;
+        break;
+    }
+
+    if (radius > 0)
+    {
+        double InnerRadius = radius / 2.618034;    // divide by golden ratio squared
+
+        double increment = 360.0 / points;
+
+        for (double degrees = 0.0; degrees<361.0; degrees += increment) // 361 because it allows for small rounding errors
+        {
+            if (degrees > 360.0) degrees = 360.0;
+
+            double radian = (offsetangle + degrees) * (M_PI / 180.0);
+            int xouter = radius * cos(radian) + centerx;
+            int youter = radius * sin(radian) + centery;
+
+            radian = (offsetangle + degrees + increment / 2.0) * (M_PI / 180.0);
+            int xinner = InnerRadius * cos(radian) + centerx;
+            int yinner = InnerRadius * sin(radian) + centery;
+
+            buffer.DrawLine(xinner, yinner, xouter, youter, color1);
+
+            radian = (offsetangle + degrees - increment / 2.0) * (M_PI / 180.0);
+            xinner = InnerRadius * cos(radian) + centerx;
+            yinner = InnerRadius * sin(radian) + centery;
+
+            buffer.DrawLine(xinner, yinner, xouter, youter, color1);
+        }
+    }
+}
+
 void VUMeterEffect::DrawBox(RenderBuffer& buffer, int startx, int endx, int starty, int endy, xlColor& color1)
 {
 	for (int x = startx; x <= endx; x++)
@@ -938,9 +985,13 @@ void VUMeterEffect::DrawDiamond(RenderBuffer& buffer, int centerx, int centery, 
 	}
 }
 
-void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset)
+void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars)
 {
     if (buffer.GetMedia() == nullptr) return;
+
+    // star points
+    if (usebars > 99) usebars = 99;
+    int points = usebars / 25 + 4;
 
     int truexoffset = xoffset * buffer.BufferWi / 2 / 100;
     int trueyoffset = yoffset * buffer.BufferHt / 2 / 100;
@@ -1069,7 +1120,185 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 		color1.alpha = 255;
 		DrawCircle(buffer, centerx, centery, lastsize, color1);
 	}
-	else if (shape == "Filled Circle")
+    else if (shape == "Star")
+    {
+        float maxradius = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
+        float radius = maxradius * f;
+        if (slowdownfalls)
+        {
+            if (radius < lastsize)
+            {
+                lastsize = lastsize - std::min(maxradius, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
+                if (lastsize < radius)
+                {
+                    lastsize = radius;
+                }
+            }
+            else
+            {
+                lastsize = radius;
+            }
+        }
+        else
+        {
+            lastsize = radius;
+        }
+
+        xlColor color1;
+        buffer.palette.GetColor(0, color1);
+
+        int centerx = (buffer.BufferWi / 2.0) + truexoffset;
+        int centery = (buffer.BufferHt / 2.0) + trueyoffset;
+        color1.alpha = 0.25 * 255;
+        DrawStar(buffer, centerx, centery, lastsize - 2, color1, points);
+        DrawStar(buffer, centerx, centery, lastsize + 2, color1, points);
+        color1.alpha = 0.5 * 255;
+        DrawStar(buffer, centerx, centery, lastsize - 1, color1, points);
+        DrawStar(buffer, centerx, centery, lastsize + 1, color1, points);
+        color1.alpha = 255;
+        DrawStar(buffer, centerx, centery, lastsize, color1, points);
+    }
+    else if (shape == "Filled Star")
+    {
+        float maxradius = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
+        float radius = maxradius * f;
+        if (slowdownfalls)
+        {
+            if (radius < lastsize)
+            {
+                lastsize = lastsize - std::min(maxradius, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
+                if (lastsize < radius)
+                {
+                    lastsize = radius;
+                }
+            }
+            else
+            {
+                lastsize = radius;
+            }
+        }
+        else
+        {
+            lastsize = radius;
+        }
+        int centerx = (buffer.BufferWi / 2.0) + truexoffset;
+        int centery = (buffer.BufferHt / 2.0) + trueyoffset;
+
+        for (float x = 0; x <= lastsize; x+=0.5f)
+        {
+            float distance = x / lastsize;
+            xlColor color1;
+            buffer.GetMultiColorBlend(distance, false, color1);
+            DrawStar(buffer, centerx, centery, x, color1, points);
+        }
+    }
+    else if (shape == "Diamond")
+    {
+        int centerx = (buffer.BufferWi / 2.0) + truexoffset;
+        int centery = (buffer.BufferHt / 2.0) + trueyoffset;
+        float maxside = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
+        float side = maxside * f;
+        if (slowdownfalls)
+        {
+            if (side < lastsize)
+            {
+                lastsize = lastsize - std::min(maxside, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
+                if (lastsize < side)
+                {
+                    lastsize = side;
+                }
+            }
+            else
+            {
+                lastsize = side;
+            }
+        }
+        else
+        {
+            lastsize = side;
+        }
+        xlColor color1;
+        buffer.palette.GetColor(0, color1);
+        color1.alpha = 0.25 * 255;
+        DrawDiamond(buffer, centerx, centery, lastsize - 2, color1);
+        DrawDiamond(buffer, centerx, centery, lastsize + 2, color1);
+        color1.alpha = 0.5 * 255;
+        DrawDiamond(buffer, centerx, centery, lastsize - 1, color1);
+        DrawDiamond(buffer, centerx, centery, lastsize + 1, color1);
+        color1.alpha = 255;
+        DrawDiamond(buffer, centerx, centery, lastsize, color1);
+    }
+    else if (shape == "Filled Circle")
+	{
+		float maxradius = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
+		float radius = maxradius * f;
+		if (slowdownfalls)
+		{
+			if (radius < lastsize)
+			{
+				lastsize = lastsize - std::min(maxradius, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
+				if (lastsize < radius)
+				{
+					lastsize = radius;
+				}
+			}
+			else
+			{
+				lastsize = radius;
+			}
+		}
+		else
+		{
+			lastsize = radius;
+		}
+		int centerx = (buffer.BufferWi / 2.0) + truexoffset;
+		int centery = (buffer.BufferHt / 2.0) + trueyoffset;
+
+		for (int x = 0; x <= lastsize; x++)
+		{
+			float distance = (float)x / lastsize;
+			xlColor color1;
+			buffer.GetMultiColorBlend(distance, false, color1);
+			DrawCircle(buffer, centerx, centery, x, color1);
+		}
+	}
+	else if (shape == "Diamond")
+	{
+		int centerx = (buffer.BufferWi / 2.0) + truexoffset;
+		int centery = (buffer.BufferHt / 2.0) + trueyoffset;
+		float maxside = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
+		float side = maxside * f;
+		if (slowdownfalls)
+		{
+			if (side < lastsize)
+			{
+				lastsize = lastsize - std::min(maxside, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
+				if (lastsize < side)
+				{
+					lastsize = side;
+				}
+			}
+			else
+			{
+				lastsize = side;
+			}
+		}
+		else
+		{
+			lastsize = side;
+		}
+		xlColor color1;
+		buffer.palette.GetColor(0, color1);
+		color1.alpha = 0.25 * 255;
+		DrawDiamond(buffer, centerx, centery, lastsize - 2, color1);
+		DrawDiamond(buffer, centerx, centery, lastsize + 2, color1);
+		color1.alpha = 0.5 * 255;
+		DrawDiamond(buffer, centerx, centery, lastsize - 1, color1);
+		DrawDiamond(buffer, centerx, centery, lastsize + 1, color1);
+		color1.alpha = 255;
+		DrawDiamond(buffer, centerx, centery, lastsize, color1);
+	}
+    else if (shape == "Filled Circle")
 	{
 		float maxradius = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
 		float radius = maxradius * f;

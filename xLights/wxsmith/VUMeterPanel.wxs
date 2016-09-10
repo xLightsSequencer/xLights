@@ -214,6 +214,8 @@
 								<item>Filled Square</item>
 								<item>Diamond</item>
 								<item>Filled Diamond</item>
+								<item>Star</item>
+								<item>Filled Star</item>
 							</content>
 							<selection>0</selection>
 							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />
