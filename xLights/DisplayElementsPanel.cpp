@@ -204,6 +204,18 @@ void DisplayElementsPanel::AddViewToList(const wxString& viewName, bool isChecke
     MainViewsChoice->Append(viewName);
 }
 
+bool DisplayElementsPanel::IsModelAGroup(const std::string& modelname) const
+{
+    for(auto it = mModelGroups->GetChildren(); it != nullptr; it=it->GetNext())
+    {
+        if (it->GetName() == "modelGroup" && it->GetAttribute("name") == modelname)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void DisplayElementsPanel::AddModelToList(Element* model)
 {
     if( model != nullptr )
@@ -214,7 +226,11 @@ void DisplayElementsPanel::AddModelToList(Element* model)
         ListCtrlModels->SetItemPtrData(mNumModels,(wxUIntPtr)model);
         ListCtrlModels->SetItem(mNumModels,2,model->GetName());
         ListCtrlModels->SetChecked(mNumModels,model->GetVisible());
-        ListCtrlModels->SetItemColumnImage(mNumModels, 1, MODEL_IMAGE);
+        // Need to solve this ... I think we only want images for groups.
+        if (IsModelAGroup(model->GetName()))
+        {
+            ListCtrlModels->SetItemColumnImage(mNumModels, 1, MODEL_IMAGE);
+        }
         mNumModels++;
     }
 }

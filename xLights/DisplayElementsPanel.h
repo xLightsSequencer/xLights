@@ -83,6 +83,7 @@ class DisplayElementsPanel: public wxPanel
 	private:
         void PopulateViews();
         void PopulateModels();
+        bool IsModelAGroup(const std::string& modelname) const;
 
         SequenceData* mSeqData;
         SequenceElements* mSequenceElements;
