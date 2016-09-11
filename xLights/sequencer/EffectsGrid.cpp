@@ -139,7 +139,10 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
         return;
     }
     int selectedTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
-    //UpdateTimePosition(selectedTimeMS);
+
+    if (!event.ShiftDown()) {
+        UpdateTimePosition(selectedTimeMS);
+    }
 
     int row = GetRow(event.GetY());
     if(row>=mSequenceElements->GetVisibleRowInformationSize() || row < 0)
@@ -149,14 +152,16 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     Effect* selectedEffect = GetEffectAtRowAndTime(row,selectedTimeMS,effectIndex,selectionType);
     if (selectedEffect != nullptr)
     {
-        if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
-            wxString label = selectedEffect->GetEffectName();
+        if (!event.ShiftDown()) {
+            if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
+                wxString label = selectedEffect->GetEffectName();
 
-            wxTextEntryDialog dlg(this, "Edit Label", "Enter new label:", label);
-            if (dlg.ShowModal()) {
-                selectedEffect->SetEffectName(dlg.GetValue().ToStdString());
+                wxTextEntryDialog dlg(this, "Edit Label", "Enter new label:", label);
+                if (dlg.ShowModal()) {
+                    selectedEffect->SetEffectName(dlg.GetValue().ToStdString());
+                }
+                Refresh();
             }
-            Refresh();
         }
         else
         {
