@@ -30,6 +30,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keithsw) Add a free model description property which is included in model export. Useful for documenting things like which controller output it should be on or the cable tag or anything else that you may currently record in a spreadsheet.
    -- bug (keithsw) Fix some problems with timing mark creation
    -- enh (keithsw) Shift + Double click on effect highlights corresponding portion of the waveform
+   -- enh (keithsw) Add a random color curve type ... randomly sets the color to a color between the colors of the color stops
 2016.48  Aug 29, 2016
    -- enh (keithsw) Add sequence checker, "Tools,Check Sequence". This scans your Setup/Layout/Open sequence and highlights any
                     items that might cause issues or unexpected behaviour in xLights.
