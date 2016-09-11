@@ -172,6 +172,11 @@ ccSortableColorPoint* ColorCurve::GetPointAt(float offset)
     return nullptr;
 }
 
+double CCrand01()
+{
+    return (double)rand() / (double)RAND_MAX;
+}
+
 wxColor ColorCurve::GetValueAt(float offset) const
 {
     if (_type == "Gradient")
@@ -246,6 +251,52 @@ wxColor ColorCurve::GetValueAt(float offset) const
             return ptp->color;
         }
         return pt->color;
+    }
+    else if (_type == "Random")
+    {
+        wxColor c1 = *wxBLACK;
+        float d = 0;
+        const ccSortableColorPoint* pt = GetActivePoint(offset, d);
+        if (pt == nullptr)
+        {
+            const ccSortableColorPoint* ptp = GetNextActivePoint(offset, d);
+            c1 = ptp->color;
+
+            if (offset == ptp->x) return c1;
+        }
+        else
+        {
+            c1 = pt->color;
+            if (offset == pt->x) return c1;
+        }
+
+        wxColor c2 = *wxBLACK;
+        pt = GetNextActivePoint(offset, d);
+
+        if (pt == nullptr)
+        {
+            const ccSortableColorPoint* ptp = GetActivePoint(offset, d);
+            c2 = wxColor(ptp->color);
+            if (offset == ptp->x) return c2;
+        }
+        else
+        {
+            c2 = wxColor(pt->color);
+            if (offset == pt->x) return c2;
+        }
+
+        // handle black & white differently
+        if (c1.Red() == c1.Green() && c1.Green() == c1.Blue() && c2.Red() == c2.Green() && c2.Green() == c2.Blue())
+        {
+            double r = CCrand01();
+            return wxColor(r * abs((float)c1.Red() - (float)c2.Red()) + std::min(c1.Red(), c2.Red()),
+                r * abs((float)c1.Green() - (float)c2.Green()) + std::min(c1.Green(), c2.Green()),
+                r * abs((float)c1.Blue() - (float)c2.Blue()) + std::min(c1.Blue(), c2.Blue()));
+        }
+
+        return wxColor(CCrand01() * abs((float)c1.Red() - (float)c2.Red()) + std::min(c1.Red(), c2.Red()),
+            CCrand01() * abs((float)c1.Green() - (float)c2.Green()) + std::min(c1.Green(), c2.Green()),
+            CCrand01() * abs((float)c1.Blue() - (float)c2.Blue()) + std::min(c1.Blue(), c2.Blue()));
     }
 
     return *wxBLACK;

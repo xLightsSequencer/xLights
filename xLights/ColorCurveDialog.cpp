@@ -105,6 +105,7 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     Choice1 = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
     Choice1->SetSelection( Choice1->Append(_("None")) );
     Choice1->Append(_("Gradient"));
+    Choice1->Append(_("Random"));
     FlexGridSizer4->Add(Choice1, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer2->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
