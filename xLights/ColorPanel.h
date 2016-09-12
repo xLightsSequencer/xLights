@@ -13,6 +13,7 @@
 #include <wx/button.h>
 //*)
 
+#include <wx/dir.h>
 #include <wx/colordlg.h>
 #include "ValueCurveButton.h"
 #include "ColorCurve.h"
@@ -22,12 +23,17 @@
 
 wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 
+class ColourList;
+
 class ColorPanel: public wxPanel
 {
     void OnVCChanged(wxCommandEvent& event);
     void OnCCChanged(wxCommandEvent& event);
 
     int __brightness;
+    std::list<std::string> _loadedPalettes;
+    wxString _lastShowDir;
+
 public:
 
 		ColorPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
@@ -45,19 +51,24 @@ public:
         void SetDefaultPalette();
 private:
         void ValidateWindow();
+        std::string GetCurrentPalette();
         wxColour GetPaletteColor(int idx);
+        void LoadPalettes(wxDir& directory, bool subdirs);
+        void LoadAllPalettes();
+
 public:
         void SetButtonColor(ColorCurveButton* btn, const std::string &v);
-        static const int PALETTE_SIZE = 8;
 
 		//(*Declarations(ColorPanel)
 		wxStaticText* StaticText22;
 		wxBitmapButton* BitmapButton_Contrast;
 		wxBitmapButton* BitmapButton_Brightness;
 		wxFlexGridSizer* FlexGridSizer_Palette;
+		wxBitmapButton* BitmapButton_SavePalette;
 		wxBitmapButton* BitmapButton_random;
 		wxBitmapButton* BitmapButton_normal;
 		wxPanel* Panel_Sizer;
+		ColourList* BitmapButton_ColourChoice;
 		wxBitmapButton* BitmapButton_SparkleFrequency;
 		wxStaticText* StaticText127;
 		wxTextCtrl* txtCtlBrightness;
@@ -78,6 +89,8 @@ public:
 	protected:
 
 		//(*Identifiers(ColorPanel)
+		static const long ID_CUSTOM1;
+		static const long ID_BITMAPBUTTON3;
 		static const long ID_BUTTON1;
 		static const long ID_STATICTEXT24;
 		static const long ID_SLIDER_SparkleFrequency;
@@ -106,7 +119,7 @@ public:
 
 		//(*Handlers(ColorPanel)
 		void OnCheckBox_PaletteClick(wxCommandEvent& event);
-        //void OnButton_PaletteNumberClick(wxCommandEvent& event);
+		//void OnButton_PaletteNumberClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnUpdateColorClick(wxCommandEvent& event);
 		void UpdateLinkedSliderFloat(wxCommandEvent& event);
@@ -116,16 +129,20 @@ public:
 		void UpdateLinkedTextCtrl(wxScrollEvent& event);
 		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-        void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+		void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
 		void OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& event);
 		void OnBitmapButton_VCBrightnessClick(wxCommandEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-            //*)
+		void OnVCButtonClick(wxCommandEvent& event);
+		    void OnBitmapButton_ChoosePaletteClick(wxCommandEvent& event);
+		void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
+		//*)
 
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
+        void OnColourChoiceDropDown(wxCommandEvent& event);
+        void OnColourChoiceSelect(wxCommandEvent& event);
         wxColourData colorData;
     
         std::vector<ColorCurveButton*> buttons;
