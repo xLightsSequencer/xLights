@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Strand/Submodel/Node effects were not clearing their buffer area on control updates resulting in ghosted data until a full render
    -- bug (dkulp)   DimmingCurve dialog not initialized properly for models that don't already have a dimming curve
    -- enh (dkulp)   Optimise blur - speeds rendering
    -- enh (dkulp)   Add additive/subtractive/min/max blend modes to on effect

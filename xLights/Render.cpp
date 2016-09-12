@@ -400,7 +400,7 @@ public:
     }
     
 
-    void ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
+    bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
         bool effectsToUpdate = false;
         int numLayers = el->GetEffectLayerCount();
         for (int layer = 0; layer < numLayers; layer++) {
@@ -435,6 +435,7 @@ public:
             buffer->CalcOutput(frame, info.validLayers);
             buffer->GetColors(&((*seqData)[frame][0]));
         }
+        return effectsToUpdate;
     }
     
     virtual void Process() override {
@@ -505,11 +506,11 @@ public:
                 if (frame >= maxFrameBeforeCheck) {
                     maxFrameBeforeCheck = waitForFrame(frame);
                 }
-                ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer);
+                bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer);
                 if (!subModelInfos.empty()) {
                     for (auto a = subModelInfos.begin(); a != subModelInfos.end(); a++) {
                         EffectLayerInfo *info = *a;
-                        ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, true);
+                        cleared |= ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, cleared);
                     }
                 }
                 if (!nodeBuffers.empty()) {
@@ -541,7 +542,7 @@ public:
                             buffer->Clear(0);
                         }
 
-                        SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, strand, inode, true);
+                        SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, strand, inode, cleared);
                         if (xLights->RenderEffectFromMap(el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
                             SetCalOutputStatus(frame, strand, inode);
                             //copy to output
@@ -839,7 +840,7 @@ void xLightsFrame::RenderDone() {
     mainSequencer->PanelEffectGrid->Refresh();
 }
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
-	//printf("render model %d %d   %d\n", startms,endms, clear);
+	//printf("render model %s   %d %d   %d\n", model.c_str(), startms, endms, clear);
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
     if( el->GetType() != ELEMENT_TYPE_TIMING) {
