@@ -7,6 +7,8 @@
 #include <wx/colour.h>
 #include <list>
 
+#include "Color.h"
+
 class ccSortableColorPoint
 {
 public:
@@ -20,7 +22,7 @@ public:
     }
 
 	float x; // 0-1 ... the start point of this point
-	wxColor color; // the colour of the mid point of this
+	xlColor color; // the colour of the mid point of this
     bool donext;
 
     bool DoNext() const
@@ -32,7 +34,8 @@ public:
     {
         std::string res = "";
         res += "x=" + wxString::Format("%.3f", x).ToStdString();
-        wxString c = color.GetAsString();
+        wxString c;
+        c = color;
         c.Replace(",", "@", true);
         res += "^c=" + c.ToStdString();
 
@@ -72,14 +75,14 @@ public:
         {
             wxString c(v);
             c.Replace("@", ",", true);
-            color = wxColor(c);
+            color = xlColor(c);
         }
     }
     ccSortableColorPoint(std::string& s)
     {
         Deserialise(s);
     }
-    ccSortableColorPoint(float xx, wxColor c, bool dn = false)
+    ccSortableColorPoint(float xx, xlColor c, bool dn = false)
     {
         x = Normalise(xx);
 		color = c;
@@ -138,20 +141,20 @@ public:
     void SetId(std::string& id) { _id = id; }
     ColorCurve() { ColorCurve(""); _active = false; };
     ColorCurve(const std::string& serialised);
-    ColorCurve(const std::string& id, const std::string type, wxColor c = *wxBLACK);
+    ColorCurve(const std::string& id, const std::string type, xlColor c = xlBLACK);
     std::string Serialise();
     bool IsOk() const
     { return _id != ""; }
     void Deserialise(const std::string& s);
     void SetType(std::string type);
-    wxColor GetValueAt(float offset) const;
+    xlColor GetValueAt(float offset) const;
     ccSortableColorPoint* GetPointAt(float offset);
 	wxBitmap GetImage(int x, int y, bool bars);
     void SetActive(bool a) { _active = a; }
     bool IsActive() const
     { return IsOk() && _active; }
     void ToggleActive() { _active = !_active; }
-    void SetValueAt(float offset, wxColor x);
+    void SetValueAt(float offset, xlColor x);
     void DeletePoint(float offset);
     bool IsSetPoint(float offset);
     int GetPointCount() const

@@ -345,7 +345,7 @@ void ColorCurvePanel::mouseLeftDClick(wxMouseEvent& event)
     ccSortableColorPoint* pt = _cc->GetPointAt(x);
 
     wxColourData cd;
-    cd.SetColour(pt->color);
+    cd.SetColour(pt->color.asWxColor());
     wxColourDialog cdlg(this, &cd);
 
     if (cdlg.ShowModal() == wxID_OK)
@@ -414,7 +414,7 @@ void ColorCurvePanel::mouseLeftUp(wxMouseEvent& event)
             x = _maxGrabbedPoint;
         }
 
-        wxColor c = *wxBLACK;
+        xlColor c = xlBLACK;
         if (x != _grabbedPoint)
         {
 
@@ -501,7 +501,7 @@ void ColorCurvePanel::mouseMoved(wxMouseEvent& event)
 
         if (x != _grabbedPoint)
         {
-            wxColor c = _cc->GetValueAt(_grabbedPoint);
+            xlColor c = _cc->GetValueAt(_grabbedPoint);
 
             if (_cc->IsSetPoint(_grabbedPoint))
             {
@@ -587,13 +587,13 @@ void ColorCurvePanel::DrawStopsAsHouses(wxAutoBufferedPaintDC& pdc)
     {
         for (auto p = pts.begin()++; p != pts.end(); ++p)
         {
-            DrawHouse(pdc, p->x * s.GetWidth(), s.GetHeight(), false, _cc->GetValueAt(p->x), pl);
+            DrawHouse(pdc, p->x * s.GetWidth(), s.GetHeight(), false, _cc->GetValueAt(p->x).asWxColor(), pl);
         }
     }
 
     if (_grabbedPoint >= 0)
     {
-        DrawHouse(pdc, _grabbedPoint * s.GetWidth(), s.GetHeight(), true, _cc->GetValueAt(_grabbedPoint), pl);
+        DrawHouse(pdc, _grabbedPoint * s.GetWidth(), s.GetHeight(), true, _cc->GetValueAt(_grabbedPoint).asWxColor(), pl);
     }
 }
 

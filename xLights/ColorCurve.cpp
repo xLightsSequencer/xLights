@@ -14,7 +14,7 @@
 #error You will also need to rebuild wxWidgets once the change is made.
 #endif
 
-ColorCurve::ColorCurve(const std::string& id, const std::string type, wxColor c)
+ColorCurve::ColorCurve(const std::string& id, const std::string type, xlColor c)
 {
     _type = type;
     _id = id;
@@ -153,9 +153,9 @@ uint8_t ChannelBlend(uint8_t c1, uint8_t c2, float ratio)
     return c1 + floor(ratio*(c2 - c1) + 0.5);
 }
 
-wxColor GetGradientColor(float ratio, wxColor& c1, wxColor& c2)
+xlColor GetGradientColor(float ratio, xlColor& c1, xlColor& c2)
 {
-    return wxColor(ChannelBlend(c1.Red(), c2.Red(), ratio), ChannelBlend(c1.Green(), c2.Green(), ratio), ChannelBlend(c1.Blue(), c2.Blue(), ratio));
+    return xlColor(ChannelBlend(c1.Red(), c2.Red(), ratio), ChannelBlend(c1.Green(), c2.Green(), ratio), ChannelBlend(c1.Blue(), c2.Blue(), ratio));
 }
 
 ccSortableColorPoint* ColorCurve::GetPointAt(float offset)
@@ -177,14 +177,14 @@ double CCrand01()
     return (double)rand() / (double)RAND_MAX;
 }
 
-wxColor ColorCurve::GetValueAt(float offset) const
+xlColor ColorCurve::GetValueAt(float offset) const
 {
     if (_type == "Gradient")
     {
         float start = 0;
         float end = 1;
-        wxColor startc = *wxBLACK;
-        wxColor endc = *wxBLACK;
+        xlColor startc = xlBLACK;
+        xlColor endc = xlBLACK;
 
         // find the value before the offset
         float d = 0;
@@ -254,7 +254,7 @@ wxColor ColorCurve::GetValueAt(float offset) const
     }
     else if (_type == "Random")
     {
-        wxColor c1 = *wxBLACK;
+        xlColor c1 = xlBLACK;
         float d = 0;
         const ccSortableColorPoint* pt = GetActivePoint(offset, d);
         if (pt == nullptr)
@@ -270,18 +270,18 @@ wxColor ColorCurve::GetValueAt(float offset) const
             if (offset == pt->x) return c1;
         }
 
-        wxColor c2 = *wxBLACK;
+        xlColor c2 = xlBLACK;
         pt = GetNextActivePoint(offset, d);
 
         if (pt == nullptr)
         {
             const ccSortableColorPoint* ptp = GetActivePoint(offset, d);
-            c2 = wxColor(ptp->color);
+            c2 = ptp->color;
             if (offset == ptp->x) return c2;
         }
         else
         {
-            c2 = wxColor(pt->color);
+            c2 = pt->color;
             if (offset == pt->x) return c2;
         }
 
@@ -289,17 +289,17 @@ wxColor ColorCurve::GetValueAt(float offset) const
         if (c1.Red() == c1.Green() && c1.Green() == c1.Blue() && c2.Red() == c2.Green() && c2.Green() == c2.Blue())
         {
             double r = CCrand01();
-            return wxColor(r * abs((float)c1.Red() - (float)c2.Red()) + std::min(c1.Red(), c2.Red()),
-                r * abs((float)c1.Green() - (float)c2.Green()) + std::min(c1.Green(), c2.Green()),
-                r * abs((float)c1.Blue() - (float)c2.Blue()) + std::min(c1.Blue(), c2.Blue()));
+            return xlColor(r * std::abs((float)c1.Red() - (float)c2.Red()) + std::min(c1.Red(), c2.Red()),
+                           r * std::abs((float)c1.Green() - (float)c2.Green()) + std::min(c1.Green(), c2.Green()),
+                           r * std::abs((float)c1.Blue() - (float)c2.Blue()) + std::min(c1.Blue(), c2.Blue()));
         }
 
-        return wxColor(CCrand01() * abs((float)c1.Red() - (float)c2.Red()) + std::min(c1.Red(), c2.Red()),
-            CCrand01() * abs((float)c1.Green() - (float)c2.Green()) + std::min(c1.Green(), c2.Green()),
-            CCrand01() * abs((float)c1.Blue() - (float)c2.Blue()) + std::min(c1.Blue(), c2.Blue()));
+        return xlColor(CCrand01() * std::abs((float)c1.Red() - (float)c2.Red()) + std::min(c1.Red(), c2.Red()),
+                       CCrand01() * std::abs((float)c1.Green() - (float)c2.Green()) + std::min(c1.Green(), c2.Green()),
+                       CCrand01() * std::abs((float)c1.Blue() - (float)c2.Blue()) + std::min(c1.Blue(), c2.Blue()));
     }
 
-    return *wxBLACK;
+    return xlBLACK;
 }
 
 bool ColorCurve::IsSetPoint(float offset)
@@ -338,7 +338,7 @@ void ColorCurve::DeletePoint(float offset)
     }
 }
 
-void ColorCurve::SetValueAt(float offset, wxColor c)
+void ColorCurve::SetValueAt(float offset, xlColor c)
 {
     auto it = _values.begin();
     while (it != _values.end() && *it <= offset)
@@ -368,7 +368,8 @@ wxBitmap ColorCurve::GetImage(int x, int y, bool bars)
 
     for (int i = 0; i < x; i++)
     {
-        dc.SetPen(wxPen(GetValueAt(static_cast<float>(i) / static_cast<float>(x)), 1, wxPENSTYLE_SOLID));
+        wxColor c = GetValueAt(static_cast<float>(i) / static_cast<float>(x)).asWxColor();
+        dc.SetPen(wxPen(c, 1, wxPENSTYLE_SOLID));
         if (bars)
         {
             //dc.DrawLine(wxPoint(i, static_cast<float>(y)*0.05), wxPoint(i, static_cast<float>(y)*0.95));
