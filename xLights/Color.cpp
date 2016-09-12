@@ -35,6 +35,14 @@ void xlColor::SetFromString(const std::string &str) {
         Set((uint8_t)(tmp >> 16),
             (uint8_t)(tmp >> 8),
             (uint8_t)tmp);
+    } else if ( str[0] == '#' && str.size() == 9 ) {
+        // hexadecimal prefixed with # (HTML syntax)
+        unsigned long tmp = strtoul(&str.c_str()[1], nullptr, 16);
+        
+        Set((uint8_t)(tmp >> 16),
+            (uint8_t)(tmp >> 8),
+            (uint8_t)tmp,
+            (uint8_t)(tmp >> 24));
     } else if (str[0] == '0' && str[1] == 'x' && str.size() == 8 ) {
         // hexadecimal prefixed with 0x
         unsigned long tmp = strtoul(&str.c_str()[2], nullptr, 16);
@@ -42,6 +50,32 @@ void xlColor::SetFromString(const std::string &str) {
         Set((uint8_t)(tmp >> 16),
             (uint8_t)(tmp >> 8),
             (uint8_t)tmp);
+    } else if (str[0] == '0' && str[1] == 'x' && str.size() == 10 ) {
+        // hexadecimal prefixed with 0x
+        unsigned long tmp = strtoul(&str.c_str()[2], nullptr, 16);
+        
+        Set((uint8_t)(tmp >> 16),
+            (uint8_t)(tmp >> 8),
+            (uint8_t)tmp,
+            (uint8_t)(tmp >> 24));
+    } else if (str.size() > 5 && str[0] == 'r' && str[1] == 'g' && str[2] == 'b' && (str[3] == '(' || str[4] == '(')) {
+        int start = 4;
+        if (str[3] == 'a') {
+            start++;
+        }
+        std::string::size_type sz;
+        std::string val = str.substr(start);
+        red = std::stoi(val, &sz);
+        val = val.substr(sz + 1);
+        green = std::stoi(val, &sz);
+        val = val.substr(sz + 1);
+        blue = std::stoi(val, &sz);
+        val = val.substr(sz + 1);
+        alpha = 255;
+        if (str[3] == 'a') {
+            float f = std::stof(val) * 255.0;
+            alpha = f;
+        }
     } else {
         //need to do the slower lookups
         wxColor c(str);
