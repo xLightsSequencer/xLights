@@ -21,6 +21,8 @@
 #include "SerialPortWithRate.h"
 #include "E131Dialog.h"
 #include "NullOutputDialog.h"
+#include "ArtNetDialog.h"
+#include "xlights_out.h"
 
 // Process Setup Panel Events
 
@@ -291,6 +293,12 @@ void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& typ
                     }
                     u = wxString::Format("%d", uu).ToStdString();
                 }
+                else if (type == "ArtNet")
+                {
+                    ip = std::string(e->GetAttribute("ComPort", ""));
+                    int uu = wxAtoi(e->GetAttribute("BaudRate", ""));
+                    u = wxString::Format("%d:%d:%d", ARTNET_NET(uu), ARTNET_SUBNET(uu), ARTNET_UNIVERSE(uu)).ToStdString();
+                }
                 else if (type == "DMX")
                 {
                     ip = std::string(e->GetAttribute("ComPort", ""));
@@ -369,7 +377,18 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 					s = s + "Universe: " + wxString::Format("%d", u).ToStdString() + "\n";
 					s = s + "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
 				}
-				else if (type == "DMX")
+                else if (type == "ArtNet")
+                {
+                    s = s + "Type: ArtNet\n";
+                    std::string ip = std::string(e->GetAttribute("ComPort", ""));
+                    int u = wxAtoi(e->GetAttribute("BaudRate", ""));
+                    s = s + "IP: " + ip + "\n";
+                    s = s + "Net: " + wxString::Format("%d", ARTNET_NET(u)).ToStdString() + "\n";
+                    s = s + "Subnet: " + wxString::Format("%d", ARTNET_SUBNET(u)).ToStdString() + "\n";
+                    s = s + "Universe: " + wxString::Format("%d", ARTNET_UNIVERSE(u)).ToStdString() + "\n";
+                    s = s + "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
+                }
+                else if (type == "DMX")
 				{
 					s = s + "Type: DMX\nComPort: " + std::string(e->GetAttribute("ComPort", "")) + "\n";
 					int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
@@ -446,15 +465,23 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
                 }
                 MaxChannels *= i;
             } else {
-                GridNetwork->SetItem(newidx,3,e->GetAttribute("BaudRate", ""));
-                if (NetName == "E131")
+                if (NetName == "ArtNet")
                 {
-                    int u = wxAtoi(e->GetAttribute("BaudRate", "1"));
-                    NetInfo.AddUniverseNetwork(ip, u, MaxChannels);
+                    int u = wxAtoi(e->GetAttribute("BaudRate", ""));
+                    GridNetwork->SetItem(newidx, 3, wxString::Format("%d:%d:%d", ARTNET_NET(u), ARTNET_SUBNET(u), ARTNET_UNIVERSE(u)));
                 }
                 else
                 {
-                    NetInfo.AddUniverseNetwork("", -1, MaxChannels);
+                    GridNetwork->SetItem(newidx, 3, e->GetAttribute("BaudRate", ""));
+                    if (NetName == "E131")
+                    {
+                        int u = wxAtoi(e->GetAttribute("BaudRate", "1"));
+                        NetInfo.AddUniverseNetwork(ip, u, MaxChannels);
+                    }
+                    else
+                    {
+                        NetInfo.AddUniverseNetwork("", -1, MaxChannels);
+                    }
                 }
             }
             GridNetwork->SetItem(newidx,4,MaxChannelsStr);
@@ -665,6 +692,10 @@ void xLightsFrame::OnButtonNetworkChangeClick(wxCommandEvent& event)
                 {
                     SetupNullOutput(e);
                 }
+                else if (e->GetAttribute("NetworkType") == "ArtNet")
+                {
+                    SetupArtNet(e);
+                }
                 else
                 {
                     SetupDongle(e);
@@ -834,6 +865,10 @@ void xLightsFrame::OnButtonAddE131Click(wxCommandEvent& event)
     SetupE131(0);
 }
 
+void xLightsFrame::OnButtonArtNETClick(wxCommandEvent& event)
+{
+    SetupArtNet(0);
+}
 
 void xLightsFrame::OnButtonAddNullClick(wxCommandEvent& event)
 {
@@ -975,6 +1010,82 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
         }
     }
     while (DlgResult == wxID_OK && !ok);
+}
+
+void xLightsFrame::SetupArtNet(wxXmlNode* e)
+{
+    int DlgResult;
+    //int DlgResult, UnivNum, NumUniv, LastChannel;
+    bool ok = true;
+    wxString NetName = _("ArtNet");
+    wxString IpAddr, StartUniverse, LastChannelStr, Description;
+    ArtNetDialog ArtNetDlg(this);
+
+    if (e)
+    {
+        IpAddr = e->GetAttribute("ComPort");
+        StartUniverse = e->GetAttribute("BaudRate");
+        LastChannelStr = e->GetAttribute("MaxChannels");
+        Description = e->GetAttribute("Description");
+        int raw = wxAtoi(StartUniverse);
+        int net = ARTNET_NET(raw);
+        int subnet = ARTNET_SUBNET(raw);
+        int universe = ARTNET_UNIVERSE(raw);
+
+        ArtNetDlg.SpinCtrlNet->SetValue(net);
+        ArtNetDlg.SpinCtrlSubnet->SetValue(subnet);
+        ArtNetDlg.SpinCtrlUniverse->SetValue(universe);
+        ArtNetDlg.SpinCtrlChannels->SetValue(LastChannelStr);
+        ArtNetDlg.TextCtrlDescription->SetValue(Description);
+        ArtNetDlg.TextCtrlIPAddress->SetValue(IpAddr);
+        ArtNetDlg.SpinCtrlUniverseOnly->SetValue(ARTNET_MAKEU(net, subnet, universe));
+    }
+
+    do
+    {
+        DlgResult = ArtNetDlg.ShowModal();
+        if (DlgResult == wxID_OK)
+        {
+            IpAddr = ArtNetDlg.TextCtrlIPAddress->GetValue();
+            int Net = ArtNetDlg.SpinCtrlNet->GetValue();
+            int Subnet = ArtNetDlg.SpinCtrlSubnet->GetValue();
+            int Universe = ArtNetDlg.SpinCtrlUniverse->GetValue();
+            int LastChannel = ArtNetDlg.SpinCtrlChannels->GetValue();
+            Description = ArtNetDlg.TextCtrlDescription->GetValue();
+            ok = !IpAddr.IsEmpty() && (LastChannel >= 1) && (LastChannel <= 512);
+            if (ok)
+            {
+                LastChannelStr = wxString::Format("%d", LastChannel);
+                if (e)
+                {
+                    e->DeleteAttribute("ComPort");
+                    e->AddAttribute("ComPort", IpAddr);
+                    e->DeleteAttribute("BaudRate");
+                    e->AddAttribute("BaudRate", wxString::Format("%d", ARTNET_MAKEU(Net, Subnet, Universe)));
+                    e->DeleteAttribute("MaxChannels");
+                    e->AddAttribute("MaxChannels", LastChannelStr);
+                    e->DeleteAttribute("Description");
+                    e->AddAttribute("Description", Description);
+                }
+                else
+                {
+                        e = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+                        e->AddAttribute("NetworkType", NetName);
+                        e->AddAttribute("ComPort", IpAddr);
+                        e->AddAttribute("BaudRate", wxString::Format("%d", ARTNET_MAKEU(Net, Subnet, Universe)));
+                        e->AddAttribute("MaxChannels", LastChannelStr);
+                        e->AddAttribute("Description", Description);
+                        NetworkXML.GetRoot()->AddChild(e);
+                }
+                UpdateNetworkList(true);
+                NetworkChange();
+            }
+            else
+            {
+                wxMessageBox(_("All fields must be filled in!"), _("ERROR"));
+            }
+        }
+    } while (DlgResult == wxID_OK && !ok);
 }
 
 void xLightsFrame::SetupDongle(wxXmlNode* e)

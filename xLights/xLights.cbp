@@ -452,6 +452,8 @@
 		</Compiler>
 		<Unit filename="AddShowDialog.cpp" />
 		<Unit filename="AddShowDialog.h" />
+		<Unit filename="ArtNetDialog.cpp" />
+		<Unit filename="ArtNetDialog.h" />
 		<Unit filename="AudioManager.cpp" />
 		<Unit filename="AudioManager.h" />
 		<Unit filename="BitmapCache.cpp" />
@@ -973,6 +975,7 @@
 		<Unit filename="wxCheckedListCtrl.cpp" />
 		<Unit filename="wxCheckedListCtrl.h" />
 		<Unit filename="wx_pch.h" />
+		<Unit filename="wxsmith/ArtNetDialog.wxs" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />
 		<Unit filename="wxsmith/BarsPanel.wxs" />
 		<Unit filename="wxsmith/BufferPanel.wxs" />
@@ -1213,6 +1216,7 @@
 					<wxDialog wxs="wxsmith/SubModelsDialog.wxs" src="SubModelsDialog.cpp" hdr="SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SevenSegmentDialog.wxs" src="SevenSegmentDialog.cpp" hdr="SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/WiringDialog.wxs" src="WiringDialog.cpp" hdr="WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ArtNetDialog.wxs" src="ArtNetDialog.cpp" hdr="ArtNetDialog.h" fwddecl="0" i18n="1" name="ArtNetDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
