@@ -10,7 +10,7 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL4" variable="MorphPanelStart" member="no">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer86" member="no">
-								<cols>4</cols>
+								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
@@ -24,7 +24,17 @@
 									<object class="wxSlider" name="ID_SLIDER_Morph_Start_X1" variable="Slider_Morph_Start_X1" member="no">
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Start_X1" subclass="ValueCurveButton" variable="BitmapButton_Morph_Start_X1" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -41,7 +51,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Start_X1" variable="BitmapButton_Morph_Start_X1" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Start_X1" variable="BitmapButton_Morph_StartX1" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -64,7 +74,17 @@
 									<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y1" variable="Slider_Morph_Start_Y1" member="no">
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Start_Y1" subclass="ValueCurveButton" variable="BitmapButton_Morph_Start_Y1" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -81,7 +101,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Start_Y1" variable="BitmapButton_Morph_Start_Y1" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Start_Y1" variable="BitmapButton_Morph_StartY1" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -105,7 +125,17 @@
 										<value>100</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Start_X2" subclass="ValueCurveButton" variable="BitmapButton_Morph_Start_X2" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -122,7 +152,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Start_X2" variable="BitmapButton_Morph_Start_X2" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Start_X2" variable="BitmapButton_Morph_StartX2" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -145,7 +175,17 @@
 									<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y2" variable="Slider_Morph_Start_Y2" member="no">
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Start_Y2" subclass="ValueCurveButton" variable="BitmapButton_Morph_Start_Y2" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -162,7 +202,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Start_Y2" variable="BitmapButton_Morph_Start_Y2" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Start_Y2" variable="BitmapButton_Morph_StartY2" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -186,7 +226,17 @@
 										<value>1</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_MorphStartLength" subclass="ValueCurveButton" variable="BitmapButton_MorphStartLength" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -203,7 +253,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_MorphStartLength" variable="BitmapButton_MorphStartLength" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_MorphStartLength" variable="BitmapButton_Morph_StartLength" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -243,6 +293,11 @@
 									<border>5</border>
 									<option>1</option>
 								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxChoice" name="IDD_CHOICE_Morph_QuickSet" variable="Choice_Morph_QuickSet" member="yes">
 										<content>
@@ -259,7 +314,7 @@
 										<selection>0</selection>
 										<handler function="OnChoice_Morph_QuickSetSelect" entry="EVT_CHOICE" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -270,7 +325,7 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL27" variable="MorphPanelEnd" member="no">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer94" member="no">
-								<cols>4</cols>
+								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT116" variable="StaticText117" member="yes">
@@ -284,7 +339,17 @@
 									<object class="wxSlider" name="ID_SLIDER_Morph_End_X1" variable="Slider_Morph_End_X1" member="no">
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_End_X1" subclass="ValueCurveButton" variable="BitmapButton_Morph_End_X1" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -301,7 +366,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_End_X1" variable="BitmapButton_Morph_End_X1" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_End_X1" variable="BitmapButton_Morph_EndX1" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -325,7 +390,17 @@
 										<value>100</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_End_Y1" subclass="ValueCurveButton" variable="BitmapButton_Morph_End_Y1" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -342,7 +417,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_End_Y1" variable="BitmapButton_Morph_End_Y1" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_End_Y1" variable="BitmapButton_Morph_EndY1" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -366,7 +441,17 @@
 										<value>100</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_End_X2" subclass="ValueCurveButton" variable="BitmapButton_Morph_End_X2" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -383,7 +468,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_End_X2" variable="BitmapButton_Morph_End_X2" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_End_X2" variable="BitmapButton_Morph_EndX2" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -407,7 +492,17 @@
 										<value>100</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_End_Y2" subclass="ValueCurveButton" variable="BitmapButton_Morph_End_Y2" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -424,7 +519,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_End_Y2" variable="BitmapButton_Morph_End_Y2" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_End_Y2" variable="BitmapButton_Morph_EndY2" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -448,7 +543,17 @@
 										<value>1</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_MorphEndLength" subclass="ValueCurveButton" variable="BitmapButton_MorphEndLength" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -465,7 +570,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_MorphEndLength" variable="BitmapButton_MorphEndLength" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_MorphEndLength" variable="BitmapButton_Morph_EndLength" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -501,7 +606,7 @@
 								<growablecols>0</growablecols>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer99" member="no">
-										<cols>4</cols>
+										<cols>5</cols>
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT123" variable="StaticText123" member="yes">
@@ -517,7 +622,17 @@
 												<value>20</value>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MorphDuration" subclass="ValueCurveButton" variable="BitmapButton_MorphDuration" member="yes">
+												<bitmap code="valuecurvenotselected_24" />
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -534,7 +649,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_MorphDuration" variable="BitmapButton_MorphDuration" member="yes">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_MorphDuration" variable="BitmapButton_Morph_Duration" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -559,7 +674,17 @@
 												<max>10</max>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MorphAccel" subclass="ValueCurveButton" variable="BitmapButton_MorphAccel" member="yes">
+												<bitmap code="valuecurvenotselected_24" />
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -576,7 +701,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_MorphAccel" variable="BitmapButton_MorphAccel" member="yes">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_MorphAccel" variable="BitmapButton_Morph_Accel" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -600,7 +725,17 @@
 												<max>250</max>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Repeat_Count" subclass="ValueCurveButton" variable="BitmapButton_Morph_Repeat_Count" member="yes">
+												<bitmap code="valuecurvenotselected_24" />
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -617,7 +752,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Count" variable="BitmapButton_Morph_Repeat_Count" member="yes">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Count" variable="BitmapButton_Morph_RepeatCount" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -642,7 +777,17 @@
 												<min>1</min>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Repeat_Skip" subclass="ValueCurveButton" variable="BitmapButton_Morph_Repeat_Skip" member="yes">
+												<bitmap code="valuecurvenotselected_24" />
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -659,7 +804,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Skip" variable="BitmapButton_Morph_Repeat_Skip" member="yes">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Skip" variable="BitmapButton_Morph_RepeatSkip" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -683,7 +828,17 @@
 												<min>-100</min>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Stagger" subclass="ValueCurveButton" variable="BitmapButton_Morph_Stagger" member="yes">
+												<bitmap code="valuecurvenotselected_24" />
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -700,7 +855,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Stagger" variable="BitmapButton_Morph_Stagger" member="yes">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Stagger" variable="BitmapButton_MorphStagger" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -712,7 +867,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -749,7 +904,7 @@
 						<label>Options</label>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

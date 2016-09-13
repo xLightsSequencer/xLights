@@ -117,26 +117,26 @@ static int calcPosition(int value, int base)
 
 void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
-    int start_x1 = SettingsMap.GetInt("SLIDER_Morph_Start_X1", 0);
-    int start_y1 = SettingsMap.GetInt("SLIDER_Morph_Start_Y1", 0);
-    int start_x2 = SettingsMap.GetInt("SLIDER_Morph_Start_X2", 0);
-    int start_y2 = SettingsMap.GetInt("SLIDER_Morph_Start_Y2", 0);
-    int end_x1 = SettingsMap.GetInt("SLIDER_Morph_End_X1", 0);
-    int end_y1 = SettingsMap.GetInt("SLIDER_Morph_End_Y1", 0);
-    int end_x2 = SettingsMap.GetInt("SLIDER_Morph_End_X2", 0);
-    int end_y2 = SettingsMap.GetInt("SLIDER_Morph_End_Y2", 0);
-    int start_length = SettingsMap.GetInt("SLIDER_MorphStartLength", 0);
-    int end_length = SettingsMap.GetInt("SLIDER_MorphEndLength", 0);
+    double eff_pos = buffer.GetEffectTimeIntervalPosition();
+    int start_x1 = GetValueCurveInt("Morph_Start_X1", 0, SettingsMap, eff_pos);
+    int start_y1 = GetValueCurveInt("Morph_Start_Y1", 0, SettingsMap, eff_pos);
+    int start_x2 = GetValueCurveInt("Morph_Start_X2", 0, SettingsMap, eff_pos);
+    int start_y2 = GetValueCurveInt("Morph_Start_Y2", 0, SettingsMap, eff_pos);
+    int end_x1 = GetValueCurveInt("Morph_End_X1", 0, SettingsMap, eff_pos);
+    int end_y1 = GetValueCurveInt("Morph_End_Y1", 0, SettingsMap, eff_pos);
+    int end_x2 = GetValueCurveInt("Morph_End_X2", 0, SettingsMap, eff_pos);
+    int end_y2 = GetValueCurveInt("Morph_End_Y2", 0, SettingsMap, eff_pos);
+    int start_length = GetValueCurveInt("MorphStartLength", 0, SettingsMap, eff_pos);
+    int end_length = GetValueCurveInt("MorphEndLength", 0, SettingsMap, eff_pos);
+    int duration = GetValueCurveInt("MorphDuration", 0, SettingsMap, eff_pos);
+    int acceleration = GetValueCurveInt("MorphAccel", 0, SettingsMap, eff_pos);
+    int repeat_count = GetValueCurveInt("Morph_Repeat_Count", 0, SettingsMap, eff_pos);
+    int repeat_skip = GetValueCurveInt("Morph_Repeat_Skip", 0, SettingsMap, eff_pos);
+    int stagger = GetValueCurveInt("Morph_Stagger", 0, SettingsMap, eff_pos);
     bool start_linked = SettingsMap.GetBool("CHECKBOX_Morph_Start_Link");
     bool end_linked = SettingsMap.GetBool("CHECKBOX_Morph_End_Link");
-    int duration = SettingsMap.GetInt("SLIDER_MorphDuration", 0);
-    int acceleration = SettingsMap.GetInt("SLIDER_MorphAccel", 0);
     bool showEntireHeadAtStart = SettingsMap.GetBool("CHECKBOX_ShowHeadAtStart");
-    int repeat_count = SettingsMap.GetInt("SLIDER_Morph_Repeat_Count", 0);
-    int repeat_skip = SettingsMap.GetInt("SLIDER_Morph_Repeat_Skip", 0);
-    int stagger = SettingsMap.GetInt("SLIDER_Morph_Stagger", 0);
 
-    double eff_pos = buffer.GetEffectTimeIntervalPosition();
     double step_size = 0.1;
 
     int hcols = 0, hcole = 1;
