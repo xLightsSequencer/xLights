@@ -277,33 +277,36 @@ void xlGridCanvasMorph::StoreUpdatedMorphPositions()
     for( int s = 0; s < all_settings.size(); s++ )
     {
         wxArrayString parts = wxSplit(all_settings[s], '=');
-        int percent = wxAtoi(parts[1]);
-        if( parts[0] == "E_SLIDER_Morph_Start_X1" && mSelectedCorner == CORNER_1A_SELECTED ) {
-            percent = SetColumnCenter(x1a);
+        if (!parts[1].Contains("Active"))
+        {
+            int percent = wxAtoi(parts[1]);
+            if (parts[0] == "E_SLIDER_Morph_Start_X1" && mSelectedCorner == CORNER_1A_SELECTED) {
+                percent = SetColumnCenter(x1a);
+            }
+            else if (parts[0] == "E_SLIDER_Morph_Start_X2" && mSelectedCorner == CORNER_1B_SELECTED && !mMorphStartLinked) {
+                percent = SetColumnCenter(x1b);
+            }
+            else if (parts[0] == "E_SLIDER_Morph_Start_Y1" && mSelectedCorner == CORNER_1A_SELECTED) {
+                percent = SetRowCenter(y1a);
+            }
+            else if (parts[0] == "E_SLIDER_Morph_Start_Y2" && mSelectedCorner == CORNER_1B_SELECTED && !mMorphStartLinked) {
+                percent = SetRowCenter(y1b);
+            }
+            else if (parts[0] == "E_SLIDER_Morph_End_X1" && mSelectedCorner == CORNER_2A_SELECTED) {
+                percent = SetColumnCenter(x2a);
+            }
+            else if (parts[0] == "E_SLIDER_Morph_End_X2" && mSelectedCorner == CORNER_2B_SELECTED && !mMorphEndLinked) {
+                percent = SetColumnCenter(x2b);
+            }
+            else if (parts[0] == "E_SLIDER_Morph_End_Y1" && mSelectedCorner == CORNER_2A_SELECTED) {
+                percent = SetRowCenter(y2a);
+            }
+            else if (parts[0] == "E_SLIDER_Morph_End_Y2" && mSelectedCorner == CORNER_2B_SELECTED && !mMorphEndLinked) {
+                percent = SetRowCenter(y2b);
+            }
+            parts[1] = wxString::Format("%d", percent);
+            all_settings[s] = wxJoin(parts, '=');
         }
-        else if( parts[0] == "E_SLIDER_Morph_Start_X2" && mSelectedCorner == CORNER_1B_SELECTED && !mMorphStartLinked ) {
-            percent = SetColumnCenter(x1b);
-        }
-        else if( parts[0] == "E_SLIDER_Morph_Start_Y1" && mSelectedCorner == CORNER_1A_SELECTED ) {
-            percent = SetRowCenter(y1a);
-        }
-        else if( parts[0] == "E_SLIDER_Morph_Start_Y2" && mSelectedCorner == CORNER_1B_SELECTED && !mMorphStartLinked ) {
-            percent = SetRowCenter(y1b);
-        }
-        else if( parts[0] == "E_SLIDER_Morph_End_X1" && mSelectedCorner == CORNER_2A_SELECTED ) {
-            percent = SetColumnCenter(x2a);
-        }
-        else if( parts[0] == "E_SLIDER_Morph_End_X2" && mSelectedCorner == CORNER_2B_SELECTED && !mMorphEndLinked ) {
-            percent = SetColumnCenter(x2b);
-        }
-        else if( parts[0] == "E_SLIDER_Morph_End_Y1" && mSelectedCorner == CORNER_2A_SELECTED ) {
-            percent = SetRowCenter(y2a);
-        }
-        else if( parts[0] == "E_SLIDER_Morph_End_Y2" && mSelectedCorner == CORNER_2B_SELECTED && !mMorphEndLinked ) {
-            percent = SetRowCenter(y2b);
-        }
-        parts[1] = wxString::Format("%d", percent);
-        all_settings[s] = wxJoin(parts, '=');
     }
     settings = wxJoin(all_settings, ',');
     mEffect->SetSettings(settings.ToStdString());
