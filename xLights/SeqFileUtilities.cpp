@@ -1474,12 +1474,12 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                                         if (chani->GetName() == "ChanInfo") {
                                             std::string info = chani->GetChildren()->GetContent().ToStdString();
                                             if (info.find(", Normal") != info.npos) {
-                                                std::string name = info.substr(0, info.find(", Normal") - 1);
+                                                std::string name = info.substr(0, info.find(", Normal"));
                                                 dlg.channelNames.push_back(name);
                                                 dlg.channelColors[name] = xlWHITE;
                                                 MapToStrandName(name, dlg.ccrNames);
                                             } else if (info.find(", RGB-") != info.npos) {
-                                                std::string name = info.substr(0, info.find(", RGB-") - 1);
+                                                std::string name = info.substr(0, info.find(", RGB-"));
                                                 std::string color = info.substr(info.size() - 1, 1);
                                                 if (color == "R") {
                                                     dlg.channelNames.push_back(name);

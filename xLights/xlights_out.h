@@ -125,7 +125,7 @@ protected:
     static bool _initialised;
 
 public:
-    void SetIntensity(size_t chindex, wxByte intensity);
+    void SetIntensity(size_t chindex, wxByte intensity) override;
     xNetwork_ArtNET();
     ~xNetwork_ArtNET();
     virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse = 0) override;
@@ -135,11 +135,11 @@ private:
     void InitRemoteAddr(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum);
 
 public:
-    void SetChannelCount(size_t numchannels);
-    void TimerEnd();
+    void SetChannelCount(size_t numchannels) override;
+    void TimerEnd() override;
     static void Sync();
-    size_t TxNonEmptyCount(void);
-    bool TxEmpty();
+    size_t TxNonEmptyCount(void) override;
+    bool TxEmpty() override;
 };
 
 #define E131_PACKET_LEN 638
@@ -157,7 +157,7 @@ protected:
 public:
 
     static void Sync();
-    void SetIntensity(size_t chindex, wxByte intensity);
+    void SetIntensity(size_t chindex, wxByte intensity) override;
     xNetwork_E131();
     ~xNetwork_E131();
     virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum, wxUint16 syncuniverse) override;
@@ -168,10 +168,10 @@ private:
     void InitRemoteAddr(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum);
 
 public:
-    void SetChannelCount(size_t numchannels);
-    void TimerEnd();
-    size_t TxNonEmptyCount(void);
-    bool TxEmpty();
+    void SetChannelCount(size_t numchannels) override;
+    void TimerEnd() override;
+    size_t TxNonEmptyCount(void) override;
+    bool TxEmpty() override;
 };
 
 #endif // XLIGHTSOUT_H

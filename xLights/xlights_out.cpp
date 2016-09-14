@@ -279,8 +279,6 @@ public:
     void xNetwork_ArtNET::InitData(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
         SequenceNum = 0;
         SkipCount = 0;
-        wxByte UnivHi = UniverseNumber >> 8;   // Universe Number (high)
-        wxByte UnivLo = UniverseNumber & 0xff; // Universe Number (low)
 
         data[0] = 'A';   // ID[8]
         data[1] = 'r';
