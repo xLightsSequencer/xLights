@@ -133,6 +133,7 @@
 		6784F9301A5653670018EC0C /* TimeLine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9271A5653670018EC0C /* TimeLine.cpp */; };
 		6784F9311A5653670018EC0C /* Waveform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9281A5653670018EC0C /* Waveform.cpp */; };
 		6786DC761D45D00100672F70 /* PolyLineModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6786DC741D45D00100672F70 /* PolyLineModel.cpp */; };
+		67893E531D888842004BF888 /* ArtNetDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67893E521D888842004BF888 /* ArtNetDialog.cpp */; };
 		6792407A1CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679240781CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp */; };
 		6792BF371D0B253B00A5A0CC /* SpinnerModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6792BF351D0B253B00A5A0CC /* SpinnerModel.cpp */; };
 		679484AD1CD8E998001A7B4F /* GenerateCustomModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */; };
@@ -577,6 +578,8 @@
 		6784F9281A5653670018EC0C /* Waveform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Waveform.cpp; path = sequencer/Waveform.cpp; sourceTree = "<group>"; };
 		6786DC741D45D00100672F70 /* PolyLineModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PolyLineModel.cpp; path = models/PolyLineModel.cpp; sourceTree = "<group>"; };
 		6786DC751D45D00100672F70 /* PolyLineModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PolyLineModel.h; path = models/PolyLineModel.h; sourceTree = "<group>"; };
+		67893E511D888842004BF888 /* ArtNetDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArtNetDialog.h; sourceTree = "<group>"; };
+		67893E521D888842004BF888 /* ArtNetDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ArtNetDialog.cpp; sourceTree = "<group>"; };
 		679240781CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsImportChannelMapDialog.cpp; sourceTree = "<group>"; };
 		679240791CF15B37000E4D91 /* xLightsImportChannelMapDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsImportChannelMapDialog.h; sourceTree = "<group>"; };
 		6792BF351D0B253B00A5A0CC /* SpinnerModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SpinnerModel.cpp; path = models/SpinnerModel.cpp; sourceTree = "<group>"; };
@@ -1375,6 +1378,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67893E511D888842004BF888 /* ArtNetDialog.h */,
+				67893E521D888842004BF888 /* ArtNetDialog.cpp */,
 				67AB29491D649008007F7CF3 /* WiringDialog.cpp */,
 				67AB294A1D649008007F7CF3 /* WiringDialog.h */,
 				671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */,
@@ -1733,6 +1738,7 @@
 				674ACA7C1C5ADE4000B54B32 /* Node.cpp in Sources */,
 				67C0EEE31C755ABE002FE25E /* MatrixModel.cpp in Sources */,
 				67B845061A9C0E7500564051 /* DisplayElementsPanel.cpp in Sources */,
+				67893E531D888842004BF888 /* ArtNetDialog.cpp in Sources */,
 				67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */,
 				67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */,
 				67B2CFD81C3A186A003C17CA /* SpiralsEffect.cpp in Sources */,
