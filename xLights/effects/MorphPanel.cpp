@@ -456,7 +456,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	//*)
     SetName("ID_PANEL_MORPH");
 
-    //Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MorphPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MorphPanel::OnVCChanged, 0, this);
 
     BitmapButton_Morph_Start_X1->GetValue()->SetLimits(0, 100);
     BitmapButton_Morph_End_X1->GetValue()->SetLimits(0, 100);

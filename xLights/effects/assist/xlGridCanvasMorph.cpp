@@ -276,18 +276,26 @@ void xlGridCanvasMorph::StoreUpdatedMorphPositions()
     if( mSelectedCorner == CORNER_1A_SELECTED ) {
         settings["E_SLIDER_Morph_Start_X1"] = wxString::Format("%d", SetColumnCenter(x1a));
         settings["E_SLIDER_Morph_Start_Y1"] = wxString::Format("%d", SetRowCenter(y1a));
+        //settings["E_VALUECURVE_Morph_Start_X1"] = "Active=FALSE";
+        //settings["E_VALUECURVE_Morph_Start_Y1"] = "Active=FALSE";
     }
     else if( mSelectedCorner == CORNER_1B_SELECTED && !mMorphStartLinked ) {
         settings["E_SLIDER_Morph_Start_X2"] = wxString::Format("%d", SetColumnCenter(x1b));
         settings["E_SLIDER_Morph_Start_Y2"] = wxString::Format("%d", SetRowCenter(y1b));
+        //settings["E_VALUECURVE_Morph_Start_X2"] = "Active=FALSE";
+        //settings["E_VALUECURVE_Morph_Start_Y2"] = "Active=FALSE";
     }
     else if( mSelectedCorner == CORNER_2A_SELECTED ) {
         settings["E_SLIDER_Morph_End_X1"] = wxString::Format("%d", SetColumnCenter(x2a));
         settings["E_SLIDER_Morph_End_Y1"] = wxString::Format("%d", SetRowCenter(y2a));
+        //settings["E_VALUECURVE_Morph_End_X1"] = "Active=FALSE";
+        //settings["E_VALUECURVE_Morph_End_Y1"] = "Active=FALSE";
     }
     else if( mSelectedCorner == CORNER_2B_SELECTED && !mMorphEndLinked ) {
         settings["E_SLIDER_Morph_End_X2"] = wxString::Format("%d", SetColumnCenter(x2b));
         settings["E_SLIDER_Morph_End_Y2"] = wxString::Format("%d", SetRowCenter(y2b));
+        //settings["E_VALUECURVE_Morph_End_X2"] = "Active=FALSE";
+        //settings["E_VALUECURVE_Morph_End_Y2"] = "Active=FALSE";
     }
 
     wxCommandEvent eventEffectChanged(EVT_EFFECT_CHANGED);
