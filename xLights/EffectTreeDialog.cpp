@@ -225,7 +225,7 @@ bool EffectTreeDialog::PromptForName(wxWindow* parent, wxString *name, wxString 
             // validate inputs
             *name=dialog.GetValue();
             name->Trim();
-            if (name->IsEmpty() && !errorMsg.IsEmpty()) // !errorMsg => empty is allowed -DJ
+            if ((name->IsEmpty() && !errorMsg.IsEmpty()) || name->Contains('&') || name->Contains('<') || name->Contains('>')) // !errorMsg => empty is allowed -DJ
             {
                 ok=false;
                 wxMessageBox(errorMsg, _("ERROR"));
@@ -248,7 +248,7 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
         return;
     }
     wxString prompt = "Enter effect preset name";
-    wxString errMsg = "Effect preset name may not be empty";
+    wxString errMsg = "Effect preset name may not be empty not contain &<>";
     wxString name;
     if (!PromptForName(this, &name, prompt, errMsg)) return;
 
@@ -359,7 +359,7 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
     }
 
     wxString prompt = "Enter new effect preset name";
-    wxString errMsg = "Effect preset name may not be empty";
+    wxString errMsg = "Effect preset name may not be empty or contain &<>";
     wxString newName;
     if (!PromptForName(this, &newName, prompt, errMsg)) return;
 
@@ -406,7 +406,7 @@ void EffectTreeDialog::OnbtAddGroupClick(wxCommandEvent& event)
     wxTreeItemId parentID;
     MyTreeItemData *parentData;
     wxString prompt = "Enter effect group name";
-    wxString errMsg = "Effect group name may not be empty";
+    wxString errMsg = "Effect group name may not be empty or contain &<>";
     wxString name;
     if (!PromptForName(this, &name, prompt, errMsg)) return;
 
