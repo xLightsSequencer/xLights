@@ -10,7 +10,7 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL38" variable="Panel9" member="no">
 							<object class="wxFlexGridSizer" variable="GridBagSizerFanPosition" member="no">
-								<cols>4</cols>
+								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="wxID_ANY" variable="StaticText133" member="no">
@@ -26,6 +26,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Fan_CenterX" subclass="ValueCurveButton" variable="ValueCurve_Fan_CenterX" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -67,6 +77,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Fan_CenterY" subclass="ValueCurveButton" variable="ValueCurve_Fan_CenterY" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -113,6 +133,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Fan_Start_Radius" subclass="ValueCurveButton" variable="ValueCurve_Fan_Start_Radius" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Start_Radius" variable="TextCtrl_Fan_Start_Radius" member="no">
 										<value>1</value>
 										<maxlength>3</maxlength>
@@ -150,6 +180,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Fan_Start_Angle" subclass="ValueCurveButton" variable="ValueCurve_Fan_Start_Angle" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -196,6 +236,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Fan_End_Radius" subclass="ValueCurveButton" variable="ValueCurve_Fan_End_Radius" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_End_Radius" variable="TextCtrl_Fan_End_Radius" member="no">
 										<value>10</value>
 										<maxlength>3</maxlength>
@@ -238,6 +288,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Fan_Revolutions" subclass="ValueCurveButton" variable="ValueCurve_Fan_Revolutions" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Revolutions" variable="TextCtrl_Fan_Revolutions" member="no">
 										<value>2.0</value>
 										<maxlength>4</maxlength>
@@ -268,7 +328,7 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL42" variable="Panel12" member="no">
 							<object class="wxFlexGridSizer" variable="GridBagSizerFanBlades" member="no">
-								<cols>4</cols>
+								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT148" variable="StaticText151" member="yes">
@@ -287,6 +347,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Fan_Num_Blades" subclass="ValueCurveButton" variable="ValueCurve_Fan_Num_Blades" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -329,6 +399,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Fan_Blade_Width" subclass="ValueCurveButton" variable="ValueCurve_Fan_Blade_Width" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -376,6 +456,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Fan_Blade_Angle" subclass="ValueCurveButton" variable="ValueCurve_Fan_Blade_Angle" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Blade_Angle" variable="TextCtrl_Fan_Blade_Angle" member="no">
 										<value>90</value>
 										<maxlength>4</maxlength>
@@ -415,6 +505,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Fan_Num_Elements" subclass="ValueCurveButton" variable="ValueCurve_Fan_Num_Elements" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -461,6 +561,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Fan_Element_Width" subclass="ValueCurveButton" variable="ValueCurve_Fan_Element_Width" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Element_Width" variable="TextCtrl_Fan_Element_Width" member="no">
 										<value>100</value>
 										<maxlength>3</maxlength>
@@ -491,7 +601,7 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL41" variable="Panel11" member="no">
 							<object class="wxFlexGridSizer" variable="GridBagSizerFanOptions" member="no">
-								<cols>4</cols>
+								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT146" variable="StaticText149" member="yes">
@@ -508,6 +618,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Fan_Duration" subclass="ValueCurveButton" variable="ValueCurve_Fan_Duration" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -550,6 +670,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Fan_Accel" subclass="ValueCurveButton" variable="ValueCurve_Fan_Accel" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>

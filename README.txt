@@ -21,6 +21,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (gil)     Fix names for DMX model types in property grid.  Fixes #674.
    -- bug (gil)     Fix single timing effect copy/paste not working.  Fixes #677.
    -- enh (gil)     Add value curves to Shockwave effect.
+   -- enh (gil)     Add value curves to the Fan effect.
    -- enh (gil)     Add value curves to Morph effect.
    -- enh (keithsw) Implement e1.31 sync
    -- enh (keithsw) Add more checks in check sequence

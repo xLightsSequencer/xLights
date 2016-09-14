@@ -62,24 +62,24 @@ int FanEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int
 const double PI  =3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int center_x = SettingsMap.GetInt("SLIDER_Fan_CenterX");
-    int center_y = SettingsMap.GetInt("SLIDER_Fan_CenterY");
-    int start_radius = SettingsMap.GetInt("SLIDER_Fan_Start_Radius");
-    int end_radius = SettingsMap.GetInt("SLIDER_Fan_End_Radius");
-    int start_angle = SettingsMap.GetInt("SLIDER_Fan_Start_Angle");
-    int revolutions = SettingsMap.GetInt("SLIDER_Fan_Revolutions");
-    int duration = SettingsMap.GetInt("SLIDER_Fan_Duration");
-    int acceleration = SettingsMap.GetInt("SLIDER_Fan_Accel");
+    double eff_pos = buffer.GetEffectTimeIntervalPosition();
+    int center_x = GetValueCurveInt("Fan_CenterX", 50, SettingsMap, eff_pos);
+    int center_y = GetValueCurveInt("Fan_CenterY", 50, SettingsMap, eff_pos);
+    int start_radius = GetValueCurveInt("Fan_Start_Radius", 1, SettingsMap, eff_pos);
+    int end_radius = GetValueCurveInt("Fan_End_Radius", 10, SettingsMap, eff_pos);
+    int start_angle = GetValueCurveInt("Fan_Start_Angle", 0, SettingsMap, eff_pos);
+    int revolutions = GetValueCurveInt("Fan_Revolutions", 720, SettingsMap, eff_pos);
+    int num_blades = GetValueCurveInt("Fan_Num_Blades", 3, SettingsMap, eff_pos);
+    int blade_width = GetValueCurveInt("Fan_Blade_Width", 50, SettingsMap, eff_pos);
+    int blade_angle = GetValueCurveInt("Fan_Blade_Angle", 90, SettingsMap, eff_pos);
+    int num_elements = GetValueCurveInt("Fan_Num_Elements", 1, SettingsMap, eff_pos);
+    int element_width = GetValueCurveInt("Fan_Element_Width", 100, SettingsMap, eff_pos);
+    int duration = GetValueCurveInt("Fan_Duration", 80, SettingsMap, eff_pos);
+    int acceleration = GetValueCurveInt("Fan_Accel", 0, SettingsMap, eff_pos);
     bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Fan_Reverse");
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Fan_Blend_Edges");
-    int num_blades = SettingsMap.GetInt("SLIDER_Fan_Num_Blades");
-    int blade_width = SettingsMap.GetInt("SLIDER_Fan_Blade_Width");
-    int blade_angle = SettingsMap.GetInt("SLIDER_Fan_Blade_Angle");
-    int num_elements = SettingsMap.GetInt("SLIDER_Fan_Num_Elements");
-    int element_width = SettingsMap.GetInt("SLIDER_Fan_Element_Width");
 
     std::vector< std::vector<double> > temp_colors_pct(buffer.BufferWi, std::vector<double>(buffer.BufferHt));
-    double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int num_colors = buffer.palette.Size();
     if( num_colors == 0 )
         num_colors = 1;
