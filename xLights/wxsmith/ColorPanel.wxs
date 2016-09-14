@@ -21,32 +21,26 @@
 											<growablecols>0</growablecols>
 											<object class="sizeritem">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
-													<cols>2</cols>
-													<growablecols>0</growablecols>
+													<cols>4</cols>
+													<growablecols>0,1,2</growablecols>
+													<object class="spacer">
+														<flag>wxALL|wxEXPAND</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
 													<object class="sizeritem">
 														<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
-															<cols>3</cols>
-															<growablecols>0,1,2</growablecols>
-															<object class="spacer">
-																<flag>wxALL|wxEXPAND</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
+															<growablecols>0</growablecols>
 															<object class="sizeritem">
 																<object class="wxFlexGridSizer" variable="FlexGridSizer_Palette" member="yes">
 																	<cols>1</cols>
 																</object>
-																<flag>wxALL|wxEXPAND</flag>
+																<flag>wxALL</flag>
 																<border>2</border>
 																<option>1</option>
 															</object>
-															<object class="spacer">
-																<flag>wxALL|wxEXPAND</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
 														</object>
-														<flag>wxALL|wxEXPAND</flag>
+														<flag>wxALL|wxALIGN_RIGHT</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -56,7 +50,6 @@
 															<object class="sizeritem">
 																<object class="Custom" name="ID_CUSTOM1" subclass="ColourList" variable="BitmapButton_ColourChoice" member="yes">
 																	<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
-																	<style></style>
 																</object>
 																<flag>wxALL|wxEXPAND</flag>
 																<border>2</border>
@@ -81,8 +74,13 @@
 																<option>1</option>
 															</object>
 														</object>
-														<flag>wxALL|wxEXPAND</flag>
+														<flag>wxALL|wxALIGN_LEFT</flag>
 														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
+														<flag>wxALL|wxEXPAND</flag>
+														<border>5</border>
 														<option>1</option>
 													</object>
 												</object>
@@ -115,7 +113,6 @@
 															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -130,7 +127,6 @@
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -208,7 +204,6 @@
 															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -260,7 +255,6 @@
 													<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
