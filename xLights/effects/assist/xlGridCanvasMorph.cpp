@@ -272,44 +272,23 @@ void xlGridCanvasMorph::SetMorphCorner2b(int x, int y)
 
 void xlGridCanvasMorph::StoreUpdatedMorphPositions()
 {
-    wxString settings = mEffect->GetSettingsAsString();
-    wxArrayString all_settings = wxSplit(settings, ',');
-    for( int s = 0; s < all_settings.size(); s++ )
-    {
-        wxArrayString parts = wxSplit(all_settings[s], '=');
-        if (!parts[1].Contains("Active"))
-        {
-            int percent = wxAtoi(parts[1]);
-            if (parts[0] == "E_SLIDER_Morph_Start_X1" && mSelectedCorner == CORNER_1A_SELECTED) {
-                percent = SetColumnCenter(x1a);
-            }
-            else if (parts[0] == "E_SLIDER_Morph_Start_X2" && mSelectedCorner == CORNER_1B_SELECTED && !mMorphStartLinked) {
-                percent = SetColumnCenter(x1b);
-            }
-            else if (parts[0] == "E_SLIDER_Morph_Start_Y1" && mSelectedCorner == CORNER_1A_SELECTED) {
-                percent = SetRowCenter(y1a);
-            }
-            else if (parts[0] == "E_SLIDER_Morph_Start_Y2" && mSelectedCorner == CORNER_1B_SELECTED && !mMorphStartLinked) {
-                percent = SetRowCenter(y1b);
-            }
-            else if (parts[0] == "E_SLIDER_Morph_End_X1" && mSelectedCorner == CORNER_2A_SELECTED) {
-                percent = SetColumnCenter(x2a);
-            }
-            else if (parts[0] == "E_SLIDER_Morph_End_X2" && mSelectedCorner == CORNER_2B_SELECTED && !mMorphEndLinked) {
-                percent = SetColumnCenter(x2b);
-            }
-            else if (parts[0] == "E_SLIDER_Morph_End_Y1" && mSelectedCorner == CORNER_2A_SELECTED) {
-                percent = SetRowCenter(y2a);
-            }
-            else if (parts[0] == "E_SLIDER_Morph_End_Y2" && mSelectedCorner == CORNER_2B_SELECTED && !mMorphEndLinked) {
-                percent = SetRowCenter(y2b);
-            }
-            parts[1] = wxString::Format("%d", percent);
-            all_settings[s] = wxJoin(parts, '=');
-        }
+    SettingsMap& settings = mEffect->GetSettings();
+    if( mSelectedCorner == CORNER_1A_SELECTED ) {
+        settings["E_SLIDER_Morph_Start_X1"] = wxString::Format("%d", SetColumnCenter(x1a));
+        settings["E_SLIDER_Morph_Start_Y1"] = wxString::Format("%d", SetRowCenter(y1a));
     }
-    settings = wxJoin(all_settings, ',');
-    mEffect->SetSettings(settings.ToStdString());
+    else if( mSelectedCorner == CORNER_1B_SELECTED && !mMorphStartLinked ) {
+        settings["E_SLIDER_Morph_Start_X2"] = wxString::Format("%d", SetColumnCenter(x1b));
+        settings["E_SLIDER_Morph_Start_Y2"] = wxString::Format("%d", SetRowCenter(y1b));
+    }
+    else if( mSelectedCorner == CORNER_2A_SELECTED ) {
+        settings["E_SLIDER_Morph_End_X1"] = wxString::Format("%d", SetColumnCenter(x2a));
+        settings["E_SLIDER_Morph_End_Y1"] = wxString::Format("%d", SetRowCenter(y2a));
+    }
+    else if( mSelectedCorner == CORNER_2B_SELECTED && !mMorphEndLinked ) {
+        settings["E_SLIDER_Morph_End_X2"] = wxString::Format("%d", SetColumnCenter(x2b));
+        settings["E_SLIDER_Morph_End_Y2"] = wxString::Format("%d", SetRowCenter(y2b));
+    }
 
     wxCommandEvent eventEffectChanged(EVT_EFFECT_CHANGED);
     eventEffectChanged.SetClientData(mEffect);
@@ -419,8 +398,8 @@ void xlGridCanvasMorph::DrawMorphEffect()
     }
     xlColor yellowLine = xlYELLOW;
     xlColor redLine = xlRED;
-    
-    
+
+
     DrawGLUtils::xlVertexColorAccumulator va;
     va.PreAlloc(8);
 
