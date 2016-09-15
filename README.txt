@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Modify value curve icon so its clear when its not selected.  Fixes #675.
    -- bug (dkulp)   Fix node names used for HLS imports truncating the last character
 2016.49  Sep 13, 2016
    -- bug (dkulp)   Strand/Submodel/Node effects were not clearing their buffer area on control updates resulting in ghosted data until a full render
