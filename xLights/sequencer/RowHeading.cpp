@@ -1,11 +1,10 @@
 #include "RowHeading.h"
-#include "Waveform.h"
 #include "wx/wx.h"
 #include "wx/brush.h"
 #include "../xLightsMain.h"
 #include "EffectDropTarget.h"
 #include "../BitmapCache.h"
-#include "TimeLine.h"
+#include <wx/numdlg.h> 
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
@@ -17,6 +16,7 @@ END_EVENT_TABLE()
 // Menu constants
 const long RowHeading::ID_ROW_MNU_INSERT_LAYER_ABOVE = wxNewId();
 const long RowHeading::ID_ROW_MNU_INSERT_LAYER_BELOW = wxNewId();
+const long RowHeading::ID_ROW_MNU_INSERT_LAYERS_BELOW = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_PLAY_MODEL = wxNewId();
@@ -156,6 +156,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
         if (ri->nodeIndex < 0) {
             mnuLayer.Append(ID_ROW_MNU_INSERT_LAYER_ABOVE,"Insert Layer Above");
             mnuLayer.Append(ID_ROW_MNU_INSERT_LAYER_BELOW,"Insert Layer Below");
+            mnuLayer.Append(ID_ROW_MNU_INSERT_LAYERS_BELOW, "Insert Multiple Layers Below");
 
             if(element->GetEffectLayerCount() > 1)
             {
@@ -250,6 +251,27 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         else
         {
             element->AddEffectLayer();
+        }
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    }
+    else if (id == ID_ROW_MNU_INSERT_LAYERS_BELOW)
+    {
+        size_t numtoinsert = wxGetNumberFromUser("Enter number of layers to insert", "Layers", "Insert multiple layers", 2, 1, 20, this);
+
+        if (layer_index < element->GetEffectLayerCount() - 1)
+        {
+            for (size_t i = 0; i < numtoinsert; i++)
+            {
+                element->InsertEffectLayer(layer_index + 1);
+            }
+        }
+        else
+        {
+            for (size_t i = 0; i < numtoinsert; i++)
+            {
+                element->AddEffectLayer();
+            }
         }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);

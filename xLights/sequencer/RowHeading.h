@@ -60,6 +60,7 @@ class RowHeading : public wxWindow
 
         static const long ID_ROW_MNU_INSERT_LAYER_ABOVE;
         static const long ID_ROW_MNU_INSERT_LAYER_BELOW;
+        static const long ID_ROW_MNU_INSERT_LAYERS_BELOW;
         static const long ID_ROW_MNU_DELETE_LAYER;
         static const long ID_ROW_MNU_LAYER;
         static const long ID_ROW_MNU_PLAY_MODEL;
