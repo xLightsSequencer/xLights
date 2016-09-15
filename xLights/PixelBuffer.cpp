@@ -882,8 +882,9 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
     if (layer->BufferWi == 1 && layer->BufferHt == 1) {
         return;
     }
-    
-    if (b != 2) {
+    if (b < 2) {
+        return;
+    } else if (b > 2) {
         xlColorVector tmp;
         tmp.resize(layer->buffer.pixels.size());
         gaussBlur_4(layer->buffer.pixels, tmp, layer->BufferWi, layer->BufferHt, b);
