@@ -489,6 +489,11 @@ private:
     void OnSpinCtrl_SyncUniverseChange(wxSpinEvent& event);
     void OnMenuItem_e131syncSelected(wxCommandEvent& event);
     void OnButtonArtNETClick(wxCommandEvent& event);
+    void OnMenuItem_Help_ForumSelected(wxCommandEvent& event);
+    void OnMenuItem_Help_DownloadSelected(wxCommandEvent& event);
+    void OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event);
+    void OnMenuItem_Help_Isue_TrackerSelected(wxCommandEvent& event);
+    void OnMenuItem_Help_FacebookSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -669,6 +674,11 @@ private:
     static const long ID_E131_Sync;
     static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
+    static const long ID_MENU_HELP_FORMUM;
+    static const long ID_MENU_HELP_DOWNLOAD;
+    static const long ID_MNU_HELP_RELEASE_NOTES;
+    static const long ID_MENU_HELP_ISSUE;
+    static const long ID_MENU_HELP_FACEBOOK;
     static const long ID_TIMER1;
     static const long ID_TIMER2;
     static const long ID_TIMER_EFFECT_SETTINGS;
@@ -731,6 +741,7 @@ private:
     wxMenuItem* MenuItem_ViewZoomIn;
     wxPanel* PanelPreview;
     xLightsTimer Timer1;
+    wxMenuItem* MenuItem_Help_Isue_Tracker;
     wxStaticText* StaticText3;
     xlAuiToolBar* PlayToolBar;
     wxMenu* Menu1;
@@ -754,8 +765,10 @@ private:
     wxMenuItem* mExportModelsMenuItem;
     wxMenuItem* MenuItemConvert;
     wxButton* ButtonNetworkChange;
+    wxMenuItem* MenuItem_Help_Facebook;
     wxButton* ButtonAddNull;
     wxMenu* AutoSaveMenu;
+    wxMenuItem* MenuItem_Help_ReleaseNotes;
     wxMenuItem* Menu_Settings_Sequence;
     wxMenu* MenuSettings;
     wxButton* ButtonNetworkDelete;
@@ -792,6 +805,7 @@ private:
     wxMenu* GridSpacingMenu;
     wxStaticText* FileNameText;
     wxMenuItem* mAltBackupMenuItem;
+    wxMenuItem* MenuItem_Help_Download;
     wxMenuItem* MenuItem16;
     wxMenuItem* MenuItem34;
     wxSplitterWindow* SplitterWindow1;
@@ -804,6 +818,7 @@ private:
     wxGauge* ProgressBar;
     xlAuiToolBar* EffectsToolBar;
     wxButton* ButtonSaveSchedule;
+    wxMenuItem* MenuItem_Help_Forum;
     wxButton* ButtonAddShow;
     wxGridBagSizer* StatusBarSizer;
     wxMenu* MenuView;

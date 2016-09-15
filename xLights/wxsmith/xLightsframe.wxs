@@ -1469,6 +1469,26 @@
 					<accel>F1</accel>
 					<handler function="OnBitmapButtonTabInfoClick" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MENU_HELP_FORMUM" variable="MenuItem_Help_Forum" member="yes">
+					<label>Forum</label>
+					<handler function="OnMenuItem_Help_ForumSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MENU_HELP_DOWNLOAD" variable="MenuItem_Help_Download" member="yes">
+					<label>Download</label>
+					<handler function="OnMenuItem_Help_DownloadSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_HELP_RELEASE_NOTES" variable="MenuItem_Help_ReleaseNotes" member="yes">
+					<label>Release Notes</label>
+					<handler function="OnMenuItem_Help_ReleaseNotesSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MENU_HELP_ISSUE" variable="MenuItem_Help_Isue_Tracker" member="yes">
+					<label>Issue Tracker</label>
+					<handler function="OnMenuItem_Help_Isue_TrackerSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MENU_HELP_FACEBOOK" variable="MenuItem_Help_Facebook" member="yes">
+					<label>Facebook</label>
+					<handler function="OnMenuItem_Help_FacebookSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="wxID_ABOUT" variable="MenuItem2" member="no">
 					<label>About</label>
 					<help>Show info about this application</help>

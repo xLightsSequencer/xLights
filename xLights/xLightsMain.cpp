@@ -274,6 +274,11 @@ const long xLightsFrame::ID_MENUITEM20 = wxNewId();
 const long xLightsFrame::ID_E131_Sync = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
+const long xLightsFrame::ID_MENU_HELP_FORMUM = wxNewId();
+const long xLightsFrame::ID_MENU_HELP_DOWNLOAD = wxNewId();
+const long xLightsFrame::ID_MNU_HELP_RELEASE_NOTES = wxNewId();
+const long xLightsFrame::ID_MENU_HELP_ISSUE = wxNewId();
+const long xLightsFrame::ID_MENU_HELP_FACEBOOK = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
 const long xLightsFrame::ID_TIMER2 = wxNewId();
 const long xLightsFrame::ID_TIMER_EFFECT_SETTINGS = wxNewId();
@@ -947,6 +952,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuHelp = new wxMenu();
     MenuItem4 = new wxMenuItem(MenuHelp, idMenuHelpContent, _("Content\tF1"), wxEmptyString, wxITEM_NORMAL);
     MenuHelp->Append(MenuItem4);
+    MenuItem_Help_Forum = new wxMenuItem(MenuHelp, ID_MENU_HELP_FORMUM, _("Forum"), wxEmptyString, wxITEM_NORMAL);
+    MenuHelp->Append(MenuItem_Help_Forum);
+    MenuItem_Help_Download = new wxMenuItem(MenuHelp, ID_MENU_HELP_DOWNLOAD, _("Download"), wxEmptyString, wxITEM_NORMAL);
+    MenuHelp->Append(MenuItem_Help_Download);
+    MenuItem_Help_ReleaseNotes = new wxMenuItem(MenuHelp, ID_MNU_HELP_RELEASE_NOTES, _("Release Notes"), wxEmptyString, wxITEM_NORMAL);
+    MenuHelp->Append(MenuItem_Help_ReleaseNotes);
+    MenuItem_Help_Isue_Tracker = new wxMenuItem(MenuHelp, ID_MENU_HELP_ISSUE, _("Issue Tracker"), wxEmptyString, wxITEM_NORMAL);
+    MenuHelp->Append(MenuItem_Help_Isue_Tracker);
+    MenuItem_Help_Facebook = new wxMenuItem(MenuHelp, ID_MENU_HELP_FACEBOOK, _("Facebook"), wxEmptyString, wxITEM_NORMAL);
+    MenuHelp->Append(MenuItem_Help_Facebook);
     MenuItem2 = new wxMenuItem(MenuHelp, wxID_ABOUT, _("About"), _("Show info about this application"), wxITEM_NORMAL);
     MenuHelp->Append(MenuItem2);
     MenuBar->Append(MenuHelp, _("&Help"));
@@ -1093,6 +1108,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_E131_Sync,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_e131syncSelected);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
+    Connect(ID_MENU_HELP_FORMUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_ForumSelected);
+    Connect(ID_MENU_HELP_DOWNLOAD,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_DownloadSelected);
+    Connect(ID_MNU_HELP_RELEASE_NOTES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected);
+    Connect(ID_MENU_HELP_ISSUE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_Isue_TrackerSelected);
+    Connect(ID_MENU_HELP_FACEBOOK,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_FacebookSelected);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer_AutoSaveTrigger);
@@ -3910,4 +3930,34 @@ void xLightsFrame::ShowHideSync()
         StaticText5->Hide();
         SetSyncUniverse(0);
     }
+}
+
+void xLightsFrame::OnMenuItem_Help_ForumSelected(wxCommandEvent& event)
+{
+    ::wxLaunchDefaultBrowser("http://nutcracker123.com/forum/");
+}
+
+void xLightsFrame::OnMenuItem_Help_DownloadSelected(wxCommandEvent& event)
+{
+    ::wxLaunchDefaultBrowser("http://xlights.org");
+}
+
+void xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event)
+{
+    wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+    if (ft)
+    {
+        wxString command = ft->GetOpenCommand("README.txt");
+        wxExecute(command);
+    }
+}
+
+void xLightsFrame::OnMenuItem_Help_Isue_TrackerSelected(wxCommandEvent& event)
+{
+    ::wxLaunchDefaultBrowser("https://github.com/smeighan/xLights/issues");
+}
+
+void xLightsFrame::OnMenuItem_Help_FacebookSelected(wxCommandEvent& event)
+{
+    ::wxLaunchDefaultBrowser("https://www.facebook.com/groups/628061113896314/");
 }
