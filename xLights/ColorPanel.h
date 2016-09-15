@@ -51,8 +51,9 @@ public:
         void SetDefaultPalette();
 private:
         void ValidateWindow();
-        std::string GetCurrentPalette();
-        wxColour GetPaletteColor(int idx);
+        std::string GetCurrentPalette() const;
+        wxString FindPaletteFile(const wxString& filename, const wxString& palette) const;
+        wxColour GetPaletteColor(int idx) const;
         void LoadPalettes(wxDir& directory, bool subdirs);
         void LoadAllPalettes();
 
@@ -82,6 +83,7 @@ public:
 		ValueCurveButton* BitmapButton_VCBrightness;
 		wxTextCtrl* txtCtrlSparkleFreq;
 		wxSlider* Slider_Contrast;
+		wxBitmapButton* BitmapButton_DeletePalette;
 		wxCheckBox* CheckBox_MusicSparkles;
 		ValueCurveButton* BitmapButton_SparkleFrequencyVC;
 		//*)
@@ -92,6 +94,7 @@ public:
 		static const long ID_CUSTOM1;
 		static const long ID_BITMAPBUTTON3;
 		static const long ID_BUTTON1;
+		static const long ID_BITMAPBUTTON2;
 		static const long ID_STATICTEXT24;
 		static const long ID_SLIDER_SparkleFrequency;
 		static const long ID_VALUECURVE_SparkleFrequency;
@@ -137,6 +140,7 @@ public:
 		void OnVCButtonClick(wxCommandEvent& event);
 		    void OnBitmapButton_ChoosePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
+		void OnBitmapButton_DeletePaletteClick(wxCommandEvent& event);
 		//*)
 
         wxCheckBox* GetPaletteCheckbox(int idx);

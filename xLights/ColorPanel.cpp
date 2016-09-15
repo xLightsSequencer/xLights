@@ -22,6 +22,7 @@ class xLightsFrame;
 #include "effects/EffectPanelUtils.h"
 
 #include "../include/save.xpm"
+#include "../include/delete.xpm"
 
 #define PALETTE_SIZE 8
 
@@ -29,6 +30,7 @@ class xLightsFrame;
 const long ColorPanel::ID_CUSTOM1 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON3 = wxNewId();
 const long ColorPanel::ID_BUTTON1 = wxNewId();
+const long ColorPanel::ID_BITMAPBUTTON2 = wxNewId();
 const long ColorPanel::ID_STATICTEXT24 = wxNewId();
 const long ColorPanel::ID_SLIDER_SparkleFrequency = wxNewId();
 const long ColorPanel::ID_VALUECURVE_SparkleFrequency = wxNewId();
@@ -65,7 +67,7 @@ public:
     {
 
     }
-    
+
     virtual wxCoord OnMeasureItem(size_t item) const
     {
         return 18;
@@ -180,6 +182,8 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer11->Add(BitmapButton_SavePalette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonColor1 = new wxButton(ColorScrollWindow, ID_BUTTON1, _("Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer11->Add(ButtonColor1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_DeletePalette = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON2, wxNullBitmap, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
+	FlexGridSizer11->Add(BitmapButton_DeletePalette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer9->Add(FlexGridSizer11, 1, wxALL|wxALIGN_LEFT, 2);
 	FlexGridSizer9->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 0);
@@ -268,6 +272,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 
 	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_SavePaletteClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnUpdateColorClick);
+	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_DeletePaletteClick);
 	Connect(ID_SLIDER_SparkleFrequency,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrlVC);
 	Connect(ID_VALUECURVE_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_SparkleFrequency,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedSlider);
@@ -330,6 +335,10 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
     i.Create(save_xpm);
     wxBitmap save(i);
     BitmapButton_SavePalette->SetBitmap(save);
+
+    i.Create(delete_xpm);
+    wxBitmap deletei(i);
+    BitmapButton_DeletePalette->SetBitmap(deletei);
 
     _lastShowDir = xLightsFrame::CurrentDir;
 
@@ -403,7 +412,7 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
             }
             if (!found)
             {
-                _loadedPalettes.push_back(s.ToStdString() + fn.GetName().ToStdString());
+                _loadedPalettes.push_back(s.ToStdString() + fn.GetFullName().ToStdString());
             }
         }
 
@@ -526,10 +535,10 @@ wxString ColorPanel::GetRandomColorString() {
     return ret;
 }
 
-std::string ColorPanel::GetCurrentPalette()
+std::string ColorPanel::GetCurrentPalette() const
 {
     std::string res;
-    for (int i = 0; i < PALETTE_SIZE; i++)
+    for (size_t i = 0; i < PALETTE_SIZE; i++)
     {
         wxString ids = wxString::Format("ID_BUTTON_Palette%d", (i + 1));
         ColorCurveButton* btn = (ColorCurveButton*)wxWindow::FindWindowByName(ids, this);
@@ -611,7 +620,7 @@ wxString ColorPanel::GetColorString()
 
 
 
-wxColour ColorPanel::GetPaletteColor(int idx)
+wxColour ColorPanel::GetPaletteColor(int idx) const
 {
     if (idx < buttons.size()) {
         return buttons[idx]->GetBackgroundColour();
@@ -727,10 +736,19 @@ void ColorPanel::ValidateWindow()
         if (ss.BeforeLast(',') == pal)
         {
             BitmapButton_SavePalette->Disable();
+            if (FindPaletteFile(ss.AfterLast(','), pal + ",") != "")
+                {
+            BitmapButton_DeletePalette->Enable();
+                }
+                else
+                {
+    BitmapButton_DeletePalette->Disable();
+                }
             return;
         }
     }
     BitmapButton_SavePalette->Enable();
+    BitmapButton_DeletePalette->Disable();
 }
 
 
@@ -822,5 +840,59 @@ void ColorPanel::OnColourChoiceSelect(wxCommandEvent& event)
     }
 
     BitmapButton_ColourChoice->SetSelection(0);
+    ValidateWindow();
+}
+
+wxString ColorPanel::FindPaletteFile(const wxString& filename, const wxString& palette) const
+{
+    if (wxFile::Exists(xLightsFrame::CurrentDir + "/" + filename))
+    {
+        wxFileInputStream input(xLightsFrame::CurrentDir + "/" + filename);
+        if (input.IsOk())
+        {
+            wxTextInputStream text(input);
+            wxString s = text.ReadLine();
+            if (s == palette)
+            {
+                return xLightsFrame::CurrentDir + "/" + filename;
+            }
+        }
+    }
+
+    if (wxFile::Exists(xLightsFrame::CurrentDir + "/Palettes/" + filename))
+    {
+        wxFileInputStream input(xLightsFrame::CurrentDir + "/Palettes/" + filename);
+        if (input.IsOk())
+        {
+            wxTextInputStream text(input);
+            wxString s = text.ReadLine();
+            if (s == palette)
+            {
+                return xLightsFrame::CurrentDir + "/Palettes/" + filename;
+            }
+        }
+    }
+
+    return "";
+}
+
+void ColorPanel::OnBitmapButton_DeletePaletteClick(wxCommandEvent& event)
+{
+    std::string pal = GetCurrentPalette();
+
+    for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it)
+    {
+        wxString ss(it->c_str());
+        if (ss.BeforeLast(',')+"," == pal)
+        {
+            // found it
+            wxString filename = FindPaletteFile(ss.AfterLast(','), pal);
+            if (filename != "")
+            {
+                ::wxRemoveFile(filename);
+            }
+        }
+    }
+    LoadAllPalettes();
     ValidateWindow();
 }
