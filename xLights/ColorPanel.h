@@ -65,6 +65,7 @@ public:
 		wxBitmapButton* BitmapButton_Contrast;
 		wxBitmapButton* BitmapButton_Brightness;
 		wxFlexGridSizer* FlexGridSizer_Palette;
+		wxBitmapButton* BitmapButton_ShuffleColours;
 		wxBitmapButton* BitmapButton_SavePalette;
 		wxBitmapButton* BitmapButton_random;
 		wxBitmapButton* BitmapButton_normal;
@@ -91,6 +92,7 @@ public:
 	protected:
 
 		//(*Identifiers(ColorPanel)
+		static const long ID_BITMAPBUTTON4;
 		static const long ID_CUSTOM1;
 		static const long ID_BITMAPBUTTON3;
 		static const long ID_BUTTON1;
@@ -141,6 +143,7 @@ public:
 		    void OnBitmapButton_ChoosePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_DeletePaletteClick(wxCommandEvent& event);
+		void OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event);
 		//*)
 
         wxCheckBox* GetPaletteCheckbox(int idx);

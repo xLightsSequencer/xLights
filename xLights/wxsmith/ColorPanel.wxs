@@ -46,7 +46,17 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
-															<cols>2</cols>
+															<cols>3</cols>
+															<growablecols>1</growablecols>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="BitmapButton_ShuffleColours" member="yes">
+																	<size>24,24</size>
+																	<handler function="OnBitmapButton_ShuffleColoursClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
 															<object class="sizeritem">
 																<object class="Custom" name="ID_CUSTOM1" subclass="ColourList" variable="BitmapButton_ColourChoice" member="yes">
 																	<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
@@ -60,6 +70,11 @@
 																	<size>24,24</size>
 																	<handler function="OnBitmapButton_SavePaletteClick" entry="EVT_BUTTON" />
 																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="spacer">
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>

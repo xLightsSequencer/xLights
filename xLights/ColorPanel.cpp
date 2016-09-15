@@ -23,10 +23,12 @@ class xLightsFrame;
 
 #include "../include/save.xpm"
 #include "../include/delete.xpm"
+#include "../include/switch.xpm"
 
 #define PALETTE_SIZE 8
 
 //(*IdInit(ColorPanel)
+const long ColorPanel::ID_BITMAPBUTTON4 = wxNewId();
 const long ColorPanel::ID_CUSTOM1 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON3 = wxNewId();
 const long ColorPanel::ID_BUTTON1 = wxNewId();
@@ -175,11 +177,15 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer_Palette = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer10->Add(FlexGridSizer_Palette, 1, wxALL, 2);
 	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxALIGN_RIGHT, 2);
-	FlexGridSizer11 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer11->AddGrowableCol(1);
+	BitmapButton_ShuffleColours = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON4, wxNullBitmap, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
+	FlexGridSizer11->Add(BitmapButton_ShuffleColours, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_ColourChoice = new ColourList(ColorScrollWindow,ID_CUSTOM1,wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,_T("ID_CUSTOM1"));
 	FlexGridSizer11->Add(BitmapButton_ColourChoice, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_SavePalette = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON3, wxNullBitmap, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
 	FlexGridSizer11->Add(BitmapButton_SavePalette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer11->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonColor1 = new wxButton(ColorScrollWindow, ID_BUTTON1, _("Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer11->Add(ButtonColor1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_DeletePalette = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON2, wxNullBitmap, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
@@ -270,6 +276,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
+	Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShuffleColoursClick);
 	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_SavePaletteClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnUpdateColorClick);
 	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_DeletePaletteClick);
@@ -339,6 +346,10 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
     i.Create(delete_xpm);
     wxBitmap deletei(i);
     BitmapButton_DeletePalette->SetBitmap(deletei);
+
+    i.Create(switch_xpm);
+    wxBitmap switchi(i);
+    BitmapButton_ShuffleColours->SetBitmap(switchi);
 
     _lastShowDir = xLightsFrame::CurrentDir;
 
@@ -894,5 +905,29 @@ void ColorPanel::OnBitmapButton_DeletePaletteClick(wxCommandEvent& event)
         }
     }
     LoadAllPalettes();
+    ValidateWindow();
+}
+
+void ColorPanel::OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event)
+{
+    std::string pal = GetCurrentPalette();
+
+    wxArrayString as = wxSplit(pal, ',');
+
+    for (size_t i = 0; i < PALETTE_SIZE; ++i)
+    {
+        if (as[i].Contains("Active"))
+        {
+            buttons[PALETTE_SIZE - i - 1]->GetValue()->Deserialise(as[i].ToStdString());
+            buttons[PALETTE_SIZE - i - 1]->SetActive(true);
+            buttons[PALETTE_SIZE - i - 1]->Refresh();
+        }
+        else
+        {
+            buttons[PALETTE_SIZE - i - 1]->SetColor(as[i].ToStdString());
+            buttons[PALETTE_SIZE - i - 1]->Refresh();
+        }
+    }
+
     ValidateWindow();
 }
