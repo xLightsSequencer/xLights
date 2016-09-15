@@ -20,6 +20,9 @@ class xLightsXmlFile : public wxFileName
         xLightsXmlFile(const wxFileName &filename);
         virtual ~xLightsXmlFile();
 
+        static wxString UnXmlSafe(wxString s);
+        static wxString XmlSafe(wxString s);
+
         enum HEADER_INFO_TYPES
         {
             AUTHOR,

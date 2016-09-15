@@ -17,6 +17,62 @@
 const wxString xLightsXmlFile::ERASE_MODE = "<rendered: erase-mode>";
 const wxString xLightsXmlFile::CANVAS_MODE = "<rendered: canvas-mode>";
 
+wxString xLightsXmlFile::UnXmlSafe(wxString s)
+{
+    wxString res = s;
+
+    for (int i = 0; i< 32; ++i)
+    {
+        wxString ss = wxString::Format("&#%d;", i);
+        res.Replace(ss, wxString::Format("%c", i));
+    }
+    res.Replace("&lt;", "<");
+    res.Replace("&gt;", ">");
+    res.Replace("&apos;", "'");
+    res.Replace("&quot;", "\"");
+    res.Replace("&amp;", "&");
+    return res;
+}
+
+wxString xLightsXmlFile::XmlSafe(wxString s)
+{
+    wxString res = "";
+    for (auto c = s.begin(); c != s.end(); c++)
+    {
+        if ((int)(*c) < 32)
+        {
+            //res += wxString::Format("&#x%x;", (int)(*c));
+            res += wxString::Format("&#%d;", (int)(*c));
+        }
+        else if (*c == '&')
+        {
+            res += "&amp;";
+        }
+        else if (*c == '<')
+        {
+            res += "&lt;";
+        }
+        else if (*c == '>')
+        {
+            res += "&gt;";
+        }
+        else if (*c == '\'')
+        {
+            res += "&apos;";
+        }
+        else if (*c == '\"')
+        {
+            res += "&quot;";
+        }
+        else
+        {
+            res += (*c);
+        }
+    }
+
+    return res;
+}
+
 xLightsXmlFile::xLightsXmlFile(const wxFileName &filename)
 	: wxFileName(filename),
 	version_string(wxEmptyString),

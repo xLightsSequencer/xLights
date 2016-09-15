@@ -1840,7 +1840,7 @@ bool xLightsFrame::EnableOutputs()
                 wxString BaudRate=e->GetAttribute("BaudRate", "");
                 int baud = (BaudRate == _("n/a")) ? 115200 : wxAtoi(BaudRate);
                 bool enabled = e->GetAttribute("Enabled", "Yes") == "Yes";
-				wxString Description = e->GetAttribute("Description", "");
+				wxString Description = xLightsXmlFile::UnXmlSafe(e->GetAttribute("Description", ""));
                 static wxString choices;
 
                 int numU = wxAtoi(e->GetAttribute("NumUniverses", "1"));
@@ -3504,7 +3504,7 @@ void xLightsFrame::CheckSequence(bool display)
                 wxString NetType = n->GetAttribute("NetworkType", "");
                 wxString ip = n->GetAttribute("ComPort", "");
                 wxString universe = n->GetAttribute("BaudRate", "1");
-                wxString desc = n->GetAttribute("Description", "");
+                wxString desc = xLightsXmlFile::UnXmlSafe(n->GetAttribute("Description", ""));
 
                 wxString msg = wxString::Format("    WARN: Inactive output %d %s:%s:%s:'%s'.", i, NetType, ip, universe, desc);
                 LogAndWrite(f, msg.ToStdString());

@@ -14,6 +14,7 @@
 #include "models/ModelGroup.h"
 #include <log4cpp/Category.hh>
 #include "osxMacUtils.h"
+#include "xLightsXmlFile.h"
 
 //
 //
@@ -121,7 +122,7 @@ TreeController::TreeController(wxXmlNode* n, int startchannel, int nullcount)
 	_startchannel = 1;
 	_endxlightschannel = _startxlightschannel + _endchannel - 1;
 	_inactive = (n->GetAttribute("Enabled", "Yes") != "Yes");
-	_description = n->GetAttribute("Description", "");
+	_description = xLightsXmlFile::UnXmlSafe(n->GetAttribute("Description", ""));
 	std::string type = std::string(n->GetAttribute("NetworkType", ""));
 	if (type == "NULL")
 	{
@@ -1887,7 +1888,7 @@ bool TestDialog::InitialiseOutputs()
 			wxString BaudRate = e->GetAttribute("BaudRate", "");
 			int baud = (BaudRate == _("n/a")) ? 115200 : wxAtoi(BaudRate);
 			bool enabled = e->GetAttribute("Enabled", "Yes") == "Yes";
-			wxString Description = e->GetAttribute("Description", "");
+			wxString Description = xLightsXmlFile::UnXmlSafe(e->GetAttribute("Description", ""));
 			static wxString choices;
 
 			int numU = wxAtoi(e->GetAttribute("NumUniverses", "1"));

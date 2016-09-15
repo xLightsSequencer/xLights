@@ -25,10 +25,7 @@
 
 #include "SubModel.h"
 
-
 const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Preview", "Single Line"};
-
-
 
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), ModelXml(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
@@ -512,7 +509,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         ModelXml->DeleteAttribute("Description");
         if (description != "")
         {
-            ModelXml->AddAttribute("Description", description);
+            ModelXml->AddAttribute("Description", xLightsXmlFile::XmlSafe(description));
         }
         IncrementChangeCount();
         return 2;
@@ -1025,7 +1022,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     SingleNode=HasSingleNode(StringType);
     SingleChannel=HasSingleChannel(StringType);
     rgbOrder = SingleNode ? "RGB" : StringType.substr(0, 3);
-    description = ModelNode->GetAttribute("Description").ToStdString();
+    description = xLightsXmlFile::UnXmlSafe(ModelNode->GetAttribute("Description").ToStdString());
 
     tempstr=ModelNode->GetAttribute("parm1");
     tempstr.ToLong(&parm1);

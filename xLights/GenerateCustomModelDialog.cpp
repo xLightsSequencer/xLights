@@ -16,6 +16,7 @@
 #include <wx/log.h>
 
 #include "xLightsMain.h"
+#include "xLightsXmlFile.h"
 #include <log4cpp/Category.hh>
 #include "osxMacUtils.h"
 
@@ -777,7 +778,7 @@ bool GenerateCustomModelDialog::InitialiseOutputs(xOutput* xout)
             wxString BaudRate = e->GetAttribute("BaudRate", "");
             int baud = (BaudRate == _("n/a")) ? 115200 : wxAtoi(BaudRate);
             bool enabled = e->GetAttribute("Enabled", "Yes") == "Yes";
-            wxString Description = e->GetAttribute("Description", "");
+            wxString Description = xLightsXmlFile::UnXmlSafe(e->GetAttribute("Description", ""));
             static wxString choices;
 
             int numU = wxAtoi(e->GetAttribute("NumUniverses", "1"));
