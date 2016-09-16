@@ -2637,6 +2637,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
             UnSelectAllModels(true);
             SetToolTipForTreeList(TreeListViewModels, "");
         }
+        TreeListViewModels->SetFocus();
     } else {
         SetToolTipForTreeList(TreeListViewModels, "");
     }

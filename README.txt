@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Allow arrow key to be used to scroll in model list in Layout.  Fixes #582.
    -- enh (gil)     Modify value curve icon so its clear when its not selected.  Fixes #675.
    -- bug (dkulp)   Fix node names used for HLS imports truncating the last character
 2016.49  Sep 13, 2016
