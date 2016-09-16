@@ -693,7 +693,8 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
 
     printf("Processing file %s\n", seq.ToStdString().c_str());
     OpenSequence(seq, nullptr);
-    
+    EnableSequenceControls(false);
+
     SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
     ProgressBar->Show();
     GaugeSizer->Layout();
