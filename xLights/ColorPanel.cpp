@@ -551,7 +551,7 @@ std::string ColorPanel::GetCurrentPalette() const
     std::string res;
     for (size_t i = 0; i < PALETTE_SIZE; i++)
     {
-        wxString ids = wxString::Format("ID_BUTTON_Palette%d", (i + 1));
+        wxString ids = wxString::Format("ID_BUTTON_Palette%d", ((int)i + 1));
         ColorCurveButton* btn = (ColorCurveButton*)wxWindow::FindWindowByName(ids, this);
         if (btn->GetValue()->IsActive())
         {
@@ -560,6 +560,7 @@ std::string ColorPanel::GetCurrentPalette() const
         else
         {
             wxColor color = GetPaletteColor(i);
+            color.Set(color.Red(), color.Green(), color.Blue(), wxALPHA_OPAQUE);
             res += color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString() + ",";
         }
     }

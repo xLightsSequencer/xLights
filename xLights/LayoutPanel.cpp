@@ -824,7 +824,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         }
 
         unsigned int mc = xlights->GetMaxNumChannels();
-        wxString mcs = wxString::Format("%ld", mc);
+        wxString mcs = wxString::Format("%u", mc);
         int sz = TreeListViewModels->WidthFor(mcs);
         int sz2 = TreeListViewModels->WidthFor("Start Chan");
         if (sz2 > sz) {

@@ -353,7 +353,7 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 			{
 				int channeloffset = channel - currentcontrollerstartchannel + 1;
 				// found it
-				std::string s = "Channel " + std::string(wxString::Format(wxT("%i"), channel)) + " maps to ...\n";
+				std::string s = "Channel " + std::string(wxString::Format(wxT("%i"), (int)channel)) + " maps to ...\n";
 				if (e->GetAttribute("Description", "") != "")
 				{
 					s = s + std::string(xLightsXmlFile::UnXmlSafe(e->GetAttribute("Description")) + "\n");
@@ -444,7 +444,7 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
         else if (e->GetName() == "network")
         {
             output++;
-            newidx = GridNetwork->InsertItem(GridNetwork->GetItemCount(), wxString::Format("%d", output));
+            newidx = GridNetwork->InsertItem(GridNetwork->GetItemCount(), wxString::Format("%d", (int)output));
             NetName=e->GetAttribute("NetworkType", "");
             GridNetwork->SetItem(newidx, 1, NetName);
             wxString ip = e->GetAttribute("ComPort", "");

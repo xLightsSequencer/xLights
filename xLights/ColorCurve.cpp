@@ -543,8 +543,10 @@ void ColorCurveButton::UpdateBitmap() {
         SetBackgroundColour(color);
         SetForegroundColour(color);
         wxImage image(sz.GetWidth(), sz.GetHeight());
-        image.SetRGB(wxRect(0, 0, sz.GetWidth(), sz.GetHeight()),
-            color.Red(), color.Green(), color.Blue());
+        if (color.IsOk()) {
+            image.SetRGB(wxRect(0, 0, sz.GetWidth(), sz.GetHeight()),
+                color.Red(), color.Green(), color.Blue());
+        }
         wxBitmap bmp(image);
         SetBitmap(bmp);
     }
