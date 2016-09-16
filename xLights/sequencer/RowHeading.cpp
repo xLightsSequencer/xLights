@@ -628,13 +628,13 @@ void RowHeading::Draw()
             }
             // draw Model Group icon if necessary
             Model *m = mSequenceElements->GetXLightsFrame()->AllModels[mSequenceElements->GetVisibleRowInformation(i)->element->GetModelName()];
-            if ( m != nullptr &&  m->GetDisplayAs() == "ModelGroup" )
+            if (m != nullptr)
             {
-                dc.DrawBitmap(model_group_icon, getWidth()-25, startY+3, true);
-            }
-            else
-            {
-                if (m->GetStringType().find("Single Color") == 0)
+                if (m->GetDisplayAs() == "ModelGroup")
+                {
+                    dc.DrawBitmap(model_group_icon, getWidth() - 25, startY + 3, true);
+                }
+                else if (m->GetStringType().find("Single Color") == 0)
                 {
                     m->SetNodeColor(0, xlWHITE);
                     xlColor color = m->GetNodeColor(0);
