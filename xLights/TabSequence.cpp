@@ -676,6 +676,56 @@ void xLightsFrame::UpdateModelsList()
     layoutPanel->UpdateModelList(true);
 }
 
+void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (origFilenames.IsEmpty()) {
+        EnableSequenceControls(true);
+        printf("Done All Files\n");
+        Destroy();
+        return;
+    }
+    EnableSequenceControls(false);
+
+    wxArrayString fileNames = origFilenames;
+    wxString seq = fileNames[0];
+    fileNames.RemoveAt(0);
+    wxStopWatch sw; // start a stopwatch timer
+
+    printf("Processing file %s\n", seq.ToStdString().c_str());
+    OpenSequence(seq, nullptr);
+    
+    SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
+    ProgressBar->Show();
+    GaugeSizer->Layout();
+    logger_base.info("Rendering on save.");
+    RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
+    logger_base.info("   iseq below effects done.");
+    ProgressBar->SetValue(10);
+    RenderGridToSeqData([this, sw, fileNames] {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("   Effects done.");
+        ProgressBar->SetValue(90);
+        RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
+        logger_base.info("   iseq above effects done. Render complete.");
+        ProgressBar->SetValue(100);
+        ProgressBar->Hide();
+        GaugeSizer->Layout();
+        
+        logger_base.info("Saving fseq file.");
+        SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
+        WriteFalconPiFile(xlightsFilename);
+        logger_base.info("fseq file done.");
+        DisplayXlightsFilename(xlightsFilename);
+        float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
+        wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
+        logger_base.info("%s", (const char *) displayBuff.c_str());
+        CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
+        mSavedChangeCount = mSequenceElements.GetChangeCount();
+        mLastAutosaveCount = mSavedChangeCount;
+        
+        CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, fileNames);
+    } );
+}
 void xLightsFrame::SaveSequence()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

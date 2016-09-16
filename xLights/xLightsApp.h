@@ -28,7 +28,7 @@ public:
     static wxString DebugPath; //path name for debug log file -DJ
     static wxString showDir;
     static wxString mediaDir;
-    static wxString sequenceFile;
+    static wxArrayString sequenceFiles;
 
     virtual void OnFatalException();
 

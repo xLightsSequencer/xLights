@@ -1046,6 +1046,7 @@ protected:
     void SaveSequence();
     void SaveAsSequence();
     bool CloseSequence();
+    void OpenRenderAndSaveSequences(const wxArrayString &filenames);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);

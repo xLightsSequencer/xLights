@@ -453,9 +453,10 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters", wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
         { wxCMD_LINE_SWITCH, "n", "noauto", "enable auto-run prompt"},
         { wxCMD_LINE_SWITCH, "d", "debug", "enable debug mode"},
+        { wxCMD_LINE_SWITCH, "r", "render", "render files and exit"},
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
         { wxCMD_LINE_OPTION, "s", "show", "specify show directory"},
-        { wxCMD_LINE_PARAM, "", "", "sequence file", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL},
+        { wxCMD_LINE_PARAM, "", "", "sequence file", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL | wxCMD_LINE_PARAM_MULTIPLE},
         { wxCMD_LINE_NONE }
     };
 
@@ -481,18 +482,17 @@ bool xLightsApp::OnInit()
         } else if (!showDir.IsNull()) {
             mediaDir = showDir;
         }
-        if (parser.GetParamCount()>0) {
-            sequenceFile = parser.GetParam(0);
-            wxString seqDir =
-            info += _("Loading sequence ") + sequenceFile + "\n";
+        for (int x = 0; x < parser.GetParamCount(); x++) {
+            wxString sequenceFile = parser.GetParam(x);
+            if (x == 0) {
+                info += _("Loading sequence ") + sequenceFile + "\n";
+            }
             if (showDir.IsNull()) {
                 showDir=wxPathOnly(sequenceFile);
             }
-            if (mediaDir.IsNull()) {
-                mediaDir=wxPathOnly(sequenceFile);
-            }
+            sequenceFiles.push_back(sequenceFile);
         }
-        if (!info.empty()) wxMessageBox(info, _("Command Line Options")); //give positive feedback*/
+        if (!parser.Found("r") && !info.empty()) wxMessageBox(info, _("Command Line Options")); //give positive feedback*/
         break;
     default:
         wxMessageBox(_("Unrecognized command line parameters"),_("Command Line Error"));
@@ -511,6 +511,10 @@ bool xLightsApp::OnInit()
     //*)
     topFrame = (xLightsFrame* )GetTopWindow();
 
+    if (parser.Found("r")) {
+        topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, sequenceFiles);
+    }
+    
     wxImage::AddHandler(new wxPNGHandler);
     #ifdef LINUX
         glutInit(&(wxApp::argc), wxApp::argv);
@@ -533,4 +537,4 @@ bool xLightsApp::RunPrompt = false; //prompt before running schedule (allows ove
 wxString xLightsApp::DebugPath;
 wxString xLightsApp::mediaDir;
 wxString xLightsApp::showDir;
-wxString xLightsApp::sequenceFile;
+wxArrayString xLightsApp::sequenceFiles;

@@ -1516,10 +1516,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     jobPool.Start(wxThread::GetCPUCount() * 4);
 
-    if (!xLightsApp::sequenceFile.IsNull())
+    if (!xLightsApp::sequenceFiles.IsEmpty())
     {
-        logger_base.debug("Opening sequence: %s.", (const char *)xLightsApp::sequenceFile.c_str());
-        OpenSequence(xLightsApp::sequenceFile, nullptr);
+        logger_base.debug("Opening sequence: %s.", (const char *)xLightsApp::sequenceFiles[0].c_str());
+        OpenSequence(xLightsApp::sequenceFiles[0], nullptr);
     }
 
 	SetAudioControls();
