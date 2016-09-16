@@ -16,7 +16,7 @@
 #include <wx/artprov.h>
 
 #include "LayoutPanel.h"
-#include "XLightsXmlFile.h"
+#include "xLightsXmlFile.h"
 
 // dialogs
 #include "SerialPortWithRate.h"
