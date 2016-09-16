@@ -2364,7 +2364,7 @@ effects/BarsPanel.cpp: effects/BarsPanel.h ../include/padlock16x16-blue.xpm effe
 
 TabSequence.cpp: xLightsMain.h heartbeat.h SeqSettingsDialog.h xLightsXmlFile.h effects/RenderableEffect.h models/ModelGroup.h BufferPanel.h LayoutPanel.h RenderProgressDialog.h osxMacUtils.h
 
-TabSetup.cpp: xLightsMain.h LayoutPanel.h SerialPortWithRate.h E131Dialog.h NullOutputDialog.h ArtNetDialog.h xlights_out.h osxMacUtils.h
+TabSetup.cpp: xLightsMain.h LayoutPanel.h xLightsXmlFile.h SerialPortWithRate.h E131Dialog.h NullOutputDialog.h ArtNetDialog.h xlights_out.h osxMacUtils.h
 
 TestDialog.cpp: TestDialog.h models/Model.h models/ModelGroup.h osxMacUtils.h xLightsXmlFile.h
 
