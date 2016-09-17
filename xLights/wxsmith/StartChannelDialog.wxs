@@ -83,7 +83,6 @@
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
 										<object class="wxChoice" name="ID_CHOICE3" variable="ipChoice" member="yes">
-											<style>wxCB_SORT</style>
 											<handler function="OnipChoiceSelect" entry="EVT_CHOICE" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -91,9 +90,7 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxChoice" name="ID_CHOICE4" variable="universeChoice" member="yes">
-											<style>wxCB_SORT</style>
-										</object>
+										<object class="wxChoice" name="ID_CHOICE4" variable="universeChoice" member="yes" />
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>

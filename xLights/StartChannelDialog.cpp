@@ -68,9 +68,9 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	FlexGridSizer3->Add(UniverseButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
-	ipChoice = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE3"));
+	ipChoice = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
 	FlexGridSizer4->Add(ipChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	universeChoice = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE4"));
+	universeChoice = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
 	FlexGridSizer4->Add(universeChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ModelButton = new wxRadioButton(this, ID_RADIOBUTTON3, _("End of Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
@@ -267,7 +267,13 @@ void StartChannelDialog::SetUniverseOptionsBasedOnIP(wxString ip)
     universeChoice->Clear();
     if (ip == "ANY")
     {
-        std::vector<size_t> us = netInfo->GetUniverses();
+        std::vector<size_t> uus = netInfo->GetUniverses();
+        std::list<size_t> us;
+        for (auto it = uus.begin(); it != uus.end(); ++it)
+        {
+            us.push_back(*it);
+        }
+        us.sort();
         for (auto it = us.begin(); it != us.end(); ++it)
         {
             wxString u = wxString::Format("%d", *it);
@@ -279,7 +285,13 @@ void StartChannelDialog::SetUniverseOptionsBasedOnIP(wxString ip)
     }
     else
     {
-        std::vector<size_t> us = netInfo->GetUniversesForIP(ip);
+        std::vector<size_t> uus = netInfo->GetUniversesForIP(ip);
+        std::list<size_t> us;
+        for (auto it = uus.begin(); it != uus.end(); ++it)
+        {
+            us.push_back(*it);
+        }
+        us.sort();
         for (auto it = us.begin(); it != us.end(); ++it)
         {
             wxString u = wxString::Format("%d", *it);
