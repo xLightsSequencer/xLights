@@ -133,7 +133,7 @@ void RenderableEffect::initBitmaps(const char **data16,
 
 
 bool RenderableEffect::needToAdjustSettings(const std::string &version) {
-    return IsVersionOlder("2016.35", version);
+    return IsVersionOlder("2016.50", version);
 }
 
 
@@ -281,6 +281,23 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
     }
     if (IsVersionOlder("2016.36", version)) {
         RemoveDefaults(version, effect);
+    }
+    if (IsVersionOlder("2016.50", version))
+    {
+        // Fix #622 - circle and square explode on transition out ... this code stops me breaking existing sequences
+        SettingsMap& sm = effect->GetSettings();
+        if (sm["T_CHOICE_Out_Transition_Type"] == "Square Explode" ||
+            sm["T_CHOICE_Out_Transition_Type"] == "Circle Explode")
+        {
+            if (sm.GetBool("T_CHECKBOX_Out_Transition_Reverse", false))
+            {
+                sm.erase("T_CHECKBOX_Out_Transition_Reverse");
+            }
+            else
+            {
+                sm["T_CHECKBOX_Out_Transition_Reverse"] = "1";
+            }
+        }
     }
 }
 void RenderableEffect::RemoveDefaults(const std::string &version, Effect *effect) {

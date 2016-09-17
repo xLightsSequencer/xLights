@@ -1427,7 +1427,7 @@ void PixelBufferClass::LayerInfo::createCircleExplodeMask(bool out) {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     if (out) {
-        reverse = outTransitionReverse;
+        reverse = !outTransitionReverse;
         factor = outMaskFactor;
     }
     
@@ -1456,7 +1456,7 @@ void PixelBufferClass::LayerInfo::createSquareExplodeMask(bool out)
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     if (out) {
-        reverse = outTransitionReverse;
+        reverse = !outTransitionReverse;
         factor = outMaskFactor;
     }
 
