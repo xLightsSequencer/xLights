@@ -13,7 +13,9 @@
 
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
-#include <wx/animate.h>
+#include <wx/gifdecod.h>
+#include <wx/wfstream.h>
+#include <wx/image.h>
 
 #include "../../include/pictures-16.xpm"
 #include "../../include/pictures-24.xpm"
@@ -330,100 +332,128 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
            SettingsMap.GetBool("CHECKBOX_Pictures_ScaleToFit", false),
            SettingsMap.GetBool("CHECKBOX_Pictures_PixelOffsets", false),
            SettingsMap.GetBool("CHECKBOX_Pictures_WrapX", false),
-           SettingsMap.GetBool("CHECKBOX_Pictures_Shimmer", false));
+        SettingsMap.GetBool("CHECKBOX_Pictures_Shimmer", false),
+        SettingsMap.GetBool("CHECKBOX_Pictures_ForceGIFOverlay", false)
+    );
 }
 
-int LoadImageFrame(wxImage& image, const wxString& file, int frame, int fullframe)
+void CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool overlay)
+{
+    if (from.GetWidth() != to.GetWidth() || from.GetHeight() != to.GetHeight() || overlay)
+    {
+        for (size_t y = 0; y < from.GetHeight(); y++)
+        {
+            for (size_t x = 0; x < from.GetWidth(); x++)
+            {
+                if (!from.IsTransparent(x, y))
+                {
+                    to.SetRGB(x + offset.x, y + offset.y, from.GetRed(x, y), from.GetGreen(x, y), from.GetBlue(x, y));
+                }
+            }
+        }
+    }
+    else
+    {
+        to = from;
+    }
+}
+
+wxPoint LoadRawImageFrame(wxImage& image, const wxString& file, int frame)
+{
+    wxFileInputStream stream(file);
+    if (stream.IsOk())
+    {
+        wxGIFDecoder decod;
+        if (decod.LoadGIF(stream) == wxGIF_OK)
+        {
+            image.Resize(decod.GetFrameSize(frame), wxPoint(0, 0));
+            decod.ConvertToImage(frame, &image);
+            return decod.GetFramePosition(frame);
+        }
+    }
+    return wxPoint(-1, -1);
+}
+
+bool HasTransparent(wxImage& image)
+{
+    for (size_t y = 0; y < image.GetHeight(); y++)
+    {
+        for (size_t x = 0; x < image.GetWidth(); x++)
+        {
+            if (image.IsTransparent(x, y))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+int LoadImageFrame(wxImage& image, const wxString& file, int frame, int fullframe, bool forceoverlay)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    int lastfullframe = fullframe;
 
+    if (fullframe < 0)
+    {
+        fullframe = 0;
+    }
+    int lastfullframe = fullframe;
     if (frame < fullframe)
     {
         lastfullframe = 0;
     }
 
+    // load the first frame to set the image size correctly
+    wxPoint offset = LoadRawImageFrame(image, file, 0);
     image.Clear();
 
     for (size_t i = lastfullframe; i <= frame; i++)
     {
         if (i == lastfullframe)
         {
-            if (!image.LoadFile(file, wxBITMAP_TYPE_ANY, i))
+            wxImage newframe(image.GetWidth(), image.GetHeight());
+            offset = LoadRawImageFrame(newframe, file, i);
+            if (offset.x == -1)
             {
                 logger_base.error("Error loading image file: %s index %d.", (const char *)file.c_str(), frame);
                 return -1;
             }
-
-            // check to see if the first frame has transparent pixels
-            bool transparentfound = false;
-            for (size_t y = 0; y < image.GetHeight(); y++)
-            {
-                for (size_t x = 0; x < image.GetWidth(); x++)
-                {
-                    if (image.IsTransparent(x, y))
-                    {
-                        transparentfound = true;
-                        break;
-                    }
-                }
-            }
+            CopyImageToImage(image, newframe, offset, false);
 
             // If first frame has transparent pixels we dont want to use the overlay method ... so just get the frame
-            if (transparentfound)
+            if (HasTransparent(image) && !forceoverlay)
             {
                 if (frame != lastfullframe)
                 {
-                    wxImage tmpframe;
-                    if (!tmpframe.LoadFile(file, wxBITMAP_TYPE_ANY, frame))
+                    offset = LoadRawImageFrame(newframe, file, frame);
+                    if (offset.x == -1)
                     {
                         return -1;
                     }
-                    if (image.GetWidth() != tmpframe.GetWidth() || image.GetHeight() != tmpframe.GetHeight())
-                    {
-                        image = tmpframe.Rescale(image.GetWidth(), image.GetHeight());
-                    }
-                    else
-                    {
-                        image = tmpframe;
-                    }
+                    CopyImageToImage(image, newframe, offset, false);
                     return 0;
                 }
             }
         }
         else
         {
-            wxImage tmpframe;
-            if (!tmpframe.LoadFile(file, wxBITMAP_TYPE_ANY, i))
+            wxImage newframe(image.GetWidth(), image.GetHeight());
+            offset = LoadRawImageFrame(newframe, file, i);
+            if (offset.x == -1)
             {
                 return -1;
             }
-            wxImage newframe = tmpframe;
-            if (image.GetWidth() != tmpframe.GetWidth() || image.GetHeight() != tmpframe.GetHeight())
-            {
-                newframe = tmpframe.Rescale(image.GetWidth(), image.GetHeight());
-            }
+
+            logger_base.debug("Image (%d,%d) frame %d (%d,%d) at (%d,%d)", image.GetWidth(), image.GetHeight(),
+                i, newframe.GetWidth(), newframe.GetHeight(), offset.x, offset.y);
 
             bool transparentfound = false;
 
             // apply image to the previous frame where the pixel isnt transparent
-            for (size_t y = 0; y < image.GetHeight(); y++)
-            {
-                for (size_t x = 0; x < image.GetWidth(); x++)
-                {
-                    if (!newframe.IsTransparent(x, y))
-                    {
-                        image.SetRGB(x, y, newframe.GetRed(x, y), newframe.GetGreen(x, y), newframe.GetBlue(x,y));
-                    }
-                    else
-                    {
-                        transparentfound = true;
-                    }
-                }
-            }
+            CopyImageToImage(image, newframe, offset, true);
 
             // if the current frame had no transparent pixels then remember this as the last full frame
-            if (!transparentfound)
+            if (newframe.GetWidth() == image.GetWidth() && newframe.GetHeight() == image.GetHeight() && !HasTransparent(newframe))
             {
                 lastfullframe = i;
             }
@@ -439,7 +469,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                             int xc_adj, int yc_adj,
                             int xce_adj, int yce_adj,
                             int start_scale, int end_scale, bool scale_to_fit,
-                            bool pixelOffsets, bool wrap_x, bool shimmer) {
+                            bool pixelOffsets, bool wrap_x, bool shimmer, bool forcegifoverlay) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -537,7 +567,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         if (ii != cache->imageIndex) {
             cache->imageIndex = ii;
 
-            int lff = LoadImageFrame(image, cache->PictureName, ii, cache->lastfullframe);
+            int lff = LoadImageFrame(image, cache->PictureName, ii, cache->lastfullframe, forcegifoverlay);
 
             if (lff >= 0)
             {

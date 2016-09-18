@@ -36,6 +36,7 @@ const long PicturesPanel::ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_PixelOffsets = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_ScaleToFit = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_Shimmer = wxNewId();
+const long PicturesPanel::ID_CHECKBOX_Pictures_ForceGIFOverlay = wxNewId();
 const long PicturesPanel::ID_SLIDER_PicturesXC = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_WrapX = wxNewId();
 const long PicturesPanel::IDD_TEXTCTRL_PicturesXC = wxNewId();
@@ -168,16 +169,19 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	FlexGridSizer102 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer102->AddGrowableCol(0);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	CheckBox_Pictures_PixelOffsets = new wxCheckBox(this, ID_CHECKBOX_Pictures_PixelOffsets, _("Offsets In Pixels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_PixelOffsets"));
 	CheckBox_Pictures_PixelOffsets->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_Pictures_PixelOffsets, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
 	CheckBox_Pictures_ScaleToFit = new wxCheckBox(this, ID_CHECKBOX_Pictures_ScaleToFit, _("Scale To Fit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_ScaleToFit"));
 	CheckBox_Pictures_ScaleToFit->SetValue(false);
-	FlexGridSizer1->Add(CheckBox_Pictures_ScaleToFit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(CheckBox_Pictures_ScaleToFit, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Pictures_Shimmer = new wxCheckBox(this, ID_CHECKBOX_Pictures_Shimmer, _("Shimmer"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_Shimmer"));
 	CheckBox_Pictures_Shimmer->SetValue(false);
-	FlexGridSizer1->Add(CheckBox_Pictures_Shimmer, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(CheckBox_Pictures_Shimmer, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_ForceGIFOverlay = new wxCheckBox(this, ID_CHECKBOX_Pictures_ForceGIFOverlay, _("Force GIF Overlay"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_ForceGIFOverlay"));
+	CheckBox_ForceGIFOverlay->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_ForceGIFOverlay, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer102->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
 	Notebook4 = new wxNotebook(this, IDD_NOTEBOOK_Pictures_Positions, wxDefaultPosition, wxDefaultSize, 0, _T("IDD_NOTEBOOK_Pictures_Positions"));
 	PictureStartPositionPanel = new wxPanel(Notebook4, ID_PANEL43, wxPoint(15,49), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL43"));
@@ -316,4 +320,8 @@ void PicturesPanel::OnChoicePicturesDirectionSelect(wxCommandEvent& event)
     EnableControl(Choice_Pictures_Direction->GetParent(), ID_SLIDER_PicturesEndXC, enable);
     EnableControl(Choice_Pictures_Direction->GetParent(), ID_SLIDER_PicturesEndYC, enable);
     PictureEndPositionPanel->Enable(enable);
+}
+
+void PicturesPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
+{
 }

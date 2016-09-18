@@ -64,6 +64,7 @@ class PicturesPanel: public wxPanel
 		wxStaticText* StaticText68;
 		wxSlider* Slider_Pictures_FR;
 		wxSlider* Slider_PicturesEndYC;
+		wxCheckBox* CheckBox_ForceGIFOverlay;
 		wxStaticText* StaticText46;
 		//*)
 
@@ -85,6 +86,7 @@ class PicturesPanel: public wxPanel
 		static const long ID_CHECKBOX_Pictures_PixelOffsets;
 		static const long ID_CHECKBOX_Pictures_ScaleToFit;
 		static const long ID_CHECKBOX_Pictures_Shimmer;
+		static const long ID_CHECKBOX_Pictures_ForceGIFOverlay;
 		static const long ID_SLIDER_PicturesXC;
 		static const long ID_CHECKBOX_Pictures_WrapX;
 		static const long IDD_TEXTCTRL_PicturesXC;
@@ -108,19 +110,20 @@ class PicturesPanel: public wxPanel
 	public:
 
 		//(*Handlers(PicturesPanel)
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
-    void OnLockButtonClick(wxCommandEvent& event);
-    void OnChoicePicturesDirectionSelect(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		void UpdateLinkedSliderFloat(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
+		void UpdateLinkedSlider360(wxCommandEvent& event);
+		void UpdateLinkedTextCtrl(wxScrollEvent& event);
+		void UpdateLinkedSlider(wxCommandEvent& event);
+		void OnLockButtonClick(wxCommandEvent& event);
+		void OnChoicePicturesDirectionSelect(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+		void OnVCButtonClick(wxCommandEvent& event);
+		void OnVCChanged(wxCommandEvent& event);
+		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };
