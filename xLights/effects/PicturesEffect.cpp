@@ -9,10 +9,11 @@
 #include "../xLightsXmlFile.h"
 #include "../models/Model.h"
 #include "../SequenceCheck.h"
+#include <log4cpp/Category.hh>
 
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
-
+#include <wx/animate.h>
 
 #include "../../include/pictures-16.xpm"
 #include "../../include/pictures-24.xpm"
@@ -191,6 +192,7 @@ public:
     int imageCount;
     int imageIndex;
     int frame;
+    int lastfullframe;
     int maxmovieframes;
     wxString PictureName;
 
@@ -331,6 +333,106 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
            SettingsMap.GetBool("CHECKBOX_Pictures_Shimmer", false));
 }
 
+int LoadImageFrame(wxImage& image, const wxString& file, int frame, int fullframe)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int lastfullframe = fullframe;
+
+    if (frame < fullframe)
+    {
+        lastfullframe = 0;
+    }
+
+    image.Clear();
+
+    for (size_t i = lastfullframe; i <= frame; i++)
+    {
+        if (i == lastfullframe)
+        {
+            if (!image.LoadFile(file, wxBITMAP_TYPE_ANY, i))
+            {
+                logger_base.error("Error loading image file: %s index %d.", (const char *)file.c_str(), frame);
+                return -1;
+            }
+
+            // check to see if the first frame has transparent pixels
+            bool transparentfound = false;
+            for (size_t y = 0; y < image.GetHeight(); y++)
+            {
+                for (size_t x = 0; x < image.GetWidth(); x++)
+                {
+                    if (image.IsTransparent(x, y))
+                    {
+                        transparentfound = true;
+                        break;
+                    }
+                }
+            }
+
+            // If first frame has transparent pixels we dont want to use the overlay method ... so just get the frame
+            if (transparentfound)
+            {
+                if (frame != lastfullframe)
+                {
+                    wxImage tmpframe;
+                    if (!tmpframe.LoadFile(file, wxBITMAP_TYPE_ANY, frame))
+                    {
+                        return -1;
+                    }
+                    if (image.GetWidth() != tmpframe.GetWidth() || image.GetHeight() != tmpframe.GetHeight())
+                    {
+                        image = tmpframe.Rescale(image.GetWidth(), image.GetHeight());
+                    }
+                    else
+                    {
+                        image = tmpframe;
+                    }
+                    return 0;
+                }
+            }
+        }
+        else
+        {
+            wxImage tmpframe;
+            if (!tmpframe.LoadFile(file, wxBITMAP_TYPE_ANY, i))
+            {
+                return -1;
+            }
+            wxImage newframe = tmpframe;
+            if (image.GetWidth() != tmpframe.GetWidth() || image.GetHeight() != tmpframe.GetHeight())
+            {
+                newframe = tmpframe.Rescale(image.GetWidth(), image.GetHeight());
+            }
+
+            bool transparentfound = false;
+
+            // apply image to the previous frame where the pixel isnt transparent
+            for (size_t y = 0; y < image.GetHeight(); y++)
+            {
+                for (size_t x = 0; x < image.GetWidth(); x++)
+                {
+                    if (!newframe.IsTransparent(x, y))
+                    {
+                        image.SetRGB(x, y, newframe.GetRed(x, y), newframe.GetGreen(x, y), newframe.GetBlue(x,y));
+                    }
+                    else
+                    {
+                        transparentfound = true;
+                    }
+                }
+            }
+
+            // if the current frame had no transparent pixels then remember this as the last full frame
+            if (!transparentfound)
+            {
+                lastfullframe = i;
+            }
+        }
+    }
+
+    return lastfullframe;
+}
+
 void PicturesEffect::Render(RenderBuffer &buffer,
                             const std::string & dirstr, const std::string &NewPictureName2,
                             float movementSpeed, float frameRateAdj,
@@ -338,6 +440,8 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                             int xce_adj, int yce_adj,
                             int start_scale, int end_scale, bool scale_to_fit,
                             bool pixelOffsets, bool wrap_x, bool shimmer) {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int dir = GetPicturesDirection(dirstr);
     double position = buffer.GetEffectTimeIntervalPosition(movementSpeed);
@@ -416,9 +520,10 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
         cache->imageCount = wxImage::GetImageCount(NewPictureName);
         cache->imageIndex = 0;
+        cache->lastfullframe = 0;
         if (!image.LoadFile(NewPictureName,wxBITMAP_TYPE_ANY,0))
         {
-            //wxMessageBox("Error loading image file: "+NewPictureName);
+            logger_base.error("Error loading image file: %s.", (const char *)NewPictureName.c_str());
             image.Create(5, 5, true);
         }
         cache->PictureName=NewPictureName;
@@ -426,16 +531,20 @@ void PicturesEffect::Render(RenderBuffer &buffer,
             return;
     }
     if(cache->imageCount > 1) {
+
         //animated Gif,
         int ii = cache->imageCount * buffer.GetEffectTimeIntervalPosition(frameRateAdj) * 0.99;
         if (ii != cache->imageIndex) {
             cache->imageIndex = ii;
-            if (!image.LoadFile(cache->PictureName,wxBITMAP_TYPE_ANY,cache->imageIndex))
+
+            int lff = LoadImageFrame(image, cache->PictureName, ii, cache->lastfullframe);
+
+            if (lff >= 0)
             {
-                //wxMessageBox("Error loading image file: "+NewPictureName);
-                image.Clear();
+                cache->lastfullframe = lff;
             }
-            if (!image.IsOk())
+
+            if (lff < 0 || !image.IsOk())
                 return;
         }
     }
