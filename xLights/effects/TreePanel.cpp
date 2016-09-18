@@ -6,6 +6,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/bitmap.h>
 #include <wx/slider.h>
 #include <wx/bmpbuttn.h>
@@ -21,6 +22,7 @@ const long TreePanel::IDD_TEXTCTRL_Tree_Branches = wxNewId();
 const long TreePanel::ID_BITMAPBUTTON_SLIDER_Tree_Branches = wxNewId();
 const long TreePanel::ID_SLIDER_Tree_Speed = wxNewId();
 const long TreePanel::IDD_TEXTCTRL_Tree_Speed = wxNewId();
+const long TreePanel::ID_CHECKBOX_Tree_ShowLights = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(TreePanel,wxPanel)
@@ -56,6 +58,13 @@ TreePanel::TreePanel(wxWindow* parent)
 	TextCtrl60 = new wxTextCtrl(this, IDD_TEXTCTRL_Tree_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Tree_Speed"));
 	TextCtrl60->SetMaxLength(3);
 	FlexGridSizer71->Add(TextCtrl60, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer71->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer71->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox1 = new wxCheckBox(this, ID_CHECKBOX_Tree_ShowLights, _("Show Tree Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Tree_ShowLights"));
+	CheckBox1->SetValue(false);
+	FlexGridSizer71->Add(CheckBox1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer71->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer71->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer71);
 	FlexGridSizer71->Fit(this);
 	FlexGridSizer71->SetSizeHints(this);

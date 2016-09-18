@@ -20,6 +20,7 @@ TreeEffect::~TreeEffect()
 {
     //dtor
 }
+
 wxPanel *TreeEffect::CreatePanel(wxWindow *parent) {
     return new TreePanel(parent);
 }
@@ -33,11 +34,30 @@ void TreeEffect::SetDefaultParameters(Model *cls)
 
     SetSliderValue(tp->Slider_Tree_Branches, 3);
     SetSliderValue(tp->Slider_Tree_Speed, 10);
+    SetCheckBoxValue(tp->CheckBox1, false);
+}
+
+bool TreeEffect::needToAdjustSettings(const std::string &version)
+{
+    return IsVersionOlder("2016.50", version);
+}
+
+void TreeEffect::adjustSettings(const std::string &version, Effect *effect)
+{
+    SettingsMap &settings = effect->GetSettings();
+    settings["E_CHECKBOX_Tree_ShowLights"] = "1";
+
+    // also give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect);
+    }
 }
 
 void TreeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int Branches = SettingsMap.GetInt("SLIDER_Tree_Branches", 1);
     int tspeed = SettingsMap.GetInt("SLIDER_Tree_Speed", 10);
+    bool showlights = SettingsMap.GetBool("CHECKBOX_Tree_ShowLights", false);
     
     int effectState = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
     
@@ -121,13 +141,17 @@ void TreeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 ||
                 ((row==1 || (number_garlands==2 && row==4)) && (m==3 || m==4))
                 ))
-                if((odd_even ==0 && x<=f_mod) || (odd_even ==1 && s_odd_row<=f_mod))
+
+                if (showlights)
                 {
-                    HSVValue hsv;
-                    hsv.hue = H;
-                    hsv.saturation=1.0;
-                    hsv.value=1.0;
-                    color = hsv;
+                    if ((odd_even == 0 && x <= f_mod) || (odd_even == 1 && s_odd_row <= f_mod))
+                    {
+                        HSVValue hsv;
+                        hsv.hue = H;
+                        hsv.saturation = 1.0;
+                        hsv.value = 1.0;
+                        color = hsv;
+                    }
                 }
             //	if(branch>b)
             //	{

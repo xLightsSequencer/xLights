@@ -3,6 +3,7 @@
 
 //(*Headers(TreePanel)
 #include <wx/panel.h>
+class wxCheckBox;
 class wxTextCtrl;
 class wxStaticText;
 class wxSlider;
@@ -21,6 +22,7 @@ class TreePanel: public wxPanel
 		wxSlider* Slider_Tree_Branches;
 		wxBitmapButton* BitmapButton_TreeBranches;
 		wxStaticText* StaticText86;
+		wxCheckBox* CheckBox1;
 		wxSlider* Slider_Tree_Speed;
 		//*)
 
@@ -33,6 +35,7 @@ class TreePanel: public wxPanel
 		static const long ID_BITMAPBUTTON_SLIDER_Tree_Branches;
 		static const long ID_SLIDER_Tree_Speed;
 		static const long IDD_TEXTCTRL_Tree_Speed;
+		static const long ID_CHECKBOX_Tree_ShowLights;
 		//*)
 
 	public:
