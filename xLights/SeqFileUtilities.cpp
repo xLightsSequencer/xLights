@@ -12,6 +12,7 @@
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
 #include <wx/tokenzr.h>
+#include <wx/config.h>
 
 #include "osxMacUtils.h"
 
@@ -715,13 +716,13 @@ public:
         if (bufsize > 1024) {
             bufsize = 1024;
         }
-        size_t ret = 0;
+
         if (bufLen < 2000) {
             fillBuf();
         }
 
         if (bufLen) {
-            ret = std::min(bufsize, bufLen);
+            size_t ret = std::min(bufsize, bufLen);
             memcpy(b, buf, ret);
             for (int x = ret; x < bufLen; x++) {
                 buf[x-ret] = buf[x];
@@ -742,14 +743,55 @@ private:
 
 void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
 {
-    wxFileDialog file(this, "Choose file to import", "", "",
-                      _("SuperStar File (*.sup)|*.sup")
-                      + "|\nLOR Music Sequences (*.lms)|*.lms"
-                      + "|\nxLights Sequence (*.xml)|*.xml"
-                      + "|\nHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata"
-                      + "|\nVixen 2.x Sequence(*.vix)|*.vix"
-                      + "|\nLSP 2.x Sequence(*.msq)|*.msq");
+    wxArrayString filters;
+    
+    filters.push_back("SuperStar File (*.sup)|*.sup");
+    filters.push_back("LOR Music Sequences (*.lms)|*.lms");
+        filters.push_back("xLights Sequence (*.xml)|*.xml");
+            filters.push_back("HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata");
+                filters.push_back("Vixen 2.x Sequence(*.vix)|*.vix");
+                    filters.push_back("LSP 2.x Sequence(*.msq)|*.msq");
+
+                    wxString filter;
+    for (auto it = filters.begin(); it != filters.end(); ++it)
+    {
+        if (filter != "")
+        {
+            filter += "|";
+        }
+        filter += *it;
+    }
+
+    wxFileDialog file(this, "Choose file to import", "", "", filter);
+
+    wxString lit = "";
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr)
+    {
+        config->Read("xLightsLastImportType", &lit, "");
+    }
+    if (lit != "")
+    {
+        int index = 0;
+
+        for (auto it = filters.begin(); it != filters.end(); ++it)
+        {
+            if (lit == *it)
+            {
+                file.SetFilterIndex(index);
+                break;
+            }
+            index++;
+        }
+    }
+
     if (file.ShowModal() == wxID_OK) {
+
+        if (config != nullptr)
+        {
+            config->Write("xLightsLastImportType", filters[file.GetFilterIndex()]);
+        }
+
         wxFileName fn = file.GetPath();
         if (!fn.Exists()) {
             return;
@@ -1936,8 +1978,8 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
     std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
     if (chancountpernode > 1) {
         wxString c = wxString::Format("#%06lx",color.GetRGB());
-        xlColor color(c);
-        palette = "C_BUTTON_Palette1=" + color + ",C_CHECKBOX_Palette1=1";
+        xlColor color1(c);
+        palette = "C_BUTTON_Palette1=" + color1 + ",C_CHECKBOX_Palette1=1";
     }
 
     for (wxXmlNode* ch=channel->GetChildren(); ch!=NULL; ch=ch->GetNext()) {
@@ -2535,22 +2577,22 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             int p = 0;
                             wxStringTokenizer tokenizer(data, ",");
                             while (tokenizer.HasMoreTokens()) {
-                                unsigned int i = wxAtoi(tokenizer.GetNextToken());
-                                unsigned int v = (i >> 16) & 0xff;
+                                unsigned int ii = wxAtoi(tokenizer.GetNextToken());
+                                unsigned int v = (ii >> 16) & 0xff;
                                 v *= 255;
                                 v /= 100;
                                 bytes[cnt] = v;
-                                v = (i >> 8) & 0xff;
+                                v = (ii >> 8) & 0xff;
                                 v *= 255;
                                 v /= 100;
                                 bytes[cnt + 1] = v;
-                                v = i & 0xff;
+                                v = ii & 0xff;
                                 v *= 255;
                                 v /= 100;
                                 bytes[cnt + 2] = v;
 
                                 alpha[p] = wxALPHA_OPAQUE;
-                                if (i == 0) {
+                                if (ii == 0) {
                                     alpha[p] = wxALPHA_TRANSPARENT;
                                 }
                                 p++;
@@ -2768,11 +2810,11 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         if (startc == endc) {
                             layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
                         } else if (startc == xlBLACK) {
-                            std::string palette = "C_BUTTON_Palette1=" + (std::string)endc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2="
+                            std::string palette1 = "C_BUTTON_Palette1=" + (std::string)endc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2="
                                 + (std::string)startc +
                                 ",C_CHECKBOX_Palette2=1";
                             settings += ",E_TEXTCTRL_Eff_On_Start=0";
-                            layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
+                            layer->AddEffect(0, "On", settings, palette1, start_time, end_time, false, false);
                         } else if (endc == xlBLACK) {
                             settings += ",E_TEXTCTRL_Eff_On_End=0";
                             layer->AddEffect(0, "On", "E_TEXTCTRL_Eff_On_End=0", palette, start_time, end_time, false, false);
@@ -3104,9 +3146,9 @@ void MapLSPEffects(EffectLayer *layer, wxXmlNode *node, const wxColor &c) {
         return;
     }
     int eff = -1;
-    int in, out, pos;
+    int in = 1, out = 1, pos = 1;
 
-    int bst, ben;
+    int bst = 0, ben = 0;
 
 
     for (wxXmlNode *cnd = node->GetChildren(); cnd != nullptr; cnd = cnd->GetNext()) {
