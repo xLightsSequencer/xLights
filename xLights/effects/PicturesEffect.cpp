@@ -313,6 +313,8 @@ void PicturesEffect::SetDefaultParameters(Model *cls) {
     SetCheckBoxValue(pp->CheckBox_Pictures_PixelOffsets, false);
     SetCheckBoxValue(pp->CheckBox_Pictures_ScaleToFit, false);
     SetCheckBoxValue(pp->CheckBox_Pictures_WrapX, false);
+    SetCheckBoxValue(pp->CheckBox_ForceGIFOverlay, false);
+    SetCheckBoxValue(pp->CheckBox_Pictures_Shimmer, false);
 
     pp->FilePickerCtrl1->SetFileName(wxFileName());
 }
