@@ -9,7 +9,6 @@
 
 #include "xLightsMain.h"
 #include <wx/msgdlg.h>
-#include <wx/config.h>
 #include <wx/tokenzr.h>
 #include <wx/dir.h>
 #include <wx/textdlg.h>

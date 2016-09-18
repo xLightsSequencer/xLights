@@ -8,6 +8,7 @@
 #include <wx/dir.h>
 #include <wx/filename.h>
 #include <wx/filepicker.h>
+#include <wx/config.h>
 
 //(*IdInit(SeqExportDialog)
 const long SeqExportDialog::ID_STATICTEXT1 = wxNewId();
@@ -98,7 +99,28 @@ void SeqExportDialog::ModelExportTypes(bool isgroup)
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("xLights, *.xseq")));
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("Falcon, *.fseq")));
     ChoiceFormat->Append(_("Falcon Pi Sub sequence. *.eseq"));
-    ChoiceFormat->SetSelection(0);
+
+    wxString let;
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr)
+    {
+        config->Read("xLightsLastExportType", &let, "");
+        if (let == "")
+        {
+            ChoiceFormat->SetSelection(0);
+        }
+        else
+        {
+            if (!ChoiceFormat->SetStringSelection(let))
+            {
+                ChoiceFormat->SetSelection(0);
+            }
+        }
+    }
+    else
+    {
+        ChoiceFormat->SetSelection(0);
+    }
 }
 
 void SeqExportDialog::OnChoiceFormatSelect(wxCommandEvent& event)
@@ -153,6 +175,11 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
 
 void SeqExportDialog::OnButtonOkClick(wxCommandEvent& event)
 {
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr)
+    {
+        config->Write("xLightsLastExportType", ChoiceFormat->GetStringSelection());
+    }
     EndDialog(wxID_OK);
 }
 
