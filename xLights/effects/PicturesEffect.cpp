@@ -446,8 +446,8 @@ int LoadImageFrame(wxImage& image, const wxString& file, int frame, int fullfram
                 return -1;
             }
 
-            logger_base.debug("Image (%d,%d) frame %d (%d,%d) at (%d,%d)", image.GetWidth(), image.GetHeight(),
-                i, newframe.GetWidth(), newframe.GetHeight(), offset.x, offset.y);
+            //logger_base.debug("Image (%d,%d) frame %d (%d,%d) at (%d,%d)", image.GetWidth(), image.GetHeight(),
+            //    i, newframe.GetWidth(), newframe.GetHeight(), offset.x, offset.y);
 
             bool transparentfound = false;
 

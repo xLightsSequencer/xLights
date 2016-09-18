@@ -12,6 +12,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (dkulp)   Add -r command line switch to render and save the fseq file and then exit
    -- enh (gil)     Modify value curve icon so its clear when its not selected.  Fixes #675.
    -- bug (dkulp)   Fix node names used for HLS imports truncating the last character
+   -- bug (keithsw) Fix animated GIF files which were not rendering correctly
+   -- enh (keithsw) Make import and export of effects remember the last type used under assumption user is likely to want to use it again next time
+   -- bug (keithsw) Fix contrast on oversized sub-buffer. Yellow on light grey
+   -- enh (keithsw) Add links to common web resources to the help menu
+   -- enh (keithsw) Add palette reversal and deletion
+   -- enh (keithsw) Add multilayer insertion
+   -- bug (keithsw) Make output and model descriptions XML safe
 2016.49  Sep 13, 2016
    -- bug (dkulp)   Strand/Submodel/Node effects were not clearing their buffer area on control updates resulting in ghosted data until a full render
    -- bug (dkulp)   DimmingCurve dialog not initialized properly for models that don't already have a dimming curve
