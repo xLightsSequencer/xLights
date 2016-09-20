@@ -82,10 +82,6 @@ void LayoutGroup::SetPreviewSize(wxSize size_)
         LayoutGroupXml->AddAttribute("PaneWidth", wxString::Format("%d",size_.GetWidth()));
         LayoutGroupXml->DeleteAttribute("PaneHeight");
         LayoutGroupXml->AddAttribute("PaneHeight", wxString::Format("%d",size_.GetHeight()));
-        LayoutGroupXml->DeleteAttribute("PosX");
-        LayoutGroupXml->AddAttribute("PosX", wxString::Format("%d",size_.x));
-        LayoutGroupXml->DeleteAttribute("PosY");
-        LayoutGroupXml->AddAttribute("PosY", wxString::Format("%d",size_.y));
         xlights->MarkEffectsFileDirty();
     }
 }
