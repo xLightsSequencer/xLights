@@ -38,7 +38,7 @@ wxwidgets31: FORCE
 			tar xvfj wxWidgets-3.1.0.tar.bz2; \
 		fi; \
 		cd wxWidgets-3.1.0;\
-			CXXFLAGS="-std=gnu++14" ./configure --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest; \
+			CXXFLAGS="-std=gnu++14" ./configure --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest --with-gtk=2; \
 			${MAKE} ;\
 	fi
 
