@@ -202,6 +202,7 @@ const long xLightsFrame::ID_MNU_CHECKSEQ = wxNewId();
 const long xLightsFrame::ID_MENU_VIEW_LOG = wxNewId();
 const long xLightsFrame::ID_MENUITEM18 = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
+const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
 const long xLightsFrame::idMenuSaveSched = wxNewId();
 const long xLightsFrame::idMenuAddList = wxNewId();
 const long xLightsFrame::idMenuRenameList = wxNewId();
@@ -784,6 +785,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1->Append(MenuItem38);
     mExportModelsMenuItem = new wxMenuItem(Menu1, ID_EXPORT_MODELS, _("E&xport Models"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(mExportModelsMenuItem);
+    MenuItem_ExportEffects = new wxMenuItem(Menu1, ID_MNU_EXPORT_EFFECTS, _("Export &Effects"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_ExportEffects);
     MenuBar->Append(Menu1, _("&Tools"));
     MenuPlaylist = new wxMenu();
     MenuItemSavePlaylists = new wxMenuItem(MenuPlaylist, idMenuSaveSched, _("Save Playlists"), wxEmptyString, wxITEM_NORMAL);
@@ -1044,6 +1047,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MENUITEM18,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemPackageDebugFiles);
     Connect(ID_EXPORT_MODELS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmExportModelsMenuItemSelected);
+    Connect(ID_MNU_EXPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportEffectsSelected);
     Connect(idMenuSaveSched,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSavePlaylistsSelected);
     Connect(idMenuAddList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemAddListSelected);
     Connect(idMenuRenameList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenameListSelected);
@@ -3959,4 +3963,153 @@ void xLightsFrame::OnMenuItem_Help_Isue_TrackerSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_Help_FacebookSelected(wxCommandEvent& event)
 {
     ::wxLaunchDefaultBrowser("https://www.facebook.com/groups/628061113896314/");
+}
+
+int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n)
+{
+    int effects = 0;
+    wxString type = "Node";
+    wxString name = wxString::Format("%s/Strand %d/Node %d", e->GetFullName(), e->GetStrand()+1, n);
+
+    EffectLayer* el = nl;
+
+    for (int k = 0; k < nl->GetEffectCount(); k++)
+    {
+        Effect* ef = nl->GetEffect(k);
+
+        SettingsMap& sm = ef->GetSettings();
+        f.Write(wxString::Format("\"%s\",%02d:%02d.%03d,%02d:%02d.%03d,%02d:%02d.%03d,\"%s\",\"%s\",%s\n",
+            ef->GetEffectName(),
+            ef->GetStartTimeMS() / 60000,
+            (ef->GetStartTimeMS() % 60000) / 1000,
+            ef->GetStartTimeMS() % 1000,
+            ef->GetEndTimeMS() / 60000,
+            (ef->GetEndTimeMS() % 60000) / 1000,
+            ef->GetEndTimeMS() % 1000,
+            (ef->GetEndTimeMS() - ef->GetStartTimeMS()) / 60000,
+            ((ef->GetEndTimeMS() - ef->GetStartTimeMS()) % 60000) / 1000,
+            (ef->GetEndTimeMS() - ef->GetStartTimeMS()) % 1000,
+            sm.Contains("X_Effect_Description") ? sm["X_Effect_Description"] : "",
+            name,
+            type));
+        effects++;
+    }
+
+    return effects;
+}
+
+int xLightsFrame::ExportElement(wxFile& f, Element* e)
+{
+    int effects = 0;
+
+    if (e->GetType() != ELEMENT_TYPE_TIMING)
+    {
+        Model* m = AllModels.GetModel(e->GetModelName());
+
+        wxString type = "Unknown";
+        wxString subname = "";
+        switch (e->GetType())
+        {
+        case     ELEMENT_TYPE_MODEL:
+            if (m->GetDisplayAs() == "ModelGroup")
+            {
+                type = "Model Group";
+            }
+            else
+            {
+                type = "Model";
+            }
+            break;
+        case ELEMENT_TYPE_SUBMODEL:
+            type = "Submodel";
+            break;
+        case ELEMENT_TYPE_STRAND:
+            type = "Strand";
+            subname = wxString::Format("Strand %d", dynamic_cast<StrandElement*>(e)->GetStrand() + 1);
+            break;
+        case ELEMENT_TYPE_TIMING:
+            type = "Timing";
+            break;
+        }
+
+        for (int j = 0; j < e->GetEffectLayerCount(); j++)
+        {
+            EffectLayer* el = e->GetEffectLayer(j);
+
+            for (int k = 0; k < el->GetEffectCount(); k++)
+            {
+                Effect* ef = el->GetEffect(k);
+
+                SettingsMap& sm = ef->GetSettings();
+                f.Write(wxString::Format("\"%s\",%02d:%02d.%03d,%02d:%02d.%03d,%02d:%02d.%03d,\"%s\",\"%s\",%s\n",
+                    ef->GetEffectName(),
+                    ef->GetStartTimeMS() / 60000,
+                    (ef->GetStartTimeMS() % 60000) / 1000,
+                    ef->GetStartTimeMS() % 1000,
+                    ef->GetEndTimeMS() / 60000,
+                    (ef->GetEndTimeMS() % 60000) / 1000,
+                    ef->GetEndTimeMS() % 1000,
+                    (ef->GetEndTimeMS() - ef->GetStartTimeMS()) / 60000,
+                    ((ef->GetEndTimeMS() - ef->GetStartTimeMS()) % 60000) / 1000,
+                    (ef->GetEndTimeMS() - ef->GetStartTimeMS()) % 1000,
+                    sm.Contains("X_Effect_Description") ? sm["X_Effect_Description"] : "",
+                    (const char *)(e->GetFullName() + subname).c_str(),
+                    type));
+                effects++;
+            }
+        }
+    }
+
+    return effects;
+}
+
+void xLightsFrame::OnMenuItem_ExportEffectsSelected(wxCommandEvent& event)
+{
+    if (CurrentSeqXmlFile == nullptr)
+    {
+        wxMessageBox("No sequence open", "Error", wxOK|wxCENTRE, this);
+        return;
+    }
+
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, wxEmptyString, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (filename.IsEmpty()) return;
+
+    wxFile f(filename);
+
+    if (!f.Create(filename, true) || !f.IsOpened())
+    {
+        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()), _("Export Error"));
+        return;
+    }
+
+    int effects = 0; 
+    f.Write(_("Effect Name,StartTime,EndTime,Duration,Description,Element,ElementType\n"));
+
+    EffectManager& em = mSequenceElements.GetEffectManager();
+    for (size_t i = 0; i < mSequenceElements.GetElementCount(0); i++)
+    {
+        Element* e = mSequenceElements.GetElement(i);
+        effects += ExportElement(f, e);
+
+        if (dynamic_cast<ModelElement*>(e) != nullptr)
+        {
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelCount(); s++) {
+                SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
+                effects += ExportElement(f, se);
+            }
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
+                StrandElement *se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
+                int node = 1;
+                for (size_t n = 0; n < se->GetNodeLayerCount(); n++)
+                {
+                    NodeLayer* nl = se->GetNodeLayer(n);
+                    effects += ExportNodes(f, se, nl, node++);
+                }
+            }
+        }
+    }
+    f.Write(wxString::Format("\"Effect Count\",%d\n", effects));
+    f.Close();
 }

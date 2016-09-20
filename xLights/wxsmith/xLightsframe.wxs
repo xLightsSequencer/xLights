@@ -1109,6 +1109,10 @@
 					<label>E&amp;xport Models</label>
 					<handler function="OnmExportModelsMenuItemSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_EXPORT_EFFECTS" variable="MenuItem_ExportEffects" member="yes">
+					<label>Export &amp;Effects</label>
+					<handler function="OnMenuItem_ExportEffectsSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuPlaylist" member="no">
 				<label>&amp;Playlist</label>

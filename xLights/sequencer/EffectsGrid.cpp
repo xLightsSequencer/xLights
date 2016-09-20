@@ -4,6 +4,7 @@
 
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
+#include <wx/textdlg.h>
 #ifdef __WXMAC__
  #include "OpenGL/gl.h"
 #else
@@ -47,6 +48,7 @@ const long EffectsGrid::ID_GRID_MNU_COPY = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PASTE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DELETE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_RANDOM_EFFECTS = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_DESCRIPTION = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_UNDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PRESETS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_PHRASE = wxNewId();
@@ -233,6 +235,13 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         if( !(mCellRangeSelected || mPartialCellSelected) ) {
             menu_random->Enable(false);
         }
+
+        wxMenuItem* menu_effect_description = mnuLayer.Append(ID_GRID_MNU_DESCRIPTION, "Description");
+        if (mSelectedEffect == nullptr || MultipleEffectsSelected())
+        {
+            menu_effect_description->Enable(false);
+        }
+
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
         Draw();
         PopupMenu(&mnuLayer);
@@ -298,6 +307,31 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if(id == ID_GRID_MNU_DELETE)
     {
         DeleteSelectedEffects();
+    }
+    else if (id == ID_GRID_MNU_DESCRIPTION)
+    {
+        if (mSelectedEffect != nullptr && !MultipleEffectsSelected())
+        {
+            SettingsMap& sm = mSelectedEffect->GetSettings();
+            wxString description = "";
+            if (sm.Contains("X_Effect_Description"))
+            {
+                description = sm["X_Effect_Description"];
+            }
+            wxTextEntryDialog dlg(this, "Enter a description to associate with this effect", "Description", description);
+            if (dlg.ShowModal() == wxID_OK)
+            {
+                description = dlg.GetValue();
+                if (description == "" && sm.Contains("X_Effect_Description"))
+                {
+                    sm.erase("X_Effect_Description");
+                }
+                else if (description != "")
+                {
+                    sm["X_Effect_Description"] = description;
+                }
+            }
+        }    
     }
     else if(id == ID_GRID_MNU_RANDOM_EFFECTS)
     {

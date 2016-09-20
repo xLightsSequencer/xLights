@@ -494,6 +494,7 @@ private:
     void OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event);
     void OnMenuItem_Help_Isue_TrackerSelected(wxCommandEvent& event);
     void OnMenuItem_Help_FacebookSelected(wxCommandEvent& event);
+    void OnMenuItem_ExportEffectsSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -603,6 +604,7 @@ private:
     static const long ID_MENU_VIEW_LOG;
     static const long ID_MENUITEM18;
     static const long ID_EXPORT_MODELS;
+    static const long ID_MNU_EXPORT_EFFECTS;
     static const long idMenuSaveSched;
     static const long idMenuAddList;
     static const long idMenuRenameList;
@@ -714,6 +716,7 @@ private:
     wxMenuItem* MenuItem_File_Open_Sequence;
     wxAuiManager* m_mgr;
     wxStaticText* StaticText2;
+    wxMenuItem* MenuItem_ExportEffects;
     wxAuiManager* MainAuiManager;
     wxMenuItem* MenuItemRenderCanvasMode;
     wxStaticText* StaticTextShowEnd;
@@ -1210,6 +1213,8 @@ private:
 
     void CheckForValidModels();
     void ExportModels(wxString filename);
+    int ExportElement(wxFile& f, Element* e);
+    int ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n);
 
     void LoadSequencer(xLightsXmlFile& xml_file);
     void LoadPerspective(wxXmlNode *p);
