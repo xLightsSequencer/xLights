@@ -1930,7 +1930,7 @@ effects/assist/xlGridCanvasEmpty.cpp: effects/assist/xlGridCanvasEmpty.h DrawGLU
 
 effects/assist/xlGridCanvasEmpty.h: xlGridCanvas.h sequencer/Effect.h
 
-effects/assist/xlGridCanvasMorph.cpp: effects/assist/xlGridCanvasMorph.h BitmapCache.h DrawGLUtils.h
+effects/assist/xlGridCanvasMorph.cpp: effects/assist/xlGridCanvasMorph.h BitmapCache.h DrawGLUtils.h ValueCurveButton.h
 
 effects/assist/xlGridCanvasMorph.h: xlGridCanvas.h sequencer/Effect.h
 
