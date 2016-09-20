@@ -11,6 +11,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (gil)     Allow arrow key to be used to scroll in model list in Layout.  Fixes #582.
    -- enh (dkulp)   Add -r command line switch to render and save the fseq file and then exit
    -- enh (gil)     Modify value curve icon so its clear when its not selected.  Fixes #675.
+   -- bug (gil)     Fix crash when pasting bad data.  Fixes #693 and fixes #694.
    -- bug (dkulp)   Fix node names used for HLS imports truncating the last character
    -- bug (keithsw) Fix animated GIF files which were not rendering correctly
    -- enh (keithsw) Make import and export of effects remember the last type used under assumption user is likely to want to use it again next time

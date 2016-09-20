@@ -2155,7 +2155,6 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
         else
         {
             wxArrayString efdata = wxSplit(all_efdata[1], '\t');
-            bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
             if (efdata.size() < 3) {
                 return;
             }
@@ -2165,6 +2164,10 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             }
             else
             {
+                if (efdata.size() < 7) {
+                    return;
+                }
+                bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
                 logger_base.info("mCellRangeSelected: %d   mPartialCellSelected: %d", mCellRangeSelected, mPartialCellSelected);
 
                 if(mCellRangeSelected && !mPartialCellSelected)
