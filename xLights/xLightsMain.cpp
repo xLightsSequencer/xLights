@@ -3384,6 +3384,9 @@ void xLightsFrame::ExportModels(wxString filename)
         return;
     }
 
+    long minchannel = 99999999;
+    long maxchannel = -1;
+
     f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,My Display,Controller Type,Controller Description,Output,IP,Universe,Controller Channel,Inactive\n"));
 
     for (auto m = PreviewModels.begin(); m != PreviewModels.end(); m++)
@@ -3414,8 +3417,78 @@ void xLightsFrame::ExportModels(wxString filename)
             universe,
             channeloffset,
             inactive));
+        if (ch < minchannel)
+        {
+            minchannel = ch;
+        }
+        if (ch + model->GetChanCount() - 1 > maxchannel)
+        {
+            maxchannel = ch + model->GetChanCount() - 1;
+        }
     }
+
+    int* chused = (int*)malloc((maxchannel - minchannel + 1) * sizeof(int));
+    memset(chused, 0x00, (maxchannel - minchannel + 1) * sizeof(int));
+
+    int bulbs = 0;
+    for (auto m = PreviewModels.begin(); m != PreviewModels.end(); m++)
+    {
+        Model* model = *m;
+        wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
+        int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+        int endch = ch + model->GetChanCount() - 1;
+
+        int uniquechannels = 0;
+        for (int i = ch; i <= endch; i++)
+        {
+            if (chused[i - minchannel] == 0)
+            {
+                uniquechannels++;
+            }
+            chused[i - minchannel]++;
+        }
+
+        if (wxString(model->GetStringType()).StartsWith("Single Color"))
+        {
+            bulbs += uniquechannels * model->GetNodeCount() * model->GetLightsPerNode();
+        }
+        else if (wxString(model->GetStringType()).StartsWith("3 Channel"))
+        {
+            bulbs += uniquechannels * model->GetNodeCount() / 3 * model->GetLightsPerNode();
+        }
+        else if (wxString(model->GetStringType()).StartsWith("4 Channel"))
+        {
+            bulbs += uniquechannels * model->GetNodeCount() / 4 * model->GetLightsPerNode();
+        }
+        else if (wxString(model->GetStringType()).StartsWith("Strobes"))
+        {
+            bulbs += uniquechannels * model->GetNodeCount() * model->GetLightsPerNode();
+        }
+        else
+        {
+            bulbs += uniquechannels / model->GetChanCountPerNode() * model->GetLightsPerNode();
+        }
+    }
+
+    int usedchannels = 0;
+    for (int i = 0; i < (maxchannel - minchannel + 1); i++)
+    {
+        if (chused[i] > 0)
+        {
+            usedchannels++;
+        }
+    }
+
+    free(chused);
+
+    f.Write("\n");
+
     f.Write(wxString::Format("\"Model Count\",%d\n", PreviewModels.size()));
+    f.Write(wxString::Format("\"First Used Channel\",%d\n", minchannel));
+    f.Write(wxString::Format("\"Last Used Channel\",%d\n", maxchannel));
+    f.Write(wxString::Format("\"Actual Used Channel\",%d\n", usedchannels));
+    f.Write(wxString::Format("\"Bulbs\",%d\n", bulbs));
+
     f.Close();
 }
 
