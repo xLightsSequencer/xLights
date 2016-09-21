@@ -121,11 +121,14 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
         }
         else if (ele->GetName() == "effect")
         {
-            name = ele->GetAttribute("name");
-            name += " [" + ParseLayers(name, ele->GetAttribute("settings")) + "]";
-            if (!name.IsEmpty())
+            if (ele->GetAttribute("settings").Contains("\t"))
             {
-                TreeCtrl1->AppendItem(treeRootID, name,-1,-1, new MyTreeItemData(ele));
+                name = ele->GetAttribute("name");
+                name += " [" + ParseLayers(name, ele->GetAttribute("settings")) + "]";
+                if (!name.IsEmpty())
+                {
+                    TreeCtrl1->AppendItem(treeRootID, name, -1, -1, new MyTreeItemData(ele));
+                }
             }
         }
     }
@@ -276,38 +279,50 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
 
 wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
 {
+    if (settings == "") return "0";
+
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("Name: %s", (const char *)name.c_str());
+    int res = 0;
 
-    wxString res = "0";
-
-    int start = 9999;
-    int end = -1;
-
-    wxArrayString all_efdata = wxSplit(settings, '\n');
-
-    for (int i = 0; i < all_efdata.size(); i++)
+    if (settings.Contains("\t"))
     {
-        //logger_base.debug("    %d: %s", i, (const char *)all_efdata[i].c_str());
+        int start = 9999;
+        int end = -1;
 
-        wxArrayString efdata = wxSplit(all_efdata[i], '\t');
-        if (efdata.size() >= 6 && efdata[0] != "CopyFormat1" && efdata[0] != "None")
+        wxArrayString all_efdata = wxSplit(settings, '\n');
+
+        for (int i = 0; i < all_efdata.size(); i++)
         {
-            int row = wxAtoi(efdata[5]);
-            //logger_base.debug("        %d", row);
-            if (row < start) start = row;
-            if (row > end) end = row;
+            //logger_base.debug("    %d: %s", i, (const char *)all_efdata[i].c_str());
+
+            wxArrayString efdata = wxSplit(all_efdata[i], '\t');
+            if (efdata.size() > 6 && efdata[0] != "CopyFormat1" && efdata[0] != "None")
+            {
+                int row = wxAtoi(efdata[efdata.size()-2]);
+                //logger_base.debug("        %d", row);
+                if (row < start) start = row;
+                if (row > end) end = row;
+            }
+        }
+
+        if (end != -1)
+        {
+            res = end - start + 1;
         }
     }
-
-    if (end != -1)
+    else
     {
-        res = wxString::Format("%d", end - start + 1);
+        // effect1,effect2,blend,settings ...    
+        wxArrayString efdata = wxSplit(settings, ',');
+        if (efdata.size() < 2) return "0";
+        if (efdata[0] != "None") res++;
+        if (efdata[1] != "None") res++;
     }
 
     //logger_base.debug("    **** %s", (const char *)res.c_str());
 
-    return res;
+    return wxString::Format("%d", res);
 }
 
 wxString StripLayers(wxString s)
