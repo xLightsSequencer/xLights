@@ -237,7 +237,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         }
 
         wxMenuItem* menu_effect_description = mnuLayer.Append(ID_GRID_MNU_DESCRIPTION, "Description");
-        if (mSelectedEffect == nullptr || MultipleEffectsSelected())
+        if (mSelectedEffect == nullptr && !MultipleEffectsSelected())
         {
             menu_effect_description->Enable(false);
         }
@@ -310,28 +310,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     }
     else if (id == ID_GRID_MNU_DESCRIPTION)
     {
-        if (mSelectedEffect != nullptr && !MultipleEffectsSelected())
-        {
-            SettingsMap& sm = mSelectedEffect->GetSettings();
-            wxString description = "";
-            if (sm.Contains("X_Effect_Description"))
-            {
-                description = sm["X_Effect_Description"];
-            }
-            wxTextEntryDialog dlg(this, "Enter a description to associate with this effect", "Description", description);
-            if (dlg.ShowModal() == wxID_OK)
-            {
-                description = dlg.GetValue();
-                if (description == "" && sm.Contains("X_Effect_Description"))
-                {
-                    sm.erase("X_Effect_Description");
-                }
-                else if (description != "")
-                {
-                    sm["X_Effect_Description"] = description;
-                }
-            }
-        }
+        SetEffectsDescription();
     }
     else if(id == ID_GRID_MNU_RANDOM_EFFECTS)
     {
@@ -1554,6 +1533,113 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
     {
         ResizeMoveMultipleEffectsByTime(-1 * mSequenceElements->GetMinPeriod());
         Refresh(false);
+    }
+}
+
+
+std::list<Effect*> EffectsGrid::GetSelectedEffects()
+{
+    std::list<Effect*> res;
+
+    for (int i = 0; i < mSequenceElements->GetRowInformationSize(); i++)
+    {
+        Element* element = mSequenceElements->GetRowInformation(i)->element;
+        EffectLayer* el = mSequenceElements->GetEffectLayer(i);
+
+        for (int x = 0; x < el->GetEffectCount(); x++) {
+            Effect *ef = el->GetEffect(x);
+            if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
+                res.push_back(ef);
+            }
+        }
+    }
+
+    return res;
+}
+
+void EffectsGrid::SetEffectsDescription()
+{
+    if (mSequenceElements == nullptr) {
+        return;
+    }
+
+    bool oktocont = true;
+    if (mSelectedEffect != nullptr || MultipleEffectsSelected())
+    {
+        auto efs = GetSelectedEffects();
+        // add in the selected effect if we didnt get it
+        if (mSelectedEffect != nullptr)
+        {
+            bool found = false;
+            for (auto it = efs.begin(); it != efs.end(); ++it)
+            {
+                if ((*it) == mSelectedEffect)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                efs.push_back(mSelectedEffect);
+            }
+        }
+
+        // check if any have a different description    
+        wxString description = "";
+        SettingsMap& sm = efs.front()->GetSettings();
+        if (sm.Contains("X_Effect_Description"))
+        {
+            description = sm["X_Effect_Description"];
+        }
+
+        for (auto it = efs.begin(); it != efs.end(); ++it)
+        {
+            sm = (*it)->GetSettings();
+            wxString thisdescription = "";
+            if (sm.Contains("X_Effect_Description"))
+            {
+                thisdescription = sm["X_Effect_Description"];
+            }
+
+            if (description != thisdescription)
+            {
+                if (wxMessageBox("Effects already have differing descriptions. Are you sure you want to change them all to the same value", "Overwrite description", wxYES_NO) == wxYES)
+                {
+                    if (description == "") description = thisdescription;
+                    break;
+                }
+                else
+                {
+                    oktocont = false;
+                    break;
+                }
+            }
+        }
+
+        if (oktocont && efs.size() > 0)
+        {
+            wxTextEntryDialog dlg(this, "Enter a description to associate with this effect", "Description", description);
+            if (dlg.ShowModal() == wxID_OK)
+            {
+                mSequenceElements->get_undo_mgr().CreateUndoStep();
+                description = dlg.GetValue();
+
+                for (auto it = efs.begin(); it != efs.end(); ++it)
+                {
+                    SettingsMap& smt = (*it)->GetSettings();
+                    if (description == "" && smt.Contains("X_Effect_Description"))
+                    {
+                        smt.erase("X_Effect_Description");
+                    }
+                    else if (description != "")
+                    {
+                        smt["X_Effect_Description"] = description;
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -1418,37 +1418,37 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     config->Read("xLightsGridSpacing", &mGridSpacing, 16);
     if (mGridSpacing != 16)
     {
-        int id = ID_MENUITEM_GRID_ICON_MEDIUM;
+        int idi = ID_MENUITEM_GRID_ICON_MEDIUM;
         if (mGridSpacing == 32)
         {
-            id = ID_MENUITEM_GRID_ICON_LARGE;
+            idi = ID_MENUITEM_GRID_ICON_LARGE;
         }
         else if (mGridSpacing >= 48)
         {
-            id = ID_MENUITEM_GRID_ICON_XLARGE;
+            idi = ID_MENUITEM_GRID_ICON_XLARGE;
         }
         else if (mGridSpacing <= 12)
         {
-            id = ID_MENUITEM_GRID_ICON_XSMALL;
+            idi = ID_MENUITEM_GRID_ICON_XSMALL;
         }
-        wxCommandEvent event(wxEVT_NULL, id);
-        SetIconSize(event);
+        wxCommandEvent eventi(wxEVT_NULL, idi);
+        SetIconSize(eventi);
     }
     logger_base.debug("Grid spacing: %d.", mGridSpacing);
 
     config->Read("xLightsGridIconBackgrounds", &mGridIconBackgrounds, true);
     {
-        int id = mGridIconBackgrounds ? ID_MENUITEM_GRID_ICON_BACKGROUND_ON : ID_MENUITEM_GRID_ICON_BACKGROUND_OFF;
-        wxCommandEvent event(wxEVT_NULL, id);
-        OnSetGridIconBackground(event);
+        int idb = mGridIconBackgrounds ? ID_MENUITEM_GRID_ICON_BACKGROUND_ON : ID_MENUITEM_GRID_ICON_BACKGROUND_OFF;
+        wxCommandEvent eventb(wxEVT_NULL, idb);
+        OnSetGridIconBackground(eventb);
     }
     logger_base.debug("Grid icon backgrounds: %s.", mGridIconBackgrounds ? "true" : "false");
 
     config->Read("xLightsGridNodeValues", &mGridNodeValues, true);
     {
-        int id = mGridNodeValues ? ID_MENUITEM_GRID_NODE_VALUES_ON : ID_MENUITEM_GRID_NODE_VALUES_OFF;
-        wxCommandEvent event(wxEVT_NULL, id);
-        OnSetGridNodeValues(event);
+        int idg = mGridNodeValues ? ID_MENUITEM_GRID_NODE_VALUES_ON : ID_MENUITEM_GRID_NODE_VALUES_OFF;
+        wxCommandEvent eventg(wxEVT_NULL, idg);
+        OnSetGridNodeValues(eventg);
     }
     logger_base.debug("Grid node values: %s.", mGridNodeValues ? "true" : "false");
 
@@ -3011,6 +3011,15 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     wxFileName fn(filename);
     report.AddFile(fn.GetFullPath(), "All Models");
 
+    // export the effects to an easy to read file
+    if (CurrentSeqXmlFile != nullptr)
+    {
+        wxString filenamee = wxFileName::CreateTempFileName("Effects") + ".csv";
+        ExportEffects(filenamee);
+        wxFileName fne(filenamee);
+        report.AddFile(fne.GetFullPath(), "All Effects");
+    }
+
     report.Process();
 
     wxRemoveFile(filename);
@@ -3965,17 +3974,28 @@ void xLightsFrame::OnMenuItem_Help_FacebookSelected(wxCommandEvent& event)
     ::wxLaunchDefaultBrowser("https://www.facebook.com/groups/628061113896314/");
 }
 
-int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n)
+int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime)
 {
     int effects = 0;
     wxString type = "Node";
-    wxString name = wxString::Format("%s/Strand %d/Node %d", e->GetFullName(), e->GetStrand()+1, n);
+    wxString name = wxString::Format("%sStrand %d/Node %d", e->GetFullName(), e->GetStrand()+1, n);
 
     EffectLayer* el = nl;
 
     for (int k = 0; k < nl->GetEffectCount(); k++)
     {
         Effect* ef = nl->GetEffect(k);
+        int duration = ef->GetEndTimeMS() - ef->GetStartTimeMS();
+        if (effectfrequency.find(ef->GetEffectName()) != effectfrequency.end())
+        {
+            effectfrequency[ef->GetEffectName()]++;
+            effectTotalTime[ef->GetEffectName()] += duration;
+        }
+        else
+        {
+            effectfrequency[ef->GetEffectName()] = 1;
+            effectTotalTime[ef->GetEffectName()] = duration;
+        }
 
         SettingsMap& sm = ef->GetSettings();
         f.Write(wxString::Format("\"%s\",%02d:%02d.%03d,%02d:%02d.%03d,%02d:%02d.%03d,\"%s\",\"%s\",%s\n",
@@ -3986,9 +4006,9 @@ int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n)
             ef->GetEndTimeMS() / 60000,
             (ef->GetEndTimeMS() % 60000) / 1000,
             ef->GetEndTimeMS() % 1000,
-            (ef->GetEndTimeMS() - ef->GetStartTimeMS()) / 60000,
-            ((ef->GetEndTimeMS() - ef->GetStartTimeMS()) % 60000) / 1000,
-            (ef->GetEndTimeMS() - ef->GetStartTimeMS()) % 1000,
+            duration / 60000,
+            (duration % 60000) / 1000,
+            duration % 1000,
             sm.Contains("X_Effect_Description") ? sm["X_Effect_Description"] : "",
             name,
             type));
@@ -3998,7 +4018,7 @@ int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n)
     return effects;
 }
 
-int xLightsFrame::ExportElement(wxFile& f, Element* e)
+int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime)
 {
     int effects = 0;
 
@@ -4040,6 +4060,18 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e)
             {
                 Effect* ef = el->GetEffect(k);
 
+                int duration = ef->GetEndTimeMS() - ef->GetStartTimeMS();
+                if (effectfrequency.find(ef->GetEffectName()) != effectfrequency.end())
+                {
+                    effectfrequency[ef->GetEffectName()]++;
+                    effectTotalTime[ef->GetEffectName()] += duration;
+                }
+                else
+                {
+                    effectfrequency[ef->GetEffectName()] = 1;
+                    effectTotalTime[ef->GetEffectName()] = duration;
+                }
+
                 SettingsMap& sm = ef->GetSettings();
                 f.Write(wxString::Format("\"%s\",%02d:%02d.%03d,%02d:%02d.%03d,%02d:%02d.%03d,\"%s\",\"%s\",%s\n",
                     ef->GetEffectName(),
@@ -4049,9 +4081,9 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e)
                     ef->GetEndTimeMS() / 60000,
                     (ef->GetEndTimeMS() % 60000) / 1000,
                     ef->GetEndTimeMS() % 1000,
-                    (ef->GetEndTimeMS() - ef->GetStartTimeMS()) / 60000,
-                    ((ef->GetEndTimeMS() - ef->GetStartTimeMS()) % 60000) / 1000,
-                    (ef->GetEndTimeMS() - ef->GetStartTimeMS()) % 1000,
+                    duration / 60000,
+                    (duration % 60000) / 1000,
+                    duration % 1000,
                     sm.Contains("X_Effect_Description") ? sm["X_Effect_Description"] : "",
                     (const char *)(e->GetFullName() + subname).c_str(),
                     type));
@@ -4076,6 +4108,11 @@ void xLightsFrame::OnMenuItem_ExportEffectsSelected(wxCommandEvent& event)
 
     if (filename.IsEmpty()) return;
 
+    ExportEffects(filename);
+}
+
+void xLightsFrame::ExportEffects(wxString filename)
+{
     wxFile f(filename);
 
     if (!f.Create(filename, true) || !f.IsOpened())
@@ -4084,20 +4121,23 @@ void xLightsFrame::OnMenuItem_ExportEffectsSelected(wxCommandEvent& event)
         return;
     }
 
-    int effects = 0; 
+    std::map<std::string, int> effectfrequency;
+    std::map<std::string, int> effecttotaltime;
+
+    int effects = 0;
     f.Write(_("Effect Name,StartTime,EndTime,Duration,Description,Element,ElementType\n"));
 
     EffectManager& em = mSequenceElements.GetEffectManager();
     for (size_t i = 0; i < mSequenceElements.GetElementCount(0); i++)
     {
         Element* e = mSequenceElements.GetElement(i);
-        effects += ExportElement(f, e);
+        effects += ExportElement(f, e, effectfrequency, effecttotaltime);
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
         {
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelCount(); s++) {
                 SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
-                effects += ExportElement(f, se);
+                effects += ExportElement(f, se, effectfrequency, effecttotaltime);
             }
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
                 StrandElement *se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
@@ -4105,11 +4145,25 @@ void xLightsFrame::OnMenuItem_ExportEffectsSelected(wxCommandEvent& event)
                 for (size_t n = 0; n < se->GetNodeLayerCount(); n++)
                 {
                     NodeLayer* nl = se->GetNodeLayer(n);
-                    effects += ExportNodes(f, se, nl, node++);
+                    effects += ExportNodes(f, se, nl, node++, effectfrequency, effecttotaltime);
                 }
             }
         }
     }
     f.Write(wxString::Format("\"Effect Count\",%d\n", effects));
+    f.Write(_("\n"));
+    f.Write(_("Effect Usage Summary\n"));
+    f.Write(_("Effect Name,Occurences,TotalTime\n"));
+    for (auto it = effectfrequency.begin(); it != effectfrequency.end(); ++it)
+    {
+        int tt = effecttotaltime[it->first];
+        f.Write(wxString::Format("\"%s\",%d,%02d:%02d.%03d\n",
+            (const char *)it->first.c_str(),
+            it->second,
+            tt / 60000,
+            (tt % 60000) / 1000,
+            tt % 1000
+        ));
+    }
     f.Close();
 }

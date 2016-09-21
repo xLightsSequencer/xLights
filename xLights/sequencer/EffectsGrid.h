@@ -78,6 +78,7 @@ public:
     void MoveSelectedEffectRight(bool shift);
 
     void DeleteSelectedEffects();
+    void SetEffectsDescription();
     void ProcessDroppedEffect(Effect* effect);
     void CopyModelEffects(int row_number);
     void PasteModelEffects(int row_number);
@@ -149,6 +150,7 @@ private:
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect);
     Element* GetActiveTimingElement();
     bool MultipleEffectsSelected();
+    std::list<Effect*> GetSelectedEffects();
     bool PapagayoEffectsSelected();
     void ResizeSingleEffect(int position);
     void ResizeMoveMultipleEffects(int position, bool offset);
