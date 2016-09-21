@@ -62,17 +62,17 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("CandyCaneCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
-        ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3 | 0x0008;
     } else if ("CandyCaneNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3 | 0x0008;
     } else if ("CandyCaneLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
-        ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3 | 0x0008;
     } else if ("CandyCaneReverse" == event.GetPropertyName()) {
@@ -82,7 +82,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         return 3;
     } else if ("CandyCaneSkew" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Angle");
-        ModelXml->AddAttribute("Angle", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("Angle", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("CandyCaneHeight" == event.GetPropertyName()) {

@@ -93,28 +93,28 @@ void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("SpinnerStringCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
-        ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         AdjustStringProperties(grid, parm1);
         return 3 | 0x0008;
     } else if ("SpinnerArmNodeCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3 | 0x0008;
     } else if ("FoldCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
-        ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3 | 0x0008;
     } else if ("Hollow" == event.GetPropertyName()) {
          ModelXml->DeleteAttribute("Hollow");
-         ModelXml->AddAttribute("Hollow", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+         ModelXml->AddAttribute("Hollow", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
          SetFromXml(ModelXml, zeroBased);
          return 3 | 0x0008;
     } else if ("Arc" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Arc");
-        ModelXml->AddAttribute("Arc", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("Arc", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3 | 0x0008;
     } else if ("ZigZag" == event.GetPropertyName()) {

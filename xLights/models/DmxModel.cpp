@@ -198,52 +198,52 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         return 3;
     } else if ("DmxChannelCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
-        ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3 | 0x0008;
     } else if ("DmxPanChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanChannel");
-        ModelXml->AddAttribute("DmxPanChannel", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("DmxPanChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("DmxPanOrient" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanOrient");
-        ModelXml->AddAttribute("DmxPanOrient", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("DmxPanOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("DmxPanDegOfRot" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanDegOfRot");
-        ModelXml->AddAttribute("DmxPanDegOfRot", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("DmxPanDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("DmxTiltChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltChannel");
-        ModelXml->AddAttribute("DmxTiltChannel", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("DmxTiltChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("DmxTiltOrient" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltOrient");
-        ModelXml->AddAttribute("DmxTiltOrient", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("DmxTiltOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("DmxTiltDegOfRot" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltDegOfRot");
-        ModelXml->AddAttribute("DmxTiltDegOfRot", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("DmxTiltDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("DmxRedChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxRedChannel");
-        ModelXml->AddAttribute("DmxRedChannel", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("DmxRedChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("DmxGreenChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxGreenChannel");
-        ModelXml->AddAttribute("DmxGreenChannel", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("DmxGreenChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("DmxBlueChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxBlueChannel");
-        ModelXml->AddAttribute("DmxBlueChannel", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("DmxBlueChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }

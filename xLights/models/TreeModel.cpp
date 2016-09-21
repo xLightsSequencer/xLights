@@ -214,7 +214,7 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         }
         switch (event.GetPropertyValue().GetLong()) {
             case 0:
-                ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", degrees > 1 ? degrees : 180));
+                ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", degrees > 1 ? (int)degrees : 180));
                 break;
             case 1:
                 ModelXml->AddAttribute("DisplayAs", "Tree Flat");
@@ -234,7 +234,7 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         return 3;
     } else if (event.GetPropertyName() == "TreeDegrees") {
         ModelXml->DeleteAttribute("DisplayAs");
-        ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if (event.GetPropertyName() == "TreeRotation") {
