@@ -2059,10 +2059,10 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
     if (mPartialCellSelected || OneCellSelected()) {
         if( ((number_of_timings + number_of_effects) > 1) || row_paste )  // multi-effect paste or row_paste
         {
+            wxArrayString eff1data = wxSplit(all_efdata[1], '\t');
             if (eff1data.size() < 7) {
                 return;
             }
-            wxArrayString eff1data = wxSplit(all_efdata[1], '\t');
             int drop_time_offset, new_start_time, new_end_time, column_start_time;
             column_start_time = wxAtoi(eff1data[6]);
             drop_time_offset = wxAtoi(eff1data[3]);
