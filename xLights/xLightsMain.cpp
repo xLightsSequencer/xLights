@@ -27,10 +27,10 @@
 #include <wx/mimetype.h>
 
 #include "RenderCommandEvent.h"
-#include "BitmapCache.h"
 #include "effects/RenderableEffect.h"
 #include "LayoutPanel.h"
 #include "models/ModelGroup.h"
+#include "models/CustomModel.h"
 
 #include "TestDialog.h"
 #include "ConvertDialog.h"
@@ -3387,9 +3387,9 @@ void xLightsFrame::ExportModels(wxString filename)
     long minchannel = 99999999;
     long maxchannel = -1;
 
-    f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,My Display,Controller Type,Controller Description,Output,IP,Universe,Controller Channel,Inactive\n"));
+    f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,My Display,Controller Type,Controller Description,Output,IP,Universe,Controller Channel,Inactive\n"));
 
-    for (auto m = PreviewModels.begin(); m != PreviewModels.end(); m++)
+    for (auto m = PreviewModels.begin(); m != PreviewModels.end(); ++m)
     {
         Model* model = *m;
         wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
@@ -3397,13 +3397,14 @@ void xLightsFrame::ExportModels(wxString filename)
         std::string type, description, ip, universe, inactive;
         int channeloffset, output;
         GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output);
-        f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%d,%d,%d,%d,%s,%d,%d,%s,%s,\"%s\",%d,%s,%s,%d,%s\n",
+        f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%d,%d,%d,%d,%d,%s,%d,%d,%s,%s,\"%s\",%d,%s,%s,%d,%s\n",
             model->name,
             model->description,
             model->GetDisplayAs(),
             model->GetStringType(),
             model->GetNodeCount() / model->NodesPerString(),
             model->GetNodeCount(),
+            model->GetNodeCount() * model->GetLightsPerNode(),
             model->GetChanCountPerNode(),
             model->GetActChanCount(),
             stch,
@@ -3466,7 +3467,9 @@ void xLightsFrame::ExportModels(wxString filename)
         }
         else
         {
-            bulbs += uniquechannels / model->GetChanCountPerNode() * model->GetLightsPerNode();
+            int den = model->GetChanCountPerNode();
+            if (den == 0) den = 1;
+            bulbs += uniquechannels / den * model->GetLightsPerNode();
         }
     }
 
@@ -3655,6 +3658,63 @@ void xLightsFrame::CheckSequence(bool display)
             }
         }
     }
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Custom models with odd looking channels");
+
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() == "Custom")
+        {
+            CustomModel* cm = dynamic_cast<CustomModel*>(it->second);
+            if (cm != nullptr)
+            {
+                // check for no nodes
+                if (cm->GetNodeCount() == 0)
+                {
+                    wxString msg = wxString::Format("    ERR: Custom model '%s' has no nodes defined.", (const char *)cm->GetName().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+
+                // check for node gaps
+                int maxn = 0;
+                for (int ii = 0; ii < cm->GetNodeCount(); ii++)
+                {
+                    int nn = cm->GetNodeStringNumber(ii);
+                    if (nn > maxn) maxn = nn;
+                }
+                maxn++;
+                int* chs = (int*)malloc(maxn * sizeof(int));
+                memset(chs, 0x00, maxn * sizeof(int));
+
+                for (int ii = 0; ii < cm->GetNodeCount(); ii++)
+                {
+                    int nn = cm->GetNodeStringNumber(ii);
+                    chs[nn + 1]++;
+                }
+
+                for (int ii = 1; ii <= maxn; ii++)
+                {
+                    if (chs[ii] == 0)
+                    {
+                        wxString msg = wxString::Format("    WARN: Custom model '%s' missing node %d.", (const char *)cm->GetName().c_str(), ii);
+                        LogAndWrite(f, msg.ToStdString());
+                        warncount++;
+                    }
+                }
+
+                free(chs);
+            }
+        }
+    }
+
     if (errcount + warncount == errcountsave + warncountsave)
     {
         LogAndWrite(f, "    No problems found");
