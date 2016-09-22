@@ -27,6 +27,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keithsw) Fix some preset layer counting issues - string v3 presets from display as they cant be applied
    -- enh (keithsw) Fix #340 - Add key model stats to model export
    -- enh (keithsw) Add effect decriptions and effect export to get easy list of your effects in sequence and analysis of effect frequency.
+   -- enh (keithsw) Add check sequence check to highlight the network adapter we will output lights data to.
 2016.49  Sep 13, 2016
    -- bug (dkulp)   Strand/Submodel/Node effects were not clearing their buffer area on control updates resulting in ghosted data until a full render
    -- bug (dkulp)   DimmingCurve dialog not initialized properly for models that don't already have a dimming curve
