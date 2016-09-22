@@ -1,4 +1,4 @@
-xLights/Nutcracker Version 4.x Linux build instructions
+xLights/Nutcracker Version 2016.x Linux build instructions
 ------------------------------------------------------------------------------
 
 xLights/Nutcracker can be built and run on Linux, Mac OS/X, or Windows. This
@@ -11,11 +11,11 @@ compatibility layer across operating systems.  The minimum required version
 of wxWidgets for xLights/Nutcracker is v3.1.  This can be compiled from
 source or installed via packages if they are available for your distribution.
 This document describes how to build wxWidgets if you need to to that yourself.
+Please note that wxWidgets needs to use Gtk2 rather than Gtk3 currently due to issues in some controls
 
 These instructions have been tested on the following distributions:
 
-  - Ubuntu 15.10
-  - Fedora 23
+  - Ubuntu 16.04
 
 Instructions for other Linux distributions will vary. 
 
@@ -24,7 +24,7 @@ Instructions for other Linux distributions will vary.
      in their name)
 
      build-essential
-     libgtk-3-dev
+     libgtk2.0-dev
      libgstreamer1.0-dev
      libgstreamer-plugins-base1.0-dev
      freeglut3-dev
@@ -36,7 +36,7 @@ Instructions for other Linux distributions will vary.
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libmpg123-dev libavcodec-dev libavformat-dev libswscale-dev libsdl1.2-dev liblog4cpp5-dev
+     sudo apt-get install build-essential libgtk2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libmpg123-dev libavcodec-dev libavformat-dev libswscale-dev libsdl1.2-dev liblog4cpp5-dev
 
   b) Get the xLights/Nutcracker source code by opening a terminal window and
      typing the following:
@@ -58,10 +58,10 @@ using Code::Blocks, proceed to step 'd'.:
 
   c) Build xLights using the supplied makefiles:
 
-     Option #1 - Build using the simplified top-level Makefile in the main
-                 xLights directory.
-                 As part of this wxWidgets 3.1 will be downloaded, compiled
-                 statically linked to xLights
+     Build using the simplified top-level Makefile in the main xLights
+     directory.
+     If wxWidgets 3.1 is not available then as part of this wxWidgets 3.1
+     will be downloaded, compiled statically linked to xLights
 
            $ make
 
@@ -77,29 +77,18 @@ using Code::Blocks, proceed to step 'd'.:
 
            # make uninstall
 
-     Option #2 - Build using the xLights.cbp.mak file directly.
-                 This requires wxWidgets to already be installed on
-                 your system
-
-         $ cd xLights
-         $ make -f xLights.cbp.mak clean
-         $ make -f xLights.cbp.mak CFLAGS="-std=gnu++14" releaselinux
- 
      You may get some compiler warnings, however, the executable 'xLights'
      should get built in the ./bin directory.  The proper dependencies are
      not currently setup in the makefile to trigger rebuilds when some
      files are modified, so you may have to run the clean command if your
      code does not build properly after making modifications to the source.
 
-     If you built using xLights.cbp.mak, you can copy the bin/xLights
-     binary to a directory in your path or run it directly from there.
-
      If you want to build using Code::Blocks, proceed to step 'd'.
 
   d) Building xLights using Code::Blocks
 
      Install the Code::Blocks IDE using your distribution's package
-     manager as long as it is version 13.12 or later.  Otherwise,
+     manager as long as it is version 16.01 or later.  Otherwise,
      you can try downloading it directly from the Code::Blocks web site:
         http://www.codeblocks.org/downloads
      Also, you may need to install libwxsmithlib0 to 
@@ -125,6 +114,5 @@ source files are added to the project, the command used to run cbp2make is:
 
 cbp2make -in xLights.cbp -cfg ../cbp2make.cfg -out xLights.cbp.mak --with-deps --keep-outdir --keep-objdir
 
-You can also run "make makefile" from the top-level xLights directory.  This
-will run the above cbp2make command automatically.
+This will be run automatically at compile time if cbp2make is installed.
 
