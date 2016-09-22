@@ -21,7 +21,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keithsw) Add palette reversal and deletion
    -- enh (keithsw) Add multilayer insertion
    -- bug (keithsw) Make output and model descriptions XML safe
-   -- enh (keithse) Make garland lights on tree effect optional
+   -- enh (keithsw) Make garland lights on tree effect optional
+   -- bug (keithsw) Fix start channel check in check sequence calculating start channel incorrectly
+   -- enh (keithsw) Add custom model checks to check sequence
+   -- bug (keithsw) Fix some preset layer counting issues - string v3 presets from display as they cant be applied
+   -- enh (keithsw) Fix #340 - Add key model stats to model export
+   -- enh (keithsw) Add effect decriptions and effect export to get easy list of your effects in sequence and analysis of effect frequency.
 2016.49  Sep 13, 2016
    -- bug (dkulp)   Strand/Submodel/Node effects were not clearing their buffer area on control updates resulting in ghosted data until a full render
    -- bug (dkulp)   DimmingCurve dialog not initialized properly for models that don't already have a dimming curve
