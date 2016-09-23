@@ -56,7 +56,7 @@ class Effect
         void IncrementChangeCount();
 
         std::string GetSettingsAsString() const;
-        void SetSettings(const std::string &settings);
+        void SetSettings(const std::string &settings, bool keepxsettings);
 
         const SettingsMap &GetSettings() const { return mSettings;}
         const xlColorVector &GetPalette() const { return mColors;}

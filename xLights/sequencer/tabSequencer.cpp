@@ -721,7 +721,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             std::string settings, palette;
             std::string effectName = CreateEffectStringRandom(settings, palette);
             effect->SetPalette(palette);
-            effect->SetSettings(settings);
+            effect->SetSettings(settings, false);
             effect->SetEffectName(effectName);
             effect->SetEffectIndex(effectManager.GetEffectIndex(effectName));
             resetStrings = true;
@@ -733,7 +733,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         selectedEffect = effect;
         if (effect->GetPaletteMap().empty() || resetStrings) {
             effect->SetPalette(selectedEffectPalette);
-            effect->SetSettings(selectedEffectString);
+            effect->SetSettings(selectedEffectString, true);
             RenderEffectForModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
                                  effect->GetStartTimeMS(),
                                  effect->GetEndTimeMS());
@@ -1184,7 +1184,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
         {
             if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)
             {
-                el->GetEffect(j)->SetSettings(effectText);
+                el->GetEffect(j)->SetSettings(effectText, true);
                 el->GetEffect(j)->SetEffectIndex(effectIndex);
                 el->GetEffect(j)->SetEffectName(effectName);
                 el->GetEffect(j)->SetPalette(palette);
@@ -1237,7 +1237,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
                 mSequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetModelName(), el->GetIndex(), selectedEffect->GetID(), selectedEffectString, selectedEffectPalette );
             }
 
-            selectedEffect->SetSettings(effectText);
+            selectedEffect->SetSettings(effectText, true);
             selectedEffect->SetPalette(palette);
 
             selectedEffectName = selectedEffect->GetEffectName();
@@ -1460,7 +1460,11 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
 	{
 		ContextWin = colorPanel;
 	}
-	else
+    else if (name.StartsWith("X_"))
+    {
+        return;
+    }
+    else
 	{
 		return;
 		//efPanel = nullptr;
@@ -1616,7 +1620,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette)
 {
     RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
-    std::string effectText = eff->GetEffectString();
+    std::string effectText= eff->GetEffectString();
     if (effectText.size() > 0 && effectText[effectText.size()-1] != ',') {
         effectText += ",";
     }

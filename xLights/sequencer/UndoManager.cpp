@@ -200,7 +200,7 @@ void UndoManager::UndoLastStep()
             else
             {
                 Effect* eff = el->GetEffectFromID(next_action->modified_effect_info[0]->id);
-                eff->SetSettings(next_action->modified_effect_info[0]->settings);
+                eff->SetSettings(next_action->modified_effect_info[0]->settings, false);
                 eff->SetPalette(next_action->modified_effect_info[0]->palette);
             }
          }

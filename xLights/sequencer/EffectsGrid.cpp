@@ -1596,11 +1596,11 @@ void EffectsGrid::SetEffectsDescription()
 
         for (auto it = efs.begin(); it != efs.end(); ++it)
         {
-            sm = (*it)->GetSettings();
+            SettingsMap& sma = (*it)->GetSettings();
             wxString thisdescription = "";
-            if (sm.Contains("X_Effect_Description"))
+            if (sma.Contains("X_Effect_Description"))
             {
-                thisdescription = sm["X_Effect_Description"];
+                thisdescription = sma["X_Effect_Description"];
             }
 
             if (description != thisdescription)

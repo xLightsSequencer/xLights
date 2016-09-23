@@ -177,10 +177,29 @@ void Effect::CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const
     newcc = mCC;
 }
 
-void Effect::SetSettings(const std::string &settings)
+void Effect::SetSettings(const std::string &settings, bool keepxsettings)
 {
     std::unique_lock<std::mutex> lock(settingsLock);
+
+    SettingsMap x;
+    if (keepxsettings)
+    {
+        for (auto it = mSettings.begin(); it != mSettings.end(); ++it)
+        {
+            if (it->first.size() > 2 && it->first[0] == 'X' && it->first[1] == '_')
+            {
+                x[it->first] = it->second;
+            }
+        }
+    }
     mSettings.Parse(settings);
+    if (keepxsettings)
+    {
+        for (auto it = x.begin(); it != x.end(); ++it)
+        {
+                mSettings[it->first] = it->second;
+        }
+    }
     IncrementChangeCount();
 }
 

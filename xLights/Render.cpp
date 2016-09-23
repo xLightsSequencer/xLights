@@ -405,11 +405,11 @@ public:
         int numLayers = el->GetEffectLayerCount();
         for (int layer = 0; layer < numLayers; layer++) {
             EffectLayer *elayer = el->GetEffectLayer(layer);
-            Effect *el = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
-            if (el != info.currentEffects[layer]) {
-                info.currentEffects[layer] = el;
+            Effect *ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
+            if (ef != info.currentEffects[layer]) {
+                info.currentEffects[layer] = ef;
                 SetInializingStatus(frame, layer, strand);
-                initialize(layer, frame, el, info.settingsMaps[layer], buffer);
+                initialize(layer, frame, ef, info.settingsMaps[layer], buffer);
                 info.effectStates[layer] = true;
             }
             bool persist = buffer->IsPersistent(layer);
@@ -418,7 +418,7 @@ public:
             }
             SetRenderingStatus(frame, &info.settingsMaps[layer], layer, strand, -1, true);
             bool b = info.effectStates[layer];
-            info.validLayers[layer] = xLights->RenderEffectFromMap(el, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);
+            info.validLayers[layer] = xLights->RenderEffectFromMap(ef, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);
             info.effectStates[layer] = b;
             effectsToUpdate |= info.validLayers[layer];
         }
