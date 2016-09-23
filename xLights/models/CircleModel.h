@@ -13,7 +13,8 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int GetStrandLength(int strand) const override;
         virtual int MapToNodeIndex(int strand, int node) const override;
         virtual int GetNumStrands() const override;
-    
+        virtual bool AllNodesAllocated() const override;
+
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 

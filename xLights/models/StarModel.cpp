@@ -112,6 +112,16 @@ int StarModel::GetNumStrands() const {
     return starSizes.size();
 }
 
+bool StarModel::AllNodesAllocated() const 
+{
+    int allocated = 0;
+    for (auto it = starSizes.begin(); it != starSizes.end(); ++it)
+    {
+        allocated += *it;
+    }
+
+    return (allocated == GetNodeCount());
+}
 
 // parm3 is number of points
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw

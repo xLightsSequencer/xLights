@@ -19,6 +19,18 @@ CircleModel::~CircleModel()
 int CircleModel::GetStrandLength(int strand) const {
     return SingleNode ? 1 : circleSizes[strand];
 }
+
+bool CircleModel::AllNodesAllocated() const
+{
+    int allocated = 0;
+    for (auto it = circleSizes.begin(); it != circleSizes.end(); ++it)
+    {
+        allocated += *it;
+    }
+
+    return (allocated == GetNodeCount());
+}
+
 int CircleModel::MapToNodeIndex(int strand, int node) const {
     int idx = 0;
     for (int x = 0; x < strand; x++) {

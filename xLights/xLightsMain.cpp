@@ -3645,6 +3645,7 @@ void xLightsFrame::CheckSequence(bool display)
         {
             int m1start = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
             int m1end = m1start + it->second->GetChanCount() - 1;
+            //int m1end = m1start + it->second->GetActChanCount() - 1; // I dont think this is a good idea
 
             auto it2 = it;
             ++it2;
@@ -3654,6 +3655,7 @@ void xLightsFrame::CheckSequence(bool display)
                 {
                     int m2start = it2->second->GetNumberFromChannelString(it2->second->ModelStartChannel);
                     int m2end = m2start + it2->second->GetChanCount() - 1;
+                    //int m2end = m2start + it2->second->GetActChanCount() - 1; // I dont think this is a good idea
 
                     if (m2start <= m1end && m2end >= m1start)
                     {
@@ -3665,6 +3667,29 @@ void xLightsFrame::CheckSequence(bool display)
             }
         }
     }
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Model nodes not allocated to layers correctly");
+
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            if (!it->second->AllNodesAllocated())
+            {
+                wxString msg = wxString::Format("    WARN: %s model '%s' Node Count and Layer Size allocations dont match.", it->second->GetDisplayAs().c_str(), it->first);
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+        }
+    }
+
     if (errcount + warncount == errcountsave + warncountsave)
     {
         LogAndWrite(f, "    No problems found");

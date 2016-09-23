@@ -69,6 +69,7 @@ public:
     xlColor customColor;
     DimmingCurve *modelDimmingCurve;
 
+    virtual bool AllNodesAllocated() const { return true; }
     static void ParseFaceInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &faceInfo);
     static void WriteFaceInfo(wxXmlNode *fiNode, const std::map<std::string, std::map<std::string, std::string> > &faceInfo);
     wxString SerialiseFace();
