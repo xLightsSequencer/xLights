@@ -3698,26 +3698,36 @@ void xLightsFrame::CheckSequence(bool display)
                     if (nn > maxn) maxn = nn;
                 }
                 maxn++;
+                logger_base.debug("CheckSequence: Checking custom model %d nodes", maxn);
                 int* chs = (int*)malloc(maxn * sizeof(int));
-                memset(chs, 0x00, maxn * sizeof(int));
-
-                for (int ii = 0; ii < cm->GetNodeCount(); ii++)
+                if (chs == nullptr)
                 {
-                    int nn = cm->GetNodeStringNumber(ii);
-                    chs[nn + 1]++;
+                    wxString msg = wxString::Format("    WARN: Could not check Custom model '%s' for missing nodes. Error allocating memory for %d nodes.", (const char *)cm->GetName().c_str(), maxn);
+                    LogAndWrite(f, msg.ToStdString());
+                    warncount++;
                 }
-
-                for (int ii = 1; ii <= maxn; ii++)
+                else
                 {
-                    if (chs[ii] == 0)
+                    memset(chs, 0x00, maxn * sizeof(int));
+
+                    for (int ii = 0; ii < cm->GetNodeCount(); ii++)
                     {
-                        wxString msg = wxString::Format("    WARN: Custom model '%s' missing node %d.", (const char *)cm->GetName().c_str(), ii);
-                        LogAndWrite(f, msg.ToStdString());
-                        warncount++;
+                        int nn = cm->GetNodeStringNumber(ii);
+                        chs[nn + 1]++;
                     }
-                }
 
-                free(chs);
+                    for (int ii = 1; ii <= maxn; ii++)
+                    {
+                        if (chs[ii] == 0)
+                        {
+                            wxString msg = wxString::Format("    WARN: Custom model '%s' missing node %d.", (const char *)cm->GetName().c_str(), ii);
+                            LogAndWrite(f, msg.ToStdString());
+                            warncount++;
+                        }
+                    }
+
+                    free(chs);
+                }
             }
         }
     }
