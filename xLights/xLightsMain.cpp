@@ -3698,8 +3698,9 @@ void xLightsFrame::CheckSequence(bool display)
                     if (nn > maxn) maxn = nn;
                 }
                 maxn++;
-                logger_base.debug("CheckSequence: Checking custom model %d nodes", maxn);
-                int* chs = (int*)malloc(maxn * sizeof(int));
+                int chssize = (maxn+1) * sizeof(int);
+                logger_base.debug("    CheckSequence: Checking custom model %d nodes", maxn);
+                int* chs = (int*)malloc(chssize);
                 if (chs == nullptr)
                 {
                     wxString msg = wxString::Format("    WARN: Could not check Custom model '%s' for missing nodes. Error allocating memory for %d nodes.", (const char *)cm->GetName().c_str(), maxn);
@@ -3708,7 +3709,7 @@ void xLightsFrame::CheckSequence(bool display)
                 }
                 else
                 {
-                    memset(chs, 0x00, maxn * sizeof(int));
+                    memset(chs, 0x00, chssize);
 
                     for (int ii = 0; ii < cm->GetNodeCount(); ii++)
                     {
@@ -3725,7 +3726,6 @@ void xLightsFrame::CheckSequence(bool display)
                             warncount++;
                         }
                     }
-
                     free(chs);
                 }
             }
