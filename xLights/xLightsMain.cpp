@@ -1190,11 +1190,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     logger_base.debug("xLightsFrame constructor sequencer creation done.");
 
     layoutPanel = new LayoutPanel(PanelPreview, this, PanelSequencer);
+    logger_base.debug("LayoutPanel creation done.");
     FlexGridSizerPreview->Add(layoutPanel, 1, wxALL | wxEXPAND, 5);
     FlexGridSizerPreview->Fit(PanelPreview);
     FlexGridSizerPreview->SetSizeHints(PanelPreview);
 
     modelPreview = layoutPanel->GetMainPreview();
+    logger_base.debug("LayoutPanel setup done.");
 
 
     playIcon = wxBitmap(control_play_blue_icon);
@@ -1211,8 +1213,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     icons.AddIcon(wxIcon(xlights_xpm));
 
     SetIcons(icons);
+    logger_base.debug("IconBundle creation done.");
+
+    
     SetName("xLights");
     wxPersistenceManager::Get().RegisterAndRestore(this);
+    logger_base.debug("Window Location Restored.");
+    
     wxConfigBase* config = wxConfigBase::Get();
     if (config == nullptr)
     {

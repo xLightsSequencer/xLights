@@ -163,6 +163,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     background = nullptr;
 
     _lastXlightsModel = "";
@@ -237,12 +239,15 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	Connect(ID_SPLITTERWINDOW2,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
 	//*)
 
+    
+    logger_base.debug("LayoutPanel basic setup complete");
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights->PreviewModels, true);
     PreviewGLSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
     PreviewGLSizer->Fit(PreviewGLPanel);
     PreviewGLSizer->SetSizeHints(PreviewGLPanel);
     FlexGridSizerPreview->Fit(this);
     FlexGridSizerPreview->SetSizeHints(this);
+    logger_base.debug("LayoutPanel ModelPreview created");
 
     modelPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnPreviewLeftDown,0,this);
     modelPreview->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&LayoutPanel::OnPreviewLeftUp,0,this);
@@ -286,6 +291,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     propertyEditor->Connect(wxEVT_PG_ITEM_COLLAPSED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridItemCollapsed,0,this);
     propertyEditor->Connect(wxEVT_PG_ITEM_EXPANDED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridItemExpanded,0,this);
     propertyEditor->SetValidationFailureBehavior(wxPG_VFB_MARK_CELL | wxPG_VFB_BEEP);
+    
+    logger_base.debug("LayoutPanel property grid created");
+
 
     wxConfigBase* config = wxConfigBase::Get();
     int msp = config->Read("LayoutModelSplitterSash", -1);
@@ -315,6 +323,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Window Frame", frame);
     AddModelButton("Wreath", wreath);
     AddModelButton("Import Custom", import);
+    
+    logger_base.debug("LayoutPanel model buttons created");
+
 
     modelPreview->Connect(wxID_CUT, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCut,0,this);
     modelPreview->Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCopy,0,this);
@@ -330,6 +341,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     sizer->Add( model_grp_panel, 1, wxEXPAND | wxALL, 1 );
     ModelGroupWindow->SetScrollRate(5,5);
     ModelGroupWindow->Hide();
+
+    logger_base.debug("LayoutPanel model group panel created");
 
     mDefaultSaveBtnColor = ButtonSavePreview->GetBackgroundColour();
 
