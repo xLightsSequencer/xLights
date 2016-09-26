@@ -286,8 +286,8 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
     {
         // Fix #622 - circle and square explode on transition out ... this code stops me breaking existing sequences
         SettingsMap& sm = effect->GetSettings();
-        if (sm["T_CHOICE_Out_Transition_Type"] == "Square Explode" ||
-            sm["T_CHOICE_Out_Transition_Type"] == "Circle Explode")
+        if (sm.Get("T_CHOICE_Out_Transition_Type", "") == "Square Explode" ||
+            sm.Get("T_CHOICE_Out_Transition_Type" , "") == "Circle Explode")
         {
             if (sm.GetBool("T_CHECKBOX_Out_Transition_Reverse", false))
             {
