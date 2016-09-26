@@ -278,7 +278,7 @@ void TimingPanel::SetDefaultControls(const Model *model) {
 
 wxString TimingPanel::GetTimingString()
 {
-    wxString s,ChildName,AttrName;
+    wxString s = "",ChildName,AttrName;
     // Layer Morph
     if (CheckBox_LayerMorph->IsChecked()) {
         s += "T_CHECKBOX_LayerMorph=1,";

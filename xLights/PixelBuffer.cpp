@@ -82,6 +82,8 @@ void PixelBufferClass::reset(int nlayers, int timing)
         model->InitRenderBufferNodes("Default", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
         layers[x]->bufferType = "Default";
         layers[x]->bufferTransform = "None";
+        layers[x]->outTransitionType = "Fade";
+        layers[x]->inTransitionType = "Fade";
         layers[x]->subBuffer = "";
         layers[x]->brightnessValueCurve = "";
         layers[x]->blurValueCurve = "";
@@ -1039,6 +1041,8 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
     inf->inTransitionType = settingsMap.Get(CHOICE_In_Transition_Type, STR_FADE);
     inf->outTransitionType = settingsMap.Get(CHOICE_Out_Transition_Type, STR_FADE);
+    // The next line is temporary. It should not be required. KW
+    if (inf->outTransitionType == "") inf->outTransitionType = "Fade";
     inf->inTransitionAdjust = settingsMap.GetInt(SLIDER_In_Transition_Adjust, 0);
     inf->outTransitionAdjust = settingsMap.GetInt(SLIDER_Out_Transition_Adjust, 0);
     inf->inTransitionReverse = settingsMap.GetBool(CHECKBOX_In_Transition_Reverse);
@@ -1378,7 +1382,10 @@ static int DecodeType(const std::string &type)
     {
         return 9;
     }
-    return 1;
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.warn("Unrecognised transition type '%s'.", (const char *)type.c_str());
+    return 0;
 }
 
 
