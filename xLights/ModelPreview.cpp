@@ -77,13 +77,22 @@ void ModelPreview::render( wxPaintEvent& event )
 
 void ModelPreview::Render() {
     if (PreviewModels != NULL) {
+
+        bool isModelSelected = false;
+        for (int i = 0; i < PreviewModels->size(); i++) {
+            if (((*PreviewModels)[i])->Selected || ((*PreviewModels)[i])->GroupSelected) {
+                isModelSelected = true;
+                break;
+            }
+        }
+
         for (int i=0; i<PreviewModels->size(); i++) {
 			const xlColor *color = &xlLIGHT_GREY;
 			if (((*PreviewModels)[i])->Selected) {
 				color = &xlYELLOW;
 			} else if (((*PreviewModels)[i])->GroupSelected) {
 				color = &xlYELLOW;
-			} else if (((*PreviewModels)[i])->Overlapping) {
+			} else if (((*PreviewModels)[i])->Overlapping && isModelSelected) {
 				color = &xlRED;
 			}
             if (!allowSelected) {

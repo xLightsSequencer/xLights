@@ -1089,18 +1089,18 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
               item = TreeListViewModels->GetNextSibling(item) )
         {
             ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-            Model *m = data != nullptr ? data->GetModel() : nullptr;
-            if( m != nullptr ) {
-                int startChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-                int endChan = m->GetLastChannel();
+            Model *mm = data != nullptr ? data->GetModel() : nullptr;
+            if( mm != nullptr && mm != selectedModel) {
+                int startChan = mm->GetNumberFromChannelString(mm->ModelStartChannel);
+                int endChan = mm->GetLastChannel();
                 if ((startChan >= foundStart) && (endChan <= foundEnd)) {
-                    m->Overlapping = true;
+                    mm->Overlapping = true;
                 } else if ((startChan >= foundStart) && (startChan <= foundEnd)) {
-                    m->Overlapping = true;
+                    mm->Overlapping = true;
                 } else if ((endChan >= foundStart) && (endChan <= foundEnd)) {
-                    m->Overlapping = true;
+                    mm->Overlapping = true;
                 } else {
-                    m->Overlapping = false;
+                    mm->Overlapping = false;
                 }
             }
         }
