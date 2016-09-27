@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.50  Sep 27, 2016
    -- enh (gil)     Allow arrow key to be used to scroll in model list in Layout.  Fixes #582.
    -- enh (dkulp)   Add -r command line switch to render and save the fseq file and then exit
    -- enh (gil)     Modify value curve icon so its clear when its not selected.  Fixes #675.
