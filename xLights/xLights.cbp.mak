@@ -1830,7 +1830,7 @@ models/WreathModel.cpp: models/WreathModel.h
 
 sequencer/DragEffectBitmapButton.cpp: sequencer/DragEffectBitmapButton.h BitmapCache.h xLightsMain.h effects/RenderableEffect.h
 
-sequencer/Effect.cpp: UtilClasses.h sequencer/Effect.h sequencer/EffectLayer.h sequencer/Element.h sequencer/SequenceElements.h effects/EffectManager.h ColorCurve.h ../include/globals.h
+sequencer/Effect.cpp: UtilClasses.h sequencer/Effect.h sequencer/EffectLayer.h sequencer/Element.h sequencer/SequenceElements.h effects/EffectManager.h ColorCurve.h ../include/globals.h SequenceCheck.h
 
 sequencer/EffectDropTarget.cpp: sequencer/EffectDropTarget.h sequencer/EffectsGrid.h
 
@@ -1976,7 +1976,7 @@ effects/WaveEffect.h: effects/RenderableEffect.h
 
 xlColorPickerFields.cpp: xlColorPickerFields.h
 
-xLightsMain.cpp: xLightsMain.h xLightsApp.h heartbeat.h SeqSettingsDialog.h RenderCommandEvent.h BitmapCache.h effects/RenderableEffect.h LayoutPanel.h models/ModelGroup.h TestDialog.h ConvertDialog.h GenerateCustomModelDialog.h SequenceCheck.h xLightsBasic.cpp ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm ../include/open.xpm ../include/save.xpm ../include/insertrow.xpm ../include/deleterow.xpm ../include/padlock16x16-green.xpm ../include/padlock16x16-red.xpm ../include/padlock16x16-blue.xpm ../include/control-pause-blue-icon.xpm ../include/control-pause-icon.xpm ../include/control-play-blue-icon.xpm ../include/control-play-icon.xpm ../include/control-stop-blue-icon.xpm ../include/control-stop-icon.xpm osxMacUtils.h TabSchedule.cpp
+xLightsMain.cpp: xLightsMain.h xLightsApp.h heartbeat.h SeqSettingsDialog.h RenderCommandEvent.h effects/RenderableEffect.h LayoutPanel.h models/ModelGroup.h models/CustomModel.h TestDialog.h ConvertDialog.h GenerateCustomModelDialog.h SequenceCheck.h xLightsBasic.cpp ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm ../include/open.xpm ../include/save.xpm ../include/insertrow.xpm ../include/deleterow.xpm ../include/padlock16x16-green.xpm ../include/padlock16x16-red.xpm ../include/padlock16x16-blue.xpm ../include/control-pause-blue-icon.xpm ../include/control-pause-icon.xpm ../include/control-play-blue-icon.xpm ../include/control-play-icon.xpm ../include/control-stop-blue-icon.xpm ../include/control-stop-icon.xpm osxMacUtils.h TabSchedule.cpp
 
 LayoutPanel.h: wxCheckedListCtrl.h
 
