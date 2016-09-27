@@ -63,7 +63,7 @@ void TextEffect::adjustSettings(const std::string &version, Effect *effect) {
     SettingsMap &settings = effect->GetSettings();
     // this is to prevent recursive adjustments since we are adding
     // layers and may be called by for loops based on number of layers
-    if ( settings["Converted"] == "1" ) {
+    if ( settings.Get("Converted", "xxx") == "1" ) {
         settings.erase("Converted");
         return;
     }

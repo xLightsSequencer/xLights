@@ -22,7 +22,6 @@
 **************************************************************/
 
 #include "PixelBuffer.h"
-#include <wx/image.h>
 #include <wx/tokenzr.h>
 #include "DimmingCurve.h"
 #include "models/ModelManager.h"
@@ -1041,8 +1040,6 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
     inf->inTransitionType = settingsMap.Get(CHOICE_In_Transition_Type, STR_FADE);
     inf->outTransitionType = settingsMap.Get(CHOICE_Out_Transition_Type, STR_FADE);
-    // The next line is temporary. It should not be required. KW
-    if (inf->outTransitionType == "") inf->outTransitionType = "Fade";
     inf->inTransitionAdjust = settingsMap.GetInt(SLIDER_In_Transition_Adjust, 0);
     inf->outTransitionAdjust = settingsMap.GetInt(SLIDER_Out_Transition_Adjust, 0);
     inf->inTransitionReverse = settingsMap.GetBool(CHECKBOX_In_Transition_Reverse);
@@ -1284,6 +1281,8 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
         {
             int effStartPer, effEndPer;
             layers[ii]->buffer.GetEffectPeriods(effStartPer, effEndPer);
+            bool isFirstFrame = (effStartPer == EffectPeriod);
+
             if (EffectPeriod < (effStartPer)+layers[ii]->fadeInSteps && layers[ii]->fadeInSteps != 0)
             {
                 curStep = EffectPeriod - effStartPer + 1;
@@ -1314,7 +1313,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             } else {
                 layers[ii]->outMaskFactor = fadeOutFactor;
             }
-            layers[ii]->calculateMask();
+            layers[ii]->calculateMask(isFirstFrame);
         } else {
             layers[ii]->mask.clear();
         }
@@ -1383,8 +1382,6 @@ static int DecodeType(const std::string &type)
         return 9;
     }
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.warn("Unrecognised transition type '%s'.", (const char *)type.c_str());
     return 0;
 }
 
@@ -1817,23 +1814,23 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
     }
 }
 
-void PixelBufferClass::LayerInfo::calculateMask() {
+void PixelBufferClass::LayerInfo::calculateMask(bool isFirstFrame) {
     bool hasMask = false;
     if (inMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
-        calculateMask(inTransitionType, false);
+        calculateMask(inTransitionType, false, isFirstFrame);
         hasMask = true;
     }
     if (outMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
-        calculateMask(outTransitionType, true);
+        calculateMask(outTransitionType, true, isFirstFrame);
         hasMask = true;
     }
     if (!hasMask) {
         mask.clear();
     }
 }
-void PixelBufferClass::LayerInfo::calculateMask(const std::string &type, bool mode) {
+void PixelBufferClass::LayerInfo::calculateMask(const std::string &type, bool mode, bool isFirstFrame) {
     switch (DecodeType(type)) {
         case 1:
             createWipeMask(mode);
@@ -1863,6 +1860,11 @@ void PixelBufferClass::LayerInfo::calculateMask(const std::string &type, bool mo
             createSlideBarsMask(mode);
             break;
         default:
+            if (isFirstFrame)
+            {
+                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("Unrecognised transition type '%s'.", (const char *)type.c_str());
+            }
             break;
     }
 }

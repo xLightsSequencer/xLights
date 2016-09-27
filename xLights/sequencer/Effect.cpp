@@ -6,8 +6,10 @@
 #include "SequenceElements.h"
 #include "../effects/EffectManager.h"
 #include "../ColorCurve.h"
+#include <log4cpp/Category.hh>
 #include "../../include/globals.h"
 #include <unordered_map>
+#include "../SequenceCheck.h"
 
 class ControlRenameMap
 {
@@ -113,6 +115,34 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     mEffectIndex = parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
     mSettings.Parse(settings);
 
+    // Fixes an erroneous blank settings created by using:
+    //  settings["key"] == "test val" 
+    // code which as a side effect creates a blank value under the key
+    // an example of this is fix to issue #622
+    if (mSettings.Get("T_CHOICE_Out_Transition_Type", "XXX") == "")
+    {
+        mSettings.erase("T_CHOICE_Out_Transition_Type");
+    }
+    if (mSettings.Get("Converted", "XXX") == "")
+    {
+        mSettings.erase("Converted");
+    }
+
+    // check for any other odd looking blank settings
+    for (auto it = mSettings.begin(); it != mSettings.end(); ++it)
+    {
+        if (it->second == "")
+        {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("Effect '%s' on model '%s' at time '%s' has setting '%s' with a blank value.", 
+                (const char *)name.c_str(),
+                (const char *)parent->GetParentElement()->GetName().c_str(),
+                FORMATTIME(startTimeMS),
+                (const char *)it->first.c_str()
+                );
+        }
+    }
+
     if (mEndTime < mStartTime)
     {
         //should never happend, but if we load something with invalid times, make sure we can at least
@@ -128,7 +158,6 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     mPaletteMap.Parse(palette);
     ParseColorMap(mPaletteMap, mColors, mCC);
 }
-
 
 Effect::~Effect()
 {

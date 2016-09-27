@@ -142,8 +142,8 @@ private:
         float outMaskFactor;
         
         std::vector<uint8_t> mask;
-        void calculateMask();
-        void calculateMask(const std::string &type, bool mode);
+        void calculateMask(bool isFirstFrame);
+        void calculateMask(const std::string &type, bool mode, bool isFirstFrame);
         bool isMasked(int x, int y);
         
     private:
