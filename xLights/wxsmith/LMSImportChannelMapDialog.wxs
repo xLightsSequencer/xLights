@@ -45,7 +45,7 @@
 									<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="TimeAdjustSpinCtrl" member="yes">
 										<value>0</value>
 										<min>-10000</min>
-										<max>10000</max>
+										<max>600000</max>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>

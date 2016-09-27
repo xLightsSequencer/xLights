@@ -61,7 +61,7 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent, const wxF
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	StaticText1 = new wxStaticText(TimeAdjustPanel, wxID_ANY, _("Time Adjust (ms)"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TimeAdjustSpinCtrl = new wxSpinCtrl(TimeAdjustPanel, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -10000, 10000, 0, _T("ID_SPINCTRL1"));
+	TimeAdjustSpinCtrl = new wxSpinCtrl(TimeAdjustPanel, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -10000, 600000, 0, _T("ID_SPINCTRL1"));
 	TimeAdjustSpinCtrl->SetValue(_T("0"));
 	FlexGridSizer3->Add(TimeAdjustSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TimeAdjustPanel->SetSizer(FlexGridSizer3);
