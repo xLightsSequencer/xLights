@@ -499,7 +499,6 @@ void xLightsFrame::RenameModelInViews(const std::string old_name, const std::str
     }
 }
 
-
 void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)
 {
     RenderableEffect *reff = effectManager.GetEffect(PageName.ToStdString());
@@ -508,7 +507,7 @@ void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)
         {
             if (cb->GetPageText(i) == reff->ToolTip())
             {
-                cb->ChangeSelection(i);
+                cb->SetSelection(i);
                 return;
             }
         }
