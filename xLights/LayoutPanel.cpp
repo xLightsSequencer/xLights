@@ -1392,6 +1392,12 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             m_previous_mouse_y = event.GetY();
             xlights->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
         }
+        else
+        {
+            m_creating_bound_rect = true;
+            m_bound_start_x = event.GetX();
+            m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
+        }
     }
 }
 
@@ -1893,6 +1899,68 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) {
 
     return m;
 }
+
+std::list<Model*> LayoutPanel::GetSelectedModels()
+{
+    std::list<Model*> res;
+
+    if(selectedModel != nullptr)
+    {
+        res.push_back(selectedModel);
+    }
+
+    for (auto it = modelPreview->GetModels().begin(); it!= modelPreview->GetModels().end(); ++it)
+    {
+        if ((*it) != selectedModel && ((*it)->Selected || (*it)->GroupSelected))
+        {
+            res.push_back(*it);
+        }
+    }
+
+    return res;
+}
+
+void LayoutPanel::Nudge(int key)
+{
+    std::list<Model*> selectedModels = GetSelectedModels();
+    if (selectedModels.size() > 0)
+    {
+        if (selectedModels.size() == 1)
+        {
+            CreateUndoPoint("SingleModel", selectedModels.front()->name, "location");
+        }
+        else
+        {
+            CreateUndoPoint("All", "", "");
+        }
+
+        for (auto it = selectedModels.begin(); it != selectedModels.end(); ++it)
+        {
+            int wi, ht;
+            modelPreview->GetVirtualCanvasSize(wi, ht);
+            float xpct = 0;
+            float ypct = 0;
+            if (key == WXK_UP) {
+                ypct = 1.0 / ht;
+            }
+            else if (key == WXK_DOWN) {
+                ypct = -1.0 / ht;
+            }
+            else if (key == WXK_LEFT) {
+                xpct = -1.0 / wi;
+            }
+            else if (key == WXK_RIGHT) {
+                xpct = 1.0 / wi;
+            }
+            (*it)->AddOffset(xpct, ypct);
+            (*it)->UpdateXmlWithScale();
+            SetupPropGrid(*it);
+        }
+        xlights->MarkEffectsFileDirty();
+        UpdatePreview();
+    }
+}
+
 void LayoutPanel::OnChar(wxKeyEvent& event) {
 
     wxChar uc = event.GetKeyCode();
@@ -1901,27 +1969,7 @@ void LayoutPanel::OnChar(wxKeyEvent& event) {
         case WXK_DOWN:
         case WXK_LEFT:
         case WXK_RIGHT:
-            if (selectedModel != nullptr) {
-                int wi, ht;
-                modelPreview->GetVirtualCanvasSize(wi, ht);
-                float xpct = 0;
-                float ypct = 0;
-                if (uc == WXK_UP) {
-                    ypct = 1.0 / ht;
-                } else if (uc == WXK_DOWN) {
-                    ypct = -1.0 / ht;
-                } else if (uc == WXK_LEFT) {
-                    xpct = -1.0 / wi;
-                } else if (uc == WXK_RIGHT) {
-                    xpct = 1.0 / wi;
-                }
-                CreateUndoPoint("SingleModel", selectedModel->name, "location");
-                selectedModel->AddOffset(xpct, ypct);
-                selectedModel->UpdateXmlWithScale();
-                SetupPropGrid(selectedModel);
-                xlights->MarkEffectsFileDirty();
-                UpdatePreview();
-            }
+            Nudge(uc);
             break;
         default:
             break;
@@ -1999,27 +2047,7 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
         case WXK_DOWN:
         case WXK_LEFT:
         case WXK_RIGHT:
-            if (selectedModel != nullptr) {
-                int wi, ht;
-                modelPreview->GetVirtualCanvasSize(wi, ht);
-                float xpct = 0;
-                float ypct = 0;
-                if (uc == WXK_UP) {
-                    ypct = 1.0 / ht;
-                } else if (uc == WXK_DOWN) {
-                    ypct = -1.0 / ht;
-                } else if (uc == WXK_LEFT) {
-                    xpct = -1.0 / wi;
-                } else if (uc == WXK_RIGHT) {
-                    xpct = 1.0 / wi;
-                }
-                CreateUndoPoint("SingleModel", selectedModel->name, "location");
-                selectedModel->AddOffset(xpct, ypct);
-                selectedModel->UpdateXmlWithScale();
-                SetupPropGrid(selectedModel);
-                xlights->MarkEffectsFileDirty();
-                UpdatePreview();
-            }
+            Nudge(uc);
             break;
 
         case WXK_ESCAPE:

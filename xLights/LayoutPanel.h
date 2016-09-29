@@ -16,6 +16,7 @@ class wxChoice;
 #include <wx/treelist.h>
 
 #include <vector>
+#include <list>
 
 class xLightsFrame;
 class ModelPreview;
@@ -32,8 +33,6 @@ class wxScrolledWindow;
 class LayoutGroup;
 
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
-
-#include <vector>
 
 class LayoutPanel: public wxPanel
 {
@@ -151,11 +150,13 @@ class LayoutPanel: public wxPanel
         bool SelectMultipleModels(int x,int y);
         void SelectAllInBoundingRect();
         void SetSelectedModelToGroupSelected();
+        void Nudge(int key);
 
         int FindModelsClicked(int x,int y, std::vector<int> &found);
 
         int ModelsSelectedCount();
         int GetSelectedModelIndex();
+        std::list<Model*> GetSelectedModels();
         void PreviewModelAlignTops();
         void PreviewModelAlignBottoms();
         void PreviewModelAlignLeft();
