@@ -632,9 +632,14 @@
 												<object class="sizeritem">
 													<object class="wxListCtrl" name="ID_LISTCTRL_NETWORKS" variable="GridNetwork" member="yes">
 														<tooltip>Drag an item to reorder the list</tooltip>
-														<style>wxLC_REPORT|wxLC_SINGLE_SEL</style>
+														<style>wxLC_REPORT</style>
 														<handler function="OnGridNetworkBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
+														<handler function="OnGridNetworkItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+														<handler function="OnGridNetworkItemDeselect" entry="EVT_LIST_ITEM_DESELECTED" />
 														<handler function="OnGridNetworkItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
+														<handler function="OnGridNetworkItemFocused" entry="EVT_LIST_ITEM_FOCUSED" />
+														<handler function="OnGridNetworkItemRClick" entry="EVT_LIST_ITEM_RIGHT_CLICK" />
+														<handler function="OnGridNetworkKeyDown" entry="EVT_LIST_KEY_DOWN" />
 													</object>
 													<flag>wxEXPAND</flag>
 													<border>5</border>

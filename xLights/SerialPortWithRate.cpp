@@ -106,6 +106,8 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
     ChoiceProtocol->Append(_("OpenDMX"));
 #endif
     FlexGridSizer1->Fit(this);
+
+    StdDialogButtonSizer1->GetAffirmativeButton()->SetDefault();
 }
 
 SerialPortWithRate::~SerialPortWithRate()

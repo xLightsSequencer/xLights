@@ -8,6 +8,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (keithsw) More animated GIF fixes ... all should work now
+   -- enh (keithsw) Add right click menu to controller list on setup tab including:
+						- Inserts controller(s) at a point in the list
+						- Bulk update IP address, channel count and description
+						- Bulk delete
+						- delete key and control-A to select all
+						- activate and deactivate are now available as right click menu items. Double click or ENTER key open the controller to edit it
+						- grey out inactive controllers
+						- open controller in your browser
+   -- enh (keithsw) Allow rubber band selection of models on layout tab without holding down shift key
+   -- bug (keithsw) keyboard nudging of multiple selected models now works
 2016.50  Sep 27, 2016
    -- enh (gil)     Allow arrow key to be used to scroll in model list in Layout.  Fixes #582.
    -- enh (dkulp)   Add -r command line switch to render and save the fseq file and then exit

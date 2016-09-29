@@ -99,6 +99,8 @@ E131Dialog::E131Dialog(wxWindow* parent)
     Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&E131Dialog::OnSpinCtrl_NumUnivChange);
     Connect(ID_TEXTCTRL_DESCRIPTION,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&E131Dialog::OnTextCtrl_DescriptionText);
     //*)
+
+    StdDialogButtonSizer1->GetAffirmativeButton()->SetDefault();
 }
 
 E131Dialog::~E131Dialog()

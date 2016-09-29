@@ -133,6 +133,8 @@ ArtNetDialog::ArtNetDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ArtNetDialog::OnButtonCancelClick);
 	//*)
 
+    ButtonOk->SetDefault();
+
     ValidateWindow();
 }
 

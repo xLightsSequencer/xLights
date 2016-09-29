@@ -55,6 +55,8 @@ NullOutputDialog::NullOutputDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 
 	Connect(ID_TEXTCTRL_DESCRIPTION,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&NullOutputDialog::OnTextCtrl_DescriptionText);
 	//*)
+
+    StdDialogButtonSizer1->GetAffirmativeButton()->SetDefault();
 }
 
 NullOutputDialog::~NullOutputDialog()

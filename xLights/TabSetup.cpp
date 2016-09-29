@@ -29,6 +29,20 @@
 
 #include "osxMacUtils.h"
 
+const long xLightsFrame::ID_NETWORK_ADDUSB = wxNewId();
+const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
+const long xLightsFrame::ID_NETWORK_ADDE131 = wxNewId();
+const long xLightsFrame::ID_NETWORK_ADDARTNET = wxNewId();
+const long xLightsFrame::ID_NETWORK_BEIPADDR = wxNewId();
+const long xLightsFrame::ID_NETWORK_BECHANNELS = wxNewId();
+const long xLightsFrame::ID_NETWORK_BEDESCRIPTION = wxNewId();
+const long xLightsFrame::ID_NETWORK_ADD = wxNewId();
+const long xLightsFrame::ID_NETWORK_BULKEDIT = wxNewId();
+const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
+const long xLightsFrame::ID_NETWORK_ACTIVATE = wxNewId();
+const long xLightsFrame::ID_NETWORK_DEACTIVATE = wxNewId();
+const long xLightsFrame::ID_NETWORK_OPENCONTROLLER = wxNewId();
+
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event)
 {
     int id = event.GetId();
@@ -499,7 +513,11 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
             GridNetwork->SetItem(newidx,6,e->GetAttribute("Enabled", "Yes"));
 			GridNetwork->SetItem(newidx, 7, xLightsXmlFile::UnXmlSafe(e->GetAttribute("Description", "")));
 			GridNetwork->SetColumnWidth(7, wxLIST_AUTOSIZE);
-		}
+            if (e->GetAttribute("Enabled", "Yes") == "No")
+            {
+                GridNetwork->SetItemTextColour(newidx, *wxLIGHT_GREY);
+            }
+        }
     }
 
     GridNetwork->SetColumnWidth(2, NetCnt > 0 ? wxLIST_AUTOSIZE : 100);
@@ -669,80 +687,189 @@ void xLightsFrame::MoveNetworkRow(int fromRow, int toRow)
     UpdateNetworkList(true);
 }
 
-void xLightsFrame::OnButtonNetworkChangeClick(wxCommandEvent& event)
+void xLightsFrame::ChangeSelectedNetwork()
 {
-    long SelectedItem = GetNetworkSelection();
-    if (SelectedItem == -1)
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    if (item == -1 || GridNetwork->GetSelectedItemCount() != 1)
     {
         wxMessageBox(_("Please select a single row first"), _("Error"));
         return;
     }
-    wxXmlNode* root=NetworkXML.GetRoot();
-    long cnt=0;
-    for( wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
+
+    wxXmlNode* e = GetOutput(item);
+    if (e->GetAttribute("NetworkType") == "E131")
     {
-        if (e->GetName() == "network")
+        SetupE131(e);
+    }
+    else if (e->GetAttribute("NetworkType") == "NULL")
+    {
+        SetupNullOutput(e);
+    }
+    else if (e->GetAttribute("NetworkType") == "ArtNet")
+    {
+        SetupArtNet(e);
+    }
+    else
+    {
+        SetupDongle(e);
+    }
+}
+
+void xLightsFrame::OnButtonNetworkChangeClick(wxCommandEvent& event)
+{
+    ChangeSelectedNetwork();
+}
+
+void xLightsFrame::UpdateSelectedIPAddresses()
+{
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    wxXmlNode* f = GetOutput(item);
+    wxString ip = f->GetAttribute("ComPort", "MULTICAST");
+
+    wxTextEntryDialog dlg(this, "Change controller IP Address", "IP Address", ip);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        ip = dlg.GetValue();
+        while (item != -1)
         {
-            if (cnt==SelectedItem)
-            {
-                if (e->GetAttribute("NetworkType") == "E131")
-                {
-                    SetupE131(e);
-                }
-                else if (e->GetAttribute("NetworkType") == "NULL")
-                {
-                    SetupNullOutput(e);
-                }
-                else if (e->GetAttribute("NetworkType") == "ArtNet")
-                {
-                    SetupArtNet(e);
-                }
-                else
-                {
-                    SetupDongle(e);
-                }
-                break;
-            }
-            else
-            {
-                cnt++;
-            }
+            wxXmlNode* e = GetOutput(item);
+            e->DeleteAttribute("ComPort");
+            e->AddAttribute("ComPort", ip);
+            item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
         }
+
+        NetworkChange();
+        UpdateNetworkList(true);
+
+        item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        while (item != -1)
+        {
+            GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+
+            item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        }
+    }
+}
+
+void xLightsFrame::UpdateSelectedDescriptions()
+{
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    wxXmlNode* f = GetOutput(item);
+    wxString description = f->GetAttribute("Description", "");
+    
+    wxTextEntryDialog dlg(this, "Change controller description", "Description", description);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        description = dlg.GetValue();
+        while (item != -1)
+        {
+            wxXmlNode* e = GetOutput(item);
+            e->DeleteAttribute("Description");
+            e->AddAttribute("Description", description);
+            item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        }
+
+        NetworkChange();
+        UpdateNetworkList(true);
+
+        item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        while (item != -1)
+        {
+            GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+
+            item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        }
+    }
+}
+
+void xLightsFrame::UpdateSelectedChannels()
+{
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    wxXmlNode* f = GetOutput(item);
+    int channels = wxAtoi(f->GetAttribute("MaxChannels", "0"));
+    wxNumberEntryDialog dlg(this, "Change channels per controller", "Channels", wxEmptyString, channels, 1, 512);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        channels = dlg.GetValue();
+        while (item != -1)
+        {
+            wxXmlNode* e = GetOutput(item);
+            e->DeleteAttribute("MaxChannels");
+            e->AddAttribute("MaxChannels", wxString::Format("%d", channels));
+            item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        }
+
+        NetworkChange();
+        UpdateNetworkList(true);
+
+        item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        while (item != -1)
+        {
+            GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+
+            item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        }
+    }
+}
+
+void xLightsFrame::ActivateSelectedNetworks(bool active)
+{
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    while (item != -1)
+    {
+        wxXmlNode* e = GetOutput(item);
+        e->DeleteAttribute("Enabled");
+        e->AddAttribute("Enabled", active ? "Yes" : "No");
+        if (xout != nullptr) {
+            xout->EnableOutput(item, active);
+        }
+
+        item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    }
+
+    NetworkChange();
+    UpdateNetworkList(true);
+
+    item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    while (item != -1)
+    {
+        GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+
+        item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    }
+}
+
+void xLightsFrame::DeleteSelectedNetworks()
+{
+    int removed = 0;
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    while (item != -1)
+    {
+        wxXmlNode* e = GetOutput(item - removed);
+        NetworkXML.GetRoot()->RemoveChild(e);
+        
+        removed++;
+        item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    }
+
+    NetworkChange();
+    UpdateNetworkList(true);
+    
+    item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    while (item != -1)
+    {
+        GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+
+        item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     }
 }
 
 void xLightsFrame::OnButtonNetworkDeleteClick(wxCommandEvent& event)
 {
-    long SelectedItem = GetNetworkSelection();
-    if (SelectedItem == -1)
-    {
-        wxMessageBox(_("Please select a single row first"), _("Error"));
-        return;
-    }
-    wxXmlNode* root=NetworkXML.GetRoot();
-    long cnt=0;
-    for( wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
-    {
-        if (e->GetName() == "network")
-        {
-            if (cnt==SelectedItem)
-            {
-                root->RemoveChild(e);
-                break;
-            }
-            else
-            {
-                cnt++;
-            }
-        }
-    }
-    NetworkChange();
-    UpdateNetworkList(true);
-    cnt=GridNetwork->GetItemCount();
-    if (cnt > 0)
-    {
-        GridNetwork->SetItemState(cnt <= SelectedItem ? cnt-1 : SelectedItem, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-    }
+    DeleteSelectedNetworks();
 }
 
 void xLightsFrame::OnButtonNetworkDeleteAllClick(wxCommandEvent& event)
@@ -807,31 +934,7 @@ void xLightsFrame::OnGridNetworkDragEnd(wxMouseEvent& event)
 
 void xLightsFrame::OnGridNetworkItemActivated(wxListEvent& event)
 {
-    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if (item == -1) {
-        return;
-    }
-    int i = item;
-    wxXmlNode* e=NetworkXML.GetRoot();
-    GridNetwork->DeleteAllItems();
-    NetInfo.Clear();
-    for( e=e->GetChildren(); e!=nullptr; e=e->GetNext() )
-    {
-        if (e->GetName() == "network") {
-            item--;
-            if (item == -1) {
-                wxString b = e->GetAttribute("Enabled", "Yes");
-                e->DeleteAttribute("Enabled");
-                e->AddAttribute("Enabled", b == "Yes" ? "No" : "Yes");
-                if (xout != nullptr) {
-                    xout->EnableOutput(i, b == "No");
-                }
-                UpdateNetworkList(true);
-                return;
-            }
-        }
-    }
-
+    ChangeSelectedNetwork();
 }
 
 
@@ -876,7 +979,29 @@ void xLightsFrame::OnButtonAddNullClick(wxCommandEvent& event)
     SetupNullOutput(nullptr);
 }
 
-void xLightsFrame::SetupNullOutput(wxXmlNode* e) {
+wxXmlNode* xLightsFrame::GetOutput(int num)
+{
+    wxXmlNode* root = NetworkXML.GetRoot();
+    long cnt = 0;
+    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
+    {
+        if (e->GetName() == "network")
+        {
+            if (cnt == num)
+            {
+                return e;
+            }
+            else
+            {
+                cnt++;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+void xLightsFrame::SetupNullOutput(wxXmlNode* e, int after) {
     wxString NetName=_("NULL");
 
 	int numChannels = 512;;
@@ -895,7 +1020,14 @@ void xLightsFrame::SetupNullOutput(wxXmlNode* e) {
         if (e == nullptr) {
             e = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
             e->AddAttribute("NetworkType", NetName);
-            NetworkXML.GetRoot()->AddChild(e);
+            if (after == -1)
+            {
+                NetworkXML.GetRoot()->AddChild(e);
+            }
+            else
+            {
+                NetworkXML.GetRoot()->InsertChildAfter(e, GetOutput(after));
+            }
         } else {
             e->DeleteAttribute("MaxChannels");
         }
@@ -908,8 +1040,9 @@ void xLightsFrame::SetupNullOutput(wxXmlNode* e) {
     }
 }
 
-void xLightsFrame::SetupE131(wxXmlNode* e)
+void xLightsFrame::SetupE131(wxXmlNode* e, int after)
 {
+    int afterworking = after;
     int DlgResult,UnivNum,NumUniv,LastChannel;
     bool ok=true;
     wxString NetName=_("E131");
@@ -986,7 +1119,14 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
                         e->AddAttribute("MaxChannels",LastChannelStr);
                         e->AddAttribute("NumUniverses", wxString::Format("%d", NumUniv));
 						e->AddAttribute("Description", xLightsXmlFile::XmlSafe(Description));
-                        NetworkXML.GetRoot()->AddChild(e);
+                        if (after == -1)
+                        {
+                            NetworkXML.GetRoot()->AddChild(e);
+                        }
+                        else
+                        {
+                            NetworkXML.GetRoot()->InsertChildAfter(e, GetOutput(afterworking++));
+                        }
                     } else {
                         for (int u=0; u < NumUniv; u++)
                         {
@@ -996,7 +1136,14 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
                             e->AddAttribute("BaudRate",wxString::Format("%d",UnivNum));
                             e->AddAttribute("MaxChannels",LastChannelStr);
 							e->AddAttribute("Description", xLightsXmlFile::XmlSafe(Description));
-                            NetworkXML.GetRoot()->AddChild(e);
+                            if (after == -1)
+                            {
+                                NetworkXML.GetRoot()->AddChild(e);
+                            }
+                            else
+                            {
+                                NetworkXML.GetRoot()->InsertChildAfter(e, GetOutput(afterworking++));
+                            }
                             UnivNum++;
                         }
                     }
@@ -1013,7 +1160,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
     while (DlgResult == wxID_OK && !ok);
 }
 
-void xLightsFrame::SetupArtNet(wxXmlNode* e)
+void xLightsFrame::SetupArtNet(wxXmlNode* e, int after)
 {
     int DlgResult;
     //int DlgResult, UnivNum, NumUniv, LastChannel;
@@ -1076,7 +1223,14 @@ void xLightsFrame::SetupArtNet(wxXmlNode* e)
                         e->AddAttribute("BaudRate", wxString::Format("%d", ARTNET_MAKEU(Net, Subnet, Universe)));
                         e->AddAttribute("MaxChannels", LastChannelStr);
                         e->AddAttribute("Description", xLightsXmlFile::XmlSafe(Description));
-                        NetworkXML.GetRoot()->AddChild(e);
+                        if (after == -1)
+                        {
+                            NetworkXML.GetRoot()->AddChild(e);
+                        }
+                        else
+                        {
+                            NetworkXML.GetRoot()->InsertChildAfter(e, GetOutput(after));
+                        }
                 }
                 UpdateNetworkList(true);
                 NetworkChange();
@@ -1089,7 +1243,7 @@ void xLightsFrame::SetupArtNet(wxXmlNode* e)
     } while (DlgResult == wxID_OK && !ok);
 }
 
-void xLightsFrame::SetupDongle(wxXmlNode* e)
+void xLightsFrame::SetupDongle(wxXmlNode* e, int after)
 {
     int DlgResult;
     bool ok=true;
@@ -1135,7 +1289,14 @@ void xLightsFrame::SetupDongle(wxXmlNode* e)
                 if (!e)
                 {
                     e = new wxXmlNode( wxXML_ELEMENT_NODE, "network" );
-                    NetworkXML.GetRoot()->AddChild(e);
+                    if (after == -1)
+                    {
+                        NetworkXML.GetRoot()->AddChild(e);
+                    }
+                    else
+                    {
+                        NetworkXML.GetRoot()->InsertChildAfter(e, GetOutput(after));
+                    }
                 }
                 e->DeleteAttribute("NetworkType");
                 e->AddAttribute("NetworkType",NetName);
@@ -1310,4 +1471,192 @@ void xLightsFrame::SetSyncUniverse(int syncUniverse)
 void xLightsFrame::OnSpinCtrl_SyncUniverseChange(wxSpinEvent& event)
 {
     SetSyncUniverse(SpinCtrl_SyncUniverse->GetValue());
+}
+
+bool xLightsFrame::AllSelectedSupportIP()
+{
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    while (item != -1)
+    {
+        wxXmlNode* e = GetOutput(item);
+
+        wxString type = e->GetAttribute("NetworkType", "");
+
+        if (type != "E131" && type != "ArtNet")
+        {
+            return false;
+        }
+
+        item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    }
+
+    return true;
+}
+
+bool xLightsFrame::AllSelectedSupportChannels()
+{
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    while (item != -1)
+    {
+        wxXmlNode* e = GetOutput(item);
+
+        wxString type = e->GetAttribute("NetworkType", "");
+
+        if (type == "NULL")
+        {
+            return false;
+        }
+
+        item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    }
+
+    return true;
+}
+
+void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
+{
+    GridNetwork->SetFocus();
+
+    int selcnt = GridNetwork->GetSelectedItemCount();
+
+    wxMenu mnu;
+    wxMenu* mnuAdd = new wxMenu();
+    mnuAdd->Append(ID_NETWORK_ADDUSB, "USB")->Enable(selcnt == 1);
+    mnuAdd->Append(ID_NETWORK_ADDNULL, "NULL")->Enable(selcnt == 1);
+    mnuAdd->Append(ID_NETWORK_ADDE131, "E1.31")->Enable(selcnt == 1);
+    mnuAdd->Append(ID_NETWORK_ADDARTNET, "ArtNET")->Enable(selcnt == 1);
+
+    wxMenu* mnuBulkEdit = new wxMenu();
+    wxMenuItem* beip = mnuBulkEdit->Append(ID_NETWORK_BEIPADDR, "IP Address");
+    beip->Enable(selcnt > 0);
+    if (!AllSelectedSupportIP())
+    {
+        beip->Enable(false);
+    }
+    wxMenuItem* bech = mnuBulkEdit->Append(ID_NETWORK_BECHANNELS, "Channels");
+    bech->Enable(selcnt > 0);
+    if (!AllSelectedSupportChannels())
+    {
+        bech->Enable(false);
+    }
+    mnuBulkEdit->Append(ID_NETWORK_BEDESCRIPTION, "Description")->Enable(selcnt > 0);
+
+    mnu.Append(ID_NETWORK_ADD, "Insert After", mnuAdd, "");
+    mnu.Append(ID_NETWORK_BULKEDIT, "Bulk Edit", mnuBulkEdit, "");
+    mnu.AppendSeparator();
+
+    mnu.Append(ID_NETWORK_DELETE, "Delete")->Enable(selcnt > 0);
+    mnu.Append(ID_NETWORK_ACTIVATE, "Activate")->Enable(selcnt > 0);
+    mnu.Append(ID_NETWORK_DEACTIVATE, "Deactivate")->Enable(selcnt > 0);
+    wxMenuItem* oc = mnu.Append(ID_NETWORK_OPENCONTROLLER, "Open Controller");
+    oc->Enable(selcnt == 1);
+    if (!AllSelectedSupportIP())
+    {
+        oc->Enable(false);
+    }
+    else
+    {
+        int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        wxXmlNode* e = GetOutput(item);
+        if (e->GetAttribute("ComPort", "") == "MULTICAST")
+        {
+            oc->Enable(false);
+        }
+    }
+
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, NULL, this);
+    PopupMenu(&mnu);
+    GridNetwork->SetFocus();
+}
+
+void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
+{
+    int id = event.GetId();
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    if (id == ID_NETWORK_ADDUSB)
+    {
+        SetupDongle(0, item);
+    }
+    else if (id == ID_NETWORK_ADDNULL)
+    {
+        SetupNullOutput(0, item);
+    }
+    else if (id == ID_NETWORK_ADDE131)
+    {
+        SetupE131(0, item);
+    }
+    else if (id == ID_NETWORK_ADDARTNET)
+    {
+        SetupArtNet(0, item);
+    }
+    else if (id == ID_NETWORK_BEIPADDR)
+    {
+        UpdateSelectedIPAddresses();
+    }
+    else if (id == ID_NETWORK_BECHANNELS)
+    {
+        UpdateSelectedChannels();
+    }
+    else if (id == ID_NETWORK_BEDESCRIPTION)
+    {
+        UpdateSelectedDescriptions();
+    }
+    else if (id == ID_NETWORK_DELETE)
+    {
+        DeleteSelectedNetworks();
+    }
+    else if (id == ID_NETWORK_ACTIVATE)
+    {
+        ActivateSelectedNetworks(true);
+    }
+    else if (id == ID_NETWORK_DEACTIVATE)
+    {
+        ActivateSelectedNetworks(false);
+    }
+    else if (id == ID_NETWORK_OPENCONTROLLER)
+    {
+        wxXmlNode* e = GetOutput(item);
+        wxString ip = e->GetAttribute("ComPort", "");
+        ::wxLaunchDefaultBrowser("http://" + ip);
+    }
+}
+
+void xLightsFrame::OnGridNetworkItemSelect(wxListEvent& event)
+{
+}
+
+void xLightsFrame::OnGridNetworkItemDeselect(wxListEvent& event)
+{
+}
+
+void xLightsFrame::OnGridNetworkItemFocused(wxListEvent& event)
+{
+}
+
+void xLightsFrame::OnGridNetworkKeyDown(wxListEvent& event)
+{
+    wxChar uc = event.GetKeyCode();
+    switch (uc)
+    {
+    case WXK_DELETE:
+        if (GridNetwork->GetSelectedItemCount() > 0)
+        {
+            DeleteSelectedNetworks();
+        }
+        break;
+    case 'A':
+        if (::wxGetKeyState(WXK_CONTROL))
+        {
+            int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL);
+            while (item != -1)
+            {
+                GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+                item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL);
+            }
+        }
+        break;
+    }
 }

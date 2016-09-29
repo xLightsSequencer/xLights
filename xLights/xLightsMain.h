@@ -495,6 +495,11 @@ private:
     void OnMenuItem_Help_Isue_TrackerSelected(wxCommandEvent& event);
     void OnMenuItem_Help_FacebookSelected(wxCommandEvent& event);
     void OnMenuItem_ExportEffectsSelected(wxCommandEvent& event);
+    void OnGridNetworkItemRClick(wxListEvent& event);
+    void OnGridNetworkItemSelect(wxListEvent& event);
+    void OnGridNetworkItemDeselect(wxListEvent& event);
+    void OnGridNetworkItemFocused(wxListEvent& event);
+    void OnGridNetworkKeyDown(wxListEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -882,14 +887,22 @@ private:
     void MoveNetworkRow(int fromRow, int toRow);
     void OnGridNetworkDragQuit(wxMouseEvent& event);
     void OnGridNetworkDragEnd(wxMouseEvent& event);
-    void SetupDongle(wxXmlNode* e);
-    void SetupE131(wxXmlNode* e);
-    void SetupArtNet(wxXmlNode* e);
-    void SetupNullOutput(wxXmlNode* e);
+    void SetupDongle(wxXmlNode* e, int after = -1);
+    void SetupE131(wxXmlNode* e, int after = -1);
+    void SetupArtNet(wxXmlNode* e, int after = -1);
+    void SetupNullOutput(wxXmlNode* e, int after = -1);
     bool SaveNetworksFile();
     void NetworkChange();
     void SaveFPPUniverses(std::string path);
-
+    void DeleteSelectedNetworks();
+    void ActivateSelectedNetworks(bool active);
+    void ChangeSelectedNetwork();
+    wxXmlNode* GetOutput(int num);
+    bool AllSelectedSupportIP();
+    bool AllSelectedSupportChannels();
+    void UpdateSelectedIPAddresses();
+    void UpdateSelectedChannels();
+    void UpdateSelectedDescriptions();
 
     void OnProgressBarDoubleClick(wxMouseEvent& event);
     RenderProgressInfo *renderProgressInfo;
@@ -983,6 +996,7 @@ private:
     void OnPlayListDragEnd(wxMouseEvent& event);
     void OnPlayListDragQuit(wxMouseEvent& event);
     void OnTimerPlaylist(long msec);
+    void OnNetworkPopup(wxCommandEvent &event);
 
     // sequence
     void LoadEffectsFile();
@@ -1244,6 +1258,20 @@ private:
     wxMenuItem* MenuItemPreviewSeparator;
     static const long ID_MENU_ITEM_PREVIEWS;
     static const long ID_MENU_ITEM_PREVIEWS_SHOW_ALL;
+
+    static const long ID_NETWORK_ADDUSB;
+    static const long ID_NETWORK_ADDNULL;
+    static const long ID_NETWORK_ADDE131;
+    static const long ID_NETWORK_ADDARTNET;
+    static const long ID_NETWORK_BEIPADDR;
+    static const long ID_NETWORK_BECHANNELS;
+    static const long ID_NETWORK_BEDESCRIPTION;
+    static const long ID_NETWORK_ADD;
+    static const long ID_NETWORK_BULKEDIT;
+    static const long ID_NETWORK_DELETE;
+    static const long ID_NETWORK_ACTIVATE;
+    static const long ID_NETWORK_DEACTIVATE;
+    static const long ID_NETWORK_OPENCONTROLLER;
 
 #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 
