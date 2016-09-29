@@ -64,7 +64,6 @@ class PicturesPanel: public wxPanel
 		wxStaticText* StaticText68;
 		wxSlider* Slider_Pictures_FR;
 		wxSlider* Slider_PicturesEndYC;
-		wxCheckBox* CheckBox_ForceGIFOverlay;
 		wxStaticText* StaticText46;
 		//*)
 
@@ -86,7 +85,6 @@ class PicturesPanel: public wxPanel
 		static const long ID_CHECKBOX_Pictures_PixelOffsets;
 		static const long ID_CHECKBOX_Pictures_ScaleToFit;
 		static const long ID_CHECKBOX_Pictures_Shimmer;
-		static const long ID_CHECKBOX_Pictures_ForceGIFOverlay;
 		static const long ID_SLIDER_PicturesXC;
 		static const long ID_CHECKBOX_Pictures_WrapX;
 		static const long IDD_TEXTCTRL_PicturesXC;

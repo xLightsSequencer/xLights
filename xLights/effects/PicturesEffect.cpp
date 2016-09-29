@@ -83,6 +83,11 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect)
 
     SettingsMap &settings = effect->GetSettings();
 
+    if (settings.Get("E_CHECKBOX_Pictures_ForceGIFOverlay", "xxx") != "xxx")
+    {
+        settings.erase("E_CHECKBOX_Pictures_ForceGIFOverlay");
+    }
+
     std::string file = settings["E_FILEPICKER_Pictures_Filename"];
     if (file != "")
     {
@@ -187,14 +192,16 @@ typedef std::vector< std::pair<wxPoint, xlColor> > PixelVector;
 
 class PicturesRenderCache : public EffectRenderCache {
 public:
-    PicturesRenderCache() : imageCount(0), imageIndex(0), frame(0), maxmovieframes(0) {};
+    PicturesRenderCache() : imageCount(0), imageIndex(0), frame(0), lastframe(-1), maxmovieframes(0) {};
     virtual ~PicturesRenderCache() {};
 
     wxImage image;
+    wxImage lastimage;
     int imageCount;
     int imageIndex;
     int frame;
-    int lastfullframe;
+    int lastframe;
+    wxAnimationDisposal lastdispose;
     int maxmovieframes;
     wxString PictureName;
 
@@ -313,7 +320,6 @@ void PicturesEffect::SetDefaultParameters(Model *cls) {
     SetCheckBoxValue(pp->CheckBox_Pictures_PixelOffsets, false);
     SetCheckBoxValue(pp->CheckBox_Pictures_ScaleToFit, false);
     SetCheckBoxValue(pp->CheckBox_Pictures_WrapX, false);
-    SetCheckBoxValue(pp->CheckBox_ForceGIFOverlay, false);
     SetCheckBoxValue(pp->CheckBox_Pictures_Shimmer, false);
 
     pp->FilePickerCtrl1->SetFileName(wxFileName());
@@ -334,8 +340,7 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
            SettingsMap.GetBool("CHECKBOX_Pictures_ScaleToFit", false),
            SettingsMap.GetBool("CHECKBOX_Pictures_PixelOffsets", false),
            SettingsMap.GetBool("CHECKBOX_Pictures_WrapX", false),
-        SettingsMap.GetBool("CHECKBOX_Pictures_Shimmer", false),
-        SettingsMap.GetBool("CHECKBOX_Pictures_ForceGIFOverlay", false)
+        SettingsMap.GetBool("CHECKBOX_Pictures_Shimmer", false)
     );
 }
 
@@ -360,8 +365,10 @@ void CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool overlay)
     }
 }
 
-wxPoint LoadRawImageFrame(wxImage& image, const wxString& file, int frame)
+wxPoint LoadRawImageFrame(wxImage& image, const wxString& file, int frame, wxAnimationDisposal& disposal)
 {
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxFileInputStream stream(file);
     if (stream.IsOk())
     {
@@ -370,99 +377,66 @@ wxPoint LoadRawImageFrame(wxImage& image, const wxString& file, int frame)
         {
             image.Resize(decod.GetFrameSize(frame), wxPoint(0, 0));
             decod.ConvertToImage(frame, &image);
+            disposal = decod.GetDisposalMethod(frame);
             return decod.GetFramePosition(frame);
         }
     }
     return wxPoint(-1, -1);
 }
 
-bool HasTransparent(wxImage& image)
+void LoadImageFrame(wxImage& image, const wxString& file, int frame, int& lastframe, wxImage& lastimage, wxAnimationDisposal& lastdispose)
 {
-    for (size_t y = 0; y < image.GetHeight(); y++)
+    int startframe = 0;
+    if (lastframe < 0)
     {
-        for (size_t x = 0; x < image.GetWidth(); x++)
+        // we start at 0
+    }
+    else if (lastframe == frame)
+    {
+        image = lastimage;
+        return;
+    }
+    else if (lastframe < frame)
+    {
+        image = lastimage;
+        startframe = lastframe+1;
+    }
+    else
+    {
+        //lastframe is greater than the frame we want so we have to start from zero again
+    }
+
+    for (size_t i = startframe; i <= frame; i++)
+    {
+        wxImage newframe(image.GetWidth(), image.GetHeight());
+        wxAnimationDisposal dispose = wxANIM_TOBACKGROUND;
+        wxPoint offset = LoadRawImageFrame(newframe, file, i, dispose);
+        if (offset.x == -1)
         {
-            if (image.IsTransparent(x, y))
-            {
-                return true;
-            }
+            return;
         }
-    }
-    return false;
-}
 
-int LoadImageFrame(wxImage& image, const wxString& file, int frame, int fullframe, bool forceoverlay)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (fullframe < 0)
-    {
-        fullframe = 0;
-    }
-    int lastfullframe = fullframe;
-    if (frame < fullframe)
-    {
-        lastfullframe = 0;
-    }
-
-    // load the first frame to set the image size correctly
-    wxPoint offset = LoadRawImageFrame(image, file, 0);
-    image.Clear();
-
-    for (size_t i = lastfullframe; i <= frame; i++)
-    {
-        if (i == lastfullframe)
+        if (i == 0 || lastdispose == wxANIM_TOBACKGROUND || lastdispose == wxANIM_UNSPECIFIED)
         {
-            wxImage newframe(image.GetWidth(), image.GetHeight());
-            offset = LoadRawImageFrame(newframe, file, i);
-            if (offset.x == -1)
-            {
-                logger_base.error("Error loading image file: %s index %d.", (const char *)file.c_str(), frame);
-                return -1;
-            }
-            CopyImageToImage(image, newframe, offset, false);
-
-            // If first frame has transparent pixels we dont want to use the overlay method ... so just get the frame
-            if (HasTransparent(image) && !forceoverlay)
-            {
-                if (frame != lastfullframe)
-                {
-                    offset = LoadRawImageFrame(newframe, file, frame);
-                    if (offset.x == -1)
-                    {
-                        return -1;
-                    }
-                    CopyImageToImage(image, newframe, offset, false);
-                    return 0;
-                }
-            }
+            image.Clear();
+            CopyImageToImage(image, newframe, offset, true);
         }
         else
         {
-            wxImage newframe(image.GetWidth(), image.GetHeight());
-            offset = LoadRawImageFrame(newframe, file, i);
-            if (offset.x == -1)
-            {
-                return -1;
-            }
-
-            //logger_base.debug("Image (%d,%d) frame %d (%d,%d) at (%d,%d)", image.GetWidth(), image.GetHeight(),
-            //    i, newframe.GetWidth(), newframe.GetHeight(), offset.x, offset.y);
-
-            bool transparentfound = false;
-
-            // apply image to the previous frame where the pixel isnt transparent
             CopyImageToImage(image, newframe, offset, true);
-
-            // if the current frame had no transparent pixels then remember this as the last full frame
-            if (newframe.GetWidth() == image.GetWidth() && newframe.GetHeight() == image.GetHeight() && !HasTransparent(newframe))
-            {
-                lastfullframe = i;
-            }
         }
-    }
 
-    return lastfullframe;
+        if (dispose == wxANIM_DONOTREMOVE)
+        {
+            lastimage = image;
+        }
+
+        lastdispose = dispose;
+    }    
+
+    lastframe = frame;
+
+    return;
 }
 
 void PicturesEffect::Render(RenderBuffer &buffer,
@@ -471,7 +445,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                             int xc_adj, int yc_adj,
                             int xce_adj, int yce_adj,
                             int start_scale, int end_scale, bool scale_to_fit,
-                            bool pixelOffsets, bool wrap_x, bool shimmer, bool forcegifoverlay) {
+                            bool pixelOffsets, bool wrap_x, bool shimmer) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -552,13 +526,22 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
         cache->imageCount = wxImage::GetImageCount(NewPictureName);
         cache->imageIndex = 0;
-        cache->lastfullframe = 0;
+        cache->lastframe = 0;
         if (!image.LoadFile(NewPictureName,wxBITMAP_TYPE_ANY,0))
         {
             logger_base.error("Error loading image file: %s.", (const char *)NewPictureName.c_str());
             image.Create(5, 5, true);
         }
+        cache->lastimage = image;
         cache->PictureName=NewPictureName;
+
+        if (cache->imageCount > 1)
+        {
+            // need to grab the image disposal method
+            wxImage tmp = image;
+            LoadRawImageFrame(tmp, NewPictureName, 0, cache->lastdispose);
+        }
+
         if (!image.IsOk())
             return;
     }
@@ -569,14 +552,9 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         if (ii != cache->imageIndex) {
             cache->imageIndex = ii;
 
-            int lff = LoadImageFrame(image, cache->PictureName, ii, cache->lastfullframe, forcegifoverlay);
+            LoadImageFrame(image, cache->PictureName, ii, cache->lastframe, cache->lastimage, cache->lastdispose);
 
-            if (lff >= 0)
-            {
-                cache->lastfullframe = lff;
-            }
-
-            if (lff < 0 || !image.IsOk())
+            if (!image.IsOk())
                 return;
         }
     }

@@ -927,7 +927,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         std::string i = "none"; /*RENDER_PICTURE_NONE*/
         if (model_info->faceInfo[definition]["ImagePlacement"] == "Centered") {
             i = "none"; /*RENDER_PICTURE_NONE */
-        }        PicturesEffect::Render(buffer, i, picture, 0, 0, 0, 0, 0, 0, 100, 100, true, false, false, false, false);  // set for scale to fit
+        }        PicturesEffect::Render(buffer, i, picture, 0, 0, 0, 0, 0, 0, 100, 100, true, false, false, false);  // set for scale to fit
     }
     for (size_t t = 0; t < todo.size(); t++) {
         std::string channels = model_info->faceInfo[definition][todo[t]];

@@ -1126,6 +1126,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     AddWindowsMenu();
 
+    // This is for keith ... I like my debug version to be distinctive so I can tell it apart from the prior version
+    #ifndef NDEBUG
+        #ifdef _MSC_VER
+            Notebook1->SetBackgroundColour(*wxGREEN);
+        #endif
+    #endif
+
     logger_base.debug("xLightsFrame constructor UI code done.");
 
     //need to direct these menu items to different places depending on what is active
