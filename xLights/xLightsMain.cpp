@@ -2666,6 +2666,7 @@ void xLightsFrame::OnBitmapButton_Link_DirsClick(wxCommandEvent& event)
         LinkFlag = 0;
         BitmapButton_Link_Dirs->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_UNLINK")),wxART_OTHER));
         Button_Change_Media_Dir->Enable(true);
+        BitmapButton_Link_Dirs->SetToolTip("Link Directories");
     }
     else
     {
@@ -2678,6 +2679,7 @@ void xLightsFrame::OnBitmapButton_Link_DirsClick(wxCommandEvent& event)
         MediaDirectoryLabel->GetParent()->Layout();
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
+        BitmapButton_Link_Dirs->SetToolTip("Unlink Directories");
     }
     config->Write(_("LinkFlag"), LinkFlag);
 }

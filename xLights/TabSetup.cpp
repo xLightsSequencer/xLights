@@ -194,9 +194,11 @@ bool xLightsFrame::SetDir(const wxString& newdir)
         MediaDirectoryLabel->SetLabel(mediaDirectory);
         MediaDirectoryLabel->GetParent()->Layout();
         logger_base.debug("Media Directory set to : %s.", (const char *)mediaDirectory.c_str());
+        BitmapButton_Link_Dirs->SetToolTip("Unlink Directories");
     } else {
         BitmapButton_Link_Dirs->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_UNLINK")),wxART_OTHER));
         Button_Change_Media_Dir->Enable(true);
+        BitmapButton_Link_Dirs->SetToolTip("Link Directories");
     }
 
     TextCtrlLog->Clear();
