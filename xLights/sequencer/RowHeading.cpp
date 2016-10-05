@@ -567,8 +567,8 @@ void RowHeading::Draw()
         if (mSequenceElements->GetVisibleRowInformation(i)->submodel) {
             prefix = "  ";
         }
-        wxBrush brush(GetHeaderColor(mSequenceElements->GetVisibleRowInformation(i))->asWxColor(),wxBRUSHSTYLE_SOLID);
-        dc.SetBrush(brush);
+        wxBrush brush2(GetHeaderColor(mSequenceElements->GetVisibleRowInformation(i))->asWxColor(),wxBRUSHSTYLE_SOLID);
+        dc.SetBrush(brush2);
         startY = DEFAULT_ROW_HEADING_HEIGHT*row;
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
         dc.SetBackgroundMode(wxTRANSPARENT);
@@ -598,7 +598,7 @@ void RowHeading::Draw()
                 }
             }
             dc.SetPen(penOutline);
-            dc.SetBrush(brush);
+            dc.SetBrush(brush2);
         }
         else        // Draw label
         {
@@ -624,7 +624,7 @@ void RowHeading::Draw()
                     dc.DrawLine(6,startY + DEFAULT_ROW_HEADING_HEIGHT/2 + 4,6,startY + DEFAULT_ROW_HEADING_HEIGHT/2 - 4);
                 }
                 dc.SetPen(penOutline);
-                dc.SetBrush(brush);
+                dc.SetBrush(brush2);
             }
             // draw Model Group icon if necessary
             Model *m = mSequenceElements->GetXLightsFrame()->AllModels[mSequenceElements->GetVisibleRowInformation(i)->element->GetModelName()];
@@ -636,13 +636,16 @@ void RowHeading::Draw()
                 }
                 else if (m->GetStringType().find("Single Color") == 0)
                 {
-                    m->SetNodeColor(0, xlWHITE);
-                    xlColor color = m->GetNodeColor(0);
-                    dc.SetPen(*wxBLACK_PEN);
-                    dc.SetBrush(wxBrush(color.asWxColor()));
-                    dc.DrawRectangle(getWidth() - 21, startY + 5, 12, 12);
-                    dc.SetPen(penOutline);
-                    dc.SetBrush(brush);
+                    if (m->GetNodeCount() > 0)
+                    {
+                        m->SetNodeColor(0, xlWHITE);
+                        xlColor color = m->GetNodeColor(0);
+                        dc.SetPen(*wxBLACK_PEN);
+                        dc.SetBrush(wxBrush(color.asWxColor()));
+                        dc.DrawRectangle(getWidth() - 21, startY + 5, 12, 12);
+                        dc.SetPen(penOutline);
+                        dc.SetBrush(brush2);
+                    }
                 }
             }
         }
@@ -665,7 +668,7 @@ void RowHeading::Draw()
                     dc.DrawCircle(7,startY + DEFAULT_ROW_HEADING_HEIGHT/2,5);
                 }
                 dc.SetPen(penOutline);
-                dc.SetBrush(brush);
+                dc.SetBrush(brush2);
                 if(mSequenceElements->GetVisibleRowInformation(i)->element->GetEffectLayerCount() > 1)
                 {
                     dc.DrawBitmap(papagayo_icon, getWidth()-25, startY+3, true);
