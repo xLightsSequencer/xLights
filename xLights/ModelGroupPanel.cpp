@@ -229,8 +229,13 @@ void ModelGroupPanel::OnButtonRemoveFromModelGroupClick(wxCommandEvent& event)
     int selectedIndex = ListBoxModelsInGroup->GetSelection();
     if(selectedIndex !=  wxNOT_FOUND)
     {
-        ListBoxAddToModelGroup->Append(ListBoxModelsInGroup->GetString(selectedIndex));
+        wxString model_name = ListBoxModelsInGroup->GetString(selectedIndex);
+        ListBoxAddToModelGroup->Append(model_name);
         ListBoxModelsInGroup->Delete(selectedIndex);
+        Model* model = mModels[std::string(model_name.mb_str())];
+        if( model != nullptr ) {
+            model->GroupSelected = false;
+        }
     }
     if(selectedIndex<ListBoxModelsInGroup->GetCount())
     {
