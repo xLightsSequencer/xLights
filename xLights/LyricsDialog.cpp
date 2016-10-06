@@ -1,10 +1,10 @@
 #include "LyricsDialog.h"
 
 //(*InternalHeaders(LyricsDialog)
+#include <wx/font.h>
+#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
-#include <wx/intl.h>
-#include <wx/font.h>
 //*)
 
 //(*IdInit(LyricsDialog)
@@ -28,7 +28,7 @@ LyricsDialog::LyricsDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer1->AddGrowableCol(1);
+	FlexGridSizer1->AddGrowableCol(0);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Type or Paste Lyrics:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	wxFont StaticText1Font(14,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	StaticText1->SetFont(StaticText1Font);

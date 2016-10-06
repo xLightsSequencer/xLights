@@ -2,10 +2,10 @@
 #define LYRICSDIALOG_H
 
 //(*Headers(LyricsDialog)
-#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/dialog.h>
 //*)
 
 class LyricsDialog: public wxDialog
@@ -16,9 +16,9 @@ class LyricsDialog: public wxDialog
 		virtual ~LyricsDialog();
 
 		//(*Declarations(LyricsDialog)
-		wxTextCtrl* TextCtrlLyrics;
-		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText1;
+		wxTextCtrl* TextCtrlLyrics;
 		//*)
 
 	protected:
