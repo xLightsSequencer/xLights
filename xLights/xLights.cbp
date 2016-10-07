@@ -504,6 +504,8 @@
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
+		<Unit filename="FPPConnectDialog.cpp" />
+		<Unit filename="FPPConnectDialog.h" />
 		<Unit filename="FileConverter.cpp" />
 		<Unit filename="FileConverter.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
@@ -998,6 +1000,7 @@
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
 		<Unit filename="wxsmith/EffectsPanel.wxs" />
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
+		<Unit filename="wxsmith/FPPConnectDialog.wxs" />
 		<Unit filename="wxsmith/FacesPanel.wxs" />
 		<Unit filename="wxsmith/FanPanel.wxs" />
 		<Unit filename="wxsmith/FillPanel.wxs" />
@@ -1219,6 +1222,7 @@
 					<wxDialog wxs="wxsmith/SevenSegmentDialog.wxs" src="SevenSegmentDialog.cpp" hdr="SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/WiringDialog.wxs" src="WiringDialog.cpp" hdr="WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ArtNetDialog.wxs" src="ArtNetDialog.cpp" hdr="ArtNetDialog.h" fwddecl="0" i18n="1" name="ArtNetDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="FPPConnectDialog.cpp" hdr="FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
