@@ -277,6 +277,16 @@ bool FPPConnectDialog::IsValidIP(wxString ip)
 
 void FPPConnectDialog::ValidateWindow()
 {
+    if (wxFile::Exists(xLightsFrame::CurrentDir + "/universes"))
+    {
+        CheckBox_UploadController->Enable();
+    }
+    else
+    {
+        CheckBox_UploadController->SetValue(false);
+        CheckBox_UploadController->Disable();
+    }
+
     if (Notebook_FPP->GetSelection() == 0)
     {
         wxArrayInt tmp;
