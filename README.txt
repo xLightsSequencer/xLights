@@ -9,6 +9,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- bug (gil)     Fix model staying highlighted when removed from group.  Fixes #707.
+   -- bug (gil)     Prevent creation of unnecessary layer when promoting effects from only 1 strand.
    -- bug (gil)     Fix exception when opening Lyric Dialog.  Fixes #710.
    -- bug (keithsw) More animated GIF fixes ... all should work now
    -- enh (keithsw) Add right click menu to controller list on setup tab including:

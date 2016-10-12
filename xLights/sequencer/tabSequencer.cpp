@@ -2696,6 +2696,7 @@ void xLightsFrame::PromoteEffects(ModelElement *element) {
             }
         }
     }
+    if (element->GetStrandCount() <= 1) return;
     //OK, we're now promoted to strand level effects, try and promote to Model level
     EffectLayer *base = element->GetStrand(0)->GetEffectLayer(0);
     if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
