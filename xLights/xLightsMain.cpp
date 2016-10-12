@@ -3585,6 +3585,50 @@ void LogAndWrite(wxFile& f, const std::string& msg)
     }
 }
 
+// recursively check whether a start channel refers to a model in a way that creates a referencing loop
+bool xLightsFrame::CheckStart(wxFile& f, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel)
+{
+    Model* m = AllModels.GetModel(nextmodel);
+    if (m == nullptr)
+    {
+        return true; // this is actually an error but we have already reported these errors
+    }
+    else
+    {
+        std::string start = m->ModelStartChannel;
+
+        if (start[0] == '>' || start[0] == '@')
+        {
+            seen.push_back(nextmodel);
+            size_t colon = start.find(':', 1);
+            std::string reference = start.substr(1, colon - 1);
+
+            if (std::find(seen.begin(), seen.end(), reference) != seen.end())
+            {
+                wxString msg = wxString::Format("    ERR: Model '%s' start channel results in a reference loop.", startmodel);
+                LogAndWrite(f, msg.ToStdString());
+                for (auto it = seen.begin(); it != seen.end(); ++it)
+                {
+                    msg = wxString::Format("       '%s' ->", *it);
+                    LogAndWrite(f, msg.ToStdString());
+                }
+                msg = wxString::Format("       '%s'", reference);
+                LogAndWrite(f, msg.ToStdString());
+                return false;
+            }
+            else
+            {
+                return CheckStart(f, startmodel, seen, reference);
+            }
+        }
+        else
+        {
+            // it resolves to something ok
+            return true;
+        }
+    }
+}
+
 void xLightsFrame::CheckSequence(bool display)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -3639,6 +3683,116 @@ void xLightsFrame::CheckSequence(bool display)
                 wxString msg = wxString::Format("    WARN: Inactive output %d %s:%s:%s:'%s'.", i, NetType, ip, universe, desc);
                 LogAndWrite(f, msg.ToStdString());
                 warncount++;
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Invalid start channels");
+
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            std::string start = it->second->ModelStartChannel;
+
+            if (start[0] == '>' || start[0] == '@')
+            {
+                size_t colon = start.find(':', 1);
+                std::string reference = start.substr(1, colon - 1);
+
+                if (reference == it->first)
+                {
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to itself.", it->first, start);
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+                else
+                {
+                    Model *m = AllModels.GetModel(reference);
+                    if (m == nullptr)
+                    {
+                        wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to non existent model '%s'.", it->first, start, reference);
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                }
+            }
+        }
+    }
+
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            std::string start = it->second->ModelStartChannel;
+
+            if (start[0] == '>' || start[0] == '@')
+            {
+                std::list<std::string> seen;
+                seen.push_back(it->first);
+                size_t colon = start.find(':', 1);
+                if (colon != std::string::npos)
+                {
+                    std::string reference = start.substr(1, colon - 1);
+                    if (reference != it->first)
+                    {
+                        if (!CheckStart(f, it->first, seen, reference))
+                        {
+                            errcount++;
+                        }
+                    }
+                }
+                else
+                {
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' invalid.", it->first, start);
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+            }
+            else if (start[0] == '#')
+            {
+                size_t colon = start.find(':', 1);
+                if (colon != std::string::npos)
+                {
+                    int universe = wxAtoi(wxString(start.substr(1, colon - 1)));
+
+                    auto universes = AllModels.GetNetInfo().GetUniverses();
+
+                    if (std::find(universes.begin(), universes.end(), universe) == universes.end())
+                    {
+                        wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined universe %d.", it->first, start, universe);
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                }
+                else
+                {
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' invalid.", it->first, start);
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+            }
+            else if (start.find(':') != std::string::npos)
+            {
+                size_t colon = start.find(':');
+                int output = wxAtoi(wxString(start.substr(0, colon)));
+
+                auto outputs = AllModels.GetNetInfo().GetNumNetworks();
+
+                if (output < 1 || output > outputs)
+                {
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined output %d. Only %d outputs are defined.", it->first, start, output, outputs);
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
             }
         }
     }

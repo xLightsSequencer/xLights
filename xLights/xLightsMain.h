@@ -1227,6 +1227,7 @@ private:
     void CreateNotes(EffectLayer* el, std::map<int, std::list<float>>& notes, int interval, int frames);
     std::string CreateNotesLabel(const std::list<float>& notes) const;
     void CheckSequence(bool display);
+    bool CheckStart(wxFile& f, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);
 
     void CheckForValidModels();
     void ExportModels(wxString filename);

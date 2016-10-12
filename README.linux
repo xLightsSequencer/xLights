@@ -10,8 +10,8 @@ xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
 of wxWidgets for xLights/Nutcracker is v3.1.  This can be compiled from
 source or installed via packages if they are available for your distribution.
-This document describes how to build wxWidgets if you need to to that yourself.
-Please note that wxWidgets needs to use Gtk2 rather than Gtk3 currently due to issues in some controls
+The provided makefile will download and build wxWidgets if needed - including application of a small patch from the end of this file to fix the sizing of bitmap buttons.
+Please note that wxWidgets needs to use Gtk2 rather than Gtk3 currently due to issues in some controls.
 
 These instructions have been tested on the following distributions:
 
@@ -123,3 +123,19 @@ cbp2make -in xLights.cbp -cfg ../cbp2make.cfg -out xLights.cbp.mak --with-deps -
 
 This will be run automatically at compile time if cbp2make is installed.
 
+==============================================================================
+
+== Patch required for wxWidgets 3.1 due to http://trac.wxwidgets.org/ticket/17683 ==
+127c127
+<     if (style & wxNO_BORDER)
+---
+>     if (style & wxNO_BORDER) {
+128a129,135
+>        GtkStyle *style = gtk_widget_get_style(GTK_WIDGET(m_widget));
+>        style->xthickness=0;
+>        style->ythickness=0;
+>        gtk_widget_set_style(GTK_WIDGET(m_widget), style);
+>        gtk_widget_set_can_default(GTK_WIDGET(m_widget), false);
+>        gtk_widget_set_can_focus(GTK_WIDGET(m_widget), false);
+>     }
+== End of patch ==
