@@ -60,7 +60,7 @@ FirePanel::FirePanel(wxWindow* parent)
 	FlexGridSizer38->Add(StaticText83, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	Slider_Fire_Height = new wxSlider(this, ID_SLIDER_Fire_Height, 50, 10, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fire_Height"));
+	Slider_Fire_Height = new wxSlider(this, ID_SLIDER_Fire_Height, 50, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fire_Height"));
 	FlexGridSizer1->Add(Slider_Fire_Height, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Fire_HeightVC = new ValueCurveButton(this, ID_VALUECURVE_Fire_Height, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fire_Height"));
 	FlexGridSizer1->Add(BitmapButton_Fire_HeightVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -144,7 +144,7 @@ FirePanel::FirePanel(wxWindow* parent)
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FirePanel::OnVCChanged, 0, this);
 
     BitmapButton_Fire_GrowthCyclesVC->GetValue()->SetLimits(0, 20);
-    BitmapButton_Fire_HeightVC->GetValue()->SetLimits(10, 100);
+    BitmapButton_Fire_HeightVC->GetValue()->SetLimits(1, 100);
     BitmapButton_Fire_HueShiftVC->GetValue()->SetLimits(0, 100);
 
     SetName("ID_PANEL_FIRE");

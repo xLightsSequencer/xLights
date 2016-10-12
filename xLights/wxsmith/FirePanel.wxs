@@ -20,7 +20,7 @@
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_Fire_Height" variable="Slider_Fire_Height" member="yes">
 							<value>50</value>
-							<min>10</min>
+							<min>1</min>
 							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
