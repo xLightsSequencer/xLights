@@ -24,6 +24,7 @@
 #include "wx/artprov.h"
 #include "PlaybackOptionsDialog.h"
 #include "ShowDatesDialog.h"
+#include "xLightsXmlFile.h"
 
 void xLightsFrame::BasicPrompt(char* prompt, char* buff, int size)
 {
@@ -623,6 +624,13 @@ void xLightsFrame::ScanForFiles()
     wxCheckBox* CheckBoxVideo=(wxCheckBox*)wxWindow::FindWindowById(baseid+CHKBOX_VIDEO,Notebook1);
     wxCheckBox* CheckBoxXlights=(wxCheckBox*)wxWindow::FindWindowById(baseid+CHKBOX_XLIGHTS,Notebook1);
 
+    if (ListBoxPlay == nullptr || CheckBoxAudio == nullptr || CheckBoxVideo == nullptr || CheckBoxXlights == nullptr)
+    {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.error("xLightsFrame::ScanForFiles Weird ... some of my controls are missing ... bailing out.");
+        return;
+    }
+
     wxFileName oName;
     oName.AssignDir( CurrentDir );
 
@@ -634,6 +642,11 @@ void xLightsFrame::ScanForFiles()
     }
     for (i=filenames.GetCount()-1; i >= 0; i--)
     {
+        // fix the filnames if we have moved directories
+        // this is commented out because I have not had a chance to test it properly KW
+        //filenames[i] = xLightsXmlFile::FixFile("", filenames[i]);
+        //ListBoxPlay->SetItemText(i, filenames[i]);
+
         oName.SetFullName(filenames[i]);
         if (!oName.FileExists())
         {
