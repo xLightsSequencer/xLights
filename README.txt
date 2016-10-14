@@ -22,6 +22,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 						- open controller in your browser
    -- enh (keithsw) Allow rubber band selection of models on layout tab without holding down shift key
    -- bug (keithsw) keyboard nudging of multiple selected models now works
+   -- enh (keithsw) Add multi artnet universe adding
+   -- bug (keithsw) Fix seven segment states not sticking
+   -- enh (keithsw) Add FPP Connect which will upload universe configuration, fseq and media files.
+   -- enh (keithsw) Add start channel checks to check sequence
+   -- enh (keithsw) Fix #342 - add a tooltip to show dir/media dir link button to make it clearer what the button does in each state
 2016.50  Sep 27, 2016
    -- enh (gil)     Allow arrow key to be used to scroll in model list in Layout.  Fixes #582.
    -- enh (dkulp)   Add -r command line switch to render and save the fseq file and then exit
