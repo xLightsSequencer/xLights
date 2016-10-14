@@ -1182,6 +1182,7 @@ void xLightsFrame::SetupArtNet(wxXmlNode* e, int after)
         int subnet = ARTNET_SUBNET(raw);
         int universe = ARTNET_UNIVERSE(raw);
 
+        int NumUniv = wxAtoi(e->GetAttribute("NumUniverses", "1"));
         ArtNetDlg.SpinCtrlNet->SetValue(net);
         ArtNetDlg.SpinCtrlSubnet->SetValue(subnet);
         ArtNetDlg.SpinCtrlUniverse->SetValue(universe);
@@ -1189,6 +1190,8 @@ void xLightsFrame::SetupArtNet(wxXmlNode* e, int after)
         ArtNetDlg.TextCtrlDescription->SetValue(Description);
         ArtNetDlg.TextCtrlIPAddress->SetValue(IpAddr);
         ArtNetDlg.SpinCtrlUniverseOnly->SetValue(ARTNET_MAKEU(net, subnet, universe));
+        ArtNetDlg.SpinCtrl_NumUniv->SetValue(NumUniv);
+        ArtNetDlg.SpinCtrl_NumUniv->Enable(NumUniv > 1);
     }
 
     do
@@ -1219,20 +1222,26 @@ void xLightsFrame::SetupArtNet(wxXmlNode* e, int after)
                 }
                 else
                 {
+                    int NumUniv = ArtNetDlg.SpinCtrl_NumUniv->GetValue();
+                    int univ = ARTNET_MAKEU(Net, Subnet, Universe);
+                    for (int u = 0; u < NumUniv; u++)
+                    {
                         e = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
                         e->AddAttribute("NetworkType", NetName);
                         e->AddAttribute("ComPort", IpAddr);
-                        e->AddAttribute("BaudRate", wxString::Format("%d", ARTNET_MAKEU(Net, Subnet, Universe)));
                         e->AddAttribute("MaxChannels", LastChannelStr);
                         e->AddAttribute("Description", xLightsXmlFile::XmlSafe(Description));
                         if (after == -1)
                         {
+                            e->AddAttribute("BaudRate", wxString::Format("%d", univ + u));
                             NetworkXML.GetRoot()->AddChild(e);
                         }
                         else
                         {
+                            e->AddAttribute("BaudRate", wxString::Format("%d", univ + NumUniv - 1 - u));
                             NetworkXML.GetRoot()->InsertChildAfter(e, GetOutput(after));
                         }
+                    }
                 }
                 UpdateNetworkList(true);
                 NetworkChange();

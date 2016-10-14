@@ -23,6 +23,7 @@ class ArtNetDialog: public wxDialog
 		virtual ~ArtNetDialog();
 
 		//(*Declarations(ArtNetDialog)
+		wxStaticText* StaticText9;
 		wxSpinCtrl* SpinCtrlUniverseOnly;
 		wxNotebook* Notebook1;
 		wxSpinCtrl* SpinCtrlSubnet;
@@ -39,6 +40,7 @@ class ArtNetDialog: public wxDialog
 		wxStaticText* StaticText5;
 		wxSpinCtrl* SpinCtrlNet;
 		wxStaticText* StaticText7;
+		wxSpinCtrl* SpinCtrl_NumUniv;
 		wxButton* ButtonOk;
 		wxPanel* Panel2;
 		wxStaticText* StaticText4;
@@ -62,6 +64,8 @@ class ArtNetDialog: public wxDialog
 		static const long ID_SPINCTRL5;
 		static const long ID_PANEL2;
 		static const long ID_NOTEBOOK1;
+		static const long ID_STATICTEXT9;
+		static const long ID_SPINCTRL6;
 		static const long ID_STATICTEXT7;
 		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT3;
