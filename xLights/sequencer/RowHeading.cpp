@@ -434,6 +434,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxPostEvent(GetParent(), displayElementEvent);
     } else if (id == ID_ROW_MNU_TOGGLE_STRANDS) {
         ModelElement *me = dynamic_cast<ModelElement *>(element);
+        if (me == nullptr) {
+            StrandElement *se = dynamic_cast<StrandElement *>(element);
+            me = se->GetModelElement();
+        }
         me->ShowStrands(!me->ShowStrands());
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         eventRowHeaderChanged.SetString(element->GetModelName());

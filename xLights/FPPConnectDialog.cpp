@@ -133,12 +133,12 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint&
     StaticText4->Hide();
     #ifdef __WXOSX__
         wxDir d;
-        d.Open("/Volume");
+        d.Open("/Volumes");
         wxString dir;
         bool fcont = d.GetFirst(&dir, wxEmptyString, wxDIR_DIRS);
         while (fcont)
         {
-            if (wxDir::Exists("/Volume/" + dir + "/media"))
+            if (wxDir::Exists("/Volumes/" + dir + "/sequences"))
             {
                 DirPickerCtrl_FPPMedia->SetPath("/Volume/" + dir + "/media");
                 break;
@@ -319,20 +319,38 @@ void FPPConnectDialog::LoadSequences()
 
 bool FPPConnectDialog::IsValidIP(wxString ip)
 {
-    wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
+    if (ip == "") {
+        return false;
+    }
+    static wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
 
-    return regxIPAddr.Matches(ip);
+    if (regxIPAddr.Matches(ip)) {
+        return true;
+    }
+    
+    wxURL url("http://" + ip +"/");
+    wxProtocol &p = url.GetProtocol();
+    wxHTTP *http = dynamic_cast<wxHTTP*>(&p);
+    http->SetMethod("HEAD");
+    if (url.GetError() == wxURL_NOERR ) {
+        wxInputStream *in_stream = url.GetInputStream();
+        if (in_stream != nullptr) {
+            delete in_stream;
+            return true;
+        }
+    }
+    return false;
 }
 
 void FPPConnectDialog::ValidateWindow()
 {
+    CheckBox_UploadController->SetValue(false);
     if (wxFile::Exists(xLightsFrame::CurrentDir + "/universes"))
     {
         CheckBox_UploadController->Enable();
     }
     else
     {
-        CheckBox_UploadController->SetValue(false);
         CheckBox_UploadController->Disable();
     }
 
@@ -366,16 +384,13 @@ void FPPConnectDialog::ValidateWindow()
         if (wxDir::Exists(DirPickerCtrl_FPPMedia->GetPath()))
         {
             wxDir d;
-            d.Open(DirPickerCtrl_FPPMedia->GetPath())
+            d.Open(DirPickerCtrl_FPPMedia->GetPath());
+            if (d.HasSubDirs("sequences")) {
+                Button_Upload->Enable();
+            }
+            else
             {
-                if (d.GetName() == "media")
-                {
-                    Button_Upload->Enable();
-                }
-                else
-                {
-                    Button_Upload->Disable();
-                }
+                Button_Upload->Disable();
             }
         }
         else
@@ -407,7 +422,7 @@ bool FPPConnectDialog::FTPUpload()
     ftp.SetPassword(TextCtrl_Password->GetValue());
     if (!ftp.Connect(TextCtrl_IPAddress->GetValue()))
     {
-        wxMessageBox("Count not connect to FPP");
+        wxMessageBox("Could not connect to FPP");
         return true;
     }
 
@@ -663,7 +678,7 @@ bool FPPConnectDialog::UploadFile(wxFTP& ftp, std::string file, std::string fold
     wxASSERT(ftp.IsOk());
 
     wxProgressDialog progress("FTP Upload", wxString(file.c_str()), 100, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    progress.ShowModal();
+    progress.Show();
 
     bool cancelled = false;
 
@@ -709,7 +724,7 @@ bool FPPConnectDialog::UploadFile(wxFTP& ftp, std::string file, std::string fold
         wxOutputStream *out = ftp.GetOutputStream((folder + "/" + basefile).c_str());
         if (out)
         {
-            byte buffer[8192]; // 8KB at a time
+            uint8_t buffer[8192]; // 8KB at a time
             while (!in.Eof() && !cancelled)
             {
                 ssize_t read = in.Read(&buffer[0], sizeof(buffer));
