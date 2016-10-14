@@ -250,7 +250,7 @@ public:
 
     xNetwork_ArtNET::xNetwork_ArtNET()
     {
-        datagram = 0;
+        datagram = nullptr;
         memset(data, 0, sizeof(data));
         changed = true;
     }
@@ -301,9 +301,14 @@ public:
     }
 
     void xNetwork_ArtNET::InitRemoteAddr(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         wxIPV4address localaddr;
         localaddr.AnyAddress();
         datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+        if (datagram == nullptr)
+        {
+            logger_base.error("Error initialising Artnet datagram for %s %d:%d.", (const char *)ipaddr.c_str(), NetNum, UniverseNumber);
+        }
         remoteAddr.Hostname(ipaddr);
         remoteAddr.Service(ARTNET_PORT);
 
@@ -337,6 +342,7 @@ public:
             }
         }
         _initialised = false;
+        logger_base.error("Artnet broadcast address %d.%d.%d.255", _ip1, _ip2, _ip3);
     }
 
     void xNetwork_ArtNET::SetChannelCount(size_t numchannels)
@@ -357,7 +363,7 @@ public:
 
     void xNetwork_ArtNET::TimerEnd()
     {
-        if (!enabled) {
+        if (!enabled || datagram == nullptr) {
             return;
         }
         // skipping would cause ECG-DR4 (firmware version 1.30) to timeout
@@ -412,6 +418,10 @@ public:
             }
 
             syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+            if (syncdatagram == nullptr)
+            {
+                logger_base.error("Error initialising Artnet sync datagram.");
+            }
 
             // broadcast ... this is not really in line with the spec
             // I should use the net mask but i cant find a good way to do that
@@ -422,7 +432,10 @@ public:
             syncremoteAddr.Service(ARTNET_PORT);
         }
 
-        syncdatagram->SendTo(syncremoteAddr, syncdata, ARTNET_SYNCPACKET_LEN);
+        if (syncdatagram != nullptr)
+        {
+            syncdatagram->SendTo(syncremoteAddr, syncdata, ARTNET_SYNCPACKET_LEN);
+        }
     }
 
     size_t xNetwork_ArtNET::TxNonEmptyCount(void)

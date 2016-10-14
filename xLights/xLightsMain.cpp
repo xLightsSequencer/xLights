@@ -36,6 +36,7 @@
 #include "ConvertDialog.h"
 #include "GenerateCustomModelDialog.h"
 #include "SequenceCheck.h"
+#include "FPPConnectDialog.h"
 
 // scripting language
 #include "xLightsBasic.cpp"
@@ -46,19 +47,8 @@
 #include "../include/xLights-32.xpm"
 #include "../include/xLights-64.xpm"
 #include "../include/xLights-128.xpm"
-#include "../include/open.xpm"
-#include "../include/save.xpm"
-#include "../include/insertrow.xpm"
-#include "../include/deleterow.xpm"
-#include "../include/padlock16x16-green.xpm" //-DJ
-#include "../include/padlock16x16-red.xpm" //-DJ
-#include "../include/padlock16x16-blue.xpm" //-DJ
 #include "../include/control-pause-blue-icon.xpm"
-#include "../include/control-pause-icon.xpm"
 #include "../include/control-play-blue-icon.xpm"
-#include "../include/control-play-icon.xpm"
-#include "../include/control-stop-blue-icon.xpm"
-#include "../include/control-stop-icon.xpm"
 
 
 
@@ -203,6 +193,7 @@ const long xLightsFrame::ID_MENU_VIEW_LOG = wxNewId();
 const long xLightsFrame::ID_MENUITEM18 = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
+const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
 const long xLightsFrame::idMenuSaveSched = wxNewId();
 const long xLightsFrame::idMenuAddList = wxNewId();
 const long xLightsFrame::idMenuRenameList = wxNewId();
@@ -787,6 +778,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1->Append(mExportModelsMenuItem);
     MenuItem_ExportEffects = new wxMenuItem(Menu1, ID_MNU_EXPORT_EFFECTS, _("Export &Effects"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_ExportEffects);
+    MenuItem_FPP_Connect = new wxMenuItem(Menu1, ID_MENU_FPP_CONNECT, _("&FPP Connect"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_FPP_Connect);
     MenuBar->Append(Menu1, _("&Tools"));
     MenuPlaylist = new wxMenu();
     MenuItemSavePlaylists = new wxMenuItem(MenuPlaylist, idMenuSaveSched, _("Save Playlists"), wxEmptyString, wxITEM_NORMAL);
@@ -1053,6 +1046,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM18,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemPackageDebugFiles);
     Connect(ID_EXPORT_MODELS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmExportModelsMenuItemSelected);
     Connect(ID_MNU_EXPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportEffectsSelected);
+    Connect(ID_MENU_FPP_CONNECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
     Connect(idMenuSaveSched,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSavePlaylistsSelected);
     Connect(idMenuAddList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemAddListSelected);
     Connect(idMenuRenameList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenameListSelected);
@@ -4516,4 +4510,11 @@ void xLightsFrame::ExportEffects(wxString filename)
         ));
     }
     f.Close();
+}
+
+void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
+{
+    FPPConnectDialog dlg(this);
+
+    dlg.ShowModal();
 }

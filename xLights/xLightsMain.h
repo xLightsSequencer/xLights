@@ -500,6 +500,7 @@ private:
     void OnGridNetworkItemDeselect(wxListEvent& event);
     void OnGridNetworkItemFocused(wxListEvent& event);
     void OnGridNetworkKeyDown(wxListEvent& event);
+    void OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -610,6 +611,7 @@ private:
     static const long ID_MENUITEM18;
     static const long ID_EXPORT_MODELS;
     static const long ID_MNU_EXPORT_EFFECTS;
+    static const long ID_MENU_FPP_CONNECT;
     static const long idMenuSaveSched;
     static const long idMenuAddList;
     static const long idMenuRenameList;
@@ -782,6 +784,7 @@ private:
     wxButton* ButtonNetworkDelete;
     wxBitmapButton* BitmapButton_Link_Dirs;
     wxMenuItem* MenuItemEffectAssistAlwaysOff;
+    wxMenuItem* MenuItem_FPP_Connect;
     wxStaticText* StaticText5;
     wxTreeCtrl* ListBoxSched;
     wxListCtrl* GridNetwork;

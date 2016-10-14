@@ -1118,6 +1118,10 @@
 					<label>Export &amp;Effects</label>
 					<handler function="OnMenuItem_ExportEffectsSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MENU_FPP_CONNECT" variable="MenuItem_FPP_Connect" member="yes">
+					<label>&amp;FPP Connect</label>
+					<handler function="OnMenuItem_FPP_ConnectSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuPlaylist" member="no">
 				<label>&amp;Playlist</label>
