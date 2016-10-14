@@ -122,7 +122,7 @@
 										<message>Select FPP Media Directory on a USB Stick</message>
 										<handler function="OnFilePickerCtrl_MediaFolderFileChanged" entry="EVT_DIRPICKER_CHANGED" />
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -147,6 +147,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxCheckListBox" name="ID_CHECKLISTBOX_Sequences" variable="CheckListBox_Sequences" member="yes">
+					<minsize>-1,100d</minsize>
 					<handler function="OnCheckListBox_SequencesToggled" entry="EVT_CHECKLISTBOX" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

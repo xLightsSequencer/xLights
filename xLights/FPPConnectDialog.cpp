@@ -85,7 +85,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	StaticText5 = new wxStaticText(Panel_USB, ID_STATICTEXT5, _("FPP Media Directory"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer3->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	DirPickerCtrl_FPPMedia = new wxDirPickerCtrl(Panel_USB, ID_DIRPICKERCTRL1, wxEmptyString, _("Select FPP Media Directory on a USB Stick"), wxDefaultPosition, wxDefaultSize, wxDIRP_DIR_MUST_EXIST|wxDIRP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_DIRPICKERCTRL1"));
-	FlexGridSizer3->Add(DirPickerCtrl_FPPMedia, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(DirPickerCtrl_FPPMedia, 1, wxALL|wxEXPAND, 5);
 	Panel_USB->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Panel_USB);
 	FlexGridSizer3->SetSizeHints(Panel_USB);
@@ -96,6 +96,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	CheckBox_UploadController->SetValue(true);
 	FlexGridSizer1->Add(CheckBox_UploadController, 1, wxALL|wxEXPAND, 5);
 	CheckListBox_Sequences = new wxCheckListBox(this, ID_CHECKLISTBOX_Sequences, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_Sequences"));
+	CheckListBox_Sequences->SetMinSize(wxDLG_UNIT(this,wxSize(-1,100)));
 	FlexGridSizer1->Add(CheckListBox_Sequences, 1, wxALL|wxEXPAND, 5);
 	Button_Upload = new wxButton(this, ID_BUTTON_Upload, _("Upload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Upload"));
 	FlexGridSizer1->Add(Button_Upload, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -138,9 +139,14 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint&
         bool fcont = d.GetFirst(&dir, wxEmptyString, wxDIR_DIRS);
         while (fcont)
         {
-            if (wxDir::Exists("/Volumes/" + dir + "/sequences"))
+            if (wxDir::Exists("/Volumes/" + dir + "/sequences")) //raw USB drive mounted
             {
-                DirPickerCtrl_FPPMedia->SetPath("/Volume/" + dir + "/media");
+                DirPickerCtrl_FPPMedia->SetPath("/Volumes/" + dir + "/");
+                break;
+            }
+            else if (wxDir::Exists("/Volumes/" + dir + "/media/sequences")) // Mounted via SMB/NFS
+            {
+                DirPickerCtrl_FPPMedia->SetPath("/Volumes/" + dir + "/media/");
                 break;
             }
             fcont = d.GetNext(&dir);
@@ -505,7 +511,7 @@ bool FPPConnectDialog::USBUpload()
     int done = 0;
 
     wxProgressDialog progress("USB Copy", "", 100, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    progress.ShowModal();
+    progress.Show();
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
