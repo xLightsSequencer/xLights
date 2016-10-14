@@ -602,6 +602,15 @@ void ModelStateDialog::AddLabel(wxString label)
     if (free != -1)
     {
         grid->SetCellValue(free, NAME_COL, label);
+        wxString key = "s" + grid->GetRowLabelValue(free).ToStdString();
+        key.Replace(" ", "");
+        if (key != "")
+        {
+            std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+            key += "-Name";
+            stateData[name][key.ToStdString()] = label.Lower();
+        }
+        UpdatePreview(grid->GetCellValue(free, CHANNEL_COL).ToStdString(), grid->GetCellBackgroundColour(free, COLOUR_COL));
     }
 }
 
