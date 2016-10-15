@@ -63,11 +63,11 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer2->Add(TextCtrl_IPAddress, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(Panel_FTP, ID_STATICTEXT2, _("Username"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtr_Username = new wxTextCtrl(Panel_FTP, ID_TEXTCTRL_Username, _("pi"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Username"));
+	TextCtr_Username = new wxTextCtrl(Panel_FTP, ID_TEXTCTRL_Username, _("fpp"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Username"));
 	FlexGridSizer2->Add(TextCtr_Username, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(Panel_FTP, ID_STATICTEXT3, _("Password"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Password = new wxTextCtrl(Panel_FTP, ID_TEXTCTRL_Password, _("raspberry"), wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD, wxDefaultValidator, _T("ID_TEXTCTRL_Password"));
+	TextCtrl_Password = new wxTextCtrl(Panel_FTP, ID_TEXTCTRL_Password, _("falcon"), wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD, wxDefaultValidator, _T("ID_TEXTCTRL_Password"));
 	FlexGridSizer2->Add(TextCtrl_Password, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Console = new wxButton(Panel_FTP, ID_BUTTON_Console, _("FPP Console"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Console"));
@@ -333,7 +333,7 @@ bool FPPConnectDialog::IsValidIP(wxString ip)
     if (regxIPAddr.Matches(ip)) {
         return true;
     }
-    
+
     wxURL url("http://" + ip +"/");
     wxProtocol &p = url.GetProtocol();
     wxHTTP *http = dynamic_cast<wxHTTP*>(&p);
@@ -350,7 +350,6 @@ bool FPPConnectDialog::IsValidIP(wxString ip)
 
 void FPPConnectDialog::ValidateWindow()
 {
-    CheckBox_UploadController->SetValue(false);
     if (wxFile::Exists(xLightsFrame::CurrentDir + "/universes"))
     {
         CheckBox_UploadController->Enable();
@@ -358,6 +357,7 @@ void FPPConnectDialog::ValidateWindow()
     else
     {
         CheckBox_UploadController->Disable();
+        CheckBox_UploadController->SetValue(false);
     }
 
     if (Notebook_FPP->GetSelection() == 0)
@@ -500,20 +500,12 @@ bool FPPConnectDialog::FTPUpload()
 
 bool FPPConnectDialog::USBUpload()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
     wxArrayInt sel;
     CheckListBox_Sequences->GetCheckedItems(sel);
 
-    int steps = 0;
-    if (CheckBox_UploadController->IsChecked()) steps++;
-    steps += 2 * sel.size();
-    int done = 0;
-
-    wxProgressDialog progress("USB Copy", "", 100, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    progress.Show();
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
 #ifdef __WXMSW__
     wxString tgtdir = Choice_Drives->GetStringSelection();
@@ -529,28 +521,7 @@ bool FPPConnectDialog::USBUpload()
 
     if (CheckBox_UploadController->IsChecked())
     {
-        progress.Update(0, "universes", &cancelled);
-
-        if (wxFile::Exists(tgtdir + "universes"))
-        {
-            wxDateTime dt = wxDateTime::Now();
-            wxString tgtfile = tgtdir + "universes_" + dt.Format("%Y%m%d_%H%M%S");
-            logger_base.info("Backing up %s to %s", (const char *)(tgtdir + "/universes").c_str(), (const char *)tgtfile.c_str());
-            wxCopyFile(tgtdir + "/universes", tgtfile);
-            if (!cancelled)
-            {
-                cancelled = progress.WasCancelled();
-            }
-        }
-
-        logger_base.info("Copying file to USB %s to %s", (const char *)(xLightsFrame::CurrentDir + "/universes").c_str(), (const char *)(tgtdir + "universes").c_str());
-        wxCopyFile(xLightsFrame::CurrentDir + "/universes", tgtdir + "universes");
-        done++;
-        progress.Update(done * 100 / steps, wxEmptyString, &cancelled);
-        if (!cancelled)
-        {
-            cancelled = progress.WasCancelled();
-        }
+        cancelled = CopyFile(std::string(xLightsFrame::CurrentDir + "/universes"), std::string(tgtdir + "universes"), true);
     }
 
     for (auto it = sel.begin(); it != sel.end() && !cancelled; ++it)
@@ -586,37 +557,15 @@ bool FPPConnectDialog::USBUpload()
 
         if (!cancelled && wxFile::Exists(fseq))
         {
-            logger_base.info("Copying file to USB %s to %s", (const char *)fseq.c_str(), (const char *)(tgtdir + "sequences/" + fn.GetName() + ".fseq").c_str());
-            progress.Update(done * 100 / steps, fseq, &cancelled);
-            wxCopyFile(fseq, tgtdir + "sequences/" + fn.GetName() + ".fseq");
-            if (!cancelled)
-            {
-                cancelled = progress.WasCancelled();
-            }
+            cancelled = CopyFile(std::string(fseq), std::string(tgtdir + "sequences/" + fn.GetName() + ".fseq"), false);
         }
-        done++;
-        progress.Update(done * 100 / steps, wxEmptyString, &cancelled);
 
         if (!cancelled && media != "")
         {
             media = xLightsXmlFile::FixFile("", media);
             wxFileName fnmedia(media);
-            progress.Update(done * 100 / steps, media, &cancelled);
-            logger_base.info("Copying file to USB %s to %s", (const char *)media.c_str(), (const char *)(tgtdir + "music/" + fnmedia.GetName() + "." + fnmedia.GetExt()).c_str());
-            wxCopyFile(media, tgtdir + "music/" + fnmedia.GetName() + "." + fnmedia.GetExt());
-            if (!cancelled)
-            {
-                cancelled = progress.WasCancelled();
-            }
+            cancelled = CopyFile(std::string(media), std::string(tgtdir + "music/" + fnmedia.GetName() + "." + fnmedia.GetExt()), false);
         }
-        done++;
-        progress.Update(done * 100 / steps, wxEmptyString, &cancelled);
-    }
-    progress.Update(100, wxEmptyString, &cancelled);
-
-    if (!cancelled)
-    {
-        cancelled = progress.WasCancelled();
     }
 
     return cancelled;
@@ -676,6 +625,97 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     {
         EndDialog(0);
     }
+}
+
+bool FPPConnectDialog::DoCopyFile(const std::string& source, const std::string& target)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxProgressDialog progress("File Copy", wxString(source.c_str()), 100, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    progress.Show();
+    bool cancelled = false;
+
+    progress.Update(0, wxEmptyString, &cancelled);
+
+    wxFile in;
+    in.Open(source);
+
+    if (in.IsOpened())
+    {
+        wxFile out;
+        out.Open(target, wxFile::write);
+
+        if (out.IsOpened())
+        {
+            wxFileOffset length = in.Length();
+            wxFileOffset done = 0;
+
+            uint8_t buffer[8192]; // 8KB at a time
+            while (!in.Eof() && !cancelled)
+            {
+                ssize_t read = in.Read(&buffer[0], sizeof(buffer));
+                out.Write(&buffer[0], read);
+                done += read;
+                progress.Update((done * 100) / length, wxEmptyString, &cancelled);
+                if (!cancelled)
+                {
+                    cancelled = progress.WasCancelled();
+                }
+            }
+            if (in.Eof())
+            {
+                progress.Update(100, wxEmptyString);
+                logger_base.info("   Copy of file %s done.", (const char *)source.c_str());
+            }
+            else
+            {
+                progress.Update(100, wxEmptyString);
+                logger_base.warn("   Copy of file %s cancelled.", (const char *)source.c_str());
+            }
+            in.Close();
+            out.Close();
+
+            if (cancelled && wxFile::Exists(target))
+            {
+                wxRemoveFile(target);
+            }
+        }
+        else
+        {
+            progress.Update(100, wxEmptyString);
+            logger_base.warn("   Copy of file %s failed ... target file %s could not be opened.", (const char *)source.c_str(), (const char *)target.c_str());
+        }
+    }
+    else
+    {
+        progress.Update(100, wxEmptyString);
+        logger_base.warn("   Copy of file %s failed ... file could not be opened.", (const char *)source.c_str());
+    }
+    return cancelled;
+}
+
+bool FPPConnectDialog::CopyFile(std::string source, std::string target, bool backup)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    bool cancelled = false;
+
+    if (backup && wxFile::Exists(target))
+    {
+        wxDateTime dt = wxDateTime::Now();
+        wxString tgtfile = target + "_" + dt.Format("%Y%m%d_%H%M%S");
+        logger_base.info("Backing up %s to %s", (const char *)source.c_str(), (const char *)tgtfile.c_str());
+
+        cancelled = DoCopyFile(source, std::string(tgtfile.c_str()));
+    }
+
+    if (!cancelled)
+    {
+        logger_base.info("Copying file to USB %s to %s", (const char *)source.c_str(), (const char *)target.c_str());
+        cancelled = DoCopyFile(source, target);
+    }
+
+    return cancelled;
 }
 
 bool FPPConnectDialog::UploadFile(wxFTP& ftp, std::string file, std::string folder, bool backup)

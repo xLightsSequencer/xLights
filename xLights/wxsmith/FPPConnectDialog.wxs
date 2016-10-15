@@ -45,7 +45,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Username" variable="TextCtr_Username" member="yes">
-										<value>pi</value>
+										<value>fpp</value>
 										<handler function="OnTextCtr_UsernameText" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
@@ -62,7 +62,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Password" variable="TextCtrl_Password" member="yes">
-										<value>raspberry</value>
+										<value>falcon</value>
 										<style>wxTE_PASSWORD</style>
 										<handler function="OnTextCtrl_PasswordText" entry="EVT_TEXT" />
 									</object>
