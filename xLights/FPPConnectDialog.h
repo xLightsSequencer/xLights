@@ -24,8 +24,8 @@ class FPPConnectDialog: public wxDialog
     void LoadSequencesFromFolder(wxString dir);
     void LoadSequences();
     bool UploadFile(wxFTP& ftp, std::string file, std::string folder, bool backup);
-    bool CopyFile(std::string source, std::string target, bool backup);
-    bool DoCopyFile(const std::string& source, const std::string& target);
+    bool CopyFile(std::string source, std::string target, bool backup, wxProgressDialog &progress, int start, int end);
+    bool DoCopyFile(const std::string& source, const std::string& target, wxProgressDialog &progress, int start, int end);
     void ValidateWindow();
     bool IsValidIP(wxString ip);
     bool FTPUpload();
