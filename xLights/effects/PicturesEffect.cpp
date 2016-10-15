@@ -520,8 +520,9 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         return;
     }
 
-    if (NewPictureName != cache->PictureName || (!scale_to_fit && (start_scale != end_scale)))
+    if (NewPictureName != cache->PictureName || (!scale_to_fit && (start_scale != end_scale)) || buffer.needToInit)
     {
+        buffer.needToInit = false;
         scale_image = true;
         wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
         cache->imageCount = wxImage::GetImageCount(NewPictureName);

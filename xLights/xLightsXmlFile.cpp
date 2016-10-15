@@ -914,8 +914,7 @@ wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
         return file;
     }
 
-	// exit if the file name is not an absolute path with a drive letter at the begginning
-	if (!wxIsAbsolutePath(file) || wxFileExists(file))
+	if (wxFileExists(file))
 	{
 		return file;
 	}
