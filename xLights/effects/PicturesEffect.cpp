@@ -196,6 +196,7 @@ public:
     virtual ~PicturesRenderCache() {};
 
     wxImage image;
+    wxImage rawimage;
     wxImage lastimage;
     int imageCount;
     int imageIndex;
@@ -237,9 +238,11 @@ void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug,
     cache->imageCount = 0;
     cache->imageIndex = 0;
     wxImage &image = cache->image;
+    wxImage &rawimage = cache->rawimage;
     std::vector<PixelVector> &PixelsByFrame = cache->PixelsByFrame;
 
     if (image.GetWidth() && image.GetHeight()) image.Clear(); //CAUTION: image must be non-empty to clear it (memory error otherwise)
+    if (rawimage.GetWidth() && rawimage.GetHeight()) rawimage.Clear(); //CAUTION: image must be non-empty to clear it (memory error otherwise)
 
     if (!cache->PictureName.CmpNoCase(filename)) { wrdebug("no change: " + filename); return; }
     if (!wxFileExists(filename)) { wrdebug("not found: " + filename); return; }
@@ -354,6 +357,8 @@ void CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool overlay)
             {
                 if (!from.IsTransparent(x, y))
                 {
+                    wxASSERT(x + offset.x < to.GetWidth());
+                    wxASSERT(y + offset.y < to.GetHeight());
                     to.SetRGB(x + offset.x, y + offset.y, from.GetRed(x, y), from.GetGreen(x, y), from.GetBlue(x, y));
                 }
             }
@@ -472,6 +477,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
 
     PicturesRenderCache *cache = GetCache(buffer);
     wxImage &image = cache->image;
+    wxImage &rawimage = cache->rawimage;
     std::vector<PixelVector> &PixelsByFrame = cache->PixelsByFrame;
     int &frame = cache->frame;
 
@@ -533,13 +539,13 @@ void PicturesEffect::Render(RenderBuffer &buffer,
             logger_base.error("Error loading image file: %s.", (const char *)NewPictureName.c_str());
             image.Create(5, 5, true);
         }
+        rawimage = image;
         cache->lastimage = image;
         cache->PictureName=NewPictureName;
 
         if (cache->imageCount > 1)
         {
-            // need to grab the image disposal method
-            wxImage tmp = image;
+            wxImage tmp = rawimage;
             LoadRawImageFrame(tmp, NewPictureName, 0, cache->lastdispose);
         }
 
@@ -553,10 +559,12 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         if (ii != cache->imageIndex) {
             cache->imageIndex = ii;
 
-            LoadImageFrame(image, cache->PictureName, ii, cache->lastframe, cache->lastimage, cache->lastdispose);
+            LoadImageFrame(rawimage, cache->PictureName, ii, cache->lastframe, cache->lastimage, cache->lastdispose);
 
-            if (!image.IsOk())
+            if (!rawimage.IsOk())
                 return;
+
+            image = rawimage;
         }
     }
 
