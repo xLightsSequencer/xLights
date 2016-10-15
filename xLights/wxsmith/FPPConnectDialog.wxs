@@ -138,7 +138,6 @@
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX_UploadController" variable="CheckBox_UploadController" member="yes">
 					<label>Upload controller configuration</label>
-					<checked>1</checked>
 					<handler function="OnCheckBox_UploadControllerClick" entry="EVT_CHECKBOX" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

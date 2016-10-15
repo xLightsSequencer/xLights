@@ -93,7 +93,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Notebook_FPP->AddPage(Panel_USB, _("USB"), false);
 	FlexGridSizer1->Add(Notebook_FPP, 1, wxALL|wxEXPAND, 5);
 	CheckBox_UploadController = new wxCheckBox(this, ID_CHECKBOX_UploadController, _("Upload controller configuration"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_UploadController"));
-	CheckBox_UploadController->SetValue(true);
+	CheckBox_UploadController->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_UploadController, 1, wxALL|wxEXPAND, 5);
 	CheckListBox_Sequences = new wxCheckListBox(this, ID_CHECKLISTBOX_Sequences, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_Sequences"));
 	CheckListBox_Sequences->SetMinSize(wxDLG_UNIT(this,wxSize(-1,100)));
