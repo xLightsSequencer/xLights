@@ -527,7 +527,7 @@ bool FPPConnectDialog::USBUpload()
     int count = 0;
     if (CheckBox_UploadController->IsChecked())
     {
-        cancelled = CopyFile(std::string(xLightsFrame::CurrentDir + "/universes"), std::string(tgtdir + "universes"), true, progress, 0, 1000 / total);
+        cancelled = CopyFile(std::string(xLightsFrame::CurrentDir + "/universes"), std::string(tgtdir + "/universes"), true, progress, 0, 1000 / total);
         count++;
     }
 
@@ -572,14 +572,14 @@ bool FPPConnectDialog::USBUpload()
         
         if (!cancelled && wxFile::Exists(fseq))
         {
-            cancelled = CopyFile(std::string(fseq), std::string(tgtdir + "sequences/" + fn.GetName() + ".fseq"), false, progress, start, mid);
+            cancelled = CopyFile(std::string(fseq), std::string(tgtdir + "/sequences/" + fn.GetName() + ".fseq"), false, progress, start, mid);
         }
 
         if (!cancelled && media != "")
         {
             media = xLightsXmlFile::FixFile("", media);
             wxFileName fnmedia(media);
-            cancelled = CopyFile(std::string(media), std::string(tgtdir + "music/" + fnmedia.GetName() + "." + fnmedia.GetExt()), false, progress, mid, end);
+            cancelled = CopyFile(std::string(media), std::string(tgtdir + "/music/" + fnmedia.GetName() + "." + fnmedia.GetExt()), false, progress, mid, end);
         }
     }
 
