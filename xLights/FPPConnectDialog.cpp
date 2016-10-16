@@ -165,9 +165,9 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint&
         bool fcont2 = d2.GetFirst(&dir2, wxEmptyString, wxDIR_DIRS);
         while (fcont2)
         {
-            if (wxDir::Exists("/media/" + dir + "/" + dir2 + "/media"))
+            if (wxDir::Exists("/media/" + dir + "/" + dir2 + "/sequences"))
             {
-                DirPickerCtrl_FPPMedia->SetPath("/media/" + dir + "/" + dir2 + "/media");
+                DirPickerCtrl_FPPMedia->SetPath("/media/" + dir + "/" + dir2);
                 done = true;
                 break;
             }
@@ -176,7 +176,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint&
         if (done) break;
         fcont = d.GetNext(&dir);
     }
-#endif
+    #endif
 #endif
 
     LoadSequences();
