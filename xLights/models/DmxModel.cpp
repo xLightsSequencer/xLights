@@ -143,6 +143,15 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
+    p = grid->Append(new wxUIntProperty("Shutter Channel", "DmxShutterChannel", shutter_channel));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 512);
+    p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxIntProperty("Shutter Open Threshold", "DmxShutterOpen", shutter_threshold));
+    p->SetAttribute("Min", -255);
+    p->SetAttribute("Max", 255);
+    p->SetEditor("SpinCtrl");
 }
 void DmxModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     grid->Append(new wxEnumProperty("DMX Style", "DmxStyle", DMX_STYLES, dmx_style_val));
@@ -246,6 +255,16 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         ModelXml->AddAttribute("DmxBlueChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
+    } else if ("DmxShutterChannel" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxShutterChannel");
+        ModelXml->AddAttribute("DmxShutterChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxShutterOpen" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxShutterOpen");
+        ModelXml->AddAttribute("DmxShutterOpen", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
     }
 
     return Model::OnPropertyGridChange(grid, event);
@@ -293,6 +312,8 @@ void DmxModel::InitModel() {
 	red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "0"));
 	green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "0"));
 	blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "0"));
+	shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
+	shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
 }
 
 void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
@@ -456,8 +477,21 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     x2 = (int)(RenderBuffer::cos(ToRadians(angle2))*beam_length);
     y2 = (int)(RenderBuffer::sin(ToRadians(angle2))*beam_length);
 
+    // determine if shutter is open for heads that support it
+    bool shutter_open = true;
+    if( shutter_channel > 0 ) {
+        xlColor proxy;
+        Nodes[shutter_channel-1]->GetColor(proxy);
+        int shutter_value = proxy.red;
+        if( shutter_value >= 0 ) {
+            shutter_open = shutter_value >= shutter_threshold;
+        } else {
+            shutter_open = shutter_value <= std::abs(shutter_threshold);
+        }
+    }
+
     // Draw the light beam
-    if( dmx_style_val != DMX_STYLE_MOVING_HEAD_BARS ) {
+    if( dmx_style_val != DMX_STYLE_MOVING_HEAD_BARS && shutter_open ) {
         va.AddVertex(sx, sy, beam_color);
         ApplyTransparency(beam_color, beam_off ? 0 : 100);
         va.AddVertex(sx+x1, sy+y1, beam_color);

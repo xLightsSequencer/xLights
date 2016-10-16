@@ -11,6 +11,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp)   Fix mac<-->windows pictures effect filename mapping
    -- bug (dkulp)   Make sure picture effect is re-initted at start of effect
    -- bug (dkulp)   Fix crash on toggle strands when clicked on a strand instead of model
+   -- enh (gil)     Add shutter support to DMX model.
    -- bug (gil)     Fix model staying highlighted when removed from group.  Fixes #707.
    -- bug (gil)     Prevent creation of unnecessary layer when promoting effects from only 1 strand.
    -- bug (gil)     Fix exception when opening Lyric Dialog.  Fixes #710.

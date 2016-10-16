@@ -48,6 +48,8 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int pan_deg_of_rot;
         int tilt_orient;
         int tilt_deg_of_rot;
+        int shutter_channel;
+        int shutter_threshold;
 
     private:
 };
