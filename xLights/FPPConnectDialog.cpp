@@ -328,24 +328,15 @@ bool FPPConnectDialog::IsValidIP(wxString ip)
     if (ip == "") {
         return false;
     }
-    static wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
-
+    wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
     if (regxIPAddr.Matches(ip)) {
         return true;
     }
-
-    wxURL url("http://" + ip +"/");
-    wxProtocol &p = url.GetProtocol();
-    wxHTTP *http = dynamic_cast<wxHTTP*>(&p);
-    http->SetMethod("HEAD");
-    if (url.GetError() == wxURL_NOERR ) {
-        wxInputStream *in_stream = url.GetInputStream();
-        if (in_stream != nullptr) {
-            delete in_stream;
-            return true;
-        }
-    }
-    return false;
+    
+    wxIPV4address addr;
+    addr.Hostname(ip);
+    wxString ipAddr = addr.IPAddress();
+    return ipAddr != "0.0.0.0" && ipAddr != "";
 }
 
 void FPPConnectDialog::ValidateWindow()

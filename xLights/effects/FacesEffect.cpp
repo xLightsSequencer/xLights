@@ -676,8 +676,13 @@ public:
     };
     virtual ~FacesRenderCache() {
     };
+    void Clear() {
+        nodeNameCache.clear();
+    }
+    
     int blinkEndTime;
     int nextBlinkTime;
+    std::map<std::string, int> nodeNameCache;
 };
 
 
@@ -695,6 +700,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     if (buffer.needToInit) {
         buffer.needToInit = false;
         elements->AddRenderDependency(trackName, buffer.cur_model);
+        cache->Clear();
     }
     std::string eyes = eyesIn;
 
@@ -712,6 +718,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     Model* model_info = buffer.frame->AllModels[buffer.cur_model];
     if (model_info == nullptr) {
         return;
+    }
+    if (cache->nodeNameCache.empty()) {
+        for (int x = 0; x < model_info->GetNodeCount(); x++) {
+            cache->nodeNameCache[model_info->GetNodeName(x, true)] = x;
+        }
     }
 
     std::string definition = faceDefinition;
@@ -936,12 +947,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             wxString valstr = wtkz.GetNextToken();
 
             if (type == 0) {
-                for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
-                    wxString nn = model_info->GetNodeName(n, true);
-                    if (nn == valstr) {
-                        for (auto a = buffer.Nodes[n]->Coords.begin() ; a != buffer.Nodes[n]->Coords.end(); a++) {
-                            buffer.SetPixel(a->bufX, a->bufY, colors[t]);
-                        }
+                auto it = cache->nodeNameCache.find(valstr.ToStdString());
+                if (it != cache->nodeNameCache.end()) {
+                    int n = it->second;
+                    for (auto a = buffer.Nodes[n]->Coords.begin() ; a != buffer.Nodes[n]->Coords.end(); a++) {
+                        buffer.SetPixel(a->bufX, a->bufY, colors[t]);
                     }
                 }
             } else if (type == 1) {
