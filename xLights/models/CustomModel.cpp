@@ -178,7 +178,6 @@ int CustomModel::GetCustomMaxChannel(const std::string& customModel) {
 void CustomModel::InitCustomMatrix(const std::string& customModel) {
     wxString value;
     wxArrayString cols;
-    long idx;
     int width=1;
     std::vector<int> nodemap;
 
@@ -191,10 +190,13 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
         if (cols.size() > width) width=cols.size();
         for(size_t col=0; col < cols.size(); col++) {
             value=cols[col];
-            // FIXME:  If user types in spaces this doesn't catch it.
+            value.Trim(true);
+            value.Trim(false);
+            long idx = -1;
             if (!value.IsEmpty() && value != "0") {
                 value.ToLong(&idx);
-
+            }
+            if (idx > 0) {
                 // increase nodemap size if necessary
                 if (idx > nodemap.size()) {
                     nodemap.resize(idx, -1);
@@ -211,9 +213,12 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
                         cpn = GetChanCountPerNode();
                     }
                     Nodes.back()->ActChan=stringStartChan[0] + idx * cpn;
-                    if (idx < nodeNames.size()) {
+                    if (idx < nodeNames.size() && nodeNames[idx] != "") {
                         Nodes.back()->SetName(nodeNames[idx]);
+                    } else {
+                        Nodes.back()->SetName(wxString::Format("Node %d", (idx + 1)).ToStdString());
                     }
+                    
                     Nodes.back()->AddBufCoord(col,height - row - 1);
                 } else {
                     // mapped - so add a coord to existing node
@@ -230,10 +235,15 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
         }
     }
     for (int x = 0; x < Nodes.size(); x++) {
-        Nodes[x]->SetName(GetNodeName(Nodes[x]->StringNum));
+        if (Nodes[x]->GetName() == "") {
+            Nodes[x]->SetName(GetNodeName(Nodes[x]->StringNum));
+        }
     }
 
     SetBufferSize(height,width);
+}
+std::string CustomModel::GetNodeName(size_t x, bool def) const {
+    return Nodes[x]->GetName();
 }
 
 std::string CustomModel::ChannelLayoutHtml() {

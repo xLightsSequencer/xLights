@@ -32,6 +32,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void ExportXlightsModel() override;
 
         virtual std::string ChannelLayoutHtml() override;
+        virtual std::string GetNodeName(size_t x, bool def = false) const override;
 
     protected:
         virtual void InitModel() override;

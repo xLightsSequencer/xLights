@@ -303,7 +303,7 @@ public:
         }
         return "";
     }
-    std::string GetNodeName(size_t x, bool def = false) const {
+    virtual std::string GetNodeName(size_t x, bool def = false) const {
         if (x < nodeNames.size()) {
             return nodeNames[x];
         }
