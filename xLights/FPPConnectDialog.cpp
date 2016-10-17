@@ -418,6 +418,7 @@ void FPPConnectDialog::ValidateWindow()
 
 bool FPPConnectDialog::FTPUpload()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
     wxFTP ftp;
@@ -428,7 +429,8 @@ bool FPPConnectDialog::FTPUpload()
     ftp.SetPassword(TextCtrl_Password->GetValue());
     if (!ftp.Connect(TextCtrl_IPAddress->GetValue()))
     {
-        wxMessageBox("Could not connect to FPP");
+        logger_base.warn("Could not connect to FPP using address '%s'.", (const char *)TextCtrl_IPAddress->GetValue().c_str());
+        wxMessageBox("Could not connect to FPP using address '%s'.", (const char *)TextCtrl_IPAddress->GetValue().c_str());
         return true;
     }
 
@@ -438,7 +440,6 @@ bool FPPConnectDialog::FTPUpload()
     {
         ftp.SetAscii();
         cancelled = UploadFile(ftp, (xLightsFrame::CurrentDir + "/universes").ToStdString(), ".", true);
-
     }
 
     if (!cancelled)
@@ -492,6 +493,7 @@ bool FPPConnectDialog::FTPUpload()
             }
         }
     }
+
     // gracefully close the connection to the server
     ftp.Close();
 
