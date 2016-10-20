@@ -414,7 +414,7 @@ void PolyLineModel::InitModel() {
         int lights_to_distribute = SingleNode ? coords_per_node : numLights * coords_per_node;
         float offset = total_length / (float)lights_to_distribute;
         float current_pos = offset / 2.0f;
-        idx=IsLtoR ? 0 : numLights-1;
+        idx = (IsLtoR || SingleNode) ? 0 : numLights-1;
         size_t c=0;
         int segment = 0;
         int sub_segment = 0;
