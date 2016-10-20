@@ -777,7 +777,7 @@ bool FPPConnectDialog::UploadFile(wxFTP& ftp, std::string file, std::string fold
         wxOutputStream *out = ftp.GetOutputStream((folder + "/" + basefile).c_str());
         if (out)
         {
-            uint8_t buffer[8192]; // 8KB at a time
+            uint8_t buffer[256]; // 256b at a time
             while (!in.Eof() && !cancelled)
             {
                 ssize_t read = in.Read(&buffer[0], sizeof(buffer));
@@ -802,6 +802,10 @@ bool FPPConnectDialog::UploadFile(wxFTP& ftp, std::string file, std::string fold
             in.Close();
             out->Close();
             delete out;
+            if (ftp.GetFileSize((folder + "/" + basefile).c_str()) != length)
+            {
+                logger_base.warn("   FTP Upload of file %s failed. Source size (%d) != Destination Size (%d)",(const char *)file.c_str(),length,ftp.GetFileSize((folder + "/" + basefile).c_str()));
+            }
         }
         else
         {
