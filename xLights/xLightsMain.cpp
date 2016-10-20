@@ -1530,7 +1530,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     //to whatever the timing that is selected
     Timer1.Start(50, wxTIMER_CONTINUOUS);
 
-    jobPool.Start(wxThread::GetCPUCount() * 4);
+    // What makes 4 the right answer
+    jobPool.Start(wxThread::GetCPUCount() * 10);
 
     if (!xLightsApp::sequenceFiles.IsEmpty())
     {

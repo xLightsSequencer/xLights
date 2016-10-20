@@ -285,7 +285,7 @@ public:
     void InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform);
 	AudioManager* GetMedia();
 
-    void Clear(const xlColor& bgColor);
+    void Clear();
     void SetPalette(xlColorVector& newcolors, xlColorCurveVector& newcc);
     size_t GetColorCount();
 	void SetAllowAlphaChannel(bool a);
@@ -374,7 +374,6 @@ public:
 
     bool needToInit;
     bool allowAlpha;
-    bool InhibitClear;
 
     /* Places to store and data that is needed from one frame to another */
     std::map<int, EffectRenderCache*> infoCache;

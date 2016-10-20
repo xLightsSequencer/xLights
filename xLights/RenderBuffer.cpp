@@ -374,7 +374,6 @@ RenderBuffer::RenderBuffer(xLightsFrame *f, bool b) : frame(f)
     frameTimeInMs = 50;
     textDrawingContext = NULL;
     pathDrawingContext = NULL;
-    InhibitClear = false;
     tempInt = tempInt2 = 0;
     onlyOnMain = b;
     isTransformed = false;
@@ -414,13 +413,17 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     isTransformed = (bufferTransform != "None");
 }
 
-void RenderBuffer::Clear(const xlColor& bgColor)
+void RenderBuffer::Clear()
 {
-    if (InhibitClear) { InhibitClear = false; return; } //allow canvas to be persistent for piano fx (self-reseting for safety) -DJ
-    for(size_t i=0; i<pixels.size(); i++)
+    // KW This is massively faster
+    if (pixels.size() > 0)
     {
-        pixels[i]=bgColor;
+        memset(&pixels[0], 0x00, sizeof(xlColor) * pixels.size());
     }
+    //for(size_t i=0; i<pixels.size(); i++)
+    //{
+    //    pixels[i]=bgColor;
+    //}
 }
 
 void RenderBuffer::SetPalette(xlColorVector& newcolors, xlColorCurveVector& newcc)
