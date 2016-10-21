@@ -1199,15 +1199,18 @@ std::list<std::string> TestDialog::GetModelsOnChannels(int start, int end)
 {
 	std::list<std::string> res;
 
-	for (auto it = _modelManager->begin(); it != _modelManager->end(); it++)
+	for (auto it = _modelManager->begin(); it != _modelManager->end(); ++it)
 	{
 		Model* m = it->second;
-		int st = wxAtoi(m->ModelStartChannel);
-		int en = m->GetLastChannel();
-		if (start <= en+1 && end >= st)
-		{
-			res.push_back(it->first);
-		}
+        if (m->GetDisplayAs() != "ModelGroup")
+        {
+            int st = m->GetFirstChannel();
+            int en = m->GetLastChannel();
+            if (start <= en + 1 && end >= st)
+            {
+                res.push_back(it->first);
+            }
+        }
 	}
 
 	return res;
@@ -1256,7 +1259,6 @@ void TestDialog::SetTreeTooltip(wxTreeListItem& item)
                 {
                     tt = "[" + std::string(wxString::Format(wxT("%i"), start)) + "-" + std::string(wxString::Format(wxT("%i"), end)) + "] maps to\n" + tt;
                 }
-                // This does not work ... there is a bug in wxWidgets which prevents tooltip display.
 #ifdef __WXOSX__
                 TreeListCtrl_Channels->SetToolTip(tt);
 #else
