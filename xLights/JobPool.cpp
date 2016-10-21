@@ -199,8 +199,8 @@ void JobPool::Start(size_t poolSize)
     if (poolSize > 250) {
         poolSize = 250;
     }
-    if (poolSize < 8) {
-        poolSize = 8;
+    if (poolSize < 20) {
+        poolSize = 20;
     }
     maxNumThreads = poolSize;
     idleThreads = 0;
