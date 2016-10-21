@@ -1266,7 +1266,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(5, itemCol);
 
-    itemCol.SetText(_T("Enabled"));
+    itemCol.SetText(_T("Active"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(6, itemCol);
 
