@@ -276,7 +276,13 @@ public:
         deleteWhenComplete = true;
     }
     void LogToLogger(int logLevel) {
-        if (renderLog.isPriorityEnabled(logLevel)) {
+        // these can only be set at start time
+        static bool debug = renderLog.isPriorityEnabled((log4cpp::Priority::DEBUG));
+        static bool info = renderLog.isPriorityEnabled((log4cpp::Priority::INFO));
+
+        if ((debug && logLevel == log4cpp::Priority::DEBUG) ||
+            (info && logLevel == log4cpp::Priority::INFO))
+        {
             renderLog.log(logLevel, (const char *)GetwxStatus().c_str());
         }
     }

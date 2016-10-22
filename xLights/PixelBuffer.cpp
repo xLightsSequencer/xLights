@@ -1122,7 +1122,8 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 }
 
 void PixelBufferClass::GetColors(unsigned char *fdata) {
-    xlColor color;
+
+    // KW ... I think this needs to be optimised
 
     if (layers[0] != nullptr) // I dont like this ... it should never be null
     {
@@ -1132,6 +1133,7 @@ void PixelBufferClass::GetColors(unsigned char *fdata) {
             {
                 DimmingCurve *curve = layers[0]->buffer.Nodes[n]->model->modelDimmingCurve;
                 if (curve != nullptr) {
+                    xlColor color;
                     layers[0]->buffer.Nodes[n]->GetColor(color);
                     curve->apply(color);
                     layers[0]->buffer.Nodes[n]->SetColor(color);
