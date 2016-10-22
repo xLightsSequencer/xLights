@@ -372,8 +372,8 @@ void TextDrawingContext::GetTextExtent(const wxString &msg, double *width, doubl
 RenderBuffer::RenderBuffer(xLightsFrame *f, bool b) : frame(f)
 {
     frameTimeInMs = 50;
-    textDrawingContext = NULL;
-    pathDrawingContext = NULL;
+    textDrawingContext = nullptr;
+    pathDrawingContext = nullptr;
     tempInt = tempInt2 = 0;
     onlyOnMain = b;
     isTransformed = false;
@@ -382,10 +382,10 @@ RenderBuffer::RenderBuffer(xLightsFrame *f, bool b) : frame(f)
 RenderBuffer::~RenderBuffer()
 {
     //dtor
-    if (textDrawingContext != NULL) {
+    if (textDrawingContext != nullptr) {
         delete textDrawingContext;
     }
-    if (pathDrawingContext != NULL) {
+    if (pathDrawingContext != nullptr) {
         delete pathDrawingContext;
     }
     for (std::map<int, EffectRenderCache*>::iterator i = infoCache.begin(); i != infoCache.end(); i++) {

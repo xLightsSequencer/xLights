@@ -528,46 +528,55 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
 {
 
     unsigned short &sparkle = layers[0]->buffer.Nodes[node]->sparkle;
-    HSVValue hsv;
     int cnt = 0;
-    xlColor color;
     c = xlBLACK;
+    
+    int effStartPer, effEndPer;
+    layers[0]->buffer.GetEffectPeriods(effStartPer, effEndPer);
+    float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
+    offset = std::min(offset, 1.0f);
+
     for (int layer = numLayers - 1; layer >= 0; layer--)
     {
         if (validLayers[layer])
         {
-            int effStartPer, effEndPer;
-            layers[0]->buffer.GetEffectPeriods(effStartPer, effEndPer);
-            float offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
-            offset = std::min(offset, 1.0f);
+            auto thelayer = layers[layer];
 
-            int x = layers[layer]->buffer.Nodes[node]->Coords[0].bufX;
-            int y = layers[layer]->buffer.Nodes[node]->Coords[0].bufY;
+            int x = thelayer->buffer.Nodes[node]->Coords[0].bufX;
+            int y = thelayer->buffer.Nodes[node]->Coords[0].bufY;
 
-            if (x < 0 || y < 0
-                || x >= layers[layer]->BufferWi
-                || y >= layers[layer]->BufferHt
-                || layers[layer]->isMasked(x, y)) {
+            xlColor color;
+            if (layers[layer]->isMasked(x, y) 
+                || x < 0 
+                || y < 0
+                || x >= thelayer->BufferWi
+                || y >= thelayer->BufferHt
+               ) {
                 color = xlBLACK;
                 color.alpha = 0;
             } else {
-                layers[layer]->buffer.GetPixel(x, y, color);
+                thelayer->buffer.GetPixel(x, y, color);
             }
 
             // add sparkles
-            if ((layers[layer]->music_sparkle_count || layers[layer]->sparkle_count > 0 || layers[layer]->SparklesValueCurve.IsActive()) && color != xlBLACK)
+            if (color != xlBLACK && 
+                (thelayer->music_sparkle_count ||
+                 thelayer->sparkle_count > 0 || 
+                 thelayer->SparklesValueCurve.IsActive()) 
+                )
             {
-                int sc = layers[layer]->sparkle_count;
-                if (layers[layer]->SparklesValueCurve.IsActive())
+                int sc = thelayer->sparkle_count;
+                if (thelayer->SparklesValueCurve.IsActive())
                 {
-                    sc = (int)layers[layer]->SparklesValueCurve.GetOutputValueAt(offset);
+                    sc = (int)thelayer->SparklesValueCurve.GetOutputValueAt(offset);
                 }
 
-                if (layers[layer]->music_sparkle_count && layers[layer]->buffer.GetMedia() != NULL)
+                if (thelayer->music_sparkle_count && 
+                    thelayer->buffer.GetMedia() != nullptr)
                 {
                     float f = 0.0;
-                    std::list<float>* pf = layers[layer]->buffer.GetMedia()->GetFrameData(layers[layer]->buffer.curPeriod, FRAMEDATA_HIGH, "");
-                    if (pf != NULL)
+                    std::list<float>* pf = thelayer->buffer.GetMedia()->GetFrameData(thelayer->buffer.curPeriod, FRAMEDATA_HIGH, "");
+                    if (pf != nullptr)
                     {
                         f = *pf->begin();
                     }
@@ -595,28 +604,28 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                 sparkle++;
             }
             int b = 0;
-            if (layers[layer]->BrightnessValueCurve.IsActive())
+            if (thelayer->BrightnessValueCurve.IsActive())
             {
-                b = (int)layers[layer]->BrightnessValueCurve.GetOutputValueAt(offset);
+                b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset);
             }
             else
             {
-                b = layers[layer]->brightness;
+                b = thelayer->brightness;
             }
-            if (b != 100 || layers[layer]->contrast != 0)
+            if (b != 100 || thelayer->contrast != 0)
             {
-                hsv = color.asHSV();
-                hsv.value = hsv.value * ((double)b/(double)100);
+                HSVValue hsv = color.asHSV();
+                hsv.value = hsv.value * ((double)b/100.0);
 
                 // Apply Contrast
                 if (hsv.value< 0.5)
                 {
                     // reduce brightness when below 0.5 in the V value or increase if > 0.5
-                    hsv.value = hsv.value - (hsv.value* ((double)layers[layer]->contrast/(double)100));
+                    hsv.value = hsv.value - (hsv.value* ((double)thelayer->contrast/100.0));
                 }
                 else
                 {
-                    hsv.value = hsv.value + (hsv.value* ((double)layers[layer]->contrast/(double)100));
+                    hsv.value = hsv.value + (hsv.value* ((double)thelayer->contrast/100.0));
                 }
 
                 if (hsv.value < 0.0) hsv.value=0.0;
@@ -626,17 +635,17 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                 color.alpha = alpha;
             }
 
-            if (MixTypeHandlesAlpha(layers[layer]->mixType))
+            if (MixTypeHandlesAlpha(thelayer->mixType))
             {
                 c = mixColors(x, y, color, c, layer);
             }
             else
             {
-                if (cnt == 0 && layers[layer]->fadeFactor != 1.0)
+                if (cnt == 0 && thelayer->fadeFactor != 1.0)
                 {
                     //need to fade the first here as we're not mixing anything
-                    color.toHSV(hsv);
-                    hsv.value *= layers[layer]->fadeFactor;
+                    HSVValue hsv = color.asHSV();
+                    hsv.value *= thelayer->fadeFactor;
                     color = hsv;
                 }
                 if (cnt > 0)
