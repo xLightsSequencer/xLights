@@ -1266,7 +1266,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(5, itemCol);
 
-    itemCol.SetText(_T("Enabled"));
+    itemCol.SetText(_T("Active"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(6, itemCol);
 
@@ -1530,7 +1530,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     //to whatever the timing that is selected
     Timer1.Start(50, wxTIMER_CONTINUOUS);
 
-    jobPool.Start(wxThread::GetCPUCount() * 4);
+    // What makes 4 the right answer ... try 10 ... why ... usually it is one thread that runs slow and that model 
+    // holds up others so in the time while we wait for the busy thread we can actually run a lot more models
+    // what is the worst that could happen ... all models want to run hard so we lose some efficiency while we churn between
+    // threads ... a minor loss of efficiency ... I think the one thread blocks the others is more common.
+    // Dan is concerned on 32 bit windows 10 will chew up too much heap memory ... so splitting the difference we get 7
+    jobPool.Start(wxThread::GetCPUCount() * 7);
 
     if (!xLightsApp::sequenceFiles.IsEmpty())
     {

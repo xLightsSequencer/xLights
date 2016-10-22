@@ -93,7 +93,8 @@ void JobPoolWorker::Stop()
 
 void JobPoolWorker::Start()
 {
-    Create();
+    static const unsigned int stackSize = 1024*128;
+    Create(stackSize);
     Run();
 }
 

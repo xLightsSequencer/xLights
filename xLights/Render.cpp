@@ -401,6 +401,7 @@ public:
     
 
     bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
+        wxStopWatch sw;
         bool effectsToUpdate = false;
         int numLayers = el->GetEffectLayerCount();
         for (int layer = 0; layer < numLayers; layer++) {
@@ -434,6 +435,12 @@ public:
             }
             buffer->CalcOutput(frame, info.validLayers);
             buffer->GetColors(&((*seqData)[frame][0]));
+        }
+        if (sw.Time() > 1000)
+        {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            RenderBuffer& b = buffer->BufferForLayer(0);
+            logger_base.warn("*** Frame #%d at %dms render on model %s (%dx%d) took more than 1s => %dms.", frame, frame * b.frameTimeInMs, (const char *)el->GetName().c_str(), b.BufferWi, b.BufferHt, sw.Time());
         }
         return effectsToUpdate;
     }
@@ -1007,11 +1014,11 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
             wxStopWatch sw;
             reff->Render(effectObj, SettingsMap, buffer.BufferForLayer(layer));
             // Log slow render frames ... this takes time but at this point it is already slow
-            if (sw.Time() > 100)
+            if (sw.Time() > 150)
             {
                 static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 RenderBuffer& b = buffer.BufferForLayer(layer);
-                logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 100 ms => %dms.", b.curPeriod, (const char *)buffer.GetModelName().c_str(),b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer, sw.Time());
+                logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 150 ms => %dms.", b.curPeriod, (const char *)buffer.GetModelName().c_str(),b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer, sw.Time());
             }
         } else {
             event->effect = effectObj;
@@ -1025,6 +1032,9 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
             if (event->signal.wait_for(lock, std::chrono::seconds(60)) == std::cv_status::no_timeout) {
                 retval = event->returnVal;
             } else {
+                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                RenderBuffer& b = buffer.BufferForLayer(layer);
+                logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out.", b.curPeriod, (const char *)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);
                 printf("HELP!!!!\n");
 			}
             if (period % 10 == 0) {

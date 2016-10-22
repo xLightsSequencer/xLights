@@ -133,17 +133,16 @@ void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, in
 
 void PixelBufferClass::Clear(int which)
 {
-    xlColor bgColor(0, 0, 0, 0);
     if (which != -1)
     {
-        layers[which]->buffer.Clear(bgColor); //just clear this one
+        layers[which]->buffer.Clear(); //just clear this one
     }
     else
     {
         //clear them all
         for (size_t i = 0; i < numLayers; i++)
         {
-            layers[i]->buffer.Clear(bgColor);
+            layers[i]->buffer.Clear();
         }
     }
 }
@@ -1220,7 +1219,7 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
         float anglesin = sin(-angle);
 
 
-        layer->buffer.Clear(xlBLACK);
+        layer->buffer.Clear();
         for (int x = 0; x < layer->BufferWi; x++)
         {
             for (int i = 0; i < q; i++)
