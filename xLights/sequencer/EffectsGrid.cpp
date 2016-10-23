@@ -2088,7 +2088,7 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
 }
 
 void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, bool row_paste) {
-    if ((mSequenceElements == nullptr) || (data.IsEmpty())) {
+    if (mSequenceElements == nullptr) {
         return;
     }
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
