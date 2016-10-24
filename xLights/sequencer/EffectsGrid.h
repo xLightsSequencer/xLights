@@ -43,7 +43,6 @@ enum EFF_ALIGN_MODE {
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_GSCROLL, wxCommandEvent);
-wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 
 wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
@@ -145,7 +144,7 @@ private:
     void UpdateSelectionRectangle();
     void UpdateSelectedEffects();
     void CheckForPartialCell(int x_pos);
-    void RaiseSelectedEffectChanged(Effect* effect, bool isNew);
+    void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true);
     void RaiseEffectDropped(int x, int y);
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect);
     Element* GetActiveTimingElement();

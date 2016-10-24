@@ -19,6 +19,7 @@
 #include "effects/EffectManager.h"
 #include "effects/RenderableEffect.h"
 #include "EffectsPanel.h"
+#include "RenderCommandEvent.h"
 #include "../include/padlock16x16-green.xpm" //-DJ
 #include "../include/padlock16x16-red.xpm" //-DJ
 #include "../include/padlock16x16-blue.xpm" //-DJ
@@ -241,11 +242,10 @@ void EffectsPanel::EffectSelected(wxChoicebookEvent& event)
     wxString ef = EffectChoicebook->GetPageText(EffectChoicebook->GetSelection());
     SetDefaultEffectValues(nullptr, nullptr, ef);
 
-    wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
+    SelectedEffectChangedEvent eventEffectChanged(nullptr, false, true);
     // We do not have an actual effect in grid to send
     // Set Index of page.
     eventEffectChanged.SetInt(EffectChoicebook->GetSelection());
-    eventEffectChanged.SetClientData(nullptr);
     wxPostEvent(GetParent(), eventEffectChanged);
 
     w->FitInside();

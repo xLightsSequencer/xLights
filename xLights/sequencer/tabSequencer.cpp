@@ -22,6 +22,7 @@
 #include "../MusicXML.h"
 #include "../osxMacUtils.h"
 #include "../SeqElementMismatchDialog.h"
+#include "../RenderCommandEvent.h"
 
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
@@ -700,22 +701,23 @@ void xLightsFrame::EffectChanged(wxCommandEvent& event)
     selectedEffectString = "";  // force update to effect rendering
 }
 
-void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
+void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 {
-    bool OnlyChoiceBookPage = event.GetClientData()==nullptr?true:false;
+    bool OnlyChoiceBookPage = event.effect==nullptr?true:false;
     Effect* effect = nullptr;
     if(OnlyChoiceBookPage)
     {
         int pageIndex = event.GetInt();
         // Dont change page if it is already on correct page
-        if (EffectsPanel1->EffectChoicebook->GetSelection()!=pageIndex)
-        {
+        if (EffectsPanel1->EffectChoicebook->GetSelection()!=pageIndex) {
             EffectsPanel1->EffectChoicebook->SetSelection(pageIndex);
+        } else {
+            event.updateUI = false;
         }
     }
     else
     {
-        effect = (Effect*)event.GetClientData();
+        effect = event.effect;
 		bool resetStrings = false;
         if ("Random" == effect->GetEffectName()) {
             std::string settings, palette;
@@ -728,7 +730,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         }
         SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
                           effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
-                          !event.GetInt());
+                          !event.isNew);
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = effect;
         if (effect->GetPaletteMap().empty() || resetStrings) {
@@ -752,13 +754,15 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
 			SetAudioControls();
         }
     }
-    RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
-    effectsPnl->SetDragIconBuffer(eff->GetEffectIcon(16));
-    effectsPnl->BitmapButtonSelectedEffect->SetEffect(eff, mIconSize);
-    if( effect != nullptr ) {
-        UpdateEffectAssistWindow(effect, eff);
+    if (event.updateUI) {
+        RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
+        effectsPnl->SetDragIconBuffer(eff->GetEffectIcon(16));
+        effectsPnl->BitmapButtonSelectedEffect->SetEffect(eff, mIconSize);
+        if( effect != nullptr ) {
+            UpdateEffectAssistWindow(effect, eff);
+        }
+        mainSequencer->PanelEffectGrid->SetFocus();
     }
-    mainSequencer->PanelEffectGrid->SetFocus();
 }
 
 void xLightsFrame::SelectedRowChanged(wxCommandEvent& event)

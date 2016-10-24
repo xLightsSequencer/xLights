@@ -299,7 +299,6 @@ wxDEFINE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MOUSE_POSITION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
-wxDEFINE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SELECTED_ROW_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EFFECT_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UNSELECTED_EFFECT, wxCommandEvent);
@@ -326,10 +325,11 @@ wxDEFINE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 wxDEFINE_EVENT(EVT_IMPORT_NOTES, wxCommandEvent);
-wxDEFINE_EVENT(EVT_RENDER_RANGE, RenderCommandEvent);
 wxDEFINE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_RGBEFFECTS_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_RENDER_RANGE, RenderCommandEvent);
+wxDEFINE_EVENT(EVT_SELECTED_EFFECT_CHANGED, SelectedEffectChangedEvent);
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
@@ -340,7 +340,6 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_MOUSE_POSITION, xLightsFrame::MousePositionUpdated)
     EVT_COMMAND(wxID_ANY, EVT_ROW_HEADINGS_CHANGED, xLightsFrame::RowHeadingsChanged)
     EVT_COMMAND(wxID_ANY, EVT_WINDOW_RESIZED, xLightsFrame::WindowResized)
-    EVT_COMMAND(wxID_ANY, EVT_SELECTED_EFFECT_CHANGED, xLightsFrame::SelectedEffectChanged)
     EVT_COMMAND(wxID_ANY, EVT_SELECTED_ROW_CHANGED, xLightsFrame::SelectedRowChanged)
     EVT_COMMAND(wxID_ANY, EVT_EFFECT_CHANGED, xLightsFrame::EffectChanged)
     EVT_COMMAND(wxID_ANY, EVT_UNSELECTED_EFFECT, xLightsFrame::UnselectedEffect)
@@ -371,6 +370,8 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_PROMOTE_EFFECTS, xLightsFrame::PromoteEffects)
     EVT_COMMAND(wxID_ANY, EVT_RGBEFFECTS_CHANGED, xLightsFrame::PerspectivesChanged)
     wx__DECLARE_EVT1(EVT_RENDER_RANGE, wxID_ANY, &xLightsFrame::RenderRange)
+    wx__DECLARE_EVT1(EVT_SELECTED_EFFECT_CHANGED, wxID_ANY, &xLightsFrame::SelectedEffectChanged)
+
 END_EVENT_TABLE()
 
 
@@ -408,6 +409,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     mCurrentPerpective = nullptr;
     MenuItemPreviews = nullptr;
 
+    Bind(EVT_SELECTED_EFFECT_CHANGED, &xLightsFrame::SelectedEffectChanged, this);
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 
     //(*Initialize(xLightsFrame)

@@ -3,6 +3,7 @@
 #include "../BitmapCache.h"
 #include "../xLightsMain.h"
 #include "../effects/RenderableEffect.h"
+#include "../RenderCommandEvent.h"
 
 DragEffectBitmapButton::DragEffectBitmapButton (wxWindow *parent, wxWindowID id, const wxBitmap &bitmap, const wxPoint &pos,
                                 const wxSize &size, long style, const wxValidator &validator,
@@ -54,10 +55,9 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
     int id = mEffect->GetId();
     
     // Change the Choicebook to correct page
-    wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
-    eventEffectChanged.SetInt(id);
+    SelectedEffectChangedEvent eventEffectChanged(nullptr, false, true);
     // We are only changing choicebook not populating effect panel with settings
-    eventEffectChanged.SetClientData(nullptr);
+    eventEffectChanged.SetInt(id);
     wxPostEvent(GetParent(), eventEffectChanged);
 
 #ifdef __linux__

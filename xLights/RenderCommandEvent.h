@@ -12,7 +12,10 @@
 #include <string>
 
 class RenderCommandEvent;
+class SelectedEffectChangedEvent;
+
 wxDECLARE_EVENT(EVT_RENDER_RANGE, RenderCommandEvent);
+wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, SelectedEffectChangedEvent);
 
 class RenderCommandEvent : public wxCommandEvent {
 public:
@@ -45,5 +48,33 @@ public:
     DECLARE_DYNAMIC_CLASS( RenderCommandEvent )
 
 };
+
+class SelectedEffectChangedEvent : public wxCommandEvent {
+public:
+    SelectedEffectChangedEvent(Effect *e, bool n, bool uui = true)
+        : wxCommandEvent(EVT_SELECTED_EFFECT_CHANGED),
+            effect(e), isNew(n), updateUI(uui) {
+        
+    }
+    SelectedEffectChangedEvent(const SelectedEffectChangedEvent &evt)
+    : wxCommandEvent(evt), effect(evt.effect), isNew(evt.isNew), updateUI(evt.updateUI) {
+    }
+    
+    virtual ~SelectedEffectChangedEvent() {}
+    wxCommandEvent* Clone() const {return new SelectedEffectChangedEvent(*this);}
+    
+    
+    Effect *effect;
+    bool isNew;
+    bool updateUI;
+  
+    DECLARE_DYNAMIC_CLASS( SelectedEffectChangedEvent )
+
+protected:
+    SelectedEffectChangedEvent()
+        : wxCommandEvent(EVT_SELECTED_EFFECT_CHANGED), effect(nullptr), isNew(true), updateUI(true) {}
+
+};
+
 
 #endif

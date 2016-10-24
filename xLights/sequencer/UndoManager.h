@@ -6,8 +6,6 @@
 
 class SequenceElements;
 
-wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
-
 enum UNDO_ACTIONS
 {
     UNDO_MARKER,   // use this to mark the beginning of a group of actions that should be undone together

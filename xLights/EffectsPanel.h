@@ -15,7 +15,6 @@
 #include <wx/colordlg.h>
 #include "AudioManager.h"
 
-wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 
 class SequenceElements;
 class Model;

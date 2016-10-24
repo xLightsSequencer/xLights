@@ -683,6 +683,7 @@ private:
 
 
 IMPLEMENT_DYNAMIC_CLASS(RenderCommandEvent, wxCommandEvent)
+IMPLEMENT_DYNAMIC_CLASS(SelectedEffectChangedEvent, wxCommandEvent)
 
 void xLightsFrame::RenderRange(RenderCommandEvent &evt) {
     if (evt.deleted) {

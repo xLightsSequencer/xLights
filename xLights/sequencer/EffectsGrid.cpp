@@ -446,6 +446,7 @@ void EffectsGrid::FillRandomEffects()
         if( timingIndex1 > timingIndex2 ) {
             std::swap(timingIndex1, timingIndex2);
         }
+        Effect *lastEffect = nullptr;
         if (timingIndex1 != -1 && timingIndex2 != -1) {
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             for( int row = row1; row <= row2; row++)
@@ -464,13 +465,15 @@ void EffectsGrid::FillRandomEffects()
                                                   eff->GetEndTimeMS(),
                                                   EFFECT_SELECTED,
                                                   false);
+                        lastEffect = ef;
                         mSequenceElements->get_undo_mgr().CaptureAddedEffect( effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID() );
-                        RaiseSelectedEffectChanged(ef, true);
+                        RaiseSelectedEffectChanged(ef, true, false);
                         mSelectedEffect = ef;
                     }
                 }
             }
             mCellRangeSelected = false;
+            RaiseSelectedEffectChanged(lastEffect, false, true);
         }
     } else if (mSequenceElements->GetVisibleEffectLayer(mDropRow) != nullptr) {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
@@ -494,7 +497,6 @@ void EffectsGrid::FillRandomEffects()
                                 mDropStartTimeMS,
                                 mDropEndTimeMS, true);
             }
-            RaiseSelectedEffectChanged(ef, true);
             mPartialCellSelected = false;
         }
     }
@@ -3451,12 +3453,13 @@ int EffectsGrid::GetRow(int y)
     return y/DEFAULT_ROW_HEADING_HEIGHT;
 }
 
-void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect, bool isNew)
+void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI)
 {
+    if (effect == nullptr) {
+        return;
+    }
     // Place effect pointer in client data
-    wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
-    eventEffectChanged.SetClientData(effect);
-    eventEffectChanged.SetInt(isNew);
+    SelectedEffectChangedEvent eventEffectChanged(effect, isNew, updateUI);
     wxPostEvent(GetParent(), eventEffectChanged);
 }
 

@@ -25,6 +25,9 @@
 #include <wx/valnum.h>
 
 std::map<std::string, bool> EffectPanelUtils::buttonStates;
+static std::map<wxControl *, wxControl*> LINKED_CONTROLS;
+static std::map<wxControl *, ValueCurveButton*> VALUE_CURVE_BUTTONS;
+
 
 void EffectPanelUtils::OnLockButtonClick(wxCommandEvent& event) {
     wxButton * button = (wxButton*)event.GetEventObject();
@@ -54,15 +57,19 @@ bool EffectPanelUtils::IsLocked(std::string name) {
 void EffectPanelUtils::UpdateLinkedSlider(wxCommandEvent& event)
 {
     wxTextCtrl * txt = (wxTextCtrl*)event.GetEventObject();
-    wxString name = txt->GetName();
-    if (name.Contains("IDD_")) {
-        name.Replace("IDD_TEXTCTRL_", "ID_SLIDER_");
-    } else {
-        name.Replace("ID_TEXTCTRL_", "IDD_SLIDER_");
-    }
-    wxSlider *slider = (wxSlider*)txt->GetParent()->FindWindowByName(name);
+    wxSlider *slider = (wxSlider*)LINKED_CONTROLS[txt];
     if (slider == nullptr) {
-        return;
+        wxString name = txt->GetName();
+        if (name.Contains("IDD_")) {
+            name.Replace("IDD_TEXTCTRL_", "ID_SLIDER_");
+        } else {
+            name.Replace("ID_TEXTCTRL_", "IDD_SLIDER_");
+        }
+        slider = (wxSlider*)txt->GetParent()->FindWindowByName(name);
+        if (slider == nullptr) {
+            return;
+        }
+        LINKED_CONTROLS[txt] = slider;
     }
     int value = wxAtoi(txt->GetValue());
 
@@ -84,13 +91,18 @@ void EffectPanelUtils::UpdateLinkedSlider(wxCommandEvent& event)
 void EffectPanelUtils::UpdateLinkedTextCtrl(wxScrollEvent& event)
 {
     wxSlider * slider = (wxSlider*)event.GetEventObject();
-    wxString name = slider->GetName();
-    if (name.Contains("ID_")) {
-        name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
-    } else {
-        name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
+    
+    wxTextCtrl *txt = (wxTextCtrl*)LINKED_CONTROLS[slider];
+    if (txt == nullptr) {
+        wxString name = slider->GetName();
+        if (name.Contains("ID_")) {
+            name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
+        } else {
+            name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
+        }
+        txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
+        LINKED_CONTROLS[slider] = txt;
     }
-    wxTextCtrl *txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
     txt->ChangeValue(wxString::Format("%d",slider->GetValue()));
 }
 
@@ -148,14 +160,18 @@ void EffectPanelUtils::UpdateLinkedTextCtrlVC(wxScrollEvent& event)
 {
     UpdateLinkedTextCtrl(event);
     wxSlider * slider = (wxSlider*)event.GetEventObject();
-    wxString name = slider->GetName();
-    if (name.Contains("ID_")) {
-        name.Replace("ID_SLIDER_", "ID_VALUECURVE_");
+    ValueCurveButton *vc = VALUE_CURVE_BUTTONS[slider];
+    if (vc == nullptr) {
+        wxString name = slider->GetName();
+        if (name.Contains("ID_")) {
+            name.Replace("ID_SLIDER_", "ID_VALUECURVE_");
+        }
+        else {
+            name.Replace("IDD_SLIDER_", "ID_VALUECURVE_");
+        }
+        vc = (ValueCurveButton*)slider->GetParent()->FindWindowByName(name);
+        VALUE_CURVE_BUTTONS[slider] = vc;
     }
-    else {
-        name.Replace("IDD_SLIDER_", "ID_VALUECURVE_");
-    }
-    ValueCurveButton* vc = (ValueCurveButton*)slider->GetParent()->FindWindowByName(name);
     
     if (vc != NULL)
     {
@@ -173,13 +189,20 @@ void EffectPanelUtils::UpdateLinkedTextCtrlVC(wxScrollEvent& event)
 void EffectPanelUtils::UpdateLinkedSlider360(wxCommandEvent& event)
 {
     wxTextCtrl * txt = (wxTextCtrl*)event.GetEventObject();
-    wxString name = txt->GetName();
-    if (name.Contains("IDD_")) {
-        name.Replace("IDD_TEXTCTRL_", "ID_SLIDER_");
-    } else {
-        name.Replace("ID_TEXTCTRL_", "IDD_SLIDER_");
+    wxSlider *slider = (wxSlider*)LINKED_CONTROLS[txt];
+    if (slider == nullptr) {
+        wxString name = txt->GetName();
+        if (name.Contains("IDD_")) {
+            name.Replace("IDD_TEXTCTRL_", "ID_SLIDER_");
+        } else {
+            name.Replace("ID_TEXTCTRL_", "IDD_SLIDER_");
+        }
+        slider = (wxSlider*)txt->GetParent()->FindWindowByName(name);
+        if (slider == nullptr) {
+            return;
+        }
+        LINKED_CONTROLS[txt] = slider;
     }
-    wxSlider *slider = (wxSlider*)txt->GetParent()->FindWindowByName(name);
     if (slider == nullptr) {
         return;
     }
@@ -201,26 +224,34 @@ void EffectPanelUtils::UpdateLinkedSlider360(wxCommandEvent& event)
 void EffectPanelUtils::UpdateLinkedTextCtrl360(wxScrollEvent& event)
 {
     wxSlider * slider = (wxSlider*)event.GetEventObject();
-    wxString name = slider->GetName();
-    if (name.Contains("ID_")) {
-        name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
-    } else {
-        name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
+    wxTextCtrl *txt = (wxTextCtrl*)LINKED_CONTROLS[slider];
+    if (txt == nullptr) {
+        wxString name = slider->GetName();
+        if (name.Contains("ID_")) {
+            name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
+        } else {
+            name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
+        }
+        txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
+        LINKED_CONTROLS[slider] = txt;
     }
-    wxTextCtrl *txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
     txt->ChangeValue(wxString::Format("%0.2f",slider->GetValue()/360.0));
 }
 
 void EffectPanelUtils::UpdateLinkedTextCtrlFloat(wxScrollEvent& event)
 {
     wxSlider * slider = (wxSlider*)event.GetEventObject();
-    wxString name = slider->GetName();
-    if (name.Contains("ID_")) {
-        name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
-    } else {
-        name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
+    wxTextCtrl *txt = (wxTextCtrl*)LINKED_CONTROLS[slider];
+    if (txt == nullptr) {
+        wxString name = slider->GetName();
+        if (name.Contains("ID_")) {
+            name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
+        } else {
+            name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
+        }
+        txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
+        LINKED_CONTROLS[slider] = txt;
     }
-    wxTextCtrl *txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
     txt->ChangeValue(wxString::Format("%0.1f",slider->GetValue()/10.0));
 }
 
@@ -253,13 +284,20 @@ void EffectPanelUtils::UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event)
 void EffectPanelUtils::UpdateLinkedSliderFloat(wxCommandEvent& event)
 {
     wxTextCtrl * txt = (wxTextCtrl*)event.GetEventObject();
-    wxString name = txt->GetName();
-    if (name.Contains("IDD_")) {
-        name.Replace("IDD_TEXTCTRL_", "ID_SLIDER_");
-    } else {
-        name.Replace("ID_TEXTCTRL_", "IDD_SLIDER_");
+    wxSlider *slider = (wxSlider*)LINKED_CONTROLS[txt];
+    if (slider == nullptr) {
+        wxString name = txt->GetName();
+        if (name.Contains("IDD_")) {
+            name.Replace("IDD_TEXTCTRL_", "ID_SLIDER_");
+        } else {
+            name.Replace("ID_TEXTCTRL_", "IDD_SLIDER_");
+        }
+        slider = (wxSlider*)txt->GetParent()->FindWindowByName(name);
+        if (slider == nullptr) {
+            return;
+        }
+        LINKED_CONTROLS[txt] = slider;
     }
-    wxSlider *slider = (wxSlider*)txt->GetParent()->FindWindowByName(name);
     if (slider == nullptr) {
         return;
     }

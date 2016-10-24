@@ -3,8 +3,6 @@
 #include "wx/wx.h"
 
 
-wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
-
 class RenderableEffect;
 
 class DragEffectBitmapButton : public wxBitmapButton
