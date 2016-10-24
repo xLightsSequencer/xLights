@@ -6,9 +6,11 @@
 #include "../UtilClasses.h"
 #include "assist/AssistPanel.h"
 #include "assist/xlGridCanvasMorph.h"
+#include "../Models/Model.h"
 
 #include "../../include/morph-16.xpm"
 #include "../../include/morph-64.xpm"
+#include "../SequenceCheck.h"
 
 
 MorphEffect::MorphEffect(int id) : RenderableEffect(id, "Morph", morph_16, morph_64, morph_64, morph_64, morph_64)
@@ -30,6 +32,45 @@ AssistPanel *MorphEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_fram
     xlGridCanvas* grid = new xlGridCanvasMorph(assist_panel->GetCanvasParent(), wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("MorphGrid"));
     assist_panel->SetGridCanvas(grid);
     return assist_panel;
+}
+
+std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    if (settings.Get("E_VALUECURVE_Morph_Start_X1", "").find("Active=TRUE") != std::string::npos ||
+        settings.Get("E_VALUECURVE_Morph_Start_X2", "").find("Active=TRUE") != std::string::npos ||
+        settings.Get("E_VALUECURVE_Morph_Start_Y1", "").find("Active=TRUE") != std::string::npos ||
+        settings.Get("E_VALUECURVE_Morph_Start_Y2", "").find("Active=TRUE") != std::string::npos ||
+        settings.Get("E_VALUECURVE_Morph_End_X1", "").find("Active=TRUE") != std::string::npos ||
+        settings.Get("E_VALUECURVE_Morph_End_X2", "").find("Active=TRUE") != std::string::npos ||
+        settings.Get("E_VALUECURVE_Morph_End_Y1", "").find("Active=TRUE") != std::string::npos ||
+        settings.Get("E_VALUECURVE_Morph_End_Y2", "").find("Active=TRUE") != std::string::npos ||
+        settings.Get("E_VALUECURVE_MorphRepeat_Count", "").find("Active=TRUE") != std::string::npos ||
+        settings.Get("E_VALUECURVE_MorphRepeat_Skip", "").find("Active=TRUE") != std::string::npos
+        )
+    {
+        // we cant validate a value curve
+    }
+    else
+    {
+        int startx = std::max(1,std::abs(settings.GetInt("E_SLIDER_Morph_Start_X1", 0) - settings.GetInt("E_SLIDER_Morph_Start_X2", 0)) * model->GetDefaultBufferWi() / 80);
+        int endx = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_X1", 0) - settings.GetInt("E_SLIDER_Morph_End_X2", 0)) * model->GetDefaultBufferWi() / 80);
+        int starty = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_Y1", 0) - settings.GetInt("E_SLIDER_Morph_Start_Y2", 0)) * model->GetDefaultBufferWi() / 80);
+        int endy = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_Y1", 0) - settings.GetInt("E_SLIDER_Morph_End_Y2", 0)) * model->GetDefaultBufferWi() / 80);
+
+        int minmorph = std::min(startx, std::min(starty, std::min(endx, endy)));
+        int repeat_count = settings.GetInt("E_SLIDER_Morph_Repeat_Count", 0);
+        int repeat_skip = settings.GetInt("E_SLIDER_Morph_Repeat_Skip", 0);
+        int maxmodel = std::max(model->GetDefaultBufferWi(), model->GetDefaultBufferHt());
+
+        if ((minmorph + repeat_skip) * repeat_count > 2 * maxmodel)
+        {
+            res.push_back(wxString::Format("    WARN: Morph effect with repeat count and skip which are larger than necessary. This may lead to slow render times. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        }
+    }
+
+    return res;
 }
 
 void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlColor &start_t, xlColor &end_t) {
