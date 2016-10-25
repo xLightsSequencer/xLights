@@ -91,7 +91,7 @@ void EffectPanelUtils::UpdateLinkedSlider(wxCommandEvent& event)
 void EffectPanelUtils::UpdateLinkedTextCtrl(wxScrollEvent& event)
 {
     wxSlider * slider = (wxSlider*)event.GetEventObject();
-    
+
     wxTextCtrl *txt = (wxTextCtrl*)LINKED_CONTROLS[slider];
     if (txt == nullptr) {
         wxString name = slider->GetName();
@@ -172,7 +172,7 @@ void EffectPanelUtils::UpdateLinkedTextCtrlVC(wxScrollEvent& event)
         vc = (ValueCurveButton*)slider->GetParent()->FindWindowByName(name);
         VALUE_CURVE_BUTTONS[slider] = vc;
     }
-    
+
     if (vc != NULL)
     {
         if (vc->GetValue()->GetType() == "Flat")
@@ -182,6 +182,7 @@ void EffectPanelUtils::UpdateLinkedTextCtrlVC(wxScrollEvent& event)
     }
     else
     {
+        wxString name = slider->GetName();
         wxASSERT("Value curve button not found: " + name);
     }
 }
