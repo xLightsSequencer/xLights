@@ -6,7 +6,7 @@
 #include "../UtilClasses.h"
 #include "assist/AssistPanel.h"
 #include "assist/xlGridCanvasMorph.h"
-#include "../Models/Model.h"
+#include "../models/Model.h"
 
 #include "../../include/morph-16.xpm"
 #include "../../include/morph-64.xpm"
