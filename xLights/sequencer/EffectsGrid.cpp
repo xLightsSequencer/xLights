@@ -2258,9 +2258,9 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                             EFFECT_NOT_SELECTED,
                             false);
                         logger_base.info("(1) Created effect %s  %s  %s  %d %d -->  %X",
-                            (const char *)efdata[0].ToStdString().c_str(),
-                            (const char *)efdata[1].ToStdString().c_str(),
-                            (const char *)efdata[2].ToStdString().c_str(),
+                            (const char *)efdata[0].c_str(),
+                            (const char *)efdata[1].Left(128).c_str(),
+                            (const char *)efdata[2].c_str(),
                                          new_start_time,
                                          new_end_time, ef);
                         if (!is_timing_effect && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
@@ -2419,9 +2419,9 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                                       EFFECT_SELECTED,
                                       false);
                             logger_base.info("(3) Created effect %s  %s  %s  %d %d -->  %X",
-                                (const char *)efdata[0].ToStdString().c_str(),
-                                (const char *)efdata[1].ToStdString().c_str(),
-                                (const char *)efdata[2].ToStdString().c_str(),
+                                (const char *)efdata[0].c_str(),
+                                (const char *)efdata[1].Left(128).c_str(),
+                                (const char *)efdata[2].c_str(),
                                              mDropStartTimeMS,
                                              end_time, ef);
                             if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
