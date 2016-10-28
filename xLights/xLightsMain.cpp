@@ -1532,7 +1532,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     //to whatever the timing that is selected
     Timer1.Start(50, wxTIMER_CONTINUOUS);
 
-    // What makes 4 the right answer ... try 10 ... why ... usually it is one thread that runs slow and that model 
+    // What makes 4 the right answer ... try 10 ... why ... usually it is one thread that runs slow and that model
     // holds up others so in the time while we wait for the busy thread we can actually run a lot more models
     // what is the worst that could happen ... all models want to run hard so we lose some efficiency while we churn between
     // threads ... a minor loss of efficiency ... I think the one thread blocks the others is more common.
@@ -3769,7 +3769,12 @@ void xLightsFrame::CheckSequence(bool display)
                 size_t colon = start.find(':', 1);
                 if (colon != std::string::npos)
                 {
-                    int universe = wxAtoi(wxString(start.substr(1, colon - 1)));
+                    size_t colon2 = start.find(':',colon+1);
+                    if (colon2 == -1) {
+                        colon2 = colon;
+                        colon = 0;
+                    }
+                    int universe = wxAtoi(wxString(start.substr(colon+1,colon2-1)));
 
                     auto universes = AllModels.GetNetInfo().GetUniverses();
 
