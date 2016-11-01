@@ -175,6 +175,7 @@ TextPanel::TextPanel(wxWindow* parent)
 	Choice_Text_Count = new wxChoice(Panel_Text1, ID_CHOICE_Text_Count, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_Count"));
 	Choice_Text_Count->SetSelection( Choice_Text_Count->Append(_("none")) );
 	Choice_Text_Count->Append(_("seconds"));
+	Choice_Text_Count->Append(_("minutes seconds"));
 	Choice_Text_Count->Append(_("to date \'d h m s\'"));
 	Choice_Text_Count->Append(_("to date \'h:m:s\'"));
 	Choice_Text_Count->Append(_("to date \'m\' or \'s\'"));
