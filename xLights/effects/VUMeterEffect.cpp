@@ -83,7 +83,7 @@ void VUMeterEffect::SetPanelStatus(Model* cls)
     for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
-        if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
+        if (e->GetType() == ELEMENT_TYPE_TIMING)
         {
             vp->Choice_VUMeter_TimingTrack->Append(e->GetName());
         }
