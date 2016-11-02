@@ -65,9 +65,9 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     }
     size_t colorcnt=buffer.GetColorCount();
     int SpiralCount=colorcnt * PaletteRepeat;
-    int deltaStrands=buffer.BufferWi / SpiralCount;
-    int SpiralThickness=(deltaStrands * Thickness / 100) + 1;
-    int spiralGap = deltaStrands - SpiralThickness;
+    double deltaStrands=buffer.BufferWi / SpiralCount;
+    double SpiralThickness=(deltaStrands * Thickness / 100) + 1;
+    double spiralGap = deltaStrands - SpiralThickness;
     long SpiralState;
     long ThicknessState = 0;
     HSVValue hsv;
