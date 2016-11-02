@@ -321,6 +321,7 @@ static int TextCountDownIndex(const wxString &st) {
     if (st == "to date 'm' or 's'") return 4;
     if (st == "to date 's'") return 5;
     if (st == "!to date!%fmt") return 6;
+    if (st == "minutes seconds") return 7;
     return 0;
 }
 static int TextEffectsIndex(const wxString &st) {
@@ -568,6 +569,8 @@ void DrawLabel(TextDrawingContext *dc,
 #define COUNTDOWN_M_or_S  4
 #define COUNTDOWN_S  5
 #define COUNTDOWN_FREEFMT  6
+#define COUNTDOWN_MINUTES_SECONDS 7
+
 
 
 
@@ -615,7 +618,7 @@ TextRenderCache *GetCache(RenderBuffer &buffer, int id) {
     return cache;
 }
 
-
+//jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
 void TextEffect::RenderTextLine(RenderBuffer &buffer,
                                 TextDrawingContext* dc, const wxString& Line_orig, int dir,
                                 bool center, int Effect, int Countdown, int tspeed,
@@ -646,6 +649,19 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
             seconds=(GetCache(buffer,id)->timer_countdown-buffer.curPeriod)/framesPerSec;
             if(seconds < 0) seconds=0;
             msg=wxString::Format("%i",seconds);
+            break;
+//jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
+        case COUNTDOWN_MINUTES_SECONDS:
+            if (state==0)
+            {
+                if(!Line.ToLong(&tempLong)) tempLong=0;
+                GetCache(buffer, id)->timer_countdown = buffer.curPeriod+tempLong*framesPerSec+framesPerSec-1;
+            }
+            seconds=(GetCache(buffer,id)->timer_countdown-buffer.curPeriod)/framesPerSec;
+            minutes = (seconds / 60) % 60;
+            seconds = seconds - (minutes * 60);
+            if(seconds < 0) seconds=0;
+            msg=wxString::Format("%d : %d", minutes, seconds);
             break;
 
         case COUNTDOWN_FREEFMT: //free format text with embedded formatting chars -DJ

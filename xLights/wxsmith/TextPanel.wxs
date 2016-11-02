@@ -237,6 +237,7 @@
 										<content>
 											<item>none</item>
 											<item>seconds</item>
+											<item>minutes seconds</item>
 											<item>to date &apos;d h m s&apos;</item>
 											<item>to date &apos;h:m:s&apos;</item>
 											<item>to date &apos;m&apos; or &apos;s&apos;</item>
