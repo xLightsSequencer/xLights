@@ -148,7 +148,7 @@ public:
 	};
 
 	std::string _filename;
-	int _starttime;
+	double _starttime;
     VideoReader* _videoreader;
 	int _videoframerate;
 	bool _aspectratio;
@@ -168,7 +168,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	}
 
 	std::string &_filename = cache->_filename;
-	int &_starttime = cache->_starttime;
+	double &_starttime = cache->_starttime;
 	bool &_aspectratio = cache->_aspectratio;
 	std::string &_durationTreatment = cache->_durationTreatment;
 	int &_loops = cache->_loops;
@@ -227,7 +227,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
                 if (_durationTreatment == "Slow/Accelerate")
                 {
                     int effectFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
-                    int videoFrames = (videolen - _starttime) / buffer.frameTimeInMs;
+                    int videoFrames = (videolen - (_starttime * 1000)) / buffer.frameTimeInMs;
                     float speedFactor = (float)videoFrames / (float)effectFrames;
                     _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
                 }
