@@ -245,6 +245,7 @@
 											<item>!to date!%fmt</item>
 										</content>
 										<selection>0</selection>
+										<tooltip>seconds: enter time in seconds&#x0A;minutes seconds: enter time in seconds. Will be converted to M : S&#x0A;&#x0A;to date &apos;d h m s&apos;&#x0A;to date &apos;h:m:s&apos;&#x0A;to date &apos;m&apos; or &apos;s&apos;&#x0A;to date &apos;s&apos;&#x0A;&#x0A;These options count down to given date based on system date and time. Enter Date in on of the following formats: &#x0A;Fri, 25 Dec 2015 00:00:00 +0100&#x0A;Fri, 25 Dec 2015 00:00:00 CST&#x0A;Fri, 25 Dec 2015 00:00:00 MST&#x0A;&#x0A;&#x0A;!to date!%fmt&#x0A;&#x0A;This option allows you to choose the output format. i.e. days only.&#x0A;Enter Date in the following format to display days only:&#x0A;/Fri, 25 Dec 2015 00:00:00 +0100/ %D</tooltip>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
