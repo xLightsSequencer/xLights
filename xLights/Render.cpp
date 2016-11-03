@@ -787,9 +787,11 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
     for (size_t row = 0; row < numRows; row++) {
         if (jobs[row]) {
             if (aggregators[row]->getNumAggregated() == 0) {
+                //start all the jobs that don't depend on anything above them
+                //get them rendering while we setup the rest
                 jobs[row]->setPreviousFrameDone(END_OF_RENDER_FRAME);
+                jobPool.PushJob(jobs[row]);
             }
-            jobPool.PushJob(jobs[row]);
 
             wxStaticText *label = new wxStaticText(renderProgressDialog->scrolledWindow, wxID_ANY, jobs[row]->GetName());
             renderProgressDialog->scrolledWindowSizer->Add(label,1, wxALL |wxEXPAND,3);
@@ -798,6 +800,12 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
             g->SetMinSize(wxSize(100, -1));
             renderProgressDialog->scrolledWindowSizer->Add(g, 1, wxALL |wxEXPAND,3);
             jobs[row]->SetGauge(g);
+        }
+    }
+    for (size_t row = 0; row < numRows; row++) {
+        if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
+            //now start the rest
+            jobPool.PushJob(jobs[row]);
         }
     }
     renderProgressDialog->SetSize(250, 400);
