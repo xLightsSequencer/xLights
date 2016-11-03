@@ -743,64 +743,88 @@ static void boxesForGauss(int d, int n, std::vector<float> &boxes)  // standard 
     */
 }
 
+#define RED(a, b) a[(b)*4]
+#define GREEN(a, b) a[(b)*4 + 1]
+#define BLUE(a, b) a[(b)*4 + 2]
+#define ALPHA(a, b) a[(b)*4 + 3]
+static inline void SET(float *ar, int idx, float r, float g, float b, float a) {
+    idx *= 4;
+    ar[idx++] = r;
+    ar[idx++] = g;
+    ar[idx++] = b;
+    ar[idx] = a;
+}
 
-static void boxBlurH_4 (xlColorVector &scl, xlColorVector &tcl, int w, int h, float r) {
+static void boxBlurH_4 (const float  * const scl, float *tcl, int w, int h, float r) {
     float iarr = 1.0f / (r+r+1.0f);
     for(int i=0; i<h; i++) {
         int ti = i*w;
         int li = ti;
         int ri = ti+r;
         int maxri = ti + w - 1;
-        xlColor fv = scl[ti];
-        xlColor lv = scl[ti+w-1];
-        float valr = (r+1)*fv.red;
-        float valg = (r+1)*fv.green;
-        float valb = (r+1)*fv.blue;
-        float vala = (r+1)*fv.alpha;
+        int fvIdx = ti;
+        int lvIdx = ti+w-1;
+        
+        float valr = (r+1.0) * RED(scl,fvIdx);
+        float valg = (r+1.0) * GREEN(scl,fvIdx);
+        float valb = (r+1.0) * BLUE(scl,fvIdx);
+        float vala = (r+1.0) * ALPHA(scl,fvIdx);
+        
+        float fvRed = RED(scl, fvIdx);
+        float fvGreen = GREEN(scl, fvIdx);
+        float fvBlue = BLUE(scl, fvIdx);
+        float fvAlpha = ALPHA(scl, fvIdx);
+        float lvRed = RED(scl, lvIdx);
+        float lvGreen = GREEN(scl, lvIdx);
+        float lvBlue = BLUE(scl, lvIdx);
+        float lvAlpha = ALPHA(scl, lvIdx);
 
         for (int j=0; j<r; j++) {
-            xlColor &c = j < w ? scl[ti+j] : lv;
-            valr += c.red;
-            valg += c.green;
-            valb += c.blue;
-            vala += c.alpha;
+            int idx = j < w ? ti+j : lvIdx;
+            valr += RED(scl, idx);
+            valg += GREEN(scl, idx);
+            valb += BLUE(scl, idx);
+            vala += ALPHA(scl, idx);
         }
         for (int j=0  ; j<=r ; j++) {
-            xlColor &c = ri <= maxri ? scl[ri++] : lv;
-            valr += c.red - fv.red;
-            valg += c.green - fv.green;
-            valb += c.blue - fv.blue;
-            vala += c.alpha - fv.alpha;
+            int idx = ri <= maxri ? ri++ : lvIdx;
+            valr += RED(scl, idx) - fvRed;
+            valg += GREEN(scl, idx) - fvGreen;
+            valb += BLUE(scl, idx) - fvBlue;
+            vala += ALPHA(scl, idx) - fvAlpha;
 
             if (ti <= maxri) {
-                tcl[ti++].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+                SET(tcl, ti, valr*iarr, valg*iarr, valb*iarr, vala*iarr);
+                ti++;
             }
         }
         for (int j=r+1; j<w-r; j++) {
-            xlColor &c = ri <= maxri ? scl[ri++] : lv;
-            xlColor &c2 = li <= maxri ? scl[li++] : lv;
-            valr += c.red - c2.red;
-            valg += c.green - c2.green;
-            valb += c.blue - c2.blue;
-            vala += c.alpha - c2.alpha;
+            int c = ri <= maxri ? ri++ : lvIdx;
+            int c2 = li <= maxri ? li++ : lvIdx;
+            valr += RED(scl, c) - RED(scl, c2);
+            valg += GREEN(scl, c) - GREEN(scl, c2);
+            valb += BLUE(scl, c) - BLUE(scl, c2);
+            vala += ALPHA(scl, c) - ALPHA(scl, c2);
             if (ti <= maxri) {
-                tcl[ti++].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+                SET(tcl, ti, valr*iarr, valg*iarr, valb*iarr, vala*iarr);
+                ti++;
             }
         }
         
         for (int j=w-r; j<w  ; j++) {
-            xlColor &c2 = li <= maxri ? scl[li++]: lv;
-            valr += lv.red - c2.red;
-            valg += lv.green - c2.green;
-            valb += lv.blue - c2.blue;
-            vala += lv.alpha - c2.alpha;
+            int c2 = li <= maxri ? li++: lvIdx;
+            valr += lvRed - RED(scl, c2);
+            valg += lvGreen - GREEN(scl, c2);
+            valb += lvBlue - BLUE(scl, c2);
+            vala += lvAlpha - ALPHA(scl, c2);
             if (ti <= maxri) {
-                tcl[ti++].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+                SET(tcl, ti, valr*iarr, valg*iarr, valb*iarr, vala*iarr);
+                ti++;
             }
         }
     }
 }
-static void boxBlurT_4 (xlColorVector &scl, xlColorVector &tcl, int w, int h, float r) {
+static void boxBlurT_4 (const float * const scl, float *tcl, int w, int h, float r) {
     float iarr = 1.0f / (r+r+1.0f);
     for(int i=0; i<w; i++) {
         int ti = i;
@@ -808,73 +832,88 @@ static void boxBlurT_4 (xlColorVector &scl, xlColorVector &tcl, int w, int h, fl
         int ri = ti+r*w;
         
         int maxri = ti+w*(h-1);
-        xlColor fv = scl[ti];
-        xlColor lv = scl[ti+w*(h-1)];
-        float valr = (r+1)*fv.red;
-        float valg = (r+1)*fv.green;
-        float valb = (r+1)*fv.blue;
-        float vala = (r+1)*fv.alpha;
         
+        int fvIdx = ti;
+        int lvIdx = ti+w*(h-1);
+        
+        float fvRed = RED(scl, fvIdx);
+        float fvGreen = GREEN(scl, fvIdx);
+        float fvBlue = BLUE(scl, fvIdx);
+        float fvAlpha = ALPHA(scl, fvIdx);
+        float lvRed = RED(scl, lvIdx);
+        float lvGreen = GREEN(scl, lvIdx);
+        float lvBlue = BLUE(scl, lvIdx);
+        float lvAlpha = ALPHA(scl, lvIdx);
+        
+        float valr = (r+1)*fvRed;
+        float valg = (r+1)*fvGreen;
+        float valb = (r+1)*fvBlue;
+        float vala = (r+1)*fvAlpha;
+
         for(int j=0; j<r; j++) {
-            xlColor &c = j < h ? scl[ti+j*w] : lv;
-            valr += c.red;
-            valg += c.green;
-            valb += c.blue;
-            vala += c.alpha;
+            int idx = j < w ? ti+j*w : lvIdx;
+            valr += RED(scl, idx);
+            valg += GREEN(scl, idx);
+            valb += BLUE(scl, idx);
+            vala += ALPHA(scl, idx);
         }
         for(int j=0  ; j<=r ; j++) {
-            xlColor &c = ri <= maxri ? scl[ri] : lv;
-            valr += c.red - fv.red;
-            valg += c.green - fv.green;
-            valb += c.blue - fv.blue;
-            vala += c.alpha - fv.alpha;
+            int idx = ri <= maxri ? ri : lvIdx;
+            valr += RED(scl, idx) - fvRed;
+            valg += GREEN(scl, idx) - fvGreen;
+            valb += BLUE(scl, idx) - fvBlue;
+            vala += ALPHA(scl, idx) - fvAlpha;
             if (ti <= maxri) {
-                tcl[ti].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+                SET(tcl, ti, valr*iarr, valg*iarr, valb*iarr, vala*iarr);
             }
             ri+=w;
             ti+=w;
         }
         for(int j=r+1; j<h-r; j++) {
-            xlColor &c = ri <= maxri ? scl[ri] : lv;
-            xlColor &c2 = li <= maxri ? scl[li] : lv;
-            valr += c.red - c2.red;
-            valg += c.green - c2.green;
-            valb += c.blue - c2.blue;
-            vala += c.alpha - c2.alpha;
+            int c = ri <= maxri ? ri : lvIdx;
+            int c2 = li <= maxri ? li : lvIdx;
+            valr += RED(scl, c) - RED(scl, c2);
+            valg += GREEN(scl, c) - GREEN(scl, c2);
+            valb += BLUE(scl, c) - BLUE(scl, c2);
+            vala += ALPHA(scl, c) - ALPHA(scl, c2);
             if (ti <= maxri) {
-                tcl[ti].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+                SET(tcl, ti, valr*iarr, valg*iarr, valb*iarr, vala*iarr);
             }
             li+=w; ri+=w; ti+=w;
         }
         for(int j=h-r; j<h  ; j++) {
-            xlColor &c2 = li <= maxri ? scl[li] : lv;
-            valr += lv.red - c2.red;
-            valg += lv.green - c2.green;
-            valb += lv.blue - c2.blue;
-            vala += lv.alpha - c2.alpha;
+            int c2 = li <= maxri ? li : lvIdx;
+            valr += lvRed - RED(scl, c2);
+            valg += lvGreen - GREEN(scl, c2);
+            valb += lvBlue - BLUE(scl, c2);
+            vala += lvAlpha - ALPHA(scl, c2);
             if (ti <= maxri) {
-                tcl[ti].Set(std::round(valr*iarr), std::round(valg*iarr), std::round(valb*iarr), std::round(vala*iarr));
+                SET(tcl, ti, valr*iarr, valg*iarr, valb*iarr, vala*iarr);
             }
             li += w;
             ti += w;
         }
     }
 }
-static void boxBlur_4(xlColorVector &scl, xlColorVector &tcl, int w, int h, float r) {
-    tcl = scl;
+static void boxBlur_4(float *scl, float *tcl, int w, int h, float r, int size) {
+    memcpy(tcl, scl, sizeof(float)*4*size);
     boxBlurH_4(tcl, scl, w, h, r);
     boxBlurT_4(scl, tcl, w, h, r);
 }
 
-static void gaussBlur_4(xlColorVector &scl, xlColorVector &tcl, int w, int h, int r) {
+static void gaussBlur_4(float *scl, float *tcl, int w, int h, int r, int size) {
     std::vector<float> bxs;
     boxesForGauss(r - 1, 3, bxs);
-    
-    boxBlur_4 (scl, tcl, w, h, (bxs[0]-1)/2);
-    boxBlur_4 (tcl, scl, w, h, (bxs[1]-1)/2);
-    boxBlur_4 (scl, tcl, w, h, (bxs[2]-1)/2);
+    boxBlur_4 (scl, tcl, w, h, (bxs[0]-1)/2, size);
+    boxBlur_4 (tcl, scl, w, h, (bxs[1]-1)/2, size);
+    boxBlur_4 (scl, tcl, w, h, (bxs[2]-1)/2, size);
 }
 
+static inline int roundInt(float r) {
+    int tmp = static_cast<int> (r);
+    tmp += (r-tmp>=.5) - (r-tmp<=-.5);
+    return tmp;
+}
 void PixelBufferClass::Blur(LayerInfo* layer, float offset)
 {
     int b = 0;
@@ -893,10 +932,27 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
     }
     if (b < 2) {
         return;
-    } else if (b > 2) {
-        xlColorVector tmp;
-        tmp.resize(layer->buffer.pixels.size());
-        gaussBlur_4(layer->buffer.pixels, tmp, layer->BufferWi, layer->BufferHt, b);
+    } else if (b > 2 && layer->BufferWi > 6 && layer->BufferHt > 6) {
+        int pixCount = layer->buffer.pixels.size();
+        float * input = new float[pixCount * 4];
+        float * tmp = new float[pixCount * 4];
+        for (int x = 0; x < pixCount; x++) {
+            const xlColor &c = layer->buffer.pixels[x];
+            input[x * 4] = c.red;
+            input[x * 4 + 1] = c.green;
+            input[x * 4 + 2] = c.blue;
+            input[x * 4 + 3] = c.alpha;
+        }
+        gaussBlur_4(input, tmp, layer->BufferWi, layer->BufferHt, b, pixCount);
+
+        for (int x = 0; x < pixCount; x++) {
+            layer->buffer.pixels[x].Set(roundInt(tmp[x*4]),
+                                        roundInt(tmp[x*4 + 1]),
+                                        roundInt(tmp[x*4 + 2]),
+                                        roundInt(tmp[x*4 + 3]));
+        }
+        delete [] input;
+        delete [] tmp;
     } else {
         int d = 0;
         int u = 0;
