@@ -1,3 +1,6 @@
 .objs/
 xLights.depend
 xLights.layout
+*.psess
+*.vsp
+*.vspx
