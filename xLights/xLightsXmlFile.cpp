@@ -964,48 +964,15 @@ wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
             return relative;
         }
     }
-
-    // Disabling this ... untested but even if it does work the scenarios are really not that useful
-    //wxString fpath;
-    //wxString ffname;
-    //wxString fext;
-    //wxFileName::SplitPath(file, &fpath, &ffname, &fext);
-    //wxArrayString fparts = wxSplit(fpath, '\\', '\\');
-    //if (fparts.Count() == 0)
-    //{
-    //	fparts = wxSplit(fpath, '/', '/');
-    //}
-
-    //int foundindex = -1;
-    //int i = 0;
-    //while (foundindex < 0 && i < fparts.Count())
-    //{
-    //	wxString fpartlc = fparts[i];
-    //	fpartlc.LowerCase();
-
-    //	if (fpartlc == sflc)
-    //	{
-    //		foundindex = i;
-    //	}
-    //	i++;
-    //}
-
-    //for (i = fparts.Count() - 1; i > foundindex; i--)
-    //{
-    //	wxString testfile = sd + "/";
-    //	for (int j = foundindex + 1; j <= i; j++)
-    //	{
-    //		testfile = testfile + fparts[j] + "/";
-    //	}
-    //	testfile = testfile + ffname + fext;
-
-    //	if (wxFileExists(testfile))
-    //	{
-    //		return testfile;
-    //	}
-    //}
-
-	return file;
+#ifndef __WXMSW__
+    if (ShowDir == "" && fnUnix.GetDirCount() > 0) {
+        return FixFile(sd + "/" + fnUnix.GetDirs().Last(), file);
+    }
+#endif
+    if (ShowDir == "" && fnWin.GetDirCount() > 0) {
+        return FixFile(sd + "\\" + fnWin.GetDirs().Last(), file);
+    }
+   	return file;
 }
 
 wxString xLightsXmlFile::FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir)
