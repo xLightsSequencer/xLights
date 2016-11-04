@@ -354,6 +354,16 @@ void FPPConnectDialog::ValidateWindow()
         CheckBox_UploadController->Disable();
         CheckBox_UploadController->SetValue(false);
     }
+    if (wxFile::Exists(xLightsFrame::CurrentDir + "/channelmemorymaps"))
+    {
+        CheckBox_UploadModels->Enable();
+    }
+    else
+    {
+        CheckBox_UploadModels->Disable();
+        CheckBox_UploadModels->SetValue(false);
+    }
+
 
     if (Notebook_FPP->GetSelection() == 0)
     {
