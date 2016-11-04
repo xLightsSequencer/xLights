@@ -68,6 +68,17 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
         {
             res.push_back(wxString::Format("    WARN: Face effect with transformed buffer '%s' may not render correctly. Model '%s', Start %s", model->GetName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
+
+        if (settings.GetInt("B_SLIDER_Rotation", 0) != 0 || 
+            settings.GetInt("B_SLIDER_Rotations", 0) != 0 ||
+            settings.GetInt("B_SLIDER_Zoom",1) != 1 || 
+            settings.Get("B_VALUECURVE_Rotation", "").find("Active=TRUE") != std::string::npos ||
+            settings.Get("B_VALUECURVE_Rotations", "").find("Active=TRUE") != std::string::npos ||
+            settings.Get("B_VALUECURVE_Zoom", "").find("Active=TRUE") != std::string::npos
+            )
+        {
+            res.push_back(wxString::Format("    WARN: Face effect with rotozoom active '%s' may not render correctly. Model '%s', Start %s", model->GetName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        }
     }
 
     if (modelType == "Matrix")
