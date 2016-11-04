@@ -742,7 +742,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
                 for (int x = 0; x < me->GetStrandCount(); x++) {
                     StrandElement *se = me->GetStrand(x);
                     for (int n = 0; n < se->GetNodeLayerCount(); n++) {
-                        hasEffects |= se->GetNodeLayer(x)->GetEffectCount() > 0;
+                        hasEffects |= se->GetNodeLayer(n)->GetEffectCount() > 0;
                     }
                 }
             }
