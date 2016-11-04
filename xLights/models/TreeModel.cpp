@@ -69,11 +69,12 @@ void TreeModel::SetTreeCoord(long degrees) {
         
         double StartAngle=-radians/2.0;
         double AngleIncr=radians/double(BufferWi);
-        
-        if (degrees > 180) {
-            //shift a tiny bit to make the strands in back not line up exactly with the strands in front
-            StartAngle += toRadians(rotation);
+        if (degrees < 350 && BufferWi > 1) {
+            AngleIncr=radians/double(BufferWi - 1);
         }
+        
+        //shift a tiny bit to make the strands in back not line up exactly with the strands in front
+        StartAngle += toRadians(rotation);
         
         std::vector<float> yPos(BufferHt);
         std::vector<float> xInc(BufferHt);
