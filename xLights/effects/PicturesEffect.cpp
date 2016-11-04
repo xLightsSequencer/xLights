@@ -555,6 +555,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         {
             //logger_base.debug("Preparing GIF file for reading: %s", (const char *)NewPictureName.c_str());
             wxFileInputStream stream(NewPictureName);
+            GIFDecoder.Destroy();
             if (!stream.IsOk() || GIFDecoder.LoadGIF(stream) != wxGIF_OK)
             {
                 logger_base.warn("Error opening GIF file %s.", (const char *)NewPictureName.c_str());
