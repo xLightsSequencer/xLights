@@ -160,6 +160,7 @@ public:
 void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	double starttime, bool aspectratio, std::string durationTreatment)
 {
+    wxStopWatch sw;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     VideoRenderCache *cache = (VideoRenderCache*)buffer.infoCache[id];
 	if (cache == nullptr) {
@@ -242,10 +243,12 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
         }
 	}
 
+
 	if (_videoreader != nullptr)
 	{
-		// get the image for the current frame
-		AVFrame* image = _videoreader->GetNextFrame(_starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * _videoreader->GetLengthMS());
+        long frame = _starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * _videoreader->GetLengthMS();
+        // get the image for the current frame
+		AVFrame* image = _videoreader->GetNextFrame(frame);
 		
 		// if we have reached the end and we are to loop
 		if (_videoreader->AtEnd() && _durationTreatment == "Loop")
@@ -253,7 +256,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 			_loops++;
 			// jump back to start and try to read frame again
 			_videoreader->Seek(0);
-			image = _videoreader->GetNextFrame(_starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * _videoreader->GetLengthMS());
+			image = _videoreader->GetNextFrame(frame);
 		}
 
 		int startx = (buffer.BufferWi - _videoreader->GetWidth()) / 2;
@@ -282,7 +285,8 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 					buffer.SetPixel(x + startx, y+starty, c);
 				}
 			}
-		}
+            //logger_base.debug("Video render %s frame %d timestamp %ldms took %ldms.", (const char *)filename.c_str(), buffer.curPeriod, frame, sw.Time());
+        }
 		else
 		{
 			// display a blue background to show we have gone past end of video

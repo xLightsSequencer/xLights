@@ -10,26 +10,26 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _valid = false;
 	_lengthMS = 0;
-	_formatContext = NULL;
-	_codecContext = NULL;
-	_videoStream = NULL;
-	_dstFrame = NULL;
-    _srcFrame = NULL;
+	_formatContext = nullptr;
+	_codecContext = nullptr;
+	_videoStream = nullptr;
+	_dstFrame = nullptr;
+    _srcFrame = nullptr;
 	_pixelFmt = AVPixelFormat::AV_PIX_FMT_RGB24;
 	_atEnd = false;
-	_swsCtx = NULL;
+	_swsCtx = nullptr;
     _dtspersec = 1;
 
 	av_register_all();
 
-	int res = avformat_open_input(&_formatContext, filename.c_str(), NULL, NULL);
+	int res = avformat_open_input(&_formatContext, filename.c_str(), nullptr, nullptr);
 	if (res != 0)
 	{
         logger_base.error("Error opening the file" + filename);
 		return;
 	}
 
-	if (avformat_find_stream_info(_formatContext, NULL) < 0)
+	if (avformat_find_stream_info(_formatContext, nullptr) < 0)
 	{
         logger_base.error("VideoReader: Error finding the stream info in " + filename);
 		return;
@@ -50,7 +50,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 
     _codecContext->active_thread_type = FF_THREAD_FRAME;
     _codecContext->thread_count = 1;
-	if (avcodec_open2(_codecContext, cdc, NULL) != 0)
+	if (avcodec_open2(_codecContext, cdc, nullptr) != 0)
 	{
         logger_base.error("VideoReader: Couldn't open the context with the decoder in " + filename);
 		return;
@@ -145,8 +145,8 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
     _srcFrame->pkt_pts = 0;
 
     _swsCtx = sws_getContext(_codecContext->width, _codecContext->height,
-                             _codecContext->pix_fmt, _width, _height, _pixelFmt, SWS_BICUBIC, NULL,
-                             NULL, NULL);
+                             _codecContext->pix_fmt, _width, _height, _pixelFmt, SWS_BICUBIC, nullptr,
+                             nullptr, nullptr);
 
     av_init_packet(&_packet);
 	_valid = true;
@@ -158,6 +158,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
     logger_base.info("      DTS per sec: %d", _dtspersec);
     logger_base.info("      _videoStream->nb_frames: %d", _videoStream->nb_frames);
     logger_base.info("      Source size: %dx%d", _codecContext->width, _codecContext->height);
+    logger_base.info("      Source coded size: %dx%d", _codecContext->coded_width, _codecContext->coded_height);
     logger_base.info("      Output size: %dx%d", _width, _height);
 }
 
@@ -178,33 +179,33 @@ int VideoReader::GetPos()
 
 VideoReader::~VideoReader()
 {
-    if (_swsCtx != NULL) {
+    if (_swsCtx != nullptr) {
         sws_freeContext(_swsCtx);
-        _swsCtx = NULL;
+        _swsCtx = nullptr;
     }
 
-    if (_srcFrame != NULL) {
+    if (_srcFrame != nullptr) {
         av_free(_srcFrame);
-        _srcFrame = NULL;
+        _srcFrame = nullptr;
     }
-	if (_dstFrame != NULL)
+	if (_dstFrame != nullptr)
 	{
-		if (_dstFrame->data[0] != NULL)
+		if (_dstFrame->data[0] != nullptr)
 		{
 			av_free(_dstFrame->data[0]);
 		}
 		av_free(_dstFrame);
-		_dstFrame = NULL;
+		_dstFrame = nullptr;
 	}
-	if (_codecContext != NULL)
+	if (_codecContext != nullptr)
 	{
 		avcodec_close(_codecContext);
-		_codecContext = NULL;
+		_codecContext = nullptr;
 	}
-	if (_formatContext != NULL)
+	if (_formatContext != nullptr)
 	{
 		avformat_close_input(&_formatContext);
-		_formatContext = NULL;
+		_formatContext = nullptr;
 	}
 }
 
@@ -281,7 +282,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS)
 {
     if (!_valid)
     {
-        return NULL;
+        return nullptr;
     }
 
     // If the caller is after an old frame we have to seek first
@@ -335,13 +336,13 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS)
 	else
 	{
 		_atEnd = true;
-		return NULL;
+		return nullptr;
 	}
 
-	if (_dstFrame->data[0] == NULL || currenttime > _lengthMS)
+	if (_dstFrame->data[0] == nullptr || currenttime > _lengthMS)
 	{
 		_atEnd = true;
-		return NULL;
+		return nullptr;
 	}
 	else
 	{
