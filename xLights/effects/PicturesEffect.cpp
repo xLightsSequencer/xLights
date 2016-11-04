@@ -357,9 +357,12 @@ void CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool overlay)
             {
                 if (!from.IsTransparent(x, y))
                 {
-                    wxASSERT(x + offset.x < to.GetWidth());
-                    wxASSERT(y + offset.y < to.GetHeight());
-                    to.SetRGB(x + offset.x, y + offset.y, from.GetRed(x, y), from.GetGreen(x, y), from.GetBlue(x, y));
+                    //wxASSERT(x + offset.x < to.GetWidth());
+                    //wxASSERT(y + offset.y < to.GetHeight());
+                    if (x + offset.x < to.GetWidth() && y + offset.y < to.GetHeight())
+                    {
+                        to.SetRGB(x + offset.x, y + offset.y, from.GetRed(x, y), from.GetGreen(x, y), from.GetBlue(x, y));
+                    }
                 }
             }
         }
@@ -372,7 +375,8 @@ void CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool overlay)
 
 wxPoint LoadRawImageFrame(wxImage& image, const wxString& file, int frame, wxAnimationDisposal& disposal)
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("Frame %d loaded from file %s actual image size (%d,%d)", frame, (const char *)file.c_str(), image.GetWidth(), image.GetHeight());
 
     wxFileInputStream stream(file);
     if (stream.IsOk())
@@ -380,12 +384,28 @@ wxPoint LoadRawImageFrame(wxImage& image, const wxString& file, int frame, wxAni
         wxGIFDecoder decod;
         if (decod.LoadGIF(stream) == wxGIF_OK)
         {
-            image.Resize(decod.GetFrameSize(frame), wxPoint(0, 0));
+            wxSize size = decod.GetFrameSize(frame);
+            //logger_base.debug("    size (%d,%d)", size.GetWidth(), size.GetHeight());
+            image.Resize(size, wxPoint(0, 0));
             decod.ConvertToImage(frame, &image);
             disposal = decod.GetDisposalMethod(frame);
-            return decod.GetFramePosition(frame);
+            //logger_base.debug("    disposal %d", disposal);
+            wxPoint offset = decod.GetFramePosition(frame);
+            //logger_base.debug("    offset (%d,%d)", offset.x, offset.y);
+
+            // handle first frame with an offset
+            if (frame == 0 && (offset.x > 0 || offset.y > 0))
+            {
+                image.Resize(wxSize(size.GetWidth() + offset.x, size.GetHeight() + offset.y), offset);
+                offset.x = 0;
+                offset.y = 0;
+                //logger_base.debug("    Frame 0 had non zero offset so image size now (%d,%d)", image.GetWidth(), image.GetHeight());
+            }
+
+            return offset;
         }
     }
+    logger_base.debug("    Error loading frame %d from file %s.", frame, (const char *)file.c_str());
     return wxPoint(-1, -1);
 }
 
@@ -416,6 +436,8 @@ void LoadImageFrame(wxImage& image, const wxString& file, int frame, int& lastfr
         wxImage newframe(image.GetWidth(), image.GetHeight());
         wxAnimationDisposal dispose = wxANIM_TOBACKGROUND;
         wxPoint offset = LoadRawImageFrame(newframe, file, i, dispose);
+        //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        //logger_base.debug("Frame %d loaded from file %s offset (%d,%d) size (%d,%d) dispose %d actual image size (%d,%d)", i, (const char *)file.c_str(), offset.x, offset.y, newframe.GetWidth(), newframe.GetHeight(), dispose, image.GetWidth(), image.GetHeight());
         if (offset.x == -1)
         {
             return;
@@ -547,6 +569,11 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         {
             wxImage tmp = rawimage;
             LoadRawImageFrame(tmp, NewPictureName, 0, cache->lastdispose);
+
+            // update our cache in case first image had an offset ... this is not handled properly by LoadFile
+            cache->lastimage = tmp;
+            image = tmp;
+            rawimage = tmp;
         }
 
         if (!image.IsOk())
