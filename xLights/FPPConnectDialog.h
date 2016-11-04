@@ -38,8 +38,8 @@ class FPPConnectDialog: public wxDialog
 		virtual ~FPPConnectDialog();
 
 		//(*Declarations(FPPConnectDialog)
-		wxCheckBox* CheckBox_UploadModels;
 		wxNotebook* Notebook_FPP;
+		wxCheckBox* CheckBox_UploadModels;
 		wxButton* Button_Upload;
 		wxStaticText* StaticText2;
 		wxPanel* Panel_USB;

@@ -8,7 +8,7 @@
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
-			<growablerows>2</growablerows>
+			<growablerows>3</growablerows>
 			<object class="sizeritem">
 				<object class="wxNotebook" name="ID_NOTEBOOK_FPP" variable="Notebook_FPP" member="yes">
 					<handler function="OnNotebook_FPPPageChanged" entry="EVT_NOTEBOOK_PAGE_CHANGED" />

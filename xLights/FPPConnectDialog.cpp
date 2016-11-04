@@ -52,7 +52,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	FlexGridSizer1->AddGrowableRow(2);
+	FlexGridSizer1->AddGrowableRow(3);
 	Notebook_FPP = new wxNotebook(this, ID_NOTEBOOK_FPP, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_FPP"));
 	Panel_FTP = new wxPanel(Notebook_FPP, ID_PANEL_FTP, wxPoint(14,59), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_FTP"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
