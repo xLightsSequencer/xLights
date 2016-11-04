@@ -984,7 +984,6 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         {
             xLightsImportModelNode* s = m->GetNthChild(j);
 
-
             if ("" != s->_mapping) {
                 if (model == nullptr) {
                     model = AddModel(GetModel(modelName), mSequenceElements);
@@ -993,20 +992,20 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 if( ste != nullptr ) {
                     MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
                 }
-                int node = 0;
-                StrandElement *stre = dynamic_cast<StrandElement *>(ste);
-                if (stre != nullptr) {
-                    for (size_t k = 0; k < s->GetChildCount(); k++)
-                    {
-                        xLightsImportModelNode* n = s->GetNthChild(k);
-                        NodeLayer *nl = stre->GetNodeLayer(node, true);
-
+            }
+            for (size_t n = 0; n < s->GetChildCount(); n++) {
+                xLightsImportModelNode* ns = s->GetNthChild(n);
+                if ("" != ns->_mapping) {
+                    if (model == nullptr) {
+                        model = AddModel(GetModel(modelName), mSequenceElements);
+                    }
+                    SubModelElement *ste =  model->GetSubModel(str);
+                    StrandElement *stre = dynamic_cast<StrandElement *>(ste);
+                    if (stre != nullptr) {
+                        NodeLayer *nl = stre->GetNodeLayer(n, true);
                         if (nl != nullptr) {
-                            if ("" != n->_mapping) {
-                                MapXLightsStrandEffects(nl, n->_mapping.ToStdString(), layerMap, se, mapped);
-                            }
+                            MapXLightsStrandEffects(nl, ns->_mapping.ToStdString(), layerMap, se, mapped);
                         }
-                        node++;
                     }
                 }
             }
