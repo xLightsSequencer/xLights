@@ -879,6 +879,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     se.SetFrequency(mSequenceElements.GetFrequency());
     se.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
     se.LoadSequencerFile(xlf, GetShowDirectory());
+    xlf.AdjustEffectSettingsForVersion(se, this);
 
     std::vector<Element *> elements;
     for (size_t e = 0; e < se.GetElementCount(); e++) {
