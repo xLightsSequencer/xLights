@@ -38,6 +38,7 @@ class FPPConnectDialog: public wxDialog
 		virtual ~FPPConnectDialog();
 
 		//(*Declarations(FPPConnectDialog)
+		wxCheckBox* CheckBox_UploadModels;
 		wxNotebook* Notebook_FPP;
 		wxButton* Button_Upload;
 		wxStaticText* StaticText2;
@@ -75,6 +76,7 @@ class FPPConnectDialog: public wxDialog
 		static const long ID_PANEL_USB;
 		static const long ID_NOTEBOOK_FPP;
 		static const long ID_CHECKBOX_UploadController;
+		static const long ID_CHECKBOX1;
 		static const long ID_CHECKLISTBOX_Sequences;
 		static const long ID_BUTTON_Upload;
 		//*)

@@ -454,7 +454,35 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     {
         UnsavedRgbEffectsChanges = false;
     }
+    SaveFPPchannelmemorymaps(std::string(networkFile.GetPath().c_str()));
     return true;
+}
+
+void xLightsFrame::SaveFPPchannelmemorymaps(std::string path)
+{
+    wxFile f;
+    f.Open(path + "/channelmemorymaps", wxFile::write);
+    if (f.IsOpened())
+    {
+        long minchannel = 99999999;
+        long maxchannel = -1;
+        for (auto m = PreviewModels.begin(); m != PreviewModels.end(); ++m)
+        {
+            Model* model = *m;
+            wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
+            int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+            std::string type, description, ip, universe, inactive;
+            int channeloffset, output;
+            GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output);
+            f.Write(wxString::Format("%s,%d,%d,horizontal,TL,%d,%d\n",
+                model->name,
+                ch,
+                model->GetActChanCount(),
+                model->GetNodeCount() / model->NodesPerString(),
+                1));
+        }
+        f.Close();
+    }
 }
 
 void xLightsFrame::CreateDefaultEffectsXml()

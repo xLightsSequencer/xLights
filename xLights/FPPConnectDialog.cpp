@@ -27,6 +27,7 @@ const long FPPConnectDialog::ID_DIRPICKERCTRL1 = wxNewId();
 const long FPPConnectDialog::ID_PANEL_USB = wxNewId();
 const long FPPConnectDialog::ID_NOTEBOOK_FPP = wxNewId();
 const long FPPConnectDialog::ID_CHECKBOX_UploadController = wxNewId();
+const long FPPConnectDialog::ID_CHECKBOX1 = wxNewId();
 const long FPPConnectDialog::ID_CHECKLISTBOX_Sequences = wxNewId();
 const long FPPConnectDialog::ID_BUTTON_Upload = wxNewId();
 //*)
@@ -95,6 +96,9 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	CheckBox_UploadController = new wxCheckBox(this, ID_CHECKBOX_UploadController, _("Upload controller configuration"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_UploadController"));
 	CheckBox_UploadController->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_UploadController, 1, wxALL|wxEXPAND, 5);
+	CheckBox_UploadModels = new wxCheckBox(this, ID_CHECKBOX1, _("Upload Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_UploadModels->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_UploadModels, 1, wxALL|wxEXPAND, 5);
 	CheckListBox_Sequences = new wxCheckListBox(this, ID_CHECKLISTBOX_Sequences, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_Sequences"));
 	CheckListBox_Sequences->SetMinSize(wxDLG_UNIT(this,wxSize(-1,100)));
 	FlexGridSizer1->Add(CheckListBox_Sequences, 1, wxALL|wxEXPAND, 5);
@@ -432,6 +436,13 @@ bool FPPConnectDialog::FTPUpload()
         ftp.SetAscii();
         cancelled = UploadFile(ftp, (xLightsFrame::CurrentDir + "/universes").ToStdString(), ".", true);
     }
+
+    if (!cancelled && CheckBox_UploadModels->IsChecked())
+    {
+        ftp.SetAscii();
+        cancelled = UploadFile(ftp, (xLightsFrame::CurrentDir + "/channelmemorymaps").ToStdString(), ".", true);
+    }
+
 
     if (!cancelled)
     {
