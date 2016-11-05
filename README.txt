@@ -8,10 +8,35 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.51  Nov 04, 2016
+   -- enh (chrisD)  Update sequence checker to handle start channels in #IP:UNIVERSE:CHANNEL format
+   -- bug (keithsw) Performance fix for animated GIFs. Example: "This is Halloween" went from 300 second save to 65 seconds.
    -- bug (dkulp)   Fix mac<-->windows pictures effect filename mapping
+   -- bug (dkulp)   Fix mapping onto nodes if nothing is mapped to the strand
+   -- bug (dkulp)   Fix "Create Random Effects" taking forever to complete
+   -- enh (dkulp)   Get the FPP Connect via FTP stuff working on the Mac, also allow named based FPP
+   -- bug (keithsw) Fix GIF scaleing not working.
+   -- bug (keithsw) Sequence Checker issue for Stars layers #721
+   -- bug (dkulp)   Don't crash if polyline is set to singlechannel and start at right
+   -- bug (keithsw) Fix #612 ... missing effect settings scroll bars
+   -- enh (keithsw) Optimise logging in render loop ... means you cant turn on logging
+   -- bug (chrisD)  Avoid crash if pasted data is empty
+   -- bug (chrisD)  Fix github issue #709 "Fire effect height textbox entry"
+   -- enh (keithsw) fixed change the link button image and hover text in the Setup screen #342
    -- bug (dkulp)   Make sure picture effect is re-initted at start of effect
    -- bug (dkulp)   Fix crash on toggle strands when clicked on a strand instead of model
    -- enh (gil)     Add shutter support to DMX model.
+   -- enh (dkulp)   Allow 180 trees to rotate and make sure they display as 180
+   -- enh (dkulp)   Start all jobs that don't depend on anything above them first, then start the rest. 30% performance improvement
+   -- enh (dkulp)   Make sure the list box is growable
+   -- bug (dkulp)   Fix crash on render on some sequences
+   -- enh (Jennifer)added tool tips for countdowns
+   -- enh (Jennifer)New enhancements for countdown timer in text effect
+   -- bug (keithsw) Fix GIF handling of animated gifs where first frame is not full size ... ie it has an offset.
+   -- bug (keithsw) Fix video effect start time bug.
+   -- enh (keithsw) Allow VU Meter to use Papagayo layer 0 as a timing track
+   -- bug (keithsw) Fix GIF handling of animated gifs where first frame is not full size ... ie it has an offset.
+   -- bug (chrisD)  Fix rounding issue leading to unwanted gap between spirals
    -- bug (gil)     Fix model staying highlighted when removed from group.  Fixes #707.
    -- bug (gil)     Prevent creation of unnecessary layer when promoting effects from only 1 strand.
    -- bug (gil)     Fix exception when opening Lyric Dialog.  Fixes #710.
