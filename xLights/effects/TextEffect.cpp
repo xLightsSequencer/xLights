@@ -39,6 +39,11 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
         res.push_back(wxString::Format("    ERR: Text effect has no actual text. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
+    if (model->GetDisplayAs() == "ModelGroup")
+    {
+        res.push_back(wxString::Format("    WARN: Text effect generally does not work well on a model group. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+
     return res;
 }
 
