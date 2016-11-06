@@ -243,7 +243,13 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
     SetBufferSize(height,width);
 }
 std::string CustomModel::GetNodeName(size_t x, bool def) const {
-    return Nodes[x]->GetName();
+    if (x < Nodes.size()) {
+        return Nodes[x]->GetName();
+    }
+    if (def) {
+        return wxString::Format("Node %d", (x + 1)).ToStdString();
+    }
+    return "";
 }
 
 std::string CustomModel::ChannelLayoutHtml() {

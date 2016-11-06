@@ -877,51 +877,6 @@ void xLightsFrame::OnButtonUpClick(wxCommandEvent& event)
     }
 
     if (SelectedItem == 0) return;
-#ifdef __WXOSX__
-    // cannot use regular code because of wxWidgets ticket #4492
-    wxArrayString ColText[2];
-    int rowcnt=ListBoxPlay->GetItemCount();
-    wxListItem listcol;
-    int r,c;
-    // get text for all rows
-    for (r=0; r < rowcnt; r++)
-    {
-        listcol.SetId(r);
-        for (c=0; c < 2; c++)
-        {
-            listcol.SetColumn(c);
-            listcol.SetMask(wxLIST_MASK_TEXT);
-            ListBoxPlay->GetItem(listcol);
-            ColText[c].Add(listcol.GetText());
-        }
-    }
-    //wxMessageBox(wxString::Format("SelectedItem=%ld",SelectedItem), "DEBUG");
-
-    ListBoxPlay->DeleteAllItems();
-
-    // update order
-    wxString s;
-    for (c=0; c < 2; c++)
-    {
-        s=ColText[c][SelectedItem];
-        ColText[c].Insert(s,SelectedItem-1);
-    }
-    for (c=0; c < 2; c++)
-    {
-        ColText[c].RemoveAt(SelectedItem+1);
-    }
-
-    // add everything back in the new order
-    for (r=0; r < rowcnt; r++)
-    {
-        ListBoxPlay->InsertItem(r,ColText[0][r]);
-        for (c=1; c < 2; c++)
-        {
-            ListBoxPlay->SetItem(r,c,ColText[c][r]);
-        }
-    }
-    SelectedItem--;
-#else
     wxString filename = ListBoxPlay->GetItemText(SelectedItem);
     wxListItem column1;
     column1.SetId(SelectedItem);
@@ -933,7 +888,6 @@ void xLightsFrame::OnButtonUpClick(wxCommandEvent& event)
     SelectedItem--;
     ListBoxPlay->InsertItem(SelectedItem,filename);
     ListBoxPlay->SetItem(SelectedItem,1,delay);
-#endif
     ListBoxPlay->SetItemState(SelectedItem,wxLIST_STATE_SELECTED,wxLIST_STATE_SELECTED);
     UnsavedPlaylistChanges=true;
 }
@@ -950,51 +904,6 @@ void xLightsFrame::OnButtonDownClick(wxCommandEvent& event)
     }
 
     if (SelectedItem == ListBoxPlay->GetItemCount()-1) return;
-#ifdef __WXOSX__
-    // cannot use regular code because of wxWidgets ticket #4492
-    wxArrayString ColText[2];
-    int rowcnt=ListBoxPlay->GetItemCount();
-    wxListItem listcol;
-    int r,c;
-    // get text for all rows
-    for (r=0; r < rowcnt; r++)
-    {
-        listcol.SetId(r);
-        for (c=0; c < 2; c++)
-        {
-            listcol.SetColumn(c);
-            listcol.SetMask(wxLIST_MASK_TEXT);
-            ListBoxPlay->GetItem(listcol);
-            ColText[c].Add(listcol.GetText());
-        }
-    }
-    //wxMessageBox(wxString::Format("SelectedItem=%ld",SelectedItem), "DEBUG");
-
-    ListBoxPlay->DeleteAllItems();
-
-    // update order
-    wxString s;
-    for (c=0; c < 2; c++)
-    {
-        s=ColText[c][SelectedItem];
-        ColText[c].Insert(s,SelectedItem+2);
-    }
-    for (c=0; c < 2; c++)
-    {
-        ColText[c].RemoveAt(SelectedItem);
-    }
-
-    // add everything back in the new order
-    for (r=0; r < rowcnt; r++)
-    {
-        ListBoxPlay->InsertItem(r,ColText[0][r]);
-        for (c=1; c < 2; c++)
-        {
-            ListBoxPlay->SetItem(r,c,ColText[c][r]);
-        }
-    }
-    SelectedItem++;
-#else
     wxString filename = ListBoxPlay->GetItemText(SelectedItem);
     wxListItem column1;
     column1.SetId(SelectedItem);
@@ -1006,7 +915,6 @@ void xLightsFrame::OnButtonDownClick(wxCommandEvent& event)
     SelectedItem++;
     ListBoxPlay->InsertItem(SelectedItem,filename);
     ListBoxPlay->SetItem(SelectedItem,1,delay);
-#endif
     ListBoxPlay->SetItemState(SelectedItem,wxLIST_STATE_SELECTED,wxLIST_STATE_SELECTED);
     UnsavedPlaylistChanges=true;
 }
