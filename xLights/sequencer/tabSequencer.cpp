@@ -2470,7 +2470,9 @@ void xLightsFrame::ExecuteImportTimingElement(wxCommandEvent &command) {
 
 void xLightsFrame::ImportTimingElement()
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Timing file(s)", wxEmptyString, wxEmptyString, "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Text files (*.txt)|*.txt|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq", wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
+    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Timing file(s)", wxEmptyString, wxEmptyString,
+        "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Text files (*.txt)|*.txt|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq|xLights (*.xml)|*.xml",
+                                                wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
     wxString fDir;
     if (OpenDialog->ShowModal() == wxID_OK)
     {
@@ -2495,6 +2497,10 @@ void xLightsFrame::ImportTimingElement()
             else if (file1.GetExt().Lower() == "msq")
             {
                 CurrentSeqXmlFile->ProcessLSPTiming(fDir, filenames, this);
+            }
+            else if (file1.GetExt().Lower() == "xml")
+            {
+                CurrentSeqXmlFile->ProcessXLightsTiming(fDir, filenames, this);
             }
             else
             {

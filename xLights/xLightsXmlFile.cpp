@@ -2398,6 +2398,84 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
     xLightsParent->SetCursor(wxCURSOR_ARROW);
 }
 
+
+void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxTextFile f;
+    wxString line;
+    wxString desc;
+    
+    xLightsParent->SetCursor(wxCURSOR_WAIT);
+    Element* element = nullptr;
+    EffectLayer* effectLayer = nullptr;
+    wxXmlNode* layer = nullptr;
+    wxXmlNode* timing = nullptr;
+
+    for (size_t i = 0; i < filenames.Count(); ++i)
+    {
+        wxFileName next_file(filenames[i]);
+        next_file.SetPath(dir);
+        
+        logger_base.info("Decompressing LSP file " + std::string(next_file.GetFullPath().c_str()));
+        xLightsXmlFile file(next_file);
+        file.LoadSequence(dir, true);
+        
+        SequenceElements se(xLightsParent);
+        se.SetFrequency(file.GetFrequency());
+        se.SetViewsNode(xLightsParent->GetViewsNode()); // This must come first before LoadSequencerFile.
+        se.LoadSequencerFile(file, xLightsParent->GetShowDirectory());
+        file.AdjustEffectSettingsForVersion(se, xLightsParent);
+        
+        std::vector<TimingElement *> elements;
+        wxArrayString names;
+        for (size_t e = 0; e < se.GetElementCount(); e++) {
+            Element *el = se.GetElement(e);
+            if (el->GetType() == ELEMENT_TYPE_TIMING) {
+                TimingElement *ti =dynamic_cast<TimingElement*>(el);
+                if (ti->GetFixedTiming() == 0) {
+                    elements.push_back(ti);
+                    names.Add(el->GetName());
+                }
+            }
+        }
+        wxMultiChoiceDialog dlg(xLightsParent, "Select timing tracks to import", "Import Timing Tracks", names);
+        if (dlg.ShowModal() == wxID_OK) {
+            wxArrayInt selections = dlg.GetSelections();
+            
+            for (int i = 0; i < selections.size(); i++) {
+                TimingElement *ti = elements[selections[i]];
+                if (sequence_loaded) {
+                    element = xLightsParent->AddTimingElement(ti->GetName());
+                } else {
+                    AddTimingDisplayElement(ti->GetName(), "1", "0");
+                    timing = AddElement(ti->GetName(), "timing");
+                }
+                for (int x = 0; x < ti->GetEffectLayerCount(); x++) {
+                    EffectLayer *src = ti->GetEffectLayer(x);
+                    if (sequence_loaded) {
+                        effectLayer = element->GetEffectLayer(x);
+                        if (effectLayer == nullptr) {
+                            effectLayer = element->AddEffectLayer();
+                        }
+                    } else {
+                        layer = AddChildXmlNode(timing, "EffectLayer");
+                    }
+                    for (int ef = 0; ef < src->GetEffectCount(); ef++) {
+                        Effect *effect = src->GetEffect(ef);
+                        if (sequence_loaded) {
+                            effectLayer->AddEffect(0, effect->GetEffectName(), "", "", effect->GetStartTimeMS(), effect->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
+                        } else {
+                            AddTimingEffect(layer, effect->GetEffectName(), "0", "0", wxString::Format("%d", effect->GetStartTimeMS()),
+                                            wxString::Format("%d", effect->GetEndTimeMS()));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    xLightsParent->SetCursor(wxCURSOR_ARROW);
+}
+
 wxArrayString xLightsXmlFile::GetTimingList(SequenceElements& seq_elements)
 {
     timing_list.Clear();
