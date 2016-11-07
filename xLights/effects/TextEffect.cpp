@@ -638,6 +638,12 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
     wxString::const_iterator end;
     wxString fmt, Line = Line_orig; //make copy so it can be modified -DJ
     wxChar delim;
+    wxString prepend = Line_orig;   //for prepended/appended text to countdown
+    wxString append = Line_orig;   //for prepended/appended text to countdown
+    wxString timePart = Line_orig;
+    wxArrayString minSec;
+
+
     if (Line.IsEmpty()) return;
 
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
@@ -657,17 +663,48 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
             break;
 //jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
         case COUNTDOWN_MINUTES_SECONDS:
-            if (state==0)
+
+            if (timePart.Find('/') != -1 )
             {
-                if(!Line.ToLong(&tempLong)) tempLong=0;
-                GetCache(buffer, id)->timer_countdown = buffer.curPeriod+tempLong*framesPerSec+framesPerSec-1;
+                timePart = timePart.AfterFirst('/').BeforeLast('/');
+                prepend = prepend.BeforeFirst('/');
+                append = append.AfterLast('/');
             }
-            seconds=(GetCache(buffer,id)->timer_countdown-buffer.curPeriod)/framesPerSec;
-            minutes = (seconds / 60) % 60;
+            else
+            {
+                append = "";
+                prepend = "";
+            }
+           minSec = wxSplit(timePart, ':');
+           if(minSec.size()==1)
+           {
+               seconds = wxAtoi(minSec[0]);
+           }
+           else if(minSec.size()==2)
+           {
+               minutes = wxAtoi(minSec[0]);
+               seconds = (minutes * 60) + wxAtoi(minSec[1]);
+               //MessageBoxA(NULL, "total seconds: " + wxString::Format("%i", seconds), "message", MB_ICONINFORMATION | MB_OK | MB_DEFBUTTON2);
+            }
+            else //invalid format
+            {
+               msg = _T("Invalid Format");
+               break;
+            }
+            if (state == 0)
+                GetCache(buffer,id)->timer_countdown = buffer.curPeriod+seconds*framesPerSec+framesPerSec-1;
+
+            else
+                seconds = (GetCache(buffer,id)->timer_countdown-buffer.curPeriod)/framesPerSec;
+
+            minutes = (seconds / 60);
             seconds = seconds - (minutes * 60);
-            if(seconds < 0) seconds=0;
-            msg=wxString::Format("%d : %d", minutes, seconds);
-            break;
+
+           if(seconds < 0)
+                seconds=0;
+           msg=prepend + ' ' + wxString::Format("%i : %i", minutes, seconds) + ' ' + append;
+
+           break;
 
         case COUNTDOWN_FREEFMT: //free format text with embedded formatting chars -DJ
 #if 0
