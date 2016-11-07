@@ -906,6 +906,8 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<EffectLayer *> mapped;
+    std::vector<std::string> timingTrackNames;
+    std::map<std::string, TimingElement*> timingTracks;
 
     for (auto it = elements.begin(); it != elements.end(); it++) {
         Element *e = *it;
@@ -925,7 +927,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 SubModelElement *sme = el->GetSubModel(sm);
 
                 StrandElement *ste = dynamic_cast<StrandElement *>(sme);
-                std::string smName = ste->GetName();
+                std::string smName = sme->GetName();
                 if (ste != nullptr) {
                     s++;
                     if (smName == "") {
@@ -950,17 +952,44 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     }
                 }
             }
+        } else if (e->GetType() == ELEMENT_TYPE_TIMING) {
+            TimingElement *tel = dynamic_cast<TimingElement*>(e);
+            if (tel->GetFixedTiming() == 0) {
+                timingTrackNames.push_back(tel->GetName());
+                timingTracks[tel->GetName()] = tel;
+            }
         }
     }
 
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
     dlg.channelNames.insert(dlg.channelNames.begin(), "");
-
+    dlg.timingTracks = timingTrackNames;
     bool ok = dlg.Init();
 
     if (!ok || dlg.ShowModal() != wxID_OK) {
         return;
     }
+    
+    for (int tt = 0; tt < dlg.TimingTrackListBox->GetCount(); tt++) {
+        if (dlg.TimingTrackListBox->IsChecked(tt)) {
+            TimingElement *tel = timingTracks[timingTrackNames[tt]];
+            TimingElement *target = (TimingElement*)mSequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false);
+            char cnt = '1';
+            while (target == nullptr) {
+                target = (TimingElement*)mSequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), tel->GetActive(), false);
+            }
+            for (int l = 0; l < tel->GetEffectLayerCount(); l++) {
+                EffectLayer *src = tel->GetEffectLayer(l);
+                while (l >= target->GetEffectLayerCount()) {
+                    target->AddEffectLayer();
+                }
+                EffectLayer *dst = target->GetEffectLayer(l);
+                std::vector<EffectLayer *> mapped;
+                MapXLightsEffects(dst, src, mapped);
+            }
+        }
+    }
+    
     for (size_t i = 0; i < dlg.dataModel->GetChildCount(); i++)
     {
         xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);

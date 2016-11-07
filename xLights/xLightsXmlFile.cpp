@@ -2416,7 +2416,7 @@ void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayStri
         wxFileName next_file(filenames[i]);
         next_file.SetPath(dir);
         
-        logger_base.info("Decompressing LSP file " + std::string(next_file.GetFullPath().c_str()));
+        logger_base.info("Loading sequence file " + std::string(next_file.GetFullPath().c_str()));
         xLightsXmlFile file(next_file);
         file.LoadSequence(dir, true);
         

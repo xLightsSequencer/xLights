@@ -195,6 +195,7 @@ const long xLightsImportChannelMapDialog::ID_TREELISTCTRL1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHOICE = wxNewId();
 
 //(*IdInit(xLightsImportChannelMapDialog)
+const long xLightsImportChannelMapDialog::ID_CHECKLISTBOX1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON4 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON1 = wxNewId();
@@ -212,13 +213,17 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 
 	//(*Initialize(xLightsImportChannelMapDialog)
 	wxButton* Button01;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxButton* Button02;
 
 	Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
 	SetMaxSize(wxDLG_UNIT(parent,wxSize(-1,500)));
 	Sizer = new wxFlexGridSizer(0, 1, 0, 0);
 	Sizer->AddGrowableCol(0);
-	Sizer->AddGrowableRow(0);
+	TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Timing Tracks"));
+	TimingTrackListBox = new wxCheckListBox(this, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
+	TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	Sizer->Add(TimingTrackPanel, 0, wxEXPAND, 0);
 	SizerMap = new wxFlexGridSizer(0, 1, 0, 0);
 	SizerMap->AddGrowableCol(0);
 	SizerMap->AddGrowableRow(0);
@@ -229,12 +234,12 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	FlexGridSizer2->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Cancel = new wxButton(this, ID_BUTTON4, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
 	FlexGridSizer2->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	Button01 = new wxButton(this, ID_BUTTON1, _("Load Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer2->Add(Button01, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button02 = new wxButton(this, ID_BUTTON2, _("Save Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer2->Add(Button02, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Sizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL, 5);
+	Sizer->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	SetSizer(Sizer);
 	Sizer->Fit(this);
 	Sizer->SetSizeHints(this);
@@ -243,7 +248,6 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
-	Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnResize);
 	//*)
 
     if (_filename != "")
@@ -279,6 +283,19 @@ bool xLightsImportChannelMapDialog::Init() {
         return false;
     }
 
+    if (timingTracks.empty()) {
+        Sizer->Remove(TimingTrackPanel);
+        Sizer->AddGrowableRow(0);
+        Sizer->Fit(this);
+        Sizer->SetSizeHints(this);
+    } else {
+        Sizer->AddGrowableRow(1);
+        for (auto it = timingTracks.begin(); it != timingTracks.end(); it++) {
+            TimingTrackListBox->Append(*it);
+        }
+    }
+    
+    
     // load the tree
     for (auto it = channelNames.begin(); it != channelNames.end(); it++)
     {
@@ -294,7 +311,9 @@ bool xLightsImportChannelMapDialog::Init() {
     TreeListCtrl_Mapping->SetMinSize(wxSize(0, 300));
     SizerMap->Add(TreeListCtrl_Mapping, 1, wxALL | wxEXPAND, 5);
     SizerMap->Layout();
-    SetSize(500, 500);
+    Sizer->Fit(this);
+    Sizer->SetSizeHints(this);
+    Sizer->Layout();
     Layout();
 
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_SELECTION_CHANGED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnSelectionChanged);
@@ -676,6 +695,7 @@ void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::OnResize(wxSizeEvent& event)
 {
+    /*
     wxSize s = GetSize();
     s.SetWidth(s.GetWidth()-15);
     s.SetHeight(s.GetHeight()-75);
@@ -691,6 +711,7 @@ void xLightsImportChannelMapDialog::OnResize(wxSizeEvent& event)
     TreeListCtrl_Mapping->FitInside();
     TreeListCtrl_Mapping->Refresh();
     Layout();
+     */
 }
 
 void xLightsImportChannelMapDialog::OnButton_OkClick(wxCommandEvent& event)

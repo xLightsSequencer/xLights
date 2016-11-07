@@ -8,6 +8,7 @@
 
 //(*Headers(xLightsImportChannelMapDialog)
 #include <wx/sizer.h>
+#include <wx/checklst.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
 //*)
@@ -272,8 +273,9 @@ class xLightsImportChannelMapDialog: public wxDialog
 		//(*Declarations(xLightsImportChannelMapDialog)
 		wxButton* Button_Ok;
 		wxFlexGridSizer* Sizer;
-		wxFlexGridSizer* FlexGridSizer2;
+		wxCheckListBox* TimingTrackListBox;
 		wxButton* Button_Cancel;
+		wxStaticBoxSizer* TimingTrackPanel;
 		wxFlexGridSizer* SizerMap;
 		//*)
 
@@ -281,11 +283,13 @@ class xLightsImportChannelMapDialog: public wxDialog
         xLightsFrame * xlights;
     
         std::vector<std::string> channelNames;
+        std::vector<std::string> timingTracks;
         static const long ID_TREELISTCTRL1;
         static const long ID_CHOICE;
 protected:
 
 		//(*Identifiers(xLightsImportChannelMapDialog)
+		static const long ID_CHECKLISTBOX1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON1;
