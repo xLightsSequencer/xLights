@@ -189,7 +189,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint&
     wxString ip;
     config->Read("xLightsPiIP", &ip, "");
     wxString user;
-    config->Read("xLightsPiUser", &user, "pi");
+    config->Read("xLightsPiUser", &user, "fpp");
     TextCtrl_IPAddress->SetValue(ip);
     TextCtr_Username->SetValue(user);
 
