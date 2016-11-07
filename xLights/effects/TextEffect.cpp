@@ -642,7 +642,7 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
     wxString append = Line_orig;   //for prepended/appended text to countdown
     wxString timePart = Line_orig;
     wxArrayString minSec;
-
+    wxString tempSeconds;
 
     if (Line.IsEmpty()) return;
 
@@ -702,7 +702,13 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
 
            if(seconds < 0)
                 seconds=0;
-           msg=prepend + ' ' + wxString::Format("%i : %i", minutes, seconds) + ' ' + append;
+
+           tempSeconds = wxString::Format("%i", seconds);
+
+           if (tempSeconds.Len() == 1)
+                tempSeconds = tempSeconds.Pad(1, '0', false);
+
+           msg = prepend + ' ' + wxString::Format("%i", minutes) + " : " + tempSeconds + append;
 
            break;
 
