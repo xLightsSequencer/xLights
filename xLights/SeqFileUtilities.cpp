@@ -955,8 +955,14 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         } else if (e->GetType() == ELEMENT_TYPE_TIMING) {
             TimingElement *tel = dynamic_cast<TimingElement*>(e);
             if (tel->GetFixedTiming() == 0) {
-                timingTrackNames.push_back(tel->GetName());
-                timingTracks[tel->GetName()] = tel;
+                bool hasEffects = false;
+                for (size_t n = 0; n < tel->GetEffectLayerCount(); n++) {
+                    hasEffects |= tel->GetEffectLayer(n)->GetEffectCount() > 0;
+                }
+                if (hasEffects) {
+                    timingTrackNames.push_back(tel->GetName());
+                    timingTracks[tel->GetName()] = tel;
+                }
             }
         }
     }

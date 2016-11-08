@@ -100,7 +100,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mWordColor = new xlColor(255, 218, 145);
     mPhonemeColor = new xlColor(255, 181, 218);
 
-    SetDropTarget(new EffectDropTarget((wxWindow*)this,true));
+    SetDropTarget(new EffectDropTarget(this));
     playArgs = new EventPlayEffectArgs();
     mSequenceElements = NULL;
     xlights = nullptr;
@@ -552,6 +552,10 @@ bool EffectsGrid::AdjustDropLocations(int x, EffectLayer* el)
 
 bool EffectsGrid::DragOver(int x, int y)
 {
+    if (mSequenceElements == nullptr) {
+        return false;
+    }
+
     mDragDropping = false;
     int row = GetRow(y);
     if( row < mSequenceElements->GetVisibleRowInformationSize() )

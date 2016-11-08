@@ -5,10 +5,9 @@
 
 
 
-EffectDropTarget::EffectDropTarget(wxWindow* parent,bool IsEffectsGrid)
+EffectDropTarget::EffectDropTarget(EffectsGrid* parent)
 {
     //ctor
-    mIsEffectsGrid = IsEffectsGrid;
     mParent = parent;
 }
 
@@ -19,28 +18,19 @@ EffectDropTarget::~EffectDropTarget()
 
 bool EffectDropTarget::OnDrop(wxCoord x, wxCoord y)
 {
-    ((EffectsGrid*)(mParent))->OnDrop(x,y);
+    mParent->OnDrop(x,y);
     return true;
 }
 
 bool EffectDropTarget::OnDropText(wxCoord x, wxCoord y,const wxString &data )
 {
-    if(mIsEffectsGrid)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return true;
 }
 
 wxDragResult EffectDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult defResult)
 {
-    if(mIsEffectsGrid)
-    {
-        if( ((EffectsGrid*)(mParent))->DragOver(x,y) )
-            return wxDragCopy;
+    if(mParent->DragOver(x,y)) {
+        return wxDragCopy;
     }
     return wxDragNone;
 }
