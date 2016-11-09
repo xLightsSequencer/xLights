@@ -16,7 +16,7 @@ class wxChoice;
 #include <mutex>
 #include <map>
 
-#define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg"
+#define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v"
 
 class xlVideoFilePickerCtrl : public wxFilePickerCtrl {
 public:

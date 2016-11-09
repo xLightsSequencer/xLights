@@ -85,13 +85,16 @@ END_EVENT_TABLE()
 const long GenerateCustomModelDialog::ID_STATICBITMAP_Preview = wxNewId();
 
 //(*IdInit(GenerateCustomModelDialog)
-const long GenerateCustomModelDialog::ID_RADIOBOX1 = wxNewId();
+const long GenerateCustomModelDialog::ID_RADIOBUTTON1 = wxNewId();
+const long GenerateCustomModelDialog::ID_RADIOBUTTON2 = wxNewId();
 const long GenerateCustomModelDialog::ID_SPINCTRL_NC_Count = wxNewId();
 const long GenerateCustomModelDialog::ID_SPINCTRL_StartChannel = wxNewId();
 const long GenerateCustomModelDialog::ID_SLIDER_Intensity = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_PCM_Run = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_Prepare = wxNewId();
-const long GenerateCustomModelDialog::ID_RADIOBOX2 = wxNewId();
+const long GenerateCustomModelDialog::ID_RADIOBUTTON3 = wxNewId();
+const long GenerateCustomModelDialog::ID_RADIOBUTTON4 = wxNewId();
+const long GenerateCustomModelDialog::ID_RADIOBUTTON5 = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_MT_Next = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL1 = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT10 = wxNewId();
@@ -172,6 +175,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	wxFlexGridSizer* FlexGridSizer24;
 	wxFlexGridSizer* FlexGridSizer23;
 	wxStaticText* StaticText2;
+	wxStaticText* StaticText14;
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxStaticText* StaticText6;
@@ -227,14 +231,14 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	StaticText4->SetFont(StaticText4Font);
 	FlexGridSizer6->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	wxString __wxRadioBoxChoices_1[2] =
-	{
-		_("Nodes"),
-		_("Single Channels")
-	};
-	RadioBox1 = new wxRadioBox(Panel_Prepare, ID_RADIOBOX1, _("Type"), wxDefaultPosition, wxDefaultSize, 2, __wxRadioBoxChoices_1, 1, 0, wxDefaultValidator, _T("ID_RADIOBOX1"));
-	FlexGridSizer6->Add(RadioBox1, 1, wxALL|wxEXPAND, 2);
+	StaticText14 = new wxStaticText(Panel_Prepare, wxID_ANY, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer6->Add(StaticText14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	NodesRadioButton = new wxRadioButton(Panel_Prepare, ID_RADIOBUTTON1, _("Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
+	NodesRadioButton->SetValue(true);
+	FlexGridSizer6->Add(NodesRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SingleChannelRadioButton = new wxRadioButton(Panel_Prepare, ID_RADIOBUTTON2, _("Single Channel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
+	FlexGridSizer6->Add(SingleChannelRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText5 = new wxStaticText(Panel_Prepare, wxID_ANY, _("Node/Channel Count"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer6->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	SpinCtrl_NC_Count = new wxSpinCtrl(Panel_Prepare, ID_SPINCTRL_NC_Count, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 99999, 1, _T("ID_SPINCTRL_NC_Count"));
@@ -242,7 +246,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer6->Add(SpinCtrl_NC_Count, 1, wxALL|wxEXPAND, 2);
 	StaticText6 = new wxStaticText(Panel_Prepare, wxID_ANY, _("Start Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer6->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	SpinCtrl_StartChannel = new wxSpinCtrl(Panel_Prepare, ID_SPINCTRL_StartChannel, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 99999, 1, _T("ID_SPINCTRL_StartChannel"));
+	SpinCtrl_StartChannel = new wxSpinCtrl(Panel_Prepare, ID_SPINCTRL_StartChannel, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 999999, 1, _T("ID_SPINCTRL_StartChannel"));
 	SpinCtrl_StartChannel->SetValue(_T("1"));
 	FlexGridSizer6->Add(SpinCtrl_StartChannel, 1, wxALL|wxEXPAND, 2);
 	StaticText8 = new wxStaticText(Panel_Prepare, wxID_ANY, _("Intensity"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -275,15 +279,14 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer24 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer24->AddGrowableCol(0);
 	FlexGridSizer24->AddGrowableRow(1);
-	FlexGridSizer25 = new wxFlexGridSizer(0, 3, 0, 0);
-	wxString __wxRadioBoxChoices_2[3] =
-	{
-		_("Nodes"),
-		_("Single Channels"),
-		_("Static Lights")
-	};
-	RadioBox2 = new wxRadioBox(Panel1, ID_RADIOBOX2, _("Type"), wxDefaultPosition, wxDefaultSize, 3, __wxRadioBoxChoices_2, 1, 0, wxDefaultValidator, _T("ID_RADIOBOX2"));
-	FlexGridSizer25->Add(RadioBox2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer25 = new wxFlexGridSizer(0, 1, 0, 0);
+	NodesRadioButtonPg2 = new wxRadioButton(Panel1, ID_RADIOBUTTON3, _("Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
+	NodesRadioButtonPg2->SetValue(true);
+	FlexGridSizer25->Add(NodesRadioButtonPg2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SCRadioButton = new wxRadioButton(Panel1, ID_RADIOBUTTON4, _("Single Channels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON4"));
+	FlexGridSizer25->Add(SCRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SLRadioButton = new wxRadioButton(Panel1, ID_RADIOBUTTON5, _("Static Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON5"));
+	FlexGridSizer25->Add(SLRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer24->Add(FlexGridSizer25, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer24->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer26 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -535,7 +538,6 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Connect(ID_BUTTON_CM_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_CM_BackClick);
 	Connect(ID_BUTTON_CM_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_CM_SaveClick);
 	Connect(ID_AUINOTEBOOK_ProcessSettings,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGING,(wxObjectEventFunction)&GenerateCustomModelDialog::OnAuiNotebook_ProcessSettingsPageChanging);
-	Connect(wxEVT_SIZE,(wxObjectEventFunction)&GenerateCustomModelDialog::OnResize);
 	//*)
 
     _displaybmp = wxImage(GCM_DISPLAYIMAGEWIDTH, GCM_DISPLAYIMAGEHEIGHT, true);
@@ -844,7 +846,7 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     int count = SpinCtrl_NC_Count->GetValue();
     int startch = SpinCtrl_StartChannel->GetValue();
     int intensity = Slider_Intensity->GetValue();
-    bool nodes = RadioBox1->GetSelection() == 0;
+    bool nodes = NodesRadioButton->GetValue();
 
     logger_pcm.info("   Count: %d.", count);
     logger_pcm.info("   Start Channel: %d.", startch);
@@ -985,18 +987,7 @@ void GenerateCustomModelDialog::OnButton_MT_NextClick(wxCommandEvent& event)
 {
     static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     logger_gcm.info("Generating custom model.");
-    switch (RadioBox2->GetSelection())
-    {
-    case 0:
-        logger_gcm.info("   Nodes.");
-        break;
-    case 1:
-        logger_gcm.info("   Channels.");
-        break;
-    case 2:
-        logger_gcm.info("   Static Bulbs.");
-        break;
-    }
+
     TextCtrl_GCM_Filename->SetValue(""); // clear the filename in case the type has changed
     CVTabEntry();
     SwapPage(PAGE_MODELTYPE, PAGE_CHOOSEVIDEO);
@@ -1015,7 +1006,7 @@ void GenerateCustomModelDialog::CVTabEntry()
 {
     Button_CV_Next->Enable();
     Button_CV_Back->Enable();
-    if (RadioBox2->GetSelection() == 2)
+    if (SLRadioButton->GetValue())
     {
         Button_CV_Manual->Show();
         Button_CV_Manual->Enable();
@@ -1030,7 +1021,7 @@ void GenerateCustomModelDialog::CVTabEntry()
     TextCtrl_GCM_Filename->Enable();
     _manual = false;
 
-    if (RadioBox2->GetSelection() == 2)
+    if (SLRadioButton->GetValue())
     {
         StaticText_CM_Request->SetLabel("Select a picture of your static lights model.");
     }
@@ -1041,7 +1032,7 @@ void GenerateCustomModelDialog::CVTabEntry()
     _state = VideoProcessingStates::CHOOSE_VIDEO;
     if (wxFile::Exists(std::string(TextCtrl_GCM_Filename->GetValue().c_str())))
     {
-        if (RadioBox2->GetSelection() == 2)
+        if (SLRadioButton->GetValue())
         {
             _startFrame = wxImage(TextCtrl_GCM_Filename->GetValue());
             _clip = wxRect(0, 0, _startFrame.GetWidth()-1, _startFrame.GetHeight()-1);
@@ -1058,7 +1049,7 @@ void GenerateCustomModelDialog::CVTabEntry()
 
 void GenerateCustomModelDialog::OnButton_GCM_SelectFileClick(wxCommandEvent& event)
 {
-    if (RadioBox2->GetSelection() == 2)
+    if (SLRadioButton->GetValue())
     {
         FileDialog1->SetWildcard(wxImage::GetImageExtWildcard());
     }
@@ -1107,7 +1098,7 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
     static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     logger_gcm.info("File: %s.", (const char *)TextCtrl_GCM_Filename->GetValue().c_str());
 
-    if (RadioBox2->GetSelection() == 2)
+    if (SLRadioButton->GetValue())
     {
         CheckBox_BI_ManualUpdate->SetValue(false);
         Button_BI_Update->Hide();
@@ -1685,7 +1676,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         }
         _warned = false;
         _lights.clear();
-        if (RadioBox2->GetSelection() == 2)
+        if (SLRadioButton->GetValue())
         {
             _startFrame.LoadFile(TextCtrl_GCM_Filename->GetValue());
             wxImage bwFrame;
@@ -2295,7 +2286,7 @@ void GenerateCustomModelDialog::OnButton_BI_BackClick(wxCommandEvent& event)
 {
     if (!_busy)
     {
-        if (RadioBox2->GetSelection() == 2)
+        if (SLRadioButton->GetValue())
         {
             CVTabEntry();
             SwapPage(PAGE_BULBIDENTIFY, PAGE_CHOOSEVIDEO);
@@ -2599,11 +2590,11 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     wxString p1 = wxString::Format("%d",Grid_CM_Result->GetNumberCols());
     wxString p2 = wxString::Format("%d", Grid_CM_Result->GetNumberRows());
     wxString st;
-    if (RadioBox2->GetSelection() == 2)
+    if (SLRadioButton->GetValue())
     {
         st = "Single Color White";
     }
-    else if (RadioBox2->GetSelection() == 1)
+    else if (SCRadioButton->GetValue())
     {
         st = "Single Color White";
     }
@@ -2935,7 +2926,7 @@ void GenerateCustomModelDialog::OnButton_MI_UndoBulbClick(wxCommandEvent& event)
 
 void GenerateCustomModelDialog::OnButton_MI_BackClick(wxCommandEvent& event)
 {
-    if (RadioBox2->GetSelection() == 2)
+    if (SLRadioButton->GetValue())
     {
         CVTabEntry();
         SwapPage(PAGE_MANUALIDENTIFY, PAGE_CHOOSEVIDEO);
@@ -2963,7 +2954,7 @@ void GenerateCustomModelDialog::MITabEntry(bool erase)
     }
     _state = VideoProcessingStates::IDENTIFYING_MANUAL;
 
-    if (RadioBox2->GetSelection() == 2)
+    if (SLRadioButton->GetValue())
     {
         Button_MI_NextFrame->Hide();
         Button_MI_PriorFrame->Hide();
@@ -3072,7 +3063,7 @@ void GenerateCustomModelDialog::MIValidateWindow()
     {
         Button_MI_UndoBulb->Disable();
     }
-    if (RadioBox2->GetSelection() != 2)
+    if (!SLRadioButton->GetValue())
     {
         if (_MI_CurrentTime + NODEON + NODEOFF > _vr->GetLengthMS())
         {

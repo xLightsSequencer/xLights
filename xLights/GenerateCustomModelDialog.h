@@ -7,11 +7,11 @@
 //(*Headers(GenerateCustomModelDialog)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/radiobox.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/aui/aui.h>
+#include <wx/radiobut.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/grid.h>
@@ -257,6 +257,7 @@ class GenerateCustomModelDialog: public wxDialog
 
 		//(*Declarations(GenerateCustomModelDialog)
 		wxStaticText* StaticText10;
+		wxRadioButton* SLRadioButton;
 		wxPanel* Panel_BulbIdentify;
 		wxStaticText* StaticText9;
 		wxButton* Button_Shrink;
@@ -264,6 +265,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxTextCtrl* TextCtrl_BI_Contrast;
 		wxStaticText* StaticText_StartTime;
 		wxFlexGridSizer* FlexGridSizer19;
+		wxRadioButton* SingleChannelRadioButton;
 		wxStaticText* StaticText_CM_Request;
 		wxTextCtrl* TextCtrl_BI_Sensitivity;
 		wxSlider* Slider_BI_MinSeparation;
@@ -274,8 +276,8 @@ class GenerateCustomModelDialog: public wxDialog
 		wxStaticText* StaticText13;
 		wxButton* Button_CB_RestoreDefault;
 		wxButton* Button_CM_Back;
-		wxRadioBox* RadioBox2;
 		wxAuiNotebook* AuiNotebook_ProcessSettings;
+		wxRadioButton* SCRadioButton;
 		wxButton* Button_BI_Update;
 		wxFlexGridSizer* FlexGridSizer5;
 		wxSlider* Slider_Intensity;
@@ -295,6 +297,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxGauge* Gauge_Progress;
 		wxButton* Button_CV_Back;
 		wxButton* Button_MT_Next;
+		wxRadioButton* NodesRadioButtonPg2;
 		wxTextCtrl* TextCtrl_BC_Blur;
 		wxSlider* Slider_BI_Contrast;
 		wxTextCtrl* TextCtrl_BI_MinSeparation;
@@ -317,7 +320,6 @@ class GenerateCustomModelDialog: public wxDialog
 		wxCheckBox* CheckBox_BI_IsSteady;
 		wxStaticText* StaticText15;
 		wxButton* Button_CV_Manual;
-		wxRadioBox* RadioBox1;
 		wxStaticText* StaticText12;
 		wxPanel* Panel2;
 		wxPanel* Panel_Prepare;
@@ -328,6 +330,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxStaticText* StaticText17;
 		wxButton* Button_CM_Save;
 		wxSpinCtrl* SpinCtrl_StartChannel;
+		wxRadioButton* NodesRadioButton;
 		wxButton* Button_Forward1Frame;
 		//*)
 
@@ -336,13 +339,16 @@ class GenerateCustomModelDialog: public wxDialog
         static const long ID_STATICBITMAP_Preview;
 
 		//(*Identifiers(GenerateCustomModelDialog)
-		static const long ID_RADIOBOX1;
+		static const long ID_RADIOBUTTON1;
+		static const long ID_RADIOBUTTON2;
 		static const long ID_SPINCTRL_NC_Count;
 		static const long ID_SPINCTRL_StartChannel;
 		static const long ID_SLIDER_Intensity;
 		static const long ID_BUTTON_PCM_Run;
 		static const long ID_PANEL_Prepare;
-		static const long ID_RADIOBOX2;
+		static const long ID_RADIOBUTTON3;
+		static const long ID_RADIOBUTTON4;
+		static const long ID_RADIOBUTTON5;
 		static const long ID_BUTTON_MT_Next;
 		static const long ID_PANEL1;
 		static const long ID_STATICTEXT10;
