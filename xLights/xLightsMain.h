@@ -149,9 +149,9 @@ wxDECLARE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_RGBEFFECTS_CHANGED, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
-static const wxString xlights_qualifier       = " "; // " BETA";
-static const wxString xlights_version_string  = "2016.51";
-static const wxString xlights_build_date      = "Nov 4, 2016";
+static const wxString xlights_qualifier       = "BETA"; // " BETA";
+static const wxString xlights_version_string  = "2016.52";
+static const wxString xlights_build_date      = "Nov 9, 2016";
 
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
 static const wxString strSequenceSaveAsFileTypes = "xLights Sequences(*.xml)|*.xml";

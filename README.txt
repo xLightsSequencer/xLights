@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.52  Nov 09, 2016
    -- bug (dkulp)   Allow using @ModelName:# for individual strands where ModelName is the current model
    -- bug (keithsw) Fix picture effect image scaling
    -- bug (keithsw) Set default FPP user to fpp instead of pi
@@ -41,7 +42,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp)   Fix crash on render on some sequences
    -- enh (Jennifer)added tool tips for countdowns
    -- enh (Jennifer)New enhancements for countdown timer in text effect
-   -- bug (keithsw) Fix GIF handling of animated gifs where first frame is not full size ... ie it has an offset.
+   -- bug (keithsw) Fix GIF handling of   animated gifs where first frame is not full size ... ie it has an offset.
    -- bug (keithsw) Fix video effect start time bug.
    -- enh (keithsw) Allow VU Meter to use Papagayo layer 0 as a timing track
    -- bug (keithsw) Fix GIF handling of animated gifs where first frame is not full size ... ie it has an offset.
