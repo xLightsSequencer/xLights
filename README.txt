@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Allow using @ModelName:# for individual strands where ModelName is the current model
    -- bug (keithsw) Fix picture effect image scaling
    -- bug (keithsw) Set default FPP user to fpp instead of pi
    -- bug (dkulp)   Fix crash if node effects are on nodes that don't exist

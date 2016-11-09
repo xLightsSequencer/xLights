@@ -903,7 +903,11 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
             Model *m = modelManager[start];
             if (m != nullptr && m->CouldComputeStartChannel) {
                 if (fromStart) {
-                    return m->GetFirstChannel() + returnChannel;
+                    int i = m->GetFirstChannel();
+                    if (i == -1 && m == this && stringStartChan.size() > 0) {
+                        i = stringStartChan[0];
+                    }
+                    return i + returnChannel;
                 }
                 else {
                     return m->GetLastChannel() + returnChannel + 1;
