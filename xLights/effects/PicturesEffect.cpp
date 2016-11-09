@@ -576,6 +576,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         if (!image.IsOk())
             return;
     }
+
     if(cache->imageCount > 1) {
 
         //animated Gif,
@@ -591,6 +592,12 @@ void PicturesEffect::Render(RenderBuffer &buffer,
 
             image = rawimage;
         }
+    }
+    
+    if (!scale_to_fit && (start_scale != end_scale))
+    {
+        image = rawimage;
+        scale_image = true;
     }
 
     int imgwidth=image.GetWidth();
