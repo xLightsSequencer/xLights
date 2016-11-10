@@ -129,7 +129,8 @@ EffectLayer* SequenceElements::GetVisibleEffectLayer(int row) {
 }
 
 static Element* CreateElement(SequenceElements *se, const std::string &name, const std::string &type,
-                              bool visible,bool collapsed,bool active, bool selected) {
+                              bool visible,bool collapsed,bool active, bool selected,
+                              xLightsFrame *xframe) {
     Element *el;
     if (type == "timing") {
         TimingElement *te = new TimingElement(se, name);
@@ -137,6 +138,12 @@ static Element* CreateElement(SequenceElements *se, const std::string &name, con
         te->SetActive(active);
     } else {
         ModelElement *me = new ModelElement(se, name, selected);
+        if (xframe != nullptr) {
+            Model *model = xframe->GetModel(name);
+            if (model != nullptr) {
+                me->Init(*model);
+            }
+        }
         el = me;
     }
     el->SetCollapsed(collapsed);
@@ -148,7 +155,7 @@ Element* SequenceElements::AddElement(const std::string &name, const std::string
                                       bool visible,bool collapsed,bool active, bool selected)
 {
     if(!ElementExists(name)) {
-        Element *el = CreateElement(this, name,type,visible,collapsed,active,selected);
+        Element *el = CreateElement(this, name,type,visible,collapsed,active,selected,xframe);
 
         mAllViews[MASTER_VIEW].push_back(el);
         IncrementChangeCount(el);
@@ -163,7 +170,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
 {
     if(!ElementExists(name) && index <= mAllViews[MASTER_VIEW].size())
     {
-        Element *el = CreateElement(this, name,type,visible,collapsed,active,selected);
+        Element *el = CreateElement(this, name,type,visible,collapsed,active,selected,xframe);
         mAllViews[MASTER_VIEW].insert(mAllViews[MASTER_VIEW].begin()+index, el);
         IncrementChangeCount(el);
         return el;
