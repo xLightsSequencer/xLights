@@ -9,6 +9,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- enh (gil)     Add wrap option to Fill effect to allow turning off wrap feature.
+   -- enh (dkulp)   If the OpenGL driver didn't double-buffer, try again.  Should help on GDI driver
+   -- bug (dkulp)   Fix crash if right click on setup tab when no controllers are defined
+   -- bug (dkulp)   May not be able to import xLights effects onto submodels without first viewing the 
+                    submodel layers on the grid
 2016.52  Nov 09, 2016
    -- bug (dkulp)   Allow using @ModelName:# for individual strands where ModelName is the current model
    -- bug (keithsw) Fix picture effect image scaling

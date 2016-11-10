@@ -1257,13 +1257,13 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersEndLabelEdit(wxTreeEvent& event)
 
 void SeqSettingsDialog::MediaChooser()
 {
-	wxFileDialog* OpenDialog = new wxFileDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP Audio files|*.mp3;*.ogg;*.m4p;*.mp4|xLights Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg", wxFD_OPEN, wxDefaultPosition);
+	wxFileDialog OpenDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP Audio files|*.mp3;*.ogg;*.m4p;*.mp4|xLights Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg", wxFD_OPEN, wxDefaultPosition);
     wxString fDir;
-    OpenDialog->SetDirectory(media_directory);
-    if (OpenDialog->ShowModal() == wxID_OK)
+    OpenDialog.SetDirectory(media_directory);
+    if (OpenDialog.ShowModal() == wxID_OK)
     {
-        fDir = OpenDialog->GetDirectory();
-        wxString filename = OpenDialog->GetFilename();
+        fDir = OpenDialog.GetDirectory();
+        wxString filename = OpenDialog.GetFilename();
         wxFileName name_and_path(filename);
         name_and_path.SetPath(fDir);
         xml_file->SetMediaFile(xLightsParent->GetShowDirectory(), name_and_path.GetFullPath(), CheckBox_Overwrite_Tags->IsChecked());
@@ -1290,8 +1290,6 @@ void SeqSettingsDialog::MediaChooser()
 		//	wxMessageBox(string_format("Using Variable Bitrate audio files can cause playback issues when sequencing. It is recommended you convert them to constant bitrate using softfare like Audacity."), "Warning", wxICON_WARNING | wxOK);
 		//}
     }
-
-    OpenDialog->Destroy();
 }
 
 void SeqSettingsDialog::OnBitmapButton_Wiz_MusicClick(wxCommandEvent& event)

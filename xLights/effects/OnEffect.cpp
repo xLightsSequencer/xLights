@@ -78,8 +78,8 @@ std::string OnEffect::GetEffectString() {
 
 
 void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
-    int starti = e->GetSettings().GetInt(TEXTCTRL_Eff_On_Start, 100);
-    int endi = e->GetSettings().GetInt(TEXTCTRL_Eff_On_End, 100);
+    int starti = e->GetSettings().GetInt("E_TEXTCTRL_Eff_On_Start", 100);
+    int endi = e->GetSettings().GetInt("E_TEXTCTRL_Eff_On_End", 100);
     xlColor newcolor;
     newcolor = e->GetPalette()[0];
     if (starti == 100 && endi == 100) {

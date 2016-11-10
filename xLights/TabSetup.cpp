@@ -1570,10 +1570,12 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     else
     {
         int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-        wxXmlNode* e = GetOutput(item);
-        if (e->GetAttribute("ComPort", "") == "MULTICAST")
-        {
-            oc->Enable(false);
+        if (item != -1) {
+            wxXmlNode* e = GetOutput(item);
+            if (e->GetAttribute("ComPort", "") == "MULTICAST")
+            {
+                oc->Enable(false);
+            }
         }
     }
 

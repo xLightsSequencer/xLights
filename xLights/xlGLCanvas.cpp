@@ -10,7 +10,7 @@ END_EVENT_TABLE()
 
 #include <wx/log.h>
 #include <wx/config.h>
-#include <wx/msgdlg.h> 
+#include <wx/msgdlg.h>
 #include <log4cpp/Category.hh>
 
 static wxGLAttributes GetAttributes() {
@@ -19,14 +19,12 @@ static wxGLAttributes GetAttributes() {
         .RGBA()
         .MinRGBA(8, 8, 8, 8)
         .DoubleBuffer()
-        //.Depth(16)
         .EndList();
     if (!wxGLCanvas::IsDisplaySupported(atts)) {
         atts.Reset();
         atts.PlatformDefaults()
             .RGBA()
             .DoubleBuffer()
-            //.Depth(16)
             .EndList();
     }
     return atts;
@@ -55,8 +53,61 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
         cache(nullptr)
 {
     xlSetOpenGLRetina(*this);
-    //CreateGLContext();
     this->GetGLCTXAttrs().PlatformDefaults();
+
+#ifdef __WXMSW__
+    int origPixelFormat = GetPixelFormat(m_hDC);
+    PIXELFORMATDESCRIPTOR pfdOrig;
+    DescribePixelFormat(m_hDC,
+                        origPixelFormat,
+                        sizeof(PIXELFORMATDESCRIPTOR),
+                        &pfdOrig
+                        );
+    if ((pfdOrig.dwFlags & PFD_DOUBLEBUFFER) == 0) {
+        //For some reason, it didn't honor the DOUBLEBUFFER flag, we'll try and recreate the
+        //context and try again using raw Windows OpenGL code.
+        //(this tends to happen with the generic GDI driver in Windows 10)
+        parent->RemoveChild(this);
+        ::ReleaseDC(((HWND)GetHWND()), m_hDC);
+        ::DestroyWindow(m_hWnd);
+        m_hWnd = nullptr;
+        m_hDC = nullptr;
+        
+        int r = CreateWindow(parent, id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name);
+        
+        PIXELFORMATDESCRIPTOR pfd = {
+            sizeof(PIXELFORMATDESCRIPTOR),  //  size of this pfd
+            1,                     // version number
+            PFD_DRAW_TO_WINDOW     // support window
+            | PFD_SUPPORT_OPENGL   // support OpenGL
+            | PFD_DOUBLEBUFFER     // double buffered
+            ,
+            PFD_TYPE_RGBA,         // RGBA type
+            24,                    // 24-bit color depth
+            0, 0, 0, 0, 0, 0,      // color bits ignored
+            8,                     // alpha buffer
+            0,                     // shift bit ignored
+            0,                     // no accumulation buffer
+            0, 0, 0, 0,            // accum bits ignored
+            16,                    // 16-bit z-buffer
+            0,                     // no stencil buffer
+            0,                     // no auxiliary buffer
+            PFD_MAIN_PLANE,        // main layer
+            0,                     // reserved
+            0, 0, 0                // layer masks ignored
+        };
+        m_hDC = ::GetDC(((HWND)GetHWND()));
+        int iPixelFormat = ChoosePixelFormat(m_hDC, &pfd);
+
+        DescribePixelFormat(m_hDC,
+                            iPixelFormat,
+                            sizeof(PIXELFORMATDESCRIPTOR),
+                            &pfd
+                            );
+        int ret = SetPixelFormat(m_hDC, iPixelFormat, &pfd);
+    }
+#endif
+
 }
 
 xlGLCanvas::~xlGLCanvas()
@@ -69,8 +120,6 @@ xlGLCanvas::~xlGLCanvas()
         delete m_context;
     }
 }
-
-
 
 #ifdef __WXMSW__
 static const char * getStringForSource(GLenum source) {
@@ -143,7 +192,7 @@ void CALLBACK DebugLog(GLenum source , GLenum type , GLuint id , GLenum severity
 }
 void CALLBACK DebugLogAMD(GLuint id,GLenum category,GLenum severity,GLsizei length,const GLchar *message,void *userParam) {
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
-    
+
     logger_opengl.info("%s; ID : %d; Severity : % s\n Message: %s",
                         getStringForType( category ),
                         id,
@@ -162,7 +211,7 @@ void AddDebugLog(xlGLCanvas *c) {
         glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKARBPROC)wglGetProcAddress("glDebugMessageCallback");
         glDebugMessageControlARB = (PFNGLDEBUGMESSAGECONTROLARBPROC)wglGetProcAddress("glDebugMessageControl");
     }
-    
+
     if (glDebugMessageCallbackARB != nullptr) {
         logger_opengl.debug("Adding debug callback.  %X", glDebugMessageControlARB);
         LOG_GL_ERRORV(glDebugMessageCallbackARB(DebugLog, c));
@@ -216,10 +265,10 @@ void xlGLCanvas::SetCurrentGLContext() {
                                            (const char *)str,
                                            (const char *)rend,
                                            (const char *)vend);
-        
+
         if (wxString(rend) == "GDI Generic"
             || wxString(vend).Contains("Microsoft")) {
-            
+
             bool warned;
             config->Read("GDI-Warned", &warned, false);
             if (!warned) {
@@ -232,7 +281,7 @@ void xlGLCanvas::SetCurrentGLContext() {
             //need to use 1.x
             ver = 1;
         }
-        
+
         logger_opengl.info(std::string(configs.c_str()));
         printf("%s\n", (const char *)configs.c_str());
         if (ver >= 3 && (str[0] > '3' || (str[0] == '3' && str[2] >= '3'))) {
@@ -273,7 +322,7 @@ void xlGLCanvas::CreateGLContext() {
         wxConfigBase* config = wxConfigBase::Get();
         int ver = 99;
         config->Read("ForceOpenGLVer", &ver, 99);
-        
+
         static bool supportsCoreProfile = true;
 
         if (supportsCoreProfile && m_coreProfile && ver >= 3) {
