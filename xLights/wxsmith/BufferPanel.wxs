@@ -50,7 +50,6 @@
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_BufferStyle" variable="BitmapButtonBufferStyle" member="no">
 															<bitmap code="padlock16x16_blue_xpm" />
-															<default>1</default>
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -89,7 +88,6 @@
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_BufferTransform" variable="BitmapButton_BufferTransform" member="no">
 															<bitmap code="padlock16x16_blue_xpm" />
-															<default>1</default>
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -150,7 +148,6 @@
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectBlur" variable="BitmapButton_EffectBlur" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
-															<default>1</default>
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -177,7 +174,6 @@
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_OverlayBkg" variable="BitmapButton_OverlayBkg" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
-															<default>1</default>
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -303,7 +299,6 @@
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Rotation" variable="BitmapButton_Rotation" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
-													<default>1</default>
 													<size>13,13</size>
 													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -363,7 +358,6 @@
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Rotations" variable="BitmapButton_Rotations" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
-													<default>1</default>
 													<size>13,13</size>
 													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -423,7 +417,6 @@
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_PivotPointX" variable="BitmapButton_PivotPointX" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
-													<default>1</default>
 													<size>13,13</size>
 													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -483,7 +476,6 @@
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_PivotPointY" variable="BitmapButton_PivotPointY" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
-													<default>1</default>
 													<size>13,13</size>
 													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -543,7 +535,6 @@
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Zoom" variable="BitmapButton_Zoom" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
-													<default>1</default>
 													<size>13,13</size>
 													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -595,7 +586,6 @@
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_ZoomQuality" variable="BitmapButton_ZoomQuality" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
-													<default>1</default>
 													<size>13,13</size>
 													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>

@@ -3,20 +3,20 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(MarqueePanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
 #include <wx/notebook.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
-#include <wx/statline.h>
-#include <wx/gbsizer.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/bitmap.h>
+#include <wx/statline.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
+#include <wx/gbsizer.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(MarqueePanel)
@@ -65,47 +65,47 @@ END_EVENT_TABLE()
 MarqueePanel::MarqueePanel(wxWindow* parent)
 {
 	//(*Initialize(MarqueePanel)
-	wxTextCtrl* TextCtrl_Marquee_ScaleY;
-	wxTextCtrl* TextCtrl_Marquee_ScaleX;
-	wxTextCtrl* TextCtrl_Marquee_Speed;
-	wxFlexGridSizer* FlexGridSizer138;
-	wxSlider* Slider_Marquee_Start;
-	wxStaticText* StaticText201;
-	wxSlider* Slider_MarqueeYC;
-	wxStaticText* StaticText196;
-	wxTextCtrl* TextCtrl_Marquee_Stagger;
-	wxCheckBox* CheckBox_Marquee_PixelOffsets;
-	wxTextCtrl* TextCtrl_MarqueeYC;
-	wxTextCtrl* TextCtrl_Marquee_Band_Size;
-	wxStaticText* StaticText116;
-	wxSlider* Slider_Marquee_Band_Size;
-	wxStaticText* StaticText195;
-	wxGridBagSizer* GridBagSizer5;
-	wxStaticText* StaticText198;
-	wxSlider* Slider_Marquee_Skip_Size;
-	wxSlider* Slider_Marquee_Stagger;
-	wxStaticText* StaticText244;
-	wxStaticText* StaticText194;
-	wxBitmapButton* BitmapButton_Marquee_Band_Size;
-	wxTextCtrl* TextCtrl_Marquee_Start;
 	wxTextCtrl* TextCtrl_Marquee_Skip_Size;
-	wxCheckBox* CheckBox_Marquee_WrapX;
-	wxFlexGridSizer* FlexGridSizer137;
 	wxSlider* Slider_MarqueeXC;
-	wxFlexGridSizer* FlexGridSizer58;
-	wxSlider* Slider_Marquee_ScaleX;
-	wxStaticText* StaticText62;
-	wxSlider* Slider_Marquee_Thickness;
-	wxStaticText* StaticText199;
-	wxFlexGridSizer* FlexGridSizer135;
-	wxFlexGridSizer* FlexGridSizer23;
-	wxCheckBox* CheckBox_Marquee_Reverse;
-	wxFlexGridSizer* FlexGridSizer136;
-	wxStaticText* StaticText200;
-	wxTextCtrl* TextCtrl_MarqueeXC;
+	wxTextCtrl* TextCtrl_Marquee_Band_Size;
+	wxCheckBox* CheckBox_Marquee_WrapX;
 	wxSlider* Slider_Marquee_Speed;
+	wxFlexGridSizer* FlexGridSizer138;
+	wxStaticText* StaticText200;
+	wxFlexGridSizer* FlexGridSizer23;
+	wxStaticText* StaticText195;
+	wxStaticText* StaticText62;
+	wxFlexGridSizer* FlexGridSizer135;
+	wxBitmapButton* BitmapButton_Marquee_Band_Size;
+	wxStaticText* StaticText244;
+	wxSlider* Slider_Marquee_Stagger;
+	wxSlider* Slider_Marquee_Start;
+	wxTextCtrl* TextCtrl_Marquee_Start;
 	wxSlider* Slider_Marquee_ScaleY;
+	wxStaticText* StaticText194;
+	wxSlider* Slider_Marquee_Band_Size;
+	wxSlider* Slider_MarqueeYC;
+	wxFlexGridSizer* FlexGridSizer137;
+	wxCheckBox* CheckBox_Marquee_PixelOffsets;
+	wxTextCtrl* TextCtrl_Marquee_Speed;
+	wxStaticText* StaticText116;
+	wxSlider* Slider_Marquee_Skip_Size;
+	wxTextCtrl* TextCtrl_MarqueeYC;
 	wxTextCtrl* TextCtrl_Marquee_Thickness;
+	wxStaticText* StaticText196;
+	wxCheckBox* CheckBox_Marquee_Reverse;
+	wxTextCtrl* TextCtrl_Marquee_Stagger;
+	wxStaticText* StaticText201;
+	wxTextCtrl* TextCtrl_Marquee_ScaleX;
+	wxGridBagSizer* GridBagSizer5;
+	wxSlider* Slider_Marquee_Thickness;
+	wxTextCtrl* TextCtrl_MarqueeXC;
+	wxStaticText* StaticText198;
+	wxFlexGridSizer* FlexGridSizer136;
+	wxFlexGridSizer* FlexGridSizer58;
+	wxTextCtrl* TextCtrl_Marquee_ScaleY;
+	wxSlider* Slider_Marquee_ScaleX;
+	wxStaticText* StaticText199;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer23 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -122,7 +122,6 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_Band_Size->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Band_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Marquee_Band_Size = new wxBitmapButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size"));
-	BitmapButton_Marquee_Band_Size->SetDefault();
 	BitmapButton_Marquee_Band_Size->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer58->Add(BitmapButton_Marquee_Band_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText194 = new wxStaticText(Panel_Marquee_Settings, wxID_ANY, _("Skip Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -133,7 +132,6 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_Skip_Size->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Skip_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Marquee_Skip_Size = new wxBitmapButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Skip_Size, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Skip_Size"));
-	BitmapButton_Marquee_Skip_Size->SetDefault();
 	BitmapButton_Marquee_Skip_Size->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer58->Add(BitmapButton_Marquee_Skip_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText195 = new wxStaticText(Panel_Marquee_Settings, wxID_ANY, _("Thickness:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -144,7 +142,6 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_Thickness->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Thickness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Marquee_Thickness = new wxBitmapButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Thickness, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Thickness"));
-	BitmapButton_Marquee_Thickness->SetDefault();
 	BitmapButton_Marquee_Thickness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer58->Add(BitmapButton_Marquee_Thickness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText62 = new wxStaticText(Panel_Marquee_Settings, wxID_ANY, _("Stagger:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -155,7 +152,6 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_Stagger->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Stagger, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Marquee_Stagger = new wxBitmapButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Stagger, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Stagger"));
-	BitmapButton_Marquee_Stagger->SetDefault();
 	BitmapButton_Marquee_Stagger->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer58->Add(BitmapButton_Marquee_Stagger, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText196 = new wxStaticText(Panel_Marquee_Settings, wxID_ANY, _("Speed:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -166,7 +162,6 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_Speed->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Marquee_Speed = new wxBitmapButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Speed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Speed"));
-	BitmapButton_Marquee_Speed->SetDefault();
 	BitmapButton_Marquee_Speed->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer58->Add(BitmapButton_Marquee_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText244 = new wxStaticText(Panel_Marquee_Settings, wxID_ANY, _("Start Pos:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -177,7 +172,6 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_Start->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Start, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Marquee_Start = new wxBitmapButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Start, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Start"));
-	BitmapButton_Marquee_Start->SetDefault();
 	BitmapButton_Marquee_Start->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer58->Add(BitmapButton_Marquee_Start, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer58->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -199,7 +193,6 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_ScaleX->SetMaxLength(3);
 	FlexGridSizer138->Add(TextCtrl_Marquee_ScaleX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Marquee_ScaleX = new wxBitmapButton(Panel_Marquee_Position, ID_BITMAPBUTTON_SLIDER_Marquee_ScaleX, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_ScaleX"));
-	BitmapButton_Marquee_ScaleX->SetDefault();
 	BitmapButton_Marquee_ScaleX->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer138->Add(BitmapButton_Marquee_ScaleX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText199 = new wxStaticText(Panel_Marquee_Position, wxID_ANY, _("Scale Y:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -210,7 +203,6 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_ScaleY->SetMaxLength(3);
 	FlexGridSizer138->Add(TextCtrl_Marquee_ScaleY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Marquee_ScaleY = new wxBitmapButton(Panel_Marquee_Position, ID_BITMAPBUTTON_SLIDER_Marquee_ScaleY, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_ScaleY"));
-	BitmapButton_Marquee_ScaleY->SetDefault();
 	BitmapButton_Marquee_ScaleY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer138->Add(BitmapButton_Marquee_ScaleY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer135->Add(FlexGridSizer138, 1, wxALL|wxEXPAND, 5);

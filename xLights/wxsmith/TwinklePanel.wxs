@@ -38,7 +38,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Twinkle_Count" variable="BitmapButton_TwinkleCount" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -82,7 +81,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Twinkle_Steps" variable="BitmapButton_TwinkleSteps" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -113,7 +111,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe" variable="BitmapButton_TwinkleStrobe" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -144,7 +141,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom" variable="BitmapButton24" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>

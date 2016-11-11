@@ -75,14 +75,13 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	Choice_Piano_Type->SetSelection( Choice_Piano_Type->Append(_("True Piano")) );
 	Choice_Piano_Type->Append(_("Bars"));
 	FlexGridSizer27->Add(Choice_Piano_Type, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer27->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer27->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Start MIDI Channel [0-127]"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer27->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	SpinCtrl_Piano_StartMIDI = new wxSpinCtrl(this, ID_SPINCTRL_Piano_StartMIDI, _T("60"), wxDefaultPosition, wxDefaultSize, 0, 0, 127, 60, _T("ID_SPINCTRL_Piano_StartMIDI"));
 	SpinCtrl_Piano_StartMIDI->SetValue(_T("60"));
 	FlexGridSizer27->Add(SpinCtrl_Piano_StartMIDI, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Piano_StartMIDI = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_StartMIDI, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_StartMIDI"));
-	BitmapButton_Piano_StartMIDI->SetDefault();
 	FlexGridSizer27->Add(BitmapButton_Piano_StartMIDI, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText_Piano_NumKeys = new wxStaticText(this, ID_STATICTEXT_Piano_NumKeys, _("End MIDI Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Piano_NumKeys"));
 	FlexGridSizer27->Add(StaticText_Piano_NumKeys, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -90,14 +89,12 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	SpinCtrl_Piano_EndMIDI->SetValue(_T("72"));
 	FlexGridSizer27->Add(SpinCtrl_Piano_EndMIDI, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Piano_EndMIDI = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_EndMIDI, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_EndMIDI"));
-	BitmapButton_Piano_EndMIDI->SetDefault();
 	FlexGridSizer27->Add(BitmapButton_Piano_EndMIDI, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer27->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Piano_ShowSharps = new wxCheckBox(this, ID_CHECKBOX_Piano_ShowSharps, _("Show Sharps and Flats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Piano_ShowSharps"));
 	CheckBox_Piano_ShowSharps->SetValue(true);
 	FlexGridSizer27->Add(CheckBox_Piano_ShowSharps, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Piano_ShowSharps = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_ShowSharps, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_ShowSharps"));
-	BitmapButton_Piano_ShowSharps->SetDefault();
 	FlexGridSizer27->Add(BitmapButton_Piano_ShowSharps, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Track"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer27->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -119,7 +116,6 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	TextCtrl_Piano_Scale = new wxTextCtrl(this, IDD_TEXTCTRL_Piano_Scale, _("100"), wxDefaultPosition, wxSize(44,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Piano_Scale"));
 	FlexGridSizer3->Add(TextCtrl_Piano_Scale, 1, wxALL, 2);
 	BitmapButton_Piano_scale = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_Scale, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_Scale"));
-	BitmapButton_Piano_scale->SetDefault();
 	FlexGridSizer3->Add(BitmapButton_Piano_scale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, _("Horizontal Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer3->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -128,7 +124,6 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	TextCtrl_Piano_XOffset = new wxTextCtrl(this, IDD_TEXTCTRL_Piano_XOffset, _("0"), wxDefaultPosition, wxSize(44,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Piano_XOffset"));
 	FlexGridSizer3->Add(TextCtrl_Piano_XOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Piano_XOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_XOffset, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_XOffset"));
-	BitmapButton_Piano_XOffset->SetDefault();
 	FlexGridSizer3->Add(BitmapButton_Piano_XOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer42->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);

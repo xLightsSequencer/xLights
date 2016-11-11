@@ -59,7 +59,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Circles_Count" variable="BitmapButton_CirclesCount" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -119,7 +118,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Circles_Size" variable="BitmapButton_CirclesSize" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -179,7 +177,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON21" variable="BitmapButton2" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,14</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -207,7 +204,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Bounce" variable="BitmapButton_CirclesBounce" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -235,7 +231,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Radial" variable="BitmapButton_CirclesRadial" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -263,7 +258,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Plasma" variable="BitmapButton_CirclesPlasma" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -291,7 +285,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D" variable="BitmapButton_CirclesRadial3D" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -320,7 +313,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CirclesBubbles" variable="BitmapButton_CirclesBubbles" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -349,7 +341,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Collide" variable="BitmapButton_CirclesCollide" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<hidden>1</hidden>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -379,7 +370,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m" variable="BitmapButton_RandomMotion" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<hidden>1</hidden>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -408,7 +398,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Linear_Fade" variable="BitmapButton_Circles_Linear_Fade" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>

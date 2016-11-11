@@ -157,7 +157,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Color_Mix1" variable="BitmapButton_Color_Mix1" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -217,7 +216,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON23" variable="BitmapButton4" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -260,7 +258,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Chase_Type1" variable="BitmapButton_Chase_Type1" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -294,7 +291,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1" variable="BitmapButton_Chase_3dFade1" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -326,7 +322,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Chase_Group_All" variable="BitmapButton_Chase_Group_All" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>

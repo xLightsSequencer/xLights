@@ -20,7 +20,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME" variable="BitmapButton_PicturesFilename" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -88,7 +87,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Pictures_Direction" variable="BitmapButton_PicturesDirection" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -130,7 +128,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON25" variable="BitmapButton6" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -172,7 +169,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed" variable="BitmapButton_PicturesSpeed" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>

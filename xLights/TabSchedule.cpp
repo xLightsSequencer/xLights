@@ -62,10 +62,15 @@ void xLightsFrame::EndScript(const char *scriptname)
     SendToLogAndStatusBar(_("Ended playlist: ")+wxname);
 }
 
-void xLightsFrame::AddPlaylist(const wxString& name)
+int xLightsFrame::AddPlaylist(const wxString& name)
 {
-    int id, baseid=1000*Notebook1->GetPageCount();
-    wxPanel* PanelPlayList = new wxPanel(Notebook1);
+    int id;
+    int baseid = wxNewId();
+    for (int x = 0; x <= PLAY_LIST_MAX; x++) {
+        wxNewId();
+    }
+    wxPanel* PanelPlayList = new wxPanel(Notebook1, baseid);
+    baseid++;
 
     wxFlexGridSizer* FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizer4->AddGrowableCol(3);
@@ -116,21 +121,18 @@ void xLightsFrame::AddPlaylist(const wxString& name)
 
     id=baseid+UP_BUTTON;
     wxBitmapButton* BitmapButtonUp = new wxBitmapButton(PanelPlayList, id, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_UP")),wxART_BUTTON));
-    BitmapButtonUp->SetDefault();
     BitmapButtonUp->SetToolTip(_("Move Item Up"));
     FlexGridSizer5->Add(BitmapButtonUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonUpClick);
 
     id=baseid+DOWN_BUTTON;
     wxBitmapButton* BitmapButtonDown = new wxBitmapButton(PanelPlayList, id, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_DOWN")),wxART_BUTTON));
-    BitmapButtonDown->SetDefault();
     BitmapButtonDown->SetToolTip(_("Move Item Down"));
     FlexGridSizer5->Add(BitmapButtonDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonDownClick);
     /*
         id=baseid+INFO_BUTTON;
         wxBitmapButton* BitmapButtonInfo = new wxBitmapButton(PanelPlayList, id, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_INFORMATION")),wxART_BUTTON));
-        BitmapButtonInfo->SetDefault();
         BitmapButtonInfo->SetToolTip(_("Sequence Information"));
         FlexGridSizer5->Add(BitmapButtonInfo, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
         Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonInfoClick);
@@ -229,12 +231,12 @@ void xLightsFrame::AddPlaylist(const wxString& name)
     ListBox1->InsertColumn(1, itemCol);
     ListBox1->SetColumnWidth(0,100);
     ListBox1->SetColumnWidth(1,100);
+    return baseid;
 }
 
 void xLightsFrame::OnButtonPlaylistAddClick(wxCommandEvent& event)
 {
-    int nbidx=Notebook1->GetSelection();
-    int baseid=1000*nbidx;
+    int baseid=Notebook1->GetCurrentPage()->GetId() + 1;
     wxListCtrl* ListBoxPlay=(wxListCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_LISTBOX,Notebook1);
     wxTreeCtrl* TreeCtrlFiles=(wxTreeCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_FILES,Notebook1);
     wxTreeItemId root=TreeCtrlFiles->GetRootItem();
@@ -250,8 +252,7 @@ void xLightsFrame::OnButtonPlaylistAddClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonPlaylistAddAllClick(wxCommandEvent& event)
 {
-    int nbidx=Notebook1->GetSelection();
-    int baseid=1000*nbidx;
+    int baseid=Notebook1->GetCurrentPage()->GetId() + 1;
     int cnt=0;
     wxListCtrl* ListBoxPlay=(wxListCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_LISTBOX,Notebook1);
     wxTreeCtrl* TreeCtrlFiles=(wxTreeCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_FILES,Notebook1);
@@ -274,8 +275,7 @@ void xLightsFrame::OnButtonPlaylistAddAllClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonPlaylistDeleteClick(wxCommandEvent& event)
 {
-    int nbidx=Notebook1->GetSelection();
-    int baseid=1000*nbidx;
+    int baseid=Notebook1->GetCurrentPage()->GetId() + 1;
     wxListCtrl* ListBoxPlay=(wxListCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_LISTBOX,Notebook1);
     long SelectedItem = GetSelectedItem(ListBoxPlay);
     if (SelectedItem == -1)
@@ -291,8 +291,7 @@ void xLightsFrame::OnButtonPlaylistDeleteClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonPlaylistDeleteAllClick(wxCommandEvent& event)
 {
-    int nbidx=Notebook1->GetSelection();
-    int baseid=1000*nbidx;
+    int baseid=Notebook1->GetCurrentPage()->GetId() + 1;
     wxListCtrl* ListBoxPlay=(wxListCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_LISTBOX,Notebook1);
     if (ListBoxPlay->GetItemCount() > 0)
     {
@@ -611,7 +610,7 @@ void xLightsFrame::ScanForFiles()
     int i;
 
     int nbidx=Notebook1->GetSelection();
-    int baseid=1000*nbidx;
+    int baseid=Notebook1->GetCurrentPage()->GetId() + 1;
     wxString PageName=Notebook1->GetPageText(nbidx);
     wxTreeCtrl* TreeCtrlFiles=(wxTreeCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_FILES,Notebook1);
     if (TreeCtrlFiles == 0)
@@ -727,7 +726,7 @@ long xLightsFrame::GetSelectedItem(wxListCtrl* ListBoxPlay)
 
 void xLightsFrame::OnButtonSetDelayClick(wxCommandEvent& event)
 {
-    int baseid=1000*Notebook1->GetSelection();
+    int baseid=Notebook1->GetCurrentPage()->GetId() + 1;
     wxListCtrl* ListBoxPlay=(wxListCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_LISTBOX,Notebook1);
     long SelectedItem = GetSelectedItem(ListBoxPlay);
     if (SelectedItem == -1)
@@ -760,7 +759,7 @@ void xLightsFrame::OnButtonPlayItemClick(wxCommandEvent& event)
         SetStatusText(_("A playlist is already running!"));
         return;
     }
-    int baseid=1000*Notebook1->GetSelection();
+    int baseid=Notebook1->GetCurrentPage()->GetId() + 1;
     wxListCtrl* ListBoxPlay=(wxListCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_LISTBOX,Notebook1);
     long SelectedItem = GetSelectedItem(ListBoxPlay);
     if (SelectedItem == -1)
@@ -867,7 +866,7 @@ bool xLightsFrame::Play(wxString& filename, long delay)
 
 void xLightsFrame::OnButtonUpClick(wxCommandEvent& event)
 {
-    int baseid=1000*Notebook1->GetSelection();
+    int baseid=Notebook1->GetCurrentPage()->GetId() + 1;
     wxListCtrl* ListBoxPlay=(wxListCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_LISTBOX,Notebook1);
     long SelectedItem = GetSelectedItem(ListBoxPlay);
     if (SelectedItem == -1)
@@ -894,7 +893,7 @@ void xLightsFrame::OnButtonUpClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonDownClick(wxCommandEvent& event)
 {
-    int baseid=1000*Notebook1->GetSelection();
+    int baseid=Notebook1->GetCurrentPage()->GetId() + 1;
     wxListCtrl* ListBoxPlay=(wxListCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_LISTBOX,Notebook1);
     long SelectedItem = GetSelectedItem(ListBoxPlay);
     if (SelectedItem == -1)
@@ -983,7 +982,7 @@ void xLightsFrame::SaveScheduleFile()
         return;
     }
     wxListItem column1;
-    unsigned int RowCount,baseid;
+    unsigned int RowCount;
     wxString v;
     wxCheckBox* chkbox;
     wxTextCtrl* TextCtrlLogic;
@@ -1015,7 +1014,7 @@ void xLightsFrame::SaveScheduleFile()
     {
         plist = new wxXmlNode( wxXML_ELEMENT_NODE, "playlist" );
         plist->AddAttribute( "name", Notebook1->GetPageText(pagenum) );
-        baseid=1000*pagenum;
+        int baseid=Notebook1->GetPage(pagenum)->GetId() + 1;
         wxListCtrl* ListBoxPlay=(wxListCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_LISTBOX,Notebook1);
         for (int i=CHKBOX_AUDIO; i<=CHKBOX_MOVIEMODE; i++)
         {
@@ -1134,8 +1133,7 @@ void xLightsFrame::LoadPlaylist(wxXmlNode* n)
     wxCheckBox* chkbox;
     wxString chkval;
     wxString name = n->GetAttribute( "name", "");
-    int baseid=1000*Notebook1->GetPageCount();
-    AddPlaylist(name);
+    int baseid = AddPlaylist(name);
     for (int i=CHKBOX_AUDIO; i<=CHKBOX_MOVIEMODE; i++)
     {
         chkbox=(wxCheckBox*)wxWindow::FindWindowById(baseid+i,Notebook1);
@@ -1175,7 +1173,8 @@ void xLightsFrame::OnMenuItemRefreshSelected(wxCommandEvent& event)
 
 wxWindow* xLightsFrame::FindNotebookControl(int nbidx, PlayListIds id)
 {
-    return wxWindow::FindWindowById(1000*nbidx+id, Notebook1);
+    int baseid=Notebook1->GetPage(nbidx)->GetId() + 1;
+    return wxWindow::FindWindowById(baseid+id, Notebook1);
 }
 
 void xLightsFrame::RunPlaylist(int nbidx, wxString& script)

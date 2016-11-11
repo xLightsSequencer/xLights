@@ -39,7 +39,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Tree_Branches" variable="BitmapButton_TreeBranches" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />

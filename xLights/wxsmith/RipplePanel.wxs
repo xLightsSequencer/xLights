@@ -72,7 +72,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON13" variable="BitmapButton_Ripple_Movement" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -133,7 +132,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON14" variable="BitmapButton_RippleThickness" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -229,7 +227,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_RIPPLE_POINTS" variable="BitmapButton_Ripple_Points" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -253,7 +250,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON17" variable="BitmapButton_Ripple3D" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>

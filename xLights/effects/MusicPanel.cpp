@@ -84,7 +84,6 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	TextCtrl_Music_Bars = new wxTextCtrl(this, IDD_TEXTCTRL_Music_Bars, _("20"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Music_Bars"));
 	FlexGridSizer31->Add(TextCtrl_Music_Bars, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Music_Bars = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_Music_Bars, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Music_Bars"));
-	BitmapButton_Music_Bars->SetDefault();
 	BitmapButton_Music_Bars->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_Music_Bars, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
@@ -98,7 +97,6 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	FlexGridSizer31->Add(Choice_Music_Type, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Music_Type = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_Music_Type, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Music_Type"));
-	BitmapButton_Music_Type->SetDefault();
 	BitmapButton_Music_Type->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_Music_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Start Note"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
@@ -108,7 +106,6 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	TextCtrl_Music_StartNote = new wxTextCtrl(this, IDD_TEXTCTRL_Music_StartNote, _("60"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Music_StartNote"));
 	FlexGridSizer31->Add(TextCtrl_Music_StartNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Music_StartNote = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_StartNote, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_StartNote"));
-	BitmapButton_Music_StartNote->SetDefault();
 	BitmapButton_Music_StartNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_Music_StartNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("End Note"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
@@ -118,7 +115,6 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	TextCtrl_Music_EndNote = new wxTextCtrl(this, IDD_TEXTCTRL_Music_EndNote, _("80"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Music_EndNote"));
 	FlexGridSizer31->Add(TextCtrl_Music_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Music_EndNote = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_EndNote, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_EndNote"));
-	BitmapButton_Music_EndNote->SetDefault();
 	BitmapButton_Music_EndNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_Music_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Sensitivity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
@@ -131,7 +127,6 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	TextCtrl_Music_Sensitivity = new wxTextCtrl(this, IDD_TEXTCTRL_Music_Sensitivity, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Music_Sensitivity"));
 	FlexGridSizer31->Add(TextCtrl_Music_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Music_Sensitivity = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_Sensitivty, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_Sensitivty"));
-	BitmapButton_Music_Sensitivity->SetDefault();
 	BitmapButton_Music_Sensitivity->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_Music_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
@@ -146,7 +141,6 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	TextCtrl_Music_Offset = new wxTextCtrl(this, IDD_TEXTCTRL_Music_Offset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Music_Offset"));
 	FlexGridSizer31->Add(TextCtrl_Music_Offset, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Music_Offset = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_Offset, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_Offset"));
-	BitmapButton_Music_Offset->SetDefault();
 	BitmapButton_Music_Offset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_Music_Offset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -155,7 +149,6 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	FlexGridSizer31->Add(CheckBox_Music_Scale, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Music_Scale = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_Scale, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_Scale"));
-	BitmapButton_Music_Scale->SetDefault();
 	BitmapButton_Music_Scale->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_Music_Scale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Notes Scaling"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
@@ -167,7 +160,6 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	FlexGridSizer31->Add(Choice_Music_Scaling, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Music_Scaling = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_Scaling, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_Scaling"));
-	BitmapButton_Music_Scaling->SetDefault();
 	BitmapButton_Music_Scaling->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_Music_Scaling, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Color"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
@@ -179,7 +171,6 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	FlexGridSizer31->Add(Choice_Music_Colour, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Music_Colour = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_Colour, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_Colour"));
-	BitmapButton_Music_Colour->SetDefault();
 	BitmapButton_Music_Colour->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_Music_Colour, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -188,7 +179,6 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	FlexGridSizer31->Add(CheckBox_Music_Fade, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Music_Fade = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_Fade, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_Fade"));
-	BitmapButton_Music_Fade->SetDefault();
 	BitmapButton_Music_Fade->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_Music_Fade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);

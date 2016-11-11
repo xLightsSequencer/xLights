@@ -87,7 +87,6 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	FlexGridSizer132->Add(TextCtrl81, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer72->Add(FlexGridSizer132, 1, wxALL|wxEXPAND, 2);
 	BitmapButton14 = new wxBitmapButton(this, ID_BITMAPBUTTON32, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON32"));
-	BitmapButton14->SetDefault();
 	BitmapButton14->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer72->Add(BitmapButton14, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText87 = new wxStaticText(this, ID_STATICTEXT88, _("R - Radius of outer circle"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT88"));
@@ -103,7 +102,6 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	FlexGridSizer125->Add(TextCtrl21, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer72->Add(FlexGridSizer125, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_SpirographR = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Spirograph_R, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Spirograph_R"));
-	BitmapButton_SpirographR->SetDefault();
 	BitmapButton_SpirographR->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer72->Add(BitmapButton_SpirographR, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText88 = new wxStaticText(this, ID_STATICTEXT89, _("r - Radius of inner circle"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT89"));
@@ -119,7 +117,6 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	FlexGridSizer126->Add(TextCtrl22, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer72->Add(FlexGridSizer126, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Spirographr = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Spirograph_r, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Spirograph_r"));
-	BitmapButton_Spirographr->SetDefault();
 	BitmapButton_Spirographr->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer72->Add(BitmapButton_Spirographr, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText89 = new wxStaticText(this, ID_STATICTEXT90, _("d - Distance"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT90"));
@@ -135,7 +132,6 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	FlexGridSizer127->Add(TextCtrl23, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer72->Add(FlexGridSizer127, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_SpirographAnimate = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Spirograph_d, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Spirograph_d"));
-	BitmapButton_SpirographAnimate->SetDefault();
 	BitmapButton_SpirographAnimate->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer72->Add(BitmapButton_SpirographAnimate, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText92 = new wxStaticText(this, wxID_ANY, _("a - Animation"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -151,7 +147,6 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	FlexGridSizer133->Add(TextCtrl82, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer72->Add(FlexGridSizer133, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Spirographd = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate"));
-	BitmapButton_Spirographd->SetDefault();
 	BitmapButton_Spirographd->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer72->Add(BitmapButton_Spirographd, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText191 = new wxStaticText(this, wxID_ANY, _("Length"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -167,7 +162,6 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	FlexGridSizer134->Add(TextCtrl83, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer72->Add(FlexGridSizer134, 1, wxALL|wxEXPAND, 2);
 	BitmapButton15 = new wxBitmapButton(this, ID_BITMAPBUTTON33, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON33"));
-	BitmapButton15->SetDefault();
 	BitmapButton15->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer72->Add(BitmapButton15, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText90 = new wxStaticText(this, ID_STATICTEXT91, _("Note: r should be <= R"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT91"));

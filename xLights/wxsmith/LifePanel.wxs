@@ -36,7 +36,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Life_Count" variable="BitmapButton_LifeCount" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -77,7 +76,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Life_Seed" variable="BitmapButton_LifeSpeed" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>

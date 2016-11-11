@@ -26,7 +26,7 @@
 										<min>1</min>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -44,7 +44,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size" variable="BitmapButton_Marquee_Band_Size" member="no">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -66,7 +65,7 @@
 									<object class="wxSlider" name="ID_SLIDER_Marquee_Skip_Size" variable="Slider_Marquee_Skip_Size" member="no">
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -84,7 +83,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Skip_Size" variable="BitmapButton_Marquee_Skip_Size" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -108,7 +106,7 @@
 										<min>1</min>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -126,7 +124,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Thickness" variable="BitmapButton_Marquee_Thickness" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -149,7 +146,7 @@
 										<max>50</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -167,7 +164,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Stagger" variable="BitmapButton_Marquee_Stagger" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -191,7 +187,7 @@
 										<max>50</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -209,7 +205,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Speed" variable="BitmapButton_Marquee_Speed" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -231,7 +226,7 @@
 									<object class="wxSlider" name="ID_SLIDER_Marquee_Start" variable="Slider_Marquee_Start" member="no">
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -249,7 +244,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Start" variable="BitmapButton_Marquee_Start" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -299,7 +293,7 @@
 												<min>1</min>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -317,7 +311,6 @@
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_ScaleX" variable="BitmapButton_Marquee_ScaleX" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -341,7 +334,7 @@
 												<min>1</min>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -359,7 +352,6 @@
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_ScaleY" variable="BitmapButton_Marquee_ScaleY" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -370,7 +362,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -378,7 +370,7 @@
 									<object class="wxStaticLine" name="ID_STATICLINE1" variable="StaticLine1" member="yes">
 										<size>10,-1</size>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -411,7 +403,7 @@
 														<min>-100</min>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -436,7 +428,7 @@
 													<option>1</option>
 												</object>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>

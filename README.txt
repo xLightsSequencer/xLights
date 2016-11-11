@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Fix crash on OSX if numpad enter is used in certain text boxes
    -- enh (gil)     Add wrap option to Fill effect to allow turning off wrap feature.
    -- enh (dkulp)   If the OpenGL driver didn't double-buffer, try again.  Should help on GDI driver
    -- bug (dkulp)   Fix crash if right click on setup tab when no controllers are defined

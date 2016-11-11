@@ -37,7 +37,6 @@
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_LayerMorph" variable="BitmapButton_CheckBox_LayerMorph" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
-													<default>1</default>
 													<size>13,13</size>
 													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -111,7 +110,6 @@
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" variable="BitmapButton_EffectLayerMix" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
-													<default>1</default>
 													<size>13,13</size>
 													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>

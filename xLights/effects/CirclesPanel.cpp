@@ -93,7 +93,6 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	FlexGridSizer17->Add(TextCtrl27, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer17, 1, wxALL|wxEXPAND, 0);
 	BitmapButton_CirclesCount = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Circles_Count, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Circles_Count"));
-	BitmapButton_CirclesCount->SetDefault();
 	BitmapButton_CirclesCount->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton_CirclesCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer18 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -109,7 +108,6 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	FlexGridSizer18->Add(TextCtrl28, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer18, 1, wxALL|wxEXPAND, 0);
 	BitmapButton_CirclesSize = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Circles_Size, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Circles_Size"));
-	BitmapButton_CirclesSize->SetDefault();
 	BitmapButton_CirclesSize->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton_CirclesSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer22 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -125,7 +123,6 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	FlexGridSizer22->Add(TextCtrl29, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer22, 1, wxALL|wxEXPAND, 0);
 	BitmapButton2 = new wxBitmapButton(this, ID_BITMAPBUTTON21, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON21"));
-	BitmapButton2->SetDefault();
 	BitmapButton2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -134,7 +131,6 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	FlexGridSizer11->Add(CheckBox_Circles_Bounce, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 0);
 	BitmapButton_CirclesBounce = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_Circles_Bounce, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Circles_Bounce"));
-	BitmapButton_CirclesBounce->SetDefault();
 	BitmapButton_CirclesBounce->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton_CirclesBounce, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer12 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -143,7 +139,6 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	FlexGridSizer12->Add(CheckBox_Circles_Radial, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 0);
 	BitmapButton_CirclesRadial = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_Circles_Radial, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Circles_Radial"));
-	BitmapButton_CirclesRadial->SetDefault();
 	BitmapButton_CirclesRadial->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton_CirclesRadial, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer14 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -152,7 +147,6 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	FlexGridSizer14->Add(CheckBox_Circles_Plasma, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer14, 1, wxALL|wxEXPAND, 0);
 	BitmapButton_CirclesPlasma = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_Circles_Plasma, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Circles_Plasma"));
-	BitmapButton_CirclesPlasma->SetDefault();
 	BitmapButton_CirclesPlasma->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton_CirclesPlasma, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer13 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -161,7 +155,6 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	FlexGridSizer13->Add(CheckBox_Circles_Radial_3D, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 0);
 	BitmapButton_CirclesRadial3D = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D"));
-	BitmapButton_CirclesRadial3D->SetDefault();
 	BitmapButton_CirclesRadial3D->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton_CirclesRadial3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer91 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -170,7 +163,6 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	FlexGridSizer91->Add(CheckBox_Circles_Bubbles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer91, 1, wxALL|wxEXPAND, 0);
 	BitmapButton_CirclesBubbles = new wxBitmapButton(this, ID_BITMAPBUTTON_CirclesBubbles, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CirclesBubbles"));
-	BitmapButton_CirclesBubbles->SetDefault();
 	BitmapButton_CirclesBubbles->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton_CirclesBubbles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer15 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -180,7 +172,6 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	FlexGridSizer15->Add(CheckBox_Circles_Collide, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer15, 1, wxALL|wxEXPAND, 0);
 	BitmapButton_CirclesCollide = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_Circles_Collide, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Circles_Collide"));
-	BitmapButton_CirclesCollide->SetDefault();
 	BitmapButton_CirclesCollide->Hide();
 	BitmapButton_CirclesCollide->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton_CirclesCollide, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -191,7 +182,6 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	FlexGridSizer16->Add(CheckBox_Circles_Random_m, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer16, 1, wxALL|wxEXPAND, 0);
 	BitmapButton_RandomMotion = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m"));
-	BitmapButton_RandomMotion->SetDefault();
 	BitmapButton_RandomMotion->Hide();
 	BitmapButton_RandomMotion->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton_RandomMotion, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -201,7 +191,6 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	FlexGridSizer107->Add(CheckBox_Circles_Linear_Fade, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer107, 1, wxALL|wxEXPAND, 0);
 	BitmapButton_Circles_Linear_Fade = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_Circles_Linear_Fade, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Circles_Linear_Fade"));
-	BitmapButton_Circles_Linear_Fade->SetDefault();
 	BitmapButton_Circles_Linear_Fade->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton_Circles_Linear_Fade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer80->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);

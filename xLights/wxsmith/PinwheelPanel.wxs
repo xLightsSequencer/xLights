@@ -45,7 +45,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON11" variable="BitmapButton_PinwheelNumberArms" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>

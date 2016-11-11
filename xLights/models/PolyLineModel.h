@@ -11,7 +11,7 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         PolyLineModel(const ModelManager &manager);
         virtual ~PolyLineModel();
 
-        virtual int GetLightsPerNode() const { return parm3; } // default to one unless a model supports this
+        virtual int GetLightsPerNode() const override { return parm3; } // default to one unless a model supports this
         virtual int GetStrandLength(int strand) const override;
         virtual int MapToNodeIndex(int strand, int node) const override;
 

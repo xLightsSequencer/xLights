@@ -53,7 +53,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_FONTPICKER_Text_Font" variable="BitmapButton_TextFont" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -98,7 +97,6 @@
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Dir" variable="BitmapButton_TextDir" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -125,7 +123,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TextToCenter" variable="BitmapButton_TextToCenter" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -176,7 +173,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Text_Speed" variable="BitmapButton_Text_Speed" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -214,7 +210,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Effect" variable="BitmapButton_TextEffect" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -254,7 +249,6 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Count" variable="BitmapButton_TextCount" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>

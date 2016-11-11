@@ -67,7 +67,6 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	FlexGridSizer139->Add(Choice_Plasma_Color, 1, wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer139->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton17 = new wxBitmapButton(this, ID_BITMAPBUTTON35, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON35"));
-	BitmapButton17->SetDefault();
 	BitmapButton17->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer139->Add(BitmapButton17, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText197 = new wxStaticText(this, wxID_ANY, _("Add Twist to Effect"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -78,7 +77,6 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	TextCtrl84->SetMaxLength(1);
 	FlexGridSizer139->Add(TextCtrl84, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton18 = new wxBitmapButton(this, ID_BITMAPBUTTON36, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON36"));
-	BitmapButton18->SetDefault();
 	BitmapButton18->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer139->Add(BitmapButton18, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText202 = new wxStaticText(this, wxID_ANY, _("Line Density"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -89,7 +87,6 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	TextCtrl85->SetMaxLength(2);
 	FlexGridSizer139->Add(TextCtrl85, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton19 = new wxBitmapButton(this, ID_BITMAPBUTTON37, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON37"));
-	BitmapButton19->SetDefault();
 	BitmapButton19->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer139->Add(BitmapButton19, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText204 = new wxStaticText(this, wxID_ANY, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -105,7 +102,6 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	TextCtrl87->SetMaxLength(3);
 	FlexGridSizer139->Add(TextCtrl87, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton21 = new wxBitmapButton(this, ID_BITMAPBUTTON39, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON39"));
-	BitmapButton21->SetDefault();
 	BitmapButton21->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer139->Add(BitmapButton21, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	SetSizer(FlexGridSizer139);

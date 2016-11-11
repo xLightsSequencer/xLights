@@ -61,7 +61,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Count" variable="BitmapButton_SpiralsCount" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -124,7 +123,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Rotation" variable="BitmapButton_SpiralsRotation" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -184,7 +182,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Thickness" variable="BitmapButton_SpiralsThickness" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -246,7 +243,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Direction" variable="BitmapButton_SpiralsDirection" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -274,7 +270,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Blend" variable="BitmapButton_SpiralsBlend" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -301,7 +296,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_3D" variable="BitmapButton_Spirals3D" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -322,7 +316,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Grow" variable="BitmapButton_SpiralsGrow" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -349,7 +342,6 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Shrink" variable="BitmapButton_SpiralsShrink" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>

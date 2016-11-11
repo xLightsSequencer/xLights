@@ -56,7 +56,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON32" variable="BitmapButton14" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -117,7 +116,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirograph_R" variable="BitmapButton_SpirographR" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -178,7 +176,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirograph_r" variable="BitmapButton_Spirographr" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -239,7 +236,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirograph_d" variable="BitmapButton_SpirographAnimate" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -300,7 +296,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate" variable="BitmapButton_Spirographd" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -361,7 +356,6 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON33" variable="BitmapButton15" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
-					<default>1</default>
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>

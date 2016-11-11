@@ -255,8 +255,6 @@ public:
     xLightsFrame(wxWindow* parent,wxWindowID id = -1);
     virtual ~xLightsFrame();
 
-
-    // these are added to 1000*pagenum to get the control id
     enum PlayListIds
     {
         CHKBOX_AUDIO,
@@ -278,7 +276,9 @@ public:
         PLAYLIST_DELETE_ALL,
         SCRIPT_HELP,
         PLAYLIST_LOGIC,
-        REMOVE_SCRIPT_BUTTON
+        REMOVE_SCRIPT_BUTTON,
+        
+        PLAY_LIST_MAX
     };
     long SecondsRemaining, EndTimeSec;
     int TxOverflowCnt, TxOverflowTotal;
@@ -974,7 +974,7 @@ private:
     void LoadSchedule(wxXmlNode* n);
     void LoadPlaylists(wxXmlNode* n);
     void LoadPlaylist(wxXmlNode* n);
-    void AddPlaylist(const wxString& name);
+    int AddPlaylist(const wxString& name);
     wxString OnOffString(bool b);
     wxString CreateScript(wxString ListName, bool Repeat, bool FirstItemOnce, bool LastItemOnce, bool LightsOff, bool Random);
     bool PlayCurrentXlightsFile();

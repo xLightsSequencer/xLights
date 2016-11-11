@@ -22,7 +22,6 @@
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICEBOOK1" variable="BitmapButton_LayerEffect" member="yes">
 									<bitmap code="padlock16x16_blue_xpm" />
-									<default>1</default>
 									<size>13,13</size>
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -34,7 +33,6 @@
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_BITMAPBUTTON87" variable="BitmapButton_normal" member="yes">
 									<bitmap code="padlock16x16_green_xpm" />
-									<default>1</default>
 									<size>13,13</size>
 									<hidden>1</hidden>
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -46,7 +44,6 @@
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButton_locked" member="yes">
 									<bitmap code="padlock16x16_red_xpm" />
-									<default>1</default>
 									<size>13,13</size>
 									<hidden>1</hidden>
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -58,7 +55,6 @@
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_BITMAPBUTTON88" variable="BitmapButton_random" member="yes">
 									<bitmap code="padlock16x16_blue_xpm" />
-									<default>1</default>
 									<size>13,13</size>
 									<hidden>1</hidden>
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>

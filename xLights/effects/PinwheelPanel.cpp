@@ -103,7 +103,6 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
 	TextCtrl64->SetMaxLength(3);
 	FlexGridSizer128->Add(TextCtrl64, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_PinwheelNumberArms = new wxBitmapButton(this, ID_BITMAPBUTTON11, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON11"));
-	BitmapButton_PinwheelNumberArms->SetDefault();
 	BitmapButton_PinwheelNumberArms->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer128->Add(BitmapButton_PinwheelNumberArms, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText84 = new wxStaticText(this, ID_STATICTEXT98, _("Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT98"));

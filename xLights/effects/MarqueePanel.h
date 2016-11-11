@@ -3,16 +3,16 @@
 
 //(*Headers(MarqueePanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxNotebook;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxStaticLine;
 class wxGridBagSizer;
-class wxNotebookEvent;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxNotebookEvent;
+class wxStaticLine;
+class wxNotebook;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
 //*)
 
 class MarqueePanel: public wxPanel
@@ -24,16 +24,16 @@ class MarqueePanel: public wxPanel
 
 		//(*Declarations(MarqueePanel)
 		wxBitmapButton* BitmapButton_Marquee_ScaleY;
-		wxBitmapButton* BitmapButton_Marquee_Thickness;
-		wxBitmapButton* BitmapButton_Marquee_Start;
-		wxBitmapButton* BitmapButton_Marquee_Skip_Size;
-		wxNotebook* Notebook_Marquee;
-		wxBitmapButton* BitmapButton_Marquee_Speed;
-		wxStaticLine* StaticLine1;
 		wxPanel* Panel_Marquee_Settings;
+		wxBitmapButton* BitmapButton_Marquee_Start;
+		wxNotebook* Notebook_Marquee;
+		wxStaticLine* StaticLine1;
 		wxBitmapButton* BitmapButton_Marquee_ScaleX;
 		wxBitmapButton* BitmapButton_Marquee_Stagger;
+		wxBitmapButton* BitmapButton_Marquee_Speed;
 		wxPanel* Panel_Marquee_Position;
+		wxBitmapButton* BitmapButton_Marquee_Thickness;
+		wxBitmapButton* BitmapButton_Marquee_Skip_Size;
 		//*)
 
 	protected:

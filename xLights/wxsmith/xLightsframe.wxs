@@ -605,7 +605,6 @@
 														<object class="sizeritem">
 															<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButtonMoveNetworkUp" member="yes">
 																<bitmap stock_id="wxART_GO_UP" />
-																<default>1</default>
 																<tooltip>Move selected item up</tooltip>
 																<handler function="OnButtonNetworkMoveUpClick" entry="EVT_BUTTON" />
 															</object>
@@ -616,7 +615,6 @@
 														<object class="sizeritem">
 															<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" variable="BitmapButtonMoveNetworkDown" member="yes">
 																<bitmap stock_id="wxART_GO_DOWN" />
-																<default>1</default>
 																<tooltip>Move selected item down</tooltip>
 																<handler function="OnButtonNetworkMoveDownClick" entry="EVT_BUTTON" />
 															</object>
