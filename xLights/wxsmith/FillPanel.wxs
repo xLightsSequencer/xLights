@@ -274,6 +274,25 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Fill_Wrap" variable="CheckBox_Fill_Wrap" member="yes">
+					<label>Wrap</label>
+					<checked>1</checked>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="wxID_ANY" variable="StaticText24" member="no">
 					<label>Direction:</label>

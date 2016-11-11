@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Add wrap option to Fill effect to allow turning off wrap feature.
 2016.52  Nov 09, 2016
    -- bug (dkulp)   Allow using @ModelName:# for individual strands where ModelName is the current model
    -- bug (keithsw) Fix picture effect image scaling
@@ -16,7 +17,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp)   Fix crash on scheduler page on OSX due to obsolete code
    -- enh (jwylie)  changed minute : second counter to accept prepended and appended text
    -- enh (dkulp)   Add ability to import custom timing tracks (and lyric tracks) from other xLights sequences
-   -- bug (dkulp)   Fix crash on drag/drop if no sequence loaded 
+   -- bug (dkulp)   Fix crash on drag/drop if no sequence loaded
    -- bug (dkulp)   CreateCustomModel dialog would not allow selecting node type on OSX
 2016.51  Nov 04, 2016
    -- enh (chrisD)  Update sequence checker to handle start channels in #IP:UNIVERSE:CHANNEL format

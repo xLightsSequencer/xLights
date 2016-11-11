@@ -55,8 +55,12 @@ void FillEffect::adjustSettings(const std::string &version, Effect *effect)
     {
         settings["E_CHECKBOX_Fill_Color_Time"] = "1";
     }
-}
 
+    if (IsVersionOlder("2016.53", version))
+    {
+        settings["E_CHECKBOX_Fill_Wrap"] = "1";
+    }
+}
 
 static void UpdateFillColor(int &position, int &band_color, int colorcnt, int color_size, int shift)
 {
@@ -133,6 +137,7 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     int offset = GetValueCurveInt("Fill_Offset", 0, SettingsMap, eff_pos);
     int offset_in_pixels = SettingsMap.GetBool("CHECKBOX_Fill_Offset_In_Pixels", true);
     int color_by_time = SettingsMap.GetBool("CHECKBOX_Fill_Color_Time", false);
+    int wrap = SettingsMap.GetBool("CHECKBOX_Fill_Wrap", true);
 
     switch (Direction)
     {
@@ -163,6 +168,7 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     int color_size = BandSize +  SkipSize;
     int current_color = 0;
     int current_pos = 0;
+    int target = 0;
 
     if( BandSize == 0 ) {
         GetColorFromPosition(eff_pos, color, colorcnt, buffer);
@@ -173,7 +179,12 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         default:
         case 0:  // Up
             offset %= buffer.BufferHt;
-            for( y=offset; y<buffer.BufferHt*pos_pct+offset; y++)
+            if( wrap ) {
+                target = buffer.BufferHt*pos_pct+offset;
+            } else {
+                target = offset + (buffer.BufferHt-offset)*pos_pct;
+            }
+            for( y=offset; y<target; y++)
             {
                 if( BandSize > 0 ) {
                     color = xlBLACK;
@@ -199,7 +210,12 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             break;
         case 1:  // Down
             offset %= buffer.BufferHt;
-            for( y=buffer.BufferHt-1-offset; y>=buffer.BufferHt*(1.0-pos_pct)-offset; y--)
+            if( wrap ) {
+                target = buffer.BufferHt*(1.0-pos_pct)-offset;
+            } else {
+                target = (buffer.BufferHt-offset)*(1.0-pos_pct);
+            }
+            for( y=buffer.BufferHt-1-offset; y>=target; y--)
             {
                 if( BandSize > 0 ) {
                     color = xlBLACK;
@@ -225,7 +241,12 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             break;
         case 2:  // Left
             offset %= buffer.BufferWi;
-            for (x=buffer.BufferWi-1-offset; x>=buffer.BufferWi*(1.0-pos_pct)-offset; x--)
+            if( wrap ) {
+                target = buffer.BufferWi*(1.0-pos_pct)-offset;
+            } else {
+                target = (buffer.BufferWi-offset)*(1.0-pos_pct);
+            }
+            for (x=buffer.BufferWi-1-offset; x>=target; x--)
             {
                 if( BandSize > 0 ) {
                     color = xlBLACK;
@@ -251,7 +272,12 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             break;
         case 3:  // Right
             offset %= buffer.BufferWi;
-            for (x=offset; x<buffer.BufferWi*pos_pct+offset; x++)
+            if( wrap ) {
+                target = buffer.BufferWi*pos_pct+offset;
+            } else {
+                target = offset + (buffer.BufferWi-offset)*pos_pct;
+            }
+            for (x=offset; x<target; x++)
             {
                 if( BandSize > 0 ) {
                     color = xlBLACK;
