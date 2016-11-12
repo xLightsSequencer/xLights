@@ -1,3 +1,5 @@
+//#define DEBUG_GIF
+
 #include "PicturesEffect.h"
 #include "PicturesPanel.h"
 
@@ -373,17 +375,25 @@ void CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool overlay)
 
 wxPoint LoadRawImageFrame(wxGIFDecoder& GIFdecoder, wxImage& image, int frame, wxAnimationDisposal& disposal)
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    //logger_base.debug("Frame %d loaded actual image size (%d,%d)", frame, image.GetWidth(), image.GetHeight());
+#ifdef DEBUG_GIF
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Frame %d loaded actual image size (%d,%d)", frame, image.GetWidth(), image.GetHeight());
+#endif
 
     wxSize size = GIFdecoder.GetFrameSize(frame);
-    //logger_base.debug("    size (%d,%d)", size.GetWidth(), size.GetHeight());
+#ifdef DEBUG_GIF
+    logger_base.debug("    size (%d,%d)", size.GetWidth(), size.GetHeight());
+#endif
     image.Resize(size, wxPoint(0, 0));
     GIFdecoder.ConvertToImage(frame, &image);
     disposal = GIFdecoder.GetDisposalMethod(frame);
-    //logger_base.debug("    disposal %d", disposal);
+#ifdef DEBUG_GIF
+    logger_base.debug("    disposal %d", disposal);
+#endif
     wxPoint offset = GIFdecoder.GetFramePosition(frame);
-    //logger_base.debug("    offset (%d,%d)", offset.x, offset.y);
+#ifdef DEBUG_GIF
+    logger_base.debug("    offset (%d,%d)", offset.x, offset.y);
+#endif
 
     // handle first frame with an offset
     if (frame == 0 && (offset.x > 0 || offset.y > 0))
@@ -391,7 +401,9 @@ wxPoint LoadRawImageFrame(wxGIFDecoder& GIFdecoder, wxImage& image, int frame, w
         image.Resize(wxSize(size.GetWidth() + offset.x, size.GetHeight() + offset.y), offset);
         offset.x = 0;
         offset.y = 0;
-        //logger_base.debug("    Frame 0 had non zero offset so image size now (%d,%d)", image.GetWidth(), image.GetHeight());
+#ifdef DEBUG_GIF
+        logger_base.debug("    Frame 0 had non zero offset so image size now (%d,%d)", image.GetWidth(), image.GetHeight());
+#endif
     }
 
     return offset;
@@ -425,8 +437,10 @@ void LoadImageFrame(wxGIFDecoder& GIFdecoder, wxImage& image, int frame, int& la
         wxAnimationDisposal dispose = wxANIM_TOBACKGROUND;
         wxPoint offset = LoadRawImageFrame(GIFdecoder, newframe, i, dispose);
         
-        //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        //logger_base.debug("Frame %d loaded offset (%d,%d) size (%d,%d) dispose %d actual image size (%d,%d)", i, offset.x, offset.y, newframe.GetWidth(), newframe.GetHeight(), dispose, image.GetWidth(), image.GetHeight());
+#ifdef DEBUG_GIF
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug("Frame %d loaded offset (%d,%d) size (%d,%d) dispose %d actual image size (%d,%d)", i, offset.x, offset.y, newframe.GetWidth(), newframe.GetHeight(), dispose, image.GetWidth(), image.GetHeight());
+#endif
 
         if (i == 0 || lastdispose == wxANIM_TOBACKGROUND || lastdispose == wxANIM_UNSPECIFIED)
         {
@@ -496,28 +510,38 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         //    yes
         BasePicture= NewPictureName2.substr(0,NewPictureName2.length()-6) ;
 
-        //  build the next filename. the frame counter is incrementing through all frames
-        if (buffer.needToInit) { // only once, try 10000 files to find how high is frame count
-            buffer.needToInit = false;
-            cache->maxmovieframes = 1;
-            sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
-            for (frame=1; frame<=9999; frame++)
-            {
-                sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
-                if(wxFileExists(sPicture)) {
-                    cache->maxmovieframes=frame;
-                } else {
-                    break;
+        wxString sTmpPicture = wxString::Format("%s-2.%s", BasePicture, extension);
+        if (!wxFileExists(sTmpPicture)) {
+            // not a movie file as frame 2 does not exist
+        }
+        else
+        {
+
+            //  build the next filename. the frame counter is incrementing through all frames
+            if (buffer.needToInit) { // only once, try 10000 files to find how high is frame count
+                buffer.needToInit = false;
+                cache->maxmovieframes = 1;
+                sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
+                for (frame = 1; frame <= 9999; frame++)
+                {
+                    sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
+                    if (wxFileExists(sPicture)) {
+                        cache->maxmovieframes = frame;
+                    }
+                    else {
+                        break;
+                    }
                 }
+                frame = 1;
             }
-            frame=1;
-        } else {
-            frame = floor((double(curPeriod - curEffStartPer)) * frameRateAdj) + 1;
+            else {
+                frame = floor((double(curPeriod - curEffStartPer)) * frameRateAdj) + 1;
+            }
+            if (frame > cache->maxmovieframes) {
+                return;
+            }
+            sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
         }
-        if (frame > cache->maxmovieframes) {
-            return;
-        }
-        sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
     }
 
     NewPictureName=sPicture;
@@ -553,7 +577,9 @@ void PicturesEffect::Render(RenderBuffer &buffer,
 
         if (cache->imageCount > 1)
         {
-            //logger_base.debug("Preparing GIF file for reading: %s", (const char *)NewPictureName.c_str());
+#ifdef DEBUG_GIF
+            logger_base.debug("Preparing GIF file for reading: %s", (const char *)NewPictureName.c_str());
+#endif
             wxFileInputStream stream(NewPictureName);
             GIFDecoder.Destroy();
             if (!stream.IsOk() || GIFDecoder.LoadGIF(stream) != wxGIF_OK)
