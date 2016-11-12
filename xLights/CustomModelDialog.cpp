@@ -30,6 +30,8 @@ const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
 const long CustomModelDialog::ID_SPINCTRL2 = wxNewId();
 const long CustomModelDialog::ID_CHECKBOX1 = wxNewId();
 const long CustomModelDialog::ID_BUTTON3 = wxNewId();
+const long CustomModelDialog::ID_BUTTON_Flip_Horizontal = wxNewId();
+const long CustomModelDialog::ID_BUTTON_Flip_Vertical = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_CUT = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_COPY = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_PASTE = wxNewId();
@@ -67,6 +69,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* Sizer2;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer9;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText3;
@@ -82,7 +85,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Sizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	Sizer1->AddGrowableCol(1);
 	Sizer1->AddGrowableRow(0);
-	Sizer2 = new wxFlexGridSizer(6, 1, 0, 0);
+	Sizer2 = new wxFlexGridSizer(7, 1, 0, 0);
 	Sizer2->AddGrowableCol(0);
 	Sizer2->AddGrowableRow(4);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -105,6 +108,12 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	ButtonWiring = new wxButton(this, ID_BUTTON3, _("Wiring View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	FlexGridSizer8->Add(ButtonWiring, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
+	Button_Flip_Horizonal = new wxButton(this, ID_BUTTON_Flip_Horizontal, _("Flip Horz"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Flip_Horizontal"));
+	FlexGridSizer9->Add(Button_Flip_Horizonal, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Flip_Vertical = new wxButton(this, ID_BUTTON_Flip_Vertical, _("Flip Vert"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Flip_Vertical"));
+	FlexGridSizer9->Add(Button_Flip_Vertical, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Sizer2->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 7, 0, 0);
 	BitmapButtonCustomCut = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_CUT, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_CUT")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_CUT"));
 	FlexGridSizer5->Add(BitmapButtonCustomCut, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -179,6 +188,8 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnHeightSpinChange);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnCheckBox_RearViewClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButtonWiringClick);
+	Connect(ID_BUTTON_Flip_Horizontal,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_Flip_HorizonalClick);
+	Connect(ID_BUTTON_Flip_Vertical,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_Flip_VerticalClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCutClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCopyClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomPasteClick);
@@ -231,6 +242,8 @@ void CustomModelDialog::ValidateWindow()
         BitmapButtonCustomCut->Disable();
         WidthSpin->Disable();
         ButtonOk->Disable();
+        Button_Flip_Horizonal->Disable();
+        Button_Flip_Vertical->Disable();
     }
     else
     {
@@ -250,6 +263,8 @@ void CustomModelDialog::ValidateWindow()
         BitmapButtonCustomCut->Enable();
         WidthSpin->Enable();
         ButtonOk->Enable();
+        Button_Flip_Horizonal->Enable();
+        Button_Flip_Vertical->Enable();
         if (background_image == "")
         {
             SliderCustomLightness->Disable();
@@ -772,4 +787,48 @@ void CustomModelDialog::OnButtonWiringClick(wxCommandEvent& event)
 {
     WiringDialog dlg(this, GridCustom, CheckBox_RearView->IsChecked(), name);
     dlg.ShowModal();
+}
+
+void CustomModelDialog::OnButton_Flip_HorizonalClick(wxCommandEvent& event)
+{
+    // reverse the rows
+    for(size_t r = 0; r < GridCustom->GetNumberRows(); r++)
+    {
+        std::list<wxString> vals;
+        for (size_t c = 0; c < GridCustom->GetNumberCols(); ++c)
+        {
+            vals.push_front(GridCustom->GetCellValue(r, c));
+        }
+        size_t c = 0;
+        for (auto it = vals.begin(); it != vals.end(); ++it)
+        {
+            GridCustom->SetCellValue(r, c++, *it);
+        }
+    }
+
+    UpdateBackground();
+
+    ValidateWindow();
+}
+
+void CustomModelDialog::OnButton_Flip_VerticalClick(wxCommandEvent& event)
+{
+    // reverse the columns
+    for(size_t c = 0; c < GridCustom->GetNumberCols(); c++)
+    {
+        std::list<wxString> vals;
+        for (size_t r = 0; r < GridCustom->GetNumberRows(); ++r)
+        {
+            vals.push_front(GridCustom->GetCellValue(r, c));
+        }
+        size_t r = 0;
+        for (auto it = vals.begin(); it != vals.end(); ++it)
+        {
+            GridCustom->SetCellValue(r++, c, *it);
+        }
+    }
+
+    UpdateBackground();
+
+    ValidateWindow();
 }
