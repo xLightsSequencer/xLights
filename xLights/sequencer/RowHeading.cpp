@@ -256,24 +256,27 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     }
     else if (id == ID_ROW_MNU_INSERT_LAYERS_BELOW)
     {
-        size_t numtoinsert = wxGetNumberFromUser("Enter number of layers to insert", "Layers", "Insert multiple layers", 2, 1, 20, this);
+        int numtoinsert = wxGetNumberFromUser("Enter number of layers to insert", "Layers", "Insert multiple layers", 2, 1, 20, this);
 
-        if (layer_index < element->GetEffectLayerCount() - 1)
+        if (numtoinsert > 0)
         {
-            for (size_t i = 0; i < numtoinsert; i++)
+            if (layer_index < element->GetEffectLayerCount() - 1)
             {
-                element->InsertEffectLayer(layer_index + 1);
+                for (int i = 0; i < numtoinsert; i++)
+                {
+                    element->InsertEffectLayer(layer_index + 1);
+                }
             }
-        }
-        else
-        {
-            for (size_t i = 0; i < numtoinsert; i++)
+            else
             {
-                element->AddEffectLayer();
+                for (int i = 0; i < numtoinsert; i++)
+                {
+                    element->AddEffectLayer();
+                }
             }
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
     else if(id == ID_ROW_MNU_DELETE_LAYER)
     {
