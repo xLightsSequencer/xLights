@@ -98,6 +98,14 @@ bool UndoManager::ChangeCaptured()
     return false;
 }
 
+void UndoManager::Clear() {
+    RemoveUnusedMarkers();
+    for( size_t i = 0; i < mUndoSteps.size(); i++ )
+    {
+        delete mUndoSteps[i];
+    }
+    mUndoSteps.clear();
+}
 bool UndoManager::CanUndo()
 {
     RemoveUnusedMarkers();

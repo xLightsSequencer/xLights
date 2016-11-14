@@ -71,7 +71,7 @@ void SequenceElements::Clear() {
     mVisibleRowInformation.clear();
     mRowInformation.clear();
     mSelectedRanges.clear();
-
+    undo_mgr.Clear();
     mSelectedTimingRow = -1;
     mTimingRowCount = 0;
     mFirstVisibleModelRow = 0;

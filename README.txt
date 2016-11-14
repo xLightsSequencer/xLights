@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Fix crash when Undo is used after closing a sequence and opening another
    -- bug (dkulp)   Fix crash on OSX if numpad enter is used in certain text boxes
    -- enh (gil)     Add wrap option to Fill effect to allow turning off wrap feature.
    -- enh (gil)     Add ability to flip the channel numbers in custom model horizontally and vertically.

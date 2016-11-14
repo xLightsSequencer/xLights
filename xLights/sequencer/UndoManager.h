@@ -83,7 +83,8 @@ class UndoManager
     public:
         explicit UndoManager(SequenceElements* parent);
         virtual ~UndoManager();
-
+    
+        void Clear();
         void RemoveUnusedMarkers();
         bool ChangeCaptured();
         void UndoLastStep();
