@@ -23,7 +23,7 @@ BEGIN_EVENT_TABLE(PlayerFrame,wxFrame)
     //*)
 END_EVENT_TABLE()
 
-PlayerFrame::PlayerFrame(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+PlayerFrame::PlayerFrame(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size) : MediaCtrl(nullptr)
 {
     //(*Initialize(PlayerFrame)
     Create(parent, id, _("xPlayer"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("id"));
@@ -35,6 +35,13 @@ PlayerFrame::PlayerFrame(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 
     SetIcon(wxIcon(xlights_xpm));
 
+
+}
+
+void PlayerFrame::InitMediaPlayer() {
+    if (MediaCtrl != nullptr) {
+        return;
+    }
     //
     //  Create and attach the sizer
     //
@@ -43,13 +50,13 @@ PlayerFrame::PlayerFrame(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     this->SetAutoLayout(true);
     sizer->AddGrowableRow(0);
     sizer->AddGrowableCol(0);
-
+    
     //
     //  Create and attach the media control
     //
     MediaCtrl = new wxMediaCtrl();
     wxString MediaBackend;
-
+    
 #ifdef __WXMSW__
     // this causes Windows to use latest installed Windows Media Player version
     // On XP, users were getting WMP 6.4 without this
@@ -57,20 +64,20 @@ PlayerFrame::PlayerFrame(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 #endif
     
     playbackSpeed = 1.0;
-
+    
     //  Make sure creation was successful
     bool bOK = MediaCtrl->Create(this, wxID_MEDIACTRL, wxEmptyString,
                                  wxDefaultPosition, wxDefaultSize, wxBORDER_NONE, MediaBackend);
-
+    
     wxASSERT_MSG(bOK, "Could not create media control!");
     wxUnusedVar(bOK);
-
+    
     sizer->Add(MediaCtrl, 0, wxALL|wxEXPAND, 0);
     PlayAfterLoad=false;
     Connect(wxID_MEDIACTRL, wxEVT_MEDIA_LOADED,
             wxMediaEventHandler(PlayerFrame::OnMediaLoaded));
+    Layout();
 }
-
 
 PlayerFrame::~PlayerFrame()
 {
@@ -80,12 +87,14 @@ PlayerFrame::~PlayerFrame()
 
 bool PlayerFrame::Load(const wxString& filename, bool play)
 {
+    InitMediaPlayer();
     PlayAfterLoad=play;
     return MediaCtrl->Load(filename);
 }
 
 bool PlayerFrame::Play(const wxString& filename)
 {
+    InitMediaPlayer();
     bool result = MediaCtrl->Load(filename);
     if (result) PlayAfterLoad=true;
     return result;
@@ -99,32 +108,40 @@ void PlayerFrame::OnMediaLoaded(wxMediaEvent& WXUNUSED(evt))
 
 void PlayerFrame::OnClose(wxCloseEvent& event)
 {
+    InitMediaPlayer();
     MediaCtrl->Stop();
     this->Show(false);
 }
 
 
 void PlayerFrame::Stop() {
+    InitMediaPlayer();
     MediaCtrl->Stop();
 }
 void PlayerFrame::Pause() {
+    InitMediaPlayer();
     MediaCtrl->Pause();
 }
 void PlayerFrame::Seek(int ms) {
+    InitMediaPlayer();
     MediaCtrl->Seek(ms);
 }
 int PlayerFrame::Tell() {
+    InitMediaPlayer();
     return MediaCtrl->Tell();
 }
 void PlayerFrame::Play() {
+    InitMediaPlayer();
     MediaCtrl->Play();
     MediaCtrl->SetPlaybackRate(playbackSpeed);
 }
 int PlayerFrame::GetState() {
+    InitMediaPlayer();
     return MediaCtrl->GetState();
 }
 
 void PlayerFrame::SetPlaybackRate(double playSpeed) {
+    InitMediaPlayer();
     this->playbackSpeed = playSpeed;
     if (MediaCtrl->GetState() == wxMEDIASTATE_PLAYING) {
         MediaCtrl->SetPlaybackRate(playSpeed);
@@ -132,5 +149,6 @@ void PlayerFrame::SetPlaybackRate(double playSpeed) {
 }
 
 bool PlayerFrame::ShowPlayerControls(wxMediaCtrlPlayerControls f) {
+    InitMediaPlayer();
     return MediaCtrl->ShowPlayerControls(f);
 }

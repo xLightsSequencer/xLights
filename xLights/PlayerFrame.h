@@ -39,6 +39,7 @@ private:
     void OnClose(wxCloseEvent& event);
     //*)
 
+    void InitMediaPlayer();
     static const long wxID_MEDIACTRL;
     bool PlayAfterLoad;
     void OnMediaLoaded(wxMediaEvent& event);
