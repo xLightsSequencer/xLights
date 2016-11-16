@@ -35,13 +35,14 @@ void IciclesModel::InitModel() {
         dropSizes.push_back(5);
     }
 
-    int width = 0;
+    int width = -1;
     int curNode = 0;
     int curCoord = 0;
     for (int x = 0; x < numStrings; x++) {
         int lights = lightsPerString;
         int y = 0;
         int curDrop = 0;
+        width++;
         while (lights) {
             if (curCoord >= Nodes[curNode]->Coords.size()) {
                 curNode++;
@@ -56,7 +57,7 @@ void IciclesModel::InitModel() {
                 }
             }
             Nodes[curNode]->ActChan = stringStartChan[0] + curNode*GetNodeChannelCount(StringType);
-            Nodes[curNode]->StringNum=0;
+            Nodes[curNode]->StringNum=x;
             Nodes[curNode]->Coords[curCoord].bufX = width;
             Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
             Nodes[curNode]->Coords[curCoord].screenX = width;
