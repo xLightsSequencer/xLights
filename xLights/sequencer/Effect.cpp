@@ -313,6 +313,15 @@ void Effect::SetEffectIndex(int effectIndex)
     }
 }
 
+wxString Effect::GetDescription() const
+{
+    if (mSettings.Contains("X_Effect_Description"))
+    {
+        return mSettings["X_Effect_Description"];
+    }
+    return "";
+}
+
 int Effect::GetStartTimeMS() const
 {
     return mStartTime;

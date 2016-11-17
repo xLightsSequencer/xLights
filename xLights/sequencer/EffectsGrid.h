@@ -75,6 +75,7 @@ public:
     void MoveSelectedEffectDown(bool shift);
     void MoveSelectedEffectLeft(bool shift);
     void MoveSelectedEffectRight(bool shift);
+    void SetEffectStatusText(Effect* eff);
 
     void DeleteSelectedEffects();
     void SetEffectsDescription();

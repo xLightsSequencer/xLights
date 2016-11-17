@@ -21,7 +21,8 @@
 #include "../RenderCommandEvent.h"
 #include "../BitmapCache.h"
 #include "../effects/RenderableEffect.h"
-
+#include "../SequenceCheck.h"
+#include "../xLightsXmlFile.h"
 
 #define EFFECT_RESIZE_NO                    0
 #define EFFECT_RESIZE_LEFT                  1
@@ -2609,6 +2610,13 @@ void EffectsGrid::ResizeSingleEffect(int position)
             }
         }
     }
+
+    Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
+    if (eff != nullptr)
+    {
+        SetEffectStatusText(eff);
+    }
+
     Refresh(false);
     // Move time line and waveform to new position
     UpdateZoomPosition(time);
@@ -2655,10 +2663,40 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex,int x,int y)
                 SetCursor(wxCURSOR_HAND);
                 mResizingMode = EFFECT_RESIZE_MOVE;
                 break;
+            // update effect details
         }
+        SetEffectStatusText(eff);
     } else {
+        if (xlights->GetFilename() != "")
+        {
+            xlights->SetStatusText(xlights->GetFilename(), 1);
+        }
+        else
+        {
+            xlights->SetStatusText(xlights->CurrentDir, 1);
+        }
         SetCursor(wxCURSOR_DEFAULT);
         mResizingMode = EFFECT_RESIZE_NO;
+    }
+}
+
+void EffectsGrid::SetEffectStatusText(Effect* eff)
+{
+    if (eff != nullptr)
+    {
+        wxString e = wxString::Format("start: %s end: %s duration: %s %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()), eff->GetDescription());
+        xlights->SetStatusText(e, 1);
+    }
+    else
+    {
+        if (xlights->GetFilename() != "")
+        {
+            xlights->SetStatusText(xlights->GetFilename(), 1);
+        }
+        else
+        {
+            xlights->SetStatusText(xlights->CurrentDir, 1);
+        }
     }
 }
 

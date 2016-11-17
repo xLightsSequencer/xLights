@@ -345,6 +345,7 @@ public:
     static xLightsXmlFile* CurrentSeqXmlFile; // global object for currently opened XML file
     const wxString &GetShowDirectory() const { return showDirectory; }
     NetInfoClass& GetNetInfo() { return NetInfo; }
+    static wxString GetFilename() { return xlightsFilename; }
     void ConversionInit();
     void ConversionError(const wxString& msg);
     void PlayerError(const wxString& msg);

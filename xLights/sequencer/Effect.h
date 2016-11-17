@@ -35,6 +35,7 @@ class Effect
         const std::string &GetEffectName() const;
         void SetEffectName(const std::string & name);
 
+        wxString GetDescription() const;
         int GetStartTimeMS() const;
         void SetStartTimeMS(int startTimeMS);
 
