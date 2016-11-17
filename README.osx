@@ -31,10 +31,20 @@ The instructions here suggest compiling with Xcode:
   http://wiki.wxwidgets.org/Compiling_wxWidgets_with_Xcode
 
 First, download the source package for wxWidgets from:
-
 https://github.com/wxWidgets/wxWidgets/releases/tag/v3.1.0/wxWidgets-3.1.0.tar.bz2
+and unpack it. 
 
-and unpack it.  Then, from inside a Terminal window:
+Note: if you are using Xcode 8.1 on OSX Sierra, wxWidgets 3.1.0 will not compile
+as some of the deprecated classes within the OS have been removed from the SDK.  In
+That case, you need to just grab the latest code from the git repository via:
+
+git clone https://github.com/wxWidgets/wxWidgets
+
+and build that instead.   The benefit is that some bugs will be fixed, but since
+it’s the latest in the repo, it may be little unstable.
+
+
+Then, from inside a Terminal window:
 
   cd <wxMac base dir>
   cd build
