@@ -422,7 +422,10 @@ void StateEffect::RenderState(RenderBuffer &buffer,
 
         int which = tmpstates.size() * progressthroughtimeinterval;
 
-        sstates.push_back(tmpstates[which]);
+        if (which < sstates.size())
+        {
+            sstates.push_back(tmpstates[which]);
+        }
     }
 
     bool customColor = found ? model_info->stateInfo[definition]["CustomColors"] == "1" : false;
