@@ -74,6 +74,7 @@ class ModelGroupPanel: public wxPanel
 		void OnPaint(wxPaintEvent& event);
 		void OnPaint1(wxPaintEvent& event);
 		void OnChoicePreviewsSelect(wxCommandEvent& event);
+		void OnSizeSpinCtrlChange(wxSpinEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
