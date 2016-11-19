@@ -511,10 +511,10 @@ ColorCurveButton::~ColorCurveButton()
     }
 }
 
-void ColorCurveButton::SetActive(bool active)
+void ColorCurveButton::SetActive(bool active, bool notify)
 {
     _cc->SetActive(active);
-    UpdateState();
+    UpdateState(notify);
 }
 
 void ColorCurveButton::ToggleActive()
@@ -523,12 +523,14 @@ void ColorCurveButton::ToggleActive()
     UpdateState();
 }
 
-void ColorCurveButton::SetColor(std::string color)
+void ColorCurveButton::SetColor(std::string color, bool notify)
 {
     _cc->SetActive(false);
     _color = color;
     UpdateBitmap();
-    NotifyChange();
+    if (notify) {
+        NotifyChange();
+    }
 }
 
 void ColorCurveButton::UpdateBitmap() {
@@ -553,10 +555,12 @@ void ColorCurveButton::UpdateBitmap() {
     Refresh();
 }
 
-void ColorCurveButton::UpdateState()
+void ColorCurveButton::UpdateState(bool notify)
 {
     UpdateBitmap();
-    NotifyChange();
+    if (notify) {
+        NotifyChange();
+    }
 }
 
 void ColorCurveButton::SetValue(const wxString& value)

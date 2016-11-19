@@ -137,7 +137,7 @@ BEGIN_EVENT_TABLE(ColorPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size) : touchBar(nullptr)
 {
     __brightness = 100;
     wxIntegerValidator<int> _brightness(&__brightness, wxNUM_VAL_THOUSANDS_SEPARATOR);
@@ -273,7 +273,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_SavePaletteClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnUpdateColorClick);
 	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_DeletePaletteClick);
-	Connect(ID_SLIDER_SparkleFrequency,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrlVC);
+    Connect(ID_SLIDER_SparkleFrequency,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateTouchBarSlider);
 	Connect(ID_VALUECURVE_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_SparkleFrequency,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
@@ -349,6 +349,29 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
     LoadAllPalettes();
 
     ValidateWindow();
+}
+
+ColorPanelTouchBar* ColorPanel::SetupTouchBar(xlTouchBarSupport &tbs) {
+    if (touchBar == nullptr && tbs.HasTouchBar()) {
+        touchBar = new ColorPanelTouchBar(
+            [this](int idx, xlColor c) {
+                this->SetButtonColor(idx, c, false);
+            },
+            [this](int v) {
+                this->BitmapButton_SparkleFrequencyVC->SetValue(wxString::Format("%d", v));
+                BitmapButton_SparkleFrequencyVC->GetValue()->SetDefault(0.0f, 200.0f);
+                Slider_SparkleFrequency->SetValue(v);
+                txtCtrlSparkleFreq->SetValue(wxString::Format("%d", v));
+            }, tbs);
+    }
+    return touchBar;
+}
+
+void ColorPanel::UpdateTouchBarSlider(wxScrollEvent& event) {
+    if (touchBar != nullptr) {
+        touchBar->SetSparkles(event.GetPosition());
+    }
+    UpdateLinkedTextCtrlVC(event);
 }
 
 void ColorPanel::LoadAllPalettes()
@@ -437,6 +460,7 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
 
 ColorPanel::~ColorPanel()
 {
+    if (touchBar) delete touchBar;
 	//(*Destroy(ColorPanel)
 	//*)
 }
@@ -492,19 +516,31 @@ void ColorPanel::SetColorCount(int count)
     }
 #endif
 }
+void ColorPanel::SetButtonColor(int btn, const xlColor &v, bool notify) {
+    SetButtonColor(buttons[btn], v, notify);
+}
 
-void ColorPanel::SetButtonColor(ColorCurveButton* btn, const std::string& cstr)
+void ColorPanel::SetButtonColor(ColorCurveButton* btn, const std::string& cstr, bool notify)
 {
     if (cstr.find("Active") != std::string::npos)
     {
         btn->GetValue()->Deserialise(cstr);
-        btn->UpdateState();
+        btn->UpdateState(notify);
     }
     else
     {
-        btn->SetActive(false);
-        btn->SetColor(cstr);
+        btn->SetActive(false, false);
+        btn->SetColor(cstr, notify);
     }
+    if (touchBar) {
+        for (int x = 0; x < PALETTE_SIZE; x++) {
+            if (buttons[x] == btn) {
+                wxColor c = buttons[x]->GetBackgroundColour();
+                touchBar->SetColor(x, btn->GetBitmap(), c);
+            }
+        }
+    }
+
     ValidateWindow();
 }
 
@@ -665,6 +701,10 @@ void ColorPanel::SetDefaultSettings() {
     Slider_Contrast->SetValue(0);
     txtCtlContrast->SetValue("0");
     txtCtrlSparkleFreq->SetValue("0");
+    
+    if (touchBar != nullptr) {
+        touchBar->SetSparkles(0);
+    }
     ValidateWindow();
 }
 
@@ -697,6 +737,16 @@ void ColorPanel::OnCCChanged(wxCommandEvent& event)
 {
     ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
     lastColors[w->GetId()] = w->GetColor();
+    
+    if (touchBar) {
+        for (int x = 0; x < PALETTE_SIZE; x++) {
+            if (buttons[x] == w) {
+                wxColor c = w->GetBackgroundColour();
+                touchBar->SetColor(x, w->GetBitmap(), c);
+            }
+        }
+    }
+    
     Refresh();
     ValidateWindow();
 }

@@ -20,6 +20,7 @@
 
 #include <vector>
 #include <map>
+#include "osx_utils/TouchBars.h"
 
 wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 
@@ -49,6 +50,9 @@ public:
 
     
         void SetDefaultPalette();
+    
+        ColorPanelTouchBar *SetupTouchBar(xlTouchBarSupport &tbs);
+        ColorPanelTouchBar *GetTouchBar() { return touchBar; }
 private:
         void ValidateWindow();
         std::string GetCurrentPalette() const;
@@ -58,7 +62,8 @@ private:
         void LoadAllPalettes();
 
 public:
-        void SetButtonColor(ColorCurveButton* btn, const std::string &v);
+        void SetButtonColor(ColorCurveButton* btn, const std::string &v, bool notify = true);
+        void SetButtonColor(int btn, const xlColor &v, bool notify = true);
 
 		//(*Declarations(ColorPanel)
 		wxStaticText* StaticText22;
@@ -144,6 +149,7 @@ public:
 		void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_DeletePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event);
+        void UpdateTouchBarSlider(wxScrollEvent& event);
 		//*)
 
         wxCheckBox* GetPaletteCheckbox(int idx);
@@ -155,6 +161,7 @@ public:
         std::vector<ColorCurveButton*> buttons;
         std::vector<wxCheckBox*> checkBoxes;
         std::map<int, std::string> lastColors;
+        ColorPanelTouchBar *touchBar;
 
 		DECLARE_EVENT_TABLE()
 

@@ -149,6 +149,8 @@
 		679BD33D1C3757F6000539FE /* EffectManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD33B1C3757F6000539FE /* EffectManager.cpp */; };
 		679BD3421C375D9F000539FE /* BarsEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD33E1C375D9F000539FE /* BarsEffect.cpp */; };
 		679BD3431C375D9F000539FE /* OnEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD3401C375D9F000539FE /* OnEffect.cpp */; };
+		679DD28C1DDE3FC800A389E6 /* TouchBars.mm in Sources */ = {isa = PBXBuildFile; fileRef = 679DD28B1DDE3FC800A389E6 /* TouchBars.mm */; };
+		679DD28E1DDE493900A389E6 /* TouchBars.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679DD28D1DDE493900A389E6 /* TouchBars.cpp */; };
 		67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */; };
 		67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */; };
 		67A61A2617B51C0F008E95BB /* AddShowDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */; };
@@ -611,6 +613,9 @@
 		679BD3401C375D9F000539FE /* OnEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OnEffect.cpp; path = effects/OnEffect.cpp; sourceTree = "<group>"; };
 		679BD3411C375D9F000539FE /* OnEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OnEffect.h; path = effects/OnEffect.h; sourceTree = "<group>"; };
 		679BEF1B1A9FCB1D00C37BB4 /* RenderCommandEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderCommandEvent.h; sourceTree = "<group>"; };
+		679DD2851DDE3BA000A389E6 /* TouchBars.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TouchBars.h; path = osx_utils/TouchBars.h; sourceTree = "<group>"; };
+		679DD28B1DDE3FC800A389E6 /* TouchBars.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = TouchBars.mm; path = osx_utils/TouchBars.mm; sourceTree = "<group>"; };
+		679DD28D1DDE493900A389E6 /* TouchBars.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TouchBars.cpp; path = osx_utils/TouchBars.cpp; sourceTree = "<group>"; };
 		67A1CE421D5B4C5D00999746 /* xLights.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = xLights.entitlements; sourceTree = "<group>"; };
 		67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils.cpp; sourceTree = "<group>"; };
 		67A260ED1AB71EE3006B140D /* DrawGLUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DrawGLUtils.h; sourceTree = "<group>"; };
@@ -1001,8 +1006,11 @@
 		67582EC61C7363FF00850363 /* osx_utils */ = {
 			isa = PBXGroup;
 			children = (
+				679DD28B1DDE3FC800A389E6 /* TouchBars.mm */,
 				67582EC91C73646300850363 /* xlMacUtils.mm */,
 				67582EC71C73643900850363 /* osx_shared_mutex.cpp */,
+				679DD2851DDE3BA000A389E6 /* TouchBars.h */,
+				679DD28D1DDE493900A389E6 /* TouchBars.cpp */,
 			);
 			name = osx_utils;
 			sourceTree = "<group>";
@@ -1671,6 +1679,7 @@
 				TargetAttributes = {
 					67E7086C17B51AB400A22034 = {
 						DevelopmentTeam = U8ZT9RPC6S;
+						LastSwiftMigration = 0810;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.Sandbox = {
@@ -1824,6 +1833,7 @@
 				67B2CFE51C3A186A003C17CA /* PicturesEffect.cpp in Sources */,
 				670F23661CCE664500A09765 /* DrawGLUtils21.cpp in Sources */,
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
+				679DD28E1DDE493900A389E6 /* TouchBars.cpp in Sources */,
 				67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */,
 				6766038E1D01CA0800589601 /* FillEffect.cpp in Sources */,
 				67B2CF761C39D98A003C17CA /* GalaxyPanel.cpp in Sources */,
@@ -1913,6 +1923,7 @@
 				675DE26A1B53381800A9BB44 /* xlColorPicker.cpp in Sources */,
 				676013E51B9D34F7001179FA /* SaveChangesDialog.cpp in Sources */,
 				67B7971C1A5AE343008D5921 /* TopEffectsPanel.cpp in Sources */,
+				679DD28C1DDE3FC800A389E6 /* TouchBars.mm in Sources */,
 				676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */,
 				677421D41A68AB3E0082DA5B /* Render.cpp in Sources */,
 				675AB42F1B5ACEDA00853A28 /* PluginWrapper.cpp in Sources */,
@@ -2094,6 +2105,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = xLights/xLights.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -2143,6 +2155,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "xLights/xLights-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 				VALID_ARCHS = x86_64;
 				WRAPPER_EXTENSION = app;
 			};
@@ -2152,6 +2167,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = xLights/xLights.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2201,6 +2217,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "xLights/xLights-Bridging-Header.h";
+				SWIFT_VERSION = 3.0;
 				VALID_ARCHS = x86_64;
 				WRAPPER_EXTENSION = app;
 			};

@@ -893,6 +893,8 @@
 		<Unit filename="models/WindowFrameModel.h" />
 		<Unit filename="models/WreathModel.cpp" />
 		<Unit filename="models/WreathModel.h" />
+		<Unit filename="osx_utils/TouchBars.cpp" />
+		<Unit filename="osx_utils/TouchBars.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="MinGW_Debug" />
