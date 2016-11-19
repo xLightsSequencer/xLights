@@ -806,7 +806,7 @@ bool FPPConnectDialog::UploadFile(wxFTP& ftp, std::string file, std::string fold
             while (!in.Eof() && !cancelled)
             {
                 ssize_t read = in.Read(&buffer[0], sizeof(buffer));
-                out->Write(&buffer[0], read);
+                out->WriteAll(&buffer[0], read);
                 done += read;
                 progress.Update((done * 100) / length, wxEmptyString, &cancelled);
                 if (!cancelled)
