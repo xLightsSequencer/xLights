@@ -680,7 +680,10 @@ bool FPPConnectDialog::DoCopyFile(const std::string& source, const std::string& 
             while (!in.Eof() && !cancelled)
             {
                 ssize_t read = in.Read(&buffer[0], sizeof(buffer));
-                out.Write(&buffer[0], read);
+                size_t written = out.Write(&buffer[0], read);
+                while (written < read) {
+                    written += out.Write(&buffer[written], read - written);
+                }
                 done += read;
                 
                 int prgs = start + (done * (end - start)) / length;
