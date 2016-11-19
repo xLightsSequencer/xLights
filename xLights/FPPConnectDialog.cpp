@@ -801,11 +801,7 @@ bool FPPConnectDialog::UploadFile(wxFTP& ftp, std::string file, std::string fold
         wxOutputStream *out = ftp.GetOutputStream((folder + "/" + basefile).c_str());
         if (out)
         {
-#if defined __WXMSW__ || defined __WXOSX__
             uint8_t buffer[8192]; // 8KB at a time
-#else 
-            uint8_t buffer[256]; // 256B at a time
-#endif
             while (!in.Eof() && !cancelled)
             {
                 ssize_t read = in.Read(&buffer[0], sizeof(buffer));
