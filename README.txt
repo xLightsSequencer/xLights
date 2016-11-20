@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.53  Nov 17, 2016
    -- bug (dkulp)   Fix overlap of icicle drops when using multiple strings
    -- bug (dkulp)   Fix crash when Undo is used after closing a sequence and opening another
    -- bug (dkulp)   Fix crash on OSX if numpad enter is used in certain text boxes
