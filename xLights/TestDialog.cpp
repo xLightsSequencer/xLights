@@ -4,6 +4,7 @@
 #include <wx/msgdlg.h>
 #include <wx/textdlg.h>
 #include <wx/settings.h>
+#include <wx/dataview.h>
 
 //(*InternalHeaders(TestDialog)
 #include <wx/intl.h>
@@ -670,6 +671,8 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemSelected);
 #ifdef __WXOSX__
 	Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemActivated);
+    //work around http://trac.wxwidgets.org/ticket/17409
+    TreeListCtrl_Channels->GetDataView()->SetIndent(8);
 #endif
 
 	PopulateControllerTree(_network);

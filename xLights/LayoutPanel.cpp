@@ -18,6 +18,7 @@
 #include <wx/tglbtn.h>
 #include <wx/sstream.h>
 #include <wx/artprov.h>
+#include <wx/dataview.h>
 
 #include "ModelPreview.h"
 #include "xLightsMain.h"
@@ -406,7 +407,6 @@ void LayoutPanel::InitImageList()
     AddIcon(*m_imageList, "xlART_WINDOW_ICON");
     AddIcon(*m_imageList, "xlART_WREATH_ICON");
 }
-
 wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style)
 {
     wxTreeListCtrl* const
@@ -427,7 +427,10 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style)
                        tree->WidthFor("1000000000000"),
                        wxALIGN_CENTER,
                        wxCOL_RESIZABLE | wxCOL_SORTABLE);
-
+#ifdef __WXOSX__
+    //work around http://trac.wxwidgets.org/ticket/17409
+    tree->GetDataView()->SetIndent(8);
+#endif
     return tree;
 }
 
