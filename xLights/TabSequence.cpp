@@ -464,8 +464,6 @@ void xLightsFrame::SaveFPPchannelmemorymaps(std::string path)
     f.Open(path + "/channelmemorymaps", wxFile::write);
     if (f.IsOpened())
     {
-        long minchannel = 99999999;
-        long maxchannel = -1;
         for (auto m = PreviewModels.begin(); m != PreviewModels.end(); ++m)
         {
             Model* model = *m;

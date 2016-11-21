@@ -1550,7 +1550,6 @@ std::list<Effect*> EffectsGrid::GetSelectedEffects()
 
     for (int i = 0; i < mSequenceElements->GetRowInformationSize(); i++)
     {
-        Element* element = mSequenceElements->GetRowInformation(i)->element;
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
 
         for (int x = 0; x < el->GetEffectCount(); x++) {

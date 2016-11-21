@@ -514,7 +514,6 @@ bool FPPConnectDialog::FTPUpload()
 
 bool FPPConnectDialog::USBUpload()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
     wxArrayInt sel;

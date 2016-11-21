@@ -4334,8 +4334,6 @@ int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n,
     wxString type = "Node";
     wxString name = wxString::Format("%sStrand %d/Node %d", e->GetFullName(), e->GetStrand()+1, n);
 
-    EffectLayer* el = nl;
-
     for (int k = 0; k < nl->GetEffectCount(); k++)
     {
         Effect* ef = nl->GetEffect(k);
@@ -4481,7 +4479,6 @@ void xLightsFrame::ExportEffects(wxString filename)
     int effects = 0;
     f.Write(_("Effect Name,StartTime,EndTime,Duration,Description,Element,ElementType\n"));
 
-    EffectManager& em = mSequenceElements.GetEffectManager();
     for (size_t i = 0; i < mSequenceElements.GetElementCount(0); i++)
     {
         Element* e = mSequenceElements.GetElement(i);

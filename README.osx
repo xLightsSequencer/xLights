@@ -61,7 +61,7 @@ Then, from inside a Terminal window:
                --enable-debug --enable-debug_info --disable-optimise --enable-macosx_arch=x86_64 \
                --enable-mediactrl --with-osx_cocoa --without-osx_carbon --with-opengl --disable-dependency-tracking \
                --with-macosx-version-min=10.7 --with-libjpeg=builtin --enable-cxx11 --enable-std_containers_compat \
-               --enable-backtrace --enable-exceptions --enable-aui
+               --enable-backtrace --enable-exceptions --enable-aui --without-liblzma --disable-lzma --with-expat=builtin
   make
   make install
 
@@ -79,7 +79,7 @@ If you are planning on being able to build Release builds, you will ALSO need to
   ../configure  --prefix=/opt/local --enable-macosx_arch=x86_64 \
                 --enable-mediactrl --with-osx_cocoa --without-osx_carbon --with-opengl --disable-dependency-tracking \
                 --with-macosx-version-min=10.7 --with-libjpeg=builtin --enable-cxx11 --enable-std_containers_compat \
-                --enable-backtrace --enable-exceptions --enable-aui
+                --enable-backtrace --enable-exceptions --enable-aui --without-liblzma --disable-lzma --with-expat=builtin
   make 
   make install
 
@@ -95,5 +95,5 @@ However, if you have the XCode command line tools installed, you should just be 
 
 Other library notes:
 If you need to rebuild ffmpeg:
-./configure --disable-yasm --disable-securetransport --enable-shared --disable-indev=qtkit --extra-cflags="-mmacosx-version-min=10.7"
+./configure --disable-videotoolbox --disable-vda --disable-yasm --disable-securetransport --enable-shared --disable-indev=qtkit --extra-cflags="-mmacosx-version-min=10.7"  --disable-indev=avfoundation --disable-indev=lavfi
 

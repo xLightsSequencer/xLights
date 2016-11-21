@@ -207,12 +207,14 @@ public:
                     SubModelElement *se = row->GetSubModel(x);
                     if (se->HasEffects() > 0) {
                         if (se->GetType() == ELEMENT_TYPE_STRAND) {
-                            subModelInfos.push_back(new EffectLayerInfo(se->GetEffectLayerCount() + 1));
-                            subModelInfos.back()->element = se;
-                            subModelInfos.back()->buffer.reset(new PixelBufferClass(xframe, false));
                             StrandElement *ste = (StrandElement*)se;
-                            subModelInfos.back()->strand = ste->GetStrand();
-                            subModelInfos.back()->buffer->InitStrandBuffer(*model, ste->GetStrand(), data.FrameTime(), se->GetEffectLayerCount());
+                            if (ste->GetStrand() < model->GetNumStrands()) {
+                                subModelInfos.push_back(new EffectLayerInfo(se->GetEffectLayerCount() + 1));
+                                subModelInfos.back()->element = se;
+                                subModelInfos.back()->buffer.reset(new PixelBufferClass(xframe, false));
+                                subModelInfos.back()->strand = ste->GetStrand();
+                                subModelInfos.back()->buffer->InitStrandBuffer(*model, ste->GetStrand(), data.FrameTime(), se->GetEffectLayerCount());
+                            }
                         } else {
                             Model *subModel = model->GetSubModel(se->GetName());
                             if (subModel != nullptr) {
