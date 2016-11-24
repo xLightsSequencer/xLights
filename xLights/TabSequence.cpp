@@ -472,8 +472,10 @@ void xLightsFrame::SaveFPPchannelmemorymaps(std::string path)
             std::string type, description, ip, universe, inactive;
             int channeloffset, output;
             GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output);
+            wxString name(model->name);
+            name.Replace(" ", "_");
             f.Write(wxString::Format("%s,%d,%d,horizontal,TL,%d,%d\n",
-                model->name,
+                name,
                 ch,
                 model->GetActChanCount(),
                 model->GetNodeCount() / model->NodesPerString(),
