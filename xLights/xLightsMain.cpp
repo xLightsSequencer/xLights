@@ -3409,9 +3409,9 @@ void xLightsFrame::ExportModels(wxString filename)
 
     f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,My Display,Controller Type,Controller Description,Output,IP,Universe,Controller Channel,Inactive\n"));
 
-    for (auto m = PreviewModels.begin(); m != PreviewModels.end(); ++m)
+    for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
     {
-        Model* model = *m;
+        Model* model = m->second;
         wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
         int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
         std::string type, description, ip, universe, inactive;
@@ -3452,9 +3452,9 @@ void xLightsFrame::ExportModels(wxString filename)
     memset(chused, 0x00, (maxchannel - minchannel + 1) * sizeof(int));
 
     int bulbs = 0;
-    for (auto m = PreviewModels.begin(); m != PreviewModels.end(); m++)
+    for (auto m = AllModels.begin(); m != AllModels.end(); m++)
     {
-        Model* model = *m;
+        Model* model = m->second;
         wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
         int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
         int endch = ch + model->GetChanCount() - 1;
@@ -3506,7 +3506,7 @@ void xLightsFrame::ExportModels(wxString filename)
 
     f.Write("\n");
 
-    f.Write(wxString::Format("\"Model Count\",%d\n", PreviewModels.size()));
+    f.Write(wxString::Format("\"Model Count\",%d\n", AllModels.size()));
     f.Write(wxString::Format("\"First Used Channel\",%d\n", minchannel));
     f.Write(wxString::Format("\"Last Used Channel\",%d\n", maxchannel));
     f.Write(wxString::Format("\"Actual Used Channel\",%d\n", usedchannels));

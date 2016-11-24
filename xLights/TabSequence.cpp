@@ -464,9 +464,9 @@ void xLightsFrame::SaveFPPchannelmemorymaps(std::string path)
     f.Open(path + "/channelmemorymaps", wxFile::write);
     if (f.IsOpened())
     {
-        for (auto m = PreviewModels.begin(); m != PreviewModels.end(); ++m)
+        for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
         {
-            Model* model = *m;
+            Model* model = m->second;
             wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
             int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
             std::string type, description, ip, universe, inactive;
