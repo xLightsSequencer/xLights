@@ -2468,10 +2468,15 @@ void EffectsGrid::ResizeMoveMultipleEffects(int position, bool offset)
     {
         EFFECT_SCREEN_MODE mode;
         int x1,x2,x3,x4;
-        mTimeline->GetPositionsFromTimeRange(mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS(),
-                                             mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS(),mode,x1,x2,x3,x4);
+        Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
+        mTimeline->GetPositionsFromTimeRange(eff->GetStartTimeMS(),
+                                             eff->GetEndTimeMS(),mode,x1,x2,x3,x4);
         int midpoint = mTimeline->GetTimeMSfromPosition((x1+x2)/2) + mTimeline->GetStartTimeMS();
         deltaTime = time - midpoint;
+        if (!MultipleEffectsSelected())
+        {
+            SetEffectStatusText(eff);
+        }
     }
     deltaTime = mTimeline->RoundToMultipleOfPeriod(deltaTime, mSequenceElements->GetFrequency());
     if(deltaTime < 0.0)
