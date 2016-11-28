@@ -785,6 +785,8 @@ void xLightsFrame::PlayerError(const wxString& msg)
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString m = msg;
     m.Replace("\n", " ", true);
+    m.Replace("%", "%%", true);
+    
     logger_base.warn(m);
     if (play_mode == play_sched)
     {
