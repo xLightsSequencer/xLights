@@ -1000,24 +1000,21 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             WriteHLSFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
         }
         else if (Out3 == "Fal") {
-            wxString tempstr = GetModel(model)->ModelStartChannel;
-            int stChan = wxAtoi(tempstr);
+            int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("eseq"));
             fullpath = oName.GetFullPath();
             WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels());
         }
         else if (Out3 == "Com")
         {
-            wxString tempstr = GetModel(model)->ModelStartChannel;
-            int stChan = wxAtoi(tempstr);
+            int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("avi"));
             fullpath = oName.GetFullPath();
             WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), true);
         }
         else if (Out3 == "Unc")
         {
-            wxString tempstr = GetModel(model)->ModelStartChannel;
-            int stChan = wxAtoi(tempstr);
+            int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("avi"));
             fullpath = oName.GetFullPath();
             WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), false);
