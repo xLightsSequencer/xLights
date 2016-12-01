@@ -14,6 +14,8 @@
 #include "xlGLCanvas.h"
 #include "osxMacUtils.h"
 
+#include <list>
+
 
 void ObtainAccessToURL(const std::string &path) {
     if ("" == path) {
@@ -207,5 +209,4 @@ void AddWindowsMenu() {
     [windowItem setSubmenu:windowMenu];
     [NSApp setWindowsMenu:windowMenu];
 }
-
 

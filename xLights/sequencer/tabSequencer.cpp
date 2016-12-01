@@ -101,6 +101,8 @@ void xLightsFrame::CreateSequencer()
     logger_base.debug("CreateSequencer: Resizing everything.");
     mainSequencer->Layout();
     logger_base.debug("CreateSequencer: Done.");
+    
+    mainSequencer->SetupTouchBar(effectManager, colorPanel->SetupTouchBar(mainSequencer->touchBarSupport));
 }
 
 void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)

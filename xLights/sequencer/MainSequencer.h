@@ -9,6 +9,7 @@
 #include "EffectsGrid.h"
 #include "Waveform.h"
 #include "../KeyBindings.h"
+#include "../osx_utils/TouchBars.h"
 
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
@@ -46,6 +47,10 @@ class MainSequencer: public wxPanel
         void DoPaste(wxCommandEvent& event);
         void DoUndo(wxCommandEvent& event);
         void DoRedo(wxCommandEvent& event);
+    
+    
+        void TouchButtonEvent(wxCommandEvent &event);
+        void SetupTouchBar(EffectManager &m, ColorPanelTouchBar *colorTouchBar);
 
 		//(*Declarations(MainSequencer)
 		wxScrollBar* ScrollBarEffectsHorizontal;
@@ -59,6 +64,8 @@ class MainSequencer: public wxPanel
 
         KeyBindingMap keyBindings;
         TimeDisplayControl *timeDisplay;
+        xlTouchBarSupport touchBarSupport;
+        EffectGridTouchBar *effectGridTouchbar;
 	protected:
 
 		//(*Identifiers(MainSequencer)

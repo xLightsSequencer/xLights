@@ -192,11 +192,11 @@ public:
     virtual void SetValue(const wxString& value);
     ColorCurve* GetValue() const;
     void ToggleActive();
-    void SetActive(bool active);
-    void UpdateState();
+    void SetActive(bool active, bool notify = true);
+    void UpdateState(bool notify = true);
     void UpdateBitmap();
     std::string GetColor() const { return _color; }
-    void SetColor(std::string color);
+    void SetColor(std::string color, bool notify = true);
 };
 
 #endif

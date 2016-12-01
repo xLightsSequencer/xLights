@@ -146,6 +146,7 @@ EVT_PAINT(TimeDisplayControl::Paint)
 END_EVENT_TABLE()
 
 MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+    : touchBarSupport(), effectGridTouchbar(nullptr)
 {
 	//(*Initialize(MainSequencer)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -229,10 +230,14 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     keyBindings.LoadDefaults();
     mCanUndo = false;
     mPasteByCell = false;
+    SetName("MainSequencer");
+    touchBarSupport.Init(this);
 }
 
 MainSequencer::~MainSequencer()
 {
+    if (effectGridTouchbar) delete effectGridTouchbar;
+    
 	//(*Destroy(MainSequencer)
 	//*)
 }
@@ -509,6 +514,19 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                 event.StopPropagation();
             }
             break;
+    }
+}
+
+void MainSequencer::TouchButtonEvent(wxCommandEvent &event) {
+    if (mSequenceElements != nullptr) {
+        wxString effect = ((wxWindow*)event.GetEventObject())->GetName();
+        PanelEffectGrid->Paste(effect + "\t\t\n", xlights_version_string);
+    }
+}
+void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchBar *colorBar) {
+    if (effectGridTouchbar == nullptr && touchBarSupport.HasTouchBar()) {
+        effectGridTouchbar = new EffectGridTouchBar(touchBarSupport, effectManager, this, colorBar);
+        effectGridTouchbar->SetActive();
     }
 }
 
