@@ -335,6 +335,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(LayoutPanel::OnCharHook),0,this);
     modelPreview->Connect(wxID_ANY, wxEVT_CHAR, wxKeyEventHandler(LayoutPanel::OnChar),0,this);
 
+    TreeListViewModels->GetView()->Connect(wxID_CUT, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCut,0,this);
+    TreeListViewModels->GetView()->Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCopy,0,this);
+    TreeListViewModels->GetView()->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoPaste,0,this);
+    TreeListViewModels->GetView()->Connect(wxID_UNDO, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoUndo,0,this);
+    
     ModelGroupWindow = new wxScrolledWindow(ModelSplitter);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     ModelGroupWindow->SetSizer(sizer);
@@ -2073,7 +2078,7 @@ void LayoutPanel::DeleteSelectedModel() {
 }
 
 void LayoutPanel::DoCopy(wxCommandEvent& event) {
-    if (!modelPreview->HasFocus()) {
+    if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus()) {
         event.Skip();
     } else if (selectedModel != nullptr) {
         wxString copy_data;
@@ -2099,7 +2104,7 @@ void LayoutPanel::DoCopy(wxCommandEvent& event) {
     }
 }
 void LayoutPanel::DoCut(wxCommandEvent& event) {
-    if (!modelPreview->HasFocus()) {
+    if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus()) {
         event.Skip();
     } else if (selectedModel != nullptr) {
         DoCopy(event);
@@ -2107,7 +2112,7 @@ void LayoutPanel::DoCut(wxCommandEvent& event) {
     }
 }
 void LayoutPanel::DoPaste(wxCommandEvent& event) {
-    if (!modelPreview->HasFocus()) {
+    if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus()) {
         event.Skip();
     } else {
         if (wxTheClipboard->Open()) {
