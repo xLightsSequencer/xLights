@@ -232,6 +232,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
                     float speedFactor = (float)videoFrames / (float)effectFrames;
                     _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
                 }
+                logger_base.debug("Video effect length: %d, video length: %d, startoffset: %d, duration treatment: '%s'.", (buffer.curEffEndPer - buffer.curEffStartPer + 1) * _frameMS, videolen, starttime, (const char *)_durationTreatment.c_str());
             }
 		}
         else
@@ -260,6 +261,8 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
             {
                 frame = 0;
             }
+            logger_base.debug("Video effect loop #%d at frame %d to video frame %d.", _loops, buffer.curPeriod - buffer.curEffStartPer, frame);
+
             _videoreader->Seek(0);
 			image = _videoreader->GetNextFrame(frame);
 		}
