@@ -246,16 +246,21 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 
 	if (_videoreader != nullptr)
 	{
-        long frame = _starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * _videoreader->GetLengthMS();
+        long frame = _starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
         // get the image for the current frame
 		AVFrame* image = _videoreader->GetNextFrame(frame);
 		
 		// if we have reached the end and we are to loop
 		if (_videoreader->AtEnd() && _durationTreatment == "Loop")
 		{
-			_loops++;
-			// jump back to start and try to read frame again
-			_videoreader->Seek(0);
+            // jump back to start and try to read frame again
+            _loops++;
+            frame = _starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
+            if (frame < 0)
+            {
+                frame = 0;
+            }
+            _videoreader->Seek(0);
 			image = _videoreader->GetNextFrame(frame);
 		}
 
