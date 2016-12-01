@@ -99,7 +99,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	CheckBox_UploadModels = new wxCheckBox(this, ID_CHECKBOX1, _("Upload Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_UploadModels->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_UploadModels, 1, wxALL|wxEXPAND, 5);
-	CheckListBox_Sequences = new wxCheckListBox(this, ID_CHECKLISTBOX_Sequences, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_Sequences"));
+	CheckListBox_Sequences = new wxCheckListBox(this, ID_CHECKLISTBOX_Sequences, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SORT, wxDefaultValidator, _T("ID_CHECKLISTBOX_Sequences"));
 	CheckListBox_Sequences->SetMinSize(wxDLG_UNIT(this,wxSize(-1,100)));
 	FlexGridSizer1->Add(CheckListBox_Sequences, 1, wxALL|wxEXPAND, 5);
 	Button_Upload = new wxButton(this, ID_BUTTON_Upload, _("Upload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Upload"));
@@ -336,7 +336,7 @@ bool FPPConnectDialog::IsValidIP(wxString ip)
     if (regxIPAddr.Matches(ip)) {
         return true;
     }
-    
+
     wxIPV4address addr;
     addr.Hostname(ip);
     wxString ipAddr = addr.IPAddress();
@@ -536,7 +536,7 @@ bool FPPConnectDialog::USBUpload()
 
     int total = CheckBox_UploadController->IsChecked() ? 1 : 0;
     total += sel.size();
-    
+
     int count = 0;
     if (CheckBox_UploadController->IsChecked())
     {
@@ -582,7 +582,7 @@ bool FPPConnectDialog::USBUpload()
         if (media != "") {
             mid = end  - (end - start) / 5;
         }
-        
+
         if (!cancelled && wxFile::Exists(fseq))
         {
             cancelled = CopyFile(std::string(fseq), std::string(tgtdir + "/sequences/" + fn.GetName() + ".fseq"), false, progress, start, mid);
@@ -684,7 +684,7 @@ bool FPPConnectDialog::DoCopyFile(const std::string& source, const std::string& 
                     written += out.Write(&buffer[written], read - written);
                 }
                 done += read;
-                
+
                 int prgs = start + (done * (end - start)) / length;
                 progress.Update(prgs, wxEmptyString, &cancelled);
                 if (!cancelled)

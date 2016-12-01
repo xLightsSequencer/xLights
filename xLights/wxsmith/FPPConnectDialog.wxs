@@ -155,6 +155,7 @@
 			<object class="sizeritem">
 				<object class="wxCheckListBox" name="ID_CHECKLISTBOX_Sequences" variable="CheckListBox_Sequences" member="yes">
 					<minsize>-1,100d</minsize>
+					<style>wxLB_SORT</style>
 					<handler function="OnCheckListBox_SequencesToggled" entry="EVT_CHECKLISTBOX" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
