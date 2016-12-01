@@ -25,7 +25,7 @@ public:
 
 		PianoPanel(wxWindow* parent);
 		virtual ~PianoPanel();
-        void SetTimingTrack(std::list<std::string> timingtracks) { _timingtracks = timingtracks; ValidateWindow(); };
+        void SetTimingTrack(std::list<std::string> timingtracks);
 
 		//(*Declarations(PianoPanel)
 		wxStaticText* StaticText9;
@@ -76,7 +76,6 @@ public:
 		static const long IDD_TEXTCTRL_Piano_XOffset;
 		static const long ID_BITMAPBUTTON_Piano_XOffset;
 		//*)
-        std::list<std::string> _timingtracks;
 
 	public:
 

@@ -49,6 +49,11 @@ std::list<std::string> PianoEffect::CheckEffectSettings(const SettingsMap& setti
 
 void PianoEffect::SetPanelStatus(Model *cls)
 {
+    SetPanelTimingTracks();
+}
+
+void PianoEffect::SetPanelTimingTracks()
+{
     PianoPanel *fp = (PianoPanel*)panel;
     if (fp == nullptr)
     {
@@ -131,16 +136,20 @@ void PianoEffect::SetDefaultParameters(Model *cls) {
     SetCheckBoxValue(pp->CheckBox_Piano_ShowSharps, true);
     SetSliderValue(pp->Slider_Piano_Scale, 100);
     SetSliderValue(pp->Slider_Piano_XOffset, 0);
+
+    SetPanelTimingTracks();
 }
 
 void PianoEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
-        wxString timing = effect->GetSettings().Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "");
+    wxString timing = effect->GetSettings().Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "");
 
-        if (timing.ToStdString() == oldname)
-        {
-            effect->GetSettings()["E_CHOICE_Piano_MIDITrack_APPLYLAST"] = wxString(newname);
-        }
+    if (timing.ToStdString() == oldname)
+    {
+        effect->GetSettings()["E_CHOICE_Piano_MIDITrack_APPLYLAST"] = wxString(newname);
+    }
+
+    SetPanelTimingTracks();
 }
 
 void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -181,6 +190,9 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, SequenceElements *elements, 
 
 	if (buffer.needToInit)
 	{
+        // just in case the timing tracks have changed
+        SetPanelTimingTracks();
+
         buffer.needToInit = false;
         if (_MIDITrack != MIDITrack)
         {

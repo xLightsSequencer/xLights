@@ -188,14 +188,8 @@ void PianoPanel::OnSpinCtrl_Piano_EndMIDIChange(wxSpinEvent& event)
 
 void PianoPanel::ValidateWindow()
 {
-    if (_timingtracks.size() > 0)
+    if (Choice_Piano_MIDITrack_APPLYLAST->GetCount() > 0)
     {
-        Choice_Piano_MIDITrack_APPLYLAST->Clear();
-        for (auto it = _timingtracks.begin(); it != _timingtracks.end(); ++it)
-        {
-            Choice_Piano_MIDITrack_APPLYLAST->Append(*it);
-        }
-        Choice_Piano_MIDITrack_APPLYLAST->Select(0);
         Choice_Piano_MIDITrack_APPLYLAST->Enable(true);
     }
     else
@@ -205,4 +199,68 @@ void PianoPanel::ValidateWindow()
 
     SpinCtrl_Piano_StartMIDI->SetToolTip(wxString(xLightsFrame::DecodeMidi(SpinCtrl_Piano_StartMIDI->GetValue()).c_str()));
     SpinCtrl_Piano_EndMIDI->SetToolTip(wxString(xLightsFrame::DecodeMidi(SpinCtrl_Piano_EndMIDI->GetValue()).c_str()));
+}
+
+void PianoPanel::SetTimingTrack(std::list<std::string> timingtracks) {
+
+    wxString selection = Choice_Piano_MIDITrack_APPLYLAST->GetStringSelection();
+
+    // check if anything has been removed ... if it has clear the list and we will have to rebuild it as you cant delete items from a combo box
+    bool removed = false;
+    for (int i = 0; i < Choice_Piano_MIDITrack_APPLYLAST->GetCount(); i++)
+    {
+        bool found = false;
+        for (auto it = timingtracks.begin(); it != timingtracks.end(); ++it)
+        {
+            if (*it == Choice_Piano_MIDITrack_APPLYLAST->GetString(i))
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            Choice_Piano_MIDITrack_APPLYLAST->Clear();
+            removed = true;
+            break;
+        }
+    }
+
+    // add any new timing tracks
+    for (auto it = timingtracks.begin(); it != timingtracks.end(); ++it)
+    {
+        bool found = false;
+        for (size_t i = 0; i < Choice_Piano_MIDITrack_APPLYLAST->GetCount(); i++)
+        {
+            if (*it == Choice_Piano_MIDITrack_APPLYLAST->GetString(i))
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            Choice_Piano_MIDITrack_APPLYLAST->Append(*it);
+        }
+    }
+
+    if (removed && Choice_Piano_MIDITrack_APPLYLAST->GetCount() > 0)
+    {
+        // go through the list and see if our selected item is there
+        bool found = false;
+        for (size_t i = 0; i < Choice_Piano_MIDITrack_APPLYLAST->GetCount(); i++)
+        {
+            if (selection == Choice_Piano_MIDITrack_APPLYLAST->GetString(i))
+            {
+                found = true;
+                Choice_Piano_MIDITrack_APPLYLAST->SetSelection(i);
+                break;
+            }
+        }
+        if (!found)
+        {
+            Choice_Piano_MIDITrack_APPLYLAST->SetSelection(0);
+        }
+    }
+    ValidateWindow();
 }

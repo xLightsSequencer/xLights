@@ -25,6 +25,7 @@ class PianoEffect : public RenderableEffect
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
         virtual bool needToAdjustSettings(const std::string& version) override { return true; };
         virtual void adjustSettings(const std::string &version, Effect *effect) override;
+        void SetPanelTimingTracks();
 
     private:
     
