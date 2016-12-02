@@ -1030,6 +1030,10 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
 bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period, const SettingsMap& SettingsMap,
                                        PixelBufferClass &buffer, bool &resetEffectState,
                                        bool bgThread, RenderEvent *event) {
+    
+    if (buffer.BufferForLayer(layer).BufferHt == 0 || buffer.BufferForLayer(layer).BufferWi == 0) {
+        return false;
+    }
     bool retval=true;
 
     buffer.SetLayer(layer, period, resetEffectState);

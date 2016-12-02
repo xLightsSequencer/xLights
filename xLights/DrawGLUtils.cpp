@@ -1052,101 +1052,103 @@ public:
         
         InitializeImage(cimg);
     }
-    void Populate(float x, float yBase, const wxString &text, float factor, DrawGLUtils::xlVertexTextureAccumulator &va) {
-        va.PreAlloc(6 * text.Length());
+    void Populate(float x, float yBase, const std::string &text, float factor, DrawGLUtils::xlVertexTextureAccumulator &va) {
+        va.PreAlloc(6 * text.size());
         va.id = currentCache->GetTextureId(fontIdx);
         //DrawGLUtils::DrawLine(xlBLUE, 255, x, yBase, x+3, yBase, 1);
         //DrawGLUtils::DrawLine(xlBLUE, 255, x, yBase - (float(maxH) + 2) / factor, x+3, yBase - (float(maxH) + 2) / factor, 1);
-        for (int idx = 0; idx < text.Length(); idx++) {
+        for (int idx = 0; idx < text.size(); idx++) {
             char ch = text[idx];
-            if (ch >= ' ' && ch <= '~') {
-                if (ch == ' ') {
-                    x += widths[0] / factor;
-                    continue;
-                }
-                int linei = ch;
-                linei -= ' ';
-                linei /= 16.0;
-                float line = linei;
-
-                float pos = ch - ' ';
-                pos -= linei * 16.0;
-
-                float tx = 1 + (pos * (maxW + 5));
-                float tx2 = tx + widths[ch - ' '];
-                
-                float x2 = x + float(widths[ch - ' ']) / factor;
-                
-                float ty2 = textureHeight - 3 - (line * (maxH + 5));
-                float ty = ty2 - maxH;
-                
-                float y = yBase;
-                float y2 = yBase - float(maxH) / factor;
-                /*
-                if (ch == 'p') {
-                    printf("%c   %f %f    %f %f     %f %f\n", ch, x, x2, tx, tx2,  (x2-x), (tx2-tx));
-                }
-                 */
-                
-                tx /= textureWidth;
-                tx2 /= textureWidth;
-                
-                ty2 /= textureHeight;
-                ty /= textureHeight;
-                
-                //samples need to be from the MIDDLE of the pixel
-                ty -= 0.5 / textureHeight;
-                ty2 += 0.75 / textureHeight;
-                
-                tx += 0.5 / textureWidth;
-                tx2 += 1.0 / textureWidth;
-                
-                y += 0.25/factor;
-                y2 -= 0.75/factor;
-                x -= 0.25/factor;
-                x2 += 0.25/factor;
-                
-                /*
-                if (ch == '1') {
-                    DrawGLUtils::DrawFillRectangle(xlWHITE, 255,x,y, image.textureWidth / factor, image.textureHeight / factor);
-                    
-                    ty = 0.0;
-                    ty2 = 1.0 - ty;
-                    tx = 0.0;
-                    tx2 = 1.0 - tx;
-                    y = yBase + (float)(image.textureHeight)/factor;
-                    x2 = x + (float)(image.textureWidth)/ factor;
-                    y2 = yBase;
-                }
-                */
-                //printf("%c   %f %f    %f %f\n", ch, tx, tx2, ty, ty2);
-                
-                va.AddVertex(x, y, tx, ty);
-                va.AddVertex(x, y2, tx, ty2);
-                va.AddVertex(x2, y2, tx2, ty2);
-                va.AddVertex(x2, y2, tx2, ty2);
-                va.AddVertex(x2, y, tx2, ty);
-                va.AddVertex(x, y, tx, ty);
-
-                x += widths[ch - ' '] / factor;
+            if (ch < ' ' && ch > '~') {
+                ch = '?';
             }
+            if (ch == ' ') {
+                x += widths[0] / factor;
+                continue;
+            }
+            int linei = ch;
+            linei -= ' ';
+            linei /= 16.0;
+            float line = linei;
+
+            float pos = ch - ' ';
+            pos -= linei * 16.0;
+
+            float tx = 1 + (pos * (maxW + 5));
+            float tx2 = tx + widths[ch - ' '];
+            
+            float x2 = x + float(widths[ch - ' ']) / factor;
+            
+            float ty2 = textureHeight - 3 - (line * (maxH + 5));
+            float ty = ty2 - maxH;
+            
+            float y = yBase;
+            float y2 = yBase - float(maxH) / factor;
+            /*
+            if (ch == 'p') {
+                printf("%c   %f %f    %f %f     %f %f\n", ch, x, x2, tx, tx2,  (x2-x), (tx2-tx));
+            }
+             */
+            
+            tx /= textureWidth;
+            tx2 /= textureWidth;
+            
+            ty2 /= textureHeight;
+            ty /= textureHeight;
+            
+            //samples need to be from the MIDDLE of the pixel
+            ty -= 0.5 / textureHeight;
+            ty2 += 0.75 / textureHeight;
+            
+            tx += 0.5 / textureWidth;
+            tx2 += 1.0 / textureWidth;
+            
+            y += 0.25/factor;
+            y2 -= 0.75/factor;
+            x -= 0.25/factor;
+            x2 += 0.25/factor;
+            
+            /*
+            if (ch == '1') {
+                DrawGLUtils::DrawFillRectangle(xlWHITE, 255,x,y, image.textureWidth / factor, image.textureHeight / factor);
+                
+                ty = 0.0;
+                ty2 = 1.0 - ty;
+                tx = 0.0;
+                tx2 = 1.0 - tx;
+                y = yBase + (float)(image.textureHeight)/factor;
+                x2 = x + (float)(image.textureWidth)/ factor;
+                y2 = yBase;
+            }
+            */
+            //printf("%c   %f %f    %f %f\n", ch, tx, tx2, ty, ty2);
+            
+            va.AddVertex(x, y, tx, ty);
+            va.AddVertex(x, y2, tx, ty2);
+            va.AddVertex(x2, y2, tx2, ty2);
+            va.AddVertex(x2, y2, tx2, ty2);
+            va.AddVertex(x2, y, tx2, ty);
+            va.AddVertex(x, y, tx, ty);
+
+            x += widths[ch - ' '] / factor;
         }
 
     }
-    void Draw(float x, float yBase, const wxString &text, float factor) {
+    void Draw(float x, float yBase, const std::string &text, float factor) {
         LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         DrawGLUtils::xlVertexTextureAccumulator va(currentCache->GetTextureId(fontIdx));
         Populate(x, yBase, text, factor, va);
         DrawGLUtils::Draw(va, GL_TRIANGLES, GL_BLEND);
     }
 
-    float TextWidth(const wxString &text, float factor) {
+    float TextWidth(const std::string &text, float factor) {
         float w = 0;
-        for (int idx = 0; idx < text.Length(); idx++) {
+        for (int idx = 0; idx < text.size(); idx++) {
             char ch = text[idx];
-            if (ch >= ' ' && ch <= '~') {
-                w += widths[ch - ' '];
+            if (ch < ' ' && ch > '~') {
+                ch = '?';
             }
+            w += widths[ch - ' '];
         }
         return w / factor;
     }
@@ -1182,14 +1184,14 @@ void DrawGLUtils::DrawText(double x, double y, double size, const wxString &text
     if (!FONTS[tsize].Valid()) {
         FONTS[tsize].Create(tsize);
     }
-    FONTS[tsize].Draw(x, y, text, factor);
+    FONTS[tsize].Draw(x, y, text.ToStdString(), factor);
 }
 int DrawGLUtils::GetTextWidth(double size, const wxString &text, double factor) {
     int tsize = FindFont(size, factor);
     if (!FONTS[tsize].Valid()) {
         FONTS[tsize].Create(tsize);
     }
-    return FONTS[tsize].TextWidth(text, factor);
+    return FONTS[tsize].TextWidth(text.ToStdString(), factor);
 }
 
 void DrawGLUtils::Draw(DrawGLUtils::xlVertexTextAccumulator &va, int size, float factor) {
