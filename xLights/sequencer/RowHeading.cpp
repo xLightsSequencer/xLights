@@ -18,7 +18,7 @@ const long RowHeading::ID_ROW_MNU_INSERT_LAYER_ABOVE = wxNewId();
 const long RowHeading::ID_ROW_MNU_INSERT_LAYER_BELOW = wxNewId();
 const long RowHeading::ID_ROW_MNU_INSERT_LAYERS_BELOW = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_LAYER = wxNewId();
-const long RowHeading::ID_ROW_MNU_DELETE_ALL_LAYERS = wxNewId();
+const long RowHeading::ID_ROW_MNU_DELETE_LAYERS_BELOW = wxNewId();
 const long RowHeading::ID_ROW_MNU_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_PLAY_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_MODEL = wxNewId();
@@ -162,7 +162,8 @@ void RowHeading::rightClick( wxMouseEvent& event)
             {
                 mnuLayer.Append(ID_ROW_MNU_DELETE_LAYER,"Delete Layer");
 
-				mnuLayer.Append(ID_ROW_MNU_DELETE_ALL_LAYERS, "Delete All Layers");
+				if(element->GetEffectLayerCount() - (mSequenceElements->GetVisibleRowInformation(mSelectedRow)->layerIndex +1)  != 0)
+					mnuLayer.Append(ID_ROW_MNU_DELETE_LAYERS_BELOW, "Delete Multiple Layers Below");
             }
             mnuLayer.AppendSeparator();
         }
@@ -296,26 +297,58 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
     }
-	else if (id == ID_ROW_MNU_DELETE_ALL_LAYERS)
+	else if (id == ID_ROW_MNU_DELETE_LAYERS_BELOW)
 	{
-		int delLayer = element->GetEffectLayerCount();
-		int layerIndex = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->layerIndex;
-		wxString prompt = wxString::Format("Delete %d Layers?",
-			delLayer);
-		wxString caption = "Confirm All Layer Deletion";
+		int layerIndex = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->layerIndex + 1;
+		int bottomLayer = element->GetEffectLayerCount();
 
-		int answer = wxMessageBox(prompt, caption, wxYES_NO);
-		if (answer == wxYES)
+		int numtoDelete = wxGetNumberFromUser("Enter number of layers to delete", "Layers", "Delete multiple layers", bottomLayer - layerIndex, 1, bottomLayer - layerIndex, this);
+
+
+		if (numtoDelete > 0)
 		{
-			for (delLayer--; delLayer >= 0; delLayer--)
+			int startDeleteLayer = layerIndex + (numtoDelete - 1);
+
+			bool containsEffects = false;
+			bool deleteLayers = true;
+			for (int deleteLayer = startDeleteLayer; deleteLayer >= layerIndex; deleteLayer--)
 			{
-				element->RemoveEffectLayer(delLayer);
+				//Check for effects
+				if (element->GetEffectLayer(deleteLayer)->GetEffectCount() > 0)
+				{
+					containsEffects = true;
+					break;
+				}
 			}
 
-			element->AddEffectLayer();
+			if (containsEffects == true)
+			{
+				wxString prompt = wxString::Format("One or more layers contain effects.  Delete?");
+				wxString caption = "Confirm Layer Deletion";
+
+				int answer = wxMessageBox(prompt, caption, wxYES_NO);
+				if (answer == wxNO)
+				{
+					deleteLayers = false;
+				}
+			}
+			if (deleteLayers == true)
+			{
+				for (int deleteLayer = startDeleteLayer; deleteLayer >= layerIndex; deleteLayer--)
+				{
+					element->RemoveEffectLayer(deleteLayer);
+				}
+
+				//Add a default layer if the top level layer is deleted
+				if (layerIndex == 0)
+				{
+					element->AddEffectLayer();
+				}
+
+				wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+				wxPostEvent(GetParent(), eventRowHeaderChanged);
+			}
 			
-			wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-			wxPostEvent(GetParent(), eventRowHeaderChanged);
 		}
 	}
     else if(id == ID_ROW_MNU_ADD_TIMING_TRACK)
