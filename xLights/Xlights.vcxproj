@@ -590,6 +590,7 @@
     <ClInclude Include="NullOutputDialog.h" />
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="osxMacUtils.h" />
+    <ClInclude Include="osx_utils\TouchBars.h" />
     <ClInclude Include="PaletteMgmtDialog.h" />
     <ClInclude Include="PerspectivesPanel.h" />
     <ClInclude Include="PhonemeDictionary.h" />
