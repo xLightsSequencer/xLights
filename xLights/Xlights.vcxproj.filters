@@ -43,6 +43,12 @@
     <Filter Include="Source Files\kiss_fft">
       <UniqueIdentifier>{f719497b-b42f-48fd-a6b2-1e9401403c3e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\osx_utils">
+      <UniqueIdentifier>{ca7941b2-3502-41f4-8b2a-db52d08a2384}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\osx_utils">
+      <UniqueIdentifier>{6c7b8903-6f0f-4aa8-9844-69a4ca82de98}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="effects\BarsEffect.cpp">
@@ -840,6 +846,9 @@
     <ClCompile Include="FPPConnectDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="osx_utils\TouchBars.cpp">
+      <Filter>Source Files\osx_utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1618,6 +1627,9 @@
     </ClInclude>
     <ClInclude Include="FPPConnectDialog.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="osx_utils\TouchBars.h">
+      <Filter>Header Files\osx_utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
