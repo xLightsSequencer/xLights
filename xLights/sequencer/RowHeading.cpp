@@ -339,12 +339,6 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 					element->RemoveEffectLayer(deleteLayer);
 				}
 
-				//Add a default layer if the top level layer is deleted
-				if (layerIndex == 0)
-				{
-					element->AddEffectLayer();
-				}
-
 				wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
 				wxPostEvent(GetParent(), eventRowHeaderChanged);
 			}
