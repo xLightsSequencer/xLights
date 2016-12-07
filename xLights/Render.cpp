@@ -412,6 +412,9 @@ public:
         wxStopWatch sw;
         bool effectsToUpdate = false;
         int numLayers = el->GetEffectLayerCount();
+        for (int layer = 0; layer < info.validLayers.size(); layer++) {
+            info.validLayers[layer] = false;
+        }
         for (int layer = 0; layer < numLayers; layer++) {
             EffectLayer *elayer = el->GetEffectLayer(layer);
             Effect *ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
