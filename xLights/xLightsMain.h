@@ -898,7 +898,12 @@ private:
     void SetupNullOutput(wxXmlNode* e, int after = -1);
     bool SaveNetworksFile();
     void NetworkChange();
-    void SaveFPPUniverses(std::string path);
+    std::string SaveFPPUniverses(const std::string& path, const std::string& onlyip);
+    void UploadFPPBridgeInput();
+    void UploadFPPBridgeOutput();
+    void UploadFalconInput();
+    void UploadFalconOutput();
+
     void DeleteSelectedNetworks();
     void ActivateSelectedNetworks(bool active);
     void ChangeSelectedNetwork();
@@ -1278,6 +1283,13 @@ private:
     static const long ID_NETWORK_ACTIVATE;
     static const long ID_NETWORK_DEACTIVATE;
     static const long ID_NETWORK_OPENCONTROLLER;
+    static const long ID_NETWORK_UPLOADCONTROLLER;
+    static const long ID_NETWORK_UCOUTPUT;
+    static const long ID_NETWORK_UCINPUT;
+    static const long ID_NETWORK_UCIFPPB;
+    static const long ID_NETWORK_UCOFPPB;
+    static const long ID_NETWORK_UCIFALCON;
+    static const long ID_NETWORK_UCOFALCON;
 
 #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 

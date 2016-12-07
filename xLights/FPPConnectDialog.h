@@ -1,8 +1,6 @@
 #ifndef FPPCONNECTDIALOG_H
 #define FPPCONNECTDIALOG_H
 
-#include <wx/socket.h>
-#include <wx/protocol/ftp.h>
 #include <wx/progdlg.h>
 
 //(*Headers(FPPConnectDialog)
@@ -23,7 +21,6 @@ class FPPConnectDialog: public wxDialog
 {
     void LoadSequencesFromFolder(wxString dir);
     void LoadSequences();
-    bool UploadFile(wxFTP& ftp, std::string file, std::string folder, bool backup);
     bool CopyFile(std::string source, std::string target, bool backup, wxProgressDialog &progress, int start, int end);
     bool DoCopyFile(const std::string& source, const std::string& target, wxProgressDialog &progress, int start, int end);
     void ValidateWindow();

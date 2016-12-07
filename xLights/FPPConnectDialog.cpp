@@ -1,5 +1,6 @@
 #include "FPPConnectDialog.h"
 #include "xLightsMain.h"
+#include "SimpleFTP.h"
 #include <wx/regex.h>
 #include "xLightsXmlFile.h"
 #include <wx/volume.h>
@@ -428,39 +429,27 @@ bool FPPConnectDialog::FTPUpload()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
-    wxFTP ftp;
-    //ftp.SetPassive(false);
-    ftp.SetFlags(wxSOCKET_NOWAIT_WRITE);
+    SimpleFTP ftp(TextCtrl_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
 
-    // if you don't use these lines anonymous login will be used
-    ftp.SetUser(TextCtr_Username->GetValue());
-    ftp.SetPassword(TextCtrl_Password->GetValue());
-    if (!ftp.Connect(TextCtrl_IPAddress->GetValue()))
+    if (!ftp.IsConnected())
     {
         logger_base.warn("Could not connect to FPP using address '%s'.", (const char *)TextCtrl_IPAddress->GetValue().c_str());
         wxMessageBox("Could not connect to FPP using address '" + TextCtrl_IPAddress->GetValue() + "'.");
         return true;
     }
 
-    ftp.ChDir("/home/fpp/media");
-
     if (CheckBox_UploadController->IsChecked())
     {
-        ftp.SetAscii();
-        cancelled = UploadFile(ftp, (xLightsFrame::CurrentDir + "/universes").ToStdString(), ".", true);
+        cancelled = ftp.UploadFile((xLightsFrame::CurrentDir + "/universes").ToStdString(), "/home/fpp/media", "universes", true, false, this);
     }
 
     if (!cancelled && CheckBox_UploadModels->IsChecked())
     {
-        ftp.SetAscii();
-        cancelled = UploadFile(ftp, (xLightsFrame::CurrentDir + "/channelmemorymaps").ToStdString(), ".", true);
+        cancelled = ftp.UploadFile((xLightsFrame::CurrentDir + "/channelmemorymaps").ToStdString(), "/home/fpp/media", "channelmemorymaps", true, false, this);
     }
-
 
     if (!cancelled)
     {
-        ftp.SetBinary();
-
         wxArrayInt sel;
         CheckListBox_Sequences->GetCheckedItems(sel);
         for (auto it = sel.begin(); it != sel.end() && !cancelled; ++it)
@@ -496,21 +485,17 @@ bool FPPConnectDialog::FTPUpload()
             wxString fseq = fn.GetPath() + "/" + fn.GetName() + ".fseq";
             if (wxFile::Exists(fseq))
             {
-                ftp.ChDir("/home/fpp/media");
-                cancelled = UploadFile(ftp, fseq.ToStdString(), "sequences", false);
+                cancelled = ftp.UploadFile(fseq.ToStdString(), "/home/fpp/media/sequences", fn.GetName().ToStdString() + ".fseq", false, true, this);
             }
 
             if (!cancelled && media != "")
             {
                 media = xLightsXmlFile::FixFile("", media);
-                ftp.ChDir("/home/fpp/media");
-                cancelled = UploadFile(ftp, media.ToStdString(), "music", false);
+                wxFileName fnmedia(media);
+                cancelled = ftp.UploadFile(media.ToStdString(), "/home/fpp/media/music", fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), false, true, this);
             }
         }
     }
-
-    // gracefully close the connection to the server
-    ftp.Close();
 
     return cancelled;
 }
@@ -751,6 +736,7 @@ bool FPPConnectDialog::CopyFile(std::string source, std::string target, bool bac
     return cancelled;
 }
 
+<<<<<<< c8ab41c24272d47b25529eae2048a1f1441ec948
 class MySocketOutputStream : public wxSocketOutputStream {
 public:
     MySocketOutputStream(wxSocketBase &tmp, MySocketOutputStream *s) : wxSocketOutputStream(tmp) {
@@ -874,6 +860,8 @@ bool FPPConnectDialog::UploadFile(wxFTP& ftp, std::string file, std::string fold
     return cancelled;
 }
 
+=======
+>>>>>>> 66209b88c2fdf5b146be0e719a81479da7f57f7c
 void FPPConnectDialog::OnCheckListBox_SequencesToggled(wxCommandEvent& event)
 {
     ValidateWindow();

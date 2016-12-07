@@ -15,6 +15,7 @@
 #include <wx/persist.h>
 #include <wx/artprov.h>
 #include <wx/regex.h>
+#include <wx/config.h>
 
 #include "LayoutPanel.h"
 #include "xLightsXmlFile.h"
@@ -25,6 +26,7 @@
 #include "NullOutputDialog.h"
 #include "ArtNetDialog.h"
 #include "xlights_out.h"
+#include "SimpleFTP.h"
 
 // Process Setup Panel Events
 
@@ -43,6 +45,13 @@ const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
 const long xLightsFrame::ID_NETWORK_ACTIVATE = wxNewId();
 const long xLightsFrame::ID_NETWORK_DEACTIVATE = wxNewId();
 const long xLightsFrame::ID_NETWORK_OPENCONTROLLER = wxNewId();
+const long xLightsFrame::ID_NETWORK_UPLOADCONTROLLER = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCOUTPUT = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCINPUT = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCIFPPB = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCOFPPB = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCIFALCON = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCOFALCON = wxNewId();
 
 void CleanupIpAddress(wxString& IpAddr)
 {
@@ -188,7 +197,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     if (xout)
     {
         delete xout;
-        xout=0;
+        xout = nullptr;
     }
     CurrentDir=newdir;
     showDirectory=newdir;
@@ -225,8 +234,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     {
         Notebook1->DeletePage(FixedPages);
     }
-//    ButtonTestLoad->Enable(true);
-//    ButtonTestSave->Enable(true);
+
     EnableNetworkChanges();
     DisplayXlightsFilename(wxEmptyString);
 
@@ -1357,10 +1365,15 @@ void xLightsFrame::OnButtonAddDongleClick(wxCommandEvent& event)
     SetupDongle(0);
 }
 
-void xLightsFrame::SaveFPPUniverses(std::string path)
+std::string xLightsFrame::SaveFPPUniverses(const std::string& path, const std::string& onlyip)
 {
+    std::string file = path + "/universes";
+    if (onlyip != "")
+    {
+        file += "_" + onlyip;
+    }
     wxFile universes;
-    universes.Open(path + "/universes", wxFile::write);
+    universes.Open(file, wxFile::write);
 
     if (universes.IsOpened())
     {
@@ -1376,33 +1389,38 @@ void xLightsFrame::SaveFPPUniverses(std::string path)
                 if (type == "E131")
                 {
                     std::string ip = std::string(e->GetAttribute("ComPort", ""));
-                    int universe = wxAtoi(e->GetAttribute("BaudRate", ""));
-                    wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
-                    long chan;
-                    MaxChannelsStr.ToLong(&chan);
-
-                    int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
-
-                    for (size_t i = 0; i < ucount; i++)
+                    if (onlyip == "" || ip == onlyip)
                     {
-                        long end = count + chan - 1;
+                        int universe = wxAtoi(e->GetAttribute("BaudRate", ""));
+                        wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
+                        long chan;
+                        MaxChannelsStr.ToLong(&chan);
 
-                        if (ip == "MULTICAST")
-                        {
-                            universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",0,,\r\n");
-                        }
-                        else
-                        {
-                            universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",1," + ip + ",\r\n");
-                        }
+                        int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
 
-                        count = end + 1;
+                        for (size_t i = 0; i < ucount; i++)
+                        {
+                            long end = count + chan - 1;
+
+                            if (ip == "MULTICAST")
+                            {
+                                universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",0,,\r\n");
+                            }
+                            else
+                            {
+                                universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",1," + ip + ",\r\n");
+                            }
+
+                            count = end + 1;
+                        }
                     }
                 }
             }
         }
         universes.Close();
     }
+
+    return file;
 }
 
 void xLightsFrame::NetworkChange()
@@ -1418,7 +1436,7 @@ void xLightsFrame::NetworkChange()
 
 bool xLightsFrame::SaveNetworksFile()
 {
-    SaveFPPUniverses(std::string(networkFile.GetPath().c_str()));
+    SaveFPPUniverses(networkFile.GetPath().ToStdString(), "");
     if (NetworkXML.Save( networkFile.GetFullPath() ))
     {
         UnsavedNetworkChanges=false;
@@ -1563,6 +1581,46 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     mnuAdd->Append(ID_NETWORK_ADDE131, "E1.31")->Enable(selcnt == 1);
     mnuAdd->Append(ID_NETWORK_ADDARTNET, "ArtNET")->Enable(selcnt == 1);
 
+    wxMenu* mnuUploadController = new wxMenu();
+
+        wxMenu* mnuUCInput = new wxMenu();
+
+        wxMenuItem* beUCIFPPB = mnuUCInput->Append(ID_NETWORK_UCIFPPB, "FPP Bridge Mode");
+        beUCIFPPB->Enable(selcnt == 1);
+        if (!AllSelectedSupportIP())
+        {
+            beUCIFPPB->Enable(false);
+        }
+        
+        wxMenuItem* beUCIFalcon = mnuUCInput->Append(ID_NETWORK_UCIFALCON, "Falcon");
+        beUCIFalcon->Enable(selcnt == 1);
+        if (!AllSelectedSupportIP())
+        {
+            beUCIFalcon->Enable(false);
+        }
+
+        mnuUploadController->Append(ID_NETWORK_UCINPUT, "Input", mnuUCInput, "");
+        
+        wxMenu* mnuUCOutput = new wxMenu();
+
+        wxMenuItem* beUCOFPPB = mnuUCOutput->Append(ID_NETWORK_UCOFPPB, "FPP Bridge Mode");
+        beUCOFPPB->Enable(selcnt == 1);
+        if (!AllSelectedSupportIP())
+        {
+            beUCOFPPB->Enable(false);
+        }
+
+        wxMenuItem* beUCOFalcon = mnuUCOutput->Append(ID_NETWORK_UCOFALCON, "Falcon");
+        beUCOFalcon->Enable(selcnt == 1);
+        if (!AllSelectedSupportIP())
+        {
+            beUCOFalcon->Enable(false);
+        }
+
+        mnuUploadController->Append(ID_NETWORK_UCOUTPUT, "Output", mnuUCOutput, "");
+        
+    mnu.Append(ID_NETWORK_UPLOADCONTROLLER, "Upload Controller", mnuUploadController, "");
+    
     wxMenu* mnuBulkEdit = new wxMenu();
     wxMenuItem* beip = mnuBulkEdit->Append(ID_NETWORK_BEIPADDR, "IP Address");
     beip->Enable(selcnt > 0);
@@ -1628,6 +1686,22 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     else if (id == ID_NETWORK_ADDARTNET)
     {
         SetupArtNet(0, item);
+    }
+    else if (id == ID_NETWORK_UCIFPPB)
+    {
+        UploadFPPBridgeInput();
+    }
+    else if (id == ID_NETWORK_UCOFPPB)
+    {
+        UploadFPPBridgeOutput();
+    }
+    else if (id == ID_NETWORK_UCIFALCON)
+    {
+        UploadFalconInput();
+    }
+    else if (id == ID_NETWORK_UCOFALCON)
+    {
+        UploadFalconOutput();
     }
     else if (id == ID_NETWORK_BEIPADDR)
     {
@@ -1696,4 +1770,77 @@ void xLightsFrame::OnGridNetworkKeyDown(wxListEvent& event)
         }
         break;
     }
+}
+
+void xLightsFrame::UploadFPPBridgeInput()
+{
+    if (wxMessageBox("This will upload the input controller configuration for a FPP in Bridge mode running pixels using a PiHat or an RGBCape or similar. It should not be used to upload to your show player. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxID_YES)
+    {
+        // get the controller ip
+        int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        wxXmlNode* e = GetOutput(item);
+        wxString ip = e->GetAttribute("ComPort", "");
+
+        // now create a universes file
+        std::string file = SaveFPPUniverses(networkFile.GetPath().ToStdString(), ip.ToStdString());
+
+        // now upload it
+        wxConfigBase* config = wxConfigBase::Get();
+        wxString user;
+        config->Read("xLightsPiUser", &user, "fpp");
+
+        wxString password = "";
+        bool usedefaultpwd;
+        config->Read("xLightsPiDefaultPassword", &usedefaultpwd, true);
+
+        if (usedefaultpwd)
+        {
+            if (user == "pi")
+            {
+                password = "raspberry";
+            }
+            else if (user == "fpp")
+            {
+                password = "falcon";
+            }
+            else
+            {
+                wxTextEntryDialog ted(this, "Enter password for " + user, "Password", ip);
+                if (ted.ShowModal() == wxID_OK)
+                {
+                    password = ted.GetValue();
+                }
+            }
+        }
+        else
+        {
+            wxTextEntryDialog ted(this, "Enter password for " + user, "Password", ip);
+            if (ted.ShowModal() == wxID_OK)
+            {
+                password = ted.GetValue();
+            }
+        }
+        SimpleFTP ftp(ip.ToStdString(), user.ToStdString(), password.ToStdString());
+        if (ftp.IsConnected())
+        {
+            ftp.UploadFile(file, "/home/fpp/media", "universes", true, false, this);
+
+            // deactive outputs to these inputs
+
+            // restart ffpd
+        }
+    }
+}
+
+void xLightsFrame::UploadFPPBridgeOutput()
+{
+    wxMessageBox("Not implemented");
+}
+void xLightsFrame::UploadFalconInput()
+{
+    wxMessageBox("Not implemented");
+}
+void xLightsFrame::UploadFalconOutput()
+{
+    wxMessageBox("Not implemented");
 }

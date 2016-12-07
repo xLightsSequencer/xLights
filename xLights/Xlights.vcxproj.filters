@@ -843,6 +843,9 @@
     <ClCompile Include="osx_utils\TouchBars.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SimpleFTP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">

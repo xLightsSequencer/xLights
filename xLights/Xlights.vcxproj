@@ -373,6 +373,7 @@
     <ClCompile Include="SerialPortWithRate.cpp" />
     <ClCompile Include="SevenSegmentDialog.cpp" />
     <ClCompile Include="ShowDatesDialog.cpp" />
+    <ClCompile Include="SimpleFTP.cpp" />
     <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
     <ClCompile Include="SubBufferPanel.cpp" />
