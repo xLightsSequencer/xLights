@@ -14,6 +14,7 @@
 #include <wx/numdlg.h>
 #include <wx/persist.h>
 #include <wx/artprov.h>
+#include <wx/regex.h>
 
 #include "LayoutPanel.h"
 #include "xLightsXmlFile.h"
@@ -42,6 +43,24 @@ const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
 const long xLightsFrame::ID_NETWORK_ACTIVATE = wxNewId();
 const long xLightsFrame::ID_NETWORK_DEACTIVATE = wxNewId();
 const long xLightsFrame::ID_NETWORK_OPENCONTROLLER = wxNewId();
+
+void CleanupIpAddress(wxString& IpAddr)
+{
+    static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
+    if (leadingzero1.Matches(IpAddr))
+    {
+        wxString s0 = leadingzero1.GetMatch(IpAddr, 0);
+        wxString s1 = leadingzero1.GetMatch(IpAddr, 1);
+        leadingzero1.ReplaceFirst(&IpAddr, "" + s0.Right(s0.size() - s1.size()));
+    }
+    static wxRegEx leadingzero2("(\\.0+)(?:[1-9]|0\\.|0$)", wxRE_ADVANCED);
+    while (leadingzero2.Matches(IpAddr)) // need to do it several times because the results overlap
+    {
+        wxString s0 = leadingzero2.GetMatch(IpAddr, 0);
+        wxString s1 = leadingzero2.GetMatch(IpAddr, 1);
+        leadingzero2.ReplaceFirst(&IpAddr, "." + s0.Right(s0.size() - s1.size()));
+    }
+}
 
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event)
 {
@@ -733,6 +752,7 @@ void xLightsFrame::UpdateSelectedIPAddresses()
     if (dlg.ShowModal() == wxID_OK)
     {
         ip = dlg.GetValue();
+        CleanupIpAddress(ip);
         while (item != -1)
         {
             wxXmlNode* e = GetOutput(item);
@@ -1054,6 +1074,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e, int after)
     if (e)
     {
         IpAddr=e->GetAttribute("ComPort");
+        CleanupIpAddress(IpAddr);
         StartUniverse=e->GetAttribute("BaudRate");
         LastChannelStr=e->GetAttribute("MaxChannels");
 		Description = xLightsXmlFile::UnXmlSafe(e->GetAttribute("Description"));
@@ -1086,6 +1107,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e, int after)
         if (DlgResult == wxID_OK)
         {
             IpAddr=E131Dlg.TextCtrlIpAddr->GetValue();
+            CleanupIpAddress(IpAddr);
             UnivNum = E131Dlg.SpinCtrl_StartUniv->GetValue();
             LastChannel = E131Dlg.SpinCtrl_LastChannel->GetValue();
 			Description = E131Dlg.TextCtrl_Description->GetValue();
@@ -1174,6 +1196,7 @@ void xLightsFrame::SetupArtNet(wxXmlNode* e, int after)
     if (e)
     {
         IpAddr = e->GetAttribute("ComPort");
+        CleanupIpAddress(IpAddr);
         StartUniverse = e->GetAttribute("BaudRate");
         LastChannelStr = e->GetAttribute("MaxChannels");
         Description = xLightsXmlFile::UnXmlSafe(e->GetAttribute("Description"));
@@ -1200,6 +1223,7 @@ void xLightsFrame::SetupArtNet(wxXmlNode* e, int after)
         if (DlgResult == wxID_OK)
         {
             IpAddr = ArtNetDlg.TextCtrlIPAddress->GetValue();
+            CleanupIpAddress(IpAddr);
             int Net = ArtNetDlg.SpinCtrlNet->GetValue();
             int Subnet = ArtNetDlg.SpinCtrlSubnet->GetValue();
             int Universe = ArtNetDlg.SpinCtrlUniverse->GetValue();

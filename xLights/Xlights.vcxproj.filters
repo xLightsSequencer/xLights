@@ -840,6 +840,9 @@
     <ClCompile Include="FPPConnectDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="osx_utils\TouchBars.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1617,6 +1620,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FPPConnectDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="osx_utils\TouchBars.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
