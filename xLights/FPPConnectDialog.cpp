@@ -260,6 +260,7 @@ FPPConnectDialog::~FPPConnectDialog()
 
 void FPPConnectDialog::LoadSequencesFromFolder(wxString dir)
 {
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Scanning folder for sequences for FPP upload: %s", (const char *)dir.c_str());
 
@@ -437,7 +438,7 @@ bool FPPConnectDialog::FTPUpload()
     if (!ftp.Connect(TextCtrl_IPAddress->GetValue()))
     {
         logger_base.warn("Could not connect to FPP using address '%s'.", (const char *)TextCtrl_IPAddress->GetValue().c_str());
-        wxMessageBox("Could not connect to FPP using address '%s'.", (const char *)TextCtrl_IPAddress->GetValue().c_str());
+        wxMessageBox("Could not connect to FPP using address '" + TextCtrl_IPAddress->GetValue() + "'.");
         return true;
     }
 
