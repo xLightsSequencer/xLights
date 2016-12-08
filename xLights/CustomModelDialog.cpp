@@ -32,6 +32,7 @@ const long CustomModelDialog::ID_CHECKBOX1 = wxNewId();
 const long CustomModelDialog::ID_BUTTON3 = wxNewId();
 const long CustomModelDialog::ID_BUTTON_Flip_Horizontal = wxNewId();
 const long CustomModelDialog::ID_BUTTON_Flip_Vertical = wxNewId();
+const long CustomModelDialog::ID_BUTTON_Reverse = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_CUT = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_COPY = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_PASTE = wxNewId();
@@ -113,6 +114,8 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer9->Add(Button_Flip_Horizonal, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Flip_Vertical = new wxButton(this, ID_BUTTON_Flip_Vertical, _("Flip Vert"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Flip_Vertical"));
 	FlexGridSizer9->Add(Button_Flip_Vertical, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Reverse = new wxButton(this, ID_BUTTON_Reverse, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Reverse"));
+	FlexGridSizer9->Add(Button_Reverse, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 7, 0, 0);
 	BitmapButtonCustomCut = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_CUT, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_CUT")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_CUT"));
@@ -190,6 +193,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButtonWiringClick);
 	Connect(ID_BUTTON_Flip_Horizontal,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_Flip_HorizonalClick);
 	Connect(ID_BUTTON_Flip_Vertical,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_Flip_VerticalClick);
+	Connect(ID_BUTTON_Reverse,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_ReverseClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCutClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCopyClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomPasteClick);
@@ -831,4 +835,59 @@ void CustomModelDialog::OnButton_Flip_VerticalClick(wxCommandEvent& event)
     UpdateBackground();
 
     ValidateWindow();
+}
+
+void CustomModelDialog::OnButton_ReverseClick(wxCommandEvent& event)
+{
+    int min = 1;
+    int max = 1;
+
+    //Find the max value returned
+    for(size_t c = 0; c < GridCustom->GetNumberCols(); c++)
+    {
+        for (size_t r = 0; r < GridCustom->GetNumberRows(); ++r)
+        {
+            wxString s = GridCustom->GetCellValue(r, c);
+
+            if(s.IsEmpty()==false)
+            {
+                long val;
+
+                if(s.ToCLong(&val)==true)
+                {
+                    if(val>max)max=val;
+                    if(val<min)min=val;
+                }
+            }
+        }
+    }
+
+    max++;
+    //Rewrite the grid values
+    for(size_t c = 0; c < GridCustom->GetNumberCols(); c++)
+    {
+        std::list<wxString> vals;
+        for (size_t r = 0; r < GridCustom->GetNumberRows(); ++r)
+        {
+            wxString s  = GridCustom->GetCellValue(r, c);
+
+            if(s.IsEmpty()==false)
+            {
+                long val;
+
+                if(s.ToCLong(&val)==true)
+                {
+                    long newVal = max-val;
+                    s.Printf("%d",newVal);
+
+                    GridCustom->SetCellValue(r, c, s);
+                }
+            }
+        }
+    }
+
+
+    UpdateBackground();
+    ValidateWindow();
+
 }

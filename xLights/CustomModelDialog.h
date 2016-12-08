@@ -54,6 +54,7 @@ class CustomModelDialog: public wxDialog
 		//(*Declarations(CustomModelDialog)
 		wxCheckBox* CheckBoxAutoNumber;
 		wxButton* Button_Flip_Vertical;
+		wxButton* Button_Reverse;
 		wxButton* ButtonWiring;
 		wxCheckBox* CheckBoxAutoIncrement;
 		wxBitmapButton* BitmapButtonCustomBkgrd;
@@ -90,6 +91,7 @@ class CustomModelDialog: public wxDialog
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON_Flip_Horizontal;
 		static const long ID_BUTTON_Flip_Vertical;
+		static const long ID_BUTTON_Reverse;
 		static const long ID_BITMAPBUTTON_CUSTOM_CUT;
 		static const long ID_BITMAPBUTTON_CUSTOM_COPY;
 		static const long ID_BITMAPBUTTON_CUSTOM_PASTE;
@@ -140,6 +142,7 @@ class CustomModelDialog: public wxDialog
 		void OnButtonWiringClick(wxCommandEvent& event);
 		void OnButton_Flip_HorizonalClick(wxCommandEvent& event);
 		void OnButton_Flip_VerticalClick(wxCommandEvent& event);
+		void OnButton_ReverseClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
