@@ -10,6 +10,8 @@
 #include <wx/window.h>
 
 
+#if __has_include(<AppKit/NSTouchBar.h>)
+
 @interface XLTouchBarViewController : NSViewController
 @end
 
@@ -252,4 +254,10 @@ void setActiveTouchbar(void *controller, xlTouchBar *tb) {
         [cont invalidateTouchBar];
     }
 }
+
+#else
+void *initializeTouchBarSuppor(wxWindow *w) { return nullptr; }
+void setActiveTouchbar(void *controller, xlTouchBar *tb) {}
+
+#endif
 
