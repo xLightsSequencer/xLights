@@ -5,10 +5,19 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/log.h>
+#include <wx/sckstrm.h>
+
+class MySocketOutputStream : public wxSocketOutputStream {
+public:
+    MySocketOutputStream(wxSocketBase &tmp, MySocketOutputStream *s) : wxSocketOutputStream(tmp) {
+        s->m_o_socket->SetFlags(wxSOCKET_NOWAIT_WRITE);
+    }
+};
 
 SimpleFTP::SimpleFTP(std::string ip, std::string user, std::string password)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    ftp.SetFlags(wxSOCKET_NOWAIT_WRITE);
     ftp.SetUser(user);
     ftp.SetPassword(password);
     if (!ftp.Connect(ip))
@@ -82,19 +91,31 @@ bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string new
         logger_base.info("FTP Uploading file %s to %s.", (const char *)file.c_str(), (const char *)(folder + "/" + basefile).c_str());
         wxFileOffset length = in.Length();
         wxFileOffset done = 0;
-        wxOutputStream *out = ftp.GetOutputStream((folder + "/" + basefile).c_str());
+        wxSocketOutputStream *out = dynamic_cast<wxSocketOutputStream*>(ftp.GetOutputStream((folder + "/" + basefile).c_str()));
+        wxSocketBase sock;
+        MySocketOutputStream sout(sock, (MySocketOutputStream*)out);
         if (out)
         {
             uint8_t buffer[8192]; // 8KB at a time
+            int lastDone = 0;
             while (!in.Eof() && !cancelled)
             {
                 ssize_t read = in.Read(&buffer[0], sizeof(buffer));
-                out->WriteAll(&buffer[0], read);
                 done += read;
-                progress.Update((done * 100) / length, wxEmptyString, &cancelled);
-                if (!cancelled)
-                {
-                    cancelled = progress.WasCancelled();
+
+                int bufPos = 0;
+                while (read) {
+                    out->Write(&buffer[bufPos], read);
+                    ssize_t written = out->LastWrite();
+                    bufPos += written;
+                    read -= written;
+                }
+                ssize_t donePct = done * 100;
+                donePct = donePct / length;
+                if (donePct != lastDone) {
+                    lastDone = donePct;
+                    cancelled = !progress.Update(donePct, wxEmptyString, &cancelled);
+                    wxYield();
                 }
             }
             if (in.Eof())
