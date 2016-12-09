@@ -898,7 +898,7 @@ private:
     void SetupNullOutput(wxXmlNode* e, int after = -1);
     bool SaveNetworksFile();
     void NetworkChange();
-    std::string SaveFPPUniverses(const std::string& path, const std::string& onlyip);
+    std::string SaveFPPUniverses(const std::string& path, const std::string& onlyip, const std::list<int>& selected);
     std::list<wxXmlNode> GetOutputsForController(const std::string ip);
     void UploadFPPBridgeInput();
     void UploadFPPBridgeOutput();

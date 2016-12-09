@@ -23,7 +23,8 @@ SimpleFTP::SimpleFTP(std::string ip, std::string user, std::string password)
     if (!ftp.Connect(ip))
     {
         logger_base.warn("Could not connect using address '%s'.", (const char *)ip.c_str());
-        wxMessageBox("Could not connect using address '%s'.", (const char *)ip.c_str());
+        wxString wxip = wxString(ip.c_str());
+        wxMessageBox("Could not connect using address '" + wxip + "'.");
     }
 }
 

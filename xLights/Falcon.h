@@ -20,6 +20,7 @@ public:
     ~Falcon();
     void SetInputUniverses(const std::list<wxXmlNode>& inputs);
     void SetInputUniverses(const wxXmlNode* root);
+    void SetInputUniverses(const wxXmlNode* root, std::list<int>& selected);
 };
 
 #endif

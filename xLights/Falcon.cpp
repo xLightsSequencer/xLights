@@ -151,6 +151,58 @@ void Falcon::SetInputUniverses(const wxXmlNode* root)
     std::string response = PutURL("/E131.htm", request.ToStdString());
 }
 
+void Falcon::SetInputUniverses(const wxXmlNode* root, std::list<int>& selected)
+{
+    wxString request;
+    long currentcontrollerstartchannel = 0;
+    long currentcontrollerendchannel = 0;
+    int nullcount = 1;
+    int output = 0;
+    int node = 0;
+
+    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
+    {
+        if (e->GetName() == "network")
+        {
+            currentcontrollerstartchannel = currentcontrollerendchannel + 1;
+            wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
+            long MaxChannels;
+            MaxChannelsStr.ToLong(&MaxChannels);
+            int universes = wxAtoi(e->GetAttribute("NumUniverses", "1"));
+            currentcontrollerendchannel = currentcontrollerstartchannel + (MaxChannels * universes) - 1;
+
+            std::string type = std::string(e->GetAttribute("NetworkType", ""));
+            std::string ip = std::string(e->GetAttribute("ComPort", ""));
+            int u = wxAtoi(e->GetAttribute("BaudRate", ""));
+            int t = -1;
+            if (type == "E131")
+            {
+                t = 0;
+            }
+            else if (type == "ArtNet")
+            {
+                t = 1;
+            }
+            if ((type == "E131" || type == "ArtNet") && (ip == _ip || std::find(selected.begin(), selected.end(), node) != selected.end()))
+            {
+                for (int i = 0; i < universes; i++)
+                {
+                    request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
+                        output, u + i,
+                        output, MaxChannels,
+                        output, currentcontrollerstartchannel,
+                        output, t);
+                    output++;
+                }
+            }
+            node++;
+        }
+    }
+
+    request = wxString::Format("z=%d", output) + request;
+    std::string response = PutURL("/E131.htm", request.ToStdString());
+}
+
 void Falcon::SetInputUniverses(const std::list<wxXmlNode>& inputs)
 {
     wxString request;

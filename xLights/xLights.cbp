@@ -508,6 +508,8 @@
 		<Unit filename="FPP.h" />
 		<Unit filename="FPPConnectDialog.cpp" />
 		<Unit filename="FPPConnectDialog.h" />
+		<Unit filename="Falcon.cpp" />
+		<Unit filename="Falcon.h" />
 		<Unit filename="FileConverter.cpp" />
 		<Unit filename="FileConverter.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
