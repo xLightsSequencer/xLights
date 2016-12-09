@@ -849,6 +849,9 @@
     <ClCompile Include="FPP.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Falcon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1632,6 +1635,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FPP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Falcon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

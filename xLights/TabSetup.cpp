@@ -15,11 +15,11 @@
 #include <wx/persist.h>
 #include <wx/artprov.h>
 #include <wx/regex.h>
-#include <wx/config.h>
 
 #include "LayoutPanel.h"
 #include "xLightsXmlFile.h"
 #include "FPP.h"
+#include "Falcon.h"
 
 // dialogs
 #include "SerialPortWithRate.h"
@@ -1366,6 +1366,33 @@ void xLightsFrame::OnButtonAddDongleClick(wxCommandEvent& event)
     SetupDongle(0);
 }
 
+std::list<wxXmlNode> xLightsFrame::GetOutputsForController(const std::string onlyip)
+{
+    std::list<wxXmlNode> res;
+
+    wxXmlNode* e = NetworkXML.GetRoot();
+    long count = 1;
+
+    for (e = e->GetChildren(); e != nullptr; e = e->GetNext())
+    {
+        if (e->GetName() == "network")
+        {
+            std::string type = std::string(e->GetAttribute("NetworkType", ""));
+
+            if (type == "E131" || type == "ArtNet")
+            {
+                std::string ip = std::string(e->GetAttribute("ComPort", ""));
+                if (onlyip == "" || ip == onlyip)
+                {
+                    res.push_back(*e);
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
 std::string xLightsFrame::SaveFPPUniverses(const std::string& path, const std::string& onlyip)
 {
     std::string file = path + "/universes";
@@ -1842,7 +1869,23 @@ void xLightsFrame::UploadFPPBridgeOutput()
 }
 void xLightsFrame::UploadFalconInput()
 {
-    wxMessageBox("Not implemented");
+    if (wxMessageBox("This will upload the input controller configuration for a Falcon controller. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+    {
+        // get the controller ip
+        int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        wxXmlNode* e = GetOutput(item);
+        wxString ip = e->GetAttribute("ComPort", "");
+
+        // now create a universes file
+        //std::list<wxXmlNode> outputs = GetOutputsForController();
+
+        Falcon falcon(ip.ToStdString());
+        if (falcon.IsConnected())
+        {
+            //falcon.SetInputUniverses(outputs);
+            falcon.SetInputUniverses(NetworkXML.GetRoot());
+        }
+    }
 }
 void xLightsFrame::UploadFalconOutput()
 {

@@ -899,6 +899,7 @@ private:
     bool SaveNetworksFile();
     void NetworkChange();
     std::string SaveFPPUniverses(const std::string& path, const std::string& onlyip);
+    std::list<wxXmlNode> GetOutputsForController(const std::string ip);
     void UploadFPPBridgeInput();
     void UploadFPPBridgeOutput();
     void UploadFalconInput();

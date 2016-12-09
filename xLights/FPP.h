@@ -9,14 +9,17 @@ class FPP
 	std::string _user;
 	std::string _password;
 	std::string _ip;
+    std::string _version;
+    bool _connected;
 	
-    std::string GetURL(std::string url);
+    std::string GetURL(const std::string& url);
 
 public:
+    std::string Version() { return _version; };
 	void RestartFFPD();
 	void E131Output(bool enable);
-    FPP(std::string ip, std::string user, std::string password);
-    bool IsConnected() const;
+    FPP(const std::string& ip, const std::string& user, const std::string& password);
+    bool IsConnected() const { return _connected; };
     ~FPP();
 };
 
