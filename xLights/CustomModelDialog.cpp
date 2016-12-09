@@ -248,6 +248,7 @@ void CustomModelDialog::ValidateWindow()
         ButtonOk->Disable();
         Button_Flip_Horizonal->Disable();
         Button_Flip_Vertical->Disable();
+        Button_Reverse->Disable();
     }
     else
     {
@@ -269,6 +270,8 @@ void CustomModelDialog::ValidateWindow()
         ButtonOk->Enable();
         Button_Flip_Horizonal->Enable();
         Button_Flip_Vertical->Enable();
+        Button_Reverse->Enable();
+
         if (background_image == "")
         {
             SliderCustomLightness->Disable();
@@ -839,13 +842,13 @@ void CustomModelDialog::OnButton_Flip_VerticalClick(wxCommandEvent& event)
 
 void CustomModelDialog::OnButton_ReverseClick(wxCommandEvent& event)
 {
-    int min = 1;
-    int max = 1;
+    auto min = 1;
+    auto max = 1;
 
     //Find the max value returned
-    for(size_t c = 0; c < GridCustom->GetNumberCols(); c++)
+    for(auto c = 0; c < GridCustom->GetNumberCols(); c++)
     {
-        for (size_t r = 0; r < GridCustom->GetNumberRows(); ++r)
+        for (auto r = 0; r < GridCustom->GetNumberRows(); ++r)
         {
             wxString s = GridCustom->GetCellValue(r, c);
 
@@ -864,10 +867,10 @@ void CustomModelDialog::OnButton_ReverseClick(wxCommandEvent& event)
 
     max++;
     //Rewrite the grid values
-    for(size_t c = 0; c < GridCustom->GetNumberCols(); c++)
+    for(auto c = 0; c < GridCustom->GetNumberCols(); c++)
     {
         std::list<wxString> vals;
-        for (size_t r = 0; r < GridCustom->GetNumberRows(); ++r)
+        for (auto r = 0; r < GridCustom->GetNumberRows(); ++r)
         {
             wxString s  = GridCustom->GetCellValue(r, c);
 
