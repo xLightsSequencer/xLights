@@ -280,6 +280,7 @@
     <ClCompile Include="ExportModelSelect.cpp" />
     <ClCompile Include="FileConverter.cpp" />
     <ClCompile Include="FlickerFreeBitmapButton.cpp" />
+    <ClCompile Include="FPP.cpp" />
     <ClCompile Include="FPPConnectDialog.cpp" />
     <ClCompile Include="GenerateCustomModelDialog.cpp" />
     <ClCompile Include="heartbeat.cpp" />
@@ -541,6 +542,7 @@
     <ClInclude Include="ExportModelSelect.h" />
     <ClInclude Include="FileConverter.h" />
     <ClInclude Include="FlickerFreeBitmapButton.h" />
+    <ClInclude Include="FPP.h" />
     <ClInclude Include="FPPConnectDialog.h" />
     <ClInclude Include="GenerateCustomModelDialog.h" />
     <ClInclude Include="heartbeat.h" />

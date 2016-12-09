@@ -1,6 +1,7 @@
 #include "FPPConnectDialog.h"
 #include "xLightsMain.h"
 #include "SimpleFTP.h"
+#include "FPP.h"
 #include <wx/regex.h>
 #include "xLightsXmlFile.h"
 #include <wx/volume.h>
@@ -449,6 +450,10 @@ bool FPPConnectDialog::FTPUpload()
 
     if (!cancelled)
     {
+        // restart ffpd
+        FPP fpp(TextCtrl_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
+        fpp.RestartFFPD();
+
         wxArrayInt sel;
         CheckListBox_Sequences->GetCheckedItems(sel);
         for (auto it = sel.begin(); it != sel.end() && !cancelled; ++it)

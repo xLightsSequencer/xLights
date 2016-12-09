@@ -19,6 +19,7 @@
 
 #include "LayoutPanel.h"
 #include "xLightsXmlFile.h"
+#include "FPP.h"
 
 // dialogs
 #include "SerialPortWithRate.h"
@@ -1774,7 +1775,7 @@ void xLightsFrame::OnGridNetworkKeyDown(wxListEvent& event)
 
 void xLightsFrame::UploadFPPBridgeInput()
 {
-    if (wxMessageBox("This will upload the input controller configuration for a FPP in Bridge mode running pixels using a PiHat or an RGBCape or similar. It should not be used to upload to your show player. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxID_YES)
+    if (wxMessageBox("This will upload the input controller configuration for a FPP in Bridge mode running pixels using a PiHat or an RGBCape or similar. It should not be used to upload to your show player. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
         // get the controller ip
         int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
@@ -1825,9 +1826,12 @@ void xLightsFrame::UploadFPPBridgeInput()
         {
             ftp.UploadFile(file, "/home/fpp/media", "universes", true, false, this);
 
+            FPP fpp(ip.ToStdString(), user.ToStdString(), password.ToStdString());
             // deactive outputs to these inputs
+            fpp.E131Output(false);
 
             // restart ffpd
+            fpp.RestartFFPD();
         }
     }
 }
