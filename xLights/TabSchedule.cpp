@@ -610,6 +610,9 @@ void xLightsFrame::ScanForFiles()
     int i;
 
     int nbidx=Notebook1->GetSelection();
+    if (Notebook1->GetCurrentPage() == nullptr) {
+        return;
+    }
     int baseid=Notebook1->GetCurrentPage()->GetId() + 1;
     wxString PageName=Notebook1->GetPageText(nbidx);
     wxTreeCtrl* TreeCtrlFiles=(wxTreeCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_FILES,Notebook1);

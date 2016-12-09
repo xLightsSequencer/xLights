@@ -232,7 +232,9 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
                     float speedFactor = (float)videoFrames / (float)effectFrames;
                     _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
                 }
-                logger_base.debug("Video effect length: %d, video length: %d, startoffset: %d, duration treatment: '%s'.", (buffer.curEffEndPer - buffer.curEffStartPer + 1) * _frameMS, videolen, starttime, (const char *)_durationTreatment.c_str());
+                logger_base.debug("Video effect length: %d, video length: %d, startoffset: %d, duration treatment: %s.",
+                                  (buffer.curEffEndPer - buffer.curEffStartPer + 1) * _frameMS, videolen, starttime,
+                                  (const char *)_durationTreatment.c_str());
             }
 		}
         else
