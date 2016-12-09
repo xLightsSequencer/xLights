@@ -2,10 +2,15 @@
 #define FPP_H
 
 #include <wx/protocol/http.h>
+#include "SimpleFTP.h"
+#include <wx/xml/xml.h>
+#include <list>
+#include "Models/Model.h"
 
 class FPP
 {
 	wxHTTP _http;
+    SimpleFTP _ftp;
 	std::string _user;
 	std::string _password;
 	std::string _ip;
@@ -19,8 +24,13 @@ public:
 	void RestartFFPD();
 	void E131Output(bool enable);
     FPP(const std::string& ip, const std::string& user, const std::string& password);
+    FPP();
     bool IsConnected() const { return _connected; };
     ~FPP();
+    bool SetInputUniversesBridge(wxXmlNode* root, std::list<int>& selected, wxWindow* parent);
+    bool SetOutputUniversesPlayer(wxXmlNode* root, wxWindow* parent);
+    bool SetChannelMemoryMaps(ModelManager* allmodels, wxWindow* parent);
+    std::string SaveFPPUniverses(wxXmlNode* root, const std::string& onlyip, const std::list<int>& selected);
 };
 
 #endif

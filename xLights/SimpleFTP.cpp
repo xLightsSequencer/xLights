@@ -14,6 +14,28 @@ public:
     }
 };
 
+SimpleFTP::SimpleFTP()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    ftp.SetFlags(wxSOCKET_NOWAIT_WRITE);
+}
+
+bool SimpleFTP::Connect(std::string ip, std::string user, std::string password)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    ftp.SetUser(user);
+    ftp.SetPassword(password);
+    if (!ftp.Connect(ip))
+    {
+        logger_base.warn("Could not connect using address '%s'.", (const char *)ip.c_str());
+        wxString wxip = wxString(ip.c_str());
+        wxMessageBox("Could not connect using address '" + wxip + "'.");
+        return false;
+    }
+
+    return true;
+}
+
 SimpleFTP::SimpleFTP(std::string ip, std::string user, std::string password)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

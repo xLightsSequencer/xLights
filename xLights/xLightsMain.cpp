@@ -4521,7 +4521,7 @@ void xLightsFrame::ExportEffects(wxString filename)
 
 void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
 {
-    FPPConnectDialog dlg(this);
+    FPPConnectDialog dlg(NetworkXML.GetRoot(), this);
 
     dlg.ShowModal();
 }

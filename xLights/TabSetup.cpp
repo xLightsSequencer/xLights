@@ -1393,66 +1393,6 @@ std::list<wxXmlNode> xLightsFrame::GetOutputsForController(const std::string onl
     return res;
 }
 
-std::string xLightsFrame::SaveFPPUniverses(const std::string& path, const std::string& onlyip, const std::list<int>& selected)
-{
-    std::string file = path + "/universes";
-    if (onlyip != "")
-    {
-        file += "_" + onlyip;
-    }
-    wxFile universes;
-    universes.Open(file, wxFile::write);
-    int node = 0;
-
-    if (universes.IsOpened())
-    {
-        wxXmlNode* e = NetworkXML.GetRoot();
-        long count = 1;
-
-        for (e = e->GetChildren(); e != nullptr; e = e->GetNext())
-        {
-            if (e->GetName() == "network")
-            {
-                std::string type = std::string(e->GetAttribute("NetworkType", ""));
-
-                if (type == "E131")
-                {
-                    std::string ip = std::string(e->GetAttribute("ComPort", ""));
-                    if (onlyip == "" || ip == onlyip || std::find(selected.begin(), selected.end(), node) != selected.end())
-                    {
-                        int universe = wxAtoi(e->GetAttribute("BaudRate", ""));
-                        wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
-                        long chan;
-                        MaxChannelsStr.ToLong(&chan);
-
-                        int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
-
-                        for (size_t i = 0; i < ucount; i++)
-                        {
-                            long end = count + chan - 1;
-
-                            if (ip == "MULTICAST")
-                            {
-                                universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",0,,\r\n");
-                            }
-                            else
-                            {
-                                universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",1," + ip + ",\r\n");
-                            }
-
-                            count = end + 1;
-                        }
-                    }
-                }
-                node++;
-            }
-        }
-        universes.Close();
-    }
-
-    return file;
-}
-
 void xLightsFrame::NetworkChange()
 {
     UnsavedNetworkChanges = true;
@@ -1466,7 +1406,6 @@ void xLightsFrame::NetworkChange()
 
 bool xLightsFrame::SaveNetworksFile()
 {
-    SaveFPPUniverses(networkFile.GetPath().ToStdString(), "", std::list<int>());
     if (NetworkXML.Save( networkFile.GetFullPath() ))
     {
         UnsavedNetworkChanges=false;
@@ -1880,45 +1819,48 @@ void xLightsFrame::OnGridNetworkKeyDown(wxListEvent& event)
     }
 }
 
+std::list<int> xLightsFrame::GetSelectedOutputs(wxString& ip)
+{
+    std::list<int> selected;
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    while (item != -1)
+    {
+        selected.push_back(item);
+        wxXmlNode* e = GetOutput(item);
+        wxString thisip = e->GetAttribute("ComPort", "");
+
+        if (thisip == "MULTICAST")
+        {
+        }
+        else if (ip != thisip)
+        {
+            if (ip == "")
+            {
+                ip = thisip;
+            }
+        }
+
+        item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    }
+
+    return selected;
+}
+
 void xLightsFrame::UploadFPPBridgeInput()
 {
     if (wxMessageBox("This will upload the input controller configuration for a FPP in Bridge mode running pixels using a PiHat or an RGBCape or similar. It should not be used to upload to your show player. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
-        std::list<int> selected;
         wxString ip;
-        int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-        while (item != -1)
-        {
-            selected.push_back(item);
-            wxXmlNode* e = GetOutput(item);
-            wxString thisip = e->GetAttribute("ComPort", "");
-
-            if (thisip == "MULTICAST")
-            {
-            }
-            else if (ip != thisip)
-            {
-                if (ip == "")
-                {
-                    ip = thisip;
-                }
-            }
-
-            item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-        }
-
+        std::list<int> selected = GetSelectedOutputs(ip);
         if (ip == "")
         {
-            wxTextEntryDialog dlg(this, "Falcon IP Address", "IP Address", ip);
+            wxTextEntryDialog dlg(this, "FPP Bridge Mode Controller IP Address", "IP Address", ip);
             if (dlg.ShowModal() != wxID_OK)
             {
                 return;
             }
             ip = dlg.GetValue();
         }
-
-        // now create a universes file
-        std::string file = SaveFPPUniverses(networkFile.GetPath().ToStdString(), ip.ToStdString(), selected);
 
         // now upload it
         wxConfigBase* config = wxConfigBase::Get();
@@ -1956,17 +1898,12 @@ void xLightsFrame::UploadFPPBridgeInput()
                 password = ted.GetValue();
             }
         }
-        SimpleFTP ftp(ip.ToStdString(), user.ToStdString(), password.ToStdString());
-        if (ftp.IsConnected())
+
+        FPP fpp(ip.ToStdString(), user.ToStdString(), password.ToStdString());
+
+        if (fpp.IsConnected())
         {
-            ftp.UploadFile(file, "/home/fpp/media", "universes", true, false, this);
-
-            FPP fpp(ip.ToStdString(), user.ToStdString(), password.ToStdString());
-            // deactive outputs to these inputs
-            fpp.E131Output(false);
-
-            // restart ffpd
-            fpp.RestartFFPD();
+            fpp.SetInputUniversesBridge(NetworkXML.GetRoot(), selected, this);
         }
     }
 }
@@ -1980,28 +1917,8 @@ void xLightsFrame::UploadFalconInput()
 {
     if (wxMessageBox("This will upload the input controller configuration for a Falcon controller. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
-        std::list<int> selected;
         wxString ip;
-        int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-        while (item != -1)
-        {
-            selected.push_back(item);
-            wxXmlNode* e = GetOutput(item);
-            wxString thisip = e->GetAttribute("ComPort", "");
-
-            if (thisip == "MULTICAST")
-            {
-            }
-            else if (ip != thisip)
-            {
-                if (ip == "")
-                {
-                    ip = thisip;
-                }
-            }
-
-            item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-        }
+        std::list<int> selected = GetSelectedOutputs(ip);
 
         if (ip == "")
         {

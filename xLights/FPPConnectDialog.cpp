@@ -42,8 +42,10 @@ BEGIN_EVENT_TABLE(FPPConnectDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+FPPConnectDialog::FPPConnectDialog(wxXmlNode* networksroot, wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _networksroot = networksroot;
+
 	//(*Initialize(FPPConnectDialog)
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer2;
@@ -348,15 +350,6 @@ bool FPPConnectDialog::IsValidIP(wxString ip)
 
 void FPPConnectDialog::ValidateWindow()
 {
-    if (wxFile::Exists(xLightsFrame::CurrentDir + "/universes"))
-    {
-        CheckBox_UploadController->Enable();
-    }
-    else
-    {
-        CheckBox_UploadController->Disable();
-        CheckBox_UploadController->SetValue(false);
-    }
     if (wxFile::Exists(xLightsFrame::CurrentDir + "/channelmemorymaps"))
     {
         CheckBox_UploadModels->Enable();
@@ -429,9 +422,10 @@ bool FPPConnectDialog::FTPUpload()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
+    FPP fpp(TextCtrl_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
     SimpleFTP ftp(TextCtrl_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
 
-    if (!ftp.IsConnected())
+    if (!fpp.IsConnected())
     {
         logger_base.warn("Could not connect to FPP using address '%s'.", (const char *)TextCtrl_IPAddress->GetValue().c_str());
         wxMessageBox("Could not connect to FPP using address '" + TextCtrl_IPAddress->GetValue() + "'.");
@@ -440,7 +434,7 @@ bool FPPConnectDialog::FTPUpload()
 
     if (CheckBox_UploadController->IsChecked())
     {
-        cancelled = ftp.UploadFile((xLightsFrame::CurrentDir + "/universes").ToStdString(), "/home/fpp/media", "universes", true, false, this);
+        fpp.SetOutputUniversesPlayer(_networksroot, this);
     }
 
     if (!cancelled && CheckBox_UploadModels->IsChecked())
@@ -450,10 +444,6 @@ bool FPPConnectDialog::FTPUpload()
 
     if (!cancelled)
     {
-        // restart ffpd
-        FPP fpp(TextCtrl_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
-        fpp.RestartFFPD();
-
         wxArrayInt sel;
         CheckListBox_Sequences->GetCheckedItems(sel);
         for (auto it = sel.begin(); it != sel.end() && !cancelled; ++it)
@@ -532,7 +522,9 @@ bool FPPConnectDialog::USBUpload()
     int count = 0;
     if (CheckBox_UploadController->IsChecked())
     {
-        cancelled = CopyFile(std::string(xLightsFrame::CurrentDir + "/universes"), std::string(tgtdir + "/universes"), true, progress, 0, 1000 / total);
+        FPP fpp;
+        std::string file = fpp.SaveFPPUniverses(_networksroot, "", std::list<int>());
+        cancelled = CopyFile(file, std::string(tgtdir + "/universes"), true, progress, 0, 1000 / total);
         count++;
     }
 
