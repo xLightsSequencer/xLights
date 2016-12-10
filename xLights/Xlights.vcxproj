@@ -165,6 +165,7 @@
     <ClCompile Include="ColorCurve.cpp" />
     <ClCompile Include="ColorCurveDialog.cpp" />
     <ClCompile Include="ColorPanel.cpp" />
+    <ClCompile Include="ControllerConnectionDialog.cpp" />
     <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="ConvertLogDialog.cpp" />
     <ClCompile Include="CurrentPreviewModels.cpp" />
@@ -435,6 +436,7 @@
     <ClInclude Include="ColorCurve.h" />
     <ClInclude Include="colorcurvedialog.h" />
     <ClInclude Include="ColorPanel.h" />
+    <ClInclude Include="ControllerConnectionDialog.h" />
     <ClInclude Include="ConvertDialog.h" />
     <ClInclude Include="ConvertLogDialog.h" />
     <ClInclude Include="CurrentPreviewModels.h" />
