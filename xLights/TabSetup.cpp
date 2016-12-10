@@ -1646,8 +1646,9 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
             }
         }
 
-        mnuUploadController->Append(ID_NETWORK_UCINPUT, "Input", mnuUCInput, "");
+        mnuUploadController->Append(ID_NETWORK_UCINPUT, "E1.31 Input Defintion", mnuUCInput, "");
         
+#if 0 // controller output upload ... not built yet but coming
         wxMenu* mnuUCOutput = new wxMenu();
 
         wxMenuItem* beUCOFPPB = mnuUCOutput->Append(ID_NETWORK_UCOFPPB, "FPP Bridge Mode");
@@ -1665,8 +1666,10 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         }
 
         mnuUploadController->Append(ID_NETWORK_UCOUTPUT, "Output", mnuUCOutput, "");
-        
-    mnu.Append(ID_NETWORK_UPLOADCONTROLLER, "Upload Controller", mnuUploadController, "");
+     
+#endif
+
+    mnu.Append(ID_NETWORK_UPLOADCONTROLLER, "Upload To Controller", mnuUploadController, "");
     
     wxMenu* mnuBulkEdit = new wxMenu();
     wxMenuItem* beip = mnuBulkEdit->Append(ID_NETWORK_BEIPADDR, "IP Address");
