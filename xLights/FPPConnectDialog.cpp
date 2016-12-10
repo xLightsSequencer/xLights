@@ -1,6 +1,5 @@
 #include "FPPConnectDialog.h"
 #include "xLightsMain.h"
-#include "SimpleFTP.h"
 #include "FPP.h"
 #include <wx/regex.h>
 #include "xLightsXmlFile.h"
@@ -42,10 +41,8 @@ BEGIN_EVENT_TABLE(FPPConnectDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-FPPConnectDialog::FPPConnectDialog(wxXmlNode* networksroot, wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
-    _networksroot = networksroot;
-
 	//(*Initialize(FPPConnectDialog)
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer2;
@@ -350,17 +347,6 @@ bool FPPConnectDialog::IsValidIP(wxString ip)
 
 void FPPConnectDialog::ValidateWindow()
 {
-    if (wxFile::Exists(xLightsFrame::CurrentDir + "/channelmemorymaps"))
-    {
-        CheckBox_UploadModels->Enable();
-    }
-    else
-    {
-        CheckBox_UploadModels->Disable();
-        CheckBox_UploadModels->SetValue(false);
-    }
-
-
     if (Notebook_FPP->GetSelection() == 0)
     {
         wxArrayInt tmp;
@@ -423,7 +409,6 @@ bool FPPConnectDialog::FTPUpload()
     bool cancelled = false;
 
     FPP fpp(TextCtrl_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
-    SimpleFTP ftp(TextCtrl_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
 
     if (!fpp.IsConnected())
     {
@@ -432,14 +417,16 @@ bool FPPConnectDialog::FTPUpload()
         return true;
     }
 
+    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
+
     if (CheckBox_UploadController->IsChecked())
     {
-        fpp.SetOutputUniversesPlayer(_networksroot, this);
+        fpp.SetOutputUniversesPlayer(frame->GetNetworksXMLRoot(), this);
     }
 
     if (!cancelled && CheckBox_UploadModels->IsChecked())
     {
-        cancelled = ftp.UploadFile((xLightsFrame::CurrentDir + "/channelmemorymaps").ToStdString(), "/home/fpp/media", "channelmemorymaps", true, false, this);
+        fpp.SetChannelMemoryMaps(&frame->AllModels, frame, this);
     }
 
     if (!cancelled)
@@ -449,45 +436,8 @@ bool FPPConnectDialog::FTPUpload()
         for (auto it = sel.begin(); it != sel.end() && !cancelled; ++it)
         {
             wxString file = CheckListBox_Sequences->GetString(*it);
-            wxString media = "";
 
-            wxXmlDocument doc(file);
-            if (doc.IsOk())
-            {
-                wxXmlNode* root = doc.GetRoot();
-                if (root->GetName() == "xsequence")
-                {
-                    for (auto n = root->GetChildren(); n != nullptr; n = n->GetNext())
-                    {
-                        if (n->GetName() == "head")
-                        {
-                            for (auto n1 = n->GetChildren(); n1 != nullptr; n1 = n1->GetNext())
-                            {
-                                if (n1->GetName() == "mediaFile")
-                                {
-                                    media = n1->GetNodeContent();
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-
-            wxFileName fn(file);
-            wxString fseq = fn.GetPath() + "/" + fn.GetName() + ".fseq";
-            if (wxFile::Exists(fseq))
-            {
-                cancelled = ftp.UploadFile(fseq.ToStdString(), "/home/fpp/media/sequences", fn.GetName().ToStdString() + ".fseq", false, true, this);
-            }
-
-            if (!cancelled && media != "")
-            {
-                media = xLightsXmlFile::FixFile("", media);
-                wxFileName fnmedia(media);
-                cancelled = ftp.UploadFile(media.ToStdString(), "/home/fpp/media/music", fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), false, true, this);
-            }
+            cancelled = fpp.UploadSequence(file.ToStdString(), this);
         }
     }
 
@@ -518,13 +468,24 @@ bool FPPConnectDialog::USBUpload()
 
     int total = CheckBox_UploadController->IsChecked() ? 1 : 0;
     total += sel.size();
+    total += CheckBox_UploadModels->IsChecked() ? 1 : 0;
+
+    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
 
     int count = 0;
     if (CheckBox_UploadController->IsChecked())
     {
         FPP fpp;
-        std::string file = fpp.SaveFPPUniverses(_networksroot, "", std::list<int>());
+        std::string file = fpp.SaveFPPUniverses(frame->GetNetworksXMLRoot(), "", std::list<int>());
         cancelled = CopyFile(file, std::string(tgtdir + "/universes"), true, progress, 0, 1000 / total);
+        count++;
+    }
+
+    if (!cancelled && CheckBox_UploadModels->IsChecked())
+    {
+        FPP fpp;
+        std::string file = fpp.SaveFPPChannelMemoryMaps(&frame->AllModels, frame);
+        cancelled = CopyFile(file, std::string(tgtdir + "/channelmemorymaps"), true, progress, 0, 1000 / total);
         count++;
     }
 

@@ -311,7 +311,6 @@ public:
     PerspectiveId perspectives[10];
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile(bool backup = false);
-    void SaveFPPchannelmemorymaps(std::string path);
     void MarkEffectsFileDirty();
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int section = 0);
@@ -948,6 +947,7 @@ public:
     void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = NULL);
     void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg); // = NULL);
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
+    wxXmlNode* GetNetworksXMLRoot() { return NetworkXML.GetRoot(); };
 
 private:
 

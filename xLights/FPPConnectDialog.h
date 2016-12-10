@@ -21,7 +21,6 @@
 
 class FPPConnectDialog: public wxDialog
 {
-    wxXmlNode* _networksroot;
     void LoadSequencesFromFolder(wxString dir);
     void LoadSequences();
     bool CopyFile(std::string source, std::string target, bool backup, wxProgressDialog &progress, int start, int end);
@@ -34,7 +33,7 @@ class FPPConnectDialog: public wxDialog
 
 	public:
 
-		FPPConnectDialog(wxXmlNode* networksroot, wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		FPPConnectDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~FPPConnectDialog();
 
 		//(*Declarations(FPPConnectDialog)

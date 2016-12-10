@@ -5,6 +5,9 @@
 #include <wx/regex.h>
 #include <wx/file.h>
 #include <wx/filename.h>
+#include "xLightsXmlFile.h"
+#include "Models/Model.h"
+
 
 FPP::FPP(const std::string& ip, const std::string& user, const std::string& password)
 {
@@ -113,6 +116,9 @@ bool FPP::SetOutputUniversesPlayer(wxXmlNode* root, wxWindow* parent)
 
         bool cancelled = _ftp.UploadFile(file, "/home/fpp/media", "universes", true, false, parent);
 
+        // active outputs 
+        E131Output(true);
+
         // restart ffpd
         RestartFFPD();
 
@@ -122,6 +128,62 @@ bool FPP::SetOutputUniversesPlayer(wxXmlNode* root, wxWindow* parent)
     }
 
     return true;
+}
+
+bool FPP::SetChannelMemoryMaps(ModelManager* allmodels, xLightsFrame* frame, wxWindow* parent)
+{
+    if (_ftp.IsConnected())
+    {
+        // now create a universes file
+        std::string file = SaveFPPChannelMemoryMaps(allmodels, frame);
+
+        bool cancelled = _ftp.UploadFile(file, "/home/fpp/media", "channelmemorymaps", true, false, parent);
+
+        // restart ffpd
+        RestartFFPD();
+
+        ::wxRemoveFile(wxString(file));
+
+        return cancelled;
+    }
+
+    return true;
+}
+
+std::string FPP::SaveFPPChannelMemoryMaps(ModelManager* allmodels, xLightsFrame* frame)
+{
+    wxFileName fn;
+    fn.AssignTempFileName("channelmemorymaps");
+    std::string file = fn.GetFullName().ToStdString();
+    wxFile channelmemorymaps;
+    channelmemorymaps.Open(file, wxFile::write);
+
+        if (channelmemorymaps.IsOpened())
+        {
+            for (auto m = allmodels->begin(); m != allmodels->end(); ++m)
+            {
+                Model* model = m->second;
+                wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
+                int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+                std::string type, description, ip, universe, inactive;
+                int channeloffset, output;
+                frame->GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output);
+                wxString name(model->name);
+                name.Replace(" ", "_");
+                if (model->GetNumStrands() > 0) {
+                    channelmemorymaps.Write(wxString::Format("%s,%d,%d,horizontal,TL,%d,%d\n",
+                        name,
+                        ch,
+                        model->GetActChanCount(),
+                        model->GetNumStrands(),
+                        1));
+                }
+            }
+            channelmemorymaps.Close();
+        }
+    
+
+return file;
 }
 
 std::string FPP::SaveFPPUniverses(wxXmlNode* root, const std::string& onlyip, const std::list<int>& selected)
@@ -180,4 +242,50 @@ std::string FPP::SaveFPPUniverses(wxXmlNode* root, const std::string& onlyip, co
     }
 
     return file;
+}
+
+bool FPP::UploadSequence(std::string file, wxWindow* parent)
+{
+    bool cancelled = false;
+    wxString media = "";
+
+    wxXmlDocument doc(file);
+    if (doc.IsOk())
+    {
+        wxXmlNode* root = doc.GetRoot();
+        if (root->GetName() == "xsequence")
+        {
+            for (auto n = root->GetChildren(); n != nullptr; n = n->GetNext())
+            {
+                if (n->GetName() == "head")
+                {
+                    for (auto n1 = n->GetChildren(); n1 != nullptr; n1 = n1->GetNext())
+                    {
+                        if (n1->GetName() == "mediaFile")
+                        {
+                            media = n1->GetNodeContent();
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    wxFileName fn(file);
+    wxString fseq = fn.GetPath() + "/" + fn.GetName() + ".fseq";
+    if (wxFile::Exists(fseq))
+    {
+        cancelled = _ftp.UploadFile(fseq.ToStdString(), "/home/fpp/media/sequences", fn.GetName().ToStdString() + ".fseq", false, true, parent);
+    }
+
+    if (!cancelled && media != "")
+    {
+        media = xLightsXmlFile::FixFile("", media);
+        wxFileName fnmedia(media);
+        cancelled = _ftp.UploadFile(media.ToStdString(), "/home/fpp/media/music", fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), false, true, parent);
+    }
+
+    return cancelled;
 }

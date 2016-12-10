@@ -5,7 +5,8 @@
 #include "SimpleFTP.h"
 #include <wx/xml/xml.h>
 #include <list>
-#include "Models/Model.h"
+#include "Models/ModelManager.h"
+#include "xLightsMain.h"
 
 class FPP
 {
@@ -29,8 +30,10 @@ public:
     ~FPP();
     bool SetInputUniversesBridge(wxXmlNode* root, std::list<int>& selected, wxWindow* parent);
     bool SetOutputUniversesPlayer(wxXmlNode* root, wxWindow* parent);
-    bool SetChannelMemoryMaps(ModelManager* allmodels, wxWindow* parent);
+    bool SetChannelMemoryMaps(ModelManager* allmodels, xLightsFrame* frame, wxWindow* parent);
     std::string SaveFPPUniverses(wxXmlNode* root, const std::string& onlyip, const std::list<int>& selected);
+    std::string SaveFPPChannelMemoryMaps(ModelManager* allmodels, xLightsFrame* frame);
+    bool UploadSequence(std::string file, wxWindow* parent);
 };
 
 #endif
