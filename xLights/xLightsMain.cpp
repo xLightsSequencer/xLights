@@ -185,6 +185,7 @@ const long xLightsFrame::ID_CLOSE_SEQ = wxNewId();
 const long xLightsFrame::ID_MENUITEM2 = wxNewId();
 const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const long xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
+const long xLightsFrame::ID_SHIFT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
@@ -760,6 +761,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem36 = new wxMenuItem(Menu3, wxID_PASTE, _("Paste\tCTRL-v"), wxEmptyString, wxITEM_NORMAL);
     MenuItem36->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_PASTE")),wxART_OTHER));
     Menu3->Append(MenuItem36);
+    Menu3->AppendSeparator();
+    MenuItemShiftEffects = new wxMenuItem(Menu3, ID_SHIFT_EFFECTS, _("Shift Effects"), _("Use this options to shift all effects in the sequence."), wxITEM_NORMAL);
+    Menu3->Append(MenuItemShiftEffects);
     MenuBar->Append(Menu3, _("&Edit"));
     Menu1 = new wxMenu();
     ActionTestMenuItem = new wxMenuItem(Menu1, ID_MENUITEM13, _("&Test"), wxEmptyString, wxITEM_NORMAL);
@@ -1038,6 +1042,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_FILE_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
     Connect(ID_FILE_ALTBACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmAltBackupMenuItemSelected);
     Connect(wxID_EXIT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnQuit);
+    Connect(ID_SHIFT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftEffectsSelected);
     Connect(ID_MENUITEM13,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
     Connect(ID_MENUITEM_CONVERT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MENUITEM_GenerateCustomModel,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
@@ -4524,4 +4529,44 @@ void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
     FPPConnectDialog dlg(this);
 
     dlg.ShowModal();
+}
+
+void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
+{
+    wxTextEntryDialog ted(this, "Enter the number of milliseconds to shift all effects:\n\n"
+                                "Note: Will be rounded to the nearest timing interval.\n"
+                                "      This operation cannot be reversed with Undo.\n"
+                                "      Effects shifted left may be truncated or deleted.",
+                                "Shift Effects", "", wxOK | wxCANCEL|wxCENTER);
+    if( ted.ShowModal() == wxID_OK ) {
+        int milliseconds = wxAtoi(ted.GetValue());
+        if( CurrentSeqXmlFile->GetSequenceLoaded() ) {
+            wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+            int ms = wxAtoi(mss);
+            milliseconds /= ms;
+            milliseconds *= ms;
+        }
+        for(int row=0;row<mSequenceElements.GetRowInformationSize();row++) {
+            EffectLayer* el = mSequenceElements.GetEffectLayer(row);
+            for(int ef=el->GetEffectCount()-1; ef >= 0; ef--) {  // count backwards so we can delete if needed
+                Effect* eff = el->GetEffect(ef);
+                int start_ms = eff->GetStartTimeMS();
+                int end_ms = eff->GetEndTimeMS();
+                if( start_ms+milliseconds < 0 ) {
+                    if( end_ms+milliseconds < 0 ) {
+                        // effect shifted off screen - delete
+                        el->RemoveEffect(ef);
+                        continue;
+                    } else {
+                        // truncate start of effect
+                        eff->SetStartTimeMS(0);
+                    }
+                } else {
+                    eff->SetStartTimeMS(start_ms+milliseconds);
+                }
+                eff->SetEndTimeMS(end_ms+milliseconds);
+            }
+        }
+        mainSequencer->PanelEffectGrid->Refresh();
+    }
 }

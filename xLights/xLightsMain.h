@@ -503,6 +503,7 @@ private:
     void OnGridNetworkItemFocused(wxListEvent& event);
     void OnGridNetworkKeyDown(wxListEvent& event);
     void OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event);
+    void OnMenuItemShiftEffectsSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -605,6 +606,7 @@ private:
     static const long ID_MENUITEM2;
     static const long ID_FILE_BACKUP;
     static const long ID_FILE_ALTBACKUP;
+    static const long ID_SHIFT_EFFECTS;
     static const long ID_MENUITEM13;
     static const long ID_MENUITEM_CONVERT;
     static const long ID_MENUITEM_GenerateCustomModel;
@@ -736,6 +738,7 @@ private:
     wxButton* Button_Change_Media_Dir;
     wxMenuItem* MenuItemRefresh;
     wxMenuItem* mAltBackupLocationMenuItem;
+    wxMenuItem* MenuItemShiftEffects;
     wxMenuItem* MenuItem_File_Save_Sequence;
     wxMenuItem* MenuItem36;
     wxMenuItem* MenuItemCheckSequence;

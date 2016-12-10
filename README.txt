@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gjones) Add ability to time shift all effects in a sequence under Edit menu.
    -- enh (dkulp) Basic TouchBar support on latest MacBookPros
    -- bag (dkulp) Don't crash if an invalid model or submodel causes a buffer to be size 0
    -- bug (dkulp) Don't crash if special characters are using timing track labels. Fixes #762
