@@ -89,7 +89,7 @@ bool FPP::SetInputUniversesBridge(wxXmlNode* root, std::list<int>& selected, wxW
     if (_ftp.IsConnected())
     {
         // now create a universes file
-        std::string file = SaveFPPUniverses(root, _ip, selected);
+        std::string file = SaveFPPUniverses(root, _ip, selected, false);
 
         bool cancelled = _ftp.UploadFile(file, "/home/fpp/media", "universes", true, false, parent);
 
@@ -112,7 +112,7 @@ bool FPP::SetOutputUniversesPlayer(wxXmlNode* root, wxWindow* parent)
     if (_ftp.IsConnected())
     {
         // now create a universes file
-        std::string file = SaveFPPUniverses(root, "", std::list<int>());
+        std::string file = SaveFPPUniverses(root, "", std::list<int>(), false);
 
         bool cancelled = _ftp.UploadFile(file, "/home/fpp/media", "universes", true, false, parent);
 
@@ -186,7 +186,7 @@ std::string FPP::SaveFPPChannelMemoryMaps(ModelManager* allmodels, xLightsFrame*
 return file;
 }
 
-std::string FPP::SaveFPPUniverses(wxXmlNode* root, const std::string& onlyip, const std::list<int>& selected)
+std::string FPP::SaveFPPUniverses(wxXmlNode* root, const std::string& onlyip, const std::list<int>& selected, bool onebased)
 {
     wxFileName fn;
     fn.AssignTempFileName("universes");
@@ -199,6 +199,7 @@ std::string FPP::SaveFPPUniverses(wxXmlNode* root, const std::string& onlyip, co
     {
         wxXmlNode* e = root;
         long count = 1;
+        long nonzerocount = 1;
 
         for (e = e->GetChildren(); e != nullptr; e = e->GetNext())
         {
@@ -222,17 +223,50 @@ std::string FPP::SaveFPPUniverses(wxXmlNode* root, const std::string& onlyip, co
                         {
                             long end = count + chan - 1;
 
+                            int c = count;
+                            if (!onebased)
+                            {
+                                c = nonzerocount;
+                            }
+
                             if (ip == "MULTICAST")
                             {
-                                universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",0,,\r\n");
+                                universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), c)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",0,,\r\n");
                             }
                             else
                             {
-                                universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",1," + ip + ",\r\n");
+                                universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), c)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",1," + ip + ",\r\n");
                             }
 
                             count = end + 1;
+                            nonzerocount = nonzerocount + chan;
                         }
+                    }
+                    else
+                    {
+                        wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
+                        long chan;
+                        MaxChannelsStr.ToLong(&chan);
+
+                        int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
+
+                        for (size_t i = 0; i < ucount; i++)
+                        {
+                            nonzerocount = nonzerocount + chan;
+                        }
+                    }
+                }
+                else
+                {
+                    wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
+                    long chan;
+                    MaxChannelsStr.ToLong(&chan);
+
+                    int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
+
+                    for (size_t i = 0; i < ucount; i++)
+                    {
+                        nonzerocount = nonzerocount + chan;
                     }
                 }
                 node++;

@@ -476,7 +476,7 @@ bool FPPConnectDialog::USBUpload()
     if (CheckBox_UploadController->IsChecked())
     {
         FPP fpp;
-        std::string file = fpp.SaveFPPUniverses(frame->GetNetworksXMLRoot(), "", std::list<int>());
+        std::string file = fpp.SaveFPPUniverses(frame->GetNetworksXMLRoot(), "", std::list<int>(), false);
         cancelled = CopyFile(file, std::string(tgtdir + "/universes"), true, progress, 0, 1000 / total);
         count++;
     }

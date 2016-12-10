@@ -2544,3 +2544,47 @@ wxString Model::SerialiseSubmodel()
     return res;
 }
 
+bool Model::IsControllerConnectionValid() const
+{
+    return (GetProtocol() != "" && GetPort() > 0);
+}
+
+std::string Model::GetProtocol() const
+{
+    wxArrayString cc = wxSplit(controller_connection, ':');
+
+    if (cc.size() > 0)
+    {
+        return cc[0].Lower().ToStdString();
+    }
+
+    return "";
+}
+
+int Model::GetPort() const
+{
+    wxArrayString cc = wxSplit(controller_connection, ':');
+
+    if (cc.size() > 1)
+    {
+        int port = wxAtoi(cc[1]);
+        return port;
+    }
+
+    return 0;
+}
+
+bool Model::IsFirstOnPort() const
+{
+    wxArrayString cc = wxSplit(controller_connection, ':');
+
+    if (cc.size() > 2)
+    {
+        if (cc[2].Lower() == "first")
+        {
+            return true;
+        }
+    }
+
+    return false;
+}

@@ -185,6 +185,10 @@ protected:
     std::vector<Model *> subModels;
     void ParseSubModel(wxXmlNode *subModelNode);
 public:
+    bool IsControllerConnectionValid() const;
+    std::string GetProtocol() const;
+    int GetPort() const;
+    bool IsFirstOnPort() const;
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);
     int GetNumSubModels() const { return subModels.size();}
