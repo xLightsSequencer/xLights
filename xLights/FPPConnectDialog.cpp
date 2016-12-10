@@ -557,6 +557,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     CheckListBox_Sequences->Disable();
     Choice_Drives->Disable();
     CheckBox_UploadController->Disable();
+    CheckBox_UploadModels->Disable();
 
     if (Notebook_FPP->GetSelection() == 0)
     {
@@ -574,6 +575,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     CheckListBox_Sequences->Enable();
     Choice_Drives->Enable();
     CheckBox_UploadController->Enable();
+    CheckBox_UploadModels->Enable();
 
     SetCursor(wxCURSOR_ARROW);
 
