@@ -16,7 +16,7 @@ class Falcon
     std::string GetURL(const std::string& url, bool logresult = false);
     std::string PutURL(const std::string& url, const std::string& request, bool logresult = false);
     int DecodeStringPortProtocol(std::string protocol);
-    void UploadStringPort(int output, int protocol, int portstart, int pixels, wxWindow* parent);
+    void UploadStringPort(int output, int protocol, int portstart, int pixels, const std::string& description, wxWindow* parent);
     int DecodeSerialOutputProtocol(std::string protocol);
     void UploadSerialOutput(int output, int protocol, int portstart, wxWindow* parent);
     void ResetStringOutputs();

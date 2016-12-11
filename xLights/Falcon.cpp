@@ -51,11 +51,11 @@ int Falcon::GetMaxStringOutputs() const
 {
     if (_model == "F4V2")
     {
-        return 4;
+        return 8;
     }
     else if (_model == "F16V2")
     {
-        return 16;
+        return 32;
     }
     return 100;
 }
@@ -397,7 +397,7 @@ void Falcon::SetOutputs(ModelManager* allmodels, wxXmlNode* root, std::list<int>
                 // upload it
                 if (DecodeStringPortProtocol(*protocol) >= 0)
                 {
-                    UploadStringPort(i, DecodeStringPortProtocol(*protocol), portstart, (portend - portstart + 1) / 3, parent);
+                    UploadStringPort(i, DecodeStringPortProtocol(*protocol), portstart, (portend - portstart + 1) / 3, first->GetName(), parent);
                 }
                 else if (DecodeSerialOutputProtocol(*protocol) >= 0)
                 {
@@ -430,7 +430,7 @@ int Falcon::DecodeStringPortProtocol(std::string protocol)
 
     return -1;
 }
-void Falcon::UploadStringPort(int output, int protocol, int portstart, int pixels, wxWindow* parent)
+void Falcon::UploadStringPort(int output, int protocol, int portstart, int pixels, const std::string& description, wxWindow* parent)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int row = -1;
@@ -440,6 +440,14 @@ void Falcon::UploadStringPort(int output, int protocol, int portstart, int pixel
     wxXmlDocument stringsdoc(strm);
     int vscount = 0;
     int rowcount = 0;
+    
+    if (stringsdoc.GetRoot() == nullptr)
+    {
+        logger_base.error("Falcon Outputs Upload: Falcon would not return strings.xml.");
+        wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
+        return;
+    }
+
     for (auto e = stringsdoc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext())
     {
         if (wxAtoi(e->GetAttribute("p")) == output - 1)
@@ -472,7 +480,7 @@ void Falcon::UploadStringPort(int output, int protocol, int portstart, int pixel
         return;
     }
 
-    wxString request = wxString::Format("S=%d&p%d=%d&t%d=%d&s%d=%d&c%d=%d", rowcount, row, output-1, row, protocol, row, portstart, row, pixels);
+    wxString request = wxString::Format("S=%d&p%d=%d&t%d=%d&s%d=%d&c%d=%d&y%d=%s", rowcount, row, output-1, row, protocol, row, portstart, row, pixels, row, description.c_str());
     PutURL("/StringPorts.htm", request.ToStdString());
 }
 
