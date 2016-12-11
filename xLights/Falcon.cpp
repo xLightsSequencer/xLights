@@ -436,6 +436,14 @@ void Falcon::UploadStringPort(int output, int protocol, int portstart, int pixel
     int row = -1;
     // first I need to check if they have virtual strings ... as my code cant handle that as we dont have all the information we need
     std::string strings = GetURL("/strings.xml");
+
+    if (strings =="")
+    {
+        logger_base.error("Falcon Outputs Upload: Falcon would not return strings.xml.");
+        wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
+        return;
+    }
+
     wxStringInputStream strm(wxString(strings.c_str()));
     wxXmlDocument stringsdoc(strm);
     int vscount = 0;
@@ -480,7 +488,7 @@ void Falcon::UploadStringPort(int output, int protocol, int portstart, int pixel
         return;
     }
 
-    wxString request = wxString::Format("S=%d&p%d=%d&t%d=%d&s%d=%d&c%d=%d&y%d=%s", rowcount, row, output-1, row, protocol, row, portstart, row, pixels, row, description.c_str());
+    wxString request = wxString::Format("S=%d&p%d=%d&t%d=%d&s%d=%d&y%d=%s&c%d=%d", rowcount, row, output-1, row, protocol, row, portstart, row, description.c_str(), row, pixels);
     PutURL("/StringPorts.htm", request.ToStdString());
 }
 
