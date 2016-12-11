@@ -18,7 +18,7 @@ class FPP
     std::string _version;
     bool _connected;
 	
-    std::string GetURL(const std::string& url);
+    std::string GetURL(const std::string& url, bool logresult = false);
 
 public:
     std::string Version() { return _version; };

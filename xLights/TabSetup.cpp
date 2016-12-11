@@ -1648,27 +1648,65 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 
         mnuUploadController->Append(ID_NETWORK_UCINPUT, "E1.31 Input Defintion", mnuUCInput, "");
         
-#if 0 // controller output upload ... not built yet but coming
         wxMenu* mnuUCOutput = new wxMenu();
 
+#if 0 // controller output upload ... not built yet but coming
         wxMenuItem* beUCOFPPB = mnuUCOutput->Append(ID_NETWORK_UCOFPPB, "FPP Bridge Mode");
         beUCOFPPB->Enable(selcnt == 1);
         if (!AllSelectedSupportIP())
         {
             beUCOFPPB->Enable(false);
         }
+#endif
 
         wxMenuItem* beUCOFalcon = mnuUCOutput->Append(ID_NETWORK_UCOFALCON, "Falcon");
-        beUCOFalcon->Enable(selcnt == 1);
         if (!AllSelectedSupportIP())
         {
             beUCOFalcon->Enable(false);
         }
+        else
+        {
+            if (selcnt == 1)
+            {
+                beUCOFalcon->Enable(true);
+            }
+            else
+            {
+                bool valid = true;
+                // check all are multicast or one ip address
+                wxString ip;
+
+                int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+                while (item != -1)
+                {
+                    wxXmlNode* e = GetOutput(item);
+                    wxString thisip = e->GetAttribute("ComPort", "");
+
+                    if (thisip == "MULTICAST")
+                    {
+                    }
+                    else if (ip != thisip)
+                    {
+                        if (ip == "")
+                        {
+                            ip = thisip;
+                        }
+                        else
+                        {
+                            valid = false;
+                            break;
+                        }
+                    }
+
+                    item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+                }
+                beUCOFalcon->Enable(valid);
+            }
+        }
 
         mnuUploadController->Append(ID_NETWORK_UCOUTPUT, "Output", mnuUCOutput, "");
      
-#endif
-
     mnu.Append(ID_NETWORK_UPLOADCONTROLLER, "Upload To Controller", mnuUploadController, "");
     
     wxMenu* mnuBulkEdit = new wxMenu();
@@ -1853,6 +1891,7 @@ void xLightsFrame::UploadFPPBridgeInput()
 {
     if (wxMessageBox("This will upload the input controller configuration for a FPP in Bridge mode running pixels using a PiHat or an RGBCape or similar. It should not be used to upload to your show player. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
+        SetCursor(wxCURSOR_WAIT);
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
         if (ip == "")
@@ -1860,6 +1899,7 @@ void xLightsFrame::UploadFPPBridgeInput()
             wxTextEntryDialog dlg(this, "FPP Bridge Mode Controller IP Address", "IP Address", ip);
             if (dlg.ShowModal() != wxID_OK)
             {
+                SetCursor(wxCURSOR_ARROW);
                 return;
             }
             ip = dlg.GetValue();
@@ -1908,6 +1948,7 @@ void xLightsFrame::UploadFPPBridgeInput()
         {
             fpp.SetInputUniversesBridge(NetworkXML.GetRoot(), selected, this);
         }
+        SetCursor(wxCURSOR_ARROW);
     }
 }
 
@@ -1920,6 +1961,7 @@ void xLightsFrame::UploadFalconInput()
 {
     if (wxMessageBox("This will upload the input controller configuration for a Falcon controller. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
+        SetCursor(wxCURSOR_WAIT);
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
 
@@ -1928,6 +1970,7 @@ void xLightsFrame::UploadFalconInput()
             wxTextEntryDialog dlg(this, "Falcon IP Address", "IP Address", ip);
             if (dlg.ShowModal() != wxID_OK)
             {
+                SetCursor(wxCURSOR_ARROW);
                 return;
             }
             ip = dlg.GetValue();
@@ -1938,9 +1981,33 @@ void xLightsFrame::UploadFalconInput()
         {
             falcon.SetInputUniverses(NetworkXML.GetRoot(), selected);
         }
+        SetCursor(wxCURSOR_ARROW);
     }
 }
 void xLightsFrame::UploadFalconOutput()
 {
-    wxMessageBox("Not implemented");
+    if (wxMessageBox("This will upload the output controller configuration for a Falcon controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+    {
+        SetCursor(wxCURSOR_WAIT);
+        wxString ip;
+        std::list<int> selected = GetSelectedOutputs(ip);
+
+        if (ip == "")
+        {
+            wxTextEntryDialog dlg(this, "Falcon IP Address", "IP Address", ip);
+            if (dlg.ShowModal() != wxID_OK)
+            {
+                SetCursor(wxCURSOR_ARROW);
+                return;
+            }
+            ip = dlg.GetValue();
+        }
+
+        Falcon falcon(ip.ToStdString());
+        if (falcon.IsConnected())
+        {
+            falcon.SetOutputs(&AllModels, NetworkXML.GetRoot(), selected, this);
+        }
+        SetCursor(wxCURSOR_ARROW);
+    }
 }

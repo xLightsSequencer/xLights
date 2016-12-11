@@ -4,7 +4,6 @@
 //(*Headers(ControllerConnectionDialog)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/choice.h>
 #include <wx/button.h>
@@ -25,7 +24,6 @@ class ControllerConnectionDialog: public wxDialog
 		wxSpinCtrl* SpinCtrl_Port;
 		wxStaticText* StaticText1;
 		wxButton* Button_Cancel;
-		wxCheckBox* CheckBox_FirstModel;
 		//*)
 
         void Set(const wxString &controllerconnection);
@@ -38,7 +36,6 @@ class ControllerConnectionDialog: public wxDialog
 		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT2;
 		static const long ID_SPINCTRL1;
-		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

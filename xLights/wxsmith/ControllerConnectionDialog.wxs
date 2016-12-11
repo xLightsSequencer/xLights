@@ -15,14 +15,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE1" variable="Choice_Protocol" member="yes">
-					<content>
-						<item>WS2811/12</item>
-						<item>GECE</item>
-						<item>DMX</item>
-					</content>
-					<selection>0</selection>
-				</object>
+				<object class="wxChoice" name="ID_CHOICE1" variable="Choice_Protocol" member="yes" />
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
@@ -39,19 +32,6 @@
 				<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_Port" member="yes">
 					<value>1</value>
 					<min>1</min>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_FirstModel" member="yes">
-					<label>First model on this port</label>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

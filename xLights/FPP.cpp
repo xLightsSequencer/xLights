@@ -42,7 +42,7 @@ FPP::~FPP()
     _http.Close();
 }
 
-std::string FPP::GetURL(const std::string& url)
+std::string FPP::GetURL(const std::string& url, bool logresult)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString res;
@@ -55,7 +55,10 @@ std::string FPP::GetURL(const std::string& url)
         wxStringOutputStream out_stream(&res);
         httpStream->Read(out_stream);
 
-        logger_base.debug("Response from fpp '%s'.", (const char *)res.c_str());
+        if (logresult)
+        {
+            logger_base.debug("Response from fpp '%s'.", (const char *)res.c_str());
+        }
     }
     else
     {

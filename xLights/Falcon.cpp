@@ -1,20 +1,22 @@
 #include "Falcon.h"
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
-#include <log4cpp/Category.hh>
 #include <wx/regex.h>
 #include <wx/xml/xml.h>
+#include "Models/Model.h"
+#include <log4cpp/Category.hh>
 
 Falcon::Falcon(const std::string& ip)
 {
 	_ip = ip;
-	
+
     _http.SetMethod("GET");
 	_connected = _http.Connect(_ip);
 
     if (_connected)
     {
         std::string versionxml = GetURL("/status.xml");
+        std::string version = GetURL("/index.htm");
         if (versionxml != "")
         {
             static wxRegEx versionregex("(\\<v\\>)([0-9]+\\.[0-9]+)\\<\\/v\\>", wxRE_ADVANCED | wxRE_NEWLINE);
@@ -25,8 +27,6 @@ Falcon::Falcon(const std::string& ip)
         }
         else
         {
-            std::string version = GetURL("/index.htm");
-
             //<title>F4V2            - v1.10</title>
             static wxRegEx versionregex("(title.*?v)([0-9]+\\.[0-9]+)\\<\\/title\\>", wxRE_ADVANCED | wxRE_NEWLINE);
             if (versionregex.Matches(wxString(version)))
@@ -34,13 +34,43 @@ Falcon::Falcon(const std::string& ip)
                 _version = versionregex.GetMatch(wxString(version), 2).ToStdString();
             }
         }
+        static wxRegEx modelregex("(SW Version:.*?\\>)(F[0-9]+V[0-9]+)", wxRE_ADVANCED);
+        if (modelregex.Matches(wxString(version)))
+        {
+            _model = modelregex.GetMatch(wxString(version), 2).ToStdString();
+        }
     }
     else
     {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        wxProtocolLog* log = _http.GetLog();
-        logger_base.error("Error connecting to falcon controller on %s.", _ip);
+        logger_base.error("Error connecting to falcon controller on %s.", (const char *)_ip.c_str());
     }
+}
+
+int Falcon::GetMaxStringOutputs() const
+{
+    if (_model == "F4V2")
+    {
+        return 4;
+    }
+    else if (_model == "F16V2")
+    {
+        return 16;
+    }
+    return 100;
+}
+
+int Falcon::GetMaxSerialOutputs() const
+{
+    if (_model == "F4V2")
+    {
+        return 1;
+    }
+    else if (_model == "F16V2")
+    {
+        return 4;
+    }
+    return 100;
 }
 
 Falcon::~Falcon()
@@ -48,7 +78,7 @@ Falcon::~Falcon()
     _http.Close();
 }
 
-std::string Falcon::GetURL(const std::string& url)
+std::string Falcon::GetURL(const std::string& url, bool logresult)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString res;
@@ -61,7 +91,10 @@ std::string Falcon::GetURL(const std::string& url)
         wxStringOutputStream out_stream(&res);
         httpStream->Read(out_stream);
 
-        logger_base.debug("Response from falcon '%s'.", (const char *)res.c_str());
+        if (logresult)
+        {
+            logger_base.debug("Response from falcon '%s'.", (const char *)res.c_str());
+        }
     }
     else
     {
@@ -73,7 +106,7 @@ std::string Falcon::GetURL(const std::string& url)
     return res.ToStdString();
 }
 
-std::string Falcon::PutURL(const std::string& url, const std::string& request)
+std::string Falcon::PutURL(const std::string& url, const std::string& request, bool logresult)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString res;
@@ -88,7 +121,10 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request)
         wxStringOutputStream out_stream(&res);
         httpStream->Read(out_stream);
 
-        logger_base.debug("Response from falcon '%s'.", (const char *)res.c_str());
+        if (logresult)
+        {
+            logger_base.debug("Response from falcon '%s'.", (const char *)res.c_str());
+        }
     }
     else
     {
@@ -104,16 +140,14 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request)
 void Falcon::SetInputUniverses(const wxXmlNode* root)
 {
     wxString request;
-    long currentcontrollerstartchannel = 0;
     long currentcontrollerendchannel = 0;
-    int nullcount = 1;
     int output = 0;
 
     for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
     {
         if (e->GetName() == "network")
         {
-            currentcontrollerstartchannel = currentcontrollerendchannel + 1;
+            long currentcontrollerstartchannel = currentcontrollerendchannel + 1;
             wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
             long MaxChannels;
             MaxChannelsStr.ToLong(&MaxChannels);
@@ -154,9 +188,7 @@ void Falcon::SetInputUniverses(const wxXmlNode* root)
 void Falcon::SetInputUniverses(const wxXmlNode* root, std::list<int>& selected)
 {
     wxString request;
-    long currentcontrollerstartchannel = 0;
     long currentcontrollerendchannel = 0;
-    int nullcount = 1;
     int output = 0;
     int node = 0;
 
@@ -164,7 +196,7 @@ void Falcon::SetInputUniverses(const wxXmlNode* root, std::list<int>& selected)
     {
         if (e->GetName() == "network")
         {
-            currentcontrollerstartchannel = currentcontrollerendchannel + 1;
+            long currentcontrollerstartchannel = currentcontrollerendchannel + 1;
             wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
             long MaxChannels;
             MaxChannelsStr.ToLong(&MaxChannels);
@@ -234,7 +266,7 @@ void Falcon::SetInputUniverses(const std::list<wxXmlNode>& inputs)
 
         for (int i = 0; i < ucount; i++)
         {
-            request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d", 
+            request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
                 output, u + i,
                 output, c,
                 output, ch,
@@ -247,3 +279,225 @@ void Falcon::SetInputUniverses(const std::list<wxXmlNode>& inputs)
     std::string response = PutURL("/E131.htm", request.ToStdString());
 }
 
+void Falcon::SetOutputs(ModelManager* allmodels, wxXmlNode* root, std::list<int>& selected, wxWindow* parent)
+{
+    //ResetStringOutputs(); // this shouldnt be used normally
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Falcon Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
+    // build a list of models on this controller
+    std::list<Model*> models;
+    std::list<std::string> protocolsused;
+    std::list<Model*> warnedmodels;
+    int node = 0;
+    int maxport = 0;
+    long currentcontrollerendchannel = 0;
+    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
+    {
+        if (e->GetName() == "network")
+        {
+            long currentcontrollerstartchannel = currentcontrollerendchannel + 1;
+            wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
+            long MaxChannels;
+            MaxChannelsStr.ToLong(&MaxChannels);
+            int universes = wxAtoi(e->GetAttribute("NumUniverses", "1"));
+
+            currentcontrollerendchannel = currentcontrollerstartchannel + (MaxChannels * universes) - 1;
+            std::string type = std::string(e->GetAttribute("NetworkType", ""));
+            std::string ip = std::string(e->GetAttribute("ComPort", ""));
+            if ((type == "E131" || type == "ArtNet") && (ip == _ip || std::find(selected.begin(), selected.end(), node) != selected.end()))
+            {
+                // this universe is sent to the falcon
+
+                // find all the models in this range
+                for (auto it = allmodels->begin(); it != allmodels->end(); ++it)
+                {
+                    if (it->second->GetDisplayAs() != "ModelGroup")
+                    {
+                        int modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
+                        int modelend = modelstart + it->second->GetChanCount() - 1;
+                        if ((modelstart >= currentcontrollerstartchannel && modelstart <= currentcontrollerendchannel) ||
+                            (modelend >= currentcontrollerstartchannel && modelend <= currentcontrollerendchannel))
+                        {
+                            //logger_base.debug("Model %s start %d end %d found on controller %s output %d start %d end %d.",
+                            //    (const char *)it->first.c_str(), modelstart, modelend,
+                            //    (const char *)_ip.c_str(), node, currentcontrollerstartchannel, currentcontrollerendchannel);
+                            if (!it->second->IsControllerConnectionValid())
+                            {
+                                // only warn if we have not already warned
+                                if (std::find(warnedmodels.begin(), warnedmodels.end(), it->second) == warnedmodels.end())
+                                {
+                                    warnedmodels.push_back(it->second);
+                                    logger_base.warn("Falcon Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str(), (const char *)it->second->GetControllerConnection().c_str());
+                                    wxMessageBox("Model " + it->first + " on controller "+_ip+" does not have its Contoller Connection details completed: '"+it->second->GetControllerConnection()+"'. Model ignored.", "Model Ignored");
+                                }
+                            }
+                            else
+                            {
+                                // model uses channels in this universe
+
+                                // check we dont already have this model in our list
+                                if (std::find(models.begin(), models.end(), it->second) == models.end())
+                                {
+                                    logger_base.debug("Falcon Outputs Upload: Uploading Model %s.", (const char *)it->first.c_str());
+                                    models.push_back(it->second);
+                                    if (std::find(protocolsused.begin(), protocolsused.end(), it->second->GetProtocol()) == protocolsused.end())
+                                    {
+                                        protocolsused.push_back(it->second->GetProtocol());
+                                    }
+                                    if (it->second->GetPort() > maxport)
+                                    {
+                                        maxport = it->second->GetPort();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        node++;
+    }
+
+    // for each protocol
+    for (auto protocol = protocolsused.begin(); protocol != protocolsused.end(); ++protocol)
+    {
+        // for each port ... this is the max of any port type but it should be ok
+        for (int i = 1; i <= maxport; i++)
+        {
+            // find the first and last
+            Model* first = nullptr;
+            Model* last = nullptr;
+            int highestend = 0;
+            long loweststart = 999999999;
+
+            for (auto model = models.begin(); model != models.end(); ++model)
+            {
+                if ((*model)->GetProtocol() == *protocol && (*model)->GetPort() == i)
+                {
+                    int modelstart = (*model)->GetNumberFromChannelString((*model)->ModelStartChannel);
+                    int modelend = modelstart + (*model)->GetChanCount() - 1;
+                    if (modelstart < loweststart)
+                    {
+                        loweststart = modelstart;
+                        first = *model;
+                    }
+                    if (modelend > highestend)
+                    {
+                        highestend = modelend;
+                        last = *model;
+                    }
+                }
+            }
+
+            if (first != nullptr)
+            {
+                int portstart = first->GetNumberFromChannelString(first->ModelStartChannel);
+                int portend = last->GetNumberFromChannelString(last->ModelStartChannel) + last->GetChanCount() - 1;
+                // upload it
+                if (DecodeStringPortProtocol(*protocol) >= 0)
+                {
+                    UploadStringPort(i, DecodeStringPortProtocol(*protocol), portstart, (portend - portstart + 1) / 3, parent);
+                }
+                else if (DecodeSerialOutputProtocol(*protocol) >= 0)
+                {
+                    UploadSerialOutput(i, DecodeSerialOutputProtocol(*protocol), portstart, parent);
+                }
+                else
+                {
+                    logger_base.warn("Falcon Outputs Upload: Controller %s protocol %s not supported by this controller.",
+                        (const char *)_ip.c_str(), (const char *)protocol->c_str());
+                    wxMessageBox("Controller " + _ip + " protocol " + (*protocol) + " not supported by this controller.", "Protocol Ignored");
+                }
+            }
+            else
+            {
+                // nothing on this port ... ignore it
+            }
+        }
+    }
+}
+
+int Falcon::DecodeStringPortProtocol(std::string protocol)
+{
+    if (protocol == "ws2811") return 0;
+    if (protocol == "tm18xx") return 1;
+    if (protocol == "lx1203") return 2;
+    if (protocol == "ws2801") return 3;
+    if (protocol == "tls3001") return 4;
+    if (protocol == "lpd6803") return 5;
+    if (protocol == "gece") return 6;
+
+    return -1;
+}
+void Falcon::UploadStringPort(int output, int protocol, int portstart, int pixels, wxWindow* parent)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int row = -1;
+    // first I need to check if they have virtual strings ... as my code cant handle that as we dont have all the information we need
+    std::string strings = GetURL("/strings.xml");
+    wxStringInputStream strm(wxString(strings.c_str()));
+    wxXmlDocument stringsdoc(strm);
+    int vscount = 0;
+    int rowcount = 0;
+    for (auto e = stringsdoc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext())
+    {
+        if (wxAtoi(e->GetAttribute("p")) == output - 1)
+        {
+            if (row < 0) row = rowcount;
+            vscount++;
+        }
+        rowcount++;
+    }
+
+    if (row < 0) row = rowcount++;
+
+    if (vscount > 1)
+    {
+        if (wxMessageBox("String Port "+wxString::Format("%d",output)+" has virtual strings defined. Proceeding will overwrite the first one only and will need to be manually corrected. Are you sure you want to do this?", "Are you sure?", wxYES_NO, parent) == wxYES)
+        {
+            // ok let it happen
+            logger_base.warn("Falcon Outputs Upload: User chose to upload string port output %d even though it had %d virtual strings defined.", output, vscount - 1);
+        }
+        else
+        {
+            return;
+        }
+    }
+
+    if (row >= GetMaxStringOutputs())
+    {
+        logger_base.warn("Falcon Outputs Upload: Falcon %s only supports %d outputs. Attempt to upload to output %d.", (const char *)_model.c_str(), GetMaxStringOutputs(), output);
+        wxMessageBox("Falcon " + wxString(_model.c_str()) + " only supports " + wxString::Format("%d", GetMaxStringOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid String Output", wxOK, parent);
+        return;
+    }
+
+    wxString request = wxString::Format("S=%d&p%d=%d&t%d=%d&s%d=%d&c%d=%d", rowcount, row, output-1, row, protocol, row, portstart, row, pixels);
+    PutURL("/StringPorts.htm", request.ToStdString());
+}
+
+void Falcon::ResetStringOutputs()
+{
+    PutURL("/StringPorts.htm", "S=4&p0=0&p1=1&p2=2&p3=3");
+}
+
+int Falcon::DecodeSerialOutputProtocol(std::string protocol)
+{
+    if (protocol == "dmx") return 0;
+    if (protocol == "pixelnet") return 1;
+    if (protocol == "renard") return 2;
+    return -1;
+}
+void Falcon::UploadSerialOutput(int output, int protocol, int portstart, wxWindow* parent)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (output >= GetMaxSerialOutputs())
+    {
+        logger_base.warn("Falcon Outputs Upload: Falcon %s only supports %d serial outputs. Attempt to upload to serail output %d.", (const char *)_model.c_str(), GetMaxStringOutputs(), output);
+        wxMessageBox("Falcon " + wxString(_model.c_str()) + " only supports " + wxString::Format("%d", GetMaxSerialOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid Serial Output", wxOK, parent);
+        return;
+    }
+
+    wxString request = wxString::Format("t%d=%d&s%d=%d", output, protocol, output, portstart);
+    PutURL("/SerialOutputs.htm", request.ToStdString());
+}

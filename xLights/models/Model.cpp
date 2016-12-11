@@ -2546,7 +2546,7 @@ wxString Model::SerialiseSubmodel()
 
 bool Model::IsControllerConnectionValid() const
 {
-    return (GetProtocol() != "" && GetPort() > 0);
+    return (Model::IsProtocolValid(GetProtocol()) && GetPort() > 0);
 }
 
 std::string Model::GetProtocol() const
@@ -2574,17 +2574,38 @@ int Model::GetPort() const
     return 0;
 }
 
-bool Model::IsFirstOnPort() const
+std::list<std::string> Model::GetProtocols()
 {
-    wxArrayString cc = wxSplit(controller_connection, ':');
+    std::list<std::string> res;
 
-    if (cc.size() > 2)
+    res.push_back("WS2811");
+    res.push_back("GECE");
+    res.push_back("TM18XX");
+    res.push_back("LX1203");
+    res.push_back("WS2801");
+    res.push_back("TLS3001");
+    res.push_back("LPD6803");
+    res.push_back("DMX");
+    res.push_back("PixelNet");
+    res.push_back("Renard");
+
+    return res;
+}
+
+std::list<std::string> Model::GetLCProtocols()
+{
+    auto protocols = Model::GetProtocols();
+
+    for (auto p = protocols.begin(); p != protocols.end(); ++p)
     {
-        if (cc[2].Lower() == "first")
-        {
-            return true;
-        }
+        *p = wxString(*p).Lower().ToStdString();
     }
 
-    return false;
+    return protocols;
+}
+
+bool Model::IsProtocolValid(std::string protocol)
+{
+    auto protocols = Model::GetLCProtocols();
+    return (std::find(protocols.begin(), protocols.end(), protocol) != protocols.end());
 }

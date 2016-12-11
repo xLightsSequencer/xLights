@@ -187,8 +187,11 @@ protected:
 public:
     bool IsControllerConnectionValid() const;
     std::string GetProtocol() const;
+    static std::list<std::string> GetProtocols();
+    static std::list<std::string> GetLCProtocols();
+    static bool IsProtocolValid(std::string protocol);
     int GetPort() const;
-    bool IsFirstOnPort() const;
+    std::string GetControllerConnection() const { return controller_connection; }
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);
     int GetNumSubModels() const { return subModels.size();}
