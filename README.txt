@@ -1,4 +1,4 @@
-xLights is a program that allows you to play the sequence files from Vixen and
+﻿xLights is a program that allows you to play the sequence files from Vixen and
 LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers.
 xLights has a extensive scheduler. Nutcracker is a program that generates animated effects
 on massive RGB devices such as megatrees, matrices, and arches.
@@ -13,6 +13,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bag (dkulp) Don't crash if an invalid model or submodel causes a buffer to be size 0
    -- bug (dkulp) Don't crash if special characters are using timing track labels. Fixes #762
    -- bug (dkulp) Fix crash if sequence has % in name
+   -- bug (keithsw) Fix video effect crash on Mac
+   -- bug (keithsw) Strip leading zeroes from ip addresses to prevent issues
+   -- bug (keithsw) Fix video looping
+   -- bug (keithsw) On piano effect fix reset of timing track when note range changed
+   -- bug (keithsw) Fix updating of start/end time in the status bar when an effect is moved
+   -- bug (keithsw) Fix export models to export all models not just those in current preview
 2016.53  Nov 17, 2016
    -- bug (dkulp)   Fix overlap of icicle drops when using multiple strings
    -- bug (dkulp)   Fix crash when Undo is used after closing a sequence and opening another
