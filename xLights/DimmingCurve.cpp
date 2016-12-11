@@ -149,11 +149,12 @@ public:
         wxFileInputStream fin(f);
         wxTextInputStream text(fin);
         
+        wxString datas;
         int count = 0;
         while(fin.Eof() == false){
-            wxString data = text.ReadLine();
-            if (data != "") {
-                data[count] = stoi(data.ToStdString());
+            datas = text.ReadLine();
+            if (datas != "") {
+                data[count] = stoi(datas.ToStdString());
                 if (!done[data[count]] || count > 127) {
                     reverseData[data[count]] = count;
                     done[data[count]] = true;
