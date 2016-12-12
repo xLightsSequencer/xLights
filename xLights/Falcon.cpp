@@ -279,6 +279,14 @@ void Falcon::SetInputUniverses(const std::list<wxXmlNode>& inputs)
     std::string response = PutURL("/E131.htm", request.ToStdString());
 }
 
+bool compare_startchannel(const Model* first, const Model* second)
+{
+    int firstmodelstart = first->GetNumberFromChannelString(first->ModelStartChannel);
+    int secondmodelstart = second->GetNumberFromChannelString(second->ModelStartChannel);
+
+    return firstmodelstart < secondmodelstart;
+}
+
 void Falcon::SetOutputs(ModelManager* allmodels, wxXmlNode* root, std::list<int>& selected, wxWindow* parent)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
@@ -359,9 +367,24 @@ void Falcon::SetOutputs(ModelManager* allmodels, wxXmlNode* root, std::list<int>
         node++;
     }
 
+    // sort the models by start channel
+    models.sort(compare_startchannel);
+
+    // get the current config before I start
+    std::string strings = GetURL("/strings.xml");
+    if (strings == "")
+    {
+        logger_base.error("Falcon Outputs Upload: Falcon would not return strings.xml.");
+        wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
+        return;
+    }
+
     // for each protocol
     for (auto protocol = protocolsused.begin(); protocol != protocolsused.end(); ++protocol)
     {
+        std::string sendmessage;
+        int count = 0;
+
         // for each port ... this is the max of any port type but it should be ok
         for (int i = 1; i <= maxport; i++)
         {
@@ -397,7 +420,15 @@ void Falcon::SetOutputs(ModelManager* allmodels, wxXmlNode* root, std::list<int>
                 // upload it
                 if (DecodeStringPortProtocol(*protocol) >= 0)
                 {
-                    UploadStringPort(i, DecodeStringPortProtocol(*protocol), portstart, (portend - portstart + 1) / 3, first->GetName(), parent);
+                    count++;
+                    if (sendmessage != "") sendmessage = sendmessage + "&";
+                    sendmessage = sendmessage + BuildStringPort(strings, i, DecodeStringPortProtocol(*protocol), portstart, (portend - portstart + 1) / 3, first->GetName(), parent);
+                    if (count == 40)
+                    {
+                        UploadStringPort(sendmessage, false);
+                        sendmessage = "";
+                        count = 0;
+                    }
                 }
                 else if (DecodeSerialOutputProtocol(*protocol) >= 0)
                 {
@@ -415,6 +446,7 @@ void Falcon::SetOutputs(ModelManager* allmodels, wxXmlNode* root, std::list<int>
                 // nothing on this port ... ignore it
             }
         }
+        UploadStringPort(sendmessage, true);
     }
 }
 
@@ -430,20 +462,27 @@ int Falcon::DecodeStringPortProtocol(std::string protocol)
 
     return -1;
 }
-void Falcon::UploadStringPort(int output, int protocol, int portstart, int pixels, const std::string& description, wxWindow* parent)
+
+void Falcon::UploadStringPort(const std::string& request, bool final)
+{
+    std::string r = request;
+    if (final)
+    {
+        r = r + "&r=1";
+    }
+    else
+    {
+        r = r + "&r=0";
+    }
+    PutURL("/StringPorts.htm", r);
+}
+
+std::string Falcon::BuildStringPort(const std::string& strings, int output, int protocol, int portstart, int pixels, const std::string& description, wxWindow* parent)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int row = -1;
+
     // first I need to check if they have virtual strings ... as my code cant handle that as we dont have all the information we need
-    std::string strings = GetURL("/strings.xml");
-
-    if (strings =="")
-    {
-        logger_base.error("Falcon Outputs Upload: Falcon would not return strings.xml.");
-        wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
-        return;
-    }
-
     wxStringInputStream strm(wxString(strings.c_str()));
     wxXmlDocument stringsdoc(strm);
     int vscount = 0;
@@ -453,7 +492,7 @@ void Falcon::UploadStringPort(int output, int protocol, int portstart, int pixel
     {
         logger_base.error("Falcon Outputs Upload: Falcon would not return strings.xml.");
         wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
-        return;
+        return "";
     }
 
     for (auto e = stringsdoc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext())
@@ -477,7 +516,7 @@ void Falcon::UploadStringPort(int output, int protocol, int portstart, int pixel
         }
         else
         {
-            return;
+            return "";
         }
     }
 
@@ -485,11 +524,16 @@ void Falcon::UploadStringPort(int output, int protocol, int portstart, int pixel
     {
         logger_base.warn("Falcon Outputs Upload: Falcon %s only supports %d outputs. Attempt to upload to output %d.", (const char *)_model.c_str(), GetMaxStringOutputs(), output);
         wxMessageBox("Falcon " + wxString(_model.c_str()) + " only supports " + wxString::Format("%d", GetMaxStringOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid String Output", wxOK, parent);
-        return;
+        return "";
     }
 
-    wxString request = wxString::Format("S=%d&p%d=%d&t%d=%d&s%d=%d&y%d=%s&c%d=%d", rowcount, row, output-1, row, protocol, row, portstart, row, description.c_str(), row, pixels);
-    PutURL("/StringPorts.htm", request.ToStdString());
+    wxString request = wxString::Format("r=0&p%d=%d&t%d=%d&s%d=%d&c%d=%d&y%d=%s", 
+                                        row, output - 1,
+                                        row, protocol,
+                                        row, portstart,
+                                         row, pixels, 
+                                         row, wxString(description.c_str()));
+    return request.ToStdString();
 }
 
 void Falcon::ResetStringOutputs()
