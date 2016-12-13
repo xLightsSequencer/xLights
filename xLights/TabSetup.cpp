@@ -75,7 +75,9 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     int idx, cnt, i;
 
     // don't change show directories with an open sequence because models won't match
-    CloseSequence();
+    if (!CloseSequence()) {
+        return false;
+    }
 
     // delete any views that were added to the menu
     for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); it++) {

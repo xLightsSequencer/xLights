@@ -1502,7 +1502,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     }
     else
     {
-        PromptForShowDirectory();
+        while (!PromptForShowDirectory()) {}
     }
 
     MixTypeChanged=true;

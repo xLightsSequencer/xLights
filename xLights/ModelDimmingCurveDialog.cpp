@@ -352,6 +352,9 @@ void ModelDimmingCurveDialog::Init(std::map<std::string, std::map<std::string,st
         if (dimmingInfo["all"].find("filename") != dimmingInfo["all"].end()) {
             DimmingTypeChoice->SetSelection(1);
             SingleFilePicker->SetPath(dimmingInfo["all"]["filename"]);
+            redDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(SingleFilePicker->GetPath()), 0);
+            greenDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(SingleFilePicker->GetPath()), 0);
+            blueDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(SingleFilePicker->GetPath()), 0);
         } else {
             DimmingTypeChoice->SetSelection(0);
             SingleGammaText->ChangeValue(dimmingInfo["all"]["gamma"]);
@@ -363,6 +366,10 @@ void ModelDimmingCurveDialog::Init(std::map<std::string, std::map<std::string,st
             RGBRedFilePicker->SetPath(dimmingInfo["red"]["filename"]);
             RGBGreenFilePicker->SetPath(dimmingInfo["green"]["filename"]);
             RGBBlueFilePicker->SetPath(dimmingInfo["blue"]["filename"]);
+            
+            redDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(xLightsXmlFile::FixFile("",RGBRedFilePicker->GetPath())), 0);
+            greenDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(xLightsXmlFile::FixFile("", RGBGreenFilePicker->GetPath())), 0);
+            blueDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(xLightsXmlFile::FixFile("", RGBBlueFilePicker->GetPath())), 0);
         } else {
             DimmingTypeChoice->SetSelection(2);
             RGBRedGammaTextCtrl->ChangeValue(dimmingInfo["red"]["gamma"]);
