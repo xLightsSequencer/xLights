@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.54  Dec 14, 2016
    -- bug (dkulp) Make sure we have a valid show directory at startup... too many crashes occur without one
    -- bug (dkulp) Fix bugs with file based dimming curves
    -- enh (gjones) Add ability to time shift all effects in a sequence under Edit menu.
