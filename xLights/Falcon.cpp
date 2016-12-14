@@ -385,6 +385,9 @@ void Falcon::SetOutputs(ModelManager* allmodels, wxXmlNode* root, std::list<int>
         std::string sendmessage;
         int count = 0;
 
+        bool portdone[100];
+        memset(&portdone, 0x00, sizeof(portdone)); // all false
+
         // for each port ... this is the max of any port type but it should be ok
         for (int i = 1; i <= maxport; i++)
         {
@@ -417,18 +420,62 @@ void Falcon::SetOutputs(ModelManager* allmodels, wxXmlNode* root, std::list<int>
             {
                 int portstart = first->GetNumberFromChannelString(first->ModelStartChannel);
                 int portend = last->GetNumberFromChannelString(last->ModelStartChannel) + last->GetChanCount() - 1;
+                int numstrings = first->GetNumStrings();
+                bool multistringelement = (first->GetDisplayAs() == "Matrix" || 
+                    first->GetDisplayAs() == "Tree" ||
+                    first->GetDisplayAs() == "Circle" ||
+                    first->GetDisplayAs() == "Star" ||
+                    first->GetDisplayAs() == "Wreath" ||
+                    first->GetDisplayAs() == "Icicles");
+                int channelsperstring = first->NodesPerString() * first->GetChanCountPerNode();
                 // upload it
                 if (DecodeStringPortProtocol(*protocol) >= 0)
                 {
-                    count++;
-                    if (sendmessage != "") sendmessage = sendmessage + "&";
-                    sendmessage = sendmessage + BuildStringPort(strings, i, DecodeStringPortProtocol(*protocol), portstart, (portend - portstart + 1) / 3, first->GetName(), parent);
-                    if (count == 40)
+                    if (first == last && numstrings > 1 && multistringelement)
                     {
-                        UploadStringPort(sendmessage, false);
-                        sendmessage = "";
-                        count = 0;
+                        for (int j = 0; j < numstrings; j++)
+                        {
+                            if (portdone[i+j])
+                            {
+                                logger_base.warn("Falcon Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i +j);
+                                wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j));
+                            }
+                            else
+                            {
+                                portdone[i + j] = true;
+                                count++;
+                                if (sendmessage != "") sendmessage = sendmessage + "&";
+                                sendmessage = sendmessage + BuildStringPort(strings, i + j, DecodeStringPortProtocol(*protocol), portstart + j * channelsperstring, channelsperstring / 3, first->GetName(), parent);
+                                if (count == 40)
+                                {
+                                    UploadStringPort(sendmessage, false);
+                                    sendmessage = "";
+                                    count = 0;
+                                }
+                            }
+                        }
                     }
+                    else
+                    {
+                        if (portdone[i])
+                        {
+                            logger_base.warn("Falcon Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str() , i);
+                            wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i));
+                        }
+                        else
+                        {
+                            portdone[i] = true;
+                            count++;
+                            if (sendmessage != "") sendmessage = sendmessage + "&";
+                            sendmessage = sendmessage + BuildStringPort(strings, i, DecodeStringPortProtocol(*protocol), portstart, (portend - portstart + 1) / 3, first->GetName(), parent);
+                            if (count == 40)
+                            {
+                                UploadStringPort(sendmessage, false);
+                                sendmessage = "";
+                                count = 0;
+                            }
+                        }
+                    }                    
                 }
                 else if (DecodeSerialOutputProtocol(*protocol) >= 0)
                 {

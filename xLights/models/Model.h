@@ -63,7 +63,8 @@ public:
     const std::string &Name() const { return name;}
     const std::string &GetName() const { return name;}
     virtual std::string GetFullName() const { return name;}
-    
+    int GetNumStrings() { return parm1; }
+
     std::string name;
     std::string description;
     xlColor customColor;
