@@ -1,11 +1,11 @@
 #include "FPPConnectDialog.h"
 #include "xLightsMain.h"
+#include "FPP.h"
 #include <wx/regex.h>
 #include "xLightsXmlFile.h"
 #include <wx/volume.h>
 #include <wx/progdlg.h>
 #include <wx/config.h>
-#include <wx/sckstrm.h>
 
 //(*InternalHeaders(FPPConnectDialog)
 #include <wx/intl.h>
@@ -347,26 +347,6 @@ bool FPPConnectDialog::IsValidIP(wxString ip)
 
 void FPPConnectDialog::ValidateWindow()
 {
-    if (wxFile::Exists(xLightsFrame::CurrentDir + "/universes"))
-    {
-        CheckBox_UploadController->Enable();
-    }
-    else
-    {
-        CheckBox_UploadController->Disable();
-        CheckBox_UploadController->SetValue(false);
-    }
-    if (wxFile::Exists(xLightsFrame::CurrentDir + "/channelmemorymaps"))
-    {
-        CheckBox_UploadModels->Enable();
-    }
-    else
-    {
-        CheckBox_UploadModels->Disable();
-        CheckBox_UploadModels->SetValue(false);
-    }
-
-
     if (Notebook_FPP->GetSelection() == 0)
     {
         wxArrayInt tmp;
@@ -428,89 +408,38 @@ bool FPPConnectDialog::FTPUpload()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
-    wxFTP ftp;
-    //ftp.SetPassive(false);
-    ftp.SetFlags(wxSOCKET_NOWAIT_WRITE);
+    FPP fpp(TextCtrl_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
 
-    // if you don't use these lines anonymous login will be used
-    ftp.SetUser(TextCtr_Username->GetValue());
-    ftp.SetPassword(TextCtrl_Password->GetValue());
-    if (!ftp.Connect(TextCtrl_IPAddress->GetValue()))
+    if (!fpp.IsConnected())
     {
         logger_base.warn("Could not connect to FPP using address '%s'.", (const char *)TextCtrl_IPAddress->GetValue().c_str());
         wxMessageBox("Could not connect to FPP using address '" + TextCtrl_IPAddress->GetValue() + "'.");
         return true;
     }
 
-    ftp.ChDir("/home/fpp/media");
+    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
 
     if (CheckBox_UploadController->IsChecked())
     {
-        ftp.SetAscii();
-        cancelled = UploadFile(ftp, (xLightsFrame::CurrentDir + "/universes").ToStdString(), ".", true);
+        fpp.SetOutputUniversesPlayer(frame->GetNetworksXMLRoot(), this);
     }
 
     if (!cancelled && CheckBox_UploadModels->IsChecked())
     {
-        ftp.SetAscii();
-        cancelled = UploadFile(ftp, (xLightsFrame::CurrentDir + "/channelmemorymaps").ToStdString(), ".", true);
+        fpp.SetChannelMemoryMaps(&frame->AllModels, frame, this);
     }
-
 
     if (!cancelled)
     {
-        ftp.SetBinary();
-
         wxArrayInt sel;
         CheckListBox_Sequences->GetCheckedItems(sel);
         for (auto it = sel.begin(); it != sel.end() && !cancelled; ++it)
         {
             wxString file = CheckListBox_Sequences->GetString(*it);
-            wxString media = "";
 
-            wxXmlDocument doc(file);
-            if (doc.IsOk())
-            {
-                wxXmlNode* root = doc.GetRoot();
-                if (root->GetName() == "xsequence")
-                {
-                    for (auto n = root->GetChildren(); n != nullptr; n = n->GetNext())
-                    {
-                        if (n->GetName() == "head")
-                        {
-                            for (auto n1 = n->GetChildren(); n1 != nullptr; n1 = n1->GetNext())
-                            {
-                                if (n1->GetName() == "mediaFile")
-                                {
-                                    media = n1->GetNodeContent();
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-
-            wxFileName fn(file);
-            wxString fseq = fn.GetPath() + "/" + fn.GetName() + ".fseq";
-            if (wxFile::Exists(fseq))
-            {
-                ftp.ChDir("/home/fpp/media");
-                cancelled = UploadFile(ftp, fseq.ToStdString(), "sequences", false);
-            }
-
-            if (!cancelled && media != "")
-            {
-                media = xLightsXmlFile::FixFile("", media);
-                ftp.ChDir("/home/fpp/media");
-                cancelled = UploadFile(ftp, media.ToStdString(), "music", false);
-            }
+            cancelled = fpp.UploadSequence(file.ToStdString(), this);
         }
     }
-
-    // gracefully close the connection to the server
-    ftp.Close();
 
     return cancelled;
 }
@@ -539,11 +468,24 @@ bool FPPConnectDialog::USBUpload()
 
     int total = CheckBox_UploadController->IsChecked() ? 1 : 0;
     total += sel.size();
+    total += CheckBox_UploadModels->IsChecked() ? 1 : 0;
+
+    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
 
     int count = 0;
     if (CheckBox_UploadController->IsChecked())
     {
-        cancelled = CopyFile(std::string(xLightsFrame::CurrentDir + "/universes"), std::string(tgtdir + "/universes"), true, progress, 0, 1000 / total);
+        FPP fpp;
+        std::string file = fpp.SaveFPPUniverses(frame->GetNetworksXMLRoot(), "", std::list<int>(), false);
+        cancelled = CopyFile(file, std::string(tgtdir + "/universes"), true, progress, 0, 1000 / total);
+        count++;
+    }
+
+    if (!cancelled && CheckBox_UploadModels->IsChecked())
+    {
+        FPP fpp;
+        std::string file = fpp.SaveFPPChannelMemoryMaps(&frame->AllModels, frame);
+        cancelled = CopyFile(file, std::string(tgtdir + "/channelmemorymaps"), true, progress, 0, 1000 / total);
         count++;
     }
 
@@ -615,6 +557,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     CheckListBox_Sequences->Disable();
     Choice_Drives->Disable();
     CheckBox_UploadController->Disable();
+    CheckBox_UploadModels->Disable();
 
     if (Notebook_FPP->GetSelection() == 0)
     {
@@ -632,6 +575,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     CheckListBox_Sequences->Enable();
     Choice_Drives->Enable();
     CheckBox_UploadController->Enable();
+    CheckBox_UploadModels->Enable();
 
     SetCursor(wxCURSOR_ARROW);
 
@@ -746,129 +690,6 @@ bool FPPConnectDialog::CopyFile(std::string source, std::string target, bool bac
     {
         logger_base.info("Copying file to USB %s to %s", (const char *)source.c_str(), (const char *)target.c_str());
         cancelled = DoCopyFile(source, target, progress, start, end);
-    }
-
-    return cancelled;
-}
-
-class MySocketOutputStream : public wxSocketOutputStream {
-public:
-    MySocketOutputStream(wxSocketBase &tmp, MySocketOutputStream *s) : wxSocketOutputStream(tmp) {
-        s->m_o_socket->SetFlags(wxSOCKET_NOWAIT_WRITE);
-    }
-};
-
-bool FPPConnectDialog::UploadFile(wxFTP& ftp, std::string file, std::string folder, bool backup)
-{
-    wxASSERT(ftp.IsConnected());
-    wxASSERT(ftp.IsOk());
-
-    wxProgressDialog progress("FTP Upload", wxString(file.c_str()), 100, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    progress.Show();
-
-    bool cancelled = false;
-
-    progress.Update(0, wxEmptyString, &cancelled);
-
-    wxFileName fn(wxString(file.c_str()));
-    wxString ext = fn.GetExt();
-    if (ext != "") ext = "." + ext;
-    wxString basefile = fn.GetName() + ext;
-
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    //logger_base.info("FTP current directory %s.", (const char *)ftp.Pwd().c_str());
-
-    if (backup)
-    {
-        int size = ftp.GetFileSize((folder + "/" + basefile).c_str());
-        if (size == -1)
-        {
-            // file not there so no need to backup
-        }
-        else
-        {
-            wxDateTime dt = wxDateTime::Now();
-            wxString tgtfile = wxString((folder + "/" + basefile).c_str()) + "_" + dt.Format("%Y%m%d_%H%M%S");
-            logger_base.info("FTP Backing up file %s to %s.", (const char *)(folder + "/" + basefile).c_str(), (const char *)tgtfile.c_str());
-            ftp.Rename((folder + "/" + basefile).c_str(), tgtfile);
-            if (!cancelled)
-            {
-                cancelled = progress.WasCancelled();
-            }
-        }
-    }
-
-    wxFile in;
-    in.Open(wxString(file.c_str()));
-    if (in.IsOpened())
-    {
-        logger_base.info("FTP Uploading file %s to %s.", (const char *)file.c_str(), (const char *)(folder + "/" + basefile).c_str());
-        wxFileOffset length = in.Length();
-        wxFileOffset done = 0;
-        wxSocketOutputStream *out = dynamic_cast<wxSocketOutputStream*>(ftp.GetOutputStream((folder + "/" + basefile).c_str()));
-        wxSocketBase sock;
-        MySocketOutputStream sout(sock, (MySocketOutputStream*)out);
-        if (out)
-        {
-            uint8_t buffer[8192]; // 8KB at a time
-            int lastDone = 0;
-            while (!in.Eof() && !cancelled)
-            {
-                ssize_t read = in.Read(&buffer[0], sizeof(buffer));
-                done += read;
-
-                int bufPos = 0;
-                while (read) {
-                    out->Write(&buffer[bufPos], read);
-                    ssize_t written = out->LastWrite();
-                    bufPos += written;
-                    read -= written;
-                }
-                ssize_t donePct = done * 100;
-                donePct = donePct / length;
-                if (donePct != lastDone) {
-                    lastDone = donePct;
-                    cancelled = !progress.Update(donePct, wxEmptyString, &cancelled);
-                    wxYield();
-                }
-            }
-            if (in.Eof())
-            {
-                progress.Update(100, wxEmptyString, &cancelled);
-                logger_base.info("   FTP Upload of file %s done.", (const char *)file.c_str());
-            }
-            else
-            {
-                progress.Update(100, wxEmptyString, &cancelled);
-                logger_base.warn("   FTP Upload of file %s cancelled.", (const char *)file.c_str());
-            }
-            in.Close();
-            out->Close();
-            delete out;
-            if (ftp.GetFileSize((folder + "/" + basefile).c_str()) != length)
-            {
-                logger_base.warn("   FTP Upload of file %s failed. Source size (%d) != Destination Size (%d)",(const char *)file.c_str(),length,ftp.GetFileSize((folder + "/" + basefile).c_str()));
-            }
-        }
-        else
-        {
-            wxMessageBox("FTP Upload of file failed to create the target file.");
-            progress.Update(100, wxEmptyString, &cancelled);
-            logger_base.error("   FTP Upload of file %s failed as file could not be created on FPP.", (const char *)file.c_str());
-        }
-    }
-    else
-    {
-        wxMessageBox("FTP Upload of file failed to open the file.");
-        progress.Update(100, wxEmptyString, &cancelled);
-        logger_base.error("   FTP Upload of file %s failed as file could not be opened.", (const char *)file.c_str());
-    }
-
-    if (!cancelled)
-    {
-        cancelled = progress.WasCancelled();
     }
 
     return cancelled;

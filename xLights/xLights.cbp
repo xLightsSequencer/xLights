@@ -469,6 +469,8 @@
 		<Unit filename="ColorCurveDialog.h" />
 		<Unit filename="ColorPanel.cpp" />
 		<Unit filename="ColorPanel.h" />
+		<Unit filename="ControllerConnectionDialog.cpp" />
+		<Unit filename="ControllerConnectionDialog.h" />
 		<Unit filename="ConvertDialog.cpp" />
 		<Unit filename="ConvertDialog.h" />
 		<Unit filename="ConvertLogDialog.cpp" />
@@ -504,8 +506,12 @@
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
+		<Unit filename="FPP.cpp" />
+		<Unit filename="FPP.h" />
 		<Unit filename="FPPConnectDialog.cpp" />
 		<Unit filename="FPPConnectDialog.h" />
+		<Unit filename="Falcon.cpp" />
+		<Unit filename="Falcon.h" />
 		<Unit filename="FileConverter.cpp" />
 		<Unit filename="FileConverter.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
@@ -609,6 +615,8 @@
 		<Unit filename="SevenSegmentDialog.h" />
 		<Unit filename="ShowDatesDialog.cpp" />
 		<Unit filename="ShowDatesDialog.h" />
+		<Unit filename="SimpleFTP.cpp" />
+		<Unit filename="SimpleFTP.h" />
 		<Unit filename="StartChannelDialog.cpp" />
 		<Unit filename="StartChannelDialog.h" />
 		<Unit filename="StrandNodeNamesDialog.cpp" />
@@ -990,6 +998,7 @@
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
 		<Unit filename="wxsmith/ColorWashPanel.wxs" />
+		<Unit filename="wxsmith/ControllerConnectionDialog.wxs" />
 		<Unit filename="wxsmith/ConvertDialog.wxs" />
 		<Unit filename="wxsmith/ConvertLogDialog.wxs" />
 		<Unit filename="wxsmith/CurrentPreviewModels.wxs" />
@@ -1225,6 +1234,7 @@
 					<wxDialog wxs="wxsmith/WiringDialog.wxs" src="WiringDialog.cpp" hdr="WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ArtNetDialog.wxs" src="ArtNetDialog.cpp" hdr="ArtNetDialog.h" fwddecl="0" i18n="1" name="ArtNetDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="FPPConnectDialog.cpp" hdr="FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ControllerConnectionDialog.wxs" src="ControllerConnectionDialog.cpp" hdr="ControllerConnectionDialog.h" fwddecl="0" i18n="1" name="ControllerConnectionDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

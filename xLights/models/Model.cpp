@@ -19,6 +19,7 @@
 #include "../ModelDimmingCurveDialog.h"
 #include "../StartChannelDialog.h"
 #include "../SubModelsDialog.h"
+#include "../ControllerConnectionDialog.h"
 
 #include "ModelScreenLocation.h"
 #include <wx/sstream.h>
@@ -198,6 +199,29 @@ public:
 protected:
     Model *m_model;
 };
+
+class ControllerConnectionDialogAdapter : public wxPGEditorDialogAdapter
+{
+public:
+    ControllerConnectionDialogAdapter(Model *model)
+        : wxPGEditorDialogAdapter(), m_model(model) {
+    }
+    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
+        wxPGProperty* property) override {
+        ControllerConnectionDialog dlg(propGrid);
+        dlg.Set(property->GetValue().GetString());
+        if (dlg.ShowModal() == wxID_OK) {
+            wxVariant v(dlg.Get());
+            SetValue(v);
+            return true;
+        }
+        return false;
+    }
+protected:
+    Model *m_model;
+};
+
+
 class PopupDialogProperty : public wxStringProperty
 {
 public:
@@ -277,6 +301,26 @@ protected:
     int m_strand;
 };
 
+class ControllerConnectionProperty : public wxStringProperty
+{
+public:
+    ControllerConnectionProperty(Model *m,
+        const wxString& label,
+        const wxString& name,
+        const wxString& value)
+        : wxStringProperty(label, name, value), m_model(m) {
+    }
+    // Set editor to have button
+    virtual const wxPGEditor* DoGetEditorClass() const override {
+        return wxPGEditor_TextCtrlAndButton;
+    }
+    // Set what happens on button click
+    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override {
+        return new ControllerConnectionDialogAdapter(m_model);
+    }
+protected:
+    Model *m_model;
+};
 
 static wxArrayString NODE_TYPES;
 static wxArrayString PIXEL_STYLES;
@@ -397,6 +441,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(this, "Sub-Models", "SubModels", CLICK_TO_EDIT, 5));
     grid->LimitPropertyEditing(p);
+    p = grid->Append(new ControllerConnectionProperty(this, "Controller Connection", "ControllerConnection", ModelXml->GetAttribute("ControllerConnection", "")));
 
     p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
     p->GetCell(0).SetFgCol(*wxBLACK);
@@ -496,6 +541,15 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         return 2;
     } else if (event.GetPropertyName() == "ModelDimmingCurves") {
         SetFromXml(ModelXml, zeroBased);
+        IncrementChangeCount();
+        return 2;
+    } else if (event.GetPropertyName() == "ControllerConnection") {
+        controller_connection = event.GetValue().GetString();
+        ModelXml->DeleteAttribute("ControllerConnection");
+        if (controller_connection != "")
+        {
+            ModelXml->AddAttribute("ControllerConnection", controller_connection);
+        }
         IncrementChangeCount();
         return 2;
     }
@@ -729,7 +783,7 @@ void Model::AddState(wxXmlNode* n)
 void Model::AddSubmodel(wxXmlNode* n)
 {
     ParseSubModel(n);
-    
+
     // this may break if the submodel format changes and the user loads an old format ... if that happens this needs to go through a upgrade routine
     wxXmlNode *f = new wxXmlNode(ModelXml, wxXML_ELEMENT_NODE, "subModel");
     for (auto a = n->GetAttributes(); a!= nullptr; a = a->GetNext())
@@ -1006,7 +1060,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
         delete modelDimmingCurve;
         modelDimmingCurve = nullptr;
     }
-    for (auto it = subModels.begin(); it != subModels.end(); it++) {
+    for (auto it = subModels.begin(); it != subModels.end(); ++it) {
         Model *m = *it;
         delete m;
     }
@@ -1022,6 +1076,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
 
     name=ModelNode->GetAttribute("name").ToStdString();
     DisplayAs=ModelNode->GetAttribute("DisplayAs").ToStdString();
+    controller_connection = ModelNode->GetAttribute("ControllerConnection").ToStdString();
     StringType=ModelNode->GetAttribute("StringType").ToStdString();
     SingleNode=HasSingleNode(StringType);
     SingleChannel=HasSingleChannel(StringType);
@@ -1584,7 +1639,7 @@ size_t Model::GetActChanCount() const
     if (NodeCnt == 0) {
         return 0;
     }
- 
+
     size_t count = 0;
     for (int x = 0; x < NodeCnt; x++) {
         count += Nodes[x]->GetChanCount();
@@ -2066,7 +2121,7 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
     if (pointScale > GetModelScreenLocation().RenderWi) {
         pointScale = GetModelScreenLocation().RenderWi;
     }
-    
+
     float px = pt.x;
     float py = h - pt.y;
 
@@ -2078,7 +2133,7 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
         {
             float sx=it2->screenX;
             float sy=it2->screenY;
-            
+
             if (!GetModelScreenLocation().IsCenterBased()) {
                 sx -= GetModelScreenLocation().RenderWi / 2.0;
                 sy *= GetModelScreenLocation().GetVScaleFactor();
@@ -2090,7 +2145,7 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
             }
             sy = ((sy*scale)+(h/2));
             sx = (sx*scale)+(w/2);
-            
+
             if (sx >= (px - pointScale) && sx <= (px + pointScale)  &&
                 sy >= (py - pointScale) && sy <= (py + pointScale))
             {
@@ -2489,3 +2544,68 @@ wxString Model::SerialiseSubmodel()
     return res;
 }
 
+bool Model::IsControllerConnectionValid() const
+{
+    return (Model::IsProtocolValid(GetProtocol()) && GetPort() > 0);
+}
+
+std::string Model::GetProtocol() const
+{
+    wxArrayString cc = wxSplit(controller_connection, ':');
+
+    if (cc.size() > 0)
+    {
+        return cc[0].Lower().ToStdString();
+    }
+
+    return "";
+}
+
+int Model::GetPort() const
+{
+    wxArrayString cc = wxSplit(controller_connection, ':');
+
+    if (cc.size() > 1)
+    {
+        int port = wxAtoi(cc[1]);
+        return port;
+    }
+
+    return 0;
+}
+
+std::list<std::string> Model::GetProtocols()
+{
+    std::list<std::string> res;
+
+    res.push_back("WS2811");
+    res.push_back("GECE");
+    res.push_back("TM18XX");
+    res.push_back("LX1203");
+    res.push_back("WS2801");
+    res.push_back("TLS3001");
+    res.push_back("LPD6803");
+    res.push_back("DMX");
+    res.push_back("PixelNet");
+    res.push_back("Renard");
+
+    return res;
+}
+
+std::list<std::string> Model::GetLCProtocols()
+{
+    auto protocols = Model::GetProtocols();
+
+    for (auto p = protocols.begin(); p != protocols.end(); ++p)
+    {
+        *p = wxString(*p).Lower().ToStdString();
+    }
+
+    return protocols;
+}
+
+bool Model::IsProtocolValid(std::string protocol)
+{
+    auto protocols = Model::GetLCProtocols();
+    return (std::find(protocols.begin(), protocols.end(), protocol) != protocols.end());
+}

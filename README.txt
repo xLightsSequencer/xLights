@@ -8,6 +8,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Input config upload to FPP for bridge mode
+   -- enh (keithsw) Input config upload to falcon controllers
+   -- enh (keithsw) Output config upload to falcon controllers
 2016.54  Dec 14, 2016
    -- bug (dkulp) Make sure we have a valid show directory at startup... too many crashes occur without one
    -- bug (dkulp) Fix bugs with file based dimming curves

@@ -63,7 +63,8 @@ public:
     const std::string &Name() const { return name;}
     const std::string &GetName() const { return name;}
     virtual std::string GetFullName() const { return name;}
-    
+    int GetNumStrings() { return parm1; }
+
     std::string name;
     std::string description;
     xlColor customColor;
@@ -178,12 +179,20 @@ protected:
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame, Candy Cane
     std::string layout_group;
+    std::string controller_connection;
 
     unsigned long changeCount;
 
     std::vector<Model *> subModels;
     void ParseSubModel(wxXmlNode *subModelNode);
 public:
+    bool IsControllerConnectionValid() const;
+    std::string GetProtocol() const;
+    static std::list<std::string> GetProtocols();
+    static std::list<std::string> GetLCProtocols();
+    static bool IsProtocolValid(std::string protocol);
+    int GetPort() const;
+    std::string GetControllerConnection() const { return controller_connection; }
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);
     int GetNumSubModels() const { return subModels.size();}

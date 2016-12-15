@@ -165,6 +165,7 @@
     <ClCompile Include="ColorCurve.cpp" />
     <ClCompile Include="ColorCurveDialog.cpp" />
     <ClCompile Include="ColorPanel.cpp" />
+    <ClCompile Include="ControllerConnectionDialog.cpp" />
     <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="ConvertLogDialog.cpp" />
     <ClCompile Include="CurrentPreviewModels.cpp" />
@@ -278,8 +279,10 @@
     <ClCompile Include="effects\WavePanel.cpp" />
     <ClCompile Include="EffectTreeDialog.cpp" />
     <ClCompile Include="ExportModelSelect.cpp" />
+    <ClCompile Include="Falcon.cpp" />
     <ClCompile Include="FileConverter.cpp" />
     <ClCompile Include="FlickerFreeBitmapButton.cpp" />
+    <ClCompile Include="FPP.cpp" />
     <ClCompile Include="FPPConnectDialog.cpp" />
     <ClCompile Include="GenerateCustomModelDialog.cpp" />
     <ClCompile Include="heartbeat.cpp" />
@@ -373,6 +376,7 @@
     <ClCompile Include="SerialPortWithRate.cpp" />
     <ClCompile Include="SevenSegmentDialog.cpp" />
     <ClCompile Include="ShowDatesDialog.cpp" />
+    <ClCompile Include="SimpleFTP.cpp" />
     <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
     <ClCompile Include="SubBufferPanel.cpp" />
@@ -432,6 +436,7 @@
     <ClInclude Include="ColorCurve.h" />
     <ClInclude Include="colorcurvedialog.h" />
     <ClInclude Include="ColorPanel.h" />
+    <ClInclude Include="ControllerConnectionDialog.h" />
     <ClInclude Include="ConvertDialog.h" />
     <ClInclude Include="ConvertLogDialog.h" />
     <ClInclude Include="CurrentPreviewModels.h" />
@@ -538,8 +543,10 @@
     <ClInclude Include="effects\WavePanel.h" />
     <ClInclude Include="EffectTreeDialog.h" />
     <ClInclude Include="ExportModelSelect.h" />
+    <ClInclude Include="Falcon.h" />
     <ClInclude Include="FileConverter.h" />
     <ClInclude Include="FlickerFreeBitmapButton.h" />
+    <ClInclude Include="FPP.h" />
     <ClInclude Include="FPPConnectDialog.h" />
     <ClInclude Include="GenerateCustomModelDialog.h" />
     <ClInclude Include="heartbeat.h" />
