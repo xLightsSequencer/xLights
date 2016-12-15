@@ -3704,6 +3704,64 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    // multiple outputs to same universe and same IP
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Multiple outputs sending to same destination");
+
+    std::list<std::string> used;
+    n = NetworkXML.GetRoot();
+    i = 0;
+    for (n = n->GetChildren(); n != nullptr; n = n->GetNext())
+    {
+        if (n->GetName() == "network")
+        {
+            wxString NetType = n->GetAttribute("NetworkType", "");
+
+            if (NetType == "E131" || NetType == "ArtNet")
+            {
+                wxString ip = n->GetAttribute("ComPort", "");
+                wxString universe = n->GetAttribute("BaudRate", "1");
+                wxString description = n->GetAttribute("Description", "");
+
+                std::string usedval = (ip + "|" + universe).ToStdString();
+
+                if (std::find(used.begin(), used.end(), usedval) != used.end())
+                {
+                    wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller '%s' (%s) and universe %s.", (const char*) description.c_str(), (const char*)ip.c_str(), (const char *)universe.c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+                else
+                {
+                    used.push_back(usedval);
+                }
+            }
+            else if (NetType == "DMX" || NetType == "Pixelnet" || NetType == "LOR" || NetType == "D-Light" || NetType == "Renard")
+            {
+                wxString cp = n->GetAttribute("ComPort", "");
+                wxString description = n->GetAttribute("Description", "");
+
+                if (std::find(used.begin(), used.end(), cp.ToStdString()) != used.end())
+                {
+                    wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)NetType.c_str(), (const char *)cp.c_str(), (const char*)description.c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+                else
+                {
+                    used.push_back(cp.ToStdString());
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
     LogAndWrite(f, "");
     LogAndWrite(f, "Invalid start channels");
 

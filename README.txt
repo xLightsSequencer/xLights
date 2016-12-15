@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (Keithsw) Detect multiple outputs sending data to the same place in check sequence
    -- enh (keithsw) Input config upload to FPP for bridge mode
    -- enh (keithsw) Input config upload to falcon controllers
    -- enh (keithsw) Output config upload to falcon controllers
