@@ -1,5 +1,5 @@
 #include "ControllerConnectionDialog.h"
-#include "Models/Model.h"
+#include "models/Model.h"
 
 //(*InternalHeaders(ControllerConnectionDialog)
 #include <wx/intl.h>

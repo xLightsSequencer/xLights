@@ -6,7 +6,7 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include "xLightsXmlFile.h"
-#include "Models/Model.h"
+#include "models/Model.h"
 
 
 FPP::FPP(const std::string& ip, const std::string& user, const std::string& password)

@@ -5,7 +5,7 @@
 #include "SimpleFTP.h"
 #include <wx/xml/xml.h>
 #include <list>
-#include "Models/ModelManager.h"
+#include "models/ModelManager.h"
 #include "xLightsMain.h"
 
 class FPP

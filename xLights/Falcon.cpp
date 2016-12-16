@@ -3,7 +3,7 @@
 #include <wx/sstream.h>
 #include <wx/regex.h>
 #include <wx/xml/xml.h>
-#include "Models/Model.h"
+#include "models/Model.h"
 #include <log4cpp/Category.hh>
 
 Falcon::Falcon(const std::string& ip)
