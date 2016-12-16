@@ -338,6 +338,17 @@ void ColorCurve::DeletePoint(float offset)
     }
 }
 
+void ColorCurve::Flip()
+{
+    auto oldvalues = _values;
+    _values.clear();
+    for (auto it = oldvalues.begin(); it != oldvalues.end(); ++it)
+    {
+        ccSortableColorPoint scp(1.0f - it->x, it->color);
+        _values.push_front(scp);
+    }
+}
+
 void ColorCurve::SetValueAt(float offset, xlColor c)
 {
     auto it = _values.begin();

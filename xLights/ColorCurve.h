@@ -156,6 +156,7 @@ public:
     void ToggleActive() { _active = !_active; }
     void SetValueAt(float offset, xlColor x);
     void DeletePoint(float offset);
+    void Flip();
     bool IsSetPoint(float offset);
     int GetPointCount() const
     { return _values.size(); }

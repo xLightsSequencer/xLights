@@ -27,6 +27,7 @@ public:
     void SetValue(ColorCurve* cc) { _cc = cc; }
     void SetType(std::string type) { _type = type; }
     void Delete();
+    void Flip();
     void Undo();
     void SaveUndo(ccSortableColorPoint& point, bool del);
     void Select(float x);
@@ -90,6 +91,7 @@ class ColorCurveDialog: public wxDialog
 		wxStaticText* StaticText1;
 		wxButton* Button_Cancel;
 		wxButton* ButtonLoad;
+		wxButton* Button_Flip;
 		wxChoice* Choice1;
 		//*)
 
@@ -98,6 +100,7 @@ class ColorCurveDialog: public wxDialog
 		//(*Identifiers(ColorCurveDialog)
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE1;
+		static const long ID_BUTTON5;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON1;
@@ -114,8 +117,9 @@ class ColorCurveDialog: public wxDialog
 		void OnResize(wxSizeEvent& event);
 		void OnButtonLoadClick(wxCommandEvent& event);
 		void OnButtonExportClick(wxCommandEvent& event);
-        void OnButtonPresetClick(wxCommandEvent& event);
-        //*)
+		void OnButtonPresetClick(wxCommandEvent& event);
+		void OnButton_FlipClick(wxCommandEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

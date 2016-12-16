@@ -63,6 +63,7 @@ void ColorCurvePanel::Convert(float &x, wxMouseEvent& event) const
 //(*IdInit(ColorCurveDialog)
 const long ColorCurveDialog::ID_STATICTEXT1 = wxNewId();
 const long ColorCurveDialog::ID_CHOICE1 = wxNewId();
+const long ColorCurveDialog::ID_BUTTON5 = wxNewId();
 const long ColorCurveDialog::ID_BUTTON3 = wxNewId();
 const long ColorCurveDialog::ID_BUTTON4 = wxNewId();
 const long ColorCurveDialog::ID_BUTTON1 = wxNewId();
@@ -107,6 +108,9 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     Choice1->Append(_("Gradient"));
     Choice1->Append(_("Random"));
     FlexGridSizer4->Add(Choice1, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer4->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Flip = new wxButton(this, ID_BUTTON5, _("Flip Colours"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+    FlexGridSizer4->Add(Button_Flip, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
     PresetSizer = new wxFlexGridSizer(0, 5, 0, 0);
@@ -128,6 +132,7 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ColorCurveDialog::OnChoice1Select);
+    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorCurveDialog::OnButton_FlipClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorCurveDialog::OnButtonLoadClick);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorCurveDialog::OnButtonExportClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorCurveDialog::OnButton_OkClick);
@@ -395,6 +400,16 @@ void ColorCurvePanel::mouseCaptureLost(wxMouseCaptureLostEvent& event)
     _startPoint = -1;
     SetToolTip("");
     Refresh();
+}
+
+void ColorCurvePanel::Flip()
+{
+    _cc->Flip();
+    _grabbedPoint = -1;
+    ClearUndo();
+    SetToolTip("");
+    Refresh();
+    NotifyChange();
 }
 
 void ColorCurvePanel::mouseLeftUp(wxMouseEvent& event)
@@ -776,4 +791,9 @@ void ColorCurveDialog::OnButtonExportClick(wxCommandEvent& event)
     _ccp->ClearUndo();
 
     PopulatePresets();
+}
+
+void ColorCurveDialog::OnButton_FlipClick(wxCommandEvent& event)
+{
+    _ccp->Flip();
 }
