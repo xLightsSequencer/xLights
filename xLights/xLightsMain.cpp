@@ -3639,6 +3639,14 @@ bool xLightsFrame::CheckStart(wxFile& f, const std::string& startmodel, std::lis
     }
 }
 
+bool compare_modelstartchannel(const Model* first, const Model* second)
+{
+    int firstmodelstart = first->GetNumberFromChannelString(first->ModelStartChannel);
+    int secondmodelstart = second->GetNumberFromChannelString(second->ModelStartChannel);
+
+    return firstmodelstart < secondmodelstart;
+}
+
 void xLightsFrame::CheckSequence(bool display)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4108,6 +4116,64 @@ void xLightsFrame::CheckSequence(bool display)
         }
     }
 
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Check for large blocks of unused channels
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Large blocks of unused channels that bloats memory usage and the the fseq file.");
+
+    std::list<Model*> modelssorted;
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            modelssorted.push_back(it->second);
+        }
+    }
+
+    modelssorted.sort(compare_modelstartchannel);
+        
+    long last = 0;
+    Model* lastm = nullptr;
+    for (auto m = modelssorted.begin(); m != modelssorted.end(); ++m)
+    {
+        long start = (*m)->GetNumberFromChannelString((*m)->ModelStartChannel);
+        long gap = start - last - 1;
+        if (gap > 511) // 511 is the maximum acceptable gap ... at that point the user has wasted an entire universe
+        {
+            wxString level = "WARN";
+            if (gap > 49999) // anyything 50,000 or greater should be an error
+            {
+                level = "ERR";
+                errcount++;
+            }
+            else
+            {
+                warncount++;
+            }
+            wxString msg;
+            if (lastm == nullptr)
+            {
+                msg = wxString::Format("    %s: First Model '%s' starts at channel %ld leaving a block of %ld of unused channels.", level, (*m)->GetName(), start, start - 1);
+            }
+            else
+            {
+                msg = wxString::Format("    %s: Model '%s' starts at channel %ld leaving a block of %ld of unused channels between this and the prior model '%s'.", level, (*m)->GetName(), start, gap, lastm->GetName());
+            }
+            LogAndWrite(f, msg.ToStdString());
+        }
+        long newlast = start + (*m)->GetChanCount() - 1;
+        if (newlast > last)
+        {
+            last = newlast;
+            lastm = *m;
+        }
+    }
     if (errcount + warncount == errcountsave + warncountsave)
     {
         LogAndWrite(f, "    No problems found");
