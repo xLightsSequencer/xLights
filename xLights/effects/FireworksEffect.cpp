@@ -7,6 +7,7 @@
 #include "../AudioManager.h"
 #include "../models/Model.h"
 #include "../SequenceCheck.h"
+#include "../sequencer/SequenceElements.h"
 
 #include "../../include/fireworks-16.xpm"
 #include "../../include/fireworks-24.xpm"
@@ -104,7 +105,7 @@ private:
 
 class FireworksRenderCache : public EffectRenderCache {
 public:
-    FireworksRenderCache() : fireworkBursts(maxFlakes) {};
+    FireworksRenderCache() : fireworkBursts(maxFlakes), sincelasttriggered(0) {};
     virtual ~FireworksRenderCache() {};
     int next;
     int sincelasttriggered;
@@ -126,6 +127,54 @@ void FireworksEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(fp->Slider_Fireworks_Sensitivity, 50);
 
     SetCheckBoxValue(fp->CheckBox_Fireworks_UseMusic, false);
+    SetCheckBoxValue(fp->CheckBox_FireTiming, false);
+
+    SetPanelTimingTracks();
+}
+
+void FireworksEffect::SetPanelStatus(Model *cls)
+{
+    SetPanelTimingTracks();
+}
+
+void FireworksEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
+{
+    wxString timing = effect->GetSettings().Get("E_CHOICE_FIRETIMINGTRACK", "");
+
+    if (timing.ToStdString() == oldname)
+    {
+        effect->GetSettings()["E_CHOICE_FIRETIMINGTRACK"] = wxString(newname);
+    }
+
+    SetPanelTimingTracks();
+}
+
+void FireworksEffect::SetPanelTimingTracks()
+{
+    FireworksPanel *fp = (FireworksPanel*)panel;
+    if (fp == nullptr)
+    {
+        return;
+    }
+
+    if (mSequenceElements == nullptr)
+    {
+        return;
+    }
+
+    // Load the names of the timing tracks
+    std::list<std::string> timingtracks;
+    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
+    {
+        Element* e = mSequenceElements->GetElement(i);
+        if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            timingtracks.push_back(e->GetName());
+        }
+    }
+
+    // Select the first one
+    fp->SetTimingTrack(timingtracks);
 }
 
 void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -137,6 +186,9 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     float f = 0.0;
     bool useMusic = SettingsMap.GetBool("CHECKBOX_Fireworks_UseMusic", false);
     float sensitivity = (float)SettingsMap.GetInt("SLIDER_Fireworks_Sensitivity", 50) / 100.0;
+    bool useTiming = SettingsMap.GetBool("CHECKBOX_FIRETIMING", false);
+    wxString timing = SettingsMap.Get("CHOICE_FIRETIMINGTRACK", "");
+    if (timing == "") useTiming = false;
     if (useMusic)
     {
         if (buffer.GetMedia() != nullptr) {
@@ -156,20 +208,19 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     
     int& next = cache->next;
     int& sincelasttriggered = cache->sincelasttriggered;
-    int i=0;
     int x25,x75,y25,y75;
     //float velocity = 3.5;
-    int startX;
-    int startY,ColorIdx;
+    int ColorIdx;
     float v;
     HSVValue hsv;
     size_t colorcnt = buffer.GetColorCount();
     
     if (buffer.needToInit) {
+        SetPanelTimingTracks();
         cache->sincelasttriggered = 0;
         cache->next = 0;
         buffer.needToInit = false;
-        for(i=0; i<maxFlakes; i++) {
+        for(int i=0; i<maxFlakes; i++) {
             cache->fireworkBursts[i]._bActive = false;
         }
         for (int x = 0; x < Number_Explosions; x++) {
@@ -182,16 +233,21 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             x75=(int)buffer.BufferWi*0.75;
             y25=(int)buffer.BufferHt*0.25;
             y75=(int)buffer.BufferHt*0.75;
-            startX=(int)buffer.BufferWi/2;
-            startY=(int)buffer.BufferHt/2;
+            int startX;
+            int startY;
             if((x75-x25)>0) startX = x25 + rand()%(x75-x25); else startX=0;
             if((y75-y25)>0) startY = y25 + rand()%(y75-y25); else startY=0;
             
             // Create a new burst
             ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-            for(i=0; i<Count; i++) {
+            for(int i=0; i<Count; i++) {
                 cache->fireworkBursts[x * Count + i].Reset(startX, startY, false, Velocity, ColorIdx, start);
             }
+        }
+
+        if (timing != "")
+        {
+            effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->AddRenderDependency(timing.ToStdString(), buffer.cur_model);
         }
     }
 
@@ -233,8 +289,65 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         }
     }
 
-    for (i=0; i<(Count*Number_Explosions); i++) {
-        if (!useMusic)
+    if (useTiming)
+    {
+        if (mSequenceElements == nullptr)
+        {
+            // no timing tracks ... this shouldnt happen
+        }
+        else
+        {
+            // Load the names of the timing tracks
+            Element* t = nullptr;
+            for (size_t l = 0; l < mSequenceElements->GetElementCount(); l++)
+            {
+                Element* e = mSequenceElements->GetElement(l);
+                if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
+                {
+                    if (e->GetName() == timing)
+                    {
+                        t = e;
+                        break;
+                    }
+                }
+            }
+
+            if (t == nullptr)
+            {
+                // timing track not found ... this shouldnt happen
+            }
+            else
+            {
+                sincelasttriggered = 0;
+                EffectLayer* el = t->GetEffectLayer(0);
+                for (int j = 0; j < el->GetEffectCount(); j++)
+                {
+                    if (buffer.curPeriod == el->GetEffect(j)->GetStartTimeMS() / buffer.frameTimeInMs ||
+                        buffer.curPeriod == el->GetEffect(j)->GetEndTimeMS() / buffer.frameTimeInMs)
+                    {
+                        // activate all the particles in the next firework
+                        for (int k = 0; k < Count; k++)
+                        {
+                            cache->fireworkBursts[Count*next + k]._bActive = true;
+                            buffer.palette.GetHSV(cache->fireworkBursts[Count*next + k]._colorindex, hsv); // Now go and get the hsv value for this ColorIdx
+                            cache->fireworkBursts[Count*next + k]._hsv = hsv;
+                        }
+
+                        // use the next firework next time
+                        next++;
+                        if (next == Number_Explosions)
+                        {
+                            next = 0;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<(Count*Number_Explosions); i++) {
+        if (!useMusic && !useTiming)
         {
             if (cache->fireworkBursts[i].startPeriod == buffer.curPeriod) {
                 cache->fireworkBursts[i]._bActive = true;
@@ -277,5 +390,4 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             }
         }
     }
-
 }

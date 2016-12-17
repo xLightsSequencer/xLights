@@ -9,6 +9,7 @@
 #include <wx/bitmap.h>
 #include <wx/slider.h>
 #include <wx/settings.h>
+#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
 #include <wx/intl.h>
 #include <wx/image.h>
@@ -35,6 +36,10 @@ const long FireworksPanel::ID_BITMAPBUTTON_Fireworks_UseMusic = wxNewId();
 const long FireworksPanel::ID_STATICTEXT1 = wxNewId();
 const long FireworksPanel::ID_SLIDER_Fireworks_Sensitivity = wxNewId();
 const long FireworksPanel::ID_BITMAPBUTTON_Fireworks_Sensitivity = wxNewId();
+const long FireworksPanel::ID_CHECKBOX_FIRETIMING = wxNewId();
+const long FireworksPanel::ID_BITMAPBUTTON_FIRETIMING = wxNewId();
+const long FireworksPanel::ID_STATICTEXT2 = wxNewId();
+const long FireworksPanel::ID_CHOICE_FIRETIMINGTRACK = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(FireworksPanel,wxPanel)
@@ -92,6 +97,18 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 	BitmapButton_Fireworks_Sensitivity = new wxBitmapButton(this, ID_BITMAPBUTTON_Fireworks_Sensitivity, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Fireworks_Sensitivity"));
 	BitmapButton_Fireworks_Sensitivity->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer73->Add(BitmapButton_Fireworks_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_FireTiming = new wxCheckBox(this, ID_CHECKBOX_FIRETIMING, _("Fire with timing track"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FIRETIMING"));
+	CheckBox_FireTiming->SetValue(false);
+	FlexGridSizer73->Add(CheckBox_FireTiming, 1, wxALL|wxEXPAND, 5);
+	BitmapButton1 = new wxBitmapButton(this, ID_BITMAPBUTTON_FIRETIMING, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_FIRETIMING"));
+	BitmapButton1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer73->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Timing Track"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer73->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_TimingTrack = new wxChoice(this, ID_CHOICE_FIRETIMINGTRACK, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FIRETIMINGTRACK"));
+	FlexGridSizer73->Add(Choice_TimingTrack, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer73);
 	FlexGridSizer73->Fit(this);
 	FlexGridSizer73->SetSizeHints(this);
@@ -103,8 +120,9 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 	Connect(ID_CHECKBOX_Fireworks_UseMusic,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnCheckBox_Fireworks_UseMusicClick);
 	Connect(ID_BITMAPBUTTON_Fireworks_UseMusic,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_Fireworks_Sensitivity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_FIRETIMING,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
 	//*)
-    SetName("ID_PANEL_FIREWORKS");
+    wxWindowBase::SetName("ID_PANEL_FIREWORKS");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FireworksPanel::OnVCChanged, 0, this);
     ValidateWindow();
@@ -126,11 +144,93 @@ void FireworksPanel::ValidateWindow()
     {
         Slider_Fireworks_Sensitivity->Enable(false);
     }
+    if (CheckBox_FireTiming->GetValue())
+    {
+        Choice_TimingTrack->Enable(true);
+    }
+    else
+    {
+        Choice_TimingTrack->Enable(false);
+    }
 }
 
 PANEL_EVENT_HANDLERS(FireworksPanel)
 
 void FireworksPanel::OnCheckBox_Fireworks_UseMusicClick(wxCommandEvent& event)
 {
+    ValidateWindow();
+}
+
+void FireworksPanel::OnCheckBox_FireTimingClick(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void FireworksPanel::OnChoice_TimingTrackSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void FireworksPanel::SetTimingTrack(std::list<std::string> timingtracks) {
+
+    wxString selection = Choice_TimingTrack->GetStringSelection();
+
+    // check if anything has been removed ... if it has clear the list and we will have to rebuild it as you cant delete items from a combo box
+    bool removed = false;
+    for (int i = 0; i < Choice_TimingTrack->GetCount(); i++)
+    {
+        bool found = false;
+        for (auto it = timingtracks.begin(); it != timingtracks.end(); ++it)
+        {
+            if (*it == Choice_TimingTrack->GetString(i))
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            Choice_TimingTrack->Clear();
+            removed = true;
+            break;
+        }
+    }
+
+    // add any new timing tracks
+    for (auto it = timingtracks.begin(); it != timingtracks.end(); ++it)
+    {
+        bool found = false;
+        for (size_t i = 0; i < Choice_TimingTrack->GetCount(); i++)
+        {
+            if (*it == Choice_TimingTrack->GetString(i))
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            Choice_TimingTrack->Append(*it);
+        }
+    }
+
+    if (removed && Choice_TimingTrack->GetCount() > 0)
+    {
+        // go through the list and see if our selected item is there
+        bool found = false;
+        for (size_t i = 0; i < Choice_TimingTrack->GetCount(); i++)
+        {
+            if (selection == Choice_TimingTrack->GetString(i))
+            {
+                found = true;
+                Choice_TimingTrack->SetSelection(i);
+                break;
+            }
+        }
+        if (!found)
+        {
+            Choice_TimingTrack->SetSelection(0);
+        }
+    }
     ValidateWindow();
 }

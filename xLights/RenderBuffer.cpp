@@ -59,7 +59,7 @@ inline void unshare(const wxObject &o2) {
 
 AudioManager* RenderBuffer::GetMedia()
 {
-	if (xLightsFrame::CurrentSeqXmlFile == NULL)
+	if (xLightsFrame::CurrentSeqXmlFile == nullptr)
 	{
 		return NULL;
 	}

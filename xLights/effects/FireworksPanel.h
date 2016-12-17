@@ -8,7 +8,10 @@ class wxStaticText;
 class wxSlider;
 class wxBitmapButton;
 class wxFlexGridSizer;
+class wxChoice;
 //*)
+
+#include <list>
 
 class FireworksPanel: public wxPanel
 {
@@ -17,14 +20,18 @@ class FireworksPanel: public wxPanel
 
 		FireworksPanel(wxWindow* parent);
 		virtual ~FireworksPanel();
+        void SetTimingTrack(std::list<std::string> timingtracks);
 
 		//(*Declarations(FireworksPanel)
 		wxSlider* Slider_Fireworks_Velocity;
 		wxSlider* Slider_Fireworks_Sensitivity;
+		wxStaticText* StaticText2;
+		wxChoice* Choice_TimingTrack;
 		wxBitmapButton* BitmapButton_Fireworks_Sensitivity;
 		wxBitmapButton* BitmapButton_FireworksCount;
 		wxSlider* Slider_Fireworks_Fade;
 		wxStaticText* StaticText1;
+		wxBitmapButton* BitmapButton1;
 		wxStaticText* StaticText94;
 		wxCheckBox* CheckBox_Fireworks_UseMusic;
 		wxBitmapButton* BitmapButton_FireworksVelocity;
@@ -32,6 +39,7 @@ class FireworksPanel: public wxPanel
 		wxStaticText* StaticText91;
 		wxStaticText* StaticText93;
 		wxStaticText* StaticText95;
+		wxCheckBox* CheckBox_FireTiming;
 		wxBitmapButton* BitmapButton_FireworksFade;
 		wxSlider* Slider_Fireworks_Count;
 		wxBitmapButton* BitmapButton_FireworksNumberExplosions;
@@ -58,6 +66,10 @@ class FireworksPanel: public wxPanel
 		static const long ID_STATICTEXT1;
 		static const long ID_SLIDER_Fireworks_Sensitivity;
 		static const long ID_BITMAPBUTTON_Fireworks_Sensitivity;
+		static const long ID_CHECKBOX_FIRETIMING;
+		static const long ID_BITMAPBUTTON_FIRETIMING;
+		static const long ID_STATICTEXT2;
+		static const long ID_CHOICE_FIRETIMINGTRACK;
 		//*)
 
 	public:
@@ -71,11 +83,13 @@ class FireworksPanel: public wxPanel
 		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnCheckBox_Fireworks_UseMusicClick(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+		void OnVCButtonClick(wxCommandEvent& event);
+		void OnVCChanged(wxCommandEvent& event);
+		void OnCheckBox_FireTimingClick(wxCommandEvent& event);
+		void OnChoice_TimingTrackSelect(wxCommandEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

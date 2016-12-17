@@ -155,15 +155,15 @@ void PianoEffect::RenameTimingTrack(std::string oldname, std::string newname, Ef
 void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     RenderPiano(buffer,
-        effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
-        SettingsMap.GetInt("SPINCTRL_Piano_StartMIDI"),
-		SettingsMap.GetInt("SPINCTRL_Piano_EndMIDI"),
-		SettingsMap.GetBool("CHECKBOX_Piano_ShowSharps"),
-		std::string(SettingsMap.Get("CHOICE_Piano_Type", "True Piano")),
-		GetValueCurveInt("Piano_Scale", 100, SettingsMap, oset),
-		std::string(SettingsMap.Get("CHOICE_Piano_MIDITrack_APPLYLAST", "")),
-        SettingsMap.GetInt("SLIDER_Piano_XOffset", 0)
-        );
+                effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
+                SettingsMap.GetInt("SPINCTRL_Piano_StartMIDI"),
+		        SettingsMap.GetInt("SPINCTRL_Piano_EndMIDI"),
+		        SettingsMap.GetBool("CHECKBOX_Piano_ShowSharps"),
+		        std::string(SettingsMap.Get("CHOICE_Piano_Type", "True Piano")),
+		        GetValueCurveInt("Piano_Scale", 100, SettingsMap, oset),
+		        std::string(SettingsMap.Get("CHOICE_Piano_MIDITrack_APPLYLAST", "")),
+                SettingsMap.GetInt("SLIDER_Piano_XOffset", 0)
+                );
 }
 
 class PianoCache : public EffectRenderCache
@@ -202,7 +202,12 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, SequenceElements *elements, 
         }
 
 		_MIDITrack = MIDITrack;
-	}
+    
+        if (_MIDITrack != "")
+        {
+            elements->AddRenderDependency(_MIDITrack, buffer.cur_model);
+        }
+    }
 
     int em = endmidi;
 
@@ -440,7 +445,7 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 	if (border)
 	{
 		x = fwkw + truexoffset;
-		for (int i = 0; i < wkcount; i++)
+		for (int j = 0; j < wkcount; j++)
 		{
 			buffer.DrawLine(x, 0, x, buffer.BufferHt * scale / 100, kbcolour);
 			x += fwkw;
@@ -648,9 +653,8 @@ std::list<std::string> PianoEffect::ExtractNotes(std::string& label)
 
 int PianoEffect::ConvertNote(std::string& note)
 {
-    int number = -1;
     std::string n = note;
-    int nletter = -1;
+    int nletter;
     std::transform(n.begin(), n.end(), n.begin(), ::toupper);
 
     switch (n[0])
@@ -677,10 +681,12 @@ int PianoEffect::ConvertNote(std::string& note)
         nletter = 7;
         break;
     default:
-        number = wxAtoi(n);
-        if (number < 0) number = 0;
-        if (number > 127) number = 127;
-        return number;
+        {
+            int number = wxAtoi(n);
+            if (number < 0) number = 0;
+            if (number > 127) number = 127;
+            return number;
+        }
     }
 
     n = n.substr(1);
@@ -713,7 +719,7 @@ int PianoEffect::ConvertNote(std::string& note)
         octave = wxAtoi(n);
     }
 
-    number = 12 + (octave * 12) + nletter + sharp;
+    int number = 12 + (octave * 12) + nletter + sharp;
     if (number < 0) number = 0;
     if (number > 127) number = 127;
     return number;
