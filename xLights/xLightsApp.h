@@ -21,6 +21,8 @@
 
 class xLightsApp : public wxApp
 {
+    void WipeSettings();
+
 public:
     virtual bool OnInit();
     static bool WantDebug; //debug flag from command-line -DJ
@@ -31,7 +33,6 @@ public:
     static wxArrayString sequenceFiles;
 
     virtual void OnFatalException();
-
 };
 
 #endif // XLIGHTSAPP_H

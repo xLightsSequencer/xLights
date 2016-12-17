@@ -18,6 +18,7 @@
 #include "xLightsMain.h"
 #include <wx/image.h>
 //*)
+#include <wx/config.h>
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
@@ -32,7 +33,6 @@
 #include <execinfo.h>
 #else
 #include <wx/textfile.h>
-#include <algorithm>
 #include <windows.h>
 #include <imagehlp.h>
 
@@ -338,10 +338,10 @@ void handleCrash(void *data) {
     }
 
     if (topFrame->GetSeqXmlFileName() != "") {
-        wxFileName fn(topFrame->GetSeqXmlFileName());
-        if (fn.Exists() && !fn.IsDir()) {
-            report->AddFile(topFrame->GetSeqXmlFileName(), fn.GetName());
-            wxFileName fnb(fn.GetPath() + "/" + fn.GetName() + ".xbkp");
+        wxFileName fn2(topFrame->GetSeqXmlFileName());
+        if (fn2.Exists() && !fn2.IsDir()) {
+            report->AddFile(topFrame->GetSeqXmlFileName(), fn2.GetName());
+            wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
             if (fnb.Exists())
             {
                 report->AddFile(fnb.GetFullPath(), fnb.GetName());
@@ -455,7 +455,8 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "d", "debug", "enable debug mode"},
         { wxCMD_LINE_SWITCH, "r", "render", "render files and exit"},
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
-        { wxCMD_LINE_OPTION, "s", "show", "specify show directory"},
+        { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
+        { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
         { wxCMD_LINE_PARAM, "", "", "sequence file", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL | wxCMD_LINE_PARAM_MULTIPLE},
         { wxCMD_LINE_NONE }
     };
@@ -466,6 +467,11 @@ bool xLightsApp::OnInit()
         // help was given
         return false;
     case 0:
+        if (parser.Found("w"))
+        {
+            info += _("Wiping settings\n");
+            WipeSettings();
+        }
         WantDebug = parser.Found("d");
         if (WantDebug) {
             info += _("Debug is ON\n");
@@ -530,6 +536,14 @@ void xLightsApp::OnFatalException() {
     handleCrash(NULL);
 }
 
+void xLightsApp::WipeSettings()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Wiping settings.");
+
+    wxConfigBase* config = wxConfigBase::Get();
+    config->DeleteAll();
+}
 
 //global flags from command line:
 bool xLightsApp::WantDebug = false;
