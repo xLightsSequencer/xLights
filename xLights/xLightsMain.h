@@ -876,7 +876,7 @@ private:
     int effGridPrevY;
 
 
-    void DoBackup(bool prompt = true, bool startup = false);
+    void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
     void DoAltBackup(bool prompt = true);
     void SetPlayMode(play_modes newmode);
     static double rand01();
@@ -1070,8 +1070,8 @@ protected:
     void ResetEffectsXml();
     void SeqLoadXlightsXSEQ(const wxString& filename);
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
-    void CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName);
-    void BackupDirectory(wxString targetDirName);
+    void CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, bool forceallfiles);
+    void BackupDirectory(wxString targetDirName, bool forceallfiles);
     void NewSequence();
     void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
     void SaveSequence();

@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) When opening sequence check for a newer xbkp file. If it exists prompt the user to use it instead.
    -- enh (keithsw) Add -w command line switch which wipes all saved settings restoring machine settings back to a true fresh install
    -- enh (keithsw) Add checks for large blocks of unused channels between models
    -- enh (keithsw) Add fireworks fire with timing mark

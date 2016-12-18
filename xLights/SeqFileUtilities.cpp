@@ -170,6 +170,41 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             return;
         }
 
+        // check if there is a autosave backup file which is newer than the file we have been asked to open
+        wxFileName fn(filename);
+        wxFileName xx = fn;
+        xx.SetExt("xbkp");
+        wxString asfile = xx.GetLongPath();
+
+        if (wxFile::Exists(asfile))
+        {
+            // the autosave file exists
+            wxDateTime xmltime = fn.GetModificationTime();
+            wxFileName asfn(asfile);
+            wxDateTime xbkptime = asfn.GetModificationTime();
+
+            if (xbkptime > xmltime)
+            {
+                // autosave file is newer
+                if (wxMessageBox("Autosaved file found which seems to be newer than your sequence file ... would you like to open that instead and replace your xml file?", "Newer file found", wxYES_NO) == wxYES)
+                {
+                    // run a backup ... equivalent of a F10
+                    DoBackup(false, false, true);
+
+                    // delete the old xml file
+                    wxRemoveFile(filename);
+
+                    // rename the autosave file
+                    wxRenameFile(asfile, filename);
+                }
+                else
+                {
+                    // Touch the xml file to stop this prompt occuring again
+                    fn.Touch();
+                }
+            }
+        }
+
         wxStopWatch sw; // start a stopwatch timer
 
         wxFileName selected_file(filename);

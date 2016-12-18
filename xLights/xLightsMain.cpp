@@ -2095,7 +2095,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 	logger_base.info("xLights Closed.");
 }
 
-void xLightsFrame::DoBackup(bool prompt, bool startup)
+void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 {
     wxString folderName;
     time_t cur;
@@ -2134,7 +2134,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup)
         return;
     }
 
-    BackupDirectory(newDir);
+    BackupDirectory(newDir, forceallfiles);
 }
 
 void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
@@ -2144,7 +2144,7 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
     DoBackup(true);
 }
 
-void xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName)
+void xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, bool forceallfiles)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString fname;
@@ -2160,7 +2160,7 @@ void xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
         srcFile.SetFullName(fname);
 
         wxULongLong fsize = srcFile.GetSize();
-        if (fsize > 20 * 1024 * 1024) // skip any xml files > 20 mbytes, they are something other than xml files
+        if (!forceallfiles && fsize > 20 * 1024 * 1024) // skip any xml files > 20 mbytes, they are something other than xml files
         {
             cont = srcDir.GetNext(&fname);
             continue;
@@ -2177,7 +2177,7 @@ void xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
     }
 }
 
-void xLightsFrame::BackupDirectory(wxString targetDirName)
+void xLightsFrame::BackupDirectory(wxString targetDirName, bool forceallfiles)
 {
     wxDir srcDir(CurrentDir);
 
@@ -2186,8 +2186,8 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
         return;
     }
 
-    CopyFiles("*.xml", srcDir, targetDirName);
-    CopyFiles("*.xbkp", srcDir, targetDirName);
+    CopyFiles("*.xml", srcDir, targetDirName, forceallfiles);
+    CopyFiles("*.xbkp", srcDir, targetDirName, forceallfiles);
 
     SetStatusText("All xml files backed up.");
 }
@@ -3379,7 +3379,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
         return;
     }
 
-    BackupDirectory(newDir);
+    BackupDirectory(newDir, false);
 }
 
 void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)
