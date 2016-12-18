@@ -17,7 +17,7 @@ class PinwheelEffect : public RenderableEffect
     private:
     
         void Draw_arm(RenderBuffer &buffer,
-                      int base_degrees,int max_radius,int pinwheel_twist,
+                      float base_degrees,int max_radius,int pinwheel_twist,
                       const xlColor &rgb,int xc_adj,int yc_adj);
 
 };

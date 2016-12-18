@@ -66,40 +66,43 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
 
     int a,xc,ColorIdx,base_degrees;
     float t,tmax;
-    float radius;
     HSVValue hsv,hsv0,hsv1;
     size_t colorcnt=buffer.GetColorCount();
 
     xc= (int)(std::max(buffer.BufferWi, buffer.BufferHt)/2);
-    //
-    //  phi = a +b*phi
-    radius = xc/100.0;
 
     double pos = (buffer.curPeriod - buffer.curEffStartPer) * pspeed * buffer.frameTimeInMs / 50;
 
     int degrees_per_arm=1;
     if(pinwheel_arms>0) degrees_per_arm= 360/pinwheel_arms;
     float armsize = (pinwheel_armsize/100.0);
-    for(a=1; a<=pinwheel_arms; a++)
+    int max_radius = xc * armsize;
+    if(pinwheel_thickness==0) pinwheel_thickness=1;
+    tmax= (pinwheel_thickness/100.0)*degrees_per_arm;
+    for( int x = 0; x < buffer.BufferWi; x++ )
     {
-        ColorIdx=a%colorcnt;
-        buffer.palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-        if(pinwheel_rotation==1) // do we have CW rotation
+        int x1 = x - xc_adj - (buffer.BufferWi/2);
+        for( int y = 0; y < buffer.BufferHt; y++ )
         {
-            base_degrees = (a-1)*degrees_per_arm + pos; // yes
-        }
-        else
-        {
-            base_degrees = (a-1)*degrees_per_arm - pos; // no, we are CCW
-        }
-        Draw_arm(buffer, base_degrees, xc*armsize, pinwheel_twist,hsv,xc_adj,yc_adj);
-        if(pinwheel_thickness>0)
-        {
-            tmax= (pinwheel_thickness/100.0)*degrees_per_arm/2.0;
-            hsv1=hsv;
-            xlColor color(hsv1);
-            for (t=1; t<=tmax; t++)
+            int y1 = y - yc_adj - (buffer.BufferHt/2);
+            double r=std::hypot(x1,y1);
+            if (r <= max_radius) {
+            double degrees_twist=(r/max_radius)*pinwheel_twist;
+            double theta=(std::atan2(x1,y1)*180/3.14159) + degrees_twist;
+            if(pinwheel_rotation==1) // do we have CW rotation
             {
+                theta=pos + theta;
+            } else {
+                theta=pos - theta;
+            }
+            theta = theta + 180.0;
+            int ColorIdx = (int)((theta/degrees_per_arm))%colorcnt;
+            int t = (int)theta%degrees_per_arm;
+            if (t <= tmax) {
+                t =abs( t - (tmax/2)) * 2;
+                buffer.palette.GetHSV(ColorIdx, hsv);
+                hsv1=hsv;
+                xlColor color(hsv1);
                 if(pinwheel_3d=="3D")
                 {
                     if (buffer.allowAlpha) {
@@ -118,34 +121,10 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
                         color = hsv1;
                     }
                 }
-                Draw_arm(buffer, base_degrees-t, xc*armsize, pinwheel_twist,color,xc_adj,yc_adj);
-                Draw_arm(buffer, base_degrees+t, xc*armsize, pinwheel_twist,color,xc_adj,yc_adj);
+                buffer.SetPixel(x,y,color);
+            }
             }
         }
     }
 }
 
-void PinwheelEffect::Draw_arm(RenderBuffer &buffer,
-                              int base_degrees,int max_radius,int pinwheel_twist,
-                              const xlColor &rgb,int xc_adj,int yc_adj)
-{
-    float r,phi;
-    int x,y,xc,yc;
-    float pi_180 = M_PI/180;
-    int degrees_twist,degrees;
-    xc= (int)(buffer.BufferWi/2);
-    yc= (int)(buffer.BufferHt/2);
-    xc = xc + (xc_adj/100.0)*xc; // xc_adj is from -100 to 100
-    yc = yc + (yc_adj/100.0)*yc;
-
-
-    for(r=0.0; r<=max_radius; r+=0.5)
-    {
-        degrees_twist=(r/max_radius)*pinwheel_twist;
-        degrees = base_degrees + degrees_twist;
-        phi = degrees * pi_180;
-        x = r * buffer.cos (phi) + xc;
-        y = r * buffer.sin (phi) + yc;
-        buffer.SetPixel(x, y, rgb);
-    }
-}
