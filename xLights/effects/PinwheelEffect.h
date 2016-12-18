@@ -14,11 +14,6 @@ class PinwheelEffect : public RenderableEffect
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
-    private:
-    
-        void Draw_arm(RenderBuffer &buffer,
-                      float base_degrees,int max_radius,int pinwheel_twist,
-                      const xlColor &rgb,int xc_adj,int yc_adj);
 
 };
 

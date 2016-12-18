@@ -68,6 +68,8 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     float t,tmax;
     HSVValue hsv,hsv0,hsv1;
     size_t colorcnt=buffer.GetColorCount();
+    size_t colorarray[pinwheel_arms];
+    for (int i=0;i< pinwheel_arms;i++) { colorarray[i]=i%buffer.GetColorCount(); }
 
     xc= (int)(std::max(buffer.BufferWi, buffer.BufferHt)/2);
 
@@ -87,42 +89,42 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
             int y1 = y - yc_adj - (buffer.BufferHt/2);
             double r=std::hypot(x1,y1);
             if (r <= max_radius) {
-            double degrees_twist=(r/max_radius)*pinwheel_twist;
-            double theta=(std::atan2(x1,y1)*180/3.14159) + degrees_twist;
-            if(pinwheel_rotation==1) // do we have CW rotation
-            {
-                theta=pos + theta;
-            } else {
-                theta=pos - theta;
-            }
-            theta = theta + 180.0;
-            int ColorIdx = (int)((theta/degrees_per_arm))%colorcnt;
-            int t = (int)theta%degrees_per_arm;
-            if (t <= tmax) {
-                t =abs( t - (tmax/2)) * 2;
-                buffer.palette.GetHSV(ColorIdx, hsv);
-                hsv1=hsv;
-                xlColor color(hsv1);
-                if(pinwheel_3d=="3D")
+                double degrees_twist=(r/max_radius)*pinwheel_twist;
+                double theta=(std::atan2(x1,y1)*180/3.14159) + degrees_twist;
+                if(pinwheel_rotation==1) // do we have CW rotation
                 {
-                    if (buffer.allowAlpha) {
-                        color.alpha = 255.0 * ((tmax-t)/tmax);
-                    } else {
-                        hsv1.value = hsv.value * ((tmax-t)/tmax);
-                        color = hsv1;
-                    }
+                    theta=pos + theta;
+                } else {
+                    theta=pos - theta;
                 }
-                else if(pinwheel_3d=="3D Inverted")
-                {
-                    if (buffer.allowAlpha) {
-                        color.alpha = 255.0 * ((t)/tmax);
-                    } else {
-                        hsv1.value = hsv.value * ((t)/tmax);
-                        color = hsv1;
+                theta = theta + 180.0;
+                int t = (int)theta%degrees_per_arm;
+                if (t <= tmax) {
+                    t = abs(t - (tmax/2)) * 2;
+                    int ColorIdx = ((int)((theta/degrees_per_arm)))%pinwheel_arms;
+                    buffer.palette.GetHSV(colorarray[ColorIdx], hsv);
+                    hsv1=hsv;
+                    xlColor color(hsv1);
+                    if(pinwheel_3d=="3D")
+                    {
+                        if (buffer.allowAlpha) {
+                            color.alpha = 255.0 * ((tmax-t)/tmax);
+                        } else {
+                            hsv1.value = hsv.value * ((tmax-t)/tmax);
+                            color = hsv1;
+                        }
                     }
+                    else if(pinwheel_3d=="3D Inverted")
+                    {
+                        if (buffer.allowAlpha) {
+                            color.alpha = 255.0 * ((t)/tmax);
+                        } else {
+                            hsv1.value = hsv.value * ((t)/tmax);
+                            color = hsv1;
+                        }
+                    }
+                    buffer.SetPixel(x,y,color);
                 }
-                buffer.SetPixel(x,y,color);
-            }
             }
         }
     }
