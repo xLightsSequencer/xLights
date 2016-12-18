@@ -147,8 +147,9 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
         }
     }
 
-    double adjust = buffer.GetEffectTimeIntervalPosition(cycles);
+    bool spatialcolour = buffer.palette.IsSpatial(cidx);
 
+    double adjust = buffer.GetEffectTimeIntervalPosition(cycles);
 
     xlColor color;
     if (start == 100 && end == 100) {
@@ -214,9 +215,28 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
     {
         for (y=0; y<buffer.BufferHt; y++)
         {
+            if (spatialcolour)
+            {
+                buffer.palette.GetSpatialColor(cidx, (float)x / (float)buffer.BufferWi, (float)y / (float)buffer.BufferHt, color);
+                if (start == 100 && end == 100) {
+                }
+                else {
+                    HSVValue hsv = color.asHSV();
+                    double d = adjust;
+                    d = start + (end - start) * d;
+                    d = d / 100.0;
+                    hsv.value = hsv.value * d;
+                    color = hsv;
+                }
+                if (transparency) {
+                    color.alpha = 255 - transparency;
+                }
+            }
+
             buffer.SetPixel(x,y,color);
         }
     }
+
     if (shimmer || cycles != 1.0) {
         std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
         eff->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);

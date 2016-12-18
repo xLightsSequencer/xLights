@@ -152,6 +152,7 @@ public:
         void UpdateTouchBarSlider(wxScrollEvent& event);
 		//*)
 
+        void OnCCButtonClick(wxCommandEvent& event);
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
         void OnColourChoiceDropDown(wxCommandEvent& event);

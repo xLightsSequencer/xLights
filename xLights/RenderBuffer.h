@@ -215,7 +215,49 @@ public:
                 c = color[idx];
         }
     }
-    void GetColor(size_t idx, xlColor& c, float progress)
+
+    bool IsSpatial(size_t idx) const
+    {
+        if (idx >= color.size()) return false;
+        return (cc[idx].IsActive() && cc[idx].GetTimeCurve() != TC_TIME);
+    }
+    
+    void GetSpatialColor(size_t idx, float x, float y, xlColor& c) const
+    {
+        if (idx >= color.size())
+        {
+            c.Set(255, 255, 255);
+        }
+        else
+        {
+            if (cc[idx].IsActive())
+            {
+                switch (cc[idx].GetTimeCurve())
+                {
+                case TC_RIGHT:
+                    c = cc[idx].GetValueAt(x);
+                    break;
+                case TC_LEFT:
+                    c = cc[idx].GetValueAt(1.0 - x);
+                    break;
+                case TC_UP:
+                    c = cc[idx].GetValueAt(y);
+                    break;
+                case TC_DOWN:
+                    c = cc[idx].GetValueAt(1.0 - y);
+                    break;
+                default:
+                    c = color[idx];
+                    break;
+                }
+            }
+            else
+            {
+                c = color[idx];
+            }
+        }
+    }
+    void GetColor(size_t idx, xlColor& c, float progress) const
     {
         if (idx >= color.size())
         {

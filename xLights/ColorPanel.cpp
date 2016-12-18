@@ -5,6 +5,12 @@
 #include "../include/padlock16x16-red.xpm" //-DJ
 #include "../include/padlock16x16-blue.xpm" //-DJ
 #include "ColorCurve.h"
+#include "../include/cc_time.xpm"
+#include "../include/cc_left.xpm"
+#include "../include/cc_right.xpm"
+#include "../include/cc_up.xpm"
+#include "../include/cc_down.xpm"
+#include "../include/cc_na.xpm"
 
 class xLightsFrame;
 //(*InternalHeaders(ColorPanel)
@@ -181,7 +187,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer11->AddGrowableCol(1);
 	BitmapButton_ShuffleColours = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON4, wxNullBitmap, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
 	FlexGridSizer11->Add(BitmapButton_ShuffleColours, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_ColourChoice = new ColourList(ColorScrollWindow,ID_CUSTOM1,wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,_T("ID_CUSTOM1"));
+	BitmapButton_ColourChoice = new ColourList(ColorScrollWindow,ID_CUSTOM1,wxDefaultPosition,wxDefaultSize, 0, wxDefaultValidator,_T("ID_CUSTOM1"));
 	FlexGridSizer11->Add(BitmapButton_ColourChoice, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_SavePalette = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON3, wxNullBitmap, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
 	FlexGridSizer11->Add(BitmapButton_SavePalette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -273,7 +279,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_SavePaletteClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnUpdateColorClick);
 	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_DeletePaletteClick);
-    Connect(ID_SLIDER_SparkleFrequency,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateTouchBarSlider);
+	Connect(ID_SLIDER_SparkleFrequency,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrlVC);
 	Connect(ID_VALUECURVE_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_SparkleFrequency,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
@@ -325,6 +331,15 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
         bb->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
         FlexGridSizer_Palette->Add(bb, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
         Connect(id2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
+    }
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_PaletteCC%d", (x + 1));
+        long id2 = wxNewId();
+        wxBitmapButton *bb = new wxBitmapButton(ColorScrollWindow, id2, cc_na_xpm, wxDefaultPosition, wxSize(13, 13), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, ids);
+        bb->SetDefault();
+        bb->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+        FlexGridSizer_Palette->Add(bb, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+        Connect(id2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnCCButtonClick);
     }
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -464,7 +479,6 @@ ColorPanel::~ColorPanel()
 	//(*Destroy(ColorPanel)
 	//*)
 }
-
 
 PANEL_EVENT_HANDLERS(ColorPanel)
 
@@ -783,6 +797,40 @@ void ColorPanel::OnCheckBox_MusicSparklesClick(wxCommandEvent& event)
 
 void ColorPanel::ValidateWindow()
 {
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        wxString ccbids = wxString::Format("ID_BUTTON_Palette%d", (x + 1));
+        ColorCurveButton* ccb = (ColorCurveButton*)wxWindow::FindWindowByName(ccbids, this);
+        wxString tsids = wxString::Format("ID_BITMAPBUTTON_BUTTON_PaletteCC%d", (x + 1));
+        wxBitmapButton* ts = (wxBitmapButton*)wxWindow::FindWindowByName(tsids, this);
+
+        if (ccb->GetValue()->IsActive())
+        {
+            switch(ccb->GetValue()->GetTimeCurve())
+            {
+            case TC_TIME:
+                ts->SetBitmap(cc_time_xpm);
+                break;
+            case TC_LEFT:
+                ts->SetBitmap(cc_left_xpm);
+                break;
+            case TC_RIGHT:
+                ts->SetBitmap(cc_right_xpm);
+                break;
+            case TC_UP:
+                ts->SetBitmap(cc_up_xpm);
+                break;
+            case TC_DOWN:
+                ts->SetBitmap(cc_down_xpm);
+                break;
+            }
+        }
+        else
+        {
+            // it should already be this
+            ts->SetBitmap(cc_na_xpm);
+        }
+    }
+
     // only enable save if this palette was not loaded from disk or has been saved to disk
     wxString pal = wxString(GetCurrentPalette()).BeforeLast(',');
     for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it)
@@ -973,5 +1021,19 @@ void ColorPanel::OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event)
         }
     }
 
+    ValidateWindow();
+}
+
+void ColorPanel::OnCCButtonClick(wxCommandEvent& event)
+{
+    wxBitmapButton* bb = static_cast<wxBitmapButton*>(event.GetEventObject());
+    int id = wxAtoi(bb->GetName().Right(1));
+    wxString ccbids = wxString::Format("ID_BUTTON_Palette%d", id);
+    ColorCurveButton* ccb = (ColorCurveButton*)wxWindow::FindWindowByName(ccbids, this);
+
+    if (ccb->GetValue()->IsActive())
+    {
+        ccb->GetValue()->NextTimeCurve();
+    }
     ValidateWindow();
 }

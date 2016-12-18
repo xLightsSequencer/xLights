@@ -18,6 +18,7 @@ ColorCurve::ColorCurve(const std::string& id, const std::string type, xlColor c)
 {
     _type = type;
     _id = id;
+    _timecurve = TC_TIME;
     _values.push_back(ccSortableColorPoint(0.5, c));
     _active = false;
 }
@@ -27,6 +28,7 @@ ColorCurve::ColorCurve(const std::string& s)
     _type = "Gradient";
     _values.clear();
     _active = false;
+    _timecurve = TC_TIME;
     Deserialise(s);
 
     if (_values.size() == 0)
@@ -41,17 +43,20 @@ void ColorCurve::Deserialise(const std::string& s)
     {
         _type = "Gradient";
         _active = false;
+        _timecurve = TC_TIME;
         _values.clear();
     }
     else if (s.find('|') == std::string::npos)
     {
         _active = false;
+        _timecurve = TC_TIME;
         _id = s;
         _values.clear();
     }
     else
     {
         _active = true;
+        _timecurve = TC_TIME;
         _values.clear();
         _type = "Gradient";
         wxArrayString v = wxSplit(wxString(s.c_str()), '|');
@@ -86,6 +91,10 @@ std::string ColorCurve::Serialise()
         if (_type != "Gradient")
         {
             res += "Type=" + _type + "|";
+        }
+        if (_timecurve != TC_TIME)
+        {
+            res += "Timecurve=" + wxString::Format("%d", _timecurve).ToStdString() + "|";
         }
         res += "Values=";
         for (auto it = _values.begin(); it != _values.end(); ++it)
@@ -128,7 +137,11 @@ void ColorCurve::SetSerialisedValue(std::string k, std::string s)
     {
         _type = s;
     }
-        else if (kk == "Values")
+    else if (kk == "Timecurve")
+    {
+        _timecurve = wxAtoi(s);
+    }
+    else if (kk == "Values")
         {
             wxArrayString points = wxSplit(s, ';');
 

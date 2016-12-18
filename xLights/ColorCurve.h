@@ -124,12 +124,19 @@ public:
     }
 };
 
+#define TC_TIME 0
+#define TC_RIGHT 1
+#define TC_DOWN 2
+#define TC_LEFT 3
+#define TC_UP 4
+
 class ColorCurve
 {
     std::list<ccSortableColorPoint> _values;
     std::string _type;
     std::string _id;
     bool _active;
+    int _timecurve;
 
     void SetSerialisedValue(std::string k, std::string v);
     const ccSortableColorPoint* GetActivePoint(float x, float& duration) const;
@@ -137,9 +144,11 @@ class ColorCurve
     const ccSortableColorPoint* GetNextActivePoint(float x, float& duration) const;
 
 public:
+    void NextTimeCurve() { _timecurve++; if (_timecurve > TC_UP) _timecurve = TC_TIME; }
+    int GetTimeCurve() const { return _timecurve; }
     std::string GetId() const { return _id; }
     void SetId(std::string& id) { _id = id; }
-    ColorCurve() { ColorCurve(""); _active = false; };
+    ColorCurve() { ColorCurve(""); _active = false; _timecurve = true; };
     ColorCurve(const std::string& serialised);
     ColorCurve(const std::string& id, const std::string type, xlColor c = xlBLACK);
     std::string Serialise();
