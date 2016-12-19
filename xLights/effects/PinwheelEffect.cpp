@@ -71,7 +71,7 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     colorarray.resize(pinwheel_arms);
     for (int i=0;i< pinwheel_arms;i++) { colorarray[i]=i%buffer.GetColorCount(); }
 
-    xc= (int)(std::max(buffer.BufferWi, buffer.BufferHt)/2);
+    xc= (int)(ceil(std::hypot(buffer.BufferWi, buffer.BufferHt)/2));
 
     double pos = (buffer.curPeriod - buffer.curEffStartPer) * pspeed * buffer.frameTimeInMs / 50;
 
