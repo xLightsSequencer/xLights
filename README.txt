@@ -8,6 +8,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (cjd) Rewrite pinwheel effect to handle larger buffer sizes cleanly
+   -- enh (keithsw) Reset buffer panel when selecting a new effect
    -- enh (keithsw) Reset buffer panel when selecting a new effect
    -- enh (keithsw) Add spatial colour curves on the On effect
    -- enh (keithsw) When opening sequence check for a newer xbkp file. If it exists prompt the user to use it instead.
