@@ -64,11 +64,10 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     int pinwheel_armsize = GetValueCurveInt("Pinwheel_ArmSize", 100, SettingsMap, oset);
     int pspeed = GetValueCurveInt("Pinwheel_Speed", 10, SettingsMap, oset);
 
-    int a,xc,ColorIdx,base_degrees;
-    float t,tmax;
-    HSVValue hsv,hsv0,hsv1;
-    size_t colorcnt=buffer.GetColorCount();
-    size_t colorarray[pinwheel_arms];
+    int xc;
+    float tmax;
+    HSVValue hsv, hsv1;
+    std::vector<size_t> colorarray;
     for (int i=0;i< pinwheel_arms;i++) { colorarray[i]=i%buffer.GetColorCount(); }
 
     xc= (int)(std::max(buffer.BufferWi, buffer.BufferHt)/2);
@@ -98,28 +97,28 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
                     theta=pos - theta;
                 }
                 theta = theta + 180.0;
-                int t = (int)theta%degrees_per_arm;
-                if (t <= tmax) {
-                    t = abs(t - (tmax/2)) * 2;
-                    int ColorIdx = ((int)((theta/degrees_per_arm)))%pinwheel_arms;
-                    buffer.palette.GetHSV(colorarray[ColorIdx], hsv);
+                int t2 = (int)theta%degrees_per_arm;
+                if (t2 <= tmax) {
+                    t2 = abs(t2 - (tmax/2)) * 2;
+                    int ColorIdx2 = ((int)((theta/degrees_per_arm)))%pinwheel_arms;
+                    buffer.palette.GetHSV(colorarray[ColorIdx2], hsv);
                     hsv1=hsv;
                     xlColor color(hsv1);
                     if(pinwheel_3d=="3D")
                     {
                         if (buffer.allowAlpha) {
-                            color.alpha = 255.0 * ((tmax-t)/tmax);
+                            color.alpha = 255.0 * ((tmax-t2)/tmax);
                         } else {
-                            hsv1.value = hsv.value * ((tmax-t)/tmax);
+                            hsv1.value = hsv.value * ((tmax-t2)/tmax);
                             color = hsv1;
                         }
                     }
                     else if(pinwheel_3d=="3D Inverted")
                     {
                         if (buffer.allowAlpha) {
-                            color.alpha = 255.0 * ((t)/tmax);
+                            color.alpha = 255.0 * ((t2)/tmax);
                         } else {
-                            hsv1.value = hsv.value * ((t)/tmax);
+                            hsv1.value = hsv.value * ((t2)/tmax);
                             color = hsv1;
                         }
                     }
