@@ -75,6 +75,8 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
 
     double pos = (buffer.curPeriod - buffer.curEffStartPer) * pspeed * buffer.frameTimeInMs / 50;
 
+    xc_adj = xc_adj*buffer.BufferWi/200;
+    yc_adj = yc_adj*buffer.BufferHt/200;
     int degrees_per_arm=1;
     if(pinwheel_arms>0) degrees_per_arm= 360/pinwheel_arms;
     float armsize = (pinwheel_armsize/100.0);
