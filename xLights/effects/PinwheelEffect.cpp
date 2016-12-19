@@ -68,6 +68,7 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     float tmax;
     HSVValue hsv, hsv1;
     std::vector<size_t> colorarray;
+    colorarray.resize(pinwheel_arms);
     for (int i=0;i< pinwheel_arms;i++) { colorarray[i]=i%buffer.GetColorCount(); }
 
     xc= (int)(std::max(buffer.BufferWi, buffer.BufferHt)/2);

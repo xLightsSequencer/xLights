@@ -6,6 +6,7 @@
 #include "../include/padlock16x16-blue.xpm" //-DJ
 #include "ColorCurve.h"
 #include "../include/cc_time.xpm"
+#include "../include/cc_timelocked.xpm"
 #include "../include/cc_left.xpm"
 #include "../include/cc_right.xpm"
 #include "../include/cc_up.xpm"
@@ -145,6 +146,7 @@ END_EVENT_TABLE()
 
 ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size) : touchBar(nullptr)
 {
+    _timecconly = true;
     __brightness = 100;
     wxIntegerValidator<int> _brightness(&__brightness, wxNUM_VAL_THOUSANDS_SEPARATOR);
     _brightness.SetMin(0);
@@ -805,23 +807,30 @@ void ColorPanel::ValidateWindow()
 
         if (ccb->GetValue()->IsActive())
         {
-            switch(ccb->GetValue()->GetTimeCurve())
+            if (_timecconly)
             {
-            case TC_TIME:
-                ts->SetBitmap(cc_time_xpm);
-                break;
-            case TC_LEFT:
-                ts->SetBitmap(cc_left_xpm);
-                break;
-            case TC_RIGHT:
-                ts->SetBitmap(cc_right_xpm);
-                break;
-            case TC_UP:
-                ts->SetBitmap(cc_up_xpm);
-                break;
-            case TC_DOWN:
-                ts->SetBitmap(cc_down_xpm);
-                break;
+                ts->SetBitmap(cc_timelocked_xpm);
+            }
+            else
+            {
+                switch (ccb->GetValue()->GetTimeCurve())
+                {
+                case TC_TIME:
+                    ts->SetBitmap(cc_time_xpm);
+                    break;
+                case TC_LEFT:
+                    ts->SetBitmap(cc_left_xpm);
+                    break;
+                case TC_RIGHT:
+                    ts->SetBitmap(cc_right_xpm);
+                    break;
+                case TC_UP:
+                    ts->SetBitmap(cc_up_xpm);
+                    break;
+                case TC_DOWN:
+                    ts->SetBitmap(cc_down_xpm);
+                    break;
+                }
             }
         }
         else
@@ -1036,4 +1045,9 @@ void ColorPanel::OnCCButtonClick(wxCommandEvent& event)
         ccb->GetValue()->NextTimeCurve();
     }
     ValidateWindow();
+}
+
+void ColorPanel::LockTimeCC(bool lock)
+{
+    _timecconly = lock;
 }

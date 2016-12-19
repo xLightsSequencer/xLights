@@ -1442,6 +1442,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("Setting effect controls for unknown effect type: %s", (const char *)effectName.c_str());
     }
+    colorPanel->LockTimeCC(!ef->SupportsSpatialColorCurves());
 }
 
 void xLightsFrame::ApplySetting(wxString name, wxString value)

@@ -34,6 +34,7 @@ class ColorPanel: public wxPanel
     int __brightness;
     std::list<std::string> _loadedPalettes;
     wxString _lastShowDir;
+    bool _timecconly;
 
 public:
 
@@ -44,6 +45,7 @@ public:
         void SetDefaultSettings();
 		wxString GetColorString();
         wxString GetRandomColorString();
+        void LockTimeCC(bool lock);
 
         bool PaletteChanged;
         bool EffectChanged;
