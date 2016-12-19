@@ -539,9 +539,14 @@ uint8_t RenderBuffer::ChannelBlend(uint8_t c1, uint8_t c2, float ratio)
 
 void RenderBuffer::Get2ColorBlend(int coloridx1, int coloridx2, float ratio, xlColor &color)
 {
-    const xlColor &c1 = palette.GetColor(coloridx1);
+    color = palette.GetColor(coloridx1);
     const xlColor &c2 = palette.GetColor(coloridx2);
-    color.Set(ChannelBlend(c1.Red(),c2.Red(),ratio), ChannelBlend(c1.Green(),c2.Green(),ratio), ChannelBlend(c1.Blue(),c2.Blue(),ratio));
+    Get2ColorBlend(color, c2, ratio);
+}
+
+void RenderBuffer::Get2ColorBlend(xlColor& color, xlColor color2, float ratio)
+{
+    color.Set(ChannelBlend(color.Red(), color2.Red(), ratio), ChannelBlend(color.Green(), color2.Green(), ratio), ChannelBlend(color.Blue(), color2.Blue(), ratio));
 }
 
 void RenderBuffer::Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, float ratio, xlColor &color)

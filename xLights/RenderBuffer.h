@@ -370,6 +370,7 @@ public:
 
     uint8_t ChannelBlend(uint8_t c1, uint8_t c2, float ratio);
     void Get2ColorBlend(int coloridx1, int coloridx2, float ratio, xlColor &color);
+    void Get2ColorBlend(xlColor& color, xlColor color2, float ratio);
     void Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, float ratio, xlColor &color);
     void GetMultiColorBlend(float n, bool circular, xlColor &color);
     void SetRangeColor(const HSVValue& hsv1, const HSVValue& hsv2, HSVValue& newhsv);
