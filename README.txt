@@ -56,7 +56,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp)   Fix crash on drag/drop if no sequence loaded
    -- bug (dkulp)   CreateCustomModel dialog would not allow selecting node type on OSX
 2016.51  Nov 04, 2016
-   -- enh (chrisD)  Update sequence checker to handle start channels in #IP:UNIVERSE:CHANNEL format
+   -- enh (cjd)  Update sequence checker to handle start channels in #IP:UNIVERSE:CHANNEL format
    -- bug (keithsw) Performance fix for animated GIFs. Example: "This is Halloween" went from 300 second save to 65 seconds.
    -- bug (dkulp)   Fix mac<-->windows pictures effect filename mapping
    -- bug (dkulp)   Fix mapping onto nodes if nothing is mapped to the strand
@@ -67,8 +67,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp)   Don't crash if polyline is set to singlechannel and start at right
    -- bug (keithsw) Fix #612 ... missing effect settings scroll bars
    -- enh (keithsw) Optimise logging in render loop ... means you cant turn on logging
-   -- bug (chrisD)  Avoid crash if pasted data is empty
-   -- bug (chrisD)  Fix github issue #709 "Fire effect height textbox entry"
+   -- bug (cjd)  Avoid crash if pasted data is empty
+   -- bug (cjd)  Fix github issue #709 "Fire effect height textbox entry"
    -- enh (keithsw) fixed change the link button image and hover text in the Setup screen #342
    -- bug (dkulp)   Make sure picture effect is re-initted at start of effect
    -- bug (dkulp)   Fix crash on toggle strands when clicked on a strand instead of model
@@ -83,7 +83,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keithsw) Fix video effect start time bug.
    -- enh (keithsw) Allow VU Meter to use Papagayo layer 0 as a timing track
    -- bug (keithsw) Fix GIF handling of animated gifs where first frame is not full size ... ie it has an offset.
-   -- bug (chrisD)  Fix rounding issue leading to unwanted gap between spirals
+   -- bug (cjd)  Fix rounding issue leading to unwanted gap between spirals
    -- bug (gil)     Fix model staying highlighted when removed from group.  Fixes #707.
    -- bug (gil)     Prevent creation of unnecessary layer when promoting effects from only 1 strand.
    -- bug (gil)     Fix exception when opening Lyric Dialog.  Fixes #710.
@@ -323,18 +323,18 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 2016.38  Jun 24, 2016
    -- bug (gil) Make sure new previews are added to the model groups preview combo box.
    -- bug (gil) Remove items from View menu when a preview is deleted.
-   -- bug (chrisD) Don't crash when loading perspectives menu if current perspective not defined
-   -- bug (chrisD) Update default perspective if it is renamed
-   -- bug (chrisD) Reload default perspective on show directory change - fixes issue #601
+   -- bug (cjd) Don't crash when loading perspectives menu if current perspective not defined
+   -- bug (cjd) Update default perspective if it is renamed
+   -- bug (cjd) Reload default perspective on show directory change - fixes issue #601
    -- bug (keithsw) Fix matrix faces not able to be changed to scaled. It always resets to centred.
    -- bug (keithsw) For text effect with no movement ... x start slider was being ignored. Fixed.
    -- bug (keithsw) Fix vertical fade on colorwash effect. It only worked if horizontal fade was also selected.
    -- bug (dkulp) Check the file extension based on the lowercase version of the extension, so *.lms and *.LMS both work
    -- enh (gil) NEW: Multiple Previews
    -- bug (gil) Fix SuperStar import for Scenes to account for scaling changes to the Pictures effect.
-   -- bug (chrisD) Don't crash when loading perspectives menu if current perspective not defined
-   -- bug (chrisD) Update default perspective if it is renamed
-   -- bug (chrisD) Reload default perspective on show directory change - fixes issue #601
+   -- bug (cjd) Don't crash when loading perspectives menu if current perspective not defined
+   -- bug (cjd) Update default perspective if it is renamed
+   -- bug (cjd) Reload default perspective on show directory change - fixes issue #601
    -- enh (dkulp) Optimizations for OpenGL for WaveView and model/house previews to pass all vertices/colors/textures in one shot
                           (helps performance, particularly when multiple previews are shown)
    -- enh (dkulp) Fix warnings/crash if background image doesn't exist
@@ -375,7 +375,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keithsw) Fix tendril effect
    -- bug (keithsw) Fix custom value curves not being editable when you re-open them
    -- bug (keithsw) When changing value curves use a sensible set of defaults.
-   -- enh (chrisD)  Add menu items to load/save perspectives directly
+   -- enh (cjd)  Add menu items to load/save perspectives directly
    -- enh (gil)     Add new effect Fill.
    -- enh Improve several effect toolbar icons.
 2016.35  Jun 02, 2016
@@ -384,7 +384,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp)  If using pixel style "Solid Circle" or "Blended Circle", performance with OpenGL 2/3 was really bad.
    -- bug (dkulp) Ability to disable/change the autosave interval.  Move settings query to its own timer (that doesn't need to be precise)
    -- bug (dkulp)  Fix subbufferpanel not clearing the lines
-   -- bug (chrisD)  Update makefile for linux
+   -- bug (cjd)  Update makefile for linux
    -- enh (keithsw) Add value curves to butterfly, bars, spirals, circles
    -- enh (keithsw) Add a reset to roto-zoom
    -- bug (keithsw) Fix lights off button. Ensure I send a lights off packet to all lights when it is turned off.
@@ -425,7 +425,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keithsw) VideoReader ... more protection for possible divide by zero errors.
             Includes logging of any problems found.
    -- bug (keithsw) Make logs 1MB as originally intended. These should zip to well under 50% when sent to us.
-   -- bug (chrisD) Force TendrilEffect and TextEffect on foreground thread under Linux
+   -- bug (cjd) Force TendrilEffect and TextEffect on foreground thread under Linux
 2016.31  May 16, 2016
    -- bug (dkulp)   Fix for Model window not displaying
 2016.30  May 16, 2016
@@ -546,7 +546,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (gil)   Enable Copy Row and Paste Row for Timing tracks.
    -- bug (gil)   Fix bug preventing some timing effects from being pasted.
    -- bug (gil)   Fix copy/paste bug where single effect copy was not pasting with original duration.
-   -- bug (chrisD) Install dictionaries/phoneme files on Linux
+   -- bug (cjd) Install dictionaries/phoneme files on Linux
    -- bug (dkulp) disable the popup as it causes a crash
 2016.19  Apr 10, 2016
    -- bug (dkulp) Fix Text not showing
@@ -847,9 +847,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
          Background chunks to change the plasma effect.
    -- bug (gil) * Fix crash if deleting a timing in new sequence wizards.  Fixes #372.
          this bug was actually fixed in 3.2.11
-   -- enh (chrisD) * Implement issue #237 - Enhancement request: Media file missing,
+   -- enh (cjd) * Implement issue #237 - Enhancement request: Media file missing,
          prompt for user input
-   -- enh (chrisD) * Implement issue #367 - Enhancement: Add .out file type
+   -- enh (cjd) * Implement issue #367 - Enhancement: Add .out file type
          to Glediator file search
 4.2.11  Sep 20, 2015
    -- enh(sean) New effect Plasma. Access this through butterfly. Select Style 6,7,8 or 9
@@ -861,8 +861,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug(gil) Range check the number of fan and element blades for SuperStar import.
 4.2.9  Sep 10, 2015
    -- bug(gil) Fix effect selection especially pointing hands not working.
-   -- bug(chrisD) Don't crash when collecting a crash report on linux
-   -- bug(chrisD) Fix text effect on linux
+   -- bug(cjd) Don't crash when collecting a crash report on linux
+   -- bug(cjd) Fix text effect on linux
 4.2.8  Sep 08, 2015
    -- bug(gil) Fix bug where play marker wouldn't work if pressing play was the first thing you do and also
                 fixed dropping an effect while model playback is paused such that it executes a stop and
@@ -871,8 +871,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh(gil) Improved dialog when prompting to save sequence changes.
    -- bug(gil) Fix the single cell selection caused by undocumented logic enhancements last release.  Fixes #359.
 4.2.7  Sep 06, 2015
-   -- bug (chrisD) Fixed a number of bugs in Linux version of xLights
-   -- bug (chrisD) Set colour of multi-selected items to yellow. This fixes the multi model select
+   -- bug (cjd) Fixed a number of bugs in Linux version of xLights
+   -- bug (cjd) Set colour of multi-selected items to yellow. This fixes the multi model select
       in LAYOUT mode. Ctl-left click to select models. You can then move whole group at once
    -- enh (dkulp A bit more error checking for placement of effects/timing marks
    -- enh (dkulp More work on bg text render stuff, better mouse-over/selection for tiny effects
@@ -893,9 +893,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug(gil)  Fix view combo drop-down not populating when no fseq file existed.  Moved Initialize call
                  to make sure SequenceData object has been initialized first.
    -- bug(gil)  Models that are renamed or deleted will now be updated in all views.
-   -- bug (chrisD) Fixed popup error box when selecting models in LAYOUT
-   -- enh(chrisD) New checkbox for channel overlap check in LAYOUT.
-   -- enh(chrisD) in LAYOUT fixed flashing when selecting models
+   -- bug (cjd) Fixed popup error box when selecting models in LAYOUT
+   -- enh(cjd) New checkbox for channel overlap check in LAYOUT.
+   -- enh(cjd) in LAYOUT fixed flashing when selecting models
    -- bug(gil)  Presets will now populate correctly when switching to a new Show directory.
    -- bug(gil)  Presets created at top level will now show up when program is reopened.
    -- bug(chrisP) Fix export of Falcon .eseq Effects files
@@ -903,7 +903,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug(gil)   Version older detection code was wrong....this caused morphs to be converted when they shouldn't.
                   Also fixed morph corner 2b point graphic.
 4.2.2  Aug 20, 2015
-   -- enh(chrisD) in the Layout screen starting and ending channels are now shown. Name,Start and End are clickable columns to sort
+   -- enh(cjd) in the Layout screen starting and ending channels are now shown. Name,Start and End are clickable columns to sort
    -- bug(dkulp) Fix crashes when renaming models that are part of a group or renaming a group.  Fixes #337.
    -- bug(dkulp) Fix crash on clicking Up/Down if no models selected. Fixes #181
    -- enh(dkulp) Make "Export Model" export the current state of the model, add option to re-render it
