@@ -2190,7 +2190,7 @@ ColorCurveDialog.h: xlCustomControl.h ColorCurve.h
 
 ColorCurveDialog.cpp: ColorCurveDialog.h xLightsMain.h ValueCurve.h
 
-ColorPanel.cpp: ColorPanel.h xLightsMain.h ../include/padlock16x16-green.xpm ../include/padlock16x16-red.xpm ../include/padlock16x16-blue.xpm ColorCurve.h effects/EffectPanelUtils.h ../include/save.xpm ../include/delete.xpm ../include/switch.xpm
+ColorPanel.cpp: ColorPanel.h xLightsMain.h ../include/padlock16x16-green.xpm ../include/padlock16x16-red.xpm ../include/padlock16x16-blue.xpm ColorCurve.h ../include/cc_time.xpm ../include/cc_timelocked.xpm ../include/cc_left.xpm ../include/cc_right.xpm ../include/cc_up.xpm ../include/cc_down.xpm ../include/cc_na.xpm effects/EffectPanelUtils.h ../include/save.xpm ../include/delete.xpm ../include/switch.xpm
 
 ControllerConnectionDialog.cpp: ControllerConnectionDialog.h models/Model.h
 
@@ -2286,7 +2286,7 @@ effects/FirePanel.h: ValueCurveButton.h
 
 effects/FirePanel.cpp: effects/FirePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
-effects/FireworksEffect.cpp: effects/FireworksEffect.h effects/FireworksPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h models/Model.h SequenceCheck.h ../include/fireworks-16.xpm ../include/fireworks-24.xpm ../include/fireworks-32.xpm ../include/fireworks-48.xpm ../include/fireworks-64.xpm
+effects/FireworksEffect.cpp: effects/FireworksEffect.h effects/FireworksPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h models/Model.h SequenceCheck.h sequencer/SequenceElements.h ../include/fireworks-16.xpm ../include/fireworks-24.xpm ../include/fireworks-32.xpm ../include/fireworks-48.xpm ../include/fireworks-64.xpm
 
 effects/FireworksEffect.h: effects/RenderableEffect.h
 
