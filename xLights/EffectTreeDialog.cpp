@@ -570,7 +570,14 @@ void EffectTreeDialog::AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID)
 
 void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose file to Import", wxEmptyString, wxEmptyString, "Preset files (*.xpreset)|*.xpreset|Show files (xlights_rgbeffects.xml)|xlights_rgbeffects.xml", wxFD_OPEN, wxDefaultPosition);
+    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose file to Import", wxEmptyString, wxEmptyString,
+                                                "Preset files (*.xpreset)|*.xpreset|"
+#ifdef __WXOSX__
+                                                "Show files (*.xml)|*.xml",   //cannot filter by full name, only extension
+#else
+                                                "Show files (xlights_rgbeffects.xml)|xlights_rgbeffects.xml",
+#endif
+                                                wxFD_OPEN, wxDefaultPosition);
     OpenDialog->SetDirectory(xLightParent->CurrentDir);
     if (OpenDialog->ShowModal() == wxID_OK)
     {

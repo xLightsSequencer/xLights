@@ -297,6 +297,10 @@
 		67DAFDE01CA1A63C004B3237 /* MidiMessage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DAFDD71CA1A63C004B3237 /* MidiMessage.cpp */; };
 		67DAFDE11CA1A63C004B3237 /* Options.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DAFDD91CA1A63C004B3237 /* Options.cpp */; };
 		67DB97391B05744100FC5ADC /* SuperStarImportDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DB97371B05744100FC5ADC /* SuperStarImportDialog.cpp */; };
+		67E0BB981E08460400C07EF7 /* ControllerConnectionDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */; };
+		67E0BB991E08460400C07EF7 /* Falcon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E0BB921E08460400C07EF7 /* Falcon.cpp */; };
+		67E0BB9A1E08460400C07EF7 /* FPP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E0BB941E08460400C07EF7 /* FPP.cpp */; };
+		67E0BB9B1E08460400C07EF7 /* SimpleFTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E0BB961E08460400C07EF7 /* SimpleFTP.cpp */; };
 		67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */; };
 		67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */; };
 		67E42C1F1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E42C1D1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp */; };
@@ -882,6 +886,14 @@
 		67DB87F51AD6CA1300595194 /* wxsmith */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wxsmith; path = xLights/wxsmith; sourceTree = "<group>"; };
 		67DB97371B05744100FC5ADC /* SuperStarImportDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SuperStarImportDialog.cpp; sourceTree = "<group>"; };
 		67DB97381B05744100FC5ADC /* SuperStarImportDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SuperStarImportDialog.h; sourceTree = "<group>"; };
+		67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControllerConnectionDialog.cpp; sourceTree = "<group>"; };
+		67E0BB911E08460400C07EF7 /* ControllerConnectionDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerConnectionDialog.h; sourceTree = "<group>"; };
+		67E0BB921E08460400C07EF7 /* Falcon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Falcon.cpp; sourceTree = "<group>"; };
+		67E0BB931E08460400C07EF7 /* Falcon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Falcon.h; sourceTree = "<group>"; };
+		67E0BB941E08460400C07EF7 /* FPP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FPP.cpp; sourceTree = "<group>"; };
+		67E0BB951E08460400C07EF7 /* FPP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FPP.h; sourceTree = "<group>"; };
+		67E0BB961E08460400C07EF7 /* SimpleFTP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SimpleFTP.cpp; sourceTree = "<group>"; };
+		67E0BB971E08460400C07EF7 /* SimpleFTP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SimpleFTP.h; sourceTree = "<group>"; };
 		67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectTreeDialog.cpp; sourceTree = "<group>"; };
 		67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PerspectivesPanel.cpp; sourceTree = "<group>"; };
 		67E42C1D1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VAMPPluginDialog.cpp; sourceTree = "<group>"; };
@@ -1389,6 +1401,14 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */,
+				67E0BB911E08460400C07EF7 /* ControllerConnectionDialog.h */,
+				67E0BB921E08460400C07EF7 /* Falcon.cpp */,
+				67E0BB931E08460400C07EF7 /* Falcon.h */,
+				67E0BB941E08460400C07EF7 /* FPP.cpp */,
+				67E0BB951E08460400C07EF7 /* FPP.h */,
+				67E0BB961E08460400C07EF7 /* SimpleFTP.cpp */,
+				67E0BB971E08460400C07EF7 /* SimpleFTP.h */,
 				6703513A1DB1108500CCABD7 /* FPPConnectDialog.cpp */,
 				6703513B1DB1108500CCABD7 /* FPPConnectDialog.h */,
 				67893E511D888842004BF888 /* ArtNetDialog.h */,
@@ -1827,6 +1847,7 @@
 				67B2CF7D1C39D98A003C17CA /* MorphPanel.cpp in Sources */,
 				670C828E1C45CCCF000AA5D8 /* Color.cpp in Sources */,
 				67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */,
+				67E0BB9B1E08460400C07EF7 /* SimpleFTP.cpp in Sources */,
 				67DAFDDB1CA1A63C004B3237 /* Binasc.cpp in Sources */,
 				6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */,
 				6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */,
@@ -1846,6 +1867,7 @@
 				675AB4301B5ACEDA00853A28 /* RealTime.cpp in Sources */,
 				67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */,
 				6784F92C1A5653670018EC0C /* MainSequencer.cpp in Sources */,
+				67E0BB991E08460400C07EF7 /* Falcon.cpp in Sources */,
 				67B2CF8D1C39D98A003C17CA /* TwinklePanel.cpp in Sources */,
 				675AB42D1B5ACEDA00853A28 /* PluginLoader.cpp in Sources */,
 				679BD3361C37555C000539FE /* EffectPanelUtils.cpp in Sources */,
@@ -1904,6 +1926,7 @@
 				67278C831CF87537000DCFFB /* ModelGroupPanel.cpp in Sources */,
 				67B2CFDA1C3A186A003C17CA /* StrobeEffect.cpp in Sources */,
 				67B2CFE21C3A186A003C17CA /* RippleEffect.cpp in Sources */,
+				67E0BB9A1E08460400C07EF7 /* FPP.cpp in Sources */,
 				67FF39931D57F5D000290DB4 /* NoteImportDialog.cpp in Sources */,
 				6792407A1CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp in Sources */,
 				675AB4281B5ACEDA00853A28 /* Files.cpp in Sources */,
@@ -1982,6 +2005,7 @@
 				670B144F1B7128AA0090F1F5 /* ModelFaceDialog.cpp in Sources */,
 				675DE26B1B53381800A9BB44 /* xlColorPickerFields.cpp in Sources */,
 				679BD3371C37555C000539FE /* BarsPanel.cpp in Sources */,
+				67E0BB981E08460400C07EF7 /* ControllerConnectionDialog.cpp in Sources */,
 				672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */,
 				67278C7F1CF74A01000DCFFB /* ValueCurveButton.cpp in Sources */,
 				67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */,
