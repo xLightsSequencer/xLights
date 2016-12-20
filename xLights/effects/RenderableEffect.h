@@ -38,7 +38,8 @@ class RenderableEffect
         virtual const wxBitmap &GetEffectIcon(int size, bool exact = false) const;
         virtual int GetId() const { return id; }
         virtual int GetColorSupportedCount() const { return -1; } // -1 is no limit
-        virtual bool SupportsSpatialColorCurves() { return false; }
+        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) { return false; }
+        virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) { return false; }
 
         virtual void SetSequenceElements(SequenceElements *els) {mSequenceElements = els;}
 

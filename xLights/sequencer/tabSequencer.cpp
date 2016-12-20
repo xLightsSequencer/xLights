@@ -1268,6 +1268,10 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
 
             RenderEffectForModel(elem->GetModelName(),playStartTime,playEndTime);
             mainSequencer->PanelEffectGrid->ForceRefresh();
+
+            // This ensures colour curves which can be dependent on effect settings are correct
+            RenderableEffect *ef = GetEffectManager().GetEffect(selectedEffectName);
+            colorPanel->SetSupports(ef->SupportsLinearColorCurves(selectedEffect->GetSettings()), ef->SupportsRadialColorCurves(selectedEffect->GetSettings()));
             return;
         }
     }
@@ -1442,7 +1446,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("Setting effect controls for unknown effect type: %s", (const char *)effectName.c_str());
     }
-    colorPanel->LockTimeCC(!ef->SupportsSpatialColorCurves());
+    colorPanel->SetSupports(ef->SupportsLinearColorCurves(settings), ef->SupportsRadialColorCurves(settings));
 }
 
 void xLightsFrame::ApplySetting(wxString name, wxString value)

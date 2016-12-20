@@ -34,7 +34,8 @@ class ColorPanel: public wxPanel
     int __brightness;
     std::list<std::string> _loadedPalettes;
     wxString _lastShowDir;
-    bool _timecconly;
+    bool _supportslinear;
+    bool _supportsradial;
 
 public:
 
@@ -45,11 +46,10 @@ public:
         void SetDefaultSettings();
 		wxString GetColorString();
         wxString GetRandomColorString();
-        void LockTimeCC(bool lock);
+        void SetSupports(bool linear, bool radial) { _supportslinear = linear; _supportsradial = radial; ValidateWindow(); }
 
         bool PaletteChanged;
         bool EffectChanged;
-
     
         void SetDefaultPalette();
     
@@ -144,10 +144,7 @@ public:
 		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
 		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
-		void OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& event);
-		void OnBitmapButton_VCBrightnessClick(wxCommandEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
-		    void OnBitmapButton_ChoosePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_DeletePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event);

@@ -634,4 +634,21 @@ float ColorCurve::FindMaxPointGreaterThan(float point)
 
     return ccSortableColorPoint::Normalise(res);
 }
+void ColorCurve::NextTimeCurve(bool supportslinear, bool supportsradial)
+{
+    _timecurve++; 
+
+    if (_timecurve > TC_ROUND) _timecurve = TC_TIME;
+
+    if ((_timecurve == TC_LEFT || _timecurve == TC_RIGHT || _timecurve == TC_UP || _timecurve == TC_DOWN) && !supportslinear)
+    {
+        _timecurve = TC_RADIAL;
+    }
+
+    if ((_timecurve == TC_ROUND || _timecurve == TC_RADIAL) && !supportsradial)
+    {
+        _timecurve = TC_TIME;
+    }
+}
+
 #pragma endregion

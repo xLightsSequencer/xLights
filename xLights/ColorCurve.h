@@ -129,6 +129,8 @@ public:
 #define TC_DOWN 2
 #define TC_LEFT 3
 #define TC_UP 4
+#define TC_RADIAL 5
+#define TC_ROUND 6
 
 class ColorCurve
 {
@@ -144,7 +146,7 @@ class ColorCurve
     const ccSortableColorPoint* GetNextActivePoint(float x, float& duration) const;
 
 public:
-    void NextTimeCurve() { _timecurve++; if (_timecurve > TC_UP) _timecurve = TC_TIME; }
+    void NextTimeCurve(bool supportslinear, bool supportsradial);
     int GetTimeCurve() const { return _timecurve; }
     std::string GetId() const { return _id; }
     void SetId(std::string& id) { _id = id; }

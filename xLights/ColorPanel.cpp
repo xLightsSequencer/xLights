@@ -12,6 +12,8 @@
 #include "../include/cc_up.xpm"
 #include "../include/cc_down.xpm"
 #include "../include/cc_na.xpm"
+#include "../include/cc_round.xpm"
+#include "../include/cc_radial.xpm"
 
 class xLightsFrame;
 //(*InternalHeaders(ColorPanel)
@@ -146,7 +148,8 @@ END_EVENT_TABLE()
 
 ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size) : touchBar(nullptr)
 {
-    _timecconly = true;
+    _supportslinear = false;
+    _supportsradial = false;
     __brightness = 100;
     wxIntegerValidator<int> _brightness(&__brightness, wxNUM_VAL_THOUSANDS_SEPARATOR);
     _brightness.SetMin(0);
@@ -672,6 +675,7 @@ wxString ColorPanel::GetColorString()
     if (Slider_Contrast->GetValue() != 0) {
         s+= wxString::Format("C_SLIDER_Contrast=%d",Slider_Contrast->GetValue());
     }
+
     return s;
 }
 
@@ -807,7 +811,7 @@ void ColorPanel::ValidateWindow()
 
         if (ccb->GetValue()->IsActive())
         {
-            if (_timecconly)
+            if (!_supportslinear && !_supportsradial)
             {
                 ts->SetBitmap(cc_timelocked_xpm);
             }
@@ -829,6 +833,12 @@ void ColorPanel::ValidateWindow()
                     break;
                 case TC_DOWN:
                     ts->SetBitmap(cc_down_xpm);
+                    break;
+                case TC_RADIAL:
+                    ts->SetBitmap(cc_radial_xpm);
+                    break;
+                case TC_ROUND:
+                    ts->SetBitmap(cc_round_xpm);
                     break;
                 }
             }
@@ -1042,12 +1052,8 @@ void ColorPanel::OnCCButtonClick(wxCommandEvent& event)
 
     if (ccb->GetValue()->IsActive())
     {
-        ccb->GetValue()->NextTimeCurve();
+        ccb->GetValue()->NextTimeCurve(_supportslinear, _supportsradial);
     }
     ValidateWindow();
 }
 
-void ColorPanel::LockTimeCC(bool lock)
-{
-    _timecconly = lock;
-}

@@ -48,6 +48,12 @@ void SpiralsEffect::SetDefaultParameters(Model *cls)
     SetCheckBoxValue(sp->CheckBox_Spirlas_Shrink, false);
 }
 
+bool SpiralsEffect::SupportsLinearColorCurves(const SettingsMap &SettingsMap)
+{
+    // The blend setting is incompatible with linear colour curves
+    return !SettingsMap.GetBool("E_CHECKBOX_Spirals_Blend");
+}
+
 void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
     int PaletteRepeat = GetValueCurveInt("Spirals_Count", 1, SettingsMap, offset);
@@ -104,6 +110,12 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             {
                 x=(strand + SpiralState/10 + y*Rotation/buffer.BufferHt) % buffer.BufferWi;
                 if (x < 0) x += buffer.BufferWi;
+
+                if (buffer.palette.IsSpatial(ColorIdx))
+                {
+                    buffer.palette.GetSpatialColor(ColorIdx, (float)thick / (float)SpiralThickness, (float)y / (float)buffer.BufferHt, color);
+                }
+
                 if (Blend)
                 {
                     buffer.GetMultiColorBlend(double(buffer.BufferHt-y-1)/double(buffer.BufferHt), false, color);
