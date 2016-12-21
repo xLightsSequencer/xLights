@@ -1373,7 +1373,6 @@ std::list<wxXmlNode> xLightsFrame::GetOutputsForController(const std::string onl
     std::list<wxXmlNode> res;
 
     wxXmlNode* e = NetworkXML.GetRoot();
-    long count = 1;
 
     for (e = e->GetChildren(); e != nullptr; e = e->GetNext())
     {

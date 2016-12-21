@@ -102,7 +102,7 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
                 theta = theta + 180.0;
                 int t2 = (int)theta%degrees_per_arm;
                 if (t2 <= tmax) {
-                    t2 = abs(t2 - (tmax/2)) * 2;
+                    t2 = std::abs(t2 - (tmax/2)) * 2;
                     int ColorIdx2 = ((int)((theta/degrees_per_arm)))%pinwheel_arms;
                     buffer.palette.GetHSV(colorarray[ColorIdx2], hsv);
                     hsv1=hsv;

@@ -1,9 +1,6 @@
 #!/bin/sh
 
 
-FFMPEGDIR="@loader_path/../Frameworks"
-
-
 if [ "$CONFIGURATION" == "Release" ]; then
 
 TARGETVER=3.1
@@ -24,8 +21,8 @@ do
    cp -af /opt/local/lib/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
    # cp -af /opt/local/lib/libwx_$L-$TARGETVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
 
-   install_name_tool -change /opt/local/lib/libwx_$L-$TARGETVER.dylib @executable_path/../Frameworks/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
-   install_name_tool -change /opt/local/lib/libwx_$L-$SRCVER.dylib @executable_path/../Frameworks/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
+   install_name_tool -change /opt/local/lib/libwx_$L-$TARGETVER.dylib @rpath/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
+   install_name_tool -change /opt/local/lib/libwx_$L-$SRCVER.dylib @rpath/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
 done
 
 
@@ -33,36 +30,30 @@ for LS in $LIBS
 do
     for LT in $LIBS
     do
-	install_name_tool -change /opt/local/lib/libwx_$LS-$TARGETVER.dylib @loader_path/../Frameworks/libwx_$LS-$SRCVER.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$LT-$SRCVER.dylib"
-	install_name_tool -change /opt/local/lib/libwx_$LS-$SRCVER.dylib @loader_path/../Frameworks/libwx_$LS-$SRCVER.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$LT-$SRCVER.dylib"
+	install_name_tool -change /opt/local/lib/libwx_$LS-$TARGETVER.dylib @rpath/libwx_$LS-$SRCVER.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$LT-$SRCVER.dylib"
+	install_name_tool -change /opt/local/lib/libwx_$LS-$SRCVER.dylib @rpath/libwx_$LS-$SRCVER.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$LT-$SRCVER.dylib"
     done
 done
 
-else
-
-if [ -e /opt/local/lib/libavutil.55.dylib ]; then
-FFMPEGDIR=/opt/local/lib
 fi
-
-fi
-
-
 
 LIBS="libswresample.2 libavutil.55 libavformat.57 libavcodec.57 libswscale.4"
 for LS in $LIBS
 do
     for LT in $LIBS
     do
-        install_name_tool -change /usr/local/lib/$LS.dylib $FFMPEGDIR/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/$LT.dylib"
+        install_name_tool -change /usr/local/lib/$LS.dylib @rpath/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/$LT.dylib"
     done
-        install_name_tool -change /usr/local/lib/$LS.dylib $FFMPEGDIR/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
+        install_name_tool -change /usr/local/lib/$LS.dylib @rpath/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
 done
 
 LIBS="liblog4cpp.5"
 for LS in $LIBS
 do
-    install_name_tool -change /opt/local/lib/$LS.dylib @loader_path/../Frameworks/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
+    install_name_tool -change /opt/local/lib/$LS.dylib @rpath/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
 done
+
+
 
 if [ -z "${CODE_SIGN_IDENTITY}" ] ; then
     exit 0
@@ -78,3 +69,5 @@ if [ "$CONFIGURATION" == "Release" ]; then
 
     /usr/bin/codesign  -f -v -s "$EXPANDED_CODE_SIGN_IDENTITY" SDL2.framework/Versions/A
 fi
+
+
