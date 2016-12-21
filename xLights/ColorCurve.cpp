@@ -194,10 +194,10 @@ xlColor ColorCurve::GetValueAt(float offset) const
 {
     if (_type == "Gradient")
     {
-        float start = 0;
-        float end = 1;
-        xlColor startc = xlBLACK;
-        xlColor endc = xlBLACK;
+        float start;
+        float end;
+        xlColor startc;
+        xlColor endc;
 
         // find the value before the offset
         float d = 0;
@@ -267,7 +267,7 @@ xlColor ColorCurve::GetValueAt(float offset) const
     }
     else if (_type == "Random")
     {
-        xlColor c1 = xlBLACK;
+        xlColor c1;
         float d = 0;
         const ccSortableColorPoint* pt = GetActivePoint(offset, d);
         if (pt == nullptr)
@@ -638,14 +638,19 @@ void ColorCurve::NextTimeCurve(bool supportslinear, bool supportsradial)
 {
     _timecurve++; 
 
-    if (_timecurve > TC_ROUND) _timecurve = TC_TIME;
+    SetValidTimeCurve(supportslinear, supportsradial);
+}
+
+void ColorCurve::SetValidTimeCurve(bool supportslinear, bool supportsradial)
+{
+    if (_timecurve > TC_CCW) _timecurve = TC_TIME;
 
     if ((_timecurve == TC_LEFT || _timecurve == TC_RIGHT || _timecurve == TC_UP || _timecurve == TC_DOWN) && !supportslinear)
     {
-        _timecurve = TC_RADIAL;
+        _timecurve = TC_RADIALIN;
     }
 
-    if ((_timecurve == TC_ROUND || _timecurve == TC_RADIAL) && !supportsradial)
+    if ((_timecurve == TC_CW || _timecurve == TC_CCW || _timecurve == TC_RADIALIN || +_timecurve == TC_RADIALOUT) && !supportsradial)
     {
         _timecurve = TC_TIME;
     }

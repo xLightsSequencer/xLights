@@ -400,8 +400,8 @@ void xLightsFrame::CheckForValidModels()
                                       toMap, ignore);
                     }
                 } else {
-                    for (int x = 0; x < el->GetSubModelCount(); x++) {
-                        SubModelElement *sme = el->GetSubModel(x);
+                    for (int x1 = 0; x1 < el->GetSubModelCount(); x1++) {
+                        SubModelElement *sme = el->GetSubModel(x1);
                         if (dynamic_cast<StrandElement*>(sme) == nullptr
                             && m->GetSubModel(sme->GetName()) == nullptr) {
                             std::vector<std::string> AllSMNames;
@@ -1336,7 +1336,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
 
     if (playType == PLAY_TYPE_MODEL) {
 
-        int current_play_time = 0;
+        int current_play_time;
 		if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING)
 		{
 			current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();

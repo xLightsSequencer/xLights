@@ -8,6 +8,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Add spatial color curves to pinwheel
+2016.55  Dec 20, 2016
+   -- enh (keithsw) Add spatial color curves to spirals
+   -- enh (keithsw) Add spatial color curves to bars
    -- enh (cjd) Rewrite pinwheel effect to handle larger buffer sizes cleanly
    -- enh (keithsw) Reset buffer panel when selecting a new effect
    -- enh (keithsw) Reset buffer panel when selecting a new effect

@@ -129,8 +129,10 @@ public:
 #define TC_DOWN 2
 #define TC_LEFT 3
 #define TC_UP 4
-#define TC_RADIAL 5
-#define TC_ROUND 6
+#define TC_RADIALIN 5
+#define TC_RADIALOUT 6
+#define TC_CW 7
+#define TC_CCW 8
 
 class ColorCurve
 {
@@ -147,10 +149,11 @@ class ColorCurve
 
 public:
     void NextTimeCurve(bool supportslinear, bool supportsradial);
+    void SetValidTimeCurve(bool supportslinear, bool supportsradial);
     int GetTimeCurve() const { return _timecurve; }
     std::string GetId() const { return _id; }
     void SetId(std::string& id) { _id = id; }
-    ColorCurve() { ColorCurve(""); _active = false; _timecurve = true; };
+    ColorCurve() { ColorCurve(""); _active = false; _timecurve = TC_TIME; };
     ColorCurve(const std::string& serialised);
     ColorCurve(const std::string& id, const std::string type, xlColor c = xlBLACK);
     std::string Serialise();

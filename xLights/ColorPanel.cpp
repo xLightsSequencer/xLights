@@ -12,8 +12,10 @@
 #include "../include/cc_up.xpm"
 #include "../include/cc_down.xpm"
 #include "../include/cc_na.xpm"
-#include "../include/cc_round.xpm"
-#include "../include/cc_radial.xpm"
+#include "../include/cc_ccw.xpm"
+#include "../include/cc_cw.xpm"
+#include "../include/cc_radialin.xpm"
+#include "../include/cc_radialout.xpm"
 
 class xLightsFrame;
 //(*InternalHeaders(ColorPanel)
@@ -834,11 +836,17 @@ void ColorPanel::ValidateWindow()
                 case TC_DOWN:
                     ts->SetBitmap(cc_down_xpm);
                     break;
-                case TC_RADIAL:
-                    ts->SetBitmap(cc_radial_xpm);
+                case TC_RADIALOUT:
+                    ts->SetBitmap(cc_radialout_xpm);
                     break;
-                case TC_ROUND:
-                    ts->SetBitmap(cc_round_xpm);
+                case TC_RADIALIN:
+                    ts->SetBitmap(cc_radialin_xpm);
+                    break;
+                case TC_CW:
+                    ts->SetBitmap(cc_cw_xpm);
+                    break;
+                case TC_CCW:
+                    ts->SetBitmap(cc_ccw_xpm);
                     break;
                 }
             }
@@ -1057,3 +1065,17 @@ void ColorPanel::OnCCButtonClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
+void ColorPanel::SetSupports(bool linear, bool radial)
+{
+    _supportslinear = linear; 
+    _supportsradial = radial; 
+
+    for (size_t i = 0; i < PALETTE_SIZE; ++i)
+    {
+        wxString ccbids = wxString::Format("ID_BUTTON_Palette%d", (i + 1));
+        ColorCurveButton* ccb = (ColorCurveButton*)wxWindow::FindWindowByName(ccbids, this);
+        ccb->GetValue()->SetValidTimeCurve(linear, radial);
+    }
+
+    ValidateWindow();
+}

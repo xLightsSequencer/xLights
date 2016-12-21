@@ -222,6 +222,63 @@ public:
         return (cc[idx].IsActive() && cc[idx].GetTimeCurve() != TC_TIME);
     }
     
+    xlColor CalcRoundColor(int idx, double round, int type) const
+    {
+        if (type == TC_CW)
+        {
+            return cc[idx].GetValueAt(round);
+        }
+        else
+        {
+            return cc[idx].GetValueAt(1.0 - round);
+        }
+    }
+
+    xlColor CalcRadialColour(int idx, int centrex, int centrey, int maxradius, int x, int y, int type) const
+    {
+        double len = sqrt((x - centrex) * (x - centrex) + (y - centrey) * (y - centrey));
+        if (type == TC_RADIALIN)
+            return cc[idx].GetValueAt(1.0 - len / maxradius);
+        else
+            return cc[idx].GetValueAt(len / maxradius);
+    }
+
+    void GetSpatialColor(size_t idx, float xcentre, float ycentre, float x, float y, float round, float maxradius, xlColor& c) const
+    {
+        if (idx >= color.size())
+        {
+            c.Set(255, 255, 255);
+        }
+        else
+        {
+            if (cc[idx].IsActive())
+            {
+                switch (cc[idx].GetTimeCurve())
+                {
+                case TC_CW:
+                    c = CalcRoundColor(idx, round, TC_CW);
+                    break;
+                case TC_CCW:
+                    c = CalcRoundColor(idx, round, TC_CCW);
+                    break;
+                case TC_RADIALIN:
+                    c = CalcRadialColour(idx, xcentre, ycentre, maxradius, x, y, TC_RADIALIN);
+                    break;
+                case TC_RADIALOUT:
+                    c = CalcRadialColour(idx, xcentre, ycentre, maxradius, x, y, TC_RADIALOUT);
+                    break;
+                default:
+                    c = color[idx];
+                    break;
+                }
+            }
+            else
+            {
+                c = color[idx];
+            }
+        }
+    }
+
     void GetSpatialColor(size_t idx, float x, float y, xlColor& c) const
     {
         if (idx >= color.size())

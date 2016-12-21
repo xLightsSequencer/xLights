@@ -46,7 +46,7 @@ public:
         void SetDefaultSettings();
 		wxString GetColorString();
         wxString GetRandomColorString();
-        void SetSupports(bool linear, bool radial) { _supportslinear = linear; _supportsradial = radial; ValidateWindow(); }
+        void SetSupports(bool linear, bool radial);
 
         bool PaletteChanged;
         bool EffectChanged;
