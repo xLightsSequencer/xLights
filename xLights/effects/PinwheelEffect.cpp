@@ -117,7 +117,7 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
                         buffer.palette.GetHSV(colorarray[ColorIdx2], hsv);
                     }
                     hsv1=hsv;
-                    xlColor color(hsv1);
+                    color = xlColor(hsv1);
                     if(pinwheel_3d=="3D")
                     {
                         if (buffer.allowAlpha) {
