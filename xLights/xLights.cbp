@@ -461,6 +461,8 @@
 		<Unit filename="BitmapCache.cpp" />
 		<Unit filename="BufferPanel.cpp" />
 		<Unit filename="BufferPanel.h" />
+		<Unit filename="BufferSizeDialog.cpp" />
+		<Unit filename="BufferSizeDialog.h" />
 		<Unit filename="ChannelLayoutDialog.cpp" />
 		<Unit filename="ChannelLayoutDialog.h" />
 		<Unit filename="Color.cpp" />
@@ -993,6 +995,7 @@
 		<Unit filename="wxsmith/AssistPanel.wxs" />
 		<Unit filename="wxsmith/BarsPanel.wxs" />
 		<Unit filename="wxsmith/BufferPanel.wxs" />
+		<Unit filename="wxsmith/BufferSizeDialog.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
@@ -1235,6 +1238,7 @@
 					<wxDialog wxs="wxsmith/ArtNetDialog.wxs" src="ArtNetDialog.cpp" hdr="ArtNetDialog.h" fwddecl="0" i18n="1" name="ArtNetDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="FPPConnectDialog.cpp" hdr="FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ControllerConnectionDialog.wxs" src="ControllerConnectionDialog.cpp" hdr="ControllerConnectionDialog.h" fwddecl="0" i18n="1" name="ControllerConnectionDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BufferSizeDialog.wxs" src="BufferSizeDialog.cpp" hdr="BufferSizeDialog.h" fwddecl="0" i18n="1" name="BufferSizeDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

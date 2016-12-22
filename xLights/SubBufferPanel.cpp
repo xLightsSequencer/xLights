@@ -1,9 +1,8 @@
 #include "SubBufferPanel.h"
 
 #include <wx/dcbuffer.h>
-#include <wx/settings.h>
 #include <wx/arrstr.h>
-
+#include "BufferSizeDialog.h"
 
 wxDEFINE_EVENT(SUBBUFFER_RANGE_CHANGED, wxCommandEvent);
 
@@ -89,7 +88,13 @@ void SubBufferPanel::ContextMenu(wxContextMenuEvent& event) {
     menu.Append(wxNewId(), "Bottom Half");
     menu.Append(wxNewId(), "Left Half");
     menu.Append(wxNewId(), "Right Half");
+    menu.Append(wxNewId(), "Left Third");
+    menu.Append(wxNewId(), "Middle Third");
+    menu.Append(wxNewId(), "Right Third");
     menu.AppendSeparator();
+    menu.Append(wxNewId(), "Oversize");
+    menu.AppendSeparator();
+    menu.Append(wxNewId(), "Edit");
     menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, NULL, this);
     PopupMenu(&menu);
 }
@@ -101,28 +106,69 @@ void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
         if (nm == "Full Buffer") {
             x1 = y1 = 0.0;
             x2 = y2 = 100.0;
-        } else if (nm == "Top Half") {
+        }
+        else if (nm == "Top Half") {
             x1 = 0.0;
             y1 = 50.0;
             x2 = y2 = 100.0;
-        } else if (nm == "Bottom Half") {
+        }
+        else if (nm == "Bottom Half") {
             x1 = y1 = 0.0;
             y2 = 50.0;
             x2 = 100.0;
-        } else if (nm == "Left Half") {
+        }
+        else if (nm == "Left Half") {
             x1 = y1 = 0.0;
             y2 = 100.0;
             x2 = 50.0;
-        } else if (nm == "Right Half") {
+        }
+        else if (nm == "Right Half") {
             x1 = 50.0;
             y1 = 0.0;
             x2 = y2 = 100.0;
+        }
+        else if (nm == "Left Third") {
+            x1 = y1 = 0.0;
+            y2 = 100.0;
+            x2 = 33.33;
+        }
+        else if (nm == "Middle Third") {
+            x1 = 33.33;
+            y1 = 0.0;
+            y2 = 100.0;
+            x2 = 66.66;
+        }
+        else if (nm == "Right Third") {
+            x1 = 66.66;
+            y1 = 0.0;
+            x2 = y2 = 100.0;
+        }
+        else if (nm == "Oversize") {
+            x1 = -100.0;
+            y1 = -100.0;
+            x2 = y2 = 200.0;
+        }
+        else if (nm == "Edit")
+        {
+            BufferSizeDialog bsd(this);
+            bsd.SetSizes(y2, x1, y1, x2);
+
+            if (bsd.ShowModal() == wxID_OK)
+            {
+                x1 = bsd.SpinCtrl_Left->GetValue();
+                x2 = bsd.SpinCtrl_Right->GetValue();
+                y2 = bsd.SpinCtrl_Top->GetValue();
+                y1 = bsd.SpinCtrl_Bottom->GetValue();
+            }
+            else
+            {
+                return;
+            }
         }
         SendChangeEvent();
         Refresh();
     }
 }
-
 
 int SubBufferPanel::OverMouseHandle(wxMouseEvent& event) {
     wxSize size = GetSize();

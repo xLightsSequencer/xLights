@@ -160,6 +160,7 @@
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
     <ClCompile Include="BufferPanel.cpp" />
+    <ClCompile Include="BufferSizeDialog.cpp" />
     <ClCompile Include="ChannelLayoutDialog.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="ColorCurve.cpp" />
@@ -431,6 +432,7 @@
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
     <ClInclude Include="BufferPanel.h" />
+    <ClInclude Include="BufferSizeDialog.h" />
     <ClInclude Include="ChannelLayoutDialog.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="ColorCurve.h" />

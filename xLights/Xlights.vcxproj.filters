@@ -855,6 +855,9 @@
     <ClCompile Include="ControllerConnectionDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BufferSizeDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1644,6 +1647,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ControllerConnectionDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferSizeDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
