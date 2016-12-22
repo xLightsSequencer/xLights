@@ -21,7 +21,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX1" variable="Slider_DMX1" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX1" variable="Slider_DMX1" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -59,7 +59,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX2" variable="Slider_DMX2" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX2" variable="Slider_DMX2" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -97,7 +97,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX3" variable="Slider_DMX3" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX3" variable="Slider_DMX3" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -135,7 +135,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX4" variable="Slider_DMX4" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX4" variable="Slider_DMX4" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -173,7 +173,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX5" variable="Slider_DMX5" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX5" variable="Slider_DMX5" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -211,7 +211,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX6" variable="Slider_DMX6" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX6" variable="Slider_DMX6" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -249,7 +249,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX7" variable="Slider_DMX7" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX7" variable="Slider_DMX7" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -287,7 +287,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX8" variable="Slider_DMX8" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX8" variable="Slider_DMX8" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -325,7 +325,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX9" variable="Slider_DMX9" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX9" variable="Slider_DMX9" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -372,7 +372,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX10" variable="Slider_DMX10" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX10" variable="Slider_DMX10" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -410,7 +410,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX11" variable="Slider_DMX11" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX11" variable="Slider_DMX11" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -448,7 +448,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX12" variable="Slider_DMX12" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX12" variable="Slider_DMX12" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -486,7 +486,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX13" variable="Slider_DMX13" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX13" variable="Slider_DMX13" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -524,7 +524,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX14" variable="Slider_DMX14" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX14" variable="Slider_DMX14" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -562,7 +562,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX15" variable="Slider_DMX15" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX15" variable="Slider_DMX15" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -600,7 +600,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX16" variable="Slider_DMX16" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX16" variable="Slider_DMX16" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -638,7 +638,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX17" variable="Slider_DMX17" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX17" variable="Slider_DMX17" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -676,7 +676,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_DMX18" variable="Slider_DMX18" member="no">
+									<object class="wxSlider" name="ID_SLIDER_DMX18" variable="Slider_DMX18" member="yes">
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>

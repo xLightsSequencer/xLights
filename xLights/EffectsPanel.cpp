@@ -228,8 +228,6 @@ bool EffectsPanel::WantOverlayBkg(void)
     return false;
 }
 
-
-
 void EffectsPanel::EffectSelected(wxChoicebookEvent& event)
 {
     EffectChanged=true;
@@ -248,7 +246,6 @@ void EffectsPanel::EffectSelected(wxChoicebookEvent& event)
     w->SetScrollRate(5, 5);
     w->Refresh();
 }
-
 
 //add lock/unlock/random state flags -DJ
 //these could be used to make fields read-only, but initially they are just used for partially random effects

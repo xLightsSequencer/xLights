@@ -21,7 +21,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_CenterX" variable="Slider_Shockwave_CenterX" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_CenterX" variable="Slider_Shockwave_CenterX" member="yes">
 										<value>50</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -72,7 +72,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_CenterY" variable="Slider_Shockwave_CenterY" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_CenterY" variable="Slider_Shockwave_CenterY" member="yes">
 										<value>50</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -123,7 +123,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_Start_Radius" variable="Slider_Shockwave_Start_Radius" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_Start_Radius" variable="Slider_Shockwave_Start_Radius" member="yes">
 										<value>1</value>
 										<max>250</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -175,7 +175,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_End_Radius" variable="Slider_Shockwave_End_Radius" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_End_Radius" variable="Slider_Shockwave_End_Radius" member="yes">
 										<value>10</value>
 										<max>250</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -227,7 +227,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_Start_Width" variable="Slider_Shockwave_Start_Width" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_Start_Width" variable="Slider_Shockwave_Start_Width" member="yes">
 										<value>5</value>
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -279,7 +279,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_End_Width" variable="Slider_Shockwave_End_Width" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_End_Width" variable="Slider_Shockwave_End_Width" member="yes">
 										<value>10</value>
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -340,7 +340,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_Accel" variable="Slider_Shockwave_Accel" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_Accel" variable="Slider_Shockwave_Accel" member="yes">
 										<min>-10</min>
 										<max>10</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />

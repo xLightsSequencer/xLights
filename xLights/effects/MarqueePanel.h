@@ -23,15 +23,28 @@ class MarqueePanel: public wxPanel
 		virtual ~MarqueePanel();
 
 		//(*Declarations(MarqueePanel)
+		wxSlider* Slider_MarqueeXC;
+		wxCheckBox* CheckBox_Marquee_WrapX;
+		wxSlider* Slider_Marquee_Speed;
 		wxBitmapButton* BitmapButton_Marquee_ScaleY;
 		wxPanel* Panel_Marquee_Settings;
 		wxBitmapButton* BitmapButton_Marquee_Start;
+		wxSlider* Slider_Marquee_Stagger;
+		wxSlider* Slider_Marquee_Start;
+		wxSlider* Slider_Marquee_ScaleY;
+		wxSlider* Slider_Marquee_Band_Size;
+		wxSlider* Slider_MarqueeYC;
 		wxNotebook* Notebook_Marquee;
+		wxCheckBox* CheckBox_Marquee_PixelOffsets;
 		wxStaticLine* StaticLine1;
+		wxSlider* Slider_Marquee_Skip_Size;
+		wxCheckBox* CheckBox_Marquee_Reverse;
 		wxBitmapButton* BitmapButton_Marquee_ScaleX;
+		wxSlider* Slider_Marquee_Thickness;
 		wxBitmapButton* BitmapButton_Marquee_Stagger;
 		wxBitmapButton* BitmapButton_Marquee_Speed;
 		wxPanel* Panel_Marquee_Position;
+		wxSlider* Slider_Marquee_ScaleX;
 		wxBitmapButton* BitmapButton_Marquee_Thickness;
 		wxBitmapButton* BitmapButton_Marquee_Skip_Size;
 		//*)

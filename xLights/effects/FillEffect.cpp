@@ -20,6 +20,29 @@ FillEffect::~FillEffect()
     //dtor
 }
 
+void FillEffect::SetDefaultParameters(Model *cls) {
+    FillPanel *fp = (FillPanel*)panel;
+    if (fp == nullptr) {
+        return;
+    }
+
+    fp->BitmapButton_Fill_Band_Size->SetActive(false);
+    fp->BitmapButton_Fill_Offset->SetActive(false);
+    fp->BitmapButton_Fill_Position->SetActive(false);
+    fp->BitmapButton_Fill_Skip_Size->SetActive(false);
+
+    SetSliderValue(fp->Slider_Fill_Band_Size, 0);
+    SetSliderValue(fp->Slider_Fill_Offset, 0);
+    SetSliderValue(fp->Slider_Fill_Position, 100);
+    SetSliderValue(fp->Slider_Fill_Skip_Size, 0);
+
+    SetChoiceValue(fp->Choice_Fill_Direction, "Up");
+
+    SetCheckBoxValue(fp->CheckBox_Fill_Color_Time, false);
+    SetCheckBoxValue(fp->CheckBox_Fill_Offset_In_Pixels, true);
+    SetCheckBoxValue(fp->CheckBox_Fill_Wrap, true);
+}
+
 std::list<std::string> FillEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
 {
     std::list<std::string> res;

@@ -66,21 +66,14 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
 {
 	//(*Initialize(ShockwavePanel)
 	wxFlexGridSizer* FlexGridSizer110;
-	wxSlider* Slider_Shockwave_End_Width;
 	wxTextCtrl* TextCtrl_Shockwave_Accel;
 	wxTextCtrl* TextCtrl_Shockwave_CenterX;
 	wxStaticText* StaticText154;
-	wxSlider* Slider_Shockwave_End_Radius;
 	wxTextCtrl* TextCtrl_Shockwave_CenterY;
-	wxSlider* Slider_Shockwave_Start_Width;
 	wxTextCtrl* TextCtrl_Shockwave_Start_Width;
 	wxFlexGridSizer* FlexGridSizer100;
-	wxSlider* Slider_Shockwave_CenterY;
-	wxSlider* Slider_Shockwave_Start_Radius;
 	wxTextCtrl* TextCtrl_Shockwave_Start_Radius;
-	wxSlider* Slider_Shockwave_Accel;
 	wxPanel* Panel14;
-	wxSlider* Slider_Shockwave_CenterX;
 	wxPanel* Panel10;
 	wxTextCtrl* TextCtrl_Shockwave_End_Width;
 	wxTextCtrl* TextCtrl_Shockwave_End_Radius;

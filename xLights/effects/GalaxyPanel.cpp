@@ -3,18 +3,18 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(GalaxyPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
 #include <wx/notebook.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(GalaxyPanel)
@@ -74,34 +74,24 @@ END_EVENT_TABLE()
 GalaxyPanel::GalaxyPanel(wxWindow* parent)
 {
 	//(*Initialize(GalaxyPanel)
-	wxTextCtrl* TextCtrl_Galaxy_Accel;
-	wxPanel* Panel6;
-	wxPanel* Panel7;
-	wxTextCtrl* TextCtrl_Galaxy_End_Width;
-	wxTextCtrl* TextCtrl_Galaxy_Start_Width;
-	wxFlexGridSizer* GridBagSizerGalaxyOptions;
-	wxTextCtrl* TextCtrl_Galaxy_Duration;
-	wxSlider* Slider_Galaxy_End_Radius;
 	wxFlexGridSizer* FlexGridSizer108;
-	wxTextCtrl* TextCtrl_Galaxy_CenterY;
-	wxPanel* Panel8;
-	wxSlider* Slider_Galaxy_CenterX;
-	wxSlider* Slider_Galaxy_Duration;
-	wxSlider* Slider_Galaxy_Revolutions;
-	wxSlider* Slider_Galaxy_End_Width;
-	wxSlider* Slider_Galaxy_Start_Angle;
-	wxSlider* Slider_Galaxy_CenterY;
-	wxTextCtrl* TextCtrl_Galaxy_CenterX;
-	wxSlider* Slider_Galaxy_Start_Width;
-	wxTextCtrl* TextCtrl_Galaxy_Revolutions;
-	wxTextCtrl* TextCtrl_Galaxy_Start_Angle;
-	wxTextCtrl* TextCtrl_Galaxy_End_Radius;
-	wxFlexGridSizer* GridBagSizerGalaxyStart;
+	wxFlexGridSizer* GridBagSizerGalaxyOptions;
 	wxStaticText* StaticText125;
-	wxTextCtrl* TextCtrl_Galaxy_Start_Radius;
 	wxFlexGridSizer* GridBagSizerGalaxyEnd;
-	wxSlider* Slider_Galaxy_Accel;
-	wxSlider* Slider_Galaxy_Start_Radius;
+	wxPanel* Panel8;
+	wxTextCtrl* TextCtrl_Galaxy_CenterX;
+	wxPanel* Panel6;
+	wxTextCtrl* TextCtrl_Galaxy_CenterY;
+	wxPanel* Panel7;
+	wxTextCtrl* TextCtrl_Galaxy_Duration;
+	wxTextCtrl* TextCtrl_Galaxy_Accel;
+	wxTextCtrl* TextCtrl_Galaxy_Start_Width;
+	wxTextCtrl* TextCtrl_Galaxy_End_Width;
+	wxTextCtrl* TextCtrl_Galaxy_Start_Radius;
+	wxTextCtrl* TextCtrl_Galaxy_Revolutions;
+	wxTextCtrl* TextCtrl_Galaxy_End_Radius;
+	wxTextCtrl* TextCtrl_Galaxy_Start_Angle;
+	wxFlexGridSizer* GridBagSizerGalaxyStart;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer108 = new wxFlexGridSizer(0, 1, 0, 0);

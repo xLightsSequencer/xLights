@@ -3,18 +3,17 @@
 
 #include "RenderableEffect.h"
 
-
 class MarqueeEffect : public RenderableEffect
 {
     public:
         MarqueeEffect(int id);
         virtual ~MarqueeEffect();
     
-    
+        virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
-    private:
 };
 
 #endif // MARQUEEEFFECT_H

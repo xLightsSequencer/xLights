@@ -57,7 +57,43 @@ int FanEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int
     return 0;
 }
 
+void FanEffect::SetDefaultParameters(Model *cls) {
+    FanPanel *fp = (FanPanel*)panel;
+    if (fp == nullptr) {
+        return;
+    }
 
+    fp->ValueCurve_Fan_Blade_Angle->SetActive(false);
+    fp->ValueCurve_Fan_Accel->SetActive(false);
+    fp->ValueCurve_Fan_Blade_Width->SetActive(false);
+    fp->ValueCurve_Fan_CenterX->SetActive(false);
+    fp->ValueCurve_Fan_CenterY->SetActive(false);
+    fp->ValueCurve_Fan_Duration->SetActive(false);
+    fp->ValueCurve_Fan_Element_Width->SetActive(false);
+    fp->ValueCurve_Fan_End_Radius->SetActive(false);
+    fp->ValueCurve_Fan_Num_Blades->SetActive(false);
+    fp->ValueCurve_Fan_Num_Elements->SetActive(false);
+    fp->ValueCurve_Fan_Revolutions->SetActive(false);
+    fp->ValueCurve_Fan_Start_Angle->SetActive(false);
+    fp->ValueCurve_Fan_Start_Radius->SetActive(false);
+
+    SetSliderValue(fp->Slider_Fan_Accel, 0);
+    SetSliderValue(fp->Slider_Fan_Blade_Angle, 90);
+    SetSliderValue(fp->Slider_Fan_Blade_Width, 100);
+    SetSliderValue(fp->Slider_Fan_CenterX, 50);
+    SetSliderValue(fp->Slider_Fan_CenterY, 50);
+    SetSliderValue(fp->Slider_Fan_Duration, 80);
+    SetSliderValue(fp->Slider_Fan_Element_Width, 50);
+    SetSliderValue(fp->Slider_Fan_End_Radius, 10);
+    SetSliderValue(fp->Slider_Fan_Num_Blades, 3);
+    SetSliderValue(fp->Slider_Fan_Num_Elements, 1);
+    SetSliderValue(fp->Slider_Fan_Revolutions, 720);
+    SetSliderValue(fp->Slider_Fan_Start_Angle, 0);
+    SetSliderValue(fp->Slider_Fan_Start_Radius, 1);
+
+    SetCheckBoxValue(fp->CheckBox_Fan_Blend_Edges, true);
+    SetCheckBoxValue(fp->CheckBox_Fan_Reverse, false);
+}
 
 const double PI  =3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)

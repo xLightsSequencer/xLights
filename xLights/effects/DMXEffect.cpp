@@ -34,6 +34,51 @@ static int GetPct(wxString val)
     return (value * 100) / 255;
 }
 
+void DMXEffect::SetDefaultParameters(Model *cls) {
+    DMXPanel *dp = (DMXPanel*)panel;
+    if (dp == nullptr) {
+        return;
+    }
+
+    dp->ValueCurve_DMX1->SetActive(false);
+    dp->ValueCurve_DMX2->SetActive(false);
+    dp->ValueCurve_DMX3->SetActive(false);
+    dp->ValueCurve_DMX4->SetActive(false);
+    dp->ValueCurve_DMX5->SetActive(false);
+    dp->ValueCurve_DMX6->SetActive(false);
+    dp->ValueCurve_DMX7->SetActive(false);
+    dp->ValueCurve_DMX8->SetActive(false);
+    dp->ValueCurve_DMX9->SetActive(false);
+    dp->ValueCurve_DMX10->SetActive(false);
+    dp->ValueCurve_DMX11->SetActive(false);
+    dp->ValueCurve_DMX12->SetActive(false);
+    dp->ValueCurve_DMX13->SetActive(false);
+    dp->ValueCurve_DMX14->SetActive(false);
+    dp->ValueCurve_DMX15->SetActive(false);
+    dp->ValueCurve_DMX16->SetActive(false);
+    dp->ValueCurve_DMX17->SetActive(false);
+    dp->ValueCurve_DMX18->SetActive(false);
+
+    SetSliderValue(dp->Slider_DMX1, 0);
+    SetSliderValue(dp->Slider_DMX2, 0);
+    SetSliderValue(dp->Slider_DMX3, 0);
+    SetSliderValue(dp->Slider_DMX4, 0);
+    SetSliderValue(dp->Slider_DMX5, 0);
+    SetSliderValue(dp->Slider_DMX6, 0);
+    SetSliderValue(dp->Slider_DMX7, 0);
+    SetSliderValue(dp->Slider_DMX8, 0);
+    SetSliderValue(dp->Slider_DMX9, 0);
+    SetSliderValue(dp->Slider_DMX10, 0);
+    SetSliderValue(dp->Slider_DMX11, 0);
+    SetSliderValue(dp->Slider_DMX12, 0);
+    SetSliderValue(dp->Slider_DMX13, 0);
+    SetSliderValue(dp->Slider_DMX14, 0);
+    SetSliderValue(dp->Slider_DMX15, 0);
+    SetSliderValue(dp->Slider_DMX16, 0);
+    SetSliderValue(dp->Slider_DMX17, 0);
+    SetSliderValue(dp->Slider_DMX18, 0);
+}
+
 void DMXEffect::adjustSettings(const std::string &version, Effect *effect)
 {
     // give the base class a chance to adjust any settings

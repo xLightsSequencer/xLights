@@ -22,30 +22,48 @@ class DMXPanel: public wxPanel
 		virtual ~DMXPanel();
 
 		//(*Declarations(DMXPanel)
+		wxSlider* Slider_DMX16;
 		ValueCurveButton* ValueCurve_DMX16;
+		wxSlider* Slider_DMX3;
 		wxNotebook* Notebook7;
 		wxFlexGridSizer* FlexGridSizer_Main;
+		wxSlider* Slider_DMX6;
 		ValueCurveButton* ValueCurve_DMX18;
 		wxFlexGridSizer* FlexGridSizer_Panel1;
+		wxSlider* Slider_DMX14;
+		wxSlider* Slider_DMX2;
+		wxSlider* Slider_DMX4;
 		ValueCurveButton* ValueCurve_DMX7;
+		wxSlider* Slider_DMX15;
+		wxSlider* Slider_DMX18;
 		ValueCurveButton* ValueCurve_DMX17;
 		ValueCurveButton* ValueCurve_DMX12;
+		wxSlider* Slider_DMX1;
 		wxPanel* ChannelPanel1;
 		ValueCurveButton* ValueCurve_DMX9;
 		ValueCurveButton* ValueCurve_DMX6;
 		ValueCurveButton* ValueCurve_DMX14;
 		ValueCurveButton* ValueCurve_DMX13;
 		wxPanel* ChannelPanel2;
+		wxSlider* Slider_DMX11;
+		wxSlider* Slider_DMX7;
 		ValueCurveButton* ValueCurve_DMX4;
 		ValueCurveButton* ValueCurve_DMX2;
 		wxFlexGridSizer* FlexGridSizer_Panel2;
+		wxSlider* Slider_DMX13;
+		wxSlider* Slider_DMX9;
+		wxSlider* Slider_DMX17;
 		ValueCurveButton* ValueCurve_DMX1;
 		ValueCurveButton* ValueCurve_DMX3;
+		wxSlider* Slider_DMX8;
 		ValueCurveButton* ValueCurve_DMX15;
 		ValueCurveButton* ValueCurve_DMX10;
 		ValueCurveButton* ValueCurve_DMX8;
 		ValueCurveButton* ValueCurve_DMX11;
 		ValueCurveButton* ValueCurve_DMX5;
+		wxSlider* Slider_DMX10;
+		wxSlider* Slider_DMX5;
+		wxSlider* Slider_DMX12;
 		//*)
 
 	protected:

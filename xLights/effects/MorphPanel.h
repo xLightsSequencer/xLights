@@ -25,11 +25,14 @@ class MorphPanel: public wxPanel
 
 		//(*Declarations(MorphPanel)
 		wxBitmapButton* BitmapButton_Morph_RepeatSkip;
+		wxSlider* Slider_Morph_Start_X1;
 		ValueCurveButton* BitmapButton_Morph_End_X2;
 		wxTextCtrl* TextCtrl_Morph_End_X2;
 		wxBitmapButton* BitmapButton_MorphStagger;
 		wxBitmapButton* BitmapButton_Morph_StartX2;
 		wxBitmapButton* BitmapButton_Morph_EndY1;
+		wxSlider* Slider_MorphAccel;
+		wxSlider* Slider_Morph_End_X1;
 		ValueCurveButton* BitmapButton_Morph_End_X1;
 		wxTextCtrl* TextCtrl_Morph_Start_X2;
 		wxStaticText* StaticText117;
@@ -39,31 +42,41 @@ class MorphPanel: public wxPanel
 		wxStaticText* StaticText120;
 		wxCheckBox* CheckBox_Morph_Start_Link;
 		wxBitmapButton* BitmapButton_Morph_EndX2;
+		wxSlider* Slider_Morph_Start_X2;
 		wxBitmapButton* BitmapButton_Morph_StartX1;
 		wxStaticText* StaticText124;
 		wxTextCtrl* TextCtrl_Morph_Start_Y1;
+		wxSlider* Slider_Morph_Start_Y1;
 		ValueCurveButton* BitmapButton_Morph_Start_X1;
 		wxBitmapButton* BitmapButton_Morph_EndX1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Morph_Start_Y2;
+		wxSlider* Slider_Morph_End_Y1;
 		ValueCurveButton* BitmapButton_Morph_End_Y2;
 		wxBitmapButton* BitmapButton_Morph_Accel;
 		wxStaticText* StaticText123;
 		ValueCurveButton* BitmapButton_MorphDuration;
+		wxSlider* Slider_Morph_End_X2;
 		wxBitmapButton* BitmapButton_Morph_StartLength;
+		wxSlider* Slider_MorphDuration;
+		wxSlider* Slider_Morph_Repeat_Skip;
 		wxBitmapButton* BitmapButton_Morph_StartY1;
 		wxBitmapButton* BitmapButton_Morph_RepeatCount;
 		wxTextCtrl* TextCtrl_Morph_End_X1;
 		wxStaticText* StaticText115;
 		ValueCurveButton* BitmapButton_Morph_Repeat_Count;
 		wxStaticText* StaticText119;
+		wxSlider* Slider_Morph_Start_Y2;
 		wxStaticText* StaticText122;
+		wxSlider* Slider_Morph_End_Y2;
 		wxStaticText* StaticText171;
 		wxBitmapButton* BitmapButton_Morph_EndY2;
 		wxNotebook* Notebook_Morph;
 		ValueCurveButton* BitmapButton_Morph_Start_Y2;
+		wxSlider* Slider_Morph_Stagger;
 		wxStaticText* StaticText172;
 		wxCheckBox* CheckBox_Morph_End_Link;
+		wxSlider* Slider_MorphEndLength;
 		wxTextCtrl* TextCtrl_Morph_End_Y2;
 		wxCheckBox* CheckBox_ShowHeadAtStart;
 		wxChoice* Choice_Morph_QuickSet;
@@ -80,8 +93,10 @@ class MorphPanel: public wxPanel
 		ValueCurveButton* BitmapButton_Morph_Stagger;
 		wxBitmapButton* BitmapButton_Morph_StartY2;
 		wxStaticText* StaticText99;
+		wxSlider* Slider_MorphStartLength;
 		wxBitmapButton* BitmapButton_Morph_Duration;
 		ValueCurveButton* BitmapButton_Morph_Repeat_Skip;
+		wxSlider* Slider_Morph_Repeat_Count;
 		//*)
 
 	protected:

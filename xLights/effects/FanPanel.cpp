@@ -98,38 +98,25 @@ END_EVENT_TABLE()
 FanPanel::FanPanel(wxWindow* parent)
 {
 	//(*Initialize(FanPanel)
-	wxSlider* Slider_Fan_Num_Blades;
 	wxFlexGridSizer* GridBagSizerFanPosition;
 	wxTextCtrl* TextCtrl_Fan_Blade_Width;
-	wxSlider* Slider_Fan_Element_Width;
 	wxTextCtrl* TextCtrl_Fan_Accel;
 	wxTextCtrl* TextCtrl_Fan_Num_Elements;
 	wxFlexGridSizer* FlexGridSizer103;
-	wxSlider* Slider_Fan_CenterX;
 	wxFlexGridSizer* FlexGridSizer109;
-	wxSlider* Slider_Fan_Start_Angle;
 	wxPanel* Panel11;
 	wxTextCtrl* TextCtrl_Fan_Blade_Angle;
-	wxSlider* Slider_Fan_Revolutions;
 	wxPanel* Panel9;
 	wxTextCtrl* TextCtrl_Fan_Element_Width;
 	wxTextCtrl* TextCtrl_Fan_Revolutions;
-	wxSlider* Slider_Fan_CenterY;
-	wxSlider* Slider_Fan_Accel;
-	wxSlider* Slider_Fan_Num_Elements;
 	wxFlexGridSizer* GridBagSizerFanBlades;
 	wxStaticText* StaticText133;
-	wxSlider* Slider_Fan_End_Radius;
 	wxTextCtrl* TextCtrl_Fan_CenterY;
 	wxFlexGridSizer* GridBagSizerFanOptions;
-	wxSlider* Slider_Fan_Duration;
 	wxTextCtrl* TextCtrl_Fan_Duration;
 	wxTextCtrl* TextCtrl_Fan_Start_Radius;
-	wxSlider* Slider_Fan_Blade_Width;
 	wxTextCtrl* TextCtrl_Fan_Num_Blades;
-	wxSlider* Slider_Fan_Start_Radius;
 	wxPanel* Panel12;
-	wxSlider* Slider_Fan_Blade_Angle;
 	wxTextCtrl* TextCtrl_Fan_Start_Angle;
 	wxTextCtrl* TextCtrl_Fan_End_Radius;
 	wxTextCtrl* TextCtrl_Fan_CenterX;

@@ -21,7 +21,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fan_CenterX" variable="Slider_Fan_CenterX" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Fan_CenterX" variable="Slider_Fan_CenterX" member="yes">
 										<value>50</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -72,7 +72,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fan_CenterY" variable="Slider_Fan_CenterY" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Fan_CenterY" variable="Slider_Fan_CenterY" member="yes">
 										<value>50</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -123,7 +123,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fan_Start_Radius" variable="Slider_Fan_Start_Radius" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Fan_Start_Radius" variable="Slider_Fan_Start_Radius" member="yes">
 										<value>1</value>
 										<max>500</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -175,7 +175,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fan_Start_Angle" variable="Slider_Fan_Start_Angle" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Fan_Start_Angle" variable="Slider_Fan_Start_Angle" member="yes">
 										<max>360</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -226,7 +226,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fan_End_Radius" variable="Slider_Fan_End_Radius" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Fan_End_Radius" variable="Slider_Fan_End_Radius" member="yes">
 										<value>10</value>
 										<max>500</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -278,7 +278,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fan_Revolutions" variable="Slider_Fan_Revolutions" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Fan_Revolutions" variable="Slider_Fan_Revolutions" member="yes">
 										<value>720</value>
 										<max>3600</max>
 										<handler function="UpdateLinkedTextCtrl360" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -340,7 +340,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fan_Num_Blades" variable="Slider_Fan_Num_Blades" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Fan_Num_Blades" variable="Slider_Fan_Num_Blades" member="yes">
 										<value>3</value>
 										<min>1</min>
 										<max>16</max>
@@ -393,7 +393,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fan_Blade_Width" variable="Slider_Fan_Blade_Width" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Fan_Blade_Width" variable="Slider_Fan_Blade_Width" member="yes">
 										<value>50</value>
 										<min>5</min>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -445,7 +445,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fan_Blade_Angle" variable="Slider_Fan_Blade_Angle" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Fan_Blade_Angle" variable="Slider_Fan_Blade_Angle" member="yes">
 										<value>90</value>
 										<min>-360</min>
 										<max>360</max>
@@ -498,7 +498,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fan_Num_Elements" variable="Slider_Fan_Num_Elements" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Fan_Num_Elements" variable="Slider_Fan_Num_Elements" member="yes">
 										<value>1</value>
 										<min>1</min>
 										<max>4</max>
@@ -551,7 +551,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fan_Element_Width" variable="Slider_Fan_Element_Width" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Fan_Element_Width" variable="Slider_Fan_Element_Width" member="yes">
 										<value>100</value>
 										<min>5</min>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -613,7 +613,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fan_Duration" variable="Slider_Fan_Duration" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Fan_Duration" variable="Slider_Fan_Duration" member="yes">
 										<value>80</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -664,7 +664,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fan_Accel" variable="Slider_Fan_Accel" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Fan_Accel" variable="Slider_Fan_Accel" member="yes">
 										<min>-10</min>
 										<max>10</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />

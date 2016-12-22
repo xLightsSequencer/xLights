@@ -112,37 +112,22 @@ END_EVENT_TABLE()
 MorphPanel::MorphPanel(wxWindow* parent)
 {
 	//(*Initialize(MorphPanel)
-	wxSlider* Slider_Morph_Start_X1;
 	wxPanel* MorphPanelStart;
 	wxFlexGridSizer* FlexGridSizer105;
 	wxTextCtrl* TextCtrl_Morph_Stagger;
-	wxSlider* Slider_MorphAccel;
-	wxSlider* Slider_Morph_End_X1;
 	wxStaticText* StaticText2;
-	wxSlider* Slider_Morph_Start_X2;
 	wxTextCtrl* TextCtrl_Morph_Repeat_Count;
 	wxTextCtrl* TextCtrl_MorphAccel;
-	wxSlider* Slider_Morph_Start_Y1;
 	wxPanel* MorphPanelOptions;
 	wxPanel* MorphPanelEnd;
-	wxSlider* Slider_Morph_End_Y1;
-	wxSlider* Slider_Morph_End_X2;
 	wxFlexGridSizer* FlexGridSizer86;
-	wxSlider* Slider_MorphDuration;
-	wxSlider* Slider_Morph_Repeat_Skip;
 	wxTextCtrl* TextCtrl_Morph_Repeat_Skip;
 	wxTextCtrl* TextCtrl_MorphStartLength;
-	wxSlider* Slider_Morph_Start_Y2;
-	wxSlider* Slider_Morph_End_Y2;
-	wxSlider* Slider_Morph_Stagger;
-	wxSlider* Slider_MorphEndLength;
 	wxFlexGridSizer* FlexGridSizer99;
 	wxFlexGridSizer* FlexGridSizer78;
 	wxTextCtrl* TextCtrl_MorphDuration;
 	wxTextCtrl* TextCtrl_MorphEndLength;
 	wxFlexGridSizer* FlexGridSizer104;
-	wxSlider* Slider_MorphStartLength;
-	wxSlider* Slider_Morph_Repeat_Count;
 	wxFlexGridSizer* FlexGridSizer94;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));

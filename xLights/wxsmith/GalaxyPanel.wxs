@@ -21,11 +21,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Galaxy_CenterX" variable="Slider_Galaxy_CenterX" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Galaxy_CenterX" variable="Slider_Galaxy_CenterX" member="yes">
 										<value>50</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -62,11 +62,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Galaxy_CenterY" variable="Slider_Galaxy_CenterY" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Galaxy_CenterY" variable="Slider_Galaxy_CenterY" member="yes">
 										<value>50</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -103,12 +103,12 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Radius" variable="Slider_Galaxy_Start_Radius" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Radius" variable="Slider_Galaxy_Start_Radius" member="yes">
 										<value>1</value>
 										<max>250</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -145,12 +145,12 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Width" variable="Slider_Galaxy_Start_Width" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Width" variable="Slider_Galaxy_Start_Width" member="yes">
 										<value>5</value>
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -187,11 +187,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Angle" variable="Slider_Galaxy_Start_Angle" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Angle" variable="Slider_Galaxy_Start_Angle" member="yes">
 										<max>360</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -237,12 +237,12 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Galaxy_End_Radius" variable="Slider_Galaxy_End_Radius" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Galaxy_End_Radius" variable="Slider_Galaxy_End_Radius" member="yes">
 										<value>10</value>
 										<max>250</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -279,12 +279,12 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Galaxy_End_Width" variable="Slider_Galaxy_End_Width" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Galaxy_End_Width" variable="Slider_Galaxy_End_Width" member="yes">
 										<value>5</value>
 										<max>255</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -321,12 +321,12 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Galaxy_Revolutions" variable="Slider_Galaxy_Revolutions" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Galaxy_Revolutions" variable="Slider_Galaxy_Revolutions" member="yes">
 										<value>1440</value>
 										<max>3600</max>
 										<handler function="UpdateLinkedTextCtrl360" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -373,11 +373,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Galaxy_Duration" variable="Slider_Galaxy_Duration" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Galaxy_Duration" variable="Slider_Galaxy_Duration" member="yes">
 										<value>20</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -414,12 +414,12 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Galaxy_Accel" variable="Slider_Galaxy_Accel" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Galaxy_Accel" variable="Slider_Galaxy_Accel" member="yes">
 										<min>-10</min>
 										<max>10</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -520,7 +520,7 @@
 						<label>Options</label>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

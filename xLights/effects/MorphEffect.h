@@ -3,7 +3,6 @@
 
 #include "RenderableEffect.h"
 
-
 class MorphEffect : public RenderableEffect
 {
     public:
@@ -15,9 +14,10 @@ class MorphEffect : public RenderableEffect
         virtual AssistPanel *GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame) override;
         virtual bool HasAssistPanel() override { return true; }
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+        virtual void SetDefaultParameters(Model *cls) override;
+
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
-    private:
 };
 
 #endif // MORPHEFFECT_H

@@ -27,7 +27,27 @@ wxPanel *MarqueeEffect::CreatePanel(wxWindow *parent) {
     return new MarqueePanel(parent);
 }
 
+void MarqueeEffect::SetDefaultParameters(Model *cls) {
+    MarqueePanel *mp = (MarqueePanel*)panel;
+    if (mp == nullptr) {
+        return;
+    }
 
+    SetSliderValue(mp->Slider_MarqueeXC, 0);
+    SetSliderValue(mp->Slider_MarqueeYC, 0);
+    SetSliderValue(mp->Slider_Marquee_Band_Size, 3);
+    SetSliderValue(mp->Slider_Marquee_ScaleX, 100);
+    SetSliderValue(mp->Slider_Marquee_ScaleY, 100);
+    SetSliderValue(mp->Slider_Marquee_Skip_Size, 0);
+    SetSliderValue(mp->Slider_Marquee_Speed, 3);
+    SetSliderValue(mp->Slider_Marquee_Stagger, 0);
+    SetSliderValue(mp->Slider_Marquee_Start, 0);
+    SetSliderValue(mp->Slider_Marquee_Thickness, 1);
+
+    SetCheckBoxValue(mp->CheckBox_Marquee_Reverse, false);
+    SetCheckBoxValue(mp->CheckBox_Marquee_PixelOffsets, false);
+    SetCheckBoxValue(mp->CheckBox_Marquee_WrapX, false);
+}
 
 static void UpdateMarqueeColor(int &position, int &band_color, int colorcnt, int color_size, int shift)
 {

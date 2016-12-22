@@ -3,7 +3,6 @@
 
 #include "RenderableEffect.h"
 
-
 class FanEffect : public RenderableEffect
 {
     public:
@@ -11,13 +10,12 @@ class FanEffect : public RenderableEffect
         virtual ~FanEffect();
     
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
-    
-    
+        virtual void SetDefaultParameters(Model *cls) override;
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
                                          DrawGLUtils::xlVertexColorAccumulator &backgrounds) override;
+
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
-    private:
 };
 
 #endif // FANEFFECT_H

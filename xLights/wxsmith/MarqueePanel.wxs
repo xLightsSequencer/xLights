@@ -21,7 +21,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Band_Size" variable="Slider_Marquee_Band_Size" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Band_Size" variable="Slider_Marquee_Band_Size" member="yes">
 										<value>3</value>
 										<min>1</min>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -62,7 +62,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Skip_Size" variable="Slider_Marquee_Skip_Size" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Skip_Size" variable="Slider_Marquee_Skip_Size" member="yes">
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
@@ -101,7 +101,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Thickness" variable="Slider_Marquee_Thickness" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Thickness" variable="Slider_Marquee_Thickness" member="yes">
 										<value>1</value>
 										<min>1</min>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -142,7 +142,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Stagger" variable="Slider_Marquee_Stagger" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Stagger" variable="Slider_Marquee_Stagger" member="yes">
 										<max>50</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -182,7 +182,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Speed" variable="Slider_Marquee_Speed" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Speed" variable="Slider_Marquee_Speed" member="yes">
 										<value>3</value>
 										<max>50</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -223,7 +223,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Start" variable="Slider_Marquee_Start" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Start" variable="Slider_Marquee_Start" member="yes">
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
@@ -259,7 +259,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_Reverse" variable="CheckBox_Marquee_Reverse" member="no">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_Reverse" variable="CheckBox_Marquee_Reverse" member="yes">
 										<label>Reverse:</label>
 										<style>wxALIGN_RIGHT</style>
 									</object>
@@ -288,7 +288,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleX" variable="Slider_Marquee_ScaleX" member="no">
+											<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleX" variable="Slider_Marquee_ScaleX" member="yes">
 												<value>100</value>
 												<min>1</min>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -329,7 +329,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleY" variable="Slider_Marquee_ScaleY" member="no">
+											<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleY" variable="Slider_Marquee_ScaleY" member="yes">
 												<value>100</value>
 												<min>1</min>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -375,7 +375,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_PixelOffsets" variable="CheckBox_Marquee_PixelOffsets" member="no">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_PixelOffsets" variable="CheckBox_Marquee_PixelOffsets" member="yes">
 										<label>Offsets In Pixels</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -399,7 +399,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_MarqueeXC" variable="Slider_MarqueeXC" member="no">
+													<object class="wxSlider" name="ID_SLIDER_MarqueeXC" variable="Slider_MarqueeXC" member="yes">
 														<min>-100</min>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
@@ -408,7 +408,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_WrapX" variable="CheckBox_Marquee_WrapX" member="no">
+													<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_WrapX" variable="CheckBox_Marquee_WrapX" member="yes">
 														<label>Wrap X</label>
 													</object>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -459,7 +459,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_MarqueeYC" variable="Slider_MarqueeYC" member="no">
+													<object class="wxSlider" name="ID_SLIDER_MarqueeYC" variable="Slider_MarqueeYC" member="yes">
 														<min>-100</min>
 														<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />

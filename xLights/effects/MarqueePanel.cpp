@@ -66,10 +66,7 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 {
 	//(*Initialize(MarqueePanel)
 	wxTextCtrl* TextCtrl_Marquee_Skip_Size;
-	wxSlider* Slider_MarqueeXC;
 	wxTextCtrl* TextCtrl_Marquee_Band_Size;
-	wxCheckBox* CheckBox_Marquee_WrapX;
-	wxSlider* Slider_Marquee_Speed;
 	wxFlexGridSizer* FlexGridSizer138;
 	wxStaticText* StaticText200;
 	wxFlexGridSizer* FlexGridSizer23;
@@ -78,33 +75,23 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer135;
 	wxBitmapButton* BitmapButton_Marquee_Band_Size;
 	wxStaticText* StaticText244;
-	wxSlider* Slider_Marquee_Stagger;
-	wxSlider* Slider_Marquee_Start;
 	wxTextCtrl* TextCtrl_Marquee_Start;
-	wxSlider* Slider_Marquee_ScaleY;
 	wxStaticText* StaticText194;
-	wxSlider* Slider_Marquee_Band_Size;
-	wxSlider* Slider_MarqueeYC;
 	wxFlexGridSizer* FlexGridSizer137;
-	wxCheckBox* CheckBox_Marquee_PixelOffsets;
 	wxTextCtrl* TextCtrl_Marquee_Speed;
 	wxStaticText* StaticText116;
-	wxSlider* Slider_Marquee_Skip_Size;
 	wxTextCtrl* TextCtrl_MarqueeYC;
 	wxTextCtrl* TextCtrl_Marquee_Thickness;
 	wxStaticText* StaticText196;
-	wxCheckBox* CheckBox_Marquee_Reverse;
 	wxTextCtrl* TextCtrl_Marquee_Stagger;
 	wxStaticText* StaticText201;
 	wxTextCtrl* TextCtrl_Marquee_ScaleX;
 	wxGridBagSizer* GridBagSizer5;
-	wxSlider* Slider_Marquee_Thickness;
 	wxTextCtrl* TextCtrl_MarqueeXC;
 	wxStaticText* StaticText198;
 	wxFlexGridSizer* FlexGridSizer136;
 	wxFlexGridSizer* FlexGridSizer58;
 	wxTextCtrl* TextCtrl_Marquee_ScaleY;
-	wxSlider* Slider_Marquee_ScaleX;
 	wxStaticText* StaticText199;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));

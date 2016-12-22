@@ -33,6 +33,22 @@ int ShockwaveEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x
     return 2;
 }
 
+void ShockwaveEffect::SetDefaultParameters(Model *cls) {
+    ShockwavePanel *sp = (ShockwavePanel*)panel;
+    if (sp == nullptr) {
+        return;
+    }
+
+    SetSliderValue(sp->Slider_Shockwave_Accel, 0);
+    SetSliderValue(sp->Slider_Shockwave_CenterX, 50);
+    SetSliderValue(sp->Slider_Shockwave_CenterY, 50);
+    SetSliderValue(sp->Slider_Shockwave_End_Radius, 10);
+    SetSliderValue(sp->Slider_Shockwave_End_Width, 10);
+    SetSliderValue(sp->Slider_Shockwave_Start_Radius, 1);
+    SetSliderValue(sp->Slider_Shockwave_Start_Width, 5);
+
+    SetCheckBoxValue(sp->CheckBox_Shockwave_Blend_Edges, true);
+}
 
 const double PI  =3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)

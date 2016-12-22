@@ -100,26 +100,17 @@ END_EVENT_TABLE()
 DMXPanel::DMXPanel(wxWindow* parent)
 {
 	//(*Initialize(DMXPanel)
-	wxSlider* Slider_DMX16;
 	wxStaticText* Label_DMX8;
 	wxTextCtrl* TextCtrl1_DMX5;
-	wxSlider* Slider_DMX3;
 	wxStaticText* Label_DMX17;
-	wxSlider* Slider_DMX6;
 	wxTextCtrl* TextCtrl1_DMX6;
 	wxStaticText* Label_DMX10;
 	wxStaticText* Label_DMX9;
 	wxStaticText* Label_DMX2;
-	wxSlider* Slider_DMX14;
-	wxSlider* Slider_DMX2;
 	wxTextCtrl* TextCtrl_DMX18;
-	wxSlider* Slider_DMX4;
 	wxStaticText* Label_DMX1;
 	wxTextCtrl* TextCtrl1_DMX7;
-	wxSlider* Slider_DMX15;
-	wxSlider* Slider_DMX18;
 	wxStaticText* Label_DMX18;
-	wxSlider* Slider_DMX1;
 	wxTextCtrl* TextCtrl_DMX9;
 	wxStaticText* Label_DMX5;
 	wxTextCtrl* TextCtrl1_DMX1;
@@ -131,27 +122,18 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	wxTextCtrl* TextCtrl1_DMX2;
 	wxTextCtrl* TextCtrl_DMX15;
 	wxTextCtrl* TextCtrl_DMX14;
-	wxSlider* Slider_DMX11;
-	wxSlider* Slider_DMX7;
 	wxTextCtrl* TextCtrl_DMX11;
 	wxTextCtrl* TextCtrl_DMX4;
 	wxStaticText* Label_DMX16;
 	wxStaticText* Label_DMX15;
-	wxSlider* Slider_DMX13;
 	wxTextCtrl* TextCtrl_DMX10;
 	wxTextCtrl* TextCtrl1_DMX8;
-	wxSlider* Slider_DMX9;
 	wxStaticText* Label_DMX6;
-	wxSlider* Slider_DMX17;
 	wxStaticText* Label_DMX4;
-	wxSlider* Slider_DMX8;
 	wxStaticText* Label_DMX14;
 	wxTextCtrl* TextCtrl1_DMX3;
 	wxTextCtrl* TextCtrl_DMX12;
-	wxSlider* Slider_DMX10;
-	wxSlider* Slider_DMX5;
 	wxStaticText* Label_DMX3;
-	wxSlider* Slider_DMX12;
 	wxTextCtrl* TextCtrl_DMX16;
 	wxStaticText* Label_DMX7;
 

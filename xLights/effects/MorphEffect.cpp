@@ -73,6 +73,49 @@ std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& setti
     return res;
 }
 
+void MorphEffect::SetDefaultParameters(Model *cls) {
+    MorphPanel *mp = (MorphPanel*)panel;
+    if (mp == nullptr) {
+        return;
+    }
+
+    mp->BitmapButton_MorphAccel->SetActive(false);
+    mp->BitmapButton_MorphDuration->SetActive(false);
+    mp->BitmapButton_MorphEndLength->SetActive(false);
+    mp->BitmapButton_MorphStartLength->SetActive(false);
+    mp->BitmapButton_Morph_End_X1->SetActive(false);
+    mp->BitmapButton_Morph_End_Y1->SetActive(false);
+    mp->BitmapButton_Morph_End_X2->SetActive(false);
+    mp->BitmapButton_Morph_End_Y2->SetActive(false);
+    mp->BitmapButton_Morph_Start_X1->SetActive(false);
+    mp->BitmapButton_Morph_Start_Y1->SetActive(false);
+    mp->BitmapButton_Morph_Start_X2->SetActive(false);
+    mp->BitmapButton_Morph_Start_Y2->SetActive(false);
+    mp->BitmapButton_Morph_Stagger->SetActive(false);
+    mp->BitmapButton_Morph_Repeat_Count->SetActive(false);
+    mp->BitmapButton_Morph_Repeat_Skip->SetActive(false);
+
+    SetSliderValue(mp->Slider_MorphAccel, 0);
+    SetSliderValue(mp->Slider_MorphDuration, 20);
+    SetSliderValue(mp->Slider_MorphEndLength, 1);
+    SetSliderValue(mp->Slider_MorphStartLength, 1);
+    SetSliderValue(mp->Slider_Morph_End_X1, 0);
+    SetSliderValue(mp->Slider_Morph_End_X2, 100);
+    SetSliderValue(mp->Slider_Morph_End_Y1, 100);
+    SetSliderValue(mp->Slider_Morph_End_Y2, 100);
+    SetSliderValue(mp->Slider_Morph_Repeat_Count, 0);
+    SetSliderValue(mp->Slider_Morph_Repeat_Skip, 1);
+    SetSliderValue(mp->Slider_Morph_Stagger, 0);
+    SetSliderValue(mp->Slider_Morph_Start_X1, 0);
+    SetSliderValue(mp->Slider_Morph_Start_X2, 100);
+    SetSliderValue(mp->Slider_Morph_Start_Y1, 0);
+    SetSliderValue(mp->Slider_Morph_Start_Y2, 100);
+
+    SetCheckBoxValue(mp->CheckBox_Morph_End_Link, false);
+    SetCheckBoxValue(mp->CheckBox_Morph_Start_Link, false);
+    SetCheckBoxValue(mp->CheckBox_ShowHeadAtStart, false);
+}
+
 void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlColor &start_t, xlColor &end_t) {
     int useHeadStart = e->GetSettings().GetInt("E_CHECKBOX_MorphUseHeadStartColor", 0);
     int useTailStart = e->GetSettings().GetInt("E_CHECKBOX_MorphUseHeadEndColor", 0);

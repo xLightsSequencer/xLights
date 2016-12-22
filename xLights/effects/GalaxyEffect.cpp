@@ -53,6 +53,27 @@ int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
     return 0;
 }
 
+void GalaxyEffect::SetDefaultParameters(Model *cls) {
+    GalaxyPanel *gp = (GalaxyPanel*)panel;
+    if (gp == nullptr) {
+        return;
+    }
+
+    SetSliderValue(gp->Slider_Galaxy_Accel, 0);
+    SetSliderValue(gp->Slider_Galaxy_CenterX, 50);
+    SetSliderValue(gp->Slider_Galaxy_CenterY, 50);
+    SetSliderValue(gp->Slider_Galaxy_Duration, 20);
+    SetSliderValue(gp->Slider_Galaxy_End_Radius, 10);
+    SetSliderValue(gp->Slider_Galaxy_End_Width, 5);
+    SetSliderValue(gp->Slider_Galaxy_Revolutions, 1440);
+    SetSliderValue(gp->Slider_Galaxy_Start_Angle, 0);
+    SetSliderValue(gp->Slider_Galaxy_Start_Radius, 1);
+    SetSliderValue(gp->Slider_Galaxy_Start_Width, 5);
+
+    SetCheckBoxValue(gp->CheckBox_Galaxy_Blend_Edges, true);
+    SetCheckBoxValue(gp->CheckBox_Galaxy_Inward, false);
+    SetCheckBoxValue(gp->CheckBox_Galaxy_Reverse, false);
+}
 
 const double PI  =3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
