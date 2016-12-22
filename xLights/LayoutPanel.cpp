@@ -901,9 +901,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
             if (group == "All Models" || model->GetLayoutGroup() == group || (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
                 for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
                     Model *m = xlights->AllModels[*it];
-                    if (m == nullptr) {
-                        printf("No model for %s\n", it->c_str());
-                    } else {
+                    if (m != nullptr) {
                         if (mark_selected) {
                             m->GroupSelected = true;
                         }
