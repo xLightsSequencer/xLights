@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Add spatial color curves to single strand
    -- enh (keithsw) Add spatial color curves to pinwheel
 2016.55  Dec 20, 2016
    -- enh (keithsw) Add spatial color curves to spirals
