@@ -161,9 +161,17 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
     }
     for (auto it = mModels.begin(); it != mModels.end(); it++) {
 
-        if (it->second->GetDisplayAs() != "ModelGroup"
-            && std::find(g->ModelNames().begin(), g->ModelNames().end(), it->first) == g->ModelNames().end()) {
-             ListBoxAddToModelGroup->Append(it->first);
+        if (it->first != group) {
+            if (std::find(g->ModelNames().begin(), g->ModelNames().end(), it->first) == g->ModelNames().end()) {
+                ListBoxAddToModelGroup->Append(it->first);
+            }
+            for (auto smit = it->second->GetSubModels().begin() ; smit != it->second->GetSubModels().end(); smit++) {
+                Model *sm = *smit;
+                
+                if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
+                    ListBoxAddToModelGroup->Append(sm->GetFullName());
+                }
+            }
         }
     }
 

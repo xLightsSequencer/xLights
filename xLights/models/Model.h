@@ -234,7 +234,7 @@ public:
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);
 
-    const std::string &GetLayoutGroup() const {return layout_group;}
+    virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
 
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);

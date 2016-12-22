@@ -760,11 +760,11 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
 
 
 
-void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent) {
+void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullName) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int end_channel = model->GetLastChannel()+1;
 
-    wxTreeListItem item = TreeListViewModels->AppendItem(*parent, model->name,
+    wxTreeListItem item = TreeListViewModels->AppendItem(*parent, fullName ? model->GetFullName() : model->name,
                                                          GetModelTreeIcon(model, false),
                                                          GetModelTreeIcon(model, true),
                                                          new ModelTreeData(model));
@@ -787,7 +787,7 @@ void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent) {
             }
             else
             {
-                AddModelToTree(m, &item);
+                AddModelToTree(m, &item, true);
             }
         }
     }
@@ -839,7 +839,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         // add all the models
         for (auto it = models.begin(); it != models.end(); it++) {
             Model *model = *it;
-            if (model->GetDisplayAs() != "ModelGroup") {
+            if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
                 AddModelToTree(model, &root);
             }
         }
@@ -901,11 +901,27 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
             if (group == "All Models" || model->GetLayoutGroup() == group || (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
                 for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
                     Model *m = xlights->AllModels[*it];
-                    if( mark_selected ) {
-                        m->GroupSelected = true;
-                    }
-                    if (modelsAdded.find(*it) == modelsAdded.end()) {
-                        if (m != nullptr) {
+                    if (m == nullptr) {
+                        printf("No model for %s\n", it->c_str());
+                    } else {
+                        if (mark_selected) {
+                            m->GroupSelected = true;
+                        }
+                        if (m->DisplayAs == "SubModel") {
+                            if (mark_selected) {
+                                prev_models.push_back(m);
+                            }
+                        } else if (m->DisplayAs == "ModelGroup") {
+                            ModelGroup *mg = (ModelGroup*)m;
+                            if (mark_selected) {
+                                for (auto it = mg->Models().begin(); it != mg->Models().end(); it++) {
+                                    if ((*it)->DisplayAs != "ModelGroup") {
+                                        (*it)->GroupSelected = true;
+                                        prev_models.push_back(*it);
+                                    }
+                                }
+                            }
+                        } else if (modelsAdded.find(*it) == modelsAdded.end()) {
                             modelsAdded.insert(*it);
                             prev_models.push_back(m);
                         }
@@ -2720,7 +2736,11 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
                     Model *m = xlights->AllModels[*it];
                     if (currentLayoutGroup == "All Models" || m->GetLayoutGroup() == currentLayoutGroup
                         || (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
-                        AddModelToTree(m, &item);
+                        AddModelToTree(m, &item, true);
+                    }
+                    if (m->DisplayAs == "SubModel"
+                        && std::find(modelsToAdd.begin(), modelsToAdd.end(), m) != modelsToAdd.end()) {
+                        modelsToAdd.erase(std::find(modelsToAdd.begin(), modelsToAdd.end(), m));
                     }
                 }
                 if (expanded) {

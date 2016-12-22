@@ -10,6 +10,8 @@
 #include "../LyricsDialog.h"
 #include "../xLightsXmlFile.h"
 #include "../effects/RenderableEffect.h"
+#include "../models/SubModel.h"
+#include "../models/ModelGroup.h"
 
 static const std::string STR_EMPTY("");
 static const std::string STR_NAME("name");
@@ -842,10 +844,16 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
         for(size_t m=0;m<model.size();m++)
         {
             std::string modelName = model[m].ToStdString();
-            if(!ElementExists(modelName) && xframe->AllModels[modelName] != nullptr)
-            {
-               Element* elem = AddElement(modelName,"model",visible,false,false,false);
-               elem->AddEffectLayer();
+            Model *model = xframe->AllModels[modelName];
+            if (model != nullptr) {
+                if (model->GetDisplayAs() == "SubModel") {
+                    model = (dynamic_cast<SubModel*>(model))->GetParent();
+                }
+                if(!ElementExists(model->GetName()))
+                {
+                   Element* elem = AddElement(modelName,"model",visible,false,false,false);
+                   elem->AddEffectLayer();
+                }
             }
         }
     }
@@ -980,6 +988,38 @@ wxXmlNode *GetModelNode(wxXmlNode *root, const std::string & name) {
     return NULL;
 }
 
+void addSubModelElement(SubModelElement *elem,
+                        std::vector<Row_Information_Struct> &mRowInformation,
+                        int &rowIndex, xLightsFrame *xframe,
+                        std::vector <Element*> &elements) {
+    if(!elem->GetCollapsed())
+    {
+        for(int j =0; j<elem->GetEffectLayerCount();j++)
+        {
+            Row_Information_Struct ri;
+            ri.element = elem;
+            ri.displayName = elem->GetFullName();
+            ri.Collapsed = elem->GetCollapsed();
+            ri.colorIndex = 0;
+            ri.layerIndex = j;
+            ri.Index = rowIndex++;
+            ri.submodel = true;
+            mRowInformation.push_back(ri);
+        }
+    }
+    else
+    {
+        Row_Information_Struct ri;
+        ri.element = elem;
+        ri.Collapsed = elem->GetCollapsed();
+        ri.displayName = elem->GetFullName();
+        ri.colorIndex = 0;
+        ri.layerIndex = 0;
+        ri.Index = rowIndex++;
+        ri.submodel = true;
+        mRowInformation.push_back(ri);
+    }
+}
 void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mRowInformation,
                      int &rowIndex, xLightsFrame *xframe,
                      std::vector <Element*> &elements,
@@ -1017,12 +1057,24 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
     }
     elem->Init(*cls);
     if (cls->GetDisplayAs() == "ModelGroup" && elem->ShowStrands()) {
-        wxString models = cls->GetModelXml()->GetAttribute("models");
-        wxArrayString model=wxSplit(models,',');
-        for(size_t m=0;m<model.size();m++) {
+        ModelGroup *grp = dynamic_cast<ModelGroup*>(cls);
+        for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
+            std::string modelName = *it;
+            std::string subModel = "";
+            int slsh = modelName.find('/');
+            if (slsh != -1) {
+                subModel = modelName.substr(slsh + 1);
+                modelName = modelName.substr(0, slsh);
+            }
             for (size_t x = 0; x < elements.size(); x++) {
-                if (elements[x]->GetModelName() == model[m]) {
-                    addModelElement(dynamic_cast<ModelElement*>(elements[x]), mRowInformation, rowIndex, xframe, elements, true);
+                if (elements[x]->GetModelName() == modelName) {
+                    ModelElement *melem = dynamic_cast<ModelElement*>(elements[x]);
+                    if (subModel != "") {
+                        SubModelElement *selem = melem->GetSubModel(subModel);
+                        addSubModelElement(selem, mRowInformation, rowIndex, xframe, elements);
+                    } else {
+                        addModelElement(melem, mRowInformation, rowIndex, xframe, elements, true);
+                    }
                 }
             }
         }

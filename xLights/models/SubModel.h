@@ -13,7 +13,8 @@ public:
     virtual const ModelScreenLocation &GetModelScreenLocation() const override { return parent->GetModelScreenLocation(); }
     virtual ModelScreenLocation &GetModelScreenLocation() override { return parent->GetModelScreenLocation(); };
     
-    
+    virtual const std::string &GetLayoutGroup() const override { return parent->GetLayoutGroup(); }
+
     virtual void AddProperties(wxPropertyGridInterface *grid) override;
 
     

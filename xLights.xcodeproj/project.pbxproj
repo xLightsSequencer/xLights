@@ -268,6 +268,7 @@
 		67B845071A9C0E7500564051 /* ModelViewSelector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845021A9C0E7500564051 /* ModelViewSelector.cpp */; };
 		67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */; };
 		67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */; };
+		67BBF2A91E0C147D0054D264 /* BufferSizeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BBF2A71E0C147D0054D264 /* BufferSizeDialog.cpp */; };
 		67BC8BB41D2152C5009B660F /* StateEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC8BB01D2152C5009B660F /* StateEffect.cpp */; };
 		67BC8BB51D2152C5009B660F /* StatePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC8BB11D2152C5009B660F /* StatePanel.cpp */; };
 		67BC8BBA1D2152EC009B660F /* ModelStateDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC8BB61D2152EC009B660F /* ModelStateDialog.cpp */; };
@@ -835,6 +836,8 @@
 		67BA42A51C93B78500D17518 /* StartChannelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StartChannelDialog.h; sourceTree = "<group>"; };
 		67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StartChannelDialog.cpp; sourceTree = "<group>"; };
 		67BAE6E21A08252700CB7041 /* spxml-0.5 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "spxml-0.5"; path = "include/spxml-0.5"; sourceTree = SOURCE_ROOT; };
+		67BBF2A71E0C147D0054D264 /* BufferSizeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BufferSizeDialog.cpp; sourceTree = "<group>"; };
+		67BBF2A81E0C147D0054D264 /* BufferSizeDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BufferSizeDialog.h; sourceTree = "<group>"; };
 		67BC8BB01D2152C5009B660F /* StateEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StateEffect.cpp; path = effects/StateEffect.cpp; sourceTree = "<group>"; };
 		67BC8BB11D2152C5009B660F /* StatePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StatePanel.cpp; path = effects/StatePanel.cpp; sourceTree = "<group>"; };
 		67BC8BB21D2152C5009B660F /* StateEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StateEffect.h; path = effects/StateEffect.h; sourceTree = "<group>"; };
@@ -1401,6 +1404,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67BBF2A71E0C147D0054D264 /* BufferSizeDialog.cpp */,
+				67BBF2A81E0C147D0054D264 /* BufferSizeDialog.h */,
 				67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */,
 				67E0BB911E08460400C07EF7 /* ControllerConnectionDialog.h */,
 				67E0BB921E08460400C07EF7 /* Falcon.cpp */,
@@ -1883,6 +1888,7 @@
 				67AB294B1D649008007F7CF3 /* WiringDialog.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
 				675AC53D1C987AA700C4AFE9 /* CustomModelDialog.cpp in Sources */,
+				67BBF2A91E0C147D0054D264 /* BufferSizeDialog.cpp in Sources */,
 				6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */,
 				67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */,
 				67B2CFEB1C3A186A003C17CA /* LifeEffect.cpp in Sources */,

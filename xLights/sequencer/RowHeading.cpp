@@ -623,37 +623,37 @@ void RowHeading::Draw()
     int startY = 0,endY = 0;
     for(int i =0;i< mSequenceElements->GetVisibleRowInformationSize();i++)
     {
+        Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(i);
         wxString prefix;
-        if (mSequenceElements->GetVisibleRowInformation(i)->submodel) {
+        if (rowInfo->submodel) {
             prefix = "  ";
         }
-        wxBrush brush2(GetHeaderColor(mSequenceElements->GetVisibleRowInformation(i))->asWxColor(),wxBRUSHSTYLE_SOLID);
+        wxBrush brush2(GetHeaderColor(rowInfo)->asWxColor(),wxBRUSHSTYLE_SOLID);
         dc.SetBrush(brush2);
         startY = DEFAULT_ROW_HEADING_HEIGHT*row;
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.DrawRectangle(0,startY,w,DEFAULT_ROW_HEADING_HEIGHT);
-        if(mSequenceElements->GetVisibleRowInformation(i)->layerIndex>0
-           || mSequenceElements->GetVisibleRowInformation(i)->strandIndex >= 0)   // If effect layer = 0
+        if(rowInfo->layerIndex > 0 || rowInfo->strandIndex >= 0)   // If effect layer = 0
         {
             dc.SetPen(*wxLIGHT_GREY_PEN);
             dc.DrawLine(1,startY,w-1,startY);
             dc.DrawLine(1,startY-1,w-1,startY-1);
             dc.SetPen(*wxBLACK_PEN);
-            if (mSequenceElements->GetVisibleRowInformation(i)->strandIndex >= 0) {
+            if (rowInfo->strandIndex >= 0) {
                 wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
-                wxString name = mSequenceElements->GetVisibleRowInformation(i)->displayName;
+                wxString name = rowInfo->displayName;
                 if (name == "") {
-                    if (mSequenceElements->GetVisibleRowInformation(i)->nodeIndex >= 0) {
-                        name = wxString::Format("Node %d", mSequenceElements->GetVisibleRowInformation(i)->nodeIndex + 1);
+                    if (rowInfo->nodeIndex >= 0) {
+                        name = wxString::Format("Node %d", rowInfo->nodeIndex + 1);
                     } else {
-                        name = wxString::Format("Strand %d", mSequenceElements->GetVisibleRowInformation(i)->strandIndex + 1);
+                        name = wxString::Format("Strand %d", rowInfo->strandIndex + 1);
                     }
 
                 }
-                if (mSequenceElements->GetVisibleRowInformation(i)->nodeIndex >= 0) {
+                if (rowInfo->nodeIndex >= 0) {
                     dc.DrawLabel(prefix + "     " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
-                } else if (mSequenceElements->GetVisibleRowInformation(i)->layerIndex == 0) {
+                } else if (rowInfo->layerIndex == 0) {
                     dc.DrawLabel(prefix + "  " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 }
             }
@@ -662,24 +662,24 @@ void RowHeading::Draw()
         }
         else        // Draw label
         {
-            if (mSequenceElements->GetVisibleRowInformation(i)->element->GetType() == ELEMENT_TYPE_SUBMODEL) {
+            if (rowInfo->element->GetType() == ELEMENT_TYPE_SUBMODEL) {
                 prefix += "  ";
             }
             wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
-            dc.DrawLabel(prefix + mSequenceElements->GetVisibleRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+            dc.DrawLabel(prefix + rowInfo->displayName,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
 
-        if (mSequenceElements->GetVisibleRowInformation(i)->element->GetType() != ELEMENT_TYPE_TIMING)
+        if (rowInfo->element->GetType() != ELEMENT_TYPE_TIMING)
         {
-            if(mSequenceElements->GetVisibleRowInformation(i)->element->GetEffectLayerCount() > 1
-               && mSequenceElements->GetVisibleRowInformation(i)->layerIndex == 0
-               && mSequenceElements->GetVisibleRowInformation(i)->nodeIndex == -1)
+            if(rowInfo->element->GetEffectLayerCount() > 1
+               && rowInfo->layerIndex == 0
+               && rowInfo->nodeIndex == -1)
             {
                 dc.SetBrush(*wxWHITE_BRUSH);
                 dc.SetPen(*wxBLACK_PEN);
                 dc.DrawRectangle(2,startY + DEFAULT_ROW_HEADING_HEIGHT/2 - 4,9,9);
                 dc.DrawLine(2,startY + DEFAULT_ROW_HEADING_HEIGHT/2,9,startY + DEFAULT_ROW_HEADING_HEIGHT/2);
-                if(mSequenceElements->GetVisibleRowInformation(i)->Collapsed)
+                if(rowInfo->Collapsed)
                 {
                     dc.DrawLine(6,startY + DEFAULT_ROW_HEADING_HEIGHT/2 + 4,6,startY + DEFAULT_ROW_HEADING_HEIGHT/2 - 4);
                 }
@@ -687,7 +687,7 @@ void RowHeading::Draw()
                 dc.SetBrush(brush2);
             }
             // draw Model Group icon if necessary
-            Model *m = mSequenceElements->GetXLightsFrame()->AllModels[mSequenceElements->GetVisibleRowInformation(i)->element->GetModelName()];
+            Model *m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
             if (m != nullptr)
             {
                 if (m->GetDisplayAs() == "ModelGroup")
@@ -709,12 +709,12 @@ void RowHeading::Draw()
                 }
             }
         }
-        else if(mSequenceElements->GetVisibleRowInformation(i)->element->GetType()==ELEMENT_TYPE_TIMING)
+        else if(rowInfo->element->GetType()==ELEMENT_TYPE_TIMING)
         {
-            if( mSequenceElements->GetVisibleRowInformation(i)->layerIndex == 0 )
+            if( rowInfo->layerIndex == 0 )
             {
                 dc.SetPen(*wxBLACK_PEN);
-                if(dynamic_cast<TimingElement*>(mSequenceElements->GetVisibleRowInformation(i)->element)->GetActive())
+                if(dynamic_cast<TimingElement*>(rowInfo->element)->GetActive())
                 {
                     dc.SetBrush(*wxWHITE_BRUSH);
                     dc.DrawCircle(7,startY + DEFAULT_ROW_HEADING_HEIGHT/2,5);
@@ -729,7 +729,7 @@ void RowHeading::Draw()
                 }
                 dc.SetPen(penOutline);
                 dc.SetBrush(brush2);
-                if(mSequenceElements->GetVisibleRowInformation(i)->element->GetEffectLayerCount() > 1)
+                if(rowInfo->element->GetEffectLayerCount() > 1)
                 {
                     dc.DrawBitmap(papagayo_icon, getWidth()-25, startY+3, true);
                 }

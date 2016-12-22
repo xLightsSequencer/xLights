@@ -67,11 +67,20 @@ void ModelGroup::Reset() {
     for (int x = 0; x < mn.size(); x++) {
         Model *c = modelManager.GetModel(mn[x].ToStdString());
         if (c != nullptr) {
-            modelNames.push_back(c->name);
+            modelNames.push_back(c->GetFullName());
             models.push_back(c);
             changeCount += c->GetChangeCount();
-            int bw, bh;
-            c->InitRenderBufferNodes("Per Preview No Offset", "None", Nodes, bw, bh);
+            
+            if (c->GetDisplayAs() == "ModelGroup") {
+                ModelGroup *g = dynamic_cast<ModelGroup*>(c);
+                for (auto it = g->Models().begin(); it != g->Models().end(); it++) {
+                    int bw, bh;
+                    (*it)->InitRenderBufferNodes("Per Preview No Offset", "None", Nodes, bw, bh);
+                }
+            } else {
+                int bw, bh;
+                c->InitRenderBufferNodes("Per Preview No Offset", "None", Nodes, bw, bh);
+            }
         }
     }
 
