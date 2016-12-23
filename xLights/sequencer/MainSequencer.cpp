@@ -406,6 +406,27 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
 			}
 #endif
 			break;
+        case WXK_PAUSE:
+            {
+                wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
+                wxPostEvent(mParent, playEvent);
+            }
+            event.StopPropagation();
+            break;
+        case WXK_HOME:
+            {
+                wxCommandEvent playEvent(EVT_SEQUENCE_FIRST_FRAME);
+                wxPostEvent(mParent, playEvent);
+            }
+            event.StopPropagation();
+            break;
+        case WXK_END:
+            {
+                wxCommandEvent playEvent(EVT_SEQUENCE_LAST_FRAME);
+                wxPostEvent(mParent, playEvent);
+            }
+            event.StopPropagation();
+            break;
         case WXK_SPACE:
             {
                 wxCommandEvent playEvent(EVT_TOGGLE_PLAY);
