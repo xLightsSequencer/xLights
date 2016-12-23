@@ -22,10 +22,10 @@
 #include "Falcon.h"
 
 // dialogs
-#include "SerialPortWithRate.h"
-#include "E131Dialog.h"
-#include "NullOutputDialog.h"
-#include "ArtNetDialog.h"
+#include "outputs/SerialPortWithRate.h"
+#include "outputs/E131Dialog.h"
+#include "outputs/NullOutputDialog.h"
+#include "outputs/ArtNetDialog.h"
 #include "xlights_out.h"
 #include "SimpleFTP.h"
 
@@ -249,6 +249,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     networkFile.SetFullName(_(XLIGHTS_NETWORK_FILE));
     if (networkFile.FileExists())
     {
+        _outputManager.Load(CurrentDir.ToStdString());
         if (!NetworkXML.Load( networkFile.GetFullPath() ))
         {
             wxMessageBox(_("Unable to load network definition file"), _("Error"));
@@ -1407,6 +1408,7 @@ void xLightsFrame::NetworkChange()
 
 bool xLightsFrame::SaveNetworksFile()
 {
+    _outputManager.Save();
     if (NetworkXML.Save( networkFile.GetFullPath() ))
     {
         UnsavedNetworkChanges=false;

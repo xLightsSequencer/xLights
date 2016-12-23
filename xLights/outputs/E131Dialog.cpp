@@ -2,9 +2,10 @@
 
 //(*InternalHeaders(E131Dialog)
 #include <wx/intl.h>
-#include <wx/button.h>
 #include <wx/string.h>
 //*)
+
+#include "IPOutput.h"
 
 //(*IdInit(E131Dialog)
 const long E131Dialog::ID_STATICTEXT4 = wxNewId();
@@ -23,6 +24,8 @@ const long E131Dialog::ID_STATICTEXT6 = wxNewId();
 const long E131Dialog::ID_SPINCTRL_LAST_CHANNEL = wxNewId();
 const long E131Dialog::ID_STATICTEXT8 = wxNewId();
 const long E131Dialog::ID_TEXTCTRL_DESCRIPTION = wxNewId();
+const long E131Dialog::ID_BUTTON1 = wxNewId();
+const long E131Dialog::ID_BUTTON2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(E131Dialog,wxDialog)
@@ -33,10 +36,10 @@ END_EVENT_TABLE()
 E131Dialog::E131Dialog(wxWindow* parent)
 {
     //(*Initialize(E131Dialog)
+    wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer1;
-    wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, wxID_ANY, _("E1.31 Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     SetClientSize(wxDefaultSize);
@@ -61,7 +64,7 @@ E131Dialog::E131Dialog(wxWindow* parent)
     FlexGridSizer2->Add(TextCtrlIpAddr, 1, wxALL|wxEXPAND, 5);
     StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Starting Universe #"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    SpinCtrl_StartUniv = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 65535, 1, _T("ID_SPINCTRL1"));
+    SpinCtrl_StartUniv = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 63999, 1, _T("ID_SPINCTRL1"));
     SpinCtrl_StartUniv->SetValue(_T("1"));
     FlexGridSizer2->Add(SpinCtrl_StartUniv, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("# of Universes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
@@ -85,22 +88,28 @@ E131Dialog::E131Dialog(wxWindow* parent)
     TextCtrl_Description->SetMaxLength(64);
     FlexGridSizer2->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
-    StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
-    StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
-    StdDialogButtonSizer1->Realize();
-    FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+    Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    FlexGridSizer3->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    FlexGridSizer3->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&E131Dialog::OnRadioButtonMulticastSelect);
     Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&E131Dialog::OnRadioButtonUnicastSelect);
+    Connect(ID_TEXTCTRL_IP_ADDR,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&E131Dialog::OnTextCtrlIpAddrText);
     Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&E131Dialog::OnSpinCtrl_NumUnivChange);
+    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&E131Dialog::OnMultiE131CheckBoxClick);
     Connect(ID_TEXTCTRL_DESCRIPTION,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&E131Dialog::OnTextCtrl_DescriptionText);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&E131Dialog::OnButton_OkClick);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&E131Dialog::OnButton_CancelClick);
     //*)
 
-    StdDialogButtonSizer1->GetAffirmativeButton()->SetDefault();
+    Button_Ok->SetDefault();
+    ValidateWindow();
 }
 
 E131Dialog::~E131Dialog()
@@ -114,18 +123,56 @@ void E131Dialog::OnRadioButtonUnicastSelect(wxCommandEvent& event)
 {
     TextCtrlIpAddr->Clear();
     TextCtrlIpAddr->Enable(true);
+    ValidateWindow();
 }
 
 void E131Dialog::OnRadioButtonMulticastSelect(wxCommandEvent& event)
 {
     TextCtrlIpAddr->SetValue(_("MULTICAST"));
     TextCtrlIpAddr->Enable(false);
+    ValidateWindow();
 }
 
 void E131Dialog::OnSpinCtrl_NumUnivChange(wxSpinEvent& event)
 {
+    ValidateWindow();
 }
 
 void E131Dialog::OnTextCtrl_DescriptionText(wxCommandEvent& event)
 {
+}
+
+void E131Dialog::OnTextCtrlIpAddrText(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void E131Dialog::OnMultiE131CheckBoxClick(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void E131Dialog::OnButton_OkClick(wxCommandEvent& event)
+{
+    EndDialog(wxID_OK);
+}
+
+void E131Dialog::OnButton_CancelClick(wxCommandEvent& event)
+{
+    EndDialog(wxID_CANCEL);
+}
+
+void E131Dialog::ValidateWindow()
+{
+    if (TextCtrlIpAddr->GetValue().IsEmpty() ||
+        (RadioButtonUnicast->GetValue() && !IPOutput::IsIPValid(TextCtrlIpAddr->GetValue().ToStdString()) ||
+         SpinCtrl_StartUniv->GetValue() + SpinCtrl_NumUniv->GetValue() >= 64000)
+        )
+    {
+        Button_Ok->Enable(false);
+    }
+    else
+    {
+        Button_Ok->Enable();
+    }
 }

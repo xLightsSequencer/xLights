@@ -92,7 +92,7 @@ void LayoutGroup::SetFromXml(wxXmlNode* LayoutGroupNode)
     mName=LayoutGroupNode->GetAttribute("name").ToStdString();
     mBackgroundImage=LayoutGroupNode->GetAttribute("backgroundImage").ToStdString();
     mBackgroundBrightness=wxAtoi(LayoutGroupNode->GetAttribute("backgroundBrightness","100").ToStdString());
-    mScaleBackgroundImage=wxAtoi(LayoutGroupNode->GetAttribute("scaleImage","0").ToStdString());
+    mScaleBackgroundImage=wxAtoi(LayoutGroupNode->GetAttribute("scaleImage","0").ToStdString()) > 0;
 }
 
 wxXmlNode* LayoutGroup::GetLayoutGroupXml() const {

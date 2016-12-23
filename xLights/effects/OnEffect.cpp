@@ -133,7 +133,7 @@ void OnEffect::RemoveDefaults(const std::string &version, Effect *effect) {
 void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int start = SettingsMap.GetInt(TEXTCTRL_Eff_On_Start, 100);
     int end = SettingsMap.GetInt(TEXTCTRL_Eff_On_End, 100);
-    bool shimmer = SettingsMap.GetInt(CHECKBOX_On_Shimmer, 0);
+    bool shimmer = SettingsMap.GetInt(CHECKBOX_On_Shimmer, 0) > 0;
     float cycles = SettingsMap.GetDouble(TEXTCTRL_On_Cycles, 1.0);
     int x,y;
     int cidx = 0;

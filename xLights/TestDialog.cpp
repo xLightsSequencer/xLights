@@ -16,6 +16,8 @@
 #include <log4cpp/Category.hh>
 #include "osxMacUtils.h"
 #include "xLightsXmlFile.h"
+#include "outputs/TestPreset.h"
+#include "outputs/Output.h"
 
 //
 //
@@ -29,8 +31,8 @@
 // This for for a channel node
 TreeController::TreeController(int channel, CONTROLLERTYPE type, int xLightsChannel)
 {
+    _output = nullptr;
 	_colour = ' ';
-	_universes = 0;
 	_type = type;
 	_startchannel = channel;
 	_startxlightschannel = xLightsChannel;
@@ -44,8 +46,8 @@ TreeController::TreeController(int channel, CONTROLLERTYPE type, int xLightsChan
 // This for for a node node
 TreeController::TreeController(CONTROLLERTYPE type, int xLightsChannel, int node, int channelspernode)
 {
-	_colour = ' ';
-	_universes = 0;
+    _output = nullptr;
+    _colour = ' ';
 	_type = type;
 	_nodeNumber = node;
 	_startchannel = -1;
@@ -61,9 +63,9 @@ TreeController::TreeController(CONTROLLERTYPE type, int xLightsChannel, int node
 // model or model group
 TreeController::TreeController(CONTROLLERTYPE type, std::string name)
 {
-	_colour = ' ';
+    _output = nullptr;
+    _colour = ' ';
 	_inactive = false;
-	_universes = 0;
 	_type = type;
 	_startxlightschannel = -1;
 	_endxlightschannel = -1;
@@ -78,9 +80,9 @@ TreeController::TreeController(CONTROLLERTYPE type, std::string name)
 // This is for a root node
 TreeController::TreeController(CONTROLLERTYPE type, int start, int end)
 {
-	_colour = ' ';
+    _output = nullptr;
+    _colour = ' ';
 	_inactive = false;
-	_universes = 0;
 	_type = type;
 	_startxlightschannel = start;
 	_endxlightschannel = end;
@@ -92,9 +94,9 @@ TreeController::TreeController(CONTROLLERTYPE type, int start, int end)
 // This is for a DMX/E131 multiple node
 TreeController::TreeController(CONTROLLERTYPE type, std::string comport, int universe, std::string ipaddress, int startxlightschannel, int channels, bool inactive, bool multiuniversedmx, std::string description)
 {
+    _output = nullptr;
     _ipaddress = ipaddress;
 	_colour = ' ';
-	_universes = 0;
 	_type = type;
 	_comport = comport;
 	_universe = std::string(wxString::Format(wxT("%i"), universe));
@@ -111,52 +113,24 @@ TreeController::TreeController(CONTROLLERTYPE type, std::string comport, int uni
 }
 
 // this is for a regular node
-TreeController::TreeController(wxXmlNode* n, int startchannel, int nullcount)
+TreeController::TreeController(Output* output)
 {
-	_colour = ' ';
+    _output = output;
+    _colour = ' ';
 	_doesNotExist = false;
 	_nodes = -1;
-	_universes = 0;
-	_startxlightschannel = startchannel + 1;
-	wxString MaxChannelsStr = n->GetAttribute("MaxChannels", "0");
-	_endchannel = wxAtoi(MaxChannelsStr);
+	_startxlightschannel = output->GetStartChannel();
+	_endchannel = output->GetChannels();
 	_startchannel = 1;
-	_endxlightschannel = _startxlightschannel + _endchannel - 1;
-	_inactive = (n->GetAttribute("Enabled", "Yes") != "Yes");
-	_description = xLightsXmlFile::UnXmlSafe(n->GetAttribute("Description", ""));
-	std::string type = std::string(n->GetAttribute("NetworkType", ""));
-	if (type == "NULL")
-	{
-		_type = CONTROLLERTYPE::CT_NULL;
-		_nullcount = nullcount;
-	}
-	else if (type == "E131")
-	{
-		_type = CONTROLLERTYPE::CT_E131;
-		_ipaddress = std::string(n->GetAttribute("ComPort", ""));
-		_universe = std::string(n->GetAttribute("BaudRate", ""));
-        _universes = wxAtoi(n->GetAttribute("NumUniverses", "1"));
-    }
-    else if (type == "ArtNet")
-    {
-        _type = CONTROLLERTYPE::CT_ARTNET;
-        _ipaddress = std::string(n->GetAttribute("ComPort", ""));
-        _universe = std::string(n->GetAttribute("BaudRate", ""));
-    }
-	else if (type == "DMX")
-	{
-		_type = CONTROLLERTYPE::CT_DMX;
-		_comport = std::string(n->GetAttribute("ComPort", ""));
-		_universe = n->GetAttribute("BaudRate", "1");
-		_universes = wxAtoi(n->GetAttribute("NumUniverses", "1"));
-	}
-	else if (type == "LOR")
-	{
-		_type = CONTROLLERTYPE::CT_LOR;
-		_comport = std::string(n->GetAttribute("ComPort", ""));
-		_baudrate = n->GetAttribute("BaudRate", "1");
-	}
-	_name = GenerateName();
+	_endxlightschannel = output->GetEndChannel();
+	_inactive = !output->IsEnabled();
+	_description = output->GetDescription();
+    _ipaddress = output->GetIP();
+    _universe = wxString::Format("%d", output->GetUniverse()); 
+    _comport = output->GetCommPort();
+    _baudrate = wxString::Format("%d", output->GetBaudRate());
+	_type = CONTROLLERTYPE::CT_CONTROLLER;
+	_name = output->GetLongDescription();
 }
 
 // Checks if the nominated channel is within the range of this element
@@ -176,18 +150,6 @@ bool TreeController::ContainsChannel(int ch)
 	}
 }
 
-// This generates 2nd & subsequent universes for a DMX/E131 controller
-TreeController* TreeController::GenerateUniverse(int universeoffset)
-{
-	if (_universes > 1)
-	{
-		_universes--;
-		return new TreeController(_type, _comport, wxAtoi(_universe) + universeoffset, _ipaddress, _startxlightschannel + universeoffset * Channels(), Channels(), _inactive, _multiuniversedmx, _description);
-	}
-
-	return NULL;
-}
-
 // Generate the text representation to display in the tree
 std::string TreeController::GenerateName()
 {
@@ -198,36 +160,8 @@ std::string TreeController::GenerateName()
 	}
 	switch (_type)
 	{
-	case CONTROLLERTYPE::CT_NULL:
-		_name += "NULL (" + std::string(wxString::Format(wxT("%i"), _nullcount)) + ") ";
-		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
-		break;
-	case CONTROLLERTYPE::CT_E131:
-		_name += "E1.31 " + _ipaddress + " {" + _universe + "} ";
-		_name += "[1-" + std::string(wxString::Format(wxT("%i"), _endchannel)) + "] ";
-		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
-		break;
-    case CONTROLLERTYPE::CT_ARTNET:
-        {
-            int uu = wxAtoi(wxString(_universe.c_str()));
-            _name += "ArtNet " + _ipaddress + " {" + wxString::Format("%d", ARTNET_NET(uu)).ToStdString() + ":" + wxString::Format("%d", ARTNET_SUBNET(uu)).ToStdString() + ":" + wxString::Format("%d", ARTNET_UNIVERSE(uu)).ToStdString() + "} ";
-            _name += "[1-" + std::string(wxString::Format(wxT("%i"), _endchannel)) + "] ";
-            _name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
-        }
-        break;
-    case CONTROLLERTYPE::CT_DMX:
-		_name += "DMX " + _comport;
-		if (_multiuniversedmx)
-		{
-			_name += " {" + _universe + "} ";
-		}
-		_name += "[1-" + std::string(wxString::Format(wxT("%i"), _endchannel)) + "] ";
-		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
-		break;
-	case CONTROLLERTYPE::CT_LOR:
-		_name += "LOR " + _comport + " at " + _baudrate + " ";
-		_name += "[1-" + std::string(wxString::Format(wxT("%i"), _endchannel)) + "] ";
-		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
+	case CONTROLLERTYPE::CT_CONTROLLER:
+        _name = _output->GetLongDescription();
 		break;
 	case CONTROLLERTYPE::CT_MODEL:
 		if (!Clickable())
@@ -389,13 +323,12 @@ END_EVENT_TABLE()
 
 // Constructor
 
-TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName networkFile, ModelManager* modelManager, wxWindowID id)
+TestDialog::TestDialog(wxWindow* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id)
 {
-	_network = network;
+	_outputManager = outputManager;
 	_networkFile = networkFile;
 	_modelManager = modelManager;
 	_checkChannelList = false;
-	_xout = NULL;
 	_cascading = false;
 
 	//(*Initialize(TestDialog)
@@ -675,7 +608,7 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
     TreeListCtrl_Channels->GetDataView()->SetIndent(8);
 #endif
 
-	PopulateControllerTree(_network);
+	PopulateControllerTree();
 	PopulateModelsTree(_modelManager);
 	PopulateModelGroupsTree(_modelManager);
 	CascadeModelDoesNotExist();
@@ -718,13 +651,10 @@ TestDialog::~TestDialog()
 	Panel1->RemoveChild(TreeListCtrl_Channels);
 	//delete TreeListCtrl_Channels;
 
-	if (_xout)
-	{
-		_xout->alloff();
-		delete _xout;
-		_xout = NULL;
-	}
-	EnableSleepModes();
+    _outputManager->AllOff();
+    _outputManager->StopOutput();
+
+    EnableSleepModes();
 
 	//(*Destroy(TestDialog)
 	//*)
@@ -933,59 +863,45 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 
 // Populate the tree functions
 
-void TestDialog::PopulateControllerTree(wxXmlDocument* network)
+void TestDialog::AddController(Output* output)
 {
-	wxXmlNode* e = network->GetRoot();
-	long currentcontrollerstartchannel = 0;
-	int nullcount = 1;
+    TreeController* controller = new TreeController(output);
+    
+    wxTreeListItem c = TreeListCtrl_Channels->AppendItem(_controllers, controller->Name(), -1, -1, (wxClientData*)controller);
+    controller->SetTreeListItem(c);
+    if (controller->Clickable())
+    {
+        for (int i = 1; i <= controller->Channels(); i++)
+        {
+            TreeController* tc = new TreeController(i, TreeController::CONTROLLERTYPE::CT_CHANNEL, controller->StartXLightsChannel() + i - 1);
+            wxTreeListItem tli = TreeListCtrl_Channels->AppendItem(c, tc->Name(), -1, -1, (wxClientData*)tc);
+            tc->SetTreeListItem(tli);
+            _channelLookup[tc->StartXLightsChannel()].push_back(tc);
+        }
+    }
+}
 
-	for (e = e->GetChildren(); e != NULL; e = e->GetNext())
-	{
-		if (e->GetName() == "network")
-		{
-			TreeController* controller = new TreeController(e, currentcontrollerstartchannel, nullcount);
-			currentcontrollerstartchannel += controller->Channels();
-			if (controller->IsNULL())
-			{
-				nullcount++;
-			}
-			wxTreeListItem c = TreeListCtrl_Channels->AppendItem(_controllers, controller->Name(), -1, -1, (wxClientData*)controller);
-			controller->SetTreeListItem(c);
-			if (controller->Clickable())
-			{
-				for (int i = 1; i <= controller->Channels(); i++)
-				{
-					TreeController* tc = new TreeController(i, TreeController::CONTROLLERTYPE::CT_CHANNEL, controller->StartXLightsChannel() + i - 1);
-					wxTreeListItem tli = TreeListCtrl_Channels->AppendItem(c, tc->Name(), -1, -1, (wxClientData*)tc);
-					tc->SetTreeListItem(tli);
-					_channelLookup[tc->StartXLightsChannel()].push_back(tc);
-				}
-			}
+void TestDialog::PopulateControllerTree()
+{
+    auto outputs = _outputManager->GetOutputs();
+    for (auto e = outputs.begin(); e != outputs.end(); ++e)
+    {
+        if ((*e)->IsOutputCollection())
+        {
+            auto suboutputs = (*e)->GetOutputs();
+            for (auto e1 = suboutputs.begin(); e1 != suboutputs.end(); ++e1)
+            {
+                AddController(*e1);
+            }
+        }
+        else
+        {
+            AddController(*e);
+        }
+    }
+	TreeListCtrl_Channels->Expand(_controllers);
 
-			int universeoffset = 1;
-			TreeController* c2 = controller->GenerateUniverse(universeoffset++);
-			while (c2 != NULL)
-			{
-				currentcontrollerstartchannel += c2->Channels();
-				wxTreeListItem c2c = TreeListCtrl_Channels->AppendItem(_controllers, c2->Name(), -1, -1, (wxClientData*)c2);
-				controller->SetTreeListItem(c2c);
-				if (!c2->Inactive())
-				{
-					for (int i = 1; i <= c2->Channels(); i++)
-					{
-						TreeController* tc = new TreeController(i, TreeController::CONTROLLERTYPE::CT_CHANNEL, c2->StartXLightsChannel() + i - 1);
-						wxTreeListItem c = TreeListCtrl_Channels->AppendItem(c2c, tc->Name(), -1, -1, (wxClientData*)tc);
-						tc->SetTreeListItem(c);
-						_channelLookup[tc->StartXLightsChannel()].push_back(tc);
-					}
-				}
-				c2 = controller->GenerateUniverse(universeoffset++);
-			}
-		}
-		TreeListCtrl_Channels->Expand(_controllers);
-	}
-
-	TreeController* root = new TreeController(TreeController::CONTROLLERTYPE::CT_CONTROLLERROOT, 1, currentcontrollerstartchannel);
+	TreeController* root = new TreeController(TreeController::CONTROLLERTYPE::CT_CONTROLLERROOT, 1, _outputManager->GetTotalChannels());
 	TreeListCtrl_Channels->SetItemData(_controllers, (wxClientData*)root);
 	TreeListCtrl_Channels->SetItemText(_controllers, root->Name());
 }
@@ -1446,22 +1362,6 @@ wxCheckBoxState TestDialog::RollUpAll(wxTreeListItem start)
 	return start_state;
 }
 
-// get list of test config names
-void TestDialog::GetTestPresetNames(wxArrayString& PresetNames)
-{
-	wxString name;
-	wxXmlNode* root = _network->GetRoot();
-	if (!root) return;
-	for (wxXmlNode* e = root->GetChildren(); e != NULL; e = e->GetNext())
-	{
-		if (e->GetName() == "testpreset")
-		{
-			name = e->GetAttribute("name", "");
-			if (!name.IsEmpty()) PresetNames.Add(name);
-		}
-	}
-}
-
 // Find a given xlightschannel in the treelist and check it if it is not inactive or in a null controller
 bool TestDialog::CheckChannel(long chid, wxCheckBoxState state)
 {
@@ -1499,18 +1399,24 @@ void TestDialog::Clear(wxTreeListItem& item)
 
 void TestDialog::OnButton_LoadClick(wxCommandEvent& event)
 {
-	wxArrayString PresetNames;
-	GetTestPresetNames(PresetNames);
-	if (PresetNames.Count() == 0)
+    auto presets = _outputManager->GetTestPresets();
+
+	if (presets.size() == 0)
 	{
 		wxMessageBox(_("No test configurations found"), _("Error"));
 		return;
 	}
 
 	// get user selection
-	PresetNames.Sort();
+	presets.sort();
+    wxArrayString PresetNames;
+    for (auto it = presets.begin(); it != presets.end(); ++it)
+    {
+        PresetNames.Add(wxString(it->c_str()));
+    }
 	wxSingleChoiceDialog dialog(this, _("Select test configuration"), _("Load Test Settings"), PresetNames);
-	if (dialog.ShowModal() != wxID_OK) return;
+
+    if (dialog.ShowModal() != wxID_OK) return;
 
 	// re-find testpreset node, then set channels
 	Clear(_controllers);
@@ -1518,24 +1424,20 @@ void TestDialog::OnButton_LoadClick(wxCommandEvent& event)
 	Clear(_models);
 	wxString name = dialog.GetStringSelection();
 	wxString chidstr;
-	long chid;
 	TreeController* rootcb = (TreeController*)TreeListCtrl_Channels->GetItemData(_controllers);
 	long ChCount = rootcb->EndXLightsChannel();
-	wxXmlNode* root = _network->GetRoot();
-	for (wxXmlNode* e = root->GetChildren(); e != NULL; e = e->GetNext())
-	{
-		if (e->GetName() == "testpreset" && e->GetAttribute("name", "") == name)
-		{
-			for (wxXmlNode* c = e->GetChildren(); c != NULL; c = c->GetNext())
-			{
-				if (c->GetName() == "channel" && c->GetAttribute("id", &chidstr) && chidstr.ToLong(&chid) && chid >= 0 && chid < ChCount)
-				{
-					CheckChannel(chid, wxCHK_CHECKED);
-				}
-			}
-			break;
-		}
-	}
+
+    TestPreset* preset = _outputManager->GetTestPreset(name.ToStdString());
+
+    if (preset == nullptr) return; // this should never happen
+
+    auto chs = preset->GetChannels();
+    for (auto c = chs.begin(); c != chs.end(); ++c)
+    {
+        if (*c > 0 && *c < ChCount)
+        CheckChannel(*c, wxCHK_CHECKED);
+    }
+
 	RollUpAll(_controllers);
 	RollUpAll(_models);
 	RollUpAll(_modelGroups);
@@ -1595,77 +1497,57 @@ void TestDialog::CascadeModelDoesNotExist()
 
 void TestDialog::OnButton_SaveClick(wxCommandEvent& event)
 {
-	wxString name;
-	wxXmlNode *channel, *PresetNode;
-	wxArrayString PresetNames;
-	GetTestPresetNames(PresetNames);
-	wxXmlNode* root = _network->GetRoot();
-	wxTextEntryDialog NameDialog(this, _("Enter a name for this test configuration"), _("Save Test Settings"));
-	if (NameDialog.ShowModal() != wxID_OK) return;
-	name = NameDialog.GetValue();
-	name.Trim(true);
-	name.Trim(false);
-	if (name.IsEmpty())
-	{
-		wxMessageBox(_("Name cannot be empty"), _("Error"));
-	}
-	else if (name.Len() > 240)
-	{
-		wxMessageBox(_("Name is too long"), _("Error"));
-	}
-	else if (name.Find('"') != wxNOT_FOUND)
-	{
-		wxMessageBox(_("Name cannot contain quotes"), _("Error"));
-	}
-	else if (PresetNames.Index(name, false) != wxNOT_FOUND)
-	{
-		wxMessageBox(_("Name already exists, please enter a unique name"), _("Error"));
-	}
-	else
-	{
-		PresetNode = new wxXmlNode(wxXML_ELEMENT_NODE, "testpreset");
-		PresetNode->AddAttribute("name", name);
-		root->AddChild(PresetNode);
-		//TreeController* rootcb = (TreeController*)TreeListCtrl_Channels->GetItemData(_controllers);
-		//long ChCount = rootcb->EndXLightsChannel();
-		//int ChCount = CheckListBoxTestChannels->GetCount();
+    wxString name;
+    wxTextEntryDialog NameDialog(this, _("Enter a name for this test configuration"), _("Save Test Settings"));
+    if (NameDialog.ShowModal() != wxID_OK) return;
 
-		wxTreeListItem c = TreeListCtrl_Channels->GetFirstChild(_controllers);
-		while (c != NULL)
-		{
-			TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(c);
-			if (tc->Clickable())
-			{
-				wxTreeListItem cc = TreeListCtrl_Channels->GetFirstChild(c);
-				while (cc != NULL)
-				{
-					if (TreeListCtrl_Channels->GetCheckedState(cc) == wxCHK_CHECKED)
-					{
-						TreeController* tcc = (TreeController*)TreeListCtrl_Channels->GetItemData(cc);
+    name = NameDialog.GetValue().Trim(true).Trim(false);
 
-						channel = new wxXmlNode(wxXML_ELEMENT_NODE, "channel");
-						channel->AddAttribute("id", wxString::Format("%d", tcc->StartXLightsChannel()));
-						PresetNode->AddChild(channel);
-					}
-					cc = TreeListCtrl_Channels->GetNextSibling(cc);
-				}
-			}
-			c = TreeListCtrl_Channels->GetNextSibling(c);
-		}
+    if (name.IsEmpty())
+    {
+        wxMessageBox(_("Name cannot be empty"), _("Error"));
+        return;
+    }
+    else if (name.Len() > 240)
+    {
+        wxMessageBox(_("Name is too long"), _("Error"));
+        return;
+    }
+    else if (_outputManager->GetTestPreset(name.ToStdString()) != nullptr)
+    {
+        if (wxMessageBox(_("Name already exists. Do you want to overwrite it?"), _("Warning"), wxYES_NO) == wxNO)
+        {
+            return;
+        }
+    }
 
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Saving test preset: " + name);
-        if (_network->Save(_networkFile.GetFullPath()))
-		{
-            logger_base.debug("   Save done.");
-            //UnsavedNetworkChanges = false;
-		}
-		else
-		{
-            logger_base.debug("   Unable to save network definition file.");
-            wxMessageBox(_("Unable to save network definition file"), _("Error"));
-		}
-	}
+    TestPreset* testPreset = _outputManager->CreateTestPreset(name.ToStdString());
+
+    wxTreeListItem c = TreeListCtrl_Channels->GetFirstChild(_controllers);
+    while (c != nullptr)
+    {
+        TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(c);
+        if (tc->Clickable())
+        {
+            wxTreeListItem cc = TreeListCtrl_Channels->GetFirstChild(c);
+            while (cc != nullptr)
+            {
+                if (TreeListCtrl_Channels->GetCheckedState(cc) == wxCHK_CHECKED)
+                {
+                    TreeController* tcc = (TreeController*)TreeListCtrl_Channels->GetItemData(cc);
+
+                    testPreset->AddChannel(tcc->StartXLightsChannel());
+                }
+                cc = TreeListCtrl_Channels->GetNextSibling(cc);
+            }
+        }
+        c = TreeListCtrl_Channels->GetNextSibling(c);
+    }
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Saving test preset: %s", (const char*)name.c_str());
+    _outputManager->Save();
+    logger_base.debug("   Save done.");
 }
 
 void TestDialog::OnSlider_SpeedCmdSliderUpdated(wxScrollEvent& event)
@@ -1875,90 +1757,13 @@ void TestDialog::GetCheckedItems(wxArrayInt& chArray, char col)
 	}
 }
 
-bool TestDialog::InitialiseOutputs()
-{
-	wxCriticalSectionLocker locker(_xoutCriticalSection);
-	long MaxChan;
-	bool ok = true;
-
-	for (wxXmlNode* e = _network->GetRoot()->GetChildren(); e != NULL && ok; e = e->GetNext())
-	{
-		wxString tagname = e->GetName();
-		if (tagname == "network")
-		{
-			wxString tempstr = e->GetAttribute("MaxChannels", "0");
-			tempstr.ToLong(&MaxChan);
-			wxString NetworkType = e->GetAttribute("NetworkType", "");
-			wxString ComPort = e->GetAttribute("ComPort", "");
-			wxString BaudRate = e->GetAttribute("BaudRate", "");
-			int baud = (BaudRate == _("n/a")) ? 115200 : wxAtoi(BaudRate);
-			bool enabled = e->GetAttribute("Enabled", "Yes") == "Yes";
-			wxString Description = xLightsXmlFile::UnXmlSafe(e->GetAttribute("Description", ""));
-			static wxString choices;
-
-			int numU = wxAtoi(e->GetAttribute("NumUniverses", "1"));
-
-#ifdef __WXMSW__ //TODO: enumerate comm ports on all platforms -DJ
-			TCHAR valname[32];
-			/*byte*/TCHAR portname[32];
-			DWORD vallen = sizeof(valname);
-			DWORD portlen = sizeof(portname);
-			HKEY hkey = NULL;
-			DWORD err = 0;
-
-			//enum serial comm ports (more user friendly, especially if USB-to-serial ports change):
-			//logic based on http://www.cplusplus.com/forum/windows/73821/
-			if (choices.empty()) //should this be cached?  it's not really that expensive
-			{
-				if (!(err = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"), 0, KEY_READ, &hkey)))
-					for (DWORD inx = 0; !(err = RegEnumValue(hkey, inx, (LPTSTR)valname, &vallen, NULL, NULL, (LPBYTE)portname, &portlen)) || (err == ERROR_MORE_DATA); ++inx)
-					{
-						if (err == ERROR_MORE_DATA) portname[sizeof(portname) / sizeof(portname[0]) - 1] = '\0'; //need to enlarge read buf if this happens; just truncate string for now
-																													//                            debug(3, "found port[%d] %d:'%s' = %d:'%s', err 0x%x", inx, vallen, valname, portlen, portname, err);
-						choices += _(", ") + portname;
-						vallen = sizeof(valname);
-						portlen = sizeof(portname);
-					}
-				if (err && (err != /*ERROR_FILE_NOT_FOUND*/ ERROR_NO_MORE_ITEMS)) choices = wxString::Format(", error %d (can't get serial comm ports from registry)", err);
-				if (hkey) RegCloseKey(hkey);
-				//                    if (err) SetLastError(err); //tell caller about last real error
-				if (!choices.empty()) choices = "\n(available ports: " + choices.substr(2) + ")";
-				else choices = "\n(no available ports)";
-			}
-#endif // __WXMSW__
-			wxString msg = _("Error occurred while connecting to ") + NetworkType + _(" network on ") + ComPort +
-				choices +
-				_("\n\nThings to check:\n1. Are all required cables plugged in?") +
-				_("\n2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.") +
-				_("\n3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n");
-
-			try
-			{
-				_xout->addnetwork(NetworkType, MaxChan, ComPort, baud, numU, enabled);
-			}
-			catch (const char *str)
-			{
-				wxString errmsg(str, wxConvUTF8);
-				if (wxMessageBox(msg + errmsg + _("\nProceed anyway?"), _("Communication Error"), wxYES_NO | wxNO_DEFAULT) != wxYES)
-					ok = false;
-			}
-		}
-	}
-	return ok;
-}
-
 void TestDialog::OnTimer1Trigger(wxTimerEvent& event)
 {
-	if (!_xoutCriticalSection.TryEnter() || _xout == NULL)
-	{
-		return;
-	}
 	wxTimeSpan ts = wxDateTime::UNow() - _starttime;
 	long curtime = ts.GetMilliseconds().ToLong();
-	_xout->TimerStart(curtime);
+	_outputManager->StartFrame(curtime);
 	OnTimer(curtime);
-	_xout->TimerEnd();
-	_xoutCriticalSection.Leave();
+	_outputManager->EndFrame();
 }
 
 void TestDialog::TestButtonsOff()
@@ -2015,12 +1820,6 @@ void TestDialog::OnTimer(long curtime)
 	unsigned int i;
 	bool ColorChange;
 
-	if (_xout == NULL)
-	{
-		return;
-	}
-
-	//_xout->TimerStart(curtime);
 	int NotebookSelection = AuiNotebook1->GetSelection();
 	if (NotebookSelection != LastNotebookSelection)
 	{
@@ -2040,7 +1839,7 @@ void TestDialog::OnTimer(long curtime)
 	if (_checkChannelList)
 	{
 		// get list of checked channels
-		_xout->alloff();
+        _outputManager->AllOff();
 		GetCheckedItems(chArray);
 		if (RadioButton_RGB_Chase->GetValue() || RadioButton_Standard_Chase->GetValue())
 		{
@@ -2098,7 +1897,7 @@ void TestDialog::OnTimer(long curtime)
 			{
 				for (i = 0; i < chArray.Count(); i++)
 				{
-					_xout->SetIntensity(chArray[i]-1, BgIntensity);
+                    _outputManager->SetOneChannel(chArray[i]-1, BgIntensity);
 				}
 			}
 			break;
@@ -2130,13 +1929,13 @@ void TestDialog::OnTimer(long curtime)
 				{
 					// was background, now highlight for random period
 					TwinkleState[i] = static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime();
-					_xout->SetIntensity(chArray[i]-1, FgIntensity);
+                    _outputManager->SetOneChannel(chArray[i]-1, FgIntensity);
 				}
 				else
 				{
 					// was on, now go to bg color for random period
 					TwinkleState[i] = -static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime() * ((double)_twinkleRatio - 1.0);
-					_xout->SetIntensity(chArray[i]-1, BgIntensity);
+                    _outputManager->SetOneChannel(chArray[i]-1, BgIntensity);
 				}
 			}
 			break;
@@ -2147,7 +1946,7 @@ void TestDialog::OnTimer(long curtime)
 				ShimIntensity = (ShimIntensity == FgIntensity) ? BgIntensity : FgIntensity;
 				for (i = 0; i < chArray.Count(); i++)
 				{
-					_xout->SetIntensity(chArray[i]-1, ShimIntensity);
+                    _outputManager->SetOneChannel(chArray[i]-1, ShimIntensity);
 				}
 			}
 			if (curtime >= NextSequenceStart)
@@ -2163,7 +1962,7 @@ void TestDialog::OnTimer(long curtime)
 				for (i = 0; i < chArray.Count(); i++)
 				{
 					v = (i % _chaseGrouping) == TestSeqIdx ? FgIntensity : BgIntensity;
-					_xout->SetIntensity(chArray[i]-1, v);
+                    _outputManager->SetOneChannel(chArray[i]-1, v);
 				}
 			}
 			if (curtime >= NextSequenceStart)
@@ -2204,7 +2003,7 @@ void TestDialog::OnTimer(long curtime)
 			{
 				for (i = 0; i < chArray.Count(); i++)
 				{
-					_xout->SetIntensity(chArray[i]-1, BgColor[i % 3]);
+                    _outputManager->SetOneChannel(chArray[i]-1, BgColor[i % 3]);
 				}
 			}
 			break;
@@ -2237,18 +2036,18 @@ void TestDialog::OnTimer(long curtime)
 					// was background, now highlight for random period
 					TwinkleState[i] = static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime();
 					TestSeqIdx = i * 3;
-					_xout->SetIntensity(chArray[TestSeqIdx]-1, FgColor[0]);
-					_xout->SetIntensity(chArray[TestSeqIdx + 1]-1, FgColor[1]);
-					_xout->SetIntensity(chArray[TestSeqIdx + 2]-1, FgColor[2]);
+                    _outputManager->SetOneChannel(chArray[TestSeqIdx]-1, FgColor[0]);
+                    _outputManager->SetOneChannel(chArray[TestSeqIdx + 1]-1, FgColor[1]);
+                    _outputManager->SetOneChannel(chArray[TestSeqIdx + 2]-1, FgColor[2]);
 				}
 				else
 				{
 					// was on, now go to bg color for random period
 					TwinkleState[i] = -static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime() * ((double)_twinkleRatio - 1.0);
 					TestSeqIdx = i * 3;
-					_xout->SetIntensity(chArray[TestSeqIdx]-1, BgColor[0]);
-					_xout->SetIntensity(chArray[TestSeqIdx + 1]-1, BgColor[1]);
-					_xout->SetIntensity(chArray[TestSeqIdx + 2]-1, BgColor[2]);
+                    _outputManager->SetOneChannel(chArray[TestSeqIdx]-1, BgColor[0]);
+                    _outputManager->SetOneChannel(chArray[TestSeqIdx + 1]-1, BgColor[1]);
+                    _outputManager->SetOneChannel(chArray[TestSeqIdx + 2]-1, BgColor[2]);
 				}
 			}
 			break;
@@ -2258,7 +2057,7 @@ void TestDialog::OnTimer(long curtime)
 				ShimColor = (ShimColor == FgColor) ? BgColor : FgColor;
 				for (i = 0; i < chArray.Count(); i++)
 				{
-					_xout->SetIntensity(chArray[i]-1, ShimColor[i % 3]);
+                    _outputManager->SetOneChannel(chArray[i]-1, ShimColor[i % 3]);
 				}
 			}
 			if (curtime >= NextSequenceStart)
@@ -2272,7 +2071,7 @@ void TestDialog::OnTimer(long curtime)
 				for (i = 0; i < chArray.Count(); i++)
 				{
 					v = (i / 3 % _chaseGrouping) == TestSeqIdx ? FgColor[i % 3] : BgColor[i % 3];
-					_xout->SetIntensity(chArray[i]-1, v);
+                    _outputManager->SetOneChannel(chArray[i]-1, v);
 				}
 			}
 			if (curtime >= NextSequenceStart)
@@ -2305,7 +2104,7 @@ void TestDialog::OnTimer(long curtime)
 			TestSeqIdx++;
 			for (i = 0; i < chArray.Count(); i++)
 			{
-				_xout->SetIntensity(chArray[i]-1, BgColor[i % 3]);
+                _outputManager->SetOneChannel(chArray[i]-1, BgColor[i % 3]);
 			}
 		}
 		else if (_testFunc == RGBW)
@@ -2321,32 +2120,32 @@ void TestDialog::OnTimer(long curtime)
 				// blank everything first
 				for (i = 0; i < chArray.Count(); i++)
 				{
-					_xout->SetIntensity(chArray[i]-1, 0);
+                    _outputManager->SetOneChannel(chArray[i]-1, 0);
 				}
 				switch (rgbCycle)
 				{
 				case 0: // red
 					for (i = 0; i < chArrayR.Count(); i++)
 					{
-						_xout->SetIntensity(chArrayR[i]-1, 255);
+                        _outputManager->SetOneChannel(chArrayR[i]-1, 255);
 					}
 					break;
 				case 1: // green
 					for (i = 0; i < chArrayG.Count(); i++)
 					{
-						_xout->SetIntensity(chArrayG[i]-1, 255);
+                        _outputManager->SetOneChannel(chArrayG[i]-1, 255);
 					}
 					break;
 				case 2: // blue
 					for (i = 0; i < chArrayB.Count(); i++)
 					{
-						_xout->SetIntensity(chArrayB[i]-1, 255);
+                        _outputManager->SetOneChannel(chArrayB[i]-1, 255);
 					}
 					break;
 				case 3: // white
 					for (i = 0; i < chArrayW.Count(); i++)
 					{
-						_xout->SetIntensity(chArrayW[i]-1, 255);
+                        _outputManager->SetOneChannel(chArrayW[i]-1, 255);
 					}
 					break;
 				}
@@ -2376,7 +2175,7 @@ void TestDialog::OnTimer(long curtime)
 						v = (i % 3) == rgbCycle ? 255 : 0;
 						break;
 					}
-					_xout->SetIntensity(chArray[i]-1, v);
+                    _outputManager->SetOneChannel(chArray[i]-1, v);
 				}
 				rgbCycle = (rgbCycle + 1) % _chaseGrouping;
 				NextSequenceStart += interval;
@@ -2413,23 +2212,18 @@ void TestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 {
 	if (CheckBox_OutputToLights->IsChecked())
 	{
-		if (_xout == NULL)
-		{
-			_xout = new xOutput();
-			InitialiseOutputs();
-		}
+        if (!_outputManager->StartOutput())
+        {
+            wxMessageBox("At least one output could not be started. See log file for details.", "Warning");
+        }
         Timer1.Start(50, wxTIMER_CONTINUOUS);
     }
 	else
 	{
         Timer1.Stop();
-        if (_xout)
-		{
-			_xout->alloff();
-            wxTimerEvent ev;
-            OnTimer1Trigger(ev);
-            delete _xout;
-			_xout = NULL;
-		}
+        _outputManager->AllOff();
+        wxTimerEvent ev;
+        OnTimer1Trigger(ev);
+        _outputManager->StopOutput();
 	}
 }

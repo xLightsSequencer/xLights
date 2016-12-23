@@ -1,5 +1,5 @@
 #include "ArtNetDialog.h"
-#include "xlights_out.h"
+#include "../xlights_out.h"
 
 //(*InternalHeaders(ArtNetDialog)
 #include <wx/intl.h>

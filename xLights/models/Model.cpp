@@ -1970,8 +1970,8 @@ wxCursor Model::InitializeLocation(int &handle, wxCoord x,wxCoord y) {
 
 void Model::ApplyTransparency(xlColor &color, int transparency) {
     if (transparency) {
-        float t = 100.0 - transparency;
-        t *= 2.55;
+        float t = 100.0f - transparency;
+        t *= 2.55f;
         transparency = t;
         color.alpha = transparency > 255 ? 255 : (transparency < 0 ? 0 : transparency);
     }

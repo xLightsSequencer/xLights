@@ -8,11 +8,14 @@
 #include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/radiobut.h>
+#include <wx/button.h>
 #include <wx/dialog.h>
 //*)
 
 class E131Dialog: public wxDialog
 {
+    void ValidateWindow();
+
 public:
 
     E131Dialog(wxWindow* parent);
@@ -21,6 +24,7 @@ public:
     //(*Declarations(E131Dialog)
     wxRadioButton* RadioButtonUnicast;
     wxTextCtrl* TextCtrlIpAddr;
+    wxButton* Button_Ok;
     wxTextCtrl* TextCtrl_Description;
     wxStaticText* StaticText2;
     wxStaticText* StaticText6;
@@ -31,6 +35,7 @@ public:
     wxStaticText* StaticText5;
     wxStaticText* StaticText7;
     wxSpinCtrl* SpinCtrl_NumUniv;
+    wxButton* Button_Cancel;
     wxSpinCtrl* SpinCtrl_StartUniv;
     wxCheckBox* MultiE131CheckBox;
     wxStaticText* StaticText4;
@@ -56,6 +61,8 @@ protected:
     static const long ID_SPINCTRL_LAST_CHANNEL;
     static const long ID_STATICTEXT8;
     static const long ID_TEXTCTRL_DESCRIPTION;
+    static const long ID_BUTTON1;
+    static const long ID_BUTTON2;
     //*)
 
 private:
@@ -65,6 +72,10 @@ private:
     void OnRadioButtonMulticastSelect(wxCommandEvent& event);
     void OnSpinCtrl_NumUnivChange(wxSpinEvent& event);
     void OnTextCtrl_DescriptionText(wxCommandEvent& event);
+    void OnTextCtrlIpAddrText(wxCommandEvent& event);
+    void OnMultiE131CheckBoxClick(wxCommandEvent& event);
+    void OnButton_OkClick(wxCommandEvent& event);
+    void OnButton_CancelClick(wxCommandEvent& event);
     //*)
 
     DECLARE_EVENT_TABLE()

@@ -156,7 +156,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AddShowDialog.cpp" />
-    <ClCompile Include="ArtNetDialog.cpp" />
+    <ClCompile Include="outputs\ArtNetDialog.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
     <ClCompile Include="BufferPanel.cpp" />
@@ -179,7 +179,7 @@
     <ClCompile Include="DrawGLUtils.cpp" />
     <ClCompile Include="DrawGLUtils21.cpp" />
     <ClCompile Include="DrawGLUtils31.cpp" />
-    <ClCompile Include="E131Dialog.cpp" />
+    <ClCompile Include="outputs\E131Dialog.cpp" />
     <ClCompile Include="EffectAssist.cpp" />
     <ClCompile Include="EffectIconPanel.cpp" />
     <ClCompile Include="EffectListDialog.cpp" />
@@ -337,9 +337,24 @@
     <ClCompile Include="NewTimingDialog.cpp" />
     <ClCompile Include="NodesGridCellEditor.cpp" />
     <ClCompile Include="NoteImportDialog.cpp" />
-    <ClCompile Include="NullOutputDialog.cpp" />
+    <ClCompile Include="outputs\NullOutputDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
+    <ClCompile Include="outputs\ArtNetOutput.cpp" />
+    <ClCompile Include="outputs\Controller.cpp" />
+    <ClCompile Include="outputs\DMXOutput.cpp" />
+    <ClCompile Include="outputs\E131Output.cpp" />
+    <ClCompile Include="outputs\IPOutput.cpp" />
+    <ClCompile Include="outputs\LOROutput.cpp" />
+    <ClCompile Include="outputs\NullOutput.cpp" />
+    <ClCompile Include="outputs\OpenDMXOutput.cpp" />
+    <ClCompile Include="outputs\OpenPixelNetOutput.cpp" />
+    <ClCompile Include="outputs\Output.cpp" />
+    <ClCompile Include="outputs\OutputManager.cpp" />
+    <ClCompile Include="outputs\PixelNetOutput.cpp" />
+    <ClCompile Include="outputs\RenardOutput.cpp" />
+    <ClCompile Include="outputs\SerialOutput.cpp" />
+    <ClCompile Include="outputs\TestPreset.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
     <ClCompile Include="PhonemeDictionary.cpp" />
@@ -374,7 +389,7 @@
     <ClCompile Include="sequencer\UndoManager.cpp" />
     <ClCompile Include="sequencer\Waveform.cpp" />
     <ClCompile Include="serial.cpp" />
-    <ClCompile Include="SerialPortWithRate.cpp" />
+    <ClCompile Include="outputs\SerialPortWithRate.cpp" />
     <ClCompile Include="SevenSegmentDialog.cpp" />
     <ClCompile Include="ShowDatesDialog.cpp" />
     <ClCompile Include="SimpleFTP.cpp" />
@@ -428,7 +443,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddShowDialog.h" />
-    <ClInclude Include="ArtNetDialog.h" />
+    <ClInclude Include="outputs/ArtNetDialog.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
     <ClInclude Include="BufferPanel.h" />
@@ -448,7 +463,7 @@
     <ClInclude Include="DimmingCurvePanel.h" />
     <ClInclude Include="DisplayElementsPanel.h" />
     <ClInclude Include="DrawGLUtils.h" />
-    <ClInclude Include="E131Dialog.h" />
+    <ClInclude Include="outputs\E131Dialog.h" />
     <ClInclude Include="EffectAssist.h" />
     <ClInclude Include="EffectIconPanel.h" />
     <ClInclude Include="EffectListDialog.h" />
@@ -596,10 +611,26 @@
     <ClInclude Include="NewTimingDialog.h" />
     <ClInclude Include="NodesGridCellEditor.h" />
     <ClInclude Include="NoteImportDialog.h" />
-    <ClInclude Include="NullOutputDialog.h" />
+    <ClInclude Include="outputs\NullOutputDialog.h" />
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="osxMacUtils.h" />
     <ClInclude Include="osx_utils\TouchBars.h" />
+    <ClInclude Include="outputs\ArtNetOutput.h" />
+    <ClInclude Include="outputs\Controller.h" />
+    <ClInclude Include="outputs\DLightOutput.h" />
+    <ClInclude Include="outputs\DMXOutput.h" />
+    <ClInclude Include="outputs\E131Output.h" />
+    <ClInclude Include="outputs\IPOutput.h" />
+    <ClInclude Include="outputs\LOROutput.h" />
+    <ClInclude Include="outputs\NullOutput.h" />
+    <ClInclude Include="outputs\OpenDMXOutput.h" />
+    <ClInclude Include="outputs\OpenPixelNetOutput.h" />
+    <ClInclude Include="outputs\Output.h" />
+    <ClInclude Include="outputs\OutputManager.h" />
+    <ClInclude Include="outputs\PixelNetOutput.h" />
+    <ClInclude Include="outputs\RenardOutput.h" />
+    <ClInclude Include="outputs\SerialOutput.h" />
+    <ClInclude Include="outputs\TestPreset.h" />
     <ClInclude Include="PaletteMgmtDialog.h" />
     <ClInclude Include="PerspectivesPanel.h" />
     <ClInclude Include="PhonemeDictionary.h" />
@@ -635,7 +666,7 @@
     <ClInclude Include="sequencer\UndoManager.h" />
     <ClInclude Include="sequencer\Waveform.h" />
     <ClInclude Include="serial.h" />
-    <ClInclude Include="SerialPortWithRate.h" />
+    <ClInclude Include="outputs\SerialPortWithRate.h" />
     <ClInclude Include="SevenSegmentDialog.h" />
     <ClInclude Include="ShowDatesDialog.h" />
     <ClInclude Include="StartChannelDialog.h" />

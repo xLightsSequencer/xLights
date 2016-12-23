@@ -55,6 +55,7 @@
 #include <set>
 #include <vector>
 
+#include "outputs/OutputManager.h"
 #include "EffectTreeDialog.h"
 #include "xlights_out.h"
 #include "PlayerFrame.h"
@@ -863,6 +864,7 @@ private:
     wxArrayString mru;  // most recently used directories
     wxMenuItem* mru_MenuItem[MRU_LENGTH];
     wxXmlDocument NetworkXML;
+    OutputManager _outputManager;
     long DragRowIdx;
     wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges;

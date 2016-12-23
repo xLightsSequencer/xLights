@@ -2,7 +2,6 @@
 
 //(*InternalHeaders(SerialPortWithRate)
 #include <wx/intl.h>
-#include <wx/button.h>
 #include <wx/string.h>
 //*)
 #include <wx/valtext.h>
@@ -20,6 +19,8 @@ const long SerialPortWithRate::ID_TEXTCTRL_LAST_CHANNEL = wxNewId();
 const long SerialPortWithRate::ID_STATICTEXT1 = wxNewId();
 const long SerialPortWithRate::ID_STATICTEXT2 = wxNewId();
 const long SerialPortWithRate::ID_TEXTCTRL_DESCRIPTION = wxNewId();
+const long SerialPortWithRate::ID_BUTTON1 = wxNewId();
+const long SerialPortWithRate::ID_BUTTON2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SerialPortWithRate,wxDialog)
@@ -33,10 +34,10 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
     wxStaticBoxSizer* StaticBoxSizer2;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer3;
+    wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer2;
     wxStaticBoxSizer* StaticBoxSizer1;
     wxFlexGridSizer* FlexGridSizer1;
-    wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, wxID_ANY, _("USB Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -85,29 +86,42 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
     FlexGridSizer2->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
-    StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
-    StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
-    StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
-    StdDialogButtonSizer1->Realize();
-    FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
+    Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    FlexGridSizer5->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    FlexGridSizer5->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_CHOICE_PROTOCOL,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SerialPortWithRate::OnChoiceProtocolSelect);
+    Connect(ID_CHOICE_PORT,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SerialPortWithRate::OnChoicePortSelect);
+    Connect(ID_CHOICE_BAUD_RATE,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SerialPortWithRate::OnChoiceBaudRateSelect);
+    Connect(ID_TEXTCTRL_LAST_CHANNEL,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SerialPortWithRate::OnTextCtrlLastChannelText);
     Connect(ID_TEXTCTRL_DESCRIPTION,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SerialPortWithRate::OnTextCtrl_DescriptionText);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SerialPortWithRate::OnButton_OkClick);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SerialPortWithRate::OnButton_CancelClick);
     //*)
 
     MainSizer=FlexGridSizer1;
+
     wxArrayString ports;
     PopulatePortChooser(&ports);
     ChoicePort->Append(ports);
+
 #ifndef __WXOSX__
+    // why is this not applicable to the mac?
     ChoiceProtocol->Append(_("OpenDMX"));
+
+    // Why no PixelNet-Open?
 #endif
+
     FlexGridSizer1->Fit(this);
 
-    StdDialogButtonSizer1->GetAffirmativeButton()->SetDefault();
+    Button_Ok->SetDefault();
+    ValidateWindow();
 }
 
 SerialPortWithRate::~SerialPortWithRate()
@@ -177,6 +191,7 @@ void SerialPortWithRate::ProtocolChange()
         EnableRate=false;
     }
     ChoiceBaudRate->Enable(EnableRate);
+    ValidateWindow();
 }
 
 void SerialPortWithRate::SetLabel(const wxString& newlabel)
@@ -252,8 +267,50 @@ void SerialPortWithRate::PopulatePortChooser(wxArrayString *chooser)
 void SerialPortWithRate::OnChoiceProtocolSelect(wxCommandEvent& event)
 {
     ProtocolChange();
+    ValidateWindow();
 }
 
 void SerialPortWithRate::OnTextCtrl_DescriptionText(wxCommandEvent& event)
 {
+}
+
+void SerialPortWithRate::OnButton_OkClick(wxCommandEvent& event)
+{
+    EndDialog(wxID_OK);
+}
+
+void SerialPortWithRate::OnButton_CancelClick(wxCommandEvent& event)
+{
+    EndDialog(wxID_CANCEL);
+}
+
+void SerialPortWithRate::OnChoicePortSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void SerialPortWithRate::OnChoiceBaudRateSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void SerialPortWithRate::OnTextCtrlLastChannelText(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void SerialPortWithRate::ValidateWindow()
+{
+    if (ChoicePort->GetStringSelection().IsEmpty() || 
+        GetRateString().IsEmpty() || 
+        TextCtrlLastChannel->GetValue().IsEmpty() || 
+        !TextCtrlLastChannel->GetValue().IsNumber() || 
+        TextCtrlLastChannel->GetValue()[0] == '-')
+    {
+        Button_Ok->Enable(false);
+    }
+    else
+    {
+        Button_Ok->Enable(true);
+    }
 }

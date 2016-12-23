@@ -3,13 +3,9 @@
 #include "wx/wx.h"
 
 #ifdef __WXMAC__
- #include "OpenGL/gl.h"
+    #include "OpenGL/gl.h"
 #else
-//#ifdef _MSC_VER
-//#include "../GL/glut.h"
-//#else
-#include <GL/gl.h>
-//#endif
+    #include <GL/gl.h>
 #endif
 
 #include "wx/sizer.h"

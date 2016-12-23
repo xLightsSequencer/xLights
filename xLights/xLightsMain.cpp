@@ -2866,7 +2866,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	SetCursor(wxCURSOR_WAIT);
 
 	// display the test dialog
-    TestDialog dialog(this, &NetworkXML, networkFile, &AllModels);
+    TestDialog dialog(this, &_outputManager, networkFile, &AllModels);
     dialog.CenterOnParent();
     dialog.ShowModal();
 
