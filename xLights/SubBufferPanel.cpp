@@ -84,18 +84,28 @@ void SubBufferPanel::ContextMenu(wxContextMenuEvent& event) {
     wxMenu menu;
     menu.Append(wxNewId(), "Full Buffer");
     menu.AppendSeparator();
-    menu.Append(wxNewId(), "Top Half");
-    menu.Append(wxNewId(), "Bottom Half");
-    menu.Append(wxNewId(), "Left Half");
-    menu.Append(wxNewId(), "Right Half");
-    menu.Append(wxNewId(), "Left Third");
-    menu.Append(wxNewId(), "Middle Third");
-    menu.Append(wxNewId(), "Right Third");
+    wxMenu* halves = new wxMenu();
+    halves->Append(wxNewId(), "Top Half");
+    halves->Append(wxNewId(), "Bottom Half");
+    halves->Append(wxNewId(), "Left Half");
+    halves->Append(wxNewId(), "Right Half");
+    menu.AppendSubMenu(halves, "Halves");
+    wxMenu* thirds = new wxMenu();
+    thirds->Append(wxNewId(), "Left Third");
+    thirds->Append(wxNewId(), "Middle Third");
+    thirds->Append(wxNewId(), "Right Third");
+    menu.AppendSubMenu(thirds, "Thirds");
+    wxMenu* quarters = new wxMenu();
+    quarters->Append(wxNewId(), "Top Left");
+    quarters->Append(wxNewId(), "Top Right");
+    quarters->Append(wxNewId(), "Bottom Left");
+    quarters->Append(wxNewId(), "Bottom Right");
+    menu.AppendSubMenu(quarters, "Quarters");
     menu.AppendSeparator();
     menu.Append(wxNewId(), "Oversize");
     menu.AppendSeparator();
     menu.Append(wxNewId(), "Edit");
-    menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, NULL, this);
+    menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);
     PopupMenu(&menu);
 }
 void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
@@ -142,6 +152,30 @@ void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
             x1 = 66.66;
             y1 = 0.0;
             x2 = y2 = 100.0;
+        }
+        else if (nm == "Top Left") {
+            x1 = 0.0;
+            y1 = 50.0;
+            x2 = 50.0;
+            y2 = 100.0;
+        }
+        else if (nm == "Bottom Left") {
+            x1 = 0.0;
+            y1 = 0.0;
+            y2 = 50.0;
+            x2 = 50.0;
+        }
+        else if (nm == "Top Right") {
+            x1 = 50.0;
+            y1 = 50.0;
+            x2 = 100.0;
+            y2 = 100.0;
+        }
+        else if (nm == "Bottom Right") {
+            x1 = 50.0;
+            y1 = 0.0;
+            y2 = 50.0;
+            x2 = 100.0;
         }
         else if (nm == "Oversize") {
             x1 = -100.0;
