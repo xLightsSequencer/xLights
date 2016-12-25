@@ -666,7 +666,7 @@ void RowHeading::Draw()
                 prefix += "  ";
             }
             wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
-            dc.DrawLabel(prefix + rowInfo->displayName,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+            dc.DrawLabel(prefix + rowInfo->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
 
         if (rowInfo->element->GetType() != ELEMENT_TYPE_TIMING)
