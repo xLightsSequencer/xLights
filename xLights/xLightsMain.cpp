@@ -409,6 +409,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     _fps = -1;
     mCurrentPerpective = nullptr;
     MenuItemPreviews = nullptr;
+    _renderMode = false;
 
     Bind(EVT_SELECTED_EFFECT_CHANGED, &xLightsFrame::SelectedEffectChanged, this);
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
@@ -3098,12 +3099,12 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
     AddLogFile(CurrentDir, "xLights_l4cpp.log.1", report);
 
     if (GetSeqXmlFileName() != "") {
-        wxFileName fn(GetSeqXmlFileName());
-        if (fn.Exists() && !fn.IsDir()) {
-            report.AddFile(GetSeqXmlFileName(), fn.GetName());
+        wxFileName fn2(GetSeqXmlFileName());
+        if (fn2.Exists() && !fn2.IsDir()) {
+            report.AddFile(GetSeqXmlFileName(), fn2.GetName());
             if (mSavedChangeCount != mSequenceElements.GetChangeCount())
             {
-                wxFileName fnb(fn.GetPath() + "/" + fn.GetName() + ".xbkp");
+                wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
                 if (fnb.Exists())
                 {
                     report.AddFile(fnb.GetFullPath(), fnb.GetName());

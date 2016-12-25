@@ -939,6 +939,7 @@ private:
     // convert
 public:
     bool UnsavedRgbEffectsChanges;
+    bool _renderMode;
 
     void ClearLastPeriod();
     void WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf); //       Vixen *.vir

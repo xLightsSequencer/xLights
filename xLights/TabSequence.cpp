@@ -584,21 +584,21 @@ void xLightsFrame::UpdateModelsList()
                     switch (sel) {
                         case 0:
                         case 1:
-                            for (wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext()) {
-                                if (e->GetName() == "model") {
-                                    std::string mname = e->GetAttribute("name").ToStdString();
+                            for (wxXmlNode* e2=ModelsNode->GetChildren(); e2!=NULL; e2=e2->GetNext()) {
+                                if (e2->GetName() == "model") {
+                                    std::string mname = e2->GetAttribute("name").ToStdString();
                                     if (mname == name) {
                                         UnsavedRgbEffectsChanges=true;
                                         if (sel == 1) {
-                                            ModelsNode->RemoveChild(e);
+                                            ModelsNode->RemoveChild(e2);
                                             done = true;
                                         } else {
                                             //rename
                                             std::string newName = chooseNewName(this, current, "Rename Model", mname);
                                             if (newName != mname) {
                                                 current.push_back(newName);
-                                                e->DeleteAttribute("name");
-                                                e->AddAttribute("name", newName);
+                                                e2->DeleteAttribute("name");
+                                                e2->AddAttribute("name", newName);
                                                 done = true;
                                             }
                                         }
@@ -659,11 +659,11 @@ void xLightsFrame::UpdateModelsList()
         if (model->GetDisplayAs() == "ModelGroup") {
             ModelGroup *grp = (ModelGroup*)model;
             if (model->GetLayoutGroup() == "All Previews" || model->GetLayoutGroup() == "Default") {
-                for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
-                    if (modelsAdded.find(*it) == modelsAdded.end()) {
-                        Model *m = AllModels[*it];
+                for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); it2++) {
+                    if (modelsAdded.find(*it2) == modelsAdded.end()) {
+                        Model *m = AllModels[*it2];
                         if (m != nullptr) {
-                            modelsAdded.insert(*it);
+                            modelsAdded.insert(*it2);
                             PreviewModels.push_back(m);
                         }
                     }
@@ -752,7 +752,7 @@ void xLightsFrame::SaveSequence()
                         strSequenceSaveAsFileTypes,
                         wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-        bool ok = false;
+        bool ok;
         do
         {
             if (fd.ShowModal() != wxID_OK)
@@ -852,7 +852,7 @@ void xLightsFrame::SaveAsSequence()
                     strSequenceSaveAsFileTypes,
                     wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-    bool ok = false;
+    bool ok;
     do
     {
         if (fd.ShowModal() != wxID_OK)

@@ -469,21 +469,26 @@ bool xLightsApp::OnInit()
     case 0:
         if (parser.Found("w"))
         {
+            logger_base.info("-w: Wiping settings");
             info += _("Wiping settings\n");
             WipeSettings();
         }
         WantDebug = parser.Found("d");
         if (WantDebug) {
+            logger_base.info("-d: Debug is ON");
             info += _("Debug is ON\n");
         }
         RunPrompt = parser.Found("n");
         if (RunPrompt) {
+            logger_base.info("-n: Auto-run prompt is ON");
             info += _("Auto-run prompt is ON\n");
         }
         if (parser.Found("s", &showDir)) {
+            logger_base.info("-s: Show directory set to %s.", (const char *)showDir.c_str());
             info += _("Setting show directory to ") + showDir + "\n";
         }
         if (parser.Found("m", &mediaDir)) {
+            logger_base.info("-m: Media directory set to %s.", (const char *)mediaDir.c_str());
             info += _("Setting media directory to ") + mediaDir + "\n";
         } else if (!showDir.IsNull()) {
             mediaDir = showDir;
@@ -491,6 +496,7 @@ bool xLightsApp::OnInit()
         for (int x = 0; x < parser.GetParamCount(); x++) {
             wxString sequenceFile = parser.GetParam(x);
             if (x == 0) {
+                logger_base.info("Sequence file passed on command line: %s.", (const char *)sequenceFile.c_str());
                 info += _("Loading sequence ") + sequenceFile + "\n";
             }
             if (showDir.IsNull()) {
@@ -498,7 +504,11 @@ bool xLightsApp::OnInit()
             }
             sequenceFiles.push_back(sequenceFile);
         }
-        if (!parser.Found("r") && !info.empty()) wxMessageBox(info, _("Command Line Options")); //give positive feedback*/
+        if (!parser.Found("r") && !info.empty())
+        {
+            logger_base.info("Unrecognised command line parameter found.");
+            wxMessageBox(info, _("Command Line Options")); //give positive feedback*/
+        }
         break;
     default:
         wxMessageBox(_("Unrecognized command line parameters"),_("Command Line Error"));
@@ -518,6 +528,8 @@ bool xLightsApp::OnInit()
     topFrame = (xLightsFrame* )GetTopWindow();
 
     if (parser.Found("r")) {
+        logger_base.info("-r: Render mode is ON");
+        topFrame->_renderMode = true;
         topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, sequenceFiles);
     }
     
