@@ -14,6 +14,7 @@
 #include <wx/file.h>
 #include <wx/dcmemory.h>
 #include <wx/log.h>
+#include <wx/generic/statbmpg.h>
 
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
@@ -164,9 +165,9 @@ BEGIN_EVENT_TABLE(GenerateCustomModelDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocument* network, wxWindowID id,const wxPoint& pos,const wxSize& size)
+GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
-    _network = network;
+    _outputManager = outputManager;
     _busy = false;
 
 	//(*Initialize(GenerateCustomModelDialog)
@@ -680,7 +681,7 @@ void GenerateCustomModelDialog::ShowImage(const wxImage& image)
 
 #pragma region Prepare
 
-void GenerateCustomModelDialog::SetBulbs(bool nodes, int count, int startch, int node, int ms, int intensity, xOutput* xout)
+void GenerateCustomModelDialog::SetBulbs(bool nodes, int count, int startch, int node, int ms, int intensity)
 {
     // node is out of range ... odd
     if (node > count)
@@ -690,7 +691,7 @@ void GenerateCustomModelDialog::SetBulbs(bool nodes, int count, int startch, int
 
     wxTimeSpan ts = wxDateTime::UNow() - _starttime;
     long curtime = ts.GetMilliseconds().ToLong();
-    xout->TimerStart(curtime);
+    _outputManager->StartFrame(curtime);
 
     if (node != -1)
     {
@@ -702,14 +703,14 @@ void GenerateCustomModelDialog::SetBulbs(bool nodes, int count, int startch, int
                 {
                     for (int i = 0; i < 3; i++)
                     {
-                        xout->SetIntensity(startch + j * 3 + i - 1, intensity);
+                        _outputManager->SetOneChannel(startch + j * 3 + i - 1, intensity);
                     }
                 }
                 else
                 {
                     for (int i = 0; i < 3; i++)
                     {
-                        xout->SetIntensity(startch + j * 3 + i - 1, 0);
+                        _outputManager->SetOneChannel(startch + j * 3 + i - 1, 0);
                     }
                 }
             }
@@ -720,11 +721,11 @@ void GenerateCustomModelDialog::SetBulbs(bool nodes, int count, int startch, int
             {
                 if (j == node)
                 {
-                    xout->SetIntensity(startch + j - 1, intensity);
+                    _outputManager->SetOneChannel(startch + j - 1, intensity);
                 }
                 else
                 {
-                    xout->SetIntensity(startch + j - 1, 0);
+                    _outputManager->SetOneChannel(startch + j - 1, 0);
                 }
             }
         }
@@ -737,7 +738,7 @@ void GenerateCustomModelDialog::SetBulbs(bool nodes, int count, int startch, int
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    xout->SetIntensity(startch + j * 3 + i - 1, intensity);
+                    _outputManager->SetOneChannel(startch + j * 3 + i - 1, intensity);
                 }
             }
         }
@@ -745,12 +746,12 @@ void GenerateCustomModelDialog::SetBulbs(bool nodes, int count, int startch, int
         {
             for (int j = 0; j < count; j++)
             {
-                xout->SetIntensity(startch + j - 1, intensity);
+                _outputManager->SetOneChannel(startch + j - 1, intensity);
             }
         }
     }
 
-    xout->TimerEnd();
+    _outputManager->EndFrame();
 
     wxTimeSpan tsx = wxDateTime::UNow() - _starttime;
     long curtimex = tsx.GetMilliseconds().ToLong();
@@ -761,77 +762,6 @@ void GenerateCustomModelDialog::SetBulbs(bool nodes, int count, int startch, int
         tsx = wxDateTime::UNow() - _starttime;
         curtimex = tsx.GetMilliseconds().ToLong();
     }
-}
-
-bool GenerateCustomModelDialog::InitialiseOutputs(xOutput* xout)
-{
-    long MaxChan;
-    bool ok = true;
-
-    for (wxXmlNode* e = _network->GetRoot()->GetChildren(); e != NULL && ok; e = e->GetNext())
-    {
-        wxString tagname = e->GetName();
-        if (tagname == "network")
-        {
-            wxString tempstr = e->GetAttribute("MaxChannels", "0");
-            tempstr.ToLong(&MaxChan);
-            wxString NetworkType = e->GetAttribute("NetworkType", "");
-            wxString ComPort = e->GetAttribute("ComPort", "");
-            wxString BaudRate = e->GetAttribute("BaudRate", "");
-            int baud = (BaudRate == _("n/a")) ? 115200 : wxAtoi(BaudRate);
-            bool enabled = e->GetAttribute("Enabled", "Yes") == "Yes";
-            wxString Description = xLightsXmlFile::UnXmlSafe(e->GetAttribute("Description", ""));
-            static wxString choices;
-
-            int numU = wxAtoi(e->GetAttribute("NumUniverses", "1"));
-
-#ifdef __WXMSW__ //TODO: enumerate comm ports on all platforms -DJ
-            TCHAR valname[32];
-            /*byte*/TCHAR portname[32];
-            DWORD vallen = sizeof(valname);
-            DWORD portlen = sizeof(portname);
-            HKEY hkey = NULL;
-            DWORD err = 0;
-
-            //enum serial comm ports (more user friendly, especially if USB-to-serial ports change):
-            //logic based on http://www.cplusplus.com/forum/windows/73821/
-            if (choices.empty()) //should this be cached?  it's not really that expensive
-            {
-                if (!(err = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"), 0, KEY_READ, &hkey)))
-                    for (DWORD inx = 0; !(err = RegEnumValue(hkey, inx, (LPTSTR)valname, &vallen, NULL, NULL, (LPBYTE)portname, &portlen)) || (err == ERROR_MORE_DATA); ++inx)
-                    {
-                        if (err == ERROR_MORE_DATA) portname[sizeof(portname) / sizeof(portname[0]) - 1] = '\0'; //need to enlarge read buf if this happens; just truncate string for now
-                                                                                                                 //                            debug(3, "found port[%d] %d:'%s' = %d:'%s', err 0x%x", inx, vallen, valname, portlen, portname, err);
-                        choices += _(", ") + portname;
-                        vallen = sizeof(valname);
-                        portlen = sizeof(portname);
-                    }
-                if (err && (err != /*ERROR_FILE_NOT_FOUND*/ ERROR_NO_MORE_ITEMS)) choices = wxString::Format(", error %d (can't get serial comm ports from registry)", err);
-                if (hkey) RegCloseKey(hkey);
-                //                    if (err) SetLastError(err); //tell caller about last real error
-                if (!choices.empty()) choices = "\n(available ports: " + choices.substr(2) + ")";
-                else choices = "\n(no available ports)";
-            }
-#endif // __WXMSW__
-            wxString msg = _("Error occurred while connecting to ") + NetworkType + _(" network on ") + ComPort +
-                choices +
-                _("\n\nThings to check:\n1. Are all required cables plugged in?") +
-                _("\n2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.") +
-                _("\n3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n");
-
-            try
-            {
-                xout->addnetwork(NetworkType, MaxChan, ComPort, baud, numU, enabled);
-            }
-            catch (const char *str)
-            {
-                wxString errmsg(str, wxConvUTF8);
-                if (wxMessageBox(msg + errmsg + _("\nProceed anyway?"), _("Communication Error"), wxYES_NO | wxNO_DEFAULT) != wxYES)
-                    ok = false;
-            }
-        }
-    }
-    return ok;
 }
 
 void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
@@ -864,37 +794,37 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     DisableSleepModes();
 
     _starttime = wxDateTime::UNow();
-    xOutput* xout = new xOutput(0);
-    InitialiseOutputs(xout);
+
+    _outputManager->StartOutput();
 
     int totaltime = LEADOFF + LEADON + FLAGOFF + FLAGON + FLAGOFF + count * (NODEON + NODEOFF);
 
     // 3.0 seconds off 0.5 seconds on ... 0.5 seconds off ... 0.5 second on ... 0.5 seconds off
-    SetBulbs(nodes, count, startch, -1, LEADOFF, 0, xout);
+    SetBulbs(nodes, count, startch, -1, LEADOFF, 0);
     UpdateProgress(pd, totaltime);
-    SetBulbs(nodes, count, startch, -1, LEADON, intensity, xout);
+    SetBulbs(nodes, count, startch, -1, LEADON, intensity);
     UpdateProgress(pd, totaltime);
-    SetBulbs(nodes, count, startch, -1, FLAGOFF, 0, xout);
+    SetBulbs(nodes, count, startch, -1, FLAGOFF, 0);
     UpdateProgress(pd, totaltime);
-    SetBulbs(nodes, count, startch, -1, FLAGON, intensity, xout);
+    SetBulbs(nodes, count, startch, -1, FLAGON, intensity);
     UpdateProgress(pd, totaltime);
-    SetBulbs(nodes, count, startch, -1, FLAGOFF, 0, xout);
+    SetBulbs(nodes, count, startch, -1, FLAGOFF, 0);
     UpdateProgress(pd, totaltime);
 
     // then in turn each node on for 0.5 seconds ... all off for 0.2 seconds
     for (int i = 0; i < count; i++)
     {
-        SetBulbs(nodes, count, startch, i, NODEON, intensity, xout);
+        SetBulbs(nodes, count, startch, i, NODEON, intensity);
         UpdateProgress(pd, totaltime);
-        SetBulbs(nodes, count, startch, i, NODEOFF, 0, xout);
+        SetBulbs(nodes, count, startch, i, NODEOFF, 0);
         UpdateProgress(pd, totaltime);
     }
-    SetBulbs(nodes, count, startch, -1, 0, 0, xout);
+    SetBulbs(nodes, count, startch, -1, 0, 0);
 
     pd.Update(100);
 
-    xout->alloff();
-    delete xout;
+    _outputManager->AllOff();
+    _outputManager->StopOutput();
 
     pd.Update(100);
     pd.Close();
@@ -1243,9 +1173,9 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     int samples = 0;
     for (int ms = start; ms < STARTSCANSECS * 1000; ms+=FRAMEMS)
     {
-        wxImage img = CreateImageFromFrame(vr->GetNextFrame(ms)).Copy();
-        ShowImage(img);
-        float b = CalcFrameBrightness(img);
+        wxImage img1 = CreateImageFromFrame(vr->GetNextFrame(ms)).Copy();
+        ShowImage(img1);
+        float b = CalcFrameBrightness(img1);
         _overallaveragebrightness += b;
         samples++;
         framebrightness.push_back(b);
@@ -1301,7 +1231,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
                 currunlength = 0;
                 curmaxbrightness = 0.0;
             }
-            it++;
+            ++it;
         }
         // take this run if it is closer to the right length
         //if (currunlength > maxrunlength || curmaxbrightness > maxrunbrightness * (1.0 + EXTRABRIGHTTHRESHOLD))

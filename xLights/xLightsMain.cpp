@@ -2936,7 +2936,7 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
     // creating the dialog can take some time so display an hourglass
     SetCursor(wxCURSOR_WAIT);
 
-    GenerateCustomModelDialog dialog(this, &NetworkXML);
+    GenerateCustomModelDialog dialog(this, &_outputManager);
     dialog.CenterOnParent();
     dialog.ShowModal();
 

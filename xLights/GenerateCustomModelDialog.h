@@ -2,7 +2,8 @@
 #define GENERATECUSTOMMODELDIALOG_H
 
 #include "VideoReader.h"
-#include "xlights_out.h"
+
+class OutputManager;
 
 //(*Headers(GenerateCustomModelDialog)
 #include <wx/sizer.h>
@@ -27,7 +28,6 @@
 
 #include <wx/xml/xml.h>
 #include <wx/progdlg.h>
-#include <wx/generic/statbmpg.h>
 #include <wx/dcmemory.h>
 
 #include <list>
@@ -144,13 +144,12 @@ public:
 class GenerateCustomModelDialog: public wxDialog
 {
     // variables passed into us
-    wxXmlDocument* _network;
+    OutputManager* _outputManager;
 
 #pragma region Prepare Tab
     wxDateTime _starttime;
 
-    void SetBulbs(bool nodes, int count, int startch, int node, int ms, int intensity, xOutput* xout);
-    bool InitialiseOutputs(xOutput* xOut);
+    void SetBulbs(bool nodes, int count, int startch, int node, int ms, int intensity);
 #pragma endregion Prepare Tab
 
 #pragma region Generate Tab
@@ -252,7 +251,7 @@ class GenerateCustomModelDialog: public wxDialog
     void ValidateWindow();
 
     public:
-		GenerateCustomModelDialog(wxWindow* parent, wxXmlDocument* network, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		GenerateCustomModelDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~GenerateCustomModelDialog();
 
 		//(*Declarations(GenerateCustomModelDialog)
@@ -419,31 +418,20 @@ class GenerateCustomModelDialog: public wxDialog
 		void OnButton_GCM_SelectFileClick(wxCommandEvent& event);
 		void OnTextCtrl_GCM_FilenameText(wxCommandEvent& event);
 		void OnButton_PCM_RunClick(wxCommandEvent& event);
-		void OnButton_ContinueClick(wxCommandEvent& event);
-		void OnButton_BackClick(wxCommandEvent& event);
-		void OnButton_NextClick(wxCommandEvent& event);
 		void OnButton_SF_NextClick(wxCommandEvent& event);
-		void OnButton_BD_BackClick(wxCommandEvent& event);
-		void OnButton_BD_NextClick(wxCommandEvent& event);
-		void OnSlider_LevelFilterAdjustCmdScroll(wxScrollEvent& event);
 		void OnButton_Back1FrameClick(wxCommandEvent& event);
 		void OnButton_Forward1FrameClick(wxCommandEvent& event);
 		void OnButton_Back10FramesClick(wxCommandEvent& event);
 		void OnButton_Forward10FramesClick(wxCommandEvent& event);
-		void OnPanel_GeneratePaint(wxPaintEvent& event);
 		void OnSlider_AdjustBlurCmdScroll(wxScrollEvent& event);
-		void OnSlider1CmdScroll(wxScrollEvent& event);
 		void OnButton_CM_BackClick(wxCommandEvent& event);
 		void OnButton_CM_SaveClick(wxCommandEvent& event);
-		void OnSlider_BI_MinRadiusCmdSliderUpdated(wxScrollEvent& event);
-		void OnSlider_BI_MaxRadiusCmdSliderUpdated(wxScrollEvent& event);
 		void OnSlider_BI_SensitivityCmdSliderUpdated(wxScrollEvent& event);
 		void OnButton_BI_NextClick(wxCommandEvent& event);
 		void OnButton_BI_BackClick(wxCommandEvent& event);
 		void OnButton_CV_NextClick(wxCommandEvent& event);
 		void OnButton_SF_BackClick(wxCommandEvent& event);
 		void OnAuiNotebook_ProcessSettingsPageChanging(wxAuiNotebookEvent& event);
-		void OnButton_CB_RestoreDefaultClick(wxCommandEvent& event);
 		void OnButton_MT_NextClick(wxCommandEvent& event);
 		void OnButton_CV_BackClick(wxCommandEvent& event);
 		void OnButton_ShrinkClick(wxCommandEvent& event);
@@ -457,7 +445,6 @@ class GenerateCustomModelDialog: public wxDialog
 		void OnSlider_BI_ContrastCmdScrollChanged(wxScrollEvent& event);
 		void OnSlider_BI_ContrastCmdSliderUpdated(wxScrollEvent& event);
 		void OnCheckBox_BI_IsSteadyClick(wxCommandEvent& event);
-		void OnButton1Click(wxCommandEvent& event);
 		void OnCheckBox_BI_ManualUpdateClick(wxCommandEvent& event);
 		void OnButton_BI_UpdateClick(wxCommandEvent& event);
 		void OnButton_MI_PriorFrameClick(wxCommandEvent& event);
