@@ -18,8 +18,8 @@ class SP_XmlStartTagEvent;
 #include <set>
 
 #include "SequenceData.h"
-#include "NetInfo.h"
 #include "xLightsMain.h"
+class OutputManager;
 
 typedef SequenceData SeqDataType;
 
@@ -29,7 +29,7 @@ class ConvertDialog: public wxDialog
     wxString msgBuffer;
     wxArrayString FileNames;
     SeqDataType& SeqData;
-    NetInfoClass& NetInfo;
+    OutputManager* _outputManager;
     std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
     wxString& mediaFilename;
     wxArrayString& ChannelNames;
@@ -42,19 +42,13 @@ class ConvertDialog: public wxDialog
     bool WriteVixenFile(const wxString& filename);
     void WriteVirFile(const wxString& filename);
     void WriteHLSFile(const wxString& filename);
-    //void ReadFalconFile(const wxString& FileName);
-    //void WriteFalconPiFile(const wxString& filename);
-    //void WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
-    //    SeqDataType *dataBuf, int startAddr, int modelSize);
     void WriteXLightsFile(const wxString& filename);
     void WriteLSPFile(const wxString& filename);
     void WriteLorFile(const wxString& filename);
-    //void WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);
     void WriteLcbFile(const wxString& filename);
     void WriteConductorFile(const wxString& filename);
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString& VixChannelNames);
     void ReadConductorFile(const wxString& FileName);
-    //void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = NULL);
     void ReadGlediatorFile(const wxString& FileName);
     void ReadVixFile(const wxString& filename);
     void ReadHLSFile(const wxString& filename);
@@ -69,7 +63,7 @@ class ConvertDialog: public wxDialog
         void ConversionError(const wxString& msg);
         void AppendConvertStatus(const wxString &msg, bool flushBuffer = true);
         void SetStatusText(const wxString &msg);
-        ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, NetInfoClass& NetInfo, wxString& mediaFilename_, wxArrayString& ChannelNames_, wxArrayInt& ChannelColors_, wxArrayString& ChNames_, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+        ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputManager* outputManager_, wxString& mediaFilename_, wxArrayString& ChannelNames_, wxArrayInt& ChannelColors_, wxArrayString& ChNames_, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ConvertDialog();
 
 		//(*Declarations(ConvertDialog)

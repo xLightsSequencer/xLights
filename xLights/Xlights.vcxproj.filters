@@ -471,9 +471,6 @@
     <ClCompile Include="ModelViewSelector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NetInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="NewTimingDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -534,9 +531,6 @@
     <ClCompile Include="SequenceData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="serial.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ShowDatesDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -589,9 +583,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="xlGridCanvas.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="xlights_out.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="xLightsApp.cpp">
@@ -901,6 +892,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="outputs\TestPreset.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\serial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1358,9 +1352,6 @@
     <ClInclude Include="ModelViewSelector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NetInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="NewTimingDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1421,9 +1412,6 @@
     <ClInclude Include="SequenceData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="serial.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ShowDatesDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1470,9 +1458,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="xlGridCanvas.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="xlights_out.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="xLightsApp.h">
@@ -1743,6 +1728,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="outputs\TestPreset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\serial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

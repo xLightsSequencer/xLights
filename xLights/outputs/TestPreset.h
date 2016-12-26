@@ -2,24 +2,35 @@
 #define TESTPRESET_H
 
 #include <list>
-#include <wx/xml/xml.h>
+#include <string>
+
+class wxXmlNode;
 
 class TestPreset
 {
 protected:
-	
+
+    #pragma region Member Variables
 	std::string _name;
 	std::list<int> _channels;
+    #pragma endregion Member Variables
 
 public:
+
+    #pragma region Constructors and Destructors
     TestPreset(wxXmlNode* node);
     TestPreset(const std::string& name);
-    wxXmlNode* Save();
     virtual ~TestPreset() {};
+    #pragma endregion Constructors and Destructors
+
+    wxXmlNode* Save();
+
+    #pragma region Getters and Setters
     std::string GetName() { return _name; }
     std::list<int> GetChannels() const { return _channels; }
     void AddChannel(int ch);
     void AddChannelRange(int start, int end);
+    #pragma endregion Getters and Setters
 };
 
  #endif

@@ -1,7 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        ser_osx.cpp
-// Author:      Matt Brown
-// Copyright:   (c) 2012 Matt Brown
+// Name:        serial_posix.cpp
+// Purpose:
+// Author:      Joachim Buermann (adapted for xLights by Matt Brown)
+// Copyright:   (c) 2001 Joachim Buermann
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -10,17 +11,15 @@
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <wx/utils.h>
-#include "serial.h"
+#include <linux/serial.h>
 
-// OS/X version
-#include <IOKit/serial/ioss.h>
+// Linux version
 
 SerialPort::SerialPort()
 {
-    m_devname = "";
-    callback = -1;
-    fd = -1;
+    _devName = "";
+    _callback = -1;
+    _fd = -1;
 };
 
 SerialPort::~SerialPort()
@@ -69,152 +68,163 @@ int SerialPort::Close()
 {
     int err = 0;
     // only close an open file handle
-    if(fd < 0) return EBADF;
+    if(_fd < 0) return EBADF;
     // With some systems, it is recommended to flush the serial port's
     // Output before closing it, in order to avoid a possible hang of
     // the process...
-    tcflush(fd, TCOFLUSH);
+    tcflush(_fd, TCOFLUSH);
 
     // Don't recover the orgin settings while the device is open. This
     // implicate a mismatched data output!
     // Just close device
-    err = close( fd );
+    err = close(_fd);
 
-    fd = -1;
+    _fd = -1;
 
     return err;
 };
 
-int SerialPort::Open(const wxString& devname, int baudrate, const char* protocol)
+int SerialPort::Open(const std::string& devName, int baudRate, const char* protocol)
 {
     if (strlen(protocol) != 3) return -1;
 
-    fd = open(devname.fn_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
-    if(fd < 0) return fd;
+    // save the device name
+    _devName = devName;
+
+    _fd = open(wxString(devName).fn_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
+    if(_fd < 0) return _fd;
 
     // exclusive use
-    if ( ioctl( fd, TIOCEXCL ) == -1 ) return -1;
+    if (ioctl(_fd, TIOCEXCL) == -1) return -1;
 
-    tcgetattr(fd,&t);
+    tcgetattr(_fd, &_t);
 
-    // save the device name
-    m_devname = devname;
-
-    // set baud rate
-    speed_t configuredRate = AdaptBaudrate( baudrate );
-    cfsetspeed(&t, configuredRate );
+    // Fill the internal termios struct.
+    speed_t adBaudrate = AdaptBaudrate(baudRate);
+    cfsetspeed(&_t, adBaudrate);
 
     // parity settings
     switch( protocol[1] )
     {
     case 'N':
-        t.c_cflag &= ~PARENB;
+        _t.c_cflag &= ~PARENB;
         break;
     case 'O':
-        t.c_cflag |= PARENB;
-        t.c_cflag |= PARODD;
+        _t.c_cflag |= PARENB;
+        _t.c_cflag |= PARODD;
         break;
     case 'E':
-        t.c_cflag |= PARENB;
-        t.c_cflag &= ~PARODD;
+        _t.c_cflag |= PARENB;
+        _t.c_cflag &= ~PARODD;
         break;
     }
 
     // stopbits
     if(protocol[2] == '2')
-        t.c_cflag |= CSTOPB;
+        _t.c_cflag |= CSTOPB;
     else
-        t.c_cflag &= ~CSTOPB;
+        _t.c_cflag &= ~CSTOPB;
 
     // wordlen
-    t.c_cflag &= ~CSIZE;
+    _t.c_cflag &= ~CSIZE;
     switch( protocol[0] )
     {
     case '5':
-        t.c_cflag |= CS5;
+        _t.c_cflag |= CS5;
         break;
     case '6':
-        t.c_cflag |= CS6;
+        _t.c_cflag |= CS6;
         break;
     case '7':
-        t.c_cflag |= CS7;
+        _t.c_cflag |= CS7;
         break;
     default:
-        t.c_cflag |= CS8;
+        _t.c_cflag |= CS8;
         break;
     }
-    t.c_oflag &= ~OPOST;
 
-    // Set raw input (non-canonical) mode
-    //cfmakeraw(&t);
+    // this may overwrite the number of bits to 8
+    cfmakeraw(&_t);
 
     // look out!
     // MIN = 1 means, in TIME (1/10 secs) defined timeout
     // will be started AFTER receiving the first byte
     // so we must set MIN = 0. (timeout starts immediately, abort
-    // also when no input to read)
-    t.c_cc[VMIN] = 0;
+    // also without readed byte)
+    _t.c_cc[VMIN] = 0;
     // timeout in 1/10 secs
     // no timeout for non blocked transfer
-    t.c_cc[VTIME] = 0;
-
+    _t.c_cc[VTIME] = 0;
     // write the settings
-    if (tcsetattr(fd,TCSANOW,&t) == -1) return -1;
-    
-    if (configuredRate != baudrate) {
-        configuredRate = baudrate;
-        if ( ioctl( fd, IOSSIOSPEED, &configuredRate ) == -1 )
+    if (tcsetattr(_fd, TCSANOW, &_t) == -1) return -1;
+
+    if (adBaudrate == B38400 && baudRate != 38400)
+    {
+
+        // custom baud rate - Linux version
+
+        struct serial_struct sstruct;
+        if(ioctl(_fd, TIOCGSERIAL, &sstruct) < 0)
         {
-            printf( "Error %d calling ioctl( ..., IOSSIOSPEED, ... )\n", errno );
+            //printf("Error: could not get comm ioctl\n");
+            return -1;
+        }
+        sstruct.custom_divisor = sstruct.baud_base / baudRate;
+        sstruct.flags &= ~ASYNC_SPD_MASK;
+        sstruct.flags |= ASYNC_SPD_CUST;
+        if(ioctl(_fd, TIOCSSERIAL, &sstruct) < 0)
+        {
+            //printf("Error: could not set custom comm baud divisor\n");
+            return -1;
         }
     }
 
-    return fd;
+    return _fd;
 };
 
 bool SerialPort::IsOpen()
 {
-    return (fd != -1);
+    return (_fd != -1);
 };
 
 int SerialPort::AvailableToRead()
 {
     int bytes = 0;
-    ioctl(fd, FIONREAD, &bytes);
+    ioctl(_fd, FIONREAD, &bytes);
     return bytes;
 }
 
 int SerialPort::WaitingToWrite()
 {
     int bytes = 0;
-    ioctl(fd, TIOCOUTQ, &bytes);
+    ioctl(_fd, TIOCOUTQ, &bytes);
     return bytes;
 }
 
 int SerialPort::SendBreak()
 {
-    ioctl(fd, TIOCSBRK);
+    ioctl(_fd, TIOCSBRK);
     wxMilliSleep(1);
-    ioctl(fd, TIOCCBRK);
+    ioctl(_fd, TIOCCBRK);
     return 0;
 };
 
-int SerialPort::Read(char* buf,size_t len)
+int SerialPort::Read(char* buf, size_t len)
 {
     // Read() (using read() ) will return an 'error' EAGAIN as it is
     // set to non-blocking. This is not a true error within the
     // functionality of Read, and thus should be handled by the caller.
-    int n = read(fd,buf,len);
+    int n = read(_fd, buf, len);
     if((n < 0) && (errno == EAGAIN)) return 0;
     return n;
 };
 
-int SerialPort::Write(char* buf,size_t len)
+int SerialPort::Write(char* buf, size_t len)
 {
     // Write() (using write() ) will return an 'error' EAGAIN as it is
     // set to non-blocking. This is not a true error within the
     // functionality of Write, and thus should be handled by the caller.
-    int n = write(fd,buf,len);
+    int n = write(_fd,buf,len);
     if((n < 0) && (errno == EAGAIN)) return 0;
     return n;
 };

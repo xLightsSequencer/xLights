@@ -12,13 +12,18 @@
 #include <wx/dialog.h>
 //*)
 
+class E131Output;
+class OutputManager;
+
 class E131Dialog: public wxDialog
 {
+    E131Output* _e131;
+    OutputManager* _outputManager;
     void ValidateWindow();
 
 public:
 
-    E131Dialog(wxWindow* parent);
+    E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* outputManager, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~E131Dialog();
 
     //(*Declarations(E131Dialog)

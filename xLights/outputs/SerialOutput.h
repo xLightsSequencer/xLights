@@ -2,39 +2,66 @@
 #define SERIALOUTPUT_H
 
 #include "Output.h"
-#include "../serial.h"
+#include "serial.h"
 
 class SerialOutput : public Output
 {
+
 protected:
+
+    #pragma region Member Variables
     SerialPort* _serial;
     char _serialConfig[4];
-    std::string _setType;
+    #pragma endregion Member Variables
 
-    void Save(wxXmlNode* node);
+    virtual void Save(wxXmlNode* node) override;
 
 public:
-    static std::string GetAvailableSerialPorts();
-    static SerialOutput* Mutate(SerialOutput* output);
-    static int ConfigureWithMutate(wxWindow* parent, OutputManager& outputManager, SerialOutput** output);
+
+    #pragma region Constructors and Destructors
     SerialOutput(wxXmlNode* node);
     SerialOutput(SerialOutput* output);
     SerialOutput();
     virtual ~SerialOutput() override;
+    #pragma endregion Constructors and Destructors
 
-    bool operator==(const SerialOutput& output) const;
+    #pragma region Static Functions
+    static std::list<std::string> GetAvailableSerialPorts();
+    static std::list<std::string> GetPossibleSerialPorts();
+    #pragma endregion Static Functions
+
+    virtual wxXmlNode* Save() override;
+
+    #pragma region Getters and Setters
     virtual bool IsIpOutput() const override { return false; }
-    virtual bool Open() override;
-    virtual std::string GetChannelMapping(int ch) const override;
+    virtual bool IsSerialOutput() const override { return true; }
+    virtual std::string GetChannelMapping(long ch) const override;
     virtual std::string GetLongDescription() const override;
+    virtual int GetMaxChannels() const override { return 0; }
+    virtual std::string GetBaudRateString() const override;
+    virtual std::string GetSetupHelp() const = 0;
+    virtual bool AllowsBaudRateSetting() const { return true; }
     virtual size_t TxNonEmptyCount() const override;
     virtual bool TxEmpty() const override;
-    virtual void Close() override;
-    virtual int GetMaxChannels() const override { return 0; }
+    #pragma endregion Getters and Setters
 
+    #pragma region Operators
+    bool operator==(const SerialOutput& output) const;
+    #pragma endregion Operators
+
+    #pragma region Start and Stop
+    virtual bool Open() override;
+    virtual void Close() override;
+    #pragma endregion Start and Stop
+
+    // Create a new serial type of the specified type but copy across this objects settings
+    SerialOutput* Mutate(const std::string& newtype);
+
+    #pragma region UI
 #ifndef EXCLUDENETWORKUI
-    virtual int Configure(wxWindow* parent, OutputManager& outputManager) override;
+    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager) override;
 #endif
+    #pragma endregion UI
 };
 
  #endif

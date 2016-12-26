@@ -1,24 +1,18 @@
 #include "ArtNetOutput.h"
 
 #include <wx/xml/xml.h>
-
 #include <log4cpp/Category.hh>
 #include "ArtNetDialog.h"
 #include "OutputManager.h"
 
+#pragma region Static Variables
 int ArtNetOutput::__ip1 = -1;
 int ArtNetOutput::__ip2 = -1;
 int ArtNetOutput::__ip3 = -1;
 bool ArtNetOutput::__initialised = false;
+#pragma endregion Static Variables
 
-wxXmlNode* ArtNetOutput::Save()
-{
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    IPOutput::Save(node);
-
-    return node;
-}
-
+#pragma region Constructors and Destructors
 ArtNetOutput::ArtNetOutput(wxXmlNode* node) : IPOutput(node)
 {
     _sequenceNum = 0;
@@ -28,6 +22,7 @@ ArtNetOutput::ArtNetOutput(wxXmlNode* node) : IPOutput(node)
 
 ArtNetOutput::ArtNetOutput() : IPOutput()
 {
+    _channels = 510;
     _sequenceNum = 0;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
@@ -36,6 +31,28 @@ ArtNetOutput::ArtNetOutput() : IPOutput()
 ArtNetOutput::~ArtNetOutput()
 {
     if (_datagram != nullptr) delete _datagram;
+}
+#pragma endregion Constructors and Destructors
+
+#pragma region Static Functions
+int ArtNetOutput::GetArtNetNet(int u)
+{
+    return (u & 0x7F00) >> 8;
+}
+
+int ArtNetOutput::GetArtNetSubnet(int u)
+{
+    return (u & 0x00F0) >> 4;
+}
+
+int ArtNetOutput::GetArtNetUniverse(int u)
+{
+    return u & 0x000F;
+}
+
+int ArtNetOutput::GetArtNetCombinedUniverse(int net, int subnet, int universe)
+{
+    return ((net & 0x007F) << 8) + ((subnet & 0x000F) << 4) + (universe & 0x000F);
 }
 
 void ArtNetOutput::SendSync()
@@ -67,13 +84,13 @@ void ArtNetOutput::SendSync()
         if (syncdatagram != nullptr)
         {
             delete syncdatagram;
-            syncdatagram = nullptr;
         }
 
         syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
         if (syncdatagram == nullptr)
         {
             logger_base.error("Error initialising Artnet sync datagram.");
+            return;
         }
 
         // broadcast ... this is not really in line with the spec
@@ -90,9 +107,12 @@ void ArtNetOutput::SendSync()
         syncdatagram->SendTo(syncremoteAddr, syncdata, ARTNET_SYNCPACKET_LEN);
     }
 }
+#pragma endregion Static Functions
 
+#pragma region Start and Stop
 bool ArtNetOutput::Open()
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _ok = IPOutput::Open();
 
     memset(_data, 0x00, sizeof(_data));
@@ -115,14 +135,16 @@ bool ArtNetOutput::Open()
     _data[15] = ((_universe & 0xFF00) >> 8);
     _data[16] = 0x02; // we are going to send all 512 bytes
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxIPV4address localaddr;
     localaddr.AnyAddress();
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
     if (_datagram == nullptr)
     {
         logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d.", (const char *)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse());
+        _ok = false;
+        return _ok;
     }
+
     _remoteAddr.Hostname(_ip.c_str());
     _remoteAddr.Service(ARTNET_PORT);
 
@@ -155,28 +177,18 @@ bool ArtNetOutput::Open()
             }
         }
     }
+
     __initialised = false;
     logger_base.debug("Artnet broadcast address %d.%d.%d.255", __ip1, __ip2, __ip3);
 
-    int i = _channels;
-    wxByte NumHi = i >> 8;   // Channels (high)
-    wxByte NumLo = i & 0xff; // Channels (low)
+    _data[16] = (wxByte)(_channels >> 8);  // Property value count (high)
+    _data[17] = (wxByte)(_channels & 0xff);  // Property value count (low)
 
-    _data[16] = NumHi;  // Property value count (high)
-    _data[17] = NumLo;  // Property value count (low)
-
-    return _ok && _datagram != nullptr;
+    return _ok;
 }
+#pragma endregion Start and Stop
 
-void ArtNetOutput::Close()
-{
-}
-
-void ArtNetOutput::StartFrame(long msec)
-{
-    _timer_msec = msec;
-}
-
+#pragma region Frame Handling
 void ArtNetOutput::EndFrame()
 {
     if (!_enabled || _datagram == nullptr) return;
@@ -198,13 +210,13 @@ void ArtNetOutput::EndFrame()
     }
 #endif
 }
+#pragma endregion Frame Handling
 
-void ArtNetOutput::ResetFrame()
+#pragma region Data Setting
+void ArtNetOutput::SetOneChannel(long channel, unsigned char data)
 {
-}
+    wxASSERT(channel < _channels);
 
-void ArtNetOutput::SetOneChannel(int channel, unsigned char data)
-{
 #ifdef USECHANGEDETECTION
     if (_data[channel + ARTNET_PACKET_HEADERLEN] != data) {
 #endif
@@ -215,13 +227,16 @@ void ArtNetOutput::SetOneChannel(int channel, unsigned char data)
 #endif
 }
 
-void ArtNetOutput::SetManyChannels(int channel, unsigned char data[], size_t size)
+void ArtNetOutput::SetManyChannels(long channel, unsigned char data[], long size)
 {
+    wxASSERT(channel + size < _channels);
+
 #ifdef _MSC_VER
-    int chs = min((int)size, (int)(_channels - channel + 1));
+    long chs = min(size, _channels - channel + 1);
 #else
-    int chs = std::min((int)size, (int)(GetMaxChannels() - channel + 1));
+    long chs = std::min(size, _channels - channel + 1);
 #endif
+
     memcpy(&_data[channel + ARTNET_PACKET_HEADERLEN], data, chs);
 
 #ifdef USECHANGEDETECTION
@@ -231,10 +246,17 @@ void ArtNetOutput::SetManyChannels(int channel, unsigned char data[], size_t siz
 
 void ArtNetOutput::AllOff()
 {
-    memset(&_data[1 + ARTNET_PACKET_HEADERLEN], 0x00, _channels);
+    memset(&_data[ARTNET_PACKET_HEADERLEN], 0x00, _channels);
 #ifdef USECHANGEDETECTION
     _changed = true;
 #endif
+}
+#pragma endregion Data Setting
+
+#pragma region Getters and Setters
+std::string ArtNetOutput::GetUniverseString() const
+{
+    return wxString::Format(wxT("%i:%i:%i"), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse()).ToStdString();
 }
 
 std::string ArtNetOutput::GetLongDescription() const
@@ -242,7 +264,7 @@ std::string ArtNetOutput::GetLongDescription() const
     std::string res = "";
 
     if (!_enabled) res += "INACTIVE ";
-    res += "ArtNet " + _ip + " {" + wxString::Format("%d", GetArtNetNet()).ToStdString() + ":" + wxString::Format("%d", GetArtNetSubnet()).ToStdString() + ":" + wxString::Format("%d", GetArtNetUniverse()).ToStdString() + "} ";
+    res += "ArtNet " + _ip + " {" + GetUniverseString() + "} ";
     res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
     res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
     res += _description;
@@ -250,69 +272,39 @@ std::string ArtNetOutput::GetLongDescription() const
     return res;
 }
 
-std::string ArtNetOutput::GetChannelMapping(int ch) const
+std::string ArtNetOutput::GetChannelMapping(long ch) const
 {
     std::string res = "Channel " + std::string(wxString::Format(wxT("%i"), ch)) + " maps to ...\n";
 
-    int channeloffset = ch - GetStartChannel() + 1;
+    long channeloffset = ch - GetStartChannel() + 1;
 
     res += "Type: ArtNet\n";
     res += "IP: " + _ip + "\n";
-    res += "Net: " + wxString::Format("%d", GetArtNetNet()).ToStdString() + "\n";
-    res += "Subnet: " + wxString::Format("%d", GetArtNetSubnet()).ToStdString() + "\n";
-    res += "Universe: " + wxString::Format("%d", GetArtNetUniverse()).ToStdString() + "\n";
+    res += "Net: " + wxString::Format(wxT("%i"), GetArtNetNet()).ToStdString() + "\n";
+    res += "Subnet: " + wxString::Format(wxT("%i"), GetArtNetSubnet()).ToStdString() + "\n";
+    res += "Universe: " + wxString::Format(wxT("%i"), GetArtNetUniverse()).ToStdString() + "\n";
     res += "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
 
     if (!_enabled) res += " INACTIVE";
 
     return res;
 }
+#pragma endregion Getters and Setters
 
+#pragma region UI
 #ifndef EXCLUDENETWORKUI
-int ArtNetOutput::Configure(wxWindow* parent, OutputManager& outputManager)
+Output* ArtNetOutput::Configure(wxWindow* parent, OutputManager* outputManager)
 {
-    ArtNetDialog dlg(parent);
-
-    dlg.SpinCtrlNet->SetValue(GetArtNetNet());
-    dlg.SpinCtrlSubnet->SetValue(GetArtNetSubnet());
-    dlg.SpinCtrlUniverse->SetValue(GetArtNetUniverse());
-    dlg.SpinCtrlChannels->SetValue(_channels);
-    dlg.TextCtrlDescription->SetValue(_description.c_str());
-    dlg.TextCtrlIPAddress->SetValue(_ip.c_str());
-    dlg.SpinCtrlUniverseOnly->SetValue(_universe);
-    dlg.SpinCtrl_NumUniv->SetValue(1);
-    if (_ip == "")
-    {
-        dlg.SpinCtrl_NumUniv->Enable(true);
-    }
-    else
-    {
-        dlg.SpinCtrl_NumUniv->Enable(false);
-    }
+    ArtNetDialog dlg(parent, this, outputManager);
 
     int res = dlg.ShowModal();
 
-    if (res == wxID_OK)
+    if (res == wxID_CANCEL)
     {
-        SetIP(dlg.TextCtrlIPAddress->GetValue().ToStdString());
-        SetArtNetUniverse(dlg.SpinCtrlNet->GetValue(), dlg.SpinCtrlSubnet->GetValue(), dlg.SpinCtrlUniverse->GetValue());
-        _channels = dlg.SpinCtrlChannels->GetValue();
-        _description = dlg.TextCtrlDescription->GetValue().ToStdString();
-
-        if (dlg.SpinCtrl_NumUniv->GetValue() > 1)
-        {
-            for (int i = 1; i < dlg.SpinCtrl_NumUniv->GetValue(); i++)
-            {
-                ArtNetOutput* a = new ArtNetOutput();
-                a->SetIP(_ip);
-                a->SetUniverse(_universe + i);
-                a->SetDescription(_description);
-                a->SetChannels(_channels);
-                outputManager.AddOutput(a, -1);
-            }
-        }
+        return nullptr;
     }
 
-    return res;
+    return this;
 }
 #endif
+#pragma endregion UI

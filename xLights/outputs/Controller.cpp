@@ -103,11 +103,21 @@ Controller::Controller(wxXmlNode* node)
         {
             _maxChannelsPerUniverse = wxAtoi(e->GetNodeContent());
         }
+        else if (e->GetName() == "SupportedProtocols")
+        {
+            for (auto e2 = e->GetChildren(); e2 != nullptr; e2 = e2->GetNext())
+            {
+                if (e2->GetName() == "Protocol")
+                {
+                    _supportedProtocols.push_back(e->GetNodeContent().Trim(false).Trim(true).ToStdString());
+                }
+            }
+        }
         else if (e->GetName() == "Outputs")
         {
             for (auto e2 = e->GetChildren(); e2 != nullptr; e2 = e2->GetNext())
             {
-                std::string type = e->GetName().ToStdString();
+                std::string type = e2->GetName().ToStdString();
                 for (auto e3 = e2->GetChildren(); e3 != nullptr; e3 = e3->GetNext())
                 {
                     if (e3->GetName() == "Count")
@@ -136,4 +146,9 @@ int Controller::GetChannelsPerOutput(const std::string& type) const
     if (_channelsPerOutput.find(type) == _channelsPerOutput.end()) return -1;
 
     return _channelsPerOutput.at(type);
+}
+
+bool Controller::SupportsProtocol(const std::string& protocol)
+{
+    return std::find(_supportedProtocols.begin(), _supportedProtocols.end(), protocol) != _supportedProtocols.end();
 }

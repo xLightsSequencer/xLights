@@ -1,10 +1,11 @@
 #include "OpenPixelNetOutput.h"
 
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
 
+#pragma region Constructs and Destructors
 OpenPixelNetOutput::OpenPixelNetOutput(SerialOutput* output) : SerialOutput(output)
 {
+    _baudRate = 1000000;
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));
     memset(_serialBuffer, 0x00, sizeof(_serialBuffer));
@@ -19,19 +20,14 @@ OpenPixelNetOutput::OpenPixelNetOutput(wxXmlNode* node) : SerialOutput(node)
 
 OpenPixelNetOutput::OpenPixelNetOutput() : SerialOutput()
 {
+    _baudRate = 1000000;
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));
     memset(_serialBuffer, 0x00, sizeof(_serialBuffer));
 }
+#pragma endregion Constructs and Destructors
 
-wxXmlNode* OpenPixelNetOutput::Save()
-{
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    SerialOutput::Save(node);
-
-    return node;
-}
-
+#pragma region Start and Stop
 bool OpenPixelNetOutput::Open()
 {
     _ok = SerialOutput::Open();
@@ -54,7 +50,9 @@ bool OpenPixelNetOutput::Open()
 
     return _ok;
 }
+#pragma endregion Start and Stop
 
+#pragma region Frame Handling
 void OpenPixelNetOutput::EndFrame()
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
@@ -73,8 +71,10 @@ void OpenPixelNetOutput::EndFrame()
     }
 #endif
 }
+#pragma endregion Frame Handling
 
-void OpenPixelNetOutput::SetOneChannel(int channel, unsigned char data)
+#pragma region Data Setting
+void OpenPixelNetOutput::SetOneChannel(long channel, unsigned char data)
 {
     _data[channel] = data == 170 ? 171 : data;
 
@@ -90,3 +90,11 @@ void OpenPixelNetOutput::AllOff()
     _changed = true;
 #endif
 }
+#pragma endregion Data Setting
+
+#pragma region Getters and Setters
+std::string OpenPixelNetOutput::GetSetupHelp() const
+{
+    return "Pixelnet controllers attached to a generic USB\nto RS485 dongle with FTDI chipset and virtual comm port.";
+}
+#pragma endregion Getters and Setters

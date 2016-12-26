@@ -3,18 +3,11 @@
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
 
+#pragma region Constructors and Destructors
 DMXOutput::DMXOutput(SerialOutput* output) : SerialOutput(output)
 {
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));
-}
-
-wxXmlNode* DMXOutput::Save()
-{
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    SerialOutput::Save(node);
-
-    return node;
 }
 
 DMXOutput::DMXOutput(wxXmlNode* node) : SerialOutput(node)
@@ -28,7 +21,9 @@ DMXOutput::DMXOutput() : SerialOutput()
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));
 }
+#pragma endregion Constructors and Destructors
 
+#pragma region Start and Stop
 bool DMXOutput::Open()
 {
     _ok = SerialOutput::Open();
@@ -47,7 +42,9 @@ bool DMXOutput::Open()
 
     return _ok;
 }
+#pragma endregion Start and Stop
 
+#pragma region Frame Handling
 void DMXOutput::EndFrame()
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
@@ -62,8 +59,10 @@ void DMXOutput::EndFrame()
     }
 #endif
 }
+#pragma endregion Frame Handling
 
-void DMXOutput::SetOneChannel(int channel, unsigned char data)
+#pragma region Data Setting
+void DMXOutput::SetOneChannel(long channel, unsigned char data)
 {
     _data[channel + 5] = data;
 
@@ -72,13 +71,9 @@ void DMXOutput::SetOneChannel(int channel, unsigned char data)
 #endif
 }
 
-void DMXOutput::SetManyChannels(int channel, unsigned char data[], size_t size)
+void DMXOutput::SetManyChannels(long channel, unsigned char data[], long size)
 {
-#ifdef _MSC_VER
-    int chs = min((int)size, (int)(_channels - channel + 1));
-#else
-    int chs = std::min((int)size, (int)(GetMaxChannels() - channel + 1));
-#endif
+    long chs = std::min(size, GetMaxChannels() - channel + 1);
     memcpy(&_data[channel + 5], data, chs);
 
 #ifdef USECHANGEDETECTION
@@ -88,9 +83,17 @@ void DMXOutput::SetManyChannels(int channel, unsigned char data[], size_t size)
 
 void DMXOutput::AllOff()
 {
-    memset(&_data[6], 0x00, _channels);
+    memset(&_data[5], 0x00, _channels);
 
 #ifdef USECHANGEDETECTION
     _changed = true;
 #endif
 }
+#pragma endregion Data Setting
+
+#pragma region  Getters and Setters
+std::string DMXOutput::GetSetupHelp() const
+{
+    return "DMX controllers (or LOR or D-Light controllers in DMX mode)\nattached to an Entec DMX USB Pro, Lynx DMX dongle,\nDIYC RPM, DMXking.com, or DIY Blinky dongle.\n\nLast Channel should be 512 or less, unless you are using\na DIY Blinky dongle (in which case it can be up to 3036).";
+}
+#pragma endregion  Getters and Setters

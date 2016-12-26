@@ -1,10 +1,11 @@
 #include "OpenDMXOutput.h"
 
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
 
+#pragma region Constructors and Destructors
 OpenDMXOutput::OpenDMXOutput(SerialOutput* output) : SerialOutput(output)
 {
+    _baudRate = 250000;
     memset(_data, 0x00, sizeof(_data));
 }
 
@@ -15,17 +16,12 @@ OpenDMXOutput::OpenDMXOutput(wxXmlNode* node) : SerialOutput(node)
 
 OpenDMXOutput::OpenDMXOutput() : SerialOutput()
 {
+    _baudRate = 250000;
     memset(_data, 0x00, sizeof(_data));
 }
+#pragma endregion Constructors and Destructors
 
-wxXmlNode* OpenDMXOutput::Save()
-{
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    SerialOutput::Save(node);
-
-    return node;
-}
-
+#pragma region Start and Stop
 bool OpenDMXOutput::Open()
 {
     _ok = SerialOutput::Open();
@@ -39,7 +35,9 @@ bool OpenDMXOutput::Open()
 
     return _ok;
 }
+#pragma endregion Start and Stop
 
+#pragma region Frame Handling
 void OpenDMXOutput::EndFrame()
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
@@ -56,8 +54,10 @@ void OpenDMXOutput::EndFrame()
     }
 #endif
 }
+#pragma endregion Frame Handling
 
-void OpenDMXOutput::SetOneChannel(int channel, unsigned char data)
+#pragma region Data Setting
+void OpenDMXOutput::SetOneChannel(long channel, unsigned char data)
 {
     _data[channel + 1] = data;
 
@@ -66,13 +66,9 @@ void OpenDMXOutput::SetOneChannel(int channel, unsigned char data)
 #endif
 }
 
-void OpenDMXOutput::SetManyChannels(int channel, unsigned char data[], size_t size)
+void OpenDMXOutput::SetManyChannels(long channel, unsigned char data[], long size)
 {
-#ifdef _MSC_VER
-    int chs = min((int)size, (int)(_channels - channel + 1));
-#else
-    int chs = std::min((int)size, (int)(GetMaxChannels() - channel + 1));
-#endif
+    long chs = std::min(size, GetMaxChannels() - channel + 1);
     memcpy(&_data[channel + 1], data, chs);
 
 #ifdef USECHANGEDETECTION
@@ -88,3 +84,11 @@ void OpenDMXOutput::AllOff()
     _changed = true;
 #endif
 }
+#pragma endregion Data Setting
+
+#pragma region Getters and Setters
+std::string OpenDMXOutput::GetSetupHelp() const
+{
+    return "DMX controllers (or LOR or D-Light controllers in DMX mode)\nattached to an LOR dongle, D-Light dongle, HolidayCoro\nprogramming cable, or Entec Open DMX dongle";
+}
+#pragma endregion Getters and Setters

@@ -7,6 +7,9 @@
 #include <wx/valtext.h>
 #include <wx/msgdlg.h>
 
+#include "SerialOutput.h"
+#include "OutputManager.h"
+
 //(*IdInit(SerialPortWithRate)
 const long SerialPortWithRate::ID_CHOICE_PROTOCOL = wxNewId();
 const long SerialPortWithRate::ID_STATICTEXT_EXPLANATION = wxNewId();
@@ -28,8 +31,12 @@ BEGIN_EVENT_TABLE(SerialPortWithRate,wxDialog)
     //*)
 END_EVENT_TABLE()
 
-SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
+SerialPortWithRate::SerialPortWithRate(wxWindow* parent, SerialOutput** serial, OutputManager* outputManager, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
+    _original = *serial;
+    _serial = serial;
+    _outputManager = outputManager;
+
     //(*Initialize(SerialPortWithRate)
     wxStaticBoxSizer* StaticBoxSizer2;
     wxFlexGridSizer* FlexGridSizer4;
@@ -39,7 +46,7 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
     wxStaticBoxSizer* StaticBoxSizer1;
     wxFlexGridSizer* FlexGridSizer1;
 
-    Create(parent, wxID_ANY, _("USB Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
+    Create(parent, id, _("USB Setup"), pos, size, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Network Type (protocol)"));
     FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -107,9 +114,11 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
 
     MainSizer=FlexGridSizer1;
 
-    wxArrayString ports;
-    PopulatePortChooser(&ports);
-    ChoicePort->Append(ports);
+    auto ports = SerialOutput::GetPossibleSerialPorts();
+    for (auto it = ports.begin(); it != ports.end(); ++it)
+    {
+        ChoicePort->Append(*it);
+    }
 
 #ifndef __WXOSX__
     // why is this not applicable to the mac?
@@ -119,6 +128,20 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
 #endif
 
     FlexGridSizer1->Fit(this);
+
+    ChoiceProtocol->SetStringSelection((*_serial)->GetType());
+    ChoicePort->SetStringSelection((*_serial)->GetCommPort());
+    if ((*_serial)->GetBaudRate() == 0)
+    {
+        // dont select anything
+    }
+    else
+    {
+        ChoiceBaudRate->SetStringSelection(wxString::Format(wxT("%i"), (*_serial)->GetBaudRate()));
+    }
+    TextCtrlLastChannel->SetValue(wxString::Format(wxT("%i"), (*_serial)->GetChannels()));
+    TextCtrl_Description->SetValue((*_serial)->GetDescription());
+    ProtocolChange();
 
     Button_Ok->SetDefault();
     ValidateWindow();
@@ -130,142 +153,23 @@ SerialPortWithRate::~SerialPortWithRate()
     //*)
 }
 
-wxString SerialPortWithRate::GetRateString()
-{
-    wxString NetName = ChoiceProtocol->GetStringSelection();
-    if (NetName == _("OpenDMX"))
-    {
-        return "250000";
-    }
-    else if (NetName == _("Pixelnet-Open"))
-    {
-        return "1000000";
-    }
-    else if (ChoiceBaudRate->IsEnabled())
-    {
-        return ChoiceBaudRate->GetStringSelection();
-    }
-    else
-    {
-        return "n/a";
-    }
-}
-
 void SerialPortWithRate::ProtocolChange()
 {
-    wxString NetName = ChoiceProtocol->GetStringSelection();
-    bool EnableRate = false;
-    if (NetName == _("LOR"))
-    {
-        SetLabel(_("LOR controllers attached to any LOR dongle.\nMax of 8 channels at 9600 baud.\nMax of 48 channels at 57600 baud.\nMax of 96 channels at 115200 baud.\nRun your controllers in DMX mode for higher throughput."));
-        EnableRate=true;
-    }
-    else if (NetName == _("D-Light"))
-    {
-        SetLabel(_("D-Light controllers attached to a D-Light dongle.\nMax of 8 channels at 9600 baud.\nMax of 48 channels at 57600 baud.\nMax of 96 channels at 115200 baud.\nRun your controllers in DMX mode for higher throughput."));
-        EnableRate=true;
-    }
-    else if (NetName == _("Renard"))
-    {
-        SetLabel(_("Renard controllers connected to a serial port or\na USB dongle with virtual comm port. 2 stop bits\nare set automatically.\nMax of 42 channels at 9600 baud.\nMax of 260 channels at 57600 baud."));
-        EnableRate=true;
-    }
-    else if (NetName == _("OpenDMX"))
-    {
-        SetLabel(_("DMX controllers (or LOR or D-Light controllers in DMX mode)\nattached to an LOR dongle, D-Light dongle, HolidayCoro\nprogramming cable, or Entec Open DMX dongle"));
-        EnableRate=false;
-    }
-    else if (NetName == _("DMX"))
-    {
-        SetLabel(_("DMX controllers (or LOR or D-Light controllers in DMX mode)\nattached to an Entec DMX USB Pro, Lynx DMX dongle,\nDIYC RPM, DMXking.com, or DIY Blinky dongle.\n\nLast Channel should be 512 or less, unless you are using\na DIY Blinky dongle (in which case it can be up to 3036)."));
-        EnableRate=false;
-    }
-    else if (NetName == _("Pixelnet"))
-    {
-        SetLabel(_("Pixelnet controllers attached to a USB Lynx Pixelnet\ndongle"));
-        EnableRate=false;
-    }
-    else if (NetName == _("Pixelnet-Open"))
-    {
-        SetLabel(_("Pixelnet controllers attached to a generic USB\nto RS485 dongle with FTDI chipset and virtual comm port."));
-        EnableRate=false;
-    }
-    ChoiceBaudRate->Enable(EnableRate);
+    StaticTextExplanation->SetLabel((*_serial)->GetSetupHelp());
+    ChoiceBaudRate->Enable((*_serial)->AllowsBaudRateSetting());
     ValidateWindow();
 }
 
-void SerialPortWithRate::SetLabel(const wxString& newlabel)
-{
-    StaticTextExplanation->SetLabel(newlabel);
-    //MainSizer->Fit(this);
-}
-
-void SerialPortWithRate::PopulatePortChooser(wxArrayString *chooser)
-{
-    chooser->Add("NotConnected");
-#ifdef __WXMSW__
-    // Windows
-    chooser->Add("COM1");
-    chooser->Add("COM2");
-    chooser->Add("COM3");
-    chooser->Add("COM4");
-    chooser->Add("COM5");
-    chooser->Add("COM6");
-    chooser->Add("COM7");
-    chooser->Add("COM8");
-    chooser->Add("COM9");
-    chooser->Add("\\\\.\\COM10");
-    chooser->Add("\\\\.\\COM11");
-    chooser->Add("\\\\.\\COM12");
-    chooser->Add("\\\\.\\COM13");
-    chooser->Add("\\\\.\\COM14");
-    chooser->Add("\\\\.\\COM15");
-    chooser->Add("\\\\.\\COM16");
-    chooser->Add("\\\\.\\COM17");
-    chooser->Add("\\\\.\\COM18");
-    chooser->Add("\\\\.\\COM19");
-    chooser->Add("\\\\.\\COM20");
-#elif __WXOSX__
-    // no standard device names for USB-serial converters on OS/X
-    // scan /dev directory for candidates
-    wxArrayString output,errors;
-    wxExecute("ls -1 /dev", output, errors, wxEXEC_SYNC);
-    if (!errors.IsEmpty())
-    {
-        wxMessageBox(errors.Last(), _("Error"));
-    }
-    else if (output.IsEmpty())
-    {
-        wxMessageBox(_("no devices found"), _("Error"));
-    }
-    else
-    {
-        for (int i=0; i<output.Count(); i++)
-        {
-            if (output[i].StartsWith("cu."))
-            {
-                chooser->Add("/dev/" + output[i]);
-            }
-        }
-    }
-#else
-    // Linux
-    chooser->Add("/dev/ttyS0");
-    chooser->Add("/dev/ttyS1");
-    chooser->Add("/dev/ttyS2");
-    chooser->Add("/dev/ttyS3");
-    chooser->Add("/dev/ttyUSB0");
-    chooser->Add("/dev/ttyUSB1");
-    chooser->Add("/dev/ttyUSB2");
-    chooser->Add("/dev/ttyUSB3");
-    chooser->Add("/dev/ttyUSB4");
-    chooser->Add("/dev/ttyUSB5");
-#endif
-}
-
-
 void SerialPortWithRate::OnChoiceProtocolSelect(wxCommandEvent& event)
 {
+    auto tmp = *_serial;
+    *_serial = (*_serial)->Mutate(ChoiceProtocol->GetStringSelection().ToStdString());
+    
+    // dont delete it if it is the original output we were called with
+    if (tmp != _original)
+    {
+        delete (tmp);
+    }
     ProtocolChange();
     ValidateWindow();
 }
@@ -276,6 +180,14 @@ void SerialPortWithRate::OnTextCtrl_DescriptionText(wxCommandEvent& event)
 
 void SerialPortWithRate::OnButton_OkClick(wxCommandEvent& event)
 {
+    (*_serial)->SetCommPort(ChoicePort->GetStringSelection().ToStdString());
+    if (ChoiceBaudRate->IsEnabled())
+    {
+        (*_serial)->SetBaudRate(wxAtoi(ChoiceBaudRate->GetStringSelection()));
+    }
+    (*_serial)->SetChannels(wxAtoi(TextCtrlLastChannel->GetValue()));
+    (*_serial)->SetDescription(TextCtrl_Description->GetValue().ToStdString());
+
     EndDialog(wxID_OK);
 }
 
@@ -302,10 +214,8 @@ void SerialPortWithRate::OnTextCtrlLastChannelText(wxCommandEvent& event)
 void SerialPortWithRate::ValidateWindow()
 {
     if (ChoicePort->GetStringSelection().IsEmpty() || 
-        GetRateString().IsEmpty() || 
-        TextCtrlLastChannel->GetValue().IsEmpty() || 
-        !TextCtrlLastChannel->GetValue().IsNumber() || 
-        TextCtrlLastChannel->GetValue()[0] == '-')
+        (ChoiceBaudRate->IsEnabled() && ChoiceBaudRate->GetStringSelection() == "") ||
+        wxAtoi(TextCtrlLastChannel->GetValue()) <= 0)
     {
         Button_Ok->Enable(false);
     }

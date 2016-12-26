@@ -1,11 +1,12 @@
 #include "ArtNetDialog.h"
-#include "../xlights_out.h"
 
 //(*InternalHeaders(ArtNetDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
-#include <wx/socket.h>
+
+#include "ArtnetOutput.h"
+#include "OutputManager.h"
 #include <wx/regex.h>
 
 //(*IdInit(ArtNetDialog)
@@ -38,8 +39,11 @@ BEGIN_EVENT_TABLE(ArtNetDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ArtNetDialog::ArtNetDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+ArtNetDialog::ArtNetDialog(wxWindow* parent, ArtNetOutput* artnet, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _artnet = artnet;
+    _outputManager = outputManager;
+
 	//(*Initialize(ArtNetDialog)
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -49,7 +53,7 @@ ArtNetDialog::ArtNetDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, id, _("ArtNET Setup"), wxDefaultPosition, wxDefaultSize, wxCAPTION, _T("id"));
+	Create(parent, id, _("ArtNET Setup"), pos, size, wxCAPTION, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -140,6 +144,25 @@ ArtNetDialog::ArtNetDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ArtNetDialog::OnButtonCancelClick);
 	//*)
 
+    wxASSERT(artnet != nullptr);
+
+    SpinCtrlNet->SetValue(artnet->GetArtNetNet());
+    SpinCtrlSubnet->SetValue(artnet->GetArtNetSubnet());
+    SpinCtrlUniverse->SetValue(artnet->GetArtNetUniverse());
+    SpinCtrlChannels->SetValue(artnet->GetChannels());
+    TextCtrlDescription->SetValue(artnet->GetDescription());
+    TextCtrlIPAddress->SetValue(artnet->GetIP());
+    SpinCtrlUniverseOnly->SetValue(artnet->GetUniverse());
+    SpinCtrl_NumUniv->SetValue(1);
+    if (artnet->GetIP() == "")
+    {
+        SpinCtrl_NumUniv->Enable(true);
+    }
+    else
+    {
+        SpinCtrl_NumUniv->Enable(false);
+    }
+
     ButtonOk->SetDefault();
 
     ValidateWindow();
@@ -160,6 +183,27 @@ void ArtNetDialog::OnTextCtrlIPAddressText(wxCommandEvent& event)
 void ArtNetDialog::OnButtonOkClick(wxCommandEvent& event)
 {
     UniverseChange(); // make sure universe is consistent
+
+    _artnet->SetIP(TextCtrlIPAddress->GetValue().ToStdString());
+    _artnet->SetArtNetUniverse(SpinCtrlNet->GetValue(), SpinCtrlSubnet->GetValue(), SpinCtrlUniverse->GetValue());
+    _artnet->SetChannels(SpinCtrlChannels->GetValue());
+    _artnet->SetDescription(TextCtrlDescription->GetValue().ToStdString());
+
+    if (SpinCtrl_NumUniv->GetValue() > 1)
+    {
+        Output* last = _artnet;
+        for (int i = 1; i < SpinCtrl_NumUniv->GetValue(); i++)
+        {
+            ArtNetOutput* a = new ArtNetOutput();
+            a->SetIP(TextCtrlIPAddress->GetValue().ToStdString());
+            a->SetUniverse(SpinCtrlUniverseOnly->GetValue() + i);
+            a->SetDescription(TextCtrlDescription->GetValue().ToStdString());
+            a->SetChannels(SpinCtrlChannels->GetValue());
+            _outputManager->AddOutput(a, last);
+            last = a;
+        }
+    }
+
     EndDialog(wxID_OK);
 }
 
@@ -172,6 +216,10 @@ void ArtNetDialog::ValidateWindow()
 {
     wxString ips = TextCtrlIPAddress->GetValue().Trim(false).Trim(true);
     if (ips == "")
+    {
+        ButtonOk->Disable();
+    }
+    else if (SpinCtrlUniverseOnly->GetValue() + SpinCtrl_NumUniv->GetValue() >= 32000)
     {
         ButtonOk->Disable();
     }
@@ -200,14 +248,14 @@ void ArtNetDialog::UniverseChange()
     if (Notebook1->GetSelection() == 0)
     {
         // net/subnet/universe
-        SpinCtrlUniverseOnly->SetValue(ARTNET_MAKEU(SpinCtrlNet->GetValue(), SpinCtrlSubnet->GetValue(), SpinCtrlUniverse->GetValue()));
+        SpinCtrlUniverseOnly->SetValue(ArtNetOutput::GetArtNetCombinedUniverse(SpinCtrlNet->GetValue(), SpinCtrlSubnet->GetValue(), SpinCtrlUniverse->GetValue()));
     }
     else
     {
         int u = SpinCtrlUniverseOnly->GetValue();
-        SpinCtrlNet->SetValue(ARTNET_NET(u));
-        SpinCtrlSubnet->SetValue(ARTNET_SUBNET(u));
-        SpinCtrlUniverse->SetValue(ARTNET_UNIVERSE(u));
+        SpinCtrlNet->SetValue(ArtNetOutput::GetArtNetNet(u));
+        SpinCtrlSubnet->SetValue(ArtNetOutput::GetArtNetSubnet(u));
+        SpinCtrlUniverse->SetValue(ArtNetOutput::GetArtNetUniverse(u));
     }
 }
 

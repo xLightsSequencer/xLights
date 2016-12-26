@@ -6,20 +6,36 @@
 class IPOutput : public Output
 {
 protected:
+
     virtual void Save(wxXmlNode* node) override;
 
 public:
+
+    #pragma region Constructors and Destructors
     IPOutput(wxXmlNode* node);
     IPOutput();
-    virtual ~IPOutput() override;
+    virtual ~IPOutput() override {};
+    #pragma endregion Constructors and Destructors
 
+    #pragma region Static Functions
     static bool IsIPValid(std::string ip);
     static std::string CleanupIP(std::string ip);
+    #pragma endregion Static Functions
+
+    #pragma region Getters and Setters
+    virtual bool IsIpOutput() const override { return true; }
+    virtual bool IsSerialOutput() const override { return false; }
+    #pragma endregion Getters and Setters
+
+    #pragma region Operators
     bool operator==(const IPOutput& output) const;
-    virtual bool IsIpOutput() const override { return true; } 
-    virtual size_t TxNonEmptyCount() const override { return 0; }
-    virtual bool TxEmpty() const override { return true; }
+    #pragma endregion Operators
+    
+    virtual wxXmlNode* Save() override;
+
+    #pragma region Start and Stop
     virtual bool Open() override { return Output::Open(); }
+    #pragma endregion Start and Stop
 };
 
  #endif

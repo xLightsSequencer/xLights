@@ -14,6 +14,7 @@
 #include "OpenPixelNetOutput.h"
 #include "OpenDMXOutput.h"
 
+#pragma region Constructors and Destructors
 Output::Output(Output* output)
 {
 #ifdef USECHANGEDETECTION
@@ -25,6 +26,8 @@ Output::Output(Output* output)
     _nullNumber = -1;
     _startChannel = -1;
     _ok = true;
+    _baudRate = 0;
+    _universe = 0;
 
     _dirty = output->IsDirty();
     _enabled = output->IsEnabled();
@@ -62,6 +65,30 @@ Output::Output(wxXmlNode* node)
     }
 }
 
+Output::Output()
+{
+#ifdef USECHANGEDETECTION
+    _changed = true;
+    _skipCount = 0;
+#endif
+    _timer_msec = 0;
+    _outputNumber = -1;
+    _nullNumber = -1;
+    _startChannel = -1;
+    _universe = 0;
+    _baudRate = 0;
+    _commPort = "";
+    _controller = nullptr;
+    _dirty = false;
+    _enabled = true;
+    _description = "";
+    _dirty = true;
+    _channels = 0;
+    _ip = "";
+    _ok = true;
+}
+#pragma endregion Constructors and Destructors
+
 void Output::Save(wxXmlNode* node)
 {
     node->AddAttribute("NetworkType", wxString(GetType().c_str()));
@@ -85,35 +112,15 @@ void Output::Save(wxXmlNode* node)
     _dirty = false;
 }
 
-
-Output::Output()
+wxXmlNode* Output::Save()
 {
-    #ifdef USECHANGEDETECTION
-        _changed = true;
-        _skipCount = 0;
-    #endif
-    _timer_msec = 0;
-    _outputNumber = -1;
-    _nullNumber = -1;
-    _startChannel = -1;
-    _universe = 0;
-    _baudRate = 0;
-    _commPort = "";
-    _controller = nullptr;
-    _dirty = false;
-    _enabled = true;
-    _description = "";
-    _dirty = true;
-    _channels = 0;
-    _ip = "";
-    _ok = true;
+    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+    Save(node);
+
+    return node;
 }
 
-Output::~Output()
-{
-
-}
-
+#pragma region Static Functions
 Output* Output::Create(wxXmlNode* node)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -218,7 +225,9 @@ std::string Output::UnXmlSafe(const std::string& s)
     res.Replace("&amp;", "&");
     return res.ToStdString();
 }
+#pragma endregion Static Functions
 
+#pragma region Getters and Setters
 void Output::SetController(const std::string& id)
 {
     if (id == "")
@@ -233,6 +242,29 @@ void Output::SetController(const std::string& id)
     _dirty = true;
 }
 
+void Output::SetTransientData(int on, long startChannel, int nullnumber)
+{
+    _outputNumber = on;
+    _startChannel = startChannel;
+    if (nullnumber > 0) _nullNumber = nullnumber;
+}
+
+void Output::SetIP(const std::string& ip)
+{
+    _ip = IPOutput::CleanupIP(ip);
+    _dirty = true;
+}
+
+int Output::GetBaudRate() const
+{
+    if (_baudRate == 0)
+        return 115200;
+    else
+        return _baudRate;
+}
+#pragma endregion Getters and Setters
+
+#pragma region Operators
 bool Output::operator==(const Output& output) const
 {
     if (GetType() != output.GetType()) return false;
@@ -246,7 +278,9 @@ bool Output::operator==(const Output& output) const
         return _commPort == output.GetCommPort();
     }
 }
+#pragma endregion Operators
 
+#pragma region Start and Stop
 bool Output::Open()
 {
 #ifdef USECHANGEDETECTION
@@ -255,34 +289,25 @@ bool Output::Open()
 
     return true;
 }
+#pragma endregion Start and Stop
 
-void Output::SetTransientData(int on, int startChannel, int nullnumber)
-{
-    _outputNumber = on;
-    _startChannel = startChannel;
-    if (nullnumber > 0) _nullNumber = nullnumber;
-}
-
-void Output::SetIP(const std::string& ip)
-{
-    _ip = IPOutput::CleanupIP(ip); 
-    _dirty = true;
-}
-
-void Output::SetManyChannels(int channel, unsigned char data[], size_t size)
+#pragma region Data Setting
+// channel here is 0 based
+void Output::SetManyChannels(long channel, unsigned char data[], long size)
 {
 #ifdef _MSC_VER
-    int chs = min((int)size, (int)(_channels - channel + 1));
+    long chs = min(size, _channels - channel);
 #else
-    int chs = std::min((int)size, (int)(GetMaxChannels() - channel + 1));
+    long chs = std::min(size, GetMaxChannels() - channel);
 #endif
 
-    for (size_t i = 0; i < chs; i++)
+    for (long i = 0; i < chs; i++)
     {
-        SetOneChannel(channel + i - 1, data[i]);
+        SetOneChannel(channel + i, data[i]);
     }
 
 #ifdef USECHANGEDETECTION
     _changed = true;
 #endif
 }
+#pragma endregion Data Setting

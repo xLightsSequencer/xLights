@@ -333,7 +333,6 @@
     <ClCompile Include="models\WreathModel.cpp" />
     <ClCompile Include="ModelViewSelector.cpp" />
     <ClCompile Include="MusicXML.cpp" />
-    <ClCompile Include="NetInfo.cpp" />
     <ClCompile Include="NewTimingDialog.cpp" />
     <ClCompile Include="NodesGridCellEditor.cpp" />
     <ClCompile Include="NoteImportDialog.cpp" />
@@ -353,6 +352,7 @@
     <ClCompile Include="outputs\OutputManager.cpp" />
     <ClCompile Include="outputs\PixelNetOutput.cpp" />
     <ClCompile Include="outputs\RenardOutput.cpp" />
+    <ClCompile Include="outputs\serial.cpp" />
     <ClCompile Include="outputs\SerialOutput.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
@@ -388,7 +388,6 @@
     <ClCompile Include="sequencer\TimeLine.cpp" />
     <ClCompile Include="sequencer\UndoManager.cpp" />
     <ClCompile Include="sequencer\Waveform.cpp" />
-    <ClCompile Include="serial.cpp" />
     <ClCompile Include="outputs\SerialPortWithRate.cpp" />
     <ClCompile Include="SevenSegmentDialog.cpp" />
     <ClCompile Include="ShowDatesDialog.cpp" />
@@ -438,7 +437,6 @@
     <ClCompile Include="xLightsMain.cpp" />
     <ClCompile Include="xLightsTimer.cpp" />
     <ClCompile Include="xLightsXmlFile.cpp" />
-    <ClCompile Include="xlights_out.cpp" />
     <ClCompile Include="xlSlider.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -607,7 +605,6 @@
     <ClInclude Include="models\WreathModel.h" />
     <ClInclude Include="ModelViewSelector.h" />
     <ClInclude Include="MusicXML.h" />
-    <ClInclude Include="NetInfo.h" />
     <ClInclude Include="NewTimingDialog.h" />
     <ClInclude Include="NodesGridCellEditor.h" />
     <ClInclude Include="NoteImportDialog.h" />
@@ -629,6 +626,7 @@
     <ClInclude Include="outputs\OutputManager.h" />
     <ClInclude Include="outputs\PixelNetOutput.h" />
     <ClInclude Include="outputs\RenardOutput.h" />
+    <ClInclude Include="outputs\serial.h" />
     <ClInclude Include="outputs\SerialOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
     <ClInclude Include="PaletteMgmtDialog.h" />
@@ -665,7 +663,6 @@
     <ClInclude Include="sequencer\TimeLine.h" />
     <ClInclude Include="sequencer\UndoManager.h" />
     <ClInclude Include="sequencer\Waveform.h" />
-    <ClInclude Include="serial.h" />
     <ClInclude Include="outputs\SerialPortWithRate.h" />
     <ClInclude Include="SevenSegmentDialog.h" />
     <ClInclude Include="ShowDatesDialog.h" />
@@ -720,7 +717,6 @@
     <ClInclude Include="xLightsMain.h" />
     <ClInclude Include="xLightsTimer.h" />
     <ClInclude Include="xLightsXmlFile.h" />
-    <ClInclude Include="xlights_out.h" />
     <ClInclude Include="xlSlider.h" />
   </ItemGroup>
   <ItemGroup>

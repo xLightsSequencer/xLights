@@ -1,20 +1,22 @@
 #include "FPP.h"
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
-#include <log4cpp/Category.hh>
 #include <wx/regex.h>
 #include <wx/file.h>
 #include <wx/filename.h>
 #include "xLightsXmlFile.h"
 #include "models/Model.h"
+#include "outputs/OutputManager.h"
+#include "outputs/Output.h"
+#include <log4cpp/Category.hh>
 
-
-FPP::FPP(const std::string& ip, const std::string& user, const std::string& password)
+FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string& user, const std::string& password)
 {
+    _outputManager = outputManager;
  	_user = user;
 	_password = password;
 	_ip = ip;
-	
+
 	_connected = _http.Connect(_ip);
 
     if (_connected)
@@ -32,8 +34,9 @@ FPP::FPP(const std::string& ip, const std::string& user, const std::string& pass
     }
 }
 
-FPP::FPP()
+FPP::FPP(OutputManager* outputManager)
 {
+    _outputManager = outputManager;
     _connected = false;
 }
 
@@ -87,12 +90,12 @@ void FPP::E131Output(bool enable)
     }
 }
 
-bool FPP::SetInputUniversesBridge(wxXmlNode* root, std::list<int>& selected, wxWindow* parent)
+bool FPP::SetInputUniversesBridge(std::list<int>& selected, wxWindow* parent)
 {
     if (_ftp.IsConnected())
     {
         // now create a universes file
-        std::string file = SaveFPPUniverses(root, _ip, selected, false);
+        std::string file = SaveFPPUniverses(_ip, selected, false);
 
         bool cancelled = _ftp.UploadFile(file, "/home/fpp/media", "universes", true, false, parent);
 
@@ -110,16 +113,16 @@ bool FPP::SetInputUniversesBridge(wxXmlNode* root, std::list<int>& selected, wxW
     return true;
 }
 
-bool FPP::SetOutputUniversesPlayer(wxXmlNode* root, wxWindow* parent)
+bool FPP::SetOutputUniversesPlayer(wxWindow* parent)
 {
     if (_ftp.IsConnected())
     {
         // now create a universes file
-        std::string file = SaveFPPUniverses(root, "", std::list<int>(), false);
+        std::string file = SaveFPPUniverses("", std::list<int>(), false);
 
         bool cancelled = _ftp.UploadFile(file, "/home/fpp/media", "universes", true, false, parent);
 
-        // active outputs 
+        // active outputs
         E131Output(true);
 
         // restart ffpd
@@ -133,12 +136,12 @@ bool FPP::SetOutputUniversesPlayer(wxXmlNode* root, wxWindow* parent)
     return true;
 }
 
-bool FPP::SetChannelMemoryMaps(ModelManager* allmodels, xLightsFrame* frame, wxWindow* parent)
+bool FPP::SetChannelMemoryMaps(ModelManager* allmodels, wxWindow* parent)
 {
     if (_ftp.IsConnected())
     {
         // now create a universes file
-        std::string file = SaveFPPChannelMemoryMaps(allmodels, frame);
+        std::string file = SaveFPPChannelMemoryMaps(allmodels);
 
         bool cancelled = _ftp.UploadFile(file, "/home/fpp/media", "channelmemorymaps", true, false, parent);
 
@@ -153,128 +156,92 @@ bool FPP::SetChannelMemoryMaps(ModelManager* allmodels, xLightsFrame* frame, wxW
     return true;
 }
 
-std::string FPP::SaveFPPChannelMemoryMaps(ModelManager* allmodels, xLightsFrame* frame)
+std::string FPP::SaveFPPChannelMemoryMaps(ModelManager* allmodels) const
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxFileName fn;
     fn.AssignTempFileName("channelmemorymaps");
     std::string file = fn.GetFullName().ToStdString();
+
+    logger_base.debug("FPP models memory map file written to %s.", (const char *)file.c_str());
+
     wxFile channelmemorymaps;
     channelmemorymaps.Open(file, wxFile::write);
 
-        if (channelmemorymaps.IsOpened())
+    if (channelmemorymaps.IsOpened())
+    {
+        for (auto m = allmodels->begin(); m != allmodels->end(); ++m)
         {
-            for (auto m = allmodels->begin(); m != allmodels->end(); ++m)
-            {
-                Model* model = m->second;
-                wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
-                int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
-                std::string type, description, ip, universe, inactive;
-                int channeloffset, output;
-                frame->GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output);
-                wxString name(model->name);
-                name.Replace(" ", "_");
-                if (model->GetNumStrands() > 0) {
-                    channelmemorymaps.Write(wxString::Format("%s,%d,%d,horizontal,TL,%d,%d\n",
-                        name,
-                        ch,
-                        model->GetActChanCount(),
-                        model->GetNumStrands(),
-                        1));
-                }
+            Model* model = m->second;
+            wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
+            int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+            wxString name(model->name);
+            name.Replace(" ", "_");
+            if (model->GetNumStrands() > 0) {
+                channelmemorymaps.Write(wxString::Format("%s,%d,%d,horizontal,TL,%d,%d\n",
+                    name,
+                    ch,
+                    model->GetActChanCount(),
+                    model->GetNumStrands(),
+                    1));
             }
-            channelmemorymaps.Close();
         }
-    
+        channelmemorymaps.Close();
+    }
 
-return file;
+    return file;
 }
 
-std::string FPP::SaveFPPUniverses(wxXmlNode* root, const std::string& onlyip, const std::list<int>& selected, bool onebased)
+std::string FPP::SaveFPPUniverses(const std::string& onlyip, const std::list<int>& selected, bool onebased) const
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxFileName fn;
     fn.AssignTempFileName("universes");
     std::string file = fn.GetFullName().ToStdString();
+
+    logger_base.debug("FPP universes file written to %s.", (const char *)file.c_str());
+
     wxFile universes;
     universes.Open(file, wxFile::write);
-    int node = 0;
 
     if (universes.IsOpened())
     {
-        wxXmlNode* e = root;
-        long count = 1;
-        long nonzerocount = 1;
+        // Get universes based on IP
+        std::list<Output*> outputs = _outputManager->GetAllOutputs(onlyip);
 
-        for (e = e->GetChildren(); e != nullptr; e = e->GetNext())
+        // get outputs based on selected
+        std::list<Output*> o2 = _outputManager->GetAllOutputs(selected);
+
+        // now merge them together and eleminate the duplicates
+        outputs.merge(o2);
+        outputs.sort();
+        outputs.unique();
+
+        long onebasedcount = 1;
+
+        for (auto it = outputs.begin(); it != outputs.end(); ++it)
         {
-            if (e->GetName() == "network")
+            if ((*it)->GetType() == OUTPUT_E131)
             {
-                std::string type = std::string(e->GetAttribute("NetworkType", ""));
+                int c = (*it)->GetStartChannel();
 
-                if (type == "E131")
+                if (onebased)
                 {
-                    std::string ip = std::string(e->GetAttribute("ComPort", ""));
-                    if (onlyip == "" || ip == onlyip || std::find(selected.begin(), selected.end(), node) != selected.end())
-                    {
-                        int universe = wxAtoi(e->GetAttribute("BaudRate", ""));
-                        wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
-                        long chan;
-                        MaxChannelsStr.ToLong(&chan);
+                    c = onebasedcount;
+                }
 
-                        int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
-
-                        for (size_t i = 0; i < ucount; i++)
-                        {
-                            long end = count + chan - 1;
-
-                            int c = count;
-                            if (!onebased)
-                            {
-                                c = nonzerocount;
-                            }
-
-                            if (ip == "MULTICAST")
-                            {
-                                universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), c)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",0,,\r\n");
-                            }
-                            else
-                            {
-                                universes.Write("1," + wxString::Format("%d", universe + i).ToStdString() + "," + std::string(wxString::Format(wxT("%i"), c)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",1," + ip + ",\r\n");
-                            }
-
-                            count = end + 1;
-                            nonzerocount = nonzerocount + chan;
-                        }
-                    }
-                    else
-                    {
-                        wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
-                        long chan;
-                        MaxChannelsStr.ToLong(&chan);
-
-                        int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
-
-                        for (size_t i = 0; i < ucount; i++)
-                        {
-                            nonzerocount = nonzerocount + chan;
-                        }
-                    }
+                if ((*it)->GetIP() == "MULTICAST")
+                {
+                    universes.Write("1," + (*it)->GetUniverseString() + "," + wxString::Format(wxT("%i"), c).ToStdString() + "," + wxString::Format(wxT("%i"), (*it)->GetChannels()).ToStdString() + ",0,,\r\n");
                 }
                 else
                 {
-                    wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
-                    long chan;
-                    MaxChannelsStr.ToLong(&chan);
-
-                    int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
-
-                    for (size_t i = 0; i < ucount; i++)
-                    {
-                        nonzerocount = nonzerocount + chan;
-                    }
+                    universes.Write("1," + (*it)->GetUniverseString() + "," + wxString::Format(wxT("%i"), c).ToStdString() + "," + wxString::Format(wxT("%i"), (*it)->GetChannels()).ToStdString() + ",1," + (*it)->GetIP() + ",\r\n");
                 }
-                node++;
+                onebasedcount += (*it)->GetChannels();
             }
         }
+
         universes.Close();
     }
 

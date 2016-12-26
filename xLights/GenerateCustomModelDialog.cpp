@@ -1816,7 +1816,7 @@ wxString GenerateCustomModelDialog::GetMissingNodes()
                     {
                         res += ", ";
                     }
-                    res += wxString::Format("%d", i);
+                    res += wxString::Format(wxT("%i"), i);
                 }
                 current = it->GetNum();
             }
@@ -1843,7 +1843,7 @@ wxString GenerateCustomModelDialog::GetMultiBulbNodes()
                 {
                     res += ", ";
                 }
-                res += wxString::Format("%d", it->GetNum());
+                res += wxString::Format(wxT("%i"), it->GetNum());
                 last = it->GetNum();
             }
             else if (it->GetNum() > current)
@@ -2081,17 +2081,17 @@ void GenerateCustomModelDialog::FindLights(const wxImage& bwimage, int num, cons
 
 void GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdSliderUpdated(wxScrollEvent& event)
 {
-    TextCtrl_BI_Sensitivity->SetValue(wxString::Format("%d", Slider_BI_Sensitivity->GetValue()));
+    TextCtrl_BI_Sensitivity->SetValue(wxString::Format(wxT("%i"), Slider_BI_Sensitivity->GetValue()));
 }
 
 void GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScroll(wxScrollEvent& event)
 {
-    TextCtrl_BC_Blur->SetValue(wxString::Format("%d", Slider_AdjustBlur->GetValue()));
+    TextCtrl_BC_Blur->SetValue(wxString::Format(wxT("%i"), Slider_AdjustBlur->GetValue()));
 }
 
 void GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdSliderUpdated(wxScrollEvent& event)
 {
-    TextCtrl_BI_MinSeparation->SetValue(wxString::Format("%d", Slider_BI_MinSeparation->GetValue()));
+    TextCtrl_BI_MinSeparation->SetValue(wxString::Format(wxT("%i"), Slider_BI_MinSeparation->GetValue()));
 }
 
 void GenerateCustomModelDialog::SetBIDefault()
@@ -2199,7 +2199,7 @@ void GenerateCustomModelDialog::OnButton_BI_UpdateClick(wxCommandEvent& event)
 
 void GenerateCustomModelDialog::OnSlider_BI_ContrastCmdSliderUpdated(wxScrollEvent& event)
 {
-    TextCtrl_BI_Contrast->SetValue(wxString::Format("%d", Slider_BI_Contrast->GetValue()));
+    TextCtrl_BI_Contrast->SetValue(wxString::Format(wxT("%i"), Slider_BI_Contrast->GetValue()));
 }
 
 void GenerateCustomModelDialog::OnButton_BI_NextClick(wxCommandEvent& event)
@@ -2445,7 +2445,7 @@ void GenerateCustomModelDialog::DoGenerateCustomModel()
         if (!it->isSupressed())
         {
             wxPoint p = it->GetLocation(_scale, _trim);
-            Grid_CM_Result->SetCellValue(p.y, p.x, wxString::Format("%d", it->GetNum()));
+            Grid_CM_Result->SetCellValue(p.y, p.x, wxString::Format(wxT("%i"), it->GetNum()));
             Grid_CM_Result->SetCellBackgroundColour(p.y, p.x, *wxGREEN);
         }
     }
@@ -2517,8 +2517,8 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     }
     wxString name = wxFileName(filename).GetName();
     wxString cm = CreateCustomModelData();
-    wxString p1 = wxString::Format("%d",Grid_CM_Result->GetNumberCols());
-    wxString p2 = wxString::Format("%d", Grid_CM_Result->GetNumberRows());
+    wxString p1 = wxString::Format(wxT("%i"),Grid_CM_Result->GetNumberCols());
+    wxString p2 = wxString::Format(wxT("%i"), Grid_CM_Result->GetNumberRows());
     wxString st;
     if (SLRadioButton->GetValue())
     {
@@ -2825,7 +2825,7 @@ void GenerateCustomModelDialog::OnButton_MI_PriorFrameClick(wxCommandEvent& even
             _lights.pop_back();
         }
         _MI_CurrentNode--;
-        StaticText12->SetLabel("Current: " + wxString::Format("%d", _MI_CurrentNode));
+        StaticText12->SetLabel("Current: " + wxString::Format(wxT("%i"), _MI_CurrentNode));
         ReverseFrame();
     }
     _biFrame = CreateManualMask(_MI_CurrentFrame);
@@ -2836,7 +2836,7 @@ void GenerateCustomModelDialog::OnButton_MI_PriorFrameClick(wxCommandEvent& even
 void GenerateCustomModelDialog::OnButton_MI_NextFrameClick(wxCommandEvent& event)
 {
     _MI_CurrentNode++;
-    StaticText12->SetLabel("Current: " + wxString::Format("%d", _MI_CurrentNode));
+    StaticText12->SetLabel("Current: " + wxString::Format(wxT("%i"), _MI_CurrentNode));
     AdvanceFrame();
     _biFrame = CreateManualMask(_MI_CurrentFrame);
     ShowImage(_biFrame);
@@ -2901,7 +2901,7 @@ void GenerateCustomModelDialog::MITabEntry(bool erase)
         ButtonBumpBack->Show();
         ButtonBumpFwd->Show();
         StaticText12->Show();
-        StaticText12->SetLabel("Current: " + wxString::Format("%d", _MI_CurrentNode));
+        StaticText12->SetLabel("Current: " + wxString::Format(wxT("%i"), _MI_CurrentNode));
         _MI_CurrentTime = _startframetime + LEADON + FLAGOFF + FLAGON + FLAGOFF + (NODEON / 2) - (NODEON + NODEOFF) + (_MI_CurrentNode - 1) * (NODEON + NODEOFF);
 
         // video ... need to move to first frame

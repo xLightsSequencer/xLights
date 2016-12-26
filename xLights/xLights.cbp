@@ -554,7 +554,6 @@
 		<Unit filename="ModelViewSelector.h" />
 		<Unit filename="MusicXML.cpp" />
 		<Unit filename="MusicXML.h" />
-		<Unit filename="NetInfo.cpp" />
 		<Unit filename="NetInfo.h" />
 		<Unit filename="NewTimingDialog.cpp" />
 		<Unit filename="NewTimingDialog.h" />
@@ -934,6 +933,10 @@
 		<Unit filename="outputs/SerialOutput.h" />
 		<Unit filename="outputs/SerialPortWithRate.cpp" />
 		<Unit filename="outputs/SerialPortWithRate.h" />
+		<Unit filename="outputs/TestPreset.cpp" />
+		<Unit filename="outputs/TestPreset.h" />
+		<Unit filename="outputs/serial.cpp" />
+		<Unit filename="outputs/serial.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="MinGW_Debug" />
@@ -968,20 +971,7 @@
 		<Unit filename="sequencer/Waveform.cpp" />
 		<Unit filename="sequencer/Waveform.h" />
 		<Unit filename="sequencer/tabSequencer.cpp" />
-		<Unit filename="serial.cpp" />
 		<Unit filename="serial.h" />
-		<Unit filename="serial_osx.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="serial_posix.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="serial_win32.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
 		<Unit filename="tmGridCell.cpp" />
 		<Unit filename="tmGridCell.h" />
 		<Unit filename="vamp-hostsdk/Files.cpp" />
@@ -1149,7 +1139,6 @@
 		<Unit filename="xlGridCanvas.h" />
 		<Unit filename="xlSlider.cpp" />
 		<Unit filename="xlSlider.h" />
-		<Unit filename="xlights_out.cpp" />
 		<Unit filename="xlights_out.h" />
 		<Extensions>
 			<code_completion />

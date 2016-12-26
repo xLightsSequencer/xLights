@@ -1,18 +1,9 @@
 #include "NullOutput.h"
 
 #include <wx/xml/xml.h>
-
-#include <log4cpp/Category.hh>
 #include "NullOutputDialog.h"
 
-wxXmlNode* NullOutput::Save()
-{
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    Output::Save(node);
-
-    return node;
-}
-
+#pragma region Getters and Setters
 std::string NullOutput::GetLongDescription() const
 {
     std::string res = "";
@@ -25,7 +16,7 @@ std::string NullOutput::GetLongDescription() const
     return res;
 }
 
-std::string NullOutput::GetChannelMapping(int ch) const
+std::string NullOutput::GetChannelMapping(long ch) const
 {
     std::string res = "Channel " + std::string(wxString::Format(wxT("%i"), ch)) + " maps to ...\n";
     res += "Type: NULL (" + std::string(wxString::Format(wxT("%i"), _nullNumber)) + ")\nChannel: " + std::string(wxString::Format(wxT("%i"), ch - _startChannel)) + "\n";
@@ -34,26 +25,23 @@ std::string NullOutput::GetChannelMapping(int ch) const
 
     return res;
 }
+#pragma endregion Getters and Setters
 
+
+#pragma region UI
 #ifndef EXCLUDENETWORKUI
-int NullOutput::Configure(wxWindow* parent, OutputManager& outputManager)
+Output* NullOutput::Configure(wxWindow* parent, OutputManager* outputManager)
 {
-    NullOutputDialog dlg(parent);
-
-    dlg.NumChannelsSpinCtrl->SetValue(_channels);
-    dlg.TextCtrl_Description->SetValue(_description);
-    //dlg.Choice_Controller->SetStringValue(_controller->GetId());
+    NullOutputDialog dlg(parent, this, outputManager);
 
     int res = dlg.ShowModal();
     
-    if (res == wxID_OK)
+    if (res == wxID_CANCEL)
     {
-        _description = dlg.TextCtrl_Description->GetValue().ToStdString();
-        _channels = dlg.NumChannelsSpinCtrl->GetValue();
+        return nullptr;
     }
 
-    return res;
+    return this;
 }
 #endif
-
-
+#pragma endregion UI

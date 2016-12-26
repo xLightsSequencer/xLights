@@ -5,7 +5,8 @@
 #include <wx/string.h>
 //*)
 
-#include "IPOutput.h"
+#include "E131Output.h"
+#include "OutputManager.h"
 
 //(*IdInit(E131Dialog)
 const long E131Dialog::ID_STATICTEXT4 = wxNewId();
@@ -33,15 +34,18 @@ BEGIN_EVENT_TABLE(E131Dialog,wxDialog)
     //*)
 END_EVENT_TABLE()
 
-E131Dialog::E131Dialog(wxWindow* parent)
+E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* outputManager, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
+    _e131 = e131;
+    _outputManager = outputManager;
+
     //(*Initialize(E131Dialog)
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer1;
 
-    Create(parent, wxID_ANY, _("E1.31 Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
+    Create(parent, id, _("E1.31 Setup"), pos, size, wxCAPTION, _T("id"));
     SetClientSize(wxDefaultSize);
     Move(wxDefaultPosition);
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -108,6 +112,35 @@ E131Dialog::E131Dialog(wxWindow* parent)
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&E131Dialog::OnButton_CancelClick);
     //*)
 
+    SpinCtrl_StartUniv->SetValue(_e131->GetUniverse());
+    SpinCtrl_NumUniv->SetValue(_e131->GetUniverses());
+    MultiE131CheckBox->SetValue(_e131->IsOutputCollection());
+    if (_e131->GetIP() != "")
+    {
+        MultiE131CheckBox->Enable(false);
+        SpinCtrl_NumUniv->Enable(false);
+    }
+    else
+    {
+        MultiE131CheckBox->Enable(true);
+        SpinCtrl_NumUniv->Enable(true);
+    }
+    SpinCtrl_LastChannel->SetValue(_e131->GetChannels());
+    TextCtrl_Description->SetValue(_e131->GetDescription());
+
+    if (wxString(_e131->GetIP().c_str()).StartsWith("239.255.") || _e131->GetIP() == "MULTICAST" || _e131->GetIP() == "")
+    {
+        TextCtrlIpAddr->SetValue("MULTICAST");
+        TextCtrlIpAddr->Enable(false);
+        RadioButtonMulticast->SetValue(true);
+    }
+    else
+    {
+        TextCtrlIpAddr->SetValue(_e131->GetIP());
+        TextCtrlIpAddr->Enable(true);
+        RadioButtonUnicast->SetValue(true);
+    }
+
     Button_Ok->SetDefault();
     ValidateWindow();
 }
@@ -121,7 +154,7 @@ E131Dialog::~E131Dialog()
 
 void E131Dialog::OnRadioButtonUnicastSelect(wxCommandEvent& event)
 {
-    TextCtrlIpAddr->Clear();
+    TextCtrlIpAddr->SetValue(_e131->GetIP());
     TextCtrlIpAddr->Enable(true);
     ValidateWindow();
 }
@@ -154,6 +187,33 @@ void E131Dialog::OnMultiE131CheckBoxClick(wxCommandEvent& event)
 
 void E131Dialog::OnButton_OkClick(wxCommandEvent& event)
 {
+    _e131->SetIP(TextCtrlIpAddr->GetValue().ToStdString());
+    _e131->SetUniverse(SpinCtrl_StartUniv->GetValue());
+    _e131->SetChannels(SpinCtrl_LastChannel->GetValue());
+    _e131->SetDescription(TextCtrl_Description->GetValue().ToStdString());
+
+    if (SpinCtrl_NumUniv->GetValue() > 1 && !MultiE131CheckBox->GetValue())
+    {
+        Output* last = _e131;
+        for (int i = 1; i < SpinCtrl_NumUniv->GetValue(); i++)
+        {
+            E131Output* e = new E131Output();
+            e->SetIP(TextCtrlIpAddr->GetValue().ToStdString());
+            e->SetUniverse(SpinCtrl_StartUniv->GetValue() + i);
+            e->SetChannels(SpinCtrl_LastChannel->GetValue());
+            e->SetDescription(TextCtrl_Description->GetValue().ToStdString());
+            _outputManager->AddOutput(e, last);
+            last = e;
+        }
+    }
+    else
+    {
+        if (SpinCtrl_NumUniv->GetValue() > 1)
+        {
+            _e131->CreateMultiUniverses(SpinCtrl_NumUniv->GetValue());
+        }
+    }
+
     EndDialog(wxID_OK);
 }
 

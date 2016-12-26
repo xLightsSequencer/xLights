@@ -2,20 +2,11 @@
 
 #include <wx/xml/xml.h>
 
-#include <log4cpp/Category.hh>
-
+#pragma region Constructors and Destructors
 LOROutput::LOROutput(SerialOutput* output) : SerialOutput(output)
 {
     _lastheartbeat = -1;
     memset(_data, 0, sizeof(_data));
-}
-
-wxXmlNode* LOROutput::Save()
-{
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    SerialOutput::Save(node);
-
-    return node;
 }
 
 LOROutput::LOROutput(wxXmlNode* node) : SerialOutput(node)
@@ -29,6 +20,7 @@ LOROutput::LOROutput() : SerialOutput()
     _lastheartbeat = -1;
     memset(_data, 0, sizeof(_data));
 }
+#pragma endregion Constructors and Destructors
 
 void LOROutput::SendHeartbeat() const
 {
@@ -43,6 +35,7 @@ void LOROutput::SendHeartbeat() const
     _serial->Write((char *)d, 5);
 }
 
+#pragma region Start and Stop
 bool LOROutput::Open()
 {
     _ok = SerialOutput::Open();
@@ -66,12 +59,9 @@ bool LOROutput::Open()
 
     return _ok;
 }
+#pragma endregion Start and Stop
 
-void LOROutput::StartFrame(long msec)
-{
-    _timer_msec = msec;
-}
-
+#pragma region Frame Handling
 void LOROutput::EndFrame()
 {
     if (!_enabled) return;
@@ -88,8 +78,10 @@ void LOROutput::ResetFrame()
 {
     _lastheartbeat = -1;
 }
+#pragma endregion Frame Handling
 
-void LOROutput::SetOneChannel(int channel, unsigned char data)
+#pragma region Data Setting
+void LOROutput::SetOneChannel(long channel, unsigned char data)
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 
@@ -109,6 +101,14 @@ void LOROutput::AllOff()
 {
     for (int i = 0; i < _channels; i++)
     {
-        SetOneChannel(i + 1, 0x00);
+        SetOneChannel(i, 0x00);
     }
 }
+#pragma endregion Data Setting
+
+#pragma region Getters and Setters
+std::string LOROutput::GetSetupHelp() const
+{
+    return "LOR controllers attached to any LOR dongle.\nMax of 8 channels at 9600 baud.\nMax of 48 channels at 57600 baud.\nMax of 96 channels at 115200 baud.\nRun your controllers in DMX mode for higher throughput.";
+}
+#pragma endregion Getters and Setters

@@ -4,6 +4,21 @@
 #include <wx/regex.h>
 #include <log4cpp/Category.hh>
 
+#pragma region Constructors and Destructors
+IPOutput::IPOutput(wxXmlNode* node) : Output(node)
+{
+    _ip = node->GetAttribute("ComPort", "").ToStdString();
+    _universe = wxAtoi(node->GetAttribute("BaudRate", "1"));
+}
+
+IPOutput::IPOutput() : Output()
+{
+    _universe = 0;
+    _ip = "";
+}
+#pragma endregion Constructors and Destructors
+
+#pragma region Static Functions
 bool IPOutput::IsIPValid(std::string ip)
 {
     wxString ips = wxString(ip).Trim(false).Trim(true);
@@ -44,11 +59,14 @@ std::string IPOutput::CleanupIP(std::string ip)
 
     return IpAddr.ToStdString();
 }
+#pragma endregion Static Functions
 
-IPOutput::IPOutput(wxXmlNode* node) : Output(node)
+wxXmlNode* IPOutput::Save()
 {
-    _ip = node->GetAttribute("ComPort", "").ToStdString();
-    _universe = wxAtoi(node->GetAttribute("BaudRate", "1"));
+    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+    Save(node);
+
+    return node;
 }
 
 void IPOutput::Save(wxXmlNode* node)
@@ -66,22 +84,12 @@ void IPOutput::Save(wxXmlNode* node)
     Output::Save(node);
 }
 
-
-IPOutput::IPOutput() : Output()
-{
-    _universe = 0;
-    _ip = "";
-}
-
-IPOutput::~IPOutput()
-{
-    
-}
-
+#pragma region Operators
 bool IPOutput::operator==(const IPOutput& output) const
 {
     if (GetType() != output.GetType()) return false;
 
     return _universe == output.GetUniverse() && _ip == output.GetIP();
 }
+#pragma endregion Operators
 

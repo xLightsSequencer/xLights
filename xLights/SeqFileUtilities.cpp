@@ -229,7 +229,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             wxString mf;
             ConvertParameters read_params(xlightsFilename,                              // input filename
                                           SeqData,                                      // sequence data object
-                                          GetNetInfo(),                                 // global network info
+                                          &_outputManager,                                 // global network info
                                           ConvertParameters::READ_MODE_LOAD_MAIN,       // file read mode
                                           this,                                         // xLights main frame
                                           NULL,
@@ -523,7 +523,7 @@ void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
                 }
                 ConvertParameters read_params(data_layer->GetDataSource(),                // input filename
                                               SeqData,                                    // sequence data object
-                                              GetNetInfo(),                               // global network info
+                                              &_outputManager,                               // global network info
                                               read_mode,                                  // file read mode
                                               this,                                       // xLights main frame
                                               nullptr,
@@ -562,7 +562,7 @@ static bool CalcPercentage(std::string& value, double base, bool reverse, int of
     {
         percent = 100.0 - percent;
     }
-    value = wxString::Format("%d",(int)percent);
+    value = wxString::Format(wxT("%i"),(int)percent);
     return true;
 }
 static bool CalcBoundedPercentage(std::string& value, int base, bool reverse, int offset) {
@@ -1740,12 +1740,12 @@ void AdjustAllTimings(wxXmlNode *input_xml, int offset) {
     if (input_xml->HasAttribute("startCentisecond")) {
         int i = wxAtoi(input_xml->GetAttribute("startCentisecond"));
         input_xml->DeleteAttribute("startCentisecond");
-        input_xml->AddAttribute("startCentisecond", wxString::Format("%d", i + offset));
+        input_xml->AddAttribute("startCentisecond", wxString::Format(wxT("%i"), i + offset));
     }
     if (input_xml->HasAttribute("endCentisecond")) {
         int i = wxAtoi(input_xml->GetAttribute("endCentisecond"));
         input_xml->DeleteAttribute("endCentisecond");
-        input_xml->AddAttribute("endCentisecond", wxString::Format("%d", i + offset));
+        input_xml->AddAttribute("endCentisecond", wxString::Format(wxT("%i"), i + offset));
     }
     if (input_xml->GetName() == "flowy") {
         if (input_xml->HasAttribute("startTime")) {

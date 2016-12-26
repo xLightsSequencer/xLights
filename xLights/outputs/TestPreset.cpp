@@ -4,6 +4,7 @@
 #include <log4cpp/Category.hh>
 #include "Output.h"
 
+#pragma region Constructors and Destructors
 TestPreset::TestPreset(const std::string& name)
 {
 	_name = name;
@@ -25,7 +26,9 @@ TestPreset::TestPreset(wxXmlNode* node)
 		}
 	}
 }
+#pragma endregion Constructors and Destructors
 
+#pragma region Save
 wxXmlNode* TestPreset::Save()
 {
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "testpreset");
@@ -73,7 +76,9 @@ wxXmlNode* TestPreset::Save()
 
     return node;
 }
+#pragma endregion Save
 
+#pragma region Getters and Setters
 void TestPreset::AddChannel(int ch)
 {
     if (std::find(_channels.begin(), _channels.end(), ch) == _channels.end())
@@ -89,4 +94,5 @@ void TestPreset::AddChannelRange(int start, int end)
         AddChannel(i);
     }
 }
+#pragma endregion Getters and Setters
 

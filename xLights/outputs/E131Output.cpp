@@ -6,23 +6,11 @@
 #include "E131Dialog.h"
 #include "OutputManager.h"
 
-wxXmlNode* E131Output::Save()
-{
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    IPOutput::Save(node);
-
-    if (_numUniverses > 1)
-    {
-        node->AddAttribute("NumUniverses", wxString::Format("%d", _numUniverses));
-    }
-
-    return node;
-}
-
+#pragma region Constructors and Destructors
 E131Output::E131Output(wxXmlNode* node) : IPOutput(node)
 {
     _numUniverses = wxAtoi(node->GetAttribute("NumUniverses", "1"));
-    CreateMultiUniverses();
+    CreateMultiUniverses(_numUniverses);
     _sequenceNum = 0;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
@@ -31,6 +19,8 @@ E131Output::E131Output(wxXmlNode* node) : IPOutput(node)
 
 E131Output::E131Output() : IPOutput()
 {
+    _channels = 510;
+    _universe = 1;
     _sequenceNum = 0;
     _numUniverses = 1;
     _datagram = nullptr;
@@ -41,9 +31,24 @@ E131Output::~E131Output()
 {
     if (_datagram != nullptr) delete _datagram;
 }
+#pragma endregion Constructors and Destructors
 
-void E131Output::CreateMultiUniverses()
+wxXmlNode* E131Output::Save()
 {
+    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+    IPOutput::Save(node);
+
+    if (_numUniverses > 1)
+    {
+        node->AddAttribute("NumUniverses", wxString::Format(wxT("%i"), _numUniverses));
+    }
+
+    return node;
+}
+
+void E131Output::CreateMultiUniverses(int num)
+{
+    _numUniverses = num;
     _outputs.clear();
 
     for (int i = 0; i < _numUniverses; i++)
@@ -57,6 +62,7 @@ void E131Output::CreateMultiUniverses()
     }
 }
 
+#pragma region Static Functions
 void E131Output::SendSync(int syncUniverse)
 {
     static wxByte syncdata[E131_SYNCPACKET_LEN];
@@ -124,7 +130,6 @@ void E131Output::SendSync(int syncUniverse)
             if (syncdatagram != nullptr)
             {
                 delete syncdatagram;
-                syncdatagram = nullptr;
             }
             syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
 
@@ -142,7 +147,9 @@ void E131Output::SendSync(int syncUniverse)
         syncdatagram->SendTo(syncremoteAddr, syncdata, E131_SYNCPACKET_LEN);
     }
 }
+#pragma endregion Static Functions
 
+#pragma region Start and Stop
 bool E131Output::Open()
 {
     if (!_enabled) return false;
@@ -274,15 +281,16 @@ void E131Output::Close()
         }
     }
 }
+#pragma endregion Start and Stop
 
-void E131Output::SetTransientData(int on, int startChannel, int nullnumber)
+void E131Output::SetTransientData(int on, long startChannel, int nullnumber)
 {
     if (IsOutputCollection())
     {
         _outputNumber = on;
         _startChannel = startChannel;
         if (nullnumber > 0) _nullNumber = nullnumber;
-        int nextstartchannel = startChannel;
+        long nextstartchannel = startChannel;
         for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
         {
             (*it)->SetTransientData(on, nextstartchannel, nullnumber);
@@ -297,6 +305,7 @@ void E131Output::SetTransientData(int on, int startChannel, int nullnumber)
     }
 }
 
+#pragma region Frame Handling
 void E131Output::StartFrame(long msec)
 {
     if (!_enabled) return;
@@ -362,16 +371,18 @@ void E131Output::ResetFrame()
         }
     }
 }
+#pragma endregion Frame Handling
 
-void E131Output::SetOneChannel(int channel, unsigned char data)
+#pragma region Data Setting
+void E131Output::SetOneChannel(long channel, unsigned char data)
 {
     if (!_enabled) return;
 
     if (IsOutputCollection())
     {
-        int unum = channel / _channels;
+        long unum = channel / _channels;
         auto it = _outputs.begin();
-        for (int i = 0; i < unum && it != _outputs.end(); i++)
+        for (long i = 0; i < unum && it != _outputs.end(); i++)
         {
             ++it;
         }
@@ -394,38 +405,26 @@ void E131Output::SetOneChannel(int channel, unsigned char data)
     }
 }
 
-int E131Output::GetEndChannel() const
+void E131Output::SetManyChannels(long channel, unsigned char data[], long size)
 {
     if (IsOutputCollection())
     {
-        return _outputs.back()->GetEndChannel();
-    }
-    else
-    {
-        return _startChannel + _channels - 1;
-    }
-}
-
-void E131Output::SetManyChannels(int channel, unsigned char data[], size_t size)
-{
-    if (IsOutputCollection())
-    {
-        int startu = (channel) / _channels;
-        int startc = (channel) % _channels;
+        long startu = (channel) / _channels;
+        long startc = (channel) % _channels;
 
         auto o = _outputs.begin();
-        for (int i = 0; i < startu; i++)
+        for (long i = 0; i < startu; i++)
         {
             ++o;
         }
 
-        int left = size;
+        long left = size;
         while (left > 0 && o != _outputs.end())
         {
 #ifdef _MSC_VER
-            int send = min(left, _channels);
+            long send = min(left, _channels);
 #else
-            int send = std::min(left, _channels);
+            long send = std::min(left, _channels);
 #endif
             (*o)->SetManyChannels(startc, &data[size - left], send);
             left -= send;
@@ -436,9 +435,9 @@ void E131Output::SetManyChannels(int channel, unsigned char data[], size_t size)
     else
     {
 #ifdef _MSC_VER
-        int chs = min((int)size, (int)(_channels - channel + 1));
+        long chs = min(size, _channels - channel + 1);
 #else
-        int chs = std::min((int)size, (int)(GetMaxChannels() - channel + 1));
+        long chs = std::min(size, GetMaxChannels() - channel + 1);
 #endif
         memcpy(&_data[channel + E131_PACKET_HEADERLEN], data, chs);
 
@@ -459,10 +458,24 @@ void E131Output::AllOff()
     }
     else
     {
-        memset(&_data[1 + E131_PACKET_HEADERLEN], 0x00, _channels);
+        memset(&_data[E131_PACKET_HEADERLEN], 0x00, _channels);
 #ifdef USECHANGEDETECTION
         _changed = true;
 #endif
+    }
+}
+#pragma endregion Data Setting
+
+#pragma region Getters and Setters
+long E131Output::GetEndChannel() const
+{
+    if (IsOutputCollection())
+    {
+        return _outputs.back()->GetEndChannel();
+    }
+    else
+    {
+        return _startChannel + _channels - 1;
     }
 }
 
@@ -477,7 +490,7 @@ std::string E131Output::GetLongDescription() const
     else
     {
         if (!_enabled) res += "INACTIVE ";
-        res += "E1.31 " + _ip + " {" + wxString::Format("%d", _universe).ToStdString() + "} ";
+        res += "E1.31 " + _ip + " {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
         res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
         res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetActualEndChannel())) + ") ";
         res += _description;
@@ -486,16 +499,16 @@ std::string E131Output::GetLongDescription() const
     return res;
 }
 
-std::string E131Output::GetChannelMapping(int ch) const
+std::string E131Output::GetChannelMapping(long ch) const
 {
     std::string res = "";
 
     if (IsOutputCollection())
     {
-        int unum = ch % _channels;
+        long unum = (ch - GetStartChannel()) / _channels;
 
         auto o = _outputs.begin();
-        for (int i = 0; i < unum; i++)
+        for (long i = 0; i < unum; i++)
         {
             ++o;
         }
@@ -508,14 +521,14 @@ std::string E131Output::GetChannelMapping(int ch) const
 
         res += "Type: E1.31\n";
         int u = _universe;
-        int channeloffset = ch - GetStartChannel() + 1;
+        long channeloffset = ch - GetStartChannel() + 1;
         if (_numUniverses > 1)
         {
             u += (ch - GetStartChannel()) / _channels;
             channeloffset -= (ch - GetStartChannel()) / _channels * _channels;
         }
         res += "IP: " + _ip + "\n";
-        res += "Universe: " + wxString::Format("%d", u).ToStdString() + "\n";
+        res += "Universe: " + GetUniverseString() + "\n";
         res += "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
 
         if (!_enabled) res += " INACTIVE";
@@ -523,74 +536,33 @@ std::string E131Output::GetChannelMapping(int ch) const
         return res;
 }
 
-#ifndef EXCLUDENETWORKUI
-int E131Output::Configure(wxWindow* parent, OutputManager& outputManager)
+std::string E131Output::GetUniverseString() const
 {
-    E131Dialog dlg(parent);
-
-    dlg.SpinCtrl_StartUniv->SetValue(_universe);
-    dlg.SpinCtrl_NumUniv->SetValue(_numUniverses);
-    dlg.MultiE131CheckBox->SetValue(false);
-    if (_ip != "")
+    if (IsOutputCollection())
     {
-        dlg.MultiE131CheckBox->Enable(false);
-        dlg.SpinCtrl_NumUniv->Enable(false);
+        return wxString::Format(wxT("%i-%i"), _outputs.front()->GetUniverse(), _outputs.back()->GetUniverse()).ToStdString();
     }
     else
     {
-        dlg.MultiE131CheckBox->Enable(IsOutputCollection());
-        dlg.SpinCtrl_NumUniv->Enable(IsOutputCollection());
+        return IPOutput::GetUniverseString();
     }
-    dlg.SpinCtrl_LastChannel->SetValue(_channels);
-    dlg.TextCtrl_Description->SetValue(_description.c_str());
+}
+#pragma endregion Getters and Setters
 
-    if (wxString(_ip.c_str()).StartsWith("239.255.") || _ip == "MULTICAST")
-    {
-        dlg.TextCtrlIpAddr->SetValue("MULTICAST");
-        dlg.TextCtrlIpAddr->Enable(false);
-        dlg.RadioButtonMulticast->SetValue(true);
-    }
-    else
-    {
-        dlg.TextCtrlIpAddr->SetValue(_ip.c_str());
-        dlg.TextCtrlIpAddr->Enable(true);
-        dlg.RadioButtonUnicast->SetValue(true);
-    }
+#pragma region UI
+#ifndef EXCLUDENETWORKUI
+Output* E131Output::Configure(wxWindow* parent, OutputManager* outputManager)
+{
+    E131Dialog dlg(parent, this, outputManager);
 
     int res = dlg.ShowModal();
 
-    if (res == wxID_OK)
+    if (res == wxID_CANCEL)
     {
-        SetIP(dlg.TextCtrlIpAddr->GetValue().ToStdString());
-        _universe = dlg.SpinCtrl_StartUniv->GetValue();
-        _channels = dlg.SpinCtrl_LastChannel->GetValue();
-        _description = dlg.TextCtrl_Description->GetValue().ToStdString();
-
-        if (dlg.SpinCtrl_NumUniv->GetValue() > 1 && dlg.MultiE131CheckBox->GetValue())
-        {
-            _numUniverses = 1;
-
-            for (int i = 1; i < dlg.SpinCtrl_NumUniv->GetValue(); i++)
-            {
-                E131Output* e = new E131Output();
-                e->SetIP(_ip);
-                e->SetUniverse(_universe + i);
-                e->SetChannels(_channels);
-                e->SetDescription(_description);
-                outputManager.AddOutput(e, -1);
-            }
-        }
-        else
-        {
-            _numUniverses = dlg.SpinCtrl_NumUniv->GetValue();
-
-            if (_numUniverses > 1)
-            {
-                CreateMultiUniverses();
-            }
-        }
+        return nullptr;
     }
 
-    return res;
+    return this;
 }
 #endif
+#pragma endregion UI

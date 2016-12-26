@@ -126,9 +126,9 @@ TreeController::TreeController(Output* output)
 	_inactive = !output->IsEnabled();
 	_description = output->GetDescription();
     _ipaddress = output->GetIP();
-    _universe = wxString::Format("%d", output->GetUniverse()); 
+    _universe = wxString::Format(wxT("%i"), output->GetUniverse()); 
     _comport = output->GetCommPort();
-    _baudrate = wxString::Format("%d", output->GetBaudRate());
+    _baudrate = wxString::Format(wxT("%i"), output->GetBaudRate());
 	_type = CONTROLLERTYPE::CT_CONTROLLER;
 	_name = output->GetLongDescription();
 }

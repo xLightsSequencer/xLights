@@ -930,7 +930,7 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDia
         wxString media_filename;
         ConvertParameters conv_params(full_name.GetFullPath(),                                  // input filename
                                       new_data_layer->GetSequenceData(),                        // sequence data object
-                                      xLightsParent->GetNetInfo(),                              // global network info
+                                      xLightsParent->GetOutputManager(),                              // global network info
                                       ConvertParameters::READ_MODE_IMPORT,                      // file read mode
                                       xLightsParent,                                            // xLights main frame
                                       nullptr,
@@ -1020,7 +1020,7 @@ void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)
     wxFileName full_name(layer->GetSource());
     ConvertParameters conv_params(layer->GetSource(),                                       // input filename
                                   layer->GetSequenceData(),                                 // sequence data object
-                                  xLightsParent->GetNetInfo(),                              // global network info
+                                  xLightsParent->GetOutputManager(),                              // global network info
                                   ConvertParameters::READ_MODE_IMPORT,                      // file read mode
                                   xLightsParent,                                            // xLights main frame
                                   nullptr,

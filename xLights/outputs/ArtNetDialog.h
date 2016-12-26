@@ -12,14 +12,19 @@
 #include <wx/dialog.h>
 //*)
 
+class ArtNetOutput;
+class OutputManager;
+
 class ArtNetDialog: public wxDialog
 {
     void ValidateWindow();
     void UniverseChange();
+    ArtNetOutput* _artnet;
+    OutputManager* _outputManager;
 
 	public:
 
-		ArtNetDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ArtNetDialog(wxWindow* parent,ArtNetOutput* artnet, OutputManager* outputManager, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ArtNetDialog();
 
 		//(*Declarations(ArtNetDialog)
@@ -80,7 +85,6 @@ class ArtNetDialog: public wxDialog
 		void OnTextCtrlIPAddressText(wxCommandEvent& event);
 		void OnButtonOkClick(wxCommandEvent& event);
 		void OnButtonCancelClick(wxCommandEvent& event);
-		void OnCheckBoxUseNetSubnetClick(wxCommandEvent& event);
 		void OnUniverseChange(wxSpinEvent& event);
 		void OnNotebook1PageChanging(wxNotebookEvent& event);
 		//*)

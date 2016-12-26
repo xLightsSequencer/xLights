@@ -26,7 +26,6 @@
 #include <string>
 #include <list>
 #include "models/ModelManager.h"
-#include "xlights_out.h"
 #include "SequenceData.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"

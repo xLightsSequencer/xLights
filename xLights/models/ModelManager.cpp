@@ -25,7 +25,7 @@
 #include "../sequencer/Element.h"
 #include "../xLightsMain.h"
 
-ModelManager::ModelManager(NetInfoClass &ni, xLightsFrame* xl) : netInfo(ni), xlights(xl)
+ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) : _outputManager(outputManager), xlights(xl)
 {
     //ctor
 }

@@ -20,6 +20,7 @@
 #include "../StartChannelDialog.h"
 #include "../SubModelsDialog.h"
 #include "../ControllerConnectionDialog.h"
+#include "../outputs/Output.h"
 
 #include "ModelScreenLocation.h"
 #include <wx/sstream.h>
@@ -514,25 +515,25 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     if (event.GetPropertyName() == "ModelPixelSize") {
         pixelSize = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("PixelSize");
-        ModelXml->AddAttribute("PixelSize", wxString::Format("%d", pixelSize));
+        ModelXml->AddAttribute("PixelSize", wxString::Format(wxT("%i"), pixelSize));
         IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelPixelStyle") {
         pixelStyle = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Antialias");
-        ModelXml->AddAttribute("Antialias", wxString::Format("%d", pixelStyle));
+        ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), pixelStyle));
         IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelPixelTransparency") {
         transparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
-        ModelXml->AddAttribute("Transparency", wxString::Format("%d", transparency));
+        ModelXml->AddAttribute("Transparency", wxString::Format(wxT("%i"), transparency));
         IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelPixelBlackTransparency") {
         blackTransparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("BlackTransparency");
-        ModelXml->AddAttribute("BlackTransparency", wxString::Format("%d", blackTransparency));
+        ModelXml->AddAttribute("BlackTransparency", wxString::Format(wxT("%i"), blackTransparency));
         IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelStrandNodeNames") {
@@ -881,8 +882,12 @@ std::string Model::ComputeStringStartChannel(int i) {
             int endChannel;
             startNetwork--; // Zero based index
             if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
-                if (modelManager.GetNetInfo().GetEndNetworkAndChannel(startNetwork,(int)StringStartChanLong,ChannelsPerString+1,endNetwork,endChannel)) {
-                    return wxString::Format("%i:%i",endNetwork+1,endChannel).ToStdString(); //endNetwork is zero based
+                // get the string end channel
+                long ststch;
+                Output* o = modelManager.GetOutputManager()->GetOutput(StringStartChanLong + ChannelsPerString + 1, ststch);
+                if (o != nullptr)
+                {
+                    return wxString::Format("%i:%i",o->GetOutputNumber(), ststch).ToStdString();
                 }
             }
         } else if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
@@ -892,7 +897,7 @@ std::string Model::ComputeStringStartChannel(int i) {
     }
     if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
         long StringEndChan=StringStartChanLong + ChannelsPerString;
-        stch = wxString::Format("%d", StringEndChan);
+        stch = wxString::Format(wxT("%i"), StringEndChan);
     }
     return stch.ToStdString();
 }
@@ -982,11 +987,12 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
                 // #ip:universe:channel
                 returnUniverse = wxAtoi(cs[1]);
                 returnChannel = wxAtoi(cs[2]);
-                int res =  modelManager.GetNetInfo().CalcUniverseChannel(cs[0].Trim(false).Trim(true), returnUniverse, returnChannel);
-                if (res < 1)
+
+                int res = modelManager.GetOutputManager()->GetAbsoluteChannel(cs[0].Trim(false).Trim(true).ToStdString(), returnUniverse - 1, returnChannel - 1);
+                if (res < 0)
                 {
-                    valid = false;
                     res = 1;
+                    valid = false;
                 }
                 return res;
             }
@@ -997,11 +1003,11 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
                 returnUniverse = wxAtoi(ss.SubString(1, ss.Find(":") - 1));
 
                 // find output based on universe number ...
-                int res =  modelManager.GetNetInfo().CalcUniverseChannel(returnUniverse, returnChannel);
-                if (res < 1)
+                int res = modelManager.GetOutputManager()->GetAbsoluteChannel("", returnUniverse - 1, returnChannel - 1);
+                if (res < 0) 
                 {
-                    valid = false;
                     res = 1;
+                    valid = false;
                 }
                 return res;
             }
@@ -1014,7 +1020,7 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
     }
     int returnChannel = wxAtoi(sc);
     if (output > 1) {
-        returnChannel = modelManager.GetNetInfo().CalcAbsChannel(output - 1, returnChannel - 1) + 1;
+        returnChannel = modelManager.GetOutputManager()->GetAbsoluteChannel(output - 1, returnChannel - 1);
         if (returnChannel < 1)
         {
             valid = false;
@@ -1723,7 +1729,7 @@ size_t Model::GetChannelCoords(wxArrayString& choices) { //wxChoice* choices1, w
         wxString newstr;
         //        debug(10, "model::node[%d/%d]: #coords %d, ach# %d, str %d", n, NodeCount, Nodes[n]->Coords.size(), Nodes[n]->StringNum, Nodes[n]->ActChan);
         if (Nodes[n]->Coords.empty()) continue;
-        //        newstr = wxString::Format(wxT("%d"), GetNodeNumber(n));
+        //        newstr = wxString::Format(wxT("%i"), GetNodeNumber(n));
         //        choices.Add(newstr);
         choices.Add(GetNodeXY(n));
         //        if (choices1) choices1->Append(newstr);
@@ -2149,7 +2155,7 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
             if (sx >= (px - pointScale) && sx <= (px + pointScale)  &&
                 sy >= (py - pointScale) && sy <= (py + pointScale))
             {
-                return wxString::Format("%d",i);
+                return wxString::Format(wxT("%i"),i);
             }
         }
         i++;

@@ -1,8 +1,8 @@
 #include "PixelNetOutput.h"
 
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
 
+#pragma region Constructors and Destructors
 PixelNetOutput::PixelNetOutput(SerialOutput* output) : SerialOutput(output)
 {
     _datalen = 0;
@@ -23,15 +23,9 @@ PixelNetOutput::PixelNetOutput() : SerialOutput()
     memset(_data, 0x00, sizeof(_data));
     memset(_serialBuffer, 0x00, sizeof(_serialBuffer));
 }
+#pragma endregion Constructors and Destructors
 
-wxXmlNode* PixelNetOutput::Save()
-{
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    SerialOutput::Save(node);
-
-    return node;
-}
-
+#pragma region Start and Stop
 bool PixelNetOutput::Open()
 {
     _ok = SerialOutput::Open();
@@ -45,7 +39,9 @@ bool PixelNetOutput::Open()
 
     return _ok;
 }
+#pragma endregion Start and Stop
 
+#pragma region Frame Handling
 void PixelNetOutput::EndFrame()
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
@@ -65,8 +61,10 @@ void PixelNetOutput::EndFrame()
     }
 #endif
 }
+#pragma endregion Frame Handling
 
-void PixelNetOutput::SetOneChannel(int channel, unsigned char data)
+#pragma region Data Setting
+void PixelNetOutput::SetOneChannel(long channel, unsigned char data)
 {
     _data[channel] = data == 170 ? 171 : data;
 
@@ -82,3 +80,12 @@ void PixelNetOutput::AllOff()
     _changed = true;
 #endif
 }
+#pragma endregion Data Setting
+
+#pragma region Getters and Setters
+std::string PixelNetOutput::GetSetupHelp() const
+{
+    return "Pixelnet controllers attached to a USB Lynx Pixelnet\ndongle";
+}
+#pragma endregion Getters and Setters
+

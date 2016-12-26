@@ -3,18 +3,11 @@
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
 
+#pragma region Constructors and Destructors
 RenardOutput::RenardOutput(SerialOutput* output) : SerialOutput(output)
 {
     _datalen = 0;
     _data = std::vector<wxByte>(RENARD_MAX_CHANNELS+9);
-}
-
-wxXmlNode* RenardOutput::Save()
-{
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    SerialOutput::Save(node);
-
-    return node;
 }
 
 RenardOutput::RenardOutput(wxXmlNode* node) : SerialOutput(node)
@@ -28,7 +21,9 @@ RenardOutput::RenardOutput() : SerialOutput()
     _datalen = 0;
     _data = std::vector<wxByte>(RENARD_MAX_CHANNELS+9);
 }
+#pragma endregion Constructors and Destructors
 
+#pragma region Start and Stop
 bool RenardOutput::Open()
 {
     _ok = SerialOutput::Open();
@@ -43,7 +38,9 @@ bool RenardOutput::Open()
 
     return _ok;
 }
+#pragma endregion Start and Stop
 
+#pragma region Frame Handling
 void RenardOutput::EndFrame()
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
@@ -58,8 +55,10 @@ void RenardOutput::EndFrame()
     }
 #endif
 }
+#pragma endregion Frame Handling
 
-void RenardOutput::SetOneChannel(int channel, unsigned char data)
+#pragma region Data Setting
+void RenardOutput::SetOneChannel(long channel, unsigned char data)
 {
     wxByte RenIntensity;
 
@@ -86,6 +85,14 @@ void RenardOutput::AllOff()
 {
     for (int i = 0; i < _channels; i++)
     {
-        SetOneChannel(i + 1, 0x00);
+        SetOneChannel(i + 2, 0x00);
     }
 }
+#pragma endregion Data Setting
+
+#pragma region Getters and Setters
+std::string RenardOutput::GetSetupHelp() const
+{
+    return "Renard controllers connected to a serial port or \na USB dongle with virtual comm port. 2 stop bits\nare set automatically.\nMax of 42 channels at 9600 baud.\nMax of 260 channels at 57600 baud.";
+}
+#pragma endregion Getters and Setters

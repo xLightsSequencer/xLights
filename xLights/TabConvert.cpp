@@ -41,7 +41,7 @@ void FRAMECLASS SetStatusText(const wxString &msg, int section) {
 
 void FRAMECLASS ConversionInit()
 {
-    long TotChannels=NetInfo.GetTotChannels();
+    long TotChannels=_outputManager.GetTotalChannels();
     mediaFilename.clear();
     ChannelColors.clear();
     ChannelNames.clear();
@@ -1104,7 +1104,7 @@ void FRAMECLASS ReadFalconFile(const wxString& FileName, ConvertDialog* convertd
 {
     ConvertParameters read_params(FileName,                                     // input filename
         SeqData,                                      // sequence data object
-        NetInfo, //GetNetInfo(),                                 // global network info
+        &_outputManager,                               // global network info
         ConvertParameters::READ_MODE_LOAD_MAIN,       // file read mode
         this,                                         // xLights main frame
         convertdlg,

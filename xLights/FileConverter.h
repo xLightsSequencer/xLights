@@ -4,13 +4,13 @@
 #ifndef FPP
 #include <wx/string.h>
 #endif
-#include "NetInfo.h"
 #include "DataLayer.h"
 #include "SequenceData.h"
 
 class xLightsFrame; // forward declare to prevent including the world
 class ConvertDialog;
 class ConvertLogDialog;
+class OutputManager;
 
 class ConvertParameters
 {
@@ -28,7 +28,7 @@ public:
     const wxString out_filename;
     int sequence_interval;
     SequenceData& seq_data;
-    NetInfoClass& NetInfo;
+    OutputManager* _outputManager;
     DataLayer* data_layer;
     wxString* media_filename;
     bool channels_off_at_end;
@@ -46,7 +46,7 @@ public:
 
     ConvertParameters( wxString inp_filename_,
                        SequenceData& seq_data_,
-                       NetInfoClass& NetInfo_,
+                       OutputManager* outputManager_,
                        ReadMode read_mode_,
                        xLightsFrame* xLightsFrm_,
                        ConvertDialog* convertDialog_,

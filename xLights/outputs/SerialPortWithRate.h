@@ -10,16 +10,21 @@
 #include <wx/dialog.h>
 //*)
 
+class SerialOutput;
+class OutputManager;
+
 class SerialPortWithRate: public wxDialog
 {
+    SerialOutput* _original;
+    SerialOutput** _serial;
+    OutputManager* _outputManager;
     void ValidateWindow();
 
 public:
 
-    SerialPortWithRate(wxWindow* parent);
+    SerialPortWithRate(wxWindow* parent, SerialOutput** serial, OutputManager* outputManager, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~SerialPortWithRate();
     void ProtocolChange();
-    wxString GetRateString();
 
     //(*Declarations(SerialPortWithRate)
     wxChoice* ChoiceProtocol;
@@ -36,7 +41,6 @@ public:
     wxChoice* ChoiceBaudRate;
     wxStaticText* StaticTextPort;
     //*)
-
 
 protected:
 
@@ -69,9 +73,6 @@ private:
     //*)
 
     wxFlexGridSizer* MainSizer;
-    void PopulatePortChooser(wxArrayString *chooser);
-    void SetLabel(const wxString& newlabel);
-
     DECLARE_EVENT_TABLE()
 };
 

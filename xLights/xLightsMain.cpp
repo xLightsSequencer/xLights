@@ -405,7 +405,7 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 }
 
 
-xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this), AllModels(NetInfo, this)
+xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
@@ -1176,7 +1176,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     me131Sync = false;
     mAltBackupDir = "";
     mIconSize = 16;
-    xout = 0;
 
     StatusBarSizer->AddGrowableCol(0,2);
     StatusBarSizer->AddGrowableCol(2,1);
@@ -1193,10 +1192,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 	mLoopAudio = false;
     playSpeed = 1.0;
     playAnimation = false;
+    UnsavedNetworkChanges = false;
 
     UnsavedRgbEffectsChanges = false;
     UnsavedPlaylistChanges = false;
-    UnsavedNetworkChanges = false;
     mStoredLayoutGroup = "Default";
     mDefaultNetworkSaveBtnColor = ButtonSaveSetup->GetBackgroundColour();
 
@@ -1294,6 +1293,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     GridNetwork->SetColumnWidth(5, 170);
     GridNetwork->SetColumnWidth(6, wxLIST_AUTOSIZE_USEHEADER);
 	GridNetwork->SetColumnWidth(7, wxLIST_AUTOSIZE);
+
+    _scrollTimer.Connect(wxEVT_TIMER,
+        wxTimerEventHandler(xLightsFrame::OnGridNetworkScrollTimer), nullptr, this);
 
     // get list of most recently used directories
     wxString dir,mru_name;
@@ -1676,11 +1678,10 @@ void xLightsFrame::SetPlayMode(play_modes newmode)
 
 void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
 {
-    if (!gs_xoutCriticalSection.TryEnter()) return;
     if (CheckBoxRunSchedule->IsChecked()) CheckSchedule();
     wxTimeSpan ts = wxDateTime::UNow() - starttime;
     long curtime = ts.GetMilliseconds().ToLong();
-    if (xout) xout->TimerStart(curtime);
+    _outputManager.StartFrame(curtime);
     switch (Notebook1->GetSelection())
     {
     case NEWSEQUENCER:
@@ -1694,8 +1695,7 @@ void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
         OnTimerPlaylist(curtime);
         break;
     }
-    if (xout) xout->TimerEnd();
-    gs_xoutCriticalSection.Leave();
+    _outputManager.EndFrame();
 }
 
 void xLightsFrame::ResetTimer(SeqPlayerStates newstate, long OffsetMsec)
@@ -1705,7 +1705,7 @@ void xLightsFrame::ResetTimer(SeqPlayerStates newstate, long OffsetMsec)
     TextCtrlLog->AppendText(wxString::Format(_("ResetTimer mode=%d state=%d\n"),play_mode,SeqPlayerState));
 #endif
     //if (newstate == NO_SEQ) SetPlayMode(play_off);
-    if (xout) xout->ResetTimer();
+    _outputManager.ResetFrame();
     wxTimeSpan offset(0,0,0,OffsetMsec);
     starttime = wxDateTime::UNow() - offset;
 }
@@ -1743,16 +1743,6 @@ void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
         break;
     }
     wxMessageBox(msg,caption);
-}
-
-void xLightsFrame::AllLightsOff()
-{
-    if (xout)
-    {
-        xout->alloff();
-        wxTimerEvent ev;
-        OnTimer1Trigger(ev);
-    }
 }
 
 void xLightsFrame::ResetAllSequencerWindows()
@@ -1858,114 +1848,40 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
 
 void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event)
 {
-    wxCriticalSectionLocker locker(gs_xoutCriticalSection);
-    if (xout)
+    if (_outputManager.IsOutputting())
     {
         CheckBoxLightOutput->SetValue(false);
-        AllLightsOff();
+        _outputManager.AllOff();
+        _outputManager.StopOutput();
         EnableSleepModes();
         CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")), wxART_TOOLBAR));
-        delete xout;
-        xout = 0;
         EnableNetworkChanges();
     }
 }
 
 bool xLightsFrame::EnableOutputs()
 {
-    wxCriticalSectionLocker locker(gs_xoutCriticalSection);
-    long MaxChan;
-    bool ok=true;
-    if (CheckBoxLightOutput->IsChecked() && xout==0)
+    bool ok = true;
+
+    if (CheckBoxLightOutput->IsChecked() && !_outputManager.IsOutputting())
     {
         DisableSleepModes();
-        xout = new xOutput(me131Sync, SpinCtrl_SyncUniverse->GetValue());
-
-        for( wxXmlNode* e=NetworkXML.GetRoot()->GetChildren(); e!=nullptr && ok; e=e->GetNext() )
+        ok = _outputManager.StartOutput();
+        if (ok)
         {
-            wxString tagname=e->GetName();
-            if (tagname == "network")
-            {
-                wxString tempstr=e->GetAttribute("MaxChannels", "0");
-                tempstr.ToLong(&MaxChan);
-                wxString NetworkType=e->GetAttribute("NetworkType", "");
-                wxString ComPort=e->GetAttribute("ComPort", "");
-                wxString BaudRate=e->GetAttribute("BaudRate", "");
-                int baud = (BaudRate == _("n/a")) ? 115200 : wxAtoi(BaudRate);
-                bool enabled = e->GetAttribute("Enabled", "Yes") == "Yes";
-				wxString Description = xLightsXmlFile::UnXmlSafe(e->GetAttribute("Description", ""));
-                static wxString choices;
-
-                int numU = wxAtoi(e->GetAttribute("NumUniverses", "1"));
-
-#ifdef __WXMSW__ //TODO: enumerate comm ports on all platforms -DJ
-                TCHAR valname[32];
-                /*byte*/TCHAR portname[32];
-                DWORD vallen = sizeof(valname);
-                DWORD portlen = sizeof(portname);
-                HKEY hkey = nullptr;
-                DWORD err = 0;
-
-//enum serial comm ports (more user friendly, especially if USB-to-serial ports change):
-//logic based on http://www.cplusplus.com/forum/windows/73821/
-                if (choices.empty()) //should this be cached?  it's not really that expensive
-                {
-                    if (!(err = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"), 0, KEY_READ, &hkey)))
-                        for (DWORD inx = 0; !(err = RegEnumValue(hkey, inx, (LPTSTR)valname, &vallen, nullptr, nullptr, (LPBYTE)portname, &portlen)) || (err == ERROR_MORE_DATA); ++inx)
-                        {
-                            if (err == ERROR_MORE_DATA) portname[sizeof(portname)/sizeof(portname[0]) - 1] = '\0'; //need to enlarge read buf if this happens; just truncate string for now
-//                            debug(3, "found port[%d] %d:'%s' = %d:'%s', err 0x%x", inx, vallen, valname, portlen, portname, err);
-                            choices += _(", ") + portname;
-                            vallen = sizeof(valname);
-                            portlen = sizeof(portname);
-                        }
-                    if (err && (err != /*ERROR_FILE_NOT_FOUND*/ ERROR_NO_MORE_ITEMS)) choices = wxString::Format(", error %d (can't get serial comm ports from registry)", err);
-                    if (hkey) RegCloseKey(hkey);
-//                    if (err) SetLastError(err); //tell caller about last real error
-                    if (!choices.empty()) choices = "\n(available ports: "+ choices.substr(2) + ")";
-                    else choices = "\n(no available ports)";
-                }
-#endif // __WXMSW__
-                wxString msg = _("Error occurred while connecting to ") + NetworkType+ _(" network on ") + ComPort +
-                               choices +
-                               _("\n\nThings to check:\n1. Are all required cables plugged in?") +
-                               _("\n2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.") +
-                               _("\n3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n");
-
-                try
-                {
-                    xout->addnetwork(NetworkType,MaxChan,ComPort,baud, numU, enabled);
-                    //TextCtrlLog->AppendText(_("Successfully initialized ") + NetworkType + _(" network on ") + ComPort + _("\n"));
-                }
-                catch (const char *str)
-                {
-                    wxString errmsg(str,wxConvUTF8);
-                    if (wxMessageBox(msg + errmsg + _("\nProceed anyway?"), _("Communication Error"), wxYES_NO | wxNO_DEFAULT) != wxYES)
-                        ok = false;
-                }
-            }
-        }
-        if (!ok)
-        {
-            // uncheck checkbox since we were not able to initialize the port(s) successfully
-            delete xout;
-            xout=0;
-            CheckBoxLightOutput->SetValue(false);
-            CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR));
-            //CheckBoxLightOutput->Enable(false);
+            CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS_ON")), wxART_TOOLBAR));
         }
         else
         {
-            CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS_ON")),wxART_TOOLBAR));
+            EnableSleepModes();
         }
     }
-    else if (!CheckBoxLightOutput->IsChecked() && xout)
+    else if (!CheckBoxLightOutput->IsChecked() && _outputManager.IsOutputting())
     {
-        AllLightsOff();
+        _outputManager.AllOff();
+        _outputManager.StopOutput();
         EnableSleepModes();
         CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR));
-        delete xout;
-        xout=0;
     }
     EnableNetworkChanges();
     return ok;
@@ -1973,7 +1889,7 @@ bool xLightsFrame::EnableOutputs()
 
 void xLightsFrame::EnableNetworkChanges()
 {
-    bool flag=(xout==0 && !CurrentDir.IsEmpty());
+    bool flag=(!_outputManager.IsOutputting() && !CurrentDir.IsEmpty());
     ButtonAddDongle->Enable(flag);
     ButtonAddE131->Enable(flag);
     ButtonArtNET->Enable(flag);
@@ -2274,8 +2190,8 @@ wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const 
 }
 void xLightsFrame::SetPreviewSize(int width,int height)
 {
-    SetXmlSetting("previewWidth",wxString::Format("%d",width));
-    SetXmlSetting("previewHeight",wxString::Format("%d",height));
+    SetXmlSetting("previewWidth",wxString::Format(wxT("%i"),width));
+    SetXmlSetting("previewHeight",wxString::Format(wxT("%i"),height));
     modelPreview->SetCanvasSize(width,height);
     modelPreview->Refresh();
     sPreview2->SetVirtualCanvasSize(width, height);
@@ -2815,7 +2731,7 @@ void xLightsFrame::MarkEffectsFileDirty()
 }
 
 unsigned int xLightsFrame::GetMaxNumChannels() {
-    return std::max(NetInfo.GetTotChannels(), AllModels.GetLastChannel() + 1);
+    return std::max(_outputManager.GetTotalChannels(), (long)AllModels.GetLastChannel() + 1);
 }
 
 
@@ -2859,7 +2775,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	bool output = CheckBoxLightOutput->IsChecked();
 	if (output)
 	{
-		AllLightsOff();
+        _outputManager.AllOff();
 	}
 
 	// creating the dialog can take some time so display an hourglass
@@ -2905,7 +2821,7 @@ void xLightsFrame::OnAuiToolBarItemPasteByCellClick(wxCommandEvent& event)
 void xLightsFrame::OnMenuItemConvertSelected(wxCommandEvent& event)
 {
     UpdateChannelNames();
-    ConvertDialog dialog(this, SeqData, NetInfo, mediaFilename, ChannelNames, ChannelColors, ChNames); // , &NetInfo, &ChNames, mMediaLengthMS);
+    ConvertDialog dialog(this, SeqData, &_outputManager, mediaFilename, ChannelNames, ChannelColors, ChNames); 
     dialog.CenterOnParent();
     dialog.ShowModal();
 }
@@ -2930,7 +2846,7 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
     bool output = CheckBoxLightOutput->IsChecked();
     if (output)
     {
-        AllLightsOff();
+        _outputManager.AllOff();
     }
 
     // creating the dialog can take some time so display an hourglass
@@ -3089,9 +3005,9 @@ static void AddLogFile(const wxString &CurrentDir, const wxString &fileName, wxD
 void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
 
 
-    wxFileName fn(CurrentDir, "xlights_networks.xml");
+    wxFileName fn(CurrentDir, OutputManager::GetNetworksFileName());
     if (fn.Exists()) {
-        report.AddFile(fn.GetFullPath(), "xlights_networks.xml");
+        report.AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
     }
     if (wxFileName(CurrentDir, "xlights_rgbeffects.xml").Exists()) {
         report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
@@ -3454,7 +3370,8 @@ void xLightsFrame::ExportModels(wxString filename)
             wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
             int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
             std::string type, description, ip, universe, inactive;
-            int channeloffset, output;
+            long channeloffset;
+            int output;
             GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output);
             f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%d,%d,%d,%d,%d,%s,%d,%d,%s,%s,%s,\"%s\",%d,%s,%s,%d,%s\n",
                 model->name,
@@ -3722,25 +3639,15 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Inactive Outputs");
 
     // Check for inactive outputs
-    wxXmlNode* n = NetworkXML.GetRoot();
-    int i = 0;
-    for (n = n->GetChildren(); n != nullptr; n = n->GetNext())
+    auto outputs = _outputManager.GetOutputs();
+    for (auto it = outputs.begin(); it != outputs.end(); ++it)
     {
-        if (n->GetName() == "network")
+        if (!(*it)->IsEnabled())
         {
-            i++;
-
-            if (n->GetAttribute("Enabled", "Yes") != "Yes")
-            {
-                wxString NetType = n->GetAttribute("NetworkType", "");
-                wxString ip = n->GetAttribute("ComPort", "");
-                wxString universe = n->GetAttribute("BaudRate", "1");
-                wxString desc = xLightsXmlFile::UnXmlSafe(n->GetAttribute("Description", ""));
-
-                wxString msg = wxString::Format("    WARN: Inactive output %d %s:%s:%s:'%s'.", i, NetType, ip, universe, desc);
-                LogAndWrite(f, msg.ToStdString());
-                warncount++;
-            }
+            wxString msg = wxString::Format("    WARN: Inactive output %d %s:%s:%s:%s:'%s'.",
+                (*it)->GetOutputNumber(), (*it)->GetType(), (*it)->GetIP(), (*it)->GetUniverseString(), (*it)->GetCommPort(), (*it)->GetDescription());
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
         }
     }
 
@@ -3756,48 +3663,35 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Multiple outputs sending to same destination");
 
     std::list<std::string> used;
-    n = NetworkXML.GetRoot();
-    i = 0;
-    for (n = n->GetChildren(); n != nullptr; n = n->GetNext())
+    outputs = _outputManager.GetOutputs();
+    for (auto n = outputs.begin(); n != outputs.end(); ++n)
     {
-        if (n->GetName() == "network")
+        if ((*n)->IsIpOutput())
         {
-            wxString NetType = n->GetAttribute("NetworkType", "");
+            std::string usedval = (*n)->GetIP() + "|" + (*n)->GetUniverseString();
 
-            if (NetType == "E131" || NetType == "ArtNet")
+            if (std::find(used.begin(), used.end(), usedval) != used.end())
             {
-                wxString ip = n->GetAttribute("ComPort", "");
-                wxString universe = n->GetAttribute("BaudRate", "1");
-                wxString description = n->GetAttribute("Description", "");
-
-                std::string usedval = (ip + "|" + universe).ToStdString();
-
-                if (std::find(used.begin(), used.end(), usedval) != used.end())
-                {
-                    wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller '%s' (%s) and universe %s.", (const char*) description.c_str(), (const char*)ip.c_str(), (const char *)universe.c_str());
-                    LogAndWrite(f, msg.ToStdString());
-                    errcount++;
-                }
-                else
-                {
-                    used.push_back(usedval);
-                }
+                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller '%s' (%s) and universe %s.", (const char*)(*n)->GetDescription().c_str(), (const char*)(*n)->GetIP().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
             }
-            else if (NetType == "DMX" || NetType == "Pixelnet" || NetType == "LOR" || NetType == "D-Light" || NetType == "Renard")
+            else
             {
-                wxString cp = n->GetAttribute("ComPort", "");
-                wxString description = n->GetAttribute("Description", "");
-
-                if (std::find(used.begin(), used.end(), cp.ToStdString()) != used.end())
-                {
-                    wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)NetType.c_str(), (const char *)cp.c_str(), (const char*)description.c_str());
-                    LogAndWrite(f, msg.ToStdString());
-                    errcount++;
-                }
-                else
-                {
-                    used.push_back(cp.ToStdString());
-                }
+                used.push_back(usedval);
+            }
+        }
+        else if ((*n)->IsSerialOutput())
+        {
+            if (std::find(used.begin(), used.end(), (*n)->GetCommPort()) != used.end())
+            {
+                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)(*n)->GetType().c_str(), (const char *)(*n)->GetCommPort().c_str(), (const char*)(*n)->GetDescription().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
+            }
+            else
+            {
+                used.push_back((*n)->GetCommPort());
             }
         }
     }
@@ -3884,9 +3778,9 @@ void xLightsFrame::CheckSequence(bool display)
                     }
                     int universe = wxAtoi(wxString(start.substr(colon+1,colon2-1)));
 
-                    auto universes = AllModels.GetNetInfo().GetUniverses();
+                    Output* o = _outputManager.GetOutput(universe, "");
 
-                    if (std::find(universes.begin(), universes.end(), universe) == universes.end())
+                    if (o == nullptr)
                     {
                         wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined universe %d.", it->first, start, universe);
                         LogAndWrite(f, msg.ToStdString());
@@ -3905,11 +3799,11 @@ void xLightsFrame::CheckSequence(bool display)
                 size_t colon = start.find(':');
                 int output = wxAtoi(wxString(start.substr(0, colon)));
 
-                auto outputs = AllModels.GetNetInfo().GetNumNetworks();
-
-                if (output < 1 || output > outputs)
+                auto cnt = _outputManager.GetOutputCount();
+                
+                if (output < 1 || output > cnt)
                 {
-                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined output %d. Only %d outputs are defined.", it->first, start, output, outputs);
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined output %d. Only %d outputs are defined.", it->first, start, output, cnt);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
@@ -4328,7 +4222,7 @@ void xLightsFrame::CheckSequence(bool display)
 
         // check all effects
         EffectManager& em = mSequenceElements.GetEffectManager();
-        for (i = 0; i < mSequenceElements.GetElementCount(0); i++)
+        for (int i = 0; i < mSequenceElements.GetElementCount(0); i++)
         {
             Element* e = mSequenceElements.GetElement(i);
             if (e->GetType() != ELEMENT_TYPE_TIMING)
@@ -4448,6 +4342,7 @@ void xLightsFrame::OnMenuItem_e131syncSelected(wxCommandEvent& event)
         // recycle output connections if necessary
         EnableOutputs();
     }
+    NetworkChange();
 }
 
 void xLightsFrame::ShowHideSync()
@@ -4689,7 +4584,7 @@ void xLightsFrame::ExportEffects(wxString filename)
 
 void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
 {
-    FPPConnectDialog dlg(this);
+    FPPConnectDialog dlg(this, &_outputManager);
 
     dlg.ShowModal();
 }
@@ -4863,7 +4758,7 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
     std::map<std::string, std::string> lostfiles;
 
-    wxFileName fnNetworks(CurrentDir, "xlights_networks.xml");
+    wxFileName fnNetworks(CurrentDir, OutputManager::GetNetworksFileName());
     prog.Update(1, fnNetworks.GetFullName());
     AddFileToZipFile(CurrentDir.ToStdString(), fnNetworks.GetFullPath().ToStdString(), zip);
 
