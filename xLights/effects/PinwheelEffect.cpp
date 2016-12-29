@@ -93,12 +93,12 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
         buffer.palette.GetHSV(colorarray[ColorIdx], hsv);
         color = xlColor(hsv);
 
-        int angle = (a*degrees_per_arm) - 90 ;
+        int angle = (a*degrees_per_arm);
         if (pinwheel_rotation == 1) // do we have CW rotation
         {
-            angle = angle + pos;
+            angle = (270 - angle) + pos;
         } else {
-            angle = angle - pos;
+            angle = angle - 90 - pos;
         }
         int x,y, degrees_twist;
         for (float r=0; r<=max_radius; r+=0.5)
@@ -124,13 +124,13 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
             double r = std::hypot(x1, y1);
             if (r <= max_radius) {
                 double degrees_twist = (r / max_radius)*pinwheel_twist;
-                double theta = (std::atan2(x1, y1) * 180 / 3.14159) + degrees_twist - (tmax/2);
+                double theta = (std::atan2(x1, y1) * 180 / 3.14159) + degrees_twist;
                 if (pinwheel_rotation == 1) // do we have CW rotation
                 {
-                    theta = pos + theta;
+                    theta = pos + theta + (tmax/2);
                 }
                 else {
-                    theta = pos - theta;
+                    theta = pos - theta + (tmax/2);
                 }
                 theta = theta + 180.0;
                 int t2 = (int)theta%degrees_per_arm;
