@@ -50,9 +50,6 @@ void ShockwaveEffect::SetDefaultParameters(Model *cls) {
     SetCheckBoxValue(sp->CheckBox_Shockwave_Blend_Edges, true);
 }
 
-const double PI  =3.141592653589793238463;
-#define ToRadians(x) ((double)x * PI / (double)180.0)
-
 void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int center_x = GetValueCurveInt("Shockwave_CenterX", 50, SettingsMap, eff_pos);
@@ -64,21 +61,21 @@ void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     int acceleration = SettingsMap.GetInt("SLIDER_Shockwave_Accel", 0);
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Shockwave_Blend_Edges");
 
-    std::vector< std::vector<double> > temp_colors_pct(buffer.BufferWi, std::vector<double>(buffer.BufferHt));
     int num_colors = buffer.palette.Size();
     if( num_colors == 0 )
         num_colors = 1;
-    xlColor color, c_old, c_new;
     double eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
 
+    HSVValue hsv, hsv1;
+    xlColor color;
     double blend_pct = 1.0 / (num_colors-1);
     double color_pct1 = eff_pos_adj / blend_pct;
     int color_index = (int)color_pct1;
     blend_pct = color_pct1 - (double)color_index;
     buffer.Get2ColorBlend(color_index, std::min(color_index+1,num_colors-1), std::min( blend_pct, 1.0), color);
 
-    double pos_x = buffer.BufferWi * center_x/100.0;
-    double pos_y = buffer.BufferHt * center_y/100.0;
+    int xc_adj = (center_x-50)*buffer.BufferWi / 100;
+    int yc_adj = (center_y-50)*buffer.BufferHt / 100;
 
     double radius1 = start_radius;
     double radius2 = end_radius;
@@ -86,64 +83,39 @@ void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     double half_width = (start_width + (end_width - start_width) * eff_pos_adj) / 2.0;
     radius1 = radius_center - half_width;
     radius2 = radius_center + half_width;
+    radius1 = std::max(0.0, radius1);
 
-    double step = buffer.GetStepAngle(radius1, radius2);
+    int max_radius = std::max(start_radius, end_radius);
 
-    for( int x = 0; x < buffer.BufferWi; x++ )
+    for (int x = 0; x < buffer.BufferWi; x++)
     {
-        for( int y = 0; y < buffer.BufferHt; y++ )
+        int x1 = x - xc_adj - (buffer.BufferWi / 2);
+        for (int y = 0; y < buffer.BufferHt; y++)
         {
-            temp_colors_pct[x][y] = 0.0;
-        }
-    }
-    buffer.ClearTempBuf();
-
-    for( double current_angle = 0.0; current_angle <= 360.0; current_angle += step )
-    {
-        for( double r = std::max(0.0, radius1); r <= radius2; r += 0.5 )
-        {
-            double x1 = buffer.sin(ToRadians(current_angle)) * r + (double)pos_x;
-            double y1 = buffer.cos(ToRadians(current_angle)) * r + (double)pos_y;
-
-            if( blend_edges )
-            {
+            int y1 = y - yc_adj - (buffer.BufferHt / 2);
+            double r = std::hypot(x1, y1);
+            if( r >= radius1 && r <= radius2 ) {
                 double color_pct = 1.0 - std::abs(r-radius_center)/half_width;
-                if( color_pct > 0.0 )
+                if (buffer.palette.IsSpatial(color_index))
                 {
-                    if (x1 >= 0 && x1 < buffer.BufferWi && y1 >= 0 && y1 < buffer.BufferHt)
-                    {
-                        if (buffer.allowAlpha) {
-                            color.alpha = 255.0 * color_pct;
-                            buffer.SetPixel((int)x1,(int)y1,color);
-                        } else {
-                            temp_colors_pct[(int)x1][(int)y1] = color_pct;
-                            buffer.SetTempPixel((int)x1,(int)y1,color);
-                        }
+                    buffer.palette.GetSpatialColor(color_index, xc_adj + buffer.BufferWi / 2, yc_adj + buffer.BufferHt / 2, x, y, color_pct, max_radius, color);
+                    hsv = color.asHSV();
+                }
+                else
+                {
+                    hsv = color;
+                }
+                if( blend_edges )
+                {
+                    if (buffer.allowAlpha) {
+                        color.alpha = 255.0 * color_pct;
+                    }
+                    else {
+                        hsv.value = hsv.value * color_pct;
+                        color = hsv;
                     }
                 }
-            }
-            else
-            {
-                buffer.SetPixel((int)x1,(int)y1,color);
-            }
-        }
-    }
-
-    // blend element data into final buffer
-    if( blend_edges && !buffer.allowAlpha )
-    {
-        for( int x = 0; x < buffer.BufferWi; x++ )
-        {
-            for( int y = 0; y < buffer.BufferHt; y++ )
-            {
-                if( temp_colors_pct[x][y] > 0.0 )
-                {
-                    buffer.GetTempPixel(x,y,c_new);
-                    buffer.GetPixel(x,y,c_old);
-                    buffer.Get2ColorAlphaBlend(c_old, c_new, temp_colors_pct[x][y], color);
-                    buffer.SetPixel(x,y,color);
-                    temp_colors_pct[x][y] = 0.0;
-                }
+                buffer.SetPixel(x, y, color);
             }
         }
     }
