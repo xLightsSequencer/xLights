@@ -104,11 +104,13 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
         for (float r=0; r<=max_radius; r+=0.5)
         {
             degrees_twist = (r/max_radius) * pinwheel_twist;
+            int t2 = (int)angle%degrees_per_arm;
+    	    double round = (float)t2 / (float)tmax;
             x = floor((int)(r * buffer.cos((angle + degrees_twist) * pi_180)) + xc_adj + buffer.BufferWi / 2);
             y = floor((int)(r * buffer.sin((angle + degrees_twist) * pi_180)) + yc_adj + buffer.BufferHt / 2);
-            if (buffer.palette.IsSpatial(ColorIdx))
+            if (buffer.palette.IsSpatial(colorarray[ColorIdx]))
             {
-                buffer.palette.GetSpatialColor(ColorIdx,x,y,color);
+                buffer.palette.GetSpatialColor(colorarray[ColorIdx], xc_adj + buffer.BufferWi / 2, yc_adj + buffer.BufferHt / 2, x, y, round, max_radius, color);
             }
             buffer.SetPixel(x,y,color);
         }
@@ -139,9 +141,9 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
                     t2 = std::abs(t2 - (tmax/2)) * 2;
                     xlColor color;
                     int ColorIdx2 = ((int)((theta/degrees_per_arm)))%pinwheel_arms;
-                    if (buffer.palette.IsSpatial(ColorIdx2))
+                    if (buffer.palette.IsSpatial(colorarray[ColorIdx2]))
                     {
-                        buffer.palette.GetSpatialColor(ColorIdx2, xc_adj + buffer.BufferWi / 2, yc_adj + buffer.BufferHt / 2, x, y, round, max_radius, color);
+                        buffer.palette.GetSpatialColor(colorarray[ColorIdx2], xc_adj + buffer.BufferWi / 2, yc_adj + buffer.BufferHt / 2, x, y, round, max_radius, color);
                         hsv = color.asHSV();
                     }
                     else
