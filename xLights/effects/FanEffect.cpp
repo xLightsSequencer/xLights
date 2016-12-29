@@ -97,6 +97,10 @@ void FanEffect::SetDefaultParameters(Model *cls) {
 
 const double PI  =3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
+
+//#define OLD_FAN
+
+#ifdef OLD_FAN
 void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int center_x = GetValueCurveInt("Fan_CenterX", 50, SettingsMap, eff_pos);
@@ -256,3 +260,136 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
         }
     }
 }
+#else
+void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    double eff_pos = buffer.GetEffectTimeIntervalPosition();
+    int center_x = GetValueCurveInt("Fan_CenterX", 50, SettingsMap, eff_pos);
+    int center_y = GetValueCurveInt("Fan_CenterY", 50, SettingsMap, eff_pos);
+    int start_radius = GetValueCurveInt("Fan_Start_Radius", 1, SettingsMap, eff_pos);
+    int end_radius = GetValueCurveInt("Fan_End_Radius", 10, SettingsMap, eff_pos);
+    int start_angle = GetValueCurveInt("Fan_Start_Angle", 0, SettingsMap, eff_pos);
+    int revolutions = GetValueCurveInt("Fan_Revolutions", 720, SettingsMap, eff_pos);
+    int num_blades = GetValueCurveInt("Fan_Num_Blades", 3, SettingsMap, eff_pos);
+    int blade_width = GetValueCurveInt("Fan_Blade_Width", 50, SettingsMap, eff_pos);
+    int blade_angle = GetValueCurveInt("Fan_Blade_Angle", 90, SettingsMap, eff_pos);
+    int num_elements = GetValueCurveInt("Fan_Num_Elements", 1, SettingsMap, eff_pos);
+    int element_width = GetValueCurveInt("Fan_Element_Width", 100, SettingsMap, eff_pos);
+    int duration = GetValueCurveInt("Fan_Duration", 80, SettingsMap, eff_pos);
+    int acceleration = GetValueCurveInt("Fan_Accel", 0, SettingsMap, eff_pos);
+    bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Fan_Reverse");
+    bool blend_edges = SettingsMap.GetBool("CHECKBOX_Fan_Blend_Edges");
+
+    HSVValue hsv, hsv1;
+    int num_colors = buffer.palette.Size();
+    if( num_colors == 0 )
+        num_colors = 1;
+    xlColor color;
+    double eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
+    double revs = (double)revolutions;
+
+    double pos_x = buffer.BufferWi * center_x/100.0;
+    double pos_y = buffer.BufferHt * center_y/100.0;
+
+    double effect_duration = duration/100.0;    // time the head is in the frame
+    double radius_rampup = (1.0 - effect_duration)/2.0;
+
+    double radius1 = start_radius;
+    double radius2 = end_radius;
+
+    int xc_adj = (center_x-50)*buffer.BufferWi / 100;
+    int yc_adj = (center_y-50)*buffer.BufferHt / 100;
+
+    double blade_div_angle = 360.0 / (double)num_blades;
+    double blade_width_angle = blade_div_angle * (double)blade_width / 100.0;
+    double color_angle = blade_width_angle / (double)num_colors;
+    double angle_offset = eff_pos_adj * revs;
+    double element_angle = color_angle / (double)num_elements;
+    double element_size = element_angle * (double)element_width/ 100.0;
+
+    if( effect_duration < 1.0 )
+    {
+        double radius_delta = std::abs(radius2 - radius1);
+        if( eff_pos_adj < radius_rampup )  // blade growing
+        {
+            double pct = 1.0 - (eff_pos_adj / radius_rampup);
+            if( radius2 > radius1 )
+                radius2 = radius2 - radius_delta * pct;
+            else
+                radius2 = radius2 + radius_delta * pct;
+        }
+        else if( eff_pos_adj > (1.0 - radius_rampup) )  // blade shrinking
+        {
+            double pct = (1.0 - eff_pos_adj) / radius_rampup;
+            if( radius2 > radius1 )
+                radius1 = radius2 - radius_delta * pct;
+            else
+                radius1 = radius2 + radius_delta * pct;
+        }
+    }
+
+    if( radius1 > radius2 )
+    {
+        std::swap(radius1, radius2);
+    }
+
+    int max_radius = std::max(start_radius, end_radius);
+
+    for (int x = 0; x < buffer.BufferWi; x++)
+    {
+        int x1 = x - xc_adj - (buffer.BufferWi / 2);
+        for (int y = 0; y < buffer.BufferHt; y++)
+        {
+            int y1 = y - yc_adj - (buffer.BufferHt / 2);
+            double r = std::hypot(x1, y1);
+            if( r >= radius1 && r <= radius2 ) {
+                double degrees_twist = (r / max_radius)*blade_angle;
+                double theta = ((std::atan2(x1, y1) * 180.0 / PI)) + degrees_twist + start_angle;
+                if (reverse_dir == 1)
+                {
+                    theta = angle_offset - theta + 180.0;
+                } else {
+                    theta = theta + 180.0 + angle_offset;
+                }
+                if( theta < 0.0 ) { theta += 360.0; }
+                double current_blade = theta / blade_div_angle;
+                double current_blade_angle = theta - (double)((int)current_blade * blade_div_angle);
+
+                if( current_blade_angle <= blade_width_angle ) {
+
+                    double current_element = current_blade_angle / element_angle;
+                    double current_element_angle = current_blade_angle - (double)((int)current_element * element_angle);
+
+                    if( current_element_angle <= element_size ) {
+                        int color_index = (int)(current_blade_angle / color_angle);
+                        buffer.palette.GetColor(color_index, color);
+
+                        double round = (float)current_element_angle / (float)element_size;
+                        double color_pct = 1.0 - ((std::abs(current_element_angle - (element_size/2)) * 2) / element_size);
+
+                        if (buffer.palette.IsSpatial(color_index))
+                        {
+                            buffer.palette.GetSpatialColor(color_index, xc_adj + (buffer.BufferWi / 2), yc_adj + (buffer.BufferHt / 2), x, y, round, max_radius, color);
+                            hsv = color.asHSV();
+                        }
+                        else
+                        {
+                            hsv = color;
+                        }
+                        if( blend_edges )
+                        {
+                            if (buffer.allowAlpha) {
+                                color.alpha = 255.0 * color_pct;
+                            }
+                            else {
+                                hsv.value = hsv.value * color_pct;
+                                color = hsv;
+                            }
+                        }
+                        buffer.SetPixel(x, y, color);
+                    }
+                }
+            }
+        }
+    }
+}
+#endif // 0

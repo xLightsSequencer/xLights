@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Update Fan to support spatial colors and not leave any holes.
    -- enh (gil)     Update Shockwave to support spatial colors and not leave any holes.
    -- bug (gil)     Fix cell highlight movement that was broken by other fixes in August.  Fixes #755.
    -- enh (keithsw) Add sequence packaging to the tools menu
