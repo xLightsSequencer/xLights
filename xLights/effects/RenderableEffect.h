@@ -40,6 +40,7 @@ class RenderableEffect
         virtual int GetColorSupportedCount() const { return -1; } // -1 is no limit
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) { return false; }
         virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) { return false; }
+        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) { return std::list<std::string>(); }
 
         virtual void SetSequenceElements(SequenceElements *els) {mSequenceElements = els;}
 

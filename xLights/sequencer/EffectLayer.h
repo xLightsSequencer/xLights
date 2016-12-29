@@ -6,6 +6,7 @@
 #include <mutex>
 #include "Effect.h"
 #include "UndoManager.h"
+#include "../effects/EffectManager.h"
 
 #define NO_MIN_MAX_TIME      0
 
@@ -23,11 +24,12 @@ class EffectLayer
 
         Effect *AddEffect(int id, const std::string &name, const std::string &settings, const std::string &palette,
                           int startTimeMS, int endTimeMS, int Selected, bool Protected);
-        Effect* GetEffect(int index);
+        Effect* GetEffect(int index) const;
         Effect* GetEffectByTime(int ms);
         Effect* GetEffectFromID(int id);
         void RemoveEffect(int index);
         void RemoveAllEffects();
+        std::list<std::string> GetFileReferences(EffectManager& em) const;
 
         int GetIndex();
         int GetEffectCount() const;

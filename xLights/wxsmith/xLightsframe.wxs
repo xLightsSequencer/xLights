@@ -1126,6 +1126,10 @@
 					<label>&amp;FPP Connect</label>
 					<handler function="OnMenuItem_FPP_ConnectSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_PACKAGESEQUENCE" variable="MenuItem_PackageSequence" member="yes">
+					<label>Package &amp;Sequence</label>
+					<handler function="OnMenuItem_PackageSequenceSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuPlaylist" member="no">
 				<label>&amp;Playlist</label>

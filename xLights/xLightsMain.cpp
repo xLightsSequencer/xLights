@@ -65,6 +65,8 @@
 #define TOOLBAR_SAVE_VERSION "0002:"
 
 #include "osxMacUtils.h"
+#include <wx/zipstrm.h>
+#include <wx/wfstream.h>
 
 //helper functions
 enum wxbuildinfoformat
@@ -195,6 +197,7 @@ const long xLightsFrame::ID_MENUITEM18 = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
+const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
 const long xLightsFrame::idMenuSaveSched = wxNewId();
 const long xLightsFrame::idMenuAddList = wxNewId();
 const long xLightsFrame::idMenuRenameList = wxNewId();
@@ -785,6 +788,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1->Append(MenuItem_ExportEffects);
     MenuItem_FPP_Connect = new wxMenuItem(Menu1, ID_MENU_FPP_CONNECT, _("&FPP Connect"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_FPP_Connect);
+    MenuItem_PackageSequence = new wxMenuItem(Menu1, ID_MNU_PACKAGESEQUENCE, _("Package &Sequence"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_PackageSequence);
     MenuBar->Append(Menu1, _("&Tools"));
     MenuPlaylist = new wxMenu();
     MenuItemSavePlaylists = new wxMenuItem(MenuPlaylist, idMenuSaveSched, _("Save Playlists"), wxEmptyString, wxITEM_NORMAL);
@@ -1053,6 +1058,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_EXPORT_MODELS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmExportModelsMenuItemSelected);
     Connect(ID_MNU_EXPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportEffectsSelected);
     Connect(ID_MENU_FPP_CONNECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
+    Connect(ID_MNU_PACKAGESEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PackageSequenceSelected);
     Connect(idMenuSaveSched,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSavePlaylistsSelected);
     Connect(idMenuAddList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemAddListSelected);
     Connect(idMenuRenameList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenameListSelected);
@@ -4170,7 +4176,7 @@ void xLightsFrame::CheckSequence(bool display)
     }
 
     modelssorted.sort(compare_modelstartchannel);
-        
+
     long last = 0;
     Model* lastm = nullptr;
     for (auto m = modelssorted.begin(); m != modelssorted.end(); ++m)
@@ -4726,4 +4732,147 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
         }
         mainSequencer->PanelEffectGrid->Refresh();
     }
+}
+
+void AddFileToZipFile(const std::string& baseDirectory, const std::string& file, wxZipOutputStream& zip)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (wxFile::Exists(file))
+    {
+        wxFileName bd(baseDirectory);
+        std::string showdir = bd.GetName().ToStdString();
+
+        wxFileName fn(file);
+        wxString f(file);
+#ifdef __WXMSW__
+        // Windows doesnt care about case so we can be more permissive
+        if (f.Lower().StartsWith(wxString(baseDirectory).Lower()))
+#else
+        if (f.StartsWith(baseDirectory))
+#endif
+        {
+            // this is in our folder
+            std::string tgt = file.substr(baseDirectory.length());
+            if (tgt != "" && (tgt[0] == '\\' || tgt[0] == '/'))
+            {
+                tgt = tgt.substr(1);
+            }
+            tgt = showdir + "/" + tgt;
+            if (zip.PutNextEntry(tgt))
+            {
+                wxFileInputStream fis(file);
+                zip.Write(fis);
+                zip.CloseEntry();
+            }
+            else
+            {
+                logger_base.warn("    Error zipping %s to %s.", (const char*)file.c_str(), (const char *)tgt.c_str());
+            }
+        }
+        else
+        {
+            // this isnt
+            std::string tgt = "_lost/" + fn.GetName().ToStdString() + "." + fn.GetExt().ToStdString();
+            tgt = showdir + "/" + tgt;
+            if (zip.PutNextEntry(tgt))
+            {
+                wxFileInputStream fis(file);
+                zip.Write(fis);
+                zip.CloseEntry();
+            }
+            else
+            {
+                logger_base.warn("    Error zipping %s to %s.", (const char*)file.c_str(), (const char *)tgt.c_str());
+            }
+        }
+    }
+}
+
+void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+
+    wxFileName fn(CurrentSeqXmlFile->GetFullPath());
+    std::string filename = fn.GetFullPath().Left(fn.GetFullPath().Length() - fn.GetExt().length()).ToStdString() + "zip";
+
+    wxFileDialog fd(this, "Zip file to create.", CurrentDir, filename, "zip file(*.zip)|*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (fd.ShowModal() == wxID_CANCEL) return;
+
+    wxFileName fnZip(fd.GetPath());
+    logger_base.debug("Packaging sequence into %s.", (const char*)fnZip.GetFullPath().c_str());
+
+    wxFFileOutputStream out(fnZip.GetFullPath());
+    wxZipOutputStream zip(out);
+
+    wxFileName fnNetworks(CurrentDir, "xlights_networks.xml");
+    AddFileToZipFile(CurrentDir.ToStdString(), fnNetworks.GetFullPath().ToStdString(), zip);
+    wxFileName fnRGBEffects(CurrentDir, "xlights_rgbeffects.xml");
+    AddFileToZipFile(CurrentDir.ToStdString(), fnRGBEffects.GetFullPath().ToStdString(), zip);
+    AddFileToZipFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath().ToStdString(), zip);
+
+    // Add the media file
+    wxFileName fnMedia(CurrentSeqXmlFile->GetMediaFile());
+    AddFileToZipFile(CurrentDir.ToStdString(), fnMedia.GetFullPath().ToStdString(), zip);
+
+    // Add house image
+    wxFileName fnHouse(mBackgroundImage);
+    AddFileToZipFile(CurrentDir.ToStdString(), fnHouse.GetFullPath().ToStdString(), zip);
+    
+    // Add any faces images
+    std::list<std::string> facefiles;
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        facefiles.merge((*it).second->GetFaceFiles());
+    }
+    facefiles.sort();
+    facefiles.unique();
+
+    for (auto f = facefiles.begin(); f != facefiles.end(); ++f)
+    {
+        wxFileName fnf(*f);
+        if (fnf.Exists())
+        {
+            AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
+        }
+    }
+
+    // Add any effects images/videos/glediator files
+    std::list<std::string> effectfiles;
+    for (size_t i = 0; i < mSequenceElements.GetElementCount(0); i++)
+    {
+        Element* e = mSequenceElements.GetElement(i);
+        effectfiles.merge(e->GetFileReferences(effectManager));
+
+        if (dynamic_cast<ModelElement*>(e) != nullptr)
+        {
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelCount(); s++) {
+                SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
+                effectfiles.merge(se->GetFileReferences(effectManager));
+            }
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
+                StrandElement *se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
+                effectfiles.merge(se->GetFileReferences(effectManager));
+            }
+        }
+    }
+    effectfiles.sort();
+    effectfiles.unique();
+
+    for (auto f = effectfiles.begin(); f != effectfiles.end(); ++f)
+    {
+        wxFileName fnf(*f);
+        if (fnf.Exists())
+        {
+            AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
+        }
+    }
+
+    if (!zip.Close())
+    {
+        logger_base.warn("Error packaging sequence into %s.", (const char*)fd.GetFilename().c_str());
+    }
+    out.Close();
 }

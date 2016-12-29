@@ -6,6 +6,7 @@
 #include "RowHeading.h"
 #include "../models/Model.h"
 #include "../effects/EffectManager.h"
+#include "../effects/RenderableEffect.h"
 #include <log4cpp/Category.hh>
 #include "Element.h"
 
@@ -31,7 +32,7 @@ int EffectLayer::GetIndex()
     return mIndex;
 }
 
-Effect* EffectLayer::GetEffect(int index)
+Effect* EffectLayer::GetEffect(int index) const
 {
     if(index < mEffects.size())
     {
@@ -658,4 +659,20 @@ bool EffectLayer::SortEffectByStartTime(Effect *e1,Effect *e2)
 void EffectLayer::IncrementChangeCount(int startMS, int endMS)
 {
     mParentElement->IncrementChangeCount(startMS, endMS);
+}
+
+std::list<std::string> EffectLayer::GetFileReferences(EffectManager& em) const
+{
+    std::list<std::string> res;
+
+    for (int k = 0; k < GetEffectCount(); k++)
+    {
+        Effect* ef = GetEffect(k);
+
+        RenderableEffect *eff =  em[ef->GetEffectIndex()];
+
+        res.merge(eff->GetFileReferences(ef->GetSettings()));
+    }
+
+    return res;
 }

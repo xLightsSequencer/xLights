@@ -104,6 +104,7 @@ void xLightsFrame::NewSequence()
     mSequenceElements.AddTimingToAllViews(new_timing);
     MenuItem_File_Save_Sequence->Enable(true);
     MenuItem_File_Close_Sequence->Enable(true);
+    MenuItem_PackageSequence->Enable(true);
 
     unsigned int max = GetMaxNumChannels();
     if( (max > SeqData.NumChannels()) ||

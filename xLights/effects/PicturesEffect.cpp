@@ -330,6 +330,13 @@ void PicturesEffect::SetDefaultParameters(Model *cls) {
     pp->FilePickerCtrl1->SetFileName(wxFileName());
 }
 
+std::list<std::string> PicturesEffect::GetFileReferences(const SettingsMap &SettingsMap)
+{
+    std::list<std::string> res;
+    res.push_back(SettingsMap["E_FILEPICKER_Pictures_Filename"]);
+    return res;
+}
+
 void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     Render(buffer,
            SettingsMap["CHOICE_Pictures_Direction"],

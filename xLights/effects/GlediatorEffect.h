@@ -15,6 +15,7 @@ class GlediatorEffect : public RenderableEffect
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual void adjustSettings(const std::string &version, Effect *effect) override;
+        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
 protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:

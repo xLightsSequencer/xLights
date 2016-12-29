@@ -123,6 +123,13 @@ void VideoEffect::SetDefaultParameters(Model *cls)
     SetChoiceValue(vp->Choice_Video_DurationTreatment, "Normal");
 }
 
+std::list<std::string> VideoEffect::GetFileReferences(const SettingsMap &SettingsMap)
+{
+    std::list<std::string> res;
+    res.push_back(SettingsMap["E_FILEPICKER_Pictures_Filename"]);
+    return res;
+}
+
 void VideoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     Render(buffer,
 		   SettingsMap["FILEPICKERCTRL_Video_Filename"],

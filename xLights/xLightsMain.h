@@ -503,6 +503,7 @@ private:
     void OnGridNetworkKeyDown(wxListEvent& event);
     void OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event);
     void OnMenuItemShiftEffectsSelected(wxCommandEvent& event);
+    void OnMenuItem_PackageSequenceSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -615,6 +616,7 @@ private:
     static const long ID_EXPORT_MODELS;
     static const long ID_MNU_EXPORT_EFFECTS;
     static const long ID_MENU_FPP_CONNECT;
+    static const long ID_MNU_PACKAGESEQUENCE;
     static const long idMenuSaveSched;
     static const long idMenuAddList;
     static const long idMenuRenameList;
@@ -818,6 +820,7 @@ private:
     wxMenu* MenuItemPerspectives;
     wxButton* ButtonUpdateShow;
     wxMenu* GridSpacingMenu;
+    wxMenuItem* MenuItem_PackageSequence;
     wxStaticText* FileNameText;
     wxMenuItem* mAltBackupMenuItem;
     wxMenuItem* MenuItem_Help_Download;

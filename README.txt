@@ -10,6 +10,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- enh (gil)     Update Shockwave to support spatial colors and not leave any holes.
    -- bug (gil)     Fix cell highlight movement that was broken by other fixes in August.  Fixes #755.
+   -- enh (keithsw) Add sequence packaging to the tools menu
    -- bug (keithsw) Make xbkp auto recovery smarter. Dont trigger after a sequence is discarded. Dont trigger when doing batch rendering.
    -- enh (keithsw) Add more sub buffer panel right click menu options for fast setting sub buffers
    -- enh (keithsw) Add manual sub buffer editing allowing more precise control over sub buffer sizing

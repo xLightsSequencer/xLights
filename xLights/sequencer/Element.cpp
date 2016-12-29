@@ -59,10 +59,7 @@ EffectLayer* Element::GetEffectLayerFromExclusiveIndex(int index)
     return nullptr;
 }
 
-
-
-
-EffectLayer* Element::GetEffectLayer(int index)
+EffectLayer* Element::GetEffectLayer(int index) const
 {
     if( index >= mEffectLayers.size() ) return nullptr;
     return mEffectLayers[index];
@@ -100,7 +97,7 @@ void Element::RemoveEffectLayer(int index)
     IncrementChangeCount(-1, -1);
 }
 
-size_t Element::GetEffectLayerCount()
+size_t Element::GetEffectLayerCount() const
 {
     return mEffectLayers.size();
 }
@@ -413,5 +410,17 @@ SubModelElement *ModelElement::GetSubModel(const std::string &name, bool create)
     return nullptr;
 }
 
-
+std::list<std::string> Element::GetFileReferences(EffectManager& em) const
+{
+    std::list<std::string> res;
+    if (GetType() != ELEMENT_TYPE_TIMING)
+    {
+        for (int j = 0; j < GetEffectLayerCount(); j++)
+        {
+            EffectLayer* el = GetEffectLayer(j);
+            res.merge(el->GetFileReferences(em));
+        }
+    }
+    return res;
+}
 

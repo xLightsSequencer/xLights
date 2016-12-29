@@ -82,6 +82,13 @@ void GlediatorEffect::adjustSettings(const std::string &version, Effect *effect)
     }
 }
 
+std::list<std::string> GlediatorEffect::GetFileReferences(const SettingsMap &SettingsMap)
+{
+    std::list<std::string> res;
+    res.push_back(SettingsMap["E_TEXTCTRL_Glediator_Filename"]);
+    return res;
+}
+
 void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     wxString GledFilename = SettingsMap["TEXTCTRL_Glediator_Filename"];
     wxFile f;

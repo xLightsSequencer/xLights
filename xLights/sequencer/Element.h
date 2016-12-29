@@ -7,6 +7,7 @@
 #include <string>
 
 #include "EffectLayer.h"
+#include "../effects/EffectManager.h"
 
 enum ElementType
 {
@@ -50,9 +51,10 @@ public:
     bool HasEffects() const;
     
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
-    EffectLayer* GetEffectLayer(int index);
-    size_t GetEffectLayerCount();
-    
+    EffectLayer* GetEffectLayer(int index) const;
+    size_t GetEffectLayerCount() const;
+    std::list<std::string> GetFileReferences(EffectManager& em) const;
+
     EffectLayer* AddEffectLayer();
     void RemoveEffectLayer(int index);
     EffectLayer* InsertEffectLayer(int index);

@@ -2609,3 +2609,21 @@ bool Model::IsProtocolValid(std::string protocol)
     auto protocols = Model::GetLCProtocols();
     return (std::find(protocols.begin(), protocols.end(), protocol) != protocols.end());
 }
+
+std::list<std::string> Model::GetFaceFiles() const
+{
+    std::list<std::string> res;
+
+    for (auto it = faceInfo.begin(); it != faceInfo.end(); ++it)
+    {
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        {
+            if (wxFile::Exists(it2->second))
+            {
+                res.push_back(it2->second);
+            }
+        }
+    }
+ 
+    return res;
+}
