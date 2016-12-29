@@ -106,6 +106,10 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
             degrees_twist = (r/max_radius) * pinwheel_twist;
             x = floor((int)(r * buffer.cos((angle + degrees_twist) * pi_180)) + xc_adj + buffer.BufferWi / 2);
             y = floor((int)(r * buffer.sin((angle + degrees_twist) * pi_180)) + yc_adj + buffer.BufferHt / 2);
+            if (buffer.palette.IsSpatial(ColorIdx))
+            {
+                buffer.palette.GetSpatialColor(ColorIdx,x,y,color);
+            }
             buffer.SetPixel(x,y,color);
         }
     }
