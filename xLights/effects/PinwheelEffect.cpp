@@ -83,6 +83,34 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     int max_radius = xc * armsize;
     if (pinwheel_thickness == 0) pinwheel_thickness = 1;
     tmax = (pinwheel_thickness / 100.0)*degrees_per_arm;
+
+    // Force single visible line in case width is narrower than visible
+    float pi_180 = M_PI/180;
+    for(int a=0; a<pinwheel_arms; a++)
+    {
+        int ColorIdx = a%pinwheel_arms;
+        xlColor color;
+        buffer.palette.GetHSV(colorarray[ColorIdx], hsv);
+        color = xlColor(hsv);
+
+        int angle = (a*degrees_per_arm) - 90 ;
+        if (pinwheel_rotation == 1) // do we have CW rotation
+        {
+            angle = angle + pos;
+        } else {
+            angle = angle - pos;
+        }
+        int x,y, degrees_twist;
+        for (float r=0; r<=max_radius; r+=0.5)
+        {
+            degrees_twist = (r/max_radius) * pinwheel_twist;
+            x = floor((int)(r * buffer.cos((angle + degrees_twist) * pi_180)) + xc_adj + buffer.BufferWi / 2);
+            y = floor((int)(r * buffer.sin((angle + degrees_twist) * pi_180)) + yc_adj + buffer.BufferHt / 2);
+            buffer.SetPixel(x,y,color);
+        }
+    }
+
+    // Draw actual pinwheel arms
     for (int x = 0; x < buffer.BufferWi; x++)
     {
         int x1 = x - xc_adj - (buffer.BufferWi / 2);
@@ -92,7 +120,7 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
             double r = std::hypot(x1, y1);
             if (r <= max_radius) {
                 double degrees_twist = (r / max_radius)*pinwheel_twist;
-                double theta = (std::atan2(x1, y1) * 180 / 3.14159) + degrees_twist;
+                double theta = (std::atan2(x1, y1) * 180 / 3.14159) + degrees_twist - (tmax/2);
                 if (pinwheel_rotation == 1) // do we have CW rotation
                 {
                     theta = pos + theta;
