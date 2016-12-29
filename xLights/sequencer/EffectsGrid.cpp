@@ -1107,7 +1107,10 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
     if (mSequenceElements == nullptr) {
         return;
     }
-    if( mCellRangeSelected && shift )
+    if( mSequenceElements->GetSelectedTimingRow() == -1 ) {
+        mCellRangeSelected = false;
+    }
+    if( mCellRangeSelected )
     {
         if( shift )
         {
@@ -1234,8 +1237,11 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
     if (mSequenceElements == nullptr) {
         return;
     }
+    if( mSequenceElements->GetSelectedTimingRow() == -1 ) {
+        mCellRangeSelected = false;
+    }
     int first_row = mSequenceElements->GetFirstVisibleModelRow();
-    if( mCellRangeSelected && shift )
+    if( mCellRangeSelected )
     {
         if( shift )
         {
@@ -1363,7 +1369,10 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift)
     if (mSequenceElements == nullptr) {
         return;
     }
-    if( mCellRangeSelected && shift )
+    if( mSequenceElements->GetSelectedTimingRow() == -1 ) {
+        mCellRangeSelected = false;
+    }
+    if( mCellRangeSelected )
     {
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
         Effect* eff1 = tel->GetEffect(mRangeStartCol+1);
@@ -1451,7 +1460,10 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
     if (mSequenceElements == nullptr) {
         return;
     }
-    if( mCellRangeSelected && shift)
+    if( mSequenceElements->GetSelectedTimingRow() == -1 ) {
+        mCellRangeSelected = false;
+    }
+    if( mCellRangeSelected )
     {
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
         Effect* eff = tel->GetEffect(mRangeEndCol-1);
@@ -1592,7 +1604,7 @@ void EffectsGrid::SetEffectsDescription()
             }
         }
 
-        // check if any have a different description    
+        // check if any have a different description
         wxString description = "";
         SettingsMap& sm = efs.front()->GetSettings();
         if (sm.Contains("X_Effect_Description"))

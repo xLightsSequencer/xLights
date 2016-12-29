@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix cell highlight movement that was broken by other fixes in August.  Fixes #755.
    -- bug (keithsw) Make xbkp auto recovery smarter. Dont trigger after a sequence is discarded. Dont trigger when doing batch rendering.
    -- enh (keithsw) Add more sub buffer panel right click menu options for fast setting sub buffers
    -- enh (keithsw) Add manual sub buffer editing allowing more precise control over sub buffer sizing
