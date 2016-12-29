@@ -4734,10 +4734,16 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
     }
 }
 
-void AddFileToZipFile(const std::string& baseDirectory, const std::string& file, wxZipOutputStream& zip)
+// returns the lost files path if required
+std::string AddFileToZipFile(const std::string& baseDirectory, const std::string& file, wxZipOutputStream& zip, const std::string& actualfile = "")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (wxFile::Exists(file))
+
+    std::string filetoactuallyzip = actualfile;
+    if (actualfile == "") filetoactuallyzip = file;
+
+    std::string lost = ""; 
+    if (wxFile::Exists(filetoactuallyzip))
     {
         wxFileName bd(baseDirectory);
         std::string showdir = bd.GetName().ToStdString();
@@ -4760,7 +4766,7 @@ void AddFileToZipFile(const std::string& baseDirectory, const std::string& file,
             tgt = showdir + "/" + tgt;
             if (zip.PutNextEntry(tgt))
             {
-                wxFileInputStream fis(file);
+                wxFileInputStream fis(filetoactuallyzip);
                 zip.Write(fis);
                 zip.CloseEntry();
             }
@@ -4774,9 +4780,10 @@ void AddFileToZipFile(const std::string& baseDirectory, const std::string& file,
             // this isnt
             std::string tgt = "_lost/" + fn.GetName().ToStdString() + "." + fn.GetExt().ToStdString();
             tgt = showdir + "/" + tgt;
+            lost = tgt;
             if (zip.PutNextEntry(tgt))
             {
-                wxFileInputStream fis(file);
+                wxFileInputStream fis(filetoactuallyzip);
                 zip.Write(fis);
                 zip.CloseEntry();
             }
@@ -4786,6 +4793,45 @@ void AddFileToZipFile(const std::string& baseDirectory, const std::string& file,
             }
         }
     }
+    return lost;
+}
+
+std::string FixFile(const std::string& showdir, const std::string& sourcefile, const std::map<std::string, std::string>& lostfiles)
+{
+    std::string newfile = "";
+
+    if (lostfiles.size() > 0)
+    {
+        // create a temporary file
+        newfile = wxFileName::CreateTempFileName("rgbe").ToStdString();
+
+        // read all of the existing file into memory
+        wxFile in(sourcefile);
+        wxString data;
+        in.ReadAll(&data);
+        in.Close();
+
+        // use regex to search and replace all the lost file locations
+        for (auto it = lostfiles.begin(); it != lostfiles.end(); ++it)
+        {
+            // strip off the show folder
+            wxString replace(it->second);
+            wxString newreplace = replace.AfterFirst('/');
+            if (newreplace == replace)
+            {
+                newreplace = replace.AfterFirst('\\');
+            }
+
+            data.Replace(it->first, showdir + "/" + newreplace, true);
+        }
+        
+        // write the file out
+        wxFile out(newfile, wxFile::write);
+        out.Write(data);
+        out.Close();
+    }
+
+    return newfile;
 }
 
 void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
@@ -4793,6 +4839,11 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+
+    if (mSavedChangeCount != mSequenceElements.GetChangeCount())
+    {
+        wxMessageBox("Your sequence has unsaved changes. These changes will not be packaged but any new referenced files will be. We suggest you consider saving and trying this again.", "Warning");
+    }
 
     wxFileName fn(CurrentSeqXmlFile->GetFullPath());
     std::string filename = fn.GetFullPath().Left(fn.GetFullPath().Length() - fn.GetExt().length()).ToStdString() + "zip";
@@ -4807,20 +4858,26 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     wxFFileOutputStream out(fnZip.GetFullPath());
     wxZipOutputStream zip(out);
 
-    wxFileName fnNetworks(CurrentDir, "xlights_networks.xml");
-    AddFileToZipFile(CurrentDir.ToStdString(), fnNetworks.GetFullPath().ToStdString(), zip);
-    wxFileName fnRGBEffects(CurrentDir, "xlights_rgbeffects.xml");
-    AddFileToZipFile(CurrentDir.ToStdString(), fnRGBEffects.GetFullPath().ToStdString(), zip);
-    AddFileToZipFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath().ToStdString(), zip);
+    wxProgressDialog prog("Package Sequence", "", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    prog.Show();
 
-    // Add the media file
-    wxFileName fnMedia(CurrentSeqXmlFile->GetMediaFile());
-    AddFileToZipFile(CurrentDir.ToStdString(), fnMedia.GetFullPath().ToStdString(), zip);
+    std::map<std::string, std::string> lostfiles;
+
+    wxFileName fnNetworks(CurrentDir, "xlights_networks.xml");
+    prog.Update(1, fnNetworks.GetFullName());
+    AddFileToZipFile(CurrentDir.ToStdString(), fnNetworks.GetFullPath().ToStdString(), zip);
 
     // Add house image
     wxFileName fnHouse(mBackgroundImage);
-    AddFileToZipFile(CurrentDir.ToStdString(), fnHouse.GetFullPath().ToStdString(), zip);
-    
+    prog.Update(5, fnHouse.GetFullName());
+    auto lost = AddFileToZipFile(CurrentDir.ToStdString(), fnHouse.GetFullPath().ToStdString(), zip);
+    if (lost != "")
+    {
+        lostfiles[fnHouse.GetFullPath().ToStdString()] = lost;
+    }
+
+    prog.Update(10);
+
     // Add any faces images
     std::list<std::string> facefiles;
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
@@ -4830,20 +4887,49 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     facefiles.sort();
     facefiles.unique();
 
+    float i = 0;
     for (auto f = facefiles.begin(); f != facefiles.end(); ++f)
     {
+        i++;
         wxFileName fnf(*f);
         if (fnf.Exists())
         {
-            AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
+            prog.Update(10 + (int)(10.0 * i / (float)facefiles.size()), fnf.GetFullName());
+            lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
+            if (lost != "")
+            {
+                lostfiles[fnf.GetFullPath().ToStdString()] = lost;
+            }
         }
+        else
+        {
+            prog.Update(10 + (int)(10.0 * i / (float)facefiles.size()));
+        }
+    }
+
+    wxFileName fnRGBEffects(CurrentDir, "xlights_rgbeffects.xml");
+    std::string fixfile = FixFile(CurrentDir.ToStdString(), fnRGBEffects.GetFullPath().ToStdString(), lostfiles);
+
+    prog.Update(25, fnRGBEffects.GetFullName());
+    AddFileToZipFile(CurrentDir.ToStdString(), fnRGBEffects.GetFullPath().ToStdString(), zip, fixfile);
+    if (fixfile != "") wxRemoveFile(fixfile);
+
+    lostfiles.clear();
+
+    // Add the media file
+    wxFileName fnMedia(CurrentSeqXmlFile->GetMediaFile());
+    prog.Update(30, fnMedia.GetFullName());
+    lost = AddFileToZipFile(CurrentDir.ToStdString(), fnMedia.GetFullPath().ToStdString(), zip);
+    if (lost != "")
+    {
+        lostfiles[fnMedia.GetFullPath().ToStdString()] = lost;
     }
 
     // Add any effects images/videos/glediator files
     std::list<std::string> effectfiles;
-    for (size_t i = 0; i < mSequenceElements.GetElementCount(0); i++)
+    for (size_t j = 0; j < mSequenceElements.GetElementCount(0); j++)
     {
-        Element* e = mSequenceElements.GetElement(i);
+        Element* e = mSequenceElements.GetElement(j);
         effectfiles.merge(e->GetFileReferences(effectManager));
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
@@ -4861,18 +4947,37 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     effectfiles.sort();
     effectfiles.unique();
 
+    i = 0;
     for (auto f = effectfiles.begin(); f != effectfiles.end(); ++f)
     {
+        i++;
         wxFileName fnf(*f);
         if (fnf.Exists())
         {
-            AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
+            prog.Update(30 + (int)(64.0 * i / (float)effectfiles.size()), fnf.GetFullName());
+            lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
+            if (lost != "")
+            {
+                lostfiles[fnf.GetFullPath().ToStdString()] = lost;
+            }
+        }
+        else
+        {
+            prog.Update(30 + (int)(64.0 * i / (float)effectfiles.size()));
         }
     }
+
+    fixfile =  FixFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath().ToStdString(), lostfiles);
+
+    prog.Update(95, CurrentSeqXmlFile->GetFullName());
+    AddFileToZipFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath().ToStdString(), zip, fixfile);
+    if (fixfile != "") wxRemoveFile(fixfile);
 
     if (!zip.Close())
     {
         logger_base.warn("Error packaging sequence into %s.", (const char*)fd.GetFilename().c_str());
     }
     out.Close();
+
+    prog.Update(100);
 }

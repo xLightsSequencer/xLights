@@ -126,7 +126,7 @@ void VideoEffect::SetDefaultParameters(Model *cls)
 std::list<std::string> VideoEffect::GetFileReferences(const SettingsMap &SettingsMap)
 {
     std::list<std::string> res;
-    res.push_back(SettingsMap["E_FILEPICKER_Pictures_Filename"]);
+    res.push_back(SettingsMap["E_FILEPICKERCTRL_Video_Filename"]);
     return res;
 }
 

@@ -463,7 +463,7 @@ bool FPPConnectDialog::USBUpload()
         wxMessageBox("USB Drive " + tgtdir + " does not have the expected media folder.", "Error", 4 | wxCENTRE, this);
         return true;
     }
-    wxProgressDialog progress("File Copy", "", 1000, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_REMAINING_TIME);
+    wxProgressDialog progress("File Copy", "", 1000, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
     int total = CheckBox_UploadController->IsChecked() ? 1 : 0;
