@@ -134,7 +134,7 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
                 else {
                     theta = pos - theta + (tmax/2);
                 }
-                theta = theta + 180.0;
+                theta = theta + 540.0;
                 int t2 = (int)theta%degrees_per_arm;
                 if (t2 <= tmax) {
                     double round = (float)t2 / (float)tmax;
