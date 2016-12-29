@@ -83,7 +83,7 @@ void FanEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(fp->Slider_Fan_CenterX, 50);
     SetSliderValue(fp->Slider_Fan_CenterY, 50);
     SetSliderValue(fp->Slider_Fan_Duration, 80);
-    SetSliderValue(fp->Slider_Fan_Element_Width, 50);
+    SetSliderValue(fp->Slider_Fan_Element_Width, 100);
     SetSliderValue(fp->Slider_Fan_End_Radius, 10);
     SetSliderValue(fp->Slider_Fan_Num_Blades, 3);
     SetSliderValue(fp->Slider_Fan_Num_Elements, 1);
