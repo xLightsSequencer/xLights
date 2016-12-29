@@ -50,6 +50,8 @@ void ShockwaveEffect::SetDefaultParameters(Model *cls) {
     SetCheckBoxValue(sp->CheckBox_Shockwave_Blend_Edges, true);
 }
 
+const double PI  =3.141592653589793238463;
+
 void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int center_x = GetValueCurveInt("Shockwave_CenterX", 50, SettingsMap, eff_pos);
@@ -98,7 +100,8 @@ void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                 double color_pct = 1.0 - std::abs(r-radius_center)/half_width;
                 if (buffer.palette.IsSpatial(color_index))
                 {
-                    buffer.palette.GetSpatialColor(color_index, xc_adj + buffer.BufferWi / 2, yc_adj + buffer.BufferHt / 2, x, y, color_pct, max_radius, color);
+                    double theta = (((std::atan2(x1, y1) * 180.0 / PI)) + 180.0) / (double)360.0;
+                    buffer.palette.GetSpatialColor(color_index, xc_adj + (buffer.BufferWi / 2), yc_adj + (buffer.BufferHt / 2), x, y, theta, max_radius, color);
                     hsv = color.asHSV();
                 }
                 else
