@@ -221,7 +221,7 @@ public:
         if (idx >= color.size()) return false;
         return (cc[idx].IsActive() && cc[idx].GetTimeCurve() != TC_TIME);
     }
-    
+
     xlColor CalcRoundColor(int idx, double round, int type) const
     {
         if (type == TC_CW)
@@ -423,7 +423,6 @@ public:
 
     double rand01();
     double calcAccel(double ratio, double accel);
-    double GetStepAngle(int width, int height);
 
     uint8_t ChannelBlend(uint8_t c1, uint8_t c2, float ratio);
     void Get2ColorBlend(int coloridx1, int coloridx2, float ratio, xlColor &color);

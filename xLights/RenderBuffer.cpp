@@ -997,24 +997,7 @@ double RenderBuffer::calcAccel(double ratio, double accel)
     }
 }
 
-double RenderBuffer::GetStepAngle(int width, int height)
-{
-    double step = 0.5;
-    int biggest = std::max(width, height);
-    if( biggest > 50 ) {
-        step = 0.4;
-    }
-    if( biggest > 150 ) {
-        step = 0.3;
-    }
-    if( biggest > 250 ) {
-        step = 0.2;
-    }
-    if( biggest > 350 ) {
-        step = 0.1;
-    }
-    return step;
-}
+const double PI  =3.141592653589793238463;
 
 // create a copy of the buffer suitable only for copying out pixel data
 RenderBuffer::RenderBuffer(RenderBuffer& buffer)

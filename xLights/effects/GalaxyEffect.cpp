@@ -121,7 +121,7 @@ void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     double width1 = start_width;
     double width2 = end_width;
 
-    double step = buffer.GetStepAngle(radius1, radius2);
+    double step = 0.5 * 360.0 / (2.0 * PI * start_radius);
 
     for( int x = 0; x < buffer.BufferWi; x++ )
     {
@@ -221,6 +221,7 @@ void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
             }
             last_check = adj_angle;
         }
+        step = 0.5 * 360.0 / (2.0 * PI * current_radius);
     }
 
     // blend remaining data down into final buffer
