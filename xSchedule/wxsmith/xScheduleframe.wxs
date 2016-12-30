@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxFrame" name="xScheduleFrame">
+		<title>xLights Scheduler</title>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>1</growablerows>
+			<object class="sizeritem">
+				<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
+					<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+						<cols>3</cols>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+					<minsize>10</minsize>
+					<orientation>vertical</orientation>
+					<size>52,39</size>
+					<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<growablerows>0</growablerows>
+							<object class="sizeritem">
+								<object class="wxListView" name="ID_LISTVIEW1" variable="ListView_Sequences" member="yes">
+									<handler function="OnListView_SequencesItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+									<handler function="OnListView_SequencesItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
+									<handler function="OnListView_SequencesItemFocused" entry="EVT_LIST_ITEM_FOCUSED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+					</object>
+					<object class="wxPanel" name="ID_PANEL5" variable="Panel5" member="yes">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<growablerows>0</growablerows>
+							<object class="sizeritem">
+								<object class="wxListView" name="ID_LISTVIEW2" variable="ListView2" member="yes" />
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
+					<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+						<cols>3</cols>
+						<object class="sizeritem">
+							<object class="wxButton" name="ID_BUTTON_PLAY" variable="Button_Play" member="yes">
+								<label>Play</label>
+								<handler function="OnButton_PlayClick" entry="EVT_BUTTON" />
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxButton" name="ID_BUTTON_STOP" variable="Button_Stop" member="yes">
+								<label>Stop</label>
+								<handler function="OnButton_StopClick" entry="EVT_BUTTON" />
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+		<object class="wxMenuBar" variable="MenuBar1" member="no">
+			<object class="wxMenu" variable="Menu1" member="no">
+				<label>&amp;File</label>
+				<object class="wxMenuItem" name="idMenuQuit" variable="MenuItem1" member="no">
+					<label>Quit</label>
+					<accel>Alt-F4</accel>
+					<help>Quit the application</help>
+					<handler function="OnQuit" entry="EVT_MENU" />
+				</object>
+			</object>
+			<object class="wxMenu" variable="Menu4" member="yes">
+				<label>&amp;Edit</label>
+				<object class="wxMenuItem" name="ID_MNU_PLAYLISTS" variable="MenuItem3" member="yes">
+					<label>&amp;Playlists</label>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_SCHEDULES" variable="MenuItem4" member="yes">
+					<label>&amp;Schedules</label>
+				</object>
+			</object>
+			<object class="wxMenu" variable="Menu3" member="yes">
+				<label>&amp;Tools</label>
+				<object class="wxMenuItem" name="ID_MNU_VIEW_LOG" variable="MenuItem5" member="yes">
+					<label>&amp;View Log</label>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_CHECK_SCHEDULE" variable="MenuItem6" member="yes">
+					<label>&amp;Check Schedule</label>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_OPTIONS" variable="MenuItem7" member="yes">
+					<label>&amp;Options</label>
+				</object>
+			</object>
+			<object class="wxMenu" variable="Menu2" member="no">
+				<label>Help</label>
+				<object class="wxMenuItem" name="idMenuAbout" variable="MenuItem2" member="no">
+					<label>About</label>
+					<accel>F1</accel>
+					<help>Show info about this application</help>
+					<handler function="OnAbout" entry="EVT_MENU" />
+				</object>
+			</object>
+		</object>
+		<object class="wxStatusBar" name="ID_STATUSBAR1" variable="StatusBar1" member="yes">
+			<fields>1</fields>
+			<widths>-1</widths>
+			<styles>wxSB_NORMAL</styles>
+		</object>
+	</object>
+</wxsmith>
