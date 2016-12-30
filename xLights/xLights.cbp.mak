@@ -1746,9 +1746,9 @@ sequencer/EffectsGrid.h: xlGLCanvas.h Color.h sequencer/SequenceElements.h seque
 
 sequencer/SequenceElements.h: sequencer/EffectLayer.h sequencer/Element.h sequencer/UndoManager.h
 
-sequencer/EffectLayer.h: sequencer/Effect.h sequencer/UndoManager.h
+sequencer/EffectLayer.h: sequencer/Effect.h sequencer/UndoManager.h effects/EffectManager.h
 
-sequencer/Element.h: sequencer/EffectLayer.h
+sequencer/Element.h: sequencer/EffectLayer.h effects/EffectManager.h
 
 sequencer/MainSequencer.h: sequencer/RowHeading.h sequencer/EffectsGrid.h sequencer/Waveform.h KeyBindings.h
 
@@ -1884,7 +1884,7 @@ sequencer/Effect.cpp: UtilClasses.h sequencer/Effect.h sequencer/EffectLayer.h s
 
 models/CandyCaneModel.cpp: models/CandyCaneModel.h models/ModelScreenLocation.h
 
-sequencer/EffectLayer.cpp: sequencer/EffectLayer.h sequencer/EffectsGrid.h sequencer/Effect.h sequencer/RowHeading.h models/Model.h effects/EffectManager.h sequencer/Element.h
+sequencer/EffectLayer.cpp: sequencer/EffectLayer.h sequencer/EffectsGrid.h sequencer/Effect.h sequencer/RowHeading.h models/Model.h effects/EffectManager.h effects/RenderableEffect.h sequencer/Element.h
 
 sequencer/EffectsGrid.cpp: sequencer/EffectsGrid.h sequencer/MainSequencer.h sequencer/TimeLine.h sequencer/RowHeading.h xLightsMain.h sequencer/SequenceElements.h sequencer/Effect.h sequencer/EffectLayer.h sequencer/EffectDropTarget.h DrawGLUtils.h RenderCommandEvent.h BitmapCache.h effects/RenderableEffect.h SequenceCheck.h xLightsXmlFile.h
 
