@@ -20,7 +20,8 @@ class ModelManager
         Model *operator[](const std::string &name) const;
         Model *GetModel(const std::string &name) const;
 
-        void RecalcStartChannels() const;
+        void OldRecalcStartChannels() const;
+        void NewRecalcStartChannels() const;
         unsigned int GetLastChannel() const;
 
         bool Rename(const std::string &oldName, const std::string &newName);

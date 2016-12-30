@@ -351,6 +351,8 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
 {
     long newidx;
 
+    if (updateModels) _setupChanged = true;
+
     int item = GridNetwork->GetTopItem() + GridNetwork->GetCountPerPage() - 1;
     int itemselected = GetNetworkSelection();
 
@@ -405,12 +407,6 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
     }
 
     GridNetwork->Thaw();
-
-    // Now notify the layout as the model start numbers may have been impacted
-    if (updateModels) {
-        AllModels.RecalcStartChannels();
-        layoutPanel->RefreshLayout();
-    }
 }
 
 // reset test channel listbox
@@ -531,6 +527,12 @@ void xLightsFrame::MoveNetworkRows(int toRow, bool reverse)
 
     NetworkChange();
     UpdateNetworkList(true);
+
+    for (auto it = tomove.begin(); it != tomove.end(); ++it)
+    {
+        GridNetwork->SetItemState((*it)->GetOutputNumber()-1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+        GridNetwork->EnsureVisible((*it)->GetOutputNumber()-1);
+    }
 }
 
 void xLightsFrame::ChangeSelectedNetwork()
@@ -585,7 +587,7 @@ void xLightsFrame::UpdateSelectedIPAddresses()
             }
 
             NetworkChange();
-            UpdateNetworkList(true);
+            UpdateNetworkList(false);
 
             item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
             while (item != -1)
@@ -614,7 +616,7 @@ void xLightsFrame::UpdateSelectedDescriptions()
         }
 
         NetworkChange();
-        UpdateNetworkList(true);
+        UpdateNetworkList(false);
 
         item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
         while (item != -1)
@@ -665,7 +667,7 @@ void xLightsFrame::ActivateSelectedNetworks(bool active)
     }
 
     NetworkChange();
-    UpdateNetworkList(true);
+    UpdateNetworkList(false);
 
     item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     while (item != -1)
@@ -725,10 +727,6 @@ void xLightsFrame::OnButtonNetworkMoveUpClick(wxCommandEvent& event)
 
     int selected = GetNetworkSelectedItemCount();
     MoveNetworkRows(SelectedItem-1, false);
-    for (int i = SelectedItem - 1; i < SelectedItem - 1 + selected; i++)
-    {
-        GridNetwork->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-    }
 }
 
 void xLightsFrame::OnButtonNetworkMoveDownClick(wxCommandEvent& event)
@@ -742,10 +740,6 @@ void xLightsFrame::OnButtonNetworkMoveDownClick(wxCommandEvent& event)
     if (SelectedItem == GridNetwork->GetItemCount()-1) return;
     int selected = GetNetworkSelectedItemCount();
     MoveNetworkRows(SelectedItem + 1 - selected + 1, true);
-    for (int i = SelectedItem + 1; i > SelectedItem + 1 - selected; i--)
-    {
-        GridNetwork->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-    }
 }
 
 // drop a list item (start row is in DragRowIdx)

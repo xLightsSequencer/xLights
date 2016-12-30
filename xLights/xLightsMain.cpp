@@ -1485,6 +1485,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItemEffectAssistToggleMode->Check(mEffectAssistMode==EFFECT_ASSIST_TOGGLE_MODE);
     logger_base.debug("Effect Assist Mode: %s.", mEffectAssistMode ? "true" : "false");
 
+    _setupChanged = false;
     InitEffectsPanel(EffectsPanel1);
     logger_base.debug("Effects panel initialised.");
 
@@ -1816,6 +1817,20 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
     if (event.GetOldSelection() == NEWSEQUENCER)
     {
         ShowHideAllSequencerWindows(false);
+    }
+    else if (event.GetOldSelection() == SETUPTAB)
+    {
+        if (_setupChanged)
+        {
+            SetCursor(wxCURSOR_WAIT);
+            // Now notify the layout as the model start numbers may have been impacted
+            AllModels.OldRecalcStartChannels();
+            //AllModels.NewRecalcStartChannels();
+            layoutPanel->RefreshLayout();
+
+            _setupChanged = false;
+            SetCursor(wxCURSOR_ARROW);
+        }
     }
 }
 
