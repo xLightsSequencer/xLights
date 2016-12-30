@@ -997,8 +997,6 @@ double RenderBuffer::calcAccel(double ratio, double accel)
     }
 }
 
-const double PI  =3.141592653589793238463;
-
 // create a copy of the buffer suitable only for copying out pixel data
 RenderBuffer::RenderBuffer(RenderBuffer& buffer)
 {
