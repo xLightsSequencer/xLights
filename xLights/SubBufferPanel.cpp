@@ -106,6 +106,10 @@ void SubBufferPanel::ContextMenu(wxContextMenuEvent& event) {
     menu.AppendSeparator();
     menu.Append(wxNewId(), "Edit");
     menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);
+    quarters->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);
+    thirds->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);
+    halves->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);
+    
     PopupMenu(&menu);
 }
 void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
