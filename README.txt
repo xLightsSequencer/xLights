@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Rounder ends for the Galaxy effect.
    -- enh (gil)     Use dynamic step angle to prevent holes in Galaxy effect for large radii.
    -- enh (gil)     Update Fan to support spatial colors and not leave any holes.
    -- enh (gil)     Update Shockwave to support spatial colors and not leave any holes.
