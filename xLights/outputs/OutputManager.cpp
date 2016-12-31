@@ -141,7 +141,7 @@ Output* OutputManager::GetOutput(int outputNumber) const
     if (outputNumber > _outputs.size()) return nullptr;
 
     auto it = _outputs.begin();
-    for (int i = 0; i < outputNumber; i++)
+    for (int i = 0; i < outputNumber-1; i++)
     {
         ++it;
     }
@@ -649,7 +649,7 @@ void OutputManager::SetOneChannel(long channel, unsigned char data)
     Output* output = GetOutput(channel + 1, sc);
     if (output != nullptr)
     {
-        output->SetOneChannel(sc, data);
+        output->SetOneChannel(sc-1, data);
     }
 }
 
@@ -658,17 +658,18 @@ void OutputManager::SetManyChannels(long channel, unsigned char* data, long size
 {
     long stch;
     Output* o = GetOutput(channel + 1, stch);
+    wxASSERT(o != nullptr);
 
     long left = size;
 
-    while (left > 0)
+    while (left > 0 && o != nullptr)
     {
 #ifdef _MSC_VER
         long send = min(left, o->GetChannels() - stch + 1);
 #else
         long send = std::min(left, o->GetChannels() - stch + 1);
 #endif
-        o->SetManyChannels(stch, &data[size - left], send);
+        o->SetManyChannels(stch - 1, &data[size - left], send);
         stch = 1;
         left -= send;
         o = GetOutput(o->GetOutputNumber() + 1);
