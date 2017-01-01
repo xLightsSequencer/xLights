@@ -139,9 +139,9 @@ unsigned int ModelManager::GetLastChannel() const {
 
 void ModelManager::NewRecalcStartChannels() const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxStopWatch sw;
-    sw.Start();
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //wxStopWatch sw;
+    //sw.Start();
 
     bool fullsuccess = true;
 
@@ -157,14 +157,14 @@ void ModelManager::NewRecalcStartChannels() const
         }
     }
 
-    long end  = sw.Time();
-    logger_base.debug("New RecalcStartChannels takes %ld.", end);
+    //long end  = sw.Time();
+    //logger_base.debug("New RecalcStartChannels takes %ld.", end);
 }
 
 void ModelManager::OldRecalcStartChannels() const {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxStopWatch sw;
-    sw.Start();
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //wxStopWatch sw;
+    //sw.Start();
     int countValid = 0;
     for (auto it = models.begin(); it != models.end(); it++) {
         if( it->second->GetDisplayAs() != "ModelGroup" ) {
@@ -201,8 +201,8 @@ void ModelManager::OldRecalcStartChannels() const {
         }
         countValid = newCountValid;
     }
-    long end = sw.Time();
-    logger_base.debug("Old RecalcStartChannels takes %ld.", end);
+    //long end = sw.Time();
+    //logger_base.debug("Old RecalcStartChannels takes %ld.", end);
 }
 
 

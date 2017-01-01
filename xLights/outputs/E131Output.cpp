@@ -163,6 +163,7 @@ bool E131Output::Open()
                 _ok = (*it)->Open() && _ok;
             }
         }
+        return _ok;
     }
     else
     {
@@ -241,7 +242,7 @@ bool E131Output::Open()
         }
         _remoteAddr.Service(E131_PORT);
 
-        int i = _channels + 1;
+        int i = _channels;
         wxByte NumHi = i >> 8;   // Channels (high)
         wxByte NumLo = i & 0xff; // Channels (low)
 

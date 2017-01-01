@@ -138,7 +138,10 @@ bool OutputManager::Discover()
 // get an output based on an output number
 Output* OutputManager::GetOutput(int outputNumber) const
 {
-    if (outputNumber > _outputs.size()) return nullptr;
+    if (outputNumber > (int)_outputs.size())
+    {
+        return nullptr;
+    }
 
     auto it = _outputs.begin();
     for (int i = 0; i < outputNumber-1; i++)
@@ -201,7 +204,7 @@ std::string OutputManager::GetChannelName(long channel)
 
 long OutputManager::GetAbsoluteChannel(int outputNumber, int startChannel) const
 {
-    if (outputNumber >= _outputs.size()) return -1;
+    if (outputNumber >= (int)_outputs.size()) return -1;
 
     auto it = _outputs.begin();
     for (int i = 0; i < outputNumber; i++)
@@ -214,9 +217,10 @@ long OutputManager::GetAbsoluteChannel(int outputNumber, int startChannel) const
 
 long OutputManager::GetAbsoluteChannel(const std::string& ip, int universe, int startChannel) const
 {
-    auto it = _outputs.begin();
+    auto o = GetAllOutputs(ip);
+    auto it = o.begin();
 
-    while (it != _outputs.end())
+    while (it != o.end())
     {
         if (universe+1 == (*it)->GetUniverse() && (ip == "" || ip == (*it)->GetIP()))
         {
@@ -225,7 +229,7 @@ long OutputManager::GetAbsoluteChannel(const std::string& ip, int universe, int 
         ++it;
     }
 
-    if (it == _outputs.end()) return -1;
+    if (it == o.end()) return -1;
 
     return (*it)->GetStartChannel() + startChannel;
 }
@@ -320,7 +324,7 @@ void OutputManager::SomethingChanged() const
             (*it)->SetTransientData(cnt, start, -1);
         }
 
-        start += (*it)->GetChannels();
+        start += (*it)->GetChannels() * (*it)->GetUniverses();
     }
 }
 #pragma endregion Getters and Setters
@@ -665,9 +669,9 @@ void OutputManager::SetManyChannels(long channel, unsigned char* data, long size
     while (left > 0 && o != nullptr)
     {
 #ifdef _MSC_VER
-        long send = min(left, o->GetChannels() - stch + 1);
+        long send = min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
 #else
-        long send = std::min(left, o->GetChannels() - stch + 1);
+        long send = std::min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
 #endif
         o->SetManyChannels(stch - 1, &data[size - left], send);
         stch = 1;

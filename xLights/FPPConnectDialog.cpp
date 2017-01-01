@@ -629,7 +629,7 @@ bool FPPConnectDialog::DoCopyFile(const std::string& source, const std::string& 
             uint8_t buffer[8192]; // 8KB at a time
             while (!in.Eof() && !cancelled)
             {
-                ssize_t read = in.Read(&buffer[0], sizeof(buffer));
+                size_t read = in.Read(&buffer[0], sizeof(buffer));
                 size_t written = out.Write(&buffer[0], read);
                 while (written < read) {
                     written += out.Write(&buffer[written], read - written);
