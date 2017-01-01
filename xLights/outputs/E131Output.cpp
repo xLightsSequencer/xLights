@@ -430,7 +430,7 @@ void E131Output::SetManyChannels(long channel, unsigned char data[], long size)
             (*o)->SetManyChannels(startc, &data[size - left], send);
             left -= send;
             ++o;
-            startc = 1;
+            startc = 0;
         }
     }
     else
