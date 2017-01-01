@@ -206,6 +206,7 @@
 		67B2B2381E1947BE0024F0BB /* SerialOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B21E1E1947BE0024F0BB /* SerialOutput.cpp */; };
 		67B2B2391E1947BE0024F0BB /* SerialPortWithRate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B2201E1947BE0024F0BB /* SerialPortWithRate.cpp */; };
 		67B2B23A1E1947BE0024F0BB /* TestPreset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B2221E1947BE0024F0BB /* TestPreset.cpp */; };
+		67B2B23C1E194D120024F0BB /* controllers in Resources */ = {isa = PBXBuildFile; fileRef = 67B2B23B1E194D120024F0BB /* controllers */; };
 		67B2CF711C39D98A003C17CA /* DMXPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CF251C39D98A003C17CA /* DMXPanel.cpp */; };
 		67B2CF721C39D98A003C17CA /* FacesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CF271C39D98A003C17CA /* FacesPanel.cpp */; };
 		67B2CF731C39D98A003C17CA /* FanPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CF291C39D98A003C17CA /* FanPanel.cpp */; };
@@ -732,6 +733,7 @@
 		67B2B2211E1947BE0024F0BB /* SerialPortWithRate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SerialPortWithRate.h; path = outputs/SerialPortWithRate.h; sourceTree = "<group>"; };
 		67B2B2221E1947BE0024F0BB /* TestPreset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TestPreset.cpp; path = outputs/TestPreset.cpp; sourceTree = "<group>"; };
 		67B2B2231E1947BE0024F0BB /* TestPreset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TestPreset.h; path = outputs/TestPreset.h; sourceTree = "<group>"; };
+		67B2B23B1E194D120024F0BB /* controllers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = controllers; sourceTree = "<group>"; };
 		67B2CF251C39D98A003C17CA /* DMXPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DMXPanel.cpp; path = effects/DMXPanel.cpp; sourceTree = "<group>"; };
 		67B2CF261C39D98A003C17CA /* DMXPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DMXPanel.h; path = effects/DMXPanel.h; sourceTree = "<group>"; };
 		67B2CF271C39D98A003C17CA /* FacesPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FacesPanel.cpp; path = effects/FacesPanel.cpp; sourceTree = "<group>"; };
@@ -1336,6 +1338,7 @@
 		67AAF8F31B63782F00585431 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				67B2B23B1E194D120024F0BB /* controllers */,
 				670F163E1CDBC53F0039D4DB /* xlights.mac.properties */,
 				67AAF8F41B63785900585431 /* user_dictionary */,
 				67AAF8F51B63785900585431 /* extended_dictionary */,
@@ -1826,6 +1829,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67B2B23C1E194D120024F0BB /* controllers in Resources */,
 				67D2B04C1D54CCA4006D324F /* colorcurves in Resources */,
 				670F163F1CDBC53F0039D4DB /* xlights.mac.properties in Resources */,
 				67AAF8F81B63785900585431 /* user_dictionary in Resources */,
