@@ -5,7 +5,7 @@
 #include <wx/string.h>
 //*)
 
-#include "ArtnetOutput.h"
+#include "ArtNetOutput.h"
 #include "OutputManager.h"
 #include <wx/regex.h>
 
