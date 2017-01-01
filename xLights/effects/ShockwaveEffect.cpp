@@ -96,14 +96,10 @@ void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             int y1 = y - yc_adj;
             double r = std::hypot(x1, y1);
             if( r >= radius1 && r <= radius2 ) {
-                double color_pct = 1.0 - std::abs(r-radius_center)/half_width;
                 if (buffer.palette.IsSpatial(color_index))
                 {
-                    double theta = ((std::atan2(x1, y1) * 180.0 / PI));
-                    int x2 = (int)(buffer.sin(ToRadians(theta)) * radius1);
-                    int y2 = (int)(buffer.cos(ToRadians(theta)) * radius1);
-                    double theta_pct = (theta + 180.0) / 360.0;
-                    buffer.palette.GetSpatialColor(color_index, x2, y2, x1, y1, theta_pct, radius2, color);
+                    double theta = (((std::atan2(x1, y1) * 180.0 / PI)) + 180.0) / 360.0;
+                    buffer.palette.GetSpatialColor(color_index, radius1, 0, r, 0, theta, radius2, color);
                     hsv = color.asHSV();
                 }
                 else
@@ -112,6 +108,7 @@ void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                 }
                 if( blend_edges )
                 {
+                    double color_pct = 1.0 - std::abs(r-radius_center)/half_width;
                     if (buffer.allowAlpha) {
                         color.alpha = 255.0 * color_pct;
                     }
