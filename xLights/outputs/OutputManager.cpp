@@ -138,18 +138,14 @@ bool OutputManager::Discover()
 // get an output based on an output number
 Output* OutputManager::GetOutput(int outputNumber) const
 {
-    if (outputNumber > (int)_outputs.size())
+    if (outputNumber >= (int)_outputs.size())
     {
         return nullptr;
     }
 
-    auto it = _outputs.begin();
-    for (int i = 0; i < outputNumber-1; i++)
-    {
-        ++it;
-    }
-
-    return *it;
+    auto iter = _outputs.begin();
+    std::advance(iter, outputNumber);
+    return *iter;
 }
 
 // get an output based on an absolute channel number

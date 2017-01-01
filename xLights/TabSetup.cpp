@@ -499,7 +499,6 @@ void xLightsFrame::MoveNetworkRows(int toRow, bool reverse)
 {
     std::list<Output*> tomove;
     int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    int firstitem = item;
     while (item != -1)
     {
         if (reverse)
@@ -725,7 +724,6 @@ void xLightsFrame::OnButtonNetworkMoveUpClick(wxCommandEvent& event)
     }
     if (SelectedItem == 0) return;
 
-    int selected = GetNetworkSelectedItemCount();
     MoveNetworkRows(SelectedItem-1, false);
 }
 

@@ -227,8 +227,6 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
 
     int chaseType = mapChaseType(Chase_Type1);
 
-    size_t colorcnt = buffer.GetColorCount(); // global now set to how many colors have been picked
-
     int curEffStartPer, curEffEndPer;
     buffer.GetEffectPeriods(curEffStartPer, curEffEndPer);
 

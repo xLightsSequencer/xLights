@@ -881,8 +881,6 @@ std::string Model::ComputeStringStartChannel(int i) {
         stch = stch.SubString(stch.Find(":") + 1, stch.size());
         long startNetwork;
         if (sNet.ToLong(&startNetwork) && startNetwork > 0) {
-            int endNetwork;
-            int endChannel;
             startNetwork--; // Zero based index
             if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
                 // get the string end channel

@@ -18,7 +18,7 @@ int SerialPort::GetCallback()
 #ifdef __WXMSW__
 # include "serial_win32.cpp"
 #elif defined __WXOSX__
-# include "serial_osx.cpp"
+// # include "serial_osx.cpp"
 #else
 # include "serial_posix.cpp"
 #endif

@@ -33,6 +33,7 @@
 
 #include <list>
 #include <map>
+#include <string>
 
 class wxXmlNode;
 
