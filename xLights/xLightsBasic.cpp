@@ -4,8 +4,7 @@
  */
 
 #include "../include/minibasic.cpp"
-#include "serial.h"
-
+#include "outputs/serial.h"
 
 class xlbasic: public MiniBasicClass
 {
@@ -58,7 +57,7 @@ protected:
         SerialPort port;
         SerialPorts.push_back(port);
         int handle=SerialPorts.size()-1;
-        int errcode=SerialPorts[handle].Open(portname, baudrate, pSerialConfig);
+        int errcode=SerialPorts[handle].Open(portname.ToStdString(), baudrate, pSerialConfig);
         free(pPortName);
         free(pSerialConfig);
         if (errcode < 0)
@@ -202,7 +201,7 @@ protected:
     // all lights off
     int do_lightsoff(void)
     {
-        if (HostFrame->xout) HostFrame->xout->alloff();
+        HostFrame->GetOutputManager()->AllOff();
         return EXEC_NEXTLINE;
     };
 

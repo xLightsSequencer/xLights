@@ -587,7 +587,7 @@ static bool parse_model(const wxString& want_model)
             wxString grpname = group->GetAttribute(wxT("name"));
             //        if (group->GetName() != "coro") continue;
             //        if (grpname.IsEmpty()) continue;
-            //        wxXmlNode* voice = FindNode(group, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
+            //        wxXmlNode* voice = FindNode(group, "voice", wxT("voiceNumber"), wxString::Format(wxT("%i"), i + 1), true);
             for (wxXmlNode* voice = group->GetChildren(); voice != NULL; voice = voice->GetNext())
             {
                 wxString voice_name = NoInactive(voice->GetAttribute(wxT("name")));

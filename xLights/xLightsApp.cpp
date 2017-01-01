@@ -298,9 +298,9 @@ void handleCrash(void *data) {
     report->AddAll(wxDebugReport::Context_Exception);
     report->AddAll(wxDebugReport::Context_Current);
     
-    wxFileName fn(topFrame->CurrentDir, "xlights_networks.xml");
+    wxFileName fn(topFrame->CurrentDir, OutputManager::GetNetworksFileName());
     if (fn.Exists()) {
-        report->AddFile(fn.GetFullPath(), "xlights_networks.xml");
+        report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
     }
     if (wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").Exists()) {
         report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");

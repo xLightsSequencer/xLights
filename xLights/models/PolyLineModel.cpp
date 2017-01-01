@@ -183,14 +183,15 @@ void PolyLineModel::InitModel() {
     std::string tempstr = ModelXml->GetAttribute("Advanced", "0").ToStdString();
     bool HasIndividualStartChans=tempstr == "1";
     if( HasIndividualStartChans && !SingleNode) {
-        int StartChannel = GetNumberFromChannelString(ModelXml->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel);
+        std::string dependsonmodel;
+        int StartChannel = GetNumberFromChannelString(ModelXml->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
         stringStartChan.clear();
         stringStartChan.resize(num_segments);
         for (int i=0; i<num_segments; i++) {
             tempstr = StartChanAttrName(i);
             if (!zeroBased && ModelXml->HasAttribute(tempstr)) {
                 bool b = false;
-                stringStartChan[i] = GetNumberFromChannelString(ModelXml->GetAttribute(tempstr, "1").ToStdString(), b)-1;
+                stringStartChan[i] = GetNumberFromChannelString(ModelXml->GetAttribute(tempstr, "1").ToStdString(), b, dependsonmodel)-1;
                 CouldComputeStartChannel &= b;
             } else {
                 stringStartChan[i] = (zeroBased? 0 : StartChannel-1) + polyLineSizes[i]*GetNodeChannelCount(StringType);

@@ -236,7 +236,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
     SetPreviewBackgroundBrightness(mBackgroundBrightness);
-    mScaleBackgroundImage = wxAtoi(GetXmlSetting("scaleImage","0"));
+    mScaleBackgroundImage = wxAtoi(GetXmlSetting("scaleImage","0")) > 0;
     SetPreviewBackgroundScaled(mScaleBackgroundImage);
 
     std::string group = layoutPanel->GetCurrentLayoutGroup();

@@ -536,8 +536,8 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
        if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
             xlights->SetPreviewBackgroundScaled(event.GetValue().GetBool());
          } else {
-            pGrp->SetBackgroundScaled(wxAtoi(event.GetValue().GetString()));
-            modelPreview->SetScaleBackgroundImage(wxAtoi(event.GetValue().GetString()));
+            pGrp->SetBackgroundScaled(wxAtoi(event.GetValue().GetString())>0);
+            modelPreview->SetScaleBackgroundImage(wxAtoi(event.GetValue().GetString())>0);
             xlights->MarkEffectsFileDirty();
             UpdatePreview();
         }

@@ -21,6 +21,7 @@
 
 #include "FileConverter.h"
 #include "xLightsMain.h"
+#include "outputs/Output.h"
 
 #include <log4cpp/Category.hh>
 
@@ -54,7 +55,7 @@ BEGIN_EVENT_TABLE(ConvertDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, NetInfoClass& NetInfo_, wxString& mediaFilename_, wxArrayString& ChannelNames_, wxArrayInt& ChannelColors_, wxArrayString& ChNames_, wxWindowID id,const wxPoint& pos,const wxSize& size) : SeqData(SeqData_), NetInfo(NetInfo_), mediaFilename(mediaFilename_), ChannelColors(ChannelColors_), ChannelNames(ChannelNames_), ChNames(ChNames_)
+ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputManager* outputManager_, wxString& mediaFilename_, wxArrayString& ChannelNames_, wxArrayInt& ChannelColors_, wxArrayString& ChNames_, wxWindowID id,const wxPoint& pos,const wxSize& size) : SeqData(SeqData_), _outputManager(outputManager_), mediaFilename(mediaFilename_), ChannelColors(ChannelColors_), ChannelNames(ChannelNames_), ChNames(ChNames_)
 {
     _parent = (xLightsFrame*)parent;
 
@@ -350,7 +351,7 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
         {
             TestName = ChNames[ch];
             if (TestName == "") {
-                TestName = NetInfo.GetChannelName(ch);
+                TestName = _outputManager->GetChannelName(ch);
             }
         }
         else
@@ -498,7 +499,7 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
         {
             TestName = wxString::Format("%s",ChNames[ch]);
             if (TestName == "") {
-                TestName = wxString::Format("%s",NetInfo.GetChannelName(ch));
+                TestName = _outputManager->GetChannelName(ch);
             }
         }
         else
@@ -560,7 +561,7 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
         f.Write("\t\t</channel>\n");
         // KW I had to replace this because test tab has been removed
         //if (ch < CheckListBoxTestChannels->GetCount() &&
-        if (ch < _parent->GetTotalChannels() &&
+        if (ch < _outputManager->GetTotalChannels() &&
             (TestName.Last() == 'R' || TestName.Last() == 'G' || TestName.Last() == 'B'))
         {
             rgbChanIndexes[curRgbChanCount++] = index;
@@ -722,7 +723,7 @@ void ConvertDialog::ReadConductorFile(const wxString& FileName)
     }
     int numPeriods = f.Length() / 16384;
 
-    SeqData.init(NetInfo.GetTotChannels(), numPeriods, 50);
+    SeqData.init(_outputManager->GetTotalChannels(), numPeriods, 50);
     while (f.Read(row, 16384) == 16384)
     {
         wxYield();
@@ -1163,7 +1164,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
     for (tmp = 0; tmp < map.size(); tmp += 2)
     {
         int i = map[tmp + 1];
-        int orig = NetInfo.GetNumChannels(tmp / 2);
+        int orig = _outputManager->GetOutput(tmp / 2)->GetChannels();
         if (i < orig) {
             AppendConvertStatus(string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig), false);
             i = orig;
@@ -1309,7 +1310,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                             ChannelNames[channels] = Left(ChannelName, idx);
                             ChannelColors[channels] = 0x00FFFFFF;
                         }
-                        wxString o2 = NetInfo.GetChannelName(channels);
+                        wxString o2 = _outputManager->GetChannelName(channels);
                         AppendConvertStatus(string_format("Map %s -> %s (%s)\n",
                             ChannelNames[channels].c_str(),
                             origName.c_str(),
@@ -1576,7 +1577,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
         {
             numFrames = 1;
         }
-        SeqData.init(NetInfo.GetTotChannels(), numFrames, LORImportInterval);
+        SeqData.init(_outputManager->GetTotalChannels(), numFrames, LORImportInterval);
     }
     else
     {
@@ -1710,7 +1711,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         chindex = circuit - 1;
                         network--;
                         network += lorUnitSizes.size();
-                        curchannel = NetInfo.CalcAbsChannel(network, chindex);
+                        curchannel = _outputManager->GetAbsoluteChannel(network, chindex);
                     }
                     else if (Left(deviceType, 3) == "LOR")
                     {
@@ -1720,14 +1721,14 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                             chindex += lorUnitSizes[network][z];
                         }
                         chindex += circuit - 1;
-                        curchannel = NetInfo.CalcAbsChannel(network, chindex);
+                        curchannel = _outputManager->GetAbsoluteChannel(network, chindex);
                     }
                     else if ("" == deviceType && "" == networkAsString && !MapLORChannelsWithNoNetwork->IsChecked()) {
                         curchannel = -1;
                     }
                     else {
                         chindex++;
-                        if (chindex < NetInfo.GetTotChannels())
+                        if (chindex < _outputManager->GetTotalChannels())
                         {
                             curchannel = chindex;
                         }

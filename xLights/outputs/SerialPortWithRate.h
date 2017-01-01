@@ -6,20 +6,29 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/choice.h>
+#include <wx/button.h>
 #include <wx/dialog.h>
 //*)
 
+class SerialOutput;
+class OutputManager;
+
 class SerialPortWithRate: public wxDialog
 {
+    SerialOutput* _original;
+    SerialOutput** _serial;
+    OutputManager* _outputManager;
+    void ValidateWindow();
+
 public:
 
-    SerialPortWithRate(wxWindow* parent);
+    SerialPortWithRate(wxWindow* parent, SerialOutput** serial, OutputManager* outputManager, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~SerialPortWithRate();
     void ProtocolChange();
-    wxString GetRateString();
 
     //(*Declarations(SerialPortWithRate)
     wxChoice* ChoiceProtocol;
+    wxButton* Button_Ok;
     wxTextCtrl* TextCtrl_Description;
     wxStaticText* StaticText2;
     wxStaticText* StaticTextRate;
@@ -27,11 +36,11 @@ public:
     wxStaticText* StaticText1;
     wxStaticText* StaticText3;
     wxTextCtrl* TextCtrlLastChannel;
+    wxButton* Button_Cancel;
     wxStaticText* StaticTextExplanation;
     wxChoice* ChoiceBaudRate;
     wxStaticText* StaticTextPort;
     //*)
-
 
 protected:
 
@@ -47,6 +56,8 @@ protected:
     static const long ID_STATICTEXT1;
     static const long ID_STATICTEXT2;
     static const long ID_TEXTCTRL_DESCRIPTION;
+    static const long ID_BUTTON1;
+    static const long ID_BUTTON2;
     //*)
 
 private:
@@ -54,12 +65,14 @@ private:
     //(*Handlers(SerialPortWithRate)
     void OnChoiceProtocolSelect(wxCommandEvent& event);
     void OnTextCtrl_DescriptionText(wxCommandEvent& event);
+    void OnButton_OkClick(wxCommandEvent& event);
+    void OnButton_CancelClick(wxCommandEvent& event);
+    void OnChoicePortSelect(wxCommandEvent& event);
+    void OnChoiceBaudRateSelect(wxCommandEvent& event);
+    void OnTextCtrlLastChannelText(wxCommandEvent& event);
     //*)
 
     wxFlexGridSizer* MainSizer;
-    void PopulatePortChooser(wxArrayString *chooser);
-    void SetLabel(const wxString& newlabel);
-
     DECLARE_EVENT_TABLE()
 };
 

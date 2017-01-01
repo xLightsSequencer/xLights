@@ -411,9 +411,6 @@
     <ClCompile Include="DrawGLUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="E131Dialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="EffectAssist.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -474,13 +471,7 @@
     <ClCompile Include="ModelViewSelector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NetInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="NewTimingDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NullOutputDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OptionChooser.cpp">
@@ -540,12 +531,6 @@
     <ClCompile Include="SequenceData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="serial.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SerialPortWithRate.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ShowDatesDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -598,9 +583,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="xlGridCanvas.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="xlights_out.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="xLightsApp.cpp">
@@ -834,9 +816,6 @@
     <ClCompile Include="models\SubModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ArtNetDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FPPConnectDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -856,6 +835,66 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BufferSizeDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\Controller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\OutputManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\Output.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\IPOutput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\E131Output.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\NullOutput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\ArtNetOutput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\LOROutput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\SerialOutput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\RenardOutput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\DMXOutput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\PixelNetOutput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\OpenDMXOutput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\OpenPixelNetOutput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\ArtNetDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\E131Dialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\NullOutputDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\SerialPortWithRate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\TestPreset.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\serial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1250,9 +1289,6 @@
     <ClInclude Include="DrawGLUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="E131Dialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EffectAssist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1316,13 +1352,7 @@
     <ClInclude Include="ModelViewSelector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NetInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="NewTimingDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NullOutputDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OptionChooser.h">
@@ -1382,12 +1412,6 @@
     <ClInclude Include="SequenceData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="serial.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SerialPortWithRate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ShowDatesDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1434,9 +1458,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="xlGridCanvas.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="xlights_out.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="xLightsApp.h">
@@ -1631,9 +1652,6 @@
     <ClInclude Include="SequenceCheck.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ArtNetDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FPPConnectDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1650,6 +1668,69 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BufferSizeDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\Controller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\OutputManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\Output.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\IPOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\E131Output.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\NullOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\ArtNetOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\DLightOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\DMXOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\LOROutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\PixelNetOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\RenardOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\SerialOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\OpenDMXOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\OpenPixelNetOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs/ArtNetDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\E131Dialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\NullOutputDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\SerialPortWithRate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\TestPreset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\serial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

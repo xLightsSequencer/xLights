@@ -89,18 +89,18 @@ ModelScreenLocation::ModelScreenLocation(int sz) : RenderWi(0), RenderHt(0), pre
 
 
 BoxedScreenLocation::BoxedScreenLocation() : ModelScreenLocation(5),
-    offsetXpct(0.5), offsetYpct(0.5), singleScale(false),
-    PreviewScaleX(0.333), PreviewScaleY(0.333),
+    offsetXpct(0.5f), offsetYpct(0.5f), singleScale(false),
+    PreviewScaleX(0.333f), PreviewScaleY(0.333f),
     PreviewRotation(0) {
 }
 void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
     offsetXpct = wxAtof(ModelNode->GetAttribute("offsetXpct","0"));
     if(offsetXpct<0 || offsetXpct>1) {
-        offsetXpct = .5;
+        offsetXpct = 0.5f;
     }
     offsetYpct = wxAtof(ModelNode->GetAttribute("offsetYpct","0"));
     if(offsetYpct<0 || offsetYpct>1) {
-        offsetYpct = .5;
+        offsetYpct = 0.5f;
     }
     wxString tempstr = ModelNode->GetAttribute("PreviewScale");
     singleScale = false;
@@ -112,10 +112,10 @@ void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
         PreviewScaleX = PreviewScaleY = wxAtof(tempstr);
     }
     if(PreviewScaleX<0 || PreviewScaleX>1) {
-        PreviewScaleX = .33;
+        PreviewScaleX = 0.33f;
     }
     if(PreviewScaleY<0 || PreviewScaleY>1) {
-        PreviewScaleY = .33;
+        PreviewScaleY = 0.33f;
     }
     PreviewRotation=wxAtoi(ModelNode->GetAttribute("PreviewRotation","0"));
 }

@@ -1081,8 +1081,8 @@ void xLightsFrame::StopSequence()
         mainSequencer->UpdateTimeDisplay(playStartTime, _fps);
     }
     playType = PLAY_TYPE_STOPPED;
-    if( CheckBoxLightOutput->IsChecked() && xout ) {
-        xout->alloff();
+    if( CheckBoxLightOutput->IsChecked()) {
+        _outputManager.AllOff();
     }
 	SetAudioControls();
 }

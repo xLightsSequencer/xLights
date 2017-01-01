@@ -144,16 +144,16 @@ void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
         else if (nm == "Left Third") {
             x1 = y1 = 0.0;
             y2 = 100.0;
-            x2 = 33.33;
+            x2 = 33.33f;
         }
         else if (nm == "Middle Third") {
-            x1 = 33.33;
+            x1 = 33.33f;
             y1 = 0.0;
             y2 = 100.0;
-            x2 = 66.66;
+            x2 = 66.66f;
         }
         else if (nm == "Right Third") {
-            x1 = 66.66;
+            x1 = 66.66f;
             y1 = 0.0;
             x2 = y2 = 100.0;
         }

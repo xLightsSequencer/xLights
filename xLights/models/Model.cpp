@@ -20,6 +20,7 @@
 #include "../StartChannelDialog.h"
 #include "../SubModelsDialog.h"
 #include "../ControllerConnectionDialog.h"
+#include "../outputs/Output.h"
 
 #include "ModelScreenLocation.h"
 #include <wx/sstream.h>
@@ -514,25 +515,25 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     if (event.GetPropertyName() == "ModelPixelSize") {
         pixelSize = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("PixelSize");
-        ModelXml->AddAttribute("PixelSize", wxString::Format("%d", pixelSize));
+        ModelXml->AddAttribute("PixelSize", wxString::Format(wxT("%i"), pixelSize));
         IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelPixelStyle") {
         pixelStyle = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Antialias");
-        ModelXml->AddAttribute("Antialias", wxString::Format("%d", pixelStyle));
+        ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), pixelStyle));
         IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelPixelTransparency") {
         transparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
-        ModelXml->AddAttribute("Transparency", wxString::Format("%d", transparency));
+        ModelXml->AddAttribute("Transparency", wxString::Format(wxT("%i"), transparency));
         IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelPixelBlackTransparency") {
         blackTransparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("BlackTransparency");
-        ModelXml->AddAttribute("BlackTransparency", wxString::Format("%d", blackTransparency));
+        ModelXml->AddAttribute("BlackTransparency", wxString::Format(wxT("%i"), blackTransparency));
         IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelStrandNodeNames") {
@@ -626,7 +627,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ModelXml->DeleteAttribute(StartChanAttrName(0));
             ModelXml->AddAttribute(StartChanAttrName(0), event.GetValue().GetString());
         }
-        modelManager.RecalcStartChannels();
+        //modelManager.OldRecalcStartChannels();
+        modelManager.NewRecalcStartChannels();
         IncrementChangeCount();
         return 3 | 0x0008;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
@@ -646,7 +648,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
                 ModelXml->DeleteAttribute(StartChanAttrName(x));
             }
         }
-        modelManager.RecalcStartChannels();
+        //modelManager.OldRecalcStartChannels();
+        modelManager.NewRecalcStartChannels();
         AdjustStringProperties(grid, parm1);
         IncrementChangeCount();
         return 3 | 0x0008;
@@ -655,7 +658,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         str = str.SubString(str.Find(".") + 1, str.length());
         ModelXml->DeleteAttribute(str);
         ModelXml->AddAttribute(str, event.GetValue().GetString());
-        modelManager.RecalcStartChannels();
+        //modelManager.OldRecalcStartChannels();
+        modelManager.NewRecalcStartChannels();
         IncrementChangeCount();
         return 3 | 0x0008;
     } else if (event.GetPropertyName() == "ModelLayoutGroup") {
@@ -881,8 +885,12 @@ std::string Model::ComputeStringStartChannel(int i) {
             int endChannel;
             startNetwork--; // Zero based index
             if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
-                if (modelManager.GetNetInfo().GetEndNetworkAndChannel(startNetwork,(int)StringStartChanLong,ChannelsPerString+1,endNetwork,endChannel)) {
-                    return wxString::Format("%i:%i",endNetwork+1,endChannel).ToStdString(); //endNetwork is zero based
+                // get the string end channel
+                long ststch;
+                Output* o = modelManager.GetOutputManager()->GetOutput(StringStartChanLong + ChannelsPerString + 1, ststch);
+                if (o != nullptr)
+                {
+                    return wxString::Format("%i:%i",o->GetOutputNumber(), ststch).ToStdString();
                 }
             }
         } else if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
@@ -892,7 +900,7 @@ std::string Model::ComputeStringStartChannel(int i) {
     }
     if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
         long StringEndChan=StringStartChanLong + ChannelsPerString;
-        stch = wxString::Format("%d", StringEndChan);
+        stch = wxString::Format(wxT("%i"), StringEndChan);
     }
     return stch.ToStdString();
 }
@@ -939,11 +947,45 @@ bool Model::ModelRenamed(const std::string &oldName, const std::string &newName)
     return changed;
 }
 
+bool Model::UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used)
+{
+    bool valid = false;
+
+    used.push_back(GetName());
+
+    std::string dependsonmodel;
+    long StartChannel = GetNumberFromChannelString(ModelStartChannel, valid, dependsonmodel);
+    while (!valid && dependsonmodel != "" && std::find(used.begin(), used.end(), dependsonmodel) == used.end())
+    {
+        Model* m = models[dependsonmodel];
+        if (m != nullptr)
+        {
+            valid = m->UpdateStartChannelFromChannelString(models, used);
+        }
+        if (valid)
+        {
+            StartChannel = GetNumberFromChannelString(ModelStartChannel, valid, dependsonmodel);
+        }
+    }
+
+    if (valid)
+    {
+        size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
+        int ChannelsPerString = CalcCannelsPerString();
+        SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
+    }
+
+    CouldComputeStartChannel = valid;
+    return valid;
+}
+
 int Model::GetNumberFromChannelString(const std::string &sc) const {
     bool v = false;
-    return GetNumberFromChannelString(sc, v);
+    std::string dependsonmodel;
+    return GetNumberFromChannelString(sc, v, dependsonmodel);
 }
-int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const {
+
+int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::string& dependsonmodel) const {
     std::string sc(str);
     int output = 1;
     valid = true;
@@ -954,6 +996,7 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
             int returnChannel = wxAtoi(sc);
             bool fromStart = start[0] == '@';
             start = start.substr(1, start.size());
+            dependsonmodel = start;
             Model *m = modelManager[start];
             if (m != nullptr && m->CouldComputeStartChannel) {
                 if (fromStart) {
@@ -982,11 +1025,12 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
                 // #ip:universe:channel
                 returnUniverse = wxAtoi(cs[1]);
                 returnChannel = wxAtoi(cs[2]);
-                int res =  modelManager.GetNetInfo().CalcUniverseChannel(cs[0].Trim(false).Trim(true), returnUniverse, returnChannel);
-                if (res < 1)
+
+                int res = modelManager.GetOutputManager()->GetAbsoluteChannel(cs[0].Trim(false).Trim(true).ToStdString(), returnUniverse - 1, returnChannel - 1);
+                if (res < 0)
                 {
-                    valid = false;
                     res = 1;
+                    valid = false;
                 }
                 return res;
             }
@@ -997,11 +1041,11 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
                 returnUniverse = wxAtoi(ss.SubString(1, ss.Find(":") - 1));
 
                 // find output based on universe number ...
-                int res =  modelManager.GetNetInfo().CalcUniverseChannel(returnUniverse, returnChannel);
-                if (res < 1)
+                int res = modelManager.GetOutputManager()->GetAbsoluteChannel("", returnUniverse - 1, returnChannel - 1);
+                if (res < 0) 
                 {
-                    valid = false;
                     res = 1;
+                    valid = false;
                 }
                 return res;
             }
@@ -1014,7 +1058,7 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const
     }
     int returnChannel = wxAtoi(sc);
     if (output > 1) {
-        returnChannel = modelManager.GetNetInfo().CalcAbsChannel(output - 1, returnChannel - 1) + 1;
+        returnChannel = modelManager.GetOutputManager()->GetAbsoluteChannel(output - 1, returnChannel - 1);
         if (returnChannel < 1)
         {
             valid = false;
@@ -1121,7 +1165,8 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     }
 
     CouldComputeStartChannel = true;
-    StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel);
+    std::string  dependsonmodel;
+    StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
     tempstr=ModelNode->GetAttribute("Dir");
     IsLtoR=tempstr != "R";
     if (ModelNode->HasAttribute("StartSide")) {
@@ -1231,7 +1276,8 @@ void Model::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int Star
         tempstr = StartChanAttrName(i);
         if (!zeroBased && HasIndividualStartChans && ModelXml->HasAttribute(tempstr)) {
             bool b = false;
-            stringStartChan[i] = GetNumberFromChannelString(ModelXml->GetAttribute(tempstr, "1").ToStdString(), b)-1;
+            std::string dependsonmodel;
+            stringStartChan[i] = GetNumberFromChannelString(ModelXml->GetAttribute(tempstr, "1").ToStdString(), b, dependsonmodel)-1;
             CouldComputeStartChannel &= b;
         } else {
             stringStartChan[i] = (zeroBased? 0 : StartChannel-1) + i*ChannelsPerString;
@@ -1723,7 +1769,7 @@ size_t Model::GetChannelCoords(wxArrayString& choices) { //wxChoice* choices1, w
         wxString newstr;
         //        debug(10, "model::node[%d/%d]: #coords %d, ach# %d, str %d", n, NodeCount, Nodes[n]->Coords.size(), Nodes[n]->StringNum, Nodes[n]->ActChan);
         if (Nodes[n]->Coords.empty()) continue;
-        //        newstr = wxString::Format(wxT("%d"), GetNodeNumber(n));
+        //        newstr = wxString::Format(wxT("%i"), GetNodeNumber(n));
         //        choices.Add(newstr);
         choices.Add(GetNodeXY(n));
         //        if (choices1) choices1->Append(newstr);
@@ -1970,8 +2016,8 @@ wxCursor Model::InitializeLocation(int &handle, wxCoord x,wxCoord y) {
 
 void Model::ApplyTransparency(xlColor &color, int transparency) {
     if (transparency) {
-        float t = 100.0 - transparency;
-        t *= 2.55;
+        float t = 100.0f - transparency;
+        t *= 2.55f;
         transparency = t;
         color.alpha = transparency > 255 ? 255 : (transparency < 0 ? 0 : transparency);
     }
@@ -2149,7 +2195,7 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
             if (sx >= (px - pointScale) && sx <= (px + pointScale)  &&
                 sy >= (py - pointScale) && sy <= (py + pointScale))
             {
-                return wxString::Format("%d",i);
+                return wxString::Format(wxT("%i"),i);
             }
         }
         i++;
@@ -2458,7 +2504,8 @@ int Model::MapToNodeIndex(int strand, int node) const {
 
 void Model::RecalcStartChannels()
 {
-    modelManager.RecalcStartChannels();
+    //modelManager.OldRecalcStartChannels();
+    modelManager.NewRecalcStartChannels();
 }
 
 void Model::AddSizeLocationProperties(wxPropertyGridInterface *grid) {

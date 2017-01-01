@@ -196,7 +196,7 @@ public:
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);
     int GetNumSubModels() const { return subModels.size();}
-    Model *GetSubModel(int i) const { return i < subModels.size() ? subModels[i] : nullptr;}
+    Model *GetSubModel(int i) const { return i < (int)subModels.size() ? subModels[i] : nullptr;}
     void RemoveSubModel(const std::string &name);
     std::list<int> ParseFaceNodes(std::string channels);
 
@@ -228,8 +228,9 @@ public:
     unsigned int GetNumChannels();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml() const;
+    bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);
     int GetNumberFromChannelString(const std::string &sc) const;
-    int GetNumberFromChannelString(const std::string &sc, bool &valid) const;
+    int GetNumberFromChannelString(const std::string &sc, bool &valid, std::string& dependsonmodel) const;
     virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *color =  NULL, bool allowSelected = false);
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);

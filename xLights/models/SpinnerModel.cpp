@@ -247,11 +247,11 @@ void SpinnerModel::SetSpinnerCoord() {
     int armsperstring = parm3;
     int armcount = parm3*parm1;
 
-    float angle = (M_PI * 2.0 * 270.0) / 360.0;
-    float angleincrement = (M_PI * 2.0f * (float)arc) / ((float)stringcount * (float)armsperstring * 360.0);
-    if (arc < 360 & armsperstring * stringcount > 1)
+    float angle = ((float)M_PI * 2.0f * 270.0f) / 360.0f;
+    float angleincrement = (M_PI * 2.0f * (float)arc) / ((float)stringcount * (float)armsperstring * 360.0f);
+    if (arc < 360 && armsperstring * stringcount > 1)
     {
-        angleincrement = (M_PI * 2.0f * (float)arc) / (((float)stringcount * (float)armsperstring - 1) * 360.0);
+        angleincrement = (M_PI * 2.0f * (float)arc) / (((float)stringcount * (float)armsperstring - 1) * 360.0f);
     }
 
     bool cw = !IsLtoR;

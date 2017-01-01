@@ -6,6 +6,7 @@
 #include <wx/volume.h>
 #include <wx/progdlg.h>
 #include <wx/config.h>
+#include "outputs/Output.h"
 
 //(*InternalHeaders(FPPConnectDialog)
 #include <wx/intl.h>
@@ -41,8 +42,10 @@ BEGIN_EVENT_TABLE(FPPConnectDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _outputManager = outputManager;
+
 	//(*Initialize(FPPConnectDialog)
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer2;
@@ -116,6 +119,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_DIRPICKERCTRL1,wxEVT_COMMAND_DIRPICKER_CHANGED,(wxObjectEventFunction)&FPPConnectDialog::OnFilePickerCtrl_MediaFolderFileChanged);
 	Connect(ID_NOTEBOOK_FPP,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&FPPConnectDialog::OnNotebook_FPPPageChanged);
 	Connect(ID_CHECKBOX_UploadController,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnCheckBox_UploadControllerClick);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnCheckBox_UploadModelsClick);
 	Connect(ID_CHECKLISTBOX_Sequences,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&FPPConnectDialog::OnCheckListBox_SequencesToggled);
 	Connect(ID_BUTTON_Upload,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_UploadClick);
 	//*)
@@ -272,7 +276,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir)
 
     while (fcont)
     {
-        if (file != "xlights_rgbeffects.xml" && file != "xlights_networks.xml" && file != "xlights_keybindings.xml")
+        if (file != "xlights_rgbeffects.xml" && file != OutputManager::GetNetworksFileName() && file != "xlights_keybindings.xml")
         {
             // this could be a sequence file ... lets open it and check
             wxXmlDocument doc(xLightsFrame::CurrentDir + "/" + file);
@@ -351,7 +355,7 @@ void FPPConnectDialog::ValidateWindow()
     {
         wxArrayInt tmp;
         CheckListBox_Sequences->GetCheckedItems(tmp);
-        if (TextCtr_Username->GetValue() != "" && IsValidIP(TextCtrl_IPAddress->GetValue()) && (CheckBox_UploadController->IsChecked() || tmp.size() > 0))
+        if (TextCtr_Username->GetValue() != "" && IsValidIP(TextCtrl_IPAddress->GetValue()) && (CheckBox_UploadModels->IsChecked() || CheckBox_UploadController->IsChecked() || tmp.size() > 0))
         {
             Button_Upload->Enable();
         }
@@ -408,7 +412,7 @@ bool FPPConnectDialog::FTPUpload()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
-    FPP fpp(TextCtrl_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
+    FPP fpp(_outputManager, TextCtrl_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
 
     if (!fpp.IsConnected())
     {
@@ -421,12 +425,12 @@ bool FPPConnectDialog::FTPUpload()
 
     if (CheckBox_UploadController->IsChecked())
     {
-        fpp.SetOutputUniversesPlayer(frame->GetNetworksXMLRoot(), this);
+        fpp.SetOutputUniversesPlayer(this);
     }
 
     if (!cancelled && CheckBox_UploadModels->IsChecked())
     {
-        fpp.SetChannelMemoryMaps(&frame->AllModels, frame, this);
+        fpp.SetChannelMemoryMaps(&frame->AllModels, this);
     }
 
     if (!cancelled)
@@ -475,16 +479,16 @@ bool FPPConnectDialog::USBUpload()
     int count = 0;
     if (CheckBox_UploadController->IsChecked())
     {
-        FPP fpp;
-        std::string file = fpp.SaveFPPUniverses(frame->GetNetworksXMLRoot(), "", std::list<int>(), false);
+        FPP fpp(_outputManager);
+        std::string file = fpp.SaveFPPUniverses("", std::list<int>(), false);
         cancelled = CopyFile(file, std::string(tgtdir + "/universes"), true, progress, 0, 1000 / total);
         count++;
     }
 
     if (!cancelled && CheckBox_UploadModels->IsChecked())
     {
-        FPP fpp;
-        std::string file = fpp.SaveFPPChannelMemoryMaps(&frame->AllModels, frame);
+        FPP fpp(_outputManager);
+        std::string file = fpp.SaveFPPChannelMemoryMaps(&frame->AllModels);
         cancelled = CopyFile(file, std::string(tgtdir + "/channelmemorymaps"), true, progress, 0, 1000 / total);
         count++;
     }
@@ -731,6 +735,11 @@ void FPPConnectDialog::OnButton_ConsoleClick(wxCommandEvent& event)
 }
 
 void FPPConnectDialog::OnFilePickerCtrl_MediaFolderFileChanged(wxFileDirPickerEvent& event)
+{
+    ValidateWindow();
+}
+
+void FPPConnectDialog::OnCheckBox_UploadModelsClick(wxCommandEvent& event)
 {
     ValidateWindow();
 }

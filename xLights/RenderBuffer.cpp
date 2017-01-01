@@ -573,8 +573,8 @@ void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color)
         palette.GetColor(0,color);
         return;
     }
-    if (n >= 1.0) n=0.99999;
-    if (n < 0.0) n=0.0;
+    if (n >= 1.0) n=0.99999f;
+    if (n < 0.0) n=0.0f;
     float realidx=circular ? n*colorcnt : n*(colorcnt-1);
     int coloridx1=floor(realidx);
     int coloridx2=(coloridx1+1) % colorcnt;

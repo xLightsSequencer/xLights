@@ -6,7 +6,6 @@
 // Need to do these manually due to issues with wxSmith and wxTreeListCtrl
 #include <wx/treelist.h>
 #include <wx/treectrl.h>
-#include <wx/xml/xml.h>
 #include <wx/filename.h>
 
 //(*Headers(TestDialog)
@@ -27,8 +26,10 @@
 #include <string>
 #include <list>
 #include "models/ModelManager.h"
-#include "xlights_out.h"
 #include "SequenceData.h"
+#include "outputs/OutputManager.h"
+#include "outputs/Output.h"
+
 typedef SequenceData SeqDataType;
 
 #ifdef __WXOSX__
@@ -43,9 +44,10 @@ public:
 
 	typedef enum CONTROLLERTYPE // Types of tree nodes
 	{
-		CT_E131, CT_NULL, CT_DMX, CT_CHANNEL, CT_CONTROLLERROOT, CT_MODELROOT, CT_MODELGROUPROOT, CT_MODEL, CT_NODE, CT_MODELGROUP, CT_LOR, CT_ARTNET
+		CT_CONTROLLER, CT_CHANNEL, CT_CONTROLLERROOT, CT_MODELROOT, CT_MODELGROUPROOT, CT_MODEL, CT_NODE, CT_MODELGROUP
 	} CONTROLLERTYPE;
 private:
+    Output* _output;
 	std::string _name; // what to display on the tree
 	std::string _modelName; // the underlying model name
 	std::string _description; // description of the controller
@@ -58,11 +60,9 @@ private:
 	int _startxlightschannel; // the xlights start channel
 	int _endxlightschannel; // the xlights end channel
 	std::string _universe; // the universe of a controller
-	int _nullcount; // where multiple null controllers exist this is a unique identifier
 	int _nodeNumber; // where this is a node this is the node within the model
 	bool _doesNotExist; // where a node/model/model group cannot be used because underlying channels are not available then this will be true
 	CONTROLLERTYPE _type; // the type of node this is
-	int _universes; // where a dmx controller can support multiple universes this is how many universes it is supporting
 	bool _multiuniversedmx; // true if this is a multi universe dmx controller
 	int _nodes; // number of nodes (in a model)
 	wxTreeListItem _treeListItem; // the item this is associated with
@@ -75,18 +75,15 @@ private:
 
 public:
 	// Constructors vary by type
-	TreeController(wxXmlNode* n, int xlightsstartchannel, int nullcount);
+	TreeController(Output* output);
 	TreeController(int channel, CONTROLLERTYPE type, int xLightsChannel);
 	TreeController(CONTROLLERTYPE type, int start, int end);
 	TreeController(CONTROLLERTYPE type, std::string name);
 	TreeController(CONTROLLERTYPE type, int xLightsChannel, int node, int channelspernode);
 
-	// Called to create a TreeController for a sub universe of a multi universe controller
-	TreeController* GenerateUniverse(int universeoffset);
-
 	// Accessors
 	std::string Name() { return _name; };
-	bool IsNULL() { return _type == CONTROLLERTYPE::CT_NULL; };
+	bool IsNULL() { return _output != nullptr && !_output->IsOutputable(); };
 	bool IsChannel() { return _type == CONTROLLERTYPE::CT_CHANNEL; };
 	bool Inactive() { return _inactive; };
 	bool IsDoesNotExist() { return _doesNotExist; };
@@ -104,7 +101,7 @@ public:
 	CONTROLLERTYPE GetType() { return _type; };
 	std::string ModelName() { return _modelName; };
 	bool ContainsChannel(int ch);
-	bool Clickable() { return (!IsNULL() && !IsDoesNotExist() && !Inactive()); };
+	bool Clickable() { return (!IsDoesNotExist() && !Inactive() && (_output == nullptr || _output->IsOutputable())); };
 	void SetColour(char colour) { _colour = colour; GenerateName(); };
 	char GetColour() { return _colour; };
 };
@@ -126,7 +123,7 @@ class TestDialog: public wxDialog
 
 	public:
 
-		TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName networkFile, ModelManager* modelManager, wxWindowID id=wxID_ANY);
+		TestDialog(wxWindow* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id=wxID_ANY);
 		virtual ~TestDialog();
 		wxTreeListCtrl* TreeListCtrl_Channels;
 		wxTreeListItem  _controllers;
@@ -139,8 +136,6 @@ class TestDialog: public wxDialog
 		int _twinkleRatio;
 		int _chaseGrouping;
 		bool _checkChannelList;
-		xOutput* _xout;
-		wxCriticalSection _xoutCriticalSection;
 		wxDateTime _starttime;
 		SeqDataType _seqData;
 		std::map<std::string, std::vector<TreeController*>> _modelLookup;
@@ -208,7 +203,7 @@ class TestDialog: public wxDialog
 
 	protected:
 
-		wxXmlDocument* _network;
+		OutputManager* _outputManager;
 		static const long ID_TREELISTCTRL_Channels;
 
 		//(*Identifiers(TestDialog)
@@ -316,18 +311,16 @@ class TestDialog: public wxDialog
         void OnTreeListCtrl1ItemSelected(wxTreeListEvent& event);
 
 		TreeController::CONTROLLERTYPE GetTreeItemType(const wxTreeListItem& item);
-		void PopulateControllerTree(wxXmlDocument* network);
+		void PopulateControllerTree();
 		void PopulateModelsTree(ModelManager* modelManager);
 		void PopulateModelGroupsTree(ModelManager* modelManager);
 		bool CascadeSelected(wxTreeListItem& item, wxCheckBoxState state);
 		void DestroyTreeControllerData(wxTreeListItem& item);
-		void GetTestPresetNames(wxArrayString& PresetNames);
 		bool CheckChannel(long chid, wxCheckBoxState state);
 		std::list<std::string> GetModelsOnChannels(int start, int end);
 		void Clear(wxTreeListItem& item);
 		void GetCheckedItems(wxArrayInt& chArray);
 		void GetCheckedItems(wxArrayInt& chArray, char col);
-		bool InitialiseOutputs();
 		void OnTimer(long curtime);
 		double Rand01() { return (double)rand() / (double)RAND_MAX; };
 		void TestButtonsOff();
@@ -337,6 +330,7 @@ class TestDialog: public wxDialog
 		void CascadeColour(TreeController* tc);
 		char DoEncodeColour(xlColor& c);
         void SetTreeTooltip(wxTreeListItem& item);
+        void AddController(Output* output);
 
 		DECLARE_EVENT_TABLE()
 };

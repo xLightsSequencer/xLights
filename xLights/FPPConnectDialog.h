@@ -17,10 +17,11 @@
 #include <wx/dialog.h>
 //*)
 
-#include <wx/xml/xml.h>
+class OutputManager;
 
 class FPPConnectDialog: public wxDialog
 {
+    OutputManager* _outputManager;
     void LoadSequencesFromFolder(wxString dir);
     void LoadSequences();
     bool CopyFile(std::string source, std::string target, bool backup, wxProgressDialog &progress, int start, int end);
@@ -33,7 +34,7 @@ class FPPConnectDialog: public wxDialog
 
 	public:
 
-		FPPConnectDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		FPPConnectDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~FPPConnectDialog();
 
 		//(*Declarations(FPPConnectDialog)
@@ -95,6 +96,7 @@ class FPPConnectDialog: public wxDialog
 		void OnNotebook_FPPPageChanged(wxNotebookEvent& event);
 		void OnButton_ConsoleClick(wxCommandEvent& event);
 		void OnFilePickerCtrl_MediaFolderFileChanged(wxFileDirPickerEvent& event);
+		void OnCheckBox_UploadModelsClick(wxCommandEvent& event);
 		//*)
 
         void OnSequenceRClick(wxMouseEvent& event);

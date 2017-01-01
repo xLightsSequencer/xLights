@@ -57,7 +57,7 @@ void xLightsFrame::EndScript(const char *scriptname)
     PlayerDlg->Stop();
     ResetTimer(NO_SEQ);
     PlayerDlg->Show(false);
-    if (xout) xout->alloff();
+    _outputManager.AllOff();
     wxString wxname(scriptname, wxConvUTF8);
     SendToLogAndStatusBar(_("Ended playlist: ")+wxname);
 }
@@ -487,9 +487,9 @@ int xLightsFrame::FindNotebookPage(wxString& pagename)
 
 void xLightsFrame::TimerOutput(int period)
 {
-    if (CheckBoxLightOutput->IsChecked() && xout)
+    if (CheckBoxLightOutput->IsChecked())
     {
-        xout->SetIntensities(0, &SeqData[period][0], SeqData.NumChannels());
+        _outputManager.SetManyChannels(0, &SeqData[period][0], SeqData.NumChannels());
     }
 }
 
@@ -532,10 +532,10 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         ResetTimer(PLAYING_SEQ_ANIM);
         break;
     case PLAYING_SEQ_ANIM:
-        if (xout && !xout->TxEmpty())
+        if (_outputManager.IsOutputting() && !_outputManager.TxEmpty())
         {
             TxOverflowCnt++;
-            TxOverflowTotal += xout->TxNonEmptyCount(); //show how much -DJ
+            TxOverflowTotal += _outputManager.TxNonEmptyCount(); //show how much -DJ
 //            break; //keep going; might catch up -DJ
         }
         period = msec / SeqData.FrameTime();
@@ -569,10 +569,10 @@ void xLightsFrame::OnTimerPlaylist(long msec)
             ResetTimer(basic.IsRunning() ? DELAY_AFTER_PLAY : PAUSE_SEQ);
             return;
         }
-        if (xout && !xout->TxEmpty())
+        if (_outputManager.IsOutputting() && !_outputManager.TxEmpty())
         {
             TxOverflowCnt++;
-            TxOverflowTotal += xout->TxNonEmptyCount(); //show how much -DJ
+            TxOverflowTotal += _outputManager.TxNonEmptyCount(); //show how much -DJ
 //            break; //keep going; might catch up -DJ
         }
         msec = PlayerDlg->Tell();

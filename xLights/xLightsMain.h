@@ -55,13 +55,12 @@
 #include <set>
 #include <vector>
 
+#include "outputs/OutputManager.h"
 #include "EffectTreeDialog.h"
-#include "xlights_out.h"
 #include "PlayerFrame.h"
 #include "EffectsPanel.h"
 #include "AddShowDialog.h"
 #include "PixelBuffer.h"
-#include "NetInfo.h"
 #include "ModelPreview.h"
 #include "EffectAssist.h"
 #include "SequenceData.h"
@@ -155,9 +154,6 @@ static const wxString xlights_build_date      = "Dec 31, 2016";
 
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
 static const wxString strSequenceSaveAsFileTypes = "xLights Sequences(*.xml)|*.xml";
-static wxCriticalSection gs_xoutCriticalSection;
-
-
 
 typedef SequenceData SeqDataType;
 
@@ -282,7 +278,6 @@ public:
     };
     long SecondsRemaining, EndTimeSec;
     int TxOverflowCnt, TxOverflowTotal;
-    xOutput* xout;
     std::mutex saveLock;
 
     PhonemeDictionary dictionary;
@@ -315,7 +310,7 @@ public:
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int section = 0);
 	std::string GetChannelToControllerMapping(long channel);
-    void GetControllerDetailsForChannel(long channel, std::string& type, std::string& description, int& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output);
+    void GetControllerDetailsForChannel(long channel, std::string& type, std::string& description, long& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output);
 
     enum LAYER_OPTIONS_e
     {
@@ -343,14 +338,14 @@ public:
     static wxString xlightsFilename; //expose current path name -DJ
     static xLightsXmlFile* CurrentSeqXmlFile; // global object for currently opened XML file
     const wxString &GetShowDirectory() const { return showDirectory; }
-    NetInfoClass& GetNetInfo() { return NetInfo; }
     static wxString GetFilename() { return xlightsFilename; }
     void ConversionInit();
     void ConversionError(const wxString& msg);
     void PlayerError(const wxString& msg);
     void SetMediaFilename(const wxString& filename);
     void RenderIseqData(bool bottom_layers, ConvertLogDialog* plog);
-    bool IsSequenceDataValid() { return SeqData.IsValidData(); }
+    bool IsSequenceDataValid() const
+    { return SeqData.IsValidData(); }
     void ClearSequenceData();
     void LoadAudioData(xLightsXmlFile& xml_file);
     void CreateDebugReport(wxDebugReportCompress *report);
@@ -862,7 +857,7 @@ private:
     PlayerFrame* PlayerDlg;
     wxArrayString mru;  // most recently used directories
     wxMenuItem* mru_MenuItem[MRU_LENGTH];
-    wxXmlDocument NetworkXML;
+    OutputManager _outputManager;
     long DragRowIdx;
     wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges;
@@ -872,7 +867,6 @@ private:
     int mLastAutosaveCount;
     wxDateTime starttime;
     play_modes play_mode;
-    NetInfoClass NetInfo;
     ModelPreview* modelPreview;
     EffectManager effectManager;
     int effGridPrevX;
@@ -885,7 +879,6 @@ private:
     static double rand01();
     bool EnableOutputs();
     void EnableNetworkChanges();
-    void AllLightsOff();
     void InitEffectsPanel(EffectsPanel* panel);
 
     // setup
@@ -893,17 +886,20 @@ private:
     bool SetDir(const wxString& dirname);
     bool PromptForShowDirectory();
     void UpdateNetworkList(bool updateModels);
-    long GetNetworkSelection();
-    void MoveNetworkRow(int fromRow, int toRow);
+    long GetNetworkSelection() const;
+    long GetLastNetworkSelection() const;
+    int GetNetworkSelectedItemCount() const;
+    void MoveNetworkRows(int toRow, bool reverse);
     void OnGridNetworkDragQuit(wxMouseEvent& event);
     void OnGridNetworkDragEnd(wxMouseEvent& event);
-    void SetupDongle(wxXmlNode* e, int after = -1);
-    void SetupE131(wxXmlNode* e, int after = -1);
-    void SetupArtNet(wxXmlNode* e, int after = -1);
-    void SetupNullOutput(wxXmlNode* e, int after = -1);
+    void OnGridNetworkMove(wxMouseEvent& event);
+    void OnGridNetworkScrollTimer(wxTimerEvent& event);
+    void SetupDongle(Output* e, int after = -1);
+    void SetupE131(Output* e, int after = -1);
+    void SetupArtNet(Output* e, int after = -1);
+    void SetupNullOutput(Output* e, int after = -1);
     bool SaveNetworksFile();
     void NetworkChange();
-    std::list<wxXmlNode> GetOutputsForController(const std::string ip);
     std::list<int> GetSelectedOutputs(wxString& ip);
     void UploadFPPBridgeInput();
     void UploadFPPBridgeOutput();
@@ -913,7 +909,6 @@ private:
     void DeleteSelectedNetworks();
     void ActivateSelectedNetworks(bool active);
     void ChangeSelectedNetwork();
-    wxXmlNode* GetOutput(int num);
     bool AllSelectedSupportIP();
     bool AllSelectedSupportChannels();
     void UpdateSelectedIPAddresses();
@@ -928,6 +923,7 @@ private:
     wxString showDirectory;
     wxString mediaDirectory;
     SeqDataType SeqData;
+    wxTimer _scrollTimer;
 
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
@@ -954,7 +950,7 @@ public:
     void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = NULL);
     void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg); // = NULL);
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
-    wxXmlNode* GetNetworksXMLRoot() { return NetworkXML.GetRoot(); };
+    OutputManager* GetOutputManager() { return &_outputManager; };
 
 private:
 
@@ -1110,6 +1106,7 @@ private:
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
 	bool mLoopAudio;
+    bool _setupChanged; // set to true if something changes on the setup tab which would require the layout tab to have the model start channels recalculated
 
     bool mResetToolbars;
     bool mRenderOnSave;
@@ -1149,7 +1146,6 @@ private:
     int SeqPlayColumn;
 
 	wxArrayString ChNames;
-	int _totalChannels;
 
     int PlaybackPeriod; //used to be able to record the frame being played in an animation preview
 
@@ -1165,7 +1161,6 @@ public:
     void UpdatePreview();
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
-    int GetTotalChannels() const { return _totalChannels; };
     void ForceSequencerRefresh();
     void RefreshLayout();
     void AddPreviewOption(LayoutGroup* grp);

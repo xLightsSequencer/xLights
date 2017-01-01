@@ -1,0 +1,25 @@
+#ifndef DLIGHTOUTPUT_H
+#define DLIGHTOUTPUT_H
+
+#include "LOROutput.h"
+
+// This is aparently the same as LOR Output
+
+class DLightOutput : public LOROutput
+{
+public:
+
+    #pragma region Constructors and Destructors
+    DLightOutput(wxXmlNode* node) : LOROutput(node) {};
+    DLightOutput(SerialOutput* output) : LOROutput(output) {};
+    DLightOutput() : LOROutput() {};
+    virtual ~DLightOutput() override {};
+    #pragma endregion Constructors and Destructors
+
+    #pragma region Getters and Setters
+    virtual std::string GetType() const override { return OUTPUT_DLIGHT; }
+    virtual std::string GetSetupHelp() const override { return "D-Light controllers attached to a D-Light dongle.\nMax of 8 channels at 9600 baud.\nMax of 48 channels at 57600 baud.\nMax of 96 channels at 115200 baud.\nRun your controllers in DMX mode for higher throughput."; }
+    #pragma endregion Getters and Setters
+};
+
+ #endif

@@ -14,6 +14,7 @@
 #include "xLightsMain.h"
 #include "ConvertDialog.h"
 #include "ConvertLogDialog.h"
+#include "outputs/Output.h"
 
 #define string_format wxString::Format
 
@@ -73,7 +74,7 @@ void ConvertParameters::PlayerError(wxString msg)
 }
 ConvertParameters::ConvertParameters( wxString inp_filename_,
                                       SequenceData& seq_data_,
-                                      NetInfoClass& NetInfo_,
+                                      OutputManager* outputManager_,
                                       ReadMode read_mode_,
                                       xLightsFrame* xLightsFrm_,
                                       ConvertDialog* convertDialog_,
@@ -89,7 +90,7 @@ ConvertParameters::ConvertParameters( wxString inp_filename_,
   out_filename(out_filename_),
   sequence_interval(sequence_interval_),
   seq_data(seq_data_),
-  NetInfo(NetInfo_),
+  _outputManager(outputManager_),
   media_filename(media_filename_),
   data_layer(data_layer_),
   channels_off_at_end(channels_off_at_end_),
@@ -311,7 +312,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
 
-    long TotChannels=params.NetInfo.GetTotChannels();
+    long TotChannels=params._outputManager->GetTotalChannels();
     for (int x = 0; x < TotChannels; x++) {
         ChannelColors.push_back(0);
         ChannelNames.push_back("");
@@ -457,7 +458,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
         {
             numFrames=1;
         }
-        params.seq_data.init(params.NetInfo.GetTotChannels(), numFrames,  params.sequence_interval);
+        params.seq_data.init(params._outputManager->GetTotalChannels(), numFrames,  params.sequence_interval);
     }
     else
     {
@@ -592,7 +593,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         chindex=circuit-1;
                         network--;
                         network += lorUnitSizes.size();
-                        curchannel = params.NetInfo.CalcAbsChannel(network,chindex);
+                        curchannel = params._outputManager->GetAbsoluteChannel(network,chindex);
                     }
                     else if (Left(deviceType, 3) == "LOR")
                     {
@@ -602,12 +603,12 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                             chindex += lorUnitSizes[network][z];
                         }
                         chindex += circuit-1;
-                        curchannel = params.NetInfo.CalcAbsChannel(network,chindex);
+                        curchannel = params._outputManager->GetAbsoluteChannel(network,chindex);
                     } else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
                         curchannel = -1;
                     } else {
                         chindex++;
-                        if (chindex < params.NetInfo.GetTotChannels())
+                        if (chindex < params._outputManager->GetTotalChannels())
                         {
                             curchannel = chindex;
                         }
@@ -784,7 +785,7 @@ void FileConverter::ReadXlightsFile(ConvertParameters& params)
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
 
-    long TotChannels=params.NetInfo.GetTotChannels();
+    long TotChannels=params._outputManager->GetTotalChannels();
     for (int x = 0; x < TotChannels; x++) {
         ChannelColors.push_back(0);
         ChannelNames.push_back("");
@@ -990,7 +991,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
     for (tmp = 0; tmp < map.size(); tmp += 2)
     {
         int i = map[tmp + 1];
-        int orig = params.NetInfo.GetNumChannels(tmp / 2);
+        int orig = params._outputManager->GetOutput(tmp / 2)->GetChannels();
         if (i < orig) {
             params.AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d"), map[tmp], i, orig), false);
             i = orig;
@@ -1134,7 +1135,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
                             ChannelNames[channels] = Left(ChannelName, idx);
                             ChannelColors[channels] = 0x00FFFFFF;
                         }
-                        wxString o2 = params.NetInfo.GetChannelName(channels);
+                        wxString o2 = params._outputManager->GetChannelName(channels);
                         params.AppendConvertStatus (string_format("Map %s -> %s (%s)",
                                                            ChannelNames[channels].c_str(),
                                                            origName.c_str(),
@@ -1253,7 +1254,7 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
 
-    long TotChannels=params.NetInfo.GetTotChannels();
+    long TotChannels=params._outputManager->GetTotalChannels();
     for (int x = 0; x < TotChannels; x++) {
         ChannelColors.push_back(0);
         ChannelNames.push_back("");
@@ -1468,7 +1469,7 @@ void FileConverter::ReadGlediatorFile(ConvertParameters& params)
     //wxString filename=string_format(wxString("01 - Carol of the Bells.mp3")); // hard code a mp3 file for now
     size_t readcnt;
 
-    long TotChannels=params.NetInfo.GetTotChannels();
+    long TotChannels=params._outputManager->GetTotalChannels();
     for (int x = 0; x < TotChannels; x++) {
         ChannelColors.push_back(0);
         ChannelNames.push_back("");
@@ -1550,7 +1551,7 @@ void FileConverter::ReadConductorFile(ConvertParameters& params)
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
 
-    long TotChannels=params.NetInfo.GetTotChannels();
+    long TotChannels=params._outputManager->GetTotalChannels();
     for (int x = 0; x < TotChannels; x++) {
         ChannelColors.push_back(0);
         ChannelNames.push_back("");
@@ -1558,8 +1559,8 @@ void FileConverter::ReadConductorFile(ConvertParameters& params)
     params.seq_data.init(0, 0, params.sequence_interval);
 
     if( params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ) {
-        wxWindow* parent = NULL;
-        if (params.convertDialog != NULL)
+        wxWindow* parent = nullptr;
+        if (params.convertDialog != nullptr)
         {
             parent = params.convertDialog;
         }

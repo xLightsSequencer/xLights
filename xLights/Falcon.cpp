@@ -5,6 +5,8 @@
 #include <wx/xml/xml.h>
 #include "models/Model.h"
 #include <log4cpp/Category.hh>
+#include "outputs/OutputManager.h"
+#include "outputs/Output.h"
 
 Falcon::Falcon(const std::string& ip)
 {
@@ -137,105 +139,77 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request, b
     return res.ToStdString();
 }
 
-void Falcon::SetInputUniverses(const wxXmlNode* root)
+void Falcon::SetInputUniverses(OutputManager* outputManager)
 {
     wxString request;
     long currentcontrollerendchannel = 0;
     int output = 0;
 
-    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
-    {
-        if (e->GetName() == "network")
-        {
-            long currentcontrollerstartchannel = currentcontrollerendchannel + 1;
-            wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
-            long MaxChannels;
-            MaxChannelsStr.ToLong(&MaxChannels);
-            int universes = wxAtoi(e->GetAttribute("NumUniverses", "1"));
-            currentcontrollerendchannel = currentcontrollerstartchannel + (MaxChannels * universes) - 1;
+    auto outputs = outputManager->GetAllOutputs(_ip);
 
-            std::string type = std::string(e->GetAttribute("NetworkType", ""));
-            std::string ip = std::string(e->GetAttribute("ComPort", ""));
-            int u = wxAtoi(e->GetAttribute("BaudRate", ""));
-            int t = -1;
-            if (type == "E131")
-            {
-                t = 0;
-            }
-            else if (type == "ArtNet")
-            {
-                t = 1;
-            }
-            if ((type == "E131" || type == "ArtNet") && ip == _ip)
-            {
-                for (int i = 0; i < universes; i++)
-                {
-                    request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
-                        output, u + i,
-                        output, MaxChannels,
-                        output, currentcontrollerstartchannel,
-                        output, t);
-                    output++;
-                }
-            }
+    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    {
+        int t = -1;
+        if ((*it)->GetType() == "E131")
+        {
+            t = 0;
         }
+        else if ((*it)->GetType() == "ArtNet")
+        {
+            t = 1;
+        }
+        request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
+            output, (*it)->GetUniverse(),
+            output, (*it)->GetChannels(),
+            output, (*it)->GetStartChannel(),
+            output, t);
+        output++;
     }
 
     request = wxString::Format("z=%d", output) + request;
     std::string response = PutURL("/E131.htm", request.ToStdString());
 }
 
-void Falcon::SetInputUniverses(const wxXmlNode* root, std::list<int>& selected)
+void Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
 {
     wxString request;
-    long currentcontrollerendchannel = 0;
     int output = 0;
-    int node = 0;
 
-    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
+    // Get universes based on IP
+    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip);
+
+    // get outputs based on selected
+    std::list<Output*> o2 = outputManager->GetAllOutputs(selected);
+
+    // now merge them together and eleminate the duplicates
+    outputs.merge(o2);
+    outputs.sort();
+    outputs.unique();
+
+    for (auto it = outputs.begin(); it != outputs.end(); ++it)
     {
-        if (e->GetName() == "network")
+        int t = -1;
+        if ((*it)->GetType() == "E131")
         {
-            long currentcontrollerstartchannel = currentcontrollerendchannel + 1;
-            wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
-            long MaxChannels;
-            MaxChannelsStr.ToLong(&MaxChannels);
-            int universes = wxAtoi(e->GetAttribute("NumUniverses", "1"));
-            currentcontrollerendchannel = currentcontrollerstartchannel + (MaxChannels * universes) - 1;
-
-            std::string type = std::string(e->GetAttribute("NetworkType", ""));
-            std::string ip = std::string(e->GetAttribute("ComPort", ""));
-            int u = wxAtoi(e->GetAttribute("BaudRate", ""));
-            int t = -1;
-            if (type == "E131")
-            {
-                t = 0;
-            }
-            else if (type == "ArtNet")
-            {
-                t = 1;
-            }
-            if ((type == "E131" || type == "ArtNet") && (ip == _ip || std::find(selected.begin(), selected.end(), node) != selected.end()))
-            {
-                for (int i = 0; i < universes; i++)
-                {
-                    request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
-                        output, u + i,
-                        output, MaxChannels,
-                        output, currentcontrollerstartchannel,
-                        output, t);
-                    output++;
-                }
-            }
-            node++;
+            t = 0;
         }
+        else if ((*it)->GetType() == "ArtNet")
+        {
+            t = 1;
+        }
+        request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
+            output, (*it)->GetUniverse(),
+            output, (*it)->GetChannels(),
+            output, (*it)->GetStartChannel(),
+            output, t);
+        output++;
     }
 
     request = wxString::Format("z=%d", output) + request;
     std::string response = PutURL("/E131.htm", request.ToStdString());
 }
 
-void Falcon::SetInputUniverses(const std::list<wxXmlNode>& inputs)
+void Falcon::SetInputUniverses(const std::list<Output*>& inputs)
 {
     wxString request;
 
@@ -246,34 +220,23 @@ void Falcon::SetInputUniverses(const std::list<wxXmlNode>& inputs)
 
     for (auto it = inputs.begin(); it != inputs.end(); ++it)
     {
-        std::string type = std::string(it->GetAttribute("NetworkType", ""));
         int t = -1;
 
-        if (type == "E131")
+        if ((*it)->GetType() == "E131")
         {
             t = 0;
         }
-        else if (type == "ArtNet")
+        else if ((*it)->GetType() == "ArtNet")
         {
             t = 1;
         }
 
-        int u = wxAtoi(it->GetAttribute("BaudRate", ""));
-        wxString MaxChannelsStr = it->GetAttribute("MaxChannels", "0");
-        long c;
-        MaxChannelsStr.ToLong(&c);
-        int ucount = wxAtoi(it->GetAttribute("NumUniverses", "1"));
-
-        for (int i = 0; i < ucount; i++)
-        {
-            request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
-                output, u + i,
-                output, c,
-                output, ch,
-                output, t);
-            ch += c;
-            output++;
-        }
+        request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
+            output, (*it)->GetUniverse(),
+            output, (*it)->GetChannels(),
+            output, (*it)->GetStartChannel(),
+            output, t);
+        output++;
     }
 
     std::string response = PutURL("/E131.htm", request.ToStdString());
@@ -287,7 +250,7 @@ bool compare_startchannel(const Model* first, const Model* second)
     return firstmodelstart < secondmodelstart;
 }
 
-void Falcon::SetOutputs(ModelManager* allmodels, wxXmlNode* root, std::list<int>& selected, wxWindow* parent)
+void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
 
@@ -297,75 +260,71 @@ void Falcon::SetOutputs(ModelManager* allmodels, wxXmlNode* root, std::list<int>
     std::list<Model*> models;
     std::list<std::string> protocolsused;
     std::list<Model*> warnedmodels;
-    int node = 0;
     int maxport = 0;
     long currentcontrollerendchannel = 0;
-    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
+
+    // Get universes based on IP
+    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip);
+
+    // get outputs based on selected
+    std::list<Output*> o2 = outputManager->GetAllOutputs(selected);
+
+    // now merge them together and eleminate the duplicates
+    outputs.merge(o2);
+    outputs.sort();
+    outputs.unique();
+
+    for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
     {
-        if (e->GetName() == "network")
+        // this universe is sent to the falcon
+
+        // find all the models in this range
+        for (auto it = allmodels->begin(); it != allmodels->end(); ++it)
         {
-            long currentcontrollerstartchannel = currentcontrollerendchannel + 1;
-            wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
-            long MaxChannels;
-            MaxChannelsStr.ToLong(&MaxChannels);
-            int universes = wxAtoi(e->GetAttribute("NumUniverses", "1"));
-
-            currentcontrollerendchannel = currentcontrollerstartchannel + (MaxChannels * universes) - 1;
-            std::string type = std::string(e->GetAttribute("NetworkType", ""));
-            std::string ip = std::string(e->GetAttribute("ComPort", ""));
-            if ((type == "E131" || type == "ArtNet") && (ip == _ip || std::find(selected.begin(), selected.end(), node) != selected.end()))
+            if (it->second->GetDisplayAs() != "ModelGroup")
             {
-                // this universe is sent to the falcon
-
-                // find all the models in this range
-                for (auto it = allmodels->begin(); it != allmodels->end(); ++it)
+                int modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
+                int modelend = modelstart + it->second->GetChanCount() - 1;
+                if ((modelstart >= (*ito)->GetStartChannel() && modelstart <= (*ito)->GetEndChannel()) ||
+                    (modelend >= (*ito)->GetStartChannel() && modelend <= (*ito)->GetEndChannel()))
                 {
-                    if (it->second->GetDisplayAs() != "ModelGroup")
+                    //logger_base.debug("Model %s start %d end %d found on controller %s output %d start %d end %d.",
+                    //    (const char *)it->first.c_str(), modelstart, modelend,
+                    //    (const char *)_ip.c_str(), node, currentcontrollerstartchannel, currentcontrollerendchannel);
+                    if (!it->second->IsControllerConnectionValid())
                     {
-                        int modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
-                        int modelend = modelstart + it->second->GetChanCount() - 1;
-                        if ((modelstart >= currentcontrollerstartchannel && modelstart <= currentcontrollerendchannel) ||
-                            (modelend >= currentcontrollerstartchannel && modelend <= currentcontrollerendchannel))
+                        // only warn if we have not already warned
+                        if (std::find(warnedmodels.begin(), warnedmodels.end(), it->second) == warnedmodels.end())
                         {
-                            //logger_base.debug("Model %s start %d end %d found on controller %s output %d start %d end %d.",
-                            //    (const char *)it->first.c_str(), modelstart, modelend,
-                            //    (const char *)_ip.c_str(), node, currentcontrollerstartchannel, currentcontrollerendchannel);
-                            if (!it->second->IsControllerConnectionValid())
-                            {
-                                // only warn if we have not already warned
-                                if (std::find(warnedmodels.begin(), warnedmodels.end(), it->second) == warnedmodels.end())
-                                {
-                                    warnedmodels.push_back(it->second);
-                                    logger_base.warn("Falcon Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str(), (const char *)it->second->GetControllerConnection().c_str());
-                                    wxMessageBox("Model " + it->first + " on controller "+_ip+" does not have its Contoller Connection details completed: '"+it->second->GetControllerConnection()+"'. Model ignored.", "Model Ignored");
-                                }
-                            }
-                            else
-                            {
-                                // model uses channels in this universe
+                            warnedmodels.push_back(it->second);
+                            logger_base.warn("Falcon Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str(), (const char *)it->second->GetControllerConnection().c_str());
+                            wxMessageBox("Model " + it->first + " on controller " + _ip + " does not have its Contoller Connection details completed: '" + it->second->GetControllerConnection() + "'. Model ignored.", "Model Ignored");
+                        }
+                    }
+                    else
+                    {
+                        // model uses channels in this universe
 
-                                // check we dont already have this model in our list
-                                if (std::find(models.begin(), models.end(), it->second) == models.end())
-                                {
-                                    logger_base.debug("Falcon Outputs Upload: Uploading Model %s.", (const char *)it->first.c_str());
-                                    models.push_back(it->second);
-                                    if (std::find(protocolsused.begin(), protocolsused.end(), it->second->GetProtocol()) == protocolsused.end())
-                                    {
-                                        protocolsused.push_back(it->second->GetProtocol());
-                                    }
-                                    if (it->second->GetPort() > maxport)
-                                    {
-                                        maxport = it->second->GetPort();
-                                    }
-                                }
+                        // check we dont already have this model in our list
+                        if (std::find(models.begin(), models.end(), it->second) == models.end())
+                        {
+                            logger_base.debug("Falcon Outputs Upload: Uploading Model %s.", (const char *)it->first.c_str());
+                            models.push_back(it->second);
+                            if (std::find(protocolsused.begin(), protocolsused.end(), it->second->GetProtocol()) == protocolsused.end())
+                            {
+                                protocolsused.push_back(it->second->GetProtocol());
+                            }
+                            if (it->second->GetPort() > maxport)
+                            {
+                                maxport = it->second->GetPort();
                             }
                         }
                     }
                 }
             }
         }
-        node++;
     }
+
 
     // sort the models by start channel
     models.sort(compare_startchannel);

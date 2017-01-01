@@ -1,14 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////
-// Name:        serial_win32.cpp
-// Purpose:
-// Author:      Joachim Buermann (adapted for xLights by Matt Brown)
-// Id:          $Id: serport.cpp,v 1.1.1.1 2004/11/24 10:30:11 jb Exp $
-// Copyright:   (c) 2001 Joachim Buermann
-// Licence:     wxWindows licence
-/////////////////////////////////////////////////////////////////////////////
-
-
-// globals
+// This is the windows implementation of the SerialPort class
 
 #define SERIALPORT_BUFSIZE 6144
 
@@ -31,40 +21,41 @@ enum SerialLineState
 };
 
 
-// implementation of class methods
-
+#pragma region Constructors and Destructors
 SerialPort::SerialPort()
 {
-    m_devname = "";
-    callback = -1;
-    memset( &ov, 0, sizeof( OVERLAPPED ) );
-    fd = INVALID_HANDLE_VALUE;
-    rtsdtr_state = LinestateNull;
+    _devName = "";
+    _callback = -1;
+    memset( &_ov, 0, sizeof( OVERLAPPED ) );
+    _fd = INVALID_HANDLE_VALUE;
+    _rtsdtr_state = LinestateNull;
 }
 
 SerialPort::~SerialPort()
 {
     Close();
 }
+#pragma endregion Constructors and Destructors
 
+#pragma region Start and Stop
 int SerialPort::Close()
 {
-    if (fd != INVALID_HANDLE_VALUE)
+    if (_fd != INVALID_HANDLE_VALUE)
     {
-        //::wxMessageBox(_("CloseDevice(): ") + m_devname, _("Debug"));
-        CloseHandle(ov.hEvent);
-        CloseHandle(fd);
-        fd = INVALID_HANDLE_VALUE;
+        CloseHandle(_ov.hEvent);
+        CloseHandle(_fd);
+        _fd = INVALID_HANDLE_VALUE;
     }
+
     return 0;
 }
 
 // return 0 on success, negative value on error
-int SerialPort::Open(const wxString& devname, int baudrate, const char* protocol)
+int SerialPort::Open(const std::string& devName, int baudRate, const char* protocol)
 {
     if (strlen(protocol) != 3) return -1;
 
-    fd = CreateFile(devname.c_str(),  // device name
+    _fd = CreateFile(wxString(devName),  // device name
                     GENERIC_READ | GENERIC_WRITE,   // O_RDWR
                     0,                              // not shared
                     NULL,                           // default value for object security ?!?
@@ -72,22 +63,21 @@ int SerialPort::Open(const wxString& devname, int baudrate, const char* protocol
                     FILE_FLAG_OVERLAPPED,           // asynchron handling
                     NULL);                          // no more handle flags
 
-    m_devname = devname; //do this even if not found (makes it easier to know which one it was) -DJ
-    if(fd == INVALID_HANDLE_VALUE)
+    _devName = devName;
+
+    if(_fd == INVALID_HANDLE_VALUE)
     {
         return -1;
     }
-    // save the device name
-    m_devname = devname;
 
     // device control block
     DCB dcb;
     memset(&dcb,0,sizeof(dcb));
     dcb.DCBlength = sizeof(dcb);
-    dcb.BaudRate = baudrate;
+    dcb.BaudRate = baudRate;
     dcb.fBinary = 1;
 
-    rtsdtr_state = LinestateNull;
+    _rtsdtr_state = LinestateNull;
 
     // Specifies whether the CTS (clear-to-send) signal is monitored
     // for output flow control. If this member is TRUE and CTS is turned
@@ -105,27 +95,32 @@ int SerialPort::Open(const wxString& devname, int baudrate, const char* protocol
     //                       to adjust the line by using the
     //                       EscapeCommFunction function.
     dcb.fDtrControl = DTR_CONTROL_DISABLE;
-    rtsdtr_state |= LinestateDtr;
+    _rtsdtr_state |= LinestateDtr;
     dcb.fRtsControl = RTS_CONTROL_DISABLE;
-    rtsdtr_state |= LinestateRts;
+    _rtsdtr_state |= LinestateRts;
 
     // Specifies the XON/XOFF flow control.
     // If fOutX is true (the default is false), transmission stops when the
     // XOFF character is received and starts again, when the XON character
     // is received.
     dcb.fOutX = false;
+    
     // If fInX is true (default is false), the XOFF character is sent when
     // the input buffer comes within XoffLim bytes of being full, and the
     // XON character is sent, when the input buffer comes within XonLim
     // bytes of being empty.
     dcb.fInX = false;
+    
     // default character for XOFF is 0x13 (hex 13)
     dcb.XoffChar = 0x13;
+    
     // default character for XON is 0x11 (hex 11)
     dcb.XonChar = 0x11;
+    
     // set the minimum number of bytes allowed in the input buffer before
     // the XON character is sent (1/4 of full size)
     dcb.XonLim = (SERIALPORT_BUFSIZE >> 2);
+    
     // set the maximum number of free bytes in the input buffer, before the
     // XOFF character is sent (1/4 of full size)
     dcb.XoffLim = (SERIALPORT_BUFSIZE >> 2);
@@ -156,33 +151,28 @@ int SerialPort::Open(const wxString& devname, int baudrate, const char* protocol
     // wordlen, valid values are 5,6,7,8
     dcb.ByteSize = protocol[0] - '0';
 
-    if (!SetCommState(fd,&dcb)) return -2;
+    if (!SetCommState(_fd, &dcb)) return -2;
 
     // create event for overlapped I/O
     // we need a event object, which inform us about the
     // end of an operation (here reading device)
-    ov.hEvent = CreateEvent(NULL, // LPSECURITY_ATTRIBUTES lpsa
+    _ov.hEvent = CreateEvent(NULL, // LPSECURITY_ATTRIBUTES lpsa
                             TRUE,  // BOOL fManualReset
                             TRUE,  // BOOL fInitialState
                             NULL); // LPTSTR lpszEventName
-    if(ov.hEvent == INVALID_HANDLE_VALUE)
+    
+    if (_ov.hEvent == INVALID_HANDLE_VALUE)
     {
         return -3;
     }
 
-    /* THIS IS OBSOLETE!!!
-    // event should be triggered, if there are some received data
-    if(!SetCommMask(fd,EV_RXCHAR))
-    return -4;
-    */
-
     COMMTIMEOUTS cto = {MAXDWORD,0,0,0,0};
-    if(!SetCommTimeouts(fd,&cto)) return -5;
+    if(!SetCommTimeouts(_fd, &cto)) return -5;
 
     // for a better performance with win95/98 I increased the internal
     // buffer to SERIALPORT_BUFSIZE (normal size is 1024, but this can
     // be a little bit to small, if you use a higher baudrate like 115200)
-    if(!SetupComm(fd,SERIALPORT_BUFSIZE/2,SERIALPORT_BUFSIZE)) return -6;
+    if (!SetupComm(_fd, SERIALPORT_BUFSIZE/2, SERIALPORT_BUFSIZE)) return -6;
 
     return 0;
 }
@@ -190,20 +180,23 @@ int SerialPort::Open(const wxString& devname, int baudrate, const char* protocol
 
 bool SerialPort::IsOpen()
 {
-    return (fd != INVALID_HANDLE_VALUE);
+    return (_fd != INVALID_HANDLE_VALUE);
 }
+#pragma endregion Start and Stop
 
-
+#pragma region Read and Write
 int SerialPort::AvailableToRead()
 {
     COMSTAT comStat;
     DWORD   dwErrors;
+
     // Get and clear current errors on the port.
-    if (!ClearCommError(fd, &dwErrors, &comStat))
+    if (!ClearCommError(_fd, &dwErrors, &comStat))
     {
         // Report error in ClearCommError.
         return 0;
     }
+
     return comStat.cbInQue;
 }
 
@@ -211,19 +204,21 @@ int SerialPort::WaitingToWrite()
 {
     COMSTAT comStat;
     DWORD   dwErrors;
+    
     // Get and clear current errors on the port.
-    if (!ClearCommError(fd, &dwErrors, &comStat))
+    if (!ClearCommError(_fd, &dwErrors, &comStat))
     {
         // Report error in ClearCommError.
         return 0;
     }
+
     return comStat.cbOutQue;
 }
 
-int SerialPort::Read(char* buf,size_t len)
+int SerialPort::Read(char* buf, size_t len)
 {
     DWORD read;
-    if(!ReadFile(fd,buf,len,&read,&ov))
+    if (!ReadFile(_fd, buf, len, &read, &_ov))
     {
         // if we use a asynchrone reading, ReadFile always gives FALSE
         // ERROR_IO_PENDING means ok, other values show an error
@@ -241,36 +236,29 @@ int SerialPort::Read(char* buf,size_t len)
     return 0;
 }
 
-int SerialPort::Write(char* buf,size_t len)
+int SerialPort::Write(char* buf, size_t len)
 {
     DWORD write;
-    if(!WriteFile(fd,buf,len,&write,&ov))
+    if (!WriteFile(_fd, buf, len, &write, &_ov))
     {
         if(GetLastError() != ERROR_IO_PENDING)
         {
             return -1;
         }
-        else
-        {
-            // VERY IMPORTANT to flush the data out of the internal
-            // buffer
-            //FlushFileBuffers(fd);
-            // first you must call GetOverlappedResult, then you
-            // get the REALLY transmitted count of bytes
-            //if(!GetOverlappedResult(fd,&ov,&write,TRUE)) {
-            // ooops... something is going wrong
-            //return (int)write;
-            //}
-        }
     }
+
     return write;
 }
 
 int SerialPort::SendBreak()
 {
-    if(!SetCommBreak(fd)) return -1;
+    if (!SetCommBreak(_fd)) return -1;
+
     wxMilliSleep(1);
-    if(!ClearCommBreak(fd)) return -1;
+
+    if(!ClearCommBreak(_fd)) return -1;
+
     // no error
     return 0;
 }
+#pragma endregion Read and Write

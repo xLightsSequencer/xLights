@@ -7,22 +7,21 @@
 
 class Model;
 class wxXmlNode;
-class NetInfoClass;
+class OutputManager;
 class xLightsFrame;
 
 class ModelManager
 {
     public:
-        ModelManager(NetInfoClass &ni, xLightsFrame* xl);
+        ModelManager(OutputManager* outputManager, xLightsFrame* xl);
         virtual ~ModelManager();
 
-        NetInfoClass &GetNetInfo() const {
-            return netInfo;
-        }
+        OutputManager* GetOutputManager() const { return _outputManager; }
         Model *operator[](const std::string &name) const;
         Model *GetModel(const std::string &name) const;
 
-        void RecalcStartChannels() const;
+        void OldRecalcStartChannels() const;
+        void NewRecalcStartChannels() const;
         unsigned int GetLastChannel() const;
 
         bool Rename(const std::string &oldName, const std::string &newName);
@@ -51,7 +50,7 @@ class ModelManager
     wxXmlNode *modelNode;
     wxXmlNode *groupNode;
     wxXmlNode *layoutsNode;
-    NetInfoClass &netInfo;
+    OutputManager* _outputManager;
     xLightsFrame* xlights;
     int previewWidth;
     int previewHeight;

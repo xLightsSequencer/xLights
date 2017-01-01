@@ -25,7 +25,7 @@
 #include "../sequencer/Element.h"
 #include "../xLightsMain.h"
 
-ModelManager::ModelManager(NetInfoClass &ni, xLightsFrame* xl) : netInfo(ni), xlights(xl)
+ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) : _outputManager(outputManager), xlights(xl)
 {
     //ctor
 }
@@ -137,7 +137,34 @@ unsigned int ModelManager::GetLastChannel() const {
     return max;
 }
 
-void ModelManager::RecalcStartChannels() const {
+void ModelManager::NewRecalcStartChannels() const
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxStopWatch sw;
+    sw.Start();
+
+    bool fullsuccess = true;
+
+    // this is ugly but it solves some const-ness issues
+    std::map<std::string, Model*> ms(models);
+        
+    for (auto it = models.begin(); it != models.end(); ++it) 
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup") 
+        {
+            std::list<std::string> used;
+            fullsuccess &= it->second->UpdateStartChannelFromChannelString(ms, used);
+        }
+    }
+
+    long end  = sw.Time();
+    logger_base.debug("New RecalcStartChannels takes %ld.", end);
+}
+
+void ModelManager::OldRecalcStartChannels() const {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxStopWatch sw;
+    sw.Start();
     int countValid = 0;
     for (auto it = models.begin(); it != models.end(); it++) {
         if( it->second->GetDisplayAs() != "ModelGroup" ) {
@@ -174,6 +201,8 @@ void ModelManager::RecalcStartChannels() const {
         }
         countValid = newCountValid;
     }
+    long end = sw.Time();
+    logger_base.debug("Old RecalcStartChannels takes %ld.", end);
 }
 
 

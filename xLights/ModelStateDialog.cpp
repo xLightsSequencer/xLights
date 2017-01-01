@@ -624,7 +624,7 @@ void ModelStateDialog::OnButton_7SegmentClick(wxCommandEvent& event)
         {
             for (int i = 0; i < 10; i++)
             {
-                AddLabel(wxString::Format("%d", i));
+                AddLabel(wxString::Format(wxT("%i"), i));
             }
         }
         if (dialog.CheckBox_Tens->IsChecked())
@@ -632,7 +632,7 @@ void ModelStateDialog::OnButton_7SegmentClick(wxCommandEvent& event)
             AddLabel("00");
             for (int i = 10; i < 100; i += 10)
             {
-                AddLabel(wxString::Format("%d", i));
+                AddLabel(wxString::Format(wxT("%i"), i));
             }
         }
         if (dialog.CheckBox_Hundreds->IsChecked())
@@ -640,7 +640,7 @@ void ModelStateDialog::OnButton_7SegmentClick(wxCommandEvent& event)
             AddLabel("000");
             for (int i = 100; i < 1000; i += 100)
             {
-                AddLabel(wxString::Format("%d", i));
+                AddLabel(wxString::Format(wxT("%i"), i));
             }
         }
         if (dialog.CheckBox_Colon->IsChecked())
@@ -656,7 +656,7 @@ void ModelStateDialog::OnButton_7SegmentClick(wxCommandEvent& event)
             AddLabel("0000");
             for (int i = 1000; i < 10000; i += 1000)
             {
-                AddLabel(wxString::Format("%d", i));
+                AddLabel(wxString::Format(wxT("%i"), i));
             }
         }
     }

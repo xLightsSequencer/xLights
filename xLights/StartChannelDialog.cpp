@@ -1,5 +1,4 @@
 #include "StartChannelDialog.h"
-#include "NetInfo.h"
 #include <vector>
 
 //(*InternalHeaders(StartChannelDialog)
@@ -7,6 +6,8 @@
 #include <wx/button.h>
 #include <wx/string.h>
 //*)
+
+#include "outputs/OutputManager.h"
 
 //(*IdInit(StartChannelDialog)
 const long StartChannelDialog::ID_SPINCTRL1 = wxNewId();
@@ -31,7 +32,7 @@ END_EVENT_TABLE()
 
 StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
-    netInfo = nullptr;
+    _outputManager = nullptr;
 
 	//(*Initialize(StartChannelDialog)
 	wxFlexGridSizer* FlexGridSizer4;
@@ -107,7 +108,7 @@ StartChannelDialog::~StartChannelDialog()
 }
 
 void StartChannelDialog::Set(const wxString &s, const ModelManager &models) {
-    netInfo = &(models.GetNetInfo());
+    _outputManager = models.GetOutputManager();
     wxString start = s;
 
     wxArrayString  list;
@@ -118,14 +119,14 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models) {
     }
 
     OutputChoice->Clear();
-    for (int i = 1; i <= models.GetNetInfo().GetNumNetworks(); i++)
+    for (int i = 1; i <= models.GetOutputManager()->GetOutputCount(); i++)
     {
-        OutputChoice->AppendString(wxString::Format("%d", i));
+        OutputChoice->AppendString(wxString::Format(wxT("%i"), i));
     }
 
     ipChoice->Clear();
     ipChoice->AppendString("ANY");
-    std::vector<wxString> ips = models.GetNetInfo().GetIPs();
+    auto ips = models.GetOutputManager()->GetIps();
     for (auto it = ips.begin(); it != ips.end(); ++it)
     {
         if (*it != "MULTICAST")
@@ -259,7 +260,7 @@ void StartChannelDialog::OnButtonSelect(wxCommandEvent& event)
 
 void StartChannelDialog::SetUniverseOptionsBasedOnIP(wxString ip)
 {
-    if (netInfo == nullptr)
+    if (_outputManager == nullptr)
         return;
 
     wxString uu = universeChoice->GetStringSelection();
@@ -267,8 +268,8 @@ void StartChannelDialog::SetUniverseOptionsBasedOnIP(wxString ip)
     universeChoice->Clear();
     if (ip == "ANY")
     {
-        std::vector<size_t> uus = netInfo->GetUniverses();
-        std::list<size_t> us;
+        auto uus = _outputManager->GetIPUniverses();
+        std::list<int> us;
         for (auto it = uus.begin(); it != uus.end(); ++it)
         {
             us.push_back(*it);
@@ -276,7 +277,7 @@ void StartChannelDialog::SetUniverseOptionsBasedOnIP(wxString ip)
         us.sort();
         for (auto it = us.begin(); it != us.end(); ++it)
         {
-            wxString u = wxString::Format("%d", *it);
+            wxString u = wxString::Format(wxT("%i"), *it);
             if (!universeChoice->SetStringSelection(u))
             {
                 universeChoice->AppendString(u);
@@ -285,8 +286,8 @@ void StartChannelDialog::SetUniverseOptionsBasedOnIP(wxString ip)
     }
     else
     {
-        std::vector<size_t> uus = netInfo->GetUniversesForIP(ip);
-        std::list<size_t> us;
+        std::list<int> uus = _outputManager->GetIPUniverses(ip.ToStdString());
+        std::list<int> us;
         for (auto it = uus.begin(); it != uus.end(); ++it)
         {
             us.push_back(*it);
@@ -294,7 +295,7 @@ void StartChannelDialog::SetUniverseOptionsBasedOnIP(wxString ip)
         us.sort();
         for (auto it = us.begin(); it != us.end(); ++it)
         {
-            wxString u = wxString::Format("%d", *it);
+            wxString u = wxString::Format(wxT("%i"), *it);
             if (!universeChoice->SetStringSelection(u))
             {
                 universeChoice->AppendString(u);

@@ -12,7 +12,7 @@
 
 #include <string>
 class ModelManager;
-class NetInfoClass;
+class OutputManager;
 
 class StartChannelDialog: public wxDialog
 {
@@ -37,7 +37,7 @@ class StartChannelDialog: public wxDialog
         void Set(const wxString &start, const ModelManager &models);
         void SetUniverseOptionsBasedOnIP(wxString ip);
         std::string Get();
-        NetInfoClass* netInfo;
+        OutputManager* _outputManager;
 
 	protected:
 

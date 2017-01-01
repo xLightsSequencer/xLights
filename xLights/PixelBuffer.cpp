@@ -1937,7 +1937,7 @@ void PixelBufferClass::LayerInfo::calculateMask(const std::string &type, bool mo
 bool PixelBufferClass::LayerInfo::isMasked(int x, int y) {
     int idx = x*BufferHt + y;
     if (idx < mask.size()) {
-        return mask[idx];
+        return mask[idx] > 0;
     }
     return false;
 }
