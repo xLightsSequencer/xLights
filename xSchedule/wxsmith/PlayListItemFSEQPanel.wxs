@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="PlayListItemFSEQPanel">
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>2</cols>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+					<label>FSEQ File:</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" variable="FilePickerCtrl_FSEQFile" member="yes">
+					<message>FSEQ File</message>
+					<wildcard>*.fseq</wildcard>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_OverrideAudio" member="yes">
+					<label>Override Audio</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+					<label>Audio File:</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL2" variable="FilePickerCtrl_AudioFile" member="yes">
+					<message>Audio File</message>
+					<wildcard></wildcard>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+					<label>Delay:</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Delay" member="yes">
+					<value>0.000</value>
+					<style>wxTE_RIGHT</style>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

@@ -4,7 +4,6 @@
 #include <wx/wx.h>
 #include <wx/string.h>
 #include <wx/ffile.h>
-#include "xLightsXmlFile.h"
 #include <wx/log.h>
 #include <math.h>
 #include <stdlib.h>
@@ -144,11 +143,10 @@ int AudioManager::Tell()
     return (((_pcmdatasize - __audio_len) / 4) * _lengthMS)/ _trackSize;
 }
 
-AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int step = 1024, int block = 1024)
+AudioManager::AudioManager(std::string audio_file, int step = 1024, int block = 1024)
 {
 	// save parameters and initialise defaults
 	_job = NULL;
-	_xml_file = xml_file;
 	_audio_file = audio_file;
 	_state = -1; // state uninitialised. 0 is error. 1 is loaded ok
 	_resultMessage = "";
@@ -297,7 +295,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
         size_t pref_block = pt->getPreferredBlockSize();
 
         int channels = GetChannels();
-        if (channels > pt->getMaxChannelCount()) {
+        if (channels > (int)pt->getMaxChannelCount()) {
             channels = 1;
         }
 
@@ -658,7 +656,7 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
 	std::list<float>* rc = NULL;
 	try
 	{
-		if (frame < _frameData.size())
+		if (frame < (int)_frameData.size())
 		{
 			std::vector<std::list<float>>* framedata = &_frameData[frame];
 

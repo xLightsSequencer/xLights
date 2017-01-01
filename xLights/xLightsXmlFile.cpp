@@ -273,7 +273,7 @@ void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filen
     ObtainAccessToURL(filename.ToStdString());
     if ((filename != wxEmptyString) && wxFileExists(filename) && wxIsReadable(filename))
     {
-        audio = new AudioManager(std::string(filename.c_str()), this, 4096, 32768);
+        audio = new AudioManager(std::string(filename.c_str()), 4096, 32768);
     }
 
 	if( overwrite_tags )
@@ -1288,7 +1288,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                         if( mf.FileExists() && mf.IsFileReadable() )
                         {
                             ObtainAccessToURL(media_file.ToStdString());
-                            audio = new AudioManager(media_file.ToStdString(), this, 4096, 32768);
+                            audio = new AudioManager(media_file.ToStdString(), 4096, 32768);
                         }
                     }
                 }

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="PlayListItemVideoPanel">
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>2</cols>
+			<growablecols>1</growablecols>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+					<label>Video File:</label>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" variable="FilePickerCtrl_VideoFile" member="yes">
+					<message>Video File</message>
+					<wildcard></wildcard>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxButton" name="ID_BUTTON1" variable="Button_PositionWindow" member="yes">
+					<label>Position Window</label>
+					<handler function="OnButton_PositionWindowClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+					<label>Delay:</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Delay" member="yes">
+					<value>0.000</value>
+					<style>wxTE_RIGHT</style>
+					<handler function="OnTextCtrl_DelayText" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

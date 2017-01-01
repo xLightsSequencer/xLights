@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="OptionsDialog.cpp" />
+    <ClCompile Include="xScheduleApp.cpp" />
+    <ClCompile Include="xScheduleMain.cpp" />
+    <ClCompile Include="..\xLights\AudioManager.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\vamp-hostsdk\Files.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\JobPool.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\kiss_fft\kiss_fft.c">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\kiss_fft\tools\kiss_fftr.c">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\vamp-hostsdk\PluginBufferingAdapter.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\vamp-hostsdk\PluginChannelAdapter.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\vamp-hostsdk\PluginHostAdapter.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\vamp-hostsdk\PluginInputDomainAdapter.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\vamp-hostsdk\PluginLoader.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\vamp-hostsdk\PluginWrapper.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\vamp-hostsdk\RealTime.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemAllOffPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemFSEQPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemRunProcessPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemVideoPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListDialog.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayList.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListStepPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListStep.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemFSEQ.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemRunProcess.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemVideo.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemAllOff.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItem.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\VideoWindowPositionDialog.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="ScheduleManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="OptionsDialog.h" />
+    <ClInclude Include="xScheduleApp.h" />
+    <ClInclude Include="xScheduleMain.h" />
+    <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\AudioManager.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItem.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemAllOff.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemFSEQ.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItem.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemAllOffPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemFSEQPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemRunProcessPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemVideoPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListDialog.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayList.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListStep.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListStepPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="MyTreeItemData.h" />
+    <ClInclude Include="PlayList\PlayListItemRunProcess.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemVideo.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\VideoWindowPositionDialog.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="ScheduleManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="xLights">
+      <UniqueIdentifier>{9413bf66-f6ba-439c-837a-89e02d59d793}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PlayList">
+      <UniqueIdentifier>{15bbdb54-b786-42bc-9118-5cd2ea7df282}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

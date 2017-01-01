@@ -23,7 +23,6 @@ extern "C"
 #include <wx/progdlg.h>
 
 class AudioManager;
-class xLightsXmlFile;
 
 class AudioScanJob : Job
 {
@@ -108,7 +107,6 @@ class AudioManager
 	int _intervalMS;
 	int _lengthMS;
 	bool _frameDataPrepared;
-	xLightsXmlFile* _xml_file;
 	float _bigmax;
 	float _bigspread;
 	float _bigmin;
@@ -140,7 +138,7 @@ public:
 	MEDIAPLAYINGSTATE GetPlayingState();
 	int Tell();
 	xLightsVamp* GetVamp() { return &_vamp; };
-	AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int step, int block);
+	AudioManager(std::string audio_file, int step, int block);
 	~AudioManager();
 	int GetTrackSize() { return _trackSize; };
 	long GetRate() { return _rate; };

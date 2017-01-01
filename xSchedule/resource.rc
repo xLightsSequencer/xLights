@@ -1,3 +1,3 @@
-aaaa ICON "wx/msw/std.ico"
+APP_ICON ICON "../include/xschedule.ico"
 
 #include "wx/msw/wx.rc"
