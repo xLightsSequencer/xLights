@@ -51,6 +51,7 @@ void ShockwaveEffect::SetDefaultParameters(Model *cls) {
 }
 
 const double PI  =3.141592653589793238463;
+#define ToRadians(x) ((double)x * PI / (double)180.0)
 
 void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
@@ -76,8 +77,8 @@ void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     blend_pct = color_pct1 - (double)color_index;
     buffer.Get2ColorBlend(color_index, std::min(color_index+1,num_colors-1), std::min( blend_pct, 1.0), color);
 
-    int xc_adj = (center_x-50)*buffer.BufferWi / 100;
-    int yc_adj = (center_y-50)*buffer.BufferHt / 100;
+    int xc_adj = center_x * buffer.BufferWi / 100;
+    int yc_adj = center_y * buffer.BufferHt / 100;
 
     double radius1 = start_radius;
     double radius2 = end_radius;
@@ -87,21 +88,22 @@ void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     radius2 = radius_center + half_width;
     radius1 = std::max(0.0, radius1);
 
-    int max_radius = std::max(start_radius, end_radius);
-
     for (int x = 0; x < buffer.BufferWi; x++)
     {
-        int x1 = x - xc_adj - (buffer.BufferWi / 2);
+        int x1 = x - xc_adj;
         for (int y = 0; y < buffer.BufferHt; y++)
         {
-            int y1 = y - yc_adj - (buffer.BufferHt / 2);
+            int y1 = y - yc_adj;
             double r = std::hypot(x1, y1);
             if( r >= radius1 && r <= radius2 ) {
                 double color_pct = 1.0 - std::abs(r-radius_center)/half_width;
                 if (buffer.palette.IsSpatial(color_index))
                 {
-                    double theta = (((std::atan2(x1, y1) * 180.0 / PI)) + 180.0) / (double)360.0;
-                    buffer.palette.GetSpatialColor(color_index, xc_adj + (buffer.BufferWi / 2), yc_adj + (buffer.BufferHt / 2), x, y, theta, max_radius, color);
+                    double theta = ((std::atan2(x1, y1) * 180.0 / PI));
+                    int x2 = (int)(buffer.sin(ToRadians(theta)) * radius1);
+                    int y2 = (int)(buffer.cos(ToRadians(theta)) * radius1);
+                    double theta_pct = (theta + 180.0) / 360.0;
+                    buffer.palette.GetSpatialColor(color_index, x2, y2, x1, y1, theta_pct, radius2, color);
                     hsv = color.asHSV();
                 }
                 else
