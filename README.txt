@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix forcing of color for RGB nodes in LMS import. Red and Blue were swapped.
 2016.56  Dec 31, 2016
    -- enh (gil)     Rounder ends for the Galaxy effect.
    -- enh (gil)     Use dynamic step angle to prevent holes in Galaxy effect for large radii.

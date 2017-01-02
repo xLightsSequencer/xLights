@@ -791,7 +791,7 @@ private:
 void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
 {
     wxArrayString filters;
-    
+
     filters.push_back("SuperStar File (*.sup)|*.sup");
     filters.push_back("LOR Music Sequences (*.lms)|*.lms");
         filters.push_back("xLights Sequence (*.xml)|*.xml");
@@ -1022,7 +1022,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     if (!ok || dlg.ShowModal() != wxID_OK) {
         return;
     }
-    
+
     for (int tt = 0; tt < dlg.TimingTrackListBox->GetCount(); tt++) {
         if (dlg.TimingTrackListBox->IsChecked(tt)) {
             TimingElement *tel = timingTracks[timingTrackNames[tt]];
@@ -1042,7 +1042,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             }
         }
     }
-    
+
     for (size_t i = 0; i < dlg.dataModel->GetChildCount(); i++)
     {
         xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
@@ -2059,8 +2059,7 @@ void MapRGBEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *
 void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *channel, int chancountpernode, const wxColor &color) {
     std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
     if (chancountpernode > 1) {
-        wxString c = wxString::Format("#%06lx",color.GetRGB());
-        xlColor color1(c);
+        xlColor color1(color);
         palette = "C_BUTTON_Palette1=" + color1 + ",C_CHECKBOX_Palette1=1";
     }
 
