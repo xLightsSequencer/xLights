@@ -73,7 +73,7 @@ void DMXOutput::SetOneChannel(long channel, unsigned char data)
 
 void DMXOutput::SetManyChannels(long channel, unsigned char data[], long size)
 {
-    long chs = std::min(size, GetMaxChannels() - channel + 1);
+    long chs = std::min(size, GetMaxChannels() - channel);
     memcpy(&_data[channel + 5], data, chs);
 
 #ifdef USECHANGEDETECTION

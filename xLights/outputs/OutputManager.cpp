@@ -665,9 +665,9 @@ void OutputManager::SetManyChannels(long channel, unsigned char* data, long size
     while (left > 0 && o != nullptr)
     {
 #ifdef _MSC_VER
-        long send = min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
+        long send = min(left, (o->GetChannels() * o->GetUniverses()) - stch);
 #else
-        long send = std::min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
+        long send = std::min(left, (o->GetChannels() * o->GetUniverses()) - stch);
 #endif
         o->SetManyChannels(stch - 1, &data[size - left], send);
         stch = 1;

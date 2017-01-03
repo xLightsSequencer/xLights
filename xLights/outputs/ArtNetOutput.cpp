@@ -232,9 +232,9 @@ void ArtNetOutput::SetManyChannels(long channel, unsigned char data[], long size
     wxASSERT(channel + size < _channels);
 
 #ifdef _MSC_VER
-    long chs = min(size, _channels - channel + 1);
+    long chs = min(size, _channels - channel);
 #else
-    long chs = std::min(size, _channels - channel + 1);
+    long chs = std::min(size, _channels - channel);
 #endif
 
     memcpy(&_data[channel + ARTNET_PACKET_HEADERLEN], data, chs);

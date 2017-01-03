@@ -436,9 +436,9 @@ void E131Output::SetManyChannels(long channel, unsigned char data[], long size)
     else
     {
 #ifdef _MSC_VER
-        long chs = min(size, _channels - channel + 1);
+        long chs = min(size, _channels - channel);
 #else
-        long chs = std::min(size, GetMaxChannels() - channel + 1);
+        long chs = std::min(size, GetMaxChannels() - channel);
 #endif
         memcpy(&_data[channel + E131_PACKET_HEADERLEN], data, chs);
 

@@ -68,7 +68,7 @@ void OpenDMXOutput::SetOneChannel(long channel, unsigned char data)
 
 void OpenDMXOutput::SetManyChannels(long channel, unsigned char data[], long size)
 {
-    long chs = std::min(size, GetMaxChannels() - channel + 1);
+    long chs = std::min(size, GetMaxChannels() - channel);
     memcpy(&_data[channel + 1], data, chs);
 
 #ifdef USECHANGEDETECTION
