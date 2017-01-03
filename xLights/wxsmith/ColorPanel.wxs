@@ -51,6 +51,7 @@
 															<object class="sizeritem">
 																<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="BitmapButton_ShuffleColours" member="yes">
 																	<size>24,24</size>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																	<handler function="OnBitmapButton_ShuffleColoursClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -60,6 +61,7 @@
 															<object class="sizeritem">
 																<object class="Custom" name="ID_CUSTOM1" subclass="ColourList" variable="BitmapButton_ColourChoice" member="yes">
 																	<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
+																	<style></style>
 																</object>
 																<flag>wxALL|wxEXPAND</flag>
 																<border>2</border>
@@ -68,6 +70,7 @@
 															<object class="sizeritem">
 																<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="BitmapButton_SavePalette" member="yes">
 																	<size>24,24</size>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																	<handler function="OnBitmapButton_SavePaletteClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -91,6 +94,7 @@
 															<object class="sizeritem">
 																<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" variable="BitmapButton_DeletePalette" member="yes">
 																	<size>24,24</size>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																	<handler function="OnBitmapButton_DeletePaletteClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

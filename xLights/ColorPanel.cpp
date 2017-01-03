@@ -19,11 +19,11 @@
 
 class xLightsFrame;
 //(*InternalHeaders(ColorPanel)
-#include <wx/bitmap.h>
 #include <wx/settings.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
 //*)
 
 #include <wx/valnum.h>
@@ -158,18 +158,18 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
     _brightness.SetMax(400);
 
 	//(*Initialize(ColorPanel)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer10;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxButton* ButtonColor1;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxButton* ButtonColor1;
 	wxFlexGridSizer* FlexGridSizer11;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer5;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
@@ -192,16 +192,16 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxALIGN_RIGHT, 2);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer11->AddGrowableCol(1);
-	BitmapButton_ShuffleColours = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON4, wxNullBitmap, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
+	BitmapButton_ShuffleColours = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON4, wxNullBitmap, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
 	FlexGridSizer11->Add(BitmapButton_ShuffleColours, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_ColourChoice = new ColourList(ColorScrollWindow,ID_CUSTOM1,wxDefaultPosition,wxDefaultSize, 0, wxDefaultValidator,_T("ID_CUSTOM1"));
+	BitmapButton_ColourChoice = new ColourList(ColorScrollWindow,ID_CUSTOM1,wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,_T("ID_CUSTOM1"));
 	FlexGridSizer11->Add(BitmapButton_ColourChoice, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_SavePalette = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON3, wxNullBitmap, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
+	BitmapButton_SavePalette = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON3, wxNullBitmap, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
 	FlexGridSizer11->Add(BitmapButton_SavePalette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer11->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonColor1 = new wxButton(ColorScrollWindow, ID_BUTTON1, _("Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer11->Add(ButtonColor1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_DeletePalette = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON2, wxNullBitmap, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
+	BitmapButton_DeletePalette = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON2, wxNullBitmap, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
 	FlexGridSizer11->Add(BitmapButton_DeletePalette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer9->Add(FlexGridSizer11, 1, wxALL|wxALIGN_LEFT, 2);
 	FlexGridSizer9->Add(-1,-1,1, wxALL|wxEXPAND, 5);
@@ -723,7 +723,7 @@ void ColorPanel::SetDefaultSettings() {
     Slider_Contrast->SetValue(0);
     txtCtlContrast->SetValue("0");
     txtCtrlSparkleFreq->SetValue("0");
-    
+
     if (touchBar != nullptr) {
         touchBar->SetSparkles(0);
     }
@@ -759,7 +759,7 @@ void ColorPanel::OnCCChanged(wxCommandEvent& event)
 {
     ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
     lastColors[w->GetId()] = w->GetColor();
-    
+
     if (touchBar) {
         for (int x = 0; x < PALETTE_SIZE; x++) {
             if (buttons[x] == w) {
@@ -768,7 +768,7 @@ void ColorPanel::OnCCChanged(wxCommandEvent& event)
             }
         }
     }
-    
+
     Refresh();
     ValidateWindow();
 }
@@ -1067,8 +1067,8 @@ void ColorPanel::OnCCButtonClick(wxCommandEvent& event)
 
 void ColorPanel::SetSupports(bool linear, bool radial)
 {
-    _supportslinear = linear; 
-    _supportsradial = radial; 
+    _supportslinear = linear;
+    _supportsradial = radial;
 
     for (size_t i = 0; i < PALETTE_SIZE; ++i)
     {
