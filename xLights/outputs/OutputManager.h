@@ -57,6 +57,7 @@ public:
     std::list<int> GetIPUniverses(const std::string& ip = "") const;
     int GetOutputCount() const { return _outputs.size(); }
     bool Discover(); // discover controllers and add them to the list if they are not already there
+    void SetShowDir(const std::string& showDir);
     #pragma endregion Output Management
 
     void SomethingChanged() const;

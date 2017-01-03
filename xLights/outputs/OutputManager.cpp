@@ -148,6 +148,12 @@ Output* OutputManager::GetOutput(int outputNumber) const
     return *iter;
 }
 
+void OutputManager::SetShowDir(const std::string& showDir)
+{
+    wxFileName fn(showDir + "/" + GetNetworksFileName());
+    _filename = fn.GetFullPath();
+}
+
 // get an output based on an absolute channel number
 Output* OutputManager::GetOutput(long absoluteChannel, long& startChannel) const
 {

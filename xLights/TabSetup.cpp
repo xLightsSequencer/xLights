@@ -251,6 +251,10 @@ bool xLightsFrame::SetDir(const wxString& newdir)
             logger_base.debug("Loaded network config %s", (const char*)networkFile.GetFullPath().ToStdString().c_str());
         }
     }
+    else
+    {
+        _outputManager.SetShowDir(CurrentDir.ToStdString());
+    }
 
     UnsavedNetworkChanges = false;
     ShowDirectoryLabel->SetLabel(showDirectory);
