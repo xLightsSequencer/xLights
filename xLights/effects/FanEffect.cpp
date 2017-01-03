@@ -123,9 +123,6 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
     double eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
     double revs = (double)revolutions;
 
-    double pos_x = buffer.BufferWi * center_x/100.0;
-    double pos_y = buffer.BufferHt * center_y/100.0;
-
     double effect_duration = duration/100.0;    // time the head is in the frame
     double radius_rampup = (1.0 - effect_duration)/2.0;
 

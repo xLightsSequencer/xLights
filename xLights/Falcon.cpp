@@ -142,7 +142,6 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request, b
 void Falcon::SetInputUniverses(OutputManager* outputManager)
 {
     wxString request;
-    long currentcontrollerendchannel = 0;
     int output = 0;
 
     auto outputs = outputManager->GetAllOutputs(_ip);
@@ -216,7 +215,6 @@ void Falcon::SetInputUniverses(const std::list<Output*>& inputs)
     request = wxString::Format("z=%d", inputs.size());
 
     int output = 0;
-    int ch = 1;
 
     for (auto it = inputs.begin(); it != inputs.end(); ++it)
     {
@@ -261,7 +259,6 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     std::list<std::string> protocolsused;
     std::list<Model*> warnedmodels;
     int maxport = 0;
-    long currentcontrollerendchannel = 0;
 
     // Get universes based on IP
     std::list<Output*> outputs = outputManager->GetAllOutputs(_ip);
