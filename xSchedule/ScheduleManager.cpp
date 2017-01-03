@@ -64,10 +64,16 @@ void ScheduleManager::Save()
 		root->AddChild((*it)->Save());
 	}
 
-	//for(auto it = _schedules.begin(); it != _schedule.end(); ++it)
-	//{
-	//	root->AddChild((*it)->Save());
-	//}
-
     doc.Save(_showDir + "/" + GetScheduleFile());
+    ClearDirty();
+}
+
+void ScheduleManager::ClearDirty()
+{
+    _dirty = false;
+
+    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+    {
+        (*it)->ClearDirty();
+    }
 }

@@ -19,15 +19,20 @@ class PlayListDialog: public wxDialog
 {
     PlayList* _playlist;
     wxXmlNode* _savedState;
+    bool _dragging;
     void ValidateWindow();
     void PopulateTree();
     int GetPos(const wxTreeItemId& item);
+    void HighlightDropItem(wxTreeItemId* id);
 
     public:
 
 		PlayListDialog(wxWindow* parent, PlayList* playlist, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~PlayListDialog();
         void UpdateTree();
+        void OnTreeDragEnd(wxMouseEvent& event);
+        void OnTreeDragQuit(wxMouseEvent& event);
+        void OnTreeMouseMove(wxMouseEvent& event);
 
 		//(*Declarations(PlayListDialog)
 		wxButton* Button_Ok;
@@ -58,6 +63,8 @@ class PlayListDialog: public wxDialog
         static const long ID_MNU_ADDALLOFF;
         static const long ID_MNU_ADDPROCESS;
         static const long ID_MNU_ADDVIDEO;
+        static const long ID_MNU_ADDIMAGE;
+        static const long ID_MNU_ADDDELAY;
         static const long ID_MNU_DELETE;
 
         bool IsPlayList(wxTreeItemId id);

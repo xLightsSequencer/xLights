@@ -49,7 +49,7 @@ std::string PlayListItemFSEQ::GetName() const
     wxFileName fn(_fseqFile);
     if (fn.GetName() == "")
     {
-        return "Video";
+        return "FSEQ";
     }
     else
     {

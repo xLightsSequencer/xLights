@@ -86,6 +86,20 @@
       <Filter>PlayList</Filter>
     </ClCompile>
     <ClCompile Include="ScheduleManager.cpp" />
+    <ClCompile Include="PlayList\PlayListItemDelay.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemDelayPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemImage.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemImagePanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="Schedule.cpp" />
+    <ClCompile Include="ScheduleDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -147,6 +161,20 @@
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="ScheduleManager.h" />
+    <ClInclude Include="PlayList\PlayListItemDelay.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemDelayPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemImage.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemImagePanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="Schedule.h" />
+    <ClInclude Include="ScheduleDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

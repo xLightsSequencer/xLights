@@ -3,8 +3,10 @@
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
 #include "PlayListItemVideo.h"
+#include "PlayListItemImage.h"
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemAllOff.h"
+#include "PlayListItemDelay.h"
 #include "PlayListItemRunProcess.h"
 
 PlayListStep::PlayListStep(wxXmlNode* node)
@@ -19,9 +21,20 @@ PlayListStep::PlayListStep()
     _dirty = false;
 }
 
+PlayListStep::~PlayListStep()
+{
+    while (_items.size() > 0)
+    {
+        auto toremove = _items.front();
+        _items.remove(toremove);
+        delete toremove;
+    }
+}
+
+
 wxXmlNode* PlayListStep::Save()
 {
-    wxXmlNode* res = new wxXmlNode();
+    wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PlayListStep");
 
     res->AddAttribute("Name", _name);
 
@@ -49,9 +62,17 @@ void PlayListStep::Load(wxXmlNode* node)
         {
             _items.push_back(new PlayListItemFSEQ(n));
         }
+        else if (n->GetName() == "PLIImage")
+        {
+            _items.push_back(new PlayListItemImage(n));
+        }
         else if (n->GetName() == "PLIAllOff")
         {
             _items.push_back(new PlayListItemAllOff(n));
+        }
+        else if (n->GetName() == "PLIDelay")
+        {
+            _items.push_back(new PlayListItemDelay(n));
         }
         else if (n->GetName() == "PLIProcess")
         {
@@ -72,4 +93,18 @@ bool PlayListStep::IsDirty() const
     }
 
     return res;
+}
+
+void PlayListStep::RemoveItem(PlayListItem* item)
+{
+    _items.remove(item);
+}
+
+std::string PlayListStep::GetName() const
+{
+    if (_name != "") return _name;
+
+    if (_items.size() == 0) return "<unnamed>";
+
+    return _items.front()->GetName();
 }

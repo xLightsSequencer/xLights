@@ -7,6 +7,7 @@
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/filepicker.h>
+#include <wx/spinctrl.h>
 #include <wx/panel.h>
 //*)
 
@@ -27,8 +28,10 @@ class PlayListItemFSEQPanel: public wxPanel
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Delay;
+		wxSpinCtrl* SpinCtrl_Priority;
 		wxFilePickerCtrl* FilePickerCtrl_FSEQFile;
 		wxCheckBox* CheckBox_OverrideAudio;
+		wxStaticText* StaticText4;
 		wxFilePickerCtrl* FilePickerCtrl_AudioFile;
 		//*)
 
@@ -40,6 +43,8 @@ class PlayListItemFSEQPanel: public wxPanel
 		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT2;
 		static const long ID_FILEPICKERCTRL2;
+		static const long ID_STATICTEXT4;
+		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL1;
 		//*)

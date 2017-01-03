@@ -32,7 +32,7 @@ public:
     #pragma region Getters and Setters
     bool IsDirty() const { return _dirty; }
     void ClearDirty() { _dirty = false; }
-    virtual std::string GetName() const { return _name; }
+    virtual std::string GetName() const;
     void SetName(const std::string& name) { _name = name; _dirty = true; }
     virtual long GetLength() { return _frames; }
     long GetDelay() const { return _delay; }

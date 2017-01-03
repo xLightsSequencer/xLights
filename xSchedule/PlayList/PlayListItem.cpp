@@ -24,3 +24,10 @@ void PlayListItem::Save(wxXmlNode* node)
 {
     node->AddAttribute("Delay", wxString::Format(wxT("%i"), _delay));
 }
+
+std::string PlayListItem::GetName() const
+{
+    if (_name != "") return _name;
+
+    return "<unnamed>";
+}

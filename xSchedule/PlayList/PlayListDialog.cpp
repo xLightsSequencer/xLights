@@ -13,10 +13,13 @@
 
 #include <wx/xml/xml.h>
 #include <wx/menu.h>
+#include <wx/dnd.h>
 
 //(*InternalHeaders(PlayListDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "PlayListItemImage.h"
+#include "PlayListItemDelay.h"
 //*)
 
 //(*IdInit(PlayListDialog)
@@ -34,6 +37,8 @@ const long PlayListDialog::ID_MNU_ADDSTEP = wxNewId();
 const long PlayListDialog::ID_MNU_ADDVIDEO = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFSEQ = wxNewId();
 const long PlayListDialog::ID_MNU_ADDALLOFF = wxNewId();
+const long PlayListDialog::ID_MNU_ADDIMAGE = wxNewId();
+const long PlayListDialog::ID_MNU_ADDDELAY = wxNewId();
 const long PlayListDialog::ID_MNU_ADDPROCESS = wxNewId();
 const long PlayListDialog::ID_MNU_DELETE = wxNewId();
 
@@ -107,7 +112,7 @@ PlayListDialog::PlayListDialog(wxWindow* parent, PlayList* playlist, wxWindowID 
 	Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&PlayListDialog::OnNotebook1PageChanged);
 	//*)
 
-    FlexGridSizer1->Fit(this);
+    SetSize(800, 500);
 
     // save the current state in case the user cancels
     _savedState = playlist->Save();
@@ -144,7 +149,9 @@ void PlayListDialog::PopulateTree()
             id = TreeCtrl_PlayList->AppendItem(step, (*it2)->GetName());
             TreeCtrl_PlayList->SetItemData(id, new MyTreeItemData(*it2));
         }
+        TreeCtrl_PlayList->Expand(step);
     }
+    TreeCtrl_PlayList->Expand(TreeCtrl_PlayList->GetRootItem());
 }
 
 void PlayListDialog::OnTextCtrl_PlayListNameText(wxCommandEvent& event)
@@ -186,8 +193,205 @@ void PlayListDialog::OnTreeCtrl_PlayListSelectionChanged(wxTreeEvent& event)
     }
 }
 
+void PlayListDialog::OnTreeMouseMove(wxMouseEvent& event)
+{
+    wxTreeItemId dropitem = TreeCtrl_PlayList->HitTest(event.GetPosition());
+    wxTreeItemId dragitem = TreeCtrl_PlayList->GetSelection();
+
+    if (!dragitem.IsOk() || !dropitem.IsOk())
+    {
+        SetCursor(wxCURSOR_NO_ENTRY);
+        HighlightDropItem(nullptr);
+        return;
+    }
+
+    bool canbedropped = true;
+
+    if (dragitem == dropitem)
+    {
+        // cant be dropped on myself
+        canbedropped = false;
+    }
+    else if (IsPlayListStep(dragitem))
+    {
+        // can't be dropped on my children
+        if (dragitem == TreeCtrl_PlayList->GetItemParent(dropitem))
+        {
+            canbedropped = false;
+        }
+    }
+    else if (!IsPlayList(dragitem))
+    {
+        // cant be dropped on a playlist
+        if (IsPlayList(dropitem))
+        {
+            canbedropped = false;
+        }
+        else if (IsPlayListStep(dropitem))
+        {
+            // cant be dropped on my parent
+            if (TreeCtrl_PlayList->GetItemParent(dragitem) == dropitem)
+            {
+                canbedropped = false;
+            }
+        }
+        else
+        {
+            // cant be dropped on my siblings
+            if (TreeCtrl_PlayList->GetItemParent(dragitem) == TreeCtrl_PlayList->GetItemParent(dropitem))
+            {
+                canbedropped = false;
+            }
+        }
+    }
+
+    if (canbedropped)
+    {
+        SetCursor(wxCURSOR_HAND);
+        HighlightDropItem(&dropitem);
+    }
+    else
+    {
+        SetCursor(wxCURSOR_NO_ENTRY);
+        HighlightDropItem(nullptr);
+    }
+}
+
+void PlayListDialog::HighlightDropItem(wxTreeItemId* id)
+{
+    wxTreeItemId root = TreeCtrl_PlayList->GetRootItem();
+    TreeCtrl_PlayList->SetItemDropHighlight(root, id != nullptr && *id == root);
+
+    wxTreeItemIdValue tid;
+    for (wxTreeItemId it = TreeCtrl_PlayList->GetFirstChild(root, tid); it != nullptr; it = TreeCtrl_PlayList->GetNextChild(root, tid))
+    {
+        TreeCtrl_PlayList->SetItemDropHighlight(it, id != nullptr && *id == it);
+        wxTreeItemIdValue tid2;
+        for (wxTreeItemId it2 = TreeCtrl_PlayList->GetFirstChild(it, tid2); it2 != nullptr; it2 = TreeCtrl_PlayList->GetNextChild(it, tid2))
+        {
+            TreeCtrl_PlayList->SetItemDropHighlight(it2, id != nullptr && *id == it2);
+        }
+    }
+}
+
 void PlayListDialog::OnTreeCtrl_PlayListBeginDrag(wxTreeEvent& event)
 {
+    wxTreeItemId dragitem = TreeCtrl_PlayList->HitTest(event.GetPoint());
+    TreeCtrl_PlayList->SelectItem(dragitem);
+
+    if (IsPlayList(dragitem))
+    {
+        event.Skip();
+        return;
+    }
+
+    TreeCtrl_PlayList->Connect(wxEVT_LEFT_UP,
+        wxMouseEventHandler(PlayListDialog::OnTreeDragEnd), nullptr, this);
+    // trigger when user leaves window to abort drag
+    TreeCtrl_PlayList->Connect(wxEVT_LEAVE_WINDOW,
+        wxMouseEventHandler(PlayListDialog::OnTreeDragQuit), nullptr, this);
+    // trigger when mouse moves
+    TreeCtrl_PlayList->Connect(wxEVT_MOTION,
+        wxMouseEventHandler(PlayListDialog::OnTreeMouseMove), nullptr, this);
+
+    _dragging = true;
+    SetCursor(wxCURSOR_HAND);
+}
+
+// abort dragging a list item because user has left window
+void PlayListDialog::OnTreeDragQuit(wxMouseEvent& event)
+{
+    // restore cursor and disconnect unconditionally
+    SetCursor(wxCURSOR_ARROW);
+    TreeCtrl_PlayList->Disconnect(wxEVT_LEFT_UP,
+        wxMouseEventHandler(PlayListDialog::OnTreeDragEnd));
+    TreeCtrl_PlayList->Disconnect(wxEVT_LEAVE_WINDOW,
+        wxMouseEventHandler(PlayListDialog::OnTreeDragQuit));
+    TreeCtrl_PlayList->Disconnect(wxEVT_MOTION,
+        wxMouseEventHandler(PlayListDialog::OnTreeMouseMove));
+    HighlightDropItem(nullptr);
+}
+
+void PlayListDialog::OnTreeDragEnd(wxMouseEvent& event)
+{
+    wxTreeItemId dropitem = TreeCtrl_PlayList->HitTest(event.GetPosition());
+    wxTreeItemId dragitem = TreeCtrl_PlayList->GetSelection();
+
+    if (IsPlayListStep(dragitem))
+    {
+        PlayListStep* dragstep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(dragitem))->GetData();
+
+        if (!IsPlayList(dropitem) && !IsPlayListStep(dropitem))
+        {
+            // drop on an item so act like it was dropped on parent
+            dropitem = TreeCtrl_PlayList->GetItemParent(dropitem);
+        }
+
+        // if dropped on playlist make it the first step
+        if (IsPlayList(dropitem))
+        {
+            _playlist->MoveStepAfterStep(dragstep, nullptr);
+            PopulateTree();
+        }
+        // if dropped on a step make it the step after the dropped step
+        else if (IsPlayListStep(dropitem))
+        {
+            PlayListStep* dropstep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(dropitem))->GetData();
+            _playlist->MoveStepAfterStep(dragstep, dropstep);
+            PopulateTree();
+        }
+    }
+    else if (!IsPlayList(dragitem))
+    {
+        PlayListItem* dragpli = (PlayListItem*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(dragitem))->GetData();
+        PlayListStep* dragstep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(TreeCtrl_PlayList->GetItemParent(dragitem)))->GetData();
+
+        if (!IsPlayListStep(dropitem) && !IsPlayList(dropitem))
+        {
+            // drop on an item so act like it was dropped on parent
+            dropitem = TreeCtrl_PlayList->GetItemParent(dropitem);
+        }
+
+        // dragging a play list item
+        if (IsPlayList(dropitem))
+        {
+            // this doesnt make any sense ... do nothing
+        }
+        else
+        {
+            PlayListStep* dropstep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(dropitem))->GetData();
+
+            if (dragstep == dropstep)
+            {
+                // nothing to do
+            }
+            else
+            {
+                // remove it from the drag step
+                dragstep->RemoveItem(dragpli);
+                TreeCtrl_PlayList->Delete(dragitem);
+
+                // add it to the drop step
+                dropstep->AddItem(dragpli);
+                wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(dropitem, dragpli->GetName(), -1, -1, new MyTreeItemData(dragpli));
+                TreeCtrl_PlayList->Expand(newitem);
+                TreeCtrl_PlayList->EnsureVisible(newitem);
+                TreeCtrl_PlayList->SelectItem(newitem);
+            }
+        }
+    }
+
+    _dragging = false;
+    SetCursor(wxCURSOR_ARROW);
+    HighlightDropItem(nullptr);
+
+    // disconnect both functions
+    TreeCtrl_PlayList->Disconnect(wxEVT_LEFT_UP,
+        wxMouseEventHandler(PlayListDialog::OnTreeDragEnd));
+    TreeCtrl_PlayList->Disconnect(wxEVT_LEAVE_WINDOW,
+        wxMouseEventHandler(PlayListDialog::OnTreeDragQuit));
+    TreeCtrl_PlayList->Disconnect(wxEVT_MOTION,
+        wxMouseEventHandler(PlayListDialog::OnTreeMouseMove));
 }
 
 void PlayListDialog::OnTreeCtrl_PlayListEndDrag(wxTreeEvent& event)
@@ -196,32 +400,16 @@ void PlayListDialog::OnTreeCtrl_PlayListEndDrag(wxTreeEvent& event)
 
 void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
 {
-    wxTreeItemId treeitem = TreeCtrl_PlayList->GetSelection();
+    wxTreeItemId treeitem = TreeCtrl_PlayList->HitTest(event.GetPoint());
+    TreeCtrl_PlayList->SelectItem(treeitem);
 
     wxMenu mnu;
     wxMenuItem* mi = mnu.Append(ID_MNU_ADDFSEQ, "Add FSEQ");
-    if (!IsPlayListStep(treeitem))
-    {
-        mi->Enable(false);
-    }
-
     mi = mnu.Append(ID_MNU_ADDVIDEO, "Add Video");
-    if (!IsPlayListStep(treeitem))
-    {
-        mi->Enable(false);
-    }
-
+    mi = mnu.Append(ID_MNU_ADDIMAGE, "Add Image");
     mi = mnu.Append(ID_MNU_ADDALLOFF, "Add All Off");
-    if (!IsPlayListStep(treeitem))
-    {
-        mi->Enable(false);
-    }
-
+    mi = mnu.Append(ID_MNU_ADDDELAY, "Add Delay");
     mi = mnu.Append(ID_MNU_ADDPROCESS, "Add Process");
-    if (!IsPlayListStep(treeitem))
-    {
-        mi->Enable(false);
-    }
 
     mi = mnu.Append(ID_MNU_ADDSTEP, "Add Step");
     if (!IsPlayList(treeitem) && !IsPlayListStep(treeitem))
@@ -229,7 +417,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
         mi->Enable(false);
     }
 
-    mi = mnu.Append(ID_MNU_DELETE, "Add Delete");
+    mi = mnu.Append(ID_MNU_DELETE, "Delete");
     if (IsPlayList(treeitem))
     {
         mi->Enable(false);
@@ -260,40 +448,168 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     wxTreeItemId treeitem = TreeCtrl_PlayList->GetSelection();
     if (event.GetId() == ID_MNU_ADDVIDEO)
     {
+        if (IsPlayList(treeitem))
+        {
+            // seemlessly add a step
+            PlayListStep* pls = new PlayListStep();
+            wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pls->GetName(), -1, -1, new MyTreeItemData(pls));
+            TreeCtrl_PlayList->Expand(newitem);
+            TreeCtrl_PlayList->EnsureVisible(newitem);
+            TreeCtrl_PlayList->SelectItem(newitem);
+            _playlist->AddStep(pls, 0);
+            treeitem = newitem;
+        }
+        else if (!IsPlayListStep(treeitem))
+        {
+            treeitem = TreeCtrl_PlayList->GetItemParent(treeitem);
+        }
+        PlayListStep* step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
         PlayListItemVideo* pli = new PlayListItemVideo();
         wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pli->GetName(), -1, -1, new MyTreeItemData(pli));
             TreeCtrl_PlayList->Expand(newitem);
             TreeCtrl_PlayList->EnsureVisible(newitem);
             TreeCtrl_PlayList->SelectItem(newitem);
+            step->AddItem(pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDIMAGE)
+    {
+        if (IsPlayList(treeitem))
+        {
+            // seemlessly add a step
+            PlayListStep* pls = new PlayListStep();
+            wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pls->GetName(), -1, -1, new MyTreeItemData(pls));
+            TreeCtrl_PlayList->Expand(newitem);
+            TreeCtrl_PlayList->EnsureVisible(newitem);
+            TreeCtrl_PlayList->SelectItem(newitem);
+            _playlist->AddStep(pls, 0);
+            treeitem = newitem;
+        }
+        else if (!IsPlayListStep(treeitem))
+        {
+            treeitem = TreeCtrl_PlayList->GetItemParent(treeitem);
+        }
+        PlayListStep* step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
+        PlayListItemImage* pli = new PlayListItemImage();
+        wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pli->GetName(), -1, -1, new MyTreeItemData(pli));
+        TreeCtrl_PlayList->Expand(newitem);
+        TreeCtrl_PlayList->EnsureVisible(newitem);
+        TreeCtrl_PlayList->SelectItem(newitem);
+        step->AddItem(pli);
     }
     else if (event.GetId() == ID_MNU_ADDALLOFF)
     {
+        if (IsPlayList(treeitem))
+        {
+            // seemlessly add a step
+            PlayListStep* pls = new PlayListStep();
+            wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pls->GetName(), -1, -1, new MyTreeItemData(pls));
+            TreeCtrl_PlayList->Expand(newitem);
+            TreeCtrl_PlayList->EnsureVisible(newitem);
+            TreeCtrl_PlayList->SelectItem(newitem);
+            _playlist->AddStep(pls, 0);
+            treeitem = newitem;
+        }
+        else if (!IsPlayListStep(treeitem))
+        {
+            treeitem = TreeCtrl_PlayList->GetItemParent(treeitem);
+        }
+        PlayListStep* step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
         PlayListItemAllOff* pli = new PlayListItemAllOff();
         wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pli->GetName(), -1, -1, new MyTreeItemData(pli));
         TreeCtrl_PlayList->Expand(newitem);
         TreeCtrl_PlayList->EnsureVisible(newitem);
         TreeCtrl_PlayList->SelectItem(newitem);
+        step->AddItem(pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDDELAY)
+    {
+        if (IsPlayList(treeitem))
+        {
+            // seemlessly add a step
+            PlayListStep* pls = new PlayListStep();
+            wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pls->GetName(), -1, -1, new MyTreeItemData(pls));
+            TreeCtrl_PlayList->Expand(newitem);
+            TreeCtrl_PlayList->EnsureVisible(newitem);
+            TreeCtrl_PlayList->SelectItem(newitem);
+            _playlist->AddStep(pls, 0);
+            treeitem = newitem;
+        }
+        else if (!IsPlayListStep(treeitem))
+        {
+            treeitem = TreeCtrl_PlayList->GetItemParent(treeitem);
+        }
+        PlayListStep* step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
+        PlayListItemDelay* pli = new PlayListItemDelay();
+        wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pli->GetName(), -1, -1, new MyTreeItemData(pli));
+        TreeCtrl_PlayList->Expand(newitem);
+        TreeCtrl_PlayList->EnsureVisible(newitem);
+        TreeCtrl_PlayList->SelectItem(newitem);
+        step->AddItem(pli);
     }
     else if (event.GetId() == ID_MNU_ADDPROCESS)
     {
+        if (IsPlayList(treeitem))
+        {
+            // seemlessly add a step
+            PlayListStep* pls = new PlayListStep();
+            wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pls->GetName(), -1, -1, new MyTreeItemData(pls));
+            TreeCtrl_PlayList->Expand(newitem);
+            TreeCtrl_PlayList->EnsureVisible(newitem);
+            TreeCtrl_PlayList->SelectItem(newitem);
+            _playlist->AddStep(pls, 0);
+            treeitem = newitem;
+        }
+        else if (!IsPlayListStep(treeitem))
+        {
+            treeitem = TreeCtrl_PlayList->GetItemParent(treeitem);
+        }
+        PlayListStep* step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
         PlayListItemRunProcess* pli = new PlayListItemRunProcess();
         wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pli->GetName(), -1, -1, new MyTreeItemData(pli));
         TreeCtrl_PlayList->Expand(newitem);
         TreeCtrl_PlayList->EnsureVisible(newitem);
         TreeCtrl_PlayList->SelectItem(newitem);
+        step->AddItem(pli);
     }
     else if (event.GetId() == ID_MNU_ADDFSEQ)
     {
+        if (IsPlayList(treeitem))
+        {
+            // seemlessly add a step
+            PlayListStep* pls = new PlayListStep();
+            wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pls->GetName(), -1, -1, new MyTreeItemData(pls));
+            TreeCtrl_PlayList->Expand(newitem);
+            TreeCtrl_PlayList->EnsureVisible(newitem);
+            TreeCtrl_PlayList->SelectItem(newitem);
+            _playlist->AddStep(pls, 0);
+            treeitem = newitem;
+        }
+        else if (!IsPlayListStep(treeitem))
+        {
+            treeitem = TreeCtrl_PlayList->GetItemParent(treeitem);
+        }
+        PlayListStep* step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
         PlayListItemFSEQ* pli = new PlayListItemFSEQ();
         wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pli->GetName(), -1, -1, new MyTreeItemData(pli));
         TreeCtrl_PlayList->Expand(newitem);
         TreeCtrl_PlayList->EnsureVisible(newitem);
         TreeCtrl_PlayList->SelectItem(newitem);
+        step->AddItem(pli);
     }
     else if (event.GetId() == ID_MNU_ADDSTEP)
     {
+        wxTreeItemId parent;
+        if (IsPlayListStep(treeitem))
+        {
+            parent = TreeCtrl_PlayList->GetItemParent(treeitem);
+        }
+        else
+        {
+            parent = treeitem;
+        }
+
         PlayListStep* pls = new PlayListStep();
-        wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pls->GetName(), -1, -1, new MyTreeItemData(pls));
+        wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(parent, pls->GetName(), -1, -1, new MyTreeItemData(pls));
         TreeCtrl_PlayList->Expand(newitem);
         TreeCtrl_PlayList->EnsureVisible(newitem);
         TreeCtrl_PlayList->SelectItem(newitem);
@@ -305,6 +621,7 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
         {
             _playlist->AddStep(pls, GetPos(treeitem)+1);
         }
+        PopulateTree();
     }
     else if (event.GetId() == ID_MNU_DELETE)
     {
@@ -321,7 +638,8 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
                     PlayListItem* pli = (PlayListItem*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(it))->GetData();
                     delete pli;
                 }
-
+                PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(TreeCtrl_PlayList->GetItemParent(treeitem)))->GetData();
+                playlist->RemoveStep(playliststep);
                 delete playliststep;
 
                 TreeCtrl_PlayList->Delete(treeitem);
@@ -329,6 +647,8 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
             else if (!IsPlayList(treeitem) && !IsPlayListStep(treeitem))
             {
                 PlayListItem* playlistitem = (PlayListItem*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
+                PlayListStep* playliststep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(TreeCtrl_PlayList->GetItemParent(treeitem)))->GetData();
+                playliststep->RemoveItem(playlistitem);
                 delete playlistitem;
                 TreeCtrl_PlayList->Delete(treeitem);
             }

@@ -13,6 +13,8 @@ const long PlayListItemFSEQPanel::ID_FILEPICKERCTRL1 = wxNewId();
 const long PlayListItemFSEQPanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListItemFSEQPanel::ID_STATICTEXT2 = wxNewId();
 const long PlayListItemFSEQPanel::ID_FILEPICKERCTRL2 = wxNewId();
+const long PlayListItemFSEQPanel::ID_STATICTEXT4 = wxNewId();
+const long PlayListItemFSEQPanel::ID_SPINCTRL1 = wxNewId();
 const long PlayListItemFSEQPanel::ID_STATICTEXT3 = wxNewId();
 const long PlayListItemFSEQPanel::ID_TEXTCTRL1 = wxNewId();
 //*)
@@ -43,6 +45,11 @@ PlayListItemFSEQPanel::PlayListItemFSEQPanel(wxWindow* parent, PlayListItemFSEQ*
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FilePickerCtrl_AudioFile = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL2, wxEmptyString, _("Audio File"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL2"));
 	FlexGridSizer1->Add(FilePickerCtrl_AudioFile, 1, wxALL|wxEXPAND, 5);
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Priority:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_Priority = new wxSpinCtrl(this, ID_SPINCTRL1, _T("5"), wxDefaultPosition, wxDefaultSize, 0, 1, 10, 5, _T("ID_SPINCTRL1"));
+	SpinCtrl_Priority->SetValue(_T("5"));
+	FlexGridSizer1->Add(SpinCtrl_Priority, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Delay:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Delay = new wxTextCtrl(this, ID_TEXTCTRL1, _("0.000"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL1"));

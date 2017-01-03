@@ -39,6 +39,7 @@
 										<item2>&lt;none&gt;</item2>
 									</items_text>
 									<minsize>300,300</minsize>
+									<handler function="OnTreeCtrl_PlayListsSchedulesItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
 									<handler function="OnTreeCtrl_PlayListsSchedulesSelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
 									<handler function="OnTreeCtrl_PlayListsSchedulesKeyDown" entry="EVT_TREE_KEY_DOWN" />
 									<handler function="OnTreeCtrl_PlayListsSchedulesItemMenu" entry="EVT_TREE_ITEM_MENU" />
@@ -54,14 +55,6 @@
 							<cols>1</cols>
 							<growablecols>0</growablecols>
 							<growablerows>0</growablerows>
-							<object class="sizeritem">
-								<object class="wxListView" name="ID_LISTVIEW2" variable="ListView2" member="yes">
-									<minsize>300,300</minsize>
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
 						</object>
 					</object>
 				</object>
@@ -101,6 +94,10 @@
 		<object class="wxMenuBar" variable="MenuBar1" member="no">
 			<object class="wxMenu" variable="Menu1" member="no">
 				<label>&amp;File</label>
+				<object class="wxMenuItem" name="ID_MNU_SHOWFOLDER" variable="MenuItem_ShowFolder" member="yes">
+					<label>Show &amp;Folder</label>
+					<handler function="OnMenuItem_ShowFolderSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_SAVE" variable="MenuItem_Save" member="yes">
 					<label>&amp;Save</label>
 					<handler function="OnMenuItem_SaveSelected" entry="EVT_MENU" />
@@ -110,15 +107,6 @@
 					<accel>Alt-F4</accel>
 					<help>Quit the application</help>
 					<handler function="OnQuit" entry="EVT_MENU" />
-				</object>
-			</object>
-			<object class="wxMenu" variable="Menu4" member="yes">
-				<label>&amp;Edit</label>
-				<object class="wxMenuItem" name="ID_MNU_PLAYLISTS" variable="MenuItem3" member="yes">
-					<label>&amp;Playlists</label>
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_SCHEDULES" variable="MenuItem4" member="yes">
-					<label>&amp;Schedules</label>
 				</object>
 			</object>
 			<object class="wxMenu" variable="Menu3" member="yes">
@@ -147,6 +135,9 @@
 			<fields>1</fields>
 			<widths>-1</widths>
 			<styles>wxSB_NORMAL</styles>
+		</object>
+		<object class="wxDirDialog" variable="DirDialog1" member="yes">
+			<message>Select show folder ...</message>
 		</object>
 	</object>
 </wxsmith>

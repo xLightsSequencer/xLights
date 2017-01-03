@@ -1,6 +1,7 @@
 #include "PlayList.h"
 #include "PlayListDialog.h"
 #include "PlayListStep.h"
+#include "../Schedule.h"
 
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
@@ -20,6 +21,24 @@ PlayList::PlayList()
     _lastOnlyOnce = false;
     _name = "";
 }
+
+PlayList::~PlayList()
+{
+    while (_steps.size() > 0)
+    {
+        auto toremove = _steps.front();
+        _steps.remove(toremove);
+        delete toremove;
+    }
+
+    while (_schedules.size() > 0)
+    {
+        auto toremove = _schedules.front();
+        _schedules.remove(toremove);
+        delete toremove;
+    }
+}
+
 
 wxXmlNode* PlayList::Save()
 {
@@ -42,6 +61,11 @@ wxXmlNode* PlayList::Save()
         res->AddChild((*it)->Save());
     }
 
+    for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
+    {
+        res->AddChild((*it)->Save());
+    }
+
     _dirty = false;
 
     return res;
@@ -58,6 +82,10 @@ void PlayList::Load(wxXmlNode* node)
         if (n->GetName() == "PlayListStep")
         {
             _steps.push_back(new PlayListStep(n));
+        }
+        else if (n->GetName() == "Schedule")
+        {
+            _schedules.push_back(new Schedule(n));
         }
     }
 }
@@ -85,23 +113,110 @@ bool PlayList::IsDirty() const
         ++it;
     }
 
+    auto it2 = _schedules.begin();
+    while (!res && it2 != _schedules.end())
+    {
+        res = res && (*it2)->IsDirty();
+        ++it2;
+    }
+
     return res;
+}
+
+void PlayList::AddSchedule(Schedule* schedule)
+{
+    _schedules.push_back(schedule);
+    _dirty = true;
 }
 
 void PlayList::AddStep(PlayListStep* item, int pos)
 {
     std::list<PlayListStep*> newsteps;
 
+    bool inserted = false;
     int i = 0;
     for (auto it = _steps.begin(); it != _steps.end(); ++it)
     {
         if (i == pos)
         {
             newsteps.push_back(item);
+            inserted = true;
         }
         newsteps.push_back(*it);
         i++;
     }
 
+    if (!inserted)
+    {
+        newsteps.push_back(item);
+    }
+
     _steps = newsteps;
+}
+
+void PlayList::ClearDirty()
+{
+    _dirty = false;
+
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        (*it)->ClearDirty();
+    }
+
+    for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
+    {
+        (*it)->ClearDirty();
+    }
+}
+
+void PlayList::RemoveStep(PlayListStep* step)
+{
+    _steps.remove(step);
+    _dirty = true;
+}
+
+void PlayList::RemoveSchedule(Schedule* schedule)
+{
+    _schedules.remove(schedule);
+    _dirty = true;
+}
+
+void PlayList::MoveStepAfterStep(PlayListStep* movethis, PlayListStep* afterthis)
+{
+    if (movethis == afterthis) return;
+
+    if (afterthis == nullptr)
+    {
+        RemoveStep(movethis);
+        _steps.push_front(movethis);
+    }
+    else
+    {
+        RemoveStep(movethis);
+        int pos = GetPos(afterthis);
+        if (pos == -1)
+        {
+            wxASSERT(false);
+            _steps.push_back(movethis);
+        }
+        else
+        {
+            AddStep(movethis, pos + 1);
+        }
+    }
+}
+
+int PlayList::GetPos(PlayListStep* step)
+{
+    int i = 0;
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        if (*it == step)
+        {
+            return i;
+        }
+        i++;
+    }
+
+    return -1;
 }

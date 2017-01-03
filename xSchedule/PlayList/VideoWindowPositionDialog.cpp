@@ -20,7 +20,7 @@ VideoWindowPositionDialog::VideoWindowPositionDialog(wxWindow* parent,wxWindowID
 	//(*Initialize(VideoWindowPositionDialog)
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMINIMIZE_BOX, _T("id"));
+	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);

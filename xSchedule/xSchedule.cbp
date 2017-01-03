@@ -232,10 +232,18 @@
 		<Unit filename="PlayList/PlayListItemAllOff.h" />
 		<Unit filename="PlayList/PlayListItemAllOffPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemAllOffPanel.h" />
+		<Unit filename="PlayList/PlayListItemDelay.cpp" />
+		<Unit filename="PlayList/PlayListItemDelay.h" />
+		<Unit filename="PlayList/PlayListItemDelayPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemDelayPanel.h" />
 		<Unit filename="PlayList/PlayListItemFSEQ.cpp" />
 		<Unit filename="PlayList/PlayListItemFSEQ.h" />
 		<Unit filename="PlayList/PlayListItemFSEQPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemFSEQPanel.h" />
+		<Unit filename="PlayList/PlayListItemImage.cpp" />
+		<Unit filename="PlayList/PlayListItemImage.h" />
+		<Unit filename="PlayList/PlayListItemImagePanel.cpp" />
+		<Unit filename="PlayList/PlayListItemImagePanel.h" />
 		<Unit filename="PlayList/PlayListItemRunProcess.cpp" />
 		<Unit filename="PlayList/PlayListItemRunProcess.h" />
 		<Unit filename="PlayList/PlayListItemRunProcessPanel.cpp" />
@@ -252,6 +260,8 @@
 		<Unit filename="PlayList/PlayListStepPanel.h" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.cpp" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.h" />
+		<Unit filename="ScheduleDialog.cpp" />
+		<Unit filename="ScheduleDialog.h" />
 		<Unit filename="ScheduleManager.cpp" />
 		<Unit filename="ScheduleManager.h" />
 		<Unit filename="resource.rc">
@@ -260,11 +270,14 @@
 		<Unit filename="wxsmith/OptionsDialog.wxs" />
 		<Unit filename="wxsmith/PlayListDialog.wxs" />
 		<Unit filename="wxsmith/PlayListItemAllOffPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemDelayPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFSEQPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemImagePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunProcessPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
 		<Unit filename="wxsmith/PlayListPanel.wxs" />
 		<Unit filename="wxsmith/PlayListStepPanel.wxs" />
+		<Unit filename="wxsmith/ScheduleDialog.wxs" />
 		<Unit filename="wxsmith/VideoWindowPositionDialog.wxs" />
 		<Unit filename="wxsmith/xScheduleframe.wxs" />
 		<Unit filename="xScheduleApp.cpp" />
@@ -283,12 +296,15 @@
 					<wxDialog wxs="wxsmith/OptionsDialog.wxs" src="OptionsDialog.cpp" hdr="OptionsDialog.h" fwddecl="0" i18n="1" name="OptionsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PlayListDialog.wxs" src="PlayList/PlayListDialog.cpp" hdr="PlayList/PlayListDialog.h" fwddecl="0" i18n="1" name="PlayListDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemAllOffPanel.wxs" src="PlayList/PlayListItemAllOffPanel.cpp" hdr="PlayList/PlayListItemAllOffPanel.h" fwddecl="0" i18n="1" name="PlayListItemAllOffPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemDelayPanel.wxs" src="PlayList/PlayListItemDelayPanel.cpp" hdr="PlayList/PlayListItemDelayPanel.h" fwddecl="0" i18n="1" name="PlayListItemDelayPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemImagePanel.wxs" src="PlayList/PlayListItemImagePanel.cpp" hdr="PlayList/PlayListItemImagePanel.h" fwddecl="0" i18n="1" name="PlayListItemImagePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemRunProcessPanel.wxs" src="PlayList/PlayListItemRunProcessPanel.cpp" hdr="PlayList/PlayListItemRunProcessPanel.h" fwddecl="0" i18n="1" name="PlayListItemRunProcessPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFSEQPanel.wxs" src="PlayList/PlayListItemFSEQPanel.cpp" hdr="PlayList/PlayListItemFSEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemFSEQPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemVideoPanel.wxs" src="PlayList/PlayListItemVideoPanel.cpp" hdr="PlayList/PlayListItemVideoPanel.h" fwddecl="0" i18n="1" name="PlayListItemVideoPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListPanel.wxs" src="PlayList/PlayListPanel.cpp" hdr="PlayList/PlayListPanel.h" fwddecl="0" i18n="1" name="PlayListPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListStepPanel.wxs" src="PlayList/PlayListStepPanel.cpp" hdr="PlayList/PlayListStepPanel.h" fwddecl="0" i18n="1" name="PlayListStepPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/VideoWindowPositionDialog.wxs" src="PlayList/VideoWindowPositionDialog.cpp" hdr="PlayList/VideoWindowPositionDialog.h" fwddecl="0" i18n="1" name="VideoWindowPositionDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ScheduleDialog.wxs" src="ScheduleDialog.cpp" hdr="ScheduleDialog.h" fwddecl="0" i18n="1" name="ScheduleDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

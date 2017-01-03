@@ -173,8 +173,12 @@
     <ClCompile Include="PlayList\PlayListItem.cpp" />
     <ClCompile Include="PlayList\PlayListItemAllOff.cpp" />
     <ClCompile Include="PlayList\PlayListItemAllOffPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemDelay.cpp" />
+    <ClCompile Include="PlayList\PlayListItemDelayPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFSEQ.cpp" />
     <ClCompile Include="PlayList\PlayListItemFSEQPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemImage.cpp" />
+    <ClCompile Include="PlayList\PlayListItemImagePanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemRunProcess.cpp" />
     <ClCompile Include="PlayList\PlayListItemRunProcessPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemVideo.cpp" />
@@ -183,6 +187,8 @@
     <ClCompile Include="PlayList\PlayListStep.cpp" />
     <ClCompile Include="PlayList\PlayListStepPanel.cpp" />
     <ClCompile Include="PlayList\VideoWindowPositionDialog.cpp" />
+    <ClCompile Include="Schedule.cpp" />
+    <ClCompile Include="ScheduleDialog.cpp" />
     <ClCompile Include="ScheduleManager.cpp" />
     <ClCompile Include="xScheduleApp.cpp" />
     <ClCompile Include="xScheduleMain.cpp" />
@@ -197,8 +203,12 @@
     <ClInclude Include="PlayList\PlayListItem.h" />
     <ClInclude Include="PlayList\PlayListItemAllOff.h" />
     <ClInclude Include="PlayList\PlayListItemAllOffPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemDelay.h" />
+    <ClInclude Include="PlayList\PlayListItemDelayPanel.h" />
     <ClInclude Include="PlayList\PlayListItemFSEQ.h" />
     <ClInclude Include="PlayList\PlayListItemFSEQPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemImage.h" />
+    <ClInclude Include="PlayList\PlayListItemImagePanel.h" />
     <ClInclude Include="PlayList\PlayListItemRunProcess.h" />
     <ClInclude Include="PlayList\PlayListItemRunProcessPanel.h" />
     <ClInclude Include="PlayList\PlayListItemVideo.h" />
@@ -207,6 +217,8 @@
     <ClInclude Include="PlayList\PlayListStep.h" />
     <ClInclude Include="PlayList\PlayListStepPanel.h" />
     <ClInclude Include="PlayList\VideoWindowPositionDialog.h" />
+    <ClInclude Include="Schedule.h" />
+    <ClInclude Include="ScheduleDialog.h" />
     <ClInclude Include="ScheduleManager.h" />
     <ClInclude Include="xScheduleApp.h" />
     <ClInclude Include="xScheduleMain.h" />

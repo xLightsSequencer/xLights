@@ -1,27 +1,26 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
-	<object class="wxDialog" name="VideoWindowPositionDialog">
+	<object class="wxPanel" name="PlayListItemDelayPanel">
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
-		<style>wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-			<cols>1</cols>
-			<growablecols>0</growablecols>
-			<growablerows>0</growablerows>
+			<cols>2</cols>
+			<growablecols>1</growablecols>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-					<label>Position this window where you want the video displayed and click Ok.</label>
+					<label>Duration:</label>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxButton" name="ID_BUTTON1" variable="Button_Ok" member="yes">
-					<label>Ok</label>
-					<handler function="OnButton_OkClick" entry="EVT_BUTTON" />
+				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_DelayDuration" member="yes">
+					<value>0.050</value>
+					<style>wxTE_RIGHT</style>
+					<handler function="OnTextCtrl_DelayDurationText" entry="EVT_TEXT" />
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
