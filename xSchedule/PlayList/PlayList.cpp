@@ -13,6 +13,20 @@ PlayList::PlayList(wxXmlNode* node)
     Load(node);
 }
 
+PlayList::PlayList(const PlayList& playlist)
+{
+    _dirty = false;
+    _currentStep = nullptr;
+    _firstOnlyOnce = playlist._firstOnlyOnce;
+    _lastOnlyOnce = playlist._lastOnlyOnce;
+    _name = playlist._name;
+    for (auto it = playlist._steps.begin(); it != playlist._steps.end(); ++it)
+    {
+        _steps.push_back(new PlayListStep(**it));
+    }
+    // dont copy the schedule as it wont be needed
+}
+
 PlayList::PlayList()
 {
     _dirty = false;
@@ -109,14 +123,14 @@ bool PlayList::IsDirty() const
     auto it = _steps.begin();
     while (!res && it != _steps.end())
     {
-        res = res && (*it)->IsDirty();
+        res = res || (*it)->IsDirty();
         ++it;
     }
 
     auto it2 = _schedules.begin();
     while (!res && it2 != _schedules.end())
     {
-        res = res && (*it2)->IsDirty();
+        res = res || (*it2)->IsDirty();
         ++it2;
     }
 
@@ -220,3 +234,61 @@ int PlayList::GetPos(PlayListStep* step)
 
     return -1;
 }
+
+bool PlayList::Frame(wxByte* buffer, size_t size)
+{
+    if (_currentStep != nullptr)
+    {
+        // This returns true if everything is done
+        if (_currentStep->Frame(buffer, size))
+        {
+            _currentStep = GetNextStep();
+            if (_currentStep == nullptr)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool PlayList::IsRunning() const
+{
+    return _currentStep != nullptr;
+}
+
+void PlayList::Start()
+{
+    if (IsRunning()) return;
+    if (_steps.size() == 0) return;
+
+    _currentStep = _steps.front();
+    _currentStep->Start();
+}
+
+void PlayList::Stop()
+{
+    if (!IsRunning()) return;
+
+    _currentStep->Stop();
+    _currentStep = nullptr;
+}
+
+PlayListStep* PlayList::GetNextStep() const
+{
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        if (*it == _currentStep)
+        {
+            ++it;
+
+            if (it == _steps.end()) return nullptr;
+
+            return (*it);
+        }
+    }
+
+    return nullptr;
+}
+

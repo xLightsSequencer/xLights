@@ -5,6 +5,9 @@
 
 PlayListItemRunProcess::PlayListItemRunProcess(wxXmlNode* node) : PlayListItem(node)
 {
+    _started = false;
+    _command = "";
+    _waitForCompletion = false;
     PlayListItemRunProcess::Load(node);
 }
 
@@ -17,8 +20,20 @@ void PlayListItemRunProcess::Load(wxXmlNode* node)
 
 PlayListItemRunProcess::PlayListItemRunProcess() : PlayListItem()
 {
+    _started = false;
     _command = "";
     _waitForCompletion = false;
+}
+
+PlayListItem* PlayListItemRunProcess::Copy() const
+{
+    PlayListItemRunProcess* res = new PlayListItemRunProcess();
+    res->_command = _command;
+    res->_started = false;
+    res->_waitForCompletion = _waitForCompletion;
+    PlayListItem::Copy(res);
+
+    return res;
 }
 
 wxXmlNode* PlayListItemRunProcess::Save()
@@ -39,4 +54,37 @@ wxXmlNode* PlayListItemRunProcess::Save()
 void PlayListItemRunProcess::Configure(wxNotebook* notebook)
 {
     notebook->AddPage(new PlayListItemRunProcessPanel(notebook, this), "Run Process", true);
+}
+
+std::string PlayListItemRunProcess::GetName() const
+{
+    if (_name != "") return _name;
+
+    return "Run Process";
+}
+
+void PlayListItemRunProcess::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems)
+{
+    if (ms >= _delay && !_started)
+    {
+        _started = true;
+
+        // we need to run the process
+        int flags = 0;
+        if (_waitForCompletion)
+        {
+            flags = wxEXEC_BLOCK;
+        }
+        else
+        {
+            flags = wxEXEC_ASYNC;
+        }
+
+        wxExecute(_command, flags);
+    }
+}
+
+void PlayListItemRunProcess::Start()
+{
+    _started = false;
 }

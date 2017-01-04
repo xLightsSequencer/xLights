@@ -24,6 +24,7 @@ class PlayListDialog: public wxDialog
     void PopulateTree();
     int GetPos(const wxTreeItemId& item);
     void HighlightDropItem(wxTreeItemId* id);
+    void DeleteSelectedItem();
 
     public:
 
@@ -59,6 +60,7 @@ class PlayListDialog: public wxDialog
 		//*)
 
         static const long ID_MNU_ADDSTEP;
+        static const long ID_MNU_ADDESEQ;
         static const long ID_MNU_ADDFSEQ;
         static const long ID_MNU_ADDALLOFF;
         static const long ID_MNU_ADDPROCESS;

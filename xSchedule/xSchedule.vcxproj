@@ -159,6 +159,26 @@
     <ClCompile Include="..\xLights\JobPool.cpp" />
     <ClCompile Include="..\xLights\kiss_fft\kiss_fft.c" />
     <ClCompile Include="..\xLights\kiss_fft\tools\kiss_fftr.c" />
+    <ClCompile Include="..\xLights\outputs\ArtNetDialog.cpp" />
+    <ClCompile Include="..\xLights\outputs\ArtNetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\Controller.cpp" />
+    <ClCompile Include="..\xLights\outputs\DMXOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\E131Dialog.cpp" />
+    <ClCompile Include="..\xLights\outputs\E131Output.cpp" />
+    <ClCompile Include="..\xLights\outputs\IPOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\LOROutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\NullOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\NullOutputDialog.cpp" />
+    <ClCompile Include="..\xLights\outputs\OpenDMXOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\OpenPixelNetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\Output.cpp" />
+    <ClCompile Include="..\xLights\outputs\OutputManager.cpp" />
+    <ClCompile Include="..\xLights\outputs\PixelNetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\RenardOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\serial.cpp" />
+    <ClCompile Include="..\xLights\outputs\SerialOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\SerialPortWithRate.cpp" />
+    <ClCompile Include="..\xLights\outputs\TestPreset.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\Files.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\PluginBufferingAdapter.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\PluginChannelAdapter.cpp" />
@@ -167,6 +187,10 @@
     <ClCompile Include="..\xLights\vamp-hostsdk\PluginLoader.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\PluginWrapper.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\RealTime.cpp" />
+    <ClCompile Include="..\xLights\VideoReader.cpp" />
+    <ClCompile Include="..\xLights\xLightsTimer.cpp" />
+    <ClCompile Include="ESEQFile.cpp" />
+    <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="OptionsDialog.cpp" />
     <ClCompile Include="PlayList\PlayList.cpp" />
     <ClCompile Include="PlayList\PlayListDialog.cpp" />
@@ -175,6 +199,8 @@
     <ClCompile Include="PlayList\PlayListItemAllOffPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemDelay.cpp" />
     <ClCompile Include="PlayList\PlayListItemDelayPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemESEQ.cpp" />
+    <ClCompile Include="PlayList\PlayListItemESEQPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFSEQ.cpp" />
     <ClCompile Include="PlayList\PlayListItemFSEQPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemImage.cpp" />
@@ -190,12 +216,33 @@
     <ClCompile Include="Schedule.cpp" />
     <ClCompile Include="ScheduleDialog.cpp" />
     <ClCompile Include="ScheduleManager.cpp" />
+    <ClCompile Include="ScheduleOptions.cpp" />
     <ClCompile Include="xScheduleApp.cpp" />
     <ClCompile Include="xScheduleMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
+    <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\DLightOutput.h" />
+    <ClInclude Include="..\xLights\outputs\DMXOutput.h" />
+    <ClInclude Include="..\xLights\outputs\E131Output.h" />
+    <ClInclude Include="..\xLights\outputs\IPOutput.h" />
+    <ClInclude Include="..\xLights\outputs\LOROutput.h" />
+    <ClInclude Include="..\xLights\outputs\NullOutput.h" />
+    <ClInclude Include="..\xLights\outputs\OpenDMXOutput.h" />
+    <ClInclude Include="..\xLights\outputs\OpenPixelNetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\Output.h" />
+    <ClInclude Include="..\xLights\outputs\OutputManager.h" />
+    <ClInclude Include="..\xLights\outputs\PixelNetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\RenardOutput.h" />
+    <ClInclude Include="..\xLights\outputs\serial.h" />
+    <ClInclude Include="..\xLights\outputs\SerialOutput.h" />
+    <ClInclude Include="..\xLights\outputs\TestPreset.h" />
+    <ClInclude Include="..\xLights\VideoReader.h" />
+    <ClInclude Include="..\xLights\xLightsTimer.h" />
+    <ClInclude Include="ESEQFile.h" />
+    <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="MyTreeItemData.h" />
     <ClInclude Include="OptionsDialog.h" />
     <ClInclude Include="PlayList\PlayList.h" />
@@ -205,6 +252,8 @@
     <ClInclude Include="PlayList\PlayListItemAllOffPanel.h" />
     <ClInclude Include="PlayList\PlayListItemDelay.h" />
     <ClInclude Include="PlayList\PlayListItemDelayPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemESEQ.h" />
+    <ClInclude Include="PlayList\PlayListItemESEQPanel.h" />
     <ClInclude Include="PlayList\PlayListItemFSEQ.h" />
     <ClInclude Include="PlayList\PlayListItemFSEQPanel.h" />
     <ClInclude Include="PlayList\PlayListItemImage.h" />
@@ -220,6 +269,7 @@
     <ClInclude Include="Schedule.h" />
     <ClInclude Include="ScheduleDialog.h" />
     <ClInclude Include="ScheduleManager.h" />
+    <ClInclude Include="ScheduleOptions.h" />
     <ClInclude Include="xScheduleApp.h" />
     <ClInclude Include="xScheduleMain.h" />
   </ItemGroup>

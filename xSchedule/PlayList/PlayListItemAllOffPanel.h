@@ -5,7 +5,9 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/spinctrl.h>
 #include <wx/panel.h>
+#include <wx/choice.h>
 //*)
 
 class PlayListItemAllOff;
@@ -20,10 +22,14 @@ class PlayListItemAllOffPanel: public wxPanel
 		virtual ~PlayListItemAllOffPanel();
 
 		//(*Declarations(PlayListItemAllOffPanel)
+		wxChoice* Choice_BlendMode;
 		wxStaticText* StaticText2;
 		wxTextCtrl* TextCtrl_AllOffDuration;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Delay;
+		wxStaticText* StaticText4;
+		wxSpinCtrl* SpinCtrl_AllSet;
 		//*)
 
 	protected:
@@ -31,6 +37,10 @@ class PlayListItemAllOffPanel: public wxPanel
 		//(*Identifiers(PlayListItemAllOffPanel)
 		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL1;
+		static const long ID_STATICTEXT3;
+		static const long ID_SPINCTRL1;
+		static const long ID_STATICTEXT4;
+		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL2;
 		//*)

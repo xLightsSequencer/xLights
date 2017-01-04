@@ -5,6 +5,7 @@
 		<size_arg>1</size_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>2</cols>
+			<growablecols>1</growablecols>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 					<label>FSEQ File:</label>
@@ -17,7 +18,22 @@
 				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" variable="FilePickerCtrl_FSEQFile" member="yes">
 					<message>FSEQ File</message>
 					<wildcard>*.fseq</wildcard>
+					<handler function="OnFilePickerCtrl1FileChanged" entry="EVT_FILEPICKER_CHANGED" />
 				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
+					<label>Blend Mode:</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE1" variable="Choice_BlendMode" member="yes" />
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
@@ -30,6 +46,7 @@
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_OverrideAudio" member="yes">
 					<label>Override Audio</label>
+					<handler function="OnCheckBox_OverrideAudioClick" entry="EVT_CHECKBOX" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -47,6 +64,7 @@
 				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL2" variable="FilePickerCtrl_AudioFile" member="yes">
 					<message>Audio File</message>
 					<wildcard></wildcard>
+					<handler function="OnFilePickerCtrl2FileChanged" entry="EVT_FILEPICKER_CHANGED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -56,7 +74,7 @@
 				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
 					<label>Priority:</label>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

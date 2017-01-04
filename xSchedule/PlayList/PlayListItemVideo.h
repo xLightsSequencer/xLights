@@ -6,6 +6,7 @@
 
 class wxXmlNode;
 class wxWindow;
+class VideoReader;
 
 class PlayListItemVideo : public PlayListItem
 {
@@ -15,7 +16,12 @@ protected:
     std::string _videoFile;
 	wxPoint _origin;
 	wxSize _size;
+    VideoReader* _videoReader;
+    size_t _durationMS;
     #pragma endregion Member Variables
+
+    void OpenFiles();
+    void CloseFiles();
 
 public:
 
@@ -23,12 +29,14 @@ public:
     PlayListItemVideo(wxXmlNode* node);
     PlayListItemVideo();
     virtual ~PlayListItemVideo() {};
+    virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    virtual size_t GetDurationMS() const override;
     virtual std::string GetName() const override;
-    void SetLocation(wxPoint pt, wxSize size) { _origin = pt; _size = size; }
-    void SetVideoFile(const std::string& videoFile) { _videoFile = videoFile; }
+    void SetLocation(wxPoint pt, wxSize size) { _origin = pt; _size = size; _dirty = true; }
+    void SetVideoFile(const std::string& videoFile);
     std::string GetVideoFile() const { return _videoFile; }
     wxPoint GetPosition() const { return _origin; }
     wxSize GetSize() const { return _size; }
@@ -38,10 +46,9 @@ public:
     void Load(wxXmlNode* node) override;
 
     #pragma region Playing
-    virtual void Play() override {};
-    virtual void Stop() override {};
-    virtual void PlayFrame(long frame) override {};
-    virtual wxByte* GetFrameData(long frame) override { return nullptr; }
+    virtual void Start() override;
+    virtual void Stop() override;
+    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems) override;
     #pragma endregion Playing
 
 #pragma region UI

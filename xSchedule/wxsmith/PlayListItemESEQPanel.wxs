@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
-	<object class="wxPanel" name="PlayListItemAllOffPanel">
+	<object class="wxPanel" name="PlayListItemESEQPanel">
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -8,41 +8,24 @@
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-					<label>Duration:</label>
+					<label>ESEQ File:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_AllOffDuration" member="yes">
-					<value>0.050</value>
-					<style>wxTE_RIGHT</style>
-					<handler function="OnTextCtrl_AllOffDurationText" entry="EVT_TEXT" />
+				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" variable="FilePickerCtrl_ESEQFile" member="yes">
+					<message>ESEQ File</message>
+					<wildcard>*.ESEQ</wildcard>
+					<handler function="OnFilePickerCtrl1FileChanged" entry="EVT_FILEPICKER_CHANGED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
-					<label>Value:</label>
-				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_AllSet" member="yes">
-					<value>0</value>
-					<max>255</max>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
 					<label>Blend Mode:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -56,7 +39,25 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+					<label>Priority:</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_Priority" member="yes">
+					<value>5</value>
+					<min>1</min>
+					<max>10</max>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
 					<label>Delay:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -64,7 +65,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_Delay" member="yes">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Delay" member="yes">
 					<value>0.000</value>
 					<style>wxTE_RIGHT</style>
 				</object>

@@ -1,0 +1,111 @@
+#include "PlayListItemESEQ.h"
+#include "wx/xml/xml.h"
+#include <wx/notebook.h>
+#include "PlayListItemESEQPanel.h"
+
+PlayListItemESEQ::PlayListItemESEQ(wxXmlNode* node) : PlayListItem(node)
+{
+    _ESEQFile = nullptr;
+    _ESEQFileName = "";
+    _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
+    PlayListItemESEQ::Load(node);
+}
+
+void PlayListItemESEQ::Load(wxXmlNode* node)
+{
+    PlayListItem::Load(node);
+    _ESEQFileName = node->GetAttribute("ESEQFile", "");
+    _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
+}
+
+PlayListItemESEQ::PlayListItemESEQ() : PlayListItem()
+{
+    _ESEQFile = nullptr;
+    _ESEQFileName = "";
+    _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
+}
+
+PlayListItem* PlayListItemESEQ::Copy() const
+{
+    PlayListItemESEQ* res = new PlayListItemESEQ();
+    res->_ESEQFileName = _ESEQFileName;
+    res->_applyMethod = _applyMethod;
+    PlayListItem::Copy(res);
+
+    return res;
+}
+
+wxXmlNode* PlayListItemESEQ::Save()
+{
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIESEQ");
+
+    node->AddAttribute("ESEQFile", _ESEQFileName);
+    node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
+
+    PlayListItem::Save(node);
+
+    return node;
+}
+
+void PlayListItemESEQ::Configure(wxNotebook* notebook)
+{
+    notebook->AddPage(new PlayListItemESEQPanel(notebook, this), "ESEQ", true);
+}
+
+std::string PlayListItemESEQ::GetName() const
+{
+    wxFileName fn(_ESEQFileName);
+    if (fn.GetName() == "")
+    {
+        return "ESEQ";
+    }
+    else
+    {
+        return fn.GetName().ToStdString();
+    }
+}
+
+void PlayListItemESEQ::SetESEQFileName(const std::string& ESEQFileName)
+{
+    _ESEQFileName = ESEQFileName; 
+    _dirty = true;
+}
+
+void PlayListItemESEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems)
+{
+    _ESEQFile->ReadData(buffer, size, ms / framems, _applyMethod);
+}
+
+void PlayListItemESEQ::Start()
+{
+    // load the FSEQ
+    LoadFiles();
+}
+
+void PlayListItemESEQ::Stop()
+{
+    // load the FSEQ
+    CloseFiles();
+}
+
+void PlayListItemESEQ::LoadFiles()
+{
+    CloseFiles();
+
+if (wxFile::Exists(_ESEQFileName))
+{
+    _ESEQFile = new ESEQFile();
+    _ESEQFile->Load(_ESEQFileName);
+}
+
+}
+
+void PlayListItemESEQ::CloseFiles()
+{
+    if (_ESEQFile != nullptr)
+    {
+        _ESEQFile->Close();
+        delete _ESEQFile;
+        _ESEQFile = nullptr;
+    }
+}

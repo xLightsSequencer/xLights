@@ -54,6 +54,7 @@ const long xScheduleFrame::ID_PANEL5 = wxNewId();
 const long xScheduleFrame::ID_SPLITTERWINDOW1 = wxNewId();
 const long xScheduleFrame::ID_BUTTON_PLAY = wxNewId();
 const long xScheduleFrame::ID_BUTTON_STOP = wxNewId();
+const long xScheduleFrame::ID_STATICTEXT1 = wxNewId();
 const long xScheduleFrame::ID_PANEL1 = wxNewId();
 const long xScheduleFrame::ID_MNU_SHOWFOLDER = wxNewId();
 const long xScheduleFrame::ID_MNU_SAVE = wxNewId();
@@ -63,12 +64,15 @@ const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
 const long xScheduleFrame::ID_MNU_OPTIONS = wxNewId();
 const long xScheduleFrame::idMenuAbout = wxNewId();
 const long xScheduleFrame::ID_STATUSBAR1 = wxNewId();
+const long xScheduleFrame::ID_TIMER1 = wxNewId();
+const long xScheduleFrame::ID_TIMER2 = wxNewId();
 //*)
 
 const long xScheduleFrame::ID_MNU_ADDPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_SCHEDULEPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_DELETE = wxNewId();
 const long xScheduleFrame::ID_MNU_EDIT = wxNewId();
+const long xScheduleFrame::ID_MNU_PLAYNOW = wxNewId();
 
 BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     //(*EventTable(xScheduleFrame)
@@ -128,6 +132,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer4->Add(Button_Play, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Stop = new wxButton(Panel1, ID_BUTTON_STOP, _("Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_STOP"));
     FlexGridSizer4->Add(Button_Stop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText_Status = new wxStaticText(Panel1, ID_STATICTEXT1, _("Not Playing"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    FlexGridSizer4->Add(StaticText_Status, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1->SetSizer(FlexGridSizer4);
     FlexGridSizer4->Fit(Panel1);
     FlexGridSizer4->SetSizeHints(Panel1);
@@ -162,6 +168,10 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     StatusBar1->SetStatusStyles(1,__wxStatusBarStyles_1);
     SetStatusBar(StatusBar1);
     DirDialog1 = new wxDirDialog(this, _("Select show folder ..."), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+    _timer.SetOwner(this, ID_TIMER1);
+    _timer.Start(50, false);
+    _timerSchedule.SetOwner(this, ID_TIMER2);
+    _timerSchedule.Start(1000, false);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
@@ -175,6 +185,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MNU_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_SaveSelected);
     Connect(idMenuQuit,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnQuit);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnAbout);
+    Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerTrigger);
+    Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerScheduleTrigger);
     //*)
 
     SetSize(600, 300);
@@ -211,14 +223,15 @@ void xScheduleFrame::OnButton_PlayClick(wxCommandEvent& event)
 
 void xScheduleFrame::OnButton_StopClick(wxCommandEvent& event)
 {
+    _schedule->StopAll();
 }
 
-bool xScheduleFrame::IsPlayList(wxTreeItemId id)
+bool xScheduleFrame::IsPlayList(wxTreeItemId id) const
 {
     return (TreeCtrl_PlayListsSchedules->GetItemParent(id) == TreeCtrl_PlayListsSchedules->GetRootItem());
 }
 
-bool xScheduleFrame::IsSchedule(wxTreeItemId id)
+bool xScheduleFrame::IsSchedule(wxTreeItemId id) const
 {
     return (TreeCtrl_PlayListsSchedules->GetItemParent(id) != TreeCtrl_PlayListsSchedules->GetRootItem() && TreeCtrl_PlayListsSchedules->GetItemParent(id) != nullptr);
 }
@@ -239,11 +252,17 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu(wxTreeEvent& event)
 
     wxMenuItem* del = mnu.Append(ID_MNU_DELETE, "Delete");
     wxMenuItem* edit = mnu.Append(ID_MNU_EDIT, "Edit");
+    wxMenuItem* play = mnu.Append(ID_MNU_PLAYNOW, "Play Now");
 
     if (!IsPlayList(treeitem) && !IsSchedule(treeitem))
     {
         del->Enable(false);
         edit->Enable(false);
+    }
+
+    if (!IsPlayList(treeitem))
+    {
+        play->Enable(false);
     }
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xScheduleFrame::OnTreeCtrlMenu, nullptr, this);
@@ -286,24 +305,7 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_MNU_DELETE)
     {
-        if (wxMessageBox("Are you sure?", "Are you sure?", wxYES_NO) == wxYES)
-        {
-            if (IsPlayList(treeitem))
-            {
-                PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-                delete playlist;
-
-                TreeCtrl_PlayListsSchedules->Delete(treeitem);
-            }
-            else if (IsSchedule(treeitem))
-            {
-                PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
-                Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-                playlist->RemoveSchedule(schedule);
-                delete schedule;
-                TreeCtrl_PlayListsSchedules->Delete(treeitem);
-            }
-        }
+        DeleteSelectedItem();
     }
     else if (event.GetId() == ID_MNU_EDIT)
     {
@@ -324,6 +326,47 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
             }
         }
     }
+    else if (event.GetId() == ID_MNU_PLAYNOW)
+    {
+        PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+        size_t rate = _schedule->PlayPlayList(playlist);
+
+        // if the desired rate is different than the current rate then restart timer with the desired rate
+        if (_timer.GetInterval() != rate)
+        {
+            _timer.Stop();
+            _timer.Start(rate);
+        }
+    }
+}
+
+void xScheduleFrame::DeleteSelectedItem()
+{
+    wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+    if (treeitem.IsOk() && (IsPlayList(treeitem) || IsSchedule(treeitem)))
+    {
+        if (wxMessageBox("Are you sure?", "Are you sure?", wxYES_NO) == wxYES)
+        {
+            wxTreeItemId parent = TreeCtrl_PlayListsSchedules->GetItemParent(treeitem);
+            if (IsPlayList(treeitem))
+            {
+                PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+                _schedule->RemovePlayList(playlist);
+                delete playlist;
+
+                TreeCtrl_PlayListsSchedules->Delete(treeitem);
+            }
+            else if (IsSchedule(treeitem))
+            {
+                PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
+                Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+                playlist->RemoveSchedule(schedule);
+                delete schedule;
+                TreeCtrl_PlayListsSchedules->Delete(treeitem);
+            }
+            TreeCtrl_PlayListsSchedules->SelectItem(parent);
+        }
+    }
 }
 
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged(wxTreeEvent& event)
@@ -332,6 +375,10 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged(wxTreeEvent& 
 
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesKeyDown(wxTreeEvent& event)
 {
+    if (event.GetKeyCode() == WXK_DELETE)
+    {
+        DeleteSelectedItem();
+    }
 }
 
 void xScheduleFrame::OnMenuItem_SaveSelected(wxCommandEvent& event)
@@ -433,5 +480,23 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
         {
             TreeCtrl_PlayListsSchedules->SetItemText(treeitem, schedule->GetName());
         }
+    }
+}
+
+void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
+{
+    _schedule->Frame();
+    StaticText_Status->SetLabel(_schedule->GetStatus());
+}
+
+void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
+{
+    int rate = _schedule->CheckSchedule();
+
+    // if the desired rate is different than the current rate then restart timer with the desired rate
+    if (_timer.GetInterval() != rate)
+    {
+        _timer.Stop();
+        _timer.Start(rate);
     }
 }

@@ -5,6 +5,11 @@
 
 PlayListItemImage::PlayListItemImage(wxXmlNode* node) : PlayListItem(node)
 {
+    _ImageFile = "";
+    _origin.x = 0;
+    _origin.y = 0;
+    _size.SetWidth(100);
+    _size.SetHeight(100);
     PlayListItemImage::Load(node);
 }
 
@@ -24,6 +29,18 @@ PlayListItemImage::PlayListItemImage() : PlayListItem()
     _size.SetWidth(100);
     _size.SetHeight(100);
 }
+
+PlayListItem* PlayListItemImage::Copy() const
+{
+    PlayListItemImage* res = new PlayListItemImage();
+    res->_ImageFile = _ImageFile;
+    res->_origin = _origin;
+    res->_size= _size;
+    PlayListItem::Copy(res);
+
+    return res;
+}
+
 
 wxXmlNode* PlayListItemImage::Save()
 {
@@ -57,3 +74,27 @@ std::string PlayListItemImage::GetName() const
         return fn.GetName().ToStdString();
     }
 }
+
+void PlayListItemImage::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems)
+{
+    if (ms > _delay)
+    {
+        #pragma todo ... display the image
+    }
+}
+
+void PlayListItemImage::Start()
+{
+    // reload the image file
+    _image.LoadFile(_ImageFile);
+
+    // create the window
+    #pragma todo create window
+}
+
+void PlayListItemImage::Stop()
+{
+    // destroy the window
+    #pragma todo destroy window
+}
+

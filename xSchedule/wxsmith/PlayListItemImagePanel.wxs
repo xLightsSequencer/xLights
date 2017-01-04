@@ -18,6 +18,7 @@
 				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" variable="FilePickerCtrl_ImageFile" member="yes">
 					<message>Image File</message>
 					<wildcard></wildcard>
+					<handler function="OnFilePickerCtrl_ImageFileFileChanged" entry="EVT_FILEPICKER_CHANGED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

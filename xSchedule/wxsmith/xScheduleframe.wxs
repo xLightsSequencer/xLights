@@ -84,6 +84,14 @@
 							<border>5</border>
 							<option>1</option>
 						</object>
+						<object class="sizeritem">
+							<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText_Status" member="yes">
+								<label>Not Playing</label>
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
@@ -138,6 +146,14 @@
 		</object>
 		<object class="wxDirDialog" variable="DirDialog1" member="yes">
 			<message>Select show folder ...</message>
+		</object>
+		<object class="wxTimer" name="ID_TIMER1" subclass="xLightsTimer" variable="_timer" member="yes">
+			<interval>50</interval>
+			<handler function="On_timerTrigger" entry="EVT_TIMER" />
+		</object>
+		<object class="wxTimer" name="ID_TIMER2" variable="_timerSchedule" member="yes">
+			<interval>1000</interval>
+			<handler function="On_timerScheduleTrigger" entry="EVT_TIMER" />
 		</object>
 	</object>
 </wxsmith>

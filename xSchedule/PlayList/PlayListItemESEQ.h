@@ -1,39 +1,41 @@
-#ifndef PLAYLISTITEMIMAGE_H
-#define PLAYLISTITEMIMAGE_H
+#ifndef PLAYLISTITEMESEQ_H
+#define PLAYLISTITEMESEQ_H
 
 #include "PlayListItem.h"
+#include "../ESEQFile.h"
 #include <string>
 
 class wxXmlNode;
 class wxWindow;
 
-class PlayListItemImage : public PlayListItem
+class PlayListItemESEQ : public PlayListItem
 {
 protected:
 
     #pragma region Member Variables
-    std::string _ImageFile;
-	wxPoint _origin;
-	wxSize _size;
-    wxImage _image;
+    std::string _ESEQFileName;
+    ESEQFile* _ESEQFile;
+    APPLYMETHOD _applyMethod;
     #pragma endregion Member Variables
+
+    void LoadFiles();
+    void CloseFiles();
 
 public:
 
     #pragma region Constructors and Destructors
-    PlayListItemImage(wxXmlNode* node);
-    PlayListItemImage();
-    virtual ~PlayListItemImage() {};
+    PlayListItemESEQ(wxXmlNode* node);
+    PlayListItemESEQ();
+    virtual ~PlayListItemESEQ() { CloseFiles(); };
     virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
     virtual std::string GetName() const override;
-    void SetLocation(wxPoint pt, wxSize size) { _origin = pt; _size = size; }
-    void SetImageFile(const std::string& ImageFile) { _ImageFile = ImageFile; }
-    std::string GetImageFile() const { return _ImageFile; }
-    wxPoint GetPosition() const { return _origin; }
-    wxSize GetSize() const { return _size; }
+    std::string GetESEQFileName() const { return _ESEQFileName; }
+    void SetESEQFileName(const std::string& ESEQFileName);
+    int GetBlendMode() const { return _applyMethod; }
+    void SetBlendMode(int blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _dirty = true; }
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
@@ -45,9 +47,9 @@ public:
     virtual void Stop() override;
     #pragma endregion Playing
 
-#pragma region UI
+    #pragma region UI
     // returns nullptr if cancelled
     virtual void Configure(wxNotebook* notebook) override;
-#pragma endregion UI
+    #pragma endregion UI
 };
 #endif

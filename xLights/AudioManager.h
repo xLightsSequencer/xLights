@@ -138,14 +138,13 @@ public:
 	MEDIAPLAYINGSTATE GetPlayingState();
 	int Tell();
 	xLightsVamp* GetVamp() { return &_vamp; };
-	AudioManager(std::string audio_file, int step, int block);
+	AudioManager(const std::string& audio_file, int step = 4096, int block = 32768);
 	~AudioManager();
 	int GetTrackSize() { return _trackSize; };
 	long GetRate() { return _rate; };
 	int GetChannels() { return _channels; };
 	int GetState() { return _state; };
 	std::string GetResultMessage() { return _resultMessage; };
-	std::string GetVampTiming(std::string plugin);
 	std::string Title() { return _title; };
 	std::string Artist() { return _artist; };
 	std::string Album() { return _album; };

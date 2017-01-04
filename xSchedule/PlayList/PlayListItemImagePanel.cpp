@@ -46,6 +46,7 @@ PlayListItemImagePanel::PlayListItemImagePanel(wxWindow* parent, PlayListItemIma
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
+	Connect(ID_FILEPICKERCTRL1,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&PlayListItemImagePanel::OnFilePickerCtrl_ImageFileFileChanged);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListItemImagePanel::OnButton_PositionWindowClick);
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListItemImagePanel::OnTextCtrl_DelayText);
 	//*)

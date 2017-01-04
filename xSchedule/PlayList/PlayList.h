@@ -2,6 +2,7 @@
 #define PLAYLIST_H
 #include <list>
 #include <map>
+#include <wx/wx.h>
 
 class wxXmlNode;
 class PlayListStep;
@@ -20,19 +21,23 @@ protected:
     bool _firstOnlyOnce;
     bool _lastOnlyOnce;
     PlayListStep* _currentStep;
+    int _priorty;
     #pragma endregion Member Variables
 
     int GetPos(PlayListStep* step);
+    PlayListStep* GetNextStep() const;
 
 public:
 
     #pragma region Constructors and Destructors
     PlayList(wxXmlNode* node);
+    PlayList(const PlayList& playlist);
     PlayList();
     virtual ~PlayList();
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    PlayListStep* GetRunningStep() const { return _currentStep; }
     std::list<PlayListStep*> GetSteps() const { return _steps; }
     std::list<Schedule*> GetSchedules() const { return _schedules; }
     bool IsDirty() const;
@@ -45,16 +50,18 @@ public:
     bool GetLastOnce() const
     { return _lastOnlyOnce; }
     void SetLastOnce(bool foo) { _lastOnlyOnce = foo; _dirty = true; }
-    PlayListStep* PlayNextStep();
-    PlayListStep* PlayPriorStep();
-    PlayListStep* PlayStep(const std::string& stepName);
-    PlayListStep* GetStep(int n) const;
+    int GetPriority() const { return _priorty; }
+    void SetPriority(int priority) { _priorty = priority; _dirty = true; }
+    bool Frame(wxByte* buffer, size_t size); // true if this was the last frame
     int GetPlayListSize() const { return _steps.size(); }
     void AddStep(PlayListStep* item, int pos);
     void RemoveStep(PlayListStep* item);
     void RemoveSchedule(Schedule* item);
     void MoveStepAfterStep(PlayListStep* movethis, PlayListStep* afterthis);
     void AddSchedule(Schedule* schedule);
+    bool IsRunning() const;
+    void Start();
+    void Stop();
     #pragma endregion Getters and Setters
 
     wxXmlNode* Save();

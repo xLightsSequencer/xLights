@@ -59,7 +59,7 @@ PlayListItemRunProcessPanel::PlayListItemRunProcessPanel(wxWindow* parent, PlayL
 	Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListItemRunProcessPanel::OnTextCtrl_DelayText);
 	//*)
 
-    TextCtrl_RunProcessName->SetValue(process->GetName());
+    TextCtrl_RunProcessName->SetValue(process->GetRawName());
     TextCtrl_Command->SetValue(process->GetCommand());
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)process->GetDelay() / 1000.0));
     CheckBox_WaitForCompletion->SetValue(process->GetWaitForCompletion());

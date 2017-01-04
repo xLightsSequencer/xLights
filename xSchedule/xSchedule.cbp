@@ -220,6 +220,73 @@
 		<ResourceCompiler>
 			<Add directory="$(#wxvc)/include" />
 		</ResourceCompiler>
+		<Unit filename="../xLights/AudioManager.cpp" />
+		<Unit filename="../xLights/AudioManager.h" />
+		<Unit filename="../xLights/JobPool.cpp" />
+		<Unit filename="../xLights/JobPool.h" />
+		<Unit filename="../xLights/VideoReader.cpp" />
+		<Unit filename="../xLights/VideoReader.h" />
+		<Unit filename="../xLights/kiss_fft/kiss_fft.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../xLights/kiss_fft/tools/kiss_fftr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../xLights/outputs/ArtNetDialog.cpp" />
+		<Unit filename="../xLights/outputs/ArtNetDialog.h" />
+		<Unit filename="../xLights/outputs/ArtNetOutput.cpp" />
+		<Unit filename="../xLights/outputs/ArtNetOutput.h" />
+		<Unit filename="../xLights/outputs/Controller.cpp" />
+		<Unit filename="../xLights/outputs/Controller.h" />
+		<Unit filename="../xLights/outputs/DLightOutput.h" />
+		<Unit filename="../xLights/outputs/DMXOutput.cpp" />
+		<Unit filename="../xLights/outputs/DMXOutput.h" />
+		<Unit filename="../xLights/outputs/E131Dialog.cpp" />
+		<Unit filename="../xLights/outputs/E131Dialog.h" />
+		<Unit filename="../xLights/outputs/E131Output.cpp" />
+		<Unit filename="../xLights/outputs/E131Output.h" />
+		<Unit filename="../xLights/outputs/IPOutput.cpp" />
+		<Unit filename="../xLights/outputs/IPOutput.h" />
+		<Unit filename="../xLights/outputs/LOROutput.cpp" />
+		<Unit filename="../xLights/outputs/LOROutput.h" />
+		<Unit filename="../xLights/outputs/NullOutput.cpp" />
+		<Unit filename="../xLights/outputs/NullOutput.h" />
+		<Unit filename="../xLights/outputs/NullOutputDialog.cpp" />
+		<Unit filename="../xLights/outputs/NullOutputDialog.h" />
+		<Unit filename="../xLights/outputs/OpenDMXOutput.cpp" />
+		<Unit filename="../xLights/outputs/OpenDMXOutput.h" />
+		<Unit filename="../xLights/outputs/OpenPixelNetOutput.cpp" />
+		<Unit filename="../xLights/outputs/OpenPixelNetOutput.h" />
+		<Unit filename="../xLights/outputs/Output.cpp" />
+		<Unit filename="../xLights/outputs/Output.h" />
+		<Unit filename="../xLights/outputs/OutputManager.cpp" />
+		<Unit filename="../xLights/outputs/OutputManager.h" />
+		<Unit filename="../xLights/outputs/PixelNetOutput.cpp" />
+		<Unit filename="../xLights/outputs/PixelNetOutput.h" />
+		<Unit filename="../xLights/outputs/RenardOutput.cpp" />
+		<Unit filename="../xLights/outputs/RenardOutput.h" />
+		<Unit filename="../xLights/outputs/SerialOutput.cpp" />
+		<Unit filename="../xLights/outputs/SerialOutput.h" />
+		<Unit filename="../xLights/outputs/SerialPortWithRate.cpp" />
+		<Unit filename="../xLights/outputs/SerialPortWithRate.h" />
+		<Unit filename="../xLights/outputs/TestPreset.cpp" />
+		<Unit filename="../xLights/outputs/TestPreset.h" />
+		<Unit filename="../xLights/outputs/serial.cpp" />
+		<Unit filename="../xLights/outputs/serial.h" />
+		<Unit filename="../xLights/vamp-hostsdk/Files.cpp" />
+		<Unit filename="../xLights/vamp-hostsdk/PluginBufferingAdapter.cpp" />
+		<Unit filename="../xLights/vamp-hostsdk/PluginChannelAdapter.cpp" />
+		<Unit filename="../xLights/vamp-hostsdk/PluginHostAdapter.cpp" />
+		<Unit filename="../xLights/vamp-hostsdk/PluginInputDomainAdapter.cpp" />
+		<Unit filename="../xLights/vamp-hostsdk/PluginLoader.cpp" />
+		<Unit filename="../xLights/vamp-hostsdk/PluginWrapper.cpp" />
+		<Unit filename="../xLights/vamp-hostsdk/RealTime.cpp" />
+		<Unit filename="../xLights/xLightsTimer.cpp" />
+		<Unit filename="../xLights/xLightsTimer.h" />
+		<Unit filename="ESEQFile.cpp" />
+		<Unit filename="ESEQFile.h" />
+		<Unit filename="FSEQFile.cpp" />
+		<Unit filename="FSEQFile.h" />
 		<Unit filename="OptionsDialog.cpp" />
 		<Unit filename="OptionsDialog.h" />
 		<Unit filename="PlayList/PlayList.cpp" />
@@ -236,6 +303,10 @@
 		<Unit filename="PlayList/PlayListItemDelay.h" />
 		<Unit filename="PlayList/PlayListItemDelayPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemDelayPanel.h" />
+		<Unit filename="PlayList/PlayListItemESEQ.cpp" />
+		<Unit filename="PlayList/PlayListItemESEQ.h" />
+		<Unit filename="PlayList/PlayListItemESEQPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemESEQPanel.h" />
 		<Unit filename="PlayList/PlayListItemFSEQ.cpp" />
 		<Unit filename="PlayList/PlayListItemFSEQ.h" />
 		<Unit filename="PlayList/PlayListItemFSEQPanel.cpp" />
@@ -260,10 +331,14 @@
 		<Unit filename="PlayList/PlayListStepPanel.h" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.cpp" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.h" />
+		<Unit filename="Schedule.cpp" />
+		<Unit filename="Schedule.h" />
 		<Unit filename="ScheduleDialog.cpp" />
 		<Unit filename="ScheduleDialog.h" />
 		<Unit filename="ScheduleManager.cpp" />
 		<Unit filename="ScheduleManager.h" />
+		<Unit filename="ScheduleOptions.cpp" />
+		<Unit filename="ScheduleOptions.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>
@@ -271,6 +346,7 @@
 		<Unit filename="wxsmith/PlayListDialog.wxs" />
 		<Unit filename="wxsmith/PlayListItemAllOffPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemDelayPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemESEQPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFSEQPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemImagePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunProcessPanel.wxs" />
@@ -299,6 +375,7 @@
 					<wxPanel wxs="wxsmith/PlayListItemDelayPanel.wxs" src="PlayList/PlayListItemDelayPanel.cpp" hdr="PlayList/PlayListItemDelayPanel.h" fwddecl="0" i18n="1" name="PlayListItemDelayPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemImagePanel.wxs" src="PlayList/PlayListItemImagePanel.cpp" hdr="PlayList/PlayListItemImagePanel.h" fwddecl="0" i18n="1" name="PlayListItemImagePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemRunProcessPanel.wxs" src="PlayList/PlayListItemRunProcessPanel.cpp" hdr="PlayList/PlayListItemRunProcessPanel.h" fwddecl="0" i18n="1" name="PlayListItemRunProcessPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemESEQPanel.wxs" src="PlayList/PlayListItemESEQPanel.cpp" hdr="PlayList/PlayListItemESEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemESEQPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFSEQPanel.wxs" src="PlayList/PlayListItemFSEQPanel.cpp" hdr="PlayList/PlayListItemFSEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemFSEQPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemVideoPanel.wxs" src="PlayList/PlayListItemVideoPanel.cpp" hdr="PlayList/PlayListItemVideoPanel.h" fwddecl="0" i18n="1" name="PlayListItemVideoPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListPanel.wxs" src="PlayList/PlayListPanel.cpp" hdr="PlayList/PlayListPanel.h" fwddecl="0" i18n="1" name="PlayListPanel" language="CPP" />

@@ -20,9 +20,11 @@ public:
     PlayListItemDelay(wxXmlNode* node);
     PlayListItemDelay();
     virtual ~PlayListItemDelay() {};
+    virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    virtual size_t GetDurationMS() const override { return _delay + _duration; }
     long GetDuration() const { return _duration; }
     void SetDuration(long duration) { _duration = duration; }
     #pragma endregion Getters and Setters
@@ -31,10 +33,7 @@ public:
     void Load(wxXmlNode* node) override;
 
 #pragma region Playing
-    virtual void Play() override {};
-    virtual void Stop() override {};
-    virtual void PlayFrame(long frame) override {};
-    virtual wxByte* GetFrameData(long frame) override { return nullptr; };
+    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems) override;
 #pragma endregion Playing
 
     #pragma region UI

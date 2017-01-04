@@ -67,7 +67,7 @@ void AudioManager::Play(int posms, int lenms)
 
     {
         std::unique_lock<std::mutex> locker(__audio_Lock);
-        __audio_len = lenms * _rate * 2 * 2 / 1000;
+        __audio_len = (Uint64)lenms * (Uint64)_rate * 2 * 2 / 1000;
         __audio_len -= __audio_len % 4;
         __audio_pos = _pcmdata + ((Uint64)posms * _rate * 2 * 2 / 1000);
     }
@@ -143,19 +143,19 @@ int AudioManager::Tell()
     return (((_pcmdatasize - __audio_len) / 4) * _lengthMS)/ _trackSize;
 }
 
-AudioManager::AudioManager(std::string audio_file, int step = 1024, int block = 1024)
+AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 {
 	// save parameters and initialise defaults
-	_job = NULL;
+	_job = nullptr;
 	_audio_file = audio_file;
 	_state = -1; // state uninitialised. 0 is error. 1 is loaded ok
 	_resultMessage = "";
-	_data[0] = NULL; // Left channel data
-	_data[1] = NULL; // right channel data
+	_data[0] = nullptr; // Left channel data
+	_data[1] = nullptr; // right channel data
 	_intervalMS = -1; // no length
 	_frameDataPrepared = false; // frame data is used by effects to react to the sone
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
-	_pcmdata = NULL;
+	_pcmdata = nullptr;
 	_polyphonicTranscriptionDone = false;
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions

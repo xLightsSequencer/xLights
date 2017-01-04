@@ -11,6 +11,7 @@
 //(*IdInit(PlayListStepPanel)
 const long PlayListStepPanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListStepPanel::ID_TEXTCTRL1 = wxNewId();
+const long PlayListStepPanel::ID_CHECKBOX1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PlayListStepPanel,wxPanel)
@@ -32,6 +33,10 @@ PlayListStepPanel::PlayListStepPanel(wxWindow* parent, PlayListStep* step, wxWin
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_PlayListStepName = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer1->Add(TextCtrl_PlayListStepName, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_ExcludeFromRandom = new wxCheckBox(this, ID_CHECKBOX1, _("Exclude from shuffle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_ExcludeFromRandom->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_ExcludeFromRandom, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -39,15 +44,17 @@ PlayListStepPanel::PlayListStepPanel(wxWindow* parent, PlayListStep* step, wxWin
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListStepPanel::OnTextCtrl_PlayListStepNameText);
 	//*)
 
-    TextCtrl_PlayListStepName->SetValue(step->GetName());
+    TextCtrl_PlayListStepName->SetValue(step->GetRawName());
+    CheckBox_ExcludeFromRandom->SetValue(step->GetExcludeFromRandom());
 }
 
 PlayListStepPanel::~PlayListStepPanel()
 {
 	//(*Destroy(PlayListStepPanel)
 	//*)
+    _step->SetName(TextCtrl_PlayListStepName->GetValue().ToStdString());
+    _step->SetExcludeFromRandom(CheckBox_ExcludeFromRandom->GetValue());
 }
-
 
 void PlayListStepPanel::OnTextCtrl_PlayListStepNameText(wxCommandEvent& event)
 {

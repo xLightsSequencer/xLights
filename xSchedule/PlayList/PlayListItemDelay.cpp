@@ -17,7 +17,16 @@ void PlayListItemDelay::Load(wxXmlNode* node)
 PlayListItemDelay::PlayListItemDelay() : PlayListItem()
 {
     _duration = 50;
-    SetName("All Off");
+    SetName("Delay");
+}
+
+PlayListItem* PlayListItemDelay::Copy() const
+{
+    PlayListItemDelay* res = new PlayListItemDelay();
+    res->_duration = _duration;
+    PlayListItem::Copy(res);
+
+    return res;
 }
 
 wxXmlNode* PlayListItemDelay::Save()
@@ -36,3 +45,7 @@ void PlayListItemDelay::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemDelayPanel(notebook, this), "Delay", true);
 }
 
+void PlayListItemDelay::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems)
+{
+    
+}

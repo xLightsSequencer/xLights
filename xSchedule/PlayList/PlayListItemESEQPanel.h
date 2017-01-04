@@ -1,53 +1,46 @@
-#ifndef PLAYLISTITEMFSEQPANEL_H
-#define PLAYLISTITEMFSEQPANEL_H
+#ifndef PLAYLISTITEMESEQPANEL_H
+#define PLAYLISTITEMESEQPANEL_H
 
-//(*Headers(PlayListItemFSEQPanel)
+//(*Headers(PlayListItemESEQPanel)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
 #include <wx/filepicker.h>
 #include <wx/spinctrl.h>
 #include <wx/panel.h>
 #include <wx/choice.h>
 //*)
 
-class PlayListItemFSEQ;
+class PlayListItemESEQ;
 
-class PlayListItemFSEQPanel: public wxPanel
+class PlayListItemESEQPanel: public wxPanel
 {
-    PlayListItemFSEQ* _fseq;
+    PlayListItemESEQ* _ESEQ;
     void ValidateWindow();
 
 	public:
 
-		PlayListItemFSEQPanel(wxWindow* parent, PlayListItemFSEQ* fseq, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
-		virtual ~PlayListItemFSEQPanel();
+		PlayListItemESEQPanel(wxWindow* parent, PlayListItemESEQ* ESEQ, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		virtual ~PlayListItemESEQPanel();
 
-		//(*Declarations(PlayListItemFSEQPanel)
+		//(*Declarations(PlayListItemESEQPanel)
 		wxChoice* Choice_BlendMode;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Delay;
 		wxSpinCtrl* SpinCtrl_Priority;
-		wxFilePickerCtrl* FilePickerCtrl_FSEQFile;
-		wxCheckBox* CheckBox_OverrideAudio;
-		wxStaticText* StaticText5;
+		wxFilePickerCtrl* FilePickerCtrl_ESEQFile;
 		wxStaticText* StaticText4;
-		wxFilePickerCtrl* FilePickerCtrl_AudioFile;
 		//*)
 
 	protected:
 
-		//(*Identifiers(PlayListItemFSEQPanel)
+		//(*Identifiers(PlayListItemESEQPanel)
 		static const long ID_STATICTEXT1;
 		static const long ID_FILEPICKERCTRL1;
-		static const long ID_STATICTEXT5;
-		static const long ID_CHOICE1;
-		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT2;
-		static const long ID_FILEPICKERCTRL2;
+		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT3;
@@ -56,7 +49,7 @@ class PlayListItemFSEQPanel: public wxPanel
 
 	private:
 
-		//(*Handlers(PlayListItemFSEQPanel)
+		//(*Handlers(PlayListItemESEQPanel)
 		void OnTextCtrl_DelayText(wxCommandEvent& event);
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		void OnFilePickerCtrl2FileChanged(wxFileDirPickerEvent& event);

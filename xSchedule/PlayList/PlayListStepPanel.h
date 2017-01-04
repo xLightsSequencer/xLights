@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/panel.h>
 //*)
 
@@ -20,6 +21,7 @@ class PlayListStepPanel: public wxPanel
 		virtual ~PlayListStepPanel();
 
 		//(*Declarations(PlayListStepPanel)
+		wxCheckBox* CheckBox_ExcludeFromRandom;
 		wxStaticText* StaticText1;
 		wxTextCtrl* TextCtrl_PlayListStepName;
 		//*)
@@ -29,6 +31,7 @@ class PlayListStepPanel: public wxPanel
 		//(*Identifiers(PlayListStepPanel)
 		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL1;
+		static const long ID_CHECKBOX1;
 		//*)
 
 	private:

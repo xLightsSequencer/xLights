@@ -100,6 +100,81 @@
     </ClCompile>
     <ClCompile Include="Schedule.cpp" />
     <ClCompile Include="ScheduleDialog.cpp" />
+    <ClCompile Include="ScheduleOptions.cpp" />
+    <ClCompile Include="..\xLights\outputs\ArtNetOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\DMXOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\E131Output.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\IPOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\LOROutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\NullOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\OpenDMXOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\OpenPixelNetOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\Output.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\OutputManager.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\PixelNetOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\RenardOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\serial.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\SerialOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\TestPreset.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ArtNetDialog.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\E131Dialog.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\NullOutputDialog.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\SerialPortWithRate.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\Controller.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="FSEQFile.cpp" />
+    <ClCompile Include="ESEQFile.cpp" />
+    <ClCompile Include="PlayList\PlayListItemESEQ.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemESEQPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\VideoReader.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\xLightsTimer.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -175,6 +250,69 @@
     </ClInclude>
     <ClInclude Include="Schedule.h" />
     <ClInclude Include="ScheduleDialog.h" />
+    <ClInclude Include="ScheduleOptions.h" />
+    <ClInclude Include="..\xLights\outputs\ArtNetOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\DLightOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\DMXOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\E131Output.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\IPOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\LOROutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\NullOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\OpenDMXOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\OpenPixelNetOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\Output.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\OutputManager.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\PixelNetOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\RenardOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\serial.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\SerialOutput.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\TestPreset.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="ESEQFile.h" />
+    <ClInclude Include="FSEQFile.h" />
+    <ClInclude Include="PlayList\PlayListItemESEQ.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemESEQPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\VideoReader.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\xLightsTimer.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

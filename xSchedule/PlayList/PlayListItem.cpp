@@ -27,7 +27,22 @@ void PlayListItem::Save(wxXmlNode* node)
 
 std::string PlayListItem::GetName() const
 {
-    if (_name != "") return _name;
+    std::string duration = "";
+    if (GetDurationMS() != 0)
+    {
+        duration = " [" + wxString::Format(wxT("%.3f"), (float)GetDurationMS() / 1000.0).ToStdString() + "]";
+    }
+    if (_name != "") return _name + duration;
 
-    return "<unnamed>";
+    return "<unnamed>" + duration;
+}
+
+void PlayListItem::Copy(PlayListItem* to) const
+{
+    to->_dirty = false;
+    to->_delay = _delay;
+    to->_frames = _frames;
+    to->_msPerFrame = _msPerFrame;
+    to->_name = _name;
+    to->_priority = _priority;
 }

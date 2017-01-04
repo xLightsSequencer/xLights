@@ -10,6 +10,9 @@
 #include "PlayListItemAllOff.h"
 #include "PlayListItemRunProcess.h"
 #include "PlayListItemFSEQ.h"
+#include "PlayListItemESEQ.h"
+#include "PlayListItemImage.h"
+#include "PlayListItemDelay.h"
 
 #include <wx/xml/xml.h>
 #include <wx/menu.h>
@@ -18,8 +21,6 @@
 //(*InternalHeaders(PlayListDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "PlayListItemImage.h"
-#include "PlayListItemDelay.h"
 //*)
 
 //(*IdInit(PlayListDialog)
@@ -35,6 +36,7 @@ const long PlayListDialog::ID_SPLITTERWINDOW1 = wxNewId();
 
 const long PlayListDialog::ID_MNU_ADDSTEP = wxNewId();
 const long PlayListDialog::ID_MNU_ADDVIDEO = wxNewId();
+const long PlayListDialog::ID_MNU_ADDESEQ = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFSEQ = wxNewId();
 const long PlayListDialog::ID_MNU_ADDALLOFF = wxNewId();
 const long PlayListDialog::ID_MNU_ADDIMAGE = wxNewId();
@@ -405,6 +407,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
 
     wxMenu mnu;
     wxMenuItem* mi = mnu.Append(ID_MNU_ADDFSEQ, "Add FSEQ");
+    mi = mnu.Append(ID_MNU_ADDESEQ, "Add ESEQ");
     mi = mnu.Append(ID_MNU_ADDVIDEO, "Add Video");
     mi = mnu.Append(ID_MNU_ADDIMAGE, "Add Image");
     mi = mnu.Append(ID_MNU_ADDALLOFF, "Add All Off");
@@ -596,6 +599,31 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
         TreeCtrl_PlayList->SelectItem(newitem);
         step->AddItem(pli);
     }
+    else if (event.GetId() == ID_MNU_ADDESEQ)
+    {
+        if (IsPlayList(treeitem))
+        {
+            // seemlessly add a step
+            PlayListStep* pls = new PlayListStep();
+            wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pls->GetName(), -1, -1, new MyTreeItemData(pls));
+            TreeCtrl_PlayList->Expand(newitem);
+            TreeCtrl_PlayList->EnsureVisible(newitem);
+            TreeCtrl_PlayList->SelectItem(newitem);
+            _playlist->AddStep(pls, 0);
+            treeitem = newitem;
+        }
+        else if (!IsPlayListStep(treeitem))
+        {
+            treeitem = TreeCtrl_PlayList->GetItemParent(treeitem);
+        }
+        PlayListStep* step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
+        PlayListItemESEQ* pli = new PlayListItemESEQ();
+        wxTreeItemId  newitem = TreeCtrl_PlayList->AppendItem(treeitem, pli->GetName(), -1, -1, new MyTreeItemData(pli));
+        TreeCtrl_PlayList->Expand(newitem);
+        TreeCtrl_PlayList->EnsureVisible(newitem);
+        TreeCtrl_PlayList->SelectItem(newitem);
+        step->AddItem(pli);
+    }
     else if (event.GetId() == ID_MNU_ADDSTEP)
     {
         wxTreeItemId parent;
@@ -625,9 +653,19 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_MNU_DELETE)
     {
+        DeleteSelectedItem();
+    }
+}
+
+void PlayListDialog::DeleteSelectedItem()
+{
+    wxTreeItemId treeitem = TreeCtrl_PlayList->GetSelection();
+    if (treeitem.IsOk() && !IsPlayList(treeitem))
+    {
         if (wxMessageBox("Are you sure?", "Are you sure?", wxYES_NO) == wxYES)
         {
             if (Notebook1->GetPageCount() > 0) Notebook1->RemovePage(0);
+            wxTreeItemId parent = TreeCtrl_PlayList->GetItemParent(treeitem);
             if (IsPlayListStep(treeitem))
             {
                 PlayListStep* playliststep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
@@ -652,6 +690,7 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
                 delete playlistitem;
                 TreeCtrl_PlayList->Delete(treeitem);
             }
+            TreeCtrl_PlayList->SelectItem(parent);
         }
     }
 }
@@ -683,6 +722,10 @@ void PlayListDialog::OnButton_OkClick(wxCommandEvent& event)
 
 void PlayListDialog::OnTreeCtrl_PlayListKeyDown(wxTreeEvent& event)
 {
+    if (event.GetKeyCode() == WXK_DELETE)
+    {
+        DeleteSelectedItem();
+    }
 }
 
 void PlayListDialog::OnNotebook1PageChanged(wxNotebookEvent& event)

@@ -13,6 +13,8 @@ const long PlayListPanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListPanel::ID_TEXTCTRL1 = wxNewId();
 const long PlayListPanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListPanel::ID_CHECKBOX2 = wxNewId();
+const long PlayListPanel::ID_STATICTEXT2 = wxNewId();
+const long PlayListPanel::ID_SPINCTRL1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PlayListPanel,wxPanel)
@@ -34,14 +36,19 @@ PlayListPanel::PlayListPanel(wxWindow* parent, PlayList* playlist, wxWindowID id
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT, 5);
 	TextCtrl_PlayListName = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer1->Add(TextCtrl_PlayListName, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_FirstOnce = new wxCheckBox(this, ID_CHECKBOX1, _("First step once only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_FirstOnce->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_FirstOnce, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_LastStepOnce = new wxCheckBox(this, ID_CHECKBOX2, _("Last step once only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_LastStepOnce->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_LastStepOnce, 1, wxALL|wxEXPAND, 5);
+	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Priority:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_Priority = new wxSpinCtrl(this, ID_SPINCTRL1, _T("5"), wxDefaultPosition, wxDefaultSize, 0, 1, 10, 5, _T("ID_SPINCTRL1"));
+	SpinCtrl_Priority->SetValue(_T("5"));
+	FlexGridSizer1->Add(SpinCtrl_Priority, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -52,6 +59,7 @@ PlayListPanel::PlayListPanel(wxWindow* parent, PlayList* playlist, wxWindowID id
     TextCtrl_PlayListName->SetValue(playlist->GetName());
     CheckBox_FirstOnce->SetValue(playlist->GetFirstOnce());
     CheckBox_LastStepOnce->SetValue(playlist->GetLastOnce());
+    SpinCtrl_Priority->SetValue((playlist->GetPriority()));
 }
 
 PlayListPanel::~PlayListPanel()
@@ -61,6 +69,7 @@ PlayListPanel::~PlayListPanel()
     _playlist->SetName(TextCtrl_PlayListName->GetValue().ToStdString());
     _playlist->SetFirstOnce(CheckBox_FirstOnce->GetValue());
     _playlist->SetLastOnce(CheckBox_LastStepOnce->GetValue());
+    _playlist->SetPriority(SpinCtrl_Priority->GetValue());
 }
 
 
