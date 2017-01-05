@@ -6,12 +6,14 @@
 #include "PlayListItemImage.h"
 #include "PlayListItemESEQ.h"
 #include "PlayListItemFSEQ.h"
+#include "PlayListItemPJLink.h"
 #include "PlayListItemAllOff.h"
 #include "PlayListItemDelay.h"
 #include "PlayListItemRunProcess.h"
 
 PlayListStep::PlayListStep(wxXmlNode* node)
 {
+    _startTime = 0;
     _framecount = 0;
     _excludeFromRandom = false;
     _dirty = false;
@@ -20,6 +22,7 @@ PlayListStep::PlayListStep(wxXmlNode* node)
 
 PlayListStep::PlayListStep()
 {
+    _startTime = 0;
     _framecount = 0;
     _name = "";
     _dirty = false;
@@ -35,6 +38,16 @@ PlayListStep::PlayListStep(const PlayListStep& step)
     for (auto it = step._items.begin(); it != step._items.end(); ++it)
     {
         _items.push_back((*it)->Copy());
+    }
+}
+
+void PlayListStep::ClearDirty()
+{
+    _dirty = false;
+
+    for (auto it = _items.begin(); it != _items.end(); ++it)
+    {
+        (*it)->ClearDirty();
     }
 }
 
@@ -80,6 +93,10 @@ void PlayListStep::Load(wxXmlNode* node)
         else if (n->GetName() == "PLIFSEQ")
         {
             _items.push_back(new PlayListItemFSEQ(n));
+        }
+        else if (n->GetName() == "PLIPJLink")
+        {
+            _items.push_back(new PlayListItemPJLink(n));
         }
         else if (n->GetName() == "PLIESEQ")
         {
@@ -165,11 +182,6 @@ PlayListItem* PlayListStep::GetTimeSource(int &ms) const
            
     }
 
-    if (timesource == nullptr)
-    {
-        timesource = _items.front();
-    }
-
     return timesource;
 }
 
@@ -185,8 +197,7 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size)
     }
     else
     {
-        frameMS = _framecount * msPerFrame;
-        _framecount++;
+        frameMS = (wxGetUTCTimeMillis() - _startTime).ToLong();
     }
 
     for (auto it = _items.begin(); it != _items.end(); ++it)
@@ -194,11 +205,22 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size)
         (*it)->Frame(buffer, size, frameMS, msPerFrame);
     }
 
-    return timesource->Done();
+    if (timesource != nullptr)
+    {
+        return timesource->Done();
+    }
+    else
+    {
+        return frameMS >= GetLengthMS();
+    }
 }
 
 void PlayListStep::Start()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Playlist step %s starting.", (const char*)GetName().c_str());
+
+    _startTime = wxGetUTCTimeMillis();
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
         (*it)->Start();
@@ -207,6 +229,9 @@ void PlayListStep::Start()
 
 void PlayListStep::Stop()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Playlist step %s stopping.", (const char*)GetName().c_str());
+
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
         (*it)->Stop();
@@ -225,7 +250,7 @@ size_t PlayListStep::GetPosition() const
     }
     else
     {
-        frameMS = _framecount * msPerFrame;
+        frameMS = (wxGetUTCTimeMillis() - _startTime).ToLong();
     }
 
     return frameMS;
@@ -235,5 +260,18 @@ size_t PlayListStep::GetLengthMS() const
 {
     int msPerFrame = 1000;
     PlayListItem* timesource = GetTimeSource(msPerFrame);
-    return timesource->GetDurationMS();
+    if (timesource != nullptr)
+    {
+        return timesource->GetDurationMS();
+    }
+    else
+    {
+        size_t len = 0;
+        for (auto it = _items.begin(); it != _items.end(); ++it)
+        {
+            len = std::max(len, (*it)->GetDurationMS());
+        }
+
+        return len;
+    }
 }

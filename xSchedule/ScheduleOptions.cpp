@@ -35,3 +35,20 @@ wxXmlNode* ScheduleOptions::Save() const
 
     return res;
 }
+
+std::list<std::string> ScheduleOptions::GetProjectors() const
+{
+    std::list<std::string> res;
+
+    return res;
+}
+
+std::string ScheduleOptions::GetProjectorIpAddress(const std::string& projector)
+{
+    return "";
+}
+
+std::string ScheduleOptions::GetProjectorPassword(const std::string& projector)
+{
+    return "";
+}

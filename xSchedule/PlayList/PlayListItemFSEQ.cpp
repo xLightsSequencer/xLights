@@ -23,16 +23,24 @@ void PlayListItemFSEQ::Load(wxXmlNode* node)
     _audioFile = node->GetAttribute("AudioFile", "");
     _overrideAudio = (_audioFile != "");
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
-    LoadFiles();
-    if (_audioManager != nullptr)
+    _durationMS = AudioManager::GetAudioFileLength(GetAudioFilename());
+}
+
+std::string PlayListItemFSEQ::GetAudioFilename() const
+{
+    if (_overrideAudio)
     {
-        _durationMS = _audioManager->LengthMS();
+        return _audioFile;
     }
-    else if (_fseqFile != nullptr)
+    else
     {
-        _durationMS = _fseqFile->GetLengthMS();
+        if (_fseqFile != nullptr)
+        {
+            return _fseqFile->GetAudioFileName();
+        }
     }
-    CloseFiles();
+
+    return "";
 }
 
 void PlayListItemFSEQ::LoadFiles()
@@ -44,22 +52,11 @@ void PlayListItemFSEQ::LoadFiles()
         _fseqFile = new FSEQFile();
         _fseqFile->Load(_fseqFileName);
     }
-    if (_overrideAudio)
+    auto af = GetAudioFilename();
+    if (wxFile::Exists(af))
     {
-        if (wxFile::Exists(_audioFile))
-        {
-            _audioManager = new AudioManager(_audioFile);
-        }
-    }
-    else
-    {
-        if (_fseqFile != nullptr)
-        {
-            if (wxFile::Exists(_fseqFile->GetAudioFileName()))
-            {
-                _audioManager = new AudioManager(_fseqFile->GetAudioFileName());
-            }
-        }
+        _audioManager = new AudioManager(af);
+        _durationMS = _audioManager->LengthMS();
     }
 }
 
@@ -130,16 +127,7 @@ std::string PlayListItemFSEQ::GetName() const
 void PlayListItemFSEQ::SetFSEQFileName(const std::string& fseqFileName)
 {
     _fseqFileName = fseqFileName;
-    LoadFiles();
-    if (_audioManager != nullptr)
-    {
-        _durationMS = _audioManager->LengthMS();
-    }
-    else if (_fseqFile != nullptr)
-    {
-        _durationMS = _fseqFile->GetLengthMS();
-    }
-    CloseFiles();
+    _durationMS = AudioManager::GetAudioFileLength(GetAudioFilename());
     _dirty = true;
 }
 

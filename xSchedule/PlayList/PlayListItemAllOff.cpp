@@ -5,6 +5,9 @@
 
 PlayListItemAllOff::PlayListItemAllOff(wxXmlNode* node) : PlayListItem(node)
 {
+    _duration = 50;
+    _value = 0;
+    _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
     PlayListItemAllOff::Load(node);
 }
 
@@ -13,11 +16,14 @@ void PlayListItemAllOff::Load(wxXmlNode* node)
     PlayListItem::Load(node);
     _duration = wxAtoi(node->GetAttribute("Duration", "50"));
     _value = wxAtoi(node->GetAttribute("Value", "0"));
+    _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
 }
 
 PlayListItemAllOff::PlayListItemAllOff() : PlayListItem()
 {
     _duration = 50;
+    _value = 0;
+    _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
     SetName("All Set");
 }
 
@@ -25,7 +31,7 @@ PlayListItem* PlayListItemAllOff::Copy() const
 {
     PlayListItemAllOff* res = new PlayListItemAllOff();
     res->_duration = _duration;
-    res->_blendMode = _blendMode;
+    res->_applyMethod = _applyMethod;
     res->_value = _value;
     PlayListItem::Copy(res);
 
@@ -38,6 +44,7 @@ wxXmlNode* PlayListItemAllOff::Save()
 
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), _duration));
     node->AddAttribute("value", wxString::Format(wxT("%i"), _value));
+    node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
 
     PlayListItem::Save(node);
 

@@ -143,6 +143,73 @@ int AudioManager::Tell()
     return (((_pcmdatasize - __audio_len) / 4) * _lengthMS)/ _trackSize;
 }
 
+size_t AudioManager::GetAudioFileLength(std::string filename)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    AVFormatContext* formatContext = nullptr;
+
+    av_register_all();
+
+    int res = avformat_open_input(&formatContext, filename.c_str(), nullptr, nullptr);
+    if (res != 0)
+    {
+        if (formatContext != nullptr)
+        {
+            avformat_close_input(&formatContext);
+            formatContext = nullptr;
+        }
+        return 0;
+    }
+
+    if (avformat_find_stream_info(formatContext, nullptr) < 0)
+    {
+        if (formatContext != nullptr)
+        {
+            avformat_close_input(&formatContext);
+            formatContext = nullptr;
+        }
+        return 0;
+    }
+
+    AVCodec* cdc;
+    int streamIndex = av_find_best_stream(formatContext, AVMEDIA_TYPE_AUDIO, -1, -1, &cdc, 0);
+    if (streamIndex < 0)
+    {
+        logger_base.error("AudioManager: Could not find any audio stream in " + filename);
+
+        if (formatContext != nullptr)
+        {
+            avformat_close_input(&formatContext);
+            formatContext = nullptr;
+        }
+
+        return 0;
+    }
+
+    AVStream* audioStream = formatContext->streams[streamIndex];
+
+    if (audioStream->duration > 0)
+    {
+        size_t duration = audioStream->duration * 1000 * audioStream->time_base.num / audioStream->time_base.den;
+
+        if (formatContext != nullptr)
+        {
+            avformat_close_input(&formatContext);
+            formatContext = nullptr;
+        }
+
+        return duration;
+    }
+
+    if (formatContext != nullptr)
+    {
+        avformat_close_input(&formatContext);
+        formatContext = nullptr;
+    }
+
+    return 0;
+}
+
 AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 {
 	// save parameters and initialise defaults

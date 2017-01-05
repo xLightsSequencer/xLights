@@ -70,7 +70,14 @@ void PlayListItemImagePanel::OnButton_PositionWindowClick(wxCommandEvent& event)
 
     dlg.ShowModal();
 
-    _Image->SetLocation(dlg.GetPosition(), dlg.GetSize());
+    if (dlg.IsFullScreen())
+    {
+        _Image->SetLocation(dlg.GetClientAreaOrigin(), dlg.GetClientSize());
+    }
+    else
+    {
+        _Image->SetLocation(dlg.GetPosition(), dlg.GetSize());
+    }
 }
 
 void PlayListItemImagePanel::OnFilePickerCtrl_ImageFileFileChanged(wxFileDirPickerEvent& event)

@@ -3,9 +3,11 @@
 #include <wx/notebook.h>
 #include "PlayListItemVideoPanel.h"
 #include "../../xLights/VideoReader.h"
+#include "PlayerWindow.h"
 
 PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
 {
+    _window = nullptr;
     _videoFile = "";
     _origin.x = 0;
     _origin.y = 0;
@@ -15,6 +17,18 @@ PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
     _durationMS = 0;
     PlayListItemVideo::Load(node);
 }
+
+PlayListItemVideo::~PlayListItemVideo()
+{
+    CloseFiles();
+
+    if (_window != nullptr)
+    {
+        delete _window;
+        _window = nullptr;
+    }
+}
+
 
 void PlayListItemVideo::Load(wxXmlNode* node)
 {
@@ -26,6 +40,7 @@ void PlayListItemVideo::Load(wxXmlNode* node)
 
 PlayListItemVideo::PlayListItemVideo() : PlayListItem()
 {
+    _window = nullptr;
     _videoFile = "";
     _origin.x = 0;
     _origin.y = 0;
@@ -89,7 +104,6 @@ void PlayListItemVideo::SetVideoFile(const std::string& videoFile)
 { 
     _videoFile = videoFile; 
     OpenFiles();
-    _durationMS = _videoReader->GetLengthMS();
     CloseFiles();
     _dirty = true; 
 }
@@ -107,11 +121,28 @@ void PlayListItemVideo::OpenFiles()
 {
     CloseFiles();
     _videoReader = new VideoReader(_videoFile, _size.GetWidth(), _size.GetHeight(), false);
+    _durationMS = _videoReader->GetLengthMS();
+}
+
+wxImage PlayListItemVideo::CreateImageFromFrame(AVFrame* frame)
+{
+    if (frame != NULL)
+    {
+        wxImage img(frame->width, frame->height, (unsigned char *)frame->data[0], true);
+        img.SetType(wxBitmapType::wxBITMAP_TYPE_BMP);
+        return img;
+    }
+    else
+    {
+        wxImage img(_size.x, _size.y, true);
+        return img;
+    }
 }
 
 void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems)
 {
     AVFrame* img = _videoReader->GetNextFrame(ms);
+    _window->SetImage(CreateImageFromFrame(img));
 
     #pragma todo ... now I need to draw it
 }
@@ -119,9 +150,27 @@ void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
 void PlayListItemVideo::Start()
 {
     OpenFiles();
+
+    // create the window
+    if (_window == nullptr)
+    {
+        _window = new PlayerWindow(nullptr, wxID_ANY, _origin, _size);
+    }
+    else
+    {
+        _window->Move(_origin);
+        _window->SetSize(_size);
+    }
 }
 
 void PlayListItemVideo::Stop()
 {
     CloseFiles();
+
+    // destroy the window
+    if (_window != nullptr)
+    {
+        delete _window;
+        _window = nullptr;
+    }
 }

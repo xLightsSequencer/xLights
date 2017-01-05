@@ -315,6 +315,10 @@
 		<Unit filename="PlayList/PlayListItemImage.h" />
 		<Unit filename="PlayList/PlayListItemImagePanel.cpp" />
 		<Unit filename="PlayList/PlayListItemImagePanel.h" />
+		<Unit filename="PlayList/PlayListItemPJLink.cpp" />
+		<Unit filename="PlayList/PlayListItemPJLink.h" />
+		<Unit filename="PlayList/PlayListItemPJLinkPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemPJLinkPanel.h" />
 		<Unit filename="PlayList/PlayListItemRunProcess.cpp" />
 		<Unit filename="PlayList/PlayListItemRunProcess.h" />
 		<Unit filename="PlayList/PlayListItemRunProcessPanel.cpp" />
@@ -329,6 +333,8 @@
 		<Unit filename="PlayList/PlayListStep.h" />
 		<Unit filename="PlayList/PlayListStepPanel.cpp" />
 		<Unit filename="PlayList/PlayListStepPanel.h" />
+		<Unit filename="PlayList/PlayerWindow.cpp" />
+		<Unit filename="PlayList/PlayerWindow.h" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.cpp" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.h" />
 		<Unit filename="Schedule.cpp" />
@@ -349,6 +355,7 @@
 		<Unit filename="wxsmith/PlayListItemESEQPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFSEQPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemImagePanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemPJLinkPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunProcessPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
 		<Unit filename="wxsmith/PlayListPanel.wxs" />
@@ -374,6 +381,7 @@
 					<wxPanel wxs="wxsmith/PlayListItemAllOffPanel.wxs" src="PlayList/PlayListItemAllOffPanel.cpp" hdr="PlayList/PlayListItemAllOffPanel.h" fwddecl="0" i18n="1" name="PlayListItemAllOffPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemDelayPanel.wxs" src="PlayList/PlayListItemDelayPanel.cpp" hdr="PlayList/PlayListItemDelayPanel.h" fwddecl="0" i18n="1" name="PlayListItemDelayPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemImagePanel.wxs" src="PlayList/PlayListItemImagePanel.cpp" hdr="PlayList/PlayListItemImagePanel.h" fwddecl="0" i18n="1" name="PlayListItemImagePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemPJLinkPanel.wxs" src="PlayList/PlayListItemPJLinkPanel.cpp" hdr="PlayList/PlayListItemPJLinkPanel.h" fwddecl="0" i18n="1" name="PlayListItemPJLinkPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemRunProcessPanel.wxs" src="PlayList/PlayListItemRunProcessPanel.cpp" hdr="PlayList/PlayListItemRunProcessPanel.h" fwddecl="0" i18n="1" name="PlayListItemRunProcessPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemESEQPanel.wxs" src="PlayList/PlayListItemESEQPanel.cpp" hdr="PlayList/PlayListItemESEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemESEQPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFSEQPanel.wxs" src="PlayList/PlayListItemFSEQPanel.cpp" hdr="PlayList/PlayListItemFSEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemFSEQPanel" language="CPP" />

@@ -20,6 +20,8 @@
 #include <wx/string.h>
 //*)
 
+ScheduleManager* xScheduleFrame::__schedule = nullptr;
+
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
@@ -69,6 +71,7 @@ const long xScheduleFrame::ID_TIMER2 = wxNewId();
 //*)
 
 const long xScheduleFrame::ID_MNU_ADDPLAYLIST = wxNewId();
+const long xScheduleFrame::ID_MNU_DUPLICATEPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_SCHEDULEPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_DELETE = wxNewId();
 const long xScheduleFrame::ID_MNU_EDIT = wxNewId();
@@ -81,6 +84,8 @@ END_EVENT_TABLE()
 
 xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
 {
+    __schedule = nullptr;
+
     //(*Initialize(xScheduleFrame)
     wxFlexGridSizer* FlexGridSizer4;
     wxMenuItem* MenuItem2;
@@ -193,9 +198,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
 
     LoadShowDir();
 
-    _schedule = new ScheduleManager(_showDir);
+    __schedule = new ScheduleManager(_showDir);
 
     UpdateTree();
+
+    ValidateWindow();
 }
 
 xScheduleFrame::~xScheduleFrame()
@@ -203,7 +210,8 @@ xScheduleFrame::~xScheduleFrame()
     //(*Destroy(xScheduleFrame)
     //*)
 
-    delete _schedule;
+    delete __schedule;
+    __schedule = nullptr;
 }
 
 void xScheduleFrame::OnQuit(wxCommandEvent& event)
@@ -215,15 +223,29 @@ void xScheduleFrame::OnAbout(wxCommandEvent& event)
 {
     wxString msg = wxbuildinfo(long_f);
     wxMessageBox(msg, _("Welcome to..."));
+    ValidateWindow();
 }
 
 void xScheduleFrame::OnButton_PlayClick(wxCommandEvent& event)
 {
+    wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+    PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+    size_t rate = __schedule->PlayPlayList(playlist);
+
+    // if the desired rate is different than the current rate then restart timer with the desired rate
+    if (_timer.GetInterval() != rate)
+    {
+        _timer.Stop();
+        _timer.Start(rate);
+    }
+
+    ValidateWindow();
 }
 
 void xScheduleFrame::OnButton_StopClick(wxCommandEvent& event)
 {
-    _schedule->StopAll();
+    __schedule->StopAll();
+    ValidateWindow();
 }
 
 bool xScheduleFrame::IsPlayList(wxTreeItemId id) const
@@ -251,6 +273,7 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu(wxTreeEvent& event)
     }
 
     wxMenuItem* del = mnu.Append(ID_MNU_DELETE, "Delete");
+    wxMenuItem* duplicate = mnu.Append(ID_MNU_DUPLICATEPLAYLIST, "Duplicate");
     wxMenuItem* edit = mnu.Append(ID_MNU_EDIT, "Edit");
     wxMenuItem* play = mnu.Append(ID_MNU_PLAYNOW, "Play Now");
 
@@ -262,11 +285,13 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu(wxTreeEvent& event)
 
     if (!IsPlayList(treeitem))
     {
+        duplicate->Enable(false);
         play->Enable(false);
     }
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xScheduleFrame::OnTreeCtrlMenu, nullptr, this);
     PopupMenu(&mnu);
+    ValidateWindow();
 }
 
 void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
@@ -284,7 +309,7 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
             wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(TreeCtrl_PlayListsSchedules->GetRootItem(), playlist->GetName(), -1, -1, new MyTreeItemData(playlist));
             TreeCtrl_PlayListsSchedules->Expand(newitem);
             TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
-            _schedule->AddPlayList(playlist);
+            __schedule->AddPlayList(playlist);
         }
     }
     else if (event.GetId() == ID_MNU_SCHEDULEPLAYLIST)
@@ -329,7 +354,7 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_PLAYNOW)
     {
         PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-        size_t rate = _schedule->PlayPlayList(playlist);
+        size_t rate = __schedule->PlayPlayList(playlist);
 
         // if the desired rate is different than the current rate then restart timer with the desired rate
         if (_timer.GetInterval() != rate)
@@ -338,6 +363,18 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
             _timer.Start(rate);
         }
     }
+    else if (event.GetId() == ID_MNU_DUPLICATEPLAYLIST)
+    {
+        PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+
+        PlayList* newpl = new PlayList(*playlist);
+
+        wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(TreeCtrl_PlayListsSchedules->GetRootItem(), playlist->GetName(), -1, -1, new MyTreeItemData(newpl));
+        TreeCtrl_PlayListsSchedules->Expand(newitem);
+        TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
+        __schedule->AddPlayList(newpl);
+    }
+    ValidateWindow();
 }
 
 void xScheduleFrame::DeleteSelectedItem()
@@ -351,7 +388,7 @@ void xScheduleFrame::DeleteSelectedItem()
             if (IsPlayList(treeitem))
             {
                 PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-                _schedule->RemovePlayList(playlist);
+                __schedule->RemovePlayList(playlist);
                 delete playlist;
 
                 TreeCtrl_PlayListsSchedules->Delete(treeitem);
@@ -371,6 +408,7 @@ void xScheduleFrame::DeleteSelectedItem()
 
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged(wxTreeEvent& event)
 {
+    ValidateWindow();
 }
 
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesKeyDown(wxTreeEvent& event)
@@ -379,11 +417,13 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesKeyDown(wxTreeEvent& event)
     {
         DeleteSelectedItem();
     }
+    ValidateWindow();
 }
 
 void xScheduleFrame::OnMenuItem_SaveSelected(wxCommandEvent& event)
 {
-    _schedule->Save();
+    __schedule->Save();
+    ValidateWindow();
 }
 
 void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
@@ -392,12 +432,14 @@ void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
 
     if (DirDialog1->ShowModal() == wxID_OK)
     {
-        delete _schedule;
+        delete __schedule;
+        __schedule = nullptr;
         _showDir = DirDialog1->GetPath().ToStdString();
         SaveShowDir();
-        _schedule = new ScheduleManager(_showDir);
+        __schedule = new ScheduleManager(_showDir);
         UpdateTree();
     }
+    ValidateWindow();
 }
 
 void xScheduleFrame::SaveShowDir() const
@@ -445,7 +487,7 @@ void xScheduleFrame::UpdateTree() const
 
     wxTreeItemId root = TreeCtrl_PlayListsSchedules->AddRoot("Playlists");
 
-    auto pls = _schedule->GetPlayLists();
+    auto pls = __schedule->GetPlayLists();
 
     for (auto it = pls.begin(); it != pls.end(); ++it)
     {
@@ -481,22 +523,47 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
             TreeCtrl_PlayListsSchedules->SetItemText(treeitem, schedule->GetName());
         }
     }
+    ValidateWindow();
 }
 
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
-    _schedule->Frame();
-    StaticText_Status->SetLabel(_schedule->GetStatus());
+    __schedule->Frame();
+    StaticText_Status->SetLabel(__schedule->GetStatus());
+    ValidateWindow();
 }
 
 void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
 {
-    int rate = _schedule->CheckSchedule();
+    int rate = __schedule->CheckSchedule();
 
     // if the desired rate is different than the current rate then restart timer with the desired rate
     if (_timer.GetInterval() != rate)
     {
         _timer.Stop();
         _timer.Start(rate);
+    }
+    ValidateWindow();
+}
+
+void xScheduleFrame::ValidateWindow()
+{
+    if (__schedule != nullptr && __schedule->IsSomethingPlaying())
+    {
+        Button_Stop->Enable(true);
+    }
+    else
+    {
+        Button_Stop->Enable(false);
+    }
+
+    wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+    if (treeitem.IsOk() && IsPlayList(treeitem))
+    {
+        Button_Play->Enable(true);
+    }
+    else
+    {
+        Button_Play->Enable(false);
     }
 }

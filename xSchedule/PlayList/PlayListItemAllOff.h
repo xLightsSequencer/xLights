@@ -2,6 +2,7 @@
 #define PLAYLISTITEMALLOFF_H
 
 #include "PlayListItem.h"
+#include "../FSEQFile.h"
 
 class wxXmlNode;
 class wxWindow;
@@ -13,7 +14,7 @@ protected:
 #pragma region Member Variables
     long _duration;
     wxByte _value;
-    int _blendMode;
+    APPLYMETHOD _applyMethod;
 #pragma endregion Member Variables
 
 public:
@@ -31,8 +32,8 @@ public:
     void SetDuration(long duration) { _duration = duration; _dirty = true; }
     wxByte GetValue() const { return _value; }
     void SetValue(wxByte value) { _value = value; _dirty = true; }
-    int GetBlendMode() const { return _blendMode; }
-    void SetBlendMode(int blendMode) { _blendMode = blendMode; _dirty = true; }
+    int GetBlendMode() const { return _applyMethod; }
+    void SetBlendMode(int blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _dirty = true; }
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

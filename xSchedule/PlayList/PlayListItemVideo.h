@@ -7,6 +7,8 @@
 class wxXmlNode;
 class wxWindow;
 class VideoReader;
+class PlayerWindow;
+class AVFrame;
 
 class PlayListItemVideo : public PlayListItem
 {
@@ -18,17 +20,19 @@ protected:
 	wxSize _size;
     VideoReader* _videoReader;
     size_t _durationMS;
+    PlayerWindow* _window;
     #pragma endregion Member Variables
 
     void OpenFiles();
     void CloseFiles();
+    wxImage CreateImageFromFrame(AVFrame* frame);
 
 public:
 
     #pragma region Constructors and Destructors
     PlayListItemVideo(wxXmlNode* node);
     PlayListItemVideo();
-    virtual ~PlayListItemVideo() {};
+    virtual ~PlayListItemVideo();
     virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors
 

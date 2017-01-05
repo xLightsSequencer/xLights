@@ -18,6 +18,7 @@ protected:
     std::string _name;
     bool _excludeFromRandom;
     size_t _framecount;
+    wxLongLong _startTime;
 #pragma endregion Member Variables
 
     PlayListItem* GetTimeSource(int& ms) const;
@@ -34,7 +35,7 @@ public:
 #pragma region Getters and Setters
     std::list<PlayListItem*> GetItems() const { return _items; }
     bool IsDirty() const;
-    void ClearDirty() { _dirty = false; }
+    void ClearDirty();
     bool GetExcludeFromRandom() const { return _excludeFromRandom; }
     void SetExcludeFromRandom(bool efr) { _excludeFromRandom = efr; _dirty = true; }
     std::string GetName() const;

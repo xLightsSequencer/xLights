@@ -70,7 +70,14 @@ void PlayListItemVideoPanel::OnButton_PositionWindowClick(wxCommandEvent& event)
 
     dlg.ShowModal();
 
-    _video->SetLocation(dlg.GetPosition(), dlg.GetSize());
+    if (dlg.IsFullScreen())
+    {
+        _video->SetLocation(dlg.GetClientAreaOrigin(), dlg.GetClientSize());
+    }
+    else
+    {
+        _video->SetLocation(dlg.GetPosition(), dlg.GetSize());
+    }
 }
 
 void PlayListItemVideoPanel::OnFilePickerCtrl_VideoFileFileChanged(wxFileDirPickerEvent& event)

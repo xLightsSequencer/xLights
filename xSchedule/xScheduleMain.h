@@ -29,17 +29,19 @@
 class ScheduleManager;
 class PlayList;
 
-class xScheduleFrame: public wxFrame
+class xScheduleFrame : public wxFrame
 {
-    ScheduleManager* _schedule;
+    static ScheduleManager* __schedule;
     std::string _showDir;
     void LoadShowDir();
     void SaveShowDir() const;
     void UpdateTree() const;
     void DeleteSelectedItem();
+    void ValidateWindow();
 
-    public:
+public:
 
+        static ScheduleManager* GetScheduleManager() { return __schedule; }
         xScheduleFrame(wxWindow* parent,wxWindowID id = -1);
         virtual ~xScheduleFrame();
 
@@ -87,6 +89,7 @@ class xScheduleFrame: public wxFrame
         //*)
 
         static const long ID_MNU_ADDPLAYLIST;
+        static const long ID_MNU_DUPLICATEPLAYLIST;
         static const long ID_MNU_SCHEDULEPLAYLIST;
         static const long ID_MNU_EDIT;
         static const long ID_MNU_DELETE;

@@ -128,6 +128,7 @@ class AudioManager
 	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max, int id);
 
 public:
+    static size_t GetAudioFileLength(std::string filename);
 	void Seek(int pos);
 	void Pause();
 	void Play();

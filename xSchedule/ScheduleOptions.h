@@ -20,7 +20,9 @@ class ScheduleOptions
         wxXmlNode* Save() const;
 		bool IsSync() const { return _sync; }
         bool IsSendOffWhenNotRunning() const { return _sendOffWhenNotRunning; }
-
+        std::list<std::string> GetProjectors() const;
+        std::string GetProjectorIpAddress(const std::string& projector);
+        std::string GetProjectorPassword(const std::string& projector);
 };
 
 #endif 

@@ -38,6 +38,7 @@ class ScheduleManager
         void Frame(); // called when a frame needs to be displayed ... returns desired frame rate
         int CheckSchedule();
         int PlayPlayList(PlayList* playlist);
+        bool IsSomethingPlaying() const { return GetRunningPlayList() != nullptr; }
 };
 
 #endif

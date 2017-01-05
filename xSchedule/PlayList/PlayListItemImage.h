@@ -6,6 +6,7 @@
 
 class wxXmlNode;
 class wxWindow;
+class PlayerWindow;
 
 class PlayListItemImage : public PlayListItem
 {
@@ -16,6 +17,7 @@ protected:
 	wxPoint _origin;
 	wxSize _size;
     wxImage _image;
+    PlayerWindow* _window;
     #pragma endregion Member Variables
 
 public:
@@ -23,7 +25,7 @@ public:
     #pragma region Constructors and Destructors
     PlayListItemImage(wxXmlNode* node);
     PlayListItemImage();
-    virtual ~PlayListItemImage() {};
+    virtual ~PlayListItemImage();
     virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors
 

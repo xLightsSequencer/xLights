@@ -2,7 +2,6 @@
 #define VIDEOWINDOWPOSITIONDIALOG_H
 
 //(*Headers(VideoWindowPositionDialog)
-#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -16,8 +15,8 @@ class VideoWindowPositionDialog: public wxDialog
 		virtual ~VideoWindowPositionDialog();
 
 		//(*Declarations(VideoWindowPositionDialog)
-		wxButton* Button_Ok;
-		wxStaticText* StaticText1;
+		wxButton* Button_ok;
+		wxStaticText* StaticText_Message;
 		//*)
 
 	protected:
@@ -31,6 +30,7 @@ class VideoWindowPositionDialog: public wxDialog
 
 		//(*Handlers(VideoWindowPositionDialog)
 		void OnButton_OkClick(wxCommandEvent& event);
+		void OnResize(wxSizeEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

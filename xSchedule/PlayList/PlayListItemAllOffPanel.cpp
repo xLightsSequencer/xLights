@@ -4,7 +4,6 @@
 //(*InternalHeaders(PlayListItemAllOffPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "../FSEQFile.h"
 //*)
 
 //(*IdInit(PlayListItemAllOffPanel)

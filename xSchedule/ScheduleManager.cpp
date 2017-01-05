@@ -7,14 +7,17 @@
 #include "../xLights/outputs/OutputManager.h"
 #include "PlayList/PlayListStep.h"
 #include "PlayList/PlayListItem.h"
+#include <log4cpp/Category.hh>
 
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Loading schedule from %s.", (const char *)_showDir.c_str());
+
     _immediatePlay = nullptr;
     _scheduleOptions = nullptr;
     _showDir = showDir;
-    wxDateTime now;
-    _startTime = now.Today().GetValue().ToLong();
+    _startTime = wxGetUTCTimeMillis();
     _outputManager = nullptr;
     _buffer = nullptr;
 
@@ -37,6 +40,10 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
             }
         }
     }
+    else
+    {
+        logger_base.error("Problem loading xml file %s.", (const char *)(showDir + "/" + GetScheduleFile()).c_str());
+    }
 
     if (_scheduleOptions == nullptr)
     {
@@ -45,17 +52,22 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
 
     _outputManager = new OutputManager();
     _outputManager->Load(_showDir, _scheduleOptions->IsSync());
+    logger_base.info("Loaded outputs from %s.", (const char *)(_showDir + "/" + _outputManager->GetNetworksFileName()).c_str());
     _outputManager->StartOutput();
+    logger_base.info("Started outputting to lights.");
 
     // This is out frame data buffer ... it cannot be resized
+    logger_base.info("Allocated frame buffer of %ld bytes", _outputManager->GetTotalChannels());
     _buffer = (wxByte*)malloc(_outputManager->GetTotalChannels());
     memset(_buffer, 0x00, _outputManager->GetTotalChannels());
 }
 
 ScheduleManager::~ScheduleManager()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _outputManager->StopOutput();
-	if (IsDirty())
+    logger_base.info("Stopped outputting to lights.");
+    if (IsDirty())
 	{
 		if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsave changes", wxYES_NO) == wxID_YES)
 		{
@@ -79,6 +91,8 @@ ScheduleManager::~ScheduleManager()
     delete _scheduleOptions;
     delete _outputManager;
     free(_buffer);
+
+    logger_base.info("Closed schedule.");
 }
 
 bool ScheduleManager::IsDirty()
@@ -99,7 +113,8 @@ bool ScheduleManager::IsDirty()
 
 void ScheduleManager::Save()
 {
-	wxXmlDocument doc;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxXmlDocument doc;
     wxXmlNode* root = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "xSchedule");
     doc.SetRoot(root);
 
@@ -112,6 +127,7 @@ void ScheduleManager::Save()
 
     doc.Save(_showDir + "/" + GetScheduleFile());
     ClearDirty();
+    logger_base.info("Saved Schedule to %s.", (const char*)(_showDir + "/" + GetScheduleFile()).c_str());
 }
 
 void ScheduleManager::ClearDirty()
@@ -128,6 +144,8 @@ void ScheduleManager::ClearDirty()
 
 void ScheduleManager::RemovePlayList(PlayList* playlist)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Deleting playlist %s.", (const char*)playlist->GetName().c_str());
     _playLists.remove(playlist);
     _dirty = true;
 }
@@ -137,19 +155,26 @@ PlayList* ScheduleManager::GetRunningPlayList() const
     // find the highest priority running playlist
     PlayList* running = nullptr;
 
-    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+    if (_immediatePlay != nullptr && _immediatePlay->IsRunning())
     {
-        if ((*it)->IsRunning())
+        running = _immediatePlay;
+    }
+    else
+    {
+        for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
         {
-            if (running == nullptr)
+            if ((*it)->IsRunning())
             {
-                running = *it;
-            }
-            else
-            {
-                if ((*it)->GetPriority() > running->GetPriority())
+                if (running == nullptr)
                 {
                     running = *it;
+                }
+                else
+                {
+                    if ((*it)->GetPriority() > running->GetPriority())
+                    {
+                        running = *it;
+                    }
                 }
             }
         }
@@ -160,77 +185,56 @@ PlayList* ScheduleManager::GetRunningPlayList() const
 
 void ScheduleManager::StopAll()
 {
-    if (_immediatePlay != nullptr)
-    {
-        _immediatePlay->Stop();
-        delete _immediatePlay;
-        _immediatePlay = nullptr;
-    }
-
-    if (IsRunning())
-    {
-        PlayList* running = GetRunningPlayList();
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Stopping all playlists.");
+    
+    PlayList* running = GetRunningPlayList();
         while (running != nullptr)
         {
             running->Stop();
             running = GetRunningPlayList();
         }
-    }
+
+        if (_immediatePlay != nullptr)
+        {
+            delete _immediatePlay;
+            _immediatePlay = nullptr;
+        }
 }
 
 void ScheduleManager::Frame()
 {
-    if (_immediatePlay != nullptr)
+    PlayList* running = GetRunningPlayList();
+
+    if (running != nullptr)
     {
-        wxDateTime now;
-        long msec = (now.Today().GetValue() - _startTime).ToLong();
+        long msec = (wxGetUTCTimeMillis() - _startTime).ToLong();
         _outputManager->StartFrame(msec);
-        bool done = _immediatePlay->Frame(_buffer, _outputManager->GetTotalChannels());
+        bool done = running->Frame(_buffer, _outputManager->GetTotalChannels());
         _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
         _outputManager->EndFrame();
 
         if (done)
         {
-            delete _immediatePlay;
-            _immediatePlay = nullptr;
+#pragma todo ... this is where I should decide to loop etc
         }
     }
     else
     {
-        if (IsRunning())
+        if (_scheduleOptions->IsSendOffWhenNotRunning())
         {
-
-            PlayList* running = GetRunningPlayList();
-
-            if (running != nullptr)
-            {
-                wxDateTime now;
-                long msec = (now.Today().GetValue() - _startTime).ToLong();
-                _outputManager->StartFrame(msec);
-                bool done = running->Frame(_buffer, _outputManager->GetTotalChannels());
-                _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
-                _outputManager->EndFrame();
-
-                if (done)
-                {
-#pragma todo ... this is where I should decide to loop etc
-                }
-            }
-        }
-        else
-        {
-            if (_scheduleOptions->IsSendOffWhenNotRunning())
-            {
-                _outputManager->StartFrame(0);
-                _outputManager->AllOff();
-                _outputManager->EndFrame();
-            }
+            _outputManager->StartFrame(0);
+            _outputManager->AllOff();
+            _outputManager->EndFrame();
         }
     }
 }
 
 int ScheduleManager::PlayPlayList(PlayList* playlist)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Playing playlist %s.", (const char*)playlist->GetName().c_str());
+
     if (_immediatePlay != nullptr)
     {
         _immediatePlay->Stop();
@@ -258,14 +262,9 @@ std::string FormatTime(size_t timems)
 
 std::string ScheduleManager::GetStatus() const
 {
-    PlayList* curr = _immediatePlay;
+    PlayList* curr = GetRunningPlayList();
 
-    if (curr == nullptr)
-    {
-        curr = GetRunningPlayList();
-    }
-
-    if (curr == nullptr || curr->GetRunningStep() == nullptr)
+    if (!IsSomethingPlaying())
     {
         return "Idle";
     }

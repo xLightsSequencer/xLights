@@ -175,6 +175,16 @@
     <ClCompile Include="..\xLights\xLightsTimer.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
+    <ClCompile Include="PlayList\PlayerWindow.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemPJLink.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemPJLinkPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="md5.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -313,6 +323,16 @@
     <ClInclude Include="..\xLights\xLightsTimer.h">
       <Filter>xLights</Filter>
     </ClInclude>
+    <ClInclude Include="PlayList\PlayerWindow.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemPJLink.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemPJLinkPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="md5.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

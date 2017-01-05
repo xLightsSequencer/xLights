@@ -2,15 +2,26 @@
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
 #include "PlayListItemImagePanel.h"
+#include "PlayerWindow.h"
 
 PlayListItemImage::PlayListItemImage(wxXmlNode* node) : PlayListItem(node)
 {
+    _window = nullptr;
     _ImageFile = "";
     _origin.x = 0;
     _origin.y = 0;
     _size.SetWidth(100);
     _size.SetHeight(100);
     PlayListItemImage::Load(node);
+}
+
+PlayListItemImage::~PlayListItemImage()
+{
+    if (_window != nullptr)
+    {
+        delete _window;
+        _window = nullptr;
+    }
 }
 
 void PlayListItemImage::Load(wxXmlNode* node)
@@ -23,6 +34,7 @@ void PlayListItemImage::Load(wxXmlNode* node)
 
 PlayListItemImage::PlayListItemImage() : PlayListItem()
 {
+    _window = nullptr;
     _ImageFile = "";
     _origin.x = 0;
     _origin.y = 0;
@@ -89,12 +101,26 @@ void PlayListItemImage::Start()
     _image.LoadFile(_ImageFile);
 
     // create the window
-    #pragma todo create window
+    if (_window == nullptr)
+    {
+        _window = new PlayerWindow(nullptr, wxID_ANY, _origin, _size);
+    }
+    else
+    {
+        _window->Move(_origin);
+        _window->SetSize(_size);
+    }
+
+    _window->SetImage(_image);
 }
 
 void PlayListItemImage::Stop()
 {
     // destroy the window
-    #pragma todo destroy window
+    if (_window != nullptr)
+    {
+        delete _window;
+        _window = nullptr;
+    }
 }
 

@@ -87,6 +87,8 @@ wxXmlNode* PlayList::Save()
 
 void PlayList::Load(wxXmlNode* node)
 {
+    _steps.clear();
+    _schedules.clear();
     _firstOnlyOnce = (node->GetAttribute("FirstOnce", "FALSE") == "TRUE");
     _lastOnlyOnce = (node->GetAttribute("LastOnce", "FALSE") == "TRUE");
     _name = node->GetAttribute("Name", "");
@@ -242,6 +244,7 @@ bool PlayList::Frame(wxByte* buffer, size_t size)
         // This returns true if everything is done
         if (_currentStep->Frame(buffer, size))
         {
+            _currentStep->Stop();
             _currentStep = GetNextStep();
             if (_currentStep == nullptr)
             {
@@ -263,6 +266,9 @@ void PlayList::Start()
     if (IsRunning()) return;
     if (_steps.size() == 0) return;
 
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Playlist %s starting to play.", (const char*)GetName().c_str());
+
     _currentStep = _steps.front();
     _currentStep->Start();
 }
@@ -270,6 +276,9 @@ void PlayList::Start()
 void PlayList::Stop()
 {
     if (!IsRunning()) return;
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Playlist %s stopping.", (const char*)GetName().c_str());
 
     _currentStep->Stop();
     _currentStep = nullptr;

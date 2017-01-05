@@ -14,10 +14,155 @@
 #include <wx/image.h>
 //*)
 
+#include <log4cpp/Category.hh>
+#include <log4cpp/PropertyConfigurator.hh>
+#include <log4cpp/Configurator.hh>
+#include <wx/file.h>
+#include <wx/msgdlg.h>
+
+#include "../xLights/xLightsVersion.h"
+
 IMPLEMENT_APP(xScheduleApp)
+
+std::string DecodeOS(wxOperatingSystemId o)
+{
+    switch (o)
+    {
+    case wxOS_UNKNOWN:
+        return "Call get get operating system failed.";
+    case wxOS_MAC_OS:
+        return "Apple Mac OS 8 / 9 / X with Mac paths.";
+    case wxOS_MAC_OSX_DARWIN:
+        return "Apple OS X with Unix paths.";
+    case wxOS_MAC:
+        return "An Apple Mac of some type.";
+    case wxOS_WINDOWS_NT:
+        return "Windows NT family(XP / Vista / 7 / 8 / 10).";
+    case wxOS_WINDOWS:
+        return "A Windows system of some type.";
+    case wxOS_UNIX_LINUX:
+        return "Linux.";
+    case wxOS_UNIX_FREEBSD:
+        return "FreeBSD.";
+    case wxOS_UNIX_OPENBSD:
+        return "OpenBSD.";
+    case wxOS_UNIX_NETBSD:
+        return "NetBSD.";
+    case wxOS_UNIX_SOLARIS:
+        return "Solaris.";
+    case wxOS_UNIX_AIX:
+        return "AIX.";
+    case wxOS_UNIX_HPUX:
+        return "HP / UX.";
+    case wxOS_UNIX:
+        return "Some flavour of Unix.";
+    default:
+        break;
+    }
+
+    return "Unknown Operating System.";
+}
+
+void DumpConfig()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Version: " + std::string(xlights_version_string.c_str()));
+    logger_base.info("Build Date: " + std::string(xlights_build_date.c_str()));
+    logger_base.info("Machine configuration:");
+    wxMemorySize s = wxGetFreeMemory();
+    if (s != -1)
+    {
+        logger_base.info("  Free Memory:%ld.", s);
+    }
+    logger_base.info("  Current directory: " + std::string(wxGetCwd().c_str()));
+    logger_base.info("  Machine name: " + std::string(wxGetHostName().c_str()));
+    logger_base.info("  OS: " + std::string(wxGetOsDescription().c_str()));
+    int verMaj = -1;
+    int verMin = -1;
+    wxOperatingSystemId o = wxGetOsVersion(&verMaj, &verMin);
+    logger_base.info("  OS: %s %d.%d.%d", (const char *)DecodeOS(o).c_str(), verMaj, verMin);
+    if (wxIsPlatform64Bit())
+    {
+        logger_base.info("      64 bit");
+    }
+    else
+    {
+        logger_base.info("      NOT 64 bit");
+    }
+    if (wxIsPlatformLittleEndian())
+    {
+        logger_base.info("      Little Endian");
+    }
+    else
+    {
+        logger_base.info("      Big Endian");
+    }
+#ifdef LINUX
+    wxLinuxDistributionInfo l = wxGetLinuxDistributionInfo();
+    logger_base.info("  " + std::string(l.Id.c_str()) \
+        + " " + std::string(l.Release.c_str()) \
+        + " " + std::string(l.CodeName.c_str()) \
+        + " " + std::string(l.Description.c_str()));
+#endif
+}
+
+void InitialiseLogging(bool fromMain)
+{
+    static bool loggingInitialised = false;
+
+    if (!loggingInitialised)
+    {
+
+#ifdef __WXMSW__
+        std::string initFileName = "xlights.windows.properties";
+#endif
+#ifdef __WXOSX_MAC__
+        std::string initFileName = "xlights.mac.properties";
+        if (!wxFile::Exists(initFileName)) {
+            if (fromMain) {
+                return;
+            }
+            else if (wxFile::Exists(wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties")) {
+                initFileName = wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties";
+            }
+        }
+        loggingInitialised = true;
+
+#endif
+#ifdef __LINUX__
+        std::string initFileName = "/usr/share/xLights/xlights.linux.properties";
+#endif
+
+        if (!wxFile::Exists(initFileName))
+        {
+#ifdef _MSC_VER
+            // the app is not initialized so GUI is not available and no event loop.
+            wxMessageBox(initFileName + " not found in " + wxGetCwd() + ". Logging disabled.");
+#endif
+        }
+        else
+        {
+            try
+            {
+                log4cpp::PropertyConfigurator::configure(initFileName);
+            }
+            catch (log4cpp::ConfigureFailure& e) {
+                // ignore config failure ... but logging wont work
+                printf("Log issue:  %s\n", e.what());
+            }
+            catch (const std::exception& ex) {
+                printf("Log issue: %s\n", ex.what());
+            }
+        }
+    }
+}
 
 bool xScheduleApp::OnInit()
 {
+    InitialiseLogging(false);
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("******* OnInit: xSchedule started.");
+
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
@@ -29,5 +174,4 @@ bool xScheduleApp::OnInit()
     }
     //*)
     return wxsOK;
-
 }
