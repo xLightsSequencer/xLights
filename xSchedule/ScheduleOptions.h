@@ -1,6 +1,7 @@
 #ifndef SCHEDULEOPTIONS_H
 #define SCHEDULEOPTIONS_H
 #include <list>
+#include <string>
 
 class wxXmlNode;
 
@@ -9,7 +10,7 @@ class ScheduleOptions
 	bool _sync;
     bool _dirty;
     bool _sendOffWhenNotRunning;
-	
+
     public:
 
         bool IsDirty() const { return _dirty; };
@@ -25,4 +26,4 @@ class ScheduleOptions
         std::string GetProjectorPassword(const std::string& projector);
 };
 
-#endif 
+#endif

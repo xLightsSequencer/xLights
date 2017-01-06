@@ -189,6 +189,7 @@
     <ClCompile Include="..\xLights\vamp-hostsdk\RealTime.cpp" />
     <ClCompile Include="..\xLights\VideoReader.cpp" />
     <ClCompile Include="..\xLights\xLightsTimer.cpp" />
+    <ClCompile Include="ButtonDetailsDialog.cpp" />
     <ClCompile Include="ESEQFile.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="md5.cpp" />
@@ -217,6 +218,7 @@
     <ClCompile Include="PlayList\PlayListStep.cpp" />
     <ClCompile Include="PlayList\PlayListStepPanel.cpp" />
     <ClCompile Include="PlayList\VideoWindowPositionDialog.cpp" />
+    <ClCompile Include="ProjectorDetailsDialog.cpp" />
     <ClCompile Include="Schedule.cpp" />
     <ClCompile Include="ScheduleDialog.cpp" />
     <ClCompile Include="ScheduleManager.cpp" />
@@ -245,6 +247,7 @@
     <ClInclude Include="..\xLights\outputs\TestPreset.h" />
     <ClInclude Include="..\xLights\VideoReader.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />
+    <ClInclude Include="ButtonDetailsDialog.h" />
     <ClInclude Include="ESEQFile.h" />
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="md5.h" />
@@ -274,6 +277,7 @@
     <ClInclude Include="PlayList\PlayListStep.h" />
     <ClInclude Include="PlayList\PlayListStepPanel.h" />
     <ClInclude Include="PlayList\VideoWindowPositionDialog.h" />
+    <ClInclude Include="ProjectorDetailsDialog.h" />
     <ClInclude Include="Schedule.h" />
     <ClInclude Include="ScheduleDialog.h" />
     <ClInclude Include="ScheduleManager.h" />
