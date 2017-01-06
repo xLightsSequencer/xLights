@@ -2072,7 +2072,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
         return;
     }
 
-    BackupDirectory(newDir, forceallfiles);
+    BackupDirectory(CurrentDir, newDir, newDir, forceallfiles);
 }
 
 void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
@@ -2082,18 +2082,48 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
     DoBackup(true);
 }
 
-void xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, bool forceallfiles)
+void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory)
+{
+    if (wxDir::Exists(targetDirName)) return;
+
+    wxFileName tgt(targetDirName);
+    wxFileName lst(lastCreatedDirectory);
+
+    if (!tgt.GetFullPath().StartsWith(lst.GetFullPath())) return;
+
+    wxArrayString tgtd = tgt.GetDirs();
+    wxArrayString lstd = lst.GetDirs();
+    wxString newDir = lastCreatedDirectory;
+
+    for (int i = lstd.Count()+1; i < tgtd.Count(); i++)
+    {
+        wxDir dir(newDir);
+        newDir += "/" + tgtd[i];
+        dir.Make(newDir);
+    }
+
+    wxDir dir(newDir);
+    newDir += "/" + tgt.GetName();
+    dir.Make(newDir);
+}
+
+bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool res = false;
     wxString fname;
-    wxString srcDirName = CurrentDir + wxFileName::GetPathSeparator();
+    wxString srcDirName = srcDir.GetNameWithSep();
     wxFileName srcFile;
-    srcFile.SetPath(CurrentDir);
+    srcFile.SetPath(srcDir.GetNameWithSep());
 
     bool cont = srcDir.GetFirst(&fname, wildcard, wxDIR_FILES);
     while (cont)
     {
-        logger_base.debug("Backing up file %s.", (const char *)fname.c_str());
+        logger_base.debug("Backing up file %s.", (const char *)(srcDir.GetNameWithSep() + fname).c_str());
+
+        res = true;
+
+        CreateMissingDirectories(targetDirName, lastCreatedDirectory);
 
         srcFile.SetFullName(fname);
 
@@ -2108,24 +2138,42 @@ void xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
             targetDirName + wxFileName::GetPathSeparator() + fname);
         if (!success)
         {
-            wxMessageBox("Unable to copy file \"" + CurrentDir + wxFileName::GetPathSeparator() + fname + "\"",
+            wxMessageBox("Unable to copy file \"" + srcDir.GetNameWithSep() + fname + "\"",
                 "Error", wxICON_ERROR | wxOK);
         }
         cont = srcDir.GetNext(&fname);
     }
+
+    return res;
 }
 
-void xLightsFrame::BackupDirectory(wxString targetDirName, bool forceallfiles)
+void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles)
 {
-    wxDir srcDir(CurrentDir);
-
+    wxDir srcDir(sourceDir);
+    
     if(!srcDir.IsOpened())
     {
         return;
     }
 
-    CopyFiles("*.xml", srcDir, targetDirName, forceallfiles);
-    CopyFiles("*.xbkp", srcDir, targetDirName, forceallfiles);
+    if (CopyFiles("*.xml", srcDir, targetDirName, lastCreatedDirectory, forceallfiles) +
+        CopyFiles("*.xbkp", srcDir, targetDirName, lastCreatedDirectory, forceallfiles) > 0)
+    {
+        lastCreatedDirectory = targetDirName;
+    }
+
+    // recurse through all directories but folders named Backup
+    wxString dir;
+    bool cont = srcDir.GetFirst(&dir, "", wxDIR_DIRS);
+    while (cont)
+    {
+        if (dir != "Backup")
+        {
+            wxDir subdir(srcDir.GetNameWithSep() + dir);
+            BackupDirectory(subdir.GetNameWithSep(), targetDirName + "/" + dir, lastCreatedDirectory, forceallfiles);
+        }
+        cont = srcDir.GetNext(&dir);
+    }
 
     SetStatusText("All xml files backed up.");
 }
@@ -3317,7 +3365,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
         return;
     }
 
-    BackupDirectory(newDir, false);
+    BackupDirectory(CurrentDir, newDir, newDir, false);
 }
 
 void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)

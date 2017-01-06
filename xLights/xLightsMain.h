@@ -1070,8 +1070,9 @@ protected:
     void ResetEffectsXml();
     void SeqLoadXlightsXSEQ(const wxString& filename);
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
-    void CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, bool forceallfiles);
-    void BackupDirectory(wxString targetDirName, bool forceallfiles);
+    bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles);
+    void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles);
+    void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory);
     void NewSequence();
     void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
     void SaveSequence();
