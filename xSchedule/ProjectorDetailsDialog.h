@@ -11,9 +11,15 @@
 
 class ProjectorDetailsDialog: public wxDialog
 {
+    std::string& _projector;
+    std::string& _ip;
+    std::string& _password;
+
+    void ValidateWindow();
+
 	public:
 
-		ProjectorDetailsDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ProjectorDetailsDialog(wxWindow* parent, std::string& projector, std::string& ip, std::string& password, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ProjectorDetailsDialog();
 
 		//(*Declarations(ProjectorDetailsDialog)

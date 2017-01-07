@@ -139,8 +139,11 @@ MEDIAPLAYINGSTATE AudioManager::GetPlayingState()
 int AudioManager::Tell()
 {
     std::unique_lock<std::mutex> locker(__audio_Lock);
-    
-    return (((_pcmdatasize - __audio_len) / 4) * _lengthMS)/ _trackSize;
+
+    //wxASSERT(_trackSize != 0);
+    //if (_trackSize == 0) return 0;
+
+    return (((_pcmdatasize - __audio_len) / 4) * _lengthMS) / _trackSize;
 }
 
 size_t AudioManager::GetAudioFileLength(std::string filename)
@@ -188,7 +191,7 @@ size_t AudioManager::GetAudioFileLength(std::string filename)
 
     AVStream* audioStream = formatContext->streams[streamIndex];
 
-    if (audioStream->duration > 0)
+    if (audioStream != nullptr && audioStream->duration > 0 && audioStream->time_base.den > 0)
     {
         size_t duration = audioStream->duration * 1000 * audioStream->time_base.num / audioStream->time_base.den;
 
@@ -207,6 +210,7 @@ size_t AudioManager::GetAudioFileLength(std::string filename)
         formatContext = nullptr;
     }
 
+    logger_base.error("AudioManager: Could not determine length of video " + filename);
     return 0;
 }
 

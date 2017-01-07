@@ -13,11 +13,9 @@
 //(*Headers(xScheduleFrame)
 #include <wx/treectrl.h>
 #include <wx/sizer.h>
-#include <wx/stattext.h>
 #include <wx/menu.h>
 #include <wx/splitter.h>
 #include <wx/panel.h>
-#include <wx/button.h>
 #include <wx/dirdlg.h>
 #include <wx/frame.h>
 #include <wx/timer.h>
@@ -28,9 +26,13 @@
 
 class ScheduleManager;
 class PlayList;
+class WebServer;
+
+wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 
 class xScheduleFrame : public wxFrame
 {
+    WebServer* _webServer;
     static ScheduleManager* __schedule;
     std::string _showDir;
     void LoadShowDir();
@@ -38,6 +40,7 @@ class xScheduleFrame : public wxFrame
     void UpdateTree() const;
     void DeleteSelectedItem();
     void ValidateWindow();
+    void CreateButtons();
 
 public:
 
@@ -50,8 +53,6 @@ public:
         //(*Handlers(xScheduleFrame)
         void OnQuit(wxCommandEvent& event);
         void OnAbout(wxCommandEvent& event);
-        void OnButton_PlayClick(wxCommandEvent& event);
-        void OnButton_StopClick(wxCommandEvent& event);
         void OnTreeCtrl_PlayListsSchedulesItemMenu(wxTreeEvent& event);
         void OnTreeCtrl_PlayListsSchedulesSelectionChanged(wxTreeEvent& event);
         void OnTreeCtrl_PlayListsSchedulesKeyDown(wxTreeEvent& event);
@@ -60,11 +61,14 @@ public:
         void OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& event);
         void On_timerTrigger(wxTimerEvent& event);
         void On_timerScheduleTrigger(wxTimerEvent& event);
+        void OnMenuItem_OptionsSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
         bool IsSchedule(wxTreeItemId id) const;
         void OnTreeCtrlMenu(wxCommandEvent &event);
+        void OnButton_UserClick(wxCommandEvent& event);
+        void RateNotification(wxCommandEvent& event);
 
         //(*Identifiers(xScheduleFrame)
         static const long ID_PANEL2;
@@ -72,9 +76,6 @@ public:
         static const long ID_PANEL3;
         static const long ID_PANEL5;
         static const long ID_SPLITTERWINDOW1;
-        static const long ID_BUTTON_PLAY;
-        static const long ID_BUTTON_STOP;
-        static const long ID_STATICTEXT1;
         static const long ID_PANEL1;
         static const long ID_MNU_SHOWFOLDER;
         static const long ID_MNU_SAVE;
@@ -96,16 +97,13 @@ public:
         static const long ID_MNU_PLAYNOW;
 
         //(*Declarations(xScheduleFrame)
+        wxFlexGridSizer* FlexGridSizer4;
         wxPanel* Panel5;
-        wxMenuItem* MenuItem7;
         wxMenuItem* MenuItem5;
-        wxButton* Button_Stop;
         wxMenu* Menu3;
         xLightsTimer _timer;
         wxMenuItem* MenuItem_Save;
         wxPanel* Panel1;
-        wxButton* Button_Play;
-        wxStaticText* StaticText_Status;
         wxPanel* Panel3;
         wxStatusBar* StatusBar1;
         wxDirDialog* DirDialog1;
@@ -115,6 +113,7 @@ public:
         wxMenuItem* MenuItem_ShowFolder;
         wxPanel* Panel2;
         wxSplitterWindow* SplitterWindow1;
+        wxMenuItem* MenuItem_Options;
         //*)
 
         DECLARE_EVENT_TABLE()

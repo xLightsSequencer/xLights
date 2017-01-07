@@ -33,11 +33,7 @@ fft(unsigned int n, bool inverse,
 	}
     }
 
-#ifdef _MSC_VER
     int *table = (int *)_malloca(n * sizeof(int));
-#else
-    int table[n];
-#endif
 
     for (i = 0; i < n; ++i) {
         m = i;
@@ -115,8 +111,6 @@ fft(unsigned int n, bool inverse,
 	}
     }
 
-#ifdef _MSC_VER
     _freea(table);
-#endif
 }
 

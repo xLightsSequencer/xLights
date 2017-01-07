@@ -1,4 +1,6 @@
 #include "ButtonDetailsDialog.h"
+#include "xScheduleMain.h"
+#include "ScheduleManager.h"
 
 //(*InternalHeaders(ButtonDetailsDialog)
 #include <wx/intl.h>
@@ -21,7 +23,7 @@ BEGIN_EVENT_TABLE(ButtonDetailsDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, std::string& command, std::string& parameter,wxWindowID id,const wxPoint& pos,const wxSize& size) : _label(label), _command(command), _parameter(parameter)
 {
 	//(*Initialize(ButtonDetailsDialog)
 	wxFlexGridSizer* FlexGridSizer2;
@@ -62,6 +64,26 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent,wxWindowID id,const wx
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButtonDetailsDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButtonDetailsDialog::OnButton_CancelClick);
 	//*)
+
+    auto commands = xScheduleFrame::GetScheduleManager()->GetCommands();
+    for (auto it = commands.begin(); it != commands.end(); ++it)
+    {
+        Choice_Command->AppendString(*it);
+    }
+
+    TextCtrl_Label->SetValue(label);
+    TextCtrl_Parameters->SetValue(parameter);
+    Choice_Command->SetSelection(-1);
+    for(int i = 0; i < Choice_Command->GetCount(); i++)
+    {
+        if (Choice_Command->GetString(i) == command)
+        {
+            Choice_Command->SetSelection(i);
+            break;
+        }
+    }
+
+    ValidateWindow();
 }
 
 ButtonDetailsDialog::~ButtonDetailsDialog()
@@ -73,20 +95,40 @@ ButtonDetailsDialog::~ButtonDetailsDialog()
 
 void ButtonDetailsDialog::OnButton_OkClick(wxCommandEvent& event)
 {
+    _label = TextCtrl_Label->GetValue();
+    _parameter = TextCtrl_Parameters->GetValue();
+    _command = Choice_Command->GetStringSelection();
+    EndDialog(wxID_OK);
 }
 
 void ButtonDetailsDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
+    EndDialog(wxID_CANCEL);
 }
 
 void ButtonDetailsDialog::OnTextCtrl_ParametersText(wxCommandEvent& event)
 {
+    ValidateWindow();
 }
 
 void ButtonDetailsDialog::OnTextCtrl_LabelText(wxCommandEvent& event)
 {
+    ValidateWindow();
 }
 
 void ButtonDetailsDialog::OnChoice_CommandSelect(wxCommandEvent& event)
 {
+    ValidateWindow();
+}
+
+void ButtonDetailsDialog::ValidateWindow()
+{
+    if (TextCtrl_Label->GetValue() == "" || Choice_Command->GetSelection() < 0)
+    {
+        Button_Ok->Enable(false);
+    }
+    else
+    {
+        Button_Ok->Enable(true);
+    }
 }

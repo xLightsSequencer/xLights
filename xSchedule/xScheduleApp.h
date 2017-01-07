@@ -18,4 +18,6 @@ class xScheduleApp : public wxApp
         virtual bool OnInit();
 };
 
+DECLARE_APP(xScheduleApp)
+
 #endif // XSCHEDULEAPP_H

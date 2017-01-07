@@ -187,6 +187,34 @@
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="ButtonDetailsDialog.cpp" />
     <ClCompile Include="ProjectorDetailsDialog.cpp" />
+    <ClCompile Include="WebServer.cpp" />
+    <ClCompile Include="wxHTTPServer\connection.cpp">
+      <Filter>wxHTTPServer</Filter>
+    </ClCompile>
+    <ClCompile Include="wxHTTPServer\context.cpp">
+      <Filter>wxHTTPServer</Filter>
+    </ClCompile>
+    <ClCompile Include="wxHTTPServer\message.cpp">
+      <Filter>wxHTTPServer</Filter>
+    </ClCompile>
+    <ClCompile Include="wxHTTPServer\pages.cpp">
+      <Filter>wxHTTPServer</Filter>
+    </ClCompile>
+    <ClCompile Include="wxHTTPServer\request.cpp">
+      <Filter>wxHTTPServer</Filter>
+    </ClCompile>
+    <ClCompile Include="wxHTTPServer\response.cpp">
+      <Filter>wxHTTPServer</Filter>
+    </ClCompile>
+    <ClCompile Include="wxHTTPServer\server.cpp">
+      <Filter>wxHTTPServer</Filter>
+    </ClCompile>
+    <ClCompile Include="wxHTTPServer\sha1.cpp">
+      <Filter>wxHTTPServer</Filter>
+    </ClCompile>
+    <ClCompile Include="wxHTTPServer\status.cpp">
+      <Filter>wxHTTPServer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -337,6 +365,13 @@
     <ClInclude Include="md5.h" />
     <ClInclude Include="ButtonDetailsDialog.h" />
     <ClInclude Include="ProjectorDetailsDialog.h" />
+    <ClInclude Include="WebServer.h" />
+    <ClInclude Include="wxHTTPServer\sha1.h">
+      <Filter>wxHTTPServer</Filter>
+    </ClInclude>
+    <ClInclude Include="wxHTTPServer\wxhttpserver.h">
+      <Filter>wxHTTPServer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
@@ -347,6 +382,9 @@
     </Filter>
     <Filter Include="PlayList">
       <UniqueIdentifier>{15bbdb54-b786-42bc-9118-5cd2ea7df282}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wxHTTPServer">
+      <UniqueIdentifier>{ba7dfa26-8fa5-4f44-ba1c-34937ae0fcc0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -271,3 +271,239 @@ std::string ScheduleManager::GetStatus() const
 
     return "Playing " + curr->GetRunningStep()->GetName() + " Time: " + FormatTime(curr->GetRunningStep()->GetPosition()) + " Left: " + FormatTime(curr->GetRunningStep()->GetLengthMS() - curr->GetRunningStep()->GetPosition());
 }
+
+std::list<std::string> ScheduleManager::GetCommands() const
+{
+    std::list<std::string> res;
+
+    res.push_back("Stop all now");
+    res.push_back("Play selected playlist");
+    res.push_back("Play specified playlist");
+    res.push_back("Stop specified playlist");
+    res.push_back("Stop specified playlist at end of current step");
+    res.push_back("Pause");
+    res.push_back("Next step in current playlist");
+    res.push_back("Restart step in current playlist");
+    res.push_back("Prior step in current playlist");
+    res.push_back("Play playlist starting at step");
+
+    return res;
+}
+
+PlayList* ScheduleManager::GetPlayList(const std::string& playlist) const
+{
+    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+    {
+        if ((*it)->GetName() == playlist)
+        {
+            return *it;
+        }
+    }
+
+    return nullptr;
+}
+
+// 127.0.0.1/xScheduleCommand?Command=Stop all now&Parameters=
+// 127.0.0.1/xScheduleCommand?Command=Play specified playlist&Parameters=<play list name>
+// 127.0.0.1/xScheduleCommand?Command=Stop specified playlist&Parameters=<play list name>
+// 127.0.0.1/xScheduleCommand?Command=Stop specified playlist at end of current step&Parameters=<play list name>
+// 127.0.0.1/xScheduleCommand?Command=Pause&Parameters=
+// 127.0.0.1/xScheduleCommand?Command=Next step in current playlist&Parameters=
+// 127.0.0.1/xScheduleCommand?Command=Restart step in current playlist&Parameters=
+// 127.0.0.1/xScheduleCommand?Command=Prior step in current playlist&Parameters=
+// 127.0.0.1/xScheduleCommand?Command=Play playlist starting at step&Parameters=<step name>
+
+void ScheduleManager::Action(const std::string command, const std::string parameters, PlayList* playlist, size_t& rate)
+{
+    if (command == "Stop all now")
+    {
+        StopAll();
+    }
+    else if (command == "Play selected playlist")
+    {
+        if (playlist != nullptr)
+        {
+            rate = PlayPlayList(playlist);
+        }
+    }
+    else if (command == "Play specified playlist")
+    {
+        PlayList* p = GetPlayList(parameters);
+
+        if (p != nullptr)
+        {
+            rate = PlayPlayList(p);
+        }
+    }
+    else if (command == "Stop specified playlist")
+    {
+        PlayList* p = GetPlayList(parameters);
+
+        if (p != nullptr)
+        {
+            StopPlayList(p, false);
+        }
+    }
+    else if (command == "Stop specified playlist at end of current step")
+    {
+        PlayList* p = GetPlayList(parameters);
+
+        if (p != nullptr)
+        {
+            StopPlayList(p, true);
+        }
+    }
+    else if (command == "Pause")
+    {
+        PlayList* p = GetRunningPlayList();
+        if (p != nullptr)
+        {
+            p->Pause();
+        }
+    }
+    else if (command == "Next step in current playlist")
+    {
+        PlayList* p = GetRunningPlayList();
+
+        if (p != nullptr)
+        {
+            //            rate = p->JumpToNextStep();
+        }
+    }
+    else if (command == "Restart step in current playlist")
+    {
+        PlayList* p = GetRunningPlayList();
+
+        if (p != nullptr)
+        {
+            //            p->RestartCurrentStep();
+        }
+    }
+    else if (command == "Prior step in current playlist")
+    {
+        PlayList* p = GetRunningPlayList();
+
+        if (p != nullptr)
+        {
+            //            rate = p->JumpToPriorStep();
+        }
+    }
+    else if (command == "Play playlist starting at step")
+    {
+        wxString parameter = parameters;
+        wxArrayString split = wxSplit(parameter, ',');
+        if (split.Count() != 2) return;
+        std::string pl = split[0].ToStdString();
+        std::string step = split[1].ToStdString();
+
+        PlayList* p = GetPlayList(pl);
+
+        if (p != nullptr)
+        {
+            //            PlayPlayList(p, step);
+        }
+    }
+}
+
+void ScheduleManager::Action(const std::string label, PlayList* playlist, size_t& rate)
+{
+    std::string command = _scheduleOptions->GetButtonCommand(label);
+    std::string parameters = _scheduleOptions->GetButtonParameter(label);
+
+    Action(command, parameters, playlist, rate);
+}
+
+void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
+{
+    if (_immediatePlay != nullptr && _immediatePlay->GetName() == playlist->GetName())
+    {
+        if (atendofcurrentstep)
+        {
+            _immediatePlay->StopAtEndOfCurrentStep();
+        }
+        else
+        {
+            _immediatePlay->Stop();
+            delete _immediatePlay;
+            _immediatePlay = nullptr;
+        }
+    }
+
+    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+    {
+        if ((*it)->GetName() == playlist->GetName() && (*it)->IsRunning())
+        {
+            if (atendofcurrentstep)
+            {
+                (*it)->StopAtEndOfCurrentStep();
+            }
+            else
+            {
+                (*it)->Stop();
+            }
+        }
+    }
+}
+
+// 127.0.0.1/xScheduleQuery?Query=GetPlayLists&Parameters=
+// 127.0.0.1/xScheduleQuery?Query=GetPlayListSteps&Parameters=<playlistname>
+// 127.0.0.1/xScheduleQuery?Query=GetPlayingStatus&Parameters=
+
+std::string ScheduleManager::Query(const std::string command, const std::string parameters)
+{
+    std::string res;
+    if (command == "GetPlayLists")
+    {
+        res = "{\"playlists\":{";
+        for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+        {
+            if (it != _playLists.begin())
+            {
+                res += ",";
+            }
+            res += "\"" + (*it)->GetName() + "\"";
+        }
+        res += "}}";
+    }
+    else if (command == "GetPlayListSteps")
+    {
+        PlayList* p = GetPlayList(parameters);
+
+        if (p != nullptr)
+        {
+            res = "{\"steps\":{";
+            auto steps = p->GetSteps();
+            for (auto it =  steps.begin(); it != steps.end(); ++it)
+            {
+                if (it != steps.begin())
+                {
+                    res += ",";
+                }
+                res += "\"" + (*it)->GetName() + "\"";
+            }
+            res += "}}";
+        }
+        else
+        {
+            res = "{\"steps\":{}}";
+        }
+    }
+    else if (command == "GetPlayingStatus")
+    {
+        PlayList* p = GetRunningPlayList();
+        if (p == nullptr)
+        {
+            res = "{\"status\",\"idle\"}";
+        }
+        else
+        {
+            res = "{\"status\",\"playing\",\"playlist\":\"" + p->GetName() + 
+                  "\",\"step\":\"" + p->GetRunningStep()->GetName() + 
+                  "\",\"length\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS()) +
+                  "\",\"position\":\"" + FormatTime(p->GetRunningStep()->GetPosition()) +
+                  "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) + "\"}";
+        }
+    }
+
+    return res;
+}

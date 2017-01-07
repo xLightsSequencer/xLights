@@ -3,6 +3,7 @@
 //(*InternalHeaders(ProjectorDetailsDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "../xLights/outputs/IPOutput.h"
 //*)
 
 //(*IdInit(ProjectorDetailsDialog)
@@ -21,7 +22,7 @@ BEGIN_EVENT_TABLE(ProjectorDetailsDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ProjectorDetailsDialog::ProjectorDetailsDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+ProjectorDetailsDialog::ProjectorDetailsDialog(wxWindow* parent, std::string& projector, std::string& ip, std::string& password, wxWindowID id,const wxPoint& pos,const wxSize& size) : _projector(projector), _ip(ip), _password(password)
 {
 	//(*Initialize(ProjectorDetailsDialog)
 	wxFlexGridSizer* FlexGridSizer2;
@@ -61,6 +62,12 @@ ProjectorDetailsDialog::ProjectorDetailsDialog(wxWindow* parent,wxWindowID id,co
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ProjectorDetailsDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ProjectorDetailsDialog::OnButton_CancelClick);
 	//*)
+
+    TextCtrl_Name->SetValue(_projector);
+    TextCtrl_IPAddress->SetValue(_ip);
+    TextCtrl_Password->SetValue(_password);
+
+    ValidateWindow();
 }
 
 ProjectorDetailsDialog::~ProjectorDetailsDialog()
@@ -72,16 +79,36 @@ ProjectorDetailsDialog::~ProjectorDetailsDialog()
 
 void ProjectorDetailsDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
+    EndDialog(wxID_CANCEL);
 }
 
 void ProjectorDetailsDialog::OnButton_OkClick(wxCommandEvent& event)
 {
+    _projector = TextCtrl_Name->GetValue().ToStdString();
+    _ip = TextCtrl_IPAddress->GetValue().ToStdString();
+    _password = TextCtrl_Password->GetValue().ToStdString();
+    EndDialog(wxID_OK);
 }
 
 void ProjectorDetailsDialog::OnTextCtrl_IPAddressText(wxCommandEvent& event)
 {
+    ValidateWindow();
 }
 
 void ProjectorDetailsDialog::OnTextCtrl_NameText(wxCommandEvent& event)
 {
+    ValidateWindow();
+}
+
+void ProjectorDetailsDialog::ValidateWindow()
+{
+    if (TextCtrl_Name->GetValue() == "" &&
+        IPOutput::IsIPValid(TextCtrl_IPAddress->GetValue().ToStdString()))
+    {
+        Button_Ok->Enable(false);
+    }
+    else
+    {
+        Button_Ok->Enable(true);
+    }
 }

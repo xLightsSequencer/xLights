@@ -349,11 +349,24 @@
 		<Unit filename="ScheduleManager.h" />
 		<Unit filename="ScheduleOptions.cpp" />
 		<Unit filename="ScheduleOptions.h" />
+		<Unit filename="WebServer.cpp" />
+		<Unit filename="WebServer.h" />
 		<Unit filename="md5.cpp" />
 		<Unit filename="md5.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>
+		<Unit filename="wxHTTPServer/connection.cpp" />
+		<Unit filename="wxHTTPServer/context.cpp" />
+		<Unit filename="wxHTTPServer/message.cpp" />
+		<Unit filename="wxHTTPServer/pages.cpp" />
+		<Unit filename="wxHTTPServer/request.cpp" />
+		<Unit filename="wxHTTPServer/response.cpp" />
+		<Unit filename="wxHTTPServer/server.cpp" />
+		<Unit filename="wxHTTPServer/sha1.cpp" />
+		<Unit filename="wxHTTPServer/sha1.h" />
+		<Unit filename="wxHTTPServer/status.cpp" />
+		<Unit filename="wxHTTPServer/wxhttpserver.h" />
 		<Unit filename="wxsmith/ButtonDetailsDialog.wxs" />
 		<Unit filename="wxsmith/OptionsDialog.wxs" />
 		<Unit filename="wxsmith/PlayListDialog.wxs" />

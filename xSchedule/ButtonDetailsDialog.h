@@ -12,9 +12,15 @@
 
 class ButtonDetailsDialog: public wxDialog
 {
+    void ValidateWindow();
+
 	public:
 
-		ButtonDetailsDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+        std::string& _label;
+        std::string& _parameter;
+        std::string& _command;
+
+		ButtonDetailsDialog(wxWindow* parent, std::string& label, std::string& command, std::string& parameter, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ButtonDetailsDialog();
 
 		//(*Declarations(ButtonDetailsDialog)

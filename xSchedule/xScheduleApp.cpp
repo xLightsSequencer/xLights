@@ -114,10 +114,10 @@ void InitialiseLogging(bool fromMain)
     {
 
 #ifdef __WXMSW__
-        std::string initFileName = "xlights.windows.properties";
+        std::string initFileName = "xschedule.windows.properties";
 #endif
 #ifdef __WXOSX_MAC__
-        std::string initFileName = "xlights.mac.properties";
+        std::string initFileName = "xschedule.mac.properties";
         if (!wxFile::Exists(initFileName)) {
             if (fromMain) {
                 return;
@@ -130,7 +130,7 @@ void InitialiseLogging(bool fromMain)
 
 #endif
 #ifdef __LINUX__
-        std::string initFileName = "/usr/share/xLights/xlights.linux.properties";
+        std::string initFileName = "/usr/share/xLights/xschedule.linux.properties";
 #endif
 
         if (!wxFile::Exists(initFileName))
@@ -159,6 +159,8 @@ void InitialiseLogging(bool fromMain)
 
 bool xScheduleApp::OnInit()
 {
+    wxLog::SetLogLevel(wxLOG_FatalError);
+
     InitialiseLogging(false);
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: xSchedule started.");

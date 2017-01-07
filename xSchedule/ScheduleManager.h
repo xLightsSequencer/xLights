@@ -34,11 +34,18 @@ class ScheduleManager
         void RemovePlayList(PlayList* playlist);
         PlayList* GetRunningPlayList() const;
         std::list<PlayList*> GetPlayLists() const { return _playLists; }
+        std::list<std::string> GetCommands() const;
         bool IsRunning() const { return GetRunningPlayList() != nullptr; }
         void Frame(); // called when a frame needs to be displayed ... returns desired frame rate
         int CheckSchedule();
         int PlayPlayList(PlayList* playlist);
         bool IsSomethingPlaying() const { return GetRunningPlayList() != nullptr; }
+        void OptionsChanged() {};
+        void Action(const std::string label, PlayList* playlist, size_t& rate);
+        void Action(const std::string command, const std::string parameters, PlayList* playlist, size_t& rate);
+        std::string Query(const std::string command, const std::string parameters);
+        PlayList * GetPlayList(const std::string& playlist) const;
+        void StopPlayList(PlayList* playlist, bool atendofcurrentstep);
 };
 
 #endif

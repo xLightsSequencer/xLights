@@ -10,11 +10,19 @@
 #include <wx/dialog.h>
 //*)
 
+class ScheduleOptions;
+
 class OptionsDialog: public wxDialog
 {
+    ScheduleOptions* _options;
+
+    void LoadProjectors();
+    void LoadButtons();
+    void ValidateWindow();
+
 	public:
 
-		OptionsDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~OptionsDialog();
 
 		//(*Declarations(OptionsDialog)

@@ -18,10 +18,12 @@ protected:
     std::list<Schedule*> _schedules;
     bool _dirty;
     std::string _name;
+    bool _stopAtEndOfCurrentStep;
     bool _firstOnlyOnce;
     bool _lastOnlyOnce;
     PlayListStep* _currentStep;
     int _priorty;
+    wxDateTime _pauseTime;
     #pragma endregion Member Variables
 
     int GetPos(PlayListStep* step);
@@ -62,6 +64,9 @@ public:
     bool IsRunning() const;
     void Start();
     void Stop();
+    void StopAtEndOfCurrentStep() { _stopAtEndOfCurrentStep = true; }
+    void Pause();
+    bool IsPaused() const;
     #pragma endregion Getters and Setters
 
     wxXmlNode* Save();

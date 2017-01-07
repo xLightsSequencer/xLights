@@ -48,7 +48,7 @@
 					<object class="sizeritem">
 						<object class="wxGrid" name="ID_GRID1" variable="Grid_Projectors" member="yes">
 							<cols>2</cols>
-							<defaultcolsize>100</defaultcolsize>
+							<defaultcolsize>200</defaultcolsize>
 							<collabels>
 								<item>IP Address</item>
 								<item>Password</item>
@@ -118,10 +118,11 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxGrid" name="ID_GRID2" variable="Grid_Buttons" member="yes">
-							<cols>1</cols>
+							<cols>2</cols>
 							<defaultcolsize>200</defaultcolsize>
 							<collabels>
 								<item>Command</item>
+								<item>Parameter</item>
 							</collabels>
 							<handler function="OnGrid_ButtonsCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
 							<handler function="OnGrid_ButtonsLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />

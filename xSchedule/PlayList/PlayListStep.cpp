@@ -275,3 +275,8 @@ size_t PlayListStep::GetLengthMS() const
         return len;
     }
 }
+
+void PlayListStep::AdjustTime(wxTimeSpan by)
+{
+    _startTime += by.GetValue();
+}

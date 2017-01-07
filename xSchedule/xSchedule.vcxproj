@@ -223,6 +223,16 @@
     <ClCompile Include="ScheduleDialog.cpp" />
     <ClCompile Include="ScheduleManager.cpp" />
     <ClCompile Include="ScheduleOptions.cpp" />
+    <ClCompile Include="WebServer.cpp" />
+    <ClCompile Include="wxHTTPServer\connection.cpp" />
+    <ClCompile Include="wxHTTPServer\context.cpp" />
+    <ClCompile Include="wxHTTPServer\message.cpp" />
+    <ClCompile Include="wxHTTPServer\pages.cpp" />
+    <ClCompile Include="wxHTTPServer\request.cpp" />
+    <ClCompile Include="wxHTTPServer\response.cpp" />
+    <ClCompile Include="wxHTTPServer\server.cpp" />
+    <ClCompile Include="wxHTTPServer\sha1.cpp" />
+    <ClCompile Include="wxHTTPServer\status.cpp" />
     <ClCompile Include="xScheduleApp.cpp" />
     <ClCompile Include="xScheduleMain.cpp" />
   </ItemGroup>
@@ -282,6 +292,9 @@
     <ClInclude Include="ScheduleDialog.h" />
     <ClInclude Include="ScheduleManager.h" />
     <ClInclude Include="ScheduleOptions.h" />
+    <ClInclude Include="WebServer.h" />
+    <ClInclude Include="wxHTTPServer\sha1.h" />
+    <ClInclude Include="wxHTTPServer\wxhttpserver.h" />
     <ClInclude Include="xScheduleApp.h" />
     <ClInclude Include="xScheduleMain.h" />
   </ItemGroup>

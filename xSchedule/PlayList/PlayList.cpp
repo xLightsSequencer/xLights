@@ -8,6 +8,8 @@
 
 PlayList::PlayList(wxXmlNode* node)
 {
+    _pauseTime.Set((time_t)0);
+    _stopAtEndOfCurrentStep = false;
     _dirty = false;
     _currentStep = nullptr;
     Load(node);
@@ -17,6 +19,8 @@ PlayList::PlayList(const PlayList& playlist)
 {
     _dirty = false;
     _currentStep = nullptr;
+    _stopAtEndOfCurrentStep = false;
+    _pauseTime.Set((time_t)0);
     _firstOnlyOnce = playlist._firstOnlyOnce;
     _lastOnlyOnce = playlist._lastOnlyOnce;
     _name = playlist._name;
@@ -29,11 +33,13 @@ PlayList::PlayList(const PlayList& playlist)
 
 PlayList::PlayList()
 {
+    _pauseTime.Set((time_t)0);
     _dirty = false;
     _currentStep = nullptr;
     _firstOnlyOnce = false;
     _lastOnlyOnce = false;
     _name = "";
+    _stopAtEndOfCurrentStep = false;
 }
 
 PlayList::~PlayList()
@@ -241,6 +247,8 @@ bool PlayList::Frame(wxByte* buffer, size_t size)
 {
     if (_currentStep != nullptr)
     {
+        if (IsPaused()) return false;
+
         // This returns true if everything is done
         if (_currentStep->Frame(buffer, size))
         {
@@ -269,6 +277,7 @@ void PlayList::Start()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Playlist %s starting to play.", (const char*)GetName().c_str());
 
+    _stopAtEndOfCurrentStep = false;
     _currentStep = _steps.front();
     _currentStep->Start();
 }
@@ -286,6 +295,8 @@ void PlayList::Stop()
 
 PlayListStep* PlayList::GetNextStep() const
 {
+    if (_stopAtEndOfCurrentStep) return nullptr;
+
     for (auto it = _steps.begin(); it != _steps.end(); ++it)
     {
         if (*it == _currentStep)
@@ -301,3 +312,23 @@ PlayListStep* PlayList::GetNextStep() const
     return nullptr;
 }
 
+bool PlayList::IsPaused() const
+{
+    wxDateTime zero((time_t)0);
+    return (_pauseTime != zero);
+}
+
+void PlayList::Pause()
+{
+    if (_currentStep == nullptr) return;
+
+    if (IsPaused())
+    {
+        _currentStep->AdjustTime(wxDateTime::Now() - _pauseTime);
+        _pauseTime = wxDateTime((time_t)0);
+    }
+    else
+    {
+        _pauseTime = wxDateTime::Now();
+    }
+}
