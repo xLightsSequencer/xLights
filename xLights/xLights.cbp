@@ -201,10 +201,11 @@
 					<Add library="../lib/windows/avcodec.lib" />
 					<Add library="../lib/windows/avformat.lib" />
 					<Add library="../lib/windows/avutil.lib" />
-					<Add library="../lib/windows/SDL2.lib" />
 					<Add library="../lib/windows/swresample.lib" />
+					<Add library="../lib/windows/SDL2.lib" />
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
+					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
 			<Target title="MinGW_Release">
@@ -255,15 +256,16 @@
 					<Add library="libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/avutil.lib" />
-					<Add library="../lib/windows/avformat.lib" />
 					<Add library="../lib/windows/avcodec.lib" />
+					<Add library="../lib/windows/avformat.lib" />
+					<Add library="../lib/windows/avutil.lib" />
 					<Add library="../lib/windows/swresample.lib" />
 					<Add library="../lib/windows/SDL2.lib" />
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
+					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Debug">
@@ -349,23 +351,25 @@
 			</Target>
 			<Target title="64bit  MinGW_Release">
 				<Option platforms="Windows;" />
-				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
+				<Option output="../bin64/xLights" prefix_auto="1" extension_auto="1" />
+				<Option object_output=".objs_64" />
 				<Option type="0" />
 				<Option compiler="gnu_gcc_64bit_compiler" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-m64" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
-					<Add option="-std=gnu++0x" />
+					<Add option="-std=gnu++14" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option="-static-libgcc" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
-					<Add option="-D__GNUWIN32__" />
 					<Add option="-D__WXMSW__" />
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-DNDEBUG" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+					<Add option="-DWX_CPU_AMD64" />
+					<Add directory="$(#wx64)/lib/gcc_dll/mswu" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
 					<Add directory="../xLights" />
@@ -374,23 +378,31 @@
 					<Add directory="models" />
 					<Add directory="effects/assist" />
 					<Add directory="models/" />
+					<Add directory="ffmpeg-dev/include" />
+					<Add directory="../include" />
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="$(#wx)/include" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+					<Add directory="$(#wx64)/include" />
+					<Add directory="$(#wx64)/lib/gcc_dll/mswu" />
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-m64" />
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../bin/xLights.map" />
+					<Add option="-Wl,-Map=../bin64/xLights.map" />
 					<Add library="libwxmsw31u.a" />
 					<Add library="libwxmsw31u_gl.a" />
-					<Add library="../lib/windows/DbgHelp.Lib" />
-					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="ffmpeg-dev/lib/avutil.lib" />
-					<Add library="ffmpeg-dev/lib/avformat.lib" />
-					<Add library="ffmpeg-dev/lib/avcodec.lib" />
+					<Add library="../lib/windows64/libdbghelp.a" />
+					<Add library="../lib/windows64/libimagehlp.a" />
+					<Add library="../lib/windows64/avcodec.lib" />
+					<Add library="../lib/windows64/avformat.lib" />
+					<Add library="../lib/windows64/avutil.lib" />
+					<Add library="../lib/windows64/SDL2.lib" />
+					<Add library="../lib/windows64/swresample.lib" />
+					<Add library="../lib/windows64/swscale.lib" />
+					<Add library="../lib/windows64/liblog4cpp.a" />
+					<Add directory="$(#wx64)/lib/gcc_dll" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -399,7 +411,8 @@
 			</Target>
 			<Target title="64bit MinGW_Debug">
 				<Option platforms="Windows;" />
-				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
+				<Option output="../bin64/xLights" prefix_auto="1" extension_auto="1" />
+				<Option object_output=".objs_64d" />
 				<Option type="0" />
 				<Option compiler="gnu_gcc_64bit_compiler" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -417,7 +430,7 @@
 					<Add option="-D__WXDEBUG__" />
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add option="-DWX_CPU_AMD64" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
+					<Add directory="$(#wx64)/lib/gcc_dll/mswud" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
 					<Add directory="../xLights" />
@@ -430,25 +443,26 @@
 					<Add directory="../include" />
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="$(#wx)/include" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
+					<Add directory="$(#wx64)/include" />
+					<Add directory="$(#wx64)/lib/gcc_dll/mswud" />
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-m64" />
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../bin/xLights.map" />
+					<Add option="-Wl,-Map=../bin64/xLights.map" />
 					<Add library="libwxmsw31ud.a" />
 					<Add library="libwxmsw31ud_gl.a" />
-					<Add library="../lib/windows/DbgHelp.Lib" />
-					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows64/libdbghelp.a" />
+					<Add library="../lib/windows64/libimagehlp.a" />
 					<Add library="../lib/windows64/avcodec.lib" />
 					<Add library="../lib/windows64/avformat.lib" />
 					<Add library="../lib/windows64/avutil.lib" />
 					<Add library="../lib/windows64/SDL2.lib" />
 					<Add library="../lib/windows64/swresample.lib" />
 					<Add library="../lib/windows64/swscale.lib" />
-					<Add library="../lib/windows64/log4cppD.lib" />
+					<Add library="../lib/windows64/liblog4cppd.a" />
+					<Add directory="$(#wx64)/lib/gcc_dll" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />

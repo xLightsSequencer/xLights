@@ -36,6 +36,91 @@
 #include <windows.h>
 #include <imagehlp.h>
 
+#ifdef _WIN64
+wxString windows_get_stacktrace(void *data)
+{
+    wxString trace;
+    CONTEXT *context = (CONTEXT*)data;
+    SymInitialize(GetCurrentProcess(), 0, true);
+
+    STACKFRAME frame = { 0 };
+
+    wxArrayString mapLines;
+    wxFileName name = wxStandardPaths::Get().GetExecutablePath();
+    name.SetExt("map");
+    wxTextFile mapFile(name.GetFullPath());
+    if (mapFile.Exists()) {
+        mapFile.Open();
+        wxString line = mapFile.GetFirstLine();
+        while (!mapFile.Eof()) {
+            line = mapFile.GetNextLine();
+            line.Trim(true).Trim(false);
+            if (line.StartsWith("0x")) {
+                mapLines.Add(line);
+            }
+        }
+        mapLines.Sort();
+    } else {
+        trace += name.GetFullPath() + " does not exist\n";
+    }
+
+    // setup initial stack frame
+    frame.AddrPC.Offset         = context->Rip;
+    frame.AddrPC.Mode           = AddrModeFlat;
+    frame.AddrStack.Offset      = context->Rsp;
+    frame.AddrStack.Mode        = AddrModeFlat;
+    frame.AddrFrame.Offset      = context->Rbp;
+    frame.AddrFrame.Mode        = AddrModeFlat;
+
+    while (StackWalk64(IMAGE_FILE_MACHINE_AMD64 ,
+                   GetCurrentProcess(),
+                   GetCurrentThread(),
+                   &frame,
+                   context,
+                   0,
+                   SymFunctionTableAccess64,
+                   SymGetModuleBase64,
+                   0 ) )
+    {
+        static char symbolBuffer[ sizeof(IMAGEHLP_SYMBOL) + 255 ];
+        memset( symbolBuffer , 0 , sizeof(IMAGEHLP_SYMBOL) + 255 );
+        IMAGEHLP_SYMBOL * symbol = (IMAGEHLP_SYMBOL*) symbolBuffer;
+
+        // Need to set the first two fields of this symbol before obtaining name info:
+        symbol->SizeOfStruct    = sizeof(IMAGEHLP_SYMBOL) + 255;
+        symbol->MaxNameLength   = 254;
+
+        // The displacement from the beginning of the symbol is stored here: pretty useless
+        unsigned displacement = 0;
+
+        // Get the symbol information from the address of the instruction pointer register:
+        if (SymGetSymFromAddr64(
+                    GetCurrentProcess()     ,   // Process to get symbol information for
+                    frame.AddrPC.Offset     ,   // Address to get symbol for: instruction pointer register
+                    (DWORD64*) & displacement ,   // Displacement from the beginning of the symbol: whats this for ?
+                    symbol                      // Where to save the symbol
+                )) {
+            // Add the name of the function to the function list:
+            char buffer[2048]; sprintf( buffer , "0x%08x %s\n" ,  frame.AddrPC.Offset , symbol->Name );
+            trace += buffer;
+        } else {
+            // Print an unknown location:
+            // functionNames.push_back("unknown location");
+            wxString buffer(wxString::Format("0x%08x" , frame.AddrPC.Offset));
+            for (size_t x = 1; x < mapLines.GetCount(); x++) {
+                if (wxString(buffer) < mapLines[x]) {
+                    buffer += mapLines[x - 1].substr(12).Trim();
+                    x = mapLines.GetCount();
+                }
+            }
+            trace += buffer + "\n";
+        }
+    }
+
+    SymCleanup( GetCurrentProcess() );
+    return trace;
+}
+#else
 wxString windows_get_stacktrace(void *data)
 {
     wxString trace;
@@ -119,6 +204,7 @@ wxString windows_get_stacktrace(void *data)
     SymCleanup( GetCurrentProcess() );
     return trace;
 }
+#endif // _WIN64
 
 #endif
 
@@ -142,7 +228,7 @@ void InitialiseLogging(bool fromMain)
             }
         }
         loggingInitialised = true;
-        
+
 #endif
 #ifdef __LINUX__
         std::string initFileName = "/usr/share/xLights/xlights.linux.properties";
@@ -297,7 +383,7 @@ void handleCrash(void *data) {
     report->SetCompressedFileDirectory(topFrame->CurrentDir);
     report->AddAll(wxDebugReport::Context_Exception);
     report->AddAll(wxDebugReport::Context_Current);
-    
+
     wxFileName fn(topFrame->CurrentDir, OutputManager::GetNetworksFileName());
     if (fn.Exists()) {
         report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
@@ -323,7 +409,7 @@ void handleCrash(void *data) {
 #ifdef __LINUX__
     std::string filename = "/tmp/xLights_l4cpp.log";
 #endif
-    
+
     if (wxFile::Exists(filename))
     {
         report->AddFile(filename, "xLights_l4cpp.log");
@@ -433,7 +519,7 @@ bool xLightsApp::OnInit()
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); 
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
 #if wxUSE_ON_FATAL_EXCEPTION
@@ -532,7 +618,7 @@ bool xLightsApp::OnInit()
         topFrame->_renderMode = true;
         topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, sequenceFiles);
     }
-    
+
     wxImage::AddHandler(new wxPNGHandler);
     #ifdef LINUX
         glutInit(&(wxApp::argc), wxApp::argv);
