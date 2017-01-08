@@ -49,6 +49,7 @@ public:
     bool Frame(wxByte* buffer, size_t size);
     size_t GetPosition() const;
     size_t GetLengthMS() const;
+    size_t GetFrameMS() const;
     void AdjustTime(wxTimeSpan by);
     #pragma endregion Getters and Setters
 

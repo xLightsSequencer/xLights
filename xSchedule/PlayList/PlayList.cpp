@@ -252,12 +252,7 @@ bool PlayList::Frame(wxByte* buffer, size_t size)
         // This returns true if everything is done
         if (_currentStep->Frame(buffer, size))
         {
-            _currentStep->Stop();
-            _currentStep = GetNextStep();
-            if (_currentStep == nullptr)
-            {
-                return true;
-            }
+            return !JumpToNextStep();
         }
     }
 
@@ -331,4 +326,20 @@ void PlayList::Pause()
     {
         _pauseTime = wxDateTime::Now();
     }
+}
+
+bool PlayList::JumpToNextStep()
+{
+    bool success = true;
+
+    if (_currentStep == nullptr) return false;
+
+    _currentStep->Stop();
+    _currentStep = GetNextStep();
+
+    if (_currentStep == nullptr) return false;
+
+    _currentStep->Start();
+
+    return success;
 }

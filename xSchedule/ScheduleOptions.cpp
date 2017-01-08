@@ -8,6 +8,7 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
     _runOnMachineStartup = node->GetAttribute("RunOnMachineStartup", "FALSE") == "TRUE";
+    _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
 
     for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
     {
@@ -34,6 +35,7 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
 
 ScheduleOptions::ScheduleOptions()
 {
+    _port = 80;
     _dirty = false;
     _sync = false;
     _runOnMachineStartup = false;
@@ -60,6 +62,7 @@ wxXmlNode* ScheduleOptions::Save()
     {
         res->AddAttribute("RunOnMachineStartup", "TRUE");
     }
+    res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));
 
     for (auto it = _projectorIPs.begin(); it != _projectorIPs.end(); ++it)
     {
@@ -186,3 +189,19 @@ void ScheduleOptions::SetButtonParameter(const std::string& button, const std::s
     _dirty = true;
 }
 
+std::string ScheduleOptions::GetButtonsJSON() const
+{
+    std::string res;
+    res = "{\"buttons\":{";
+    for (auto it = _buttonCommands.begin(); it != _buttonCommands.end(); ++it)
+    {
+        if (it != _buttonCommands.begin())
+        {
+            res += ",";
+        }
+        res += "\"" + it->first + "\"";
+    }
+    res += "}}";
+
+    return res;
+}

@@ -216,7 +216,8 @@ void ScheduleManager::Frame()
 
         if (done)
         {
-#pragma todo ... this is where I should decide to loop etc
+            // playlist is done
+            StopPlayList(running, false);
         }
     }
     else
@@ -269,7 +270,7 @@ std::string ScheduleManager::GetStatus() const
         return "Idle";
     }
 
-    return "Playing " + curr->GetRunningStep()->GetName() + " Time: " + FormatTime(curr->GetRunningStep()->GetPosition()) + " Left: " + FormatTime(curr->GetRunningStep()->GetLengthMS() - curr->GetRunningStep()->GetPosition());
+    return "Playing " + curr->GetRunningStep()->GetName() + " Time: " + FormatTime(curr->GetRunningStep()->GetPosition()) + " Left: " + FormatTime(curr->GetRunningStep()->GetLengthMS() - curr->GetRunningStep()->GetPosition()) + " FPS: " + wxString::Format(wxT("%i"), curr->GetRunningStep()->GetFrameMS()).ToStdString();
 }
 
 std::list<std::string> ScheduleManager::GetCommands() const
@@ -312,6 +313,7 @@ PlayList* ScheduleManager::GetPlayList(const std::string& playlist) const
 // 127.0.0.1/xScheduleCommand?Command=Restart step in current playlist&Parameters=
 // 127.0.0.1/xScheduleCommand?Command=Prior step in current playlist&Parameters=
 // 127.0.0.1/xScheduleCommand?Command=Play playlist starting at step&Parameters=<step name>
+// 127.0.0.1/xScheduleCommand?Command=PressButton&Parameters=<button label>
 
 void ScheduleManager::Action(const std::string command, const std::string parameters, PlayList* playlist, size_t& rate)
 {
@@ -367,7 +369,7 @@ void ScheduleManager::Action(const std::string command, const std::string parame
 
         if (p != nullptr)
         {
-            //            rate = p->JumpToNextStep();
+            rate = p->JumpToNextStep();
         }
     }
     else if (command == "Restart step in current playlist")
@@ -403,6 +405,16 @@ void ScheduleManager::Action(const std::string command, const std::string parame
             //            PlayPlayList(p, step);
         }
     }
+    else if (command == "PressButton")
+    {
+        std::string c = _scheduleOptions->GetButtonCommand(parameters);
+        std::string p = _scheduleOptions->GetButtonParameter(parameters);
+
+        if (c != "")
+        {
+            Action(c, p, playlist, rate);
+        }
+    }
 }
 
 void ScheduleManager::Action(const std::string label, PlayList* playlist, size_t& rate)
@@ -415,7 +427,9 @@ void ScheduleManager::Action(const std::string label, PlayList* playlist, size_t
 
 void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
 {
-    if (_immediatePlay != nullptr && _immediatePlay->GetName() == playlist->GetName())
+    std::string name = playlist->GetName();
+
+    if (_immediatePlay != nullptr && _immediatePlay->GetName() == name)
     {
         if (atendofcurrentstep)
         {
@@ -431,7 +445,7 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
 
     for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
     {
-        if ((*it)->GetName() == playlist->GetName() && (*it)->IsRunning())
+        if ((*it)->GetName() == name && (*it)->IsRunning())
         {
             if (atendofcurrentstep)
             {
@@ -448,6 +462,7 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
 // 127.0.0.1/xScheduleQuery?Query=GetPlayLists&Parameters=
 // 127.0.0.1/xScheduleQuery?Query=GetPlayListSteps&Parameters=<playlistname>
 // 127.0.0.1/xScheduleQuery?Query=GetPlayingStatus&Parameters=
+// 127.0.0.1/xScheduleQuery?Query=GetButtons&Parameters=
 
 std::string ScheduleManager::Query(const std::string command, const std::string parameters)
 {
@@ -503,6 +518,10 @@ std::string ScheduleManager::Query(const std::string command, const std::string 
                   "\",\"position\":\"" + FormatTime(p->GetRunningStep()->GetPosition()) +
                   "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) + "\"}";
         }
+    }
+    else if (command == "GetButtons")
+    {
+        res = _scheduleOptions->GetButtonsJSON();
     }
 
     return res;

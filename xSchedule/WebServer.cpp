@@ -81,7 +81,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
 #endif
 
-        wxString file = d + request.URI();
+        wxString file = d + wxURI(request.URI()).GetPath();
 
         HttpResponse response(connection, request, HttpStatus::OK);
 
@@ -121,7 +121,7 @@ WebServer::WebServer(int port)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     HttpContext context;
-    context.Port = 80; // port;
+    context.Port = port;
     context.RequestHandler = MyRequestHandler;
     context.MessageHandler = MyMessageHandler;
 

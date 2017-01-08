@@ -13,6 +13,7 @@
 //(*Headers(xScheduleFrame)
 #include <wx/treectrl.h>
 #include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <wx/menu.h>
 #include <wx/splitter.h>
 #include <wx/panel.h>
@@ -62,6 +63,7 @@ public:
         void On_timerTrigger(wxTimerEvent& event);
         void On_timerScheduleTrigger(wxTimerEvent& event);
         void OnMenuItem_OptionsSelected(wxCommandEvent& event);
+        void OnMenuItem_ViewLogSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -77,6 +79,9 @@ public:
         static const long ID_PANEL5;
         static const long ID_SPLITTERWINDOW1;
         static const long ID_PANEL1;
+        static const long ID_STATICTEXT1;
+        static const long ID_STATICTEXT2;
+        static const long ID_PANEL4;
         static const long ID_MNU_SHOWFOLDER;
         static const long ID_MNU_SAVE;
         static const long idMenuQuit;
@@ -99,12 +104,14 @@ public:
         //(*Declarations(xScheduleFrame)
         wxFlexGridSizer* FlexGridSizer4;
         wxPanel* Panel5;
-        wxMenuItem* MenuItem5;
+        wxPanel* Panel4;
         wxMenu* Menu3;
         xLightsTimer _timer;
         wxMenuItem* MenuItem_Save;
         wxPanel* Panel1;
+        wxStaticText* StaticText_Status;
         wxPanel* Panel3;
+        wxStaticText* StaticText_ShowDir;
         wxStatusBar* StatusBar1;
         wxDirDialog* DirDialog1;
         wxMenuItem* MenuItem6;
@@ -114,6 +121,7 @@ public:
         wxPanel* Panel2;
         wxSplitterWindow* SplitterWindow1;
         wxMenuItem* MenuItem_Options;
+        wxMenuItem* MenuItem_ViewLog;
         //*)
 
         DECLARE_EVENT_TABLE()

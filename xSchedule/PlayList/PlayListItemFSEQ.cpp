@@ -51,6 +51,8 @@ void PlayListItemFSEQ::LoadFiles()
     {
         _fseqFile = new FSEQFile();
         _fseqFile->Load(_fseqFileName);
+        _msPerFrame = _fseqFile->GetFrameMS();
+        _durationMS = _fseqFile->GetLengthMS();
     }
     auto af = GetAudioFilename();
     if (wxFile::Exists(af))
@@ -127,8 +129,23 @@ std::string PlayListItemFSEQ::GetName() const
 void PlayListItemFSEQ::SetFSEQFileName(const std::string& fseqFileName)
 {
     _fseqFileName = fseqFileName;
-    _durationMS = AudioManager::GetAudioFileLength(GetAudioFilename());
+    FastSetDuration();
     _dirty = true;
+}
+
+void PlayListItemFSEQ::FastSetDuration()
+{
+    std::string af = GetAudioFile();
+    if (af == "")
+    {
+        FSEQFile fseq(_fseqFileName);
+        _durationMS = fseq.GetLengthMS();
+    }
+    else
+    {
+        _durationMS = AudioManager::GetAudioFileLength(GetAudioFilename());
+    }
+
 }
 
 size_t PlayListItemFSEQ::GetPositionMS() const
@@ -160,7 +177,10 @@ void PlayListItemFSEQ::Start()
 
 void PlayListItemFSEQ::Stop()
 {
-    _audioManager->Stop();
+    if (_audioManager != nullptr)
+    {
+        _audioManager->Stop();
+    }
     CloseFiles();
 }
 

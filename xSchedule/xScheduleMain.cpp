@@ -21,6 +21,10 @@
 //(*InternalHeaders(xScheduleFrame)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include <log4cpp/Category.hh>
+#include <wx/file.h>
+#include <wx/filename.h>
+#include <wx/mimetype.h>
 //*)
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
@@ -58,6 +62,9 @@ const long xScheduleFrame::ID_PANEL3 = wxNewId();
 const long xScheduleFrame::ID_PANEL5 = wxNewId();
 const long xScheduleFrame::ID_SPLITTERWINDOW1 = wxNewId();
 const long xScheduleFrame::ID_PANEL1 = wxNewId();
+const long xScheduleFrame::ID_STATICTEXT1 = wxNewId();
+const long xScheduleFrame::ID_STATICTEXT2 = wxNewId();
+const long xScheduleFrame::ID_PANEL4 = wxNewId();
 const long xScheduleFrame::ID_MNU_SHOWFOLDER = wxNewId();
 const long xScheduleFrame::ID_MNU_SAVE = wxNewId();
 const long xScheduleFrame::idMenuQuit = wxNewId();
@@ -97,6 +104,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer2;
     wxMenu* Menu1;
     wxMenuBar* MenuBar1;
+    wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer1;
     wxMenu* Menu2;
 
@@ -139,6 +147,17 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer4->Fit(Panel1);
     FlexGridSizer4->SetSizeHints(Panel1);
     FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND, 5);
+    Panel4 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+    FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer6->AddGrowableCol(1);
+    StaticText_ShowDir = new wxStaticText(Panel4, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    FlexGridSizer6->Add(StaticText_ShowDir, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText_Status = new wxStaticText(Panel4, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    FlexGridSizer6->Add(StaticText_Status, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Panel4->SetSizer(FlexGridSizer6);
+    FlexGridSizer6->Fit(Panel4);
+    FlexGridSizer6->SetSizeHints(Panel4);
+    FlexGridSizer1->Add(Panel4, 1, wxALL|wxEXPAND, 5);
     SetSizer(FlexGridSizer1);
     MenuBar1 = new wxMenuBar();
     Menu1 = new wxMenu();
@@ -150,8 +169,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     Menu1->Append(MenuItem1);
     MenuBar1->Append(Menu1, _("&File"));
     Menu3 = new wxMenu();
-    MenuItem5 = new wxMenuItem(Menu3, ID_MNU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
-    Menu3->Append(MenuItem5);
+    MenuItem_ViewLog = new wxMenuItem(Menu3, ID_MNU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
+    Menu3->Append(MenuItem_ViewLog);
     MenuItem6 = new wxMenuItem(Menu3, ID_MNU_CHECK_SCHEDULE, _("&Check Schedule"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem6);
     MenuItem_Options = new wxMenuItem(Menu3, ID_MNU_OPTIONS, _("&Options"), wxEmptyString, wxITEM_NORMAL);
@@ -183,6 +202,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MNU_SHOWFOLDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ShowFolderSelected);
     Connect(ID_MNU_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_SaveSelected);
     Connect(idMenuQuit,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnQuit);
+    Connect(ID_MNU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OptionsSelected);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerTrigger);
@@ -195,9 +215,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
 
     LoadShowDir();
 
+    StaticText_ShowDir->SetLabel(_showDir);
+
     __schedule = new ScheduleManager(_showDir);
 
-    _webServer = new WebServer(80);
+    _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort());
 
     UpdateTree();
 
@@ -515,7 +537,11 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
     __schedule->Frame();
-    //StaticText_Status->SetLabel(__schedule->GetStatus());
+    std::string status = __schedule->GetStatus();
+    if (status != StaticText_Status->GetLabel())
+    {
+        StaticText_Status->SetLabel(status);
+    }
     ValidateWindow();
 }
 
@@ -540,8 +566,17 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
 {
     OptionsDialog dlg(this, __schedule->GetOptions());
 
+    int oldport = __schedule->GetOptions()->GetWebServerPort();
+
     if (dlg.ShowModal() == wxID_OK)
     {
+        if (oldport != __schedule->GetOptions()->GetWebServerPort())
+        {
+#pragma todo not sure this is working ... I think it causes a crash
+            delete _webServer;
+            _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort());
+        }
+
         __schedule->OptionsChanged();
         CreateButtons();
     }
@@ -583,7 +618,7 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
     PlayList* playlist = nullptr;
 
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
-    
+
     if (IsPlayList(treeitem))
     {
         playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
@@ -601,3 +636,53 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
+
+void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxString dir;
+    wxString fileName = "xSchedule_l4cpp.log";
+#ifdef __WXMSW__
+    wxGetEnv("APPDATA", &dir);
+    wxString filename = dir + "/" + fileName;
+#endif
+#ifdef __WXOSX_MAC__
+    wxFileName home;
+    home.AssignHomeDir();
+    dir = home.GetFullPath();
+    wxString filename = dir + "/Library/Logs/" + fileName;
+#endif
+#ifdef __LINUX__
+    wxString filename = "/tmp/" + fileName;
+#endif
+    wxString fn = "";
+    if (wxFile::Exists(filename))
+    {
+        fn = filename;
+    }
+    else if (wxFile::Exists(wxFileName(_showDir, fileName).GetFullPath()))
+    {
+        fn = wxFileName(_showDir, fileName).GetFullPath();
+    }
+    else if (wxFile::Exists(wxFileName(wxGetCwd(), fileName).GetFullPath()))
+    {
+        fn = wxFileName(wxGetCwd(), fileName).GetFullPath();
+    }
+
+    wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+    if (fn != "" && ft)
+    {
+        wxString command = ft->GetOpenCommand("foo.txt");
+        command.Replace("foo.txt", fn);
+
+        logger_base.debug("Viewing log file %s.", (const char *)fn.c_str());
+
+        wxExecute(command);
+        delete ft;
+    }
+    else
+    {
+        logger_base.warn("Unable to view log file %s.", (const char *)fn.c_str());
+        wxMessageBox(_("Unable to show log file."), _("Error"));
+    }
+}

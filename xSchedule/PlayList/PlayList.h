@@ -67,6 +67,7 @@ public:
     void StopAtEndOfCurrentStep() { _stopAtEndOfCurrentStep = true; }
     void Pause();
     bool IsPaused() const;
+    bool JumpToNextStep();
     #pragma endregion Getters and Setters
 
     wxXmlNode* Save();

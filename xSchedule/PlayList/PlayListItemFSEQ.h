@@ -26,6 +26,7 @@ protected:
     void LoadFiles();
     void CloseFiles();
     std::string GetAudioFilename() const;
+    void FastSetDuration();
 
 public:
 

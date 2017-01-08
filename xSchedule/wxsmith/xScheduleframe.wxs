@@ -72,6 +72,33 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxPanel" name="ID_PANEL4" variable="Panel4" member="yes">
+					<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+						<cols>2</cols>
+						<growablecols>1</growablecols>
+						<object class="sizeritem">
+							<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText_ShowDir" member="yes">
+								<label></label>
+							</object>
+							<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText_Status" member="yes">
+								<label></label>
+							</object>
+							<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 		</object>
 		<object class="wxMenuBar" variable="MenuBar1" member="no">
 			<object class="wxMenu" variable="Menu1" member="no">
@@ -93,8 +120,9 @@
 			</object>
 			<object class="wxMenu" variable="Menu3" member="yes">
 				<label>&amp;Tools</label>
-				<object class="wxMenuItem" name="ID_MNU_VIEW_LOG" variable="MenuItem5" member="yes">
+				<object class="wxMenuItem" name="ID_MNU_VIEW_LOG" variable="MenuItem_ViewLog" member="yes">
 					<label>&amp;View Log</label>
+					<handler function="OnMenuItem_ViewLogSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_CHECK_SCHEDULE" variable="MenuItem6" member="yes">
 					<label>&amp;Check Schedule</label>

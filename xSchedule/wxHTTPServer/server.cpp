@@ -13,6 +13,7 @@
 // Amazon Gift Cards - E-mail Delivery https://www.amazon.it/gp/product/B005VG4G3U/gcrnsts
 
 #include "wxhttpserver.h"
+#include <log4cpp/Category.hh>
 
 #define SERVER_ID	100
 #define SOCKET_ID	101
@@ -37,7 +38,8 @@ HttpServer::~HttpServer()
 
 bool HttpServer::Start(const HttpContext &context)
 {
-	wxASSERT(!_server || (_server && _server->IsClosed()));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxASSERT(!_server || (_server && _server->IsClosed()));
 
 	if (_server && _server->IsConnected())
 		Stop();
@@ -48,20 +50,30 @@ bool HttpServer::Start(const HttpContext &context)
 	_address.Service(_context.Port);
 
 	wxLogMessage(_("starting server on %s:%u..."), _address.IPAddress(), _address.Service());
+    logger_base.info(_("starting server on %s:%u..."), (const char *)_address.IPAddress().c_str(), _address.Service());
 
 	// Create the socket
 	_server = new wxSocketServer(_address);
 
 	// We use IsOk() here to see if the server is really listening
-	if (!_server->IsOk())
-		wxLogError(_("unable to start the server on the specified port"));
+    if (!_server->IsOk())
+    {
+        wxLogError(_("unable to start the server on the specified port"));
+        logger_base.error(_("unable to start the server on the specified port"));
+    }
 	else
 	{
 		IPaddress address;
-		if (!_server->GetLocal(address))
-			wxLogError(_("unable to retrieve the address to which you are connected"));
-		else
-			wxLogMessage(_("server running on %s:%u"), address.IPAddress(), address.Service());
+        if (!_server->GetLocal(address))
+        {
+            wxLogError(_("unable to retrieve the address to which you are connected"));
+            logger_base.error(_("unable to retrieve the address to which you are connected"));
+        }
+        else
+        {
+            wxLogMessage(_("server running on %s:%u"), address.IPAddress(), address.Service());
+            logger_base.info(_("server running on %s:%u"), (const char *)address.IPAddress().c_str(), address.Service());
+        }
 
 		// Setup the event handler and subscribe to connection events
 		_server->SetEventHandler(*this, SERVER_ID);

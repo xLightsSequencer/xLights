@@ -12,6 +12,7 @@ class ScheduleOptions
     bool _dirty;
     bool _sendOffWhenNotRunning;
     bool _runOnMachineStartup;
+    int _port;
     std::map<std::string, std::string> _projectorIPs;
     std::map<std::string, std::string> _projectorPasswords;
     std::map<std::string, std::string> _buttonCommands;
@@ -43,6 +44,9 @@ class ScheduleOptions
         void SetButtonParameter(const std::string& button, const std::string& parameter);
         std::string GetButtonCommand(const std::string& button);
         std::string GetButtonParameter(const std::string& button);
+        std::string GetButtonsJSON() const;
+        int GetWebServerPort() const { return _port; }
+        void SetWebServerPort(int port) { _port = port; _dirty = true; }
 };
 
 #endif

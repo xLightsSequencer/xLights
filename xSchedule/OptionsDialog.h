@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/checkbox.h>
+#include <wx/spinctrl.h>
 #include <wx/grid.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -26,6 +27,7 @@ class OptionsDialog: public wxDialog
 		virtual ~OptionsDialog();
 
 		//(*Declarations(OptionsDialog)
+		wxSpinCtrl* SpinCtrl_WebServerPort;
 		wxButton* Button_ButtonDelete;
 		wxButton* Button_Ok;
 		wxStaticText* StaticText2;
@@ -34,6 +36,7 @@ class OptionsDialog: public wxDialog
 		wxButton* Button_DeleteProjector;
 		wxCheckBox* CheckBox_Sync;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText3;
 		wxGrid* Grid_Projectors;
 		wxButton* Button_Cancel;
 		wxButton* Button_ProjectorEdit;
@@ -49,6 +52,8 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX3;
 		static const long ID_CHECKBOX2;
+		static const long ID_STATICTEXT3;
+		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT1;
 		static const long ID_GRID1;
 		static const long ID_BUTTON4;

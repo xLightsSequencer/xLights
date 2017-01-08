@@ -4,6 +4,9 @@
 PlayListItem::PlayListItem(wxXmlNode* node)
 {
     _dirty = false;
+    _frames = 0;
+    _msPerFrame = 50;
+    _delay = 0;
     PlayListItem::Load(node);
 }
 

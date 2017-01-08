@@ -13,6 +13,8 @@
 const long OptionsDialog::ID_CHECKBOX1 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX3 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX2 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT3 = wxNewId();
+const long OptionsDialog::ID_SPINCTRL1 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT1 = wxNewId();
 const long OptionsDialog::ID_GRID1 = wxNewId();
 const long OptionsDialog::ID_BUTTON4 = wxNewId();
@@ -41,6 +43,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
 
@@ -59,6 +62,13 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	CheckBox_Sync = new wxCheckBox(this, ID_CHECKBOX2, _("Use ArtNet/E1.31 Synchronisation Protocols"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_Sync->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_Sync, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
+	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Web Server Port:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer7->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_WebServerPort = new wxSpinCtrl(this, ID_SPINCTRL1, _T("80"), wxDefaultPosition, wxDefaultSize, 0, 1, 64000, 80, _T("ID_SPINCTRL1"));
+	SpinCtrl_WebServerPort->SetValue(_T("80"));
+	FlexGridSizer7->Add(SpinCtrl_WebServerPort, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer3->AddGrowableCol(1);
 	FlexGridSizer3->AddGrowableRow(0);
@@ -144,6 +154,8 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
     CheckBox_SendOffWhenNotRunning->SetValue(options->IsSendOffWhenNotRunning());
     CheckBox_Sync->SetValue(options->IsSync());
 
+    SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
+
     LoadProjectors();
 
     LoadButtons();
@@ -193,6 +205,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetSync(CheckBox_Sync->GetValue());
     _options->SetSendOffWhenNotRunning(CheckBox_SendOffWhenNotRunning->GetValue());
     _options->SetRunOnMachineStartup(CheckBox_RunOnMachineStartup->GetValue());
+    _options->SetWebServerPort(SpinCtrl_WebServerPort->GetValue());
 
     _options->ClearProjectors();
     for (int i = 0; i < Grid_Projectors->GetNumberRows(); i++)

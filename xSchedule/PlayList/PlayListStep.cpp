@@ -215,6 +215,13 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size)
     }
 }
 
+size_t PlayListStep::GetFrameMS() const
+{
+    int ms = 0;
+    PlayListItem* timesource = GetTimeSource(ms);
+
+    return ms;
+}
 void PlayListStep::Start()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
