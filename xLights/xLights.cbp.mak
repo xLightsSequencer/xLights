@@ -1856,7 +1856,7 @@ XlightsDrawable.h: Image.h
 
 sequencer/MainSequencer.cpp: xLightsMain.h sequencer/MainSequencer.h RenderCommandEvent.h sequencer/TimeLine.h SequenceCheck.h
 
-xLightsMain.h: EffectTreeDialog.h PlayerFrame.h EffectsPanel.h AddShowDialog.h PixelBuffer.h ModelPreview.h EffectAssist.h SequenceData.h UtilClasses.h PhonemeDictionary.h sequencer/EffectsGrid.h sequencer/MainSequencer.h sequencer/Waveform.h TopEffectsPanel.h TimingPanel.h ColorPanel.h PerspectivesPanel.h EffectIconPanel.h DisplayElementsPanel.h effects/EffectManager.h models/ModelManager.h LayoutGroup.h xLightsTimer.h JobPool.h
+xLightsMain.h: EffectTreeDialog.h PlayerFrame.h EffectsPanel.h AddShowDialog.h PixelBuffer.h ModelPreview.h EffectAssist.h SequenceData.h UtilClasses.h PhonemeDictionary.h sequencer/EffectsGrid.h sequencer/MainSequencer.h sequencer/Waveform.h TopEffectsPanel.h TimingPanel.h ColorPanel.h PerspectivesPanel.h EffectIconPanel.h DisplayElementsPanel.h effects/EffectManager.h models/ModelManager.h LayoutGroup.h xLightsTimer.h JobPool.h xLightsVersion.h
 
 EffectsPanel.h: AudioManager.h
 
