@@ -6,6 +6,7 @@
 
 PlayListItemImage::PlayListItemImage(wxXmlNode* node) : PlayListItem(node)
 {
+    _done = false;
     _window = nullptr;
     _ImageFile = "";
     _origin.x = 0;
@@ -34,6 +35,7 @@ void PlayListItemImage::Load(wxXmlNode* node)
 
 PlayListItemImage::PlayListItemImage() : PlayListItem()
 {
+    _done = false;
     _window = nullptr;
     _ImageFile = "";
     _origin.x = 0;
@@ -74,7 +76,7 @@ void PlayListItemImage::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemImagePanel(notebook, this), "Image", true);
 }
 
-std::string PlayListItemImage::GetName() const
+std::string PlayListItemImage::GetNameNoTime() const
 {
     wxFileName fn(_ImageFile);
     if (fn.GetName() == "")
@@ -91,12 +93,15 @@ void PlayListItemImage::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
 {
     if (ms > _delay)
     {
-        #pragma todo ... display the image
+        _window->SetImage(_image);
+        _done = true;
     }
 }
 
 void PlayListItemImage::Start()
 {
+    _done = false;
+
     // reload the image file
     _image.LoadFile(_ImageFile);
 
@@ -110,8 +115,6 @@ void PlayListItemImage::Start()
         _window->Move(_origin);
         _window->SetSize(_size);
     }
-
-    _window->SetImage(_image);
 }
 
 void PlayListItemImage::Stop()

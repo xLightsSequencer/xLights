@@ -8,6 +8,7 @@
 #include <wx/checkbox.h>
 #include <wx/filepicker.h>
 #include <wx/spinctrl.h>
+#include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/choice.h>
 //*)
@@ -25,6 +26,7 @@ class PlayListItemFSEQPanel: public wxPanel
 		virtual ~PlayListItemFSEQPanel();
 
 		//(*Declarations(PlayListItemFSEQPanel)
+		wxSlider* Slider1;
 		wxChoice* Choice_BlendMode;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText1;
@@ -36,6 +38,7 @@ class PlayListItemFSEQPanel: public wxPanel
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText4;
 		wxFilePickerCtrl* FilePickerCtrl_AudioFile;
+		wxCheckBox* CheckBox_OverrideVolume;
 		//*)
 
 	protected:
@@ -48,6 +51,8 @@ class PlayListItemFSEQPanel: public wxPanel
 		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT2;
 		static const long ID_FILEPICKERCTRL2;
+		static const long ID_CHECKBOX2;
+		static const long ID_SLIDER1;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT3;
@@ -61,6 +66,7 @@ class PlayListItemFSEQPanel: public wxPanel
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		void OnFilePickerCtrl2FileChanged(wxFileDirPickerEvent& event);
 		void OnCheckBox_OverrideAudioClick(wxCommandEvent& event);
+		void OnCheckBox_OverrideVolumeClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -246,6 +246,7 @@ public:
 	inline const wxString &Version() const { return _version; }
 	// http headers
 	inline const HttpHeaders &Headers() const { return _headers; }
+    inline const wxString &Data() const { return _data; }
 
 	// server host name for requested URI
 	inline wxString Host() const { return _headers["Host"]; }
@@ -260,6 +261,7 @@ protected:
 	wxString        _method;
 	wxString        _uri;
 	wxString        _version;
+    wxString        _data;
 	HttpHeaders     _headers;
 };
 

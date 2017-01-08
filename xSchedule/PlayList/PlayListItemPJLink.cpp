@@ -64,7 +64,7 @@ void PlayListItemPJLink::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemPJLinkPanel(notebook, this), "PJLink", true);
 }
 
-std::string PlayListItemPJLink::GetName() const
+std::string PlayListItemPJLink::GetNameNoTime() const
 {
     if (_command == "")
     {
@@ -239,6 +239,8 @@ bool PlayListItemPJLink::SendCommand(const std::string& command)
         wxString response(buffer);
         logger_base.info("PJLink response %s.", (const char*)response.c_str());
     }
+
+    return true;
 }
 
 void PlayListItemPJLink::Logout()

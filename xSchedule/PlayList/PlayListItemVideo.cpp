@@ -82,7 +82,7 @@ void PlayListItemVideo::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemVideoPanel(notebook, this), "Video", true);
 }
 
-std::string PlayListItemVideo::GetName() const
+std::string PlayListItemVideo::GetNameNoTime() const
 {
     wxFileName fn(_videoFile);
     if (fn.GetName() == "")
@@ -143,8 +143,6 @@ void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
 {
     AVFrame* img = _videoReader->GetNextFrame(ms);
     _window->SetImage(CreateImageFromFrame(img));
-
-    #pragma todo ... now I need to draw it
 }
 
 void PlayListItemVideo::Start()

@@ -38,7 +38,7 @@ class ScheduleManager
         bool IsRunning() const { return GetRunningPlayList() != nullptr; }
         void Frame(); // called when a frame needs to be displayed ... returns desired frame rate
         int CheckSchedule();
-        int PlayPlayList(PlayList* playlist);
+        int PlayPlayList(PlayList* playlist, bool loop = false, const std::string& step = "", bool forcelast = false);
         bool IsSomethingPlaying() const { return GetRunningPlayList() != nullptr; }
         void OptionsChanged() {};
         void Action(const std::string label, PlayList* playlist, size_t& rate);
@@ -46,6 +46,8 @@ class ScheduleManager
         std::string Query(const std::string command, const std::string parameters);
         PlayList * GetPlayList(const std::string& playlist) const;
         void StopPlayList(PlayList* playlist, bool atendofcurrentstep);
+        void StoreData(std::string key, std::string data) const;
+        std::string RetrieveData(std::string key) const;
 };
 
 #endif

@@ -18,6 +18,7 @@ protected:
 	wxSize _size;
     wxImage _image;
     PlayerWindow* _window;
+    bool _done;
     #pragma endregion Member Variables
 
 public:
@@ -30,7 +31,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
-    virtual std::string GetName() const override;
+    virtual std::string GetNameNoTime() const override;
     void SetLocation(wxPoint pt, wxSize size) { _origin = pt; _size = size; }
     void SetImageFile(const std::string& ImageFile) { _ImageFile = ImageFile; }
     std::string GetImageFile() const { return _ImageFile; }

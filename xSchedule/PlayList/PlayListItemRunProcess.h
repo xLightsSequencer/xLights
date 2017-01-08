@@ -27,7 +27,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
-    std::string GetName() const override;
+    std::string GetNameNoTime() const override;
     std::string GetRawName() const { return _name; }
     void SetCommand(const std::string& command) { _command = command; }
     std::string GetCommand() const { return _command; }

@@ -8,7 +8,7 @@ class wxXmlNode;
 class wxWindow;
 class VideoReader;
 class PlayerWindow;
-class AVFrame;
+struct AVFrame;
 
 class PlayListItemVideo : public PlayListItem
 {
@@ -38,7 +38,7 @@ public:
 
     #pragma region Getters and Setters
     virtual size_t GetDurationMS() const override;
-    virtual std::string GetName() const override;
+    virtual std::string GetNameNoTime() const override;
     void SetLocation(wxPoint pt, wxSize size) { _origin = pt; _size = size; _dirty = true; }
     void SetVideoFile(const std::string& videoFile);
     std::string GetVideoFile() const { return _videoFile; }

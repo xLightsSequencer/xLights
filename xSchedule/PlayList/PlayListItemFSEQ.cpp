@@ -23,7 +23,7 @@ void PlayListItemFSEQ::Load(wxXmlNode* node)
     _audioFile = node->GetAttribute("AudioFile", "");
     _overrideAudio = (_audioFile != "");
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
-    _durationMS = AudioManager::GetAudioFileLength(GetAudioFilename());
+    FastSetDuration();
 }
 
 std::string PlayListItemFSEQ::GetAudioFilename() const
@@ -108,7 +108,7 @@ void PlayListItemFSEQ::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemFSEQPanel(notebook, this), "FSEQ", true);
 }
 
-std::string PlayListItemFSEQ::GetName() const
+std::string PlayListItemFSEQ::GetNameNoTime() const
 {
     wxFileName fn(_fseqFileName);
     if (fn.GetName() == "")
@@ -117,12 +117,7 @@ std::string PlayListItemFSEQ::GetName() const
     }
     else
     {
-        std::string duration = "";
-        if (_durationMS != 0)
-        {
-            duration = "[" + wxString::Format(wxT("%.3f"), (float)_durationMS / 1000.0).ToStdString() + "]";
-        }
-        return fn.GetName().ToStdString() + duration;
+        return fn.GetName().ToStdString();
     }
 }
 
@@ -161,6 +156,15 @@ size_t PlayListItemFSEQ::GetPositionMS() const
 void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems)
 {
     _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod);
+}
+
+void PlayListItemFSEQ::Restart()
+{
+    if (ControlsTiming())
+    {
+        _audioManager->Stop();
+        _audioManager->Play(0, _audioManager->LengthMS());
+    }
 }
 
 void PlayListItemFSEQ::Start()

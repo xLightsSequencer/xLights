@@ -25,6 +25,16 @@ PlayListItemESEQ::PlayListItemESEQ() : PlayListItem()
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
 }
 
+size_t PlayListItemESEQ::GetDurationMS(size_t frameMS) const
+{
+    if (_ESEQFile != nullptr)
+    {
+        return _ESEQFile->GetLengthFrames() * frameMS;
+    }
+
+    return 0;
+}
+
 PlayListItem* PlayListItemESEQ::Copy() const
 {
     PlayListItemESEQ* res = new PlayListItemESEQ();
@@ -52,7 +62,7 @@ void PlayListItemESEQ::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemESEQPanel(notebook, this), "ESEQ", true);
 }
 
-std::string PlayListItemESEQ::GetName() const
+std::string PlayListItemESEQ::GetNameNoTime() const
 {
     wxFileName fn(_ESEQFileName);
     if (fn.GetName() == "")
@@ -92,12 +102,11 @@ void PlayListItemESEQ::LoadFiles()
 {
     CloseFiles();
 
-if (wxFile::Exists(_ESEQFileName))
-{
-    _ESEQFile = new ESEQFile();
-    _ESEQFile->Load(_ESEQFileName);
-}
-
+    if (wxFile::Exists(_ESEQFileName))
+    {
+        _ESEQFile = new ESEQFile();
+        _ESEQFile->Load(_ESEQFileName);
+    }
 }
 
 void PlayListItemESEQ::CloseFiles()

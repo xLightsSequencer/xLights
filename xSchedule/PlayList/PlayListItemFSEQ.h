@@ -41,7 +41,7 @@ public:
     int GetBlendMode() const { return _applyMethod; }
     void SetBlendMode(int blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _dirty = true; }
     virtual size_t GetDurationMS() const override { return _delay + _durationMS; }
-    virtual std::string GetName() const override;
+    virtual std::string GetNameNoTime() const override;
     std::string GetFSEQFileName() const { return _fseqFileName; }
     std::string GetAudioFile() const { return _audioFile; }
     bool GetOverrideAudio() const { return _overrideAudio; }
@@ -61,6 +61,7 @@ public:
     virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems) override;
     virtual void Start() override;
     virtual void Stop() override;
+    virtual void Restart() override;
     #pragma endregion Playing
 
 #pragma region UI

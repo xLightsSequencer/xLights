@@ -39,10 +39,12 @@ public:
     bool GetExcludeFromRandom() const { return _excludeFromRandom; }
     void SetExcludeFromRandom(bool efr) { _excludeFromRandom = efr; _dirty = true; }
     std::string GetName() const;
+    std::string GetNameNoTime() const;
     std::string GetRawName() const { return _name; }
     void SetName(const std::string& name) { _name = name; _dirty = true; }
     void Start();
     void Stop();
+    void Restart();
     int GetPlayStepSize() const { return _items.size(); }
     void AddItem(PlayListItem* item) { _items.push_back(item); _items.sort(); _dirty = true; }
     void RemoveItem(PlayListItem* item);

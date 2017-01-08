@@ -119,6 +119,7 @@ public:
         wxTreeCtrl* TreeCtrl_PlayListsSchedules;
         wxMenuItem* MenuItem_ShowFolder;
         wxPanel* Panel2;
+        wxFlexGridSizer* FlexGridSizer1;
         wxSplitterWindow* SplitterWindow1;
         wxMenuItem* MenuItem_Options;
         wxMenuItem* MenuItem_ViewLog;

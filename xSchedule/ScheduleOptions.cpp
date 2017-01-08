@@ -192,16 +192,23 @@ void ScheduleOptions::SetButtonParameter(const std::string& button, const std::s
 std::string ScheduleOptions::GetButtonsJSON() const
 {
     std::string res;
-    res = "{\"buttons\":{";
+    bool first = true;
+    res = "{\"buttons\":[";
     for (auto it = _buttonCommands.begin(); it != _buttonCommands.end(); ++it)
     {
-        if (it != _buttonCommands.begin())
+        wxString c(it->second);
+
+        if (!c.Contains("selected") && !c.Contains("Selected"))
         {
-            res += ",";
+            if (!first)
+            {
+                res += ",";
+            }
+            first = false;
+            res += "\"" + it->first + "\"";
         }
-        res += "\"" + it->first + "\"";
     }
-    res += "}}";
+    res += "]}";
 
     return res;
 }

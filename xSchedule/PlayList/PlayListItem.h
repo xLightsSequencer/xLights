@@ -18,6 +18,7 @@ protected:
     int _msPerFrame;
     long _delay;
     size_t _priority;
+    int _volume;
     #pragma endregion Member Variables
 
     void Save(wxXmlNode* node);
@@ -38,13 +39,17 @@ public:
 
     #pragma region Getters and Setters
     virtual size_t GetDurationMS() const { return 0; }
+    virtual size_t GetDurationMS(size_t frameMS) const { return GetDurationMS(); }
     bool IsDirty() const { return _dirty; }
     void ClearDirty() { _dirty = false; }
-    virtual std::string GetName() const;
+    std::string GetName() const;
+    virtual std::string GetNameNoTime() const;
     void SetName(const std::string& name) { _name = name; _dirty = true; }
     virtual long GetLength() { return _frames; }
     long GetDelay() const { return _delay; }
-    void SetDelay(long delay) { _delay = delay; }
+    void SetDelay(long delay) { _delay = delay; _dirty = true; }
+    int GetVolume() const { return _volume; }
+    void SetVolume(int volume) { _volume = volume; _dirty = true; }
     virtual bool ControlsTiming() const { return false; }
     virtual size_t GetPositionMS() const { return 0; }
     virtual size_t GetFrameMS() const { return 0; }
@@ -60,6 +65,7 @@ public:
     #pragma region Playing
     virtual void Start() {}
     virtual void Stop() {}
+    virtual void Restart() {}
     #pragma endregion Playing
 
     #pragma region UI

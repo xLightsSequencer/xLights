@@ -54,10 +54,45 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         wxPostEvent(wxGetApp().GetTopWindow(), event);
 
         HttpResponse response(connection, request, HttpStatus::OK);
-        response.MakeFromText("{“result”:”ok”}", "application/json");
+        response.MakeFromText("{\"result\":\"ok\"}", "application/json");
         connection.SendResponse(response);
     }
-    if (request.URI().StartsWith("/xScheduleQuery"))
+    else if (request.URI().StartsWith("/xScheduleStash"))
+    {
+        wxURI url(request.URI());
+
+        std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
+
+        std::string command = parms["Command"];
+        std::string key = parms["Key"];
+
+        if (command == "Store")
+        {
+            std::string data = request.Data().ToStdString();
+
+            // now store it in a file
+            xScheduleFrame::GetScheduleManager()->StoreData(key, data);
+
+            HttpResponse response(connection, request, HttpStatus::OK);
+            response.MakeFromText("{\"result\":\"ok\"}", "application/json");
+            connection.SendResponse(response);
+        }
+        else if (command == "Retrieve")
+        {
+            std::string data = xScheduleFrame::GetScheduleManager()->RetrieveData(key);
+
+            HttpResponse response(connection, request, HttpStatus::OK);
+            response.MakeFromText(data, "text/plain");
+            connection.SendResponse(response);
+        }
+        else
+        {
+            HttpResponse response(connection, request, HttpStatus::OK);
+            response.MakeFromText("{\"result\":\"unknown command.\"}", "application/json");
+            connection.SendResponse(response);
+        }
+    }
+    else if (request.URI().StartsWith("/xScheduleQuery"))
     {
         wxURI url(request.URI());
 

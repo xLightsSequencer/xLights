@@ -150,10 +150,19 @@ std::string PlayListStep::GetName() const
     return _items.front()->GetName();
 }
 
+std::string PlayListStep::GetNameNoTime() const
+{
+    if (_name != "") return _name;
+
+    if (_items.size() == 0) return "<unnamed>";
+
+    return _items.front()->GetNameNoTime();
+}
+
 PlayListItem* PlayListStep::GetTimeSource(int &ms) const
 {
     PlayListItem* timesource = nullptr;
-    ms = 1000;
+    ms = 9999;
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
         if ((*it)->ControlsTiming())
@@ -174,12 +183,17 @@ PlayListItem* PlayListStep::GetTimeSource(int &ms) const
         }
         else if (timesource == nullptr)
         {
-            if ((*it)->GetFrameMS() < ms)
+            if ((*it)->GetFrameMS() != 0 && (*it)->GetFrameMS() < ms)
             {
                 ms = (*it)->GetFrameMS();
             }
         }
            
+    }
+
+    if (ms == 9999)
+    {
+        ms = 50;
     }
 
     return timesource;
@@ -189,6 +203,11 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size)
 {
     int msPerFrame = 1000;
     PlayListItem* timesource = GetTimeSource(msPerFrame);
+
+    if (msPerFrame == 0)
+    {
+        msPerFrame = 50;
+    }
 
     size_t frameMS;
     if (timesource != nullptr)
@@ -231,6 +250,18 @@ void PlayListStep::Start()
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
         (*it)->Start();
+    }
+}
+
+void PlayListStep::Restart()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Playlist step %s restarting.", (const char*)GetName().c_str());
+
+    _startTime = wxGetUTCTimeMillis();
+    for (auto it = _items.begin(); it != _items.end(); ++it)
+    {
+        (*it)->Restart();
     }
 }
 
@@ -277,6 +308,14 @@ size_t PlayListStep::GetLengthMS() const
         for (auto it = _items.begin(); it != _items.end(); ++it)
         {
             len = std::max(len, (*it)->GetDurationMS());
+        }
+
+        if (len == 0)
+        {
+            for (auto it = _items.begin(); it != _items.end(); ++it)
+            {
+                len = std::max(len, (*it)->GetDurationMS(msPerFrame));
+            }
         }
 
         return len;

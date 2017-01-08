@@ -56,7 +56,7 @@ void PlayListItemRunProcess::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemRunProcessPanel(notebook, this), "Run Process", true);
 }
 
-std::string PlayListItemRunProcess::GetName() const
+std::string PlayListItemRunProcess::GetNameNoTime() const
 {
     if (_name != "") return _name;
 

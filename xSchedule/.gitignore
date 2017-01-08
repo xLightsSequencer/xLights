@@ -1,3 +1,4 @@
 *.layout
 *.VC.db
 *.depend
+*.cpp.save-failed

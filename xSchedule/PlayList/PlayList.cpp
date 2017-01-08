@@ -8,6 +8,12 @@
 
 PlayList::PlayList(wxXmlNode* node)
 {
+    _jumpToEndStepsAtEndOfCurrentStep = false;
+    _priority = 0;
+    _lastLoop = false;
+    _looping = false;
+    _random = false;
+    _loopStep = false;
     _pauseTime.Set((time_t)0);
     _stopAtEndOfCurrentStep = false;
     _dirty = false;
@@ -17,6 +23,11 @@ PlayList::PlayList(wxXmlNode* node)
 
 PlayList::PlayList(const PlayList& playlist)
 {
+    _jumpToEndStepsAtEndOfCurrentStep = false;
+    _loopStep = false;
+    _lastLoop = false;
+    _random = false;
+    _looping = false;
     _dirty = false;
     _currentStep = nullptr;
     _stopAtEndOfCurrentStep = false;
@@ -24,6 +35,7 @@ PlayList::PlayList(const PlayList& playlist)
     _firstOnlyOnce = playlist._firstOnlyOnce;
     _lastOnlyOnce = playlist._lastOnlyOnce;
     _name = playlist._name;
+    _priority = playlist._priority;
     for (auto it = playlist._steps.begin(); it != playlist._steps.end(); ++it)
     {
         _steps.push_back(new PlayListStep(**it));
@@ -33,6 +45,12 @@ PlayList::PlayList(const PlayList& playlist)
 
 PlayList::PlayList()
 {
+    _jumpToEndStepsAtEndOfCurrentStep = false;
+    _priority = 0;
+    _loopStep = false;
+    _lastLoop = false;
+    _random = false;
+    _looping = false;
     _pauseTime.Set((time_t)0);
     _dirty = false;
     _currentStep = nullptr;
@@ -264,16 +282,30 @@ bool PlayList::IsRunning() const
     return _currentStep != nullptr;
 }
 
-void PlayList::Start()
+void PlayList::Start(bool loop, bool random)
 {
     if (IsRunning()) return;
     if (_steps.size() == 0) return;
 
+    _looping = loop;
+    _random = random;
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Playlist %s starting to play.", (const char*)GetName().c_str());
 
+    _loopStep = false;
     _stopAtEndOfCurrentStep = false;
-    _currentStep = _steps.front();
+    _jumpToEndStepsAtEndOfCurrentStep = false;
+    _lastLoop = false;
+    _stopAtEndOfCurrentStep = false;
+    if (_random && !_firstOnlyOnce)
+    {
+        _currentStep = GetRandomStep();
+    }
+    else
+    {
+        _currentStep = _steps.front();
+    }
     _currentStep->Start();
 }
 
@@ -291,17 +323,82 @@ void PlayList::Stop()
 PlayListStep* PlayList::GetNextStep() const
 {
     if (_stopAtEndOfCurrentStep) return nullptr;
+    if (_currentStep == nullptr) return nullptr;
+
+    if (_loopStep)
+    {
+        return _currentStep;
+    }
+
+    auto last = _steps.end();
+    if (_steps.size() > 1)
+    {
+        auto it = _steps.end();
+        --it;
+        last = it;
+    }
+
+    if (_random && !_lastLoop)
+    {
+        return GetRandomStep();
+    }
 
     for (auto it = _steps.begin(); it != _steps.end(); ++it)
     {
         if (*it == _currentStep)
         {
             ++it;
+            if (_jumpToEndStepsAtEndOfCurrentStep)
+            {
+                if (_steps.size() == 1) return nullptr;
 
-            if (it == _steps.end()) return nullptr;
+                if (_lastOnlyOnce)
+                {
+                    return _steps.back();
+                }
+                else
+                {
+                    return nullptr;
+                }
+            }
+            else if (IsLooping() && it == last && !_lastLoop)
+            {
+                if (_firstOnlyOnce)
+                {
+                    if (_steps.size() == 1) return nullptr;
+                    auto it2 = _steps.begin();
+                    ++it2;
+                    return *it2;
+                }
 
-            return (*it);
+                return _steps.front();
+            }
+            else if (it == _steps.end())
+            {
+                return nullptr;
+            }
+            else
+            {
+                return (*it);
+            }
         }
+    }
+    return nullptr;
+}
+
+PlayListStep* PlayList::GetPriorStep() const
+{
+    if (_stopAtEndOfCurrentStep) return nullptr;
+    if (_currentStep == nullptr) return nullptr;
+
+    PlayListStep* last = _steps.back();
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        if (*it == _currentStep)
+        {
+            return last;
+        }
+        last = *it;
     }
 
     return nullptr;
@@ -328,9 +425,27 @@ void PlayList::Pause()
     }
 }
 
+bool PlayList::JumpToPriorStep()
+{
+    bool success = false;
+
+    if (_currentStep == nullptr) return false;
+
+    _currentStep->Stop();
+    _currentStep = GetPriorStep();
+
+    if (_currentStep == nullptr) return false;
+
+    _currentStep->Start();
+
+    return success;
+}
+
 bool PlayList::JumpToNextStep()
 {
     bool success = true;
+
+    _loopStep = false;
 
     if (_currentStep == nullptr) return false;
 
@@ -342,4 +457,104 @@ bool PlayList::JumpToNextStep()
     _currentStep->Start();
 
     return success;
+}
+
+void PlayList::RestartCurrentStep()
+{
+    _loopStep = false;
+    if (_currentStep != nullptr) _currentStep->Restart();
+}
+
+bool PlayList::JumpToStep(const std::string& step)
+{
+    bool success = true;
+
+    _lastLoop = false;
+    _loopStep = false;
+
+    if (_currentStep != nullptr && _currentStep->GetName() == step)
+    {
+        _currentStep->Restart();
+        return success;
+    }
+
+    _currentStep->Stop();
+
+    _currentStep = GetStep(step);
+    if (_currentStep == nullptr)
+    {
+        return false;
+    }
+
+    _currentStep->Start();
+
+    return success;
+}
+
+bool PlayList::JumpToEndStepsAtEndOfCurrentStep()
+{
+    _jumpToEndStepsAtEndOfCurrentStep = true;
+    _lastLoop = true;
+    _loopStep = false;
+
+    return (_steps.size() > 1 && _lastOnlyOnce);
+}
+
+PlayListStep* PlayList::GetStep(const std::string& step)
+{
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        if ((*it)->GetName() == step) return (*it);
+    }
+
+    return nullptr;
+}
+
+PlayListStep* PlayList::GetRandomStep() const
+{
+    int offset = 0;
+    int count = _steps.size();
+    if (_firstOnlyOnce) 
+    {
+        count--;
+        offset++;
+    }
+    if (_lastOnlyOnce) count--;
+
+    if (count < 3)
+    {
+        return GetNextStep();
+    }
+    else
+    {
+        wxASSERT(count + offset <= _steps.size());
+
+        int selected = rand() % count;
+        auto it = _steps.begin();
+        std::advance(it, selected + offset);
+
+        if (it == _steps.end()) return nullptr;
+
+        // we dont want the same step so try again
+        if (*it == _currentStep)
+        {
+            return GetRandomStep();
+        }
+
+        return *it;
+    }
+}
+
+bool PlayList::LoopStep(const std::string step)
+{
+    if (_currentStep == nullptr || _currentStep->GetName() != step)
+    {
+        JumpToStep(step);
+    }
+
+    _loopStep = true;
+    _lastLoop = false;
+    _looping = false;
+
+    return false;
 }

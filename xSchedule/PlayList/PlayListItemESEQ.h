@@ -31,11 +31,12 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
-    virtual std::string GetName() const override;
+    virtual std::string GetNameNoTime() const override;
     std::string GetESEQFileName() const { return _ESEQFileName; }
     void SetESEQFileName(const std::string& ESEQFileName);
     int GetBlendMode() const { return _applyMethod; }
     void SetBlendMode(int blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _dirty = true; }
+    virtual size_t GetDurationMS(size_t frameMS) const override;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

@@ -17,14 +17,14 @@
 #include "ScheduleOptions.h"
 #include "OptionsDialog.h"
 #include "WebServer.h"
-
-//(*InternalHeaders(xScheduleFrame)
-#include <wx/intl.h>
-#include <wx/string.h>
 #include <log4cpp/Category.hh>
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/mimetype.h>
+
+//(*InternalHeaders(xScheduleFrame)
+#include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
@@ -105,7 +105,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     wxMenu* Menu1;
     wxMenuBar* MenuBar1;
     wxFlexGridSizer* FlexGridSizer6;
-    wxFlexGridSizer* FlexGridSizer1;
     wxMenu* Menu2;
 
     Create(parent, id, _("xLights Scheduler"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("id"));
@@ -602,6 +601,7 @@ void xScheduleFrame::CreateButtons()
 
     FlexGridSizer4->Fit(Panel1);
     FlexGridSizer4->SetSizeHints(Panel1);
+    Layout();
 }
 
 void xScheduleFrame::RateNotification(wxCommandEvent& event)

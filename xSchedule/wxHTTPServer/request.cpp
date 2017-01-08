@@ -28,6 +28,7 @@ HttpRequest::HttpRequest(HttpConnection &connection, const wxString &input) :
 void HttpRequest::Parse(const wxString &input)
 {
 	wxArrayString rows = wxSplit(input, '\n');
+    _data = "";
 
 	if (rows.Count() > 0)
 	{
@@ -42,20 +43,31 @@ void HttpRequest::Parse(const wxString &input)
 
 		wxLogMessage("new request: Method '%s', URI '%s', Version '%s'", _method, _uri, _version);
 
+        int state = 0; // processing headers
+
 		for (size_t i = 1; i < rows.Count(); i++)
 		{
-			int index = rows[i].Find(':');
+            if (state == 0)
+            {
+                if (rows[i] == "" || rows[i] == "\r") state = 1;
 
-			if (index != -1)
-			{
-				wxString key   = rows[i].Mid(0, index);
-				key.Trim(true).Trim(false);
+                int index = rows[i].Find(':');
 
-				wxString value = rows[i].Mid(index + 1);
-				value.Trim(true).Trim(false);
+                if (index != -1)
+                {
+                    wxString key = rows[i].Mid(0, index);
+                    key.Trim(true).Trim(false);
 
-				_headers.Add(key, value);
-			}
+                    wxString value = rows[i].Mid(index + 1);
+                    value.Trim(true).Trim(false);
+
+                    _headers.Add(key, value);
+                }
+            }
+            else if (state == 1)
+            {
+                _data += rows[i] + "\n";
+            }
 		}
 	}
 }
