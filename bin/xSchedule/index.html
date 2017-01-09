@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>xSchedule Web</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="js/jquery.min.js"></script>
+<script src="js/scheduler.js"></script>
+<link rel="stylesheet" href="css/bootstrap.min.css" />
+<link rel="stylesheet" href="css/bootstrap-responsive.min.css" />
+<link rel="stylesheet" href="css/colorpicker.css" />
+<link rel="stylesheet" href="css/datepicker.css" />
+<link rel="stylesheet" href="css/uniform.css" />
+<link rel="stylesheet" href="css/select2.css" />
+<link rel="stylesheet" href="css/fullcalendar.css" />
+<link rel="stylesheet" href="css/maruti-style.css" />
+<link rel="stylesheet" href="css/maruti-media.css" class="skin-color" />
+</head>
+<body>
+
+<!--Header-part-->
+<div id="header">
+  <h1></h1>
+</div>
+<!--close-Header-part-->
+
+<!--top-Header-messaages-->
+<div class="btn-group rightzero"> <a class="top_message tip-left" title="Manage Files"><i class="icon-file"></i></a> <a class="top_message tip-bottom" title="Manage Users"><i class="icon-user"></i></a> <a class="top_message tip-bottom" title="Manage Comments"><i class="icon-comment"></i><span class="label label-important">5</span></a> <a class="top_message tip-bottom" title="Manage Orders"><i class="icon-shopping-cart"></i></a> </div>
+<!--close-top-Header-messaages-->
+
+<!--top-Header-menu-->
+<div id="user-nav" class="navbar navbar-inverse">
+</div>
+<!-- <div id="search">
+  <input type="text" placeholder="Search here..."/>
+  <button type="submit" class="tip-left" title="Search"><i class="icon-search icon-white"></i></button>
+</div> -->
+<!--close-top-Header-menu-->
+
+<div id="sidebar"><a href="#" class="visible-phone"><div id="current"></div></a>
+</div>
+
+
+<div id="content">
+  <div id="content">
+    <div id="content-header">
+      <div id="breadcrumb"> <a href="index.html" title="Go to Home" class="tip-bottom"><i class="icon-home"></i> Home</a></div>
+    </div>
+    <div class="container-fluid">
+      <div class="dashboard-center">
+
+     	<div id="dashboardButtons" class="quick-actions_homepage">
+            <ul  class="quick-actions">
+
+            </ul>
+       </div>
+
+      <!-- <div class="row-fluid">
+        <div class="widget-box">
+          <div class="widget-title"><span class="icon"><i class="icon-tasks"></i></span>
+            <h5>Player Status</h5>
+            <div class="buttons"><a href="#" class="btn btn-mini btn-success"><i class="icon-refresh"></i> Update</a></div>
+          </div>
+          <div class="widget-content">
+
+            Status
+          </div>
+        </div>
+      </div> -->
+      <hr>
+      <div class="row-fluid">
+          <div class="widget-box">
+            <div class="widget-title"> <span class="icon"> <i class="icon-refresh"></i></span>
+              <h5>Player Status</h5>
+            </div>
+            <div class="widget-content nopadding">
+            <ul class="recent-posts">
+              <div id="currentStep"></div>
+            </ul>
+          </div>
+
+          </div>
+
+          <div class="widget-box">
+            <div id="currentPlaylist" class="widget-title"><span class="icon"><i class="icon-file"></i></span>
+              <h5>Current Playlist</h5>
+            </div>
+            <div id="playlistStatus" class="widget-content nopadding">
+              <ul class="recent-posts"></ul>
+              <div id="firstPlaylist"></div>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+</div>
+</div>
+</div>
+<div class="row-fluid">
+  <div id="footer" class="span12"> xLights Scheduler - Billy </div>
+</div>
+<script src="js/excanvas.min.js"></script>
+<script src="js/jquery.ui.custom.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/jquery.flot.min.js"></script>
+<script src="js/jquery.flot.resize.min.js"></script>
+<script src="js/jquery.peity.min.js"></script>
+<script src="js/fullcalendar.min.js"></script>
+<script src="js/maruti.js"></script>
+<script src="js/maruti.chat.js"></script>
+<script src="js/jquery.min.js"></script>
+<script src="js/jquery.ui.custom.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/bootstrap-colorpicker.js"></script>
+<script src="js/bootstrap-datepicker.js"></script>
+<script src="js/jquery.uniform.js"></script>
+<script src="js/select2.min.js"></script>
+<script src="js/maruti.js"></script>
+<script src="js/maruti.form_common.js"></script>
+
+
+<script type="text/javascript">
+  // This function is called from the pop-up menus to transfer to
+  // a different page. Ignore if the value returned is a null string:
+  function goPage (newURL) {
+
+      // if url is empty, skip the menu dividers and reset the menu selection to default
+      if (newURL != "") {
+
+          // if url is "-", it is this page -- reset the menu:
+          if (newURL == "-" ) {
+              resetMenu();
+          }
+          // else, send page to designated URL
+          else {
+            document.location.href = newURL;
+          }
+      }
+  }
+
+// resets the menu selection upon entry to this page:
+function resetMenu() {
+   document.gomenu.selector.selectedIndex = 2;
+}
+</script>
+</body>
+</html>

@@ -8,6 +8,7 @@
 #include "ScheduleManager.h"
 #include <wx/uri.h>
 #include "xScheduleApp.h"
+#include "ScheduleOptions.h"
 
 std::map<std::string, std::string> ParseURI(std::string uri)
 {
@@ -46,15 +47,25 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         std::string command = parms["Command"];
         std::string parameters = parms["Parameters"];
 
+        logger_base.info("xScheduleCommand received command = '%s' parameters = '%s'.", (const char *)command.c_str(), (const char *)parameters.c_str());
+
         size_t rate = 0;
-        xScheduleFrame::GetScheduleManager()->Action(command, parameters, nullptr, rate);
-
-        wxCommandEvent event(EVT_FRAMEMS);
-        event.SetInt(rate);
-        wxPostEvent(wxGetApp().GetTopWindow(), event);
-
+        std::string msg = "";
         HttpResponse response(connection, request, HttpStatus::OK);
-        response.MakeFromText("{\"result\":\"ok\"}", "application/json");
+        if (xScheduleFrame::GetScheduleManager()->Action(command, parameters, nullptr, rate, msg))
+        {
+            wxCommandEvent event(EVT_FRAMEMS);
+            event.SetInt(rate);
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
+
+            response.MakeFromText("{\"result\":\"ok\"}", "application/json");
+        }
+        else
+        {
+            std::string data = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
+            logger_base.info("    data = '%s'.", (const char *)data.c_str());
+            response.MakeFromText(data, "application/json");
+        }
         connection.SendResponse(response);
     }
     else if (request.URI().StartsWith("/xScheduleStash"))
@@ -66,29 +77,54 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         std::string command = parms["Command"];
         std::string key = parms["Key"];
 
+        logger_base.info("xScheduleStash received command = '%s' key = '%s'.", (const char *)command.c_str(), (const char *)key.c_str());
+
         if (command == "Store")
         {
             std::string data = request.Data().ToStdString();
 
-            // now store it in a file
-            xScheduleFrame::GetScheduleManager()->StoreData(key, data);
+            logger_base.info("    data = '%s'.", (const char *)data.c_str());
 
+            // now store it in a file
+            std::string msg = "";
             HttpResponse response(connection, request, HttpStatus::OK);
-            response.MakeFromText("{\"result\":\"ok\"}", "application/json");
+            if (xScheduleFrame::GetScheduleManager()->StoreData(key, data, msg))
+            {
+                response.MakeFromText("{\"result\":\"ok\"}", "application/json");
+            }
+            else
+            {
+                data = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
+                logger_base.info("    data = '%s'.", (const char *)data.c_str());
+                response.MakeFromText(data, "application/json");
+            }
             connection.SendResponse(response);
         }
         else if (command == "Retrieve")
         {
-            std::string data = xScheduleFrame::GetScheduleManager()->RetrieveData(key);
-
+            std::string data = "";
+            std::string msg = "";
             HttpResponse response(connection, request, HttpStatus::OK);
-            response.MakeFromText(data, "text/plain");
+            if (xScheduleFrame::GetScheduleManager()->RetrieveData(key, data, msg))
+            {
+                logger_base.info("    data = '%s'.", (const char *)data.c_str());
+
+                response.MakeFromText(data, "text/plain");
+            }
+            else
+            {
+                data = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
+                logger_base.info("    data = '' : '%s'.", (const char *)data.c_str());
+                response.MakeFromText("", "application/json");
+            }
             connection.SendResponse(response);
         }
         else
         {
             HttpResponse response(connection, request, HttpStatus::OK);
-            response.MakeFromText("{\"result\":\"unknown command.\"}", "application/json");
+            std::string data = "{\"result\":\"failed\",\"message\":\"Unknown stash command.\"}";
+            logger_base.info("    '%s'.", (const char *)data.c_str());
+            response.MakeFromText(data, "application/json");
             connection.SendResponse(response);
         }
     }
@@ -101,30 +137,52 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         std::string query = parms["Query"];
         std::string parameters = parms["Parameters"];
 
-        std::string result = xScheduleFrame::GetScheduleManager()->Query(query, parameters);
+        logger_base.info("xScheduleQuery received query = '%s' parameters = '%s'.", (const char *)query.c_str(), (const char *)parameters.c_str());
 
+        std::string data = "";
+        std::string msg;
         HttpResponse response(connection, request, HttpStatus::OK);
-        response.MakeFromText(result, "application/json");
+        if (xScheduleFrame::GetScheduleManager()->Query(query, parameters, data, msg))
+        {
+            logger_base.info("    data = '%s'.", (const char *)data.c_str());
+
+            response.MakeFromText(data, "application/json");
+        }
+        else
+        {
+            data = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
+            logger_base.info("    data = '' : '%s'.", (const char *)data.c_str());
+            response.MakeFromText("", "application/json");
+        }
+
         connection.SendResponse(response);
     }
-    else if (request.URI().StartsWith("/xSchedule"))
+    else
     {
-        wxString d;
+        std::string wwwroot = xScheduleFrame::GetScheduleManager()->GetOptions()->GetWWWRoot();
+        if (request.URI().StartsWith("/" + wwwroot))
+        {
+            wxString d;
 #ifndef __WXMSW__
-        d = wxStandardPaths::Get().GetExecutablePath();
+            d = wxStandardPaths::Get().GetExecutablePath();
 #else
-        d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+            d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
 #endif
 
-        wxString file = d + wxURI(request.URI()).GetPath();
+            wxString file = d + wxURI(request.URI()).GetPath();
 
-        HttpResponse response(connection, request, HttpStatus::OK);
+            logger_base.info("File request received = '%s' : '%s'.", (const char *)file.c_str(), (const char *)request.URI().c_str());
 
-        response.MakeFromFile(file);
+            HttpResponse response(connection, request, HttpStatus::OK);
 
-        connection.SendResponse(response);
+            response.AddHeader("Cache-Control", "max-age=31536000");
 
-        return true; // disable default processing
+            response.MakeFromFile(file);
+
+            connection.SendResponse(response);
+
+            return true; // disable default processing
+        }
     }
 
     return false; // lets the library's default processing

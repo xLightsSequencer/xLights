@@ -13,6 +13,7 @@ class ScheduleOptions
     bool _sendOffWhenNotRunning;
     bool _runOnMachineStartup;
     int _port;
+    std::string _wwwRoot;
     std::map<std::string, std::string> _projectorIPs;
     std::map<std::string, std::string> _projectorPasswords;
     std::map<std::string, std::string> _buttonCommands;
@@ -47,6 +48,8 @@ class ScheduleOptions
         std::string GetButtonsJSON() const;
         int GetWebServerPort() const { return _port; }
         void SetWebServerPort(int port) { _port = port; _dirty = true; }
+        std::string GetWWWRoot() const { return _wwwRoot; }
+        void SetWWWRoot(const std::string& wwwRoot) { _wwwRoot = wwwRoot; _dirty = true; }
 };
 
 #endif

@@ -4,6 +4,7 @@
 //(*Headers(OptionsDialog)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/grid.h>
@@ -28,6 +29,7 @@ class OptionsDialog: public wxDialog
 
 		//(*Declarations(OptionsDialog)
 		wxSpinCtrl* SpinCtrl_WebServerPort;
+		wxTextCtrl* TextCtrl_wwwRoot;
 		wxButton* Button_ButtonDelete;
 		wxButton* Button_Ok;
 		wxStaticText* StaticText2;
@@ -42,6 +44,7 @@ class OptionsDialog: public wxDialog
 		wxButton* Button_ProjectorEdit;
 		wxButton* Button_AddProjector;
 		wxGrid* Grid_Buttons;
+		wxStaticText* StaticText4;
 		wxButton* Button_ButtonEdit;
 		wxCheckBox* CheckBox_SendOffWhenNotRunning;
 		//*)
@@ -64,6 +67,8 @@ class OptionsDialog: public wxDialog
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON6;
 		static const long ID_BUTTON7;
+		static const long ID_STATICTEXT4;
+		static const long ID_TEXTCTRL1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -89,6 +94,7 @@ class OptionsDialog: public wxDialog
 		void OnButton_ButtonAddClick(wxCommandEvent& event);
 		void OnButton_ButtonEditClick(wxCommandEvent& event);
 		void OnButton_ButtonDeleteClick(wxCommandEvent& event);
+		void OnTextCtrl_wwwRootText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

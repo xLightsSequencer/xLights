@@ -11,6 +11,7 @@
 #define XSCHEDULEMAIN_H
 
 //(*Headers(xScheduleFrame)
+#include <wx/listctrl.h>
 #include <wx/treectrl.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -42,6 +43,7 @@ class xScheduleFrame : public wxFrame
     void DeleteSelectedItem();
     void ValidateWindow();
     void CreateButtons();
+    void UpdateStatus();
 
 public:
 
@@ -64,6 +66,8 @@ public:
         void On_timerScheduleTrigger(wxTimerEvent& event);
         void OnMenuItem_OptionsSelected(wxCommandEvent& event);
         void OnMenuItem_ViewLogSelected(wxCommandEvent& event);
+        void OnResize(wxSizeEvent& event);
+        void OnListView_RunningItemActivated(wxListEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -76,6 +80,7 @@ public:
         static const long ID_PANEL2;
         static const long ID_TREECTRL1;
         static const long ID_PANEL3;
+        static const long ID_LISTVIEW1;
         static const long ID_PANEL5;
         static const long ID_SPLITTERWINDOW1;
         static const long ID_PANEL1;
@@ -116,6 +121,7 @@ public:
         wxDirDialog* DirDialog1;
         wxMenuItem* MenuItem6;
         wxTimer _timerSchedule;
+        wxListView* ListView_Running;
         wxTreeCtrl* TreeCtrl_PlayListsSchedules;
         wxMenuItem* MenuItem_ShowFolder;
         wxPanel* Panel2;

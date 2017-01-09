@@ -14,6 +14,8 @@ const long ButtonDetailsDialog::ID_STATICTEXT2 = wxNewId();
 const long ButtonDetailsDialog::ID_CHOICE1 = wxNewId();
 const long ButtonDetailsDialog::ID_STATICTEXT3 = wxNewId();
 const long ButtonDetailsDialog::ID_TEXTCTRL2 = wxNewId();
+const long ButtonDetailsDialog::ID_STATICTEXT4 = wxNewId();
+const long ButtonDetailsDialog::ID_CHOICE2 = wxNewId();
 const long ButtonDetailsDialog::ID_BUTTON1 = wxNewId();
 const long ButtonDetailsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -46,7 +48,11 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, s
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Parameters = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
 	FlexGridSizer1->Add(TextCtrl_Parameters, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Hot Key:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Hotkey = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	FlexGridSizer1->Add(Choice_Hotkey, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	Button_Ok->SetDefault();

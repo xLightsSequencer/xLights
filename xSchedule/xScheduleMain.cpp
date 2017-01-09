@@ -21,6 +21,7 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/mimetype.h>
+#include "PlayList/PlayListStep.h"
 
 //(*InternalHeaders(xScheduleFrame)
 #include <wx/intl.h>
@@ -59,6 +60,7 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 const long xScheduleFrame::ID_PANEL2 = wxNewId();
 const long xScheduleFrame::ID_TREECTRL1 = wxNewId();
 const long xScheduleFrame::ID_PANEL3 = wxNewId();
+const long xScheduleFrame::ID_LISTVIEW1 = wxNewId();
 const long xScheduleFrame::ID_PANEL5 = wxNewId();
 const long xScheduleFrame::ID_SPLITTERWINDOW1 = wxNewId();
 const long xScheduleFrame::ID_PANEL1 = wxNewId();
@@ -135,13 +137,16 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer3->AddGrowableCol(0);
     FlexGridSizer3->AddGrowableRow(0);
+    ListView_Running = new wxListView(Panel5, ID_LISTVIEW1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_NO_SORT_HEADER, wxDefaultValidator, _T("ID_LISTVIEW1"));
+    ListView_Running->SetMinSize(wxSize(300,300));
+    FlexGridSizer3->Add(ListView_Running, 1, wxALL|wxEXPAND, 5);
     Panel5->SetSizer(FlexGridSizer3);
     FlexGridSizer3->Fit(Panel5);
     FlexGridSizer3->SetSizeHints(Panel5);
     SplitterWindow1->SplitVertically(Panel3, Panel5);
     FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
     Panel1 = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-    FlexGridSizer4 = new wxFlexGridSizer(0, 5, 0, 0);
+    FlexGridSizer4 = new wxFlexGridSizer(0, 0, 0, 0);
     Panel1->SetSizer(FlexGridSizer4);
     FlexGridSizer4->Fit(Panel1);
     FlexGridSizer4->SetSizeHints(Panel1);
@@ -198,6 +203,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged);
     Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_KEY_DOWN,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesKeyDown);
     Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_MENU,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu);
+    Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xScheduleFrame::OnListView_RunningItemActivated);
     Connect(ID_MNU_SHOWFOLDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ShowFolderSelected);
     Connect(ID_MNU_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_SaveSelected);
     Connect(idMenuQuit,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnQuit);
@@ -206,9 +212,14 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerTrigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerScheduleTrigger);
+    Connect(wxEVT_SIZE,(wxObjectEventFunction)&xScheduleFrame::OnResize);
     //*)
 
     Connect(wxID_ANY, EVT_FRAMEMS, (wxObjectEventFunction)&xScheduleFrame::RateNotification);
+
+    ListView_Running->AppendColumn("Step");
+    ListView_Running->AppendColumn("Duration");
+    ListView_Running->AppendColumn("");
 
     SetSize(600, 300);
 
@@ -361,7 +372,8 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_PLAYNOW)
     {
         PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-        size_t rate = __schedule->PlayPlayList(playlist);
+        size_t rate = 50;
+        __schedule->PlayPlayList(playlist, rate);
 
         // if the desired rate is different than the current rate then restart timer with the desired rate
         if (_timer.GetInterval() != rate)
@@ -536,11 +548,9 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
     __schedule->Frame();
-    std::string status = __schedule->GetStatus();
-    if (status != StaticText_Status->GetLabel())
-    {
-        StaticText_Status->SetLabel(status);
-    }
+
+    UpdateStatus();
+
     ValidateWindow();
 }
 
@@ -625,7 +635,8 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
     }
 
     size_t rate = _timer.GetInterval();
-    __schedule->Action(((wxButton*)event.GetEventObject())->GetLabel().ToStdString(), playlist, rate);
+    std::string msg = "";
+    __schedule->Action(((wxButton*)event.GetEventObject())->GetLabel().ToStdString(), playlist, rate, msg);
 
     if (rate != _timer.GetInterval())
     {
@@ -684,5 +695,154 @@ void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     {
         logger_base.warn("Unable to view log file %s.", (const char *)fn.c_str());
         wxMessageBox(_("Unable to show log file."), _("Error"));
+    }
+}
+
+void xScheduleFrame::OnResize(wxSizeEvent& event)
+{
+    bool done = false;
+
+    int pw, ph;
+    Panel1->GetSize(&pw, &ph);
+
+    int n = 20;
+    while (!done && n > 0)
+    {
+        auto buttons = Panel1->GetChildren();
+        FlexGridSizer4->SetRows(buttons.size() / n + (buttons.size() % n > 0 ? 1 : 0));
+        FlexGridSizer4->SetCols(n);
+        FlexGridSizer4->Fit(Panel1);
+        FlexGridSizer4->SetSizeHints(Panel1);
+
+        bool changed = false;
+
+        int lastx = 0;
+        int lasty = 0;
+        for (auto it = buttons.begin(); it != buttons.end(); ++it)
+        {
+            int x, y, w, h;
+            (*it)->GetPosition(&x, &y);
+            (*it)->GetSize(&w, &h);
+
+            if ((x < lastx && y == lasty) || x+w > pw - 10)
+            {
+                n--;
+                changed = true;
+                lastx = 0;
+                lasty = y;
+                break;
+            }
+
+            lasty = y;
+            lastx = x + w;
+        }
+
+        if (!changed)
+        {
+            break;
+        }
+    }
+
+    Layout();
+}
+
+void xScheduleFrame::OnListView_RunningItemActivated(wxListEvent& event)
+{
+    int selected = ListView_Running->GetFirstSelected();
+
+    PlayList* p = __schedule->GetRunningPlayList();
+
+    if (selected > 0 && p != nullptr && p->GetRunningStep()->GetName() != ListView_Running->GetItemText(selected, 0))
+    {
+        size_t rate;
+        std::string msg;
+        __schedule->Action("Jump to specified step in current playlist", ListView_Running->GetItemText(selected, 0).ToStdString(), p, rate, msg);
+    }
+}
+
+std::string FormatTime(size_t timems, bool ms = false)
+{
+    if (ms)
+    {
+        return wxString::Format(wxT("%i:%02i.%03i"), timems / 60000, (timems % 60000) / 1000, timems % 1000).ToStdString();
+    }
+    else
+    {
+        return wxString::Format(wxT("%i:%02i"), timems / 60000, (timems % 60000) / 1000).ToStdString();
+    }
+}
+
+void xScheduleFrame::UpdateStatus()
+{
+    PlayList* last = nullptr;
+    PlayList* p = __schedule->GetRunningPlayList();
+
+    if (p == nullptr)
+    {
+        wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+        if (treeitem.IsOk() && IsPlayList(treeitem))
+        {
+            p = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+        }
+    }
+
+    if (p == nullptr)
+    {
+        ListView_Running->DeleteAllItems();
+    }
+    else
+    {
+        if (p != last)
+        {
+            last = p;
+
+            ListView_Running->DeleteAllItems();
+
+            auto steps = p->GetSteps();
+
+            int i = 0;
+            for (auto it = steps.begin(); it != steps.end(); ++it)
+            {
+                ListView_Running->InsertItem(i, (*it)->GetNameNoTime());
+                ListView_Running->SetItem(i, 1, FormatTime((*it)->GetLengthMS()));
+                i++;
+            }
+        }
+
+        PlayListStep* step = p->GetRunningStep();
+        PlayListStep* next = nullptr;
+        
+        if (!p->IsRandom())
+        {
+            next = p->GetNextStep();
+        }
+
+        if (step != nullptr)
+        {
+            for (int i = 0; i < ListView_Running->GetItemCount(); i++)
+            {
+                if (ListView_Running->GetItemText(i, 0) == step->GetNameNoTime())
+                {
+                    ListView_Running->SetItem(i, 2, step->GetStatus());
+                    ListView_Running->SetItemBackgroundColour(i, wxColor(146,244,155));
+                }
+                else
+                {
+                    if (next != nullptr && next->GetNameNoTime() == ListView_Running->GetItemText(i,0))
+                    {
+                        ListView_Running->SetItemBackgroundColour(i, wxColor(244,241,146));
+                    }
+                    else
+                    {
+                        ListView_Running->SetItemBackgroundColour(i, *wxWHITE);
+                    }
+                    ListView_Running->SetItem(i, 2, "");
+                }
+            }
+        }
+
+        ListView_Running->SetColumnWidth(0, wxLIST_AUTOSIZE);
+        ListView_Running->SetColumnWidth(1, wxLIST_AUTOSIZE);
+        ListView_Running->SetColumnWidth(2, wxLIST_AUTOSIZE);
     }
 }

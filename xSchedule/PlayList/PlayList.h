@@ -32,7 +32,6 @@ protected:
     #pragma endregion Member Variables
 
     int GetPos(PlayListStep* step);
-    PlayListStep* GetNextStep() const;
     PlayListStep* GetPriorStep() const;
 
 public:
@@ -45,9 +44,11 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    PlayListStep* GetNextStep() const;
     PlayListStep* GetRunningStep() const { return _currentStep; }
     std::list<PlayListStep*> GetSteps() const { return _steps; }
     std::list<Schedule*> GetSchedules() const { return _schedules; }
+    size_t GetLengthMS() const;
     bool IsDirty() const;
     void ClearDirty();
     bool IsRandom() const { return _random; }

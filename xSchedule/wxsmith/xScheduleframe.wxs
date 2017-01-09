@@ -2,6 +2,7 @@
 <wxsmith>
 	<object class="wxFrame" name="xScheduleFrame">
 		<title>xLights Scheduler</title>
+		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -55,6 +56,16 @@
 							<cols>1</cols>
 							<growablecols>0</growablecols>
 							<growablerows>0</growablerows>
+							<object class="sizeritem">
+								<object class="wxListView" name="ID_LISTVIEW1" variable="ListView_Running" member="yes">
+									<minsize>300,300</minsize>
+									<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_NO_SORT_HEADER</style>
+									<handler function="OnListView_RunningItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 					</object>
 				</object>
@@ -64,9 +75,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
-					<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="yes">
-						<cols>5</cols>
-					</object>
+					<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="yes" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

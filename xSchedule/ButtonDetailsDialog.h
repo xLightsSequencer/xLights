@@ -27,11 +27,13 @@ class ButtonDetailsDialog: public wxDialog
 		wxChoice* Choice_Command;
 		wxButton* Button_Ok;
 		wxStaticText* StaticText2;
+		wxChoice* Choice_Hotkey;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Parameters;
 		wxButton* Button_Cancel;
 		wxTextCtrl* TextCtrl_Label;
+		wxStaticText* StaticText4;
 		//*)
 
 	protected:
@@ -43,6 +45,8 @@ class ButtonDetailsDialog: public wxDialog
 		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL2;
+		static const long ID_STATICTEXT4;
+		static const long ID_CHOICE2;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

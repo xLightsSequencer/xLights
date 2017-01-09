@@ -326,3 +326,27 @@ void PlayListStep::AdjustTime(wxTimeSpan by)
 {
     _startTime += by.GetValue();
 }
+
+std::string PlayListStep::FormatTime(size_t timems, bool ms) const
+{
+    if (ms)
+    {
+        return wxString::Format(wxT("%i:%02i.%03i"), timems / 60000, (timems % 60000) / 1000, timems % 1000).ToStdString();
+    }
+    else
+    {
+        return wxString::Format(wxT("%i:%02i"), timems / 60000, (timems % 60000) / 1000).ToStdString();
+    }
+}
+
+std::string PlayListStep::GetStatus(bool ms) const
+{
+    std::string fps = "Unknown";
+
+    if (GetFrameMS() > 0)
+    {
+        fps = wxString::Format(wxT("%i"), 1000 / GetFrameMS()).ToStdString();
+    }
+    
+    return "Time: " + FormatTime(GetPosition(), ms) + " Left: " + FormatTime(GetLengthMS() - GetPosition(), ms) + " FPS: " + fps;
+}

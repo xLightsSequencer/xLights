@@ -9,6 +9,7 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
     _runOnMachineStartup = node->GetAttribute("RunOnMachineStartup", "FALSE") == "TRUE";
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
+    _wwwRoot = node->GetAttribute("WWWRoot", "xSchedule");
 
     for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
     {
@@ -35,6 +36,7 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
 
 ScheduleOptions::ScheduleOptions()
 {
+    _wwwRoot = "xSchedule";
     _port = 80;
     _dirty = false;
     _sync = false;
@@ -50,6 +52,7 @@ wxXmlNode* ScheduleOptions::Save()
 {
     wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Options");
 
+    res->AddAttribute("WWWRoot", _wwwRoot);
     if (IsSync())
     {
         res->AddAttribute("Sync", "TRUE");

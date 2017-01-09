@@ -22,6 +22,7 @@ protected:
 #pragma endregion Member Variables
 
     PlayListItem* GetTimeSource(int& ms) const;
+    std::string FormatTime(size_t timems, bool ms = false) const;
 
 public:
 
@@ -36,6 +37,7 @@ public:
     std::list<PlayListItem*> GetItems() const { return _items; }
     bool IsDirty() const;
     void ClearDirty();
+    std::string GetStatus(bool ms = false) const;
     bool GetExcludeFromRandom() const { return _excludeFromRandom; }
     void SetExcludeFromRandom(bool efr) { _excludeFromRandom = efr; _dirty = true; }
     std::string GetName() const;

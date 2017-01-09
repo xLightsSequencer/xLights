@@ -233,8 +233,10 @@ void ScheduleManager::Frame()
     }
 }
 
-int ScheduleManager::PlayPlayList(PlayList* playlist, bool loop, const std::string& step, bool forcelast)
+bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, const std::string& step, bool forcelast)
 {
+    bool result = true;
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Playing playlist %s.", (const char*)playlist->GetName().c_str());
 
@@ -258,7 +260,8 @@ int ScheduleManager::PlayPlayList(PlayList* playlist, bool loop, const std::stri
         _immediatePlay->StopAtEndOfCurrentStep();
     }
 
-    return 25; // always start fast
+    rate = 25; // always start fast
+    return result;
 }
 
 int ScheduleManager::CheckSchedule()
@@ -267,7 +270,7 @@ int ScheduleManager::CheckSchedule()
     return 50;
 }
 
-std::string FormatTime(size_t timems)
+std::string ScheduleManager::FormatTime(size_t timems)
 {
     return wxString::Format(wxT("%i:%02i.%03i"), timems / 60000, (timems % 60000) / 1000, timems % 1000).ToStdString();
 }
@@ -281,14 +284,7 @@ std::string ScheduleManager::GetStatus() const
         return "Idle";
     }
 
-    std::string fps = "Unknown";
-
-    if (curr->GetRunningStep()->GetFrameMS() > 0)
-    {
-        fps = wxString::Format(wxT("%i"), 1000 / curr->GetRunningStep()->GetFrameMS()).ToStdString();
-    }
-
-    return "Playing " + curr->GetRunningStep()->GetName() + " Time: " + FormatTime(curr->GetRunningStep()->GetPosition()) + " Left: " + FormatTime(curr->GetRunningStep()->GetLengthMS() - curr->GetRunningStep()->GetPosition()) + " FPS: " + fps;
+    return "Playing " + curr->GetRunningStep()->GetName() + " " + curr->GetRunningStep()->GetStatus();
 }
 
 std::list<std::string> ScheduleManager::GetCommands() const
@@ -353,8 +349,10 @@ PlayList* ScheduleManager::GetPlayList(const std::string& playlist) const
 // 127.0.0.1/xScheduleCommand?Command=Play playlist starting at step&Parameters=<step name>
 // 127.0.0.1/xScheduleCommand?Command=PressButton&Parameters=<button label>
 
-void ScheduleManager::Action(const std::string command, const std::string parameters, PlayList* playlist, size_t& rate)
+bool ScheduleManager::Action(const std::string command, const std::string parameters, PlayList* playlist, size_t& rate, std::string& msg)
 {
+    bool result = true;
+
     if (command == "Stop all now")
     {
         StopAll();
@@ -363,14 +361,32 @@ void ScheduleManager::Action(const std::string command, const std::string parame
     {
         if (playlist != nullptr)
         {
-            rate = PlayPlayList(playlist);
+            if(!PlayPlayList(playlist, rate))
+            {
+                result = false;
+                msg = "Unable to start playlist.";
+            }
+        }
+        else
+        {
+            result = false;
+            msg = "No playlist selected.";
         }
     }
     else if (command == "Play selected playlist looped")
     {
         if (playlist != nullptr)
         {
-            rate = PlayPlayList(playlist, true);
+            if (!PlayPlayList(playlist, rate, true))
+            {
+                result = false;
+                msg = "Unable to start playlist.";
+            }
+        }
+        else
+        {
+            result = false;
+            msg = "No playlist selected.";
         }
     }
     else if (command == "Play specified playlist")
@@ -379,7 +395,16 @@ void ScheduleManager::Action(const std::string command, const std::string parame
 
         if (p != nullptr)
         {
-            rate = PlayPlayList(p);
+            if (!PlayPlayList(p, rate))
+            {
+                result = false;
+                msg = "Unable to start playlist.";
+            }
+        }
+        else
+        {
+            result = false;
+            msg = "Playlist '"+parameters+"' not found.";
         }
     }
     else if (command == "Play specified playlist looped")
@@ -388,7 +413,16 @@ void ScheduleManager::Action(const std::string command, const std::string parame
 
         if (p != nullptr)
         {
-            rate = PlayPlayList(p, true);
+            if (!PlayPlayList(p, rate, true))
+            {
+                result = false;
+                msg = "Unable to start playlist.";
+            }
+        }
+        else
+        {
+            result = false;
+            msg = "Playlist '" + parameters + "' not found.";
         }
     }
     else if (command == "Stop specified playlist")
@@ -398,6 +432,11 @@ void ScheduleManager::Action(const std::string command, const std::string parame
         if (p != nullptr)
         {
             StopPlayList(p, false);
+        }
+        else
+        {
+            result = false;
+            msg = "Playlist '" + parameters + "' not found.";
         }
     }
     else if (command == "Stop specified playlist at end of current step")
@@ -417,6 +456,11 @@ void ScheduleManager::Action(const std::string command, const std::string parame
         {
             StopPlayList(p, true);
         }
+        else
+        {
+            result = false;
+            msg = "No playlist currently playing.";
+        }
     }
     else if (command == "Stop specified playlist at end of current loop")
     {
@@ -426,6 +470,11 @@ void ScheduleManager::Action(const std::string command, const std::string parame
         {
             p->StopAtEndOfThisLoop();
         }
+        else
+        {
+            result = false;
+            msg = "Playlist '" + parameters + "' not found.";
+        }
     }
     else if (command == "Jump to play once at end steps at end of current step and then stop")
     {
@@ -434,6 +483,11 @@ void ScheduleManager::Action(const std::string command, const std::string parame
         if (p != nullptr)
         {
             p->JumpToEndStepsAtEndOfCurrentStep();
+        }
+        else
+        {
+            result = false;
+            msg = "No playlist currently running.";
         }
     }
     else if (command == "Stop playlist at end of current loop")
@@ -500,61 +554,128 @@ void ScheduleManager::Action(const std::string command, const std::string parame
     {
         wxString parameter = parameters;
         wxArrayString split = wxSplit(parameter, ',');
-        if (split.Count() != 2) return;
-        std::string pl = split[0].ToStdString();
-        std::string step = split[1].ToStdString();
-
-        PlayList* p = GetPlayList(pl);
-
-        if (p != nullptr)
+        if (split.Count() != 2)
         {
-            PlayPlayList(p, false, step);
-            p->LoopStep(step);
+            result = false;
+            msg = "Parameters format incorrect.";
+        }
+        else
+        {
+            std::string pl = split[0].ToStdString();
+            std::string step = split[1].ToStdString();
+
+            PlayList* p = GetPlayList(pl);
+
+            if (p != nullptr)
+            {
+                if (!PlayPlayList(p, rate, false, step))
+                {
+                    result = false;
+                    msg = "Unable to start playlist.";
+                }
+                else
+                {
+                    p->LoopStep(step);
+                }
+            }
+            else
+            {
+                result = false;
+                msg = "Playlist '" + pl + "' not found.";
+            }
         }
     }
     else if (command == "Play specified playlist step once only")
     {
         wxString parameter = parameters;
         wxArrayString split = wxSplit(parameter, ',');
-        if (split.Count() != 2) return;
-        std::string pl = split[0].ToStdString();
-        std::string step = split[1].ToStdString();
-
-        PlayList* p = GetPlayList(pl);
-
-        if (p != nullptr)
+        if (split.Count() != 2)
         {
-            PlayPlayList(p, false, step, true);
+            result = false;
+            msg = "Parameters format incorrect.";
+        }
+        else
+        {
+            std::string pl = split[0].ToStdString();
+            std::string step = split[1].ToStdString();
+
+            PlayList* p = GetPlayList(pl);
+
+            if (p != nullptr)
+            {
+                if (!PlayPlayList(p, rate, false, step, true))
+                {
+                    result = false;
+                    msg = "Unable to start playlist.";
+                }
+            }
+            else
+            {
+                result = false;
+                msg = "Playlist '" + pl + "' not found.";
+            }
         }
     }
     else if (command == "Play playlist starting at step")
     {
         wxString parameter = parameters;
         wxArrayString split = wxSplit(parameter, ',');
-        if (split.Count() != 2) return;
-        std::string pl = split[0].ToStdString();
-        std::string step = split[1].ToStdString();
-
-        PlayList* p = GetPlayList(pl);
-
-        if (p != nullptr)
+        if (split.Count() != 2)
         {
-            PlayPlayList(p, false, step);
+            result = false;
+            msg = "Parameters format incorrect.";
+        }
+        else
+        {
+            std::string pl = split[0].ToStdString();
+            std::string step = split[1].ToStdString();
+
+            PlayList* p = GetPlayList(pl);
+
+            if (p != nullptr)
+            {
+                if (!PlayPlayList(p, rate, false, step))
+                {
+                    result = false;
+                    msg = "Unable to start playlist.";
+                }
+            }
+            else
+            {
+                result = false;
+                msg = "Playlist '" + pl + "' not found.";
+            }
         }
     }
     else if (command == "Play playlist starting at step looped")
     {
         wxString parameter = parameters;
         wxArrayString split = wxSplit(parameter, ',');
-        if (split.Count() != 2) return;
-        std::string pl = split[0].ToStdString();
-        std::string step = split[1].ToStdString();
-
-        PlayList* p = GetPlayList(pl);
-
-        if (p != nullptr)
+        if (split.Count() != 2)
         {
-            PlayPlayList(p, true, step);
+            result = false;
+            msg = "Parameters format incorrect.";
+        }
+        else
+        {
+            std::string pl = split[0].ToStdString();
+            std::string step = split[1].ToStdString();
+
+            PlayList* p = GetPlayList(pl);
+
+            if (p != nullptr)
+            {
+                if (!PlayPlayList(p, rate, true, step))
+                {
+                    result = false;
+                    msg = "Unable to start playlist.";
+                }
+            }
+            else
+            {
+                result = false;
+                msg = "Playlist '" + pl + "' not found.";
+            }
         }
     }
     else if (command == "Jump to specified step in current playlist")
@@ -590,6 +711,11 @@ void ScheduleManager::Action(const std::string command, const std::string parame
             {
                 rate = p->JumpToStep(r->GetName());
             }
+        }
+        else
+        {
+            result = false;
+            msg = "Playlist '" + parameters + "' not found.";
         }
     }
     else if (command == "Add to the specified schedule n minutes")
@@ -644,17 +770,34 @@ void ScheduleManager::Action(const std::string command, const std::string parame
 
         if (c != "")
         {
-            Action(c, p, playlist, rate);
+            result = Action(c, p, playlist, rate, msg);
         }
     }
+    else
+    {
+        result = false;
+        msg = "Unknown command.";
+    }
+
+    if (!result)
+    {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.error("Action failed: %s", (const char *)msg.c_str());
+    }
+
+    return result;
 }
 
-void ScheduleManager::Action(const std::string label, PlayList* playlist, size_t& rate)
+bool ScheduleManager::Action(const std::string label, PlayList* playlist, size_t& rate, std::string& msg)
 {
+    bool result = true;
+
     std::string command = _scheduleOptions->GetButtonCommand(label);
     std::string parameters = _scheduleOptions->GetButtonParameter(label);
 
-    Action(command, parameters, playlist, rate);
+    result = Action(command, parameters, playlist, rate, msg);
+
+    return result;
 }
 
 void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
@@ -699,21 +842,22 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
 // 127.0.0.1/xScheduleQuery?Query=GetPlayingStatus&Parameters=
 // 127.0.0.1/xScheduleQuery?Query=GetButtons&Parameters=
 
-std::string ScheduleManager::Query(const std::string command, const std::string parameters)
+bool ScheduleManager::Query(const std::string command, const std::string parameters, std::string& data, std::string& msg)
 {
-    std::string res;
+    bool result = true;
+    data = "";
     if (command == "GetPlayLists")
     {
-        res = "{\"playlists\":[";
+        data = "{\"playlists\":[";
         for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
         {
             if (it != _playLists.begin())
             {
-                res += ",";
+                data += ",";
             }
-            res += "\"" + (*it)->GetName() + "\"";
+            data += "{\"name\":\"" + (*it)->GetName() + "\",\"length\":\""+ FormatTime((*it)->GetLengthMS()) +"\"}";
         }
-        res += "]}";
+        data += "]}";
     }
     else if (command == "GetPlayListSteps")
     {
@@ -721,21 +865,23 @@ std::string ScheduleManager::Query(const std::string command, const std::string 
 
         if (p != nullptr)
         {
-            res = "{\"steps\":[";
+            data = "{\"steps\":[";
             auto steps = p->GetSteps();
             for (auto it =  steps.begin(); it != steps.end(); ++it)
             {
                 if (it != steps.begin())
                 {
-                    res += ",";
+                    data += ",";
                 }
-                res += "{\"name\":\"" + (*it)->GetNameNoTime() + "\",\"length\":\""+FormatTime((*it)->GetLengthMS())+"\"}";
+                data += "{\"name\":\"" + (*it)->GetNameNoTime() + "\",\"length\":\""+FormatTime((*it)->GetLengthMS())+"\"}";
             }
-            res += "]}";
+            data += "]}";
         }
         else
         {
-            res = "{\"steps\":[]}";
+            data = "{\"steps\":[]}";
+            result = false;
+            msg = "Playlist '" + parameters + "' not found.";
         }
     }
     else if (command == "GetPlayingStatus")
@@ -743,48 +889,79 @@ std::string ScheduleManager::Query(const std::string command, const std::string 
         PlayList* p = GetRunningPlayList();
         if (p == nullptr)
         {
-            res = "{\"status\":\"idle\"}";
+            data = "{\"status\":\"idle\"}";
         }
         else
         {
-            res = "{\"status\":\"playing\",\"playlist\":\"" + p->GetName() + 
-                "\",\"looping\":\"" + (p->IsLooping()? "true" : "false") +
+            data = "{\"status\":\"" + std::string(p->IsPaused() ? "paused" : "playing") + "\",\"playlist\":\"" + p->GetName() + 
+                "\",\"looping\":\"" + (p->IsLooping() ? "true" : "false") +
                 "\",\"random\":\"" + (p->IsRandom() ? "true" : "false") +
                 "\",\"step\":\"" + p->GetRunningStep()->GetNameNoTime() +
                 "\",\"looping\":\"" + (p->IsStepLooping()? "true" : "false") +
                 "\",\"length\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS()) +
                 "\",\"position\":\"" + FormatTime(p->GetRunningStep()->GetPosition()) +
-                  "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) + "\"}";
+                "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) + "\"}";
         }
     }
     else if (command == "GetButtons")
     {
-        res = _scheduleOptions->GetButtonsJSON();
+        data = _scheduleOptions->GetButtonsJSON();
+    }
+    else
+    {
+        result = false;
+        msg = "Unknown query.";
     }
 
-    return res;
+    return result;
 }
 
-void ScheduleManager::StoreData(std::string key, std::string data) const
+bool ScheduleManager::StoreData(const std::string& key, const std::string& data, std::string& msg) const
 {
+    bool result = true;
+
     if (!wxDir::Exists(_showDir + "/xScheduleData"))
     {
         wxDir sd(_showDir);
         sd.Make(_showDir + "/xScheduleData");
     }
 
-    wxFile dataFile(_showDir + "/xScheduleData/" + key + ".dat", wxFile::write);
-    dataFile.Write(data.c_str(), data.size());
+    std::string filename = _showDir + "/xScheduleData/" + key + ".dat";
+
+    wxFile dataFile(filename, wxFile::write);
+
+    if (dataFile.IsOpened())
+    {
+        dataFile.Write(data.c_str(), data.size());
+    }
+    else
+    {
+        result = false;
+        msg = "Unable to create file " + filename;
+    }
+
+    return result;
 }
 
-std::string ScheduleManager::RetrieveData(std::string key) const
+bool ScheduleManager::RetrieveData(const std::string& key, std::string& data, std::string& msg) const
 {
-    if (!wxFile::Exists(_showDir + "/xScheduleData/" + key + ".dat")) return "";
+    bool result = true;
 
-    wxFile dataFile(_showDir + "/xScheduleData/" + key + ".dat");
+    std::string filename = _showDir + "/xScheduleData/" + key + ".dat";
 
-    wxString data = "";
-    dataFile.ReadAll(&data);
+    if (!wxFile::Exists(filename))
+    {
+        data = "";
+        result = false;
+    }
+    else
+    {
+        wxFile dataFile(filename);
 
-    return data.ToStdString();
+        wxString d = "";
+        dataFile.ReadAll(&d);
+        data = d.ToStdString();
+    }
+
+    return result;
 }

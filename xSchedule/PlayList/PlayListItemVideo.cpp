@@ -36,6 +36,8 @@ void PlayListItemVideo::Load(wxXmlNode* node)
     _videoFile = node->GetAttribute("VideoFile", "");
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
+    OpenFiles();
+    CloseFiles();
 }
 
 PlayListItemVideo::PlayListItemVideo() : PlayListItem()

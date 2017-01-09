@@ -404,6 +404,17 @@ PlayListStep* PlayList::GetPriorStep() const
     return nullptr;
 }
 
+size_t PlayList::GetLengthMS() const
+{
+    size_t length = 0;
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        length += (*it)->GetLengthMS();
+    }
+
+    return length;
+}
+
 bool PlayList::IsPaused() const
 {
     wxDateTime zero((time_t)0);
@@ -504,7 +515,7 @@ PlayListStep* PlayList::GetStep(const std::string& step)
 {
     for (auto it = _steps.begin(); it != _steps.end(); ++it)
     {
-        if ((*it)->GetName() == step) return (*it);
+        if ((*it)->GetNameNoTime() == step) return (*it);
     }
 
     return nullptr;
