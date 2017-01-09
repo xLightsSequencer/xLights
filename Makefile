@@ -15,7 +15,7 @@ ICON_SIZES      = 16x16 32x32 64x64 256x256
 SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary
 PATH            := $(CURDIR)/wxWidgets-3.1.0:$(PATH)
 
-SUBDIRS         = xLights
+SUBDIRS         = xLights xSchedule
 
 .NOTPARALLEL:
 
@@ -26,7 +26,7 @@ all: wxwidgets31 cbp2make makefile subdirs
 subdirs: $(SUBDIRS)
 
 $(SUBDIRS): FORCE
-	@${MAKE} -C $@ -f xLights.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_release
+	@${MAKE} -C $@ -f $@.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_release
 
 
 #############################################################################
@@ -48,14 +48,14 @@ wxwidgets31: FORCE
 debug: $(addsuffix _debug,$(SUBDIRS))
 
 $(addsuffix _debug,$(SUBDIRS)):
-	@${MAKE} -C $(subst _debug,,$@) -f xLights.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_debug
+	@${MAKE} -C $(subst _debug,,$@) -f $(subst _debug,,$@).cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_debug
 
 #############################################################################
 
 clean: $(addsuffix _clean,$(SUBDIRS))
 
 $(addsuffix _clean,$(SUBDIRS)):
-	@${MAKE} -C $(subst _clean,,$@) -f xLights.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" clean
+	@${MAKE} -C $(subst _clean,,$@) -f $(subst _clean,,$@).cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" clean
 	
 
 #############################################################################
@@ -81,10 +81,10 @@ uninstall:
 
 cbp2make:
 	if test -n "`cbp2make --version`"; \
-		then $(DEL_FILE) xLights/xLights.cbp.mak; \
+		then $(DEL_FILE) xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak; \
 	fi
 
-makefile: xLights/xLights.cbp.mak
+makefile: xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak
 
 xLights/xLights.cbp.mak: xLights/xLights.cbp
 	@cbp2make -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak \
@@ -95,6 +95,16 @@ xLights/xLights.cbp.mak: xLights/xLights.cbp
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
 		> xLights/xLights.cbp.mak
+
+xSchedule/xSchedule.cbp.mak: xSchedule/xSchedule.cbp
+	@cbp2make -in xSchedule/xSchedule.cbp -cfg cbp2make.cfg -out xSchedule/xSchedule.cbp.mak \
+			--with-deps --keep-outdir --keep-objdir
+	cp xSchedule/xSchedule.cbp.mak xSchedule/xSchedule.cbp.mak.orig
+	cat xSchedule/xSchedule.cbp.mak.orig \
+		| sed \
+			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
+			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
+		> xSchedule/xSchedule.cbp.mak
 
 #############################################################################
 
