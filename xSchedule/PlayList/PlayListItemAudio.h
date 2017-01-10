@@ -35,7 +35,7 @@ public:
     virtual size_t GetDurationMS() const override { return _delay + _durationMS; }
     virtual std::string GetNameNoTime() const override;
     std::string GetAudioFile() const { return _audioFile; }
-    void SetAudioFile(const std::string& audioFile) { _audioFile = audioFile; _dirty = true; LoadFiles(); }
+    void SetAudioFile(const std::string& audioFile);
     virtual bool ControlsTiming() const override { return _audioManager != nullptr; }
     virtual size_t GetPositionMS() const override;
     virtual bool Done() const override { return GetPositionMS() >= GetDurationMS(); }
@@ -45,7 +45,7 @@ public:
     void Load(wxXmlNode* node) override;
 
     #pragma region Playing
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems) override;
+    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems) override {}
     virtual void Start() override;
     virtual void Stop() override;
     virtual void Restart() override;
