@@ -3,3 +3,5 @@
 *.depend
 *.cpp.save-failed
 obj/
+x64/
+Debug/
