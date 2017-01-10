@@ -14,7 +14,6 @@ $(window).ready(function() {
     buttonsLoadButtons();
   }
   if(currentPage == "index.html"){
-      dashboardLoadButtons();
         window.setInterval(function(){
           dashboardLoadStatus();
         }, 1000);
@@ -82,7 +81,7 @@ $(window).ready(function() {
               retrieveKey('webName', function(resp){
                 value = "xLights Scheduler";
                 if (resp == "\n" || resp == null || resp == "") {
-                  console.log("Default Setting Loaded "+ value);
+                  //console.log("Default Setting Loaded "+ value);
                 }else{
                   value = resp;
                 }
@@ -148,23 +147,6 @@ $(window).ready(function() {
             }
 
                     //Dashboard Page
-
-                    function dashboardLoadButtons(){
-                       $.ajax({
-                          url: '/xScheduleQuery?Query=GetButtons',
-                          dataType: "json",
-                          success: function(response){
-                            //do stuff
-                            for (var i = 0; i < "4"; i++) {
-                              var buttonName = response.buttons[i].replace(" ", "%20");
-
-                              var li = '<li><a href="#" onclick=buttonClick("'+buttonName+'")> <i class="icon-people"></i> '+response.buttons[i]+' </a></li>';
-                              $("#dashboardButtons ul").append(li);
-                            }
-                           //do stuff
-                          }
-                       });
-                    }
 
                     function dashboardLoadStatus(){
                       $.ajax({
@@ -253,6 +235,8 @@ $(window).ready(function() {
                                 </div>
                               </li>`;
                              $("#playlistStatus ul").append(notPlaying);
+                             var currentPlaylist = `<span class="icon"><i class="icon-file"></i></span><h5>Avalible Playlists:</h5>`;
+                             $('#currentPlaylist').html(currentPlaylist)
                             }
                           }
                       });
