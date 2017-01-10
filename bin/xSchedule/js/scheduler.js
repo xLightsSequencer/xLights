@@ -40,10 +40,10 @@ $(window).ready(function() {
           title = "XLights Scheduler";
           if (resp == "\n" || resp == null || resp == "") {
             storeKey("webName", title);
-            console.log("Default Name Saved "+ title);
+            //console.log("Default Name Saved "+ title);
           }else{
             title = resp;
-            console.log("Page Name Loaded "+ resp);
+            //console.log("Page Name Loaded "+ resp);
           }
           $('#header h1').html(title);
         });
@@ -51,9 +51,9 @@ $(window).ready(function() {
           value = "#ff0000";
           if (resp == "\n" || resp == null || resp == "") {
             storeKey("webColor", value);
-            console.log("Default Color Saved: "+ value);
+            //console.log("Default Color Saved: "+ value);
           }else{
-            console.log("Color Settings Loaded "+ resp);
+            //console.log("Color Settings Loaded "+ resp);
             value = resp;
           }
           updatePageColor(value);
@@ -178,9 +178,7 @@ $(window).ready(function() {
                               $("#currentPlaylistLoadingBarDiv").remove();
                               dashboardPopulatePlaylists();
                            }else{
-                             console.log("("+ $("#stepStatusBarContainer").html()+")");
                              if ($("#stepStatusBarContainer div").length ==0){
-console.log("hello");
                                var html = `
                                <div id="currentPlaylistLoadingBarDiv" class="progress progress-striped active">
                                 <div id="currentPlaylistLoadingBar" class="bar" style=""></div>
