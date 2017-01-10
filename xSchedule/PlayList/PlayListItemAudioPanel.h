@@ -28,16 +28,13 @@ class PlayListItemAudioPanel: public wxPanel
 
 		//(*Declarations(PlayListItemAudioPanel)
 		wxSlider* Slider1;
-		wxChoice* Choice_BlendMode;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Delay;
 		wxSpinCtrl* SpinCtrl_Priority;
-		wxCheckBox* CheckBox_OverrideAudio;
 		AudioFilePickerCtrl* FilePickerCtrl_AudioFile;
 		wxStaticText* StaticText5;
-		FSEQFilePickerCtrl* FilePickerCtrl_FSEQFile;
 		wxStaticText* StaticText4;
 		wxCheckBox* CheckBox_OverrideVolume;
 		//*)
@@ -46,7 +43,6 @@ class PlayListItemAudioPanel: public wxPanel
 
 		//(*Identifiers(PlayListItemAudioPanel)
 		static const long ID_STATICTEXT1;
-		static const long ID_FILEPICKERCTRL1;
 		static const long ID_STATICTEXT5;
 		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX1;
@@ -64,9 +60,7 @@ class PlayListItemAudioPanel: public wxPanel
 
 		//(*Handlers(PlayListItemAudioPanel)
 		void OnTextCtrl_DelayText(wxCommandEvent& event);
-		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		void OnFilePickerCtrl2FileChanged(wxFileDirPickerEvent& event);
-		void OnCheckBox_OverrideAudioClick(wxCommandEvent& event);
 		void OnCheckBox_OverrideVolumeClick(wxCommandEvent& event);
 		//*)
 
