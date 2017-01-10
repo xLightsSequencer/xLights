@@ -29,6 +29,7 @@ protected:
     bool _loopStep;
     bool _random;
     bool _jumpToEndStepsAtEndOfCurrentStep;
+    std::string _forceNextStep;
     #pragma endregion Member Variables
 
     int GetPos(PlayListStep* step);
@@ -44,6 +45,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    void JumpToStepAtEndOfCurrentStep(const std::string& step) { _forceNextStep = step; }
     PlayListStep* GetNextStep() const;
     PlayListStep* GetRunningStep() const { return _currentStep; }
     std::list<PlayListStep*> GetSteps() const { return _steps; }

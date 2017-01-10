@@ -8,6 +8,7 @@
 
 PlayList::PlayList(wxXmlNode* node)
 {
+    _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
     _priority = 0;
     _lastLoop = false;
@@ -23,6 +24,7 @@ PlayList::PlayList(wxXmlNode* node)
 
 PlayList::PlayList(const PlayList& playlist)
 {
+    _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
     _loopStep = false;
     _lastLoop = false;
@@ -45,6 +47,7 @@ PlayList::PlayList(const PlayList& playlist)
 
 PlayList::PlayList()
 {
+    _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
     _priority = 0;
     _loopStep = false;
@@ -293,6 +296,7 @@ void PlayList::Start(bool loop, bool random)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Playlist %s starting to play.", (const char*)GetName().c_str());
 
+    _forceNextStep = "";
     _loopStep = false;
     _stopAtEndOfCurrentStep = false;
     _jumpToEndStepsAtEndOfCurrentStep = false;
@@ -324,6 +328,17 @@ PlayListStep* PlayList::GetNextStep() const
 {
     if (_stopAtEndOfCurrentStep) return nullptr;
     if (_currentStep == nullptr) return nullptr;
+
+    if (_forceNextStep != "")
+    {
+        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        {
+            if ((*it)->GetNameNoTime() == _forceNextStep)
+            {
+                return *it;
+            }
+        }
+    }
 
     if (_loopStep)
     {
@@ -457,6 +472,7 @@ bool PlayList::JumpToNextStep()
     bool success = true;
 
     _loopStep = false;
+    _forceNextStep = "";
 
     if (_currentStep == nullptr) return false;
 
@@ -472,6 +488,7 @@ bool PlayList::JumpToNextStep()
 
 void PlayList::RestartCurrentStep()
 {
+    _forceNextStep = "";
     _loopStep = false;
     if (_currentStep != nullptr) _currentStep->Restart();
 }
@@ -482,6 +499,7 @@ bool PlayList::JumpToStep(const std::string& step)
 
     _lastLoop = false;
     _loopStep = false;
+    _forceNextStep = "";
 
     if (_currentStep != nullptr && _currentStep->GetName() == step)
     {
@@ -504,6 +522,7 @@ bool PlayList::JumpToStep(const std::string& step)
 
 bool PlayList::JumpToEndStepsAtEndOfCurrentStep()
 {
+    _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = true;
     _lastLoop = true;
     _loopStep = false;
@@ -563,9 +582,10 @@ bool PlayList::LoopStep(const std::string step)
         JumpToStep(step);
     }
 
+    _forceNextStep = "";
     _loopStep = true;
     _lastLoop = false;
     _looping = false;
 
-    return false;
+    return true;
 }

@@ -214,7 +214,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_wwwRoot" member="yes">
-							<value>xSchedule</value>
+							<value>xScheduleWeb</value>
 							<handler function="OnTextCtrl_wwwRootText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

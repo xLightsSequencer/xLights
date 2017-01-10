@@ -14,6 +14,8 @@
 //*)
 
 class PlayListItemFSEQ;
+class FSEQFilePickerCtrl;
+class AudioFilePickerCtrl;
 
 class PlayListItemFSEQPanel: public wxPanel
 {
@@ -33,11 +35,11 @@ class PlayListItemFSEQPanel: public wxPanel
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Delay;
 		wxSpinCtrl* SpinCtrl_Priority;
-		wxFilePickerCtrl* FilePickerCtrl_FSEQFile;
 		wxCheckBox* CheckBox_OverrideAudio;
+		AudioFilePickerCtrl* FilePickerCtrl_AudioFile;
 		wxStaticText* StaticText5;
+		FSEQFilePickerCtrl* FilePickerCtrl_FSEQFile;
 		wxStaticText* StaticText4;
-		wxFilePickerCtrl* FilePickerCtrl_AudioFile;
 		wxCheckBox* CheckBox_OverrideVolume;
 		//*)
 

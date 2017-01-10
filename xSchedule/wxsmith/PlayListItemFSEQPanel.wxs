@@ -15,7 +15,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" variable="FilePickerCtrl_FSEQFile" member="yes">
+				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" subclass="FSEQFilePickerCtrl" variable="FilePickerCtrl_FSEQFile" member="yes">
 					<message>FSEQ File</message>
 					<wildcard>*.fseq</wildcard>
 					<handler function="OnFilePickerCtrl1FileChanged" entry="EVT_FILEPICKER_CHANGED" />
@@ -61,7 +61,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL2" variable="FilePickerCtrl_AudioFile" member="yes">
+				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL2" subclass="AudioFilePickerCtrl" variable="FilePickerCtrl_AudioFile" member="yes">
 					<message>Audio File</message>
 					<wildcard></wildcard>
 					<handler function="OnFilePickerCtrl2FileChanged" entry="EVT_FILEPICKER_CHANGED" />

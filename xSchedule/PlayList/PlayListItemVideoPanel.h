@@ -11,6 +11,7 @@
 //*)
 
 class PlayListItemVideo;
+class VideoFilePickerCtrl;
 
 class PlayListItemVideoPanel: public wxPanel
 {
@@ -23,10 +24,10 @@ class PlayListItemVideoPanel: public wxPanel
 
 		//(*Declarations(PlayListItemVideoPanel)
 		wxStaticText* StaticText2;
+		VideoFilePickerCtrl* FilePickerCtrl_VideoFile;
 		wxStaticText* StaticText1;
 		wxTextCtrl* TextCtrl_Delay;
 		wxButton* Button_PositionWindow;
-		wxFilePickerCtrl* FilePickerCtrl_VideoFile;
 		//*)
 
 	protected:

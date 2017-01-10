@@ -21,6 +21,26 @@ BEGIN_EVENT_TABLE(PlayListItemVideoPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
+class VideoFilePickerCtrl : public wxFilePickerCtrl
+{
+#define VIDEOFILES "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v|All Files|*.*"
+
+public:
+    VideoFilePickerCtrl(wxWindow *parent,
+        wxWindowID id,
+        const wxString& path = wxEmptyString,
+        const wxString& message = wxFileSelectorPromptStr,
+        const wxString& wildcard = wxFileSelectorDefaultWildcardStr,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxFLP_DEFAULT_STYLE,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxFilePickerCtrlNameStr) :
+        wxFilePickerCtrl(parent, id, path, message, VIDEOFILES, pos, size, style, validator, name)
+    {}
+    virtual ~VideoFilePickerCtrl() {}
+};
+
 PlayListItemVideoPanel::PlayListItemVideoPanel(wxWindow* parent, PlayListItemVideo* video,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _video = video;
@@ -33,7 +53,7 @@ PlayListItemVideoPanel::PlayListItemVideoPanel(wxWindow* parent, PlayListItemVid
 	FlexGridSizer1->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Video File:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FilePickerCtrl_VideoFile = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, _("Video File"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
+	FilePickerCtrl_VideoFile = new VideoFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, _("Video File"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
 	FlexGridSizer1->Add(FilePickerCtrl_VideoFile, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_PositionWindow = new wxButton(this, ID_BUTTON1, _("Position Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));

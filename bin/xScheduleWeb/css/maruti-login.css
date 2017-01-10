@@ -1,0 +1,23 @@
+html, body {    width: 100%;    height: 100%;}
+body {	background-color:#2E363F;    padding: 0;    margin-top:10%;}
+#logo, #loginbox {    width: 32%;    margin-left: auto;    margin-right: auto;    position: relative;}
+#logo img {  margin: 0 auto;    display: block;}
+#loginbox { overflow: hidden !important;    text-align: left;    position: relative; }
+#loginbox form{	width:100%; background:#fff;	position:relative;	top:0;	left:0; }
+#loginbox .form-actions {	padding: 14px 20px 15px;}
+#loginbox .form-actions .pull-left { margin-top:0px;}
+#loginbox form#loginform {	z-index: 200; display:block;}
+#loginbox form#recoverform {	z-index: 100;	    display:none;}
+#loginbox form#recoverform .form-actions {    margin-top: 10px;}
+#loginbox .main_input_box { margin:0 auto; text-align:center}
+#loginbox .main_input_box .add-on{  background-color: #EEEEEE;    border: 1px solid #dadada;    display: inline-block;    font-size: 14px;    font-weight: normal;    height:30px;    line-height: 30px;    min-width: 16px;    padding: 4px 5px;     text-align: center;    text-shadow: 0 1px 0 #FFFFFF;    width:30px;}
+#loginbox .main_input_box input{ height:30px; display:inline-block; width:75%;  border: 1px solid #dadada; margin-bottom:3px;}
+#loginbox .controls{ padding:0 20px;}
+#loginbox .control-group{ padding:20px 0; border-bottom:1px solid #f6f6f6; margin-bottom:0px;}
+.form-vertical, .form-actions {    margin-bottom: 0;}
+#loginbox .normal_text{ padding:15px 10px; text-align:center; font-size:14px; line-height:20px; background:#49CCED; color:#fff; }
+@media (max-width: 480px){
+#logo { width: 40%; }
+#loginbox{ width:90%}
+#loginbox .control-group{ padding:8px 0; border-bottom:1px solid #dadada; margin-bottom:0px;}
+}

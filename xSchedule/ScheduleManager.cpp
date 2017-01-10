@@ -309,6 +309,7 @@ std::list<std::string> ScheduleManager::GetCommands() const
     res.push_back("Jump to random step in current playlist");
     res.push_back("Jump to random step in specified playlist");
     res.push_back("Jump to specified step in current playlist");
+    res.push_back("Jump to specified step in current playlist at the end of current step");
     res.push_back("Play playlist starting at step");
     res.push_back("Play playlist starting at step looped");
     res.push_back("Toggle loop current step");
@@ -498,6 +499,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
         {
             p->StopAtEndOfThisLoop();
         }
+        else
+        {
+            result = false;
+            msg = "No playlist currently playing.";
+        }
     }
     else if (command == "Pause")
     {
@@ -505,6 +511,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
         if (p != nullptr)
         {
             p->Pause();
+        }
+        else
+        {
+            result = false;
+            msg = "No playlist currently playing.";
         }
     }
     else if (command == "Next step in current playlist")
@@ -515,6 +526,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
         {
             rate = p->JumpToNextStep();
         }
+        else
+        {
+            result = false;
+            msg = "No playlist currently playing.";
+        }
     }
     else if (command == "Restart step in current playlist")
     {
@@ -524,6 +540,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
         {
             p->RestartCurrentStep();
         }
+        else
+        {
+            result = false;
+            msg = "No playlist currently playing.";
+        }
     }
     else if (command == "Prior step in current playlist")
     {
@@ -532,6 +553,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
         if (p != nullptr)
         {
             rate = p->JumpToPriorStep();
+        }
+        else
+        {
+            result = false;
+            msg = "No playlist currently playing.";
         }
     }
     else if (command == "Toggle loop current step")
@@ -548,6 +574,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             {
                 p->LoopStep(p->GetRunningStep()->GetName());
             }
+        }
+        else
+        {
+            result = false;
+            msg = "No playlist currently playing.";
         }
     }
     else if (command == "Play specified step in specified playlist looped")
@@ -686,6 +717,25 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
         {
             rate = p->JumpToStep(parameters);
         }
+        else
+        {
+            result = false;
+            msg = "No playlist currently playing.";
+        }
+    }
+    else if (command == "Jump to specified step in current playlist at the end of current step")
+    {
+        PlayList* p = GetRunningPlayList();
+
+        if (p != nullptr)
+        {
+            p->JumpToStepAtEndOfCurrentStep(parameters);
+        }
+        else
+        {
+            result = false;
+            msg = "No playlist currently playing.";
+        }
     }
     else if (command == "Jump to random step in current playlist")
     {
@@ -698,6 +748,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             {
                 rate = p->JumpToStep(r->GetName());
             }
+        }
+        else
+        {
+            result = false;
+            msg = "No playlist currently playing.";
         }
     }
     else if (command == "Jump to random step in specified playlist")
@@ -749,6 +804,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
         {
             p->SetRandom(!p->IsRandom());
         }
+        else
+        {
+            result = false;
+            msg = "No playlist currently playing.";
+        }
     }
     else if (command == "Toggle current playlist loop")
     {
@@ -757,6 +817,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
         if (p != nullptr)
         {
             p->SetLooping(!p->IsLooping());
+        }
+        else
+        {
+            result = false;
+            msg = "No playlist currently playing.";
         }
     }
     else if (command == "Save schedule")
@@ -894,13 +959,14 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
         else
         {
             data = "{\"status\":\"" + std::string(p->IsPaused() ? "paused" : "playing") + "\",\"playlist\":\"" + p->GetName() + 
-                "\",\"looping\":\"" + (p->IsLooping() ? "true" : "false") +
+                "\",\"playlistlooping\":\"" + (p->IsLooping() ? "true" : "false") +
                 "\",\"random\":\"" + (p->IsRandom() ? "true" : "false") +
                 "\",\"step\":\"" + p->GetRunningStep()->GetNameNoTime() +
-                "\",\"looping\":\"" + (p->IsStepLooping()? "true" : "false") +
+                "\",\"steplooping\":\"" + (p->IsStepLooping()? "true" : "false") +
                 "\",\"length\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS()) +
                 "\",\"position\":\"" + FormatTime(p->GetRunningStep()->GetPosition()) +
-                "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) + "\"}";
+                "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) + 
+                "\",\"outputtolights\":\"" + (_outputManager->IsOutputting() ? "true" : "false") + "\"}";
         }
     }
     else if (command == "GetButtons")

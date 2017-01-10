@@ -66,7 +66,10 @@ void HttpRequest::Parse(const wxString &input)
             }
             else if (state == 1)
             {
-                _data += rows[i] + "\n";
+                _data += rows[i];
+
+                // dont add a carriage return to the last line
+                if (i < rows.Count() - 1) _data += "\n";
             }
 		}
 	}

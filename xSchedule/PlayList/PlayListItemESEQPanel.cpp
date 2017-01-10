@@ -23,6 +23,26 @@ BEGIN_EVENT_TABLE(PlayListItemESEQPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
+class ESEQFilePickerCtrl : public wxFilePickerCtrl
+{
+#define ESEQFILES "ESEQ files|*.eseq|All files (*.*)|*.*"
+
+public:
+    ESEQFilePickerCtrl(wxWindow *parent,
+        wxWindowID id,
+        const wxString& path = wxEmptyString,
+        const wxString& message = wxFileSelectorPromptStr,
+        const wxString& wildcard = wxFileSelectorDefaultWildcardStr,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxFLP_DEFAULT_STYLE,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxFilePickerCtrlNameStr) :
+        wxFilePickerCtrl(parent, id, path, message, ESEQFILES, pos, size, style, validator, name)
+    {}
+    virtual ~ESEQFilePickerCtrl() {}
+};
+
 PlayListItemESEQPanel::PlayListItemESEQPanel(wxWindow* parent, PlayListItemESEQ* ESEQ, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _ESEQ = ESEQ;
@@ -35,7 +55,7 @@ PlayListItemESEQPanel::PlayListItemESEQPanel(wxWindow* parent, PlayListItemESEQ*
 	FlexGridSizer1->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("ESEQ File:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FilePickerCtrl_ESEQFile = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, _("ESEQ File"), _T("*.ESEQ"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
+	FilePickerCtrl_ESEQFile = new ESEQFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, _("ESEQ File"), _T("*.ESEQ"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
 	FlexGridSizer1->Add(FilePickerCtrl_ESEQFile, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Blend Mode:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);

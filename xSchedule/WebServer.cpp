@@ -38,6 +38,9 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::string wwwroot = xScheduleFrame::GetScheduleManager()->GetOptions()->GetWWWRoot();
+
     if (request.URI().StartsWith("/xScheduleCommand"))
     {
         wxURI url(request.URI());
@@ -67,6 +70,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
             response.MakeFromText(data, "application/json");
         }
         connection.SendResponse(response);
+        return true;
     }
     else if (request.URI().StartsWith("/xScheduleStash"))
     {
@@ -127,6 +131,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
             response.MakeFromText(data, "application/json");
             connection.SendResponse(response);
         }
+        return true;
     }
     else if (request.URI().StartsWith("/xScheduleQuery"))
     {
@@ -156,10 +161,24 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         }
 
         connection.SendResponse(response);
+        return true;
+    }
+    else if (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/")
+    {
+        int port = connection.Server()->Context().Port;
+        wxString url = "http://" + request.Host() + "/" + wwwroot + "/index.html";
+
+        logger_base.info("Redirecting to '%s'.", (const char *)url.c_str());
+
+        HttpResponse response(connection, request, HttpStatus::PermanentRedirect);
+        response.AddHeader("location", url);
+
+        connection.SendResponse(response);
+
+        return true; // disable default processing
     }
     else
     {
-        std::string wwwroot = xScheduleFrame::GetScheduleManager()->GetOptions()->GetWWWRoot();
         if (request.URI().StartsWith("/" + wwwroot))
         {
             wxString d;
@@ -175,7 +194,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
             HttpResponse response(connection, request, HttpStatus::OK);
 
-            response.AddHeader("Cache-Control", "max-age=31536000");
+            //response.AddHeader("Cache-Control", "max-age=14400");
 
             response.MakeFromFile(file);
 

@@ -15,7 +15,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" variable="FilePickerCtrl_ESEQFile" member="yes">
+				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" subclass="ESEQFilePickerCtrl" variable="FilePickerCtrl_ESEQFile" member="yes">
 					<message>ESEQ File</message>
 					<wildcard>*.ESEQ</wildcard>
 					<handler function="OnFilePickerCtrl1FileChanged" entry="EVT_FILEPICKER_CHANGED" />

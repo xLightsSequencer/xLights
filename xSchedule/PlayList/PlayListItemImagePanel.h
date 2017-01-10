@@ -11,6 +11,7 @@
 //*)
 
 class PlayListItemImage;
+class ImageFilePickerCtrl;
 
 class PlayListItemImagePanel: public wxPanel
 {
@@ -22,9 +23,9 @@ class PlayListItemImagePanel: public wxPanel
 		virtual ~PlayListItemImagePanel();
 
 		//(*Declarations(PlayListItemImagePanel)
-		wxFilePickerCtrl* FilePickerCtrl_ImageFile;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText1;
+		ImageFilePickerCtrl* FilePickerCtrl_ImageFile;
 		wxTextCtrl* TextCtrl_Delay;
 		wxButton* Button_PositionWindow;
 		//*)

@@ -12,6 +12,7 @@
 //*)
 
 class PlayListItemESEQ;
+class ESEQFilePickerCtrl;
 
 class PlayListItemESEQPanel: public wxPanel
 {
@@ -28,9 +29,9 @@ class PlayListItemESEQPanel: public wxPanel
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
+		ESEQFilePickerCtrl* FilePickerCtrl_ESEQFile;
 		wxTextCtrl* TextCtrl_Delay;
 		wxSpinCtrl* SpinCtrl_Priority;
-		wxFilePickerCtrl* FilePickerCtrl_ESEQFile;
 		wxStaticText* StaticText4;
 		//*)
 
