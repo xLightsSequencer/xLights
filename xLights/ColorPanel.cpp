@@ -1072,7 +1072,7 @@ void ColorPanel::SetSupports(bool linear, bool radial)
 
     for (size_t i = 0; i < PALETTE_SIZE; ++i)
     {
-        wxString ccbids = wxString::Format("ID_BUTTON_Palette%d", (i + 1));
+        wxString ccbids = wxString::Format("ID_BUTTON_Palette%d", (int)(i + 1));  // 64bit version on Windows gets a debug alert without the (int) cast
         ColorCurveButton* ccb = (ColorCurveButton*)wxWindow::FindWindowByName(ccbids, this);
         ccb->GetValue()->SetValidTimeCurve(linear, radial);
     }
