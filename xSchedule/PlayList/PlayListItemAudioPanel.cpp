@@ -9,7 +9,6 @@
 
 //(*IdInit(PlayListItemAudioPanel)
 const long PlayListItemAudioPanel::ID_STATICTEXT1 = wxNewId();
-const long PlayListItemAudioPanel::ID_FILEPICKERCTRL1 = wxNewId();
 const long PlayListItemAudioPanel::ID_STATICTEXT5 = wxNewId();
 const long PlayListItemAudioPanel::ID_CHOICE1 = wxNewId();
 const long PlayListItemAudioPanel::ID_CHECKBOX1 = wxNewId();
