@@ -51,9 +51,17 @@
             <div class="widget-content nopadding">
             <ul class="recent-posts">
               <div id="currentStep"></div>
+              <div id="stepStatusBarContainer" style="padding-left:12px; padding-right:16px;"></div>
             </ul>
-            <div id="stepStatusBarContainer"></div>
+            <div class="form-actions" style="margin-top: 0px; margin-bottom: 0px;">
+                <button onclick="dashboardToggleSetting('random', 'random','random')" id="random" class="btn btn-primary">Random</button>
+                <button onclick="dashboardToggleSetting('pausePlaylist', 'pausePlaylist', 'pause')" id="pausePlaylist" class="btn btn-success">Pause</button>
+                <button onclick="dashboardToggleSetting('toggleSongLoop', 'Toggle loop current step')" id="toggleSongLoop" class="btn btn-danger">Toggle Song Loop</button>
+                <button onclick="dashboardToggleSetting('togglePlaylistLoop', 'Toggle current playlist loop')" id="togglePlaylistLoop" class="btn btn-danger">Toggle Playlist Loop</button>
+                <button onclick="dashboardToggleSetting('toggleOutputLights', 'Toggle output to lights')" id="toggleOutputLights" class="btn btn-danger">Output To Lights</button>
+            </div>
           </div>
+
 
           </div>
 

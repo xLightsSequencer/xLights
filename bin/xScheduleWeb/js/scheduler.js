@@ -160,6 +160,8 @@ $(window).ready(function() {
                               $("#currentPlaylistLoadingBarDiv").remove();
                               dashboardPopulatePlaylists();
                            }else{
+
+                             //Display Status Bar
                              if ($("#stepStatusBarContainer div").length ==0){
                                var html = `
                                <div id="currentPlaylistLoadingBarDiv" class="progress progress-striped active">
@@ -241,6 +243,31 @@ $(window).ready(function() {
                           }
                       });
                     }
+
+                    function dashboardToggleSetting(id, setting, status){
+                      //toggle the setting
+                      runCommand(setting);
+                      //check status
+
+                    $.ajax({
+                       url: '/xScheduleQuery?Query=GetPlayingStatus',
+                       dataType: "json",
+                       indexValue: status,
+                       success: function(response){
+                         //asdas
+                         var status = this.indexValue;
+                         console.log(status);
+                         console.log(response);
+                         if (response.id == "false"){
+                          $('#'+setting).attr('class', "btn btn-danger");
+                        }else{
+                          $('#'+setting).attr('class', "btn btn-success");
+                        }
+
+
+                    }
+                  });
+                }
 
 
   //Utility
