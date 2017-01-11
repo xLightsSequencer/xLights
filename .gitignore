@@ -1,4 +1,5 @@
 bin/xLights
+bin/xSchedule
 bin/*.dll
 bin/*.exe
 bin/*.map
