@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>xSchedule WebUI</title>
+<title>.</title>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <script src="js/jquery.min.js"></script>
@@ -44,24 +44,21 @@
     <div class="container-fluid">
       <div class="dashboard-center">
       <div class="row-fluid">
-          <div id="barContainer" class="widget-box">
-            <div class="widget-title"> <span class="icon"> <i class="icon-refresh"></i></span>
-              <h5>Scheduler Status</h5>
-            </div>
-            <div class="widget-content nopadding">
-            <ul class="recent-posts">
-              <div id="currentStep"></div>
-              <div id="stepStatusBarContainer" style="padding-left:12px; padding-right:16px;"></div>
-            </ul>
-            <div class="form-actions" style="margin-top: 0px; margin-bottom: 0px;">
-                <button onclick="dashboardToggleSetting('random', 'random','random')" id="random" class="btn btn-primary">Random</button>
-                <button onclick="dashboardToggleSetting('pausePlaylist', 'pausePlaylist', 'pause')" id="pausePlaylist" class="btn btn-success">Pause</button>
-                <button onclick="dashboardToggleSetting('toggleSongLoop', 'Toggle loop current step')" id="toggleSongLoop" class="btn btn-danger">Toggle Song Loop</button>
-                <button onclick="dashboardToggleSetting('togglePlaylistLoop', 'Toggle current playlist loop')" id="togglePlaylistLoop" class="btn btn-danger">Toggle Playlist Loop</button>
-                <button onclick="dashboardToggleSetting('toggleOutputLights', 'Toggle output to lights')" id="toggleOutputLights" class="btn btn-danger">Output To Lights</button>
+            <div id="barContainer" class="widget-box">
+              <div class="widget-title"> <span class="icon"> <i class="icon-refresh"></i></span>
+                <h5>Scheduler Status  </h5>
+                <div class="buttons">
+                  <button onclick="runCommand('Toggle output to lights')" id="outputtolights" class="btn btn-mini btn-info">Output To Lights</button>
+                </div>
+              </div>
+              <div class="widget-content nopadding">
+              <ul class="recent-posts">
+                <div id="currentStep"></div>
+                <div id="stepStatusBarContainer" style="padding-left:12px; padding-right:16px;"></div>
+              </ul>
+              <div id="toggleButtonContainer">
             </div>
           </div>
-
 
           </div>
 
