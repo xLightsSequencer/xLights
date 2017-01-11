@@ -12,10 +12,17 @@
 
 #include <wx/app.h>
 
+#ifdef _MSC_VER_
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#endif
+
 class xScheduleApp : public wxApp
 {
     public:
         virtual bool OnInit();
+        virtual void OnFatalException();
 };
 
 DECLARE_APP(xScheduleApp)

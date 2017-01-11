@@ -10,7 +10,70 @@
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
 					<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
-						<cols>3</cols>
+						<cols>7</cols>
+						<object class="sizeritem">
+							<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButton_OutputToLights" member="yes">
+								<size>32,32</size>
+								<handler function="OnBitmapButton_OutputToLightsClick" entry="EVT_BUTTON" />
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" variable="BitmapButton_Random" member="yes">
+								<size>32,32</size>
+								<handler function="OnBitmapButton_RandomClick" entry="EVT_BUTTON" />
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="BitmapButton_Playing" member="yes">
+								<size>32,32</size>
+								<handler function="OnBitmapButton_PlayingClick" entry="EVT_BUTTON" />
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="BitmapButton_PLLoop" member="yes">
+								<size>32,32</size>
+								<handler function="OnBitmapButton_PLLoopClick" entry="EVT_BUTTON" />
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxBitmapButton" name="ID_BITMAPBUTTON5" variable="BitmapButton_StepLoop" member="yes">
+								<size>32,32</size>
+								<handler function="OnBitmapButton_StepLoopClick" entry="EVT_BUTTON" />
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxBitmapButton" name="ID_BITMAPBUTTON6" variable="BitmapButton_IsScheduled" member="yes">
+								<size>32,32</size>
+								<handler function="OnBitmapButton_IsScheduledClick" entry="EVT_BUTTON" />
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxBitmapButton" name="ID_BITMAPBUTTON7" variable="BitmapButton_Unsaved" member="yes">
+								<size>32,32</size>
+								<handler function="OnBitmapButton_UnsavedClick" entry="EVT_BUTTON" />
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

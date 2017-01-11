@@ -40,6 +40,7 @@ class ScheduleManager
         bool IsRunning() const { return GetRunningPlayList() != nullptr; }
         void Frame(); // called when a frame needs to be displayed ... returns desired frame rate
         int CheckSchedule();
+        std::string GetShowDir() const { return _showDir; }
         bool PlayPlayList(PlayList* playlist, size_t& rate, bool loop = false, const std::string& step = "", bool forcelast = false);
         bool IsSomethingPlaying() const { return GetRunningPlayList() != nullptr; }
         void OptionsChanged() {};
@@ -50,6 +51,13 @@ class ScheduleManager
         void StopPlayList(PlayList* playlist, bool atendofcurrentstep);
         bool StoreData(const std::string& key, const std::string& data, std::string& msg) const;
         bool RetrieveData(const std::string& key, std::string& data, std::string& msg) const;
+        bool ToggleOutputToLights(std::string& msg);
+        bool ToggleCurrentPlayListRandom(std::string& msg);
+        bool ToggleCurrentPlayListPause(std::string& msg);
+        bool ToggleCurrentPlayListLoop(std::string& msg);
+        bool ToggleCurrentPlayListStepLoop(std::string& msg);
+        bool IsOutputToLights() const;
+        bool IsCurrentPlayListScheduled() const { return _immediatePlay == nullptr; }
 };
 
 #endif

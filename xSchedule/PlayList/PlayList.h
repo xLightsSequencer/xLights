@@ -54,12 +54,12 @@ public:
     bool IsDirty() const;
     void ClearDirty();
     bool IsRandom() const { return _random; }
-    void SetRandom(bool random) { _random = random; _looping = false; }
-    void SetLooping(bool looping) { _looping = looping; _random = false; }
+    bool SetRandom(bool random) { _random = random; return true; }
+    bool SetLooping(bool looping) { _looping = looping; return true; }
     bool IsStepLooping() const { return _loopStep; }
     void ClearStepLooping() { _loopStep = false; }
     std::string GetName() const { return _name; }
-    std::string GetNameNoTime() const;
+    std::string GetNameNoTime() const { return GetName(); };
     void SetName(const std::string& name) { _name = name; _dirty = true; }
     bool GetFirstOnce() const
     { return _firstOnlyOnce; }
@@ -85,6 +85,7 @@ public:
     void Pause();
     bool IsPaused() const;
     bool JumpToNextStep();
+    bool MoveToNextStep();
     bool JumpToPriorStep();
     bool JumpToStep(const std::string& step);
     bool JumpToEndStepsAtEndOfCurrentStep();

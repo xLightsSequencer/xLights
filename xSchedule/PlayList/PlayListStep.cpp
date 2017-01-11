@@ -147,7 +147,7 @@ std::string PlayListStep::GetName() const
 
     if (_items.size() == 0) return "<unnamed>";
 
-    return _items.front()->GetName();
+    return _items.front()->GetNameNoTime();
 }
 
 std::string PlayListStep::GetNameNoTime() const
@@ -244,7 +244,7 @@ size_t PlayListStep::GetFrameMS() const
 void PlayListStep::Start()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Playlist step %s starting.", (const char*)GetName().c_str());
+    logger_base.info("Playlist step %s starting.", (const char*)GetNameNoTime().c_str());
 
     _startTime = wxGetUTCTimeMillis();
     for (auto it = _items.begin(); it != _items.end(); ++it)
@@ -253,10 +253,25 @@ void PlayListStep::Start()
     }
 }
 
+void PlayListStep::Pause(bool pause)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (pause)
+        logger_base.info("Playlist step %s pausing.", (const char*)GetNameNoTime().c_str());
+    else
+        logger_base.info("Playlist step %s unpausing.", (const char*)GetNameNoTime().c_str());
+
+    for (auto it = _items.begin(); it != _items.end(); ++it)
+    {
+        (*it)->Pause(pause);
+    }
+}
+
 void PlayListStep::Restart()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Playlist step %s restarting.", (const char*)GetName().c_str());
+    logger_base.info("Playlist step %s restarting.", (const char*)GetNameNoTime().c_str());
 
     _startTime = wxGetUTCTimeMillis();
     for (auto it = _items.begin(); it != _items.end(); ++it)
@@ -268,7 +283,7 @@ void PlayListStep::Restart()
 void PlayListStep::Stop()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Playlist step %s stopping.", (const char*)GetName().c_str());
+    logger_base.info("Playlist step %s stopping.", (const char*)GetNameNoTime().c_str());
 
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {

@@ -10,7 +10,7 @@
 #ifndef XLIGHTSAPP_H
 #define XLIGHTSAPP_H
 
-#ifdef _MSC_VER
+#ifdef _MSC_VER_
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>

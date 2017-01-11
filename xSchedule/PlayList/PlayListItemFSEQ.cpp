@@ -179,6 +179,21 @@ void PlayListItemFSEQ::Start()
     }
 }
 
+void PlayListItemFSEQ::Pause(bool pause)
+{
+    if (ControlsTiming())
+    {
+        if (pause)
+        {
+            _audioManager->Pause();
+        }
+        else
+        {
+            _audioManager->Play();
+        }
+    }
+}
+
 void PlayListItemFSEQ::Stop()
 {
     if (_audioManager != nullptr)

@@ -215,6 +215,12 @@
     <ClCompile Include="wxHTTPServer\status.cpp">
       <Filter>wxHTTPServer</Filter>
     </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemAudio.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemAudioPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -371,6 +377,12 @@
     </ClInclude>
     <ClInclude Include="wxHTTPServer\wxhttpserver.h">
       <Filter>wxHTTPServer</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemAudio.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemAudioPanel.h">
+      <Filter>PlayList</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

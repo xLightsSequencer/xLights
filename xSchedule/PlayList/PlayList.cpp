@@ -268,12 +268,15 @@ bool PlayList::Frame(wxByte* buffer, size_t size)
 {
     if (_currentStep != nullptr)
     {
-        if (IsPaused()) return false;
+        if (IsPaused())
+        {
+            return false;
+        }
 
         // This returns true if everything is done
         if (_currentStep->Frame(buffer, size))
         {
-            return !JumpToNextStep();
+            return !MoveToNextStep();
         }
     }
 
@@ -449,6 +452,11 @@ void PlayList::Pause()
     {
         _pauseTime = wxDateTime::Now();
     }
+
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        (*it)->Pause(IsPaused());
+    }
 }
 
 bool PlayList::JumpToPriorStep()
@@ -478,6 +486,24 @@ bool PlayList::JumpToNextStep()
 
     _currentStep->Stop();
     _currentStep = GetNextStep();
+
+    if (_currentStep == nullptr) return false;
+
+    _currentStep->Start();
+
+    return success;
+}
+
+bool PlayList::MoveToNextStep()
+{
+    bool success = true;
+
+    if (_currentStep == nullptr) return false;
+
+    _currentStep->Stop();
+    _currentStep = GetNextStep();
+
+    _forceNextStep = "";
 
     if (_currentStep == nullptr) return false;
 
@@ -571,6 +597,9 @@ PlayListStep* PlayList::GetRandomStep() const
             return GetRandomStep();
         }
 
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("Playlist %s randomly chose step %d of %d (%d eligible).", (const char*)GetName().c_str(), selected + offset, _steps.size(), count);
+
         return *it;
     }
 }
@@ -584,8 +613,6 @@ bool PlayList::LoopStep(const std::string step)
 
     _forceNextStep = "";
     _loopStep = true;
-    _lastLoop = false;
-    _looping = false;
 
     return true;
 }

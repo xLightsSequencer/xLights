@@ -47,6 +47,7 @@ public:
     void Start();
     void Stop();
     void Restart();
+    void Pause(bool pause);
     int GetPlayStepSize() const { return _items.size(); }
     void AddItem(PlayListItem* item) { _items.push_back(item); _items.sort(); _dirty = true; }
     void RemoveItem(PlayListItem* item);

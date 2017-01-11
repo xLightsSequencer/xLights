@@ -66,6 +66,7 @@ public:
     virtual void Start() {}
     virtual void Stop() {}
     virtual void Restart() {}
+    virtual void Pause(bool pause) {}
     #pragma endregion Playing
 
     #pragma region UI
