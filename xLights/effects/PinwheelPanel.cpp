@@ -3,18 +3,18 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(PinwheelPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(PinwheelPanel)
@@ -41,6 +41,8 @@ const long PinwheelPanel::ID_SLIDER_Pinwheel_Speed = wxNewId();
 const long PinwheelPanel::ID_VALUECURVE_Pinwheel_Speed = wxNewId();
 const long PinwheelPanel::IDD_TEXTCTRL_Pinwheel_Speed = wxNewId();
 const long PinwheelPanel::ID_BITMAPBUTTON26 = wxNewId();
+const long PinwheelPanel::ID_STATICTEXT1 = wxNewId();
+const long PinwheelPanel::ID_CHOICE_Pinwheel_Style = wxNewId();
 const long PinwheelPanel::ID_STATICTEXT78 = wxNewId();
 const long PinwheelPanel::ID_CHECKBOX_Pinwheel_Rotation = wxNewId();
 const long PinwheelPanel::ID_BITMAPBUTTON19 = wxNewId();
@@ -65,29 +67,29 @@ END_EVENT_TABLE()
 PinwheelPanel::PinwheelPanel(wxWindow* parent)
 {
 	//(*Initialize(PinwheelPanel)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer59;
-	wxTextCtrl* TextCtrl69;
-	wxFlexGridSizer* FlexGridSizer63;
 	wxTextCtrl* TextCtrl70;
-	wxTextCtrl* TextCtrl68;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxTextCtrl* TextCtrl64;
-	wxFlexGridSizer* FlexGridSizer62;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer55;
-	wxTextCtrl* TextCtrl66;
-	wxFlexGridSizer* FlexGridSizer61;
-	wxBoxSizer* BoxSizer1;
-	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
-	wxTextCtrl* TextCtrl67;
-	wxFlexGridSizer* FlexGridSizer64;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer59;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer55;
+	wxTextCtrl* TextCtrl68;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxTextCtrl* TextCtrl65;
 	wxStaticText* StaticText184;
 	wxFlexGridSizer* FlexGridSizer68;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer64;
 	wxFlexGridSizer* FlexGridSizer128;
-	wxTextCtrl* TextCtrl65;
+	wxTextCtrl* TextCtrl67;
+	wxTextCtrl* TextCtrl64;
+	wxFlexGridSizer* FlexGridSizer63;
+	wxBoxSizer* BoxSizer1;
+	wxFlexGridSizer* FlexGridSizer62;
+	wxTextCtrl* TextCtrl66;
+	wxFlexGridSizer* FlexGridSizer61;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxTextCtrl* TextCtrl69;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer55 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -165,6 +167,13 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
 	BitmapButton7 = new wxBitmapButton(this, ID_BITMAPBUTTON26, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON26"));
 	BitmapButton7->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer128->Add(BitmapButton7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Style"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer128->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Pinwheel_Style = new wxChoice(this, ID_CHOICE_Pinwheel_Style, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Pinwheel_Style"));
+	Choice_Pinwheel_Style->SetSelection( Choice_Pinwheel_Style->Append(_("Old Render Method")) );
+	Choice_Pinwheel_Style->Append(_("New Render Method"));
+	FlexGridSizer128->Add(Choice_Pinwheel_Style, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer128->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer55->Add(FlexGridSizer128, 1, wxALL|wxEXPAND, 0);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	FlexGridSizer59 = new wxFlexGridSizer(0, 4, 0, 0);

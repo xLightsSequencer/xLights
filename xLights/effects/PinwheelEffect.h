@@ -13,9 +13,10 @@ class PinwheelEffect : public RenderableEffect
         virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) override { return true; }
-    
+
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
+        virtual void Draw_arm(RenderBuffer &buffer, int base_degrees,int max_radius,int pinwheel_twist, const xlColor &rgb,int xc_adj,int yc_adj);
 
 };
 
