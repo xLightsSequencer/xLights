@@ -43,7 +43,7 @@ ModelGroup::ModelGroup(wxXmlNode *node, const ModelManager &m, int w, int h) : M
     screenLocation.previewH = h;
     Reset();
 }
-void ModelGroup::Reset() {
+bool ModelGroup::Reset() {
     selected = false;
     name = ModelXml->GetAttribute("name").ToStdString();
     DisplayAs = "ModelGroup";
@@ -81,6 +81,8 @@ void ModelGroup::Reset() {
                 int bw, bh;
                 c->InitRenderBufferNodes("Per Preview No Offset", "None", Nodes, bw, bh);
             }
+        } else {
+            return false;
         }
     }
 
@@ -188,6 +190,7 @@ void ModelGroup::Reset() {
     screenLocation.SetOffset(0.5, 0.5);
 
     SetMinMaxModelScreenCoordinates(screenLocation.previewW, screenLocation.previewH);
+    return true;
 }
 
 ModelGroup::~ModelGroup()

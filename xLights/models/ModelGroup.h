@@ -29,7 +29,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
         virtual int GetNumStrands() const override { return 0;}
 
-        void Reset();
+        bool Reset();
     protected:
         static std::vector<std::string> GROUP_BUFFER_STYLES;
 
