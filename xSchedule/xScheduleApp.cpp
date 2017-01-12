@@ -23,7 +23,7 @@
 #include "../xLights/xLightsVersion.h"
 #include <wx/filename.h>
 #include "ScheduleManager.h"
-#include "../xLights/Outputs/OutputManager.h"
+#include "../xLights/outputs/OutputManager.h"
 #include <wx/stdpaths.h>
 #include <wx/debugrpt.h>
 
