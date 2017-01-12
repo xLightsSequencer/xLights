@@ -612,6 +612,7 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
 
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
+    if (__schedule == nullptr) return;
     __schedule->Frame();
 
     UpdateStatus();
