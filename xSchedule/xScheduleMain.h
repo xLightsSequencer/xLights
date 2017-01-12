@@ -138,7 +138,6 @@ public:
         static const long ID_MNU_SCHEDULEPLAYLIST;
         static const long ID_MNU_EDIT;
         static const long ID_MNU_DELETE;
-        static const long ID_MNU_PLAYNOW;
         static const long ID_BUTTON_USER;
 
         //(*Declarations(xScheduleFrame)
@@ -146,6 +145,7 @@ public:
         wxBitmapButton* BitmapButton_StepLoop;
         wxBitmapButton* BitmapButton_PLLoop;
         wxBitmapButton* BitmapButton_IsScheduled;
+        wxStaticText* StaticText_Time;
         wxPanel* Panel5;
         wxBitmapButton* BitmapButton_OutputToLights;
         wxBitmapButton* BitmapButton_Unsaved;
@@ -154,7 +154,6 @@ public:
         xLightsTimer _timer;
         wxMenuItem* MenuItem_Save;
         wxPanel* Panel1;
-        wxStaticText* StaticText_Status;
         wxPanel* Panel3;
         wxStaticText* StaticText_ShowDir;
         wxStatusBar* StatusBar1;

@@ -195,6 +195,9 @@ void PlayList::AddStep(PlayListStep* item, int pos)
     }
 
     _steps = newsteps;
+
+    // sort on priority
+    _steps.sort();
 }
 
 void PlayList::ClearDirty()

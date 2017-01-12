@@ -19,6 +19,7 @@ protected:
     bool _excludeFromRandom;
     size_t _framecount;
     wxLongLong _startTime;
+    wxLongLong _pause;
 #pragma endregion Member Variables
 
     PlayListItem* GetTimeSource(int& ms) const;
@@ -34,7 +35,7 @@ public:
 #pragma endregion Constructors and Destructors
 
 #pragma region Getters and Setters
-    std::list<PlayListItem*> GetItems() const { return _items; }
+    std::list<PlayListItem*> GetItems();
     bool IsDirty() const;
     void ClearDirty();
     std::string GetStatus(bool ms = false) const;

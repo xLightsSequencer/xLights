@@ -164,17 +164,19 @@ void PlayListDialog::OnTextCtrl_PlayListNameText(wxCommandEvent& event)
 
 bool PlayListDialog::IsPlayList(wxTreeItemId id)
 {
-    return (id == TreeCtrl_PlayList->GetRootItem());
+    return (id.IsOk() && id == TreeCtrl_PlayList->GetRootItem());
 }
 
 bool PlayListDialog::IsPlayListStep(wxTreeItemId id)
 {
-    return (TreeCtrl_PlayList->GetItemParent(id) == TreeCtrl_PlayList->GetRootItem());
+    return (id.IsOk() && TreeCtrl_PlayList->GetItemParent(id) == TreeCtrl_PlayList->GetRootItem());
 }
 
 void PlayListDialog::OnTreeCtrl_PlayListSelectionChanged(wxTreeEvent& event)
 {
     wxTreeItemId treeitem = TreeCtrl_PlayList->GetSelection();
+    if (!treeitem.IsOk()) return;
+
     if (IsPlayList(treeitem))
     {
         PlayList* pl = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();

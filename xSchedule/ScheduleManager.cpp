@@ -11,6 +11,11 @@
 #include <wx/dir.h>
 #include <wx/file.h>
 
+bool compare_name(const PlayList* first, const PlayList* second)
+{
+    return first->GetNameNoTime() < second->GetNameNoTime();
+}
+
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -47,6 +52,8 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
         logger_base.error("Problem loading xml file %s.", (const char *)(showDir + "/" + GetScheduleFile()).c_str());
     }
 
+    _playLists.sort(compare_name);
+
     if (_scheduleOptions == nullptr)
     {
         _scheduleOptions = new ScheduleOptions();
@@ -62,6 +69,19 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     logger_base.info("Allocated frame buffer of %ld bytes", _outputManager->GetTotalChannels());
     _buffer = (wxByte*)malloc(_outputManager->GetTotalChannels());
     memset(_buffer, 0x00, _outputManager->GetTotalChannels());
+}
+
+void ScheduleManager::AddPlayList(PlayList* playlist)
+{
+    _playLists.push_back(playlist);     
+    _playLists.sort(compare_name); 
+    _dirty = true;
+}
+
+std::list<PlayList*> ScheduleManager::GetPlayLists()
+{
+    _playLists.sort(compare_name); 
+    return _playLists;
 }
 
 ScheduleManager::~ScheduleManager()
@@ -905,6 +925,17 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
         }
         else
         {
+            std::string nextsong = "";
+            auto next = p->GetNextStep();
+            if (p->IsRandom())
+            {
+                nextsong = "God knows";
+            }
+            else
+            {
+                nextsong = next->GetNameNoTime();
+            }
+
             data = "{\"status\":\"" + std::string(p->IsPaused() ? "paused" : "playing") + "\",\"playlist\":\"" + p->GetNameNoTime() + 
                 "\",\"playlistlooping\":\"" + (p->IsLooping() ? "true" : "false") +
                 "\",\"random\":\"" + (p->IsRandom() ? "true" : "false") +
@@ -914,7 +945,10 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"position\":\"" + FormatTime(p->GetRunningStep()->GetPosition()) +
                 "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) + 
                 "\",\"trigger\":\"" + std::string(IsCurrentPlayListScheduled() ? "scheduled": "manual") +
+                "\",\"nextstep\":\"" + nextsong +
                 "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\"}";
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.info("%s", (const char*)data.c_str());
         }
     }
     else if (command == "GetButtons")

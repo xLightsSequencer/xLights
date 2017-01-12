@@ -6,6 +6,7 @@
 
 PlayListItemImage::PlayListItemImage(wxXmlNode* node) : PlayListItem(node)
 {
+    _duration = 0;
     _done = false;
     _window = nullptr;
     _ImageFile = "";
@@ -31,10 +32,12 @@ void PlayListItemImage::Load(wxXmlNode* node)
     _ImageFile = node->GetAttribute("ImageFile", "");
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
+    _duration = wxAtoi(node->GetAttribute("Duration", "0"));
 }
 
 PlayListItemImage::PlayListItemImage() : PlayListItem()
 {
+    _duration = 0;
     _done = false;
     _window = nullptr;
     _ImageFile = "";
@@ -50,6 +53,7 @@ PlayListItem* PlayListItemImage::Copy() const
     res->_ImageFile = _ImageFile;
     res->_origin = _origin;
     res->_size= _size;
+    res->_duration = _duration;
     PlayListItem::Copy(res);
 
     return res;
@@ -65,6 +69,7 @@ wxXmlNode* PlayListItemImage::Save()
     node->AddAttribute("Y", wxString::Format(wxT("%i"), _origin.y));
     node->AddAttribute("W", wxString::Format(wxT("%i"), _size.GetWidth()));
     node->AddAttribute("H", wxString::Format(wxT("%i"), _size.GetHeight()));
+    node->AddAttribute("Duration", wxString::Format(wxT("%i"), _duration));
 
     PlayListItem::Save(node);
 

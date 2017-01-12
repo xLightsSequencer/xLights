@@ -32,10 +32,10 @@ class ScheduleManager
 		static std::string GetScheduleFile() { return "xlights.xschedule"; }
 		void Save();
         void StopAll();
-        void AddPlayList(PlayList* playlist) { _playLists.push_back(playlist); _dirty = true; }
+        void AddPlayList(PlayList* playlist);
         void RemovePlayList(PlayList* playlist);
         PlayList* GetRunningPlayList() const;
-        std::list<PlayList*> GetPlayLists() const { return _playLists; }
+        std::list<PlayList*> GetPlayLists();
         std::list<std::string> GetCommands() const;
         bool IsRunning() const { return GetRunningPlayList() != nullptr; }
         void Frame(); // called when a frame needs to be displayed ... returns desired frame rate

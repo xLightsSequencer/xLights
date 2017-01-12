@@ -25,6 +25,7 @@
 #include <wx/bitmap.h>
 #include "../xLights/xLightsVersion.h"
 #include <wx/protocol/http.h>
+#include <wx/debugrpt.h>
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -45,7 +46,6 @@
 //(*InternalHeaders(xScheduleFrame)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include <wx/debugrpt.h>
 //*)
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
@@ -111,7 +111,6 @@ const long xScheduleFrame::ID_MNU_DUPLICATEPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_SCHEDULEPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_DELETE = wxNewId();
 const long xScheduleFrame::ID_MNU_EDIT = wxNewId();
-const long xScheduleFrame::ID_MNU_PLAYNOW = wxNewId();
 const long xScheduleFrame::ID_BUTTON_USER = wxNewId();
 
 wxDEFINE_EVENT(EVT_FRAMEMS, wxCommandEvent);
@@ -198,8 +197,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer6->AddGrowableCol(1);
     StaticText_ShowDir = new wxStaticText(Panel4, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer6->Add(StaticText_ShowDir, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText_Status = new wxStaticText(Panel4, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer6->Add(StaticText_Status, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText_Time = new wxStaticText(Panel4, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    FlexGridSizer6->Add(StaticText_Time, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Panel4->SetSizer(FlexGridSizer6);
     FlexGridSizer6->Fit(Panel4);
     FlexGridSizer6->SetSizeHints(Panel4);
@@ -358,7 +357,6 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu(wxTreeEvent& event)
     wxMenuItem* del = mnu.Append(ID_MNU_DELETE, "Delete");
     wxMenuItem* duplicate = mnu.Append(ID_MNU_DUPLICATEPLAYLIST, "Duplicate");
     wxMenuItem* edit = mnu.Append(ID_MNU_EDIT, "Edit");
-    wxMenuItem* play = mnu.Append(ID_MNU_PLAYNOW, "Play Now");
 
     if (!IsPlayList(treeitem) && !IsSchedule(treeitem))
     {
@@ -369,7 +367,6 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu(wxTreeEvent& event)
     if (!IsPlayList(treeitem))
     {
         duplicate->Enable(false);
-        play->Enable(false);
     }
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xScheduleFrame::OnTreeCtrlMenu, nullptr, this);
@@ -432,19 +429,6 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
             {
                 TreeCtrl_PlayListsSchedules->SetItemText(treeitem, schedule->GetName());
             }
-        }
-    }
-    else if (event.GetId() == ID_MNU_PLAYNOW)
-    {
-        PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-        size_t rate = 50;
-        __schedule->PlayPlayList(playlist, rate);
-
-        // if the desired rate is different than the current rate then restart timer with the desired rate
-        if (_timer.GetInterval() != rate)
-        {
-            _timer.Stop();
-            _timer.Start(rate);
         }
     }
     else if (event.GetId() == ID_MNU_DUPLICATEPLAYLIST)
@@ -630,6 +614,19 @@ void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
         _timer.Stop();
         _timer.Start(rate);
     }
+
+    // Ensure I am firing on the minute
+    if (wxDateTime::Now().GetSecond() != 0)
+    {
+        _timerSchedule.Stop();
+        _timerSchedule.Start((60 - wxDateTime::Now().GetSecond()) * 1000, false);
+    }
+    else if (_timerSchedule.GetInterval() != 60000)
+    {
+        _timerSchedule.Stop();
+        _timerSchedule.Start(60000, false);
+    }
+
     ValidateWindow();
 }
 
@@ -647,7 +644,6 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
     {
         if (oldport != __schedule->GetOptions()->GetWebServerPort())
         {
-#pragma todo not sure this is working ... I think it causes a crash
             delete _webServer;
             _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort());
         }
@@ -953,6 +949,7 @@ void xScheduleFrame::UpdateStatus()
     {
         if (scheduled != 0)
             BitmapButton_IsScheduled->SetBitmap(_inactive);
+        BitmapButton_IsScheduled->SetToolTip("");
         scheduled = 0;
 
         if (playing != 0)
@@ -963,13 +960,16 @@ void xScheduleFrame::UpdateStatus()
         if (plloop != 2)
             BitmapButton_PLLoop->SetBitmap(_inactive);
         plloop = 2;
+        BitmapButton_PLLoop->SetToolTip("");
 
         if (steploop != 2)
             BitmapButton_StepLoop->SetBitmap(_inactive);
         steploop = 2;
+        BitmapButton_StepLoop->SetToolTip("");
 
         if (random != 2)
             BitmapButton_Random->SetBitmap(_inactive);
+        BitmapButton_Random->SetToolTip("");
         random = 2;
     }
     else
@@ -1049,6 +1049,8 @@ void xScheduleFrame::UpdateStatus()
             random = 0;
         }
     }
+
+    StaticText_Time->SetLabel(wxDateTime::Now().FormatTime());
 }
 
 void xScheduleFrame::OnBitmapButton_OutputToLightsClick(wxCommandEvent& event)

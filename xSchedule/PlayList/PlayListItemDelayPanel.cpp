@@ -49,4 +49,10 @@ PlayListItemDelayPanel::~PlayListItemDelayPanel()
 
 void PlayListItemDelayPanel::OnTextCtrl_DelayDurationText(wxCommandEvent& event)
 {
+    ValidateWindow();
+}
+
+void PlayListItemDelayPanel::ValidateWindow()
+{
+    
 }

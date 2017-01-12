@@ -33,12 +33,8 @@ public:
     virtual PlayListItem* Copy() const = 0;
     #pragma endregion Constructors and Destructors
 
-#pragma region Operators
-    bool operator<(const PlayListItem& rhs) const { return _priority < rhs.GetPriority(); }
-#pragma endregion Operators
-
     #pragma region Getters and Setters
-    virtual size_t GetDurationMS() const { return 0; }
+    virtual size_t GetDurationMS() const { return _delay; }
     virtual size_t GetDurationMS(size_t frameMS) const { return GetDurationMS(); }
     bool IsDirty() const { return _dirty; }
     void ClearDirty() { _dirty = false; }

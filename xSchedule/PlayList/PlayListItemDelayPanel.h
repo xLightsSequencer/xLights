@@ -14,6 +14,8 @@ class PlayListItemDelayPanel: public wxPanel
 {
     PlayListItemDelay* _Delay;
 
+    void ValidateWindow();
+
 	public:
 
 		PlayListItemDelayPanel(wxWindow* parent, PlayListItemDelay* Delay, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
