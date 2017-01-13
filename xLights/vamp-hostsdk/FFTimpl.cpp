@@ -33,7 +33,7 @@ fft(unsigned int n, bool inverse,
 	}
     }
 
-#ifdef __WXMSW__
+#ifdef _MSC_VER
     int *table = (int *)_malloca(n * sizeof(int));
 #else
     int table[n];

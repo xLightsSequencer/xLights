@@ -1000,7 +1000,7 @@ void xScheduleFrame::UpdateStatus()
         saved = 0;
     }
 
-    if (p == nullptr)
+    if (p == nullptr || !p->IsRunning())
     {
         if (scheduled != 0)
             BitmapButton_IsScheduled->SetBitmap(_inactive);
