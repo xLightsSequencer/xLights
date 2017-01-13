@@ -346,6 +346,8 @@
 		<Unit filename="PlayList/VideoWindowPositionDialog.h" />
 		<Unit filename="ProjectorDetailsDialog.cpp" />
 		<Unit filename="ProjectorDetailsDialog.h" />
+		<Unit filename="RunningSchedule.cpp" />
+		<Unit filename="RunningSchedule.h" />
 		<Unit filename="Schedule.cpp" />
 		<Unit filename="Schedule.h" />
 		<Unit filename="ScheduleDialog.cpp" />

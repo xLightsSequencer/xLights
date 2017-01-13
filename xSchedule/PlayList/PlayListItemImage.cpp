@@ -132,3 +132,14 @@ void PlayListItemImage::Stop()
     }
 }
 
+void PlayListItemImage::Suspend(bool suspend)
+{
+    if (suspend)
+    {
+        if (_window != nullptr) _window->Hide();
+    }
+    else
+    {
+        if (_window != nullptr) _window->Show();
+    }
+}

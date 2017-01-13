@@ -39,15 +39,15 @@ public:
 
     #pragma region Getters and Setters
     int GetBlendMode() const { return _applyMethod; }
-    void SetBlendMode(int blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _dirty = true; }
+    void SetBlendMode(int blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; }
     virtual size_t GetDurationMS() const override { return _delay + _durationMS; }
     virtual std::string GetNameNoTime() const override;
     std::string GetFSEQFileName() const { return _fseqFileName; }
     std::string GetAudioFile() const { return _audioFile; }
     bool GetOverrideAudio() const { return _overrideAudio; }
     void SetFSEQFileName(const std::string& fseqFileName);
-    void SetAudioFile(const std::string& audioFile) { _audioFile = audioFile; _dirty = true; LoadFiles(); }
-    void SetOverrideAudio(bool overrideAudio) { _overrideAudio = overrideAudio; _dirty = true; LoadFiles(); }
+    void SetAudioFile(const std::string& audioFile) { _audioFile = audioFile; _changeCount++; LoadFiles(); }
+    void SetOverrideAudio(bool overrideAudio) { _overrideAudio = overrideAudio; _changeCount++; LoadFiles(); }
     virtual bool ControlsTiming() const override { return _audioManager != nullptr; }
     virtual size_t GetPositionMS() const override;
     virtual size_t GetFrameMS() const override { return _msPerFrame; }
@@ -63,6 +63,7 @@ public:
     virtual void Stop() override;
     virtual void Restart() override;
     virtual void Pause(bool pause) override;
+    virtual void Suspend(bool suspend) override;
     #pragma endregion Playing
 
 #pragma region UI

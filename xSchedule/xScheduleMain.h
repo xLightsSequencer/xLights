@@ -26,11 +26,14 @@
 //*)
 
 #include "../xLights/xLightsTimer.h"
+#include <list>
 
 class wxDebugReportCompress;
 class ScheduleManager;
 class PlayList;
 class WebServer;
+class Schedule;
+class RunningSchedule;
 
 wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 
@@ -46,7 +49,9 @@ class xScheduleFrame : public wxFrame
     void ValidateWindow();
     void CreateButtons();
     void UpdateStatus();
+    void UpdateSchedule();
     void SendReport(const wxString &loc, wxDebugReportCompress &report);
+    std::string GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const;
 
     wxBitmap _otlon;
     wxBitmap _otloff;

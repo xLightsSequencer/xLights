@@ -26,6 +26,7 @@
 #include "../xLights/xLightsVersion.h"
 #include <wx/protocol/http.h>
 #include <wx/debugrpt.h>
+#include "RunningSchedule.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -564,13 +565,28 @@ void xScheduleFrame::UpdateTree() const
         auto schedules = (*it)->GetSchedules();
         for (auto it2 = schedules.begin(); it2 != schedules.end(); ++it2)
         {
-            TreeCtrl_PlayListsSchedules->AppendItem(pl, (*it2)->GetName(), -1, -1, new MyTreeItemData(*it2));
+            TreeCtrl_PlayListsSchedules->AppendItem(pl, GetScheduleName(*it2, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(*it2));
         }
         TreeCtrl_PlayListsSchedules->Expand(pl);
     }
     TreeCtrl_PlayListsSchedules->Expand(root);
 }
 
+std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const
+{
+    for (auto it = active.begin(); it != active.end(); ++it)
+    {
+        if ((*it)->GetSchedule()->GetId() == schedule->GetId())
+        {
+            if (!(*it)->GetPlayList()->IsRunning())
+            {
+                return schedule->GetName() + " [Stopped]";
+            }
+        }
+    }
+
+    return schedule->GetName() + " [" + schedule->GetNextTriggerTime() + "]";
+}
 
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& event)
 {
@@ -604,9 +620,42 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     ValidateWindow();
 }
 
-void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
+void xScheduleFrame::UpdateSchedule()
 {
     int rate = __schedule->CheckSchedule();
+
+    // highlight the state of all schedule items in the tree
+    wxTreeItemIdValue tid;
+    auto root = TreeCtrl_PlayListsSchedules->GetRootItem();
+    for (auto it = TreeCtrl_PlayListsSchedules->GetFirstChild(root, tid); it != nullptr; it = TreeCtrl_PlayListsSchedules->GetNextChild(root, tid))
+    {
+        PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(it))->GetData();
+
+        wxTreeItemIdValue tid2;
+        for (auto it2 = TreeCtrl_PlayListsSchedules->GetFirstChild(it, tid2); it2 != nullptr; it2 = TreeCtrl_PlayListsSchedules->GetNextChild(it, tid2))
+        {
+            Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(it2))->GetData();
+
+            TreeCtrl_PlayListsSchedules->SetItemText(it2, GetScheduleName(schedule, __schedule->GetRunningSchedules()));
+            
+            if (__schedule->IsScheduleActive(schedule))
+            {
+                RunningSchedule* rs = __schedule->GetRunningSchedule(schedule);
+                if (__schedule->GetRunningSchedule() != nullptr && __schedule->GetRunningSchedule()->GetSchedule()->GetId() == schedule->GetId() && rs->GetPlayList()->IsRunning())
+                {
+                    TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(146, 244, 155));
+                }
+                else
+                {
+                    TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(244, 241, 146));
+                }
+            }
+            else
+            {
+                TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, *wxWHITE);
+            }
+        }
+    }
 
     // if the desired rate is different than the current rate then restart timer with the desired rate
     if (_timer.GetInterval() != rate)
@@ -628,6 +677,11 @@ void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
     }
 
     ValidateWindow();
+}
+
+void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
+{
+    UpdateSchedule();
 }
 
 void xScheduleFrame::ValidateWindow()
@@ -706,7 +760,7 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
         _timer.Start(rate);
     }
 
-    ValidateWindow();
+    UpdateSchedule();
 }
 
 
@@ -876,7 +930,8 @@ void xScheduleFrame::UpdateStatus()
 
         if (!p->IsRandom())
         {
-            next = p->GetNextStep();
+            bool didloop;
+            next = p->GetNextStep(didloop);
         }
 
         if (step != nullptr)

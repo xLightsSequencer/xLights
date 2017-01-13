@@ -3,26 +3,35 @@
 #include <list>
 #include <string>
 #include <wx/wx.h>
+#include "Schedule.h"
 
 class ScheduleOptions;
 class PlayList;
 class OutputManager;
+class RunningSchedule;
 
 class ScheduleManager
 {
     std::string _showDir;
-    bool _dirty;
+    int _lastSavedChangeCount;
+    int _changeCount;
 	std::list<PlayList*> _playLists;
     ScheduleOptions* _scheduleOptions;
     OutputManager* _outputManager;
     wxByte* _buffer;
     wxLongLong _startTime;
     PlayList* _immediatePlay;
+    std::list<RunningSchedule*> _activeSchedules;
 
     std::string FormatTime(size_t timems);
 
     public:
 
+        bool IsScheduleActive(Schedule* schedue);
+        std::list<RunningSchedule*> GetRunningSchedules() const { return _activeSchedules; }
+        RunningSchedule* GetRunningSchedule() const;
+        RunningSchedule* GetRunningSchedule(const std::string& schedulename) const;
+        RunningSchedule* GetRunningSchedule(Schedule* schedule) const;
         ScheduleOptions* GetOptions() const { return _scheduleOptions; }
         bool IsDirty();
         void ClearDirty();
@@ -41,7 +50,7 @@ class ScheduleManager
         void Frame(); // called when a frame needs to be displayed ... returns desired frame rate
         int CheckSchedule();
         std::string GetShowDir() const { return _showDir; }
-        bool PlayPlayList(PlayList* playlist, size_t& rate, bool loop = false, const std::string& step = "", bool forcelast = false);
+        bool PlayPlayList(PlayList* playlist, size_t& rate, bool loop = false, const std::string& step = "", bool forcelast = false, int loops = -1, bool random = false, int steploops = -1);
         bool IsSomethingPlaying() const { return GetRunningPlayList() != nullptr; }
         void OptionsChanged() {};
         bool Action(const std::string label, PlayList* playlist, size_t& rate, std::string& msg);

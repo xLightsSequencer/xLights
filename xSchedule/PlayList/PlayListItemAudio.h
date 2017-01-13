@@ -50,6 +50,7 @@ public:
     virtual void Stop() override;
     virtual void Restart() override;
     virtual void Pause(bool pause) override;
+    virtual void Suspend(bool suspend) override;
     #pragma endregion Playing
 
 #pragma region UI

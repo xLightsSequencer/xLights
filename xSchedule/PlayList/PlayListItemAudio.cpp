@@ -80,7 +80,7 @@ void PlayListItemAudio::SetAudioFile(const std::string& audioFile)
 {
     _audioFile = audioFile;
     FastSetDuration();
-    _dirty = true;
+    _changeCount++;
 }
 
 void PlayListItemAudio::FastSetDuration()
@@ -120,6 +120,11 @@ void PlayListItemAudio::Start()
     {
         _audioManager->Play(0, _audioManager->LengthMS());
     }
+}
+
+void PlayListItemAudio::Suspend(bool suspend)
+{
+    Pause(suspend);
 }
 
 void PlayListItemAudio::Pause(bool pause)

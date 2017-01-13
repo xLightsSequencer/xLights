@@ -4,13 +4,16 @@
 
 Schedule::Schedule(wxXmlNode* node)
 {
-    _dirty = false;
+    _id = wxGetUTCTimeMillis();
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
     Schedule::Load(node);
 }
 
 void Schedule::Load(wxXmlNode* node)
 {
-    _dirty = false;
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
 
     _name = node->GetAttribute("Name", "<unnamed>");
     _dow = node->GetAttribute("DOW", "MonTueWedThuFriSatSun");
@@ -21,6 +24,7 @@ void Schedule::Load(wxXmlNode* node)
     _loop = node->GetAttribute("Loop", "FALSE") == "TRUE";
     _random = node->GetAttribute("Random", "FALSE") == "TRUE";
     _everyYear = node->GetAttribute("EveryYear", "FALSE") == "TRUE";
+    _enabled = node->GetAttribute("Enabled", "FALSE") == "TRUE";
     _loops = wxAtoi(node->GetAttribute("Loops", "0"));
     _priority = wxAtoi(node->GetAttribute("Priority", "0"));
 }
@@ -31,8 +35,8 @@ wxXmlNode* Schedule::Save()
 
     node->AddAttribute("Name", _name);
     node->AddAttribute("DOW", _dow);
-    node->AddAttribute("StartDate", _startDate.FormatDate());
-    node->AddAttribute("EndDate", _endDate.FormatDate());
+    node->AddAttribute("StartDate", _startDate.Format("%Y-%m-%d"));
+    node->AddAttribute("EndDate", _endDate.Format("%Y-%m-%d"));
     node->AddAttribute("StartTime", _startTime.FormatTime());
     node->AddAttribute("EndTime", _endTime.FormatTime());
     node->AddAttribute("Priority", wxString::Format(wxT("%i"), _priority));
@@ -45,6 +49,10 @@ wxXmlNode* Schedule::Save()
     {
         node->AddAttribute("Random", "TRUE");
     }
+    if (_enabled)
+    {
+        node->AddAttribute("Enabled", "TRUE");
+    }
     if (_everyYear)
     {
         node->AddAttribute("EveryYear", "TRUE");
@@ -55,10 +63,14 @@ wxXmlNode* Schedule::Save()
 
 Schedule::Schedule()
 {
-    _dirty = false;
+    _active = false;
+    _enabled = false;
+    _id = wxGetUTCTimeMillis();
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
     _loop = false;
-    _endDate.ParseDate("01/01/2099");
-    _startDate.ParseDate("01/01/2017");
+    _endDate.ParseDate("2099-01-01");
+    _startDate.ParseDate("2017-01-01");
     _startTime.ParseTime("19:00");
     _endTime.ParseTime("22:00");
     _name = "<unnamed>";
@@ -67,6 +79,26 @@ Schedule::Schedule()
     _everyYear = false;
     _priority = 5;
     _dow = "MonTueWedThuFriSatSun";
+}
+
+Schedule::Schedule(const Schedule& schedule)
+{
+    _active = schedule._active;
+    _enabled = schedule._enabled;
+    _id = schedule._id;
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
+    _loop = schedule._loop;
+    _endDate = schedule._endDate;
+    _startDate = schedule._startDate;
+    _startTime = schedule._startTime;
+    _endTime = schedule._endTime;
+    _name = schedule._name;
+    _random = schedule._random;
+    _loops = schedule._loops;
+    _everyYear = schedule._everyYear;
+    _priority = schedule._priority;
+    _dow = schedule._dow;
 }
 
 Schedule* Schedule::Configure(wxWindow* parent)
@@ -98,3 +130,145 @@ void Schedule::SetDOW(bool mon, bool tue, bool wed, bool thu, bool fri, bool sat
     if (sun) _dow += "Sun";
 }
 
+void Schedule::Test()
+{
+    _startDate = wxDateTime(5, (wxDateTime::Month)11, 2016);
+    _endDate = wxDateTime(12, (wxDateTime::Month)0, 2017);
+    _startTime = wxDateTime((wxDateTime::wxDateTime_t)22);
+    _endTime = wxDateTime((wxDateTime::wxDateTime_t)2);
+    _dow = "MonTue";
+    wxASSERT(IsOkDOW(wxDateTime(9, (wxDateTime::Month)0, 2017)));
+    wxASSERT(IsOkDOW(wxDateTime(10, (wxDateTime::Month)0, 2017)));
+    wxASSERT(!IsOkDOW(wxDateTime(11, (wxDateTime::Month)0, 2017)));
+    wxASSERT(!IsOkDOW(wxDateTime(12, (wxDateTime::Month)0, 2017)));
+
+    wxASSERT(!CheckActiveAt(wxDateTime(5, (wxDateTime::Month)11, 2016, 21, 0)));
+    wxASSERT(CheckActiveAt(wxDateTime(5, (wxDateTime::Month)11, 2016, 22, 0)));
+    wxASSERT(CheckActiveAt(wxDateTime(6, (wxDateTime::Month)11, 2016, 1, 0)));
+    wxASSERT(!CheckActiveAt(wxDateTime(6, (wxDateTime::Month)11, 2016, 3, 0)));
+    wxASSERT(!CheckActiveAt(wxDateTime(16, (wxDateTime::Month)0, 2017, 23, 0)));
+}
+
+bool Schedule::IsOkDOW(const wxDateTime& date)
+{
+    return (_dow.find(wxDateTime::GetEnglishWeekDayName(date.GetWeekDay(), wxDateTime::Name_Abbr).ToStdString()) != std::string::npos);
+}
+
+bool Schedule::CheckActive()
+{
+    return CheckActiveAt(wxDateTime::Now());
+}
+
+bool Schedule::CheckActiveAt(const wxDateTime& now)
+{
+    if (!_enabled || !IsOkDOW(now))
+    {
+        _active = false;
+        return _active;
+    }
+
+    wxDateTime start = _startDate;
+    wxDateTime end = _endDate;
+
+    if (_everyYear)
+    {
+        if (start < end)
+        {
+            end = end.SetYear(end.GetYear() + 1);
+        }
+    }
+
+    start.SetHour(_startTime.GetHour());
+    start.SetMinute(_startTime.GetMinute());
+    end.SetHour(_endTime.GetHour());
+    end.SetMinute(_endTime.GetMinute());
+
+    if (_endTime < _startTime)
+    {
+        end.Add(wxTimeSpan(24));
+    }
+
+    start.SetYear(now.GetYear());
+    end.SetYear(now.GetYear() + end.GetYear() - start.GetYear());
+
+    auto s = start.Format();
+    auto e = end.Format();
+    auto n = now.Format();
+
+    if (now >= start && now <= end)
+    {
+        // dates are ok ... now check the times
+        start.SetDay(now.GetDay());
+        start.SetMonth(now.GetMonth());
+        start.SetYear(now.GetYear());
+        end = start;
+        end.SetHour(_endTime.GetHour());
+        end.SetMinute(_endTime.GetMinute());
+
+        if (_endTime < _startTime)
+        {
+            end.Add(wxTimeSpan(24));
+        }
+
+        s = start.Format();
+        e = end.Format();
+
+        _active = now >= start && now <= end;
+    }
+    else
+    {
+        // outside date range
+        _active = false;
+        return _active;
+    }
+
+    return _active;
+}
+
+std::string Schedule::GetNextTriggerTime()
+{
+#pragma todo this doesnt work
+
+    if (CheckActive()) return "NOW!";
+
+    wxDateTime next = _startDate;
+
+    auto n = next.Format();
+
+    if (next < wxDateTime::Now())
+    {
+        if (_everyYear)
+        {
+            while (next < wxDateTime::Now())
+            {
+                next.SetYear(next.GetYear() + 1);
+                n = next.Format();
+            }
+        }
+        else
+        {
+            while (next < _endDate)
+            {
+                next.SetYear(next.GetYear() + 1);
+                n = next.Format();
+
+                if (next >= wxDateTime::Now()) break;
+            }
+
+            if (next < wxDateTime::Now())
+            {
+                n = next.Format();
+                return "Never";
+            }
+        }
+    }
+
+    n = next.Format();
+    return next.Format("%Y-%m-%d %H:%M").ToStdString();
+}
+
+void Schedule::AddMinsToEndTime(int mins)
+{
+#pragma todo what if this takes the time beyond midnight?
+    _endTime += wxTimeSpan(0, mins);
+}

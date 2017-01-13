@@ -7,6 +7,7 @@
 //*)
 
 //(*IdInit(ScheduleDialog)
+const long ScheduleDialog::ID_CHECKBOX11 = wxNewId();
 const long ScheduleDialog::ID_STATICTEXT15 = wxNewId();
 const long ScheduleDialog::ID_TEXTCTRL3 = wxNewId();
 const long ScheduleDialog::ID_STATICTEXT1 = wxNewId();
@@ -61,6 +62,10 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Enabled = new wxCheckBox(this, ID_CHECKBOX11, _("Enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX11"));
+	CheckBox_Enabled->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Enabled, 1, wxALL|wxEXPAND, 5);
 	StaticText15 = new wxStaticText(this, ID_STATICTEXT15, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
 	FlexGridSizer1->Add(StaticText15, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Name = new wxTextCtrl(this, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
@@ -186,6 +191,7 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
     CheckBox_Fri->SetValue(schedule->IsOnDOW("Fri"));
     CheckBox_Sat->SetValue(schedule->IsOnDOW("Sat"));
     CheckBox_Sun->SetValue(schedule->IsOnDOW("Sun"));
+    CheckBox_Enabled->SetValue(schedule->GetEnabled());
 
     ValidateWindow();
 }
@@ -211,6 +217,7 @@ ScheduleDialog::~ScheduleDialog()
         CheckBox_Fri->GetValue(),
         CheckBox_Sat->GetValue(),
         CheckBox_Sun->GetValue());
+    _schedule->SetEnabled(CheckBox_Enabled->GetValue());
 }
 
 void ScheduleDialog::ValidateWindow()

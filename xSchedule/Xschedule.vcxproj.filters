@@ -221,6 +221,7 @@
     <ClCompile Include="PlayList\PlayListItemAudioPanel.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
+    <ClCompile Include="RunningSchedule.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -384,6 +385,7 @@
     <ClInclude Include="PlayList\PlayListItemAudioPanel.h">
       <Filter>PlayList</Filter>
     </ClInclude>
+    <ClInclude Include="RunningSchedule.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

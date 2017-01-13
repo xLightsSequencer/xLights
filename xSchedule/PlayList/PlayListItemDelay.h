@@ -26,7 +26,7 @@ public:
     #pragma region Getters and Setters
     virtual size_t GetDurationMS() const override { return _delay + _duration; }
     long GetDuration() const { return _duration; }
-    void SetDuration(long duration) { _duration = duration; _dirty = true; }
+    void SetDuration(long duration) { _duration = duration; _changeCount++; }
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

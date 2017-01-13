@@ -221,6 +221,7 @@
     <ClCompile Include="PlayList\PlayListStepPanel.cpp" />
     <ClCompile Include="PlayList\VideoWindowPositionDialog.cpp" />
     <ClCompile Include="ProjectorDetailsDialog.cpp" />
+    <ClCompile Include="RunningSchedule.cpp" />
     <ClCompile Include="Schedule.cpp" />
     <ClCompile Include="ScheduleDialog.cpp" />
     <ClCompile Include="ScheduleManager.cpp" />
@@ -292,6 +293,7 @@
     <ClInclude Include="PlayList\PlayListStepPanel.h" />
     <ClInclude Include="PlayList\VideoWindowPositionDialog.h" />
     <ClInclude Include="ProjectorDetailsDialog.h" />
+    <ClInclude Include="RunningSchedule.h" />
     <ClInclude Include="Schedule.h" />
     <ClInclude Include="ScheduleDialog.h" />
     <ClInclude Include="ScheduleManager.h" />

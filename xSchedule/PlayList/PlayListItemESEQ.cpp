@@ -78,7 +78,7 @@ std::string PlayListItemESEQ::GetNameNoTime() const
 void PlayListItemESEQ::SetESEQFileName(const std::string& ESEQFileName)
 {
     _ESEQFileName = ESEQFileName; 
-    _dirty = true;
+    _changeCount++;
 }
 
 void PlayListItemESEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems)

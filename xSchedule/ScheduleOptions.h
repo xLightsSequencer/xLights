@@ -9,7 +9,8 @@ class wxXmlNode;
 class ScheduleOptions
 {
 	bool _sync;
-    bool _dirty;
+    int _changeCount;
+    int _lastSavedChangeCount;
     bool _sendOffWhenNotRunning;
     bool _runOnMachineStartup;
     int _port;
@@ -21,18 +22,18 @@ class ScheduleOptions
 
     public:
 
-        bool IsDirty() const { return _dirty; };
-        void ClearDirty() { _dirty = false; };
+        bool IsDirty() const { return _lastSavedChangeCount != _changeCount; };
+        void ClearDirty() { _lastSavedChangeCount = _changeCount; };
         ScheduleOptions(wxXmlNode* node);
         ScheduleOptions();
         virtual ~ScheduleOptions();
         wxXmlNode* Save();
 		bool IsSync() const { return _sync; }
-        void SetSync(bool sync) { _sync = sync; _dirty = true; }
-        void SetSendOffWhenNotRunning(bool send) { _sendOffWhenNotRunning = send; _dirty = true; }
+        void SetSync(bool sync) { _sync = sync; _changeCount++; }
+        void SetSendOffWhenNotRunning(bool send) { _sendOffWhenNotRunning = send; _changeCount++; }
         bool IsSendOffWhenNotRunning() const { return _sendOffWhenNotRunning; }
         bool IsRunOnMachineStartup() const { return _runOnMachineStartup; }
-        void SetRunOnMachineStartup(bool run) { _runOnMachineStartup = run; _dirty = true; }
+        void SetRunOnMachineStartup(bool run) { _runOnMachineStartup = run; _changeCount++; }
         std::list<std::string> GetProjectors() const;
         std::list<std::string> GetButtons() const;
         std::string GetProjectorIpAddress(const std::string& projector);
@@ -47,9 +48,9 @@ class ScheduleOptions
         std::string GetButtonParameter(const std::string& button);
         std::string GetButtonsJSON() const;
         int GetWebServerPort() const { return _port; }
-        void SetWebServerPort(int port) { _port = port; _dirty = true; }
+        void SetWebServerPort(int port) { _port = port; _changeCount++; }
         std::string GetWWWRoot() const { return _wwwRoot; }
-        void SetWWWRoot(const std::string& wwwRoot) { _wwwRoot = wwwRoot; _dirty = true; }
+        void SetWWWRoot(const std::string& wwwRoot) { _wwwRoot = wwwRoot; _changeCount++; }
 };
 
 #endif
