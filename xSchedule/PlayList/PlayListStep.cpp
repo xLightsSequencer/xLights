@@ -44,9 +44,9 @@ PlayListStep::PlayListStep()
     _excludeFromRandom = false;
 }
 
-PlayListStep::PlayListStep(const PlayListStep& step, int loops)
+PlayListStep::PlayListStep(const PlayListStep& step)
 {
-    _loops = loops;
+    _loops = step._loops;
     _framecount = step._framecount;
     _name = step._name;
     _lastSavedChangeCount = 0;
