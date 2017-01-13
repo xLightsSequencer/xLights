@@ -541,6 +541,19 @@ static std::string chooseNewName(xLightsFrame *parent, std::vector<std::string> 
     return curval;
 }
 
+static void AddModelsToPreview(ModelGroup *grp, std::vector<Model *> &PreviewModels) {
+    for (auto it2 = grp->Models().begin(); it2 != grp->Models().end(); it2++) {
+        ModelGroup *g2 = dynamic_cast<ModelGroup*>(*it2);
+        if (g2 != nullptr) {
+            AddModelsToPreview(g2, PreviewModels);
+        } else {
+            if (std::find(PreviewModels.begin(), PreviewModels.end(), *it2) == PreviewModels.end()) {
+                PreviewModels.push_back(*it2);
+            }
+        }
+    }
+}
+
 void xLightsFrame::UpdateModelsList()
 {
     if (ModelsNode == nullptr) return; // this happens when xlights is first loaded
@@ -639,15 +652,11 @@ void xLightsFrame::UpdateModelsList()
 
     wxString msg;
 
-
-    std::set<std::string> modelsAdded;
-
     // Add all models to default House Preview that are set to Default or All Previews
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
         Model *model = it->second;
         if (model->GetDisplayAs() != "ModelGroup") {
             if (model->GetLayoutGroup() == "Default" || model->GetLayoutGroup() == "All Previews") {
-                modelsAdded.insert(model->name);
                 PreviewModels.push_back(model);
             }
         }
@@ -659,15 +668,7 @@ void xLightsFrame::UpdateModelsList()
         if (model->GetDisplayAs() == "ModelGroup") {
             ModelGroup *grp = (ModelGroup*)model;
             if (model->GetLayoutGroup() == "All Previews" || model->GetLayoutGroup() == "Default") {
-                for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); it2++) {
-                    if (modelsAdded.find(*it2) == modelsAdded.end()) {
-                        Model *m = AllModels[*it2];
-                        if (m != nullptr) {
-                            modelsAdded.insert(*it2);
-                            PreviewModels.push_back(m);
-                        }
-                    }
-                }
+                AddModelsToPreview(grp, PreviewModels);
             }
         }
     }

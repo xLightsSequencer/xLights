@@ -43,6 +43,18 @@ ModelGroup::ModelGroup(wxXmlNode *node, const ModelManager &m, int w, int h) : M
     screenLocation.previewH = h;
     Reset();
 }
+
+void LoadRenderBufferNodes(Model *m, const std::string &type, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) {
+    ModelGroup *g = dynamic_cast<ModelGroup*>(m);
+    if (g != nullptr) {
+        for (auto it = g->Models().begin(); it != g->Models().end(); it++) {
+            LoadRenderBufferNodes(*it, type, newNodes, bufferWi, bufferHi);
+        }
+    } else {
+        m->InitRenderBufferNodes(type, "None", newNodes, bufferWi, bufferHi);
+    }
+}
+
 bool ModelGroup::Reset() {
     selected = false;
     name = ModelXml->GetAttribute("name").ToStdString();
@@ -71,16 +83,8 @@ bool ModelGroup::Reset() {
             models.push_back(c);
             changeCount += c->GetChangeCount();
             
-            if (c->GetDisplayAs() == "ModelGroup") {
-                ModelGroup *g = dynamic_cast<ModelGroup*>(c);
-                for (auto it = g->Models().begin(); it != g->Models().end(); it++) {
-                    int bw, bh;
-                    (*it)->InitRenderBufferNodes("Per Preview No Offset", "None", Nodes, bw, bh);
-                }
-            } else {
-                int bw, bh;
-                c->InitRenderBufferNodes("Per Preview No Offset", "None", Nodes, bw, bh);
-            }
+            int bw, bh;
+            LoadRenderBufferNodes(c, "Per Preview No Offset", Nodes, bw, bh);
         } else {
             return false;
         }
