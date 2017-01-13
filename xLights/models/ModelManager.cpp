@@ -143,18 +143,28 @@ void ModelManager::NewRecalcStartChannels() const
     //wxStopWatch sw;
     //sw.Start();
 
-    bool fullsuccess = true;
-
     // this is ugly but it solves some const-ness issues
     std::map<std::string, Model*> ms(models);
-        
-    for (auto it = models.begin(); it != models.end(); ++it) 
+    std::string msg = "Could not calculate start channels for models:\n";
+    bool failed = false;
+    
+    for (auto it = models.begin(); it != models.end(); it++) {
+        it->second->CouldComputeStartChannel = false;
+    }
+
+    for (auto it = models.begin(); it != models.end(); ++it)
     {
         if (it->second->GetDisplayAs() != "ModelGroup") 
         {
             std::list<std::string> used;
-            fullsuccess &= it->second->UpdateStartChannelFromChannelString(ms, used);
+            if (!it->second->UpdateStartChannelFromChannelString(ms, used)) {
+                msg += it->second->name + "\n";
+                failed = true;
+            }
         }
+    }
+    if (failed) {
+        wxMessageBox(msg);
     }
 
     //long end  = sw.Time();
@@ -166,6 +176,9 @@ void ModelManager::OldRecalcStartChannels() const {
     //wxStopWatch sw;
     //sw.Start();
     int countValid = 0;
+    for (auto it = models.begin(); it != models.end(); it++) {
+        it->second->CouldComputeStartChannel = false;
+    }
     for (auto it = models.begin(); it != models.end(); it++) {
         if( it->second->GetDisplayAs() != "ModelGroup" ) {
             it->second->SetFromXml(it->second->GetModelXml());
@@ -191,7 +204,7 @@ void ModelManager::OldRecalcStartChannels() const {
         if (countValid == newCountValid) {
             std::string msg = "Could not calculate start channels for models:\n";
             for (auto it = models.begin(); it != models.end(); it++) {
-                if (!it->second->CouldComputeStartChannel) {
+                if (it->second->GetDisplayAs() != "ModelGroup" && !it->second->CouldComputeStartChannel) {
                     msg += it->second->name + "\n";
                 }
             }

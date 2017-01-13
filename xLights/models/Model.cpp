@@ -627,8 +627,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ModelXml->DeleteAttribute(StartChanAttrName(0));
             ModelXml->AddAttribute(StartChanAttrName(0), event.GetValue().GetString());
         }
-        //modelManager.OldRecalcStartChannels();
-        modelManager.NewRecalcStartChannels();
+        RecalcStartChannels();
         IncrementChangeCount();
         return 3 | 0x0008;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
@@ -648,8 +647,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
                 ModelXml->DeleteAttribute(StartChanAttrName(x));
             }
         }
-        //modelManager.OldRecalcStartChannels();
-        modelManager.NewRecalcStartChannels();
+        RecalcStartChannels();
         AdjustStringProperties(grid, parm1);
         IncrementChangeCount();
         return 3 | 0x0008;
@@ -658,8 +656,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         str = str.SubString(str.Find(".") + 1, str.length());
         ModelXml->DeleteAttribute(str);
         ModelXml->AddAttribute(str, event.GetValue().GetString());
-        //modelManager.OldRecalcStartChannels();
-        modelManager.NewRecalcStartChannels();
+        RecalcStartChannels();
         IncrementChangeCount();
         return 3 | 0x0008;
     } else if (event.GetPropertyName() == "ModelLayoutGroup") {
@@ -954,7 +951,7 @@ bool Model::UpdateStartChannelFromChannelString(std::map<std::string, Model*>& m
     std::string dependsonmodel;
     ModelStartChannel = ModelXml->GetAttribute("StartChannel");
     long StartChannel = GetNumberFromChannelString(ModelStartChannel, valid, dependsonmodel);
-    while (!valid && dependsonmodel != "" && std::find(used.begin(), used.end(), dependsonmodel) == used.end())
+    while (valid && dependsonmodel != "" && std::find(used.begin(), used.end(), dependsonmodel) == used.end())
     {
         Model* m = models[dependsonmodel];
         if (m != nullptr)
@@ -1163,7 +1160,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
         nodeNames.push_back(t2);
     }
 
-    CouldComputeStartChannel = true;
+    CouldComputeStartChannel = false;
     std::string  dependsonmodel;
     StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
     tempstr=ModelNode->GetAttribute("Dir");
