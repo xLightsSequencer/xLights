@@ -12,7 +12,7 @@ CHK_DIR_EXISTS  = test -d
 INSTALL_PROGRAM = install -m 755 -p
 DEL_FILE        = rm -f
 ICON_SIZES      = 16x16 32x32 64x64 256x256
-SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary
+SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary xschedule.linux.properties
 PATH            := $(CURDIR)/wxWidgets-3.1.0:$(PATH)
 
 SUBDIRS         = xLights xSchedule
@@ -63,12 +63,15 @@ $(addsuffix _clean,$(SUBDIRS)):
 install:
 	@$(CHK_DIR_EXISTS) $(DESTDIR)/${PREFIX}/bin || $(MKDIR) $(DESTDIR)/${PREFIX}/bin
 	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
+	-$(INSTALL_PROGRAM) -D bin/xSchedule $(DESTDIR)/${PREFIX}/bin/xSchedule
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 	$(foreach share, $(SHARE_FILES), install -D -m 644 bin/$(share) $(DESTDIR)/${PREFIX}/share/xLights/$(share) ;)
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
 	cp -r colorcurves/* $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/controllers
 	cp -r controllers/* $(DESTDIR)/${PREFIX}/share/xLights/controllers
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/xScheduleWeb
+	cp -r bin/xScheduleWeb/* $(DESTDIR)/${PREFIX}/share/xLights/xScheduleWeb
 	#install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/songs
 	#cp -r songs/* $(DESTDIR)/${PREFIX}/share/xLights/songs
 	$(foreach size, $(ICON_SIZES), install -D -m 644 xLights/Images.xcassets/AppIcon.appiconset/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
