@@ -130,6 +130,7 @@ CommandManager::CommandManager()
     PARMTYPE pli[] = { PARMTYPE::PLAYLIST, PARMTYPE::INTEGER };
     PARMTYPE plsti[] = { PARMTYPE::PLAYLIST, PARMTYPE::STEP, PARMTYPE::INTEGER };
     PARMTYPE i[] = { PARMTYPE::INTEGER };
+    PARMTYPE s[] = { PARMTYPE::STRING };
 
     _commands.push_back(new Command("Stop all now", 0, {}, false, false, true, false));
     _commands.push_back(new Command("Stop", 0,{}, false, false, true, false));
@@ -167,5 +168,6 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Play specified playlist step n times", 3, plsti, false, false, false, false));
     _commands.push_back(new Command("Increase brightness by n%", 1, i, false, false, false, false));
     _commands.push_back(new Command("Set brightness to n%", 1, i, false, false, false, false));
+    _commands.push_back(new Command("PressButton", 1, s, false, false, false, false));
 }
 

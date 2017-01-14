@@ -970,7 +970,11 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
             std::string nextsong;
             bool didloop;
             auto next = p->GetNextStep(didloop);
-            if (p->IsRandom())
+            if (next == nullptr)
+            {
+                nextsong = "";
+            }
+            else if (p->IsRandom())
             {
                 nextsong = "God knows";
             }
