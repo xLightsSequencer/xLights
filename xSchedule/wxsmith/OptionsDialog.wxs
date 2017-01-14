@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxDialog" name="OptionsDialog">
+		<title>Options</title>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
 		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
@@ -8,14 +9,6 @@
 			<cols>1</cols>
 			<growablecols>0</growablecols>
 			<growablerows>4</growablerows>
-			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_RunOnMachineStartup" member="yes">
-					<label>Run on machine startup</label>
-				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_SendOffWhenNotRunning" member="yes">
 					<label>Send data when not running sequence</label>

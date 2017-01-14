@@ -8,7 +8,6 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
     _lastSavedChangeCount = 0;
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
-    _runOnMachineStartup = node->GetAttribute("RunOnMachineStartup", "FALSE") == "TRUE";
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
     _wwwRoot = node->GetAttribute("WWWRoot", "xScheduleWeb");
 
@@ -42,7 +41,6 @@ ScheduleOptions::ScheduleOptions()
     _changeCount = 0;
     _lastSavedChangeCount = 0;
     _sync = false;
-    _runOnMachineStartup = false;
     _sendOffWhenNotRunning = false;
 }
 
@@ -62,10 +60,6 @@ wxXmlNode* ScheduleOptions::Save()
     if (IsSendOffWhenNotRunning())
     {
         res->AddAttribute("SendOffWhenNotRunning", "TRUE");
-    }
-    if (IsRunOnMachineStartup())
-    {
-        res->AddAttribute("RunOnMachineStartup", "TRUE");
     }
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));
 

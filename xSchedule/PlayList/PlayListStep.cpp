@@ -10,6 +10,7 @@
 #include "PlayListItemAllOff.h"
 #include "PlayListItemDelay.h"
 #include "PlayListItemRunProcess.h"
+#include "PlayListItemRunCommand.h"
 
 PlayListStep::PlayListStep(wxXmlNode* node)
 {
@@ -136,6 +137,10 @@ void PlayListStep::Load(wxXmlNode* node)
         else if (n->GetName() == "PLIProcess")
         {
             _items.push_back(new PlayListItemRunProcess(n));
+        }
+        else if (n->GetName() == "PLICommand")
+        {
+            _items.push_back(new PlayListItemRunCommand(n));
         }
     }
 

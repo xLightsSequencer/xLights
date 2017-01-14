@@ -31,6 +31,8 @@
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
 #include "../include/xs_otloff.xpm"
+#include "../include/xs_otlautoon.xpm"
+#include "../include/xs_otlautooff.xpm"
 #include "../include/xs_scheduled.xpm"
 #include "../include/xs_notscheduled.xpm"
 #include "../include/xs_inactive.xpm"
@@ -79,12 +81,13 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 
 //(*IdInit(xScheduleFrame)
 const long xScheduleFrame::ID_BITMAPBUTTON1 = wxNewId();
-const long xScheduleFrame::ID_BITMAPBUTTON2 = wxNewId();
 const long xScheduleFrame::ID_BITMAPBUTTON3 = wxNewId();
+const long xScheduleFrame::ID_BITMAPBUTTON6 = wxNewId();
+const long xScheduleFrame::ID_BITMAPBUTTON2 = wxNewId();
 const long xScheduleFrame::ID_BITMAPBUTTON4 = wxNewId();
 const long xScheduleFrame::ID_BITMAPBUTTON5 = wxNewId();
-const long xScheduleFrame::ID_BITMAPBUTTON6 = wxNewId();
 const long xScheduleFrame::ID_BITMAPBUTTON7 = wxNewId();
+const long xScheduleFrame::ID_CUSTOM1 = wxNewId();
 const long xScheduleFrame::ID_PANEL2 = wxNewId();
 const long xScheduleFrame::ID_TREECTRL1 = wxNewId();
 const long xScheduleFrame::ID_PANEL3 = wxNewId();
@@ -114,6 +117,63 @@ const long xScheduleFrame::ID_MNU_DELETE = wxNewId();
 const long xScheduleFrame::ID_MNU_EDIT = wxNewId();
 const long xScheduleFrame::ID_BUTTON_USER = wxNewId();
 
+class BrightnessControl : public wxControl
+{
+    int _value;
+
+public:
+
+    BrightnessControl(wxWindow *parent,
+        wxWindowID id,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = 0,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxStaticBitmapNameStr) : wxControl(parent, id, pos, size, style, validator, name)
+    {
+        _value = 100;
+        Connect(wxEVT_PAINT, (wxObjectEventFunction)&BrightnessControl::OnPaint);
+    }
+    virtual ~BrightnessControl() {};
+    virtual void SetValue(int value) {
+        if (_value != value) { _value = value; Refresh(); }
+    }
+protected:
+    void OnPaint(wxPaintEvent& event) 
+    {
+        wxPaintDC dc(this);
+        int grey = (_value * 255) / 100;
+        wxColor c(grey, grey, grey, 255);
+        dc.SetBrush(wxBrush(c));
+        int w, h;
+        GetSize(&w, &h);
+        dc.DrawRectangle(1, 1, w-2,h-2);
+        if (_value < 60)
+        {
+            dc.SetTextForeground(*wxWHITE);
+        }
+        else
+        {
+            dc.SetTextForeground(*wxBLACK);
+        }
+        wxString text = wxString::Format("%i%%", _value);
+        int tw, th;
+        dc.GetTextExtent(text, &tw, &th);
+        dc.DrawText(text, (32 - tw) / 2, (32 - th)/ 2);
+        dc.SetBrush(wxNullBrush);
+        dc.SetPen(wxNullPen);
+    }
+
+private:
+    //wxDECLARE_DYNAMIC_CLASS(BrightnessControl);
+    wxDECLARE_EVENT_TABLE();
+};
+
+BEGIN_EVENT_TABLE(BrightnessControl, wxControl)
+//(*EventTable(PerspectivesPanel)
+//*)
+END_EVENT_TABLE()
+
 wxDEFINE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
@@ -125,6 +185,7 @@ END_EVENT_TABLE()
 xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
 {
     __schedule = nullptr;
+    _manualOTL = -1;
 
     //(*Initialize(xScheduleFrame)
     wxMenuItem* MenuItem2;
@@ -142,21 +203,23 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(1);
     Panel2 = new wxPanel(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-    FlexGridSizer5 = new wxFlexGridSizer(0, 7, 0, 0);
+    FlexGridSizer5 = new wxFlexGridSizer(0, 8, 0, 0);
     BitmapButton_OutputToLights = new wxBitmapButton(Panel2, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
     FlexGridSizer5->Add(BitmapButton_OutputToLights, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Random = new wxBitmapButton(Panel2, ID_BITMAPBUTTON2, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
-    FlexGridSizer5->Add(BitmapButton_Random, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Playing = new wxBitmapButton(Panel2, ID_BITMAPBUTTON3, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
     FlexGridSizer5->Add(BitmapButton_Playing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_IsScheduled = new wxBitmapButton(Panel2, ID_BITMAPBUTTON6, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
+    FlexGridSizer5->Add(BitmapButton_IsScheduled, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Random = new wxBitmapButton(Panel2, ID_BITMAPBUTTON2, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
+    FlexGridSizer5->Add(BitmapButton_Random, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_PLLoop = new wxBitmapButton(Panel2, ID_BITMAPBUTTON4, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
     FlexGridSizer5->Add(BitmapButton_PLLoop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_StepLoop = new wxBitmapButton(Panel2, ID_BITMAPBUTTON5, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON5"));
     FlexGridSizer5->Add(BitmapButton_StepLoop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_IsScheduled = new wxBitmapButton(Panel2, ID_BITMAPBUTTON6, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
-    FlexGridSizer5->Add(BitmapButton_IsScheduled, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Unsaved = new wxBitmapButton(Panel2, ID_BITMAPBUTTON7, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
     FlexGridSizer5->Add(BitmapButton_Unsaved, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Brightness = new BrightnessControl(Panel2,ID_CUSTOM1,wxDefaultPosition,wxSize(32,32),0,wxDefaultValidator,_T("ID_CUSTOM1"));
+    FlexGridSizer5->Add(Brightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel2->SetSizer(FlexGridSizer5);
     FlexGridSizer5->Fit(Panel2);
     FlexGridSizer5->SetSizeHints(Panel2);
@@ -242,11 +305,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_OutputToLightsClick);
-    Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_RandomClick);
     Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_PlayingClick);
+    Connect(ID_BITMAPBUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_IsScheduledClick);
+    Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_RandomClick);
     Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_PLLoopClick);
     Connect(ID_BITMAPBUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_StepLoopClick);
-    Connect(ID_BITMAPBUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_IsScheduledClick);
     Connect(ID_BITMAPBUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_UnsavedClick);
     Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_ACTIVATED,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated);
     Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged);
@@ -266,12 +329,23 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
 
     Connect(wxID_ANY, EVT_FRAMEMS, (wxObjectEventFunction)&xScheduleFrame::RateNotification);
 
+    int x, y, w, h;
+    wxConfigBase* config = wxConfigBase::Get();
+    x = config->ReadLong("xsWindowPosX", 0);
+    y = config->ReadLong("xsWindowPosY", 0);
+    w = config->ReadLong("xsWindowPosW", 800);
+    h = config->ReadLong("xsWindowPosH", 600);
+    SetPosition(wxPoint(x, y));
+    SetSize(w, h);
+
     ListView_Running->AppendColumn("Step");
     ListView_Running->AppendColumn("Duration");
     ListView_Running->AppendColumn("");
 
     _otlon = wxBitmap(xs_otlon, 32, 32);
     _otloff = wxBitmap(xs_otloff, 32, 32);
+    _otlautooff = wxBitmap(xs_otlautooff, 32, 32);
+    _otlautoon = wxBitmap(xs_otlautoon, 32, 32);
     _save = wxBitmap(xs_save, 32, 32);
     _scheduled = wxBitmap(xs_scheduled, 32, 32);
     _notscheduled = wxBitmap(xs_notscheduled, 32, 32);
@@ -285,8 +359,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     _paused = wxBitmap(xs_paused, 32, 32);
     _random = wxBitmap(xs_random, 32, 32);
     _notrandom = wxBitmap(xs_notrandom, 32, 32);
-
-    SetSize(600, 300);
 
     LoadShowDir();
 
@@ -305,6 +377,18 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
 
 xScheduleFrame::~xScheduleFrame()
 {
+    int x, y;
+    GetPosition(&x, &y);
+
+    int w, h;
+    GetSize(&w, &h);
+
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xsWindowPosX", x);
+    config->Write("xsWindowPosY", y);
+    config->Write("xsWindowPosW", w);
+    config->Write("xsWindowPosH", h);
+
     //(*Destroy(xScheduleFrame)
     //*)
 
@@ -617,11 +701,43 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     UpdateStatus();
 
+    Brightness->SetValue(__schedule->GetBrightness());
+
+    std::string msg;
+    if (!__schedule->GetOptions()->IsSendOffWhenNotRunning() && _manualOTL == -1)
+    {
+        if (__schedule->GetRunningPlayList() == nullptr)
+        {
+            if (__schedule->IsOutputToLights())
+                __schedule->ToggleOutputToLights(msg);
+        }
+        else
+        {
+            if (!__schedule->IsOutputToLights())
+                __schedule->ToggleOutputToLights(msg);
+        }
+    }
+    else
+    {
+        if (_manualOTL == 0)
+        {
+            if (__schedule->IsOutputToLights())
+                __schedule->ToggleOutputToLights(msg);
+        }
+        else if (_manualOTL == 1)
+        {
+            if (!__schedule->IsOutputToLights())
+                __schedule->ToggleOutputToLights(msg);
+        }
+    }
+
     ValidateWindow();
 }
 
 void xScheduleFrame::UpdateSchedule()
 {
+    if (__schedule == nullptr) return;
+
     int rate = __schedule->CheckSchedule();
 
     // highlight the state of all schedule items in the tree
@@ -742,17 +858,22 @@ void xScheduleFrame::RateNotification(wxCommandEvent& event)
 void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
 {
     PlayList* playlist = nullptr;
-
+    Schedule* schedule = nullptr;
+    
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
 
     if (IsPlayList(treeitem))
     {
         playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
     }
+    else if (IsSchedule(treeitem))
+    {
+        schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+    }
 
     size_t rate = _timer.GetInterval();
     std::string msg = "";
-    __schedule->Action(((wxButton*)event.GetEventObject())->GetLabel().ToStdString(), playlist, rate, msg);
+    __schedule->Action(((wxButton*)event.GetEventObject())->GetLabel().ToStdString(), playlist, schedule, rate, msg);
 
     if (rate != _timer.GetInterval())
     {
@@ -872,7 +993,7 @@ void xScheduleFrame::OnListView_RunningItemActivated(wxListEvent& event)
     {
         size_t rate;
         std::string msg;
-        __schedule->Action("Jump to specified step in current playlist", ListView_Running->GetItemText(selected, 0).ToStdString(), p, rate, msg);
+        __schedule->Action("Jump to specified step in current playlist", ListView_Running->GetItemText(selected, 0).ToStdString(), p, nullptr, rate, msg);
     }
 }
 
@@ -973,17 +1094,35 @@ void xScheduleFrame::UpdateStatus()
 
     if (__schedule->IsOutputToLights())
     {
-        if (otl != 1)
-            BitmapButton_OutputToLights->SetBitmap(_otlon);
+        if (_manualOTL == -1)
+        {
+            if (otl != 2)
+                BitmapButton_OutputToLights->SetBitmap(_otlautoon);
+            otl = 2;
+        }
+        else
+        {
+            if (otl != 1)
+                BitmapButton_OutputToLights->SetBitmap(_otlon);
+            otl = 1;
+        }
         BitmapButton_OutputToLights->SetToolTip("Lights output ON.");
-        otl = 1;
     }
     else
     {
-        if (otl != 0)
-            BitmapButton_OutputToLights->SetBitmap(_otloff);
+        if (_manualOTL == -1)
+        {
+            if (otl != 3)
+                BitmapButton_OutputToLights->SetBitmap(_otlautooff);
+            otl = 3;
+        }
+        else
+        {
+            if (otl != 0)
+                BitmapButton_OutputToLights->SetBitmap(_otloff);
+            otl = 0;
+        }
         BitmapButton_OutputToLights->SetToolTip("Lights output OFF.");
-        otl = 0;
     }
 
     if (__schedule->IsDirty())
@@ -1105,13 +1244,54 @@ void xScheduleFrame::UpdateStatus()
         }
     }
 
+    // update each button based on current status
+    auto buttons = Panel1->GetChildren();
+    for (auto it = buttons.begin(); it != buttons.end(); ++it)
+    {
+        std::string command = __schedule->GetOptions()->GetButtonCommand((*it)->GetLabel().ToStdString());
+        std::string parameters = __schedule->GetOptions()->GetButtonParameter((*it)->GetLabel().ToStdString());
+
+        PlayList* playlist = nullptr;
+        Schedule* schedule = nullptr;
+
+        wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+
+        if (IsPlayList(treeitem))
+        {
+            playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+        }
+        else if (IsSchedule(treeitem))
+        {
+            schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+        }
+
+        Command* c = __schedule->GetCommand(command);
+        std::string msg;
+        if (c != nullptr && c->IsValid(parameters, playlist, schedule, __schedule, msg))
+        {
+            (*it)->Enable();
+        }
+        else
+        {
+            (*it)->Enable(false);
+        }
+    }
+
     StaticText_Time->SetLabel(wxDateTime::Now().FormatTime());
 }
 
 void xScheduleFrame::OnBitmapButton_OutputToLightsClick(wxCommandEvent& event)
 {
-    std::string msg = "";
-    __schedule->ToggleOutputToLights(msg);
+    _manualOTL++;
+    if (_manualOTL > 1) _manualOTL = -1;
+    if (_manualOTL == 1)
+    {
+        __schedule->SetOutputToLights(true);
+    }
+    else if (_manualOTL == 0)
+    {
+        __schedule->SetOutputToLights(false);
+    }
 }
 
 void xScheduleFrame::OnBitmapButton_RandomClick(wxCommandEvent& event)

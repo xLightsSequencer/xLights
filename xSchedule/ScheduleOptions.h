@@ -12,7 +12,6 @@ class ScheduleOptions
     int _changeCount;
     int _lastSavedChangeCount;
     bool _sendOffWhenNotRunning;
-    bool _runOnMachineStartup;
     int _port;
     std::string _wwwRoot;
     std::map<std::string, std::string> _projectorIPs;
@@ -32,8 +31,6 @@ class ScheduleOptions
         void SetSync(bool sync) { _sync = sync; _changeCount++; }
         void SetSendOffWhenNotRunning(bool send) { _sendOffWhenNotRunning = send; _changeCount++; }
         bool IsSendOffWhenNotRunning() const { return _sendOffWhenNotRunning; }
-        bool IsRunOnMachineStartup() const { return _runOnMachineStartup; }
-        void SetRunOnMachineStartup(bool run) { _runOnMachineStartup = run; _changeCount++; }
         std::list<std::string> GetProjectors() const;
         std::list<std::string> GetButtons() const;
         std::string GetProjectorIpAddress(const std::string& projector);

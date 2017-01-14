@@ -23,7 +23,7 @@ BEGIN_EVENT_TABLE(PlayListItemPJLinkPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-void SetChoiceFromString(wxChoice* choice, std::string value)
+void PlayListItemPJLinkPanel::SetChoiceFromString(wxChoice* choice, std::string value)
 {
     choice->SetSelection(-1);
     for (int i =0; i < choice->GetCount(); i++)

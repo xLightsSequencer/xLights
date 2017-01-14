@@ -10,6 +10,7 @@
 #include <log4cpp/Category.hh>
 #include <wx/dir.h>
 #include <wx/file.h>
+#include "../xLights/xLightsVersion.h"
 
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
@@ -22,6 +23,8 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     _startTime = wxGetUTCTimeMillis();
     _outputManager = nullptr;
     _buffer = nullptr;
+    _brightness = 100;
+    _lastBrightness = 100;
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     _lastSavedChangeCount = 0;
@@ -236,6 +239,30 @@ void ScheduleManager::Frame()
             _outputManager->EndFrame();
         }
     }
+
+    if (_brightness < 100)
+    {
+        if (_brightness != _lastBrightness)
+        {
+            _lastBrightness = _brightness;
+            CreateBrightnessArray();
+        }
+
+        wxByte* pb = _buffer;
+        for (int i = 0; i < _outputManager->GetTotalChannels(); ++i)
+        {
+            *pb = _brightnessArray[*pb];
+            pb++;
+        }
+    }
+}
+
+void ScheduleManager::CreateBrightnessArray()
+{
+    for (int i = 0; i < 255; i++)
+    {
+        _brightnessArray[i] = ((255 * _brightness) / 100) & 0xFF;
+    }
 }
 
 bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, const std::string& step, bool forcelast, int plloops, bool random, int steploops)
@@ -323,10 +350,21 @@ int ScheduleManager::CheckSchedule()
     {
         if (!(*it)->GetSchedule()->CheckActive())
         {
-            logger_base.info("Scheduler removing playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
-            // this shouldnt be in the list any longer
-            (*it)->GetPlayList()->Stop();
-            todelete.push_back(*it);
+
+            if (!(*it)->GetPlayList()->IsRunning())
+            {
+                logger_base.info("Scheduler removing playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
+                // this shouldnt be in the list any longer
+                todelete.push_back(*it);
+            }
+            else
+            {
+                if (!(*it)->GetPlayList()->IsFinishingUp())
+                {
+                    logger_base.info("Scheduler telling playlist %s due to schedule %s it is time to finish up.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
+                    (*it)->GetPlayList()->JumpToEndStepsAtEndOfCurrentStep();
+                }
+            }
         }
     }
 
@@ -395,48 +433,6 @@ std::string ScheduleManager::GetStatus() const
     return "Playing " + curr->GetRunningStep()->GetNameNoTime() + " " + curr->GetRunningStep()->GetStatus();
 }
 
-std::list<std::string> ScheduleManager::GetCommands() const
-{
-    std::list<std::string> res;
-
-    res.push_back("Stop all now");
-    res.push_back("Stop");
-    res.push_back("Play selected playlist");
-    res.push_back("Play selected playlist looped");
-    res.push_back("Play specified playlist");
-    res.push_back("Play specified playlist looped");
-    res.push_back("Stop specified playlist");
-    res.push_back("Stop specified playlist at end of current step");
-    res.push_back("Stop specified playlist at end of current loop");
-    res.push_back("Stop playlist at end of current step");
-    res.push_back("Stop playlist at end of current loop");
-    res.push_back("Jump to play once at end steps at end of current step and then stop");
-    res.push_back("Pause");
-    res.push_back("Next step in current playlist");
-    res.push_back("Restart step in current playlist");
-    res.push_back("Prior step in current playlist");
-    res.push_back("Jump to random step in current playlist");
-    res.push_back("Jump to random step in specified playlist");
-    res.push_back("Jump to specified step in current playlist");
-    res.push_back("Jump to specified step in current playlist at the end of current step");
-    res.push_back("Play playlist starting at step");
-    res.push_back("Play playlist starting at step looped");
-    res.push_back("Toggle loop current step");
-    res.push_back("Play specified step in specified playlist looped");
-    res.push_back("Add to the specified schedule n minutes");
-    res.push_back("Set volume to");
-    res.push_back("Adjust volume by");
-    res.push_back("Save schedule");
-    res.push_back("Toggle output to lights");
-    res.push_back("Toggle current playlist random");
-    res.push_back("Toggle current playlist loop");
-    res.push_back("Play specified playlist step once only");
-    res.push_back("Play specified playlist n times");
-    res.push_back("Play specified playlist step n times");
-
-    return res;
-}
-
 PlayList* ScheduleManager::GetPlayList(const std::string& playlist) const
 {
     for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
@@ -461,559 +457,423 @@ PlayList* ScheduleManager::GetPlayList(const std::string& playlist) const
 // 127.0.0.1/xScheduleCommand?Command=Play playlist starting at step&Parameters=<step name>
 // 127.0.0.1/xScheduleCommand?Command=PressButton&Parameters=<button label>
 
-bool ScheduleManager::Action(const std::string command, const std::string parameters, PlayList* playlist, size_t& rate, std::string& msg)
+bool ScheduleManager::Action(const std::string command, const std::string parameters, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg)
 {
     bool result = true;
 
-    if (command == "Stop all now")
-    {
-        StopAll();
-    }
-    else if (command == "Stop")
-    {
-        PlayList* p = GetRunningPlayList();
-        if (p != nullptr)
-        {
-            p->Stop();
+    Command* cmd = _commandManager.GetCommand(command);
 
-            if (p == _immediatePlay)
-            {
-                delete _immediatePlay;
-                _immediatePlay = nullptr;
-            }
-        }
-    }
-    else if (command == "Play selected playlist")
-    {
-        if (playlist != nullptr)
-        {
-            if(!PlayPlayList(playlist, rate))
-            {
-                result = false;
-                msg = "Unable to start playlist.";
-            }
-        }
-        else
-        {
-            result = false;
-            msg = "No playlist selected.";
-        }
-    }
-    else if (command == "Play selected playlist looped")
-    {
-        if (playlist != nullptr)
-        {
-            if (!PlayPlayList(playlist, rate, true))
-            {
-                result = false;
-                msg = "Unable to start playlist.";
-            }
-        }
-        else
-        {
-            result = false;
-            msg = "No playlist selected.";
-        }
-    }
-    else if (command == "Play specified playlist")
-    {
-        PlayList* p = GetPlayList(parameters);
-
-        if (p != nullptr)
-        {
-            if (!PlayPlayList(p, rate))
-            {
-                result = false;
-                msg = "Unable to start playlist.";
-            }
-        }
-        else
-        {
-            result = false;
-            msg = "Playlist '"+parameters+"' not found.";
-        }
-    }
-    else if (command == "Play specified playlist looped")
-    {
-        PlayList* p = GetPlayList(parameters);
-
-        if (p != nullptr)
-        {
-            if (!PlayPlayList(p, rate, true))
-            {
-                result = false;
-                msg = "Unable to start playlist.";
-            }
-        }
-        else
-        {
-            result = false;
-            msg = "Playlist '" + parameters + "' not found.";
-        }
-    }
-    else if (command == "Stop specified playlist")
-    {
-        PlayList* p = GetPlayList(parameters);
-
-        if (p != nullptr)
-        {
-            StopPlayList(p, false);
-        }
-        else
-        {
-            result = false;
-            msg = "Playlist '" + parameters + "' not found.";
-        }
-    }
-    else if (command == "Stop specified playlist at end of current step")
-    {
-        PlayList* p = GetPlayList(parameters);
-
-        if (p != nullptr)
-        {
-            StopPlayList(p, true);
-        }
-    }
-    else if (command == "Stop playlist at end of current step")
-    {
-        PlayList* p = GetRunningPlayList();
-
-        if (p != nullptr)
-        {
-            StopPlayList(p, true);
-        }
-        else
-        {
-            result = false;
-            msg = "No playlist currently playing.";
-        }
-    }
-    else if (command == "Stop specified playlist at end of current loop")
-    {
-        PlayList* p = GetPlayList(parameters);
-
-        if (p != nullptr)
-        {
-            p->StopAtEndOfThisLoop();
-        }
-        else
-        {
-            result = false;
-            msg = "Playlist '" + parameters + "' not found.";
-        }
-    }
-    else if (command == "Jump to play once at end steps at end of current step and then stop")
-    {
-        PlayList* p = GetRunningPlayList();
-
-        if (p != nullptr)
-        {
-            p->JumpToEndStepsAtEndOfCurrentStep();
-        }
-        else
-        {
-            result = false;
-            msg = "No playlist currently running.";
-        }
-    }
-    else if (command == "Stop playlist at end of current loop")
-    {
-        PlayList* p = GetRunningPlayList();
-
-        if (p != nullptr)
-        {
-            p->StopAtEndOfThisLoop();
-        }
-        else
-        {
-            result = false;
-            msg = "No playlist currently playing.";
-        }
-    }
-    else if (command == "Pause")
-    {
-        result = ToggleCurrentPlayListPause(msg);
-    }
-    else if (command == "Next step in current playlist")
-    {
-        PlayList* p = GetRunningPlayList();
-
-        if (p != nullptr)
-        {
-            rate = p->JumpToNextStep();
-        }
-        else
-        {
-            result = false;
-            msg = "No playlist currently playing.";
-        }
-    }
-    else if (command == "Restart step in current playlist")
-    {
-        PlayList* p = GetRunningPlayList();
-
-        if (p != nullptr)
-        {
-            p->RestartCurrentStep();
-        }
-        else
-        {
-            result = false;
-            msg = "No playlist currently playing.";
-        }
-    }
-    else if (command == "Prior step in current playlist")
-    {
-        PlayList* p = GetRunningPlayList();
-
-        if (p != nullptr)
-        {
-            rate = p->JumpToPriorStep();
-        }
-        else
-        {
-            result = false;
-            msg = "No playlist currently playing.";
-        }
-    }
-    else if (command == "Toggle loop current step")
-    {
-        result = ToggleCurrentPlayListStepLoop(msg);
-    }
-    else if (command == "Play specified step in specified playlist looped")
-    {
-        wxString parameter = parameters;
-        wxArrayString split = wxSplit(parameter, ',');
-        if (split.Count() != 2)
-        {
-            result = false;
-            msg = "Parameters format incorrect.";
-        }
-        else
-        {
-            std::string pl = split[0].ToStdString();
-            std::string step = split[1].ToStdString();
-
-            PlayList* p = GetPlayList(pl);
-
-            if (p != nullptr)
-            {
-                if (!PlayPlayList(p, rate, false, step))
-                {
-                    result = false;
-                    msg = "Unable to start playlist.";
-                }
-                else
-                {
-                    p->LoopStep(step);
-                }
-            }
-            else
-            {
-                result = false;
-                msg = "Playlist '" + pl + "' not found.";
-            }
-        }
-    }
-    else if (command == "Play specified playlist step once only")
-    {
-        wxString parameter = parameters;
-        wxArrayString split = wxSplit(parameter, ',');
-        if (split.Count() != 2)
-        {
-            result = false;
-            msg = "Parameters format incorrect.";
-        }
-        else
-        {
-            std::string pl = split[0].ToStdString();
-            std::string step = split[1].ToStdString();
-
-            PlayList* p = GetPlayList(pl);
-
-            if (p != nullptr)
-            {
-                if (!PlayPlayList(p, rate, false, step, true))
-                {
-                    result = false;
-                    msg = "Unable to start playlist.";
-                }
-            }
-            else
-            {
-                result = false;
-                msg = "Playlist '" + pl + "' not found.";
-            }
-        }
-    }
-    else if (command == "Play playlist starting at step")
-    {
-        wxString parameter = parameters;
-        wxArrayString split = wxSplit(parameter, ',');
-        if (split.Count() != 2)
-        {
-            result = false;
-            msg = "Parameters format incorrect.";
-        }
-        else
-        {
-            std::string pl = split[0].ToStdString();
-            std::string step = split[1].ToStdString();
-
-            PlayList* p = GetPlayList(pl);
-
-            if (p != nullptr)
-            {
-                if (!PlayPlayList(p, rate, false, step))
-                {
-                    result = false;
-                    msg = "Unable to start playlist.";
-                }
-            }
-            else
-            {
-                result = false;
-                msg = "Playlist '" + pl + "' not found.";
-            }
-        }
-    }
-    else if (command == "Play playlist starting at step looped")
-    {
-        wxString parameter = parameters;
-        wxArrayString split = wxSplit(parameter, ',');
-        if (split.Count() != 2)
-        {
-            result = false;
-            msg = "Parameters format incorrect.";
-        }
-        else
-        {
-            std::string pl = split[0].ToStdString();
-            std::string step = split[1].ToStdString();
-
-            PlayList* p = GetPlayList(pl);
-
-            if (p != nullptr)
-            {
-                if (!PlayPlayList(p, rate, true, step))
-                {
-                    result = false;
-                    msg = "Unable to start playlist.";
-                }
-            }
-            else
-            {
-                result = false;
-                msg = "Playlist '" + pl + "' not found.";
-            }
-        }
-    }
-    else if (command == "Jump to specified step in current playlist")
-    {
-        PlayList* p = GetRunningPlayList();
-
-        if (p != nullptr)
-        {
-            rate = p->JumpToStep(parameters);
-        }
-        else
-        {
-            result = false;
-            msg = "No playlist currently playing.";
-        }
-    }
-    else if (command == "Jump to specified step in current playlist at the end of current step")
-    {
-        PlayList* p = GetRunningPlayList();
-
-        if (p != nullptr)
-        {
-            p->JumpToStepAtEndOfCurrentStep(parameters);
-        }
-        else
-        {
-            result = false;
-            msg = "No playlist currently playing.";
-        }
-    }
-    else if (command == "Jump to random step in current playlist")
-    {
-        PlayList* p = GetRunningPlayList();
-
-        if (p != nullptr)
-        {
-            auto r = p->GetRandomStep();
-            if (r != nullptr)
-            {
-                rate = p->JumpToStep(r->GetNameNoTime());
-            }
-        }
-        else
-        {
-            result = false;
-            msg = "No playlist currently playing.";
-        }
-    }
-    else if (command == "Jump to random step in specified playlist")
-    {
-        PlayList* p = GetPlayList(parameters);
-
-        if (p != nullptr)
-        {
-            auto r = p->GetRandomStep();
-            if (r != nullptr)
-            {
-                rate = p->JumpToStep(r->GetNameNoTime());
-            }
-        }
-        else
-        {
-            result = false;
-            msg = "Playlist '" + parameters + "' not found.";
-        }
-    }
-    else if (command == "Add to the specified schedule n minutes")
-    {
-        wxString parameter = parameters;
-        wxArrayString split = wxSplit(parameter, ',');
-        if (split.Count() != 2)
-        {
-            result = false;
-            msg = "Parameters format incorrect.";
-        }
-        else
-        {
-            std::string schedulename = split[0].ToStdString();
-            int mins = wxAtoi(split[1]);
-            Schedule *schedule = GetRunningSchedule(schedulename)->GetSchedule();
-            if (schedule != nullptr)
-            {
-                schedule->AddMinsToEndTime(mins);
-            }
-            else
-            {
-                result = false;
-                msg = "Schedule '" + schedulename + "' was not running.";
-            }
-        }
-    }
-    else if (command == "Set volume to")
-    {
-#pragma todo need to add this    
-    }
-    else if (command == "Adjust volume by")
-    {
-#pragma todo need to add this    
-    }
-    else if (command == "Toggle output to lights")
-    {
-        result = ToggleOutputToLights(msg);
-    }
-    else if (command == "Toggle current playlist random")
-    {
-        result = ToggleCurrentPlayListRandom(msg);
-    }
-    else if (command == "Toggle current playlist loop")
-    {
-        result = ToggleCurrentPlayListLoop(msg);
-    }
-    else if (command == "Save schedule")
-    {
-        Save();
-    }
-    else if (command == "PressButton")
-    {
-        std::string c = _scheduleOptions->GetButtonCommand(parameters);
-        std::string p = _scheduleOptions->GetButtonParameter(parameters);
-
-        if (c != "")
-        {
-            result = Action(c, p, playlist, rate, msg);
-        }
-    }
-    else if (command == "Play specified playlist n times")
-    {
-        wxString parameter = parameters;
-        wxArrayString split = wxSplit(parameter, ',');
-        if (split.Count() != 2)
-        {
-            result = false;
-            msg = "Parameters format incorrect.";
-        }
-        else
-        {
-            std::string pl = split[0].ToStdString();
-            int loops = wxAtoi(split[1]);
-            PlayList* p = GetPlayList(pl);
-
-            if (p != nullptr)
-            {
-                if (!PlayPlayList(p, rate, false, "", false, loops))
-                {
-                    result = false;
-                    msg = "Unable to start playlist.";
-                }
-            }
-            else
-            {
-                result = false;
-                msg = "Playlist '" + parameters + "' not found.";
-            }
-        }
-    }
-    else if (command == "Play specified playlist step n times")
-    {
-        wxString parameter = parameters;
-        wxArrayString split = wxSplit(parameter, ',');
-        if (split.Count() != 3)
-        {
-            result = false;
-            msg = "Parameters format incorrect.";
-        }
-        else
-        {
-            std::string pl = split[0].ToStdString();
-            std::string step = split[1].ToStdString();
-            int loops = wxAtoi(split[2]);
-
-            PlayList* p = GetPlayList(pl);
-
-            if (p != nullptr)
-            {
-                if (!PlayPlayList(p, rate, false, step, false, -1, false, loops))
-                {
-                    result = false;
-                    msg = "Unable to start playlist.";
-                }
-            }
-            else
-            {
-                result = false;
-                msg = "Playlist '" + pl + "' not found.";
-            }
-        }
-    }
-    else
+    if (cmd == nullptr)
     {
         result = false;
         msg = "Unknown command.";
     }
+    else
+    {
+        if (!cmd->IsValid(parameters, selplaylist, selschedule, this, msg))
+        {
+            result = false;
+        }
+        else
+        {
+            if (command == "Stop all now")
+            {
+                StopAll();
+            }
+            else if (command == "Stop")
+            {
+                PlayList* p = GetRunningPlayList();
+                if (p != nullptr)
+                {
+                    p->Stop();
 
+                    if (p == _immediatePlay)
+                    {
+                        delete _immediatePlay;
+                        _immediatePlay = nullptr;
+                    }
+                }
+            }
+            else if (command == "Play selected playlist")
+            {
+                if (selplaylist != nullptr)
+                {
+                    if (!PlayPlayList(selplaylist, rate))
+                    {
+                        result = false;
+                        msg = "Unable to start playlist.";
+                    }
+                }
+            }
+            else if (command == "Play selected playlist looped")
+            {
+                if (selplaylist != nullptr)
+                {
+                    if (!PlayPlayList(selplaylist, rate, true))
+                    {
+                        result = false;
+                        msg = "Unable to start playlist.";
+                    }
+                }
+            }
+            else if (command == "Play specified playlist")
+            {
+                PlayList* p = GetPlayList(parameters);
+
+                if (p != nullptr)
+                {
+                    if (!PlayPlayList(p, rate))
+                    {
+                        result = false;
+                        msg = "Unable to start playlist.";
+                    }
+                }
+            }
+            else if (command == "Play specified playlist looped")
+            {
+                PlayList* p = GetPlayList(parameters);
+
+                if (p != nullptr)
+                {
+                    if (!PlayPlayList(p, rate, true))
+                    {
+                        result = false;
+                        msg = "Unable to start playlist.";
+                    }
+                }
+            }
+            else if (command == "Stop specified playlist")
+            {
+                PlayList* p = GetPlayList(parameters);
+
+                if (p != nullptr)
+                {
+                    StopPlayList(p, false);
+                }
+            }
+            else if (command == "Stop specified playlist at end of current step")
+            {
+                PlayList* p = GetPlayList(parameters);
+
+                if (p != nullptr)
+                {
+                    StopPlayList(p, true);
+                }
+            }
+            else if (command == "Stop playlist at end of current step")
+            {
+                PlayList* p = GetRunningPlayList();
+
+                if (p != nullptr)
+                {
+                    StopPlayList(p, true);
+                }
+            }
+            else if (command == "Stop specified playlist at end of current loop")
+            {
+                PlayList* p = GetPlayList(parameters);
+
+                if (p != nullptr)
+                {
+                    p->StopAtEndOfThisLoop();
+                }
+            }
+            else if (command == "Jump to play once at end at end of current step and then stop")
+            {
+                PlayList* p = GetRunningPlayList();
+
+                if (p != nullptr)
+                {
+                    p->JumpToEndStepsAtEndOfCurrentStep();
+                }
+            }
+            else if (command == "Stop playlist at end of current loop")
+            {
+                PlayList* p = GetRunningPlayList();
+
+                if (p != nullptr)
+                {
+                    p->StopAtEndOfThisLoop();
+                }
+            }
+            else if (command == "Pause")
+            {
+                result = ToggleCurrentPlayListPause(msg);
+            }
+            else if (command == "Next step in current playlist")
+            {
+                PlayList* p = GetRunningPlayList();
+
+                if (p != nullptr)
+                {
+                    rate = p->JumpToNextStep();
+                }
+            }
+            else if (command == "Restart step in current playlist")
+            {
+                PlayList* p = GetRunningPlayList();
+
+                if (p != nullptr)
+                {
+                    p->RestartCurrentStep();
+                }
+            }
+            else if (command == "Prior step in current playlist")
+            {
+                PlayList* p = GetRunningPlayList();
+
+                if (p != nullptr)
+                {
+                    rate = p->JumpToPriorStep();
+                }
+            }
+            else if (command == "Toggle loop current step")
+            {
+                result = ToggleCurrentPlayListStepLoop(msg);
+            }
+            else if (command == "Play specified step in specified playlist looped")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = split[0].ToStdString();
+                std::string step = split[1].ToStdString();
+
+                PlayList* p = GetPlayList(pl);
+
+                if (p != nullptr)
+                {
+                    if (!PlayPlayList(p, rate, false, step))
+                    {
+                        result = false;
+                        msg = "Unable to start playlist.";
+                    }
+                    else
+                    {
+                        p->LoopStep(step);
+                    }
+                }
+            }
+            else if (command == "Play specified playlist step once only")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = split[0].ToStdString();
+                std::string step = split[1].ToStdString();
+
+                PlayList* p = GetPlayList(pl);
+
+                if (p != nullptr)
+                {
+                    if (!PlayPlayList(p, rate, false, step, true))
+                    {
+                        result = false;
+                        msg = "Unable to start playlist.";
+                    }
+                }
+            }
+            else if (command == "Play playlist starting at step")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = split[0].ToStdString();
+                std::string step = split[1].ToStdString();
+
+                PlayList* p = GetPlayList(pl);
+
+                if (p != nullptr)
+                {
+                    if (!PlayPlayList(p, rate, false, step))
+                    {
+                        result = false;
+                        msg = "Unable to start playlist.";
+                    }
+                }
+            }
+            else if (command == "Play playlist starting at step looped")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = split[0].ToStdString();
+                std::string step = split[1].ToStdString();
+
+                PlayList* p = GetPlayList(pl);
+
+                if (p != nullptr)
+                {
+                    if (!PlayPlayList(p, rate, true, step))
+                    {
+                        result = false;
+                        msg = "Unable to start playlist.";
+                    }
+                }
+            }
+            else if (command == "Jump to specified step in current playlist")
+            {
+                PlayList* p = GetRunningPlayList();
+
+                if (p != nullptr)
+                {
+                    rate = p->JumpToStep(parameters);
+                }
+            }
+            else if (command == "Jump to specified step in current playlist at the end of current step")
+            {
+                PlayList* p = GetRunningPlayList();
+
+                if (p != nullptr)
+                {
+                    p->JumpToStepAtEndOfCurrentStep(parameters);
+                }
+            }
+            else if (command == "Jump to random step in current playlist")
+            {
+                PlayList* p = GetRunningPlayList();
+
+                if (p != nullptr)
+                {
+                    auto r = p->GetRandomStep();
+                    if (r != nullptr)
+                    {
+                        rate = p->JumpToStep(r->GetNameNoTime());
+                    }
+                }
+            }
+            else if (command == "Jump to random step in specified playlist")
+            {
+                PlayList* p = GetPlayList(parameters);
+
+                if (p != nullptr)
+                {
+                    auto r = p->GetRandomStep();
+                    if (r != nullptr)
+                    {
+                        rate = p->JumpToStep(r->GetNameNoTime());
+                    }
+                }
+            }
+            else if (command == "Add to the current schedule n minutes")
+            {
+                RunningSchedule *rs = GetRunningSchedule();
+                if (rs != nullptr && rs->GetSchedule() != nullptr)
+                {
+                    rs->GetSchedule()->AddMinsToEndTime(wxAtoi(parameters));
+                }
+            }
+            else if (command == "Set volume to")
+            {
+#pragma todo need to add this    
+            }
+            else if (command == "Adjust volume by")
+            {
+#pragma todo need to add this    
+            }
+            else if (command == "Toggle output to lights")
+            {
+                result = ToggleOutputToLights(msg);
+            }
+            else if (command == "Increase brightness by n%")
+            {
+                int by = wxAtoi(parameters);
+                AdjustBrightness(by);
+            }
+            else if (command ==  "Set brightness to n%")
+            {
+                int b = wxAtoi(parameters);
+                SetBrightness(b);
+            }
+            else if (command == "Toggle current playlist random")
+            {
+                result = ToggleCurrentPlayListRandom(msg);
+            }
+            else if (command == "Toggle current playlist loop")
+            {
+                result = ToggleCurrentPlayListLoop(msg);
+            }
+            else if (command == "Save schedule")
+            {
+                Save();
+            }
+            else if (command == "PressButton")
+            {
+                std::string c = _scheduleOptions->GetButtonCommand(parameters);
+                std::string p = _scheduleOptions->GetButtonParameter(parameters);
+
+                if (c != "")
+                {
+                    result = Action(c, p, selplaylist, selschedule, rate, msg);
+                }
+            }
+            else if (command == "Play specified playlist n times")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = split[0].ToStdString();
+                int loops = wxAtoi(split[1]);
+                PlayList* p = GetPlayList(pl);
+
+                if (p != nullptr)
+                {
+                    if (!PlayPlayList(p, rate, false, "", false, loops))
+                    {
+                        result = false;
+                        msg = "Unable to start playlist.";
+                    }
+                }
+            }
+            else if (command == "Play specified playlist step n times")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = split[0].ToStdString();
+                std::string step = split[1].ToStdString();
+                int loops = wxAtoi(split[2]);
+
+                PlayList* p = GetPlayList(pl);
+
+                if (p != nullptr)
+                {
+                    if (!PlayPlayList(p, rate, false, step, false, -1, false, loops))
+                    {
+                        result = false;
+                        msg = "Unable to start playlist.";
+                    }
+                }
+            }
+        }
+    }
+ 
     if (!result)
     {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("Action failed: %s", (const char *)msg.c_str());
     }
 
+    // Clean up immediate play of one of the actions led to it stopping
+    if (_immediatePlay != nullptr)
+    {
+        if (!_immediatePlay->IsRunning())
+        {
+            delete _immediatePlay;
+            _immediatePlay = nullptr;
+        }
+    }
+
     return result;
 }
 
-bool ScheduleManager::Action(const std::string label, PlayList* playlist, size_t& rate, std::string& msg)
+
+bool ScheduleManager::Action(const std::string label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg)
 {
     std::string command = _scheduleOptions->GetButtonCommand(label);
     std::string parameters = _scheduleOptions->GetButtonParameter(label);
 
-    return Action(command, parameters, playlist, rate, msg);
+    return Action(command, parameters, selplaylist, selschedule, rate, msg);
 }
 
 void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
@@ -1133,6 +993,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) + 
                 "\",\"trigger\":\"" + std::string(IsCurrentPlayListScheduled() ? "scheduled": "manual") +
                 "\",\"nextstep\":\"" + nextsong +
+                "\",\"version\":\"" + xlights_version_string +
                 "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\"}";
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.info("%s", (const char*)data.c_str());
@@ -1334,4 +1195,25 @@ RunningSchedule* ScheduleManager::GetRunningSchedule(const std::string& schedule
     }
 
     return nullptr;
+}
+
+void ScheduleManager::SetOutputToLights(bool otl)
+{
+    if (_outputManager != nullptr)
+    {
+        if (otl)
+        {
+            if (!IsOutputToLights())
+            {
+                _outputManager->StartOutput();
+            }
+        }
+        else
+        {
+            if (!IsOutputToLights())
+            {
+                _outputManager->StopOutput();
+            }
+        }
+    }
 }

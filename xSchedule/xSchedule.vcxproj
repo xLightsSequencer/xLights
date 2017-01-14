@@ -190,6 +190,7 @@
     <ClCompile Include="..\xLights\VideoReader.cpp" />
     <ClCompile Include="..\xLights\xLightsTimer.cpp" />
     <ClCompile Include="ButtonDetailsDialog.cpp" />
+    <ClCompile Include="CommandManager.cpp" />
     <ClCompile Include="ESEQFile.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="md5.cpp" />
@@ -212,6 +213,8 @@
     <ClCompile Include="PlayList\PlayListItemImagePanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemPJLink.cpp" />
     <ClCompile Include="PlayList\PlayListItemPJLinkPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemRunCommand.cpp" />
+    <ClCompile Include="PlayList\PlayListItemRunCommandPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemRunProcess.cpp" />
     <ClCompile Include="PlayList\PlayListItemRunProcessPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemVideo.cpp" />
@@ -261,6 +264,7 @@
     <ClInclude Include="..\xLights\VideoReader.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />
     <ClInclude Include="ButtonDetailsDialog.h" />
+    <ClInclude Include="CommandManager.h" />
     <ClInclude Include="ESEQFile.h" />
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="md5.h" />
@@ -284,6 +288,8 @@
     <ClInclude Include="PlayList\PlayListItemImagePanel.h" />
     <ClInclude Include="PlayList\PlayListItemPJLink.h" />
     <ClInclude Include="PlayList\PlayListItemPJLinkPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemRunCommand.h" />
+    <ClInclude Include="PlayList\PlayListItemRunCommandPanel.h" />
     <ClInclude Include="PlayList\PlayListItemRunProcess.h" />
     <ClInclude Include="PlayList\PlayListItemRunProcessPanel.h" />
     <ClInclude Include="PlayList\PlayListItemVideo.h" />

@@ -539,6 +539,7 @@ bool PlayList::JumpToPriorStep()
 
     if (_currentStep == nullptr) return false;
 
+    _pauseTime = 0;
     _currentStep->Stop();
     _currentStep = GetPriorStep();
 
@@ -553,6 +554,7 @@ bool PlayList::JumpToNextStep()
 {
     bool success = true;
 
+    _pauseTime = 0;
     _loopStep = false;
     _forceNextStep = "";
 
@@ -592,6 +594,7 @@ bool PlayList::MoveToNextStep()
 
 void PlayList::RestartCurrentStep()
 {
+    _pauseTime = 0;
     _forceNextStep = "";
     _loopStep = false;
     if (_currentStep != nullptr) _currentStep->Restart();

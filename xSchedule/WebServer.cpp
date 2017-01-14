@@ -56,7 +56,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         size_t rate = 0;
         std::string msg = "";
         HttpResponse response(connection, request, HttpStatus::OK);
-        if (xScheduleFrame::GetScheduleManager()->Action(command, parameters, nullptr, rate, msg))
+        if (xScheduleFrame::GetScheduleManager()->Action(command, parameters, nullptr, nullptr, rate, msg))
         {
             wxCommandEvent event(EVT_FRAMEMS);
             event.SetInt(rate);

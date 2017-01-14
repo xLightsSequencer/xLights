@@ -34,7 +34,6 @@ class OptionsDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxStaticText* StaticText2;
 		wxButton* Button_ButtonAdd;
-		wxCheckBox* CheckBox_RunOnMachineStartup;
 		wxButton* Button_DeleteProjector;
 		wxCheckBox* CheckBox_Sync;
 		wxStaticText* StaticText1;
@@ -52,7 +51,6 @@ class OptionsDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(OptionsDialog)
-		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX3;
 		static const long ID_CHECKBOX2;
 		static const long ID_STATICTEXT3;

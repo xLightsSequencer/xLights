@@ -222,6 +222,13 @@
       <Filter>PlayList</Filter>
     </ClCompile>
     <ClCompile Include="RunningSchedule.cpp" />
+    <ClCompile Include="PlayList\PlayListItemRunCommandPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemRunCommand.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -386,6 +393,13 @@
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="RunningSchedule.h" />
+    <ClInclude Include="PlayList\PlayListItemRunCommandPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemRunCommand.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

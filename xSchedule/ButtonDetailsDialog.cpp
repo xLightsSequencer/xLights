@@ -74,7 +74,7 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, s
     auto commands = xScheduleFrame::GetScheduleManager()->GetCommands();
     for (auto it = commands.begin(); it != commands.end(); ++it)
     {
-        Choice_Command->AppendString(*it);
+        Choice_Command->AppendString((*it)->_command);
     }
 
     TextCtrl_Label->SetValue(label);

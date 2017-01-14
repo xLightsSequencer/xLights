@@ -51,6 +51,7 @@ public:
     bool operator==(const PlayList& rhs) const { return _id == rhs._id; }
 
     #pragma region Getters and Setters
+    bool IsFinishingUp() const { return _jumpToEndStepsAtEndOfCurrentStep; }
     void JumpToStepAtEndOfCurrentStep(const std::string& step) { _forceNextStep = step; }
     PlayListStep* GetNextStep(bool& didloop) const;
     PlayListStep* GetRunningStep() const { return _currentStep; }

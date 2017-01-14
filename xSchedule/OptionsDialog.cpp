@@ -10,7 +10,6 @@
 //*)
 
 //(*IdInit(OptionsDialog)
-const long OptionsDialog::ID_CHECKBOX1 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX3 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX2 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT3 = wxNewId();
@@ -50,15 +49,12 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
+	Create(parent, id, _("Options"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(4);
-	CheckBox_RunOnMachineStartup = new wxCheckBox(this, ID_CHECKBOX1, _("Run on machine startup"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
-	CheckBox_RunOnMachineStartup->SetValue(false);
-	FlexGridSizer1->Add(CheckBox_RunOnMachineStartup, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_SendOffWhenNotRunning = new wxCheckBox(this, ID_CHECKBOX3, _("Send data when not running sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	CheckBox_SendOffWhenNotRunning->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_SendOffWhenNotRunning, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -161,7 +157,6 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
     Grid_Buttons->SetSelectionMode(wxGrid::wxGridSelectRows);
     Grid_Projectors->SetSelectionMode(wxGrid::wxGridSelectRows);
 
-    CheckBox_RunOnMachineStartup->SetValue(options->IsRunOnMachineStartup());
     CheckBox_SendOffWhenNotRunning->SetValue(options->IsSendOffWhenNotRunning());
     CheckBox_Sync->SetValue(options->IsSync());
 
@@ -217,7 +212,6 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     _options->SetSync(CheckBox_Sync->GetValue());
     _options->SetSendOffWhenNotRunning(CheckBox_SendOffWhenNotRunning->GetValue());
-    _options->SetRunOnMachineStartup(CheckBox_RunOnMachineStartup->GetValue());
     _options->SetWebServerPort(SpinCtrl_WebServerPort->GetValue());
     _options->SetWWWRoot(TextCtrl_wwwRoot->GetValue().ToStdString());
 

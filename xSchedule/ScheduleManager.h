@@ -4,6 +4,7 @@
 #include <string>
 #include <wx/wx.h>
 #include "Schedule.h"
+#include "CommandManager.h"
 
 class ScheduleOptions;
 class PlayList;
@@ -21,9 +22,14 @@ class ScheduleManager
     wxByte* _buffer;
     wxLongLong _startTime;
     PlayList* _immediatePlay;
+    CommandManager _commandManager;
     std::list<RunningSchedule*> _activeSchedules;
+    int _brightness;
+    int _lastBrightness;
+    wxByte _brightnessArray[255];
 
     std::string FormatTime(size_t timems);
+    void CreateBrightnessArray();
 
     public:
 
@@ -45,16 +51,20 @@ class ScheduleManager
         void RemovePlayList(PlayList* playlist);
         PlayList* GetRunningPlayList() const;
         std::list<PlayList*> GetPlayLists();
-        std::list<std::string> GetCommands() const;
+        std::list<Command*> GetCommands() const { return _commandManager.GetCommands(); }
+        Command* GetCommand(std::string command) const { return _commandManager.GetCommand(command); }
         bool IsRunning() const { return GetRunningPlayList() != nullptr; }
+        int GetBrightness() const { return _brightness; }
+        void AdjustBrightness(int by) { _brightness += by; if (_brightness < 0) _brightness = 0; else if (_brightness > 100) _brightness = 100; }
+        void SetBrightness(int brightness) { if (brightness < 0) _brightness = 0; else if (brightness > 100) _brightness = 100; else _brightness = brightness; }
         void Frame(); // called when a frame needs to be displayed ... returns desired frame rate
         int CheckSchedule();
         std::string GetShowDir() const { return _showDir; }
         bool PlayPlayList(PlayList* playlist, size_t& rate, bool loop = false, const std::string& step = "", bool forcelast = false, int loops = -1, bool random = false, int steploops = -1);
         bool IsSomethingPlaying() const { return GetRunningPlayList() != nullptr; }
         void OptionsChanged() {};
-        bool Action(const std::string label, PlayList* playlist, size_t& rate, std::string& msg);
-        bool Action(const std::string command, const std::string parameters, PlayList* playlist, size_t& rate, std::string& msg);
+        bool Action(const std::string label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
+        bool Action(const std::string command, const std::string parameters, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
         bool Query(const std::string command, const std::string parameters, std::string& data, std::string& msg);
         PlayList * GetPlayList(const std::string& playlist) const;
         void StopPlayList(PlayList* playlist, bool atendofcurrentstep);
@@ -67,6 +77,7 @@ class ScheduleManager
         bool ToggleCurrentPlayListStepLoop(std::string& msg);
         bool IsOutputToLights() const;
         bool IsCurrentPlayListScheduled() const { return _immediatePlay == nullptr; }
+        void SetOutputToLights(bool otl);
 };
 
 #endif

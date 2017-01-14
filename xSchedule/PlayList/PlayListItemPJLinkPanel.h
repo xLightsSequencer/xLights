@@ -15,6 +15,7 @@ class PlayListItemPJLinkPanel: public wxPanel
 {
     PlayListItemPJLink* _PJLink;
     void ValidateWindow();
+    void SetChoiceFromString(wxChoice* choice, std::string value);
 
 	public:
 

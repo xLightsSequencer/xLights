@@ -10,6 +10,8 @@
 #ifndef XSCHEDULEMAIN_H
 #define XSCHEDULEMAIN_H
 
+class BrightnessControl;
+
 //(*Headers(xScheduleFrame)
 #include <wx/listctrl.h>
 #include <wx/treectrl.h>
@@ -39,6 +41,7 @@ wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 
 class xScheduleFrame : public wxFrame
 {
+    int _manualOTL;
     WebServer* _webServer;
     static ScheduleManager* __schedule;
     std::string _showDir;
@@ -55,6 +58,8 @@ class xScheduleFrame : public wxFrame
 
     wxBitmap _otlon;
     wxBitmap _otloff;
+    wxBitmap _otlautoon;
+    wxBitmap _otlautooff;
     wxBitmap _save;
     wxBitmap _scheduled;
     wxBitmap _notscheduled;
@@ -110,12 +115,13 @@ public:
 
         //(*Identifiers(xScheduleFrame)
         static const long ID_BITMAPBUTTON1;
-        static const long ID_BITMAPBUTTON2;
         static const long ID_BITMAPBUTTON3;
+        static const long ID_BITMAPBUTTON6;
+        static const long ID_BITMAPBUTTON2;
         static const long ID_BITMAPBUTTON4;
         static const long ID_BITMAPBUTTON5;
-        static const long ID_BITMAPBUTTON6;
         static const long ID_BITMAPBUTTON7;
+        static const long ID_CUSTOM1;
         static const long ID_PANEL2;
         static const long ID_TREECTRL1;
         static const long ID_PANEL3;
@@ -168,12 +174,13 @@ public:
         wxListView* ListView_Running;
         wxTreeCtrl* TreeCtrl_PlayListsSchedules;
         wxMenuItem* MenuItem_ShowFolder;
-        wxBitmapButton* BitmapButton_Playing;
         wxBitmapButton* BitmapButton_Random;
+        wxBitmapButton* BitmapButton_Playing;
         wxPanel* Panel2;
         wxFlexGridSizer* FlexGridSizer1;
         wxSplitterWindow* SplitterWindow1;
         wxMenuItem* MenuItem_Options;
+        BrightnessControl* Brightness;
         wxMenuItem* MenuItem_ViewLog;
         //*)
 
