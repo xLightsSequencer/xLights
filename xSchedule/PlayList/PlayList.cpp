@@ -29,6 +29,9 @@ PlayList::PlayList(wxXmlNode* node)
     _changeCount = 0;
     _currentStep = nullptr;
     Load(node);
+
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.info("Playlist created from XML %s 0x%lx.", (const char*)GetName().c_str(), this);
 }
 
 PlayList::PlayList(const PlayList& playlist)
@@ -56,6 +59,9 @@ PlayList::PlayList(const PlayList& playlist)
         _steps.push_back(new PlayListStep(**it));
     }
     // dont copy the schedule as it wont be needed
+
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.info("Playlist copy made %s 0x%lx.", (const char*)GetName().c_str(), this);
 }
 
 PlayList::PlayList()
@@ -78,10 +84,16 @@ PlayList::PlayList()
     _lastOnlyOnce = false;
     _name = "";
     _stopAtEndOfCurrentStep = false;
+
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.info("New playlist created from nothing 0x%lx.", this);
 }
 
 PlayList::~PlayList()
 {
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.info("Playlist being destroyed %s 0x%lx.", (const char*)GetName().c_str(), this);
+
     while (_steps.size() > 0)
     {
         auto toremove = _steps.front();

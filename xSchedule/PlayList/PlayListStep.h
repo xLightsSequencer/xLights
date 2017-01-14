@@ -35,7 +35,7 @@ public:
     PlayListStep(wxXmlNode* node);
     PlayListStep();
     virtual ~PlayListStep();
-    PlayListStep(const PlayListStep& step, int loops);
+    PlayListStep(const PlayListStep& step);
 #pragma endregion Constructors and Destructors
 
     bool operator==(const PlayListStep& rhs) const { return _id == rhs._id; }
