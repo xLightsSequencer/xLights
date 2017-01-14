@@ -39,7 +39,7 @@ public:
     #pragma region Getters and Setters
     virtual size_t GetDurationMS() const override;
     virtual std::string GetNameNoTime() const override;
-    void SetLocation(wxPoint pt, wxSize size) { _origin = pt; _size = size; _dirty = true; }
+    void SetLocation(wxPoint pt, wxSize size) { _origin = pt; _size = size; _changeCount++; }
     void SetVideoFile(const std::string& videoFile);
     std::string GetVideoFile() const { return _videoFile; }
     wxPoint GetPosition() const { return _origin; }
@@ -53,6 +53,7 @@ public:
     virtual void Start() override;
     virtual void Stop() override;
     virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems) override;
+    virtual void Suspend(bool suspend);
     #pragma endregion Playing
 
 #pragma region UI

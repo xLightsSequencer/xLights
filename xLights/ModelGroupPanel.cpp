@@ -147,6 +147,29 @@ void ModelGroupPanel::AddPreviewChoice(const std::string name)
     ChoicePreviews->Append(name);
 }
 
+bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model, std::list<std::string> &modelGroupsInGroup) {
+    if (model == g->GetName()) {
+        return false;
+    }
+    for (auto it = modelGroupsInGroup.begin(); it != modelGroupsInGroup.end(); it++) {
+        if (*it == model) {
+            return false;
+        }
+        Model *m = models[model];
+        if (m != nullptr) {
+            ModelGroup *grp = dynamic_cast<ModelGroup*>(m);
+            if (grp != nullptr) {
+                for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
+                    if (!canAddToGroup(g, models, *it, modelGroupsInGroup)) {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    return true;
+}
+
 void ModelGroupPanel::UpdatePanel(const std::string group)
 {
     mGroup = group;
@@ -156,13 +179,15 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
     ChoiceModelLayoutType->SetSelection(1);
     ModelGroup *g = (ModelGroup*)mModels[group];
     wxXmlNode *e = g->GetModelXml();
+    std::list<std::string> modelsInGroup;
+    modelsInGroup.push_back(g->GetName());
     for (auto it = g->ModelNames().begin(); it != g->ModelNames().end(); it++) {
         ListBoxModelsInGroup->Append(*it);
+        modelsInGroup.push_back(*it);
     }
     for (auto it = mModels.begin(); it != mModels.end(); it++) {
-
         if (it->first != group) {
-            if (std::find(g->ModelNames().begin(), g->ModelNames().end(), it->first) == g->ModelNames().end()) {
+            if (canAddToGroup(g, mModels, it->first, modelsInGroup)) {
                 ListBoxAddToModelGroup->Append(it->first);
             }
             for (auto smit = it->second->GetSubModels().begin() ; smit != it->second->GetSubModels().end(); smit++) {

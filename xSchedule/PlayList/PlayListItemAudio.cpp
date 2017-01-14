@@ -39,6 +39,7 @@ PlayListItemAudio::PlayListItemAudio() : PlayListItem()
 
 PlayListItem* PlayListItemAudio::Copy() const
 {
+    PlayListItemAudio* res = new PlayListItemAudio();
     res->_audioFile = _audioFile;
     res->_durationMS = _durationMS;
     PlayListItem::Copy(res);
@@ -59,7 +60,7 @@ wxXmlNode* PlayListItemAudio::Save()
 
 void PlayListItemAudio::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemFSEQPanel(notebook, this), "Audio", true);
+    notebook->AddPage(new PlayListItemAudioPanel(notebook, this), "Audio", true);
 }
 
 std::string PlayListItemAudio::GetNameNoTime() const
@@ -77,16 +78,16 @@ std::string PlayListItemAudio::GetNameNoTime() const
 
 void PlayListItemAudio::SetAudioFile(const std::string& audioFile)
 {
-    __audioFile = audioFile;
+    _audioFile = audioFile;
     FastSetDuration();
-    _dirty = true;
+    _changeCount++;
 }
 
 void PlayListItemAudio::FastSetDuration()
 {
-   _durationMS = 0;
-   if (wxFile::Exists(_audioFile)
-   {
+    _durationMS = 0;
+    if (wxFile::Exists(_audioFile))
+    {
         _durationMS = AudioManager::GetAudioFileLength(_audioFile);
     }
 }
@@ -118,6 +119,26 @@ void PlayListItemAudio::Start()
     if (ControlsTiming())
     {
         _audioManager->Play(0, _audioManager->LengthMS());
+    }
+}
+
+void PlayListItemAudio::Suspend(bool suspend)
+{
+    Pause(suspend);
+}
+
+void PlayListItemAudio::Pause(bool pause)
+{
+    if (_audioManager != nullptr)
+    {
+        if (pause)
+        {
+            _audioManager->Pause();
+        }
+        else
+        {
+            _audioManager->Play();
+        }
     }
 }
 

@@ -13,37 +13,56 @@
 
 PlayListStep::PlayListStep(wxXmlNode* node)
 {
+    _loops = -1;
+    _pause = 0;
+    _suspend = 0;
+    _id = wxGetUTCTimeMillis();
     _startTime = 0;
     _framecount = 0;
     _excludeFromRandom = false;
-    _dirty = false;
+    _lastSavedChangeCount = 0;
+    _changeCount = 0;
     Load(node);
+}
+
+bool compare_priority(const PlayListItem* first, const PlayListItem* second)
+{
+    return first->GetPriority() > second->GetPriority();
 }
 
 PlayListStep::PlayListStep()
 {
+    _loops = -1;
+    _pause = 0;
+    _suspend = 0;
+    _id = wxGetUTCTimeMillis();
     _startTime = 0;
     _framecount = 0;
     _name = "";
-    _dirty = false;
+    _lastSavedChangeCount = 0;
+    _changeCount = 0;
     _excludeFromRandom = false;
 }
 
 PlayListStep::PlayListStep(const PlayListStep& step)
 {
+    _loops = step._loops;
     _framecount = step._framecount;
     _name = step._name;
-    _dirty = false;
+    _lastSavedChangeCount = 0;
+    _changeCount = 0;
     _excludeFromRandom = step._excludeFromRandom;
+    _id = step._id;
     for (auto it = step._items.begin(); it != step._items.end(); ++it)
     {
         _items.push_back((*it)->Copy());
     }
+    _items.sort(compare_priority);
 }
 
 void PlayListStep::ClearDirty()
 {
-    _dirty = false;
+    _lastSavedChangeCount = _changeCount;
 
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
@@ -106,7 +125,7 @@ void PlayListStep::Load(wxXmlNode* node)
         {
             _items.push_back(new PlayListItemImage(n));
         }
-        else if (n->GetName() == "PLIAllOff")
+        else if (n->GetName() == "PLIAllSet")
         {
             _items.push_back(new PlayListItemAllOff(n));
         }
@@ -119,11 +138,13 @@ void PlayListStep::Load(wxXmlNode* node)
             _items.push_back(new PlayListItemRunProcess(n));
         }
     }
+
+    _items.sort(compare_priority);
 }
 
 bool PlayListStep::IsDirty() const
 {
-    bool res = _dirty;
+    bool res = _lastSavedChangeCount != _changeCount;
 
     auto it = _items.begin();
     while (!res && it != _items.end())
@@ -138,7 +159,7 @@ bool PlayListStep::IsDirty() const
 void PlayListStep::RemoveItem(PlayListItem* item)
 {
     _items.remove(item);
-    _dirty = true;
+    _changeCount++;
 }
 
 std::string PlayListStep::GetName() const
@@ -147,7 +168,7 @@ std::string PlayListStep::GetName() const
 
     if (_items.size() == 0) return "<unnamed>";
 
-    return _items.front()->GetName();
+    return _items.front()->GetNameNoTime();
 }
 
 std::string PlayListStep::GetNameNoTime() const
@@ -241,11 +262,13 @@ size_t PlayListStep::GetFrameMS() const
 
     return ms;
 }
-void PlayListStep::Start()
+
+void PlayListStep::Start(int loops)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Playlist step %s starting.", (const char*)GetName().c_str());
+    logger_base.info("Playlist step %s starting.", (const char*)GetNameNoTime().c_str());
 
+    _loops = loops;
     _startTime = wxGetUTCTimeMillis();
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
@@ -253,10 +276,55 @@ void PlayListStep::Start()
     }
 }
 
+void PlayListStep::Pause(bool pause)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (pause)
+    {
+        _pause = wxGetUTCTimeMillis();
+        logger_base.info("Playlist step %s pausing.", (const char*)GetNameNoTime().c_str());
+    }
+    else
+    {
+        logger_base.info("Playlist step %s unpausing.", (const char*)GetNameNoTime().c_str());
+        _pause = 0;
+    }
+
+    for (auto it = _items.begin(); it != _items.end(); ++it)
+    {
+        (*it)->Pause(pause);
+    }
+}
+
+void PlayListStep::Suspend(bool suspend)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!IsPaused())
+    {
+        if (suspend)
+        {
+            _suspend = wxGetUTCTimeMillis();
+            logger_base.info("Playlist step %s suspending.", (const char*)GetNameNoTime().c_str());
+        }
+        else
+        {
+            logger_base.info("Playlist step %s unsuspending.", (const char*)GetNameNoTime().c_str());
+            _suspend = 0;
+        }
+    }
+
+    for (auto it = _items.begin(); it != _items.end(); ++it)
+    {
+        (*it)->Suspend(suspend);
+    }
+}
+
 void PlayListStep::Restart()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Playlist step %s restarting.", (const char*)GetName().c_str());
+    logger_base.info("Playlist step %s restarting.", (const char*)GetNameNoTime().c_str());
 
     _startTime = wxGetUTCTimeMillis();
     for (auto it = _items.begin(); it != _items.end(); ++it)
@@ -268,7 +336,7 @@ void PlayListStep::Restart()
 void PlayListStep::Stop()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Playlist step %s stopping.", (const char*)GetName().c_str());
+    logger_base.info("Playlist step %s stopping.", (const char*)GetNameNoTime().c_str());
 
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
@@ -288,7 +356,22 @@ size_t PlayListStep::GetPosition() const
     }
     else
     {
-        frameMS = (wxGetUTCTimeMillis() - _startTime).ToLong();
+        auto now = wxGetUTCTimeMillis();
+        if (_pause == 0)
+        {
+            if (_suspend == 0)
+            {
+                frameMS = (now - _startTime).ToLong();
+            }
+            else
+            {
+                frameMS = (now - _startTime - (now - _suspend)).ToLong();
+            }
+        }
+        else
+        {
+            frameMS = (now - _startTime - (now - _pause)).ToLong();
+        }
     }
 
     return frameMS;
@@ -316,6 +399,8 @@ size_t PlayListStep::GetLengthMS() const
             {
                 len = std::max(len, (*it)->GetDurationMS(msPerFrame));
             }
+
+            if (len == 0) len = msPerFrame;
         }
 
         return len;
@@ -349,4 +434,10 @@ std::string PlayListStep::GetStatus(bool ms) const
     }
     
     return "Time: " + FormatTime(GetPosition(), ms) + " Left: " + FormatTime(GetLengthMS() - GetPosition(), ms) + " FPS: " + fps;
+}
+
+std::list<PlayListItem*> PlayListStep::GetItems()
+{
+    _items.sort(compare_priority);
+    return _items;
 }

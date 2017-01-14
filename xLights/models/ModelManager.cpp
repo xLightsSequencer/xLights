@@ -143,18 +143,28 @@ void ModelManager::NewRecalcStartChannels() const
     //wxStopWatch sw;
     //sw.Start();
 
-    bool fullsuccess = true;
-
     // this is ugly but it solves some const-ness issues
     std::map<std::string, Model*> ms(models);
-        
-    for (auto it = models.begin(); it != models.end(); ++it) 
+    std::string msg = "Could not calculate start channels for models:\n";
+    bool failed = false;
+    
+    for (auto it = models.begin(); it != models.end(); it++) {
+        it->second->CouldComputeStartChannel = false;
+    }
+
+    for (auto it = models.begin(); it != models.end(); ++it)
     {
         if (it->second->GetDisplayAs() != "ModelGroup") 
         {
             std::list<std::string> used;
-            fullsuccess &= it->second->UpdateStartChannelFromChannelString(ms, used);
+            if (!it->second->UpdateStartChannelFromChannelString(ms, used)) {
+                msg += it->second->name + "\n";
+                failed = true;
+            }
         }
+    }
+    if (failed) {
+        wxMessageBox(msg);
     }
 
     //long end  = sw.Time();
@@ -166,6 +176,9 @@ void ModelManager::OldRecalcStartChannels() const {
     //wxStopWatch sw;
     //sw.Start();
     int countValid = 0;
+    for (auto it = models.begin(); it != models.end(); it++) {
+        it->second->CouldComputeStartChannel = false;
+    }
     for (auto it = models.begin(); it != models.end(); it++) {
         if( it->second->GetDisplayAs() != "ModelGroup" ) {
             it->second->SetFromXml(it->second->GetModelXml());
@@ -191,7 +204,7 @@ void ModelManager::OldRecalcStartChannels() const {
         if (countValid == newCountValid) {
             std::string msg = "Could not calculate start channels for models:\n";
             for (auto it = models.begin(); it != models.end(); it++) {
-                if (!it->second->CouldComputeStartChannel) {
+                if (it->second->GetDisplayAs() != "ModelGroup" && !it->second->CouldComputeStartChannel) {
                     msg += it->second->name + "\n";
                 }
             }
@@ -208,17 +221,51 @@ void ModelManager::OldRecalcStartChannels() const {
 
 void ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) {
     this->groupNode = groupNode;
+    std::list<ModelGroup*> toBeDone;
+    
     for (wxXmlNode* e=groupNode->GetChildren(); e!=NULL; e=e->GetNext()) {
         if (e->GetName() == "modelGroup") {
             std::string name = e->GetAttribute("name").ToStdString();
             if (!name.empty()) {
                 ModelGroup *model = new ModelGroup(e, *this, previewW, previewH);
+                if (model->Reset()) {
+                    auto it = models.find(model->name);
+                    if (it != models.end()) {
+                        delete it->second;
+                    }
+                    model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
+                    models[model->name] = model;
+                } else {
+                    model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
+                    toBeDone.push_back(model);
+                }
+            }
+        }
+    }
+    int maxIter = toBeDone.size();
+    while (!toBeDone.empty()) {
+        if (maxIter == 0) {
+            std::string msg = "Could not process model groups (possibly due to circular groups): \n";
+            for (auto it = toBeDone.begin(); it != toBeDone.end(); it++) {
+                msg += (*it)->GetName() + "\n";
+            }
+            wxMessageBox(msg);
+            //nothing improved
+            return;
+        }
+        maxIter--;
+        std::list<ModelGroup*> processing(toBeDone);
+        toBeDone.clear();
+        for (auto it = processing.begin(); it != processing.end(); it++) {
+            ModelGroup *model = *it;
+            if (model->Reset()) {
                 auto it = models.find(model->name);
                 if (it != models.end()) {
                     delete it->second;
                 }
-                model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
                 models[model->name] = model;
+            } else {
+                toBeDone.push_back(model);
             }
         }
     }
@@ -338,7 +385,9 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const std::stri
 
 Model *ModelManager::CreateModel(wxXmlNode *node, bool zeroBased) const {
     if (node->GetName() == "modelGroup") {
-        return new ModelGroup(node, *this, previewWidth, previewHeight);
+        ModelGroup *grp = new ModelGroup(node, *this, previewWidth, previewHeight);
+        grp->Reset();
+        return grp;
     }
     std::string type = node->GetAttribute("DisplayAs").ToStdString();
     Model *model;

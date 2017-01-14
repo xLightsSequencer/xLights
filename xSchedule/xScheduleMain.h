@@ -18,6 +18,7 @@
 #include <wx/menu.h>
 #include <wx/splitter.h>
 #include <wx/panel.h>
+#include <wx/bmpbuttn.h>
 #include <wx/dirdlg.h>
 #include <wx/frame.h>
 #include <wx/timer.h>
@@ -25,10 +26,14 @@
 //*)
 
 #include "../xLights/xLightsTimer.h"
+#include <list>
 
+class wxDebugReportCompress;
 class ScheduleManager;
 class PlayList;
 class WebServer;
+class Schedule;
+class RunningSchedule;
 
 wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 
@@ -44,12 +49,32 @@ class xScheduleFrame : public wxFrame
     void ValidateWindow();
     void CreateButtons();
     void UpdateStatus();
+    void UpdateSchedule();
+    void SendReport(const wxString &loc, wxDebugReportCompress &report);
+    std::string GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const;
+
+    wxBitmap _otlon;
+    wxBitmap _otloff;
+    wxBitmap _save;
+    wxBitmap _scheduled;
+    wxBitmap _notscheduled;
+    wxBitmap _inactive;
+    wxBitmap _pllooped;
+    wxBitmap _plnotlooped;
+    wxBitmap _plsteplooped;
+    wxBitmap _plstepnotlooped;
+    wxBitmap _playing;
+    wxBitmap _idle;
+    wxBitmap _paused;
+    wxBitmap _random;
+    wxBitmap _notrandom;
 
 public:
 
         static ScheduleManager* GetScheduleManager() { return __schedule; }
         xScheduleFrame(wxWindow* parent,wxWindowID id = -1);
         virtual ~xScheduleFrame();
+        void CreateDebugReport(wxDebugReportCompress *report);
 
     private:
 
@@ -68,6 +93,13 @@ public:
         void OnMenuItem_ViewLogSelected(wxCommandEvent& event);
         void OnResize(wxSizeEvent& event);
         void OnListView_RunningItemActivated(wxListEvent& event);
+        void OnBitmapButton_OutputToLightsClick(wxCommandEvent& event);
+        void OnBitmapButton_RandomClick(wxCommandEvent& event);
+        void OnBitmapButton_PlayingClick(wxCommandEvent& event);
+        void OnBitmapButton_PLLoopClick(wxCommandEvent& event);
+        void OnBitmapButton_StepLoopClick(wxCommandEvent& event);
+        void OnBitmapButton_IsScheduledClick(wxCommandEvent& event);
+        void OnBitmapButton_UnsavedClick(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -77,6 +109,13 @@ public:
         void RateNotification(wxCommandEvent& event);
 
         //(*Identifiers(xScheduleFrame)
+        static const long ID_BITMAPBUTTON1;
+        static const long ID_BITMAPBUTTON2;
+        static const long ID_BITMAPBUTTON3;
+        static const long ID_BITMAPBUTTON4;
+        static const long ID_BITMAPBUTTON5;
+        static const long ID_BITMAPBUTTON6;
+        static const long ID_BITMAPBUTTON7;
         static const long ID_PANEL2;
         static const long ID_TREECTRL1;
         static const long ID_PANEL3;
@@ -104,17 +143,22 @@ public:
         static const long ID_MNU_SCHEDULEPLAYLIST;
         static const long ID_MNU_EDIT;
         static const long ID_MNU_DELETE;
-        static const long ID_MNU_PLAYNOW;
+        static const long ID_BUTTON_USER;
 
         //(*Declarations(xScheduleFrame)
         wxFlexGridSizer* FlexGridSizer4;
+        wxBitmapButton* BitmapButton_StepLoop;
+        wxBitmapButton* BitmapButton_PLLoop;
+        wxBitmapButton* BitmapButton_IsScheduled;
+        wxStaticText* StaticText_Time;
         wxPanel* Panel5;
+        wxBitmapButton* BitmapButton_OutputToLights;
+        wxBitmapButton* BitmapButton_Unsaved;
         wxPanel* Panel4;
         wxMenu* Menu3;
         xLightsTimer _timer;
         wxMenuItem* MenuItem_Save;
         wxPanel* Panel1;
-        wxStaticText* StaticText_Status;
         wxPanel* Panel3;
         wxStaticText* StaticText_ShowDir;
         wxStatusBar* StatusBar1;
@@ -124,6 +168,8 @@ public:
         wxListView* ListView_Running;
         wxTreeCtrl* TreeCtrl_PlayListsSchedules;
         wxMenuItem* MenuItem_ShowFolder;
+        wxBitmapButton* BitmapButton_Playing;
+        wxBitmapButton* BitmapButton_Random;
         wxPanel* Panel2;
         wxFlexGridSizer* FlexGridSizer1;
         wxSplitterWindow* SplitterWindow1;

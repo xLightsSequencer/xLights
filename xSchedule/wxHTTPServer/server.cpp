@@ -34,6 +34,7 @@ HttpServer::HttpServer() :
 
 HttpServer::~HttpServer()
 {
+    Stop();
 }
 
 bool HttpServer::Start(const HttpContext &context)
@@ -86,11 +87,11 @@ bool HttpServer::Start(const HttpContext &context)
 
 bool HttpServer::Stop()
 {
-	if (!_server || !_server->IsConnected())
-		return false;
+	if (!_server) return false;
 
 	_server->Close();
 	delete _server;
+    _server = nullptr;
 
 	wxLogMessage(_("closed server on %s:%u"), _address.IPAddress(), _address.Service());
 

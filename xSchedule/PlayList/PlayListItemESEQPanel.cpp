@@ -86,6 +86,7 @@ PlayListItemESEQPanel::PlayListItemESEQPanel(wxWindow* parent, PlayListItemESEQ*
     FilePickerCtrl_ESEQFile->SetFileName(wxFileName(ESEQ->GetESEQFileName()));
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)ESEQ->GetDelay() / 1000.0));
     Choice_BlendMode->SetSelection(ESEQ->GetBlendMode());
+    SpinCtrl_Priority->SetValue(ESEQ->GetPriority());
 
     ValidateWindow();
 }
@@ -97,6 +98,7 @@ PlayListItemESEQPanel::~PlayListItemESEQPanel()
     _ESEQ->SetESEQFileName(FilePickerCtrl_ESEQFile->GetFileName().GetFullPath().ToStdString());
     _ESEQ->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
     _ESEQ->SetBlendMode(Choice_BlendMode->GetSelection());
+    _ESEQ->SetPriority(SpinCtrl_Priority->GetValue());
 }
 
 

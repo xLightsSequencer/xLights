@@ -33,7 +33,7 @@ fft(unsigned int n, bool inverse,
 	}
     }
 
-#ifndef LINUX
+#ifdef _MSC_VER
     int *table = (int *)_malloca(n * sizeof(int));
 #else
     int table[n];
@@ -115,7 +115,7 @@ fft(unsigned int n, bool inverse,
 	}
     }
 
-#ifndef LINUX
+#ifdef __WXMSW__
     _freea(table);
 #endif
 }

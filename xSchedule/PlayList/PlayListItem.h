@@ -12,7 +12,8 @@ class PlayListItem
 protected:
 
     #pragma region Member Variables
-    bool _dirty;
+    int _lastSavedChangeCount;
+    int _changeCount;
     std::string _name;
     long _frames;
     int _msPerFrame;
@@ -33,28 +34,24 @@ public:
     virtual PlayListItem* Copy() const = 0;
     #pragma endregion Constructors and Destructors
 
-#pragma region Operators
-    bool operator<(const PlayListItem& rhs) const { return _priority < rhs.GetPriority(); }
-#pragma endregion Operators
-
     #pragma region Getters and Setters
-    virtual size_t GetDurationMS() const { return 0; }
+    virtual size_t GetDurationMS() const { return _delay; }
     virtual size_t GetDurationMS(size_t frameMS) const { return GetDurationMS(); }
-    bool IsDirty() const { return _dirty; }
-    void ClearDirty() { _dirty = false; }
+    bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
+    void ClearDirty() { _lastSavedChangeCount = _changeCount; }
     std::string GetName() const;
     virtual std::string GetNameNoTime() const;
-    void SetName(const std::string& name) { _name = name; _dirty = true; }
+    void SetName(const std::string& name) { _name = name; _changeCount++; }
     virtual long GetLength() { return _frames; }
     long GetDelay() const { return _delay; }
-    void SetDelay(long delay) { _delay = delay; _dirty = true; }
+    void SetDelay(long delay) { _delay = delay; _changeCount++; }
     int GetVolume() const { return _volume; }
-    void SetVolume(int volume) { _volume = volume; _dirty = true; }
+    void SetVolume(int volume) { _volume = volume; _changeCount++; }
     virtual bool ControlsTiming() const { return false; }
     virtual size_t GetPositionMS() const { return 0; }
     virtual size_t GetFrameMS() const { return 0; }
     size_t GetPriority() const { return _priority; }
-    void SetPriority(size_t priority) { _priority = priority; _dirty = true; }
+    void SetPriority(size_t priority) { _priority = priority; _changeCount++; }
     virtual bool Done() const { return false; }
     virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems) = 0;
     #pragma endregion Getters and Setters
@@ -66,6 +63,8 @@ public:
     virtual void Start() {}
     virtual void Stop() {}
     virtual void Restart() {}
+    virtual void Pause(bool pause) {}
+    virtual void Suspend(bool suspend) {}
     #pragma endregion Playing
 
     #pragma region UI

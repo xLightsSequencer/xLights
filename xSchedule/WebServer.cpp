@@ -7,6 +7,7 @@
 #include "xScheduleMain.h"
 #include "ScheduleManager.h"
 #include <wx/uri.h>
+#include <wx/dir.h>
 #include "xScheduleApp.h"
 #include "ScheduleOptions.h"
 
@@ -166,7 +167,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     else if (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/")
     {
         int port = connection.Server()->Context().Port;
-        wxString url = "http://" + request.Host() + "/" + wwwroot + "/index.html";
+        wxString url = "http://" + request.Host() + ":" + wxString::Format(wxT("%i"),port) + "/" + wwwroot + "/index.html";
 
         logger_base.info("Redirecting to '%s'.", (const char *)url.c_str());
 
@@ -182,10 +183,15 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         if (request.URI().StartsWith("/" + wwwroot))
         {
             wxString d;
-#ifndef __WXMSW__
-            d = wxStandardPaths::Get().GetExecutablePath();
-#else
+#ifdef __WXMSW__
             d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+#elif __LINUX__
+            d = wxStandardPaths::Get().GetDataDir();
+            if (!wxDir::Exists(d)) {
+                d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+            }
+#else
+            d = wxStandardPaths::Get().GetExecutablePath();
 #endif
 
             wxString file = d + wxURI(request.URI()).GetPath();

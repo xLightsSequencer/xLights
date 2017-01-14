@@ -99,7 +99,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;log4cpp.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;log4cpp.lib;imagehlp.lib</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
@@ -200,6 +200,8 @@
     <ClCompile Include="PlayList\PlayListItem.cpp" />
     <ClCompile Include="PlayList\PlayListItemAllOff.cpp" />
     <ClCompile Include="PlayList\PlayListItemAllOffPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemAudio.cpp" />
+    <ClCompile Include="PlayList\PlayListItemAudioPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemDelay.cpp" />
     <ClCompile Include="PlayList\PlayListItemDelayPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemESEQ.cpp" />
@@ -219,6 +221,7 @@
     <ClCompile Include="PlayList\PlayListStepPanel.cpp" />
     <ClCompile Include="PlayList\VideoWindowPositionDialog.cpp" />
     <ClCompile Include="ProjectorDetailsDialog.cpp" />
+    <ClCompile Include="RunningSchedule.cpp" />
     <ClCompile Include="Schedule.cpp" />
     <ClCompile Include="ScheduleDialog.cpp" />
     <ClCompile Include="ScheduleManager.cpp" />
@@ -269,6 +272,8 @@
     <ClInclude Include="PlayList\PlayListItem.h" />
     <ClInclude Include="PlayList\PlayListItemAllOff.h" />
     <ClInclude Include="PlayList\PlayListItemAllOffPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemAudio.h" />
+    <ClInclude Include="PlayList\PlayListItemAudioPanel.h" />
     <ClInclude Include="PlayList\PlayListItemDelay.h" />
     <ClInclude Include="PlayList\PlayListItemDelayPanel.h" />
     <ClInclude Include="PlayList\PlayListItemESEQ.h" />
@@ -288,6 +293,7 @@
     <ClInclude Include="PlayList\PlayListStepPanel.h" />
     <ClInclude Include="PlayList\VideoWindowPositionDialog.h" />
     <ClInclude Include="ProjectorDetailsDialog.h" />
+    <ClInclude Include="RunningSchedule.h" />
     <ClInclude Include="Schedule.h" />
     <ClInclude Include="ScheduleDialog.h" />
     <ClInclude Include="ScheduleManager.h" />

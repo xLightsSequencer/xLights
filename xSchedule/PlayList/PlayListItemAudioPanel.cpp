@@ -8,10 +8,6 @@
 //*)
 
 //(*IdInit(PlayListItemAudioPanel)
-const long PlayListItemAudioPanel::ID_STATICTEXT1 = wxNewId();
-const long PlayListItemAudioPanel::ID_STATICTEXT5 = wxNewId();
-const long PlayListItemAudioPanel::ID_CHOICE1 = wxNewId();
-const long PlayListItemAudioPanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListItemAudioPanel::ID_STATICTEXT2 = wxNewId();
 const long PlayListItemAudioPanel::ID_FILEPICKERCTRL2 = wxNewId();
 const long PlayListItemAudioPanel::ID_CHECKBOX2 = wxNewId();
@@ -57,18 +53,6 @@ PlayListItemAudioPanel::PlayListItemAudioPanel(wxWindow* parent, PlayListItemAud
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("FSEQ File:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FilePickerCtrl_FSEQFile = new FSEQFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, _("FSEQ File"), _T("*.fseq"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
-	FlexGridSizer1->Add(FilePickerCtrl_FSEQFile, 1, wxALL|wxEXPAND, 5);
-	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Blend Mode:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-	FlexGridSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_BlendMode = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-	FlexGridSizer1->Add(Choice_BlendMode, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_OverrideAudio = new wxCheckBox(this, ID_CHECKBOX1, _("Override Audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
-	CheckBox_OverrideAudio->SetValue(false);
-	FlexGridSizer1->Add(CheckBox_OverrideAudio, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Audio File:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FilePickerCtrl_AudioFile = new AudioFilePickerCtrl(this, ID_FILEPICKERCTRL2, wxEmptyString, _("Audio File"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL2"));
@@ -93,8 +77,6 @@ PlayListItemAudioPanel::PlayListItemAudioPanel(wxWindow* parent, PlayListItemAud
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_FILEPICKERCTRL1,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&PlayListItemAudioPanel::OnFilePickerCtrl1FileChanged);
-	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PlayListItemAudioPanel::OnCheckBox_OverrideAudioClick);
 	Connect(ID_FILEPICKERCTRL2,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&PlayListItemAudioPanel::OnFilePickerCtrl2FileChanged);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PlayListItemAudioPanel::OnCheckBox_OverrideVolumeClick);
 	//*)
@@ -153,4 +135,9 @@ void PlayListItemAudioPanel::ValidateWindow()
     {
         Slider1->Enable(false);
     }
+}
+
+void PlayListItemAudioPanel::OnCheckBox_OverrideVolumeClick(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

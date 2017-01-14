@@ -131,6 +131,7 @@ PlayListItemFSEQPanel::PlayListItemFSEQPanel(wxWindow* parent, PlayListItemFSEQ*
     CheckBox_OverrideAudio->SetValue(fseq->GetOverrideAudio());
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)fseq->GetDelay() / 1000.0));
     Choice_BlendMode->SetSelection(fseq->GetBlendMode());
+    SpinCtrl_Priority->SetValue(fseq->GetPriority());
 
     if (fseq->GetVolume() != -1)
     {
@@ -154,6 +155,7 @@ PlayListItemFSEQPanel::~PlayListItemFSEQPanel()
     _fseq->SetOverrideAudio(CheckBox_OverrideAudio->GetValue());
     _fseq->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
     _fseq->SetBlendMode(Choice_BlendMode->GetSelection());
+    _fseq->SetPriority(SpinCtrl_Priority->GetValue());
 
     if (CheckBox_OverrideVolume->GetValue())
     {

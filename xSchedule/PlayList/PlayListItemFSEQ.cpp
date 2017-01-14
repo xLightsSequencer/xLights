@@ -125,7 +125,7 @@ void PlayListItemFSEQ::SetFSEQFileName(const std::string& fseqFileName)
 {
     _fseqFileName = fseqFileName;
     FastSetDuration();
-    _dirty = true;
+    _changeCount++;
 }
 
 void PlayListItemFSEQ::FastSetDuration()
@@ -176,6 +176,26 @@ void PlayListItemFSEQ::Start()
     if (ControlsTiming())
     {
         _audioManager->Play(0, _audioManager->LengthMS());
+    }
+}
+
+void PlayListItemFSEQ::Suspend(bool suspend)
+{
+    Pause(suspend);
+}
+
+void PlayListItemFSEQ::Pause(bool pause)
+{
+    if (ControlsTiming())
+    {
+        if (pause)
+        {
+            _audioManager->Pause();
+        }
+        else
+        {
+            _audioManager->Play();
+        }
     }
 }
 

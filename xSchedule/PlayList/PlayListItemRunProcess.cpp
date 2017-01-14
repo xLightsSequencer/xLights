@@ -2,6 +2,7 @@
 #include "PlayListItemRunProcessPanel.h"
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
+#include <log4cpp/Category.hh>
 
 PlayListItemRunProcess::PlayListItemRunProcess(wxXmlNode* node) : PlayListItem(node)
 {
@@ -80,7 +81,10 @@ void PlayListItemRunProcess::Frame(wxByte* buffer, size_t size, size_t ms, size_
             flags = wxEXEC_ASYNC;
         }
 
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("Launching command %s wait %d.", (const char *)_command.c_str(), (int)_waitForCompletion);
         wxExecute(_command, flags);
+        logger_base.info("Command launched.");
     }
 }
 

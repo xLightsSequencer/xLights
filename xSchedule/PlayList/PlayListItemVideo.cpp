@@ -107,7 +107,7 @@ void PlayListItemVideo::SetVideoFile(const std::string& videoFile)
     _videoFile = videoFile; 
     OpenFiles();
     CloseFiles();
-    _dirty = true; 
+    _changeCount++;
 }
 
 void PlayListItemVideo::CloseFiles()
@@ -172,5 +172,17 @@ void PlayListItemVideo::Stop()
     {
         delete _window;
         _window = nullptr;
+    }
+}
+
+void PlayListItemVideo::Suspend(bool suspend)
+{
+    if (suspend)
+    {
+        if (_window != nullptr) _window->Hide();
+    }
+    else
+    {
+        if (_window != nullptr) _window->Show();
     }
 }

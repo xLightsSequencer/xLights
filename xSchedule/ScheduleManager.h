@@ -3,26 +3,35 @@
 #include <list>
 #include <string>
 #include <wx/wx.h>
+#include "Schedule.h"
 
 class ScheduleOptions;
 class PlayList;
 class OutputManager;
+class RunningSchedule;
 
 class ScheduleManager
 {
     std::string _showDir;
-    bool _dirty;
+    int _lastSavedChangeCount;
+    int _changeCount;
 	std::list<PlayList*> _playLists;
     ScheduleOptions* _scheduleOptions;
     OutputManager* _outputManager;
     wxByte* _buffer;
     wxLongLong _startTime;
     PlayList* _immediatePlay;
+    std::list<RunningSchedule*> _activeSchedules;
 
     std::string FormatTime(size_t timems);
 
     public:
 
+        bool IsScheduleActive(Schedule* schedue);
+        std::list<RunningSchedule*> GetRunningSchedules() const { return _activeSchedules; }
+        RunningSchedule* GetRunningSchedule() const;
+        RunningSchedule* GetRunningSchedule(const std::string& schedulename) const;
+        RunningSchedule* GetRunningSchedule(Schedule* schedule) const;
         ScheduleOptions* GetOptions() const { return _scheduleOptions; }
         bool IsDirty();
         void ClearDirty();
@@ -32,15 +41,16 @@ class ScheduleManager
 		static std::string GetScheduleFile() { return "xlights.xschedule"; }
 		void Save();
         void StopAll();
-        void AddPlayList(PlayList* playlist) { _playLists.push_back(playlist); _dirty = true; }
+        void AddPlayList(PlayList* playlist);
         void RemovePlayList(PlayList* playlist);
         PlayList* GetRunningPlayList() const;
-        std::list<PlayList*> GetPlayLists() const { return _playLists; }
+        std::list<PlayList*> GetPlayLists();
         std::list<std::string> GetCommands() const;
         bool IsRunning() const { return GetRunningPlayList() != nullptr; }
         void Frame(); // called when a frame needs to be displayed ... returns desired frame rate
         int CheckSchedule();
-        bool PlayPlayList(PlayList* playlist, size_t& rate, bool loop = false, const std::string& step = "", bool forcelast = false);
+        std::string GetShowDir() const { return _showDir; }
+        bool PlayPlayList(PlayList* playlist, size_t& rate, bool loop = false, const std::string& step = "", bool forcelast = false, int loops = -1, bool random = false, int steploops = -1);
         bool IsSomethingPlaying() const { return GetRunningPlayList() != nullptr; }
         void OptionsChanged() {};
         bool Action(const std::string label, PlayList* playlist, size_t& rate, std::string& msg);
@@ -50,6 +60,13 @@ class ScheduleManager
         void StopPlayList(PlayList* playlist, bool atendofcurrentstep);
         bool StoreData(const std::string& key, const std::string& data, std::string& msg) const;
         bool RetrieveData(const std::string& key, std::string& data, std::string& msg) const;
+        bool ToggleOutputToLights(std::string& msg);
+        bool ToggleCurrentPlayListRandom(std::string& msg);
+        bool ToggleCurrentPlayListPause(std::string& msg);
+        bool ToggleCurrentPlayListLoop(std::string& msg);
+        bool ToggleCurrentPlayListStepLoop(std::string& msg);
+        bool IsOutputToLights() const;
+        bool IsCurrentPlayListScheduled() const { return _immediatePlay == nullptr; }
 };
 
 #endif

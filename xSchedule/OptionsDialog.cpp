@@ -291,10 +291,12 @@ void OptionsDialog::OnGrid_ButtonsKeyDown(wxKeyEvent& event)
 
 void OptionsDialog::OnGrid_ButtonsResize(wxSizeEvent& event)
 {
+    event.Skip();
 }
 
 void OptionsDialog::OnGrid_ProjectorsResize(wxSizeEvent& event)
 {
+    event.Skip();
 }
 
 void OptionsDialog::OnButton_AddProjectorClick(wxCommandEvent& event)

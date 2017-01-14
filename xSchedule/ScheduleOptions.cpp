@@ -4,7 +4,8 @@
 
 ScheduleOptions::ScheduleOptions(wxXmlNode* node)
 {
-    _dirty = false;
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
     _runOnMachineStartup = node->GetAttribute("RunOnMachineStartup", "FALSE") == "TRUE";
@@ -38,7 +39,8 @@ ScheduleOptions::ScheduleOptions()
 {
     _wwwRoot = "xScheduleWeb";
     _port = 80;
-    _dirty = false;
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
     _sync = false;
     _runOnMachineStartup = false;
     _sendOffWhenNotRunning = false;
@@ -158,38 +160,38 @@ void ScheduleOptions::ClearProjectors()
 {
     _projectorIPs.clear();
     _projectorPasswords.clear();
-    _dirty = true;
+    _changeCount++;
 }
 
 void ScheduleOptions::ClearButtons()
 {
     _buttonCommands.clear();
     _buttonParameters.clear();
-    _dirty = true;
+    _changeCount++;
 }
 
 void ScheduleOptions::SetProjectorIPAddress(const std::string& projector, const std::string& ip)
 {
     _projectorIPs[projector] = ip;
-    _dirty = true;
+    _changeCount++;
 }
 
 void ScheduleOptions::SetProjectorPassword(const std::string& projector, const std::string& password)
 {
     _projectorPasswords[projector] = password;
-    _dirty = true;
+    _changeCount++;
 }
 
 void ScheduleOptions::SetButtonCommand(const std::string& button, const std::string& command)
 {
     _buttonCommands[button] = command;
-    _dirty = true;
+    _changeCount++;
 }
 
 void ScheduleOptions::SetButtonParameter(const std::string& button, const std::string& parameter)
 {
     _buttonParameters[button] = parameter;
-    _dirty = true;
+    _changeCount++;
 }
 
 std::string ScheduleOptions::GetButtonsJSON() const

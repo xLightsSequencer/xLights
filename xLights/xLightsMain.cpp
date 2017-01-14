@@ -1826,7 +1826,9 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
             // Now notify the layout as the model start numbers may have been impacted
             AllModels.OldRecalcStartChannels();
             //AllModels.NewRecalcStartChannels();
-            layoutPanel->RefreshLayout();
+            if (layoutPanel != nullptr) {
+                layoutPanel->RefreshLayout();
+            }
 
             _setupChanged = false;
             SetCursor(wxCURSOR_ARROW);

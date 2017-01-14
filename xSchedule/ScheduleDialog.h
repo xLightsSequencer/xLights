@@ -29,6 +29,7 @@ class ScheduleDialog: public wxDialog
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText9;
 		wxCheckBox* CheckBox_Tue;
+		wxCheckBox* CheckBox_Enabled;
 		wxButton* Button_Ok;
 		wxTextCtrl* TextCtrl_Name;
 		wxCheckBox* CheckBox_Sat;
@@ -65,6 +66,7 @@ class ScheduleDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(ScheduleDialog)
+		static const long ID_CHECKBOX11;
 		static const long ID_STATICTEXT15;
 		static const long ID_TEXTCTRL3;
 		static const long ID_STATICTEXT1;

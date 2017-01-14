@@ -215,6 +215,13 @@
     <ClCompile Include="wxHTTPServer\status.cpp">
       <Filter>wxHTTPServer</Filter>
     </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemAudio.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemAudioPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="RunningSchedule.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -372,6 +379,13 @@
     <ClInclude Include="wxHTTPServer\wxhttpserver.h">
       <Filter>wxHTTPServer</Filter>
     </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemAudio.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemAudioPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="RunningSchedule.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

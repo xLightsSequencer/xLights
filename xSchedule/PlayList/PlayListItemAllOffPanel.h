@@ -28,6 +28,8 @@ class PlayListItemAllOffPanel: public wxPanel
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Delay;
+		wxSpinCtrl* SpinCtrl_Priority;
+		wxStaticText* StaticText5;
 		wxStaticText* StaticText4;
 		wxSpinCtrl* SpinCtrl_AllSet;
 		//*)
@@ -41,6 +43,8 @@ class PlayListItemAllOffPanel: public wxPanel
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT4;
 		static const long ID_CHOICE1;
+		static const long ID_STATICTEXT5;
+		static const long ID_SPINCTRL2;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL2;
 		//*)

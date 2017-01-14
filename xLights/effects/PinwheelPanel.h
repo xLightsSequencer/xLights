@@ -3,14 +3,14 @@
 
 //(*Headers(PinwheelPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
-class wxBoxSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxBoxSizer;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 #include "../ValueCurveButton.h"
@@ -23,36 +23,38 @@ class PinwheelPanel: public wxPanel
 		virtual ~PinwheelPanel();
 
 		//(*Declarations(PinwheelPanel)
-		wxChoice* Choice_Pinwheel_3D;
-		ValueCurveButton* BitmapButton_PinwheelYCVC;
-		wxBitmapButton* BitmapButton_Pinwheel_ArmSize;
-		wxSlider* Slider_PinwheelYC;
-		wxStaticText* StaticText74;
-		wxStaticText* StaticText75;
-		wxStaticText* StaticText76;
-		wxStaticText* StaticText82;
-		wxSlider* Slider_PinwheelXC;
 		wxSlider* Slider_Pinwheel_Twist;
-		ValueCurveButton* BitmapButton_Pinwheel_ArmSizeVC;
-		wxStaticText* StaticText81;
-		wxSlider* Slider_Pinwheel_ArmSize;
-		wxBitmapButton* BitmapButton_PinwheelTwist;
-		wxStaticText* StaticText84;
-		wxSlider* Slider_Pinwheel_Arms;
-		ValueCurveButton* BitmapButton_Pinwheel_SpeedVC;
 		wxBitmapButton* BitmapButton_Pinwheel3D;
-		ValueCurveButton* BitmapButton_Pinwheel_ThicknessVC;
-		wxBitmapButton* BitmapButton_PinwheelRotation;
-		ValueCurveButton* BitmapButton_Pinwheel_TwistVC;
-		wxSlider* Slider_Pinwheel_Speed;
-		wxBitmapButton* BitmapButton7;
-		wxBitmapButton* BitmapButton_PinwheelThickness;
-		wxCheckBox* CheckBox_Pinwheel_Rotation;
+		ValueCurveButton* BitmapButton_Pinwheel_ArmSizeVC;
+		wxStaticText* StaticText76;
+		wxSlider* Slider_PinwheelYC;
 		wxSlider* Slider_Pinwheel_Thickness;
-		ValueCurveButton* BitmapButton_PinwheelXCVC;
-		wxBitmapButton* BitmapButton_PinwheelNumberArms;
+		wxSlider* Slider_PinwheelXC;
+		wxChoice* Choice_Pinwheel_3D;
 		wxStaticText* StaticText63;
+		wxBitmapButton* BitmapButton_PinwheelNumberArms;
+		wxSlider* Slider_Pinwheel_Arms;
 		wxStaticText* StaticText77;
+		ValueCurveButton* BitmapButton_PinwheelYCVC;
+		wxSlider* Slider_Pinwheel_Speed;
+		ValueCurveButton* BitmapButton_PinwheelXCVC;
+		wxStaticText* StaticText1;
+		ValueCurveButton* BitmapButton_Pinwheel_TwistVC;
+		wxChoice* Choice_Pinwheel_Style;
+		wxBitmapButton* BitmapButton_PinwheelThickness;
+		wxBitmapButton* BitmapButton_PinwheelRotation;
+		wxStaticText* StaticText75;
+		ValueCurveButton* BitmapButton_Pinwheel_SpeedVC;
+		ValueCurveButton* BitmapButton_Pinwheel_ThicknessVC;
+		wxBitmapButton* BitmapButton_PinwheelTwist;
+		wxBitmapButton* BitmapButton7;
+		wxStaticText* StaticText84;
+		wxStaticText* StaticText81;
+		wxBitmapButton* BitmapButton_Pinwheel_ArmSize;
+		wxSlider* Slider_Pinwheel_ArmSize;
+		wxStaticText* StaticText74;
+		wxCheckBox* CheckBox_Pinwheel_Rotation;
+		wxStaticText* StaticText82;
 		//*)
 
 	protected:
@@ -81,6 +83,8 @@ class PinwheelPanel: public wxPanel
 		static const long ID_VALUECURVE_Pinwheel_Speed;
 		static const long IDD_TEXTCTRL_Pinwheel_Speed;
 		static const long ID_BITMAPBUTTON26;
+		static const long ID_STATICTEXT1;
+		static const long ID_CHOICE_Pinwheel_Style;
 		static const long ID_STATICTEXT78;
 		static const long ID_CHECKBOX_Pinwheel_Rotation;
 		static const long ID_BITMAPBUTTON19;

@@ -10,7 +10,6 @@
 #include <wx/spinctrl.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
-#include <wx/choice.h>
 //*)
 
 class PlayListItemAudio;
@@ -29,12 +28,10 @@ class PlayListItemAudioPanel: public wxPanel
 		//(*Declarations(PlayListItemAudioPanel)
 		wxSlider* Slider1;
 		wxStaticText* StaticText2;
-		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Delay;
 		wxSpinCtrl* SpinCtrl_Priority;
 		AudioFilePickerCtrl* FilePickerCtrl_AudioFile;
-		wxStaticText* StaticText5;
 		wxStaticText* StaticText4;
 		wxCheckBox* CheckBox_OverrideVolume;
 		//*)
@@ -42,10 +39,6 @@ class PlayListItemAudioPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(PlayListItemAudioPanel)
-		static const long ID_STATICTEXT1;
-		static const long ID_STATICTEXT5;
-		static const long ID_CHOICE1;
-		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT2;
 		static const long ID_FILEPICKERCTRL2;
 		static const long ID_CHECKBOX2;

@@ -8,7 +8,7 @@ class wxXmlNode;
 class wxWindow;
 class AudioManager;
 
-class PlayListItemFSEQ : public PlayListItem
+class PlayListItemAudio : public PlayListItem
 {
 protected:
 
@@ -28,7 +28,7 @@ public:
     PlayListItemAudio(wxXmlNode* node);
     PlayListItemAudio();
     virtual ~PlayListItemAudio() { CloseFiles(); };
-    virtual PlayListAudio* Copy() const override;
+    virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
@@ -49,6 +49,8 @@ public:
     virtual void Start() override;
     virtual void Stop() override;
     virtual void Restart() override;
+    virtual void Pause(bool pause) override;
+    virtual void Suspend(bool suspend) override;
     #pragma endregion Playing
 
 #pragma region UI
