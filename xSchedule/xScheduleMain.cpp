@@ -46,6 +46,12 @@
 #include "../include/xs_random.xpm"
 #include "../include/xs_notrandom.xpm"
 
+#include "../include/xLights.xpm"
+#include "../include/xLights-16.xpm"
+#include "../include/xLights-32.xpm"
+#include "../include/xLights-64.xpm"
+#include "../include/xLights-128.xpm"
+
 //(*InternalHeaders(xScheduleFrame)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -329,6 +335,14 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     //*)
 
     Connect(wxID_ANY, EVT_FRAMEMS, (wxObjectEventFunction)&xScheduleFrame::RateNotification);
+
+    wxIconBundle icons;
+    icons.AddIcon(wxIcon(xlights_16_xpm));
+    icons.AddIcon(wxIcon(xlights_32_xpm));
+    icons.AddIcon(wxIcon(xlights_64_xpm));
+    icons.AddIcon(wxIcon(xlights_128_xpm));
+    icons.AddIcon(wxIcon(xlights_xpm));
+    SetIcons(icons);
 
     int x, y, w, h;
     wxConfigBase* config = wxConfigBase::Get();
@@ -764,7 +778,7 @@ void xScheduleFrame::UpdateSchedule()
     auto root = TreeCtrl_PlayListsSchedules->GetRootItem();
     for (auto it = TreeCtrl_PlayListsSchedules->GetFirstChild(root, tid); it != nullptr; it = TreeCtrl_PlayListsSchedules->GetNextChild(root, tid))
     {
-        PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(it))->GetData();
+        //PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(it))->GetData();
 
         wxTreeItemIdValue tid2;
         for (auto it2 = TreeCtrl_PlayListsSchedules->GetFirstChild(it, tid2); it2 != nullptr; it2 = TreeCtrl_PlayListsSchedules->GetNextChild(it, tid2))

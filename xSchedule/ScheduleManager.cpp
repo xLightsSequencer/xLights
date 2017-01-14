@@ -963,7 +963,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
         PlayList* p = GetRunningPlayList();
         if (p == nullptr)
         {
-            data = "{\"status\":\"idle\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\"}";
+            data = "{\"status\":\"idle\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\",\"time\":\""+ wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +"\"}";
         }
         else
         {
@@ -996,6 +996,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"trigger\":\"" + std::string(IsCurrentPlayListScheduled() ? "scheduled": "manual") +
                 "\",\"nextstep\":\"" + nextsong +
                 "\",\"version\":\"" + xlights_version_string +
+                "\",\"time\":\"" + wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +
                 "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\"}";
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.info("%s", (const char*)data.c_str());
