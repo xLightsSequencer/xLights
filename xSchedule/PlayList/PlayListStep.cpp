@@ -50,8 +50,8 @@ PlayListStep::PlayListStep(const PlayListStep& step)
     _loops = step._loops;
     _framecount = step._framecount;
     _name = step._name;
-    _lastSavedChangeCount = 0;
-    _changeCount = 0;
+    _lastSavedChangeCount = step._lastSavedChangeCount;
+    _changeCount = step._changeCount;
     _excludeFromRandom = step._excludeFromRandom;
     _id = step._id;
     for (auto it = step._items.begin(); it != step._items.end(); ++it)

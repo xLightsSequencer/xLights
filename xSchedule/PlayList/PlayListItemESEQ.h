@@ -35,7 +35,7 @@ public:
     std::string GetESEQFileName() const { return _ESEQFileName; }
     void SetESEQFileName(const std::string& ESEQFileName);
     int GetBlendMode() const { return _applyMethod; }
-    void SetBlendMode(int blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; }
+    void SetBlendMode(int blendMode) { if (_applyMethod != (APPLYMETHOD)blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; } }
     virtual size_t GetDurationMS(size_t frameMS) const override;
     #pragma endregion Getters and Setters
 

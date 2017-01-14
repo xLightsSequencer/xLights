@@ -55,6 +55,7 @@ class xScheduleFrame : public wxFrame
     void UpdateSchedule();
     void SendReport(const wxString &loc, wxDebugReportCompress &report);
     std::string GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const;
+    void LoadSchedule();
 
     wxBitmap _otlon;
     wxBitmap _otloff;

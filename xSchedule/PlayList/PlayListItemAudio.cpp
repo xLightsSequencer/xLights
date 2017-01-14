@@ -6,6 +6,7 @@
 
 PlayListItemAudio::PlayListItemAudio(wxXmlNode* node) : PlayListItem(node)
 {
+    _controlsTimingCache = false;
     _audioFile = "";
     _durationMS = 0;
     _audioManager = nullptr;
@@ -27,11 +28,13 @@ void PlayListItemAudio::LoadFiles()
     {
         _audioManager = new AudioManager(_audioFile);
         _durationMS = _audioManager->LengthMS();
+        _controlsTimingCache = true;
     }
 }
 
 PlayListItemAudio::PlayListItemAudio() : PlayListItem()
 {
+    _controlsTimingCache = false;
     _audioFile = "";
     _durationMS = 0;
     _audioManager = nullptr;
@@ -42,6 +45,7 @@ PlayListItem* PlayListItemAudio::Copy() const
     PlayListItemAudio* res = new PlayListItemAudio();
     res->_audioFile = _audioFile;
     res->_durationMS = _durationMS;
+    res->_controlsTimingCache = _controlsTimingCache;
     PlayListItem::Copy(res);
 
     return res;
@@ -78,9 +82,12 @@ std::string PlayListItemAudio::GetNameNoTime() const
 
 void PlayListItemAudio::SetAudioFile(const std::string& audioFile)
 {
-    _audioFile = audioFile;
-    FastSetDuration();
-    _changeCount++;
+    if (_audioFile != audioFile)
+    {
+        _audioFile = audioFile;
+        FastSetDuration();
+        _changeCount++;
+    }
 }
 
 void PlayListItemAudio::FastSetDuration()
@@ -89,6 +96,7 @@ void PlayListItemAudio::FastSetDuration()
     if (wxFile::Exists(_audioFile))
     {
         _durationMS = AudioManager::GetAudioFileLength(_audioFile);
+        _controlsTimingCache = true;
     }
 }
 

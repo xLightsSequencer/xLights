@@ -21,6 +21,7 @@ protected:
     FSEQFile* _fseqFile;
     AudioManager* _audioManager;
     size_t _durationMS;
+    bool _controlsTimingCache;
     #pragma endregion Member Variables
 
     void LoadFiles();
@@ -39,16 +40,16 @@ public:
 
     #pragma region Getters and Setters
     int GetBlendMode() const { return _applyMethod; }
-    void SetBlendMode(int blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; }
+    void SetBlendMode(int blendMode) { if (_applyMethod != (APPLYMETHOD)blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; } }
     virtual size_t GetDurationMS() const override { return _delay + _durationMS; }
     virtual std::string GetNameNoTime() const override;
     std::string GetFSEQFileName() const { return _fseqFileName; }
     std::string GetAudioFile() const { return _audioFile; }
     bool GetOverrideAudio() const { return _overrideAudio; }
     void SetFSEQFileName(const std::string& fseqFileName);
-    void SetAudioFile(const std::string& audioFile) { _audioFile = audioFile; _changeCount++; LoadFiles(); }
-    void SetOverrideAudio(bool overrideAudio) { _overrideAudio = overrideAudio; _changeCount++; LoadFiles(); }
-    virtual bool ControlsTiming() const override { return _audioManager != nullptr; }
+    void SetAudioFile(const std::string& audioFile) { if (_audioFile != audioFile) { _audioFile = audioFile; _changeCount++; LoadFiles(); } }
+    void SetOverrideAudio(bool overrideAudio) { if (_overrideAudio != overrideAudio) { _overrideAudio = overrideAudio; _changeCount++; LoadFiles(); } }
+    virtual bool ControlsTiming() const override { return _controlsTimingCache || _audioManager != nullptr; }
     virtual size_t GetPositionMS() const override;
     virtual size_t GetFrameMS() const override { return _msPerFrame; }
     virtual bool Done() const override { return GetPositionMS() >= GetDurationMS(); }

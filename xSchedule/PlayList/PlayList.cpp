@@ -34,6 +34,47 @@ PlayList::PlayList(wxXmlNode* node)
     //logger_base.info("Playlist created from XML %s 0x%lx.", (const char*)GetName().c_str(), this);
 }
 
+void PlayList::ForgetChildren()
+{
+    _steps.clear();
+    _schedules.clear();
+
+}
+
+PlayList& PlayList::operator=(PlayList& playlist)
+{
+    _lastSavedChangeCount = playlist._lastSavedChangeCount;
+    _changeCount = playlist._changeCount;
+    _firstOnlyOnce = playlist._firstOnlyOnce;
+    _lastOnlyOnce = playlist._lastOnlyOnce;
+    _name = playlist._name;
+    _priority = playlist._priority;
+    _loops = playlist._loops;
+    _id = playlist._id;
+
+    while (_steps.size() > 0)
+    {
+        auto toremove = _steps.front();
+        _steps.remove(toremove);
+        delete toremove;
+    }
+
+    for (auto it = playlist._steps.begin(); it != playlist._steps.end(); ++it)
+    {
+        _steps.push_back(*it);
+    }
+
+    //for (auto it = playlist._schedules.begin(); it != playlist._schedules.end(); ++it)
+    //{
+    //    _schedules.push_back(*it);
+    //}
+
+    // need to have the playlist we are copying from forget its children otherwise they belong to both of us and that will cause problems during deletion.
+    playlist._steps.clear();
+
+    return *this;
+}
+
 PlayList::PlayList(const PlayList& playlist)
 {
     _forceNextStep = "";
@@ -42,8 +83,8 @@ PlayList::PlayList(const PlayList& playlist)
     _lastLoop = false;
     _random = false;
     _looping = false;
-    _lastSavedChangeCount = 0;
-    _changeCount = 0;
+    _lastSavedChangeCount = playlist._lastSavedChangeCount;
+    _changeCount = playlist._changeCount;
     _currentStep = nullptr;
     _stopAtEndOfCurrentStep = false;
     _pauseTime.Set((time_t)0);
@@ -58,7 +99,10 @@ PlayList::PlayList(const PlayList& playlist)
     {
         _steps.push_back(new PlayListStep(**it));
     }
-    // dont copy the schedule as it wont be needed
+    //for (auto it = playlist._schedules.begin(); it != playlist._schedules.end(); ++it)
+    //{
+    //    _schedules.push_back(new Schedule(**it));
+    //}
 
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.info("Playlist copy made %s 0x%lx.", (const char*)GetName().c_str(), this);
@@ -89,11 +133,8 @@ PlayList::PlayList()
     //logger_base.info("New playlist created from nothing 0x%lx.", this);
 }
 
-PlayList::~PlayList()
+void PlayList::DeleteChildren()
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    //logger_base.info("Playlist being destroyed %s 0x%lx.", (const char*)GetName().c_str(), this);
-
     while (_steps.size() > 0)
     {
         auto toremove = _steps.front();
@@ -107,6 +148,14 @@ PlayList::~PlayList()
         _schedules.remove(toremove);
         delete toremove;
     }
+}
+
+PlayList::~PlayList()
+{
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.info("Playlist being destroyed %s 0x%lx.", (const char*)GetName().c_str(), this);
+
+    DeleteChildren();
 }
 
 

@@ -104,10 +104,13 @@ size_t PlayListItemVideo::GetDurationMS() const
 
 void PlayListItemVideo::SetVideoFile(const std::string& videoFile) 
 { 
-    _videoFile = videoFile; 
-    OpenFiles();
-    CloseFiles();
-    _changeCount++;
+    if (_videoFile != videoFile)
+    {
+        _videoFile = videoFile;
+        OpenFiles();
+        CloseFiles();
+        _changeCount++;
+    }
 }
 
 void PlayListItemVideo::CloseFiles()

@@ -39,12 +39,12 @@ public:
 
     #pragma region Getters and Setters
     std::string GetCommand() const { return _command; }
-    void SetCommand(std::string command) { _command = command; _changeCount++; }
+    void SetCommand(std::string command) { if (_command != command) { _command = command; _changeCount++; } }
     virtual std::string GetNameNoTime() const override;
     std::string GetParameter() const { return _parameter; }
     std::string GetProjector() const { return _projector; }
-    void SetParameter(const std::string& parameter) { _parameter = parameter; _changeCount++; }
-    void SetProjector(const std::string& projector) { _projector = projector; _changeCount++; }
+    void SetParameter(const std::string& parameter) { if (_parameter != parameter) { _parameter = parameter; _changeCount++; } }
+    void SetProjector(const std::string& projector) { if (_projector != projector) { _projector = projector; _changeCount++; } }
     std::list<std::string> GetProjectors();
     #pragma endregion Getters and Setters
 

@@ -70,7 +70,7 @@ class ScheduleManager
         void StopPlayList(PlayList* playlist, bool atendofcurrentstep);
         bool StoreData(const std::string& key, const std::string& data, std::string& msg) const;
         bool RetrieveData(const std::string& key, std::string& data, std::string& msg) const;
-        bool ToggleOutputToLights(std::string& msg);
+        bool ToggleOutputToLights(std::string& msg) const;
         bool ToggleCurrentPlayListRandom(std::string& msg);
         bool ToggleCurrentPlayListPause(std::string& msg);
         bool ToggleCurrentPlayListLoop(std::string& msg);

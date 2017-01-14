@@ -309,8 +309,6 @@ bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, 
 int ScheduleManager::CheckSchedule()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    Schedule* firstactive = nullptr;
-    PlayList* firstscheduled = nullptr;
 
     // check all the schedules and add into the list any that should be in the active schedules list
     for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
@@ -337,7 +335,7 @@ int ScheduleManager::CheckSchedule()
                     RunningSchedule* rs = new RunningSchedule(*it, *it2);
                     _activeSchedules.push_back(rs);
                     _activeSchedules.sort();
-                    rs->GetPlayList()->StartSuspended();
+                    rs->GetPlayList()->StartSuspended(rs->GetSchedule()->GetLoop(), rs->GetSchedule()->GetRandom(), rs->GetSchedule()->GetLoops());
 
                     logger_base.info("Scheduler starting playlist %s due to schedule %s.", (const char*)(*it)->GetNameNoTime().c_str(),  (const char *)(*it2)->GetName().c_str());
                 }
@@ -969,7 +967,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
         }
         else
         {
-            std::string nextsong = "";
+            std::string nextsong;
             bool didloop;
             auto next = p->GetNextStep(didloop);
             if (p->IsRandom())
@@ -1062,7 +1060,7 @@ bool ScheduleManager::RetrieveData(const std::string& key, std::string& data, st
     return result;
 }
 
-bool ScheduleManager::ToggleOutputToLights(std::string& msg)
+bool ScheduleManager::ToggleOutputToLights(std::string& msg) const
 {
     bool result;
     if (_outputManager->IsOutputting())

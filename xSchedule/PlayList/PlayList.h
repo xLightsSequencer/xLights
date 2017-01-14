@@ -38,6 +38,8 @@ protected:
 
     int GetPos(PlayListStep* step);
     PlayListStep* GetPriorStep() const;
+    void ForgetChildren();
+    void DeleteChildren();
 
 public:
 
@@ -49,6 +51,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     bool operator==(const PlayList& rhs) const { return _id == rhs._id; }
+    PlayList& operator=(PlayList& playlist);
 
     #pragma region Getters and Setters
     bool IsFinishingUp() const { return _jumpToEndStepsAtEndOfCurrentStep; }
@@ -69,15 +72,15 @@ public:
     void ClearStepLooping() { _loopStep = false; }
     std::string GetName() const { return _name; }
     std::string GetNameNoTime() const { return GetName(); };
-    void SetName(const std::string& name) { _name = name; _changeCount++; }
+    void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
     bool GetFirstOnce() const
     { return _firstOnlyOnce; }
-    void SetFirstOnce(bool foo) { _firstOnlyOnce = foo; _changeCount++; }
+    void SetFirstOnce(bool foo) { if (_firstOnlyOnce != foo) { _firstOnlyOnce = foo; _changeCount++; } }
     bool GetLastOnce() const
     { return _lastOnlyOnce; }
-    void SetLastOnce(bool foo) { _lastOnlyOnce = foo; _changeCount++; }
+    void SetLastOnce(bool foo) { if (_lastOnlyOnce != foo) { _lastOnlyOnce = foo; _changeCount++; } }
     int GetPriority() const { return _priority; }
-    void SetPriority(int priority) { _priority = priority; _changeCount++; }
+    void SetPriority(int priority) { if (_priority != priority) { _priority = priority; _changeCount++; } }
     bool Frame(wxByte* buffer, size_t size); // true if this was the last frame
     int GetPlayListSize() const { return _steps.size(); }
     bool IsLooping() const { return _looping; }

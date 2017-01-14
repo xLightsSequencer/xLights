@@ -33,14 +33,14 @@ public:
 
     #pragma region Getters and Setters
     virtual std::string GetNameNoTime() const override;
-    void SetLocation(wxPoint pt, wxSize size) { _origin = pt; _size = size; _changeCount++; }
-    void SetImageFile(const std::string& ImageFile) { _ImageFile = ImageFile; _changeCount++; }
+    void SetLocation(wxPoint pt, wxSize size) { if (_origin != pt || _size != size) { _origin = pt; _size = size; _changeCount++; } }
+    void SetImageFile(const std::string& ImageFile) { if (_ImageFile != ImageFile) { _ImageFile = ImageFile; _changeCount++; } }
     std::string GetImageFile() const { return _ImageFile; }
     wxPoint GetPosition() const { return _origin; }
     wxSize GetSize() const { return _size; }
     virtual size_t GetDurationMS() const override { return _delay + _duration; }
     long GetDuration() const { return _duration; }
-    void SetDuration(long duration) { _duration = duration; _changeCount++; }
+    void SetDuration(long duration) { if (_duration != duration) { _duration = duration; _changeCount++; } }
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

@@ -18,7 +18,7 @@ class wxXmlNode;
 class PlayListDialog: public wxDialog
 {
     PlayList* _playlist;
-    wxXmlNode* _savedState;
+    PlayList* _savedState;
     bool _dragging;
     void ValidateWindow();
     void PopulateTree();

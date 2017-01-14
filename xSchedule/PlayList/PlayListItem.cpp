@@ -3,6 +3,7 @@
 
 PlayListItem::PlayListItem(wxXmlNode* node)
 {
+    _id = wxGetUTCTimeMillis();
     _priority = 0;
     _volume = -1;
     _lastSavedChangeCount = 0;
@@ -22,6 +23,7 @@ void PlayListItem::Load(wxXmlNode* node)
 
 PlayListItem::PlayListItem()
 {
+    _id = wxGetUTCTimeMillis();
     _volume = -1;
     _lastSavedChangeCount = 0;
     _changeCount = 0;
@@ -64,8 +66,8 @@ std::string PlayListItem::GetNameNoTime() const
 
 void PlayListItem::Copy(PlayListItem* to) const
 {
-    to->_lastSavedChangeCount = 0;
-    to->_changeCount = 0;
+    to->_lastSavedChangeCount = _lastSavedChangeCount;
+    to->_changeCount = _changeCount;
     to->_delay = _delay;
     to->_frames = _frames;
     to->_msPerFrame = _msPerFrame;

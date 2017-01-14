@@ -86,8 +86,8 @@ Schedule::Schedule(const Schedule& schedule)
     _active = schedule._active;
     _enabled = schedule._enabled;
     _id = schedule._id;
-    _changeCount = 0;
-    _lastSavedChangeCount = 0;
+    _changeCount = schedule._changeCount;
+    _lastSavedChangeCount = schedule._lastSavedChangeCount;
     _loop = schedule._loop;
     _endDate = schedule._endDate;
     _startDate = schedule._startDate;

@@ -152,40 +152,58 @@ std::string ScheduleOptions::GetButtonParameter(const std::string& button)
 
 void ScheduleOptions::ClearProjectors()
 {
-    _projectorIPs.clear();
-    _projectorPasswords.clear();
-    _changeCount++;
+    if (_projectorIPs.size() > 0)
+    {
+        _projectorIPs.clear();
+        _projectorPasswords.clear();
+        _changeCount++;
+    }
 }
 
 void ScheduleOptions::ClearButtons()
 {
-    _buttonCommands.clear();
-    _buttonParameters.clear();
-    _changeCount++;
+    if (_buttonCommands.size() > 0)
+    {
+        _buttonCommands.clear();
+        _buttonParameters.clear();
+        _changeCount++;
+    }
 }
 
 void ScheduleOptions::SetProjectorIPAddress(const std::string& projector, const std::string& ip)
 {
-    _projectorIPs[projector] = ip;
-    _changeCount++;
+    if (_projectorIPs.find(projector) == _projectorIPs.end() || _projectorIPs[projector] != ip)
+    {
+        _projectorIPs[projector] = ip;
+        _changeCount++;
+    }
 }
 
 void ScheduleOptions::SetProjectorPassword(const std::string& projector, const std::string& password)
 {
-    _projectorPasswords[projector] = password;
-    _changeCount++;
+    if (_projectorPasswords.find(projector) == _projectorPasswords.end() || _projectorPasswords[projector] != password)
+    {
+        _projectorPasswords[projector] = password;
+        _changeCount++;
+    }
 }
 
 void ScheduleOptions::SetButtonCommand(const std::string& button, const std::string& command)
 {
-    _buttonCommands[button] = command;
-    _changeCount++;
+    if (_buttonCommands.find(button) == _buttonCommands.end() || _buttonCommands[button] != command)
+    {
+        _buttonCommands[button] = command;
+        _changeCount++;
+    }
 }
 
 void ScheduleOptions::SetButtonParameter(const std::string& button, const std::string& parameter)
 {
-    _buttonParameters[button] = parameter;
-    _changeCount++;
+    if (_buttonParameters.find(button) == _buttonParameters.end() || _buttonParameters[button] != parameter)
+    {
+        _buttonParameters[button] = parameter;
+        _changeCount++;
+    }
 }
 
 std::string ScheduleOptions::GetButtonsJSON() const

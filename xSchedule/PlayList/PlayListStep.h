@@ -26,7 +26,6 @@ protected:
     int _loops;
 #pragma endregion Member Variables
 
-    PlayListItem* GetTimeSource(int& ms) const;
     std::string FormatTime(size_t timems, bool ms = false) const;
 
 public:
@@ -41,16 +40,17 @@ public:
     bool operator==(const PlayListStep& rhs) const { return _id == rhs._id; }
 
 #pragma region Getters and Setters
+    PlayListItem* GetTimeSource(int& ms) const;
     std::list<PlayListItem*> GetItems();
     bool IsDirty() const;
     void ClearDirty();
     std::string GetStatus(bool ms = false) const;
     bool GetExcludeFromRandom() const { return _excludeFromRandom; }
-    void SetExcludeFromRandom(bool efr) { _excludeFromRandom = efr; _changeCount++; }
+    void SetExcludeFromRandom(bool efr) { if (_excludeFromRandom != efr) { _excludeFromRandom = efr; _changeCount++; } }
     std::string GetName() const;
     std::string GetNameNoTime() const;
     std::string GetRawName() const { return _name; }
-    void SetName(const std::string& name) { _name = name; _changeCount++; }
+    void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
     void Start(int _loops);
     int GetLoopsLeft() const { return _loops; }
     void DoLoop() { _loops--; }

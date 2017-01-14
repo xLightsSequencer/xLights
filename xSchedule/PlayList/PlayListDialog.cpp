@@ -120,7 +120,7 @@ PlayListDialog::PlayListDialog(wxWindow* parent, PlayList* playlist, wxWindowID 
     SetSize(800, 500);
 
     // save the current state in case the user cancels
-    _savedState = playlist->Save();
+    _savedState = new PlayList(*playlist);
 
     PopulateTree();
 
@@ -148,11 +148,22 @@ void PlayListDialog::PopulateTree()
         wxTreeItemId step = TreeCtrl_PlayList->AppendItem(TreeCtrl_PlayList->GetRootItem(), (*it)->GetName());
         TreeCtrl_PlayList->SetItemData(step, new MyTreeItemData(*it));
 
+        int ms;
+        PlayListItem* ts = (*it)->GetTimeSource(ms);
+
         auto items = (*it)->GetItems();
         for (auto it2 = items.begin(); it2 != items.end(); ++it2)
         {
             id = TreeCtrl_PlayList->AppendItem(step, (*it2)->GetName());
             TreeCtrl_PlayList->SetItemData(id, new MyTreeItemData(*it2));
+
+            if (ts != nullptr)
+            {
+                if (ts->GetId() == (*it2)->GetId())
+                {
+                    TreeCtrl_PlayList->SetItemTextColour(id, *wxBLUE);
+                }
+            }
         }
         TreeCtrl_PlayList->Expand(step);
     }
@@ -766,7 +777,7 @@ void PlayListDialog::ValidateWindow()
 
 void PlayListDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
-    _playlist->Load(_savedState);
+    *_playlist = *_savedState;
     delete _savedState;
     EndDialog(wxID_CANCEL);
 }

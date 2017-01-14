@@ -29,11 +29,11 @@ public:
 #pragma region Getters and Setters
     virtual size_t GetDurationMS() const override { return _delay + _duration; }
     long GetDuration() const { return _duration; }
-    void SetDuration(long duration) { _duration = duration; _changeCount++; }
+    void SetDuration(long duration) { if (_duration != duration) { _duration = duration; _changeCount++; } }
     wxByte GetValue() const { return _value; }
-    void SetValue(wxByte value) { _value = value; _changeCount++; }
+    void SetValue(wxByte value) { if (_value != value) { _value = value; _changeCount++; } }
     int GetBlendMode() const { return _applyMethod; }
-    void SetBlendMode(int blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; }
+    void SetBlendMode(int blendMode) { if (_applyMethod != (APPLYMETHOD)blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; } }
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

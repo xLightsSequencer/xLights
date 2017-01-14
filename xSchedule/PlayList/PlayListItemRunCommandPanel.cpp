@@ -33,7 +33,7 @@ END_EVENT_TABLE()
 void PlayListItemRunCommandPanel::SetChoiceFromString(wxChoice* choice, std::string value)
 {
     choice->SetSelection(-1);
-    for (int i = 0; i < choice->GetCount(); i++)
+    for (size_t i = 0; i < choice->GetCount(); i++)
     {
         if (choice->GetString(i) == value)
         {

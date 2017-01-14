@@ -12,6 +12,7 @@ class PlayListItem
 protected:
 
     #pragma region Member Variables
+    wxLongLong _id;
     int _lastSavedChangeCount;
     int _changeCount;
     std::string _name;
@@ -35,23 +36,24 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    wxLongLong GetId() const { return _id; }
     virtual size_t GetDurationMS() const { return _delay; }
     virtual size_t GetDurationMS(size_t frameMS) const { return GetDurationMS(); }
     bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
     void ClearDirty() { _lastSavedChangeCount = _changeCount; }
     std::string GetName() const;
     virtual std::string GetNameNoTime() const;
-    void SetName(const std::string& name) { _name = name; _changeCount++; }
+    void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
     virtual long GetLength() { return _frames; }
     long GetDelay() const { return _delay; }
-    void SetDelay(long delay) { _delay = delay; _changeCount++; }
+    void SetDelay(long delay) { if (_delay != delay) { _delay = delay; _changeCount++; } }
     int GetVolume() const { return _volume; }
-    void SetVolume(int volume) { _volume = volume; _changeCount++; }
+    void SetVolume(int volume) { if (_volume != volume) { _volume = volume; _changeCount++; } }
     virtual bool ControlsTiming() const { return false; }
     virtual size_t GetPositionMS() const { return 0; }
     virtual size_t GetFrameMS() const { return 0; }
     size_t GetPriority() const { return _priority; }
-    void SetPriority(size_t priority) { _priority = priority; _changeCount++; }
+    void SetPriority(size_t priority) { if (_priority != priority) { _priority = priority; _changeCount++; } }
     virtual bool Done() const { return false; }
     virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems) = 0;
     #pragma endregion Getters and Setters

@@ -185,6 +185,7 @@ END_EVENT_TABLE()
 xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
 {
     __schedule = nullptr;
+    _webServer = nullptr;
     _manualOTL = -1;
 
     //(*Initialize(xScheduleFrame)
@@ -204,20 +205,20 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer1->AddGrowableRow(1);
     Panel2 = new wxPanel(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     FlexGridSizer5 = new wxFlexGridSizer(0, 8, 0, 0);
-    BitmapButton_OutputToLights = new wxBitmapButton(Panel2, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
-    FlexGridSizer5->Add(BitmapButton_OutputToLights, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Playing = new wxBitmapButton(Panel2, ID_BITMAPBUTTON3, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
-    FlexGridSizer5->Add(BitmapButton_Playing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_IsScheduled = new wxBitmapButton(Panel2, ID_BITMAPBUTTON6, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
-    FlexGridSizer5->Add(BitmapButton_IsScheduled, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Random = new wxBitmapButton(Panel2, ID_BITMAPBUTTON2, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
-    FlexGridSizer5->Add(BitmapButton_Random, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_PLLoop = new wxBitmapButton(Panel2, ID_BITMAPBUTTON4, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
-    FlexGridSizer5->Add(BitmapButton_PLLoop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_StepLoop = new wxBitmapButton(Panel2, ID_BITMAPBUTTON5, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON5"));
-    FlexGridSizer5->Add(BitmapButton_StepLoop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Unsaved = new wxBitmapButton(Panel2, ID_BITMAPBUTTON7, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
-    FlexGridSizer5->Add(BitmapButton_Unsaved, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_OutputToLights = new wxBitmapButton(Panel2, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
+    FlexGridSizer5->Add(BitmapButton_OutputToLights, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Playing = new wxBitmapButton(Panel2, ID_BITMAPBUTTON3, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
+    FlexGridSizer5->Add(BitmapButton_Playing, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_IsScheduled = new wxBitmapButton(Panel2, ID_BITMAPBUTTON6, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
+    FlexGridSizer5->Add(BitmapButton_IsScheduled, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Random = new wxBitmapButton(Panel2, ID_BITMAPBUTTON2, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
+    FlexGridSizer5->Add(BitmapButton_Random, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_PLLoop = new wxBitmapButton(Panel2, ID_BITMAPBUTTON4, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
+    FlexGridSizer5->Add(BitmapButton_PLLoop, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_StepLoop = new wxBitmapButton(Panel2, ID_BITMAPBUTTON5, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON5"));
+    FlexGridSizer5->Add(BitmapButton_StepLoop, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Unsaved = new wxBitmapButton(Panel2, ID_BITMAPBUTTON7, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
+    FlexGridSizer5->Add(BitmapButton_Unsaved, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Brightness = new BrightnessControl(Panel2,ID_CUSTOM1,wxDefaultPosition,wxSize(32,32),0,wxDefaultValidator,_T("ID_CUSTOM1"));
     FlexGridSizer5->Add(Brightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel2->SetSizer(FlexGridSizer5);
@@ -360,19 +361,38 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     _random = wxBitmap(xs_random, 32, 32);
     _notrandom = wxBitmap(xs_notrandom, 32, 32);
 
-    LoadShowDir();
+    Brightness->SetToolTip("Brightness");
 
-    StaticText_ShowDir->SetLabel(_showDir);
+    LoadShowDir();
 
     __schedule = new ScheduleManager(_showDir);
 
+    LoadSchedule();
+
+    ValidateWindow();
+}
+
+void xScheduleFrame::LoadSchedule()
+{
+    if (__schedule != nullptr)
+    {
+        delete __schedule;
+        __schedule = nullptr;
+    }
+    __schedule = new ScheduleManager(_showDir);
+
+    if (_webServer != nullptr)
+    {
+        delete _webServer;
+        _webServer = nullptr;
+    }
     _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort());
+
+    StaticText_ShowDir->SetLabel(_showDir);
 
     UpdateTree();
 
     CreateButtons();
-
-    ValidateWindow();
 }
 
 xScheduleFrame::~xScheduleFrame()
@@ -585,12 +605,11 @@ void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
 
     if (DirDialog1->ShowModal() == wxID_OK)
     {
-        delete __schedule;
-        __schedule = nullptr;
         _showDir = DirDialog1->GetPath().ToStdString();
         SaveShowDir();
-        __schedule = new ScheduleManager(_showDir);
-        UpdateTree();
+        LoadSchedule();
+        _timerSchedule.Stop();
+        _timerSchedule.Start(50, true);
     }
     ValidateWindow();
 }
@@ -843,6 +862,7 @@ void xScheduleFrame::CreateButtons()
 
     FlexGridSizer4->Fit(Panel1);
     FlexGridSizer4->SetSizeHints(Panel1);
+    Panel1->Fit();
     Layout();
 }
 

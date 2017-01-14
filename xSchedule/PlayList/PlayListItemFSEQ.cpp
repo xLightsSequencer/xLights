@@ -6,6 +6,7 @@
 
 PlayListItemFSEQ::PlayListItemFSEQ(wxXmlNode* node) : PlayListItem(node)
 {
+    _controlsTimingCache = false;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
     _fseqFileName = "";
     _overrideAudio = false;
@@ -59,11 +60,13 @@ void PlayListItemFSEQ::LoadFiles()
     {
         _audioManager = new AudioManager(af);
         _durationMS = _audioManager->LengthMS();
+        _controlsTimingCache = true;
     }
 }
 
 PlayListItemFSEQ::PlayListItemFSEQ() : PlayListItem()
 {
+    _controlsTimingCache = false;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
     _fseqFileName = "";
     _overrideAudio = false;
@@ -81,6 +84,7 @@ PlayListItem* PlayListItemFSEQ::Copy() const
     res->_overrideAudio = _overrideAudio;
     res->_audioFile = _audioFile;
     res->_durationMS = _durationMS;
+    res->_controlsTimingCache = _controlsTimingCache;
     PlayListItem::Copy(res);
 
     return res;
@@ -123,9 +127,12 @@ std::string PlayListItemFSEQ::GetNameNoTime() const
 
 void PlayListItemFSEQ::SetFSEQFileName(const std::string& fseqFileName)
 {
-    _fseqFileName = fseqFileName;
-    FastSetDuration();
-    _changeCount++;
+    if (_fseqFileName != fseqFileName)
+    {
+        _fseqFileName = fseqFileName;
+        FastSetDuration();
+        _changeCount++;
+    }
 }
 
 void PlayListItemFSEQ::FastSetDuration()
@@ -134,13 +141,24 @@ void PlayListItemFSEQ::FastSetDuration()
     if (af == "")
     {
         FSEQFile fseq(_fseqFileName);
-        _durationMS = fseq.GetLengthMS();
+
+        af = fseq.GetAudioFileName();
+
+        if (!_overrideAudio && af != "" && wxFile::Exists(af))
+        {
+            _durationMS = AudioManager::GetAudioFileLength(fseq.GetAudioFileName());
+            _controlsTimingCache = true;
+        }
+        else
+        {
+            _durationMS = fseq.GetLengthMS();
+        }
     }
     else
     {
         _durationMS = AudioManager::GetAudioFileLength(GetAudioFilename());
+        _controlsTimingCache = true;
     }
-
 }
 
 size_t PlayListItemFSEQ::GetPositionMS() const

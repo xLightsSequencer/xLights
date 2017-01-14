@@ -16,6 +16,7 @@ protected:
     std::string _audioFile;
     AudioManager* _audioManager;
     size_t _durationMS;
+    bool _controlsTimingCache;
     #pragma endregion Member Variables
 
     void LoadFiles();
@@ -36,7 +37,7 @@ public:
     virtual std::string GetNameNoTime() const override;
     std::string GetAudioFile() const { return _audioFile; }
     void SetAudioFile(const std::string& audioFile);
-    virtual bool ControlsTiming() const override { return _audioManager != nullptr; }
+    virtual bool ControlsTiming() const override { return _controlsTimingCache || _audioManager != nullptr; }
     virtual size_t GetPositionMS() const override;
     virtual bool Done() const override { return GetPositionMS() >= GetDurationMS(); }
     #pragma endregion Getters and Setters

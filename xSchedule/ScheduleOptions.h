@@ -28,8 +28,8 @@ class ScheduleOptions
         virtual ~ScheduleOptions();
         wxXmlNode* Save();
 		bool IsSync() const { return _sync; }
-        void SetSync(bool sync) { _sync = sync; _changeCount++; }
-        void SetSendOffWhenNotRunning(bool send) { _sendOffWhenNotRunning = send; _changeCount++; }
+        void SetSync(bool sync) { if (_sync != sync) { _sync = sync; _changeCount++; } }
+        void SetSendOffWhenNotRunning(bool send) { if (_sendOffWhenNotRunning != send) { _sendOffWhenNotRunning = send; _changeCount++; } }
         bool IsSendOffWhenNotRunning() const { return _sendOffWhenNotRunning; }
         std::list<std::string> GetProjectors() const;
         std::list<std::string> GetButtons() const;
@@ -45,9 +45,9 @@ class ScheduleOptions
         std::string GetButtonParameter(const std::string& button);
         std::string GetButtonsJSON() const;
         int GetWebServerPort() const { return _port; }
-        void SetWebServerPort(int port) { _port = port; _changeCount++; }
+        void SetWebServerPort(int port) { if (_port != port) { _port = port; _changeCount++; } }
         std::string GetWWWRoot() const { return _wwwRoot; }
-        void SetWWWRoot(const std::string& wwwRoot) { _wwwRoot = wwwRoot; _changeCount++; }
+        void SetWWWRoot(const std::string& wwwRoot) { if (_wwwRoot != wwwRoot) { _wwwRoot = wwwRoot; _changeCount++; } }
 };
 
 #endif

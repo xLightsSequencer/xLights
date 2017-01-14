@@ -662,6 +662,8 @@ void OutputManager::SetOneChannel(long channel, unsigned char data)
 // channel here is zero based
 void OutputManager::SetManyChannels(long channel, unsigned char* data, long size)
 {
+    if (size == 0) return;
+
     long stch;
     Output* o = GetOutput(channel + 1, stch);
     wxASSERT(o != nullptr);
