@@ -203,7 +203,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(1);
-    Panel2 = new wxPanel(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+    Panel2 = new wxPanel(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     FlexGridSizer5 = new wxFlexGridSizer(0, 8, 0, 0);
     BitmapButton_OutputToLights = new wxBitmapButton(Panel2, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
     FlexGridSizer5->Add(BitmapButton_OutputToLights, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -224,7 +224,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     Panel2->SetSizer(FlexGridSizer5);
     FlexGridSizer5->Fit(Panel2);
     FlexGridSizer5->SetSizeHints(Panel2);
-    FlexGridSizer1->Add(Panel2, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer1->Add(Panel2, 1, wxALL|wxEXPAND, 0);
     SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxSize(52,39), wxSP_3D, _T("ID_SPLITTERWINDOW1"));
     SplitterWindow1->SetMinSize(wxSize(10,10));
     SplitterWindow1->SetMinimumPaneSize(10);
@@ -250,14 +250,14 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer3->Fit(Panel5);
     FlexGridSizer3->SetSizeHints(Panel5);
     SplitterWindow1->SplitVertically(Panel3, Panel5);
-    FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 0);
     Panel1 = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     FlexGridSizer4 = new wxFlexGridSizer(0, 0, 0, 0);
     Panel1->SetSizer(FlexGridSizer4);
     FlexGridSizer4->Fit(Panel1);
     FlexGridSizer4->SetSizeHints(Panel1);
-    FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND, 5);
-    Panel4 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+    FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND, 0);
+    Panel4 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL4"));
     FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer6->AddGrowableCol(1);
     StaticText_ShowDir = new wxStaticText(Panel4, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
@@ -267,7 +267,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     Panel4->SetSizer(FlexGridSizer6);
     FlexGridSizer6->Fit(Panel4);
     FlexGridSizer6->SetSizeHints(Panel4);
-    FlexGridSizer1->Add(Panel4, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer1->Add(Panel4, 1, wxALL|wxEXPAND, 0);
     SetSizer(FlexGridSizer1);
     MenuBar1 = new wxMenuBar();
     Menu1 = new wxMenu();
@@ -506,7 +506,7 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
         }
         else
         {
-            wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(treeitem, schedule->GetName(), -1, -1, new MyTreeItemData(schedule));
+            wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(treeitem, GetScheduleName(schedule, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(schedule));
             PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
             TreeCtrl_PlayListsSchedules->Expand(treeitem);
             TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);

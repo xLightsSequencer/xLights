@@ -229,42 +229,46 @@ std::string Schedule::GetNextTriggerTime()
 {
 #pragma todo this doesnt work
 
+    wxDateTime end = _endDate;
+    if (_everyYear) end.SetYear(wxDateTime::Now().GetYear() + 1);
+
+    // deal with the simple cases
     if (CheckActive()) return "NOW!";
-
-    wxDateTime next = _startDate;
-
-    auto n = next.Format();
-
-    if (next < wxDateTime::Now())
+    if (end < wxDateTime::Now()) return "Never";
+    if (_startDate > wxDateTime::Now()) // tomorrow or later
     {
-        if (_everyYear)
-        {
-            while (next < wxDateTime::Now())
-            {
-                next.SetYear(next.GetYear() + 1);
-                n = next.Format();
-            }
-        }
-        else
-        {
-            while (next < _endDate)
-            {
-                next.SetYear(next.GetYear() + 1);
-                n = next.Format();
+        // some time in the future
+        wxDateTime next = _startDate;
+        next.SetHour(_startTime.GetHour());
+        next.SetMinute(_startTime.GetMinute());
+        return next.Format("%Y-%m-%d %H:%M").ToStdString();
+    }
 
-                if (next >= wxDateTime::Now()) break;
-            }
+    // so now is between _startDate and end
 
-            if (next < wxDateTime::Now())
-            {
-                n = next.Format();
-                return "Never";
-            }
+    // check if the right answer is the starttime today
+    wxDateTime next = wxDateTime::Now();
+    next.SetHour(_startTime.GetHour());
+    next.SetMinute(_startTime.GetMinute());
+    next.SetSecond(0);
+    auto n = end.Format();
+    if (next > wxDateTime::Now() && CheckActiveAt(next))
+    {
+        return next.Format("%Y-%m-%d %H:%M").ToStdString();
+    }
+
+    for (int i =0; i < 7; i++)
+    {
+        next += wxTimeSpan(24);
+        n = end.Format();
+        if (next > wxDateTime::Now() && CheckActiveAt(next))
+        {
+            return next.Format("%Y-%m-%d %H:%M").ToStdString();
         }
     }
 
-    n = next.Format();
-    return next.Format("%Y-%m-%d %H:%M").ToStdString();
+    // I give up
+    return "Never";
 }
 
 void Schedule::AddMinsToEndTime(int mins)
