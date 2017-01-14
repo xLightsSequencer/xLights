@@ -31,6 +31,8 @@ $(window).ready(function() {
 });
 //End onload
 
+
+
 // GLobal Populate
 
 function loadPageSettings() {
@@ -184,23 +186,24 @@ function dashboardLoadStatus() {
           response.playlist + `</h5>`
         var Playing =
           `
-                                <li>
-                                  <div class="user-thumb"> <img width="40" height="40" alt="User" src="img/demo/av1.jpg"> </div>
-                                  <div class="article-post">
-                                    <p><a onClick="runCommand("Toggle loop current step")" href="#">` +
+          <li>
+            <div class="user-thumb"> <img width="40" height="40" alt="User" src="img/demo/av1.jpg"> </div>
+            <div class="article-post">
+              <p><a onClick="runCommand("Toggle loop current step")" href="#">` +
           response.step +
           `</a> </p>
-                                    <span class="user-info"> Remaining: ` +
+              <span class="user-info"> Remaining: ` +
           response.left.split(".")[0] + ` | Duration: ` + response.length
           .split(".")[0] +
           `</span>
-                                    </div>
-                                    </div>
-                                </li>
+              </div>
+              </div>
+          </li>
 
-                              `;
+        `;
         $("#currentStep").html(Playing);
-        $("#currentPlaylistLoadingBar").css("width", findPercent(response
+        $("#currentPlaylistLoadingBar").css("width", findPercent(
+          response
           .length.split(".")[0], response.left.split(".")[0]));
         dashboardUpdatePlaylistSteps(response.playlist, response.step);
       }
