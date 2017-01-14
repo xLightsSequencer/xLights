@@ -103,6 +103,7 @@ void LOROutput::AllOff()
     {
         SetOneChannel(i, 0x00);
     }
+    wxMilliSleep(25);
 }
 #pragma endregion Data Setting
 
