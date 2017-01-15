@@ -59,6 +59,13 @@ bool LOROutput::Open()
 
     return _ok;
 }
+
+void LOROutput::Close()
+{
+    wxMilliSleep(25);
+    SerialOutput::Close();
+}
+
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling
@@ -103,7 +110,6 @@ void LOROutput::AllOff()
     {
         SetOneChannel(i, 0x00);
     }
-    wxMilliSleep(25);
 }
 #pragma endregion Data Setting
 
