@@ -89,6 +89,8 @@
 					<Add library="../lib/windows/swresample.lib" />
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
 			<Target title="MinGW_Release">
