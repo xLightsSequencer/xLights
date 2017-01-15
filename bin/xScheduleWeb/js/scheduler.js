@@ -1,3 +1,5 @@
+var easter_egg = new Konami('https://www.youtube.com/watch?v=oHg5SJYRHA0');
+
 $(window).ready(function() {
   var currentPage = window.location.pathname.split("/").pop();
   //Populate User Navigation
@@ -16,7 +18,6 @@ $(window).ready(function() {
   if (currentPage == "index.html") {
     window.setInterval(function() {
       dashboardLoadStatus();
-      dashboardUpdateToggleButtons()
     }, 1000);
   }
   if (currentPage == "settings.html") {
@@ -27,6 +28,8 @@ $(window).ready(function() {
   //Populate Page Name
   //Populate Page Color
   loadPageSettings();
+
+
 
 });
 //End onload
@@ -160,6 +163,7 @@ function settingsUpdateWebSettings() {
 
 }
 
+
 //Dashboard Page
 
 function dashboardLoadStatus() {
@@ -212,10 +216,11 @@ function dashboardLoadStatus() {
           response
           .length.split(".")[0], response.left.split(".")[0]));
         dashboardUpdatePlaylistSteps(response.playlist, response.step);
+        dashboardUpdateToggleButtons();
       }
     },
     error: function(response){
-      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Error Connecting to xSchedule</div>`;
+      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Lost connect to xScheduler</div>`;
       $("#connectionError").html(error);
     }
   });
@@ -251,10 +256,6 @@ function dashboardUpdatePlaylistSteps(playlist, currentStep) {
         $("#playlistStatus ul").append(li);
         $('#currentPlaylist').html(currentPlaylist);
       }
-    },
-    error: function(response){
-      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Cannot run command: GetPlayListSteps</div>`;
-      $("#connectionError").html(error);
     }
   });
 }
@@ -281,10 +282,6 @@ function dashboardPopulatePlaylists() {
           `<span class="icon"><i class="icon-file"></i></span><h5>Avalible Playlists:</h5>`;
         $('#currentPlaylist').html(currentPlaylist)
       }
-    },
-    error: function(response){
-      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Cannot run query: GetPlayLists</div>`;
-      $("#connectionError").html(error);
     }
   });
 }
@@ -344,10 +341,6 @@ function dashboardUpdateToggleButtons() {
           }
         }
       }
-    },
-    error: function(response){
-      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Cannot run query: GetPlayingStatus</div>`;
-      $("#connectionError").html(error);
     }
   });
 }
@@ -407,10 +400,9 @@ function retrieveKey(key, f) {
     type: "GET",
     url: '/xScheduleStash?Command=Retrieve&Key=' + key,
     success: f,
-    error: function(response){
-      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Cannot retrieve data from server</div>`;
-      $("#connectionError").html(error);
-  }
+    error: function(error) {
+      console.log("ERROR: " + error);
+    }
   });
 
 
