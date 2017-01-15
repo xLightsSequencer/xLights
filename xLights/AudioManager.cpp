@@ -18,6 +18,7 @@ Uint64  __audio_len;
 Uint8  *__audio_pos;
 float __playbackrate = 1.0f;
 std::mutex __audio_Lock;
+int __volume;
 
 void  fill_audio(void *udata, Uint8 *stream, int len)
 {
@@ -33,9 +34,25 @@ void  fill_audio(void *udata, Uint8 *stream, int len)
 
 	len = (len > __audio_len ? __audio_len : len);	/*  Mix  as  much  data  as  possible  */
 
-	SDL_MixAudio(stream, __audio_pos, len, SDL_MIX_MAXVOLUME);
+	SDL_MixAudio(stream, __audio_pos, len, __volume);
 	__audio_pos += len;
 	__audio_len -= len;
+}
+
+void AudioManager::SetVolume(int volume)
+{
+	if (volume > 100) 
+	{
+		__volume = SDL_MIX_MAXVOLUME;
+	}
+	else if (volume < 0)
+	{
+		__volume = 0;
+	}
+	else
+	{
+		__volume = (volume * SDL_MIX_MAXVOLUME) / 100;
+	}
 }
 
 void AudioManager::Seek(int pos)
@@ -228,6 +245,7 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
 	_pcmdata = nullptr;
 	_polyphonicTranscriptionDone = false;
+	__volume = SDL_MIX_MAXVOLUME;
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions
 	_extra = std::max(step, block) + 1;
