@@ -521,27 +521,6 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         va.AddTrianglesCircle(marker.x, marker.y, scale*sf*0.20, marker_color, marker_color);
     } else if( dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE || dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS) {
         // draw head
-        /*DrawGLUtils::PushMatrix();
-        va.AddVertex(12, -13, ccolor);
-        va.AddVertex(12, 13, ccolor);
-        va.AddVertex(-12, -10, ccolor);
-
-        va.AddVertex(12, 13, ccolor);
-        va.AddVertex(-12, 10, ccolor);
-        va.AddVertex(-12, -10, ccolor);
-
-        va.AddVertex(-12, 10, ccolor);
-        va.AddVertex(-15, -5, ccolor);
-        va.AddVertex(-12, -10, ccolor);
-
-        va.AddVertex(-12, 10, ccolor);
-        va.AddVertex(-15, 5, ccolor);
-        va.AddVertex(-15, -5, ccolor);
-
-        DrawGLUtils::Scale(scale, scale, 1.0f);
-        DrawGLUtils::Rotate(angle, sx, sy, 0.0f);
-        DrawGLUtils::PopMatrix();*/
-
         dmxPoint p1(12, -13, sx, sy, scale, angle);
         dmxPoint p2(12, +13, sx, sy, scale, angle);
         dmxPoint p3(-12, +10, sx, sy, scale, angle);
