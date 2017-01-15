@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Increase DMXModel selection area hotspot.  Fixes #795.
    -- bug (gil)     Fix blue screen crash when turning off outputs while using LOR USB dongle.  Fixes #797.
    -- bug (gil)     Fix forcing of color for RGB nodes in LMS import. Red and Blue were swapped.
 2016.56  Dec 31, 2016

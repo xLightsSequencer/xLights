@@ -283,10 +283,19 @@ void DmxModel::InitModel() {
     for (int x = 0; x < numChannels; x++) {
         Nodes[curNode]->ActChan = stringStartChan[0] + curNode*GetNodeChannelCount(StringType);
         Nodes[curNode]->StringNum=0;
+        // the screenx/screeny positions are used to fake it into giving a bigger selection area
+        if( x == 1 ) {
+            Nodes[curNode]->Coords[0].screenX = -0.65;
+            Nodes[curNode]->Coords[0].screenY = -1.0;
+        } else if( x == 2 ) {
+            Nodes[curNode]->Coords[0].screenX = 0.65;
+            Nodes[curNode]->Coords[0].screenY = 1.0;
+        } else {
+            Nodes[curNode]->Coords[0].screenX = 0;
+            Nodes[curNode]->Coords[0].screenY = 0;
+        }
         Nodes[curNode]->Coords[0].bufX = 0;
         Nodes[curNode]->Coords[0].bufY = 0;
-        Nodes[curNode]->Coords[0].screenX = 0;
-        Nodes[curNode]->Coords[0].screenY = 0;
         curNode++;
     }
     SetBufferSize(1,parm1);
