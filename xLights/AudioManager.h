@@ -141,6 +141,7 @@ public:
 	xLightsVamp* GetVamp() { return &_vamp; };
 	AudioManager(const std::string& audio_file, int step = 4096, int block = 32768);
 	~AudioManager();
+	void SetVolume(int volume);
 	int GetTrackSize() { return _trackSize; };
 	long GetRate() { return _rate; };
 	int GetChannels() { return _channels; };
