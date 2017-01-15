@@ -76,6 +76,10 @@ function buttonsLoadButtons() {
           ' </a></li>';
         $("#buttonsPageButtons ul").append(li);
       }
+    },
+    error: function(response){
+      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Cannot Load Buttons</div>`;
+      $("#connectionError").html(error);
     }
   });
 }
@@ -162,7 +166,9 @@ function dashboardLoadStatus() {
   $.ajax({
     url: '/xScheduleQuery?Query=GetPlayingStatus',
     dataType: "json",
+    timeout: 3000,
     success: function(response) {
+      $("#error").remove();
       if (response.status == "idle") {
         //Populate Idle Page
         var notPlaying = '<p><center>Show Not Running!</center></p>';
@@ -207,6 +213,10 @@ function dashboardLoadStatus() {
           .length.split(".")[0], response.left.split(".")[0]));
         dashboardUpdatePlaylistSteps(response.playlist, response.step);
       }
+    },
+    error: function(response){
+      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Error Connecting to xSchedule</div>`;
+      $("#connectionError").html(error);
     }
   });
 }
@@ -241,6 +251,10 @@ function dashboardUpdatePlaylistSteps(playlist, currentStep) {
         $("#playlistStatus ul").append(li);
         $('#currentPlaylist').html(currentPlaylist);
       }
+    },
+    error: function(response){
+      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Cannot run command: GetPlayListSteps</div>`;
+      $("#connectionError").html(error);
     }
   });
 }
@@ -267,6 +281,10 @@ function dashboardPopulatePlaylists() {
           `<span class="icon"><i class="icon-file"></i></span><h5>Avalible Playlists:</h5>`;
         $('#currentPlaylist').html(currentPlaylist)
       }
+    },
+    error: function(response){
+      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Cannot run query: GetPlayLists</div>`;
+      $("#connectionError").html(error);
     }
   });
 }
@@ -326,6 +344,10 @@ function dashboardUpdateToggleButtons() {
           }
         }
       }
+    },
+    error: function(response){
+      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Cannot run query: GetPlayingStatus</div>`;
+      $("#connectionError").html(error);
     }
   });
 }
@@ -342,11 +364,24 @@ function buttonClick(name) {
 }
 
 function runCommand(name, param) {
-  $.ajax({
-    url: '/xScheduleCommand?Command=' + name + '&Parameters=' + param,
-    success: function(response) {}
-  });
+  if (param == undefined){
+    $.ajax({
+      url: '/xScheduleCommand?Command=' + name,
+      error: function(response) {
+        jAlert('This is a custom alert box', 'Alert Dialog');
+      }
+    });
+  }else{
+    $.ajax({
+      url: '/xScheduleCommand?Command=' + name + '&Parameters=' + param,
+      success: function(response) {
+
+      }
+    });
+
+  }
 }
+
 
 function updatePageColor(color) {
   document.querySelector("#sidebar").style.background = color;
@@ -372,9 +407,10 @@ function retrieveKey(key, f) {
     type: "GET",
     url: '/xScheduleStash?Command=Retrieve&Key=' + key,
     success: f,
-    error: function(error) {
-      window.alert("ERROR: " + error);
-    }
+    error: function(response){
+      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Cannot retrieve data from server</div>`;
+      $("#connectionError").html(error);
+  }
   });
 
 
