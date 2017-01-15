@@ -41,6 +41,7 @@ void  fill_audio(void *udata, Uint8 *stream, int len)
 
 void AudioManager::SetVolume(int volume)
 {
+    std::unique_lock<std::mutex> locker(__audio_Lock);
 	if (volume > 100) 
 	{
 		__volume = SDL_MIX_MAXVOLUME;
