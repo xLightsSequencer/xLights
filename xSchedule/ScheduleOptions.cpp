@@ -22,6 +22,7 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
         {
             _buttonCommands[n->GetAttribute("Label", "").ToStdString()] = n->GetAttribute("Command", "").ToStdString();
             _buttonParameters[n->GetAttribute("Label", "").ToStdString()] = n->GetAttribute("Parameters", "").ToStdString();
+            _buttonParameters[n->GetAttribute("Label", "").ToStdString()] = n->GetAttribute("Hotkey", "").ToStdString();
         }
     }
 
@@ -80,6 +81,7 @@ wxXmlNode* ScheduleOptions::Save()
         button->AddAttribute("Label", indx);
         button->AddAttribute("Command", it->second);
         button->AddAttribute("Parameters", GetButtonParameter(indx));
+        button->AddAttribute("Hotkey", GetButtonHotkey(indx));
         res->AddChild(button);
     }
 
@@ -150,6 +152,16 @@ std::string ScheduleOptions::GetButtonParameter(const std::string& button)
     return "";
 }
 
+char ScheduleOptions::GetButtonHotkey(const std::string& button)
+{
+    if (_buttonHotkeys.find(button) != _buttonHotkeys.end())
+    {
+        return _buttonHotkeys[button];
+    }
+
+    return '\0';
+}
+
 void ScheduleOptions::ClearProjectors()
 {
     if (_projectorIPs.size() > 0)
@@ -202,6 +214,15 @@ void ScheduleOptions::SetButtonParameter(const std::string& button, const std::s
     if (_buttonParameters.find(button) == _buttonParameters.end() || _buttonParameters[button] != parameter)
     {
         _buttonParameters[button] = parameter;
+        _changeCount++;
+    }
+}
+
+void ScheduleOptions::SetButtonHotkey(const std::string& button, char hotkey)
+{
+    if (_buttonHotkeys.find(button) == _buttonHotkeys.end() || _buttonHotkeys[button] != hotkey)
+    {
+        _buttonHotkeys[button] = hotkey;
         _changeCount++;
     }
 }

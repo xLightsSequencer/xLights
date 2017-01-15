@@ -19,8 +19,9 @@ class ButtonDetailsDialog: public wxDialog
         std::string& _label;
         std::string& _parameter;
         std::string& _command;
+        char& _hotkey;
 
-		ButtonDetailsDialog(wxWindow* parent, std::string& label, std::string& command, std::string& parameter, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ButtonDetailsDialog(wxWindow* parent, std::string& label, std::string& command, std::string& parameter, char& hotkey, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ButtonDetailsDialog();
 
 		//(*Declarations(ButtonDetailsDialog)

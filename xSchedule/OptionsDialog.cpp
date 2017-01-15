@@ -52,6 +52,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	Create(parent, id, _("Options"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
+	SetMinSize(wxSize(800,600));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(4);
@@ -73,7 +74,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	FlexGridSizer3->AddGrowableRow(0);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Projectors:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
-	Grid_Projectors = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID1"));
+	Grid_Projectors = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_GRID1"));
 	Grid_Projectors->CreateGrid(0,2);
 	Grid_Projectors->EnableEditing(true);
 	Grid_Projectors->EnableGridLines(true);
@@ -97,13 +98,14 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	FlexGridSizer5->AddGrowableRow(0);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Buttons:    "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer5->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
-	Grid_Buttons = new wxGrid(this, ID_GRID2, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID2"));
-	Grid_Buttons->CreateGrid(0,2);
+	Grid_Buttons = new wxGrid(this, ID_GRID2, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_GRID2"));
+	Grid_Buttons->CreateGrid(0,3);
 	Grid_Buttons->EnableEditing(true);
 	Grid_Buttons->EnableGridLines(true);
-	Grid_Buttons->SetDefaultColSize(200, true);
+	Grid_Buttons->SetDefaultColSize(150, true);
 	Grid_Buttons->SetColLabelValue(0, _("Command"));
 	Grid_Buttons->SetColLabelValue(1, _("Parameter"));
+	Grid_Buttons->SetColLabelValue(2, _("Hotkey"));
 	Grid_Buttons->SetDefaultCellFont( Grid_Buttons->GetFont() );
 	Grid_Buttons->SetDefaultCellTextColour( Grid_Buttons->GetForegroundColour() );
 	FlexGridSizer5->Add(Grid_Buttons, 1, wxALL|wxEXPAND, 5);
@@ -168,6 +170,8 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 
     LoadButtons();
 
+    SetSize(800, 600);
+
     ValidateWindow();
 }
 
@@ -197,6 +201,7 @@ void OptionsDialog::LoadButtons()
         Grid_Buttons->SetRowLabelValue(i, *it);
         Grid_Buttons->SetCellValue(i, 0, _options->GetButtonCommand(*it));
         Grid_Buttons->SetCellValue(i, 1, _options->GetButtonParameter(*it));
+        Grid_Buttons->SetCellValue(i, 2, _options->GetButtonHotkey(*it));
         i++;
     }
 }
@@ -225,8 +230,14 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->ClearButtons();
     for (int i = 0; i < Grid_Buttons->GetNumberRows(); i++)
     {
+        char hotkey = '\0';
+        if (Grid_Buttons->GetCellValue(i, 2).Length() > 0)
+        {
+            hotkey = Grid_Buttons->GetCellValue(i, 2)[0];
+        }
         _options->SetButtonCommand(Grid_Buttons->GetRowLabelValue(i).ToStdString(), Grid_Buttons->GetCellValue(i, 0).ToStdString());
         _options->SetButtonParameter(Grid_Buttons->GetRowLabelValue(i).ToStdString(), Grid_Buttons->GetCellValue(i, 1).ToStdString());
+        _options->SetButtonHotkey(Grid_Buttons->GetRowLabelValue(i).ToStdString(), hotkey);
     }
 
     EndDialog(wxID_OK);
@@ -285,12 +296,21 @@ void OptionsDialog::OnGrid_ButtonsKeyDown(wxKeyEvent& event)
 
 void OptionsDialog::OnGrid_ButtonsResize(wxSizeEvent& event)
 {
-    event.Skip();
+    int rhw = Grid_Buttons->GetRowLabelSize();
+    Grid_Buttons->SetColSize(0, (event.GetSize().x - rhw - 31) / 2);
+    Grid_Buttons->SetColSize(1, (event.GetSize().x - rhw - 31) / 2);
+    Grid_Buttons->SetColSize(1, 30);
+
+    //event.Skip();
 }
 
 void OptionsDialog::OnGrid_ProjectorsResize(wxSizeEvent& event)
 {
-    event.Skip();
+    int rhw = Grid_Projectors->GetRowLabelSize();
+    Grid_Projectors->SetColSize(0, (event.GetSize().x - rhw-1) / 2);
+    Grid_Projectors->SetColSize(1, (event.GetSize().x - rhw-1) / 2);
+
+    //event.Skip();
 }
 
 void OptionsDialog::OnButton_AddProjectorClick(wxCommandEvent& event)
@@ -354,17 +374,19 @@ void OptionsDialog::OnButton_ButtonAddClick(wxCommandEvent& event)
     std::string label = "";
     std::string command = "";
     std::string parameter = "";
+    char hotkey = '\0';
 
     Grid_Buttons->AppendRows(1);
     int row = Grid_Buttons->GetNumberRows() - 1;
 
-    ButtonDetailsDialog dlg(this, label, command, parameter);
+    ButtonDetailsDialog dlg(this, label, command, parameter, hotkey);
 
     if (dlg.ShowModal() == wxID_OK)
     {
         Grid_Buttons->SetRowLabelValue(row, label);
         Grid_Buttons->SetCellValue(row, 0, command);
         Grid_Buttons->SetCellValue(row, 1, parameter);
+        Grid_Buttons->SetCellValue(row, 2, hotkey);
     }
     else
     {
@@ -382,14 +404,20 @@ void OptionsDialog::OnButton_ButtonEditClick(wxCommandEvent& event)
     std::string label = Grid_Buttons->GetRowLabelValue(row).ToStdString();
     std::string command = Grid_Buttons->GetCellValue(row, 0).ToStdString();
     std::string parameter = Grid_Buttons->GetCellValue(row, 1).ToStdString();
+    char hotkey = '\0';
+    if (Grid_Buttons->GetCellValue(row, 2).Length() > 0)
+    {
+        hotkey = Grid_Buttons->GetCellValue(row, 2)[0];
+    }
 
-    ButtonDetailsDialog dlg(this, label, command, parameter);
+    ButtonDetailsDialog dlg(this, label, command, parameter, hotkey);
 
     if (dlg.ShowModal() == wxID_OK)
     {
         Grid_Buttons->SetRowLabelValue(row, label);
         Grid_Buttons->SetCellValue(row, 0, command);
         Grid_Buttons->SetCellValue(row, 1, parameter);
+        Grid_Buttons->SetCellValue(row, 2, hotkey);
     }
 
     ValidateWindow();

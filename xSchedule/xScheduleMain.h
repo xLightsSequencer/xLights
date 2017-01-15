@@ -41,7 +41,6 @@ wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 
 class xScheduleFrame : public wxFrame
 {
-    int _manualOTL;
     WebServer* _webServer;
     static ScheduleManager* __schedule;
     std::string _showDir;
@@ -56,6 +55,7 @@ class xScheduleFrame : public wxFrame
     void SendReport(const wxString &loc, wxDebugReportCompress &report);
     std::string GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const;
     void LoadSchedule();
+    void HandleHotkeys(const wxKeyEvent& event);
 
     wxBitmap _otlon;
     wxBitmap _otloff;
@@ -106,6 +106,7 @@ public:
         void OnBitmapButton_StepLoopClick(wxCommandEvent& event);
         void OnBitmapButton_IsScheduledClick(wxCommandEvent& event);
         void OnBitmapButton_UnsavedClick(wxCommandEvent& event);
+        void OnKeyDown(wxKeyEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;

@@ -2,6 +2,7 @@
 <wxsmith>
 	<object class="wxDialog" name="OptionsDialog">
 		<title>Options</title>
+		<minsize>800,600</minsize>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
 		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
@@ -72,6 +73,7 @@
 								<item>IP Address</item>
 								<item>Password</item>
 							</collabels>
+							<style>wxVSCROLL|wxHSCROLL</style>
 							<handler function="OnGrid_ProjectorsCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
 							<handler function="OnGrid_ProjectorsLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
 							<handler function="OnGrid_ProjectorsCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
@@ -137,12 +139,14 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxGrid" name="ID_GRID2" variable="Grid_Buttons" member="yes">
-							<cols>2</cols>
-							<defaultcolsize>200</defaultcolsize>
+							<cols>3</cols>
+							<defaultcolsize>150</defaultcolsize>
 							<collabels>
 								<item>Command</item>
 								<item>Parameter</item>
+								<item>Hotkey</item>
 							</collabels>
+							<style>wxVSCROLL|wxHSCROLL</style>
 							<handler function="OnGrid_ButtonsCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
 							<handler function="OnGrid_ButtonsLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
 							<handler function="OnGrid_ButtonsCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />

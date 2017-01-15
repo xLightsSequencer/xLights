@@ -17,6 +17,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Loading schedule from %s.", (const char *)_showDir.c_str());
 
+    _manualOTL = -1;
     _immediatePlay = nullptr;
     _scheduleOptions = nullptr;
     _showDir = showDir;
@@ -961,9 +962,10 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
     else if (command == "GetPlayingStatus")
     {
         PlayList* p = GetRunningPlayList();
-        if (p == nullptr)
+        if (p == nullptr || p->GetRunningStep() == nullptr)
         {
-            data = "{\"status\":\"idle\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\",\"time\":\""+ wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +"\"}";
+            data = "{\"status\":\"idle\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + 
+                    "\",\"time\":\""+ wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +"\"}";
         }
         else
         {
@@ -1063,26 +1065,6 @@ bool ScheduleManager::RetrieveData(const std::string& key, std::string& data, st
     }
 
     return result;
-}
-
-bool ScheduleManager::ToggleOutputToLights(std::string& msg) const
-{
-    bool result;
-    if (_outputManager->IsOutputting())
-    {
-        _outputManager->StopOutput();
-    }
-    else
-    {
-        result = _outputManager->StartOutput();
-        if (!result)
-        {
-            msg = "Problem starting light output.";
-            return false;
-        }
-    }
-
-    return true;
 }
 
 bool ScheduleManager::ToggleCurrentPlayListRandom(std::string& msg)
@@ -1213,10 +1195,41 @@ void ScheduleManager::SetOutputToLights(bool otl)
         }
         else
         {
-            if (!IsOutputToLights())
+            if (IsOutputToLights())
             {
                 _outputManager->StopOutput();
             }
         }
     }
 }
+
+void ScheduleManager::ManualOutputToLightsClick()
+{
+    _manualOTL++;
+    if (_manualOTL > 1) _manualOTL = -1;
+    if (_manualOTL == 1)
+    {
+        _outputManager->StartOutput();
+    }
+    else if (_manualOTL == 0)
+    {
+        _outputManager->StopOutput();
+    }
+}
+
+bool ScheduleManager::ToggleOutputToLights(std::string& msg)
+{
+    if (_outputManager->IsOutputting())
+    {
+        _manualOTL = 0;
+        SetOutputToLights(false);
+    }
+    else
+    {
+        _manualOTL = 1;
+        SetOutputToLights(true);
+    }
+
+    return true;
+}
+

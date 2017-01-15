@@ -416,7 +416,7 @@ void PlayList::Stop()
     _currentStep = nullptr;
 }
 
-PlayListStep* PlayList::GetNextStep(bool& didloop) const
+PlayListStep* PlayList::GetNextStep(bool& didloop)
 {
     didloop = false;
     if (_stopAtEndOfCurrentStep) return nullptr;
@@ -696,7 +696,7 @@ PlayListStep* PlayList::GetStep(const std::string& step)
     return nullptr;
 }
 
-PlayListStep* PlayList::GetRandomStep() const
+PlayListStep* PlayList::GetRandomStep()
 {
     int offset = 0;
     int count = _steps.size();
@@ -710,7 +710,11 @@ PlayListStep* PlayList::GetRandomStep() const
     if (count < 3)
     {
         bool didloop;
-        return GetNextStep(didloop);
+        bool oldrandom = _random;
+        _random = false;
+        PlayListStep* next = GetNextStep(didloop);
+        _random = oldrandom;
+        return next;
     }
     else
     {

@@ -18,6 +18,7 @@ class ScheduleOptions
     std::map<std::string, std::string> _projectorPasswords;
     std::map<std::string, std::string> _buttonCommands;
     std::map<std::string, std::string> _buttonParameters;
+    std::map<std::string, char> _buttonHotkeys;
 
     public:
 
@@ -41,8 +42,10 @@ class ScheduleOptions
         void SetProjectorPassword(const std::string& projector, const std::string& ip);
         void SetButtonCommand(const std::string& button, const std::string& command);
         void SetButtonParameter(const std::string& button, const std::string& parameter);
+        void SetButtonHotkey(const std::string& button, char hotkey);
         std::string GetButtonCommand(const std::string& button);
         std::string GetButtonParameter(const std::string& button);
+        char GetButtonHotkey(const std::string& button);
         std::string GetButtonsJSON() const;
         int GetWebServerPort() const { return _port; }
         void SetWebServerPort(int port) { if (_port != port) { _port = port; _changeCount++; } }

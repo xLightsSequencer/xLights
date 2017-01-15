@@ -25,7 +25,7 @@ BEGIN_EVENT_TABLE(ButtonDetailsDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, std::string& command, std::string& parameter,wxWindowID id,const wxPoint& pos,const wxSize& size) : _label(label), _command(command), _parameter(parameter)
+ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, std::string& command, std::string& parameter, char& hotkey, wxWindowID id,const wxPoint& pos,const wxSize& size) : _label(label), _command(command), _parameter(parameter), _hotkey(hotkey)
 {
 	//(*Initialize(ButtonDetailsDialog)
 	wxFlexGridSizer* FlexGridSizer2;
@@ -85,6 +85,20 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, s
         if (Choice_Command->GetString(i) == command)
         {
             Choice_Command->SetSelection(i);
+            break;
+        }
+    }
+
+    for (int i = (int)'A'; i < (int)'z'; i++)
+    {
+        Choice_Hotkey->AppendString((char)i);
+    }
+
+    for (int i = 0; i < Choice_Hotkey->GetCount(); i++)
+    {
+        if (Choice_Hotkey->GetString(i)[0] == hotkey)
+        {
+            Choice_Hotkey->SetSelection(i);
             break;
         }
     }

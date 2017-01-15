@@ -227,8 +227,6 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
 
 std::string Schedule::GetNextTriggerTime()
 {
-#pragma todo this doesnt work
-
     wxDateTime end = _endDate;
     if (_everyYear) end.SetYear(wxDateTime::Now().GetYear() + 1);
 

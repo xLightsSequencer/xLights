@@ -145,7 +145,7 @@ public:
         if (_value != value) { _value = value; Refresh(); }
     }
 protected:
-    void OnPaint(wxPaintEvent& event) 
+    void OnPaint(wxPaintEvent& event)
     {
         wxPaintDC dc(this);
         int grey = (_value * 255) / 100;
@@ -192,7 +192,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
 {
     __schedule = nullptr;
     _webServer = nullptr;
-    _manualOTL = -1;
 
     //(*Initialize(xScheduleFrame)
     wxMenuItem* MenuItem2;
@@ -331,6 +330,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerTrigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerScheduleTrigger);
+    Connect(wxEVT_KEY_DOWN,(wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xScheduleFrame::OnResize);
     //*)
 
@@ -604,6 +604,10 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesKeyDown(wxTreeEvent& event)
     {
         DeleteSelectedItem();
     }
+    else
+    {
+        HandleHotkeys(event.GetKeyEvent());
+    }
     ValidateWindow();
 }
 
@@ -736,31 +740,30 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     Brightness->SetValue(__schedule->GetBrightness());
 
-    std::string msg;
-    if (!__schedule->GetOptions()->IsSendOffWhenNotRunning() && _manualOTL == -1)
+    if (!__schedule->GetOptions()->IsSendOffWhenNotRunning() && __schedule->GetManualOutputToLights() == -1)
     {
         if (__schedule->GetRunningPlayList() == nullptr)
         {
             if (__schedule->IsOutputToLights())
-                __schedule->ToggleOutputToLights(msg);
+                __schedule->SetOutputToLights(false);
         }
         else
         {
             if (!__schedule->IsOutputToLights())
-                __schedule->ToggleOutputToLights(msg);
+                __schedule->SetOutputToLights(true);
         }
     }
     else
     {
-        if (_manualOTL == 0)
+        if (__schedule->GetManualOutputToLights() == 0)
         {
             if (__schedule->IsOutputToLights())
-                __schedule->ToggleOutputToLights(msg);
+                __schedule->SetOutputToLights(false);
         }
-        else if (_manualOTL == 1)
+        else if (__schedule->GetManualOutputToLights() == 1)
         {
             if (!__schedule->IsOutputToLights())
-                __schedule->ToggleOutputToLights(msg);
+                __schedule->SetOutputToLights(true);
         }
     }
 
@@ -786,7 +789,7 @@ void xScheduleFrame::UpdateSchedule()
             Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(it2))->GetData();
 
             TreeCtrl_PlayListsSchedules->SetItemText(it2, GetScheduleName(schedule, __schedule->GetRunningSchedules()));
-            
+
             if (__schedule->IsScheduleActive(schedule))
             {
                 RunningSchedule* rs = __schedule->GetRunningSchedule(schedule);
@@ -893,7 +896,7 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
 {
     PlayList* playlist = nullptr;
     Schedule* schedule = nullptr;
-    
+
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
 
     if (IsPlayList(treeitem))
@@ -1128,7 +1131,7 @@ void xScheduleFrame::UpdateStatus()
 
     if (__schedule->IsOutputToLights())
     {
-        if (_manualOTL == -1)
+        if (__schedule->GetManualOutputToLights() == -1)
         {
             if (otl != 2)
                 BitmapButton_OutputToLights->SetBitmap(_otlautoon);
@@ -1144,7 +1147,7 @@ void xScheduleFrame::UpdateStatus()
     }
     else
     {
-        if (_manualOTL == -1)
+        if (__schedule->GetManualOutputToLights() == -1)
         {
             if (otl != 3)
                 BitmapButton_OutputToLights->SetBitmap(_otlautooff);
@@ -1316,16 +1319,7 @@ void xScheduleFrame::UpdateStatus()
 
 void xScheduleFrame::OnBitmapButton_OutputToLightsClick(wxCommandEvent& event)
 {
-    _manualOTL++;
-    if (_manualOTL > 1) _manualOTL = -1;
-    if (_manualOTL == 1)
-    {
-        __schedule->SetOutputToLights(true);
-    }
-    else if (_manualOTL == 0)
-    {
-        __schedule->SetOutputToLights(false);
-    }
+    __schedule->ManualOutputToLightsClick();
 }
 
 void xScheduleFrame::OnBitmapButton_RandomClick(wxCommandEvent& event)
@@ -1411,4 +1405,14 @@ void xScheduleFrame::SendReport(const wxString &loc, wxDebugReportCompress &repo
     //printf("%s\n", buf);
     delete is;
     http.Close();
+}
+
+void xScheduleFrame::OnKeyDown(wxKeyEvent& event)
+{
+    HandleHotkeys(event);
+}
+
+void xScheduleFrame::HandleHotkeys(const wxKeyEvent& event)
+{
+    int a = 0;
 }

@@ -56,7 +56,7 @@ public:
     #pragma region Getters and Setters
     bool IsFinishingUp() const { return _jumpToEndStepsAtEndOfCurrentStep; }
     void JumpToStepAtEndOfCurrentStep(const std::string& step) { _forceNextStep = step; }
-    PlayListStep* GetNextStep(bool& didloop) const;
+    PlayListStep* GetNextStep(bool& didloop);
     PlayListStep* GetRunningStep() const { return _currentStep; }
     std::list<PlayListStep*> GetSteps() const { return _steps; }
     std::list<Schedule*> GetSchedules() const { return _schedules; }
@@ -106,7 +106,7 @@ public:
     bool JumpToEndStepsAtEndOfCurrentStep();
     void RestartCurrentStep();
     PlayListStep* GetStep(const std::string& step);
-    PlayListStep* GetRandomStep() const;
+    PlayListStep* GetRandomStep();
     bool LoopStep(const std::string step);
     #pragma endregion Getters and Setters
 
