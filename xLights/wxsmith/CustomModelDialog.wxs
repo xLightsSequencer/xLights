@@ -16,7 +16,7 @@
 					<cols>1</cols>
 					<rows>7</rows>
 					<growablecols>0</growablecols>
-					<growablerows>4</growablerows>
+					<growablerows>6</growablerows>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 							<cols>2</cols>
@@ -312,7 +312,7 @@
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
