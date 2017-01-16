@@ -12,48 +12,369 @@
 
 using namespace Vamp;
 
-// Audio Manager Functions
-
-Uint64  __audio_len;
-Uint8  *__audio_pos;
-float __playbackrate = 1.0f;
+// SDL Functions
+SDL __sdl;
 std::mutex __audio_Lock;
-int __volume;
+int AudioData::__nextId = 0;
 
 void  fill_audio(void *udata, Uint8 *stream, int len)
 {
-	//SDL 2.0
-	SDL_memset(stream, 0, len);
+    //SDL 2.0
+    SDL_memset(stream, 0, len);
 
     std::unique_lock<std::mutex> locker(__audio_Lock);
 
-	if (__audio_len == 0)		/*  Only  play  if  we  have  data  left  */
-	{
-		return;
-	}
+    auto media = __sdl.GetAudio();
 
-	len = (len > __audio_len ? __audio_len : len);	/*  Mix  as  much  data  as  possible  */
+    for (auto it = media.begin(); it != media.end(); ++it)
+    {
 
-	SDL_MixAudio(stream, __audio_pos, len, __volume);
-	__audio_pos += len;
-	__audio_len -= len;
+        if ((*it)->_audio_len == 0)		/*  Only  play  if  we  have  data  left  */
+        {
+            // no data left
+        }
+        else
+        {
+            len = (len > (*it)->_audio_len ? (*it)->_audio_len : len);	/*  Mix  as  much  data  as  possible  */
+            SDL_MixAudio(stream, (*it)->_audio_pos, len, (*it)->_volume);
+            (*it)->_audio_pos += len;
+            (*it)->_audio_len -= len;
+        }
+    }
 }
+
+SDL::SDL()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    _state = SDLSTATE::SDLUNINITIALISED;
+    _playbackrate = 1.0f;
+
+    if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER))
+    {
+        logger_base.error("Could not initialize SDL");
+        return;
+    }
+
+    _state = SDLSTATE::SDLINITIALISED;
+    _initialisedRate = 44100;
+
+    _wanted_spec.freq = _initialisedRate * _playbackrate;
+    _wanted_spec.format = AUDIO_S16SYS;
+    _wanted_spec.channels = 2;
+    _wanted_spec.silence = 0;
+    _wanted_spec.samples = 1024;
+    _wanted_spec.callback = fill_audio;
+
+    if (SDL_OpenAudio(&_wanted_spec, nullptr) < 0)
+    {
+        logger_base.error("Could not open SDL audio");
+        return;
+    }
+
+    _state = SDLSTATE::SDLOPENED;
+}
+
+SDL::~SDL()
+{
+    if (_state != SDLSTATE::SDLOPENED && _state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
+    {
+        Stop();
+    }
+    if (_state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
+    {
+        SDL_CloseAudio();
+    }
+    if (_state != SDLSTATE::SDLUNINITIALISED)
+    {
+        SDL_Quit();
+    }
+
+    std::unique_lock<std::mutex> locker(__audio_Lock);
+
+    while (_audioData.size() >0)
+    {
+        auto toremove = _audioData.front();
+        _audioData.remove(toremove);
+        delete toremove;
+    }
+}
+
+int SDL::Tell(int id)
+{
+    std::unique_lock<std::mutex> locker(__audio_Lock);
+
+    auto d=  GetData(id);
+
+    if (d == nullptr) return 0;
+
+    return d->Tell(); // amount of track size played
+}
+
+void SDL::Seek(int id, int pos)
+{
+    std::unique_lock<std::mutex> locker(__audio_Lock);
+
+    auto d = GetData(id);
+
+    if (d == nullptr) return;
+
+    d->Seek(pos);
+}
+
+void SDL::SeekAndLimitPlayLength(int id, int pos, int len)
+{
+    std::unique_lock<std::mutex> locker(__audio_Lock);
+
+    auto d = GetData(id);
+
+    if (d == nullptr) return;
+    
+    d->SeekAndLimitPlayLength(pos, len);
+}
+
+void SDL::Reopen()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    SDLSTATE oldstate = _state;
+
+    if (_state == SDLSTATE::SDLUNINITIALISED || _state == SDLSTATE::SDLINITIALISED) return;
+
+    if (_state == SDLSTATE::SDLPLAYING) Stop();
+
+    std::unique_lock<std::mutex> locker(__audio_Lock);
+
+    for (auto it = _audioData.begin(); it != _audioData.end(); ++it)
+    {
+        (*it)->SavePos();
+    }
+
+    SDL_CloseAudio();
+
+    _state = SDLSTATE::SDLINITIALISED;
+
+    //SDL_AudioSpec
+    _wanted_spec.freq = _initialisedRate * _playbackrate;
+    _wanted_spec.format = AUDIO_S16SYS;
+    _wanted_spec.channels = 2;
+    _wanted_spec.silence = 0;
+    _wanted_spec.samples = 1024;
+    _wanted_spec.callback = fill_audio;
+
+    logger_base.info("Starting audio with frequency %d.", _wanted_spec.freq);
+
+    if (SDL_OpenAudio(&_wanted_spec, nullptr) < 0)
+    {
+        // a problem
+    }
+    else
+    {
+        _state = SDLSTATE::SDLINITIALISED;
+
+        for (auto it = _audioData.begin(); it != _audioData.end(); ++it)
+        {
+            (*it)->RestorePos();
+        }
+
+        if (oldstate == SDLSTATE::SDLPLAYING)
+        {
+            Play();
+        }
+    }
+}
+
+int SDL::GetVolume(int id)
+{
+    std::unique_lock<std::mutex> locker(__audio_Lock);
+
+    auto d = GetData(id);
+
+    if (d == nullptr) return 0;
+
+    return (d->_volume * 100) / SDL_MIX_MAXVOLUME;
+}
+
+// volume is 0->100
+void SDL::SetVolume(int id, int volume)
+{
+    std::unique_lock<std::mutex> locker(__audio_Lock);
+
+    auto d = GetData(id);
+
+    if (d == nullptr) return;
+
+    if (volume > 100)
+    {
+        d->_volume = SDL_MIX_MAXVOLUME;
+    }
+    else if (volume < 0)
+    {
+        d->_volume = 0;
+    }
+    else
+    {
+        d->_volume = (volume * SDL_MIX_MAXVOLUME) / 100;
+    }
+}
+
+AudioData* SDL::GetData(int id)
+{
+    for (auto it = _audioData.begin(); it != _audioData.end(); ++it)
+    {
+        if ((*it)->_id == id) return *it;
+    }
+
+    return nullptr;
+}
+
+AudioData::AudioData()
+{
+    _savedpos = 0;
+    _id = -10;
+    _audio_len = 0;
+    _audio_pos = nullptr;
+    _volume = SDL_MIX_MAXVOLUME;
+    _rate = 14400;
+    _original_len = 0;
+    _original_pos = nullptr;
+    _lengthMS = 0;
+    _trackSize = 0;
+}
+
+int AudioData::Tell()
+{
+    return (int)(((((_original_len - _audio_len) / 4) * (Uint64)_lengthMS)) / (Uint64)_trackSize);
+}
+
+void AudioData::Seek(int ms)
+{
+    _audio_len = _original_len - (((Uint64)ms * (Uint64)_rate * 2 * 2) / 1000);
+    _audio_len -= _audio_len % 4;
+    _audio_pos = _original_pos + (size_t)(_original_len - _audio_len);
+}
+
+void AudioData::SeekAndLimitPlayLength(int pos, int len)
+{
+    _audio_len = (((Uint64)len * (Uint64)_rate * 2 * 2) / 1000);
+    _audio_len -= _audio_len % 4;
+    _audio_pos = _original_pos + (size_t)(((Uint64)pos * (Uint64)_rate * 2 * 2) / 1000);
+}
+
+void AudioData::SavePos()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _savedpos = Tell();
+    logger_base.info("Saving position %ld 0x%lx as %d.", (long)_audio_len, (long)_audio_pos, _savedpos);
+}
+
+void AudioData::RestorePos()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    Seek(_savedpos);
+    logger_base.info("Restoring position %d as %ld 0x%ld.", _savedpos, (long)_audio_len, (long)_audio_pos);
+}
+
+int SDL::AddAudio(Uint64 len, Uint8* buffer, int volume, int rate, int tracksize, int lengthMS)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int id = AudioData::__nextId++;
+
+    AudioData* ad = new AudioData();
+    ad->_id = id;
+    ad->_audio_len = 0;
+    ad->_audio_pos = buffer;
+    ad->_rate = rate;
+    ad->_original_len = len;
+    ad->_original_pos = buffer;
+    ad->_lengthMS = lengthMS;
+    ad->_trackSize = tracksize;
+
+    {
+        std::unique_lock<std::mutex> locker(__audio_Lock);
+        _audioData.push_back(ad);
+    }
+
+    SetVolume(id, volume);
+
+    if (rate != _initialisedRate)
+    {
+        if (_audioData.size() != 1)
+        {
+            logger_base.warn("Playing multiple audio files with different sample rates with play at least one of them at the wrong speed.");
+        }
+
+        _initialisedRate = rate;
+        Reopen();
+    }
+
+    return id;
+}
+
+void SDL::RemoveAudio(int id)
+{
+    std::unique_lock<std::mutex> locker(__audio_Lock);
+    auto toremove = GetData(id);
+    if (toremove == nullptr) return;
+    _audioData.remove(toremove);
+    delete toremove;
+}
+
+void SDL::SetRate(float rate)
+{
+    if (_playbackrate != rate)
+    {
+        _playbackrate = rate;
+        Reopen();
+    }
+}
+
+void SDL::Play()
+{
+    SDL_PauseAudio(0);
+    _state = SDLSTATE::SDLPLAYING;
+}
+
+void SDL::Pause()
+{
+    SDL_PauseAudio(1);
+    _state = SDLSTATE::SDLNOTPLAYING;
+}
+
+void SDL::Unpause()
+{
+    SDL_PauseAudio(0);
+    _state = SDLSTATE::SDLPLAYING;
+}
+
+void SDL::TogglePause()
+{
+    if (_state == SDLSTATE::SDLPLAYING)
+    {
+        Pause();
+    }
+    else
+    {
+        Unpause();
+    }
+}
+
+void SDL::Stop()
+{
+    SDL_PauseAudio(1);
+    _state = SDLSTATE::SDLNOTPLAYING;
+}
+
+// Audio Manager Functions
 
 void AudioManager::SetVolume(int volume)
 {
-    std::unique_lock<std::mutex> locker(__audio_Lock);
-	if (volume > 100) 
-	{
-		__volume = SDL_MIX_MAXVOLUME;
-	}
-	else if (volume < 0)
-	{
-		__volume = 0;
-	}
-	else
-	{
-		__volume = (volume * SDL_MIX_MAXVOLUME) / 100;
-	}
+    __sdl.SetVolume(_sdlid, volume);
+}
+
+int AudioManager::GetVolume()
+{
+    return __sdl.GetVolume(_sdlid);
 }
 
 void AudioManager::Seek(int pos)
@@ -63,16 +384,12 @@ void AudioManager::Seek(int pos)
 		return;
 	}
 
-    std::unique_lock<std::mutex> locker(__audio_Lock);
-
-	__audio_len = _pcmdatasize - (Uint64)pos * _rate * 2 * 2 / 1000;
-	// ensure it is aligned to 4 byte boundary as 2 channels with 2 bytes per channel is how the data is organised
-	__audio_len -= __audio_len % 4;
-	__audio_pos = _pcmdata + (_pcmdatasize - __audio_len);
+    __sdl.Seek(_sdlid, pos);
 }
+
 void AudioManager::Pause()
 {
-	SDL_PauseAudio(1);
+    __sdl.Pause();
 	_media_state = MEDIAPLAYINGSTATE::PAUSED;
 }
 
@@ -83,69 +400,26 @@ void AudioManager::Play(int posms, int lenms)
         return;
     }
 
-    {
-        std::unique_lock<std::mutex> locker(__audio_Lock);
-        __audio_len = (Uint64)lenms * (Uint64)_rate * 2 * 2 / 1000;
-        __audio_len -= __audio_len % 4;
-        __audio_pos = _pcmdata + ((Uint64)posms * _rate * 2 * 2 / 1000);
-    }
-
-    SDL_PauseAudio(0);
+    __sdl.SeekAndLimitPlayLength(_sdlid, posms, lenms);
+    __sdl.Play();
     _media_state = MEDIAPLAYINGSTATE::PLAYING;
 }
 
 void AudioManager::Play()
 {
-	SDL_PauseAudio(0);
+    __sdl.Play();
 	_media_state = MEDIAPLAYINGSTATE::PLAYING;
 }
 
 void AudioManager::Stop()
 {
-	SDL_PauseAudio(1);
+    __sdl.Stop();
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
-}
-
-void AudioManager::SetGlobalPlaybackRate(float rate)
-{
-	__playbackrate = rate;
 }
 
 void AudioManager::SetPlaybackRate(float rate)
 {
-    MEDIAPLAYINGSTATE state = GetPlayingState();
-	if (state == MEDIAPLAYINGSTATE::PLAYING)
-	{
-		Stop();
-	}
-
-	int pos = Tell();
-
-	__playbackrate = rate;
-
-	SDL_CloseAudio();
-
-	//SDL_AudioSpec
-	wanted_spec.freq = _rate * rate;
-	wanted_spec.format = AUDIO_S16SYS;
-	wanted_spec.channels = 2;
-	wanted_spec.silence = 0;
-	wanted_spec.samples = 1024;
-	wanted_spec.callback = fill_audio;
-
-	if (SDL_OpenAudio(&wanted_spec, nullptr) < 0)
-	{
-		// a problem
-	}
-	else
-	{
-		Seek(pos);
-
-		if (state == MEDIAPLAYINGSTATE::PLAYING)
-		{
-			Play();
-		}
-	}
+    __sdl.SetRate(rate);
 }
 
 MEDIAPLAYINGSTATE AudioManager::GetPlayingState()
@@ -156,12 +430,7 @@ MEDIAPLAYINGSTATE AudioManager::GetPlayingState()
 // return where in the file we are up to playing
 int AudioManager::Tell()
 {
-    std::unique_lock<std::mutex> locker(__audio_Lock);
-
-    //wxASSERT(_trackSize != 0);
-    //if (_trackSize == 0) return 0;
-
-    return (((_pcmdatasize - __audio_len) / 4) * _lengthMS) / _trackSize;
+    return __sdl.Tell(_sdlid);
 }
 
 size_t AudioManager::GetAudioFileLength(std::string filename)
@@ -246,39 +515,13 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
 	_pcmdata = nullptr;
 	_polyphonicTranscriptionDone = false;
-	__volume = SDL_MIX_MAXVOLUME;
+    _sdlid = -1;
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions
 	_extra = std::max(step, block) + 1;
 
 	// Open the media file
 	OpenMediaFile();
-
-	// only initialise if we successfully got data
-	if (_pcmdata != nullptr)
-	{
-		if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER))
-		{
-			_resultMessage = "Could not initialize SDL";
-			_state = 0;
-			return;
-		}
-
-		//SDL_AudioSpec
-		wanted_spec.freq = _rate * __playbackrate;
-		wanted_spec.format = AUDIO_S16SYS;
-		wanted_spec.channels = 2;
-		wanted_spec.silence = 0;
-		wanted_spec.samples = 1024;
-		wanted_spec.callback = fill_audio;
-
-		if (SDL_OpenAudio(&wanted_spec, nullptr) < 0)
-		{
-			_resultMessage = "can't open audio.";
-			_state = 0;
-			return;
-		}
-	}
 
 	// If we opened it successfully kick off the frame data extraction ... this will run on another thread
 	if (_intervalMS > 0)
@@ -1002,11 +1245,10 @@ AudioManager::~AudioManager()
 {
 	if (_pcmdata != nullptr)
 	{
-		Stop();
-		SDL_CloseAudio();
+		__sdl.Stop();
+        __sdl.RemoveAudio(_sdlid);
 		free(_pcmdata);
 		_pcmdata = nullptr;
-		SDL_Quit();
 	}
 	if (_data[1] != _data[0] && _data[1] != nullptr)
 	{
@@ -1061,8 +1303,9 @@ int AudioManager::OpenMediaFile()
 
 	if (_pcmdata != nullptr)
 	{
-		Stop();
-		SDL_CloseAudio();
+		__sdl.Stop();
+        __sdl.RemoveAudio(_sdlid);
+        _sdlid = -1;
 		free(_pcmdata);
 		_pcmdata = nullptr;
 	}
@@ -1150,6 +1393,15 @@ int AudioManager::OpenMediaFile()
 
 	avcodec_close(codecContext);
 	avformat_close_input(&formatContext);
+
+    // only initialise if we successfully got data
+    if (_pcmdata != nullptr)
+    {
+        Uint64 total_len = ((Uint64)_lengthMS * (Uint64)_rate * 2 * 2) / 1000;
+        total_len -= total_len % 4;
+        _sdlid = __sdl.AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
+    }
+
 	return err;
 }
 

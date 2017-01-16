@@ -2634,12 +2634,12 @@ void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
     {
         playSpeed = 0.25;
     }
-	AudioManager::SetGlobalPlaybackRate(playSpeed);
+	AudioManager::SetPlaybackRate(playSpeed);
 	if (CurrentSeqXmlFile != nullptr)
 	{
 	    if( CurrentSeqXmlFile->GetMedia() != nullptr )
         {
-            CurrentSeqXmlFile->GetMedia()->SetPlaybackRate(playSpeed);
+            //CurrentSeqXmlFile->GetMedia()->SetPlaybackRate(playSpeed);
         }
         else
         {

@@ -82,6 +82,67 @@ typedef enum MEDIAPLAYINGSTATE {
 
 typedef void (__cdecl * AudioManagerProgressCallback) (wxProgressDialog* dlg, int pct);
 
+typedef enum SDLSTATE {
+    SDLUNINITIALISED,
+    SDLINITIALISED,
+    SDLOPENED,
+    SDLPLAYING,
+    SDLNOTPLAYING
+} SDLSTATE;
+
+class AudioData
+{
+    public:
+        static int __nextId;
+        int _id;
+        Uint64  _audio_len;
+        Uint8  *_audio_pos;
+        Uint8* _original_pos;
+        int _volume = SDL_MIX_MAXVOLUME;
+        int _rate;
+        Uint64 _original_len;
+        int _savedpos;
+        int _trackSize;
+        int _lengthMS;
+        AudioData();
+        ~AudioData() {}
+        int Tell();
+        void Seek(int ms);
+        void SavePos();
+        void RestorePos();
+        void SeekAndLimitPlayLength(int pos, int len);
+};
+
+class SDL
+{
+    SDLSTATE _state;
+    std::list<AudioData*> _audioData;
+    float _playbackrate;
+    SDL_AudioSpec _wanted_spec;
+    int _initialisedRate;
+
+    void Reopen();
+    AudioData* GetData(int id);
+
+public:
+    SDL();
+    virtual ~SDL();
+    std::list<AudioData*> GetAudio() const { return _audioData; }
+    int Tell(int id);
+    void Seek(int id, int ms);
+    void SetRate(float rate);
+    int AddAudio(Uint64 len, Uint8* buffer, int volume, int rate, int tracksize, int lengthMS);
+    void RemoveAudio(int id);
+    void Play();
+    void Pause();
+    void Unpause();
+    void TogglePause();
+    void Stop();
+    void SetVolume(int id, int volume);
+    int GetVolume(int id);
+    void SeekAndLimitPlayLength(int id, int pos, int len);
+};
+
 class AudioManager
 {
 	JobPool _jobPool;
@@ -100,7 +161,6 @@ class AudioManager
 	float *_data[2]; // audio data
 	Uint8* _pcmdata;
 	Uint64 _pcmdatasize;
-	SDL_AudioSpec wanted_spec;
 	std::string _title;
 	std::string _artist;
 	std::string _album;
@@ -113,6 +173,7 @@ class AudioManager
 	float _bigspectogrammax;
 	MEDIAPLAYINGSTATE _media_state;
 	bool _polyphonicTranscriptionDone;
+    int _sdlid;
 
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
@@ -134,14 +195,14 @@ public:
 	void Play();
     void Play(int posms, int lenms);
     void Stop();
-	static void SetGlobalPlaybackRate(float rate);
-	void SetPlaybackRate(float rate);
+	static void SetPlaybackRate(float rate);
 	MEDIAPLAYINGSTATE GetPlayingState();
 	int Tell();
 	xLightsVamp* GetVamp() { return &_vamp; };
 	AudioManager(const std::string& audio_file, int step = 4096, int block = 32768);
 	~AudioManager();
 	void SetVolume(int volume);
+    int GetVolume();
 	int GetTrackSize() { return _trackSize; };
 	long GetRate() { return _rate; };
 	int GetChannels() { return _channels; };

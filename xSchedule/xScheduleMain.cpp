@@ -1143,7 +1143,8 @@ void xScheduleFrame::UpdateStatus()
                 BitmapButton_OutputToLights->SetBitmap(_otlon);
             otl = 1;
         }
-        BitmapButton_OutputToLights->SetToolTip("Lights output ON.");
+        if (BitmapButton_OutputToLights->GetToolTipText() != "Lights output ON.")
+            BitmapButton_OutputToLights->SetToolTip("Lights output ON.");
     }
     else
     {
@@ -1159,14 +1160,16 @@ void xScheduleFrame::UpdateStatus()
                 BitmapButton_OutputToLights->SetBitmap(_otloff);
             otl = 0;
         }
-        BitmapButton_OutputToLights->SetToolTip("Lights output OFF.");
+        if (BitmapButton_OutputToLights->GetToolTipText() != "Lights output OFF.")
+            BitmapButton_OutputToLights->SetToolTip("Lights output OFF.");
     }
 
     if (__schedule->IsDirty())
     {
         if (saved != 1)
             BitmapButton_Unsaved->SetBitmap(_save);
-        BitmapButton_Unsaved->SetToolTip("Unsaved changes.");
+        if (BitmapButton_Unsaved->GetToolTipText() != "Unsaved changes.")
+            BitmapButton_Unsaved->SetToolTip("Unsaved changes.");
         saved = 1;
     }
     else
@@ -1185,7 +1188,8 @@ void xScheduleFrame::UpdateStatus()
 
         if (playing != 0)
             BitmapButton_Playing->SetBitmap(_idle);
-        BitmapButton_Playing->SetToolTip("Idle.");
+        if (BitmapButton_Playing->GetToolTipText() != "Idle.")
+            BitmapButton_Playing->SetToolTip("Idle.");
         playing = 0;
 
         if (plloop != 2)
@@ -1209,14 +1213,16 @@ void xScheduleFrame::UpdateStatus()
         {
             if (scheduled != 1)
                 BitmapButton_IsScheduled->SetBitmap(_scheduled);
-            BitmapButton_IsScheduled->SetToolTip("Scheduled playlist playing.");
+            if (BitmapButton_IsScheduled->GetToolTipText() != "Scheduled playlist playing.")
+                BitmapButton_IsScheduled->SetToolTip("Scheduled playlist playing.");
             scheduled = 1;
         }
         else
         {
             if (scheduled != 2)
                 BitmapButton_IsScheduled->SetBitmap(_notscheduled);
-            BitmapButton_IsScheduled->SetToolTip("Manually started playlist playing.");
+            if (BitmapButton_IsScheduled->GetToolTipText() != "Manually started playlist playing.")
+                BitmapButton_IsScheduled->SetToolTip("Manually started playlist playing.");
             scheduled = 2;
         }
 
@@ -1224,14 +1230,16 @@ void xScheduleFrame::UpdateStatus()
         {
             if (playing != 2)
                 BitmapButton_Playing->SetBitmap(_paused);
-            BitmapButton_Playing->SetToolTip("Paused.");
+            if (BitmapButton_Playing->GetToolTipText() != "Paused.")
+                BitmapButton_Playing->SetToolTip("Paused.");
             playing = 2;
         }
         else
         {
             if (playing != 1)
                 BitmapButton_Playing->SetBitmap(_playing);
-            BitmapButton_Playing->SetToolTip("Playing.");
+            if (BitmapButton_Playing->GetToolTipText() != "Playing.")
+                BitmapButton_Playing->SetToolTip("Playing.");
             playing = 1;
         }
 
@@ -1239,14 +1247,16 @@ void xScheduleFrame::UpdateStatus()
         {
             if (plloop != 1)
                 BitmapButton_PLLoop->SetBitmap(_pllooped);
-            BitmapButton_PLLoop->SetToolTip("Playlist looping.");
+            if (BitmapButton_PLLoop->GetToolTipText() != "Playlist looping.")
+                BitmapButton_PLLoop->SetToolTip("Playlist looping.");
             plloop = 1;
         }
         else
         {
             if (plloop != 0)
                 BitmapButton_PLLoop->SetBitmap(_plnotlooped);
-            BitmapButton_PLLoop->SetToolTip("Playlist not looping.");
+            if (BitmapButton_PLLoop->GetToolTipText() != "Playlist not looping.")
+                BitmapButton_PLLoop->SetToolTip("Playlist not looping.");
             plloop = 0;
         }
 
@@ -1254,14 +1264,16 @@ void xScheduleFrame::UpdateStatus()
         {
             if (steploop != 1)
                 BitmapButton_StepLoop->SetBitmap(_plsteplooped);
-            BitmapButton_StepLoop->SetToolTip("Playlist step looping.");
+            if (BitmapButton_StepLoop->GetToolTipText() != "Playlist step looping.")
+                BitmapButton_StepLoop->SetToolTip("Playlist step looping.");
             steploop = 1;
         }
         else
         {
             if (steploop != 0)
                 BitmapButton_StepLoop->SetBitmap(_plstepnotlooped);
-            BitmapButton_StepLoop->SetToolTip("Playlist step not looping.");
+            if (BitmapButton_StepLoop->GetToolTipText() != "Playlist step not looping.")
+                BitmapButton_StepLoop->SetToolTip("Playlist step not looping.");
             steploop = 0;
         }
 
@@ -1269,14 +1281,16 @@ void xScheduleFrame::UpdateStatus()
         {
             if (random != 1)
                 BitmapButton_Random->SetBitmap(_random);
-            BitmapButton_Random->SetToolTip("Randomly choosing steps.");
+            if (BitmapButton_Random->GetToolTipText() != "Randomly choosing steps.")
+                BitmapButton_Random->SetToolTip("Randomly choosing steps.");
             random = 1;
         }
         else
         {
             if (random != 0)
                 BitmapButton_Random->SetBitmap(_notrandom);
-            BitmapButton_Random->SetToolTip("Sequentially played steps.");
+            if (BitmapButton_Random->GetToolTipText() != "Sequentially played steps.")
+                BitmapButton_Random->SetToolTip("Sequentially played steps.");
             random = 0;
         }
     }
