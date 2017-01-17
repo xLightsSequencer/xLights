@@ -140,6 +140,8 @@ public:
     void Stop();
     void SetVolume(int id, int volume);
     int GetVolume(int id);
+    void SetGlobalVolume(int volume);
+    int GetGlobalVolume() const;
     void SeekAndLimitPlayLength(int id, int pos, int len);
 };
 
@@ -203,6 +205,8 @@ public:
 	~AudioManager();
 	void SetVolume(int volume);
     int GetVolume();
+    static void SetGlobalVolume(int volume);
+    static int GetGlobalVolume();
 	int GetTrackSize() { return _trackSize; };
 	long GetRate() { return _rate; };
 	int GetChannels() { return _channels; };

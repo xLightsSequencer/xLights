@@ -36,6 +36,7 @@ class PlayList;
 class WebServer;
 class Schedule;
 class RunningSchedule;
+class VolumeDisplay;
 
 wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 
@@ -74,6 +75,9 @@ class xScheduleFrame : public wxFrame
     wxBitmap _paused;
     wxBitmap _random;
     wxBitmap _notrandom;
+    wxBitmap _volumeup;
+    wxBitmap _volumedown;
+    wxBitmap _falconremote;
 
 public:
 
@@ -107,6 +111,9 @@ public:
         void OnBitmapButton_IsScheduledClick(wxCommandEvent& event);
         void OnBitmapButton_UnsavedClick(wxCommandEvent& event);
         void OnKeyDown(wxKeyEvent& event);
+        void OnBitmapButton_VolumeDownClick(wxCommandEvent& event);
+        void OnBitmapButton_VolumeUpClick(wxCommandEvent& event);
+        void OnCustom_VolumeLeftDown(wxMouseEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -124,6 +131,9 @@ public:
         static const long ID_BITMAPBUTTON5;
         static const long ID_BITMAPBUTTON7;
         static const long ID_CUSTOM1;
+        static const long ID_BITMAPBUTTON8;
+        static const long ID_CUSTOM2;
+        static const long ID_BITMAPBUTTON9;
         static const long ID_PANEL2;
         static const long ID_TREECTRL1;
         static const long ID_PANEL3;
@@ -160,6 +170,7 @@ public:
         wxBitmapButton* BitmapButton_IsScheduled;
         wxStaticText* StaticText_Time;
         wxPanel* Panel5;
+        wxBitmapButton* BitmapButton_VolumeUp;
         wxBitmapButton* BitmapButton_OutputToLights;
         wxBitmapButton* BitmapButton_Unsaved;
         wxPanel* Panel4;
@@ -178,12 +189,14 @@ public:
         wxMenuItem* MenuItem_ShowFolder;
         wxBitmapButton* BitmapButton_Random;
         wxBitmapButton* BitmapButton_Playing;
+        VolumeDisplay* Custom_Volume;
         wxPanel* Panel2;
         wxFlexGridSizer* FlexGridSizer1;
         wxSplitterWindow* SplitterWindow1;
         wxMenuItem* MenuItem_Options;
         BrightnessControl* Brightness;
         wxMenuItem* MenuItem_ViewLog;
+        wxBitmapButton* BitmapButton_VolumeDown;
         //*)
 
         DECLARE_EVENT_TABLE()

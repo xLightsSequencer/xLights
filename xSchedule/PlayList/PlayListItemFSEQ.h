@@ -47,8 +47,8 @@ public:
     std::string GetAudioFile() const { return _audioFile; }
     bool GetOverrideAudio() const { return _overrideAudio; }
     void SetFSEQFileName(const std::string& fseqFileName);
-    void SetAudioFile(const std::string& audioFile) { if (_audioFile != audioFile) { _audioFile = audioFile; _changeCount++; LoadFiles(); } }
-    void SetOverrideAudio(bool overrideAudio) { if (_overrideAudio != overrideAudio) { _overrideAudio = overrideAudio; _changeCount++; LoadFiles(); } }
+    void SetAudioFile(const std::string& audioFile);
+    void SetOverrideAudio(bool overrideAudio);
     virtual bool ControlsTiming() const override { return _controlsTimingCache || _audioManager != nullptr; }
     virtual size_t GetPositionMS() const override;
     virtual size_t GetFrameMS() const override { return _msPerFrame; }

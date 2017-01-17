@@ -34,6 +34,9 @@ class ScheduleManager
 
     public:
 
+        void SetVolume(int volume);
+        void AdjustVolumeBy(int volume);
+        int GetVolume() const;
         int GetManualOutputToLights() const { return _manualOTL; }
         void ManualOutputToLightsClick();
         bool IsScheduleActive(Schedule* schedue);

@@ -64,7 +64,7 @@ wxXmlNode* Schedule::Save()
 Schedule::Schedule()
 {
     _active = false;
-    _enabled = false;
+    _enabled = true;
     _id = wxGetUTCTimeMillis();
     _changeCount = 0;
     _lastSavedChangeCount = 0;
@@ -191,10 +191,6 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
     start.SetYear(now.GetYear());
     end.SetYear(now.GetYear() + end.GetYear() - start.GetYear());
 
-    auto s = start.Format();
-    auto e = end.Format();
-    auto n = now.Format();
-
     if (now >= start && now <= end)
     {
         // dates are ok ... now check the times
@@ -209,9 +205,6 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
         {
             end.Add(wxTimeSpan(24));
         }
-
-        s = start.Format();
-        e = end.Format();
 
         _active = now >= start && now <= end;
     }
@@ -249,7 +242,6 @@ std::string Schedule::GetNextTriggerTime()
     next.SetHour(_startTime.GetHour());
     next.SetMinute(_startTime.GetMinute());
     next.SetSecond(0);
-    auto n = end.Format();
     if (next > wxDateTime::Now() && CheckActiveAt(next))
     {
         return next.Format("%Y-%m-%d %H:%M").ToStdString();
@@ -258,7 +250,6 @@ std::string Schedule::GetNextTriggerTime()
     for (int i =0; i < 7; i++)
     {
         next += wxTimeSpan(24);
-        n = end.Format();
         if (next > wxDateTime::Now() && CheckActiveAt(next))
         {
             return next.Format("%Y-%m-%d %H:%M").ToStdString();
@@ -271,6 +262,5 @@ std::string Schedule::GetNextTriggerTime()
 
 void Schedule::AddMinsToEndTime(int mins)
 {
-#pragma todo what if this takes the time beyond midnight?
     _endTime += wxTimeSpan(0, mins);
 }

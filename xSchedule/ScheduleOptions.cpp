@@ -22,7 +22,7 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
         {
             _buttonCommands[n->GetAttribute("Label", "").ToStdString()] = n->GetAttribute("Command", "").ToStdString();
             _buttonParameters[n->GetAttribute("Label", "").ToStdString()] = n->GetAttribute("Parameters", "").ToStdString();
-            _buttonParameters[n->GetAttribute("Label", "").ToStdString()] = n->GetAttribute("Hotkey", "").ToStdString();
+            _buttonHotkeys[n->GetAttribute("Label", "").ToStdString()] = n->GetAttribute("Hotkey", "~")[0];
         }
     }
 
@@ -30,8 +30,10 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
     {
         _buttonCommands["Play Selected"] = "Play selected playlist";
         _buttonParameters["Play Selected"] = "";
+        _buttonHotkeys["Play Selected"] = '~';
         _buttonCommands["Stop All"] = "Stop all now";
         _buttonParameters["Stop All"] = "";
+        _buttonHotkeys["Stop All"] = '~';
     }
 }
 
@@ -159,7 +161,7 @@ char ScheduleOptions::GetButtonHotkey(const std::string& button)
         return _buttonHotkeys[button];
     }
 
-    return '\0';
+    return '~';
 }
 
 void ScheduleOptions::ClearProjectors()

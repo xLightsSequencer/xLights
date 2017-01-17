@@ -27,6 +27,8 @@ void PlayListItemAudio::LoadFiles()
     if (wxFile::Exists(_audioFile))
     {
         _audioManager = new AudioManager(_audioFile);
+        if (_volume != -1)
+            _audioManager->SetVolume(_volume);
         _durationMS = _audioManager->LengthMS();
         _controlsTimingCache = true;
     }

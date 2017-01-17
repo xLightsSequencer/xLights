@@ -45,6 +45,9 @@
 #include "../include/xs_paused.xpm"
 #include "../include/xs_random.xpm"
 #include "../include/xs_notrandom.xpm"
+#include "../include/xs_volume_down.xpm"
+#include "../include/xs_volume_up.xpm"
+#include "../include/xs_falcon.xpm"
 
 #include "../include/xLights.xpm"
 #include "../include/xLights-16.xpm"
@@ -94,6 +97,9 @@ const long xScheduleFrame::ID_BITMAPBUTTON4 = wxNewId();
 const long xScheduleFrame::ID_BITMAPBUTTON5 = wxNewId();
 const long xScheduleFrame::ID_BITMAPBUTTON7 = wxNewId();
 const long xScheduleFrame::ID_CUSTOM1 = wxNewId();
+const long xScheduleFrame::ID_BITMAPBUTTON8 = wxNewId();
+const long xScheduleFrame::ID_CUSTOM2 = wxNewId();
+const long xScheduleFrame::ID_BITMAPBUTTON9 = wxNewId();
 const long xScheduleFrame::ID_PANEL2 = wxNewId();
 const long xScheduleFrame::ID_TREECTRL1 = wxNewId();
 const long xScheduleFrame::ID_PANEL3 = wxNewId();
@@ -153,7 +159,7 @@ protected:
         dc.SetBrush(wxBrush(c));
         int w, h;
         GetSize(&w, &h);
-        dc.DrawRectangle(1, 1, w-2,h-2);
+        dc.DrawRectangle(0, 0, w, h);
         if (_value < 60)
         {
             dc.SetTextForeground(*wxWHITE);
@@ -176,6 +182,56 @@ private:
 };
 
 BEGIN_EVENT_TABLE(BrightnessControl, wxControl)
+//(*EventTable(PerspectivesPanel)
+//*)
+END_EVENT_TABLE()
+
+class VolumeDisplay : public wxControl
+{
+    int _value;
+
+public:
+
+    VolumeDisplay(wxWindow *parent,
+        wxWindowID id,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = 0,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxStaticBitmapNameStr) : wxControl(parent, id, pos, size, style, validator, name)
+    {
+        _value = 100;
+        Connect(wxEVT_PAINT, (wxObjectEventFunction)&VolumeDisplay::OnPaint);
+    }
+    virtual ~VolumeDisplay() {};
+    virtual void SetValue(int value) {
+        if (_value != value) { _value = value; Refresh(); }
+    }
+protected:
+    void OnPaint(wxPaintEvent& event)
+    {
+        wxPaintDC dc(this);
+        dc.SetBrush(wxBrush(*wxLIGHT_GREY));
+        int w, h;
+        GetSize(&w, &h);
+        dc.DrawRectangle(0, 0, w, h);
+        dc.SetBrush(wxBrush(*wxYELLOW));
+        dc.DrawRectangle(0, h - ((h * _value) / 100), w, h);
+        dc.SetTextForeground(*wxBLACK);
+        wxString text = wxString::Format("%i%%", _value);
+        int tw, th;
+        dc.GetTextExtent(text, &tw, &th);
+        dc.DrawText(text, (32 - tw) / 2, (32 - th) / 2);
+        dc.SetBrush(wxNullBrush);
+        dc.SetPen(wxNullPen);
+    }
+
+private:
+    //wxDECLARE_DYNAMIC_CLASS(VolumeDisplay);
+    wxDECLARE_EVENT_TABLE();
+};
+
+BEGIN_EVENT_TABLE(VolumeDisplay, wxControl)
 //(*EventTable(PerspectivesPanel)
 //*)
 END_EVENT_TABLE()
@@ -209,7 +265,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(1);
     Panel2 = new wxPanel(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-    FlexGridSizer5 = new wxFlexGridSizer(0, 8, 0, 0);
+    FlexGridSizer5 = new wxFlexGridSizer(0, 11, 0, 0);
     BitmapButton_OutputToLights = new wxBitmapButton(Panel2, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
     FlexGridSizer5->Add(BitmapButton_OutputToLights, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Playing = new wxBitmapButton(Panel2, ID_BITMAPBUTTON3, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
@@ -225,7 +281,13 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     BitmapButton_Unsaved = new wxBitmapButton(Panel2, ID_BITMAPBUTTON7, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
     FlexGridSizer5->Add(BitmapButton_Unsaved, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Brightness = new BrightnessControl(Panel2,ID_CUSTOM1,wxDefaultPosition,wxSize(32,32),0,wxDefaultValidator,_T("ID_CUSTOM1"));
-    FlexGridSizer5->Add(Brightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer5->Add(Brightness, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_VolumeDown = new wxBitmapButton(Panel2, ID_BITMAPBUTTON8, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON8"));
+    FlexGridSizer5->Add(BitmapButton_VolumeDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Custom_Volume = new VolumeDisplay(Panel2,ID_CUSTOM2,wxDefaultPosition,wxSize(32,32),0,wxDefaultValidator,_T("ID_CUSTOM2"));
+    FlexGridSizer5->Add(Custom_Volume, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_VolumeUp = new wxBitmapButton(Panel2, ID_BITMAPBUTTON9, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON9"));
+    FlexGridSizer5->Add(BitmapButton_VolumeUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel2->SetSizer(FlexGridSizer5);
     FlexGridSizer5->Fit(Panel2);
     FlexGridSizer5->SetSizeHints(Panel2);
@@ -317,6 +379,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_PLLoopClick);
     Connect(ID_BITMAPBUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_StepLoopClick);
     Connect(ID_BITMAPBUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_UnsavedClick);
+    Connect(ID_BITMAPBUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_VolumeDownClick);
+    Custom_Volume->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&xScheduleFrame::OnCustom_VolumeLeftDown,0,this);
+    Connect(ID_BITMAPBUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_VolumeUpClick);
     Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_ACTIVATED,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated);
     Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged);
     Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_KEY_DOWN,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesKeyDown);
@@ -374,14 +439,24 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     _paused = wxBitmap(xs_paused, 32, 32);
     _random = wxBitmap(xs_random, 32, 32);
     _notrandom = wxBitmap(xs_notrandom, 32, 32);
+    _volumeup = wxBitmap(xs_volume_up, 32, 32);
+    _volumedown = wxBitmap(xs_volume_down, 32, 32);
+    _falconremote = wxBitmap(xs_falcon, 32, 32);
 
     Brightness->SetToolTip("Brightness");
+    BitmapButton_VolumeUp->SetToolTip("Increase Volume");
+    BitmapButton_VolumeDown->SetToolTip("Decrease Volume");
+    Custom_Volume->SetToolTip("Volume");
+    BitmapButton_VolumeDown->SetBitmap(_volumedown);
+    BitmapButton_VolumeUp->SetBitmap(_volumeup);
 
     LoadShowDir();
 
     __schedule = new ScheduleManager(_showDir);
 
     LoadSchedule();
+
+    wxFrame::SendSizeEvent();
 
     ValidateWindow();
 }
@@ -547,6 +622,9 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
             if (schedule->Configure(this) != nullptr)
             {
                 TreeCtrl_PlayListsSchedules->SetItemText(treeitem, schedule->GetName());
+                auto rs = __schedule->GetRunningSchedule(schedule);
+                if (!rs->GetPlayList()->IsRunning())
+                    rs->GetPlayList()->StartSuspended(rs->GetSchedule()->GetLoop(), rs->GetSchedule()->GetRandom(), rs->GetSchedule()->GetLoops());
             }
         }
     }
@@ -726,6 +804,9 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
         if (schedule->Configure(this) != nullptr)
         {
             TreeCtrl_PlayListsSchedules->SetItemText(treeitem, schedule->GetName());
+            auto rs = __schedule->GetRunningSchedule(schedule);
+            if (!rs->GetPlayList()->IsRunning())
+                rs->GetPlayList()->StartSuspended(rs->GetSchedule()->GetLoop(), rs->GetSchedule()->GetRandom(), rs->GetSchedule()->GetLoops());
         }
     }
     ValidateWindow();
@@ -870,6 +951,12 @@ void xScheduleFrame::CreateButtons()
     }
 
     auto bs = __schedule->GetOptions()->GetButtons();
+
+    FlexGridSizer4->SetCols(5);
+    int rows = bs.size() / 5;
+    if (bs.size() % 5 != 0) rows++;
+    FlexGridSizer4->SetRows(rows);
+
     for (auto it = bs.begin(); it != bs.end(); ++it)
     {
         wxButton* b = new wxButton(Panel1, ID_BUTTON_USER, *it);
@@ -877,10 +964,11 @@ void xScheduleFrame::CreateButtons()
         Connect(ID_BUTTON_USER, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_UserClick);
     }
 
-    FlexGridSizer4->Fit(Panel1);
-    FlexGridSizer4->SetSizeHints(Panel1);
-    Panel1->Fit();
-    Layout();
+    SendSizeEvent();
+    //FlexGridSizer4->Fit(Panel1);
+    //FlexGridSizer4->SetSizeHints(Panel1);
+    //Panel1->Fit();
+    //Layout();
 }
 
 void xScheduleFrame::RateNotification(wxCommandEvent& event)
@@ -1328,6 +1416,8 @@ void xScheduleFrame::UpdateStatus()
         }
     }
 
+    Custom_Volume->SetValue(__schedule->GetVolume());
+
     StaticText_Time->SetLabel(wxDateTime::Now().FormatTime());
 }
 
@@ -1429,4 +1519,28 @@ void xScheduleFrame::OnKeyDown(wxKeyEvent& event)
 void xScheduleFrame::HandleHotkeys(const wxKeyEvent& event)
 {
     int a = 0;
+}
+
+void xScheduleFrame::OnBitmapButton_VolumeDownClick(wxCommandEvent& event)
+{
+    __schedule->AdjustVolumeBy(-10);
+}
+
+void xScheduleFrame::OnBitmapButton_VolumeUpClick(wxCommandEvent& event)
+{
+    __schedule->AdjustVolumeBy(10);
+}
+
+void xScheduleFrame::OnCustom_VolumeLeftDown(wxMouseEvent& event)
+{
+    static int savevolume = 100;
+    if (__schedule->GetVolume() > 0)
+    {
+        savevolume = __schedule->GetVolume();
+        __schedule->SetVolume(0);
+    }
+    else
+    {
+        __schedule->SetVolume(savevolume);
+    }
 }

@@ -11,6 +11,7 @@
 #include <wx/dir.h>
 #include <wx/file.h>
 #include "../xLights/xLightsVersion.h"
+#include "../xLights/AudioManager.h"
 
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
@@ -335,7 +336,6 @@ int ScheduleManager::CheckSchedule()
                     // is hasnt been active before now
                     RunningSchedule* rs = new RunningSchedule(*it, *it2);
                     _activeSchedules.push_back(rs);
-                    _activeSchedules.sort();
                     rs->GetPlayList()->StartSuspended(rs->GetSchedule()->GetLoop(), rs->GetSchedule()->GetRandom(), rs->GetSchedule()->GetLoops());
 
                     logger_base.info("Scheduler starting playlist %s due to schedule %s.", (const char*)(*it)->GetNameNoTime().c_str(),  (const char *)(*it2)->GetName().c_str());
@@ -343,6 +343,8 @@ int ScheduleManager::CheckSchedule()
             }
         }
     }
+
+    _activeSchedules.sort();
 
     std::list<RunningSchedule*> todelete;
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
@@ -764,11 +766,13 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else if (command == "Set volume to")
             {
-#pragma todo need to add this    
+                int volume = wxAtoi(parameters);
+                SetVolume(volume);
             }
             else if (command == "Adjust volume by")
             {
-#pragma todo need to add this    
+                int volume = wxAtoi(parameters);
+                AdjustVolumeBy(volume);
             }
             else if (command == "Toggle output to lights")
             {
@@ -965,7 +969,8 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
         if (p == nullptr || p->GetRunningStep() == nullptr)
         {
             data = "{\"status\":\"idle\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + 
-                    "\",\"time\":\""+ wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +"\"}";
+                "\",\"volume\":\"" + wxString::Format(wxT("%i"), GetVolume()) +
+                "\",\"time\":\""+ wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +"\"}";
         }
         else
         {
@@ -998,6 +1003,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"trigger\":\"" + std::string(IsCurrentPlayListScheduled() ? "scheduled": "manual") +
                 "\",\"nextstep\":\"" + nextsong +
                 "\",\"version\":\"" + xlights_version_string +
+                "\",\"volume\":\"" + wxString::Format(wxT("%i"), GetVolume()) +
                 "\",\"time\":\"" + wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +
                 "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\"}";
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1231,5 +1237,23 @@ bool ScheduleManager::ToggleOutputToLights(std::string& msg)
     }
 
     return true;
+}
+
+void ScheduleManager::SetVolume(int volume)
+{
+    int cv = volume;
+    if (cv < 0) cv = 0;
+    if (cv > 100) cv = 100;
+    AudioManager::SetGlobalVolume(cv);
+}
+void ScheduleManager::AdjustVolumeBy(int volume)
+{
+    int cv = GetVolume();
+    cv += volume;
+    SetVolume(cv);
+}
+int ScheduleManager::GetVolume() const
+{
+    return AudioManager::GetGlobalVolume();
 }
 

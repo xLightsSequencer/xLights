@@ -59,6 +59,8 @@ void PlayListItemFSEQ::LoadFiles()
     if (wxFile::Exists(af))
     {
         _audioManager = new AudioManager(af);
+        if (_volume != -1)
+            _audioManager->SetVolume(_volume);
         _durationMS = _audioManager->LengthMS();
         _controlsTimingCache = true;
     }
@@ -135,8 +137,29 @@ void PlayListItemFSEQ::SetFSEQFileName(const std::string& fseqFileName)
     }
 }
 
+void PlayListItemFSEQ::SetAudioFile(const std::string& audioFile)
+{
+    if (_audioFile != audioFile)
+    {
+        _audioFile = audioFile; 
+        _changeCount++; 
+        FastSetDuration();
+    }
+}
+
+void PlayListItemFSEQ::SetOverrideAudio(bool overrideAudio)
+{
+    if (_overrideAudio != overrideAudio)
+    {
+        _overrideAudio = overrideAudio; 
+        _changeCount++; 
+        FastSetDuration();
+    }
+}
+
 void PlayListItemFSEQ::FastSetDuration()
 {
+    _controlsTimingCache = false;
     std::string af = GetAudioFile();
     if (af == "")
     {

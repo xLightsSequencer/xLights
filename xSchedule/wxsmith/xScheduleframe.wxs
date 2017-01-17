@@ -12,7 +12,7 @@
 				<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
 					<style>wxRAISED_BORDER|wxTAB_TRAVERSAL</style>
 					<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
-						<cols>8</cols>
+						<cols>11</cols>
 						<object class="sizeritem">
 							<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButton_OutputToLights" member="yes">
 								<size>32,32</size>
@@ -87,6 +87,36 @@
 							<object class="Custom" name="ID_CUSTOM1" subclass="BrightnessControl" variable="Brightness" member="yes">
 								<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
 								<size>32,32</size>
+							</object>
+							<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxBitmapButton" name="ID_BITMAPBUTTON8" variable="BitmapButton_VolumeDown" member="yes">
+								<size>32,32</size>
+								<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+								<handler function="OnBitmapButton_VolumeDownClick" entry="EVT_BUTTON" />
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="Custom" name="ID_CUSTOM2" subclass="VolumeDisplay" variable="Custom_Volume" member="yes">
+								<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
+								<size>32,32</size>
+								<handler function="OnCustom_VolumeLeftDown" entry="EVT_LEFT_DOWN" />
+							</object>
+							<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxBitmapButton" name="ID_BITMAPBUTTON9" variable="BitmapButton_VolumeUp" member="yes">
+								<size>32,32</size>
+								<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+								<handler function="OnBitmapButton_VolumeUpClick" entry="EVT_BUTTON" />
 							</object>
 							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 							<border>5</border>

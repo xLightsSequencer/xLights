@@ -230,7 +230,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->ClearButtons();
     for (int i = 0; i < Grid_Buttons->GetNumberRows(); i++)
     {
-        char hotkey = '\0';
+        char hotkey = '~';
         if (Grid_Buttons->GetCellValue(i, 2).Length() > 0)
         {
             hotkey = Grid_Buttons->GetCellValue(i, 2)[0];
@@ -374,7 +374,7 @@ void OptionsDialog::OnButton_ButtonAddClick(wxCommandEvent& event)
     std::string label = "";
     std::string command = "";
     std::string parameter = "";
-    char hotkey = '\0';
+    char hotkey = '~';
 
     Grid_Buttons->AppendRows(1);
     int row = Grid_Buttons->GetNumberRows() - 1;
@@ -404,7 +404,7 @@ void OptionsDialog::OnButton_ButtonEditClick(wxCommandEvent& event)
     std::string label = Grid_Buttons->GetRowLabelValue(row).ToStdString();
     std::string command = Grid_Buttons->GetCellValue(row, 0).ToStdString();
     std::string parameter = Grid_Buttons->GetCellValue(row, 1).ToStdString();
-    char hotkey = '\0';
+    char hotkey = '~';
     if (Grid_Buttons->GetCellValue(row, 2).Length() > 0)
     {
         hotkey = Grid_Buttons->GetCellValue(row, 2)[0];

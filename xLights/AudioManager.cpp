@@ -14,6 +14,7 @@ using namespace Vamp;
 
 // SDL Functions
 SDL __sdl;
+int __globalVolume = 100;
 std::mutex __audio_Lock;
 int AudioData::__nextId = 0;
 
@@ -36,11 +37,26 @@ void  fill_audio(void *udata, Uint8 *stream, int len)
         else
         {
             len = (len > (*it)->_audio_len ? (*it)->_audio_len : len);	/*  Mix  as  much  data  as  possible  */
-            SDL_MixAudio(stream, (*it)->_audio_pos, len, (*it)->_volume);
+            int volume = (*it)->_volume;
+            if (__globalVolume != 100)
+            {
+                volume = (volume * __globalVolume) / 100;
+            }
+            SDL_MixAudio(stream, (*it)->_audio_pos, len, volume);
             (*it)->_audio_pos += len;
             (*it)->_audio_len -= len;
         }
     }
+}
+
+void SDL::SetGlobalVolume(int volume)
+{
+    __globalVolume = volume;
+}
+
+int SDL::GetGlobalVolume() const
+{
+    return __globalVolume;
 }
 
 SDL::SDL()
@@ -375,6 +391,16 @@ void AudioManager::SetVolume(int volume)
 int AudioManager::GetVolume()
 {
     return __sdl.GetVolume(_sdlid);
+}
+
+int AudioManager::GetGlobalVolume()
+{
+    return __sdl.GetGlobalVolume();
+}
+
+void AudioManager::SetGlobalVolume(int volume)
+{
+    __sdl.SetGlobalVolume(volume);
 }
 
 void AudioManager::Seek(int pos)
