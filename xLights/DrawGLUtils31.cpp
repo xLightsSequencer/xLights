@@ -523,6 +523,9 @@ public:
                 normalProgram.SetRenderType(1);
                 normalProgram.CalcSmoothPointParams(it->extra);
             } else {
+                if (it->type == GL_POINTS) {
+                    LOG_GL_ERRORV(glPointSize(it->extra));
+                }
                 if (enableCapability > 0) {
                     normalProgram.SetRenderType(0);
                     LOG_GL_ERRORV(glEnable(enableCapability));
