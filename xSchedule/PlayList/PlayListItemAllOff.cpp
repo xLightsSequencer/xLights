@@ -5,6 +5,8 @@
 
 PlayListItemAllOff::PlayListItemAllOff(wxXmlNode* node) : PlayListItem(node)
 {
+    _channels = 0;
+    _startChannel = 1;
     _duration = 50;
     _value = 0;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
@@ -17,10 +19,14 @@ void PlayListItemAllOff::Load(wxXmlNode* node)
     _duration = wxAtoi(node->GetAttribute("Duration", "50"));
     _value = wxAtoi(node->GetAttribute("Value", "0"));
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
+    _startChannel = wxAtoi(node->GetAttribute("StartChannel", "1"));
+    _channels = wxAtoi(node->GetAttribute("Channels", "0"));
 }
 
 PlayListItemAllOff::PlayListItemAllOff() : PlayListItem()
 {
+    _channels = 0;
+    _startChannel = 1;
     _duration = 50;
     _value = 0;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
@@ -43,8 +49,10 @@ wxXmlNode* PlayListItemAllOff::Save()
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIAllSet");
 
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), _duration));
-    node->AddAttribute("value", wxString::Format(wxT("%i"), _value));
+    node->AddAttribute("Value", wxString::Format(wxT("%i"), _value));
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
+    node->AddAttribute("StartChannel", wxString::Format(wxT("%i"), _startChannel));
+    node->AddAttribute("Channels", wxString::Format(wxT("%i"), _channels));
 
     PlayListItem::Save(node);
 
@@ -60,6 +68,16 @@ void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t fr
 {
     if (ms >= _delay && ms <= _delay + _duration)
     {
-        memset(buffer, _value, size);
+        if (_channels > 0)
+        {
+            if (_startChannel > size) return;
+
+            size_t toset = _channels < size ? size - _startChannel + 1 : size - _startChannel + 1;
+            memset(buffer + _startChannel - 1, _value, toset);
+        }
+        else
+        {
+            memset(buffer, _value, size);
+        }
     }
 }

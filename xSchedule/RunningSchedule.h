@@ -18,5 +18,6 @@ public:
     bool operator<(const RunningSchedule& rs) const;
     PlayList* GetPlayList() const { return _playlist; }
     Schedule* GetSchedule() const { return _schedule; }
+    void Reset();
 };
 #endif

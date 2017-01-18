@@ -20,21 +20,19 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
         }
         else if (n->GetName() == "Button")
         {
-            _buttonCommands[n->GetAttribute("Label", "").ToStdString()] = n->GetAttribute("Command", "").ToStdString();
-            _buttonParameters[n->GetAttribute("Label", "").ToStdString()] = n->GetAttribute("Parameters", "").ToStdString();
-            _buttonHotkeys[n->GetAttribute("Label", "").ToStdString()] = n->GetAttribute("Hotkey", "~")[0];
+            AddButton(n->GetAttribute("Label", "").ToStdString(),
+                      n->GetAttribute("Command", "").ToStdString(),
+                      n->GetAttribute("Parameters", "").ToStdString(),
+                      n->GetAttribute("Hotkey", "~")[0]);
         }
     }
+}
 
-    if (_buttonCommands.size() == 0)
-    {
-        _buttonCommands["Play Selected"] = "Play selected playlist";
-        _buttonParameters["Play Selected"] = "";
-        _buttonHotkeys["Play Selected"] = '~';
-        _buttonCommands["Stop All"] = "Stop all now";
-        _buttonParameters["Stop All"] = "";
-        _buttonHotkeys["Stop All"] = '~';
-    }
+void ScheduleOptions::AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey)
+{
+    _buttonCommands[label] = command;
+    _buttonParameters[label] = parms;
+    _buttonHotkeys[label] = hotkey;
 }
 
 ScheduleOptions::ScheduleOptions()

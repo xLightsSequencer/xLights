@@ -237,15 +237,18 @@ BEGIN_EVENT_TABLE(VolumeDisplay, wxControl)
 END_EVENT_TABLE()
 
 wxDEFINE_EVENT(EVT_FRAMEMS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     //(*EventTable(xScheduleFrame)
     //*)
     EVT_COMMAND(wxID_ANY, EVT_FRAMEMS, xScheduleFrame::RateNotification)
-END_EVENT_TABLE()
+    EVT_COMMAND(wxID_ANY, EVT_STATUSMSG, xScheduleFrame::StatusMsgNotification)
+    END_EVENT_TABLE()
 
 xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
 {
+    _statusSetAt = wxDateTime::Now();
     __schedule = nullptr;
     _webServer = nullptr;
 
@@ -366,9 +369,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     SetStatusBar(StatusBar1);
     DirDialog1 = new wxDirDialog(this, _("Select show folder ..."), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
     _timer.SetOwner(this, ID_TIMER1);
-    _timer.Start(50, false);
+    _timer.Start(500000, false);
     _timerSchedule.SetOwner(this, ID_TIMER2);
-    _timerSchedule.Start(1000, false);
+    _timerSchedule.Start(50000, false);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
@@ -395,11 +398,12 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerTrigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerScheduleTrigger);
-    Connect(wxEVT_KEY_DOWN,(wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xScheduleFrame::OnResize);
     //*)
 
     Connect(wxID_ANY, EVT_FRAMEMS, (wxObjectEventFunction)&xScheduleFrame::RateNotification);
+    Connect(wxID_ANY, EVT_STATUSMSG, (wxObjectEventFunction)&xScheduleFrame::StatusMsgNotification);
+    Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
     wxIconBundle icons;
     icons.AddIcon(wxIcon(xlights_16_xpm));
@@ -457,6 +461,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     LoadSchedule();
 
     wxFrame::SendSizeEvent();
+
+    _timer.Stop();
+    _timer.Start(50, false);
+    _timerSchedule.Stop();
+    _timerSchedule.Start(500, true);
 
     ValidateWindow();
 }
@@ -623,8 +632,7 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
             {
                 TreeCtrl_PlayListsSchedules->SetItemText(treeitem, schedule->GetName());
                 auto rs = __schedule->GetRunningSchedule(schedule);
-                if (!rs->GetPlayList()->IsRunning())
-                    rs->GetPlayList()->StartSuspended(rs->GetSchedule()->GetLoop(), rs->GetSchedule()->GetRandom(), rs->GetSchedule()->GetLoops());
+                if (rs != nullptr) rs->Reset();
             }
         }
     }
@@ -681,10 +689,7 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesKeyDown(wxTreeEvent& event)
     if (event.GetKeyCode() == WXK_DELETE)
     {
         DeleteSelectedItem();
-    }
-    else
-    {
-        HandleHotkeys(event.GetKeyEvent());
+        event.Skip();
     }
     ValidateWindow();
 }
@@ -805,8 +810,7 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
         {
             TreeCtrl_PlayListsSchedules->SetItemText(treeitem, schedule->GetName());
             auto rs = __schedule->GetRunningSchedule(schedule);
-            if (!rs->GetPlayList()->IsRunning())
-                rs->GetPlayList()->StartSuspended(rs->GetSchedule()->GetLoop(), rs->GetSchedule()->GetRandom(), rs->GetSchedule()->GetLoops());
+            if (rs != nullptr) rs->Reset();
         }
     }
     ValidateWindow();
@@ -873,14 +877,25 @@ void xScheduleFrame::UpdateSchedule()
 
             if (__schedule->IsScheduleActive(schedule))
             {
-                RunningSchedule* rs = __schedule->GetRunningSchedule(schedule);
-                if (__schedule->GetRunningSchedule() != nullptr && __schedule->GetRunningSchedule()->GetSchedule()->GetId() == schedule->GetId() && rs->GetPlayList()->IsRunning())
+                RunningSchedule* rs = __schedule->GetRunningSchedule();
+                if (rs != nullptr && rs->GetPlayList()->IsRunning() &&rs->GetSchedule()->GetId() == schedule->GetId())
                 {
                     TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(146, 244, 155));
                 }
                 else
                 {
-                    TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(244, 241, 146));
+                    RunningSchedule* r = __schedule->GetRunningSchedule(schedule);
+                    wxASSERT(r != nullptr);
+                    if (r == nullptr || !r->GetPlayList()->IsRunning())
+                    {
+                        // stopped
+                        TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(0xe7, 0x74, 0x71));
+                    }
+                    else
+                    {
+                        // waiting
+                        TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(244, 241, 146));
+                    }
                 }
             }
             else
@@ -940,6 +955,13 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
     }
 }
 
+void xScheduleFrame::CreateButton(const std::string& label)
+{
+    wxButton* b = new wxButton(Panel1, ID_BUTTON_USER, label);
+    FlexGridSizer4->Add(b, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    Connect(ID_BUTTON_USER, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_UserClick);
+}
+
 void xScheduleFrame::CreateButtons()
 {
     auto buttons = Panel1->GetChildren();
@@ -952,6 +974,18 @@ void xScheduleFrame::CreateButtons()
 
     auto bs = __schedule->GetOptions()->GetButtons();
 
+    // create some default buttons
+    if (bs.size() == 0)
+    {
+        __schedule->GetOptions()->AddButton("Play Selected", "Play selected playlist", "", '~');
+        __schedule->GetOptions()->AddButton("Stop All", "Stop all now", "", '~');
+        __schedule->GetOptions()->AddButton("Next Step", "Next step in current playlist", "", '~');
+        __schedule->GetOptions()->AddButton("End Gracefully", "Jump to play once at end at end of current step and then stop", "", '~');
+        __schedule->GetOptions()->AddButton("Add 10 Mins To Schedule", "Add to the current schedule n minutes", "10", '~');
+
+        bs = __schedule->GetOptions()->GetButtons();
+    }
+
     FlexGridSizer4->SetCols(5);
     int rows = bs.size() / 5;
     if (bs.size() % 5 != 0) rows++;
@@ -959,9 +993,7 @@ void xScheduleFrame::CreateButtons()
 
     for (auto it = bs.begin(); it != bs.end(); ++it)
     {
-        wxButton* b = new wxButton(Panel1, ID_BUTTON_USER, *it);
-        FlexGridSizer4->Add(b, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-        Connect(ID_BUTTON_USER, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_UserClick);
+        CreateButton(*it);
     }
 
     SendSizeEvent();
@@ -978,6 +1010,11 @@ void xScheduleFrame::RateNotification(wxCommandEvent& event)
         _timer.Stop();
         _timer.Start(event.GetInt());
     }
+}
+
+void xScheduleFrame::StatusMsgNotification(wxCommandEvent& event)
+{
+    SetTempMessage(event.GetString().ToStdString());
 }
 
 void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
@@ -1009,6 +1046,11 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
     UpdateSchedule();
 }
 
+void xScheduleFrame::SetTempMessage(const std::string& msg)
+{
+    _statusSetAt = wxDateTime::Now();
+    StatusBar1->SetStatusText(msg);
+}
 
 void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 {
@@ -1136,7 +1178,12 @@ std::string FormatTime(size_t timems, bool ms = false)
 
 void xScheduleFrame::UpdateStatus()
 {
-    PlayList* last = nullptr;
+    if (StatusBar1->GetStatusText() != "" && (wxDateTime::Now() - _statusSetAt).GetMilliseconds() >  5000)
+    {
+        StatusBar1->SetStatusText("");
+    }
+
+    static PlayList* last = nullptr;
     PlayList* p = __schedule->GetRunningPlayList();
 
     if (p == nullptr)
@@ -1516,9 +1563,46 @@ void xScheduleFrame::OnKeyDown(wxKeyEvent& event)
     HandleHotkeys(event);
 }
 
-void xScheduleFrame::HandleHotkeys(const wxKeyEvent& event)
+bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
 {
-    int a = 0;
+    auto bs = __schedule->GetOptions()->GetButtons();
+
+    for (auto it = bs.begin(); it != bs.end(); ++it)
+    {
+        auto hk = __schedule->GetOptions()->GetButtonHotkey(*it);
+        if (hk == (char)event.GetRawKeyCode())
+        {
+            PlayList* playlist = nullptr;
+            Schedule* schedule = nullptr;
+
+            wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+
+            if (IsPlayList(treeitem))
+            {
+                playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+            }
+            else if (IsSchedule(treeitem))
+            {
+                schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+            }
+
+            size_t rate = _timer.GetInterval();
+            std::string msg = "";
+            __schedule->Action(*it, playlist, schedule, rate, msg);
+
+            if (rate != _timer.GetInterval())
+            {
+                _timer.Stop();
+                _timer.Start(rate);
+            }
+
+            UpdateSchedule();
+            event.Skip();
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void xScheduleFrame::OnBitmapButton_VolumeDownClick(wxCommandEvent& event)

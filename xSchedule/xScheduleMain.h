@@ -39,12 +39,14 @@ class RunningSchedule;
 class VolumeDisplay;
 
 wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 
 class xScheduleFrame : public wxFrame
 {
     WebServer* _webServer;
     static ScheduleManager* __schedule;
     std::string _showDir;
+    wxDateTime _statusSetAt;
     void LoadShowDir();
     void SaveShowDir() const;
     void UpdateTree() const;
@@ -56,7 +58,7 @@ class xScheduleFrame : public wxFrame
     void SendReport(const wxString &loc, wxDebugReportCompress &report);
     std::string GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const;
     void LoadSchedule();
-    void HandleHotkeys(const wxKeyEvent& event);
+    bool HandleHotkeys(wxKeyEvent& event);
 
     wxBitmap _otlon;
     wxBitmap _otloff;
@@ -85,6 +87,8 @@ public:
         xScheduleFrame(wxWindow* parent,wxWindowID id = -1);
         virtual ~xScheduleFrame();
         void CreateDebugReport(wxDebugReportCompress *report);
+        void CreateButton(const std::string& label);
+        void SetTempMessage(const std::string& msg);
 
     private:
 
@@ -121,6 +125,7 @@ public:
         void OnTreeCtrlMenu(wxCommandEvent &event);
         void OnButton_UserClick(wxCommandEvent& event);
         void RateNotification(wxCommandEvent& event);
+        void StatusMsgNotification(wxCommandEvent& event);
 
         //(*Identifiers(xScheduleFrame)
         static const long ID_BITMAPBUTTON1;

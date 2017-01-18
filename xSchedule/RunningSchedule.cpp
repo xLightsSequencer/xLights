@@ -27,5 +27,19 @@ RunningSchedule::~RunningSchedule()
 
 bool RunningSchedule::operator<(const RunningSchedule& rs) const
 {
-    return *_schedule < *rs._schedule;
+    // this is intentional ... I want them in reverse order
+    return _schedule->GetPriority() > rs._schedule->GetPriority();
+}
+
+void RunningSchedule::Reset()
+{
+    if (!_playlist->IsRunning())
+    {
+        _playlist->StartSuspended(_schedule->GetLoop(), _schedule->GetRandom(), _schedule->GetLoops());
+    }
+    else
+    {
+        _playlist->Stop();
+        _playlist->StartSuspended(_schedule->GetLoop(), _schedule->GetRandom(), _schedule->GetLoops());
+    }
 }

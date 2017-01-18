@@ -1,9 +1,11 @@
 #include "PlayListItem.h"
 #include <wx/xml/xml.h>
 
+int __playlistitemid = 0;
+
 PlayListItem::PlayListItem(wxXmlNode* node)
 {
-    _id = wxGetUTCTimeMillis();
+    _id = __playlistitemid++;
     _priority = 0;
     _volume = -1;
     _lastSavedChangeCount = 0;
@@ -23,7 +25,7 @@ void PlayListItem::Load(wxXmlNode* node)
 
 PlayListItem::PlayListItem()
 {
-    _id = wxGetUTCTimeMillis();
+    _id = __playlistitemid++;
     _volume = -1;
     _lastSavedChangeCount = 0;
     _changeCount = 0;

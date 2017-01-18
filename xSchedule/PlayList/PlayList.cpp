@@ -6,6 +6,8 @@
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
 
+int __playlistid = 0;
+
 bool compare_sched(const Schedule* first, const Schedule* second)
 {
     return first->GetPriority() > second->GetPriority();
@@ -14,7 +16,7 @@ bool compare_sched(const Schedule* first, const Schedule* second)
 PlayList::PlayList(wxXmlNode* node)
 {
     _loops = -1;
-    _id = wxGetUTCTimeMillis();
+    _id = __playlistid++;
     _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
     _priority = 0;
@@ -111,7 +113,7 @@ PlayList::PlayList(const PlayList& playlist)
 PlayList::PlayList()
 {
     _loops = -1;
-    _id = wxGetUTCTimeMillis();
+    _id = __playlistid++;
     _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
     _priority = 0;

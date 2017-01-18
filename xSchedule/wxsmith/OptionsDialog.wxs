@@ -2,14 +2,11 @@
 <wxsmith>
 	<object class="wxDialog" name="OptionsDialog">
 		<title>Options</title>
-		<minsize>800,600</minsize>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
-		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
-			<growablerows>4</growablerows>
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_SendOffWhenNotRunning" member="yes">
 					<label>Send data when not running sequence</label>
@@ -68,6 +65,7 @@
 					<object class="sizeritem">
 						<object class="wxGrid" name="ID_GRID1" variable="Grid_Projectors" member="yes">
 							<cols>2</cols>
+							<labelcolwidth>150</labelcolwidth>
 							<defaultcolsize>200</defaultcolsize>
 							<collabels>
 								<item>IP Address</item>
@@ -75,7 +73,10 @@
 							</collabels>
 							<style>wxVSCROLL|wxHSCROLL</style>
 							<handler function="OnGrid_ProjectorsCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
+							<handler function="OnGrid_ProjectorsCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
 							<handler function="OnGrid_ProjectorsLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
+							<handler function="OnGrid_ProjectorsLabelLeftDClick" entry="EVT_CMD_GRID_LABEL_LEFT_DCLICK" />
+							<handler function="OnGrid_ProjectorsLabelRightDClick" entry="EVT_CMD_GRID_LABEL_RIGHT_DCLICK" />
 							<handler function="OnGrid_ProjectorsCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 							<handler function="OnGrid_ProjectorsKeyDown" entry="EVT_KEY_DOWN" />
 							<handler function="OnGrid_ProjectorsResize" entry="EVT_SIZE" />
@@ -140,15 +141,19 @@
 					<object class="sizeritem">
 						<object class="wxGrid" name="ID_GRID2" variable="Grid_Buttons" member="yes">
 							<cols>3</cols>
+							<labelcolwidth>150</labelcolwidth>
 							<defaultcolsize>150</defaultcolsize>
 							<collabels>
 								<item>Command</item>
 								<item>Parameter</item>
 								<item>Hotkey</item>
 							</collabels>
+							<size>800,200</size>
 							<style>wxVSCROLL|wxHSCROLL</style>
 							<handler function="OnGrid_ButtonsCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
+							<handler function="OnGrid_ButtonsCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
 							<handler function="OnGrid_ButtonsLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
+							<handler function="OnGrid_ButtonsLabelLeftDClick" entry="EVT_CMD_GRID_LABEL_LEFT_DCLICK" />
 							<handler function="OnGrid_ButtonsCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 							<handler function="OnGrid_ButtonsKeyDown" entry="EVT_KEY_DOWN" />
 							<handler function="OnGrid_ButtonsResize" entry="EVT_SIZE" />

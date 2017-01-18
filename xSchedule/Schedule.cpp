@@ -1,10 +1,13 @@
 #include "Schedule.h"
 #include "ScheduleDialog.h"
 #include <wx/xml/xml.h>
+#include <log4cpp/Category.hh>
+
+int __scheduleid = 0;
 
 Schedule::Schedule(wxXmlNode* node)
 {
-    _id = wxGetUTCTimeMillis();
+    _id = __scheduleid++;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
     Schedule::Load(node);
@@ -65,7 +68,7 @@ Schedule::Schedule()
 {
     _active = false;
     _enabled = true;
-    _id = wxGetUTCTimeMillis();
+    _id = __scheduleid;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
     _loop = false;

@@ -12,12 +12,14 @@
 #include "PlayListItemRunProcess.h"
 #include "PlayListItemRunCommand.h"
 
+int __playliststepid = 0;
+
 PlayListStep::PlayListStep(wxXmlNode* node)
 {
     _loops = -1;
     _pause = 0;
     _suspend = 0;
-    _id = wxGetUTCTimeMillis();
+    _id = __playliststepid++;
     _startTime = 0;
     _framecount = 0;
     _excludeFromRandom = false;
@@ -36,7 +38,7 @@ PlayListStep::PlayListStep()
     _loops = -1;
     _pause = 0;
     _suspend = 0;
-    _id = wxGetUTCTimeMillis();
+    _id = __playliststepid++;
     _startTime = 0;
     _framecount = 0;
     _name = "";
@@ -185,7 +187,7 @@ std::string PlayListStep::GetNameNoTime() const
     return _items.front()->GetNameNoTime();
 }
 
-PlayListItem* PlayListStep::GetTimeSource(int &ms) const
+PlayListItem* PlayListStep::GetTimeSource(size_t &ms) const
 {
     PlayListItem* timesource = nullptr;
     ms = 9999;
@@ -227,7 +229,7 @@ PlayListItem* PlayListStep::GetTimeSource(int &ms) const
 
 bool PlayListStep::Frame(wxByte* buffer, size_t size)
 {
-    int msPerFrame = 1000;
+    size_t msPerFrame = 1000;
     PlayListItem* timesource = GetTimeSource(msPerFrame);
 
     if (msPerFrame == 0)
@@ -242,7 +244,7 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size)
     }
     else
     {
-        frameMS = (wxGetUTCTimeMillis() - _startTime).ToLong();
+        frameMS = wxGetUTCTimeMillis().GetLo() - _startTime;
     }
 
     for (auto it = _items.begin(); it != _items.end(); ++it)
@@ -262,7 +264,7 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size)
 
 size_t PlayListStep::GetFrameMS() const
 {
-    int ms = 0;
+    size_t ms = 0;
     PlayListItem* timesource = GetTimeSource(ms);
 
     return ms;
@@ -274,7 +276,7 @@ void PlayListStep::Start(int loops)
     logger_base.info("Playlist step %s starting.", (const char*)GetNameNoTime().c_str());
 
     _loops = loops;
-    _startTime = wxGetUTCTimeMillis();
+    _startTime = wxGetUTCTimeMillis().GetLo();
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
         (*it)->Start();
@@ -287,7 +289,7 @@ void PlayListStep::Pause(bool pause)
 
     if (pause)
     {
-        _pause = wxGetUTCTimeMillis();
+        _pause = wxGetUTCTimeMillis().GetLo();
         logger_base.info("Playlist step %s pausing.", (const char*)GetNameNoTime().c_str());
     }
     else
@@ -310,7 +312,7 @@ void PlayListStep::Suspend(bool suspend)
     {
         if (suspend)
         {
-            _suspend = wxGetUTCTimeMillis();
+            _suspend = wxGetUTCTimeMillis().GetLo();
             logger_base.info("Playlist step %s suspending.", (const char*)GetNameNoTime().c_str());
         }
         else
@@ -331,7 +333,7 @@ void PlayListStep::Restart()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Playlist step %s restarting.", (const char*)GetNameNoTime().c_str());
 
-    _startTime = wxGetUTCTimeMillis();
+    _startTime = wxGetUTCTimeMillis().GetLo();
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
         (*it)->Restart();
@@ -351,7 +353,7 @@ void PlayListStep::Stop()
 
 size_t PlayListStep::GetPosition() const
 {
-    int msPerFrame = 1000;
+    size_t msPerFrame = 1000;
     PlayListItem* timesource = GetTimeSource(msPerFrame);
 
     size_t frameMS;
@@ -361,21 +363,21 @@ size_t PlayListStep::GetPosition() const
     }
     else
     {
-        auto now = wxGetUTCTimeMillis();
+        auto now = wxGetUTCTimeMillis().GetLo();
         if (_pause == 0)
         {
             if (_suspend == 0)
             {
-                frameMS = (now - _startTime).ToLong();
+                frameMS = now - _startTime;
             }
             else
             {
-                frameMS = (now - _startTime - (now - _suspend)).ToLong();
+                frameMS = now - _startTime - (now - _suspend);
             }
         }
         else
         {
-            frameMS = (now - _startTime - (now - _pause)).ToLong();
+            frameMS = now - _startTime - (now - _pause);
         }
     }
 
@@ -384,7 +386,7 @@ size_t PlayListStep::GetPosition() const
 
 size_t PlayListStep::GetLengthMS() const
 {
-    int msPerFrame = 1000;
+    size_t msPerFrame = 1000;
     PlayListItem* timesource = GetTimeSource(msPerFrame);
     if (timesource != nullptr)
     {
@@ -414,7 +416,7 @@ size_t PlayListStep::GetLengthMS() const
 
 void PlayListStep::AdjustTime(wxTimeSpan by)
 {
-    _startTime += by.GetValue();
+    _startTime += by.GetValue().GetLo();
 }
 
 std::string PlayListStep::FormatTime(size_t timems, bool ms) const

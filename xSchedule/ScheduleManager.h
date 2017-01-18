@@ -21,7 +21,7 @@ class ScheduleManager
     ScheduleOptions* _scheduleOptions;
     OutputManager* _outputManager;
     wxByte* _buffer;
-    wxLongLong _startTime;
+    wxUint32 _startTime;
     PlayList* _immediatePlay;
     CommandManager _commandManager;
     std::list<RunningSchedule*> _activeSchedules;
@@ -47,6 +47,7 @@ class ScheduleManager
         ScheduleOptions* GetOptions() const { return _scheduleOptions; }
         bool IsDirty();
         void ClearDirty();
+        size_t GetTotalChannels() const;
         ScheduleManager(const std::string& showDir);
         virtual ~ScheduleManager();
         std::string GetStatus() const;

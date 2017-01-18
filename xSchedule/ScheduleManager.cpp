@@ -12,6 +12,8 @@
 #include <wx/file.h>
 #include "../xLights/xLightsVersion.h"
 #include "../xLights/AudioManager.h"
+#include "xScheduleMain.h"
+#include "xScheduleApp.h"
 
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
@@ -22,7 +24,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     _immediatePlay = nullptr;
     _scheduleOptions = nullptr;
     _showDir = showDir;
-    _startTime = wxGetUTCTimeMillis();
+    _startTime = wxGetUTCTimeMillis().GetLo();
     _outputManager = nullptr;
     _buffer = nullptr;
     _brightness = 100;
@@ -187,9 +189,9 @@ PlayList* ScheduleManager::GetRunningPlayList() const
     }
     else
     {
-        if (_activeSchedules.size() > 0)
+        if (GetRunningSchedule() != nullptr)
         {
-            running = _activeSchedules.front()->GetPlayList();
+            running = GetRunningSchedule()->GetPlayList();
         }
     }
 
@@ -220,7 +222,7 @@ void ScheduleManager::Frame()
 
     if (running != nullptr)
     {
-        long msec = (wxGetUTCTimeMillis() - _startTime).ToLong();
+        long msec = wxGetUTCTimeMillis().GetLo() - _startTime;
         _outputManager->StartFrame(msec);
         bool done = running->Frame(_buffer, _outputManager->GetTotalChannels());
         _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
@@ -308,9 +310,15 @@ bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, 
     return result;
 }
 
+bool compare_runningschedules(const RunningSchedule* first, const RunningSchedule* second)
+{
+    return first->GetSchedule()->GetPriority() > second->GetSchedule()->GetPriority();
+}
+
 int ScheduleManager::CheckSchedule()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Checking the schedule ...");
 
     // check all the schedules and add into the list any that should be in the active schedules list
     for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
@@ -318,8 +326,10 @@ int ScheduleManager::CheckSchedule()
         auto schedules = (*it)->GetSchedules();
         for (auto it2 = schedules.begin(); it2 != schedules.end(); ++it2)
         {
+            logger_base.debug("   Checking playlist %s schedule %s.", (const char *)(*it)->GetNameNoTime().c_str(), (const char *)(*it2)->GetName().c_str());
             if ((*it2)->CheckActive())
             {
+                logger_base.debug("   It should be active.");
                 bool found = false;
 
                 for (auto it3 = _activeSchedules.begin(); it3 != _activeSchedules.end(); ++it3)
@@ -338,13 +348,15 @@ int ScheduleManager::CheckSchedule()
                     _activeSchedules.push_back(rs);
                     rs->GetPlayList()->StartSuspended(rs->GetSchedule()->GetLoop(), rs->GetSchedule()->GetRandom(), rs->GetSchedule()->GetLoops());
 
-                    logger_base.info("Scheduler starting playlist %s due to schedule %s.", (const char*)(*it)->GetNameNoTime().c_str(),  (const char *)(*it2)->GetName().c_str());
+                    logger_base.info("   Scheduler starting suspended playlist %s due to schedule %s.", (const char*)(*it)->GetNameNoTime().c_str(),  (const char *)(*it2)->GetName().c_str());
+                }
+                else
+                {
+                    logger_base.debug("   It was already in the list.");
                 }
             }
         }
     }
-
-    _activeSchedules.sort();
 
     std::list<RunningSchedule*> todelete;
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
@@ -354,7 +366,7 @@ int ScheduleManager::CheckSchedule()
 
             if (!(*it)->GetPlayList()->IsRunning())
             {
-                logger_base.info("Scheduler removing playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
+                logger_base.info("   Scheduler removing playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
                 // this shouldnt be in the list any longer
                 todelete.push_back(*it);
             }
@@ -362,7 +374,7 @@ int ScheduleManager::CheckSchedule()
             {
                 if (!(*it)->GetPlayList()->IsFinishingUp())
                 {
-                    logger_base.info("Scheduler telling playlist %s due to schedule %s it is time to finish up.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
+                    logger_base.info("   Scheduler telling playlist %s due to schedule %s it is time to finish up.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
                     (*it)->GetPlayList()->JumpToEndStepsAtEndOfCurrentStep();
                 }
             }
@@ -377,23 +389,30 @@ int ScheduleManager::CheckSchedule()
 
     int framems = 50;
 
+    _activeSchedules.sort(compare_runningschedules);
+
     if (_immediatePlay == nullptr)
     {
+        bool first = true;
         for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
         {
-            if (*it == _activeSchedules.front())
+            if (first)
             {
-                if ((*it)->GetPlayList()->IsSuspended())
+                if ((*it)->GetPlayList()->IsRunning())
                 {
-                    logger_base.info("Unsuspending playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
-                    framems = (*it)->GetPlayList()->Suspend(false);
+                    first = false;
+                    if ((*it)->GetPlayList()->IsSuspended())
+                    {
+                        logger_base.info("   Unsuspending playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
+                        framems = (*it)->GetPlayList()->Suspend(false);
+                    }
                 }
             }
             else
             {
                 if (!(*it)->GetPlayList()->IsSuspended())
                 {
-                    logger_base.info("Suspending playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
+                    logger_base.info("   Suspending playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
                     (*it)->GetPlayList()->Suspend(true);
                 }
             }
@@ -406,13 +425,15 @@ int ScheduleManager::CheckSchedule()
         {
             if (!(*it)->GetPlayList()->IsSuspended())
             {
-                logger_base.info("Suspending playlist %s due to schedule %s so immediate can play.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
+                logger_base.info("   Suspending playlist %s due to schedule %s so immediate can play.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
                 (*it)->GetPlayList()->Suspend(true);
             }
         }
 
         framems = _immediatePlay->GetRunningStep()->GetFrameMS();
     }
+
+    logger_base.debug("   Active scheduled playlists: %d", _activeSchedules.size());
 
     return framems;
 }
@@ -800,6 +821,18 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             {
                 Save();
             }
+            else if (command == "Restart selected schedule")
+            {
+                auto rs = GetRunningSchedule();
+                if (rs != nullptr)
+                    rs->Reset();
+            }
+            else if (command == "Restart named schedule")
+            {
+                auto rs = GetRunningSchedule(parameters);
+                if (rs != nullptr)
+                    rs->Reset();
+            }
             else if (command == "PressButton")
             {
                 std::string c = _scheduleOptions->GetButtonCommand(parameters);
@@ -855,6 +888,10 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
     {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("Action failed: %s", (const char *)msg.c_str());
+
+        wxCommandEvent event(EVT_STATUSMSG);
+        event.SetString(msg);
+        wxPostEvent(wxGetApp().GetTopWindow(), event);
     }
 
     // Clean up immediate play of one of the actions led to it stopping
@@ -1155,14 +1192,23 @@ RunningSchedule* ScheduleManager::GetRunningSchedule() const
 {
     if (_immediatePlay != nullptr) return nullptr;
     if (_activeSchedules.size() == 0) return nullptr;
-    return _activeSchedules.front();
+
+    for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
+    {
+        if ((*it)->GetPlayList()->IsRunning())
+        {
+            return *it;
+        }
+    }
+
+    return nullptr;
 }
 
 bool ScheduleManager::IsScheduleActive(Schedule* schedule)
 {
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
     {
-        if (*(*it)->GetSchedule() == *schedule) return true;
+        if ((*it)->GetSchedule()->GetId() == schedule->GetId()) return true;
     }
 
     return false;
@@ -1172,7 +1218,7 @@ RunningSchedule* ScheduleManager::GetRunningSchedule(Schedule* schedule) const
 {
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
     {
-        if (*(*it)->GetSchedule() == *schedule) return *it;
+        if ((*it)->GetSchedule()->GetId() == schedule->GetId()) return *it;
     }
 
     return nullptr;
@@ -1257,3 +1303,10 @@ int ScheduleManager::GetVolume() const
     return AudioManager::GetGlobalVolume();
 }
 
+size_t ScheduleManager::GetTotalChannels() const
+{
+    if (_outputManager != nullptr)
+        return _outputManager->GetTotalChannels();
+
+    return 0;
+}

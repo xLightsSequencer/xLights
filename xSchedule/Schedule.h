@@ -9,7 +9,7 @@ class wxXmlNode;
 
 class Schedule
 {
-    wxLongLong _id;
+    wxUint32 _id;
     std::string _name;
     std::string _dow;
     int _lastSavedChangeCount;
@@ -33,7 +33,7 @@ class Schedule
 
         void Test();
 
-        wxLongLong GetId() const { return _id; }
+        wxUint32 GetId() const { return _id; }
         bool operator<(const Schedule& rhs) const { return _priority < rhs._priority; }
         bool operator==(const Schedule& rhs) const { return _id == rhs._id; }
         int GetPriority() const { return _priority; }

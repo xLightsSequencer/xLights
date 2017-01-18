@@ -42,7 +42,7 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, s
 	FlexGridSizer1->Add(TextCtrl_Label, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Command:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Command = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+	Choice_Command = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxSize(400,-1), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	FlexGridSizer1->Add(Choice_Command, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Parameters:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -89,10 +89,17 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, s
         }
     }
 
-    for (int i = (int)'A'; i < (int)'z'; i++)
+    for (int i = (int)'A'; i < (int)'Z'; i++)
     {
         Choice_Hotkey->AppendString((char)i);
     }
+
+    for (int i = (int)'0'; i < (int)'9'; i++)
+    {
+        Choice_Hotkey->AppendString((char)i);
+    }
+
+    Choice_Hotkey->AppendString(' ');
 
     for (int i = 0; i < Choice_Hotkey->GetCount(); i++)
     {
@@ -118,6 +125,7 @@ void ButtonDetailsDialog::OnButton_OkClick(wxCommandEvent& event)
     _label = TextCtrl_Label->GetValue();
     _parameter = TextCtrl_Parameters->GetValue();
     _command = Choice_Command->GetStringSelection();
+    _hotkey = Choice_Hotkey->GetStringSelection()[0];
     EndDialog(wxID_OK);
 }
 

@@ -25,6 +25,7 @@ class PlayListDialog: public wxDialog
     int GetPos(const wxTreeItemId& item);
     void HighlightDropItem(wxTreeItemId* id);
     void DeleteSelectedItem();
+    void SwapPage(wxNotebookPage* newpage, const std::string& text = "");
 
     public:
 

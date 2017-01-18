@@ -12,13 +12,13 @@ class PlayListItem
 protected:
 
     #pragma region Member Variables
-    wxLongLong _id;
+    wxUint32 _id;
     int _lastSavedChangeCount;
     int _changeCount;
     std::string _name;
-    long _frames;
+    size_t _frames;
     int _msPerFrame;
-    long _delay;
+    size_t _delay;
     size_t _priority;
     int _volume;
     #pragma endregion Member Variables
@@ -36,7 +36,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
-    wxLongLong GetId() const { return _id; }
+    wxUint32 GetId() const { return _id; }
     virtual size_t GetDurationMS() const { return _delay; }
     virtual size_t GetDurationMS(size_t frameMS) const { return GetDurationMS(); }
     bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
