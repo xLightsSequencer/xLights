@@ -19,10 +19,10 @@ protected:
     std::string _name;
     bool _excludeFromRandom;
     size_t _framecount;
-    wxLongLong _startTime;
-    wxLongLong _pause;
-    wxLongLong _id;
-    wxLongLong _suspend;
+    wxUint32 _startTime;
+    wxUint32 _pause;
+    wxUint32 _id;
+    wxUint32 _suspend;
     int _loops;
 #pragma endregion Member Variables
 
@@ -40,7 +40,7 @@ public:
     bool operator==(const PlayListStep& rhs) const { return _id == rhs._id; }
 
 #pragma region Getters and Setters
-    PlayListItem* GetTimeSource(int& ms) const;
+    PlayListItem* GetTimeSource(size_t& ms) const;
     std::list<PlayListItem*> GetItems();
     bool IsDirty() const;
     void ClearDirty();

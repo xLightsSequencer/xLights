@@ -2,7 +2,6 @@
 <wxsmith>
 	<object class="wxFrame" name="xScheduleFrame">
 		<title>xLights Scheduler</title>
-		<handler function="OnKeyDown" entry="EVT_KEY_DOWN" />
 		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
 			<cols>1</cols>
@@ -268,11 +267,11 @@
 			<message>Select show folder ...</message>
 		</object>
 		<object class="wxTimer" name="ID_TIMER1" subclass="xLightsTimer" variable="_timer" member="yes">
-			<interval>50</interval>
+			<interval>500000</interval>
 			<handler function="On_timerTrigger" entry="EVT_TIMER" />
 		</object>
 		<object class="wxTimer" name="ID_TIMER2" variable="_timerSchedule" member="yes">
-			<interval>1000</interval>
+			<interval>50000</interval>
 			<handler function="On_timerScheduleTrigger" entry="EVT_TIMER" />
 		</object>
 	</object>

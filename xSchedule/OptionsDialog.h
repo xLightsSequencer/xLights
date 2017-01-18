@@ -26,6 +26,8 @@ class OptionsDialog: public wxDialog
 
 		OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~OptionsDialog();
+        void EditProjector(int row);
+        void EditButton(int row);
 
 		//(*Declarations(OptionsDialog)
 		wxSpinCtrl* SpinCtrl_WebServerPort;
@@ -93,6 +95,11 @@ class OptionsDialog: public wxDialog
 		void OnButton_ButtonEditClick(wxCommandEvent& event);
 		void OnButton_ButtonDeleteClick(wxCommandEvent& event);
 		void OnTextCtrl_wwwRootText(wxCommandEvent& event);
+		void OnGrid_ButtonsCellLeftDClick(wxGridEvent& event);
+		void OnGrid_ButtonsLabelLeftDClick(wxGridEvent& event);
+		void OnGrid_ProjectorsLabelRightDClick(wxGridEvent& event);
+		void OnGrid_ProjectorsCellLeftDClick(wxGridEvent& event);
+		void OnGrid_ProjectorsLabelLeftDClick(wxGridEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

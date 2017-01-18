@@ -135,6 +135,28 @@ PlayListDialog::~PlayListDialog()
 {
 	//(*Destroy(PlayListDialog)
 	//*)
+
+    // manually remove the notebook page to force updating now rather than during deletion  
+    SwapPage(nullptr);
+}
+
+void PlayListDialog::SwapPage(wxNotebookPage* newpage, const std::string& text)
+{
+    if (Notebook1->GetPageCount() > 0)
+    {
+        wxNotebookPage* p = Notebook1->GetPage(0);
+
+        if (p != nullptr)
+        {
+             Notebook1->RemovePage(0);
+             delete p;
+        }
+    }
+
+    if (newpage != nullptr)
+    {
+        Notebook1->AddPage(newpage, text, true);
+    }
 }
 
 void PlayListDialog::PopulateTree()
@@ -150,7 +172,7 @@ void PlayListDialog::PopulateTree()
         wxTreeItemId step = TreeCtrl_PlayList->AppendItem(TreeCtrl_PlayList->GetRootItem(), (*it)->GetName());
         TreeCtrl_PlayList->SetItemData(step, new MyTreeItemData(*it));
 
-        int ms;
+        size_t ms;
         PlayListItem* ts = (*it)->GetTimeSource(ms);
 
         auto items = (*it)->GetItems();
@@ -195,20 +217,18 @@ void PlayListDialog::OnTreeCtrl_PlayListSelectionChanged(wxTreeEvent& event)
     if (IsPlayList(treeitem))
     {
         PlayList* pl = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
-        if (Notebook1->GetPageCount() > 0) Notebook1->RemovePage(0);
-        Notebook1->AddPage(new PlayListPanel(Notebook1, pl), "Playlist", true);
+        SwapPage(new PlayListPanel(Notebook1, pl), "Playlist");
     }
     else if (IsPlayListStep(treeitem))
     {
         PlayListStep* pls = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
-        if (Notebook1->GetPageCount() > 0) Notebook1->RemovePage(0);
-        Notebook1->AddPage(new PlayListStepPanel(Notebook1, pls), "Playlist Step", true);
+        SwapPage(new PlayListStepPanel(Notebook1, pls), "Playlist Step");
     }
     else
     {
         // must be a playlist entry
         PlayListItem* pli = (PlayListItem*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
-        if (Notebook1->GetPageCount() > 0) Notebook1->RemovePage(0);
+        SwapPage(nullptr);
         pli->Configure(Notebook1);
     }
 }
@@ -760,7 +780,7 @@ void PlayListDialog::DeleteSelectedItem()
     {
         if (wxMessageBox("Are you sure?", "Are you sure?", wxYES_NO) == wxYES)
         {
-            if (Notebook1->GetPageCount() > 0) Notebook1->RemovePage(0);
+            SwapPage(nullptr);
             wxTreeItemId parent = TreeCtrl_PlayList->GetItemParent(treeitem);
             if (IsPlayListStep(treeitem))
             {
@@ -805,6 +825,7 @@ void PlayListDialog::ValidateWindow()
 
 void PlayListDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
+    SwapPage(nullptr);
     *_playlist = *_savedState;
     delete _savedState;
     EndDialog(wxID_CANCEL);
@@ -812,6 +833,7 @@ void PlayListDialog::OnButton_CancelClick(wxCommandEvent& event)
 
 void PlayListDialog::OnButton_OkClick(wxCommandEvent& event)
 {
+    SwapPage(nullptr);
     delete _savedState;
     EndDialog(wxID_OK);
 }

@@ -131,6 +131,7 @@ CommandManager::CommandManager()
     PARMTYPE plsti[] = { PARMTYPE::PLAYLIST, PARMTYPE::STEP, PARMTYPE::INTEGER };
     PARMTYPE i[] = { PARMTYPE::INTEGER };
     PARMTYPE s[] = { PARMTYPE::STRING };
+    PARMTYPE sch[] = { PARMTYPE::SCHEDULE };
 
     _commands.push_back(new Command("Stop all now", 0, {}, false, false, true, false));
     _commands.push_back(new Command("Stop", 0,{}, false, false, true, false));
@@ -169,5 +170,7 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Increase brightness by n%", 1, i, false, false, false, false));
     _commands.push_back(new Command("Set brightness to n%", 1, i, false, false, false, false));
     _commands.push_back(new Command("PressButton", 1, s, false, false, false, false));
+    _commands.push_back(new Command("Restart selected schedule", 0, {}, false, true, false, true));
+    _commands.push_back(new Command("Restart named schedule", 1, sch, false, false, false, true));
 }
 

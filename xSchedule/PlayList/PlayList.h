@@ -14,7 +14,7 @@ class PlayList
 protected:
 
     #pragma region Member Variables
-    wxLongLong _id;
+    wxUint32 _id;
     std::list<PlayListStep*> _steps;
     std::list<Schedule*> _schedules;
     int _lastSavedChangeCount;
