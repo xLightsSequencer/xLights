@@ -1366,7 +1366,7 @@ form {
 
 }
 
-@media (min-width: 481px) and (max-width: 970px) {
+/*@media (min-width: 481px) and (max-width: 970px) {
 	body{ }
 	#header h1 {
 		top:20px;
@@ -1421,7 +1421,7 @@ form {
 	#content {
 		margin-left: 43px;
 	}
-}
+}*/
 @media (max-width: 600px) {
 	.widget-title .buttons {
 		float: left;
