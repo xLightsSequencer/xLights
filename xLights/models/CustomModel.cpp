@@ -358,7 +358,7 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
                 }
             }
 
-            xlights->MarkEffectsFileDirty();
+            xlights->MarkEffectsFileDirty(true);
         }
         else
         {

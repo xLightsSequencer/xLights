@@ -87,6 +87,7 @@ class EffectTreeDialog;
 class ConvertDialog;
 class ConvertLogDialog;
 class wxDebugReport;
+class RenderTreeData;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -306,7 +307,7 @@ public:
     PerspectiveId perspectives[10];
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile(bool backup = false);
-    void MarkEffectsFileDirty();
+    void MarkEffectsFileDirty(bool modelStructureChange);
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int section = 0);
 	std::string GetChannelToControllerMapping(long channel);
@@ -916,7 +917,7 @@ private:
     void UpdateSelectedDescriptions();
 
     void OnProgressBarDoubleClick(wxMouseEvent& event);
-    RenderProgressInfo *renderProgressInfo;
+    std::list<RenderProgressInfo *>renderProgressInfo;
     RenderProgressDialog *renderProgressDialog;
 
     wxString mediaFilename;
@@ -938,6 +939,7 @@ private:
     // convert
 public:
     bool UnsavedRgbEffectsChanges;
+    unsigned int modelsChangeCount;
     bool _renderMode;
 
     void ClearLastPeriod();
@@ -1033,6 +1035,11 @@ public:
                              bool bgThread = false, RenderEvent *event = NULL);
     void RenderEffectOnMainThread(RenderEvent *evt);
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false);
+    void Render(std::list<Model*> models, Model *restrictToModel,
+                int startFrame, int endFrame,
+                bool progressDialog, bool clear,
+                std::function<void()>&& callback);
+    void BuildRenderTree();
 
     void RenderRange(RenderCommandEvent &cmd);
     void RenderDone();
@@ -1121,6 +1128,18 @@ private:
     bool mGridNodeValues;
     int mEffectAssistMode;
 	bool mRendering;
+    
+    class RenderTree {
+    public:
+        RenderTree() : renderTreeChangeCount(0) {}
+        ~RenderTree() { Clear(); }
+        void Clear();
+        void Add(Model *el);
+        void Print();
+        
+        unsigned int renderTreeChangeCount;
+        std::list<RenderTreeData*> data;
+    } renderTree;
     int AutoSaveInterval;
 
     Model *playModel;

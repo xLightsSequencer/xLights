@@ -45,10 +45,12 @@ SequenceElements::SequenceElements(xLightsFrame *f)
     mFirstVisibleModelRow = 0;
     mModelsNode = nullptr;
     mChangeCount = 0;
+    mMasterViewChangeCount = 0;
     mCurrentView = 0;
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);  // first view must remain as master view that determines render order
     hasPapagayoTiming = false;
+    supportsModelBlending = false;
 }
 
 SequenceElements::~SequenceElements()
@@ -66,6 +68,7 @@ void SequenceElements::ClearAllViews()
         mAllViews[x].clear();
     }
     mAllViews.clear();
+    mMasterViewChangeCount++;
 }
 
 void SequenceElements::Clear() {
@@ -78,7 +81,9 @@ void SequenceElements::Clear() {
     mTimingRowCount = 0;
     mFirstVisibleModelRow = 0;
     mChangeCount = 0;
+    mMasterViewChangeCount++;
     mCurrentView = 0;
+    supportsModelBlending = false;
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);
     hasPapagayoTiming = false;
@@ -160,6 +165,7 @@ Element* SequenceElements::AddElement(const std::string &name, const std::string
         Element *el = CreateElement(this, name,type,visible,collapsed,active,selected,xframe);
 
         mAllViews[MASTER_VIEW].push_back(el);
+        mMasterViewChangeCount++;
         IncrementChangeCount(el);
         return el;
     }
@@ -174,6 +180,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
     {
         Element *el = CreateElement(this, name,type,visible,collapsed,active,selected,xframe);
         mAllViews[MASTER_VIEW].insert(mAllViews[MASTER_VIEW].begin()+index, el);
+        mMasterViewChangeCount++;
         IncrementChangeCount(el);
         return el;
     }
@@ -397,6 +404,7 @@ void SequenceElements::DeleteElement(const std::string &name)
         {
             Element *e = mAllViews[MASTER_VIEW][j];
             delete e;
+            mMasterViewChangeCount++;
             break;
         }
     }
@@ -414,7 +422,10 @@ void SequenceElements::DeleteElementFromView(const std::string &name, int view)
             break;
         }
     }
-
+    if (view == MASTER_VIEW) {
+        mMasterViewChangeCount++;
+    }
+    
     PopulateRowInformation();
 }
 
@@ -457,6 +468,7 @@ void SequenceElements::RenameModelInViews(const std::string& old_name, const std
             }
         }
     }
+    mMasterViewChangeCount++;
 }
 
 Row_Information_Struct* SequenceElements::GetVisibleRowInformation(size_t index)
@@ -519,8 +531,12 @@ int SequenceElements::GetRowInformationSize()
 
 void SequenceElements::SortElements()
 {
-    if (mAllViews[mCurrentView].size()>1)
+    if (mAllViews[mCurrentView].size()>1) {
         std::sort(mAllViews[mCurrentView].begin(),mAllViews[mCurrentView].end(),SortElementsByIndex);
+    }
+    if (mCurrentView == MASTER_VIEW) {
+        mMasterViewChangeCount++;
+    }
 }
 
 void SequenceElements::MoveElement(int index,int destinationIndex)
@@ -647,6 +663,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
     wxXmlNode* root=seqDocument.GetRoot();
     std::vector<std::string> effectStrings;
     std::vector<std::string> colorPalettes;
+    supportsModelBlending = false;
     Clear();
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
@@ -948,6 +965,9 @@ void SequenceElements::PopulateView(const std::string &models, int view)
                 mAllViews[view].push_back(elem);
             }
         }
+    }
+    if (view == MASTER_VIEW) {
+        mMasterViewChangeCount++;
     }
 }
 
@@ -1429,6 +1449,9 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
             mAllViews[view].insert(mAllViews[view].begin()+(dest-1),e);
         }
     }
+    if (view == MASTER_VIEW) {
+        mMasterViewChangeCount++;
+    }
 }
 
 void SequenceElements::MoveElementUp(const std::string &name, int view)
@@ -1447,6 +1470,9 @@ void SequenceElements::MoveElementUp(const std::string &name, int view)
             break;
         }
     }
+    if (view == MASTER_VIEW) {
+        mMasterViewChangeCount++;
+    }
 }
 
 void SequenceElements::MoveElementDown(const std::string &name, int view)
@@ -1464,6 +1490,9 @@ void SequenceElements::MoveElementDown(const std::string &name, int view)
             }
             break;
         }
+    }
+    if (view == MASTER_VIEW) {
+        mMasterViewChangeCount++;
     }
 }
 

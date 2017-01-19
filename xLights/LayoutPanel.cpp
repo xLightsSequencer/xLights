@@ -514,7 +514,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
          } else {
             pGrp->SetBackgroundBrightness(wxAtoi(event.GetValue().GetString()));
             modelPreview->SetBackgroundBrightness(wxAtoi(event.GetValue().GetString()));
-            xlights->MarkEffectsFileDirty();
+            xlights->MarkEffectsFileDirty(false);
             UpdatePreview();
         }
     } else if (name == "BkgSizeWidth") {
@@ -529,7 +529,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         } else {
             pGrp->SetBackgroundImage(event.GetValue().GetString());
             modelPreview->SetbackgroundImage(event.GetValue().GetString());
-            xlights->MarkEffectsFileDirty();
+            xlights->MarkEffectsFileDirty(false);
             UpdatePreview();
         }
     } else if (name == "BkgFill") {
@@ -538,7 +538,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
          } else {
             pGrp->SetBackgroundScaled(wxAtoi(event.GetValue().GetString())>0);
             modelPreview->SetScaleBackgroundImage(wxAtoi(event.GetValue().GetString())>0);
-            xlights->MarkEffectsFileDirty();
+            xlights->MarkEffectsFileDirty(false);
             UpdatePreview();
         }
     } else if (selectedModel != nullptr) {
@@ -562,6 +562,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 if (xlights->RenameModel(selectedModel->GetFullName(), safename)) {
                     CallAfter(&LayoutPanel::UpdateModelList, true);
                 }
+                xlights->MarkEffectsFileDirty(true);
             }
         } else {
             int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
@@ -569,7 +570,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 xlights->UpdatePreview();
             }
             if (i & 0x0002) {
-                xlights->MarkEffectsFileDirty();
+                xlights->MarkEffectsFileDirty(true);
             }
             if (i & 0x0004) {
                 CallAfter(&LayoutPanel::resetPropertyGrid);
@@ -1331,7 +1332,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         m->AddHandle(modelPreview, event.GetPosition().x, y);
         m->UpdateXmlWithScale();
         m->InitModel();
-        xlights->MarkEffectsFileDirty();
+        xlights->MarkEffectsFileDirty(true);
         UpdatePreview();
         m_over_handle++;
         return;
@@ -1535,7 +1536,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         y = modelPreview->GetVirtualCanvasHeight() - y;
         m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetPosition().x, y);
         SetupPropGrid(m);
-        xlights->MarkEffectsFileDirty();
+        xlights->MarkEffectsFileDirty(true);
         UpdatePreview();
     }
     else if (m_dragging && event.Dragging())
@@ -1554,7 +1555,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                     modelPreview->GetModels()[i]->AddOffset(delta_x/wi, delta_y/ht);
                     modelPreview->GetModels()[i]->UpdateXmlWithScale();
                     SetupPropGrid(modelPreview->GetModels()[i]);
-                    xlights->MarkEffectsFileDirty();
+                    xlights->MarkEffectsFileDirty(true);
                 }
             }
         }
@@ -1978,7 +1979,7 @@ void LayoutPanel::Nudge(int key)
             (*it)->UpdateXmlWithScale();
             SetupPropGrid(*it);
         }
-        xlights->MarkEffectsFileDirty();
+        xlights->MarkEffectsFileDirty(true);
         UpdatePreview();
     }
 }
@@ -2087,7 +2088,7 @@ void LayoutPanel::DeleteSelectedModel() {
         xlights->AllModels.Delete(selectedModel->name);
         selectedModel = nullptr;
         xlights->UpdateModelsList();
-        xlights->MarkEffectsFileDirty();
+        xlights->MarkEffectsFileDirty(true);
     }
 }
 
@@ -2163,7 +2164,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                 lastModelName = name;
 
                 xlights->UpdateModelsList();
-                xlights->MarkEffectsFileDirty();
+                xlights->MarkEffectsFileDirty(true);
                 wxTheClipboard->Close();
                 SelectModel(name);
             }
@@ -2200,6 +2201,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             wxVariant value(undoBuffer[sz].data);
             event.SetPropertyValue(value);
             OnPropertyGridChange(event);
+            xlights->MarkEffectsFileDirty(true);
             resetPropertyGrid();
         } else if (undoBuffer[sz].type == "SingleModel") {
             Model *m = xlights->AllModels[undoBuffer[sz].model];
@@ -2216,6 +2218,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 mdoc.DetachRoot();
                 parent->InsertChild(m->GetModelXml(), next);
                 SelectModel(undoBuffer[sz].model);
+                xlights->MarkEffectsFileDirty(true);
             }
         } else if (undoBuffer[sz].type == "All") {
             UnSelectAllModels();
@@ -2253,7 +2256,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             }
 
             xlights->UpdateModelsList();
-            xlights->MarkEffectsFileDirty();
+            xlights->MarkEffectsFileDirty(true);
             if (undoBuffer[sz].model != "") {
                 SelectModel(undoBuffer[sz].model);
             }
@@ -2266,7 +2269,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->RenameModel(newName, origName);
 
             xlights->UpdateModelsList();
-            xlights->MarkEffectsFileDirty();
+            xlights->MarkEffectsFileDirty(true);
             SelectModel(origName);
         }
         modelPreview->SetFocus();
@@ -2275,7 +2278,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
     }
 }
 void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data) {
-    xlights->MarkEffectsFileDirty();
+    xlights->MarkEffectsFileDirty(false);
     int idx = undoBuffer.size();
 
     //printf("%s   %s   %s  %s\n", type.c_str(), model.c_str(), key.c_str(), data.c_str());
@@ -2360,7 +2363,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                 UnSelectAllModels();
                 ShowPropGrid(true);
                 xlights->UpdateModelsList();
-                xlights->MarkEffectsFileDirty();
+                xlights->MarkEffectsFileDirty(true);
             }
         }
     }
@@ -2382,7 +2385,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                 }
                 xlights->AllModels.Rename(sel.ToStdString(), name.ToStdString());
                 xlights->UpdateModelsList();
-                xlights->MarkEffectsFileDirty();
+                xlights->MarkEffectsFileDirty(true);
                 model_grp_panel->UpdatePanel(name.ToStdString());
             }
         }
@@ -2412,7 +2415,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
 
             xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
             xlights->UpdateModelsList();
-            xlights->MarkEffectsFileDirty();
+            xlights->MarkEffectsFileDirty(true);
             model_grp_panel->UpdatePanel(name.ToStdString());
             ShowPropGrid(false);
         }
@@ -2466,7 +2469,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
             ChoiceLayoutGroups->SetSelection(ChoiceLayoutGroups->GetCount()-2);
 
             xlights->UpdateModelsList();
-            xlights->MarkEffectsFileDirty();
+            xlights->MarkEffectsFileDirty(true);
             ShowPropGrid(true);
         } else {
             SwitchChoiceToCurrentLayoutGroup();
@@ -2563,7 +2566,7 @@ void LayoutPanel::DeleteCurrentPreview()
                 }
             }
         }
-        xlights->MarkEffectsFileDirty();
+        xlights->MarkEffectsFileDirty(false);
         mSelectedGroup = nullptr;
         for( int i = 0; i < ChoiceLayoutGroups->GetCount(); i++ )
         {
@@ -2710,6 +2713,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 
 void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     xlights->UnsavedRgbEffectsChanges = true;
+    xlights->modelsChangeCount++;
     std::vector<Model *> models;
     UpdateModelList(full_refresh, models);
     if( full_refresh ) return;

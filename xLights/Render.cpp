@@ -15,6 +15,7 @@
 #include "effects/RenderableEffect.h"
 #include "RenderProgressDialog.h"
 #include "SeqExportDialog.h"
+#include "RenderUtils.h"
 
 #define END_OF_RENDER_FRAME INT_MAX
 
@@ -189,11 +190,13 @@ public:
     const int node;
 };
 
+
 class RenderJob: public Job, public NextRenderer {
 public:
-    RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false, bool clear = false)
+    RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false)
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), deleteWhenComplete(false),
-            gauge(nullptr), currentFrame(0), renderLog(log4cpp::Category::getInstance(std::string("log_render")))
+            gauge(nullptr), currentFrame(0), renderLog(log4cpp::Category::getInstance(std::string("log_render"))),
+            clearAllFrames(false), supportsModelBlending(false)
     {
         if (row != NULL) {
             name = row->GetModelName();
@@ -249,7 +252,6 @@ public:
             name = "";
         }
         startFrame = 0;
-        clearAllFrames = clear;
         renderEvent.buffer = mainBuffer;
     }
 
@@ -406,7 +408,13 @@ public:
         startFrame = start;
         endFrame = end;
     }
-    
+    void SetRangeRestriction(const std::vector<NodeRange> &rng, bool clear) {
+        clearAllFrames = clear;
+        rangeRestriction = rng;
+    }
+    void SetModelBlending() {
+        supportsModelBlending = true;
+    }
 
     bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
         wxStopWatch sw;
@@ -434,10 +442,6 @@ public:
             info.effectStates[layer] = b;
             effectsToUpdate |= info.validLayers[layer];
         }
-        if (!effectsToUpdate && clearAllFrames) {
-            info.validLayers[0] = true;
-            effectsToUpdate = true;
-        }
         if (effectsToUpdate) {
             SetCalOutputStatus(frame, strand);
             if (blend) {
@@ -445,7 +449,7 @@ public:
                 info.validLayers[numLayers] = true;
             }
             buffer->CalcOutput(frame, info.validLayers);
-            buffer->GetColors(&((*seqData)[frame][0]));
+            buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
         }
         if (sw.Time() > 1000)
         {
@@ -494,10 +498,6 @@ public:
         std::map<SNPair, bool> nodeEffectStates;
         std::map<SNPair, int> nodeEffectIdxs;
 
-        if (clearAllFrames && mainBuffer != NULL) {
-            mainBuffer->Clear(0);
-        }
-
         try {
             for (int layer = 0; layer < numLayers; layer++) {
                 wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame);
@@ -512,6 +512,14 @@ public:
             for (int frame = startFrame; frame < endFrame; frame++) {
                 currentFrame = frame;
                 SetGenericStatus("%s: Starting frame %d", frame, true);
+                if (clearAllFrames) {
+                    for (auto it = rangeRestriction.begin(); it != rangeRestriction.end(); it++) {
+                        FrameData fd = (*seqData)[frame];
+                        for (int x = it->start; x <= it->end; x++) {
+                            fd[x] = (unsigned char)0;
+                        }
+                    }
+                }
 
                 if (!HasNext() &&
                         (origChangeCount != rowToRender->getChangeCount()
@@ -524,11 +532,11 @@ public:
                 if (frame >= maxFrameBeforeCheck) {
                     maxFrameBeforeCheck = waitForFrame(frame);
                 }
-                bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer);
+                bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
                 if (!subModelInfos.empty()) {
                     for (auto a = subModelInfos.begin(); a != subModelInfos.end(); a++) {
                         EffectLayerInfo *info = *a;
-                        cleared |= ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, cleared);
+                        cleared |= ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared);
                     }
                 }
                 if (!nodeBuffers.empty()) {
@@ -567,7 +575,7 @@ public:
                             std::vector<bool> valid(2, true);
                             buffer->SetColors(1, &((*seqData)[frame][0]));
                             buffer->CalcOutput(frame, valid);
-                            buffer->GetColors(&((*seqData)[frame][0]));
+                            buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
                         }
                     }
                 }
@@ -664,6 +672,8 @@ private:
     xLightsFrame *xLights;
     SequenceData *seqData;
     bool clearAllFrames;
+    std::vector<NodeRange> rangeRestriction;
+    bool supportsModelBlending;
     RenderEvent renderEvent;
     bool deleteWhenComplete;
 
@@ -711,172 +721,92 @@ public:
     RenderProgressInfo(std::function<void()>&& cb) : callback(cb) {};
     std::function<void()> callback;
     int numRows;
-    int frames;
+    int startFrame;
+    int endFrame;
     RenderJob **jobs;
     AggregatorRenderer **aggregators;
 };
 
-void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
-    const int numRows = mSequenceElements.GetElementCount();
-    if (numRows == 0) {
-        //nothing to do....
-        return;
+static bool HasEffects(ModelElement *me) {
+    if (me->HasEffects()) {
+        return true;
     }
-    RenderJob **jobs = new RenderJob*[numRows];
-    AggregatorRenderer **aggregators = new AggregatorRenderer*[numRows];
-    std::vector<std::set<int>> channelMaps(SeqData.NumChannels());
-    ModelElement *lastRowEl = NULL;
-
-    for (size_t row = 0; row < numRows; row++) {
-        jobs[row] = nullptr;
-        aggregators[row] = new AggregatorRenderer(SeqData.NumFrames());
+    
+    for (int x = 0; x < me->GetSubModelCount(); x++) {
+        if (me->GetSubModel(x)->HasEffects()) {
+            return true;
+        }
     }
-
-    for (size_t row = 0; row < numRows; row++) {
-        Element *rowEl = mSequenceElements.GetElement(row);
-        if (rowEl->GetType() == ELEMENT_TYPE_MODEL && rowEl != lastRowEl) {
-            ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
-            lastRowEl = me;
-            bool hasEffects = me->HasEffects();
-            if (!hasEffects) {
-                for (int x = 0; x < me->GetSubModelCount(); x++) {
-                    hasEffects |= me->GetSubModel(x)->HasEffects();
-                }
-            }
-            if (!hasEffects) {
-                for (int x = 0; x < me->GetStrandCount(); x++) {
-                    StrandElement *se = me->GetStrand(x);
-                    for (int n = 0; n < se->GetNodeLayerCount(); n++) {
-                        hasEffects |= se->GetNodeLayer(n)->GetEffectCount() > 0;
-                    }
-                }
-            }
-            if (!hasEffects) {
-                //there are no effects anywhere on this model, we dont need to consider this at all
-                continue;
-            }
-            RenderJob *job = new RenderJob(me, SeqData, this);
-            job->setRenderRange(0, SeqData.NumFrames());
-
-            PixelBufferClass *buffer = job->getBuffer();
-            if (buffer == nullptr) {
-                delete job;
-                continue;
-            }
-
-            jobs[row] = job;
-            aggregators[row]->addNext(job);
-            size_t cn = buffer->GetChanCountPerNode();
-            for (int node = 0; node < buffer->GetNodeCount(); node++) {
-                int start = buffer->NodeStartChannel(node);
-                for (int c = 0; c < cn; c++) {
-                    int cnum = start + c;
-                    if (cnum < SeqData.NumChannels()) {
-                        for (auto i = channelMaps[cnum].begin(); i != channelMaps[cnum].end(); i++) {
-                            int idx = *i;
-                            if (idx != row) {
-                                if (jobs[idx]->addNext(aggregators[row])) {
-                                    aggregators[row]->incNumAggregated();
-                                }
-                            }
-                        }
-                        channelMaps[cnum].insert(row);
-                    }
-                }
+    for (int x = 0; x < me->GetStrandCount(); x++) {
+        StrandElement *se = me->GetStrand(x);
+        for (int n = 0; n < se->GetNodeLayerCount(); n++) {
+            if (se->GetNodeLayer(n)->GetEffectCount() > 0) {
+                return true;
             }
         }
     }
-    channelMaps.clear();
-
-    renderProgressDialog = new RenderProgressDialog(this);
-    for (size_t row = 0; row < numRows; row++) {
-        if (jobs[row]) {
-            if (aggregators[row]->getNumAggregated() == 0) {
-                //start all the jobs that don't depend on anything above them
-                //get them rendering while we setup the rest
-                jobs[row]->setPreviousFrameDone(END_OF_RENDER_FRAME);
-                jobPool.PushJob(jobs[row]);
-            }
-
-            wxStaticText *label = new wxStaticText(renderProgressDialog->scrolledWindow, wxID_ANY, jobs[row]->GetName());
-            renderProgressDialog->scrolledWindowSizer->Add(label,1, wxALL |wxEXPAND,3);
-            wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 99);
-            g->SetValue(0);
-            g->SetMinSize(wxSize(100, -1));
-            renderProgressDialog->scrolledWindowSizer->Add(g, 1, wxALL |wxEXPAND,3);
-            jobs[row]->SetGauge(g);
-        }
-    }
-    for (size_t row = 0; row < numRows; row++) {
-        if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
-            //now start the rest
-            jobPool.PushJob(jobs[row]);
-        }
-    }
-    renderProgressDialog->SetSize(250, 400);
-    renderProgressDialog->scrolledWindow->SetSizer(renderProgressDialog->scrolledWindowSizer);
-    renderProgressDialog->scrolledWindow->FitInside();
-    renderProgressDialog->scrolledWindow->SetScrollRate(5, 5);
-
-    renderProgressInfo = new RenderProgressInfo(std::move(callback));
-    renderProgressInfo->numRows = numRows;
-    renderProgressInfo->frames = SeqData.NumFrames();
-    renderProgressInfo->jobs = jobs;
-    renderProgressInfo->aggregators = aggregators;
+    return false;
 }
+
 void xLightsFrame::UpdateRenderStatus() {
-    if (renderProgressInfo == nullptr) {
+    if (renderProgressInfo.empty()) {
         return;
     }
     bool done = true;
     int countModels = 0;
     int countFrames = 0;
-    bool shown = renderProgressDialog->IsShown();
-    for (size_t row = 0; row < renderProgressInfo->numRows; row++) {
-        if (renderProgressInfo->jobs[row]) {
-            int i = renderProgressInfo->jobs[row]->GetCurrentFrame();
-            if (i >= renderProgressInfo->frames) {
-                i = renderProgressInfo->frames;
-            } else {
-                done = false;
-            }
-            countModels++;
-            if (shown) {
-                int val = (100 * i)/renderProgressInfo->frames;
-                wxGauge *g = renderProgressInfo->jobs[row]->GetGauge();
-                if (g->GetValue() != val) {
-                    g->SetValue(val);
+    bool shown = renderProgressDialog == nullptr ? false : renderProgressDialog->IsShown();
+    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end();) {
+        RenderProgressInfo *rpi = *it;
+        int frames = rpi->endFrame - rpi->startFrame + 1;
+        for (size_t row = 0; row < rpi->numRows; row++) {
+            if (rpi->jobs[row]) {
+                int i = rpi->jobs[row]->GetCurrentFrame();
+                if (i <= rpi->endFrame) {
+                    done = false;
                 }
+                countModels++;
+                i -= rpi->startFrame;
+                if (shown) {
+                    int val = done ? 100 : (100 * i)/frames;
+                    wxGauge *g = rpi->jobs[row]->GetGauge();
+                    if (g->GetValue() != val) {
+                        g->SetValue(val);
+                    }
+                }
+                countFrames += i;
             }
-            countFrames += i;
         }
-    }
-    if (countFrames > 0) {
-        int pct = (countFrames * 80) / (countModels * renderProgressInfo->frames);
-        static int lastVal = 0;
-        if (lastVal != pct) {
-            if (ProgressBar->GetValue() != (10 + pct)) {
-                ProgressBar->SetValue(10 + pct);
+        if (countFrames > 0) {
+            int pct = (countFrames * 80) / (countModels * frames);
+            static int lastVal = 0;
+            if (lastVal != pct) {
+                if (ProgressBar->GetValue() != (10 + pct)) {
+                    ProgressBar->SetValue(10 + pct);
+                }
+                lastVal = pct;
             }
-            lastVal = pct;
         }
-    }
 
-    if (done) {
-        for (size_t row = 0; row < renderProgressInfo->numRows; row++) {
-            if (renderProgressInfo->jobs[row]) {
-                delete renderProgressInfo->jobs[row];
+        if (done) {
+            for (size_t row = 0; row < rpi->numRows; row++) {
+                if (rpi->jobs[row]) {
+                    delete rpi->jobs[row];
+                }
+                delete rpi->aggregators[row];
             }
-            delete renderProgressInfo->aggregators[row];
+            delete renderProgressDialog;
+            renderProgressDialog = nullptr;
+            RenderDone();
+            delete []rpi->jobs;
+            delete []rpi->aggregators;
+            rpi->callback();
+            delete rpi;
+            rpi = nullptr;
+            it = renderProgressInfo.erase(it);
+        } else {
+            it++;
         }
-        delete renderProgressDialog;
-        renderProgressDialog = nullptr;
-        delete []renderProgressInfo->jobs;
-        delete []renderProgressInfo->aggregators;
-        RenderDone();
-        renderProgressInfo->callback();
-        delete renderProgressInfo;
-        renderProgressInfo = nullptr;
     }
 }
 
@@ -884,30 +814,266 @@ void xLightsFrame::UpdateRenderStatus() {
 void xLightsFrame::RenderDone() {
     mainSequencer->PanelEffectGrid->Refresh();
 }
-void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
-	//printf("render model %s   %d %d   %d\n", model.c_str(), startms, endms, clear);
-    RenderJob *job = NULL;
-    Element * el = mSequenceElements.GetElement(model);
-    if( el->GetType() != ELEMENT_TYPE_TIMING) {
-        job = new RenderJob(dynamic_cast<ModelElement*>(el), SeqData, this, false, clear);
-        job->SetDeleteWhenComplete();
-        if (job->getBuffer() == nullptr) {
-            delete job;
+
+class RenderTreeData {
+public:
+    RenderTreeData(Model *e): model(e) {
+        size_t cn = e->GetChanCountPerNode();
+        for (int node = 0; node < e->GetNodeCount(); node++) {
+            unsigned int start = e->NodeStartChannel(node);
+            AddRange(start, start + cn - 1);
+        }
+        ranges.sort();
+        auto it = ranges.begin();
+        auto it2 = ranges.begin();
+        if (it2 != ranges.end()) {
+            it2++;
+        }
+        while (it2 != ranges.end()) {
+            if ((it->end + 1) == it2->start) {
+                it->end = it2->end;
+                it2 = ranges.erase(it2);
+            } else {
+                it++;
+                it2++;
+            }
+        }
+    }
+    void AddRange(unsigned int start, unsigned int end) {
+        if (!ranges.empty()) {
+            if ((ranges.back().end + 1) == start) {
+                ranges.back().end = end;
+                return;
+            }
+        }
+        ranges.push_back(NodeRange(start, end));
+    }
+    
+    bool Overlaps(RenderTreeData &e) {
+        for (auto it = ranges.begin(); it != ranges.end(); it++) {
+            for (auto it2 = e.ranges.begin(); it2 != e.ranges.end(); it2++) {
+                if (it->Overlaps(*it2)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    void Add(Model *el) {
+        renderOrder.push_back(el);
+    }
+    std::list<Model *> renderOrder;
+    std::list<NodeRange> ranges;
+    Model *model;
+};
+void xLightsFrame::RenderTree::Clear() {
+    for (auto it = data.begin(); it != data.end(); it++) {
+        delete *it;
+    }
+    data.clear();
+}
+void xLightsFrame::RenderTree::Add(Model *el) {
+    RenderTreeData *elData = new RenderTreeData(el);
+    for (auto it = data.begin(); it != data.end(); it++) {
+        RenderTreeData *elData2 = *it;
+        if (elData2->Overlaps(*elData)) {
+            elData->Add(elData2->model);
+            elData2->Add(el);
+        }
+    }
+    elData->Add(el);
+    data.push_back(elData);
+}
+
+void xLightsFrame::RenderTree::Print() {
+    for (auto it = data.begin(); it != data.end(); it++) {
+        printf("%s:   (%d)\n", (*it)->model->GetName().c_str(), (int)(*it)->ranges.size());
+        for (auto it2 = (*it)->renderOrder.begin(); it2 != (*it)->renderOrder.end(); it2++) {
+            printf("    %s     \n", (*it2)->GetName().c_str());
+        }
+    }
+}
+
+void xLightsFrame::BuildRenderTree() {
+    unsigned int curChangeCount = mSequenceElements.GetMasterViewChangeCount() + modelsChangeCount;
+    if (renderTree.renderTreeChangeCount != curChangeCount) {
+        renderTree.Clear();
+        const int numEls = mSequenceElements.GetElementCount(MASTER_VIEW);
+        if (numEls == 0) {
+            //nothing to do....
             return;
         }
+        for (size_t row = 0; row < numEls; row++) {
+            Element *rowEl = mSequenceElements.GetElement(row, MASTER_VIEW);
+            if (rowEl->GetType() == ELEMENT_TYPE_MODEL) {
+                Model *model = GetModel(rowEl->GetModelName());
+                renderTree.Add(model);
+            }
+        }
+        //renderTree.Print();
+        renderTree.renderTreeChangeCount = curChangeCount;
+    }
+}
 
-        //account for some rounding by rendering before/after
-        int startframe = startms / SeqData.FrameTime() - 1;
-        if (startframe < 0) {
-            startframe = 0;
+void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
+                          int startFrame, int endFrame,
+                          bool progressDialog, bool clear,
+                          std::function<void()>&& callback) {
+    
+    if (startFrame < 0) {
+        startFrame = 0;
+    }
+    if (endFrame >= SeqData.NumFrames()) {
+        endFrame = SeqData.NumFrames() - 1;
+    }
+    std::vector<NodeRange> ranges;
+    if (restrictToModel != nullptr) {
+        RenderTreeData data(restrictToModel);
+        ranges.reserve(data.ranges.size());
+        ranges.insert(ranges.end(), data.ranges.begin(), data.ranges.end());
+    } else {
+        ranges.push_back(NodeRange(0, SeqData.NumChannels()));
+    }
+    int numRows = models.size();
+    RenderJob **jobs = new RenderJob*[numRows];
+    AggregatorRenderer **aggregators = new AggregatorRenderer*[numRows];
+    std::vector<std::set<int>> channelMaps(SeqData.NumChannels());
+    
+    size_t row = 0;
+    for (auto it = models.begin(); it != models.end(); it++, row++) {
+        jobs[row] = nullptr;
+        aggregators[row] = new AggregatorRenderer(SeqData.NumFrames());
+
+        Element *rowEl = mSequenceElements.GetElement((*it)->GetName());
+        if (rowEl->GetType() == ELEMENT_TYPE_MODEL) {
+            ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
+            bool hasEffects = HasEffects(me);
+            if (hasEffects || (*it == restrictToModel && clear)) {
+                RenderJob *job = new RenderJob(me, SeqData, this, false);
+                job->setRenderRange(startFrame, endFrame);
+                job->SetRangeRestriction(ranges, false);
+                if (mSequenceElements.SupportsModelBlending()) {
+                    job->SetModelBlending();
+                }
+                PixelBufferClass *buffer = job->getBuffer();
+                if (buffer == nullptr) {
+                    delete job;
+                    continue;
+                }
+                
+                jobs[row] = job;
+                aggregators[row]->addNext(job);
+                size_t cn = buffer->GetChanCountPerNode();
+                for (int node = 0; node < buffer->GetNodeCount(); node++) {
+                    int start = buffer->NodeStartChannel(node);
+                    for (int c = 0; c < cn; c++) {
+                        int cnum = start + c;
+                        if (cnum < SeqData.NumChannels()) {
+                            for (auto i = channelMaps[cnum].begin(); i != channelMaps[cnum].end(); i++) {
+                                int idx = *i;
+                                if (idx != row) {
+                                    if (jobs[idx]->addNext(aggregators[row])) {
+                                        aggregators[row]->incNumAggregated();
+                                    }
+                                }
+                            }
+                            channelMaps[cnum].insert(row);
+                        }
+                    }
+                }
+            }
         }
-        int endframe = endms / SeqData.FrameTime() + 1;
-        if (endframe >= SeqData.NumFrames()) {
-            endframe = SeqData.NumFrames() - 1;
+    }
+    channelMaps.clear();
+    
+    if (progressDialog) {
+        renderProgressDialog = new RenderProgressDialog(this);
+    }
+    bool first = true;
+    unsigned int count = 0;
+    for (size_t row = 0; row < numRows; row++) {
+        if (jobs[row]) {
+            if (aggregators[row]->getNumAggregated() == 0) {
+                //start all the jobs that don't depend on anything above them
+                //get them rendering while we setup the rest
+                jobs[row]->setPreviousFrameDone(END_OF_RENDER_FRAME);
+                if (first && clear) {
+                    jobs[row]->SetRangeRestriction(ranges, clear);
+                    first = false;
+                }
+                jobPool.PushJob(jobs[row]);
+                count++;
+            }
+            if (progressDialog) {
+                wxStaticText *label = new wxStaticText(renderProgressDialog->scrolledWindow, wxID_ANY, jobs[row]->GetName());
+                renderProgressDialog->scrolledWindowSizer->Add(label,1, wxALL |wxEXPAND,3);
+                wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 99);
+                g->SetValue(0);
+                g->SetMinSize(wxSize(100, -1));
+                renderProgressDialog->scrolledWindowSizer->Add(g, 1, wxALL |wxEXPAND,3);
+                jobs[row]->SetGauge(g);
+            }
         }
-        job->setRenderRange(startframe, endframe);
-        job->setPreviousFrameDone(END_OF_RENDER_FRAME);
-        jobPool.PushJob(job);
+    }
+    for (size_t row = 0; row < numRows; row++) {
+        if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
+            //now start the rest
+            jobPool.PushJob(jobs[row]);
+            count++;
+        }
+    }
+    if (count) {
+        if (progressDialog) {
+            renderProgressDialog->SetSize(250, 400);
+            renderProgressDialog->scrolledWindow->SetSizer(renderProgressDialog->scrolledWindowSizer);
+            renderProgressDialog->scrolledWindow->FitInside();
+            renderProgressDialog->scrolledWindow->SetScrollRate(5, 5);
+        }
+        
+        RenderProgressInfo *pi = new RenderProgressInfo(std::move(callback));
+        pi->numRows = numRows;
+        pi->startFrame = startFrame;
+        pi->endFrame = endFrame;
+        pi->jobs = jobs;
+        pi->aggregators = aggregators;
+        renderProgressInfo.push_back(pi);
+    } else {
+        printf("NO JOBS!!!\n");
+    }
+}
+void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
+    BuildRenderTree();
+    if (renderTree.data.empty()) {
+        //nothing to do....
+        return;
+    }
+    const int numRows = mSequenceElements.GetElementCount();
+    if (numRows == 0) {
+        return;
+    }
+    std::list<Model *> models;
+    for (auto it = renderTree.data.begin(); it != renderTree.data.end(); it++) {
+        models.push_back((*it)->model);
+    }
+    Render(models, nullptr, 0, SeqData.NumFrames() - 1, true, false, std::move(callback));
+}
+
+void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
+    BuildRenderTree();
+    
+    int startframe = startms / SeqData.FrameTime() - 1;
+    if (startframe < 0) {
+        startframe = 0;
+    }
+    int endframe = endms / SeqData.FrameTime() + 1;
+    if (endframe >= SeqData.NumFrames()) {
+        endframe = SeqData.NumFrames() - 1;
+    }
+    for (auto it = renderTree.data.begin(); it != renderTree.data.end(); it++) {
+        if ((*it)->model->GetName() == model) {
+            Render((*it)->renderOrder, (*it)->model, startframe, endframe, false, true, [] {});
+        }
     }
 }
 

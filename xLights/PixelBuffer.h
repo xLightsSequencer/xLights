@@ -30,6 +30,7 @@
 #include "models/SingleLineModel.h"
 #include "RenderBuffer.h"
 #include "ValueCurve.h"
+#include "RenderUtils.h"
 
 /**
  * \brief enumeration of the different techniques used in layering effects
@@ -213,7 +214,7 @@ public:
 
     void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers);
     void SetColors(int layer, const unsigned char *fdata);    
-    void GetColors(unsigned char *fdata);
+    void GetColors(unsigned char *fdata, const std::vector<NodeRange> &restrictRange);
 };
 typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;
 

@@ -806,7 +806,7 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
 
             GetModelScreenLocation().Read(ModelXml);
 
-            xlights->MarkEffectsFileDirty();
+            xlights->MarkEffectsFileDirty(true);
         }
         else
         {

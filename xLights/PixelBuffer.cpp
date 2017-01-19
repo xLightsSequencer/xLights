@@ -109,7 +109,7 @@ void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, bool
     {
         model = &pbc;
     }
-    reset(layers, timing);
+    reset(layers + 1, timing);
 }
 void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing, int layers)
 {
@@ -1185,8 +1185,18 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 {
     layers[layer]->buffer.SetEffectDuration(startTime, endTime);
 }
-
-void PixelBufferClass::GetColors(unsigned char *fdata) {
+static inline bool IsInRange(const std::vector<NodeRange> &restrictRange, size_t start) {
+    if (restrictRange.empty()) {
+        return true;
+    }
+    for (auto it = restrictRange.begin(); it != restrictRange.end(); it++) {
+        if (start >= it->start && start <= it->end) {
+            return true;
+        }
+    }
+    return false;
+}
+void PixelBufferClass::GetColors(unsigned char *fdata, const std::vector<NodeRange> &restrictRange) {
 
     // KW ... I think this needs to be optimised
 
@@ -1194,17 +1204,19 @@ void PixelBufferClass::GetColors(unsigned char *fdata) {
     {
         for (size_t n = 0; n < layers[0]->buffer.Nodes.size(); n++) {
             size_t start = NodeStartChannel(n);
-            if (layers[0]->buffer.Nodes[n]->model != nullptr) // nor this
-            {
-                DimmingCurve *curve = layers[0]->buffer.Nodes[n]->model->modelDimmingCurve;
-                if (curve != nullptr) {
-                    xlColor color;
-                    layers[0]->buffer.Nodes[n]->GetColor(color);
-                    curve->apply(color);
-                    layers[0]->buffer.Nodes[n]->SetColor(color);
+            if (IsInRange(restrictRange, start)) {
+                if (layers[0]->buffer.Nodes[n]->model != nullptr) // nor this
+                {
+                    DimmingCurve *curve = layers[0]->buffer.Nodes[n]->model->modelDimmingCurve;
+                    if (curve != nullptr) {
+                        xlColor color;
+                        layers[0]->buffer.Nodes[n]->GetColor(color);
+                        curve->apply(color);
+                        layers[0]->buffer.Nodes[n]->SetColor(color);
+                    }
                 }
+                layers[0]->buffer.Nodes[n]->GetForChannels(&fdata[start]);
             }
-            layers[0]->buffer.Nodes[n]->GetForChannels(&fdata[start]);
         }
     }
 }

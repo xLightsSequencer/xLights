@@ -405,7 +405,8 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 }
 
 
-xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this)
+xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this),
+    layoutPanel(nullptr)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
@@ -1182,7 +1183,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     ProgressBar->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&xLightsFrame::OnProgressBarDoubleClick, nullptr, this);
     ProgressBar->Hide();
     renderProgressDialog = nullptr;
-    renderProgressInfo = nullptr;
     selectedEffectPalette = "";
     selectedEffect = nullptr;
     playStartTime = playEndTime = 0;
@@ -1199,6 +1199,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     mStoredLayoutGroup = "Default";
     mDefaultNetworkSaveBtnColor = ButtonSaveSetup->GetBackgroundColour();
 
+    modelsChangeCount = 0;
 
     logger_base.debug("xLightsFrame constructor creating sequencer.");
 
@@ -2789,10 +2790,13 @@ void xLightsFrame::CheckUnsavedChanges()
     }
 }
 
-void xLightsFrame::MarkEffectsFileDirty()
+void xLightsFrame::MarkEffectsFileDirty(bool modelStructureChange)
 {
     layoutPanel->SetDirtyHiLight(true);
     UnsavedRgbEffectsChanges=true;
+    if (modelStructureChange) {
+        modelsChangeCount++;
+    }
 }
 
 unsigned int xLightsFrame::GetMaxNumChannels() {

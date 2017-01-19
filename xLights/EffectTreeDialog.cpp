@@ -455,7 +455,7 @@ void EffectTreeDialog::OnTreeCtrl1ItemActivated(wxTreeEvent& event)
 
 void EffectTreeDialog::EffectsFileDirty()
 {
-    xLightParent->MarkEffectsFileDirty();
+    xLightParent->MarkEffectsFileDirty(false);
 }
 
 void EffectTreeDialog::OnButton_OKClick(wxCommandEvent& event)

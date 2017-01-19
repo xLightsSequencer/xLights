@@ -117,6 +117,7 @@ class SDL
 {
     SDLSTATE _state;
     std::list<AudioData*> _audioData;
+    std::mutex _audio_Lock;
     float _playbackrate;
     SDL_AudioSpec _wanted_spec;
     int _initialisedRate;

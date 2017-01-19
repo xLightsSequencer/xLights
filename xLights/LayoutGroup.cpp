@@ -34,7 +34,7 @@ void LayoutGroup::SetBackgroundImage(const wxString &filename)
                 mModelPreview->Update();
             }
         }
-        xlights->MarkEffectsFileDirty();
+        xlights->MarkEffectsFileDirty(false);
     }
 }
 
@@ -47,7 +47,7 @@ void LayoutGroup::SetBackgroundBrightness(int i)
         if( mModelPreview != nullptr ) {
             mModelPreview->SetBackgroundBrightness(mBackgroundBrightness);
         }
-        xlights->MarkEffectsFileDirty();
+        xlights->MarkEffectsFileDirty(false);
     }
 }
 
@@ -60,7 +60,7 @@ void LayoutGroup::SetBackgroundScaled(bool scaled)
         if( mModelPreview != nullptr ) {
             mModelPreview->SetScaleBackgroundImage(scaled);
         }
-        xlights->MarkEffectsFileDirty();
+        xlights->MarkEffectsFileDirty(false);
     }
 }
 
@@ -71,7 +71,7 @@ void LayoutGroup::SetPreviewPosition(wxPoint point)
         LayoutGroupXml->AddAttribute("PosX", wxString::Format("%d",point.x));
         LayoutGroupXml->DeleteAttribute("PosY");
         LayoutGroupXml->AddAttribute("PosY", wxString::Format("%d",point.y));
-        xlights->MarkEffectsFileDirty();
+        xlights->MarkEffectsFileDirty(false);
     }
 }
 
@@ -82,7 +82,7 @@ void LayoutGroup::SetPreviewSize(wxSize size_)
         LayoutGroupXml->AddAttribute("PaneWidth", wxString::Format("%d",size_.GetWidth()));
         LayoutGroupXml->DeleteAttribute("PaneHeight");
         LayoutGroupXml->AddAttribute("PaneHeight", wxString::Format("%d",size_.GetHeight()));
-        xlights->MarkEffectsFileDirty();
+        xlights->MarkEffectsFileDirty(false);
     }
 }
 

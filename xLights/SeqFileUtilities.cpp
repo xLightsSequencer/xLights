@@ -411,7 +411,7 @@ bool xLightsFrame::CloseSequence()
         {
             SaveSequence();
             //must wait for the rendering to complete
-            while (renderProgressInfo != nullptr) {
+            while (!renderProgressInfo.empty()) {
                 wxMilliSleep(10);
                 wxYield();
             }

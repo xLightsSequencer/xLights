@@ -15,15 +15,16 @@ using namespace Vamp;
 // SDL Functions
 SDL __sdl;
 int __globalVolume = 100;
-std::mutex __audio_Lock;
 int AudioData::__nextId = 0;
 
-void  fill_audio(void *udata, Uint8 *stream, int len)
+void fill_audio(void *udata, Uint8 *stream, int len)
 {
     //SDL 2.0
     SDL_memset(stream, 0, len);
+    
+    std::mutex *audio_lock = (std::mutex*)udata;
 
-    std::unique_lock<std::mutex> locker(__audio_Lock);
+    std::unique_lock<std::mutex> locker(*audio_lock);
 
     auto media = __sdl.GetAudio();
 
@@ -81,6 +82,7 @@ SDL::SDL()
     _wanted_spec.silence = 0;
     _wanted_spec.samples = 1024;
     _wanted_spec.callback = fill_audio;
+    _wanted_spec.userdata = &_audio_Lock;
 
     if (SDL_OpenAudio(&_wanted_spec, nullptr) < 0)
     {
@@ -106,7 +108,7 @@ SDL::~SDL()
         SDL_Quit();
     }
 
-    std::unique_lock<std::mutex> locker(__audio_Lock);
+    std::unique_lock<std::mutex> locker(_audio_Lock);
 
     while (_audioData.size() >0)
     {
@@ -118,7 +120,7 @@ SDL::~SDL()
 
 int SDL::Tell(int id)
 {
-    std::unique_lock<std::mutex> locker(__audio_Lock);
+    std::unique_lock<std::mutex> locker(_audio_Lock);
 
     auto d=  GetData(id);
 
@@ -129,7 +131,7 @@ int SDL::Tell(int id)
 
 void SDL::Seek(int id, int pos)
 {
-    std::unique_lock<std::mutex> locker(__audio_Lock);
+    std::unique_lock<std::mutex> locker(_audio_Lock);
 
     auto d = GetData(id);
 
@@ -140,7 +142,7 @@ void SDL::Seek(int id, int pos)
 
 void SDL::SeekAndLimitPlayLength(int id, int pos, int len)
 {
-    std::unique_lock<std::mutex> locker(__audio_Lock);
+    std::unique_lock<std::mutex> locker(_audio_Lock);
 
     auto d = GetData(id);
 
@@ -159,7 +161,7 @@ void SDL::Reopen()
 
     if (_state == SDLSTATE::SDLPLAYING) Stop();
 
-    std::unique_lock<std::mutex> locker(__audio_Lock);
+    std::unique_lock<std::mutex> locker(_audio_Lock);
 
     for (auto it = _audioData.begin(); it != _audioData.end(); ++it)
     {
@@ -177,6 +179,7 @@ void SDL::Reopen()
     _wanted_spec.silence = 0;
     _wanted_spec.samples = 1024;
     _wanted_spec.callback = fill_audio;
+    _wanted_spec.userdata = &_audio_Lock;
 
     logger_base.info("Starting audio with frequency %d.", _wanted_spec.freq);
 
@@ -202,7 +205,7 @@ void SDL::Reopen()
 
 int SDL::GetVolume(int id)
 {
-    std::unique_lock<std::mutex> locker(__audio_Lock);
+    std::unique_lock<std::mutex> locker(_audio_Lock);
 
     auto d = GetData(id);
 
@@ -214,7 +217,7 @@ int SDL::GetVolume(int id)
 // volume is 0->100
 void SDL::SetVolume(int id, int volume)
 {
-    std::unique_lock<std::mutex> locker(__audio_Lock);
+    std::unique_lock<std::mutex> locker(_audio_Lock);
 
     auto d = GetData(id);
 
@@ -307,7 +310,7 @@ int SDL::AddAudio(Uint64 len, Uint8* buffer, int volume, int rate, int tracksize
     ad->_trackSize = tracksize;
 
     {
-        std::unique_lock<std::mutex> locker(__audio_Lock);
+        std::unique_lock<std::mutex> locker(_audio_Lock);
         _audioData.push_back(ad);
     }
 
@@ -329,7 +332,7 @@ int SDL::AddAudio(Uint64 len, Uint8* buffer, int volume, int rate, int tracksize
 
 void SDL::RemoveAudio(int id)
 {
-    std::unique_lock<std::mutex> locker(__audio_Lock);
+    std::unique_lock<std::mutex> locker(_audio_Lock);
     auto toremove = GetData(id);
     if (toremove == nullptr) return;
     _audioData.remove(toremove);

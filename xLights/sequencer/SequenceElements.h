@@ -148,7 +148,8 @@ class SequenceElements : public ChangeListener
         EffectLayer* GetVisibleEffectLayer(int row);
 
         virtual void IncrementChangeCount(Element *el);
-        int GetChangeCount() { return mChangeCount;}
+        unsigned int GetChangeCount() { return mChangeCount;}
+        unsigned int GetMasterViewChangeCount() { return mMasterViewChangeCount;}
 
         bool HasPapagayoTiming() { return hasPapagayoTiming; }
 
@@ -157,6 +158,8 @@ class SequenceElements : public ChangeListener
 
         void AddRenderDependency(const std::string &layer, const std::string &model);
         bool GetElementsToRender(std::vector<Element *> &models);
+    
+        bool SupportsModelBlending() { return supportsModelBlending;}
 
         wxFileName &GetFileName() { return mFilename;}
         EffectManager &GetEffectManager();
@@ -199,12 +202,14 @@ class SequenceElements : public ChangeListener
         int mCurrentView;
         bool hasPapagayoTiming;
         int mSequenceEndMS;
+        bool supportsModelBlending;
 
         wxFileName mFilename;
 
         // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
         int mFirstVisibleModelRow;
-        int mChangeCount;
+        unsigned int mChangeCount;
+        unsigned int mMasterViewChangeCount;
         UndoManager undo_mgr;
 
         std::map<std::string, std::set<std::string>> renderDependency;

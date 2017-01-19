@@ -7,8 +7,8 @@
 #include <wx/clipbrd.h>
 
 //(*InternalHeaders(MainSequencer)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 #include <wx/dcbuffer.h>
@@ -149,10 +149,10 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     : touchBarSupport(), effectGridTouchbar(nullptr)
 {
 	//(*Initialize(MainSequencer)
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText1;
+	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(3, 3, 0, 0);

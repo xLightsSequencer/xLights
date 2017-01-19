@@ -182,7 +182,7 @@ JobPool::~JobPool()
 void JobPool::PushJob(Job *job)
 {
 	std::unique_lock<std::mutex> locker(lock);
-    if (idleThreads == 0 && numThreads < maxNumThreads) {
+    if ((idleThreads - queue.size()) <= 0 && numThreads < maxNumThreads) {
         numThreads++;
 
         JobPoolWorker *worker = new JobPoolWorker(&lock, &signal, &queue, idleThreads, numThreads);
