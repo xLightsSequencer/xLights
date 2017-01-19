@@ -296,6 +296,8 @@
 		<Unit filename="FSEQFile.h" />
 		<Unit filename="OptionsDialog.cpp" />
 		<Unit filename="OptionsDialog.h" />
+		<Unit filename="PlayListItemRDSPanel.cpp" />
+		<Unit filename="PlayListItemRDSPanel.h" />
 		<Unit filename="PlayList/PlayList.cpp" />
 		<Unit filename="PlayList/PlayList.h" />
 		<Unit filename="PlayList/PlayListDialog.cpp" />
@@ -396,6 +398,7 @@
 		<Unit filename="wxsmith/PlayListItemFSEQPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemImagePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemPJLinkPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemRDSPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunCommandPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunProcessPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
@@ -436,6 +439,7 @@
 					<wxDialog wxs="wxsmith/ScheduleDialog.wxs" src="ScheduleDialog.cpp" hdr="ScheduleDialog.h" fwddecl="0" i18n="1" name="ScheduleDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ProjectorDetailsDialog.wxs" src="ProjectorDetailsDialog.cpp" hdr="ProjectorDetailsDialog.h" fwddecl="0" i18n="1" name="ProjectorDetailsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ButtonDetailsDialog.wxs" src="ButtonDetailsDialog.cpp" hdr="ButtonDetailsDialog.h" fwddecl="0" i18n="1" name="ButtonDetailsDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemRDSPanel.wxs" src="PlayListItemRDSPanel.cpp" hdr="PlayListItemRDSPanel.h" fwddecl="0" i18n="1" name="PlayListItemRDSPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

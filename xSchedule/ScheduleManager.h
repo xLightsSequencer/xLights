@@ -34,6 +34,7 @@ class ScheduleManager
 
     public:
 
+        void ToggleMute();
         void SetVolume(int volume);
         void AdjustVolumeBy(int volume);
         int GetVolume() const;

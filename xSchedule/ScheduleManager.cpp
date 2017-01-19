@@ -733,6 +733,25 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     }
                 }
             }
+            else if (command == "Play playlist step")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = split[0].ToStdString();
+                std::string step = split[1].ToStdString();
+
+                PlayList* p = GetPlayList(pl);
+
+                if (p != nullptr)
+                {
+                    if (!PlayPlayList(p, rate, false, step, true))
+                    {
+                        result = false;
+                        msg = "Unable to start playlist.";
+                    }
+                }
+            }
             else if (command == "Jump to specified step in current playlist")
             {
                 PlayList* p = GetRunningPlayList();
@@ -798,6 +817,10 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             else if (command == "Toggle output to lights")
             {
                 result = ToggleOutputToLights(msg);
+            }
+            else if (command == "Toggle mute")
+            {
+                ToggleMute();
             }
             else if (command == "Increase brightness by n%")
             {
@@ -1309,4 +1332,18 @@ size_t ScheduleManager::GetTotalChannels() const
         return _outputManager->GetTotalChannels();
 
     return 0;
+}
+
+void ScheduleManager::ToggleMute()
+{
+    static int savevolume = 100;
+    if (GetVolume() > 0)
+    {
+        savevolume = GetVolume();
+        SetVolume(0);
+    }
+    else
+    {
+        SetVolume(savevolume);
+    }
 }

@@ -1617,14 +1617,5 @@ void xScheduleFrame::OnBitmapButton_VolumeUpClick(wxCommandEvent& event)
 
 void xScheduleFrame::OnCustom_VolumeLeftDown(wxMouseEvent& event)
 {
-    static int savevolume = 100;
-    if (__schedule->GetVolume() > 0)
-    {
-        savevolume = __schedule->GetVolume();
-        __schedule->SetVolume(0);
-    }
-    else
-    {
-        __schedule->SetVolume(savevolume);
-    }
+    __schedule->ToggleMute();
 }

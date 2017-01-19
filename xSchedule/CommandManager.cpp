@@ -154,6 +154,7 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Jump to specified step in current playlist", 1, st, false, false, true, false));
     _commands.push_back(new Command("Jump to specified step in current playlist at the end of current step", 1, st, false, false, true, false));
     _commands.push_back(new Command("Play playlist starting at step", 2, plst, false, false, false, false));
+    _commands.push_back(new Command("Play playlist step", 2, plst, false, false, false, false));
     _commands.push_back(new Command("Play playlist starting at step looped", 2, plst, false, false, false, false));
     _commands.push_back(new Command("Toggle loop current step", 0, {}, false, false, true, false));
     _commands.push_back(new Command("Play specified step in specified playlist looped", 2, plst, false, false, false, false));
@@ -172,5 +173,6 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("PressButton", 1, s, false, false, false, false));
     _commands.push_back(new Command("Restart selected schedule", 0, {}, false, true, false, true));
     _commands.push_back(new Command("Restart named schedule", 1, sch, false, false, false, true));
+    _commands.push_back(new Command("Toggle mute", 0, {}, false, false, false, false));
 }
 

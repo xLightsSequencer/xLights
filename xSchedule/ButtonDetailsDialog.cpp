@@ -125,7 +125,14 @@ void ButtonDetailsDialog::OnButton_OkClick(wxCommandEvent& event)
     _label = TextCtrl_Label->GetValue();
     _parameter = TextCtrl_Parameters->GetValue();
     _command = Choice_Command->GetStringSelection();
-    _hotkey = Choice_Hotkey->GetStringSelection()[0];
+    if (Choice_Hotkey->GetStringSelection() == "")
+    {
+        _hotkey = '~';
+    }
+    else
+    {
+        _hotkey = Choice_Hotkey->GetStringSelection()[0];
+    }
     EndDialog(wxID_OK);
 }
 
