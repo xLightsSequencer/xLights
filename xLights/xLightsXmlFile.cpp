@@ -1829,8 +1829,8 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
                                 int startTime, endTime;
                                 for (size_t k = 0; k < grid_times.GetCount()-1; ++k )
                                 {
-                                    startTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k]),xLightsParent->GetSequenceElements().GetFrequency());
-                                    endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k+1]),xLightsParent->GetSequenceElements().GetFrequency());
+                                    startTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k]),GetFrequency());
+                                    endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k+1]),GetFrequency());
                                     if( sequence_loaded )
                                     {
                                         effectLayer->AddEffect(0,"","","",startTime,endTime,EFFECT_NOT_SELECTED,false);
@@ -2404,7 +2404,7 @@ void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayStri
     wxTextFile f;
     wxString line;
     wxString desc;
-    
+
     xLightsParent->SetCursor(wxCURSOR_WAIT);
     Element* element = nullptr;
     EffectLayer* effectLayer = nullptr;
@@ -2415,17 +2415,17 @@ void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayStri
     {
         wxFileName next_file(filenames[i]);
         next_file.SetPath(dir);
-        
+
         logger_base.info("Loading sequence file " + std::string(next_file.GetFullPath().c_str()));
         xLightsXmlFile file(next_file);
         file.LoadSequence(dir, true);
-        
+
         SequenceElements se(xLightsParent);
         se.SetFrequency(file.GetFrequency());
         se.SetViewsNode(xLightsParent->GetViewsNode()); // This must come first before LoadSequencerFile.
         se.LoadSequencerFile(file, xLightsParent->GetShowDirectory());
         file.AdjustEffectSettingsForVersion(se, xLightsParent);
-        
+
         std::vector<TimingElement *> elements;
         wxArrayString names;
         for (size_t e = 0; e < se.GetElementCount(); e++) {
@@ -2441,7 +2441,7 @@ void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayStri
         wxMultiChoiceDialog dlg(xLightsParent, "Select timing tracks to import", "Import Timing Tracks", names);
         if (dlg.ShowModal() == wxID_OK) {
             wxArrayInt selections = dlg.GetSelections();
-            
+
             for (int i = 0; i < selections.size(); i++) {
                 TimingElement *ti = elements[selections[i]];
                 if (sequence_loaded) {
