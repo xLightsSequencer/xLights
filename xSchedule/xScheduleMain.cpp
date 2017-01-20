@@ -430,8 +430,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     int x, y, w, h;
     wxConfigBase* config = wxConfigBase::Get();
-    x = config->ReadLong("xsWindowPosX", 0);
-    y = config->ReadLong("xsWindowPosY", 0);
+    x = config->ReadLong("xsWindowPosX", 50);
+    y = config->ReadLong("xsWindowPosY", 50);
     w = config->ReadLong("xsWindowPosW", 800);
     h = config->ReadLong("xsWindowPosH", 600);
     SetPosition(wxPoint(x, y));

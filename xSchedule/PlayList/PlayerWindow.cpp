@@ -11,7 +11,9 @@ END_EVENT_TABLE()
 PlayerWindow::PlayerWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     _image = wxImage(size, true);
+#ifndef __WXOSX__
 	SetDoubleBuffered(true);
+#endif
     _dragging = false;
 	
 	Create(parent, id, "Player Window", pos , size, wxBORDER_NONE, _T("id"));

@@ -99,8 +99,8 @@ PlayListItemAllOffPanel::PlayListItemAllOffPanel(wxWindow* parent, PlayListItemA
     SpinCtrl_StartChannel->SetValue(alloff->GetStartChannel());
 
     long channels = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
-    SpinCtrl_StartChannel->SetMax(channels);
-    SpinCtrl_Channels->SetMax(channels);
+    SpinCtrl_StartChannel->SetRange(1, channels);
+    SpinCtrl_Channels->SetRange(1, channels);
 
     int chs = alloff->GetChannels();
     if (chs == 0)
