@@ -213,6 +213,8 @@
     <ClCompile Include="PlayList\PlayListItemImagePanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemPJLink.cpp" />
     <ClCompile Include="PlayList\PlayListItemPJLinkPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemRDS.cpp" />
+    <ClCompile Include="PlayList\PlayListItemRDSPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemRunCommand.cpp" />
     <ClCompile Include="PlayList\PlayListItemRunCommandPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemRunProcess.cpp" />
@@ -288,6 +290,8 @@
     <ClInclude Include="PlayList\PlayListItemImagePanel.h" />
     <ClInclude Include="PlayList\PlayListItemPJLink.h" />
     <ClInclude Include="PlayList\PlayListItemPJLinkPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemRDS.h" />
+    <ClInclude Include="PlayList\PlayListItemRDSPanel.h" />
     <ClInclude Include="PlayList\PlayListItemRunCommand.h" />
     <ClInclude Include="PlayList\PlayListItemRunCommandPanel.h" />
     <ClInclude Include="PlayList\PlayListItemRunProcess.h" />

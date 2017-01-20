@@ -144,7 +144,7 @@ wxImage PlayListItemVideo::CreateImageFromFrame(AVFrame* frame)
     }
 }
 
-void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems)
+void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     AVFrame* img = _videoReader->GetNextFrame(ms);
     _window->SetImage(CreateImageFromFrame(img));

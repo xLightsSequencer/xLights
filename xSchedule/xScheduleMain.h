@@ -47,6 +47,8 @@ class xScheduleFrame : public wxFrame
     static ScheduleManager* __schedule;
     std::string _showDir;
     wxDateTime _statusSetAt;
+    bool _timerOutputFrame;
+
     void LoadShowDir();
     void SaveShowDir() const;
     void UpdateTree() const;
@@ -84,7 +86,7 @@ class xScheduleFrame : public wxFrame
 public:
 
         static ScheduleManager* GetScheduleManager() { return __schedule; }
-        xScheduleFrame(wxWindow* parent,wxWindowID id = -1);
+        xScheduleFrame(wxWindow* parent, const std::string& showdir = "", const std::string& playlist = "", wxWindowID id = -1);
         virtual ~xScheduleFrame();
         void CreateDebugReport(wxDebugReportCompress *report);
         void CreateButton(const std::string& label);

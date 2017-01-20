@@ -229,6 +229,12 @@
       <Filter>PlayList</Filter>
     </ClCompile>
     <ClCompile Include="CommandManager.cpp" />
+    <ClCompile Include="PlayList\PlayListItemRDSPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemRDS.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -400,6 +406,12 @@
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="CommandManager.h" />
+    <ClInclude Include="PlayList\PlayListItemRDSPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemRDS.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

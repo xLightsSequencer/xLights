@@ -19,7 +19,6 @@ PlayList::PlayList(wxXmlNode* node)
     _id = __playlistid++;
     _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
-    _priority = 0;
     _lastLoop = false;
     _looping = false;
     _random = false;
@@ -50,7 +49,6 @@ PlayList& PlayList::operator=(PlayList& playlist)
     _firstOnlyOnce = playlist._firstOnlyOnce;
     _lastOnlyOnce = playlist._lastOnlyOnce;
     _name = playlist._name;
-    _priority = playlist._priority;
     _loops = playlist._loops;
     _id = playlist._id;
 
@@ -94,7 +92,6 @@ PlayList::PlayList(const PlayList& playlist)
     _firstOnlyOnce = playlist._firstOnlyOnce;
     _lastOnlyOnce = playlist._lastOnlyOnce;
     _name = playlist._name;
-    _priority = playlist._priority;
     _loops = playlist._loops;
     _id = playlist._id;
     for (auto it = playlist._steps.begin(); it != playlist._steps.end(); ++it)
@@ -116,7 +113,6 @@ PlayList::PlayList()
     _id = __playlistid++;
     _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
-    _priority = 0;
     _loopStep = false;
     _lastLoop = false;
     _random = false;
@@ -348,7 +344,7 @@ int PlayList::GetPos(PlayListStep* step)
     return -1;
 }
 
-bool PlayList::Frame(wxByte* buffer, size_t size)
+bool PlayList::Frame(wxByte* buffer, size_t size, bool outputframe)
 {
     if (_currentStep != nullptr)
     {
@@ -358,7 +354,7 @@ bool PlayList::Frame(wxByte* buffer, size_t size)
         }
 
         // This returns true if everything is done
-        if (_currentStep->Frame(buffer, size))
+        if (_currentStep->Frame(buffer, size, outputframe))
         {
             return !MoveToNextStep();
         }

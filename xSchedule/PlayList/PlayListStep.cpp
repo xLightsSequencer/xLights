@@ -6,6 +6,7 @@
 #include "PlayListItemImage.h"
 #include "PlayListItemESEQ.h"
 #include "PlayListItemFSEQ.h"
+#include "PlayListItemRDS.h"
 #include "PlayListItemPJLink.h"
 #include "PlayListItemAllOff.h"
 #include "PlayListItemDelay.h"
@@ -49,6 +50,8 @@ PlayListStep::PlayListStep()
 
 PlayListStep::PlayListStep(const PlayListStep& step)
 {
+    _pause = 0;
+    _suspend = 0;
     _loops = step._loops;
     _framecount = step._framecount;
     _name = step._name;
@@ -115,6 +118,10 @@ void PlayListStep::Load(wxXmlNode* node)
         else if (n->GetName() == "PLIFSEQ")
         {
             _items.push_back(new PlayListItemFSEQ(n));
+        }
+        else if (n->GetName() == "PLIRDS")
+        {
+            _items.push_back(new PlayListItemRDS(n));
         }
         else if (n->GetName() == "PLIPJLink")
         {
@@ -227,7 +234,7 @@ PlayListItem* PlayListStep::GetTimeSource(size_t &ms) const
     return timesource;
 }
 
-bool PlayListStep::Frame(wxByte* buffer, size_t size)
+bool PlayListStep::Frame(wxByte* buffer, size_t size, bool outputframe)
 {
     size_t msPerFrame = 1000;
     PlayListItem* timesource = GetTimeSource(msPerFrame);
@@ -249,7 +256,7 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size)
 
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        (*it)->Frame(buffer, size, frameMS, msPerFrame);
+        (*it)->Frame(buffer, size, frameMS, msPerFrame, outputframe);
     }
 
     if (timesource != nullptr)

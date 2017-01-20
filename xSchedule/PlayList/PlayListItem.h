@@ -55,7 +55,7 @@ public:
     size_t GetPriority() const { return _priority; }
     void SetPriority(size_t priority) { if (_priority != priority) { _priority = priority; _changeCount++; } }
     virtual bool Done() const { return false; }
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems) = 0;
+    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) = 0;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() = 0;

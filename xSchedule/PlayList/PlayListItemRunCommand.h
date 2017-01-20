@@ -32,13 +32,21 @@ public:
     #pragma region Getters and Setters
     std::string GetNameNoTime() const override;
     std::string GetRawName() const { return _name; }
-    void SetCommand(const std::string& command) { _command = command; }
+    void SetCommand(const std::string& command) {
+        if (_command != command) { _command = command; _changeCount++; }
+    }
     std::string GetCommand() const { return _command; }
-    void SetParm1(const std::string& parm) { _parm1 = parm; }
+    void SetParm1(const std::string& parm) {
+        if (_parm1 != parm) { _parm1 = parm; _changeCount++; }
+    }
     std::string GetParm1() const { return _parm1; }
-    void SetParm2(const std::string& parm) { _parm2 = parm; }
+    void SetParm2(const std::string& parm) {
+        if (_parm2 != parm) { _parm2 = parm; _changeCount++; }
+    }
     std::string GetParm2() const { return _parm2; }
-    void SetParm3(const std::string& parm) { _parm3 = parm; }
+    void SetParm3(const std::string& parm) {
+        if (_parm3 != parm) { _parm3 = parm; _changeCount++; }
+    }
     std::string GetParm3() const { return _parm3; }
     std::list<std::string> GetCommands() const;
     #pragma endregion Getters and Setters
@@ -47,7 +55,7 @@ public:
     void Load(wxXmlNode* node) override;
 
     #pragma region Playing
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems) override;
+    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     virtual void Start() override;
     #pragma endregion Playing
 

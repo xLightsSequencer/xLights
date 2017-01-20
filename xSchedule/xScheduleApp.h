@@ -23,6 +23,7 @@ class xScheduleApp : public wxApp
     public:
         virtual bool OnInit();
         virtual void OnFatalException();
+        void WipeSettings();
 };
 
 DECLARE_APP(xScheduleApp)

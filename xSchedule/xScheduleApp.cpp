@@ -26,6 +26,8 @@
 #include "../xLights/outputs/OutputManager.h"
 #include <wx/stdpaths.h>
 #include <wx/debugrpt.h>
+#include <wx/cmdline.h>
+#include <wx/confbase.h>
 
 IMPLEMENT_APP(xScheduleApp)
 
@@ -430,6 +432,15 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 }
 #endif
 
+void xScheduleApp::WipeSettings()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Wiping settings.");
+
+    wxConfigBase* config = wxConfigBase::Get();
+    config->DeleteAll();
+}
+
 bool xScheduleApp::OnInit()
 {
     wxLog::SetLogLevel(wxLOG_FatalError);
@@ -451,12 +462,55 @@ bool xScheduleApp::OnInit()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: xSchedule started.");
 
+    static const wxCmdLineEntryDesc cmdLineDesc[] =
+    {
+        { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters", wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+        { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
+        { wxCMD_LINE_OPTION, "p", "playlist", "specify the playlist to play" },
+        { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
+        { wxCMD_LINE_NONE }
+    };
+
+    bool parmfound = false;
+    wxString showDir;
+    wxString playlist;
+    wxCmdLineParser parser(cmdLineDesc, argc, argv);
+    switch (parser.Parse()) {
+    case -1:
+        // help was given
+        return false;
+    case 0:
+        if (parser.Found("w"))
+        {
+            parmfound = true;
+            logger_base.info("-w: Wiping settings");
+            WipeSettings();
+        }
+        if (parser.Found("s", &showDir)) {
+            parmfound = true;
+            logger_base.info("-s: Show directory set to %s.", (const char *)showDir.c_str());
+        }
+        if (parser.Found("p", &playlist)) {
+            parmfound = true;
+            logger_base.info("-p: Playlist to play %s.", (const char *)playlist.c_str());
+        }
+        if (!parmfound && parser.GetParamCount() > 0)
+        {
+            logger_base.info("Unrecognised command line parameter found.");
+            wxMessageBox("Unrecognised command line parameter found.", _("Command Line Options")); //give positive feedback*/
+        }
+        break;
+    default:
+        wxMessageBox(_("Unrecognized command line parameters"), _("Command Line Error"));
+        return false;
+    }
+
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
     if ( wxsOK )
     {
-    	xScheduleFrame* Frame = new xScheduleFrame(0);
+    	xScheduleFrame* Frame = new xScheduleFrame(0, showDir.ToStdString(), playlist.ToStdString());
         topFrame = Frame;
     	Frame->Show();
     	SetTopWindow(Frame);

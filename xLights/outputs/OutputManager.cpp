@@ -599,6 +599,8 @@ void OutputManager::EndFrame()
 #pragma region Start and Stop
 bool OutputManager::StartOutput()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (_outputting) return false;
     if (!_outputCriticalSection.TryEnter()) return false;
 
@@ -611,7 +613,8 @@ bool OutputManager::StartOutput()
         ok = (*it)->Open() && ok;
         if (!ok && ok != preok)
         {
-            if (wxMessageBox("Do you want to continue trying to start output?", "Continue?", wxYES_NO) == wxNO) return _outputting;
+            logger_base.error("An error occured opening output %d (%s). Do you want to continue trying to start output?", started + 1, (const char *)(*it)->GetDescription().c_str());
+            if (wxMessageBox(wxString::Format(wxT("An error occured opening output %d (%s). Do you want to continue trying to start output?"), started+1, (*it)->GetDescription()), "Continue?", wxYES_NO) == wxNO) return _outputting;
         }
         if (ok) started++;
         _outputting = (started > 0);

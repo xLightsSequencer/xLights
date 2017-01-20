@@ -6,7 +6,6 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
-#include <wx/spinctrl.h>
 #include <wx/panel.h>
 //*)
 
@@ -22,10 +21,8 @@ class PlayListPanel: public wxPanel
 		virtual ~PlayListPanel();
 
 		//(*Declarations(PlayListPanel)
-		wxStaticText* StaticText2;
 		wxCheckBox* CheckBox_LastStepOnce;
 		wxStaticText* StaticText1;
-		wxSpinCtrl* SpinCtrl_Priority;
 		wxCheckBox* CheckBox_FirstOnce;
 		wxTextCtrl* TextCtrl_PlayListName;
 		//*)
@@ -37,8 +34,6 @@ class PlayListPanel: public wxPanel
 		static const long ID_TEXTCTRL1;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
-		static const long ID_STATICTEXT2;
-		static const long ID_SPINCTRL1;
 		//*)
 
 	private:

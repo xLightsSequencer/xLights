@@ -24,7 +24,6 @@ protected:
     bool _firstOnlyOnce;
     bool _lastOnlyOnce;
     PlayListStep* _currentStep;
-    int _priority;
     wxDateTime _pauseTime;
     wxDateTime _suspendTime;
     bool _looping;
@@ -79,9 +78,7 @@ public:
     bool GetLastOnce() const
     { return _lastOnlyOnce; }
     void SetLastOnce(bool foo) { if (_lastOnlyOnce != foo) { _lastOnlyOnce = foo; _changeCount++; } }
-    int GetPriority() const { return _priority; }
-    void SetPriority(int priority) { if (_priority != priority) { _priority = priority; _changeCount++; } }
-    bool Frame(wxByte* buffer, size_t size); // true if this was the last frame
+    bool Frame(wxByte* buffer, size_t size, bool outputframe); // true if this was the last frame
     int GetPlayListSize() const { return _steps.size(); }
     bool IsLooping() const { return _looping; }
     void StopAtEndOfThisLoop() { _lastLoop = true; }

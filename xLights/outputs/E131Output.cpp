@@ -152,6 +152,7 @@ void E131Output::SendSync(int syncUniverse)
 #pragma region Start and Stop
 bool E131Output::Open()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_enabled) return false;
 
     if (IsOutputCollection())
@@ -229,6 +230,10 @@ bool E131Output::Open()
         localaddr.AnyAddress();
 
         _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+        if (_datagram == nullptr)
+        {
+            logger_base.error("E131Output: Error opening datagram.");
+        }
 
         if (wxString(_ip).StartsWith("239.255.") || _ip == "MULTICAST")
         {

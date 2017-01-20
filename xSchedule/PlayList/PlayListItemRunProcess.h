@@ -29,17 +29,19 @@ public:
     #pragma region Getters and Setters
     std::string GetNameNoTime() const override;
     std::string GetRawName() const { return _name; }
-    void SetCommand(const std::string& command) { _command = command; }
+    void SetCommand(const std::string& command) { if (_command != command) { _command = command; _changeCount++; } }
     std::string GetCommand() const { return _command; }
     bool GetWaitForCompletion() const { return _waitForCompletion; }
-    void SetWaitForCompletion(bool waitForCompletion) { _waitForCompletion = waitForCompletion; }
+    void SetWaitForCompletion(bool waitForCompletion) {
+        if (_waitForCompletion != waitForCompletion) { _waitForCompletion = waitForCompletion; _changeCount++; }
+    }
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
     void Load(wxXmlNode* node) override;
 
     #pragma region Playing
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems) override;
+    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     virtual void Start() override;
     #pragma endregion Playing
 

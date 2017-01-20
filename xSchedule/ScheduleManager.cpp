@@ -216,17 +216,23 @@ void ScheduleManager::StopAll()
     }
 }
 
-void ScheduleManager::Frame()
+void ScheduleManager::Frame(bool outputframe)
 {
     PlayList* running = GetRunningPlayList();
 
     if (running != nullptr)
     {
         long msec = wxGetUTCTimeMillis().GetLo() - _startTime;
-        _outputManager->StartFrame(msec);
-        bool done = running->Frame(_buffer, _outputManager->GetTotalChannels());
-        _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
-        _outputManager->EndFrame();
+        if (outputframe)
+        {
+            _outputManager->StartFrame(msec);
+        }
+        bool done = running->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+        if (outputframe)
+        {
+            _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
+            _outputManager->EndFrame();
+        }
 
         if (done)
         {
@@ -244,7 +250,7 @@ void ScheduleManager::Frame()
         }
     }
 
-    if (_brightness < 100)
+    if (outputframe && _brightness < 100)
     {
         if (_brightness != _lastBrightness)
         {

@@ -246,11 +246,12 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_STATUSMSG, xScheduleFrame::StatusMsgNotification)
     END_EVENT_TABLE()
 
-xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
+xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, const std::string& playlist, wxWindowID id)
 {
     _statusSetAt = wxDateTime::Now();
     __schedule = nullptr;
     _webServer = nullptr;
+    _timerOutputFrame = false;
 
     //(*Initialize(xScheduleFrame)
     wxMenuItem* MenuItem2;
@@ -454,16 +455,30 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent,wxWindowID id)
     BitmapButton_VolumeDown->SetBitmap(_volumedown);
     BitmapButton_VolumeUp->SetBitmap(_volumeup);
 
-    LoadShowDir();
+    if (showdir == "")
+    {
+        LoadShowDir();
+    }
+    else
+    {
+        _showDir = showdir;
+    }
 
     __schedule = new ScheduleManager(_showDir);
 
     LoadSchedule();
 
     wxFrame::SendSizeEvent();
+    size_t rate = 50;
+
+    if (playlist != "")
+    {
+        auto p = __schedule->GetPlayList(playlist);
+        __schedule->PlayPlayList(p, rate, true);
+    }
 
     _timer.Stop();
-    _timer.Start(50, false);
+    _timer.Start(rate/2, false);
     _timerSchedule.Stop();
     _timerSchedule.Start(500, true);
 
@@ -486,7 +501,16 @@ void xScheduleFrame::LoadSchedule()
     }
     _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort());
 
-    StaticText_ShowDir->SetLabel(_showDir);
+    if (wxFile::Exists(_showDir + "/xlights_networks.xml"))
+    {
+        StaticText_ShowDir->SetLabel(_showDir);
+        StaticText_ShowDir->SetForegroundColour(*wxBLACK);
+    }
+    else
+    {
+        StaticText_ShowDir->SetLabel(_showDir + " : Missing xlights_networks.xml");
+        StaticText_ShowDir->SetForegroundColour(*wxRED);
+    }
 
     UpdateTree();
 
@@ -819,7 +843,9 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
     if (__schedule == nullptr) return;
-    __schedule->Frame();
+
+    __schedule->Frame(_timerOutputFrame);
+    _timerOutputFrame = !_timerOutputFrame;
 
     UpdateStatus();
 
@@ -906,10 +932,10 @@ void xScheduleFrame::UpdateSchedule()
     }
 
     // if the desired rate is different than the current rate then restart timer with the desired rate
-    if (_timer.GetInterval() != rate)
+    if (_timer.GetInterval() != rate / 2)
     {
         _timer.Stop();
-        _timer.Start(rate);
+        _timer.Start(rate / 2);
     }
 
     // Ensure I am firing on the minute
@@ -1005,10 +1031,10 @@ void xScheduleFrame::CreateButtons()
 
 void xScheduleFrame::RateNotification(wxCommandEvent& event)
 {
-    if (_timer.GetInterval() != event.GetInt())
+    if (_timer.GetInterval() != event.GetInt() / 2)
     {
         _timer.Stop();
-        _timer.Start(event.GetInt());
+        _timer.Start(event.GetInt() / 2);
     }
 }
 
@@ -1037,10 +1063,10 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
     std::string msg = "";
     __schedule->Action(((wxButton*)event.GetEventObject())->GetLabel().ToStdString(), playlist, schedule, rate, msg);
 
-    if (rate != _timer.GetInterval())
+    if (rate / 2 != _timer.GetInterval())
     {
         _timer.Stop();
-        _timer.Start(rate);
+        _timer.Start(rate / 2);
     }
 
     UpdateSchedule();
@@ -1590,10 +1616,10 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
             std::string msg = "";
             __schedule->Action(*it, playlist, schedule, rate, msg);
 
-            if (rate != _timer.GetInterval())
+            if (rate / 2 != _timer.GetInterval())
             {
                 _timer.Stop();
-                _timer.Start(rate);
+                _timer.Start(rate / 2);
             }
 
             UpdateSchedule();

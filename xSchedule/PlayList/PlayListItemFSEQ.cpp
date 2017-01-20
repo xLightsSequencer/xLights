@@ -194,9 +194,12 @@ size_t PlayListItemFSEQ::GetPositionMS() const
     return 0;
 }
 
-void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems)
+void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod);
+    if (outputframe)
+    {
+        _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod);
+    }
 }
 
 void PlayListItemFSEQ::Restart()

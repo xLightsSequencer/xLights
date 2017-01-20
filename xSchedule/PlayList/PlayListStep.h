@@ -59,13 +59,12 @@ public:
     bool IsPaused() const { return _pause != 0; }
     void Stop();
     void Suspend(bool suspend);
-    void StartSuspended();
     void Restart();
     void Pause(bool pause);
     int GetPlayStepSize() const { return _items.size(); }
     void AddItem(PlayListItem* item) { _items.push_back(item); _items.sort(); _changeCount++; }
     void RemoveItem(PlayListItem* item);
-    bool Frame(wxByte* buffer, size_t size);
+    bool Frame(wxByte* buffer, size_t size, bool outputframe);
     size_t GetPosition() const;
     size_t GetLengthMS() const;
     size_t GetFrameMS() const;

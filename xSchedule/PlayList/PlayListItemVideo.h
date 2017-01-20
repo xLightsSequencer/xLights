@@ -52,7 +52,7 @@ public:
     #pragma region Playing
     virtual void Start() override;
     virtual void Stop() override;
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems) override;
+    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     virtual void Suspend(bool suspend);
     #pragma endregion Playing
 

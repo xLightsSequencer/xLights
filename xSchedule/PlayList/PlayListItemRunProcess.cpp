@@ -69,7 +69,7 @@ std::string PlayListItemRunProcess::GetNameNoTime() const
     return "Run Process";
 }
 
-void PlayListItemRunProcess::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems)
+void PlayListItemRunProcess::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (ms >= _delay && !_started)
     {

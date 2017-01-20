@@ -64,20 +64,23 @@ void PlayListItemAllOff::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemAllOffPanel(notebook, this), "All Set", true);
 }
 
-void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems)
+void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    if (ms >= _delay && ms <= _delay + _duration)
+    if (outputframe)
     {
-        if (_channels > 0)
+        if (ms >= _delay && ms <= _delay + _duration)
         {
-            if (_startChannel > size) return;
+            if (_channels > 0)
+            {
+                if (_startChannel > size) return;
 
-            size_t toset = _channels < size ? size - _startChannel + 1 : size - _startChannel + 1;
-            memset(buffer + _startChannel - 1, _value, toset);
-        }
-        else
-        {
-            memset(buffer, _value, size);
+                size_t toset = _channels < size ? size - _startChannel + 1 : size - _startChannel + 1;
+                memset(buffer + _startChannel - 1, _value, toset);
+            }
+            else
+            {
+                memset(buffer, _value, size);
+            }
         }
     }
 }
