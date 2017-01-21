@@ -50,7 +50,7 @@ class FSEQFile
 		int GetLengthMS() const { return _frames * _frameMS; }
 		std::string GetAudioFileName() const { return _audiofilename; }
 		int GetLengthFrames() const { return _frames; }
-		void ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYMETHOD applyMethod);
+		void ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYMETHOD applyMethod, size_t offset, size_t channels);
 		bool IsOk() const { return _ok; }
 		size_t GetChannels() const { return _channelsPerFrame; }
         void Close();

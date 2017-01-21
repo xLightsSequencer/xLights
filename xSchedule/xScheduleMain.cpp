@@ -794,6 +794,8 @@ void xScheduleFrame::LoadShowDir()
 
 void xScheduleFrame::UpdateTree() const
 {
+    TreeCtrl_PlayListsSchedules->Freeze();
+
     TreeCtrl_PlayListsSchedules->DeleteAllItems();
 
     wxTreeItemId root = TreeCtrl_PlayListsSchedules->AddRoot("Playlists");
@@ -812,6 +814,8 @@ void xScheduleFrame::UpdateTree() const
         TreeCtrl_PlayListsSchedules->Expand(pl);
     }
     TreeCtrl_PlayListsSchedules->Expand(root);
+
+    TreeCtrl_PlayListsSchedules->Thaw();
 }
 
 std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const
@@ -899,6 +903,8 @@ void xScheduleFrame::UpdateSchedule()
 {
     if (__schedule == nullptr) return;
 
+    TreeCtrl_PlayListsSchedules->Freeze();
+
     int rate = __schedule->CheckSchedule();
 
     // highlight the state of all schedule items in the tree
@@ -965,6 +971,8 @@ void xScheduleFrame::UpdateSchedule()
     }
 
     ValidateWindow();
+
+    TreeCtrl_PlayListsSchedules->Thaw();
 }
 
 void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
@@ -1218,6 +1226,8 @@ std::string FormatTime(size_t timems, bool ms = false)
 
 void xScheduleFrame::UpdateStatus()
 {
+    ListView_Running->Freeze();
+
     if (StatusBar1->GetStatusText() != "" && (wxDateTime::Now() - _statusSetAt).GetMilliseconds() >  5000)
     {
         StatusBar1->SetStatusText("");
@@ -1292,9 +1302,17 @@ void xScheduleFrame::UpdateStatus()
         }
 
         ListView_Running->SetColumnWidth(0, wxLIST_AUTOSIZE);
+        if (ListView_Running->GetColumnWidth(0) < 50)
+            ListView_Running->SetColumnWidth(0, 50);
         ListView_Running->SetColumnWidth(1, wxLIST_AUTOSIZE);
+        if (ListView_Running->GetColumnWidth(1) < 80)
+            ListView_Running->SetColumnWidth(1, 80);
         ListView_Running->SetColumnWidth(2, wxLIST_AUTOSIZE);
+        if (ListView_Running->GetColumnWidth(2) < 250)
+            ListView_Running->SetColumnWidth(2, 250);
     }
+
+    ListView_Running->Thaw();
 
     static int saved = -1;
     static int otl = -1;

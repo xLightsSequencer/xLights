@@ -61,7 +61,12 @@ wxXmlNode* PlayListItemPJLink::Save()
 
 void PlayListItemPJLink::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemPJLinkPanel(notebook, this), "PJLink", true);
+    notebook->AddPage(new PlayListItemPJLinkPanel(notebook, this), GetTitle(), true);
+}
+
+std::string PlayListItemPJLink::GetTitle() const
+{
+    return "PJLink";
 }
 
 std::string PlayListItemPJLink::GetNameNoTime() const

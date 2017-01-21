@@ -1,6 +1,8 @@
 #include "PlayListItemFSEQPanel.h"
 #include "PlayListItemFSEQ.h"
 #include "PlayListDialog.h"
+#include "../xScheduleMain.h"
+#include "../ScheduleManager.h"
 
 //(*InternalHeaders(PlayListItemFSEQPanel)
 #include <wx/intl.h>
@@ -12,6 +14,11 @@ const long PlayListItemFSEQPanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListItemFSEQPanel::ID_FILEPICKERCTRL1 = wxNewId();
 const long PlayListItemFSEQPanel::ID_STATICTEXT5 = wxNewId();
 const long PlayListItemFSEQPanel::ID_CHOICE1 = wxNewId();
+const long PlayListItemFSEQPanel::ID_CHECKBOX3 = wxNewId();
+const long PlayListItemFSEQPanel::ID_STATICTEXT6 = wxNewId();
+const long PlayListItemFSEQPanel::ID_SPINCTRL2 = wxNewId();
+const long PlayListItemFSEQPanel::ID_STATICTEXT7 = wxNewId();
+const long PlayListItemFSEQPanel::ID_SPINCTRL3 = wxNewId();
 const long PlayListItemFSEQPanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListItemFSEQPanel::ID_STATICTEXT2 = wxNewId();
 const long PlayListItemFSEQPanel::ID_FILEPICKERCTRL2 = wxNewId();
@@ -86,6 +93,20 @@ PlayListItemFSEQPanel::PlayListItemFSEQPanel(wxWindow* parent, PlayListItemFSEQ*
 	FlexGridSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_BlendMode = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	FlexGridSizer1->Add(Choice_BlendMode, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_LimitChannels = new wxCheckBox(this, ID_CHECKBOX3, _("Limit Channels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+	CheckBox_LimitChannels->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_LimitChannels, 1, wxALL|wxEXPAND, 5);
+	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Start Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	FlexGridSizer1->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_StartChannel = new wxSpinCtrl(this, ID_SPINCTRL2, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 1, _T("ID_SPINCTRL2"));
+	SpinCtrl_StartChannel->SetValue(_T("1"));
+	FlexGridSizer1->Add(SpinCtrl_StartChannel, 1, wxALL|wxEXPAND, 5);
+	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Channels"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+	FlexGridSizer1->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_Channels = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 100, 0, _T("ID_SPINCTRL3"));
+	SpinCtrl_Channels->SetValue(_T("0"));
+	FlexGridSizer1->Add(SpinCtrl_Channels, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_OverrideAudio = new wxCheckBox(this, ID_CHECKBOX1, _("Override Audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_OverrideAudio->SetValue(false);
@@ -115,6 +136,7 @@ PlayListItemFSEQPanel::PlayListItemFSEQPanel(wxWindow* parent, PlayListItemFSEQ*
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_FILEPICKERCTRL1,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&PlayListItemFSEQPanel::OnFilePickerCtrl1FileChanged);
+	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PlayListItemFSEQPanel::OnCheckBox_LimitChannelsClick);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PlayListItemFSEQPanel::OnCheckBox_OverrideAudioClick);
 	Connect(ID_FILEPICKERCTRL2,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&PlayListItemFSEQPanel::OnFilePickerCtrl2FileChanged);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PlayListItemFSEQPanel::OnCheckBox_OverrideVolumeClick);
@@ -143,6 +165,22 @@ PlayListItemFSEQPanel::PlayListItemFSEQPanel(wxWindow* parent, PlayListItemFSEQ*
         CheckBox_OverrideVolume->SetValue(false);
     }
 
+    long channels = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
+    SpinCtrl_StartChannel->SetRange(1, channels);
+    SpinCtrl_Channels->SetRange(1, channels);
+
+    SpinCtrl_StartChannel->SetValue(fseq->GetStartChannel());
+    int chs = fseq->GetChannels();
+    if (chs == 0)
+    {
+        CheckBox_LimitChannels->SetValue(false);
+    }
+    else
+    {
+        CheckBox_LimitChannels->SetValue(true);
+        SpinCtrl_Channels->SetValue(fseq->GetChannels());
+    }
+
     ValidateWindow();
 }
 
@@ -165,8 +203,17 @@ PlayListItemFSEQPanel::~PlayListItemFSEQPanel()
     {
         _fseq->SetVolume(-1);
     }
+    if (CheckBox_LimitChannels->GetValue())
+    {
+        _fseq->SetStartChannel(SpinCtrl_StartChannel->GetValue());
+        _fseq->SetChannels(SpinCtrl_Channels->GetValue());
+    }
+    else
+    {
+        _fseq->SetStartChannel(1);
+        _fseq->SetChannels(0);
+    }
 }
-
 
 void PlayListItemFSEQPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 {
@@ -206,9 +253,25 @@ void PlayListItemFSEQPanel::ValidateWindow()
     {
         Slider1->Enable(false);
     }
+
+    if (CheckBox_LimitChannels->GetValue())
+    {
+        SpinCtrl_StartChannel->Enable();
+        SpinCtrl_Channels->Enable();
+    }
+    else
+    {
+        SpinCtrl_StartChannel->Enable(false);
+        SpinCtrl_Channels->Enable(false);
+    }
 }
 
 void PlayListItemFSEQPanel::OnCheckBox_OverrideVolumeClick(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void PlayListItemFSEQPanel::OnCheckBox_LimitChannelsClick(wxCommandEvent& event)
 {
     ValidateWindow();
 }

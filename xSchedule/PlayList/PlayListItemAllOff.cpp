@@ -39,6 +39,8 @@ PlayListItem* PlayListItemAllOff::Copy() const
     res->_duration = _duration;
     res->_applyMethod = _applyMethod;
     res->_value = _value;
+    res->_channels = _channels;
+    res->_startChannel = _startChannel;
     PlayListItem::Copy(res);
 
     return res;
@@ -59,9 +61,14 @@ wxXmlNode* PlayListItemAllOff::Save()
     return node;
 }
 
+std::string PlayListItemAllOff::GetTitle() const
+{
+    return "All Set";
+}
+
 void PlayListItemAllOff::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemAllOffPanel(notebook, this), "All Set", true);
+    notebook->AddPage(new PlayListItemAllOffPanel(notebook, this), GetTitle(), true);
 }
 
 void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
@@ -74,7 +81,7 @@ void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t fr
             {
                 if (_startChannel > size) return;
 
-                size_t toset = _channels < size ? size - _startChannel + 1 : size - _startChannel + 1;
+                size_t toset = _channels + _startChannel - 1 < size ? _channels : size - _startChannel + 1;
                 memset(buffer + _startChannel - 1, _value, toset);
             }
             else

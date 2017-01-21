@@ -84,9 +84,14 @@ wxXmlNode* PlayListItemRDS::Save()
     return node;
 }
 
+std::string PlayListItemRDS::GetTitle() const
+{
+    return "RDS";
+}
+
 void PlayListItemRDS::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemRDSPanel(notebook, this), "RDS", true);
+    notebook->AddPage(new PlayListItemRDSPanel(notebook, this), GetTitle(), true);
 }
 
 std::string PlayListItemRDS::GetNameNoTime() const

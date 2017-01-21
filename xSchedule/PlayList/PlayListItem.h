@@ -3,9 +3,9 @@
 
 #include <string>
 #include <wx/wx.h>
+#include <wx/notebook.h>
 
 class wxXmlNode;
-class wxNotebook;
 
 class PlayListItem
 {
@@ -57,6 +57,7 @@ public:
     virtual bool Done() const { return false; }
     virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) = 0;
     virtual std::string GetSyncItemName() const { return ""; }
+    virtual std::string GetTitle() const = 0;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() = 0;

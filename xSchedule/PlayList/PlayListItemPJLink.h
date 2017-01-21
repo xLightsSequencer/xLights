@@ -46,6 +46,7 @@ public:
     void SetParameter(const std::string& parameter) { if (_parameter != parameter) { _parameter = parameter; _changeCount++; } }
     void SetProjector(const std::string& projector) { if (_projector != projector) { _projector = projector; _changeCount++; } }
     std::list<std::string> GetProjectors();
+    virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
@@ -57,7 +58,6 @@ public:
     #pragma endregion Playing
 
 #pragma region UI
-    // returns nullptr if cancelled
     virtual void Configure(wxNotebook* notebook) override;
 #pragma endregion UI
 };

@@ -179,11 +179,17 @@ void PlayListStep::RemoveItem(PlayListItem* item)
 
 std::string PlayListStep::GetName() const
 {
-    if (_name != "") return _name;
+    std::string duration = "";
+    if (GetLengthMS() != 0)
+    {
+        duration = " [" + wxString::Format(wxT("%.3f"), (float)GetLengthMS() / 1000.0).ToStdString() + "]";
+    }
 
-    if (_items.size() == 0) return "<unnamed>";
+    if (_name != "") return _name + duration;
 
-    return _items.front()->GetNameNoTime();
+    if (_items.size() == 0) return "<unnamed>" + duration;
+
+    return _items.front()->GetNameNoTime() + duration;
 }
 
 std::string PlayListStep::GetNameNoTime() const

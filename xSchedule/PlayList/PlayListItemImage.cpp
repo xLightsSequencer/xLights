@@ -76,9 +76,14 @@ wxXmlNode* PlayListItemImage::Save()
     return node;
 }
 
+std::string PlayListItemImage::GetTitle() const
+{
+    return "Image";
+}
+
 void PlayListItemImage::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemImagePanel(notebook, this), "Image", true);
+    notebook->AddPage(new PlayListItemImagePanel(notebook, this), GetTitle(), true);
 }
 
 std::string PlayListItemImage::GetNameNoTime() const

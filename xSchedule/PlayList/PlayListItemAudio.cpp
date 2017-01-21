@@ -64,9 +64,14 @@ wxXmlNode* PlayListItemAudio::Save()
     return node;
 }
 
+std::string PlayListItemAudio::GetTitle() const
+{
+    return "Audio";
+}
+
 void PlayListItemAudio::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemAudioPanel(notebook, this), "Audio", true);
+    notebook->AddPage(new PlayListItemAudioPanel(notebook, this), GetTitle(), true);
 }
 
 std::string PlayListItemAudio::GetNameNoTime() const

@@ -30,16 +30,21 @@ class PlayListItemFSEQPanel: public wxPanel
 		//(*Declarations(PlayListItemFSEQPanel)
 		wxSlider* Slider1;
 		wxChoice* Choice_BlendMode;
+		wxSpinCtrl* SpinCtrl_Channels;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText6;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
+		wxCheckBox* CheckBox_LimitChannels;
 		wxTextCtrl* TextCtrl_Delay;
 		wxSpinCtrl* SpinCtrl_Priority;
 		wxCheckBox* CheckBox_OverrideAudio;
 		AudioFilePickerCtrl* FilePickerCtrl_AudioFile;
 		wxStaticText* StaticText5;
+		wxStaticText* StaticText7;
 		FSEQFilePickerCtrl* FilePickerCtrl_FSEQFile;
 		wxStaticText* StaticText4;
+		wxSpinCtrl* SpinCtrl_StartChannel;
 		wxCheckBox* CheckBox_OverrideVolume;
 		//*)
 
@@ -50,6 +55,11 @@ class PlayListItemFSEQPanel: public wxPanel
 		static const long ID_FILEPICKERCTRL1;
 		static const long ID_STATICTEXT5;
 		static const long ID_CHOICE1;
+		static const long ID_CHECKBOX3;
+		static const long ID_STATICTEXT6;
+		static const long ID_SPINCTRL2;
+		static const long ID_STATICTEXT7;
+		static const long ID_SPINCTRL3;
 		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT2;
 		static const long ID_FILEPICKERCTRL2;
@@ -69,6 +79,7 @@ class PlayListItemFSEQPanel: public wxPanel
 		void OnFilePickerCtrl2FileChanged(wxFileDirPickerEvent& event);
 		void OnCheckBox_OverrideAudioClick(wxCommandEvent& event);
 		void OnCheckBox_OverrideVolumeClick(wxCommandEvent& event);
+		void OnCheckBox_LimitChannelsClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

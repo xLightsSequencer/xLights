@@ -62,6 +62,7 @@ public:
     size_t GetLengthMS() const;
     bool IsDirty() const;
     void ClearDirty();
+    bool SupportsRandom() const;
     bool IsRandom() const { return _random; }
     bool SetRandom(bool random) { _random = random; return true; }
     bool SetLooping(bool looping) { _looping = looping; return true; }
@@ -69,8 +70,8 @@ public:
     int GetLoopsLeft() const { return _loops; }
     void DoLoop() { --_loops; if (_loops == 0) { _loops = -1; _looping = false; } }
     void ClearStepLooping() { _loopStep = false; }
-    std::string GetName() const { return _name; }
-    std::string GetNameNoTime() const { return GetName(); };
+    std::string GetName() const;
+    std::string GetNameNoTime() const { if (_name == "") return "<unnamed>"; else return _name; };
     void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
     bool GetFirstOnce() const
     { return _firstOnlyOnce; }

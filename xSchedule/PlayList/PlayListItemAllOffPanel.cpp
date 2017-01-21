@@ -50,7 +50,7 @@ PlayListItemAllOffPanel::PlayListItemAllOffPanel(wxWindow* parent, PlayListItemA
 	SpinCtrl_AllSet = new wxSpinCtrl(this, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 255, 0, _T("ID_SPINCTRL1"));
 	SpinCtrl_AllSet->SetValue(_T("0"));
 	FlexGridSizer1->Add(SpinCtrl_AllSet, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_LimitChannels = new wxCheckBox(this, ID_CHECKBOX1, _("Limit Channels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_LimitChannels->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_LimitChannels, 1, wxALL|wxEXPAND, 5);
@@ -96,12 +96,12 @@ PlayListItemAllOffPanel::PlayListItemAllOffPanel(wxWindow* parent, PlayListItemA
     SpinCtrl_AllSet->SetValue(alloff->GetValue());
     SpinCtrl_Priority->SetValue(alloff->GetPriority());
     Choice_BlendMode->SetSelection(alloff->GetBlendMode());
-    SpinCtrl_StartChannel->SetValue(alloff->GetStartChannel());
 
     long channels = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
     SpinCtrl_StartChannel->SetRange(1, channels);
     SpinCtrl_Channels->SetRange(1, channels);
 
+    SpinCtrl_StartChannel->SetValue(alloff->GetStartChannel());
     int chs = alloff->GetChannels();
     if (chs == 0)
     {

@@ -57,9 +57,14 @@ wxXmlNode* PlayListItemESEQ::Save()
     return node;
 }
 
+std::string PlayListItemESEQ::GetTitle() const
+{
+    return "ESEQ";
+}
+
 void PlayListItemESEQ::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemESEQPanel(notebook, this), "ESEQ", true);
+    notebook->AddPage(new PlayListItemESEQPanel(notebook, this), GetTitle(), true);
 }
 
 std::string PlayListItemESEQ::GetNameNoTime() const

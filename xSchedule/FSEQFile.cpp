@@ -146,7 +146,7 @@ void FSEQFile::Load(const std::string& filename)
     }
 }
 
-void FSEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYMETHOD applyMethod)
+void FSEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYMETHOD applyMethod, size_t offset, size_t channels)
 {
     if (frame >= _frames) return; // cant read past end of file
 
@@ -162,47 +162,52 @@ void FSEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
 
     size_t bytesToUse = std::min(buffersize, _channelsPerFrame);
 
+    if (channels > 0)
+    {
+        bytesToUse = std::min(bytesToUse, channels);
+    }
+
     switch(applyMethod)
     {
     case APPLYMETHOD::METHOD_OVERWRITE:
-        memcpy(buffer, _frameBuffer, bytesToUse);
+        memcpy(buffer+offset, _frameBuffer+offset, bytesToUse);
         break;
     case APPLYMETHOD::METHOD_AVERAGE:
         for (size_t i = 0; i < bytesToUse; i++)
         {
-            *(buffer + i) = ((int)*(buffer + i) + (int)*(_frameBuffer + i)) / 2;
+            *(buffer + i + offset) = ((int)*(buffer + i + offset) + (int)*(_frameBuffer + i + offset)) / 2;
         }
         break;
     case APPLYMETHOD::METHOD_MASK:
         for (size_t i = 0; i < bytesToUse; i++)
         {
-            if (*(_frameBuffer + i) > 0)
+            if (*(_frameBuffer + i + offset) > 0)
             {
-                *(buffer + i) = 0x00;
+                *(buffer + i + offset) = 0x00;
             }
         }
         break;
     case APPLYMETHOD::METHOD_UNMASK:
         for (size_t i = 0; i < bytesToUse; i++)
         {
-            if (*(_frameBuffer + i) == 0)
+            if (*(_frameBuffer + i + offset) == 0)
             {
-                *(buffer + i) = 0x00;
+                *(buffer + i + offset) = 0x00;
             }
         }
         break;
     case APPLYMETHOD::METHOD_MAX:
         for (size_t i = 0; i < bytesToUse; i++)
         {
-            *(buffer + i) = std::max(*(buffer + i), *(_frameBuffer + i));
+            *(buffer + i + offset) = std::max(*(buffer + i + offset), *(_frameBuffer + i + offset));
         }
         break;
     case APPLYMETHOD::METHOD_OVERWRITEIFBLACK:
         for (size_t i = 0; i < bytesToUse; i++)
         {
-            if (*(buffer + i) == 0)
+            if (*(buffer + i + offset) == 0)
             {
-                *(buffer + i) = *(_frameBuffer + i);
+                *(buffer + i + offset) = *(_frameBuffer + i + offset);
             }
         }
     }

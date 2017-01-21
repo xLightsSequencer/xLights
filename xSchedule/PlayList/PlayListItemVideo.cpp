@@ -81,7 +81,12 @@ wxXmlNode* PlayListItemVideo::Save()
 
 void PlayListItemVideo::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemVideoPanel(notebook, this), "Video", true);
+    notebook->AddPage(new PlayListItemVideoPanel(notebook, this), GetTitle(), true);
+}
+
+std::string PlayListItemVideo::GetTitle() const
+{
+    return "Video";
 }
 
 std::string PlayListItemVideo::GetNameNoTime() const

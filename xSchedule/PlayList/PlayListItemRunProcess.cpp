@@ -57,9 +57,14 @@ wxXmlNode* PlayListItemRunProcess::Save()
     return node;
 }
 
+std::string PlayListItemRunProcess::GetTitle() const
+{
+    return "Run Process";
+}
+
 void PlayListItemRunProcess::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemRunProcessPanel(notebook, this), "Run Process", true);
+    notebook->AddPage(new PlayListItemRunProcessPanel(notebook, this), GetTitle(), true);
 }
 
 std::string PlayListItemRunProcess::GetNameNoTime() const

@@ -51,6 +51,7 @@ public:
     void SetStationDuration(int stationDuration) { if (_stationDuration != stationDuration) { _stationDuration = stationDuration; _changeCount++; } }
     int GetLineDuration() const { return _lineDuration; }
     void SetLineDuration(int lineDuration) { if (_lineDuration != lineDuration) { _lineDuration = lineDuration; _changeCount++; } }
+    virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
@@ -62,8 +63,7 @@ public:
     #pragma endregion Playing
 
     #pragma region UI
-    // returns nullptr if cancelled
     virtual void Configure(wxNotebook* notebook) override;
-    #pragma endregion UI
+#pragma endregion UI
 };
 #endif

@@ -6,6 +6,8 @@
 
 PlayListItemFSEQ::PlayListItemFSEQ(wxXmlNode* node) : PlayListItem(node)
 {
+    _channels = 0;
+    _startChannel = 1;
     _controlsTimingCache = false;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
     _fseqFileName = "";
@@ -68,6 +70,8 @@ void PlayListItemFSEQ::LoadFiles()
 
 PlayListItemFSEQ::PlayListItemFSEQ() : PlayListItem()
 {
+    _channels = 0;
+    _startChannel = 1;
     _controlsTimingCache = false;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
     _fseqFileName = "";
@@ -87,6 +91,8 @@ PlayListItem* PlayListItemFSEQ::Copy() const
     res->_audioFile = _audioFile;
     res->_durationMS = _durationMS;
     res->_controlsTimingCache = _controlsTimingCache;
+    res->_channels = _channels;
+    res->_startChannel = _startChannel;
     PlayListItem::Copy(res);
 
     return res;
@@ -109,9 +115,14 @@ wxXmlNode* PlayListItemFSEQ::Save()
     return node;
 }
 
+std::string PlayListItemFSEQ::GetTitle() const
+{
+    return "FSEQ";
+}
+
 void PlayListItemFSEQ::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemFSEQPanel(notebook, this), "FSEQ", true);
+    notebook->AddPage(new PlayListItemFSEQPanel(notebook, this), GetTitle(), true);
 }
 
 std::string PlayListItemFSEQ::GetNameNoTime() const
@@ -141,8 +152,8 @@ void PlayListItemFSEQ::SetAudioFile(const std::string& audioFile)
 {
     if (_audioFile != audioFile)
     {
-        _audioFile = audioFile; 
-        _changeCount++; 
+        _audioFile = audioFile;
+        _changeCount++;
         FastSetDuration();
     }
 }
@@ -151,8 +162,8 @@ void PlayListItemFSEQ::SetOverrideAudio(bool overrideAudio)
 {
     if (_overrideAudio != overrideAudio)
     {
-        _overrideAudio = overrideAudio; 
-        _changeCount++; 
+        _overrideAudio = overrideAudio;
+        _changeCount++;
         FastSetDuration();
     }
 }
@@ -190,7 +201,7 @@ size_t PlayListItemFSEQ::GetPositionMS() const
     {
         return _audioManager->Tell();
     }
-    
+
     return 0;
 }
 
@@ -198,7 +209,15 @@ void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
 {
     if (outputframe)
     {
-        _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod);
+        if (_channels > 0)
+        {
+            wxASSERT(_startChannel > 0);
+            _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, _startChannel - 1, _channels);
+        }
+        else
+        {
+            _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, 0, 0);
+        }
     }
 }
 
@@ -271,4 +290,4 @@ void PlayListItemFSEQ::CloseFiles()
 PlayListItemFSEQ::~PlayListItemFSEQ()
 {
     CloseFiles();
-};
+}

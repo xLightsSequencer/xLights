@@ -44,6 +44,53 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_LimitChannels" member="yes">
+					<label>Limit Channels</label>
+					<handler function="OnCheckBox_LimitChannelsClick" entry="EVT_CHECKBOX" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
+					<label>Start Channel</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_StartChannel" member="yes">
+					<value>1</value>
+					<min>1</min>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
+					<label>Channels</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSpinCtrl" name="ID_SPINCTRL3" variable="SpinCtrl_Channels" member="yes">
+					<value>0</value>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_OverrideAudio" member="yes">
 					<label>Override Audio</label>
 					<handler function="OnCheckBox_OverrideAudioClick" entry="EVT_CHECKBOX" />

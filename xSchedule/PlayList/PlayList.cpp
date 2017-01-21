@@ -274,7 +274,7 @@ void PlayList::AddStep(PlayListStep* item, int pos)
     _steps = newsteps;
 
     // sort on priority
-    _steps.sort();
+    //_steps.sort();
 }
 
 void PlayList::ClearDirty()
@@ -306,7 +306,7 @@ void PlayList::RemoveSchedule(Schedule* schedule)
 
 void PlayList::MoveStepAfterStep(PlayListStep* movethis, PlayListStep* afterthis)
 {
-    if (movethis->GetId() == afterthis->GetId()) return;
+    if (_steps.size() == 1 || (afterthis != nullptr && movethis->GetId() == afterthis->GetId())) return;
 
     if (afterthis == nullptr)
     {
@@ -420,6 +420,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
     if (_stopAtEndOfCurrentStep) return nullptr;
     if (_currentStep == nullptr) return nullptr;
 
+    // this will contain a step name if this is to be our forced next step
     if (_forceNextStep != "")
     {
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
@@ -431,11 +432,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
         }
     }
 
-    if (_loopStep)
-    {
-        return _currentStep;
-    }
-
+    // If we have a limit on step loops
     if (_currentStep->IsMoreLoops())
     {
         _currentStep->DoLoop();
@@ -443,13 +440,14 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
             return _currentStep;
     }
 
-    auto last = _steps.end();
-    if (_steps.size() > 1)
+    // if we are looping on the current step just return it
+    if (_loopStep)
     {
-        auto it = _steps.end();
-        --it;
-        last = it;
+        return _currentStep;
     }
+
+    // get the last step in the playlist
+    PlayListStep* last = _steps.back();
 
     if (_random && !_lastLoop)
     {
@@ -458,7 +456,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
 
     for (auto it = _steps.begin(); it != _steps.end(); ++it)
     {
-        if (*it == _currentStep)
+        if ((*it)->GetId() == _currentStep->GetId())
         {
             ++it;
             if (_jumpToEndStepsAtEndOfCurrentStep)
@@ -467,14 +465,15 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
 
                 if (_lastOnlyOnce)
                 {
-                    return _steps.back();
+                    return last;
                 }
                 else
                 {
                     return nullptr;
                 }
             }
-            else if (IsLooping() && it == last && !_lastLoop)
+            // This handles looping
+            else if (IsLooping() && (it == _steps.end() || (_lastOnlyOnce && (*it)->GetId() == last->GetId())) && !_lastLoop)
             {
                 didloop = true;
                 if (_firstOnlyOnce)
@@ -508,7 +507,7 @@ PlayListStep* PlayList::GetPriorStep() const
     PlayListStep* last = _steps.back();
     for (auto it = _steps.begin(); it != _steps.end(); ++it)
     {
-        if (*it == _currentStep)
+        if ((*it)->GetId() == _currentStep->GetId())
         {
             return last;
         }
@@ -694,46 +693,66 @@ PlayListStep* PlayList::GetStep(const std::string& step)
     return nullptr;
 }
 
+bool PlayList::SupportsRandom() const
+{
+    int count = _steps.size();
+
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+            if (_steps.front()->GetId() == (*it)->GetId() && _firstOnlyOnce)
+            {
+                count--;
+            }
+            else if (_steps.back()->GetId() == (*it)->GetId() && _lastOnlyOnce)
+            {
+                count--;
+            }
+            else
+            {
+                if ((*it)->GetExcludeFromRandom())
+                {
+                    count--;
+                }
+            }
+    }
+
+    // 3 is the minimum number of eligible steps to support random
+    return (count > 3);
+}
+
 PlayListStep* PlayList::GetRandomStep()
 {
-    int offset = 0;
-    int count = _steps.size();
-    if (_firstOnlyOnce) 
-    {
-        count--;
-        offset++;
-    }
-    if (_lastOnlyOnce) count--;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (count < 3)
+    if (SupportsRandom())
     {
+        int selected = rand() % _steps.size();
+        auto it = _steps.begin();
+        std::advance(it, selected);
+
+        // we dont want the same step so try again or a step that isnt meant to be random
+        if ((*it)->GetId() == _currentStep->GetId() || 
+            (*it)->GetExcludeFromRandom() ||
+            (_firstOnlyOnce && (*it)->GetId() == _steps.front()->GetId()) ||
+            (_lastOnlyOnce && (*it)->GetId() == _steps.back()->GetId())
+            )
+        {
+            return GetRandomStep();
+        }
+
+        logger_base.info("Playlist %s randomly chose step %d of %d.", (const char*)GetName().c_str(), selected, _steps.size());
+
+        return *it;
+    }
+    else
+    {
+        logger_base.info("Playlist %s random wont work as there are not at least 4 eligible steps. Just taking next available.", (const char*)GetName().c_str());
         bool didloop;
         bool oldrandom = _random;
         _random = false;
         PlayListStep* next = GetNextStep(didloop);
         _random = oldrandom;
         return next;
-    }
-    else
-    {
-        wxASSERT(count + offset <= _steps.size());
-
-        int selected = rand() % count;
-        auto it = _steps.begin();
-        std::advance(it, selected + offset);
-
-        if (it == _steps.end()) return nullptr;
-
-        // we dont want the same step so try again
-        if (*it == _currentStep)
-        {
-            return GetRandomStep();
-        }
-
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Playlist %s randomly chose step %d of %d (%d eligible).", (const char*)GetName().c_str(), selected + offset, _steps.size(), count);
-
-        return *it;
     }
 }
 
@@ -757,4 +776,15 @@ std::string PlayList::GetActiveSyncItemName() const
         return _currentStep->GetActiveSyncItemName();
     }
     return "";
+}
+
+std::string PlayList::GetName() const
+{
+    std::string duration = "";
+    if (GetLengthMS() != 0)
+    {
+        duration = " [" + wxString::Format(wxT("%.3f"), (float)GetLengthMS() / 1000.0).ToStdString() + "]";
+    }
+
+    return GetNameNoTime() + duration;
 }

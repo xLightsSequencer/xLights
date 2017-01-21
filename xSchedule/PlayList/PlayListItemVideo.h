@@ -46,6 +46,7 @@ public:
     wxSize GetSize() const { return _size; }
     virtual std::string GetSyncItemName() const override { return GetVideoFile(); }
     static bool IsVideo(const std::string& ext);
+    virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
@@ -59,7 +60,6 @@ public:
     #pragma endregion Playing
 
 #pragma region UI
-    // returns nullptr if cancelled
     virtual void Configure(wxNotebook* notebook) override;
 #pragma endregion UI
 };

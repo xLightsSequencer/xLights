@@ -40,6 +40,7 @@ public:
     void SetValue(wxByte value) { if (_value != value) { _value = value; _changeCount++; } }
     int GetBlendMode() const { return _applyMethod; }
     void SetBlendMode(int blendMode) { if (_applyMethod != (APPLYMETHOD)blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; } }
+    virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
@@ -50,8 +51,7 @@ public:
 #pragma endregion Playing
 
     #pragma region UI
-    // returns nullptr if cancelled
     virtual void Configure(wxNotebook* notebook) override;
-    #pragma endregion UI
+#pragma endregion UI
 };
 #endif

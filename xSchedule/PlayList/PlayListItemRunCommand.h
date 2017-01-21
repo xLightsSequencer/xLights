@@ -49,7 +49,8 @@ public:
     }
     std::string GetParm3() const { return _parm3; }
     std::list<std::string> GetCommands() const;
-    #pragma endregion Getters and Setters
+    virtual std::string GetTitle() const override;
+#pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
     void Load(wxXmlNode* node) override;
@@ -60,8 +61,7 @@ public:
     #pragma endregion Playing
 
     #pragma region UI
-    // returns nullptr if cancelled
     virtual void Configure(wxNotebook* notebook) override;
-    #pragma endregion UI
+#pragma endregion UI
 };
 #endif

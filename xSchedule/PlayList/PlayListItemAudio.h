@@ -42,7 +42,8 @@ public:
     virtual bool Done() const override { return GetPositionMS() >= GetDurationMS(); }
     virtual std::string GetSyncItemName() const override { return GetAudioFile(); }
     static bool IsAudio(const std::string& ext);
-    #pragma endregion Getters and Setters
+    virtual std::string GetTitle() const override;
+#pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
     void Load(wxXmlNode* node) override;
@@ -57,7 +58,6 @@ public:
     #pragma endregion Playing
 
 #pragma region UI
-    // returns nullptr if cancelled
     virtual void Configure(wxNotebook* notebook) override;
 #pragma endregion UI
 };

@@ -61,9 +61,14 @@ wxXmlNode* PlayListItemRunCommand::Save()
     return node;
 }
 
+std::string PlayListItemRunCommand::GetTitle() const
+{
+    return "Run Command";
+}
+
 void PlayListItemRunCommand::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemRunCommandPanel(notebook, this), "Run Command", true);
+    notebook->AddPage(new PlayListItemRunCommandPanel(notebook, this), GetTitle(), true);
 }
 
 std::string PlayListItemRunCommand::GetNameNoTime() const

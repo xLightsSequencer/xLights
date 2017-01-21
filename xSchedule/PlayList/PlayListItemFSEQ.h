@@ -22,7 +22,9 @@ protected:
     AudioManager* _audioManager;
     size_t _durationMS;
     bool _controlsTimingCache;
-    #pragma endregion Member Variables
+    size_t _startChannel;
+    size_t _channels;
+#pragma endregion Member Variables
 
     void LoadFiles();
     void CloseFiles();
@@ -54,7 +56,12 @@ public:
     virtual size_t GetFrameMS() const override { return _msPerFrame; }
     virtual bool Done() const override { return GetPositionMS() >= GetDurationMS(); }
     virtual std::string GetSyncItemName() const override { return GetFSEQFileName(); }
-    #pragma endregion Getters and Setters
+    virtual std::string GetTitle() const override;
+    long GetStartChannel() const { return _startChannel; }
+    void SetStartChannel(long startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _changeCount++; } }
+    long GetChannels() const { return _channels; }
+    void SetChannels(long channels) { if (_channels != channels) { _channels = channels; _changeCount++; } }
+#pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
     void Load(wxXmlNode* node) override;
@@ -69,7 +76,6 @@ public:
     #pragma endregion Playing
 
 #pragma region UI
-    // returns nullptr if cancelled
     virtual void Configure(wxNotebook* notebook) override;
 #pragma endregion UI
 };
