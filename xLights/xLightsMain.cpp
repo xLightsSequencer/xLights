@@ -4080,7 +4080,7 @@ void xLightsFrame::CheckSequence(bool display)
 
     // Check for model groups containing itself or other model groups
     LogAndWrite(f, "");
-    LogAndWrite(f, "Model Groups containing other model groups or non existent models");
+    LogAndWrite(f, "Model Groups containing non existent models");
 
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
     {
@@ -4101,12 +4101,6 @@ void xLightsFrame::CheckSequence(bool display)
                 }
                 else
                 {
-                    if (model->GetDisplayAs() == "ModelGroup")
-                    {
-                        wxString msg = wxString::Format("    ERR: Model group '%s' contains another model group '%s'. Nested model groups are not supported at this time.", mg->GetName(), model->GetName());
-                        LogAndWrite(f, msg.ToStdString());
-                        errcount++;
-                    }
                     if (model->GetName() == mg->GetName())
                     {
                         wxString msg = wxString::Format("    ERR: Model group '%s' contains reference to itself.", mg->GetName());

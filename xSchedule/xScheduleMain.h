@@ -120,6 +120,9 @@ public:
         void OnBitmapButton_VolumeDownClick(wxCommandEvent& event);
         void OnBitmapButton_VolumeUpClick(wxCommandEvent& event);
         void OnCustom_VolumeLeftDown(wxMouseEvent& event);
+        void OnMenuItem_StandaloneSelected(wxCommandEvent& event);
+        void OnMenuItem_FPPMasterSelected(wxCommandEvent& event);
+        void OnMenuItem_FPPRemoteSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -157,6 +160,9 @@ public:
         static const long ID_MNU_VIEW_LOG;
         static const long ID_MNU_CHECK_SCHEDULE;
         static const long ID_MNU_OPTIONS;
+        static const long ID_MNU_MODENORMAL;
+        static const long ID_MNU_FPPMASTER;
+        static const long ID_MNU_FPPREMOTE;
         static const long idMenuAbout;
         static const long ID_STATUSBAR1;
         static const long ID_TIMER1;
@@ -180,6 +186,7 @@ public:
         wxBitmapButton* BitmapButton_VolumeUp;
         wxBitmapButton* BitmapButton_OutputToLights;
         wxBitmapButton* BitmapButton_Unsaved;
+        wxMenuItem* MenuItem_FPPMaster;
         wxPanel* Panel4;
         wxMenu* Menu3;
         xLightsTimer _timer;
@@ -192,11 +199,13 @@ public:
         wxMenuItem* MenuItem6;
         wxTimer _timerSchedule;
         wxListView* ListView_Running;
+        wxMenuItem* MenuItem_FPPRemote;
         wxTreeCtrl* TreeCtrl_PlayListsSchedules;
         wxMenuItem* MenuItem_ShowFolder;
         wxBitmapButton* BitmapButton_Random;
         wxBitmapButton* BitmapButton_Playing;
         VolumeDisplay* Custom_Volume;
+        wxMenuItem* MenuItem_Standalone;
         wxPanel* Panel2;
         wxFlexGridSizer* FlexGridSizer1;
         wxSplitterWindow* SplitterWindow1;
@@ -204,6 +213,7 @@ public:
         BrightnessControl* Brightness;
         wxMenuItem* MenuItem_ViewLog;
         wxBitmapButton* BitmapButton_VolumeDown;
+        wxMenu* Menu4;
         //*)
 
         DECLARE_EVENT_TABLE()

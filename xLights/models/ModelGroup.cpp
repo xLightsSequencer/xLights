@@ -6,6 +6,7 @@
 #include "ModelManager.h"
 #include "SingleLineModel.h"
 #include "ModelScreenLocation.h"
+#include <log4cpp/Category.hh>
 
 
 static const std::string HORIZ_PER_MODEL("Horizontal Per Model");
@@ -86,6 +87,8 @@ bool ModelGroup::Reset() {
             int bw, bh;
             LoadRenderBufferNodes(c, "Per Preview No Offset", Nodes, bw, bh);
         } else {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("Model group '%s' contains model '%s' that does not exist.", (const char *)GetFullName().c_str(), (const char *)mn[x].c_str());
             return false;
         }
     }

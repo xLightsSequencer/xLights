@@ -116,6 +116,9 @@ const long xScheduleFrame::idMenuQuit = wxNewId();
 const long xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
 const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
 const long xScheduleFrame::ID_MNU_OPTIONS = wxNewId();
+const long xScheduleFrame::ID_MNU_MODENORMAL = wxNewId();
+const long xScheduleFrame::ID_MNU_FPPMASTER = wxNewId();
+const long xScheduleFrame::ID_MNU_FPPREMOTE = wxNewId();
 const long xScheduleFrame::idMenuAbout = wxNewId();
 const long xScheduleFrame::ID_STATUSBAR1 = wxNewId();
 const long xScheduleFrame::ID_TIMER1 = wxNewId();
@@ -357,6 +360,14 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     MenuItem_Options = new wxMenuItem(Menu3, ID_MNU_OPTIONS, _("&Options"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_Options);
     MenuBar1->Append(Menu3, _("&Tools"));
+    Menu4 = new wxMenu();
+    MenuItem_Standalone = new wxMenuItem(Menu4, ID_MNU_MODENORMAL, _("Standalone"), wxEmptyString, wxITEM_RADIO);
+    Menu4->Append(MenuItem_Standalone);
+    MenuItem_FPPMaster = new wxMenuItem(Menu4, ID_MNU_FPPMASTER, _("FPP Master"), wxEmptyString, wxITEM_RADIO);
+    Menu4->Append(MenuItem_FPPMaster);
+    MenuItem_FPPRemote = new wxMenuItem(Menu4, ID_MNU_FPPREMOTE, _("FPP Remote"), wxEmptyString, wxITEM_RADIO);
+    Menu4->Append(MenuItem_FPPRemote);
+    MenuBar1->Append(Menu4, _("&Modes"));
     Menu2 = new wxMenu();
     MenuItem2 = new wxMenuItem(Menu2, idMenuAbout, _("About\tF1"), _("Show info about this application"), wxITEM_NORMAL);
     Menu2->Append(MenuItem2);
@@ -396,6 +407,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(idMenuQuit,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnQuit);
     Connect(ID_MNU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OptionsSelected);
+    Connect(ID_MNU_MODENORMAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
+    Connect(ID_MNU_FPPMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
+    Connect(ID_MNU_FPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPRemoteSelected);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerTrigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerScheduleTrigger);
@@ -1644,4 +1658,16 @@ void xScheduleFrame::OnBitmapButton_VolumeUpClick(wxCommandEvent& event)
 void xScheduleFrame::OnCustom_VolumeLeftDown(wxMouseEvent& event)
 {
     __schedule->ToggleMute();
+}
+
+void xScheduleFrame::OnMenuItem_StandaloneSelected(wxCommandEvent& event)
+{
+}
+
+void xScheduleFrame::OnMenuItem_FPPMasterSelected(wxCommandEvent& event)
+{
+}
+
+void xScheduleFrame::OnMenuItem_FPPRemoteSelected(wxCommandEvent& event)
+{
 }

@@ -172,7 +172,6 @@ void ModelManager::NewRecalcStartChannels() const
 }
 
 void ModelManager::OldRecalcStartChannels() const {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //wxStopWatch sw;
     //sw.Start();
     int countValid = 0;
@@ -208,6 +207,8 @@ void ModelManager::OldRecalcStartChannels() const {
                     msg += it->second->name + "\n";
                 }
             }
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn(msg);
             wxMessageBox(msg);
             //nothing improved
             return;
@@ -220,10 +221,11 @@ void ModelManager::OldRecalcStartChannels() const {
 
 
 void ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     this->groupNode = groupNode;
     std::list<ModelGroup*> toBeDone;
     
-    for (wxXmlNode* e=groupNode->GetChildren(); e!=NULL; e=e->GetNext()) {
+    for (wxXmlNode* e=groupNode->GetChildren(); e!=nullptr; e=e->GetNext()) {
         if (e->GetName() == "modelGroup") {
             std::string name = e->GetAttribute("name").ToStdString();
             if (!name.empty()) {
@@ -245,23 +247,26 @@ void ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
     int maxIter = toBeDone.size();
     while (!toBeDone.empty()) {
         if (maxIter == 0) {
-            std::string msg = "Could not process model groups (possibly due to circular groups): \n";
-            for (auto it = toBeDone.begin(); it != toBeDone.end(); it++) {
-                msg += (*it)->GetName() + "\n";
+            std::string msg = "Could not process model groups (possibly due to circular groups or a missing model):";
+            for (auto it = toBeDone.begin(); it != toBeDone.end(); ++it) {
+                msg += "\n" + (*it)->GetName();
             }
+            // I would prefer NOT to send users to the log but the model group does not get loaded so when we run check sequence you cant see the error.
+            msg += "\n\nCheck log file to locate the issue.";
+            logger_base.warn(msg);
             wxMessageBox(msg);
             //nothing improved
-            return;
+            break;
         }
         maxIter--;
         std::list<ModelGroup*> processing(toBeDone);
         toBeDone.clear();
-        for (auto it = processing.begin(); it != processing.end(); it++) {
+        for (auto it = processing.begin(); it != processing.end(); ++it) {
             ModelGroup *model = *it;
             if (model->Reset()) {
-                auto it = models.find(model->name);
-                if (it != models.end()) {
-                    delete it->second;
+                auto it2 = models.find(model->name);
+                if (it2 != models.end()) {
+                    delete it2->second;
                 }
                 models[model->name] = model;
             } else {
