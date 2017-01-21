@@ -27,6 +27,7 @@
 #include <wx/protocol/http.h>
 #include <wx/debugrpt.h>
 #include "RunningSchedule.h"
+#include "UserButton.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -1041,7 +1042,7 @@ void xScheduleFrame::CreateButtons()
 
     for (auto it = bs.begin(); it != bs.end(); ++it)
     {
-        CreateButton(*it);
+        CreateButton((*it)->GetLabel());
     }
 
     SendSizeEvent();
@@ -1492,8 +1493,10 @@ void xScheduleFrame::UpdateStatus()
     auto buttons = Panel1->GetChildren();
     for (auto it = buttons.begin(); it != buttons.end(); ++it)
     {
-        std::string command = __schedule->GetOptions()->GetButtonCommand((*it)->GetLabel().ToStdString());
-        std::string parameters = __schedule->GetOptions()->GetButtonParameter((*it)->GetLabel().ToStdString());
+        UserButton* b = __schedule->GetOptions()->GetButton((*it)->GetLabel().ToStdString());
+
+        std::string command = b->GetCommand();
+        std::string parameters = b->GetParameters();
 
         PlayList* playlist = nullptr;
         Schedule* schedule = nullptr;
@@ -1627,7 +1630,7 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
 
     for (auto it = bs.begin(); it != bs.end(); ++it)
     {
-        auto hk = __schedule->GetOptions()->GetButtonHotkey(*it);
+        auto hk = (*it)->GetHotkey();
         if (hk == (char)event.GetRawKeyCode())
         {
             PlayList* playlist = nullptr;
@@ -1646,7 +1649,7 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
 
             size_t rate = _timer.GetInterval();
             std::string msg = "";
-            __schedule->Action(*it, playlist, schedule, rate, msg);
+            __schedule->Action((*it)->GetLabel(), playlist, schedule, rate, msg);
 
             if (rate / 2 != _timer.GetInterval())
             {

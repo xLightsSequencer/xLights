@@ -10,6 +10,7 @@
 #include "PlayListItemAllOff.h"
 #include "PlayListItemRunCommand.h"
 #include "PlayListItemRunProcess.h"
+#include "PlayListItemCURL.h"
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemRDS.h"
 #include "PlayListItemAudio.h"
@@ -52,6 +53,7 @@ const long PlayListDialog::ID_MNU_ADDIMAGE = wxNewId();
 const long PlayListDialog::ID_MNU_ADDDELAY = wxNewId();
 const long PlayListDialog::ID_MNU_ADDCOMMAND = wxNewId();
 const long PlayListDialog::ID_MNU_ADDPROCESS = wxNewId();
+const long PlayListDialog::ID_MNU_ADDCURL = wxNewId();
 const long PlayListDialog::ID_MNU_DELETE = wxNewId();
 
 BEGIN_EVENT_TABLE(PlayListDialog,wxDialog)
@@ -494,6 +496,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     mi = mnu.Append(ID_MNU_ADDDELAY, "Add Delay");
     mi = mnu.Append(ID_MNU_ADDRDS, "Add RDS");
     mi = mnu.Append(ID_MNU_ADDPROCESS, "Add Process");
+    mi = mnu.Append(ID_MNU_ADDCURL, "Add CURL");
     mi = mnu.Append(ID_MNU_ADDCOMMAND, "Add Command");
 
     mi = mnu.Append(ID_MNU_ADDSTEP, "Add Step");
@@ -560,6 +563,11 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_ADDPROCESS)
     {
         PlayListItemRunProcess* pli = new PlayListItemRunProcess();
+        AddItem(_playlist, step, pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDCURL)
+    {
+        PlayListItemCURL* pli = new PlayListItemCURL();
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDCOMMAND)

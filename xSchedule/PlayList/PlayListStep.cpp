@@ -11,6 +11,7 @@
 #include "PlayListItemAllOff.h"
 #include "PlayListItemDelay.h"
 #include "PlayListItemRunProcess.h"
+#include "PlayListItemCURL.h"
 #include "PlayListItemRunCommand.h"
 
 int __playliststepid = 0;
@@ -147,6 +148,10 @@ void PlayListStep::Load(wxXmlNode* node)
         else if (n->GetName() == "PLIProcess")
         {
             _items.push_back(new PlayListItemRunProcess(n));
+        }
+        else if (n->GetName() == "PLICURL")
+        {
+            _items.push_back(new PlayListItemCURL(n));
         }
         else if (n->GetName() == "PLICommand")
         {

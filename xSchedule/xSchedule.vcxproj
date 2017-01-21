@@ -203,6 +203,8 @@
     <ClCompile Include="PlayList\PlayListItemAllOffPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemAudio.cpp" />
     <ClCompile Include="PlayList\PlayListItemAudioPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemCURL.cpp" />
+    <ClCompile Include="PlayList\PlayListItemCURLPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemDelay.cpp" />
     <ClCompile Include="PlayList\PlayListItemDelayPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemESEQ.cpp" />
@@ -231,6 +233,7 @@
     <ClCompile Include="ScheduleDialog.cpp" />
     <ClCompile Include="ScheduleManager.cpp" />
     <ClCompile Include="ScheduleOptions.cpp" />
+    <ClCompile Include="UserButton.cpp" />
     <ClCompile Include="WebServer.cpp" />
     <ClCompile Include="wxHTTPServer\connection.cpp" />
     <ClCompile Include="wxHTTPServer\context.cpp" />
@@ -280,6 +283,8 @@
     <ClInclude Include="PlayList\PlayListItemAllOffPanel.h" />
     <ClInclude Include="PlayList\PlayListItemAudio.h" />
     <ClInclude Include="PlayList\PlayListItemAudioPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemCURL.h" />
+    <ClInclude Include="PlayList\PlayListItemCURLPanel.h" />
     <ClInclude Include="PlayList\PlayListItemDelay.h" />
     <ClInclude Include="PlayList\PlayListItemDelayPanel.h" />
     <ClInclude Include="PlayList\PlayListItemESEQ.h" />
@@ -308,6 +313,7 @@
     <ClInclude Include="ScheduleDialog.h" />
     <ClInclude Include="ScheduleManager.h" />
     <ClInclude Include="ScheduleOptions.h" />
+    <ClInclude Include="UserButton.h" />
     <ClInclude Include="WebServer.h" />
     <ClInclude Include="wxHTTPServer\sha1.h" />
     <ClInclude Include="wxHTTPServer\wxhttpserver.h" />

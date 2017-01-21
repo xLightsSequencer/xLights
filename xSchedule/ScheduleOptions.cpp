@@ -1,6 +1,7 @@
 #include "ScheduleOptions.h"
 #include <wx/xml/xml.h>
 #include <wx/wxcrt.h>
+#include "UserButton.h"
 
 ScheduleOptions::ScheduleOptions(wxXmlNode* node)
 {
@@ -20,19 +21,19 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
         }
         else if (n->GetName() == "Button")
         {
-            AddButton(n->GetAttribute("Label", "").ToStdString(),
-                      n->GetAttribute("Command", "").ToStdString(),
-                      n->GetAttribute("Parameters", "").ToStdString(),
-                      n->GetAttribute("Hotkey", "~")[0]);
+            _buttons.push_back(new UserButton(n));
         }
     }
 }
 
 void ScheduleOptions::AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey)
 {
-    _buttonCommands[label] = command;
-    _buttonParameters[label] = parms;
-    _buttonHotkeys[label] = hotkey;
+    UserButton* b = new UserButton();
+    b->SetLabel(label);
+    b->SetCommand(command);
+    b->SetParameters(parms);
+    b->SetHotkey(hotkey);
+    _buttons.push_back(b);
 }
 
 ScheduleOptions::ScheduleOptions()
@@ -47,6 +48,11 @@ ScheduleOptions::ScheduleOptions()
 
 ScheduleOptions::~ScheduleOptions()
 {
+    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    {
+        delete *it;
+    }
+    _buttons.clear();
 }
 
 wxXmlNode* ScheduleOptions::Save()
@@ -74,15 +80,9 @@ wxXmlNode* ScheduleOptions::Save()
         res->AddChild(projector);
     }
 
-    for (auto it = _buttonCommands.begin(); it != _buttonCommands.end(); ++it)
+    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
     {
-        wxXmlNode* button = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Button");
-        std::string indx = it->first;
-        button->AddAttribute("Label", indx);
-        button->AddAttribute("Command", it->second);
-        button->AddAttribute("Parameters", GetButtonParameter(indx));
-        button->AddAttribute("Hotkey", GetButtonHotkey(indx));
-        res->AddChild(button);
+        res->AddChild((*it)->Save());
     }
 
     return res;
@@ -100,16 +100,9 @@ std::list<std::string> ScheduleOptions::GetProjectors() const
     return res;
 }
 
-std::list<std::string> ScheduleOptions::GetButtons() const
+std::vector<UserButton*> ScheduleOptions::GetButtons() const
 {
-    std::list<std::string> res;
-
-    for (auto it = _buttonCommands.begin(); it != _buttonCommands.end(); ++it)
-    {
-        res.push_back(it->first);
-    }
-
-    return res;
+    return _buttons;
 }
 
 std::string ScheduleOptions::GetProjectorIpAddress(const std::string& projector)
@@ -132,36 +125,6 @@ std::string ScheduleOptions::GetProjectorPassword(const std::string& projector)
     return "";
 }
 
-std::string ScheduleOptions::GetButtonCommand(const std::string& button)
-{
-    if (_buttonCommands.find(button) != _buttonCommands.end())
-    {
-        return _buttonCommands[button];
-    }
-
-    return "";
-}
-
-std::string ScheduleOptions::GetButtonParameter(const std::string& button)
-{
-    if (_buttonParameters.find(button) != _buttonParameters.end())
-    {
-        return _buttonParameters[button];
-    }
-
-    return "";
-}
-
-char ScheduleOptions::GetButtonHotkey(const std::string& button)
-{
-    if (_buttonHotkeys.find(button) != _buttonHotkeys.end())
-    {
-        return _buttonHotkeys[button];
-    }
-
-    return '~';
-}
-
 void ScheduleOptions::ClearProjectors()
 {
     if (_projectorIPs.size() > 0)
@@ -174,12 +137,12 @@ void ScheduleOptions::ClearProjectors()
 
 void ScheduleOptions::ClearButtons()
 {
-    if (_buttonCommands.size() > 0)
+    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
     {
-        _buttonCommands.clear();
-        _buttonParameters.clear();
-        _changeCount++;
+        delete *it;
     }
+    _buttons.clear();
+    _changeCount++;
 }
 
 void ScheduleOptions::SetProjectorIPAddress(const std::string& projector, const std::string& ip)
@@ -200,41 +163,14 @@ void ScheduleOptions::SetProjectorPassword(const std::string& projector, const s
     }
 }
 
-void ScheduleOptions::SetButtonCommand(const std::string& button, const std::string& command)
-{
-    if (_buttonCommands.find(button) == _buttonCommands.end() || _buttonCommands[button] != command)
-    {
-        _buttonCommands[button] = command;
-        _changeCount++;
-    }
-}
-
-void ScheduleOptions::SetButtonParameter(const std::string& button, const std::string& parameter)
-{
-    if (_buttonParameters.find(button) == _buttonParameters.end() || _buttonParameters[button] != parameter)
-    {
-        _buttonParameters[button] = parameter;
-        _changeCount++;
-    }
-}
-
-void ScheduleOptions::SetButtonHotkey(const std::string& button, char hotkey)
-{
-    if (_buttonHotkeys.find(button) == _buttonHotkeys.end() || _buttonHotkeys[button] != hotkey)
-    {
-        _buttonHotkeys[button] = hotkey;
-        _changeCount++;
-    }
-}
-
 std::string ScheduleOptions::GetButtonsJSON() const
 {
     std::string res;
     bool first = true;
     res = "{\"buttons\":[";
-    for (auto it = _buttonCommands.begin(); it != _buttonCommands.end(); ++it)
+    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
     {
-        wxString c(it->second);
+        wxString c((*it)->GetCommand());
 
         if (!c.Contains("selected") && !c.Contains("Selected"))
         {
@@ -243,10 +179,45 @@ std::string ScheduleOptions::GetButtonsJSON() const
                 res += ",";
             }
             first = false;
-            res += "\"" + it->first + "\"";
+            res += "\"" + (*it)->GetLabel() + "\"";
         }
     }
     res += "]}";
 
     return res;
+}
+
+bool ScheduleOptions::IsDirty() const
+{
+    bool res = _lastSavedChangeCount != _changeCount;
+
+    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    {
+        res = res && (*it)->IsDirty();
+    }
+
+    return res;
+}
+
+void ScheduleOptions::ClearDirty()
+{
+    _lastSavedChangeCount = _changeCount;
+
+    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    {
+        (*it)->ClearDirty();
+    }
+}
+
+UserButton* ScheduleOptions::GetButton(const std::string& label) const
+{
+    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    {
+        if ((*it)->GetLabel() == label)
+        {
+            return *it;
+        }
+    }
+
+    return nullptr;
 }

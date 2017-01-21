@@ -3,6 +3,7 @@
 #include "ScheduleOptions.h"
 #include "ButtonDetailsDialog.h"
 #include "ProjectorDetailsDialog.h"
+#include "UserButton.h"
 
 //(*InternalHeaders(OptionsDialog)
 #include <wx/intl.h>
@@ -203,16 +204,16 @@ void OptionsDialog::LoadButtons()
     for (auto it = ps.begin(); it != ps.end(); ++it)
     {
         Grid_Buttons->AppendRows(1);
-        Grid_Buttons->SetRowLabelValue(i, *it);
-        Grid_Buttons->SetCellValue(i, 0, _options->GetButtonCommand(*it));
-        Grid_Buttons->SetCellValue(i, 1, _options->GetButtonParameter(*it));
-        if (_options->GetButtonHotkey(*it) == '~')
+        Grid_Buttons->SetRowLabelValue(i, (*it)->GetLabel());
+        Grid_Buttons->SetCellValue(i, 0, (*it)->GetCommand());
+        Grid_Buttons->SetCellValue(i, 1, (*it)->GetParameters());
+        if ((*it)->GetHotkey() == '~')
         {
             Grid_Buttons->SetCellValue(i, 2, "");
         }
         else
         {
-            Grid_Buttons->SetCellValue(i, 2, _options->GetButtonHotkey(*it));
+            Grid_Buttons->SetCellValue(i, 2, (*it)->GetHotkey());
         }
         i++;
     }
@@ -242,14 +243,14 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->ClearButtons();
     for (int i = 0; i < Grid_Buttons->GetNumberRows(); i++)
     {
+        UserButton* b = new UserButton();
+
         char hotkey = '~';
         if (Grid_Buttons->GetCellValue(i, 2).Length() > 0)
         {
             hotkey = Grid_Buttons->GetCellValue(i, 2)[0];
         }
-        _options->SetButtonCommand(Grid_Buttons->GetRowLabelValue(i).ToStdString(), Grid_Buttons->GetCellValue(i, 0).ToStdString());
-        _options->SetButtonParameter(Grid_Buttons->GetRowLabelValue(i).ToStdString(), Grid_Buttons->GetCellValue(i, 1).ToStdString());
-        _options->SetButtonHotkey(Grid_Buttons->GetRowLabelValue(i).ToStdString(), hotkey);
+        _options->AddButton(Grid_Buttons->GetRowLabelValue(i).ToStdString(), Grid_Buttons->GetCellValue(i, 0).ToStdString(), Grid_Buttons->GetCellValue(i, 1).ToStdString(), hotkey);
     }
 
     EndDialog(wxID_OK);

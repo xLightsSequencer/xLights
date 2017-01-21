@@ -17,6 +17,7 @@
 #include <wx/config.h>
 #include <wx/sckaddr.h>
 #include <wx/socket.h>
+#include "UserButton.h"
 
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
@@ -877,12 +878,22 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else if (command == "PressButton")
             {
-                std::string c = _scheduleOptions->GetButtonCommand(parameters);
-                std::string p = _scheduleOptions->GetButtonParameter(parameters);
+                UserButton* b = _scheduleOptions->GetButton(parameters);
 
-                if (c != "")
+                if (b != nullptr)
                 {
-                    result = Action(c, p, selplaylist, selschedule, rate, msg);
+                    std::string c = b->GetCommand();
+                    std::string p = b->GetParameters();
+
+                    if (c != "")
+                    {
+                        result = Action(c, p, selplaylist, selschedule, rate, msg);
+                    }
+                }
+                else
+                {
+                    result = false;
+                    msg = "Unknown button.";
                 }
             }
             else if (command == "Play specified playlist n times")
@@ -952,10 +963,20 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
 bool ScheduleManager::Action(const std::string label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg)
 {
-    std::string command = _scheduleOptions->GetButtonCommand(label);
-    std::string parameters = _scheduleOptions->GetButtonParameter(label);
+    UserButton* b = _scheduleOptions->GetButton(label);
 
-    return Action(command, parameters, selplaylist, selschedule, rate, msg);
+    if (b != nullptr)
+    {
+        std::string command = b->GetCommand();
+        std::string parameters = b->GetParameters();
+
+        return Action(command, parameters, selplaylist, selschedule, rate, msg);
+    }
+    else
+    {
+        msg = "Unknown button.";
+        return false;
+    }
 }
 
 void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
