@@ -24,6 +24,7 @@ class JobPoolWorker : public wxThread
     std::condition_variable *signal;
     volatile int &idleThreads;
     volatile int &numThreads;
+    volatile unsigned int &inFlight;
     volatile bool stopped;
     std::deque<Job*> *queue;
 
@@ -34,7 +35,8 @@ public:
                   std::condition_variable *signal,
                   std::deque<Job*> *queue,
                   volatile int &idleThreadPtr,
-                  volatile int &numThreadsPtr);
+                  volatile int &numThreadsPtr,
+                  volatile unsigned int &inFlightPtr);
     virtual ~JobPoolWorker();
 
     void Stop();
@@ -48,8 +50,9 @@ public:
 };
 
 JobPoolWorker::JobPoolWorker(std::mutex *l, std::condition_variable *s, std::deque<Job*> *queue,
-                             volatile int &idleThreadPtr, volatile int &numThreadsPtr)
-: wxThread(wxTHREAD_JOINABLE), lock(l) ,signal(s), queue(queue), idleThreads(idleThreadPtr), numThreads(numThreadsPtr), currentJob(nullptr), stopped(false)
+                             volatile int &idleThreadPtr, volatile int &numThreadsPtr, volatile unsigned int &inFlightPtr)
+: wxThread(wxTHREAD_JOINABLE), lock(l) ,signal(s), queue(queue), idleThreads(idleThreadPtr), numThreads(numThreadsPtr),
+    inFlight(inFlightPtr), currentJob(nullptr), stopped(false)
 {
 }
 
@@ -136,6 +139,8 @@ void* JobPoolWorker::Entry()
                 delete job;
             }
             job = NULL;
+            std::unique_lock<std::mutex> mutLock(*lock);
+            inFlight--;
         } else {
             std::unique_lock<std::mutex> mutLock(*lock);
             if (idleThreads > 5) {
@@ -164,6 +169,7 @@ JobPool::JobPool() : lock(), signal(), queue()
 {
     idleThreads = 0;
     numThreads = 0;
+    inFlight = 0;
     maxNumThreads = 8;
 }
 
@@ -182,14 +188,20 @@ JobPool::~JobPool()
 void JobPool::PushJob(Job *job)
 {
 	std::unique_lock<std::mutex> locker(lock);
-    if ((idleThreads - queue.size()) <= 0 && numThreads < maxNumThreads) {
+    queue.push_back(job);
+    inFlight++;
+    
+    int count = inFlight;
+    count -= idleThreads;
+    count -= numThreads;
+    while (count > 0 && (numThreads < maxNumThreads)) {
+        count--;
         numThreads++;
 
-        JobPoolWorker *worker = new JobPoolWorker(&lock, &signal, &queue, idleThreads, numThreads);
+        JobPoolWorker *worker = new JobPoolWorker(&lock, &signal, &queue, idleThreads, numThreads, inFlight);
         worker->Start();
 		threads.push_back(worker);
     }
-    queue.push_back(job);
     signal.notify_all();
 }
 

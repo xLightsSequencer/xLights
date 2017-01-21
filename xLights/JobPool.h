@@ -35,6 +35,7 @@ class JobPool
     int numThreads;
     int maxNumThreads;
     volatile int idleThreads;
+    volatile unsigned int inFlight;
     
 public:
     JobPool();

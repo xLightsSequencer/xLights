@@ -761,6 +761,7 @@ void xLightsFrame::UpdateRenderStatus() {
         RenderProgressInfo *rpi = *it;
         int frames = rpi->endFrame - rpi->startFrame + 1;
         for (size_t row = 0; row < rpi->numRows; row++) {
+            
             if (rpi->jobs[row]) {
                 int i = rpi->jobs[row]->GetCurrentFrame();
                 if (i <= rpi->endFrame) {
@@ -769,9 +770,9 @@ void xLightsFrame::UpdateRenderStatus() {
                 countModels++;
                 i -= rpi->startFrame;
                 if (shown) {
-                    int val = done ? 100 : (100 * i)/frames;
+                    int val = (i > rpi->endFrame) ? 100 : (100 * i)/frames;
                     wxGauge *g = rpi->jobs[row]->GetGauge();
-                    if (g->GetValue() != val) {
+                    if (g != nullptr && g->GetValue() != val) {
                         g->SetValue(val);
                     }
                 }
@@ -1040,7 +1041,7 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
         pi->aggregators = aggregators;
         renderProgressInfo.push_back(pi);
     } else {
-        printf("NO JOBS!!!\n");
+        callback();
     }
 }
 void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
