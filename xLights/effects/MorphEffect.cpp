@@ -109,7 +109,7 @@ void MorphEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(mp->Slider_Morph_Start_X1, 0);
     SetSliderValue(mp->Slider_Morph_Start_X2, 100);
     SetSliderValue(mp->Slider_Morph_Start_Y1, 0);
-    SetSliderValue(mp->Slider_Morph_Start_Y2, 100);
+    SetSliderValue(mp->Slider_Morph_Start_Y2, 0);
 
     SetCheckBoxValue(mp->CheckBox_Morph_End_Link, false);
     SetCheckBoxValue(mp->CheckBox_Morph_Start_Link, false);

@@ -538,6 +538,11 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
 
     for (int layer = numLayers - 1; layer >= 0; layer--)
     {
+        // Dan This line of code is crashing on me in visual studio ... but not in the code blocks release build ... 
+        // so putting in an assert to try and trigger and error in your runtime if it is in fact wrong
+        // I have looked but cant see to see how it could be wrong.
+        // It fails for me in visual studio in multiple setups the first time I drop and effect on a model
+        wxASSERT(layer < validLayers.size());
         if (validLayers[layer])
         {
             auto thelayer = layers[layer];

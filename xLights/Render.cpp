@@ -37,6 +37,7 @@ public:
         strand = -1;        
     }
     void resize(int l) {
+        wxASSERT(l >= 0);
         numLayers = l;
         currentEffects.resize(l);
         currentEffectIdxs.resize(l);
