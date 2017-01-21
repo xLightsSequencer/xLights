@@ -306,7 +306,7 @@ void PlayList::RemoveSchedule(Schedule* schedule)
 
 void PlayList::MoveStepAfterStep(PlayListStep* movethis, PlayListStep* afterthis)
 {
-    if (movethis == afterthis) return;
+    if (movethis->GetId() == afterthis->GetId()) return;
 
     if (afterthis == nullptr)
     {
@@ -334,7 +334,7 @@ int PlayList::GetPos(PlayListStep* step)
     int i = 0;
     for (auto it = _steps.begin(); it != _steps.end(); ++it)
     {
-        if (*it == step)
+        if ((*it)->GetId() == step->GetId())
         {
             return i;
         }
@@ -748,4 +748,13 @@ bool PlayList::LoopStep(const std::string step)
     _loopStep = true;
 
     return true;
+}
+
+std::string PlayList::GetActiveSyncItemName() const
+{
+    if (_currentStep != nullptr)
+    {
+        return _currentStep->GetActiveSyncItemName();
+    }
+    return "";
 }

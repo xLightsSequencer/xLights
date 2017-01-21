@@ -186,7 +186,7 @@ void PlayListItemFSEQ::FastSetDuration()
 
 size_t PlayListItemFSEQ::GetPositionMS() const
 {
-    if (ControlsTiming())
+    if (ControlsTiming() && _audioManager != nullptr)
     {
         return _audioManager->Tell();
     }
@@ -204,7 +204,7 @@ void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
 
 void PlayListItemFSEQ::Restart()
 {
-    if (ControlsTiming())
+    if (ControlsTiming() && _audioManager != nullptr)
     {
         _audioManager->Stop();
         _audioManager->Play(0, _audioManager->LengthMS());
@@ -217,7 +217,7 @@ void PlayListItemFSEQ::Start()
     // load the audio
     LoadFiles();
 
-    if (ControlsTiming())
+    if (ControlsTiming() && _audioManager != nullptr)
     {
         _audioManager->Play(0, _audioManager->LengthMS());
     }
@@ -230,7 +230,7 @@ void PlayListItemFSEQ::Suspend(bool suspend)
 
 void PlayListItemFSEQ::Pause(bool pause)
 {
-    if (ControlsTiming())
+    if (ControlsTiming() && _audioManager != nullptr)
     {
         if (pause)
         {
@@ -267,3 +267,8 @@ void PlayListItemFSEQ::CloseFiles()
         _audioManager = nullptr;
     }
 }
+
+PlayListItemFSEQ::~PlayListItemFSEQ()
+{
+    CloseFiles();
+};

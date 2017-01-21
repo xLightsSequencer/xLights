@@ -40,6 +40,8 @@ public:
     virtual bool ControlsTiming() const override { return _controlsTimingCache || _audioManager != nullptr; }
     virtual size_t GetPositionMS() const override;
     virtual bool Done() const override { return GetPositionMS() >= GetDurationMS(); }
+    virtual std::string GetSyncItemName() const override { return GetAudioFile(); }
+    static bool IsAudio(const std::string& ext);
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

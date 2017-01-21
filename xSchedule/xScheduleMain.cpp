@@ -1662,12 +1662,15 @@ void xScheduleFrame::OnCustom_VolumeLeftDown(wxMouseEvent& event)
 
 void xScheduleFrame::OnMenuItem_StandaloneSelected(wxCommandEvent& event)
 {
+    __schedule->SetMode(SYNCMODE::STANDALONE);
 }
 
 void xScheduleFrame::OnMenuItem_FPPMasterSelected(wxCommandEvent& event)
 {
+    __schedule->SetMode(SYNCMODE::FPPMASTER);
 }
 
 void xScheduleFrame::OnMenuItem_FPPRemoteSelected(wxCommandEvent& event)
 {
+    __schedule->SetMode(SYNCMODE::FPPSLAVE);
 }

@@ -14,6 +14,8 @@
 
 class PlayList;
 class wxXmlNode;
+class PlayListStep;
+class PlayListItem;
 
 class PlayListDialog: public wxDialog
 {
@@ -21,11 +23,13 @@ class PlayListDialog: public wxDialog
     PlayList* _savedState;
     bool _dragging;
     void ValidateWindow();
-    void PopulateTree();
+    void PopulateTree(PlayList* playlist, PlayListStep* step, PlayListItem* item);
     int GetPos(const wxTreeItemId& item);
     void HighlightDropItem(wxTreeItemId* id);
     void DeleteSelectedItem();
     void SwapPage(wxNotebookPage* newpage, const std::string& text = "");
+    wxTreeItemId FindStepTreeItem(PlayListStep* step);
+    void AddItem(PlayList* playlist, PlayListStep* step, PlayListItem* newitem);
 
     public:
 
@@ -77,6 +81,7 @@ class PlayListDialog: public wxDialog
         bool IsPlayList(wxTreeItemId id);
         bool IsPlayListStep(wxTreeItemId id);
         void OnTreeCtrlMenu(wxCommandEvent &event);
+        void OnDropFiles(wxDropFilesEvent& event);
 
 	private:
 

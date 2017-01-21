@@ -44,6 +44,8 @@ public:
     std::string GetVideoFile() const { return _videoFile; }
     wxPoint GetPosition() const { return _origin; }
     wxSize GetSize() const { return _size; }
+    virtual std::string GetSyncItemName() const override { return GetVideoFile(); }
+    static bool IsVideo(const std::string& ext);
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

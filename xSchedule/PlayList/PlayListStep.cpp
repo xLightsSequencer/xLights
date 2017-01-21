@@ -50,6 +50,7 @@ PlayListStep::PlayListStep()
 
 PlayListStep::PlayListStep(const PlayListStep& step)
 {
+    _startTime = 0;
     _pause = 0;
     _suspend = 0;
     _loops = step._loops;
@@ -419,6 +420,29 @@ size_t PlayListStep::GetLengthMS() const
 
         return len;
     }
+}
+
+std::string PlayListStep::GetActiveSyncItemName() const
+{
+    std::string res;
+    size_t ms;
+    auto ts = GetTimeSource(ms);
+
+    if (ts != nullptr)
+    {
+        res = ts->GetSyncItemName();
+    }
+
+    if (res == "")
+    {
+        for (auto it = _items.begin(); it != _items.end(); ++it)
+        {
+            res = (*it)->GetSyncItemName();
+            if (res != "") break;
+        }
+    }
+
+    return res;
 }
 
 void PlayListStep::AdjustTime(wxTimeSpan by)

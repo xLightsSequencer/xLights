@@ -82,6 +82,7 @@ public:
     int GetPlayListSize() const { return _steps.size(); }
     bool IsLooping() const { return _looping; }
     void StopAtEndOfThisLoop() { _lastLoop = true; }
+    std::string GetActiveSyncItemName() const;
     void AddStep(PlayListStep* item, int pos);
     void RemoveStep(PlayListStep* item);
     void RemoveSchedule(Schedule* item);

@@ -40,6 +40,7 @@ public:
     bool operator==(const PlayListStep& rhs) const { return _id == rhs._id; }
 
 #pragma region Getters and Setters
+    wxUint32 GetId() const { return _id; }
     PlayListItem* GetTimeSource(size_t& ms) const;
     std::list<PlayListItem*> GetItems();
     bool IsDirty() const;
@@ -54,13 +55,14 @@ public:
     void Start(int _loops);
     int GetLoopsLeft() const { return _loops; }
     void DoLoop() { _loops--; }
-    bool IsMoreLoops() { return _loops > 0; }
+    bool IsMoreLoops() const { return _loops > 0; }
     void SetLoops(int loops) { _loops = loops; }
     bool IsPaused() const { return _pause != 0; }
     void Stop();
     void Suspend(bool suspend);
     void Restart();
     void Pause(bool pause);
+    std::string GetActiveSyncItemName() const;
     int GetPlayStepSize() const { return _items.size(); }
     void AddItem(PlayListItem* item) { _items.push_back(item); _items.sort(); _changeCount++; }
     void RemoveItem(PlayListItem* item);

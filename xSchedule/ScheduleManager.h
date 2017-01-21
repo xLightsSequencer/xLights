@@ -10,9 +10,20 @@ class ScheduleOptions;
 class PlayList;
 class OutputManager;
 class RunningSchedule;
+class wxSocketClient;
+
+typedef enum
+{
+    STANDALONE,
+    FPPMASTER,
+    FPPSLAVE,
+    ARTNETMASTER,
+    ARTNETSLAVE
+} SYNCMODE;
 
 class ScheduleManager
 {
+    SYNCMODE _mode;
     int _manualOTL;
     std::string _showDir;
     int _lastSavedChangeCount;
@@ -28,12 +39,18 @@ class ScheduleManager
     int _brightness;
     int _lastBrightness;
     wxByte _brightnessArray[255];
+    wxSocketClient* _fppSync;
 
     std::string FormatTime(size_t timems);
     void CreateBrightnessArray();
+    void SendFPPSync(const std::string& syncItem, size_t msec);
+    void OpenFPPSyncSendSocket();
+    void CloseFPPSyncSendSocket();
 
     public:
 
+        void SetMode(SYNCMODE mode);
+        SYNCMODE GetMode() const { return _mode; }
         void ToggleMute();
         void SetVolume(int volume);
         void AdjustVolumeBy(int volume);

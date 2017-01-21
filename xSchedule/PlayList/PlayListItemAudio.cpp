@@ -104,7 +104,7 @@ void PlayListItemAudio::FastSetDuration()
 
 size_t PlayListItemAudio::GetPositionMS() const
 {
-    if (ControlsTiming())
+    if (ControlsTiming() && _audioManager != nullptr)
     {
         return _audioManager->Tell();
     }
@@ -114,7 +114,7 @@ size_t PlayListItemAudio::GetPositionMS() const
 
 void PlayListItemAudio::Restart()
 {
-    if (ControlsTiming())
+    if (ControlsTiming() && _audioManager != nullptr)
     {
         _audioManager->Stop();
         _audioManager->Play(0, _audioManager->LengthMS());
@@ -126,7 +126,7 @@ void PlayListItemAudio::Start()
     // load the audio
     LoadFiles();
 
-    if (ControlsTiming())
+    if (ControlsTiming() && _audioManager != nullptr)
     {
         _audioManager->Play(0, _audioManager->LengthMS());
     }
@@ -168,4 +168,22 @@ void PlayListItemAudio::CloseFiles()
         delete _audioManager;
         _audioManager = nullptr;
     }
+}
+
+bool PlayListItemAudio::IsAudio(const std::string& ext)
+{
+    if (ext == "mp3" ||
+        ext == "ogg" ||
+        ext == "mid" ||
+        ext == "au" ||
+        ext == "wav" ||
+        ext == "m4a" ||
+        ext == "wma" ||
+        ext == "m4p"
+        )
+    {
+        return true;
+    }
+
+    return false;
 }

@@ -34,7 +34,7 @@ public:
     #pragma region Constructors and Destructors
     PlayListItemFSEQ(wxXmlNode* node);
     PlayListItemFSEQ();
-    virtual ~PlayListItemFSEQ() { CloseFiles(); };
+    virtual ~PlayListItemFSEQ();
     virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors
 
@@ -53,6 +53,7 @@ public:
     virtual size_t GetPositionMS() const override;
     virtual size_t GetFrameMS() const override { return _msPerFrame; }
     virtual bool Done() const override { return GetPositionMS() >= GetDurationMS(); }
+    virtual std::string GetSyncItemName() const override { return GetFSEQFileName(); }
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

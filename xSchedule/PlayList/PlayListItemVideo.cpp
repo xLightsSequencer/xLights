@@ -189,3 +189,22 @@ void PlayListItemVideo::Suspend(bool suspend)
         if (_window != nullptr) _window->Show();
     }
 }
+
+bool PlayListItemVideo::IsVideo(const std::string& ext)
+{
+    if (ext == "avi" ||
+        ext == "mp4" ||
+        ext == "mkv" ||
+        ext == "mov" ||
+        ext == "asf" ||
+        ext == "flv" ||
+        ext == "mpg" ||
+        ext == "mpeg" ||
+        ext == "m4v"
+        )
+    {
+        return true;
+    }
+
+    return false;
+}

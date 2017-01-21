@@ -14,12 +14,16 @@
 #include "../xLights/AudioManager.h"
 #include "xScheduleMain.h"
 #include "xScheduleApp.h"
+#include <wx/config.h>
+#include <wx/sckaddr.h>
+#include <wx/socket.h>
 
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Loading schedule from %s.", (const char *)_showDir.c_str());
 
+    _fppSync = nullptr;
     _manualOTL = -1;
     _immediatePlay = nullptr;
     _scheduleOptions = nullptr;
@@ -29,6 +33,9 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     _buffer = nullptr;
     _brightness = 100;
     _lastBrightness = 100;
+
+    wxConfigBase* config = wxConfigBase::Get();
+    _mode = (SYNCMODE)config->ReadLong("SyncMode", SYNCMODE::STANDALONE);
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     _lastSavedChangeCount = 0;
@@ -86,6 +93,7 @@ std::list<PlayList*> ScheduleManager::GetPlayLists()
 ScheduleManager::~ScheduleManager()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    CloseFPPSyncSendSocket();
     _outputManager->StopOutput();
     logger_base.info("Stopped outputting to lights.");
     if (IsDirty())
@@ -238,6 +246,11 @@ void ScheduleManager::Frame(bool outputframe)
         {
             // playlist is done
             StopPlayList(running, false);
+        }
+
+        if (outputframe && _mode == SYNCMODE::FPPMASTER)
+        {
+            SendFPPSync(running->GetActiveSyncItemName(), msec);
         }
     }
     else
@@ -1351,5 +1364,55 @@ void ScheduleManager::ToggleMute()
     else
     {
         SetVolume(savevolume);
+    }
+}
+
+void ScheduleManager::SetMode(SYNCMODE mode)
+{
+    if (_mode != mode)
+    {
+        _mode = mode;
+
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write("SyncMode", (long)_mode);
+
+        if (_mode == SYNCMODE::FPPMASTER)
+        {
+            OpenFPPSyncSendSocket();
+        }
+        else
+        {
+            CloseFPPSyncSendSocket();
+        }
+    }
+}
+
+void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec)
+{
+    if (_fppSync == nullptr) return;
+    if (syncItem == "") return;
+    
+#pragma todo
+}
+
+void ScheduleManager::OpenFPPSyncSendSocket()
+{
+    CloseFPPSyncSendSocket();
+
+//    wxIPV4address address;
+//    address.Hostname(ip);
+//    address.Service(4352);
+
+//    _fppSync = new wxSocketClient();
+
+#pragma todo
+}
+
+void ScheduleManager::CloseFPPSyncSendSocket()
+{
+    if (_fppSync != nullptr) {
+        _fppSync->Close();
+        delete _fppSync;
+        _fppSync = nullptr;
     }
 }

@@ -19,8 +19,9 @@ class Command
 	bool _requiresSelectedSchedule;
 	bool _requiresPlayingPlaylist;
 	bool _requiresPlayingSchedule;
+    bool _worksInSlaveMode;
 	std::vector<PARMTYPE> _parmtype;
-	Command(const std::string& name, int parms, const PARMTYPE *parmtypes, bool reqSelPL, bool reqSelSch, bool reqPlayPL, bool reqPlaySch);
+	Command(const std::string& name, int parms, const PARMTYPE *parmtypes, bool reqSelPL, bool reqSelSch, bool reqPlayPL, bool reqPlaySch, bool worksInSlaveMode);
     bool IsValid(std::string parms, PlayList* selectedPlayList, Schedule* selectedSchedule, ScheduleManager* scheduleManager, std::string& msg);
 };
 
