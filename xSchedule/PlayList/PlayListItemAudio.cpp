@@ -3,6 +3,7 @@
 #include <wx/notebook.h>
 #include "PlayListItemAudioPanel.h"
 #include "../../xLights/AudioManager.h"
+#include <log4cpp/Category.hh>
 
 PlayListItemAudio::PlayListItemAudio(wxXmlNode* node) : PlayListItem(node)
 {
@@ -22,15 +23,29 @@ void PlayListItemAudio::Load(wxXmlNode* node)
 
 void PlayListItemAudio::LoadFiles()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     CloseFiles();
 
     if (wxFile::Exists(_audioFile))
     {
         _audioManager = new AudioManager(_audioFile);
+
+        if (!_audioManager->IsOk())
+        {
+            logger_base.error("Audio: Audio file '%s' has a problem opening.", (const char *)_audioFile.c_str());
+        }
+
         if (_volume != -1)
             _audioManager->SetVolume(_volume);
         _durationMS = _audioManager->LengthMS();
         _controlsTimingCache = true;
+    }
+    else
+    {
+        if (_audioFile != "")
+        {
+            logger_base.error("Audio: Audio file '%s' cannot be opened because it does not exist.", (const char *)_audioFile.c_str());
+        }
     }
 }
 

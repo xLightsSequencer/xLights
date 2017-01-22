@@ -3,6 +3,7 @@
 #include <wx/notebook.h>
 #include "PlayListItemFSEQPanel.h"
 #include "../../xLights/AudioManager.h"
+#include <log4cpp/Category.hh>
 
 PlayListItemFSEQ::PlayListItemFSEQ(wxXmlNode* node) : PlayListItem(node)
 {
@@ -48,6 +49,7 @@ std::string PlayListItemFSEQ::GetAudioFilename() const
 
 void PlayListItemFSEQ::LoadFiles()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     CloseFiles();
 
     if (wxFile::Exists(_fseqFileName))
@@ -61,10 +63,23 @@ void PlayListItemFSEQ::LoadFiles()
     if (wxFile::Exists(af))
     {
         _audioManager = new AudioManager(af);
+
+        if (!_audioManager->IsOk())
+        {
+            logger_base.error("FSEQ: Audio file '%s' has a problem opening.", (const char *)af.c_str());
+        }
+
         if (_volume != -1)
             _audioManager->SetVolume(_volume);
         _durationMS = _audioManager->LengthMS();
         _controlsTimingCache = true;
+    }
+    else
+    {
+        if (af != "")
+        {
+            logger_base.error("FSEQ: Audio file '%s' cannot be opened because it does not exist.", (const char *)af.c_str());
+        }
     }
 }
 

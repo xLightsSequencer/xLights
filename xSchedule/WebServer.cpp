@@ -167,7 +167,10 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     else if (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/")
     {
         int port = connection.Server()->Context().Port;
-        wxString url = "http://" + request.Host() + ":" + wxString::Format(wxT("%i"),port) + "/" + wwwroot + "/index.html";
+
+        // Chris if you need this line to be this way on linux then use a #ifdef as the other works on windows
+        //wxString url = "http://" + request.Host() + ":" + wxString::Format(wxT("%i"), port) + "/" + wwwroot + "/index.html";
+        wxString url = "http://" + request.Host() + "/" + wwwroot + "/index.html";
 
         logger_base.info("Redirecting to '%s'.", (const char *)url.c_str());
 

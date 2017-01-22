@@ -11,6 +11,7 @@ class PlayList;
 class OutputManager;
 class RunningSchedule;
 class wxSocketClient;
+class PlayListStep;
 
 typedef enum
 {
@@ -35,6 +36,7 @@ class ScheduleManager
     wxUint32 _startTime;
     PlayList* _immediatePlay;
     CommandManager _commandManager;
+    PlayList* _queuedSongs;
     std::list<RunningSchedule*> _activeSchedules;
     int _brightness;
     int _lastBrightness;
@@ -46,6 +48,7 @@ class ScheduleManager
     void SendFPPSync(const std::string& syncItem, size_t msec);
     void OpenFPPSyncSendSocket();
     void CloseFPPSyncSendSocket();
+    void EnqueueSong(PlayListStep* step);
 
     public:
 
@@ -73,6 +76,7 @@ class ScheduleManager
 		void Save();
         void StopAll();
         void AddPlayList(PlayList* playlist);
+        bool IsQueuedPlaylistRunning() const;
         void RemovePlayList(PlayList* playlist);
         PlayList* GetRunningPlayList() const;
         std::list<PlayList*> GetPlayLists();

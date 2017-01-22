@@ -52,12 +52,7 @@ PlayList& PlayList::operator=(PlayList& playlist)
     _loops = playlist._loops;
     _id = playlist._id;
 
-    while (_steps.size() > 0)
-    {
-        auto toremove = _steps.front();
-        _steps.remove(toremove);
-        delete toremove;
-    }
+    RemoveAllSteps();
 
     for (auto it = playlist._steps.begin(); it != playlist._steps.end(); ++it)
     {
@@ -133,12 +128,7 @@ PlayList::PlayList()
 
 void PlayList::DeleteChildren()
 {
-    while (_steps.size() > 0)
-    {
-        auto toremove = _steps.front();
-        _steps.remove(toremove);
-        delete toremove;
-    }
+    RemoveAllSteps();
 
     while (_schedules.size() > 0)
     {
@@ -156,6 +146,15 @@ PlayList::~PlayList()
     DeleteChildren();
 }
 
+void PlayList::RemoveAllSteps()
+{
+    while (_steps.size() > 0)
+    {
+        auto toremove = _steps.front();
+        _steps.remove(toremove);
+        delete toremove;
+    }
+}
 
 wxXmlNode* PlayList::Save()
 {

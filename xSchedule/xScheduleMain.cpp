@@ -1514,7 +1514,7 @@ void xScheduleFrame::UpdateStatus()
 
         Command* c = __schedule->GetCommand(command);
         std::string msg;
-        if (c != nullptr && c->IsValid(parameters, playlist, schedule, __schedule, msg))
+        if (c != nullptr && c->IsValid(parameters, playlist, schedule, __schedule, msg, __schedule->IsQueuedPlaylistRunning()))
         {
             (*it)->Enable();
         }

@@ -1,5 +1,6 @@
 #include "FSEQFile.h"
 #include <wx/file.h>
+#include <log4cpp/Category.hh>
 
 FSEQFile::FSEQFile()
 {
@@ -72,6 +73,9 @@ void FSEQFile::Close()
         _frameBuffer = nullptr;
     }
 
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("FSEQ file %s closed.", (const char *)_filename.c_str());
+
     _ok = false;
 }
 
@@ -99,6 +103,7 @@ int FSEQFile::ReadInt32(wxFile* fh)
 
 void FSEQFile::Load(const std::string& filename)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     Close();
 
     _fh = new wxFile(filename);
@@ -134,14 +139,18 @@ void FSEQFile::Load(const std::string& filename)
             }
             _currentFrame = 0;
             _frameBuffer = (wxByte*)malloc(_channelsPerFrame);
+
+            logger_base.info("FSEQ file %s opened.", (const char *)filename.c_str());
         }
         else
         {
+            logger_base.error("FSEQ file %s format does not look valid.", (const char *)filename.c_str());
             Close();
         }
     }
     else
     {
+        logger_base.error("FSEQ file %s could not be opened.", (const char *)filename.c_str());
         Close();
     }
 }
@@ -210,5 +219,6 @@ void FSEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
                 *(buffer + i + offset) = *(_frameBuffer + i + offset);
             }
         }
+        break;
     }
 }

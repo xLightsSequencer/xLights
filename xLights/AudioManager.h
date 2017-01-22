@@ -177,6 +177,7 @@ class AudioManager
 	MEDIAPLAYINGSTATE _media_state;
 	bool _polyphonicTranscriptionDone;
     int _sdlid;
+    bool _ok;
 
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
@@ -192,6 +193,7 @@ class AudioManager
 	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max, int id);
 
 public:
+    bool IsOk() const { return _ok; }
     static size_t GetAudioFileLength(std::string filename);
 	void Seek(int pos);
 	void Pause();

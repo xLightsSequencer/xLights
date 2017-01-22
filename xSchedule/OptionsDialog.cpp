@@ -16,12 +16,12 @@ const long OptionsDialog::ID_CHECKBOX2 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT3 = wxNewId();
 const long OptionsDialog::ID_SPINCTRL1 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT1 = wxNewId();
-const long OptionsDialog::ID_GRID1 = wxNewId();
+const long OptionsDialog::ID_LISTVIEW2 = wxNewId();
 const long OptionsDialog::ID_BUTTON4 = wxNewId();
 const long OptionsDialog::ID_BUTTON8 = wxNewId();
 const long OptionsDialog::ID_BUTTON3 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
-const long OptionsDialog::ID_GRID2 = wxNewId();
+const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
 const long OptionsDialog::ID_BUTTON6 = wxNewId();
 const long OptionsDialog::ID_BUTTON7 = wxNewId();
@@ -39,6 +39,7 @@ END_EVENT_TABLE()
 OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _options = options;
+    _dragging = false;
 
 	//(*Initialize(OptionsDialog)
 	wxFlexGridSizer* FlexGridSizer4;
@@ -73,17 +74,8 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	FlexGridSizer3->AddGrowableRow(0);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Projectors:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
-	Grid_Projectors = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_GRID1"));
-	Grid_Projectors->CreateGrid(0,2);
-	Grid_Projectors->EnableEditing(true);
-	Grid_Projectors->EnableGridLines(true);
-	Grid_Projectors->SetRowLabelSize(150);
-	Grid_Projectors->SetDefaultColSize(200, true);
-	Grid_Projectors->SetColLabelValue(0, _("IP Address"));
-	Grid_Projectors->SetColLabelValue(1, _("Password"));
-	Grid_Projectors->SetDefaultCellFont( Grid_Projectors->GetFont() );
-	Grid_Projectors->SetDefaultCellTextColour( Grid_Projectors->GetForegroundColour() );
-	FlexGridSizer3->Add(Grid_Projectors, 1, wxALL|wxEXPAND, 5);
+	ListView_Projectors = new wxListView(this, ID_LISTVIEW2, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_NO_SORT_HEADER|wxVSCROLL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_LISTVIEW2"));
+	FlexGridSizer3->Add(ListView_Projectors, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	Button_AddProjector = new wxButton(this, ID_BUTTON4, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
 	FlexGridSizer4->Add(Button_AddProjector, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -98,18 +90,8 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	FlexGridSizer5->AddGrowableRow(0);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Buttons:    "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer5->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
-	Grid_Buttons = new wxGrid(this, ID_GRID2, wxDefaultPosition, wxSize(800,200), wxVSCROLL|wxHSCROLL, _T("ID_GRID2"));
-	Grid_Buttons->CreateGrid(0,3);
-	Grid_Buttons->EnableEditing(true);
-	Grid_Buttons->EnableGridLines(true);
-	Grid_Buttons->SetRowLabelSize(150);
-	Grid_Buttons->SetDefaultColSize(150, true);
-	Grid_Buttons->SetColLabelValue(0, _("Command"));
-	Grid_Buttons->SetColLabelValue(1, _("Parameter"));
-	Grid_Buttons->SetColLabelValue(2, _("Hotkey"));
-	Grid_Buttons->SetDefaultCellFont( Grid_Buttons->GetFont() );
-	Grid_Buttons->SetDefaultCellTextColour( Grid_Buttons->GetForegroundColour() );
-	FlexGridSizer5->Add(Grid_Buttons, 1, wxALL|wxEXPAND, 5);
+	ListView_Buttons = new wxListView(this, ID_LISTVIEW1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_NO_SORT_HEADER|wxVSCROLL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_LISTVIEW1"));
+	FlexGridSizer5->Add(ListView_Buttons, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
 	Button_ButtonAdd = new wxButton(this, ID_BUTTON5, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
 	FlexGridSizer6->Add(Button_ButtonAdd, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -136,24 +118,16 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&OptionsDialog::OnGrid_ProjectorsCellLeftClick);
-	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&OptionsDialog::OnGrid_ProjectorsCellLeftDClick);
-	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&OptionsDialog::OnGrid_ProjectorsLabelLeftClick);
-	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_DCLICK,(wxObjectEventFunction)&OptionsDialog::OnGrid_ProjectorsLabelLeftDClick);
-	Connect(ID_GRID1,wxEVT_GRID_LABEL_RIGHT_DCLICK,(wxObjectEventFunction)&OptionsDialog::OnGrid_ProjectorsLabelRightDClick);
-	Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&OptionsDialog::OnGrid_ProjectorsCellSelect);
-	Grid_Projectors->Connect(wxEVT_KEY_DOWN,(wxObjectEventFunction)&OptionsDialog::OnGrid_ProjectorsKeyDown,0,this);
-	Grid_Projectors->Connect(wxEVT_SIZE,(wxObjectEventFunction)&OptionsDialog::OnGrid_ProjectorsResize,0,this);
+	Connect(ID_LISTVIEW2,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&OptionsDialog::OnListView_ProjectorsItemSelect);
+	Connect(ID_LISTVIEW2,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&OptionsDialog::OnListView_ProjectorsItemActivated);
+	Connect(ID_LISTVIEW2,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&OptionsDialog::OnListView_ProjectorsKeyDown);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_AddProjectorClick);
 	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_ProjectorEditClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_DeleteProjectorClick);
-	Connect(ID_GRID2,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&OptionsDialog::OnGrid_ButtonsCellLeftClick);
-	Connect(ID_GRID2,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&OptionsDialog::OnGrid_ButtonsCellLeftDClick);
-	Connect(ID_GRID2,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&OptionsDialog::OnGrid_ButtonsLabelLeftClick);
-	Connect(ID_GRID2,wxEVT_GRID_LABEL_LEFT_DCLICK,(wxObjectEventFunction)&OptionsDialog::OnGrid_ButtonsLabelLeftDClick);
-	Connect(ID_GRID2,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&OptionsDialog::OnGrid_ButtonsCellSelect);
-	Grid_Buttons->Connect(wxEVT_KEY_DOWN,(wxObjectEventFunction)&OptionsDialog::OnGrid_ButtonsKeyDown,0,this);
-	Grid_Buttons->Connect(wxEVT_SIZE,(wxObjectEventFunction)&OptionsDialog::OnGrid_ButtonsResize,0,this);
+	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&OptionsDialog::OnListView_ButtonsBeginDrag);
+	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&OptionsDialog::OnListView_ButtonsItemSelect);
+	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&OptionsDialog::OnListView_ButtonsItemActivated);
+	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&OptionsDialog::OnListView_ButtonsKeyDown);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_ButtonAddClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_ButtonEditClick);
 	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_ButtonDeleteClick);
@@ -162,8 +136,14 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_CancelClick);
 	//*)
 
-    Grid_Buttons->SetSelectionMode(wxGrid::wxGridSelectRows);
-    Grid_Projectors->SetSelectionMode(wxGrid::wxGridSelectRows);
+    ListView_Projectors->AppendColumn("Name");
+    ListView_Projectors->AppendColumn("IP");
+    ListView_Projectors->AppendColumn("Password");
+
+    ListView_Buttons->AppendColumn("Label");
+    ListView_Buttons->AppendColumn("Command");
+    ListView_Buttons->AppendColumn("Parameters");
+    ListView_Buttons->AppendColumn("Hotkey");
 
     CheckBox_SendOffWhenNotRunning->SetValue(options->IsSendOffWhenNotRunning());
     CheckBox_Sync->SetValue(options->IsSync());
@@ -176,44 +156,55 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 
     LoadButtons();
 
-    //SetSize(800, 600);
+    SetSize(800, 600);
+    wxWindowBase::Layout();
+
+    int namew = 150;
+    int hotkeyw = 70;
+    int w, h;
+    ListView_Buttons->GetSize(&w, &h);
+    ListView_Buttons->SetColumnWidth(0, namew);
+    ListView_Buttons->SetColumnWidth(1, (w - namew - hotkeyw - 1) / 2);
+    ListView_Buttons->SetColumnWidth(2, (w - namew - hotkeyw - 1) / 2);
+    ListView_Buttons->SetColumnWidth(3, 45);
+    ListView_Projectors->SetColumnWidth(0, namew);
+    ListView_Projectors->SetColumnWidth(1, (w - namew - 1) / 2);
+    ListView_Projectors->SetColumnWidth(2, (w - namew - 1) / 2);
 
     ValidateWindow();
 }
 
 void OptionsDialog::LoadProjectors()
 {
-    Grid_Projectors->ClearGrid();
+    ListView_Projectors->DeleteAllItems();
     auto ps = _options->GetProjectors();
     int i = 0;
     for (auto it = ps.begin(); it != ps.end(); ++it)
     {
-        Grid_Projectors->AppendRows(1);
-        Grid_Projectors->SetRowLabelValue(i, *it);
-        Grid_Projectors->SetCellValue(i, 0, _options->GetProjectorIpAddress(*it));
-        Grid_Projectors->SetCellValue(i, 1, _options->GetProjectorPassword(*it));
+        ListView_Projectors->InsertItem(i, *it);
+        ListView_Projectors->SetItem(i, 1, _options->GetProjectorIpAddress(*it));
+        ListView_Projectors->SetItem(i, 2, _options->GetProjectorPassword(*it));
         i++;
     }
 }
 
 void OptionsDialog::LoadButtons()
 {
-    Grid_Buttons->ClearGrid();
+    ListView_Buttons->DeleteAllItems();
     auto ps = _options->GetButtons();
     int i = 0;
     for (auto it = ps.begin(); it != ps.end(); ++it)
     {
-        Grid_Buttons->AppendRows(1);
-        Grid_Buttons->SetRowLabelValue(i, (*it)->GetLabel());
-        Grid_Buttons->SetCellValue(i, 0, (*it)->GetCommand());
-        Grid_Buttons->SetCellValue(i, 1, (*it)->GetParameters());
+        ListView_Buttons->InsertItem(i, (*it)->GetLabel());
+        ListView_Buttons->SetItem(i, 1, (*it)->GetCommand());
+        ListView_Buttons->SetItem(i, 2, (*it)->GetParameters());
         if ((*it)->GetHotkey() == '~')
         {
-            Grid_Buttons->SetCellValue(i, 2, "");
+            ListView_Buttons->SetItem(i, 3, "");
         }
         else
         {
-            Grid_Buttons->SetCellValue(i, 2, (*it)->GetHotkey());
+            ListView_Buttons->SetItem(i, 3, (*it)->GetHotkey());
         }
         i++;
     }
@@ -234,23 +225,24 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetWWWRoot(TextCtrl_wwwRoot->GetValue().ToStdString());
 
     _options->ClearProjectors();
-    for (int i = 0; i < Grid_Projectors->GetNumberRows(); i++)
+    for (int i = 0; i < ListView_Projectors->GetItemCount(); i++)
     {
-        _options->SetProjectorIPAddress(Grid_Projectors->GetRowLabelValue(i).ToStdString(), Grid_Projectors->GetCellValue(i, 0).ToStdString());
-        _options->SetProjectorPassword(Grid_Projectors->GetRowLabelValue(i).ToStdString(), Grid_Projectors->GetCellValue(i, 1).ToStdString());
+        _options->SetProjectorIPAddress(ListView_Projectors->GetItemText(i,0).ToStdString(), ListView_Projectors->GetItemText(i, 1).ToStdString());
+        _options->SetProjectorIPAddress(ListView_Projectors->GetItemText(i, 0).ToStdString(), ListView_Projectors->GetItemText(i, 2).ToStdString());
     }
 
     _options->ClearButtons();
-    for (int i = 0; i < Grid_Buttons->GetNumberRows(); i++)
+    for (int i = 0; i < ListView_Buttons->GetItemCount(); i++)
     {
-        UserButton* b = new UserButton();
-
         char hotkey = '~';
-        if (Grid_Buttons->GetCellValue(i, 2).Length() > 0)
+        if (ListView_Buttons->GetItemText(i, 3).Length() > 0)
         {
-            hotkey = Grid_Buttons->GetCellValue(i, 2)[0];
+            hotkey = ListView_Buttons->GetItemText(i, 3)[0];
         }
-        _options->AddButton(Grid_Buttons->GetRowLabelValue(i).ToStdString(), Grid_Buttons->GetCellValue(i, 0).ToStdString(), Grid_Buttons->GetCellValue(i, 1).ToStdString(), hotkey);
+        _options->AddButton(ListView_Buttons->GetItemText(i, 0).ToStdString(), 
+                            ListView_Buttons->GetItemText(i, 1).ToStdString(), 
+                            ListView_Buttons->GetItemText(i, 2).ToStdString(), 
+                            hotkey);
     }
 
     EndDialog(wxID_OK);
@@ -261,91 +253,20 @@ void OptionsDialog::OnButton_CancelClick(wxCommandEvent& event)
     EndDialog(wxID_CANCEL);
 }
 
-void OptionsDialog::OnGrid_ProjectorsCellLeftClick(wxGridEvent& event)
-{
-    Grid_Projectors->SelectRow(event.GetRow());
-    ValidateWindow();
-}
-
-void OptionsDialog::OnGrid_ProjectorsLabelLeftClick(wxGridEvent& event)
-{
-    Grid_Projectors->SelectRow(event.GetRow());
-    ValidateWindow();
-}
-
-void OptionsDialog::OnGrid_ProjectorsKeyDown(wxKeyEvent& event)
-{
-    ValidateWindow();
-}
-
-void OptionsDialog::OnGrid_ProjectorsCellSelect(wxGridEvent& event)
-{
-    Grid_Projectors->SelectRow(event.GetRow());
-    ValidateWindow();
-}
-
-void OptionsDialog::OnGrid_ButtonsCellLeftClick(wxGridEvent& event)
-{
-    Grid_Buttons->SelectRow(event.GetRow());
-    ValidateWindow();
-}
-
-void OptionsDialog::OnGrid_ButtonsLabelLeftClick(wxGridEvent& event)
-{
-    Grid_Buttons->SelectRow(event.GetRow());
-    ValidateWindow();
-}
-
-void OptionsDialog::OnGrid_ButtonsCellSelect(wxGridEvent& event)
-{
-    Grid_Buttons->SelectRow(event.GetRow());
-    ValidateWindow();
-}
-
-void OptionsDialog::OnGrid_ButtonsKeyDown(wxKeyEvent& event)
-{
-    ValidateWindow();
-}
-
-void OptionsDialog::OnGrid_ButtonsResize(wxSizeEvent& event)
-{
-    int rhw = Grid_Buttons->GetRowLabelSize();
-    Grid_Buttons->SetColSize(0, (event.GetSize().x - rhw - 66) / 2);
-    Grid_Buttons->SetColSize(1, (event.GetSize().x - rhw - 66) / 2);
-    Grid_Buttons->SetColSize(2, 45);
-
-    //event.Skip();
-}
-
-void OptionsDialog::OnGrid_ProjectorsResize(wxSizeEvent& event)
-{
-    int rhw = Grid_Projectors->GetRowLabelSize();
-    Grid_Projectors->SetColSize(0, (event.GetSize().x - rhw-1) / 2);
-    Grid_Projectors->SetColSize(1, (event.GetSize().x - rhw-1) / 2);
-
-    //event.Skip();
-}
-
 void OptionsDialog::OnButton_AddProjectorClick(wxCommandEvent& event)
 {
     std::string projector = "";
     std::string ip = "";
     std::string password = "";
 
-    Grid_Projectors->AppendRows(1);
-    int row = Grid_Projectors->GetNumberRows() - 1;
-
     ProjectorDetailsDialog dlg(this, projector, ip, password);
 
     if (dlg.ShowModal() == wxID_OK)
     {
-        Grid_Projectors->SetRowLabelValue(row, projector);
-        Grid_Projectors->SetCellValue(row, 0, ip);
-        Grid_Projectors->SetCellValue(row, 1, password);
-    }
-    else
-    {
-        Grid_Projectors->DeleteRows(row);
+        int row = ListView_Projectors->GetItemCount();
+        ListView_Projectors->InsertItem(row, projector);
+        ListView_Projectors->SetItem(row, 1, ip);
+        ListView_Projectors->SetItem(row, 2, password);
     }
 
     ValidateWindow();
@@ -353,26 +274,26 @@ void OptionsDialog::OnButton_AddProjectorClick(wxCommandEvent& event)
 
 void OptionsDialog::OnButton_ProjectorEditClick(wxCommandEvent& event)
 {
-    if (Grid_Projectors->GetSelectedRows().Count() != 1) return;
+    if (ListView_Projectors->GetSelectedItemCount() != 1) return;
 
-    int row = Grid_Projectors->GetSelectedRows()[0];
+    int row = ListView_Projectors->GetFirstSelected();
 
     EditProjector(row);
 }
 
 void OptionsDialog::EditProjector(int row)
 {
-    std::string projector = Grid_Projectors->GetRowLabelValue(row).ToStdString();
-    std::string ip = Grid_Projectors->GetCellValue(row, 0).ToStdString();
-    std::string password = Grid_Projectors->GetCellValue(row, 1).ToStdString();
+    std::string projector = ListView_Projectors->GetItemText(row, 0).ToStdString();
+    std::string ip = ListView_Projectors->GetItemText(row, 1).ToStdString();
+    std::string password = ListView_Projectors->GetItemText(row, 2).ToStdString();
 
     ProjectorDetailsDialog dlg(this, projector, ip, password);
 
     if (dlg.ShowModal() == wxID_OK)
     {
-        Grid_Projectors->SetRowLabelValue(row, projector);
-        Grid_Projectors->SetCellValue(row, 0, ip);
-        Grid_Projectors->SetCellValue(row, 1, password);
+        ListView_Projectors->SetItemText(row, projector);
+        ListView_Projectors->SetItem(row, 1, ip);
+        ListView_Projectors->SetItem(row, 2, password);
     }
 
     ValidateWindow();
@@ -380,10 +301,10 @@ void OptionsDialog::EditProjector(int row)
 
 void OptionsDialog::OnButton_DeleteProjectorClick(wxCommandEvent& event)
 {
-    if (Grid_Projectors->GetSelectedRows().Count() != 1) return;
+    if (ListView_Projectors->GetSelectedItemCount() != 1) return;
 
-    int row = Grid_Projectors->GetSelectedRows()[0];
-    Grid_Projectors->DeleteRows(row);
+    int row = ListView_Projectors->GetFirstSelected();
+    ListView_Projectors->DeleteItem(row);
 
     ValidateWindow();
 }
@@ -395,21 +316,15 @@ void OptionsDialog::OnButton_ButtonAddClick(wxCommandEvent& event)
     std::string parameter = "";
     char hotkey = '~';
 
-    Grid_Buttons->AppendRows(1);
-    int row = Grid_Buttons->GetNumberRows() - 1;
-
     ButtonDetailsDialog dlg(this, label, command, parameter, hotkey);
 
     if (dlg.ShowModal() == wxID_OK)
     {
-        Grid_Buttons->SetRowLabelValue(row, label);
-        Grid_Buttons->SetCellValue(row, 0, command);
-        Grid_Buttons->SetCellValue(row, 1, parameter);
-        Grid_Buttons->SetCellValue(row, 2, hotkey);
-    }
-    else
-    {
-        Grid_Buttons->DeleteRows(row);
+        int row = ListView_Buttons->GetItemCount();
+        ListView_Buttons->InsertItem(row, label);
+        ListView_Buttons->SetItem(row, 1, command);
+        ListView_Buttons->SetItem(row, 2, parameter);
+        ListView_Buttons->SetItem(row, 3, hotkey);
     }
 
     ValidateWindow();
@@ -417,32 +332,32 @@ void OptionsDialog::OnButton_ButtonAddClick(wxCommandEvent& event)
 
 void OptionsDialog::OnButton_ButtonEditClick(wxCommandEvent& event)
 {
-    if (Grid_Buttons->GetSelectedRows().Count() != 1) return;
+    if (ListView_Buttons->GetSelectedItemCount() != 1) return;
 
-    int row = Grid_Buttons->GetSelectedRows()[0];
+    int row = ListView_Buttons->GetFirstSelected();
 
     EditButton(row);
 }
 
 void OptionsDialog::EditButton(int row)
 {
-    std::string label = Grid_Buttons->GetRowLabelValue(row).ToStdString();
-    std::string command = Grid_Buttons->GetCellValue(row, 0).ToStdString();
-    std::string parameter = Grid_Buttons->GetCellValue(row, 1).ToStdString();
+    std::string label = ListView_Buttons->GetItemText(row, 0).ToStdString();
+    std::string command = ListView_Buttons->GetItemText(row, 1).ToStdString();
+    std::string parameter = ListView_Buttons->GetItemText(row, 2).ToStdString();
     char hotkey = '~';
-    if (Grid_Buttons->GetCellValue(row, 2).Length() > 0)
+    if (ListView_Buttons->GetItemText(row, 3).Length() > 0)
     {
-        hotkey = Grid_Buttons->GetCellValue(row, 2)[0];
+        hotkey = ListView_Buttons->GetItemText(row, 3)[0];
     }
 
     ButtonDetailsDialog dlg(this, label, command, parameter, hotkey);
 
     if (dlg.ShowModal() == wxID_OK)
     {
-        Grid_Buttons->SetRowLabelValue(row, label);
-        Grid_Buttons->SetCellValue(row, 0, command);
-        Grid_Buttons->SetCellValue(row, 1, parameter);
-        Grid_Buttons->SetCellValue(row, 2, hotkey);
+        ListView_Buttons->SetItemText(row, label);
+        ListView_Buttons->SetItem(row, 1, command);
+        ListView_Buttons->SetItem(row, 2, parameter);
+        ListView_Buttons->SetItem(row, 3, hotkey);
     }
 
     ValidateWindow();
@@ -450,17 +365,16 @@ void OptionsDialog::EditButton(int row)
 
 void OptionsDialog::OnButton_ButtonDeleteClick(wxCommandEvent& event)
 {
-    if (Grid_Buttons->GetSelectedRows().Count() != 1) return;
+    if (ListView_Buttons->GetSelectedItemCount() != 1) return;
 
-    int row = Grid_Buttons->GetSelectedRows()[0];
-    Grid_Buttons->DeleteRows(row);
+    ListView_Buttons->DeleteItem(ListView_Buttons->GetFirstSelected());
 
     ValidateWindow();
 }
 
 void OptionsDialog::ValidateWindow()
 {
-    if (Grid_Buttons->GetSelectedRows().Count() == 1)
+    if (ListView_Buttons->GetSelectedItemCount() == 1)
     {
         Button_ButtonDelete->Enable(true);
         Button_ButtonEdit->Enable(true);
@@ -471,7 +385,7 @@ void OptionsDialog::ValidateWindow()
         Button_ButtonEdit->Enable(false);
     }
 
-    if (Grid_Projectors->GetSelectedRows().Count() == 1)
+    if (ListView_Projectors->GetSelectedItemCount() == 1)
     {
         Button_DeleteProjector->Enable(true);
         Button_ProjectorEdit->Enable(true);
@@ -491,31 +405,158 @@ void OptionsDialog::ValidateWindow()
         Button_Ok->Enable();
     }
 }
+
 void OptionsDialog::OnTextCtrl_wwwRootText(wxCommandEvent& event)
 {
     ValidateWindow();
 }
 
-void OptionsDialog::OnGrid_ButtonsCellLeftDClick(wxGridEvent& event)
+void OptionsDialog::OnListView_ButtonsBeginDrag(wxListEvent& event)
 {
-    EditButton(event.GetRow());
+    if (ListView_Buttons->GetSelectedItemCount() != 1) return;
+
+    ListView_Buttons->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(OptionsDialog::OnButtonsDragEnd), nullptr, this);
+    // trigger when user leaves window to abort drag
+    ListView_Buttons->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(OptionsDialog::OnButtonsDragQuit), nullptr, this);
+    // trigger when mouse moves
+    ListView_Buttons->Connect(wxEVT_MOTION, wxMouseEventHandler(OptionsDialog::OnButtonsMouseMove), nullptr, this);
+
+    _dragging = true;
+    SetCursor(wxCURSOR_HAND);
 }
 
-void OptionsDialog::OnGrid_ButtonsLabelLeftDClick(wxGridEvent& event)
+// abort dragging a list item because user has left window
+void OptionsDialog::OnButtonsDragQuit(wxMouseEvent& event)
 {
-    EditButton(event.GetRow());
+    // restore cursor and disconnect unconditionally
+    SetCursor(wxCURSOR_ARROW);
+    ListView_Buttons->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(OptionsDialog::OnButtonsDragEnd));
+    ListView_Buttons->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(OptionsDialog::OnButtonsDragQuit));
+    ListView_Buttons->Disconnect(wxEVT_MOTION, wxMouseEventHandler(OptionsDialog::OnButtonsMouseMove));
+    //HighlightDropItem(nullptr);
 }
 
-void OptionsDialog::OnGrid_ProjectorsLabelRightDClick(wxGridEvent& event)
+void OptionsDialog::OnButtonsDragEnd(wxMouseEvent& event)
 {
+    int flags = wxLIST_HITTEST_ONITEM;
+    int dropitem = ListView_Buttons->HitTest(event.GetPosition(), flags);
+
+    if (dropitem >= 0 && dropitem < ListView_Buttons->GetItemCount())
+    {
+        int dragitem = ListView_Buttons->GetFirstSelected();
+
+        if (dragitem >= 0 && dragitem < ListView_Buttons->GetItemCount())
+        {
+            // move drag item below drop item
+            if (dragitem != dropitem)
+            {
+                std::string label = ListView_Buttons->GetItemText(dragitem, 0).ToStdString();
+                std::string command = ListView_Buttons->GetItemText(dragitem, 1).ToStdString();
+                std::string parameters = ListView_Buttons->GetItemText(dragitem, 2).ToStdString();
+                std::string hotkey = ListView_Buttons->GetItemText(dragitem, 3).ToStdString();
+
+                ListView_Buttons->DeleteItem(dragitem);
+
+                if (dropitem > dragitem) dropitem--;
+
+                ListView_Buttons->InsertItem(dropitem + 1, label);
+                ListView_Buttons->SetItem(dropitem + 1, 1, command);
+                ListView_Buttons->SetItem(dropitem + 1, 2, parameters);
+                ListView_Buttons->SetItem(dropitem + 1, 3, hotkey);
+
+                ListView_Buttons->EnsureVisible(dropitem + 1);
+
+                if (dropitem + 1 == ListView_Buttons->GetItemCount() - 1)
+                {
+                    ListView_Buttons->ScrollLines(1);
+                }
+            }
+        }
+    }
+
+    _dragging = false;
+    SetCursor(wxCURSOR_ARROW);
+    //HighlightDropItem(nullptr);
+
+    // disconnect both functions
+    ListView_Buttons->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(OptionsDialog::OnButtonsDragEnd));
+    ListView_Buttons->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(OptionsDialog::OnButtonsDragQuit));
+    ListView_Buttons->Disconnect(wxEVT_MOTION, wxMouseEventHandler(OptionsDialog::OnButtonsMouseMove));
 }
 
-void OptionsDialog::OnGrid_ProjectorsCellLeftDClick(wxGridEvent& event)
+void OptionsDialog::OnButtonsMouseMove(wxMouseEvent& event)
 {
-    EditProjector(event.GetRow());
+    int flags = wxLIST_HITTEST_ONITEM;
+    int dropitem = ListView_Buttons->HitTest(event.GetPosition(), flags);
+    int topitem = ListView_Buttons->GetTopItem();
+    int bottomitem = topitem + ListView_Buttons->GetCountPerPage();
+
+    if (topitem == dropitem && topitem > 0)
+    {
+        ListView_Buttons->EnsureVisible(topitem - 1);
+    }
+    else if (bottomitem == dropitem && dropitem < ListView_Buttons->GetItemCount() - 1)
+    {
+        ListView_Buttons->EnsureVisible(bottomitem + 1);
+    }
+
+    if (dropitem == ListView_Buttons->GetItemCount() - 1)
+    {
+        ListView_Buttons->ScrollLines(1);
+    }
+
+    SetCursor(wxCURSOR_HAND);
+    //HighlightDropItem(&dropitem);
 }
 
-void OptionsDialog::OnGrid_ProjectorsLabelLeftDClick(wxGridEvent& event)
+void OptionsDialog::OnListView_ButtonsItemSelect(wxListEvent& event)
 {
-    EditProjector(event.GetRow());
+    ValidateWindow();
+}
+
+void OptionsDialog::OnListView_ButtonsItemActivated(wxListEvent& event)
+{
+    if (ListView_Buttons->GetSelectedItemCount() >= 0)
+    {
+        EditButton(ListView_Buttons->GetFirstSelected());
+    }
+    ValidateWindow();
+}
+
+void OptionsDialog::OnListView_ButtonsKeyDown(wxListEvent& event)
+{
+    if (event.GetKeyCode() == WXK_DELETE)
+    {
+        if (ListView_Buttons->GetSelectedItemCount() >= 0)
+        {
+            ListView_Buttons->DeleteItem(ListView_Buttons->GetFirstSelected());
+        }
+    }
+    ValidateWindow();
+}
+
+void OptionsDialog::OnListView_ProjectorsItemSelect(wxListEvent& event)
+{
+    ValidateWindow();
+}
+
+void OptionsDialog::OnListView_ProjectorsItemActivated(wxListEvent& event)
+{
+    if (ListView_Projectors->GetSelectedItemCount() >= 0)
+    {
+        EditButton(ListView_Projectors->GetFirstSelected());
+    }
+    ValidateWindow();
+}
+
+void OptionsDialog::OnListView_ProjectorsKeyDown(wxListEvent& event)
+{
+    if (event.GetKeyCode() == WXK_DELETE)
+    {
+        if (ListView_Projectors->GetSelectedItemCount() >= 0)
+        {
+            ListView_Projectors->DeleteItem(ListView_Projectors->GetFirstSelected());
+        }
+    }
+    ValidateWindow();
 }

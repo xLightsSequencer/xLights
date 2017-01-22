@@ -24,6 +24,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Loading schedule from %s.", (const char *)_showDir.c_str());
 
+    _queuedSongs = new PlayList();
     _fppSync = nullptr;
     _manualOTL = -1;
     _immediatePlay = nullptr;
@@ -118,6 +119,12 @@ ScheduleManager::~ScheduleManager()
         _immediatePlay = nullptr;
     }
 
+    if (_queuedSongs != nullptr)
+    {
+        delete _queuedSongs;
+        _queuedSongs = nullptr;
+    }
+
     while (_activeSchedules.size() > 0)
     {
         auto toremove = _activeSchedules.front();
@@ -196,6 +203,10 @@ PlayList* ScheduleManager::GetRunningPlayList() const
     {
         running = _immediatePlay;
     }
+    else if (_queuedSongs->GetSteps().size() > 0 && _queuedSongs->IsRunning())
+    {
+        running = _queuedSongs;
+    }
     else
     {
         if (GetRunningSchedule() != nullptr)
@@ -217,6 +228,12 @@ void ScheduleManager::StopAll()
         _immediatePlay->Stop();
         delete _immediatePlay;
         _immediatePlay = nullptr;
+    }
+
+    if (_queuedSongs->IsRunning())
+    {
+        _queuedSongs->Stop();
+        _queuedSongs->RemoveAllSteps();
     }
 
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
@@ -301,6 +318,12 @@ bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, 
         _immediatePlay->Stop();
         delete _immediatePlay;
         _immediatePlay = nullptr;
+    }
+
+    if (_queuedSongs->IsRunning())
+    {
+        logger_base.info("Suspending queued playlist so immediate can play.");
+        _queuedSongs->Suspend(true);
     }
 
     // this needs to create a copy of everything ... including steps etc
@@ -413,29 +436,62 @@ int ScheduleManager::CheckSchedule()
 
     if (_immediatePlay == nullptr)
     {
-        bool first = true;
-        for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
+        if (_queuedSongs->GetSteps().size() == 0)
         {
-            if (first)
+            bool first = true;
+            for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
             {
-                if ((*it)->GetPlayList()->IsRunning())
+                if (first)
                 {
-                    first = false;
-                    if ((*it)->GetPlayList()->IsSuspended())
+                    if ((*it)->GetPlayList()->IsRunning())
                     {
-                        logger_base.info("   Unsuspending playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
-                        framems = (*it)->GetPlayList()->Suspend(false);
+                        first = false;
+                        if ((*it)->GetPlayList()->IsSuspended())
+                        {
+                            logger_base.info("   Unsuspending playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
+                            framems = (*it)->GetPlayList()->Suspend(false);
+                        }
+                    }
+                }
+                else
+                {
+                    if (!(*it)->GetPlayList()->IsSuspended())
+                    {
+                        logger_base.info("   Suspending playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
+                        (*it)->GetPlayList()->Suspend(true);
                     }
                 }
             }
-            else
+        }
+        else
+        {
+            // we should be playing our queued song
+            // make sure they are all suspended
+            for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
             {
                 if (!(*it)->GetPlayList()->IsSuspended())
                 {
-                    logger_base.info("   Suspending playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
+                    logger_base.info("   Suspending playlist %s due to schedule %s so immediate can play.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
                     (*it)->GetPlayList()->Suspend(true);
                 }
             }
+
+            if (!_queuedSongs->IsRunning())
+            {
+                // we need to start it
+                _queuedSongs->Start();
+            }
+            else if  (_queuedSongs->IsSuspended())
+            {
+                // we need to unsuspend it
+                _queuedSongs->Suspend(false);
+            }
+            else
+            {
+                // it is already running
+            }
+
+            framems = _queuedSongs->GetRunningStep()->GetFrameMS();
         }
     }
     else
@@ -448,6 +504,12 @@ int ScheduleManager::CheckSchedule()
                 logger_base.info("   Suspending playlist %s due to schedule %s so immediate can play.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
                 (*it)->GetPlayList()->Suspend(true);
             }
+        }
+
+        if (_queuedSongs->GetSteps().size() > 0 && !_queuedSongs->IsSuspended())
+        {
+            logger_base.info("   Suspending queued playlist so immediate can play.");
+            _queuedSongs->Suspend(true);
         }
 
         framems = _immediatePlay->GetRunningStep()->GetFrameMS();
@@ -488,17 +550,12 @@ PlayList* ScheduleManager::GetPlayList(const std::string& playlist) const
     return nullptr;
 }
 
-// 127.0.0.1/xScheduleCommand?Command=Stop all now&Parameters=
-// 127.0.0.1/xScheduleCommand?Command=Play specified playlist&Parameters=<play list name>
-// 127.0.0.1/xScheduleCommand?Command=Stop specified playlist&Parameters=<play list name>
-// 127.0.0.1/xScheduleCommand?Command=Stop specified playlist at end of current step&Parameters=<play list name>
-// 127.0.0.1/xScheduleCommand?Command=Pause&Parameters=
-// 127.0.0.1/xScheduleCommand?Command=Next step in current playlist&Parameters=
-// 127.0.0.1/xScheduleCommand?Command=Restart step in current playlist&Parameters=
-// 127.0.0.1/xScheduleCommand?Command=Prior step in current playlist&Parameters=
-// 127.0.0.1/xScheduleCommand?Command=Play playlist starting at step&Parameters=<step name>
-// 127.0.0.1/xScheduleCommand?Command=PressButton&Parameters=<button label>
+bool ScheduleManager::IsQueuedPlaylistRunning() const
+{
+    return GetRunningPlayList() != nullptr && _queuedSongs->GetId() == GetRunningPlayList()->GetId();
+}
 
+// localhost/xScheduleCommand?Command=<command>&Parameters=<comma separated parameters>
 bool ScheduleManager::Action(const std::string command, const std::string parameters, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg)
 {
     bool result = true;
@@ -512,7 +569,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
     }
     else
     {
-        if (!cmd->IsValid(parameters, selplaylist, selschedule, this, msg))
+        if (!cmd->IsValid(parameters, selplaylist, selschedule, this, msg, IsQueuedPlaylistRunning()))
         {
             result = false;
         }
@@ -529,10 +586,14 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     p->Stop();
 
-                    if (p == _immediatePlay)
+                    if (p->GetId() == _immediatePlay->GetId())
                     {
                         delete _immediatePlay;
                         _immediatePlay = nullptr;
+                    }
+                    else if (p->GetId() == _queuedSongs->GetId())
+                    {
+                        p->RemoveAllSteps();
                     }
                 }
             }
@@ -646,9 +707,18 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             {
                 PlayList* p = GetRunningPlayList();
 
-                if (p != nullptr)
+                if (p != nullptr && IsQueuedPlaylistRunning())
                 {
-                    rate = p->JumpToNextStep();
+                    if (p->GetId() == _queuedSongs->GetId())
+                    {
+                        _queuedSongs->Stop();
+                        _queuedSongs->RemoveStep(_queuedSongs->GetSteps().front());
+                        _queuedSongs->Start();
+                    }
+                    else
+                    {
+                        rate = p->JumpToNextStep();
+                    }
                 }
             }
             else if (command == "Restart step in current playlist")
@@ -714,6 +784,52 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         msg = "Unable to start playlist.";
                     }
                 }
+            }
+            else if (command == "Enqueue playlist step")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = split[0].ToStdString();
+                std::string step = split[1].ToStdString();
+
+                PlayList* p = GetPlayList(pl);
+
+                if (p != nullptr)
+                {
+                    PlayListStep* pls = p->GetStep(step);
+
+                    if (pls != nullptr)
+                    {
+                        if (_queuedSongs->GetSteps().size() > 1 && _queuedSongs->GetSteps().back()->GetId() != pls->GetId())
+                        {
+                            _queuedSongs->AddStep(new PlayListStep(*pls), -1);
+                            if (!_queuedSongs->IsRunning())
+                            {
+                                _queuedSongs->StartSuspended();
+                            }
+                        }
+                        else
+                        {
+                            result = false;
+                            msg = "step is already at the end of the list ... I wont add a duplicate.";
+                        }
+                    }
+                    else
+                    {
+                        result = false;
+                        msg = "Unknown step.";
+                    }
+                }
+            }
+            else if (command == "Clear playlist queue")
+            {
+                if (_queuedSongs->IsRunning())
+                {
+                    _queuedSongs->Stop();
+                }
+
+                _queuedSongs->RemoveAllSteps();
             }
             else if (command == "Play playlist starting at step")
             {
@@ -981,9 +1097,7 @@ bool ScheduleManager::Action(const std::string label, PlayList* selplaylist, Sch
 
 void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
 {
-    std::string name = playlist->GetNameNoTime();
-
-    if (_immediatePlay != nullptr && _immediatePlay->GetNameNoTime() == name)
+    if (_immediatePlay != nullptr && _immediatePlay->GetId() == playlist->GetId())
     {
         if (atendofcurrentstep)
         {
@@ -999,7 +1113,7 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
 
     for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
     {
-        if ((*it)->GetNameNoTime() == name && (*it)->IsRunning())
+        if ((*it)->GetId() == playlist->GetId() && (*it)->IsRunning())
         {
             if (atendofcurrentstep)
             {
@@ -1063,6 +1177,22 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
             msg = "Playlist '" + parameters + "' not found.";
         }
     }
+    else if (command == "GetQueuedSteps")
+    {
+        PlayList* p = _queuedSongs;
+
+        data = "{\"steps\":[";
+        auto steps = p->GetSteps();
+        for (auto it = steps.begin(); it != steps.end(); ++it)
+        {
+            if (it != steps.begin())
+            {
+                data += ",";
+            }
+            data += "{\"name\":\"" + (*it)->GetNameNoTime() + "\",\"length\":\"" + FormatTime((*it)->GetLengthMS()) + "\"}";
+        }
+        data += "]}";
+    }
     else if (command == "GetPlayingStatus")
     {
         PlayList* p = GetRunningPlayList();
@@ -1100,9 +1230,10 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"length\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS()) +
                 "\",\"position\":\"" + FormatTime(p->GetRunningStep()->GetPosition()) +
                 "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) + 
-                "\",\"trigger\":\"" + std::string(IsCurrentPlayListScheduled() ? "scheduled": "manual") +
+                "\",\"trigger\":\"" + std::string(IsCurrentPlayListScheduled() ? "scheduled": (_immediatePlay != nullptr) ? "manual" : "queued") +
                 "\",\"nextstep\":\"" + nextsong +
                 "\",\"version\":\"" + xlights_version_string +
+                "\",\"queuelength\":\"" + wxString::Format(wxT("%i"), _queuedSongs->GetSteps().size()) +
                 "\",\"volume\":\"" + wxString::Format(wxT("%i"), GetVolume()) +
                 "\",\"time\":\"" + wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +
                 "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\"}";
@@ -1254,6 +1385,7 @@ bool ScheduleManager::IsOutputToLights() const
 RunningSchedule* ScheduleManager::GetRunningSchedule() const
 {
     if (_immediatePlay != nullptr) return nullptr;
+    if (_queuedSongs->IsRunning()) return nullptr;
     if (_activeSchedules.size() == 0) return nullptr;
 
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)

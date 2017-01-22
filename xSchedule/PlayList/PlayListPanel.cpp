@@ -49,7 +49,7 @@ PlayListPanel::PlayListPanel(wxWindow* parent, PlayList* playlist, wxWindowID id
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListPanel::OnTextCtrl_PlayListNameText);
 	//*)
 
-    TextCtrl_PlayListName->SetValue(playlist->GetName());
+    TextCtrl_PlayListName->SetValue(playlist->GetRawName());
     CheckBox_FirstOnce->SetValue(playlist->GetFirstOnce());
     CheckBox_LastStepOnce->SetValue(playlist->GetLastOnce());
 }

@@ -533,6 +533,7 @@ size_t AudioManager::GetAudioFileLength(std::string filename)
 AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 {
 	// save parameters and initialise defaults
+    _ok = true;
 	_job = nullptr;
 	_audio_file = audio_file;
 	_state = -1; // state uninitialised. 0 is error. 1 is loaded ok
@@ -1348,6 +1349,7 @@ int AudioManager::OpenMediaFile()
 	if (res != 0)
 	{
 		std::cout << "Error opening the file" << std::endl;
+        _ok = false;
 		return 1;
 	}
 
@@ -1355,7 +1357,8 @@ int AudioManager::OpenMediaFile()
 	{
 		avformat_close_input(&formatContext);
 		std::cout << "Error finding the stream info" << std::endl;
-		return 1;
+        _ok = false;
+        return 1;
 	}
 
 	// Find the audio stream
@@ -1365,7 +1368,8 @@ int AudioManager::OpenMediaFile()
 	{
 		avformat_close_input(&formatContext);
 		std::cout << "Could not find any audio stream in the file" << std::endl;
-		return 1;
+        _ok = false;
+        return 1;
 	}
 
 	AVStream* audioStream = formatContext->streams[streamIndex];
@@ -1376,7 +1380,8 @@ int AudioManager::OpenMediaFile()
 	{
 		avformat_close_input(&formatContext);
 		std::cout << "Couldn't open the context with the decoder" << std::endl;
-		return 1;
+        _ok = false;
+        return 1;
 	}
 
 	_channels = codecContext->channels;
@@ -1453,14 +1458,16 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 	{
 		_resultMessage = "Error allocating the frame";
 		_state = 0;
-		return;
+        _ok = false;
+        return;
 	}
 
 	_pcmdatasize = _trackSize * out_channels * 2;
 	_pcmdata = (Uint8*)malloc(_pcmdatasize + 16384); // 16384 is a fudge because some ogg files dont read consistently
 	if (_pcmdata == nullptr)
 	{
-		return;
+        _ok = false;
+        return;
 	}
 
 	AVPacket readingPacket;
@@ -1598,7 +1605,8 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 	{
 		_resultMessage = "Error allocating the frame";
 		_state = 0;
-		return;
+        _ok = false;
+        return;
 	}
 
 	AVPacket readingPacket;

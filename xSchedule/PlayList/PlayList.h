@@ -53,6 +53,7 @@ public:
     PlayList& operator=(PlayList& playlist);
 
     #pragma region Getters and Setters
+    wxUint32 GetId() const { return _id; }
     bool IsFinishingUp() const { return _jumpToEndStepsAtEndOfCurrentStep; }
     void JumpToStepAtEndOfCurrentStep(const std::string& step) { _forceNextStep = step; }
     PlayListStep* GetNextStep(bool& didloop);
@@ -71,6 +72,7 @@ public:
     void DoLoop() { --_loops; if (_loops == 0) { _loops = -1; _looping = false; } }
     void ClearStepLooping() { _loopStep = false; }
     std::string GetName() const;
+    std::string GetRawName() const {  return _name; };
     std::string GetNameNoTime() const { if (_name == "") return "<unnamed>"; else return _name; };
     void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
     bool GetFirstOnce() const
@@ -97,6 +99,7 @@ public:
     void Stop();
     void StopAtEndOfCurrentStep() { _stopAtEndOfCurrentStep = true; }
     void Pause();
+    void RemoveAllSteps();
     bool IsPaused() const;
     bool JumpToNextStep();
     bool MoveToNextStep();

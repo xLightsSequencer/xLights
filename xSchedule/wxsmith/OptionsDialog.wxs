@@ -63,23 +63,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxGrid" name="ID_GRID1" variable="Grid_Projectors" member="yes">
-							<cols>2</cols>
-							<labelcolwidth>150</labelcolwidth>
-							<defaultcolsize>200</defaultcolsize>
-							<collabels>
-								<item>IP Address</item>
-								<item>Password</item>
-							</collabels>
-							<style>wxVSCROLL|wxHSCROLL</style>
-							<handler function="OnGrid_ProjectorsCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
-							<handler function="OnGrid_ProjectorsCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
-							<handler function="OnGrid_ProjectorsLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
-							<handler function="OnGrid_ProjectorsLabelLeftDClick" entry="EVT_CMD_GRID_LABEL_LEFT_DCLICK" />
-							<handler function="OnGrid_ProjectorsLabelRightDClick" entry="EVT_CMD_GRID_LABEL_RIGHT_DCLICK" />
-							<handler function="OnGrid_ProjectorsCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
-							<handler function="OnGrid_ProjectorsKeyDown" entry="EVT_KEY_DOWN" />
-							<handler function="OnGrid_ProjectorsResize" entry="EVT_SIZE" />
+						<object class="wxListView" name="ID_LISTVIEW2" variable="ListView_Projectors" member="yes">
+							<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_NO_SORT_HEADER|wxVSCROLL|wxALWAYS_SHOW_SB</style>
+							<handler function="OnListView_ProjectorsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+							<handler function="OnListView_ProjectorsItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
+							<handler function="OnListView_ProjectorsKeyDown" entry="EVT_LIST_KEY_DOWN" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
@@ -139,24 +127,12 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxGrid" name="ID_GRID2" variable="Grid_Buttons" member="yes">
-							<cols>3</cols>
-							<labelcolwidth>150</labelcolwidth>
-							<defaultcolsize>150</defaultcolsize>
-							<collabels>
-								<item>Command</item>
-								<item>Parameter</item>
-								<item>Hotkey</item>
-							</collabels>
-							<size>800,200</size>
-							<style>wxVSCROLL|wxHSCROLL</style>
-							<handler function="OnGrid_ButtonsCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
-							<handler function="OnGrid_ButtonsCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
-							<handler function="OnGrid_ButtonsLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
-							<handler function="OnGrid_ButtonsLabelLeftDClick" entry="EVT_CMD_GRID_LABEL_LEFT_DCLICK" />
-							<handler function="OnGrid_ButtonsCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
-							<handler function="OnGrid_ButtonsKeyDown" entry="EVT_KEY_DOWN" />
-							<handler function="OnGrid_ButtonsResize" entry="EVT_SIZE" />
+						<object class="wxListView" name="ID_LISTVIEW1" variable="ListView_Buttons" member="yes">
+							<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_NO_SORT_HEADER|wxVSCROLL|wxALWAYS_SHOW_SB</style>
+							<handler function="OnListView_ButtonsBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
+							<handler function="OnListView_ButtonsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+							<handler function="OnListView_ButtonsItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
+							<handler function="OnListView_ButtonsKeyDown" entry="EVT_LIST_KEY_DOWN" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>

@@ -1,9 +1,11 @@
 #include "ESEQFile.h"
 #include <wx/file.h>
 #include <wx/filename.h>
+#include <log4cpp/Category.hh>
 
 ESEQFile::ESEQFile()
 {
+    _offset = 0;
     _channelsPerFrame = 0;
     _filename = "";
     _frames = 0;
@@ -16,6 +18,7 @@ ESEQFile::ESEQFile()
 
 ESEQFile::ESEQFile(const std::string& filename)
 {
+    _offset = 0;
     _channelsPerFrame = 0;
     _filename = filename;
     _frames = 0;
@@ -47,6 +50,9 @@ void ESEQFile::Close()
         free(_frameBuffer);
         _frameBuffer = nullptr;
     }
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("ESEQ file %s closed.", (const char *)_filename.c_str());
 
     _ok = false;
 }
@@ -89,6 +95,8 @@ std::list<std::string> ESEQFile::GetBlendModes()
 
 void ESEQFile::Load(const std::string& filename)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     Close();
 
     _fh = new wxFile(filename);
@@ -111,14 +119,18 @@ void ESEQFile::Load(const std::string& filename)
 
             wxFileName fn(filename);
             _frames = (size_t)(fn.GetSize().ToULong() - _frame0Offset) / _channelsPerFrame;
+
+            logger_base.info("ESEQ file %s opened.", (const char *)filename.c_str());
         }
         else
         {
+            logger_base.error("ESEQ file %s format does not look valid.", (const char *)filename.c_str());
             Close();
         }
     }
     else
     {
+        logger_base.error("ESEQ file %s could not be opened.", (const char *)filename.c_str());
         Close();
     }
 }
@@ -137,7 +149,7 @@ void ESEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
     _fh->Read(_frameBuffer, _channelsPerFrame);
     _currentFrame = frame + 1;
 
-    size_t bytesToUse = std::min(buffersize - _offset, _channelsPerFrame);
+    size_t bytesToUse = buffersize - _offset < _channelsPerFrame ? buffersize - _offset : _channelsPerFrame;
 
     switch(applyMethod)
     {
@@ -171,7 +183,7 @@ void ESEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
     case APPLYMETHOD::METHOD_MAX:
         for (size_t i = 0; i < bytesToUse; i++)
         {
-            *(buffer + _offset + i) = std::max(*(buffer + _offset + i), *(_frameBuffer + i));
+            *(buffer + _offset + i) = *(buffer + _offset + i) > *(_frameBuffer + i) ? *(buffer + _offset + i) : *(_frameBuffer + i);
         }
         break;
     case APPLYMETHOD::METHOD_OVERWRITEIFBLACK:
