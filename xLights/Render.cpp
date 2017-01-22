@@ -37,13 +37,12 @@ public:
         strand = -1;        
     }
     void resize(int l) {
-        wxASSERT(l >= 0);
         numLayers = l;
         currentEffects.resize(l);
         currentEffectIdxs.resize(l);
         settingsMaps.resize(l);
         effectStates.resize(l);
-        validLayers.resize(l);
+        validLayers.resize(l + 1); //extra one for the blending layer
     }
     int numLayers;
     int strand;
