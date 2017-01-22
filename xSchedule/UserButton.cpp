@@ -28,9 +28,10 @@ UserButton::UserButton()
 {
     _changeCount = 0;
     _lastSavedChangeCount = 0;
-	_label = "";
-	_command = "";
-	_hotkey = '~';
+    _label = "";
+    _command = "";
+    _hotkey = '~';
+    _parameters = "";
 }
 
 wxXmlNode* UserButton::Save()
