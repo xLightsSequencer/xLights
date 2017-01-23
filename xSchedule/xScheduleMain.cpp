@@ -35,6 +35,7 @@
 #include "../include/xs_otlautoon.xpm"
 #include "../include/xs_otlautooff.xpm"
 #include "../include/xs_scheduled.xpm"
+#include "../include/xs_queued.xpm"
 #include "../include/xs_notscheduled.xpm"
 #include "../include/xs_inactive.xpm"
 #include "../include/xs_pllooped.xpm"
@@ -448,6 +449,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _otlautoon = wxBitmap(xs_otlautoon, 32, 32);
     _save = wxBitmap(xs_save, 32, 32);
     _scheduled = wxBitmap(xs_scheduled, 32, 32);
+    _queued = wxBitmap(xs_queued, 32, 32);
     _notscheduled = wxBitmap(xs_notscheduled, 32, 32);
     _inactive = wxBitmap(xs_inactive, 32, 32);
     _pllooped = wxBitmap(xs_pllooped, 32, 32);
@@ -1410,6 +1412,14 @@ void xScheduleFrame::UpdateStatus()
             if (BitmapButton_IsScheduled->GetToolTipText() != "Scheduled playlist playing.")
                 BitmapButton_IsScheduled->SetToolTip("Scheduled playlist playing.");
             scheduled = 1;
+        }
+        else if (__schedule->IsQueuedPlaylistRunning())
+        {
+            if (scheduled != 4)
+                BitmapButton_IsScheduled->SetBitmap(_queued);
+            if (BitmapButton_IsScheduled->GetToolTipText() != "Queued playlist playing.")
+                BitmapButton_IsScheduled->SetToolTip("Queued playlist playing.");
+            scheduled = 4;
         }
         else
         {

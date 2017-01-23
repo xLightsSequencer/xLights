@@ -242,6 +242,12 @@
       <Filter>PlayList</Filter>
     </ClCompile>
     <ClCompile Include="UserButton.cpp" />
+    <ClCompile Include="PlayList\PlayListItemTestPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemTest.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -426,6 +432,12 @@
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="UserButton.h" />
+    <ClInclude Include="PlayList\PlayListItemTestPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemTest.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

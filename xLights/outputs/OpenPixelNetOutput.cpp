@@ -61,10 +61,13 @@ void OpenPixelNetOutput::EndFrame()
     if (changed)
     {
 #endif
-        if (_serial->WaitingToWrite() == 0)
+        if (_serial != nullptr)
         {
-            memcpy(&_serialBuffer[6], _data, sizeof(_data));
-            _serial->Write((char *)_serialBuffer, sizeof(_serialBuffer));
+            if (_serial->WaitingToWrite() == 0)
+            {
+                memcpy(&_serialBuffer[6], _data, sizeof(_data));
+                _serial->Write((char *)_serialBuffer, sizeof(_serialBuffer));
+            }
         }
 #ifdef USECHANGEDETECTION
         changed = false;

@@ -283,32 +283,40 @@ bool SerialOutput::Open()
 
     _serial = new SerialPort();
 
-    int errcode = _serial->Open(_commPort, _baudRate, _serialConfig);
-    if (errcode < 0)
+    if (_commPort == "NotConnected")
     {
-        logger_base.warn("Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
-        _ok = false;
-
-        std::string p = "";
-        auto ports = GetAvailableSerialPorts();
-        for (auto it = ports.begin(); it != ports.end(); ++it)
+        logger_base.warn("Serial port for %s not opened as it is tagged as not connected '%s'.", (const char *)GetType().c_str() ,(const char *)_description.c_str());
+        // dont set ok to false ... while this is not really open it is not an error as the user meant it to be not connected.
+    }
+    else
+    {
+        int errcode = _serial->Open(_commPort, _baudRate, _serialConfig);
+        if (errcode < 0)
         {
-            if (p != "") p += ", ";
-            p += *it;
-        }
+            logger_base.warn("Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
+            _ok = false;
 
-        wxString msg = wxString::Format(_("Error occurred while connecting to %s network on %s (Available Ports %s) \n\n") +
-                                           _("Things to check:\n") +
-                                           _("1. Are all required cables plugged in?\n") +
-                                           _("2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.\n") +
-                                           _("3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n") +
-                                           _("Unable to open serial port %s. Error code = %d"),
-                                           (const char *)GetType().c_str(), 
-                                           (const char *)GetCommPort().c_str(), 
-                                           (const char *)p.c_str(), 
-                                           (const char *)_commPort.c_str(), 
-                                           errcode);
-        wxMessageBox(msg, _("Communication Error"), wxOK);
+            std::string p = "";
+            auto ports = GetAvailableSerialPorts();
+            for (auto it = ports.begin(); it != ports.end(); ++it)
+            {
+                if (p != "") p += ", ";
+                p += *it;
+            }
+
+            wxString msg = wxString::Format(_("Error occurred while connecting to %s network on %s (Available Ports %s) \n\n") +
+                _("Things to check:\n") +
+                _("1. Are all required cables plugged in?\n") +
+                _("2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.\n") +
+                _("3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n") +
+                _("Unable to open serial port %s. Error code = %d"),
+                (const char *)GetType().c_str(),
+                (const char *)GetCommPort().c_str(),
+                (const char *)p.c_str(),
+                (const char *)_commPort.c_str(),
+                errcode);
+            wxMessageBox(msg, _("Communication Error"), wxOK);
+        }
     }
 
     return _ok;

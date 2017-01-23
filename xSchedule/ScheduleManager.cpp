@@ -18,11 +18,15 @@
 #include <wx/sckaddr.h>
 #include <wx/socket.h>
 #include "UserButton.h"
+#include "FSEQFile.h"
 
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Loading schedule from %s.", (const char *)_showDir.c_str());
+
+    // prime fix file with our show directory for any filename fixups
+    FSEQFile::FixFile(showDir, "");
 
     _queuedSongs = new PlayList();
     _fppSync = nullptr;
@@ -251,6 +255,7 @@ void ScheduleManager::Frame(bool outputframe)
         long msec = wxGetUTCTimeMillis().GetLo() - _startTime;
         if (outputframe)
         {
+            memset(_buffer, 0x00, _outputManager->GetTotalChannels()); // clear out any prior frame data
             _outputManager->StartFrame(msec);
         }
         bool done = running->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);

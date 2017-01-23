@@ -46,9 +46,13 @@ void OpenDMXOutput::EndFrame()
     if (changed)
     {
 #endif
-        _serial->SendBreak();  // sends a 1 millisecond break
-        wxMilliSleep(1);      // mark after break (MAB) - 1 millisecond is overkill (8 microseconds is the minimum dmx requirement)
-        _serial->Write((char *)_data, 513);
+        if (_serial != nullptr)
+        {
+            _serial->SendBreak();  // sends a 1 millisecond break
+            wxMilliSleep(1);      // mark after break (MAB) - 1 millisecond is overkill (8 microseconds is the minimum dmx requirement)
+            _serial->Write((char *)_data, 513);
+        }
+
 #ifdef USECHANGEDETECTION
         changed = false;
     }

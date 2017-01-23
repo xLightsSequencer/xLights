@@ -50,11 +50,14 @@ void PixelNetOutput::EndFrame()
     if (changed)
     {
 #endif
-        if (_serial->WaitingToWrite() == 0)
+        if (_serial != nullptr)
         {
-            memcpy(&_serialBuffer[1], _data, sizeof(_data));
-            _serialBuffer[0] = 170;    // start of message
-            _serial->Write((char *)_serialBuffer, sizeof(_serialBuffer));
+            if (_serial->WaitingToWrite() == 0)
+            {
+                memcpy(&_serialBuffer[1], _data, sizeof(_data));
+                _serialBuffer[0] = 170;    // start of message
+                _serial->Write((char *)_serialBuffer, sizeof(_serialBuffer));
+            }
         }
 #ifdef USECHANGEDETECTION
         changed = false;

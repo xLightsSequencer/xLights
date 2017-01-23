@@ -221,6 +221,8 @@
     <ClCompile Include="PlayList\PlayListItemRunCommandPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemRunProcess.cpp" />
     <ClCompile Include="PlayList\PlayListItemRunProcessPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemTest.cpp" />
+    <ClCompile Include="PlayList\PlayListItemTestPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemVideo.cpp" />
     <ClCompile Include="PlayList\PlayListItemVideoPanel.cpp" />
     <ClCompile Include="PlayList\PlayListPanel.cpp" />
@@ -301,6 +303,8 @@
     <ClInclude Include="PlayList\PlayListItemRunCommandPanel.h" />
     <ClInclude Include="PlayList\PlayListItemRunProcess.h" />
     <ClInclude Include="PlayList\PlayListItemRunProcessPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemTest.h" />
+    <ClInclude Include="PlayList\PlayListItemTestPanel.h" />
     <ClInclude Include="PlayList\PlayListItemVideo.h" />
     <ClInclude Include="PlayList\PlayListItemVideoPanel.h" />
     <ClInclude Include="PlayList\PlayListPanel.h" />

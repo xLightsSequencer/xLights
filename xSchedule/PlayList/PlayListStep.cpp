@@ -6,6 +6,7 @@
 #include "PlayListItemImage.h"
 #include "PlayListItemESEQ.h"
 #include "PlayListItemFSEQ.h"
+#include "PlayListItemTest.h"
 #include "PlayListItemRDS.h"
 #include "PlayListItemPJLink.h"
 #include "PlayListItemAllOff.h"
@@ -120,6 +121,10 @@ void PlayListStep::Load(wxXmlNode* node)
         else if (n->GetName() == "PLIFSEQ")
         {
             _items.push_back(new PlayListItemFSEQ(n));
+        }
+        else if (n->GetName() == "PLITest")
+        {
+            _items.push_back(new PlayListItemTest(n));
         }
         else if (n->GetName() == "PLIRDS")
         {

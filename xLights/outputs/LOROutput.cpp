@@ -32,7 +32,10 @@ void LOROutput::SendHeartbeat() const
     d[2] = 0x81;
     d[3] = 0x56;
     d[4] = 0;
-    _serial->Write((char *)d, 5);
+    if (_serial != nullptr)
+    {
+        _serial->Write((char *)d, 5);
+    }
 }
 
 #pragma region Start and Stop
@@ -101,7 +104,10 @@ void LOROutput::SetOneChannel(long channel, unsigned char data)
     d[4] = 0x80 | (channel % 16);
     d[5] = 0;
 
-    _serial->Write((char *)d, 6);
+    if (_serial != nullptr)
+    {
+        _serial->Write((char *)d, 6);
+    }
 }
 
 void LOROutput::AllOff()

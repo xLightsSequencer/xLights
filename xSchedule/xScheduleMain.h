@@ -68,6 +68,7 @@ class xScheduleFrame : public wxFrame
     wxBitmap _otlautooff;
     wxBitmap _save;
     wxBitmap _scheduled;
+    wxBitmap _queued;
     wxBitmap _notscheduled;
     wxBitmap _inactive;
     wxBitmap _pllooped;

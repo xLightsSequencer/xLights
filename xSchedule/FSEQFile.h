@@ -41,6 +41,7 @@ class FSEQFile
         static int ReadInt16(wxFile* fh);
         static int ReadInt32(wxFile* fh);
         static std::list<std::string> GetBlendModes();
+        static std::string FixFile(const std::string& ShowDir, const std::string& file);
 
 		FSEQFile();
 		FSEQFile(const std::string& filename);

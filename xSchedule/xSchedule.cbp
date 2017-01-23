@@ -346,6 +346,10 @@
 		<Unit filename="PlayList/PlayListItemRunProcess.h" />
 		<Unit filename="PlayList/PlayListItemRunProcessPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemRunProcessPanel.h" />
+		<Unit filename="PlayList/PlayListItemTest.cpp" />
+		<Unit filename="PlayList/PlayListItemTest.h" />
+		<Unit filename="PlayList/PlayListItemTestPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemTestPanel.h" />
 		<Unit filename="PlayList/PlayListItemVideo.cpp" />
 		<Unit filename="PlayList/PlayListItemVideo.h" />
 		<Unit filename="PlayList/PlayListItemVideoPanel.cpp" />
@@ -410,6 +414,7 @@
 		<Unit filename="wxsmith/PlayListItemRDSPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunCommandPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunProcessPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemTestPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
 		<Unit filename="wxsmith/PlayListPanel.wxs" />
 		<Unit filename="wxsmith/PlayListStepPanel.wxs" />
@@ -449,6 +454,7 @@
 					<wxDialog wxs="wxsmith/ProjectorDetailsDialog.wxs" src="ProjectorDetailsDialog.cpp" hdr="ProjectorDetailsDialog.h" fwddecl="0" i18n="1" name="ProjectorDetailsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ButtonDetailsDialog.wxs" src="ButtonDetailsDialog.cpp" hdr="ButtonDetailsDialog.h" fwddecl="0" i18n="1" name="ButtonDetailsDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemRDSPanel.wxs" src="PlayList/PlayListItemRDSPanel.cpp" hdr="PlayList/PlayListItemRDSPanel.h" fwddecl="0" i18n="1" name="PlayListItemRDSPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemTestPanel.wxs" src="PlayList/PlayListItemTestPanel.cpp" hdr="PlayList/PlayListItemTestPanel.h" fwddecl="0" i18n="1" name="PlayListItemTestPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

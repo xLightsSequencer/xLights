@@ -53,7 +53,10 @@ void DMXOutput::EndFrame()
     if (changed)
     {
 #endif
-        _serial->Write((char *)_data, _datalen);
+        if (_serial != nullptr)
+        {
+            _serial->Write((char *)_data, _datalen);
+        }
 #ifdef USECHANGEDETECTION
         changed = false;
     }

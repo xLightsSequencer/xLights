@@ -49,7 +49,10 @@ void RenardOutput::EndFrame()
     if (changed)
     {
 #endif
-        _serial->Write((char *)&_data[0], _datalen);
+        if (_serial != nullptr)
+        {
+            _serial->Write((char *)&_data[0], _datalen);
+        }
 #ifdef USECHANGEDETECTION
         changed = false;
     }
