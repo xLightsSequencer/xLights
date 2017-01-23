@@ -1775,11 +1775,14 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
 
                     if (perdiff > 0)
                     {
-                        intensity = intensity * 255 / MaxIntensity;
-                        startIntensity = startIntensity * 255 / MaxIntensity;
-                        endIntensity = endIntensity * 255 / MaxIntensity;
                         EffectType = getAttributeValueSafe(stagEvent, "type");
-                        if (EffectType == "intensity")
+                        if (EffectType != "DMX intensity")
+                        {
+                                intensity=intensity * 255 / MaxIntensity;
+                                startIntensity=startIntensity * 255 / MaxIntensity;
+                                endIntensity=endIntensity * 255 / MaxIntensity;
+                        }
+                        if (EffectType == "intensity" || EffectType == "DMX intensity")
                         {
                             if (intensity > 0)
                             {
