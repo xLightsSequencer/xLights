@@ -84,7 +84,8 @@ xLightsXmlFile::xLightsXmlFile(const wxFileName &filename)
 	is_open(false),
 	was_converted(false),
 	sequence_loaded(false),
-	audio(nullptr)
+	audio(nullptr),
+    supports_model_blending(true)
 {
 	for(int i = 0; i < NUM_TYPES; ++i )
     {
@@ -845,6 +846,7 @@ void xLightsXmlFile::CreateNew()
     root->AddAttribute("ChanCtrlBasic","0");
     root->AddAttribute("ChanCtrlColor","0");
     root->AddAttribute("FixedPointTiming","1");
+    root->AddAttribute("ModelBlending", "true");
     seqDocument.SetRoot(root);
 
     wxXmlNode* node;
@@ -881,6 +883,7 @@ bool xLightsXmlFile::Open(const wxString& ShowDir, bool ignore_audio)
     sequence_loaded = false;
     if( IsV3Sequence() )
     {
+        supports_model_blending = false;
         return LoadV3Sequence();
     }
     else if( IsXmlSequence(*this) )
@@ -1217,6 +1220,8 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
     is_open = true;
 
     wxXmlNode* root=seqDocument.GetRoot();
+
+    supports_model_blending = "true" == root->GetAttribute("ModelBlending", "false");
 
     if( NeedsTimesCorrected() )
     {
@@ -2551,6 +2556,9 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
 {
     wxXmlNode* root = seqDocument.GetRoot();
 
+    root->DeleteAttribute("ModelBlending");
+    root->AddAttribute("ModelBlending", seq_elements.SupportsModelBlending() ? "true" : "false");
+    
     // Delete nodes that will be replaced
     for(wxXmlNode* e=root->GetChildren(); e!=nullptr; )
     {

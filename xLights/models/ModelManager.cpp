@@ -220,10 +220,11 @@ void ModelManager::OldRecalcStartChannels() const {
 }
 
 
-void ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) {
+bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     this->groupNode = groupNode;
     std::list<ModelGroup*> toBeDone;
+    bool changed = false;
     
     for (wxXmlNode* e=groupNode->GetChildren(); e!=nullptr; e=e->GetNext()) {
         if (e->GetName() == "modelGroup") {
@@ -249,14 +250,47 @@ void ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
         if (maxIter == 0) {
             std::string msg = "Could not process model groups (possibly due to circular groups or a missing model):";
             for (auto it = toBeDone.begin(); it != toBeDone.end(); ++it) {
-                msg += "\n" + (*it)->GetName();
+                ModelGroup *g = *it;
+                
+                wxString orig = g->GetModelXml()->GetAttribute("models");
+                wxString newM;
+                wxArrayString mn = wxSplit(orig, ',');
+                std::string modelsRemoved;
+                for (auto it2 = mn.begin(); it2 != mn.end(); it2++) {
+                    auto m = models.find((*it2).ToStdString());
+                    if (m == models.end()) {
+                        modelsRemoved += "\n       " + *it2 + " not found";
+                    } else {
+                        if (newM != "") {
+                            newM += ",";
+                        }
+                        newM += *it2;
+                    }
+                }
+                g->GetModelXml()->DeleteAttribute("models");
+                g->GetModelXml()->AddAttribute("models", newM);
+                if (g->Reset()) {
+                    msg = "Could not process model group " + g->GetName()
+                            + " due to models not being found.  The following models will be removed from the group:"
+                            + modelsRemoved;
+                    wxMessageBox(msg);
+                    maxIter = toBeDone.size();
+                    changed = true;
+                } else {
+                    msg += "\n" + g->GetName();
+                    msg += modelsRemoved;
+                    g->GetModelXml()->DeleteAttribute("models");
+                    g->GetModelXml()->AddAttribute("models", orig);
+                }
             }
-            // I would prefer NOT to send users to the log but the model group does not get loaded so when we run check sequence you cant see the error.
-            msg += "\n\nCheck log file to locate the issue.";
-            logger_base.warn(msg);
-            wxMessageBox(msg);
-            //nothing improved
-            break;
+            if (maxIter == 0) {
+                // I would prefer NOT to send users to the log but the model group does not get loaded so when we run check sequence you can't see the error.
+                msg += "\n\nCheck log file for more details.";
+                logger_base.warn(msg);
+                wxMessageBox(msg);
+                //nothing improved
+                break;
+            }
         }
         maxIter--;
         std::list<ModelGroup*> processing(toBeDone);
@@ -274,6 +308,7 @@ void ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
             }
         }
     }
+    return changed;
 }
 
 Model *ModelManager::CreateDefaultModel(const std::string &type, const std::string &startChannel) const {

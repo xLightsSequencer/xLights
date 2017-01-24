@@ -109,15 +109,18 @@ void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                 if( blend_edges )
                 {
                     double color_pct = 1.0 - std::abs(r-radius_center)/half_width;
+                    xlColor ncolor(color);
                     if (buffer.allowAlpha) {
-                        color.alpha = 255.0 * color_pct;
+                        ncolor.alpha = 255.0 * color_pct;
                     }
                     else {
                         hsv.value = hsv.value * color_pct;
-                        color = hsv;
+                        ncolor = hsv;
                     }
+                    buffer.SetPixel(x, y, ncolor);
+                } else {
+                    buffer.SetPixel(x, y, color);
                 }
-                buffer.SetPixel(x, y, color);
             }
         }
     }

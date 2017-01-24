@@ -159,7 +159,8 @@ class SequenceElements : public ChangeListener
         void AddRenderDependency(const std::string &layer, const std::string &model);
         bool GetElementsToRender(std::vector<Element *> &models);
     
-        bool SupportsModelBlending() { return supportsModelBlending;}
+        bool SupportsModelBlending() const { return supportsModelBlending;}
+        void SetSupportsModelBlending(bool b) { supportsModelBlending = b;}
 
         wxFileName &GetFileName() { return mFilename;}
         EffectManager &GetEffectManager();

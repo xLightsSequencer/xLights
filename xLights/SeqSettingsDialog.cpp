@@ -42,6 +42,7 @@ const long SeqSettingsDialog::ID_STATICTEXT_Xml_Total_Length = wxNewId();
 const long SeqSettingsDialog::ID_TEXTCTRL_Xml_Seq_Duration = wxNewId();
 const long SeqSettingsDialog::ID_CHECKBOX_Overwrite_Tags = wxNewId();
 const long SeqSettingsDialog::ID_CHOICE_Xml_Seq_Timing = wxNewId();
+const long SeqSettingsDialog::ID_CHECKBOX1 = wxNewId();
 const long SeqSettingsDialog::ID_PANEL3 = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Xml_Author = wxNewId();
 const long SeqSettingsDialog::ID_TEXTCTRL_Xml_Author = wxNewId();
@@ -217,7 +218,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	CheckBox_Overwrite_Tags->SetValue(false);
 	FlexGridSizer6->Add(CheckBox_Overwrite_Tags, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 4, 0, 0);
 	StaticText_Xml_Seq_Timing = new wxStaticText(Panel3, wxID_ANY, _("Sequence Timing:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer3->Add(StaticText_Xml_Seq_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Xml_Seq_Timing = new wxChoice(Panel3, ID_CHOICE_Xml_Seq_Timing, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Xml_Seq_Timing"));
@@ -226,6 +227,10 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Choice_Xml_Seq_Timing->Append(_("100 ms"));
 	Choice_Xml_Seq_Timing->Disable();
 	FlexGridSizer3->Add(Choice_Xml_Seq_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BlendingCheckBox = new wxCheckBox(Panel3, ID_CHECKBOX1, _("Allow Blending Between Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	BlendingCheckBox->SetValue(false);
+	FlexGridSizer3->Add(BlendingCheckBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Panel3->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(Panel3);
@@ -346,6 +351,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_BITMAPBUTTON_Xml_Media_File,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick);
 	Connect(ID_TEXTCTRL_Xml_Seq_Duration,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText);
 	Connect(ID_CHOICE_Xml_Seq_Timing,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqSettingsDialog::OnChoice_Xml_Seq_TimingSelect);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnCheckBox1Click);
 	Connect(ID_TEXTCTRL_Xml_Author,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_AuthorText);
 	Connect(ID_TEXTCTRL_Xml_Author_Email,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Author_EmailText);
 	Connect(ID_TEXTCTRL_Xml_Website,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_WebsiteText);
@@ -428,6 +434,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 		TextCtrl_Xml_Media_File->SetValue(xml_file->GetMedia()->FileName());
 	}
 	TextCtrl_Xml_Seq_Duration->ChangeValue(xml_file->GetSequenceDurationString());
+    BlendingCheckBox->SetValue(xml_file->supportsModelBlending());
 
     DataLayerSet& data_layers = xml_file->GetDataLayers();
     wxTreeItemId root = TreeCtrl_Data_Layers->GetRootItem();
@@ -1431,4 +1438,10 @@ void SeqSettingsDialog::OnButton_CancelClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnViewSelect(wxCommandEvent& event)
 {
     selected_view = (ModelsChoice->GetString(ModelsChoice->GetSelection())).ToStdString();
+}
+
+void SeqSettingsDialog::OnCheckBox1Click(wxCommandEvent& event)
+{
+    xml_file->setSupportsModelBlending(BlendingCheckBox->GetValue());
+    xLightsParent->GetSequenceElements().SetSupportsModelBlending(BlendingCheckBox->GetValue());
 }

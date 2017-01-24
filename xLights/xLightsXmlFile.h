@@ -125,6 +125,9 @@ class xLightsXmlFile : public wxFileName
 
         void SetRenderMode(const wxString& mode);
         wxString GetRenderMode();
+    
+        bool supportsModelBlending() const { return supports_model_blending;}
+        void setSupportsModelBlending(bool b) { supports_model_blending = b;}
 
         int GetLastView();
 
@@ -144,6 +147,7 @@ class xLightsXmlFile : public wxFileName
         wxString seq_type;
         wxString seq_timing;
         wxString image_dir;
+        bool supports_model_blending;
         bool is_open;
         bool was_converted;
         bool sequence_loaded;  // flag to indicate the sequencer has been loaded with this xml data

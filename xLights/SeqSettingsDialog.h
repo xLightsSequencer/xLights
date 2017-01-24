@@ -65,6 +65,7 @@ class SeqSettingsDialog: public wxDialog
 		wxStaticText* StaticText_Info;
 		wxTextCtrl* TextCtrl_Xml_Music_Url;
 		wxButton* Button_Xml_Import_Timing;
+		wxCheckBox* BlendingCheckBox;
 		wxTextCtrl* TextCtrl_Xml_Seq_Duration;
 		wxButton* Button_Cancel;
 		wxTextCtrl* TextCtrl_Xml_Media_File;
@@ -128,6 +129,7 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_TEXTCTRL_Xml_Seq_Duration;
 		static const long ID_CHECKBOX_Overwrite_Tags;
 		static const long ID_CHOICE_Xml_Seq_Timing;
+		static const long ID_CHECKBOX1;
 		static const long ID_PANEL3;
 		static const long ID_STATICTEXT_Xml_Author;
 		static const long ID_TEXTCTRL_Xml_Author;
@@ -218,6 +220,7 @@ class SeqSettingsDialog: public wxDialog
 		void OnTreeCtrl_Data_LayersEndLabelEdit(wxTreeEvent& event);
 		void OnButton_ReimportClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
+		void OnCheckBox1Click(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);

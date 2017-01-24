@@ -50,7 +50,7 @@ SequenceElements::SequenceElements(xLightsFrame *f)
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);  // first view must remain as master view that determines render order
     hasPapagayoTiming = false;
-    supportsModelBlending = false;
+    supportsModelBlending = true;
 }
 
 SequenceElements::~SequenceElements()
@@ -83,7 +83,7 @@ void SequenceElements::Clear() {
     mChangeCount = 0;
     mMasterViewChangeCount++;
     mCurrentView = 0;
-    supportsModelBlending = false;
+    supportsModelBlending = true;
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);
     hasPapagayoTiming = false;
@@ -663,8 +663,8 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
     wxXmlNode* root=seqDocument.GetRoot();
     std::vector<std::string> effectStrings;
     std::vector<std::string> colorPalettes;
-    supportsModelBlending = false;
     Clear();
+    supportsModelBlending = xml_file.supportsModelBlending();
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
        if (e->GetName() == "DisplayElements")

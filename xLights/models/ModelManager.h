@@ -29,7 +29,7 @@ class ModelManager
         void Delete(const std::string &name);
 
         void LoadModels(wxXmlNode *modelNode, int previewW, int previewH);
-        void LoadGroups(wxXmlNode *groupNode, int previewW, int previewH);
+        bool LoadGroups(wxXmlNode *groupNode, int previewW, int previewH);
 
         void SetLayoutsNode(wxXmlNode* layouts) {layoutsNode = layouts;}
         wxXmlNode* GetLayoutsNode() const {return layoutsNode;}

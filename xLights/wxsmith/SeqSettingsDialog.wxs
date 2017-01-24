@@ -30,7 +30,7 @@
 											<colspan>4</colspan>
 											<col>1</col>
 											<row>0</row>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -58,7 +58,7 @@
 										<object class="spacer">
 											<col>2</col>
 											<row>1</row>
-											<flag>wxALL|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 											<border>5</border>
 											<option>1</option>
 											<size>40,20</size>
@@ -133,7 +133,7 @@
 											<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Media_File" variable="TextCtrl_Xml_Media_File" member="yes">
 												<style>wxTE_READONLY</style>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -148,7 +148,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -192,7 +192,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-										<cols>3</cols>
+										<cols>4</cols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="wxID_ANY" variable="StaticText_Xml_Seq_Timing" member="no">
 												<label>Sequence Timing:</label>
@@ -211,6 +211,20 @@
 												<selection>1</selection>
 												<enabled>0</enabled>
 												<handler function="OnChoice_Xml_Seq_TimingSelect" entry="EVT_CHOICE" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX1" variable="BlendingCheckBox" member="yes">
+												<label>Allow Blending Between Models</label>
+												<handler function="OnCheckBox1Click" entry="EVT_CHECKBOX" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -379,7 +393,7 @@
 									<object class="wxFlexGridSizer" variable="FlexGridSizer_Timing_Grid" member="no">
 										<cols>1</cols>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -446,7 +460,7 @@
 										<handler function="OnTreeCtrl_Data_LayersEndLabelEdit" entry="EVT_TREE_END_LABEL_EDIT" />
 										<handler function="OnTreeCtrl_Data_LayersSelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -458,7 +472,7 @@
 												<label>Import</label>
 												<handler function="OnButton_Layer_ImportClick" entry="EVT_BUTTON" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
