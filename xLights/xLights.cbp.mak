@@ -1860,7 +1860,7 @@ xLightsMain.h: EffectTreeDialog.h PlayerFrame.h EffectsPanel.h AddShowDialog.h P
 
 EffectsPanel.h: AudioManager.h
 
-PixelBuffer.h: models/Model.h models/SingleLineModel.h RenderBuffer.h ValueCurve.h
+PixelBuffer.h: models/Model.h models/SingleLineModel.h RenderBuffer.h ValueCurve.h RenderUtils.h
 
 models/SingleLineModel.h: models/Model.h
 
@@ -2178,7 +2178,7 @@ PreviewPane.cpp: PreviewPane.h LayoutGroup.h
 
 RenameTextDialog.cpp: RenameTextDialog.h
 
-Render.cpp: xLightsMain.h xLightsXmlFile.h RenderCommandEvent.h effects/RenderableEffect.h RenderProgressDialog.h SeqExportDialog.h
+Render.cpp: xLightsMain.h xLightsXmlFile.h RenderCommandEvent.h effects/RenderableEffect.h RenderProgressDialog.h SeqExportDialog.h RenderUtils.h
 
 RenderBuffer.cpp: RenderBuffer.h sequencer/Effect.h xLightsMain.h xLightsXmlFile.h
 
