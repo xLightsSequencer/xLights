@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1E3E24F81E371555001D48E3 /* UserButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24F61E371555001D48E3 /* UserButton.cpp */; };
+		1E3E24FD1E3715BB001D48E3 /* PlayListItemCURL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24F91E3715BB001D48E3 /* PlayListItemCURL.cpp */; };
+		1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24FB1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp */; };
+		1E3E25061E3716CF001D48E3 /* PlayListItemTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E25021E3716CF001D48E3 /* PlayListItemTest.cpp */; };
+		1E3E25071E3716CF001D48E3 /* PlayListItemTestPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E25041E3716CF001D48E3 /* PlayListItemTestPanel.cpp */; };
 		6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */; };
 		6701999F1CE5A03200AE9B7E /* RenderProgressDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */; };
 		6703513C1DB1108500CCABD7 /* FPPConnectDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6703513A1DB1108500CCABD7 /* FPPConnectDialog.cpp */; };
@@ -507,6 +512,16 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1E3E24F61E371555001D48E3 /* UserButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UserButton.cpp; sourceTree = "<group>"; };
+		1E3E24F71E371555001D48E3 /* UserButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserButton.h; sourceTree = "<group>"; };
+		1E3E24F91E3715BB001D48E3 /* PlayListItemCURL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemCURL.cpp; path = PlayList/PlayListItemCURL.cpp; sourceTree = "<group>"; };
+		1E3E24FA1E3715BB001D48E3 /* PlayListItemCURL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemCURL.h; path = PlayList/PlayListItemCURL.h; sourceTree = "<group>"; };
+		1E3E24FB1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemCURLPanel.cpp; path = PlayList/PlayListItemCURLPanel.cpp; sourceTree = "<group>"; };
+		1E3E24FC1E3715BB001D48E3 /* PlayListItemCURLPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemCURLPanel.h; path = PlayList/PlayListItemCURLPanel.h; sourceTree = "<group>"; };
+		1E3E25021E3716CF001D48E3 /* PlayListItemTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemTest.cpp; path = PlayList/PlayListItemTest.cpp; sourceTree = "<group>"; };
+		1E3E25031E3716CF001D48E3 /* PlayListItemTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemTest.h; path = PlayList/PlayListItemTest.h; sourceTree = "<group>"; };
+		1E3E25041E3716CF001D48E3 /* PlayListItemTestPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemTestPanel.cpp; path = PlayList/PlayListItemTestPanel.cpp; sourceTree = "<group>"; };
+		1E3E25051E3716CF001D48E3 /* PlayListItemTestPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemTestPanel.h; path = PlayList/PlayListItemTestPanel.h; sourceTree = "<group>"; };
 		6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PixelAppearanceDlg.cpp; sourceTree = "<group>"; };
 		6700FD951AD8075400084A71 /* PixelAppearanceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelAppearanceDlg.h; sourceTree = "<group>"; };
 		6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderProgressDialog.cpp; sourceTree = "<group>"; };
@@ -2094,6 +2109,8 @@
 				67F23F441E329AD800F8B985 /* RunningSchedule.cpp */,
 				67F23F451E329AD800F8B985 /* RunningSchedule.h */,
 				67F23F461E329AD800F8B985 /* Schedule.cpp */,
+				1E3E24F61E371555001D48E3 /* UserButton.cpp */,
+				1E3E24F71E371555001D48E3 /* UserButton.h */,
 				67F23F471E329AD800F8B985 /* Schedule.h */,
 				67F23F481E329AD800F8B985 /* ScheduleOptions.cpp */,
 				67F23F491E329AD800F8B985 /* ScheduleOptions.h */,
@@ -2163,6 +2180,10 @@
 				67F23FB71E329E7400F8B985 /* PlayListItemAudio.h */,
 				67F23FB81E329E7400F8B985 /* PlayListItemAudioPanel.cpp */,
 				67F23FB91E329E7400F8B985 /* PlayListItemAudioPanel.h */,
+				1E3E24F91E3715BB001D48E3 /* PlayListItemCURL.cpp */,
+				1E3E24FA1E3715BB001D48E3 /* PlayListItemCURL.h */,
+				1E3E24FB1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp */,
+				1E3E24FC1E3715BB001D48E3 /* PlayListItemCURLPanel.h */,
 				67F23FBA1E329E7400F8B985 /* PlayListItemDelay.cpp */,
 				67F23FBB1E329E7400F8B985 /* PlayListItemDelay.h */,
 				67F23FBC1E329E7400F8B985 /* PlayListItemDelayPanel.cpp */,
@@ -2195,6 +2216,10 @@
 				67F23FD71E329E7400F8B985 /* PlayListItemRunProcess.h */,
 				67F23FD81E329E7400F8B985 /* PlayListItemRunProcessPanel.cpp */,
 				67F23FD91E329E7400F8B985 /* PlayListItemRunProcessPanel.h */,
+				1E3E25021E3716CF001D48E3 /* PlayListItemTest.cpp */,
+				1E3E25031E3716CF001D48E3 /* PlayListItemTest.h */,
+				1E3E25041E3716CF001D48E3 /* PlayListItemTestPanel.cpp */,
+				1E3E25051E3716CF001D48E3 /* PlayListItemTestPanel.h */,
 				67F23FDA1E329E7400F8B985 /* PlayListItemVideo.cpp */,
 				67F23FDB1E329E7400F8B985 /* PlayListItemVideo.h */,
 				67F23FDC1E329E7400F8B985 /* PlayListItemVideoPanel.cpp */,
@@ -2684,6 +2709,7 @@
 				67F2400C1E32A03F00F8B985 /* LOROutput.cpp in Sources */,
 				67F2400D1E32A03F00F8B985 /* NullOutput.cpp in Sources */,
 				67F2400E1E32A03F00F8B985 /* NullOutputDialog.cpp in Sources */,
+				1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */,
 				67F2400F1E32A03F00F8B985 /* OpenDMXOutput.cpp in Sources */,
 				67F240101E32A03F00F8B985 /* OpenPixelNetOutput.cpp in Sources */,
 				67F240111E32A03F00F8B985 /* Output.cpp in Sources */,
@@ -2711,6 +2737,8 @@
 				67F23F641E329AD800F8B985 /* WebServer.cpp in Sources */,
 				67F23FFA1E329E7400F8B985 /* PlayListItemRunCommand.cpp in Sources */,
 				67F23FF91E329E7400F8B985 /* PlayListItemRDSPanel.cpp in Sources */,
+				1E3E25071E3716CF001D48E3 /* PlayListItemTestPanel.cpp in Sources */,
+				1E3E25061E3716CF001D48E3 /* PlayListItemTest.cpp in Sources */,
 				67F23FFB1E329E7400F8B985 /* PlayListItemRunCommandPanel.cpp in Sources */,
 				67F23F5D1E329AD800F8B985 /* xScheduleMain.cpp in Sources */,
 				67F23FF01E329E7400F8B985 /* PlayListItemESEQ.cpp in Sources */,
@@ -2733,6 +2761,7 @@
 				67F23FE71E329E7400F8B985 /* PlayList.cpp in Sources */,
 				67F23FEB1E329E7400F8B985 /* PlayListItemAllOffPanel.cpp in Sources */,
 				67F23FF21E329E7400F8B985 /* PlayListItemFSEQ.cpp in Sources */,
+				1E3E24F81E371555001D48E3 /* UserButton.cpp in Sources */,
 				67F23FF11E329E7400F8B985 /* PlayListItemESEQPanel.cpp in Sources */,
 				67F23FA31E329E3300F8B985 /* pages.cpp in Sources */,
 				67F23FA11E329E3300F8B985 /* context.cpp in Sources */,
@@ -2747,6 +2776,7 @@
 				67F23FF61E329E7400F8B985 /* PlayListItemPJLink.cpp in Sources */,
 				67F23FFE1E329E7400F8B985 /* PlayListItemVideo.cpp in Sources */,
 				67F23FA21E329E3300F8B985 /* message.cpp in Sources */,
+				1E3E24FD1E3715BB001D48E3 /* PlayListItemCURL.cpp in Sources */,
 				67F23FEE1E329E7400F8B985 /* PlayListItemDelay.cpp in Sources */,
 				67F23FA81E329E3300F8B985 /* status.cpp in Sources */,
 				67F23FF51E329E7400F8B985 /* PlayListItemImagePanel.cpp in Sources */,
