@@ -783,6 +783,7 @@ void EffectsGrid::ClearSelection()
 void EffectsGrid::mouseDown(wxMouseEvent& event)
 {
     mPartialCellSelected = false;
+
     // if no shift key clear any cell range selections
     if (!event.ShiftDown()) {
         mCellRangeSelected = false;
@@ -944,29 +945,63 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
         ReleaseMouse();
         if(mEffectLayer->GetParentElement()->GetType() != ELEMENT_TYPE_TIMING)
         {
-            int stime = mStartResizeTimeMS;
-            int timeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
-            int min = stime;
-            int max = stime;
-            adjustMS(timeMS, min, max);
 
-            Effect* effect = mEffectLayer->GetEffect(mResizeEffectIndex);
-            if(effect)
-            {
-                adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS(), min, max);
-                adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS(), min, max);
-                if( mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED && mResizeEffectIndex > 0) {
-                    //also have to re-render the effect to the left
-                    adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetStartTimeMS(), min, max);
-                    adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetEndTimeMS(), min, max);
-                } else if (mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED
-                           && mResizeEffectIndex < (mEffectLayer->GetEffectCount() - 1)) {
-                    adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetStartTimeMS(), min, max);
-                    adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetEndTimeMS(), min, max);
+            if (MultipleEffectsSelected()) {
+                std::string lastModel;
+                int startMS = 99999999;
+                int endMS = -1;
+                for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
+                {
+                    EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+                    if (el->GetParentElement()->GetModelName() != lastModel) {
+                        if (endMS != -1) {
+                            sendRenderEvent(lastModel, startMS, endMS);
+                        }
+                        startMS = 99999999;
+                        endMS = -1;
+                        lastModel = el->GetParentElement()->GetModelName();
+                    }
+                    if (el->GetSelectedEffectCount() > 0) {
+                        int startDirty, endDirty;
+                        el->GetParentElement()->GetDirtyRange(startDirty, endDirty);
+                        if (startDirty != -1) {
+                            adjustMS(startDirty, startMS, endMS);
+                            adjustMS(endDirty, startMS, endMS);
+                        }
+                    }
                 }
-
-                sendRenderEvent(mEffectLayer->GetParentElement()->GetModelName(), min, max);
-                RaisePlayModelEffect(mEffectLayer->GetParentElement(), effect, false);
+                if (endMS != -1) {
+                    sendRenderEvent(lastModel, startMS, endMS);
+                }
+            } else {
+                int stime = mStartResizeTimeMS;
+                int timeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+                int min = stime;
+                int max = stime;
+                adjustMS(timeMS, min, max);
+                Effect* effect = mEffectLayer->GetEffect(mResizeEffectIndex);
+                if(effect)
+                {
+                    adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS(), min, max);
+                    adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS(), min, max);
+                    if( mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED && mResizeEffectIndex > 0) {
+                        //also have to re-render the effect to the left
+                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetStartTimeMS(), min, max);
+                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetEndTimeMS(), min, max);
+                    } else if (mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED
+                               && mResizeEffectIndex < (mEffectLayer->GetEffectCount() - 1)) {
+                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetStartTimeMS(), min, max);
+                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetEndTimeMS(), min, max);
+                    }
+                    int startDirty, endDirty;
+                    mEffectLayer->GetParentElement()->GetDirtyRange(startDirty, endDirty);
+                    if (startDirty != -1) {
+                        adjustMS(startDirty, min, max);
+                        adjustMS(endDirty, min, max);
+                    }
+                    sendRenderEvent(mEffectLayer->GetParentElement()->GetModelName(), min, max);
+                    RaisePlayModelEffect(mEffectLayer->GetParentElement(), effect, false);
+                }
             }
         }
 

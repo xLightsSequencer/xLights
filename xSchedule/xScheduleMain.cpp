@@ -458,7 +458,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     icons.AddIcon(wxIcon(xlights_64_xpm));
     icons.AddIcon(wxIcon(xlights_128_xpm));
     icons.AddIcon(wxIcon(xlights_xpm));
-    wxTopLevelWindowMSW::SetIcons(icons);
+    SetIcons(icons);
 
     int x, y, w, h;
     wxConfigBase* config = wxConfigBase::Get();
