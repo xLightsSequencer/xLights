@@ -1496,6 +1496,7 @@ void Model::InitRenderBufferNodes(const std::string &type,
                                   const std::string &transform,
                                   std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) const {
     int firstNode = newNodes.size();
+    newNodes.reserve(firstNode + Nodes.size());
     for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
         newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
     }

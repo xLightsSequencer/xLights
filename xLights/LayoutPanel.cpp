@@ -432,10 +432,6 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style)
                        tree->WidthFor("1000000000000"),
                        wxALIGN_CENTER,
                        wxCOL_RESIZABLE | wxCOL_SORTABLE);
-#ifdef __WXOSX__
-    //work around http://trac.wxwidgets.org/ticket/17409
-    tree->GetDataView()->SetIndent(8);
-#endif
     return tree;
 }
 
@@ -866,6 +862,10 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         if (i > 10) {
             TreeListViewModels->SetColumnWidth(0, i);
         }
+#ifdef __WXOSX__
+        //work around http://trac.wxwidgets.org/ticket/17409
+        TreeListViewModels->GetDataView()->SetIndent(8);
+#endif
     }
     modelPreview->SetModels(models);
     UpdatePreview();
