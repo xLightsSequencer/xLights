@@ -21,6 +21,7 @@ class BrightnessControl;
 #include <wx/splitter.h>
 #include <wx/panel.h>
 #include <wx/bmpbuttn.h>
+#include <wx/button.h>
 #include <wx/dirdlg.h>
 #include <wx/frame.h>
 #include <wx/timer.h>
@@ -61,6 +62,8 @@ class xScheduleFrame : public wxFrame
     std::string GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const;
     void LoadSchedule();
     bool HandleHotkeys(wxKeyEvent& event);
+    void AddPlayList();
+    void EditSelectedItem();
 
     wxBitmap _otlon;
     wxBitmap _otloff;
@@ -125,6 +128,10 @@ public:
         void OnMenuItem_FPPMasterSelected(wxCommandEvent& event);
         void OnMenuItem_FPPRemoteSelected(wxCommandEvent& event);
         void OnMenuItem_WebInterfaceSelected(wxCommandEvent& event);
+        void OnMenuItem_AddPlayListSelected(wxCommandEvent& event);
+        void OnButton_AddClick(wxCommandEvent& event);
+        void OnButton_EditClick(wxCommandEvent& event);
+        void OnButton_DeleteClick(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -148,6 +155,9 @@ public:
         static const long ID_BITMAPBUTTON9;
         static const long ID_PANEL2;
         static const long ID_TREECTRL1;
+        static const long ID_BUTTON1;
+        static const long ID_BUTTON2;
+        static const long ID_BUTTON3;
         static const long ID_PANEL3;
         static const long ID_LISTVIEW1;
         static const long ID_PANEL5;
@@ -159,6 +169,7 @@ public:
         static const long ID_MNU_SHOWFOLDER;
         static const long ID_MNU_SAVE;
         static const long idMenuQuit;
+        static const long ID_MNU_MNUADDPLAYLIST;
         static const long ID_MNU_VIEW_LOG;
         static const long ID_MNU_CHECK_SCHEDULE;
         static const long ID_MNU_OPTIONS;
@@ -180,6 +191,7 @@ public:
         static const long ID_BUTTON_USER;
 
         //(*Declarations(xScheduleFrame)
+        wxMenuItem* MenuItem_AddPlayList;
         wxFlexGridSizer* FlexGridSizer4;
         wxBitmapButton* BitmapButton_StepLoop;
         wxBitmapButton* BitmapButton_PLLoop;
@@ -197,16 +209,19 @@ public:
         wxPanel* Panel1;
         wxPanel* Panel3;
         wxStaticText* StaticText_ShowDir;
+        wxButton* Button_Delete;
         wxStatusBar* StatusBar1;
         wxDirDialog* DirDialog1;
         wxMenuItem* MenuItem6;
         wxTimer _timerSchedule;
         wxListView* ListView_Running;
         wxMenuItem* MenuItem_FPPRemote;
+        wxButton* Button_Edit;
         wxTreeCtrl* TreeCtrl_PlayListsSchedules;
         wxMenuItem* MenuItem_ShowFolder;
         wxBitmapButton* BitmapButton_Random;
         wxBitmapButton* BitmapButton_Playing;
+        wxButton* Button_Add;
         VolumeDisplay* Custom_Volume;
         wxMenuItem* MenuItem_Standalone;
         wxPanel* Panel2;
@@ -216,6 +231,7 @@ public:
         wxMenuItem* MenuItem_Options;
         BrightnessControl* Brightness;
         wxMenuItem* MenuItem_ViewLog;
+        wxMenu* Menu5;
         wxBitmapButton* BitmapButton_VolumeDown;
         wxMenu* Menu4;
         //*)

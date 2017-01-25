@@ -12,8 +12,8 @@ PlayListItemImage::PlayListItemImage(wxXmlNode* node) : PlayListItem(node)
     _ImageFile = "";
     _origin.x = 0;
     _origin.y = 0;
-    _size.SetWidth(100);
-    _size.SetHeight(100);
+    _size.SetWidth(300);
+    _size.SetHeight(300);
     PlayListItemImage::Load(node);
 }
 
@@ -43,8 +43,8 @@ PlayListItemImage::PlayListItemImage() : PlayListItem()
     _ImageFile = "";
     _origin.x = 0;
     _origin.y = 0;
-    _size.SetWidth(100);
-    _size.SetHeight(100);
+    _size.SetWidth(300);
+    _size.SetHeight(300);
 }
 
 PlayListItem* PlayListItemImage::Copy() const
@@ -58,7 +58,6 @@ PlayListItem* PlayListItemImage::Copy() const
 
     return res;
 }
-
 
 wxXmlNode* PlayListItemImage::Save()
 {

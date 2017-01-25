@@ -3,6 +3,7 @@
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
 #include "PlayListItemVideo.h"
+#include "PlayListItemVirtualMatrix.h"
 #include "PlayListItemImage.h"
 #include "PlayListItemESEQ.h"
 #include "PlayListItemFSEQ.h"
@@ -33,7 +34,7 @@ PlayListStep::PlayListStep(wxXmlNode* node)
 
 bool compare_priority(const PlayListItem* first, const PlayListItem* second)
 {
-    return first->GetPriority() > second->GetPriority();
+    return first->GetPriority() < second->GetPriority();
 }
 
 PlayListStep::PlayListStep()
@@ -121,6 +122,10 @@ void PlayListStep::Load(wxXmlNode* node)
         else if (n->GetName() == "PLIFSEQ")
         {
             _items.push_back(new PlayListItemFSEQ(n));
+        }
+        else if (n->GetName() == "PLIVirtualMatrix")
+        {
+            _items.push_back(new PlayListItemVirtualMatrix(n));
         }
         else if (n->GetName() == "PLITest")
         {

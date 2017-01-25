@@ -225,6 +225,8 @@
     <ClCompile Include="PlayList\PlayListItemTestPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemVideo.cpp" />
     <ClCompile Include="PlayList\PlayListItemVideoPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemVirtualMatrix.cpp" />
+    <ClCompile Include="PlayList\PlayListItemVirtualMatrixPanel.cpp" />
     <ClCompile Include="PlayList\PlayListPanel.cpp" />
     <ClCompile Include="PlayList\PlayListStep.cpp" />
     <ClCompile Include="PlayList\PlayListStepPanel.cpp" />
@@ -307,6 +309,8 @@
     <ClInclude Include="PlayList\PlayListItemTestPanel.h" />
     <ClInclude Include="PlayList\PlayListItemVideo.h" />
     <ClInclude Include="PlayList\PlayListItemVideoPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemVirtualMatrix.h" />
+    <ClInclude Include="PlayList\PlayListItemVirtualMatrixPanel.h" />
     <ClInclude Include="PlayList\PlayListPanel.h" />
     <ClInclude Include="PlayList\PlayListStep.h" />
     <ClInclude Include="PlayList\PlayListStepPanel.h" />

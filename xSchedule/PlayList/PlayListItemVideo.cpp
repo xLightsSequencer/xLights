@@ -11,8 +11,8 @@ PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
     _videoFile = "";
     _origin.x = 0;
     _origin.y = 0;
-    _size.SetWidth(100);
-    _size.SetHeight(100);
+    _size.SetWidth(300);
+    _size.SetHeight(300);
     _videoReader = nullptr;
     _durationMS = 0;
     PlayListItemVideo::Load(node);
@@ -28,7 +28,6 @@ PlayListItemVideo::~PlayListItemVideo()
         _window = nullptr;
     }
 }
-
 
 void PlayListItemVideo::Load(wxXmlNode* node)
 {
@@ -47,8 +46,8 @@ PlayListItemVideo::PlayListItemVideo() : PlayListItem()
     _origin.x = 0;
     _origin.y = 0;
     _durationMS = 0;
-    _size.SetWidth(100);
-    _size.SetHeight(100);
+    _size.SetWidth(300);
+    _size.SetHeight(300);
     _videoReader = nullptr;
 }
 

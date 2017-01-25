@@ -104,6 +104,9 @@ const long xScheduleFrame::ID_CUSTOM2 = wxNewId();
 const long xScheduleFrame::ID_BITMAPBUTTON9 = wxNewId();
 const long xScheduleFrame::ID_PANEL2 = wxNewId();
 const long xScheduleFrame::ID_TREECTRL1 = wxNewId();
+const long xScheduleFrame::ID_BUTTON1 = wxNewId();
+const long xScheduleFrame::ID_BUTTON2 = wxNewId();
+const long xScheduleFrame::ID_BUTTON3 = wxNewId();
 const long xScheduleFrame::ID_PANEL3 = wxNewId();
 const long xScheduleFrame::ID_LISTVIEW1 = wxNewId();
 const long xScheduleFrame::ID_PANEL5 = wxNewId();
@@ -115,6 +118,7 @@ const long xScheduleFrame::ID_PANEL4 = wxNewId();
 const long xScheduleFrame::ID_MNU_SHOWFOLDER = wxNewId();
 const long xScheduleFrame::ID_MNU_SAVE = wxNewId();
 const long xScheduleFrame::idMenuQuit = wxNewId();
+const long xScheduleFrame::ID_MNU_MNUADDPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
 const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
 const long xScheduleFrame::ID_MNU_OPTIONS = wxNewId();
@@ -266,6 +270,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer2;
     wxMenu* Menu1;
+    wxBoxSizer* BoxSizer1;
     wxMenuBar* MenuBar1;
     wxFlexGridSizer* FlexGridSizer6;
     wxMenu* Menu2;
@@ -313,6 +318,14 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     TreeCtrl_PlayListsSchedules = new wxTreeCtrl(Panel3, ID_TREECTRL1, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL1"));
     TreeCtrl_PlayListsSchedules->SetMinSize(wxSize(300,300));
     FlexGridSizer2->Add(TreeCtrl_PlayListsSchedules, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
+    BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
+    Button_Add = new wxButton(Panel3, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    BoxSizer1->Add(Button_Add, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Edit = new wxButton(Panel3, ID_BUTTON2, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    BoxSizer1->Add(Button_Edit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Delete = new wxButton(Panel3, ID_BUTTON3, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    BoxSizer1->Add(Button_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel3->SetSizer(FlexGridSizer2);
     FlexGridSizer2->Fit(Panel3);
     FlexGridSizer2->SetSizeHints(Panel3);
@@ -355,6 +368,10 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     MenuItem1 = new wxMenuItem(Menu1, idMenuQuit, _("Quit\tAlt-F4"), _("Quit the application"), wxITEM_NORMAL);
     Menu1->Append(MenuItem1);
     MenuBar1->Append(Menu1, _("&File"));
+    Menu5 = new wxMenu();
+    MenuItem_AddPlayList = new wxMenuItem(Menu5, ID_MNU_MNUADDPLAYLIST, _("&Add Playlist"), wxEmptyString, wxITEM_NORMAL);
+    Menu5->Append(MenuItem_AddPlayList);
+    MenuBar1->Append(Menu5, _("&Edit"));
     Menu3 = new wxMenu();
     MenuItem_ViewLog = new wxMenuItem(Menu3, ID_MNU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_ViewLog);
@@ -406,10 +423,14 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged);
     Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_KEY_DOWN,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesKeyDown);
     Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_MENU,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_AddClick);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_EditClick);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_DeleteClick);
     Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xScheduleFrame::OnListView_RunningItemActivated);
     Connect(ID_MNU_SHOWFOLDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ShowFolderSelected);
     Connect(ID_MNU_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_SaveSelected);
     Connect(idMenuQuit,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnQuit);
+    Connect(ID_MNU_MNUADDPLAYLIST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_AddPlayListSelected);
     Connect(ID_MNU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_WEBINTERFACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
@@ -432,7 +453,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     icons.AddIcon(wxIcon(xlights_64_xpm));
     icons.AddIcon(wxIcon(xlights_128_xpm));
     icons.AddIcon(wxIcon(xlights_xpm));
-    SetIcons(icons);
+    wxTopLevelWindowMSW::SetIcons(icons);
 
     int x, y, w, h;
     wxConfigBase* config = wxConfigBase::Get();
@@ -627,18 +648,7 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
     if (event.GetId() == ID_MNU_ADDPLAYLIST)
     {
-        PlayList* playlist = new PlayList();
-        if (playlist->Configure(this) == nullptr)
-        {
-            delete playlist;
-        }
-        else
-        {
-            wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(TreeCtrl_PlayListsSchedules->GetRootItem(), playlist->GetName(), -1, -1, new MyTreeItemData(playlist));
-            TreeCtrl_PlayListsSchedules->Expand(newitem);
-            TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
-            __schedule->AddPlayList(playlist);
-        }
+        AddPlayList();
     }
     else if (event.GetId() == ID_MNU_SCHEDULEPLAYLIST)
     {
@@ -662,24 +672,7 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_MNU_EDIT)
     {
-        if (IsPlayList(treeitem))
-        {
-            PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-            if (playlist->Configure(this) != nullptr)
-            {
-                TreeCtrl_PlayListsSchedules->SetItemText(treeitem, playlist->GetName());
-            }
-        }
-        else if (IsSchedule(treeitem))
-        {
-            Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-            if (schedule->Configure(this) != nullptr)
-            {
-                TreeCtrl_PlayListsSchedules->SetItemText(treeitem, schedule->GetName());
-                auto rs = __schedule->GetRunningSchedule(schedule);
-                if (rs != nullptr) rs->Reset();
-            }
-        }
+        EditSelectedItem();
     }
     else if (event.GetId() == ID_MNU_DUPLICATEPLAYLIST)
     {
@@ -843,25 +836,7 @@ std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<
 
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& event)
 {
-    wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
-    if (IsPlayList(treeitem))
-    {
-        PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-        if (playlist->Configure(this) != nullptr)
-        {
-            TreeCtrl_PlayListsSchedules->SetItemText(treeitem, playlist->GetName());
-        }
-    }
-    else if (IsSchedule(treeitem))
-    {
-        Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-        if (schedule->Configure(this) != nullptr)
-        {
-            TreeCtrl_PlayListsSchedules->SetItemText(treeitem, schedule->GetName());
-            auto rs = __schedule->GetRunningSchedule(schedule);
-            if (rs != nullptr) rs->Reset();
-        }
-    }
+    EditSelectedItem();
     ValidateWindow();
 }
 
@@ -996,6 +971,18 @@ void xScheduleFrame::ValidateWindow()
     else
     {
         MenuItem_WebInterface->Enable(true);
+    }
+
+    wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+    if (IsPlayList(treeitem) || IsSchedule(treeitem))
+    {
+        Button_Delete->Enable();
+        Button_Edit->Enable();
+    }
+    else
+    {
+        Button_Delete->Enable(false);
+        Button_Edit->Enable(false);
     }
 }
 
@@ -1201,8 +1188,6 @@ void xScheduleFrame::OnResize(wxSizeEvent& event)
             {
                 n--;
                 changed = true;
-                lastx = 0;
-                lasty = y;
                 break;
             }
 
@@ -1727,4 +1712,67 @@ void xScheduleFrame::OnMenuItem_FPPRemoteSelected(wxCommandEvent& event)
 void xScheduleFrame::OnMenuItem_WebInterfaceSelected(wxCommandEvent& event)
 {
     ::wxLaunchDefaultBrowser("http://localhost");
+}
+
+void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
+{
+    AddPlayList();
+    ValidateWindow();
+}
+
+void xScheduleFrame::AddPlayList()
+{
+    PlayList* playlist = new PlayList();
+    if (playlist->Configure(this) == nullptr)
+    {
+        delete playlist;
+    }
+    else
+    {
+        wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(TreeCtrl_PlayListsSchedules->GetRootItem(), playlist->GetName(), -1, -1, new MyTreeItemData(playlist));
+        TreeCtrl_PlayListsSchedules->Expand(newitem);
+        TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
+        __schedule->AddPlayList(playlist);
+    }
+}
+
+void xScheduleFrame::OnButton_AddClick(wxCommandEvent& event)
+{
+    AddPlayList();
+    ValidateWindow();
+}
+
+void xScheduleFrame::OnButton_EditClick(wxCommandEvent& event)
+{
+    EditSelectedItem();
+    ValidateWindow();
+}
+
+void xScheduleFrame::OnButton_DeleteClick(wxCommandEvent& event)
+{
+    DeleteSelectedItem();
+    ValidateWindow();
+}
+
+void xScheduleFrame::EditSelectedItem()
+{
+    wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+    if (IsPlayList(treeitem))
+    {
+        PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+        if (playlist->Configure(this) != nullptr)
+        {
+            TreeCtrl_PlayListsSchedules->SetItemText(treeitem, playlist->GetName());
+        }
+    }
+    else if (IsSchedule(treeitem))
+    {
+        Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+        if (schedule->Configure(this) != nullptr)
+        {
+            TreeCtrl_PlayListsSchedules->SetItemText(treeitem, schedule->GetName());
+            auto rs = __schedule->GetRunningSchedule(schedule);
+            if (rs != nullptr) rs->Reset();
+        }
+    }
 }
