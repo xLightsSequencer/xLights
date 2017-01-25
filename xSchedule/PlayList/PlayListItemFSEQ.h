@@ -24,12 +24,13 @@ protected:
     bool _controlsTimingCache;
     size_t _startChannel;
     size_t _channels;
+    bool _fastStartAudio;
 #pragma endregion Member Variables
 
     void LoadFiles();
     void CloseFiles();
-    std::string GetAudioFilename() const;
     void FastSetDuration();
+    void LoadAudio();
 
 public:
 
@@ -41,6 +42,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    std::string GetAudioFilename() const;
     int GetBlendMode() const { return _applyMethod; }
     void SetBlendMode(int blendMode) { if (_applyMethod != (APPLYMETHOD)blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; } }
     virtual size_t GetDurationMS() const override { return _delay + _durationMS; }
@@ -48,9 +50,11 @@ public:
     std::string GetFSEQFileName() const { return _fseqFileName; }
     std::string GetAudioFile() const { return _audioFile; }
     bool GetOverrideAudio() const { return _overrideAudio; }
+    bool GetFastStartAudio() const { return _fastStartAudio; }
     void SetFSEQFileName(const std::string& fseqFileName);
     void SetAudioFile(const std::string& audioFile);
     void SetOverrideAudio(bool overrideAudio);
+    void SetFastStartAudio(bool fastStartAudio);
     virtual bool ControlsTiming() const override { return _controlsTimingCache || _audioManager != nullptr; }
     virtual size_t GetPositionMS() const override;
     virtual size_t GetFrameMS() const override { return _msPerFrame; }

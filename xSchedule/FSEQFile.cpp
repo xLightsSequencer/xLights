@@ -40,6 +40,13 @@ FSEQFile::FSEQFile(const std::string& filename)
     Load(filename);
 }
 
+std::string FSEQFile::GrabAudioFilename(const std::string& fseqFilename)
+{
+    FSEQFile fseq(fseqFilename);
+
+    return fseq.GetAudioFileName();
+}
+
 FSEQFile::~FSEQFile()
 {
     Close();

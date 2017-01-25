@@ -11,6 +11,8 @@
 #include "xScheduleApp.h"
 #include "ScheduleOptions.h"
 
+bool __apiOnly = false;
+
 std::map<std::string, std::string> ParseURI(std::string uri)
 {
     std::map<std::string, std::string> res;
@@ -164,7 +166,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         connection.SendResponse(response);
         return true;
     }
-    else if (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/")
+    else if (!__apiOnly && request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/")
     {
         int port = connection.Server()->Context().Port;
 
@@ -183,7 +185,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     }
     else
     {
-        if (request.URI().StartsWith("/" + wwwroot))
+        if (!__apiOnly && request.URI().StartsWith("/" + wwwroot))
         {
             wxString d;
 #ifdef __WXMSW__
@@ -236,8 +238,10 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
     }
 }
 
-WebServer::WebServer(int port)
+WebServer::WebServer(int port, bool apionly)
 {
+    __apiOnly = apionly; // put this in a global.
+
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -259,3 +263,7 @@ WebServer::~WebServer()
     Stop();
 }
 
+void WebServer::SetAPIOnly(bool apiOnly)
+{
+    __apiOnly = apiOnly;
+}

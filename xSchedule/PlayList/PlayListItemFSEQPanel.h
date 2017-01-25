@@ -33,6 +33,7 @@ class PlayListItemFSEQPanel: public wxPanel
 		wxSpinCtrl* SpinCtrl_Channels;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText6;
+		wxCheckBox* CheckBox_FastStartAudio;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxCheckBox* CheckBox_LimitChannels;
@@ -63,6 +64,7 @@ class PlayListItemFSEQPanel: public wxPanel
 		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT2;
 		static const long ID_FILEPICKERCTRL2;
+		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX2;
 		static const long ID_SLIDER1;
 		static const long ID_STATICTEXT4;

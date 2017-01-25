@@ -118,6 +118,7 @@ const long xScheduleFrame::idMenuQuit = wxNewId();
 const long xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
 const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
 const long xScheduleFrame::ID_MNU_OPTIONS = wxNewId();
+const long xScheduleFrame::ID_MNU_WEBINTERFACE = wxNewId();
 const long xScheduleFrame::ID_MNU_MODENORMAL = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPMASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPREMOTE = wxNewId();
@@ -361,6 +362,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu3->Append(MenuItem6);
     MenuItem_Options = new wxMenuItem(Menu3, ID_MNU_OPTIONS, _("&Options"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_Options);
+    MenuItem_WebInterface = new wxMenuItem(Menu3, ID_MNU_WEBINTERFACE, _("&Web Interface"), wxEmptyString, wxITEM_NORMAL);
+    Menu3->Append(MenuItem_WebInterface);
     MenuBar1->Append(Menu3, _("&Tools"));
     Menu4 = new wxMenu();
     MenuItem_Standalone = new wxMenuItem(Menu4, ID_MNU_MODENORMAL, _("Standalone"), wxEmptyString, wxITEM_RADIO);
@@ -409,6 +412,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(idMenuQuit,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnQuit);
     Connect(ID_MNU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OptionsSelected);
+    Connect(ID_MNU_WEBINTERFACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
     Connect(ID_MNU_MODENORMAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
     Connect(ID_MNU_FPPMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
     Connect(ID_MNU_FPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPRemoteSelected);
@@ -516,7 +520,7 @@ void xScheduleFrame::LoadSchedule()
         delete _webServer;
         _webServer = nullptr;
     }
-    _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort());
+    _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly());
 
     if (wxFile::Exists(_showDir + "/xlights_networks.xml"))
     {
@@ -985,6 +989,14 @@ void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
 
 void xScheduleFrame::ValidateWindow()
 {
+    if (__schedule->GetOptions()->GetAPIOnly())
+    {
+        MenuItem_WebInterface->Enable(false);
+    }
+    else
+    {
+        MenuItem_WebInterface->Enable(true);
+    }
 }
 
 void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
@@ -998,12 +1010,18 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
         if (oldport != __schedule->GetOptions()->GetWebServerPort())
         {
             delete _webServer;
-            _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort());
+            _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly());
+        }
+        else
+        {
+            _webServer->SetAPIOnly(__schedule->GetOptions()->GetAPIOnly());
         }
 
         __schedule->OptionsChanged();
         CreateButtons();
     }
+
+    ValidateWindow();
 }
 
 void xScheduleFrame::CreateButton(const std::string& label)
@@ -1704,4 +1722,9 @@ void xScheduleFrame::OnMenuItem_FPPMasterSelected(wxCommandEvent& event)
 void xScheduleFrame::OnMenuItem_FPPRemoteSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::FPPSLAVE);
+}
+
+void xScheduleFrame::OnMenuItem_WebInterfaceSelected(wxCommandEvent& event)
+{
+    ::wxLaunchDefaultBrowser("http://localhost");
 }

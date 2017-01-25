@@ -144,7 +144,7 @@ Output* OutputManager::GetOutput(int outputNumber) const
     }
 
     auto iter = _outputs.begin();
-    std::advance(iter, outputNumber);
+    std::advance(iter, outputNumber - 1);
     return *iter;
 }
 
@@ -676,9 +676,9 @@ void OutputManager::SetManyChannels(long channel, unsigned char* data, long size
     while (left > 0 && o != nullptr)
     {
 #ifdef _MSC_VER
-        long send = min(left, (o->GetChannels() * o->GetUniverses()) - stch);
+        long send = min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
 #else
-        long send = std::min(left, (o->GetChannels() * o->GetUniverses()) - stch);
+        long send = std::min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
 #endif
         o->SetManyChannels(stch - 1, &data[size - left], send);
         stch = 1;

@@ -1153,7 +1153,9 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
             {
                 data += ",";
             }
-            data += "{\"name\":\"" + (*it)->GetNameNoTime() + "\",\"length\":\""+ FormatTime((*it)->GetLengthMS()) +"\"}";
+            data += "{\"name\":\"" + (*it)->GetNameNoTime() + 
+                    "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() + 
+                    "\",\"length\":\""+ FormatTime((*it)->GetLengthMS()) +"\"}";
         }
         data += "]}";
     }
@@ -1171,7 +1173,9 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 {
                     data += ",";
                 }
-                data += "{\"name\":\"" + (*it)->GetNameNoTime() + "\",\"length\":\""+FormatTime((*it)->GetLengthMS())+"\"}";
+                data += "{\"name\":\"" + (*it)->GetNameNoTime() + 
+                        "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() + 
+                        "\",\"length\":\""+FormatTime((*it)->GetLengthMS())+"\"}";
             }
             data += "]}";
         }
@@ -1194,7 +1198,9 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
             {
                 data += ",";
             }
-            data += "{\"name\":\"" + (*it)->GetNameNoTime() + "\",\"length\":\"" + FormatTime((*it)->GetLengthMS()) + "\"}";
+            data += "{\"name\":\"" + (*it)->GetNameNoTime() + 
+                    "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() + 
+                    "\",\"length\":\"" + FormatTime((*it)->GetLengthMS()) + "\"}";
         }
         data += "]}";
     }
@@ -1225,11 +1231,14 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 nextsong = next->GetNameNoTime();
             }
 
-            data = "{\"status\":\"" + std::string(p->IsPaused() ? "paused" : "playing") + "\",\"playlist\":\"" + p->GetNameNoTime() + 
+            data = "{\"status\":\"" + std::string(p->IsPaused() ? "paused" : "playing") + 
+                "\",\"playlist\":\"" + p->GetNameNoTime() +
+                "\",\"playlistid\":\"" + wxString::Format(wxT("%i"), p->GetId()).ToStdString() +
                 "\",\"playlistlooping\":\"" + (p->IsLooping() || p->GetLoopsLeft() > 0 ? "true" : "false") +
                 "\",\"playlistloopsleft\":\"" + wxString::Format(wxT("%i"),p->GetLoopsLeft()).ToStdString() +
                 "\",\"random\":\"" + (p->IsRandom() ? "true" : "false") +
                 "\",\"step\":\"" + p->GetRunningStep()->GetNameNoTime() +
+                "\",\"stepid\":\"" + wxString::Format(wxT("%i"), p->GetRunningStep()->GetId()).ToStdString() +
                 "\",\"steplooping\":\"" + (p->IsStepLooping() || p->GetRunningStep()->GetLoopsLeft() > 0 ? "true" : "false") +
                 "\",\"steploopsleft\":\"" + wxString::Format(wxT("%i"), p->GetRunningStep()->GetLoopsLeft()).ToStdString() +
                 "\",\"length\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS()) +

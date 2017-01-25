@@ -8,6 +8,7 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
     _changeCount = 0;
     _lastSavedChangeCount = 0;
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
+    _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
     _wwwRoot = node->GetAttribute("WWWRoot", "xScheduleWeb");
@@ -40,6 +41,7 @@ ScheduleOptions::ScheduleOptions()
 {
     _wwwRoot = "xScheduleWeb";
     _port = 80;
+    _webAPIOnly = false;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
     _sync = false;
@@ -64,10 +66,17 @@ wxXmlNode* ScheduleOptions::Save()
     {
         res->AddAttribute("Sync", "TRUE");
     }
+
+    if (_webAPIOnly)
+    {
+        res->AddAttribute("APIOnly", "TRUE");
+    }
+
     if (IsSendOffWhenNotRunning())
     {
         res->AddAttribute("SendOffWhenNotRunning", "TRUE");
     }
+
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));
 
     for (auto it = _projectorIPs.begin(); it != _projectorIPs.end(); ++it)

@@ -12,6 +12,7 @@ const long PlayListItemAudioPanel::ID_STATICTEXT2 = wxNewId();
 const long PlayListItemAudioPanel::ID_FILEPICKERCTRL2 = wxNewId();
 const long PlayListItemAudioPanel::ID_CHECKBOX2 = wxNewId();
 const long PlayListItemAudioPanel::ID_SLIDER1 = wxNewId();
+const long PlayListItemAudioPanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListItemAudioPanel::ID_STATICTEXT4 = wxNewId();
 const long PlayListItemAudioPanel::ID_SPINCTRL1 = wxNewId();
 const long PlayListItemAudioPanel::ID_STATICTEXT3 = wxNewId();
@@ -64,6 +65,10 @@ PlayListItemAudioPanel::PlayListItemAudioPanel(wxWindow* parent, PlayListItemAud
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider1 = new wxSlider(this, ID_SLIDER1, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER1"));
 	FlexGridSizer1->Add(Slider1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_FastStartAudio = new wxCheckBox(this, ID_CHECKBOX1, _("Fast Start Audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_FastStartAudio->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_FastStartAudio, 1, wxALL|wxEXPAND, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Priority:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Priority = new wxSpinCtrl(this, ID_SPINCTRL1, _T("5"), wxDefaultPosition, wxDefaultSize, 0, 1, 10, 5, _T("ID_SPINCTRL1"));
@@ -83,6 +88,7 @@ PlayListItemAudioPanel::PlayListItemAudioPanel(wxWindow* parent, PlayListItemAud
 
     FilePickerCtrl_AudioFile->SetFileName(wxFileName(audio->GetAudioFile()));
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)audio->GetDelay() / 1000.0));
+    CheckBox_FastStartAudio->SetValue(audio->GetFastStartAudio());
 
     if (audio->GetVolume() != -1)
     {
@@ -103,6 +109,7 @@ PlayListItemAudioPanel::~PlayListItemAudioPanel()
 	//*)
     _audio->SetAudioFile(FilePickerCtrl_AudioFile->GetFileName().GetFullPath().ToStdString());
     _audio->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
+    _audio->SetFastStartAudio(CheckBox_FastStartAudio->GetValue());
 
     if (CheckBox_OverrideVolume->GetValue())
     {

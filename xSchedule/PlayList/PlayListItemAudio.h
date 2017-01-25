@@ -17,6 +17,7 @@ protected:
     AudioManager* _audioManager;
     size_t _durationMS;
     bool _controlsTimingCache;
+    bool _fastStartAudio;
     #pragma endregion Member Variables
 
     void LoadFiles();
@@ -43,7 +44,9 @@ public:
     virtual std::string GetSyncItemName() const override { return GetAudioFile(); }
     static bool IsAudio(const std::string& ext);
     virtual std::string GetTitle() const override;
-#pragma endregion Getters and Setters
+    bool GetFastStartAudio() const { return _fastStartAudio; }
+    void SetFastStartAudio(bool fastStartAudio);
+    #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
     void Load(wxXmlNode* node) override;

@@ -27,7 +27,16 @@ void PlayListItemFSEQ::Load(wxXmlNode* node)
     _audioFile = node->GetAttribute("AudioFile", "");
     _overrideAudio = (_audioFile != "");
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
-    FastSetDuration();
+    _fastStartAudio = (node->GetAttribute("FastStartAudio", "FALSE") == "TRUE");
+
+    if (_fastStartAudio)
+    {
+        LoadAudio();
+    }
+    else
+    {
+        FastSetDuration();
+    }
 }
 
 std::string PlayListItemFSEQ::GetAudioFilename() const
@@ -47,19 +56,25 @@ std::string PlayListItemFSEQ::GetAudioFilename() const
     return "";
 }
 
-void PlayListItemFSEQ::LoadFiles()
+void PlayListItemFSEQ::LoadAudio()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    CloseFiles();
-
-    if (wxFile::Exists(_fseqFileName))
-    {
-        _fseqFile = new FSEQFile();
-        _fseqFile->Load(_fseqFileName);
-        _msPerFrame = _fseqFile->GetFrameMS();
-        _durationMS = _fseqFile->GetLengthMS();
-    }
     auto af = GetAudioFilename();
+
+    if (_audioManager != nullptr)
+    {
+        if (_audioManager->FileName() == af)
+        {
+            // already open
+            return;
+        }
+        else
+        {
+            delete _audioManager;
+            _audioManager = nullptr;
+        }
+    }
+
     if (wxFile::Exists(af))
     {
         _audioManager = new AudioManager(af);
@@ -83,8 +98,24 @@ void PlayListItemFSEQ::LoadFiles()
     }
 }
 
+void PlayListItemFSEQ::LoadFiles()
+{
+    CloseFiles();
+
+    if (wxFile::Exists(_fseqFileName))
+    {
+        _fseqFile = new FSEQFile();
+        _fseqFile->Load(_fseqFileName);
+        _msPerFrame = _fseqFile->GetFrameMS();
+        _durationMS = _fseqFile->GetLengthMS();
+    }
+
+    LoadAudio();
+}
+
 PlayListItemFSEQ::PlayListItemFSEQ() : PlayListItem()
 {
+    _fastStartAudio = false;
     _channels = 0;
     _startChannel = 1;
     _controlsTimingCache = false;
@@ -103,11 +134,12 @@ PlayListItem* PlayListItemFSEQ::Copy() const
     res->_fseqFileName = _fseqFileName;
     res->_applyMethod = _applyMethod;
     res->_overrideAudio = _overrideAudio;
-    res->_audioFile = _audioFile;
     res->_durationMS = _durationMS;
     res->_controlsTimingCache = _controlsTimingCache;
     res->_channels = _channels;
     res->_startChannel = _startChannel;
+    res->_fastStartAudio = _fastStartAudio;
+    res->SetAudioFile(_audioFile); // this will trigger file loading
     PlayListItem::Copy(res);
 
     return res;
@@ -119,6 +151,10 @@ wxXmlNode* PlayListItemFSEQ::Save()
 
     node->AddAttribute("FSEQFile", _fseqFileName);
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
+    if (_fastStartAudio)
+    {
+        node->AddAttribute("FastStartAudio", "TRUE");
+    }
 
     if (_overrideAudio)
     {
@@ -158,7 +194,14 @@ void PlayListItemFSEQ::SetFSEQFileName(const std::string& fseqFileName)
     if (_fseqFileName != fseqFileName)
     {
         _fseqFileName = fseqFileName;
-        FastSetDuration();
+        if (_fastStartAudio)
+        {
+            LoadAudio();
+        }
+        else
+        {
+            FastSetDuration();
+        }
         _changeCount++;
     }
 }
@@ -169,7 +212,14 @@ void PlayListItemFSEQ::SetAudioFile(const std::string& audioFile)
     {
         _audioFile = audioFile;
         _changeCount++;
-        FastSetDuration();
+        if (_fastStartAudio)
+        {
+            LoadAudio();
+        }
+        else
+        {
+            FastSetDuration();
+        }
     }
 }
 
@@ -179,7 +229,35 @@ void PlayListItemFSEQ::SetOverrideAudio(bool overrideAudio)
     {
         _overrideAudio = overrideAudio;
         _changeCount++;
-        FastSetDuration();
+        if (_fastStartAudio)
+        {
+            LoadAudio();
+        }
+        else
+        {
+            FastSetDuration();
+        }
+    }
+}
+
+void PlayListItemFSEQ::SetFastStartAudio(bool fastStartAudio)
+{
+    if (_fastStartAudio != fastStartAudio)
+    {
+        _fastStartAudio = fastStartAudio;
+        _changeCount++;
+        if (_fastStartAudio)
+        {
+            LoadAudio();
+        }
+        else
+        {
+            if (_audioManager != nullptr)
+            {
+                delete _audioManager;
+                _audioManager = nullptr;
+            }
+        }
     }
 }
 

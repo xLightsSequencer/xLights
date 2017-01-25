@@ -247,6 +247,10 @@
 					<label>&amp;Options</label>
 					<handler function="OnMenuItem_OptionsSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_WEBINTERFACE" variable="MenuItem_WebInterface" member="yes">
+					<label>&amp;Web Interface</label>
+					<handler function="OnMenuItem_WebInterfaceSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu4" member="yes">
 				<label>&amp;Modes</label>

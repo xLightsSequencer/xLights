@@ -42,6 +42,7 @@ class FSEQFile
         static int ReadInt32(wxFile* fh);
         static std::list<std::string> GetBlendModes();
         static std::string FixFile(const std::string& ShowDir, const std::string& file);
+        static std::string GrabAudioFilename(const std::string& fseqFilename);
 
 		FSEQFile();
 		FSEQFile(const std::string& filename);

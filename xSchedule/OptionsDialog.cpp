@@ -27,6 +27,7 @@ const long OptionsDialog::ID_BUTTON6 = wxNewId();
 const long OptionsDialog::ID_BUTTON7 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT4 = wxNewId();
 const long OptionsDialog::ID_TEXTCTRL1 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX1 = wxNewId();
 const long OptionsDialog::ID_BUTTON1 = wxNewId();
 const long OptionsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -107,6 +108,10 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	FlexGridSizer8->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_wwwRoot = new wxTextCtrl(this, ID_TEXTCTRL1, _("xScheduleWeb"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer8->Add(TextCtrl_wwwRoot, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_APIOnly = new wxCheckBox(this, ID_CHECKBOX1, _("API Only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_APIOnly->SetValue(false);
+	FlexGridSizer8->Add(CheckBox_APIOnly, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -147,6 +152,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 
     CheckBox_SendOffWhenNotRunning->SetValue(options->IsSendOffWhenNotRunning());
     CheckBox_Sync->SetValue(options->IsSync());
+    CheckBox_APIOnly->SetValue(options->GetAPIOnly());
 
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
 
@@ -223,6 +229,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetSendOffWhenNotRunning(CheckBox_SendOffWhenNotRunning->GetValue());
     _options->SetWebServerPort(SpinCtrl_WebServerPort->GetValue());
     _options->SetWWWRoot(TextCtrl_wwwRoot->GetValue().ToStdString());
+    _options->SetAPIOnly(CheckBox_APIOnly->GetValue());
 
     _options->ClearProjectors();
     for (int i = 0; i < ListView_Projectors->GetItemCount(); i++)

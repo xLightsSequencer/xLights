@@ -1,9 +1,9 @@
 #include "ProjectorDetailsDialog.h"
+#include "../xLights/outputs/IPOutput.h"
 
 //(*InternalHeaders(ProjectorDetailsDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "../xLights/outputs/IPOutput.h"
 //*)
 
 //(*IdInit(ProjectorDetailsDialog)
@@ -45,7 +45,7 @@ ProjectorDetailsDialog::ProjectorDetailsDialog(wxWindow* parent, std::string& pr
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Password = new wxTextCtrl(this, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer1->Add(TextCtrl_Password, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	Button_Ok->SetDefault();

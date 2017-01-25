@@ -22,6 +22,7 @@ const long PlayListItemFSEQPanel::ID_SPINCTRL3 = wxNewId();
 const long PlayListItemFSEQPanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListItemFSEQPanel::ID_STATICTEXT2 = wxNewId();
 const long PlayListItemFSEQPanel::ID_FILEPICKERCTRL2 = wxNewId();
+const long PlayListItemFSEQPanel::ID_CHECKBOX4 = wxNewId();
 const long PlayListItemFSEQPanel::ID_CHECKBOX2 = wxNewId();
 const long PlayListItemFSEQPanel::ID_SLIDER1 = wxNewId();
 const long PlayListItemFSEQPanel::ID_STATICTEXT4 = wxNewId();
@@ -93,7 +94,7 @@ PlayListItemFSEQPanel::PlayListItemFSEQPanel(wxWindow* parent, PlayListItemFSEQ*
 	FlexGridSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_BlendMode = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	FlexGridSizer1->Add(Choice_BlendMode, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_LimitChannels = new wxCheckBox(this, ID_CHECKBOX3, _("Limit Channels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	CheckBox_LimitChannels->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_LimitChannels, 1, wxALL|wxEXPAND, 5);
@@ -115,6 +116,10 @@ PlayListItemFSEQPanel::PlayListItemFSEQPanel(wxWindow* parent, PlayListItemFSEQ*
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FilePickerCtrl_AudioFile = new AudioFilePickerCtrl(this, ID_FILEPICKERCTRL2, wxEmptyString, _("Audio File"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL2"));
 	FlexGridSizer1->Add(FilePickerCtrl_AudioFile, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_FastStartAudio = new wxCheckBox(this, ID_CHECKBOX4, _("Fast start audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
+	CheckBox_FastStartAudio->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_FastStartAudio, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_OverrideVolume = new wxCheckBox(this, ID_CHECKBOX2, _("Override Volume"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_OverrideVolume->SetValue(false);
@@ -154,6 +159,7 @@ PlayListItemFSEQPanel::PlayListItemFSEQPanel(wxWindow* parent, PlayListItemFSEQ*
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)fseq->GetDelay() / 1000.0));
     Choice_BlendMode->SetSelection(fseq->GetBlendMode());
     SpinCtrl_Priority->SetValue(fseq->GetPriority());
+    CheckBox_FastStartAudio->SetValue(fseq->GetFastStartAudio());
 
     if (fseq->GetVolume() != -1)
     {
@@ -181,6 +187,13 @@ PlayListItemFSEQPanel::PlayListItemFSEQPanel(wxWindow* parent, PlayListItemFSEQ*
         SpinCtrl_Channels->SetValue(fseq->GetChannels());
     }
 
+    if (!CheckBox_OverrideAudio->GetValue())
+    {
+        std::string f = FSEQFile::GrabAudioFilename(FilePickerCtrl_FSEQFile->GetFileName().GetFullPath().ToStdString());
+        FilePickerCtrl_AudioFile->SetFileName(wxFileName(f));
+        FilePickerCtrl_AudioFile->SetToolTip(f);
+    }
+
     ValidateWindow();
 }
 
@@ -194,6 +207,7 @@ PlayListItemFSEQPanel::~PlayListItemFSEQPanel()
     _fseq->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
     _fseq->SetBlendMode(Choice_BlendMode->GetSelection());
     _fseq->SetPriority(SpinCtrl_Priority->GetValue());
+    _fseq->SetFastStartAudio(CheckBox_FastStartAudio->GetValue());
 
     if (CheckBox_OverrideVolume->GetValue())
     {
@@ -223,6 +237,13 @@ void PlayListItemFSEQPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& e
 {
     _fseq->SetFSEQFileName(FilePickerCtrl_FSEQFile->GetFileName().GetFullPath().ToStdString());
     ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+
+    if (!CheckBox_OverrideAudio->GetValue())
+    {
+        std::string f = FSEQFile::GrabAudioFilename(FilePickerCtrl_FSEQFile->GetFileName().GetFullPath().ToStdString());
+        FilePickerCtrl_AudioFile->SetFileName(wxFileName(f));
+        FilePickerCtrl_AudioFile->SetToolTip(f);
+    }
 }
 
 void PlayListItemFSEQPanel::OnFilePickerCtrl2FileChanged(wxFileDirPickerEvent& event)
@@ -231,6 +252,13 @@ void PlayListItemFSEQPanel::OnFilePickerCtrl2FileChanged(wxFileDirPickerEvent& e
 
 void PlayListItemFSEQPanel::OnCheckBox_OverrideAudioClick(wxCommandEvent& event)
 {
+    if (!CheckBox_OverrideAudio->GetValue())
+    {
+        std::string f = FSEQFile::GrabAudioFilename(FilePickerCtrl_FSEQFile->GetFileName().GetFullPath().ToStdString());
+        FilePickerCtrl_AudioFile->SetFileName(wxFileName(f));
+        FilePickerCtrl_AudioFile->SetToolTip(f);
+    }
+
     ValidateWindow();
 }
 

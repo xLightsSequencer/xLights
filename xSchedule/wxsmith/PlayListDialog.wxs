@@ -88,7 +88,6 @@
 							<growablerows>0</growablerows>
 							<object class="sizeritem">
 								<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
-									<minsize>300,300</minsize>
 									<handler function="OnNotebook1PageChanged" entry="EVT_NOTEBOOK_PAGE_CHANGED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>

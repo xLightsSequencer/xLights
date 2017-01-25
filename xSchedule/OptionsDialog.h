@@ -47,6 +47,7 @@ class OptionsDialog: public wxDialog
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxButton* Button_Cancel;
+		wxCheckBox* CheckBox_APIOnly;
 		wxButton* Button_ProjectorEdit;
 		wxButton* Button_AddProjector;
 		wxStaticText* StaticText4;
@@ -73,6 +74,7 @@ class OptionsDialog: public wxDialog
 		static const long ID_BUTTON7;
 		static const long ID_STATICTEXT4;
 		static const long ID_TEXTCTRL1;
+		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

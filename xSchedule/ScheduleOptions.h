@@ -14,6 +14,7 @@ class ScheduleOptions
     int _changeCount;
     int _lastSavedChangeCount;
     bool _sendOffWhenNotRunning;
+    bool _webAPIOnly;
     int _port;
     std::string _wwwRoot;
     std::map<std::string, std::string> _projectorIPs;
@@ -47,6 +48,8 @@ class ScheduleOptions
         std::string GetWWWRoot() const { return _wwwRoot; }
         void SetWWWRoot(const std::string& wwwRoot) { if (_wwwRoot != wwwRoot) { _wwwRoot = wwwRoot; _changeCount++; } }
         void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey);
+        bool GetAPIOnly() const { return _webAPIOnly; }
+        void SetAPIOnly(bool apiOnly) { if (_webAPIOnly != apiOnly) { _webAPIOnly = apiOnly; _changeCount++; } }
 };
 
 #endif

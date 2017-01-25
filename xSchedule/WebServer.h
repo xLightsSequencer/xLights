@@ -8,8 +8,9 @@ class WebServer : HttpServer
 
 public:
 
-        WebServer(int port);
+        WebServer(int port, bool apionly);
         virtual ~WebServer();
+        void SetAPIOnly(bool apiOnly);
 };
 
 #endif

@@ -28,6 +28,7 @@ class PlayListItemAudioPanel: public wxPanel
 		//(*Declarations(PlayListItemAudioPanel)
 		wxSlider* Slider1;
 		wxStaticText* StaticText2;
+		wxCheckBox* CheckBox_FastStartAudio;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Delay;
 		wxSpinCtrl* SpinCtrl_Priority;
@@ -43,6 +44,7 @@ class PlayListItemAudioPanel: public wxPanel
 		static const long ID_FILEPICKERCTRL2;
 		static const long ID_CHECKBOX2;
 		static const long ID_SLIDER1;
+		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT3;

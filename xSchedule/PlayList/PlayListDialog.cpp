@@ -23,12 +23,13 @@
 #include <wx/xml/xml.h>
 #include <wx/menu.h>
 #include <wx/notebook.h>
+#include <wx/dir.h>
+#include <wx/filename.h>
+#include <wx/confbase.h>
 
 //(*InternalHeaders(PlayListDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include <wx/dir.h>
-#include <wx/filename.h>
 //*)
 
 //(*IdInit(PlayListDialog)
@@ -106,7 +107,6 @@ PlayListDialog::PlayListDialog(wxWindow* parent, PlayList* playlist, wxWindowID 
 	FlexGridSizer4->AddGrowableCol(0);
 	FlexGridSizer4->AddGrowableRow(0);
 	Notebook1 = new wxNotebook(Panel2, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
-	Notebook1->SetMinSize(wxSize(300,300));
 	FlexGridSizer4->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
 	Panel2->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(Panel2);
@@ -128,7 +128,14 @@ PlayListDialog::PlayListDialog(wxWindow* parent, PlayList* playlist, wxWindowID 
 	Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&PlayListDialog::OnNotebook1PageChanged);
 	//*)
 
-    SetSize(800, 500);
+    int x, y, w, h;
+    wxConfigBase* config = wxConfigBase::Get();
+    x = config->ReadLong("xsPLWindowPosX", 50);
+    y = config->ReadLong("xsPLWindowPosY", 50);
+    w = config->ReadLong("xsPLWindowPosW", 800);
+    h = config->ReadLong("xsPLWindowPosH", 600);
+    SetPosition(wxPoint(x, y));
+    SetSize(w, h);
 
     // save the current state in case the user cancels
     _savedState = new PlayList(*playlist);
@@ -149,7 +156,19 @@ PlayListDialog::~PlayListDialog()
 	//(*Destroy(PlayListDialog)
 	//*)
 
-    // manually remove the notebook page to force updating now rather than during deletion  
+    int x, y;
+    GetPosition(&x, &y);
+
+    int w, h;
+    GetSize(&w, &h);
+
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xsPLWindowPosX", x);
+    config->Write("xsPLWindowPosY", y);
+    config->Write("xsPLWindowPosW", w);
+    config->Write("xsPLWindowPosH", h);
+
+    // manually remove the notebook page to force updating now rather than during deletion
     SwapPage(nullptr);
 }
 
@@ -542,7 +561,7 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     {
         step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
     }
-    
+
     if (event.GetId() == ID_MNU_ADDVIDEO)
     {
         PlayListItemVideo* pli = new PlayListItemVideo();

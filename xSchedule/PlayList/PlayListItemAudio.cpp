@@ -7,6 +7,7 @@
 
 PlayListItemAudio::PlayListItemAudio(wxXmlNode* node) : PlayListItem(node)
 {
+    _fastStartAudio = false;
     _controlsTimingCache = false;
     _audioFile = "";
     _durationMS = 0;
@@ -17,14 +18,35 @@ PlayListItemAudio::PlayListItemAudio(wxXmlNode* node) : PlayListItem(node)
 void PlayListItemAudio::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
+    _fastStartAudio = (node->GetAttribute("FastStartAudio", "FALSE") == "TRUE");
     _audioFile = node->GetAttribute("AudioFile", "");
-    FastSetDuration();
+
+    if (_fastStartAudio)
+    {
+        LoadFiles();
+    }
+    else
+    {
+        FastSetDuration();
+    }
 }
 
 void PlayListItemAudio::LoadFiles()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    CloseFiles();
+
+    if (_audioManager != nullptr)
+    {
+        if (_audioManager->FileName() == _audioFile)
+        {
+            // already open
+            return;
+        }
+        else
+        {
+            CloseFiles();
+        }
+    }
 
     if (wxFile::Exists(_audioFile))
     {
@@ -51,6 +73,7 @@ void PlayListItemAudio::LoadFiles()
 
 PlayListItemAudio::PlayListItemAudio() : PlayListItem()
 {
+    _fastStartAudio = false;
     _controlsTimingCache = false;
     _audioFile = "";
     _durationMS = 0;
@@ -60,9 +83,10 @@ PlayListItemAudio::PlayListItemAudio() : PlayListItem()
 PlayListItem* PlayListItemAudio::Copy() const
 {
     PlayListItemAudio* res = new PlayListItemAudio();
-    res->_audioFile = _audioFile;
+    res->_fastStartAudio = _fastStartAudio;
     res->_durationMS = _durationMS;
     res->_controlsTimingCache = _controlsTimingCache;
+    res->SetAudioFile(_audioFile); // we set this way to trigger file loading
     PlayListItem::Copy(res);
 
     return res;
@@ -73,6 +97,10 @@ wxXmlNode* PlayListItemAudio::Save()
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIAudio");
 
     node->AddAttribute("AudioFile", _audioFile);
+    if (_fastStartAudio)
+    {
+        node->AddAttribute("FastStartAudio", "TRUE");
+    }
 
     PlayListItem::Save(node);
 
@@ -107,7 +135,14 @@ void PlayListItemAudio::SetAudioFile(const std::string& audioFile)
     if (_audioFile != audioFile)
     {
         _audioFile = audioFile;
-        FastSetDuration();
+        if (_fastStartAudio)
+        {
+            LoadFiles();
+        }
+        else
+        {
+            FastSetDuration();
+        }
         _changeCount++;
     }
 }
@@ -207,3 +242,21 @@ bool PlayListItemAudio::IsAudio(const std::string& ext)
 
     return false;
 }
+
+void PlayListItemAudio::SetFastStartAudio(bool fastStartAudio)
+{
+    if (_fastStartAudio != fastStartAudio)
+    {
+        _fastStartAudio = fastStartAudio;
+        _changeCount++;
+        if (_fastStartAudio)
+        {
+            LoadFiles();
+        }
+        else
+        {
+            CloseFiles();
+        }
+    }
+}
+

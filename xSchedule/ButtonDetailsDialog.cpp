@@ -42,7 +42,7 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, s
 	FlexGridSizer1->Add(TextCtrl_Label, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Command:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Command = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxSize(400,-1), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+	Choice_Command = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	FlexGridSizer1->Add(Choice_Command, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Parameters:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -70,6 +70,10 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, s
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButtonDetailsDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButtonDetailsDialog::OnButton_CancelClick);
 	//*)
+
+    int x, y;
+    GetSize(&x, &y);
+    SetSize(400, y);
 
     auto commands = xScheduleFrame::GetScheduleManager()->GetCommands();
     for (auto it = commands.begin(); it != commands.end(); ++it)

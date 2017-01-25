@@ -124,6 +124,7 @@ public:
         void OnMenuItem_StandaloneSelected(wxCommandEvent& event);
         void OnMenuItem_FPPMasterSelected(wxCommandEvent& event);
         void OnMenuItem_FPPRemoteSelected(wxCommandEvent& event);
+        void OnMenuItem_WebInterfaceSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -161,6 +162,7 @@ public:
         static const long ID_MNU_VIEW_LOG;
         static const long ID_MNU_CHECK_SCHEDULE;
         static const long ID_MNU_OPTIONS;
+        static const long ID_MNU_WEBINTERFACE;
         static const long ID_MNU_MODENORMAL;
         static const long ID_MNU_FPPMASTER;
         static const long ID_MNU_FPPREMOTE;
@@ -210,6 +212,7 @@ public:
         wxPanel* Panel2;
         wxFlexGridSizer* FlexGridSizer1;
         wxSplitterWindow* SplitterWindow1;
+        wxMenuItem* MenuItem_WebInterface;
         wxMenuItem* MenuItem_Options;
         BrightnessControl* Brightness;
         wxMenuItem* MenuItem_ViewLog;
