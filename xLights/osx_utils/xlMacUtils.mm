@@ -10,6 +10,7 @@
 #import <AppKit/NSOpenGLView.h>
 
 #include <wx/config.h>
+#include <wx/menu.h>
 
 #include "xlGLCanvas.h"
 #include "osxMacUtils.h"
@@ -177,7 +178,38 @@ wxString GetOSXFormattedClipboardData() {
     }
     return "";
 }
+#include "wx/osx/private.h"
+void ModalPopup(wxWindow *w, wxMenu &menu) {
+//    menu.GetHMenu();
+    NSView *view = w->GetPeer()->GetWXWidget();
+    wxPoint mouse = wxGetMousePosition();
+    int x = mouse.x;
+    int y = mouse.y;
+    w->ScreenToClient( &x , &y ) ;
+    
+    if ([ view isFlipped ]) {
+        y = w->GetSize().y - y;
+    }
+    
+    NSPoint locationInWindow = NSMakePoint(x,y);
 
+    //locationInWindow = [view.window convertBaseToScreen:locationInWindow];
+    
+    //[menu.GetHMenu() setAutoenablesItems:NO];
+
+
+    
+    NSEvent *event = [NSEvent mouseEventWithType:NSRightMouseDown
+                                        location:locationInWindow
+                                        modifierFlags:0
+                                        timestamp:0
+                                        windowNumber:view.window.windowNumber
+                                        context:nil eventNumber:0 clickCount:1 pressure:1.0 ];
+    [NSMenu popUpContextMenu:menu.GetHMenu() withEvent:event forView:view];
+    
+    //[menu.GetHMenu() popUpMenuPositioningItem:nil atLocation:NSMakePoint(x, y) inView:view];
+    //w->PopupMenu(&menu);
+}
 
 void AddWindowsMenu() {
     NSApplication *app = [NSApplication sharedApplication];

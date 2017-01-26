@@ -1,5 +1,5 @@
 #ifndef PLAYLISTITEMAUDIOPANEL_H
-#define PLAYLISTITEMAUDOPANEL_H
+#define PLAYLISTITEMAUDIOPANEL_H
 
 //(*Headers(PlayListItemAudioPanel)
 #include <wx/sizer.h>

@@ -21,6 +21,8 @@
 #include "PlayListItemDelay.h"
 #include "PlayListItemPJLink.h"
 
+#include "osxMacUtils.h"
+
 #include <wx/xml/xml.h>
 #include <wx/menu.h>
 #include <wx/notebook.h>
@@ -250,7 +252,9 @@ void PlayListDialog::PopulateTree(PlayList* selplaylist, PlayListStep* selstep, 
     if (select == nullptr) select = TreeCtrl_PlayList->GetRootItem();
     TreeCtrl_PlayList->ExpandAll();
     TreeCtrl_PlayList->EnsureVisible(select);
+    TreeCtrl_PlayList->UnselectAll();
     TreeCtrl_PlayList->SelectItem(select);
+    TreeCtrl_PlayList->SetIndent(8);
 
     TreeCtrl_PlayList->Thaw();
 }
@@ -537,7 +541,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     }
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&PlayListDialog::OnTreeCtrlMenu, nullptr, this);
-    PopupMenu(&mnu);
+    ModalPopup(this, mnu);
 }
 
 int PlayListDialog::GetPos(const wxTreeItemId& item)

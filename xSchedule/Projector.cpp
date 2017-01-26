@@ -20,7 +20,7 @@ Projector::Projector()
     _changeCount = 0;
     _lastSavedChangeCount = 0;
 	_name = "";
-	_IP = "";
+	_ip = "";
 	_password = "";
 }
 

@@ -62,4 +62,5 @@ OutputProcess* OutputProcess::CreateFromXml(wxXmlNode* node)
     {
         return new OutputProcessRemap(node);
     }
+    return nullptr;
 }

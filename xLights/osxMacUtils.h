@@ -11,6 +11,7 @@
 
 #ifdef __WXOSX__
 class xlGLCanvas;
+class wxMenu;
 
 void xlSetOpenGLRetina(xlGLCanvas &win);
 void xlSetRetinaCanvasViewport(xlGLCanvas &win, int &x, int &y, int &x2, int&y2);
@@ -21,6 +22,8 @@ void DisableSleepModes();
 
 void AddWindowsMenu();
 
+void ModalPopup(wxWindow *p, wxMenu &menu);
+
 #else
 #define xlSetOpenGLRetina(a)
 #define xlSetRetinaCanvasViewport(w,a,b,c,d)
@@ -29,6 +32,7 @@ void AddWindowsMenu();
 #define EnableSleepModes()
 #define DisableSleepModes()
 #define AddWindowsMenu()
+#define ModalPopup(p, a) p->PopupMenu(a)
 
 #endif
 
