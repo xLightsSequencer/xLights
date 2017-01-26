@@ -63,6 +63,7 @@ public:
     size_t GetLengthMS() const;
     bool IsDirty() const;
     void ClearDirty();
+    int GetChangeCount() const { return _changeCount; }
     bool SupportsRandom() const;
     bool IsRandom() const { return _random; }
     bool SetRandom(bool random) { _random = random; return true; }
@@ -85,6 +86,7 @@ public:
     int GetPlayListSize() const { return _steps.size(); }
     bool IsLooping() const { return _looping; }
     void StopAtEndOfThisLoop() { _lastLoop = true; }
+    bool IsSimple() const;
     std::string GetActiveSyncItemName() const;
     void AddStep(PlayListStep* item, int pos);
     void RemoveStep(PlayListStep* item);
@@ -117,7 +119,7 @@ public:
     
     #pragma region UI
     // returns nullptr if cancelled
-    PlayList* Configure(wxWindow* parent);
+    PlayList* Configure(wxWindow* parent, bool advanced);
     #pragma endregion UI
 
 };

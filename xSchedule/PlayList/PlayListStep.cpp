@@ -7,6 +7,7 @@
 #include "PlayListItemImage.h"
 #include "PlayListItemESEQ.h"
 #include "PlayListItemFSEQ.h"
+#include "PlayListItemFSEQVideo.h"
 #include "PlayListItemTest.h"
 #include "PlayListItemRDS.h"
 #include "PlayListItemPJLink.h"
@@ -15,6 +16,7 @@
 #include "PlayListItemRunProcess.h"
 #include "PlayListItemCURL.h"
 #include "PlayListItemRunCommand.h"
+#include "PlayListItemAudio.h"
 
 int __playliststepid = 0;
 
@@ -123,6 +125,14 @@ void PlayListStep::Load(wxXmlNode* node)
         {
             _items.push_back(new PlayListItemFSEQ(n));
         }
+        else if (n->GetName() == "PLIAudio")
+        {
+            _items.push_back(new PlayListItemAudio(n));
+        }
+        else if (n->GetName() == "PLIFSEQVideo")
+        {
+            _items.push_back(new PlayListItemFSEQVideo(n));
+        }
         else if (n->GetName() == "PLIVirtualMatrix")
         {
             _items.push_back(new PlayListItemVirtualMatrix(n));
@@ -166,6 +176,10 @@ void PlayListStep::Load(wxXmlNode* node)
         else if (n->GetName() == "PLICommand")
         {
             _items.push_back(new PlayListItemRunCommand(n));
+        }
+        else
+        {
+            wxASSERT(false);
         }
     }
 
@@ -499,4 +513,18 @@ std::list<PlayListItem*> PlayListStep::GetItems()
 {
     _items.sort(compare_priority);
     return _items;
+}
+
+bool PlayListStep::IsSimple() const
+{
+    if (_items.size() != 1) return false;
+
+    auto type = _items.front()->GetTitle();
+
+    if (type == "FSEQ" || type == "Audio" || type == "FSEQ & Video")
+    {
+        return true;
+    }
+
+    return false;
 }

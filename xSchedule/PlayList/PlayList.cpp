@@ -5,6 +5,7 @@
 
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
+#include "PlayListSimpleDialog.h"
 
 int __playlistid = 0;
 
@@ -208,13 +209,25 @@ void PlayList::Load(wxXmlNode* node)
     _schedules.sort(compare_sched);
 }
 
-PlayList* PlayList::Configure(wxWindow* parent)
+PlayList* PlayList::Configure(wxWindow* parent, bool advanced)
 {
-    PlayListDialog dlg(parent, this);
-
-    if (dlg.ShowModal() == wxID_CANCEL)
+    if (advanced || !IsSimple())
     {
-        return nullptr;
+        PlayListDialog dlg(parent, this);
+
+        if (dlg.ShowModal() == wxID_CANCEL)
+        {
+            return nullptr;
+        }
+    }
+    else
+    {
+        PlayListSimpleDialog dlg(parent, this);
+
+        if (dlg.ShowModal() == wxID_CANCEL)
+        {
+            return nullptr;
+        }
     }
 
     return this;
@@ -326,6 +339,8 @@ void PlayList::MoveStepAfterStep(PlayListStep* movethis, PlayListStep* afterthis
             AddStep(movethis, pos + 1);
         }
     }
+
+    _changeCount++;
 }
 
 int PlayList::GetPos(PlayListStep* step)
@@ -805,4 +820,17 @@ std::string PlayList::GetName() const
     }
 
     return GetNameNoTime() + duration;
+}
+
+bool PlayList::IsSimple() const
+{
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        if (!(*it)->IsSimple())
+        {
+            return false;
+        }
+    }
+
+    return true;
 }

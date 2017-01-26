@@ -219,6 +219,8 @@
     <ClCompile Include="PlayList\PlayListItemESEQPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFSEQ.cpp" />
     <ClCompile Include="PlayList\PlayListItemFSEQPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemFSEQVideo.cpp" />
+    <ClCompile Include="PlayList\PlayListItemFSEQVideoPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemImage.cpp" />
     <ClCompile Include="PlayList\PlayListItemImagePanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemPJLink.cpp" />
@@ -236,6 +238,7 @@
     <ClCompile Include="PlayList\PlayListItemVirtualMatrix.cpp" />
     <ClCompile Include="PlayList\PlayListItemVirtualMatrixPanel.cpp" />
     <ClCompile Include="PlayList\PlayListPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListSimpleDialog.cpp" />
     <ClCompile Include="PlayList\PlayListStep.cpp" />
     <ClCompile Include="PlayList\PlayListStepPanel.cpp" />
     <ClCompile Include="PlayList\VideoWindowPositionDialog.cpp" />
@@ -313,6 +316,8 @@
     <ClInclude Include="PlayList\PlayListItemESEQPanel.h" />
     <ClInclude Include="PlayList\PlayListItemFSEQ.h" />
     <ClInclude Include="PlayList\PlayListItemFSEQPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemFSEQVideo.h" />
+    <ClInclude Include="PlayList\PlayListItemFSEQVideoPanel.h" />
     <ClInclude Include="PlayList\PlayListItemImage.h" />
     <ClInclude Include="PlayList\PlayListItemImagePanel.h" />
     <ClInclude Include="PlayList\PlayListItemPJLink.h" />
@@ -330,6 +335,7 @@
     <ClInclude Include="PlayList\PlayListItemVirtualMatrix.h" />
     <ClInclude Include="PlayList\PlayListItemVirtualMatrixPanel.h" />
     <ClInclude Include="PlayList\PlayListPanel.h" />
+    <ClInclude Include="PlayList\PlayListSimpleDialog.h" />
     <ClInclude Include="PlayList\PlayListStep.h" />
     <ClInclude Include="PlayList\PlayListStepPanel.h" />
     <ClInclude Include="PlayList\VideoWindowPositionDialog.h" />

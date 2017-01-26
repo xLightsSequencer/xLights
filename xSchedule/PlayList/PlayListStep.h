@@ -53,6 +53,7 @@ public:
     std::string GetRawName() const { return _name; }
     void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
     void Start(int _loops);
+    bool IsSimple() const;
     int GetLoopsLeft() const { return _loops; }
     void DoLoop() { _loops--; }
     bool IsMoreLoops() const { return _loops > 0; }

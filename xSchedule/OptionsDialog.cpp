@@ -11,6 +11,7 @@
 //*)
 
 //(*IdInit(OptionsDialog)
+const long OptionsDialog::ID_CHECKBOX4 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX3 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX2 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT3 = wxNewId();
@@ -57,6 +58,9 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
+	CheckBox_SimpleMode = new wxCheckBox(this, ID_CHECKBOX4, _("Advanced Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
+	CheckBox_SimpleMode->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_SimpleMode, 1, wxALL|wxEXPAND, 5);
 	CheckBox_SendOffWhenNotRunning = new wxCheckBox(this, ID_CHECKBOX3, _("Send data when not running sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	CheckBox_SendOffWhenNotRunning->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_SendOffWhenNotRunning, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -154,6 +158,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
     CheckBox_SendOffWhenNotRunning->SetValue(options->IsSendOffWhenNotRunning());
     CheckBox_Sync->SetValue(options->IsSync());
     CheckBox_APIOnly->SetValue(options->GetAPIOnly());
+    CheckBox_SimpleMode->SetValue(options->IsAdvancedMode());
 
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
 
@@ -234,6 +239,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetWebServerPort(SpinCtrl_WebServerPort->GetValue());
     _options->SetWWWRoot(TextCtrl_wwwRoot->GetValue().ToStdString());
     _options->SetAPIOnly(CheckBox_APIOnly->GetValue());
+    _options->SetAdvancedMode(CheckBox_SimpleMode->GetValue());
 
     _options->ClearProjectors();
     for (int i = 0; i < ListView_Projectors->GetItemCount(); i++)

@@ -50,6 +50,7 @@ class OptionsDialog: public wxDialog
 		wxCheckBox* CheckBox_APIOnly;
 		wxButton* Button_ProjectorEdit;
 		wxButton* Button_AddProjector;
+		wxCheckBox* CheckBox_SimpleMode;
 		wxStaticText* StaticText4;
 		wxButton* Button_ButtonEdit;
 		wxCheckBox* CheckBox_SendOffWhenNotRunning;
@@ -58,6 +59,7 @@ class OptionsDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(OptionsDialog)
+		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX3;
 		static const long ID_CHECKBOX2;
 		static const long ID_STATICTEXT3;

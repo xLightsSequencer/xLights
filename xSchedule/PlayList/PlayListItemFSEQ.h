@@ -9,6 +9,8 @@ class wxXmlNode;
 class wxWindow;
 class AudioManager;
 
+#define FSEQFILES "FSEQ files|*.fseq|All files (*.*)|*.*"
+
 class PlayListItemFSEQ : public PlayListItem
 {
 protected:

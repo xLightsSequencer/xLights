@@ -10,6 +10,7 @@ class UserButton;
 
 class ScheduleOptions
 {
+    bool _advancedMode;
 	bool _sync;
     int _changeCount;
     int _lastSavedChangeCount;
@@ -30,7 +31,9 @@ class ScheduleOptions
         virtual ~ScheduleOptions();
         wxXmlNode* Save();
         UserButton* GetButton(const std::string& label) const;
-		bool IsSync() const { return _sync; }
+        bool IsSync() const { return _sync; }
+        bool IsAdvancedMode() const { return _advancedMode; }
+        void SetAdvancedMode(bool advancedMode) { if (_advancedMode != advancedMode) { _advancedMode = advancedMode; _changeCount++; } }
         void SetSync(bool sync) { if (_sync != sync) { _sync = sync; _changeCount++; } }
         void SetSendOffWhenNotRunning(bool send) { if (_sendOffWhenNotRunning != send) { _sendOffWhenNotRunning = send; _changeCount++; } }
         bool IsSendOffWhenNotRunning() const { return _sendOffWhenNotRunning; }

@@ -858,18 +858,20 @@ std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& event)
 {
     EditSelectedItem();
+    UpdateUI();
     ValidateWindow();
 }
 
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
+    static int last = -1;
     if (__schedule == nullptr) return;
 
     __schedule->Frame(_timerOutputFrame);
 
-    auto now = wxDateTime::Now().GetMillisecond();
-    if (now >= 0 && now <= _timer.GetInterval() * 2 && _timerOutputFrame)
+    if (last != wxDateTime::Now().GetSecond() && _timerOutputFrame)
     {
+        last = wxDateTime::Now().GetSecond();
         wxCommandEvent event(EVT_SCHEDULECHANGED);
         wxPostEvent(this, event);
     }
@@ -1236,7 +1238,7 @@ void xScheduleFrame::UpdateStatus()
         StatusBar1->SetStatusText("");
     }
 
-    static PlayList* last = nullptr;
+    static int last = -1;
     PlayList* p = __schedule->GetRunningPlayList();
 
     if (p == nullptr)
@@ -1254,9 +1256,9 @@ void xScheduleFrame::UpdateStatus()
     }
     else
     {
-        if (p != last)
+        if (p->GetChangeCount() != last)
         {
-            last = p;
+            last = p->GetChangeCount();
 
             ListView_Running->DeleteAllItems();
 
@@ -1735,7 +1737,7 @@ void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
 void xScheduleFrame::AddPlayList()
 {
     PlayList* playlist = new PlayList();
-    if (playlist->Configure(this) == nullptr)
+    if (playlist->Configure(this, __schedule->GetOptions()->IsAdvancedMode()) == nullptr)
     {
         delete playlist;
     }
@@ -1775,7 +1777,7 @@ void xScheduleFrame::EditSelectedItem()
     if (IsPlayList(treeitem))
     {
         PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-        if (playlist->Configure(this) != nullptr)
+        if (playlist->Configure(this, __schedule->GetOptions()->IsAdvancedMode()) != nullptr)
         {
             TreeCtrl_PlayListsSchedules->SetItemText(treeitem, playlist->GetName());
         }

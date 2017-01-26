@@ -8,6 +8,14 @@
 			<cols>1</cols>
 			<growablecols>0</growablecols>
 			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_SimpleMode" member="yes">
+					<label>Advanced Mode</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_SendOffWhenNotRunning" member="yes">
 					<label>Send data when not running sequence</label>
 				</object>

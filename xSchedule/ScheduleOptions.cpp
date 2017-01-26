@@ -8,6 +8,7 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
     _changeCount = 0;
     _lastSavedChangeCount = 0;
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
+    _advancedMode = node->GetAttribute("AdvancedMode", "FALSE") == "TRUE";
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
@@ -42,10 +43,11 @@ ScheduleOptions::ScheduleOptions()
     _wwwRoot = "xScheduleWeb";
     _port = 80;
     _webAPIOnly = false;
-    _changeCount = 0;
+    _changeCount = 1;
     _lastSavedChangeCount = 0;
     _sync = false;
     _sendOffWhenNotRunning = false;
+    _advancedMode = false;
 }
 
 ScheduleOptions::~ScheduleOptions()
@@ -70,6 +72,11 @@ wxXmlNode* ScheduleOptions::Save()
     if (_webAPIOnly)
     {
         res->AddAttribute("APIOnly", "TRUE");
+    }
+
+    if (_advancedMode)
+    {
+        res->AddAttribute("AdvancedMode", "TRUE");
     }
 
     if (IsSendOffWhenNotRunning())

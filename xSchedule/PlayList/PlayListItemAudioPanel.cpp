@@ -26,8 +26,6 @@ END_EVENT_TABLE()
 
 class AudioFilePickerCtrl : public wxFilePickerCtrl
 {
-#define AUDIOFILES "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg|All Files|*.*"
-
 public:
     AudioFilePickerCtrl(wxWindow *parent,
         wxWindowID id,

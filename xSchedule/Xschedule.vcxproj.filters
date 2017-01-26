@@ -264,6 +264,15 @@
     <ClCompile Include="OutputProcessDimWhite.cpp" />
     <ClCompile Include="OutputProcessSet.cpp" />
     <ClCompile Include="OutputProcessRemap.cpp" />
+    <ClCompile Include="PlayList\PlayListSimpleDialog.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemFSEQVideo.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemFSEQVideoPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -470,6 +479,15 @@
     <ClInclude Include="OutputProcessDimWhite.h" />
     <ClInclude Include="OutputProcessSet.h" />
     <ClInclude Include="OutputProcessRemap.h" />
+    <ClInclude Include="PlayList\PlayListSimpleDialog.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemFSEQVideo.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemFSEQVideoPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
