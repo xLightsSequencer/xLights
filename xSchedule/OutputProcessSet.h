@@ -13,7 +13,7 @@ class OutputProcessSet : public OutputProcess
         OutputProcessSet(wxXmlNode* node);
         OutputProcessSet();
         OutputProcessSet(const OutputProcessSet& op);
-        OutputProcessSet(size_t _startChannel, size_t p1, size_t p2);
+        OutputProcessSet(size_t _startChannel, size_t p1, size_t p2, const std::string& description);
         virtual ~OutputProcessSet() {}
         virtual wxXmlNode* Save() override;
         virtual void Frame(wxByte* buffer, size_t size) override;

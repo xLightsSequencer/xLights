@@ -19,7 +19,7 @@ OutputProcessDimWhite::OutputProcessDimWhite() : OutputProcess()
     _dim = 100;
 }
 
-OutputProcessDimWhite::OutputProcessDimWhite(size_t _startChannel, size_t p1, size_t p2) : OutputProcess(_startChannel)
+OutputProcessDimWhite::OutputProcessDimWhite(size_t _startChannel, size_t p1, size_t p2, const std::string& description) : OutputProcess(_startChannel, description)
 {
     _nodes = p1;
     _dim = p2;

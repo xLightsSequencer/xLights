@@ -13,7 +13,7 @@ OutputProcessSet::OutputProcessSet(const OutputProcessSet& op) : OutputProcess(o
     _value = op._value;
 }
 
-OutputProcessSet::OutputProcessSet(size_t _startChannel, size_t p1, size_t p2) : OutputProcess(_startChannel)
+OutputProcessSet::OutputProcessSet(size_t _startChannel, size_t p1, size_t p2, const std::string& description) : OutputProcess(_startChannel, description)
 {
     _channels = p1;
     _value = p2;

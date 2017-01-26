@@ -13,7 +13,7 @@ OutputProcessRemap::OutputProcessRemap(const OutputProcessRemap& op) : OutputPro
     _to = op._to;
 }
 
-OutputProcessRemap::OutputProcessRemap(size_t _startChannel, size_t p1, size_t p2) : OutputProcess(_startChannel)
+OutputProcessRemap::OutputProcessRemap(size_t _startChannel, size_t p1, size_t p2, const std::string& description) : OutputProcess(_startChannel, description)
 {
     _to = p1;
     _channels = p2;

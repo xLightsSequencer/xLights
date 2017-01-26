@@ -14,6 +14,8 @@ const long DimWhiteDialog::ID_STATICTEXT2 = wxNewId();
 const long DimWhiteDialog::ID_SPINCTRL2 = wxNewId();
 const long DimWhiteDialog::ID_STATICTEXT3 = wxNewId();
 const long DimWhiteDialog::ID_SPINCTRL3 = wxNewId();
+const long DimWhiteDialog::ID_STATICTEXT4 = wxNewId();
+const long DimWhiteDialog::ID_TEXTCTRL1 = wxNewId();
 const long DimWhiteDialog::ID_BUTTON1 = wxNewId();
 const long DimWhiteDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -23,7 +25,7 @@ BEGIN_EVENT_TABLE(DimWhiteDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-DimWhiteDialog::DimWhiteDialog(wxWindow* parent, size_t& startChannel, size_t& channels, size_t& dim,wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _nodes(channels), _dim(dim)
+DimWhiteDialog::DimWhiteDialog(wxWindow* parent, size_t& startChannel, size_t& channels, size_t& dim, std::string& description,wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _nodes(channels), _dim(dim), _description(description)
 {
 	//(*Initialize(DimWhiteDialog)
 	wxBoxSizer* BoxSizer1;
@@ -48,7 +50,11 @@ DimWhiteDialog::DimWhiteDialog(wxWindow* parent, size_t& startChannel, size_t& c
 	SpinCtrl_Brightness = new wxSpinCtrl(this, ID_SPINCTRL3, _T("100"), wxDefaultPosition, wxDefaultSize, 0, 0, 100, 100, _T("ID_SPINCTRL3"));
 	SpinCtrl_Brightness->SetValue(_T("100"));
 	FlexGridSizer1->Add(SpinCtrl_Brightness, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Description:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	FlexGridSizer1->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	BoxSizer1->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -70,6 +76,7 @@ DimWhiteDialog::DimWhiteDialog(wxWindow* parent, size_t& startChannel, size_t& c
     SpinCtrl_StartChannel->SetValue(_startChannel);
     SpinCtrl_Nodes->SetValue(_nodes);
     SpinCtrl_Brightness->SetValue(_dim);
+    TextCtrl_Description->SetValue(_description);
 }
 
 DimWhiteDialog::~DimWhiteDialog()
@@ -84,6 +91,7 @@ void DimWhiteDialog::OnButton_OkClick(wxCommandEvent& event)
     _startChannel = SpinCtrl_StartChannel->GetValue();
     _nodes = SpinCtrl_Nodes->GetValue();
     _dim = SpinCtrl_Brightness->GetValue();
+    _description = TextCtrl_Description->GetValue().ToStdString();
     EndDialog(wxID_OK);
 }
 

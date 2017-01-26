@@ -10,9 +10,10 @@ class OutputProcess
 {
     protected:
 
-    size_t _startChannel;
-    int _changeCount;
-    int _lastSavedChangeCount;
+        std::string _description;
+        size_t _startChannel;
+        int _changeCount;
+        int _lastSavedChangeCount;
 
     void Save(wxXmlNode* node);
 
@@ -25,7 +26,8 @@ class OutputProcess
         OutputProcess(wxXmlNode* node);
         OutputProcess();
         OutputProcess(const OutputProcess& op);
-        OutputProcess(size_t startChannel);
+        OutputProcess(size_t startChannel, const std::string& description);
+        std::string GetDescription() const { return _description; }
         virtual ~OutputProcess() {}
         virtual wxXmlNode* Save() = 0;
         size_t GetStartChannel() const { return _startChannel; }

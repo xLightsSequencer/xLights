@@ -96,6 +96,7 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
     ListView_Processes->InsertColumn(1, "");
     ListView_Processes->InsertColumn(2, "");
     ListView_Processes->InsertColumn(3, "");
+    ListView_Processes->InsertColumn(4, "Description");
 
     int i = 0;
     for (auto it = op->begin(); it != op->end(); ++it)
@@ -104,6 +105,7 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
         ListView_Processes->SetItem(i, 1, wxString::Format(wxT("%i"), (*it)->GetStartChannel()));
         ListView_Processes->SetItem(i, 2, wxString::Format(wxT("%i"), (*it)->GetP1()));
         ListView_Processes->SetItem(i, 3, wxString::Format(wxT("%i"), (*it)->GetP2()));
+        ListView_Processes->SetItem(i, 4, (*it)->GetDescription());
         i++;
     }
 
@@ -192,19 +194,19 @@ void OutputProcessingDialog::OnButton_OkClick(wxCommandEvent& event)
         OutputProcess* op = nullptr;
         if (type == "Dim")
         {
-            op = new OutputProcessDim(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)));
+            op = new OutputProcessDim(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i,4).ToStdString());
         }
         else if (type == "Dim White")
         {
-            op = new OutputProcessDimWhite(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)));
+            op = new OutputProcessDimWhite(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
         }
         else if (type == "Set")
         {
-            op = new OutputProcessSet(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)));
+            op = new OutputProcessSet(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
         }
         else if (type == "Remap")
         {
-            op = new OutputProcessRemap(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)));
+            op = new OutputProcessRemap(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
         }
 
         if (op != nullptr)
@@ -257,15 +259,16 @@ bool OutputProcessingDialog::EditSelectedItem()
         int row = ListView_Processes->GetFirstSelected();
 
         std::string type = ListView_Processes->GetItemText(row, 0).ToStdString();
-        size_t sc = wxAtol(ListView_Processes->GetItemText(row, 1).ToStdString());
-        size_t p1 = wxAtol(ListView_Processes->GetItemText(row, 2).ToStdString());
-        size_t p2 = wxAtol(ListView_Processes->GetItemText(row, 3).ToStdString());
+        size_t sc = wxAtol(ListView_Processes->GetItemText(row, 1));
+        size_t p1 = wxAtol(ListView_Processes->GetItemText(row, 2));
+        size_t p2 = wxAtol(ListView_Processes->GetItemText(row, 3));
+        std::string d = ListView_Processes->GetItemText(row, 4).ToStdString();
 
         // this is wasteful ... but whatever
-        DimDialog dlgd(this, sc, p1, p2);
-        DimWhiteDialog dlgdw(this, sc, p1, p2);
-        SetDialog dlgs(this, sc, p1, p2);
-        RemapDialog dlgr(this, sc, p1, p2);
+        DimDialog dlgd(this, sc, p1, p2, d);
+        DimWhiteDialog dlgdw(this, sc, p1, p2, d);
+        SetDialog dlgs(this, sc, p1, p2, d);
+        RemapDialog dlgr(this, sc, p1, p2, d);
         int res = wxID_CANCEL;
 
         if (type == "Dim")
@@ -290,6 +293,7 @@ bool OutputProcessingDialog::EditSelectedItem()
             ListView_Processes->SetItem(row, 1, wxString::Format(wxT("%i"), sc));
             ListView_Processes->SetItem(row, 2, wxString::Format(wxT("%i"), p1));
             ListView_Processes->SetItem(row, 3, wxString::Format(wxT("%i"), p2));
+            ListView_Processes->SetItem(row, 4, d);
             result = true;
         }
     }
