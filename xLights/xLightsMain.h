@@ -500,6 +500,7 @@ private:
     void OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event);
     void OnMenuItemShiftEffectsSelected(wxCommandEvent& event);
     void OnMenuItem_PackageSequenceSelected(wxCommandEvent& event);
+    void OnMenuItem_BackupSubfoldersSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -646,6 +647,7 @@ private:
     static const long ID_BACKUP_ON_SAVE;
     static const long ID_MENU_BACKUP_ON_LAUNCH;
     static const long ID_ALT_BACKUPLOCATION;
+    static const long ID_MNU_BACKUP;
     static const long ID_MENUITEM_ICON_SMALL;
     static const long ID_MENUITEM_ICON_MEDIUM;
     static const long ID_MENUITEM_ICON_LARGE;
@@ -727,6 +729,7 @@ private:
     wxMenuItem* MenuItem_ExportEffects;
     wxAuiManager* MainAuiManager;
     wxMenuItem* MenuItemRenderCanvasMode;
+    wxMenuItem* MenuItem_BackupSubfolders;
     wxStaticText* StaticTextShowEnd;
     wxMenuItem* MenuItemGridNodeValuesOn;
     wxMenu* Menu3;
@@ -872,7 +875,7 @@ private:
     EffectManager effectManager;
     int effGridPrevX;
     int effGridPrevY;
-
+    bool _backupSubfolders;
 
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
     void DoAltBackup(bool prompt = true);

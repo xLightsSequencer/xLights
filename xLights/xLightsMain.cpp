@@ -231,6 +231,7 @@ const long xLightsFrame::ID_RENDER_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_BACKUP_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_MENU_BACKUP_ON_LAUNCH = wxNewId();
 const long xLightsFrame::ID_ALT_BACKUPLOCATION = wxNewId();
+const long xLightsFrame::ID_MNU_BACKUP = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_SMALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_LARGE = wxNewId();
@@ -876,6 +877,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_BackupOnLaunch->Check(true);
     mAltBackupLocationMenuItem = new wxMenuItem(MenuSettings, ID_ALT_BACKUPLOCATION, _("Alt Backup Location"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(mAltBackupLocationMenuItem);
+    MenuItem_BackupSubfolders = new wxMenuItem(MenuSettings, ID_MNU_BACKUP, _("Backup Subfolders"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(MenuItem_BackupSubfolders);
     ToolIconSizeMenu = new wxMenu();
     MenuItem10 = new wxMenuItem(ToolIconSizeMenu, ID_MENUITEM_ICON_SMALL, _("Small\tALT-1"), wxEmptyString, wxITEM_RADIO);
     ToolIconSizeMenu->Append(MenuItem10);
@@ -1093,6 +1096,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_BACKUP_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmBackupOnSaveSelected);
     Connect(ID_MENU_BACKUP_ON_LAUNCH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupOnLaunchSelected);
     Connect(ID_ALT_BACKUPLOCATION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmAltBackupLocationMenuItemSelected);
+    Connect(ID_MNU_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupSubfoldersSelected);
     Connect(ID_MENUITEM_ICON_SMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
@@ -1357,6 +1361,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     }
     logger_base.debug("Perspectives loaded.");
 
+    config->Read("xLightsBackupSubdirectories", &_backupSubfolders, false);
+    MenuItem_BackupSubfolders->Check(_backupSubfolders);
+
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
     logger_base.debug("Render on save: %s.", mRenderOnSave? "true" : "false");
@@ -1584,6 +1591,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsGridIconBackgrounds", mGridIconBackgrounds);
     config->Write("xLightsGridNodeValues", mGridNodeValues);
     config->Write("xLightsRenderOnSave", mRenderOnSave);
+    config->Write("xLightsBackupSubdirectories", _backupSubfolders);    
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
     config->Write("xLightse131Sync", me131Sync);
@@ -2153,7 +2161,7 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
 void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles)
 {
     wxDir srcDir(sourceDir);
-    
+
     if(!srcDir.IsOpened())
     {
         return;
@@ -2166,16 +2174,19 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
     }
 
     // recurse through all directories but folders named Backup
-    wxString dir;
-    bool cont = srcDir.GetFirst(&dir, "", wxDIR_DIRS);
-    while (cont)
+    if (_backupSubfolders)
     {
-        if (dir != "Backup")
+        wxString dir;
+        bool cont = srcDir.GetFirst(&dir, "", wxDIR_DIRS);
+        while (cont)
         {
-            wxDir subdir(srcDir.GetNameWithSep() + dir);
-            BackupDirectory(subdir.GetNameWithSep(), targetDirName + "/" + dir, lastCreatedDirectory, forceallfiles);
+            if (dir != "Backup")
+            {
+                wxDir subdir(srcDir.GetNameWithSep() + dir);
+                BackupDirectory(subdir.GetNameWithSep(), targetDirName + "/" + dir, lastCreatedDirectory, forceallfiles);
+            }
+            cont = srcDir.GetNext(&dir);
         }
-        cont = srcDir.GetNext(&dir);
     }
 
     SetStatusText("All xml files backed up.");
@@ -2890,7 +2901,7 @@ void xLightsFrame::OnAuiToolBarItemPasteByCellClick(wxCommandEvent& event)
 void xLightsFrame::OnMenuItemConvertSelected(wxCommandEvent& event)
 {
     UpdateChannelNames();
-    ConvertDialog dialog(this, SeqData, &_outputManager, mediaFilename, ChannelNames, ChannelColors, ChNames); 
+    ConvertDialog dialog(this, SeqData, &_outputManager, mediaFilename, ChannelNames, ChannelColors, ChNames);
     dialog.CenterOnParent();
     dialog.ShowModal();
 }
@@ -3869,7 +3880,7 @@ void xLightsFrame::CheckSequence(bool display)
                 int output = wxAtoi(wxString(start.substr(0, colon)));
 
                 auto cnt = _outputManager.GetOutputCount();
-                
+
                 if (output < 1 || output > cnt)
                 {
                     wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined output %d. Only %d outputs are defined.", it->first, start, output, cnt);
@@ -4709,7 +4720,7 @@ std::string AddFileToZipFile(const std::string& baseDirectory, const std::string
     std::string filetoactuallyzip = actualfile;
     if (actualfile == "") filetoactuallyzip = file;
 
-    std::string lost = ""; 
+    std::string lost = "";
     if (wxFile::Exists(filetoactuallyzip))
     {
         wxFileName bd(baseDirectory);
@@ -4791,7 +4802,7 @@ std::string FixFile(const std::string& showdir, const std::string& sourcefile, c
 
             data.Replace(it->first, showdir + "/" + newreplace, true);
         }
-        
+
         // write the file out
         wxFile out(newfile, wxFile::write);
         out.Write(data);
@@ -4947,4 +4958,9 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     out.Close();
 
     prog.Update(100);
+}
+
+void xLightsFrame::OnMenuItem_BackupSubfoldersSelected(wxCommandEvent& event)
+{
+    _backupSubfolders = MenuItem_BackupSubfolders->IsChecked();
 }
