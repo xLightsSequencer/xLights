@@ -1114,6 +1114,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     _activeSchedules.remove(rs);
                     delete rs;
 
+                    PlayList* orig = nullptr;
                     PlayList* pl = nullptr;
                     Schedule* sc = nullptr;
 
@@ -1121,18 +1122,21 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     {
                         if ((*it)->GetId() == plid)
                         {
+                            orig = *it;
                             pl = new PlayList(**it);
+                            break;
                         }
                     }
 
                     if (pl != nullptr)
                     {
-                        auto schs = pl->GetSchedules();
+                        auto schs = orig->GetSchedules();
                         for (auto it = schs.begin(); it != schs.end(); ++it)
                         {
                             if ((*it)->GetId() == sid)
                             {
                                 sc = new  Schedule(**it);
+                                break;
                             }
                         }
 
@@ -1162,7 +1166,17 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         int steploopsleft = p->GetRunningStep()->GetLoopsLeft();
 
                         p->Stop();
-                        PlayPlayList(p, rate, loop, step, forcelast, loopsLeft, random, steploopsleft);
+
+                        auto plid = p->GetId();
+
+                        for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+                        {
+                            if ((*it)->GetId() == plid)
+                            {
+                                PlayPlayList(*it, rate, loop, step, forcelast, loopsLeft, random, steploopsleft);
+                                break;
+                            }
+                        }
                     }
                 }
                 else

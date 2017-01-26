@@ -69,7 +69,7 @@ Schedule::Schedule()
     _active = false;
     _enabled = true;
     _id = __scheduleid;
-    _changeCount = 0;
+    _changeCount = 1;
     _lastSavedChangeCount = 0;
     _loop = false;
     _endDate.ParseDate("2099-01-01");

@@ -115,7 +115,7 @@ PlayList::PlayList()
     _pauseTime.Set((time_t)0);
     _suspendTime.Set((time_t)0);
     _lastSavedChangeCount = 0;
-    _changeCount = 0;
+    _changeCount = 1;
     _currentStep = nullptr;
     _firstOnlyOnce = false;
     _lastOnlyOnce = false;

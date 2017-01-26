@@ -28,7 +28,7 @@ PlayListItem::PlayListItem()
     _id = __playlistitemid++;
     _volume = -1;
     _lastSavedChangeCount = 0;
-    _changeCount = 0;
+    _changeCount = 1;
     _frames = 0;
     _msPerFrame = 50;
     _delay = 0;

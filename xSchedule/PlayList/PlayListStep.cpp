@@ -47,7 +47,7 @@ PlayListStep::PlayListStep()
     _framecount = 0;
     _name = "";
     _lastSavedChangeCount = 0;
-    _changeCount = 0;
+    _changeCount = 1;
     _excludeFromRandom = false;
 }
 
