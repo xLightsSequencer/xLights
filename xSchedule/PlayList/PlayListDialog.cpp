@@ -21,7 +21,7 @@
 #include "PlayListItemDelay.h"
 #include "PlayListItemPJLink.h"
 
-#include "osxMacUtils.h"
+#include "../xLights/osxMacUtils.h"
 
 #include <wx/xml/xml.h>
 #include <wx/menu.h>

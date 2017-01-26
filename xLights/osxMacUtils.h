@@ -32,7 +32,7 @@ void ModalPopup(wxWindow *p, wxMenu &menu);
 #define EnableSleepModes()
 #define DisableSleepModes()
 #define AddWindowsMenu()
-#define ModalPopup(p, a) p->PopupMenu(a)
+#define ModalPopup(p, a) p->PopupMenu(&a)
 
 #endif
 
