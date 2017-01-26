@@ -12,6 +12,7 @@ class OutputManager;
 class RunningSchedule;
 class wxSocketClient;
 class PlayListStep;
+class OutputProcess;
 
 typedef enum
 {
@@ -42,6 +43,7 @@ class ScheduleManager
     int _lastBrightness;
     wxByte _brightnessArray[255];
     wxSocketClient* _fppSync;
+    std::list<OutputProcess*> _outputProcessing;
 
     std::string FormatTime(size_t timems);
     void CreateBrightnessArray();
@@ -66,6 +68,7 @@ class ScheduleManager
         RunningSchedule* GetRunningSchedule(const std::string& schedulename) const;
         RunningSchedule* GetRunningSchedule(Schedule* schedule) const;
         ScheduleOptions* GetOptions() const { return _scheduleOptions; }
+        std::list<OutputProcess*>* GetOutputProcessing() { return &_outputProcessing; }
         bool IsDirty();
         void ClearDirty();
         size_t GetTotalChannels() const;
@@ -92,6 +95,7 @@ class ScheduleManager
         bool PlayPlayList(PlayList* playlist, size_t& rate, bool loop = false, const std::string& step = "", bool forcelast = false, int loops = -1, bool random = false, int steploops = -1);
         bool IsSomethingPlaying() const { return GetRunningPlayList() != nullptr; }
         void OptionsChanged() {};
+        void OutputProcessingChanged() {};
         bool Action(const std::string label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
         bool Action(const std::string command, const std::string parameters, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
         bool Query(const std::string command, const std::string parameters, std::string& data, std::string& msg);

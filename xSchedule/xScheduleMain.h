@@ -132,6 +132,7 @@ public:
         void OnButton_AddClick(wxCommandEvent& event);
         void OnButton_EditClick(wxCommandEvent& event);
         void OnButton_DeleteClick(wxCommandEvent& event);
+        void OnMenu_OutputProcessingSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -170,6 +171,7 @@ public:
         static const long ID_MNU_SAVE;
         static const long idMenuQuit;
         static const long ID_MNU_MNUADDPLAYLIST;
+        static const long ID_MENUITEM1;
         static const long ID_MNU_VIEW_LOG;
         static const long ID_MNU_CHECK_SCHEDULE;
         static const long ID_MNU_OPTIONS;
@@ -230,6 +232,7 @@ public:
         wxMenuItem* MenuItem_WebInterface;
         wxMenuItem* MenuItem_Options;
         BrightnessControl* Brightness;
+        wxMenuItem* Menu_OutputProcessing;
         wxMenuItem* MenuItem_ViewLog;
         wxMenu* Menu5;
         wxBitmapButton* BitmapButton_VolumeDown;

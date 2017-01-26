@@ -28,6 +28,7 @@
 #include <wx/debugrpt.h>
 #include "RunningSchedule.h"
 #include "UserButton.h"
+#include "OutputProcessingDialog.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -119,6 +120,7 @@ const long xScheduleFrame::ID_MNU_SHOWFOLDER = wxNewId();
 const long xScheduleFrame::ID_MNU_SAVE = wxNewId();
 const long xScheduleFrame::idMenuQuit = wxNewId();
 const long xScheduleFrame::ID_MNU_MNUADDPLAYLIST = wxNewId();
+const long xScheduleFrame::ID_MENUITEM1 = wxNewId();
 const long xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
 const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
 const long xScheduleFrame::ID_MNU_OPTIONS = wxNewId();
@@ -371,6 +373,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu5 = new wxMenu();
     MenuItem_AddPlayList = new wxMenuItem(Menu5, ID_MNU_MNUADDPLAYLIST, _("&Add Playlist"), wxEmptyString, wxITEM_NORMAL);
     Menu5->Append(MenuItem_AddPlayList);
+    Menu_OutputProcessing = new wxMenuItem(Menu5, ID_MENUITEM1, _("&Output Processing"), wxEmptyString, wxITEM_NORMAL);
+    Menu5->Append(Menu_OutputProcessing);
     MenuBar1->Append(Menu5, _("&Edit"));
     Menu3 = new wxMenu();
     MenuItem_ViewLog = new wxMenuItem(Menu3, ID_MNU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
@@ -431,6 +435,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_SaveSelected);
     Connect(idMenuQuit,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnQuit);
     Connect(ID_MNU_MNUADDPLAYLIST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_AddPlayListSelected);
+    Connect(ID_MENUITEM1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenu_OutputProcessingSelected);
     Connect(ID_MNU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_WEBINTERFACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
@@ -1775,4 +1780,16 @@ void xScheduleFrame::EditSelectedItem()
             if (rs != nullptr) rs->Reset();
         }
     }
+}
+
+void xScheduleFrame::OnMenu_OutputProcessingSelected(wxCommandEvent& event)
+{
+    OutputProcessingDialog dlg(this, __schedule->GetOutputProcessing());
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        __schedule->OutputProcessingChanged();
+    }
+
+    ValidateWindow();
 }

@@ -19,6 +19,7 @@
 #include <wx/socket.h>
 #include "UserButton.h"
 #include "FSEQFile.h"
+#include "OutputProcess.h"
 
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
@@ -60,6 +61,17 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
             else if (n->GetName() == "Options")
             {
                 _scheduleOptions = new ScheduleOptions(n);
+            }
+            else if (n->GetName() == "OutputProcesses")
+            {
+                for (wxXmlNode* n1 = n->GetChildren(); n1 != nullptr; n1 = n1->GetNext())
+                {
+                    OutputProcess* op = OutputProcess::CreateFromXml(n1);
+                    if (op != nullptr)
+                    {
+                        _outputProcessing.push_back(op);
+                    }
+                }
             }
         }
     }
@@ -110,6 +122,13 @@ ScheduleManager::~ScheduleManager()
 		}
 	}
 
+    while (_outputProcessing.size() > 0)
+    {
+        auto toremove = _outputProcessing.front();
+        _outputProcessing.remove(toremove);
+        delete toremove;
+    }
+
     while (_playLists.size() > 0)
     {
         auto toremove = _playLists.front();
@@ -156,6 +175,11 @@ bool ScheduleManager::IsDirty()
 
     res = res || _scheduleOptions->IsDirty();
 
+    for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+    {
+        res = res || (*it)->IsDirty();
+    }
+
     return res;
 }
 
@@ -173,6 +197,18 @@ void ScheduleManager::Save()
 		root->AddChild((*it)->Save());
 	}
 
+    if (_outputProcessing.size() != 0)
+    {
+        wxXmlNode* op = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "OutputProcesses");
+
+        for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+        {
+            op->AddChild((*it)->Save());
+        }
+
+        root->AddChild(op);
+    }
+
     doc.Save(_showDir + "/" + GetScheduleFile());
     ClearDirty();
     logger_base.info("Saved Schedule to %s.", (const char*)(_showDir + "/" + GetScheduleFile()).c_str());
@@ -188,6 +224,11 @@ void ScheduleManager::ClearDirty()
     }
 
     _scheduleOptions->ClearDirty();
+
+    for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+    {
+        (*it)->ClearDirty();
+    }
 }
 
 void ScheduleManager::RemovePlayList(PlayList* playlist)
@@ -261,6 +302,12 @@ void ScheduleManager::Frame(bool outputframe)
         bool done = running->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
         if (outputframe)
         {
+            // apply any output processing
+            for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+            {
+                (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
+            }
+
             _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
             _outputManager->EndFrame();
         }

@@ -274,6 +274,10 @@
 					<label>&amp;Add Playlist</label>
 					<handler function="OnMenuItem_AddPlayListSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MENUITEM1" variable="Menu_OutputProcessing" member="yes">
+					<label>&amp;Output Processing</label>
+					<handler function="OnMenu_OutputProcessingSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu3" member="yes">
 				<label>&amp;Tools</label>

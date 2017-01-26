@@ -290,12 +290,23 @@
 		<Unit filename="ButtonDetailsDialog.h" />
 		<Unit filename="CommandManager.cpp" />
 		<Unit filename="CommandManager.h" />
+		<Unit filename="DimDialog.cpp" />
+		<Unit filename="DimDialog.h" />
+		<Unit filename="DimWhiteDialog.cpp" />
+		<Unit filename="DimWhiteDialog.h" />
 		<Unit filename="ESEQFile.cpp" />
 		<Unit filename="ESEQFile.h" />
 		<Unit filename="FSEQFile.cpp" />
 		<Unit filename="FSEQFile.h" />
 		<Unit filename="OptionsDialog.cpp" />
 		<Unit filename="OptionsDialog.h" />
+		<Unit filename="OutputProcess.cpp" />
+		<Unit filename="OutputProcessDim.cpp" />
+		<Unit filename="OutputProcessDimWhite.cpp" />
+		<Unit filename="OutputProcessRemap.cpp" />
+		<Unit filename="OutputProcessSet.cpp" />
+		<Unit filename="OutputProcessingDialog.cpp" />
+		<Unit filename="OutputProcessingDialog.h" />
 		<Unit filename="PlayList/PlayList.cpp" />
 		<Unit filename="PlayList/PlayList.h" />
 		<Unit filename="PlayList/PlayListDialog.cpp" />
@@ -370,6 +381,8 @@
 		<Unit filename="PlayList/VideoWindowPositionDialog.h" />
 		<Unit filename="ProjectorDetailsDialog.cpp" />
 		<Unit filename="ProjectorDetailsDialog.h" />
+		<Unit filename="RemapDialog.cpp" />
+		<Unit filename="RemapDialog.h" />
 		<Unit filename="RunningSchedule.cpp" />
 		<Unit filename="RunningSchedule.h" />
 		<Unit filename="Schedule.cpp" />
@@ -380,6 +393,8 @@
 		<Unit filename="ScheduleManager.h" />
 		<Unit filename="ScheduleOptions.cpp" />
 		<Unit filename="ScheduleOptions.h" />
+		<Unit filename="SetDialog.cpp" />
+		<Unit filename="SetDialog.h" />
 		<Unit filename="UserButton.cpp" />
 		<Unit filename="UserButton.h" />
 		<Unit filename="WebServer.cpp" />
@@ -405,7 +420,10 @@
 		<Unit filename="wxHTTPServer/status.cpp" />
 		<Unit filename="wxHTTPServer/wxhttpserver.h" />
 		<Unit filename="wxsmith/ButtonDetailsDialog.wxs" />
+		<Unit filename="wxsmith/DimDialog.wxs" />
+		<Unit filename="wxsmith/DimWhiteDialog.wxs" />
 		<Unit filename="wxsmith/OptionsDialog.wxs" />
+		<Unit filename="wxsmith/OutputProcessingDialog.wxs" />
 		<Unit filename="wxsmith/PlayListDialog.wxs" />
 		<Unit filename="wxsmith/PlayListItemAllOffPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemAudioPanel.wxs" />
@@ -424,7 +442,9 @@
 		<Unit filename="wxsmith/PlayListPanel.wxs" />
 		<Unit filename="wxsmith/PlayListStepPanel.wxs" />
 		<Unit filename="wxsmith/ProjectorDetailsDialog.wxs" />
+		<Unit filename="wxsmith/RemapDialog.wxs" />
 		<Unit filename="wxsmith/ScheduleDialog.wxs" />
+		<Unit filename="wxsmith/SetDialog.wxs" />
 		<Unit filename="wxsmith/VideoWindowPositionDialog.wxs" />
 		<Unit filename="wxsmith/xScheduleframe.wxs" />
 		<Unit filename="xScheduleApp.cpp" />
@@ -461,6 +481,11 @@
 					<wxDialog wxs="wxsmith/ButtonDetailsDialog.wxs" src="ButtonDetailsDialog.cpp" hdr="ButtonDetailsDialog.h" fwddecl="0" i18n="1" name="ButtonDetailsDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemRDSPanel.wxs" src="PlayList/PlayListItemRDSPanel.cpp" hdr="PlayList/PlayListItemRDSPanel.h" fwddecl="0" i18n="1" name="PlayListItemRDSPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemTestPanel.wxs" src="PlayList/PlayListItemTestPanel.cpp" hdr="PlayList/PlayListItemTestPanel.h" fwddecl="0" i18n="1" name="PlayListItemTestPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/OutputProcessingDialog.wxs" src="OutputProcessingDialog.cpp" hdr="OutputProcessingDialog.h" fwddecl="0" i18n="1" name="OutputProcessingDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/DimDialog.wxs" src="DimDialog.cpp" hdr="DimDialog.h" fwddecl="0" i18n="1" name="DimDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/DimWhiteDialog.wxs" src="DimWhiteDialog.cpp" hdr="DimWhiteDialog.h" fwddecl="0" i18n="1" name="DimWhiteDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/RemapDialog.wxs" src="RemapDialog.cpp" hdr="RemapDialog.h" fwddecl="0" i18n="1" name="RemapDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SetDialog.wxs" src="SetDialog.cpp" hdr="SetDialog.h" fwddecl="0" i18n="1" name="SetDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

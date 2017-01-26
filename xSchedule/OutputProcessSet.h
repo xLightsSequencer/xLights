@@ -1,0 +1,25 @@
+#ifndef OUTPUTPROCESSSET_H
+#define OUTPUTPROCESSSET_H
+
+#include "OutputProcess.h"
+
+class OutputProcessSet : public OutputProcess
+{
+    size_t _channels;
+    int _value;
+
+    public:
+
+        OutputProcessSet(wxXmlNode* node);
+        OutputProcessSet();
+        OutputProcessSet(const OutputProcessSet& op);
+        OutputProcessSet(size_t _startChannel, size_t p1, size_t p2);
+        virtual ~OutputProcessSet() {}
+        virtual wxXmlNode* Save() override;
+        virtual void Frame(wxByte* buffer, size_t size) override;
+        virtual size_t GetP1() const override { return _channels; }
+        virtual size_t GetP2() const override { return _value; }
+        virtual std::string GetType() const { return "Set"; }
+};
+
+#endif

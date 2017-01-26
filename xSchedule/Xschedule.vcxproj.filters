@@ -254,6 +254,16 @@
     <ClCompile Include="PlayList\PlayListItemVirtualMatrix.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
+    <ClCompile Include="SetDialog.cpp" />
+    <ClCompile Include="DimWhiteDialog.cpp" />
+    <ClCompile Include="RemapDialog.cpp" />
+    <ClCompile Include="DimDialog.cpp" />
+    <ClCompile Include="OutputProcessingDialog.cpp" />
+    <ClCompile Include="OutputProcess.cpp" />
+    <ClCompile Include="OutputProcessDim.cpp" />
+    <ClCompile Include="OutputProcessDimWhite.cpp" />
+    <ClCompile Include="OutputProcessSet.cpp" />
+    <ClCompile Include="OutputProcessRemap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -450,6 +460,16 @@
     <ClInclude Include="PlayList\PlayListItemVirtualMatrix.h">
       <Filter>PlayList</Filter>
     </ClInclude>
+    <ClInclude Include="SetDialog.h" />
+    <ClInclude Include="RemapDialog.h" />
+    <ClInclude Include="DimWhiteDialog.h" />
+    <ClInclude Include="DimDialog.h" />
+    <ClInclude Include="OutputProcessingDialog.h" />
+    <ClInclude Include="OutputProcess.h" />
+    <ClInclude Include="OutputProcessDim.h" />
+    <ClInclude Include="OutputProcessDimWhite.h" />
+    <ClInclude Include="OutputProcessSet.h" />
+    <ClInclude Include="OutputProcessRemap.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

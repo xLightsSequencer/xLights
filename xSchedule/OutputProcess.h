@@ -1,0 +1,39 @@
+#ifndef OUTPUTPROCESS_H
+#define OUTPUTPROCESS_H
+#include <list>
+#include <string>
+#include <wx/wx.h>
+
+class wxXmlNode;
+
+class OutputProcess
+{
+    protected:
+
+    size_t _startChannel;
+    int _changeCount;
+    int _lastSavedChangeCount;
+
+    void Save(wxXmlNode* node);
+
+    public:
+
+        static OutputProcess* CreateFromXml(wxXmlNode* node);
+
+        bool IsDirty() const { return _changeCount != _lastSavedChangeCount; };
+        void ClearDirty() { _lastSavedChangeCount = _changeCount; };
+        OutputProcess(wxXmlNode* node);
+        OutputProcess();
+        OutputProcess(const OutputProcess& op);
+        OutputProcess(size_t startChannel);
+        virtual ~OutputProcess() {}
+        virtual wxXmlNode* Save() = 0;
+        size_t GetStartChannel() const { return _startChannel; }
+        virtual size_t GetP1() const = 0;
+        virtual size_t GetP2() const = 0;
+        virtual std::string GetType() const = 0;
+
+        virtual void Frame(wxByte* buffer, size_t size) = 0;
+};
+
+#endif
