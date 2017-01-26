@@ -57,6 +57,7 @@ RemapDialog::RemapDialog(wxWindow* parent, size_t& startChannel, size_t& to, siz
     FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
     Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    Button_Ok->SetDefault();
     BoxSizer1->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     BoxSizer1->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -78,6 +79,9 @@ RemapDialog::RemapDialog(wxWindow* parent, size_t& startChannel, size_t& to, siz
     SpinCtrl_ToChannel->SetValue(_to);
     SpinCtrl_Channels->SetValue(_channels);
     TextCtrl_Description->SetValue(_description);
+
+    SetEscapeId(Button_Cancel->GetId());
+    SetAffirmativeId(Button_Ok->GetId());
 }
 
 RemapDialog::~RemapDialog()

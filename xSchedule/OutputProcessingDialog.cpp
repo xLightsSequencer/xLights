@@ -32,6 +32,7 @@ END_EVENT_TABLE()
 
 OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<OutputProcess*>* op,wxWindowID id,const wxPoint& pos,const wxSize& size) : _op(op)
 {
+    _dragging = false;
 
 	//(*Initialize(OutputProcessingDialog)
 	wxFlexGridSizer* FlexGridSizer3;
@@ -70,6 +71,7 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
 	FlexGridSizer1->Add(BoxSizer2, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	Button_Ok = new wxButton(this, ID_BUTTON5, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	Button_Ok->SetDefault();
 	BoxSizer1->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Cancel = new wxButton(this, ID_BUTTON4, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
 	BoxSizer1->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -92,6 +94,10 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_CancelClick);
 	//*)
 
+    int w, h;
+    GetSize(&w, &h);
+    SetSize(600, h);
+
     ListView_Processes->InsertColumn(0, "Type");
     ListView_Processes->InsertColumn(1, "");
     ListView_Processes->InsertColumn(2, "");
@@ -109,6 +115,9 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
         i++;
     }
 
+    SetEscapeId(Button_Cancel->GetId());
+    SetAffirmativeId(Button_Ok->GetId());
+
     ValidateWindow();
 }
 
@@ -121,6 +130,100 @@ OutputProcessingDialog::~OutputProcessingDialog()
 
 void OutputProcessingDialog::OnListView_ProcessesBeginDrag(wxListEvent& event)
 {
+    if (ListView_Processes->GetSelectedItemCount() != 1) return;
+
+    ListView_Processes->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(OutputProcessingDialog::OnDragEnd), nullptr, this);
+    // trigger when user leaves window to abort drag
+    ListView_Processes->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(OutputProcessingDialog::OnDragQuit), nullptr, this);
+    // trigger when mouse moves
+    ListView_Processes->Connect(wxEVT_MOTION, wxMouseEventHandler(OutputProcessingDialog::OnMouseMove), nullptr, this);
+
+    _dragging = true;
+    SetCursor(wxCURSOR_HAND);
+}
+
+// abort dragging a list item because user has left window
+void OutputProcessingDialog::OnDragQuit(wxMouseEvent& event)
+{
+    // restore cursor and disconnect unconditionally
+    SetCursor(wxCURSOR_ARROW);
+    ListView_Processes->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(OutputProcessingDialog::OnDragEnd));
+    ListView_Processes->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(OutputProcessingDialog::OnDragQuit));
+    ListView_Processes->Disconnect(wxEVT_MOTION, wxMouseEventHandler(OutputProcessingDialog::OnMouseMove));
+    //HighlightDropItem(nullptr);
+}
+
+void OutputProcessingDialog::OnMouseMove(wxMouseEvent& event)
+{
+    int flags = wxLIST_HITTEST_ONITEM;
+    int dropitem = ListView_Processes->HitTest(event.GetPosition(), flags);
+    int topitem = ListView_Processes->GetTopItem();
+    int bottomitem = topitem + ListView_Processes->GetCountPerPage();
+
+    if (topitem == dropitem && topitem > 0)
+    {
+        ListView_Processes->EnsureVisible(topitem - 1);
+    }
+    else if (bottomitem == dropitem && dropitem < ListView_Processes->GetItemCount() - 1)
+    {
+        ListView_Processes->EnsureVisible(bottomitem + 1);
+    }
+
+    if (dropitem == ListView_Processes->GetItemCount() - 1)
+    {
+        ListView_Processes->ScrollLines(1);
+    }
+
+    SetCursor(wxCURSOR_HAND);
+}
+
+void OutputProcessingDialog::OnDragEnd(wxMouseEvent& event)
+{
+    int flags = wxLIST_HITTEST_ONITEM;
+    int dropitem = ListView_Processes->HitTest(event.GetPosition(), flags);
+
+    if (dropitem >= 0 && dropitem < ListView_Processes->GetItemCount())
+    {
+        int dragitem = ListView_Processes->GetFirstSelected();
+
+        if (dragitem >= 0 && dragitem < ListView_Processes->GetItemCount())
+        {
+            // move drag item below drop item
+            if (dragitem != dropitem)
+            {
+                std::string type = ListView_Processes->GetItemText(dragitem, 0).ToStdString();
+                std::string sc = ListView_Processes->GetItemText(dragitem, 1).ToStdString();
+                std::string p1 = ListView_Processes->GetItemText(dragitem, 2).ToStdString();
+                std::string p2 = ListView_Processes->GetItemText(dragitem, 3).ToStdString();
+                std::string d = ListView_Processes->GetItemText(dragitem, 4).ToStdString();
+
+                ListView_Processes->DeleteItem(dragitem);
+
+                if (dropitem > dragitem) dropitem--;
+
+                ListView_Processes->InsertItem(dropitem + 1, type);
+                ListView_Processes->SetItem(dropitem + 1, 1, sc);
+                ListView_Processes->SetItem(dropitem + 1, 2, p1);
+                ListView_Processes->SetItem(dropitem + 1, 3, p1);
+                ListView_Processes->SetItem(dropitem + 1, 4, d);
+
+                ListView_Processes->EnsureVisible(dropitem + 1);
+
+                if (dropitem + 1 == ListView_Processes->GetItemCount() - 1)
+                {
+                    ListView_Processes->ScrollLines(1);
+                }
+            }
+        }
+    }
+
+    _dragging = false;
+    SetCursor(wxCURSOR_ARROW);
+
+    // disconnect both functions
+    ListView_Processes->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(OutputProcessingDialog::OnDragEnd));
+    ListView_Processes->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(OutputProcessingDialog::OnDragQuit));
+    ListView_Processes->Disconnect(wxEVT_MOTION, wxMouseEventHandler(OutputProcessingDialog::OnMouseMove));
 }
 
 void OutputProcessingDialog::OnListView_ProcessesItemSelect(wxListEvent& event)

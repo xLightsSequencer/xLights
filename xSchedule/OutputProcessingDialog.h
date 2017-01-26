@@ -18,6 +18,10 @@ class OutputProcessingDialog: public wxDialog
     void ValidateWindow();
     void DeleteSelectedItem();
     bool EditSelectedItem();
+    bool _dragging;
+    void OnDragEnd(wxMouseEvent& event);
+    void OnDragQuit(wxMouseEvent& event);
+    void OnMouseMove(wxMouseEvent& event);
 
 	public:
 

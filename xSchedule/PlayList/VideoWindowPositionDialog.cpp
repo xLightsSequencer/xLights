@@ -23,6 +23,7 @@ VideoWindowPositionDialog::VideoWindowPositionDialog(wxWindow* parent,wxWindowID
 	Move(wxDefaultPosition);
 	StaticText_Message = new wxStaticText(this, ID_STATICTEXT1, _("Position and size window where you want the content displayed."), wxPoint(8,16), wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	Button_ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxPoint(144,40), wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	Button_ok->SetDefault();
 
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoWindowPositionDialog::OnButton_OkClick);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&VideoWindowPositionDialog::OnResize);

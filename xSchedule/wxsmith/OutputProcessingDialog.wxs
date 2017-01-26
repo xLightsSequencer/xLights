@@ -105,6 +105,7 @@
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON5" variable="Button_Ok" member="yes">
 							<label>Ok</label>
+							<default>1</default>
 							<handler function="OnButton_OkClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

@@ -2,6 +2,7 @@
 // Copyright:   (c) 2010 Joachim Buermann
 
 #include "serial.h"
+#include <log4cpp/Category.hh>
 
 #pragma region Callback 
 void SerialPort::SetCallback(int cb)
