@@ -282,16 +282,16 @@ void AudioData::SeekAndLimitPlayLength(int pos, int len)
 
 void AudioData::SavePos()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _savedpos = Tell();
-    logger_base.info("Saving position %ld 0x%lx as %d.", (long)_audio_len, (long)_audio_pos, _savedpos);
+    //logger_base.info("Saving position %ld 0x%lx as %d.", (long)_audio_len, (long)_audio_pos, _savedpos);
 }
 
 void AudioData::RestorePos()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     Seek(_savedpos);
-    logger_base.info("Restoring position %d as %ld 0x%ld.", _savedpos, (long)_audio_len, (long)_audio_pos);
+    //logger_base.info("Restoring position %d as %ld 0x%ld.", _savedpos, (long)_audio_len, (long)_audio_pos);
 }
 
 int SDL::AddAudio(Uint64 len, Uint8* buffer, int volume, int rate, int tracksize, int lengthMS)
