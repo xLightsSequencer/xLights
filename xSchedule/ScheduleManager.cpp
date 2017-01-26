@@ -316,6 +316,8 @@ void ScheduleManager::Frame(bool outputframe)
         {
             // playlist is done
             StopPlayList(running, false);
+            wxCommandEvent event(EVT_SCHEDULECHANGED);
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
         }
 
         if (outputframe && _mode == SYNCMODE::FPPMASTER)
@@ -329,6 +331,11 @@ void ScheduleManager::Frame(bool outputframe)
         {
             _outputManager->StartFrame(0);
             _outputManager->AllOff();
+            // apply any output processing
+            for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+            {
+                (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
+            }
             _outputManager->EndFrame();
         }
     }
@@ -638,7 +645,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     p->Stop();
 
-                    if (p->GetId() == _immediatePlay->GetId())
+                    if (_immediatePlay != nullptr && p->GetId() == _immediatePlay->GetId())
                     {
                         delete _immediatePlay;
                         _immediatePlay = nullptr;
@@ -1124,6 +1131,9 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             _immediatePlay = nullptr;
         }
     }
+
+    wxCommandEvent event(EVT_SCHEDULECHANGED);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
 
     return result;
 }

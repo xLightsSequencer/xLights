@@ -250,12 +250,14 @@ END_EVENT_TABLE()
 
 wxDEFINE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_STATUSMSG, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     //(*EventTable(xScheduleFrame)
     //*)
     EVT_COMMAND(wxID_ANY, EVT_FRAMEMS, xScheduleFrame::RateNotification)
     EVT_COMMAND(wxID_ANY, EVT_STATUSMSG, xScheduleFrame::StatusMsgNotification)
+    EVT_COMMAND(wxID_ANY, EVT_SCHEDULECHANGED, xScheduleFrame::ScheduleChange)
     END_EVENT_TABLE()
 
 xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, const std::string& playlist, wxWindowID id)
@@ -450,6 +452,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     Connect(wxID_ANY, EVT_FRAMEMS, (wxObjectEventFunction)&xScheduleFrame::RateNotification);
     Connect(wxID_ANY, EVT_STATUSMSG, (wxObjectEventFunction)&xScheduleFrame::StatusMsgNotification);
+    Connect(wxID_ANY, EVT_SCHEDULECHANGED, (wxObjectEventFunction)&xScheduleFrame::ScheduleChange);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
     wxIconBundle icons;
@@ -522,6 +525,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     {
         auto p = __schedule->GetPlayList(playlist);
         __schedule->PlayPlayList(p, rate, true);
+        UpdateUI();
     }
 
     _timer.Stop();
@@ -529,6 +533,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _timerSchedule.Stop();
     _timerSchedule.Start(500, true);
 
+    UpdateUI();
     ValidateWindow();
 }
 
@@ -690,6 +695,7 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
         TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
         __schedule->AddPlayList(newpl);
     }
+    UpdateUI();
     ValidateWindow();
 }
 
@@ -724,6 +730,7 @@ void xScheduleFrame::DeleteSelectedItem()
 
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged(wxTreeEvent& event)
 {
+    UpdateUI();
     ValidateWindow();
 }
 
@@ -734,12 +741,14 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesKeyDown(wxTreeEvent& event)
         DeleteSelectedItem();
         event.Skip();
     }
+    UpdateUI();
     ValidateWindow();
 }
 
 void xScheduleFrame::OnMenuItem_SaveSelected(wxCommandEvent& event)
 {
     __schedule->Save();
+    UpdateUI();
     ValidateWindow();
 }
 
@@ -851,39 +860,6 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     __schedule->Frame(_timerOutputFrame);
     _timerOutputFrame = !_timerOutputFrame;
-
-    UpdateStatus();
-
-    Brightness->SetValue(__schedule->GetBrightness());
-
-    if (!__schedule->GetOptions()->IsSendOffWhenNotRunning() && __schedule->GetManualOutputToLights() == -1)
-    {
-        if (__schedule->GetRunningPlayList() == nullptr)
-        {
-            if (__schedule->IsOutputToLights())
-                __schedule->SetOutputToLights(false);
-        }
-        else
-        {
-            if (!__schedule->IsOutputToLights())
-                __schedule->SetOutputToLights(true);
-        }
-    }
-    else
-    {
-        if (__schedule->GetManualOutputToLights() == 0)
-        {
-            if (__schedule->IsOutputToLights())
-                __schedule->SetOutputToLights(false);
-        }
-        else if (__schedule->GetManualOutputToLights() == 1)
-        {
-            if (!__schedule->IsOutputToLights())
-                __schedule->SetOutputToLights(true);
-        }
-    }
-
-    ValidateWindow();
 }
 
 void xScheduleFrame::UpdateSchedule()
@@ -957,6 +933,7 @@ void xScheduleFrame::UpdateSchedule()
         _timerSchedule.Start(60000, false);
     }
 
+    UpdateUI();
     ValidateWindow();
 
     TreeCtrl_PlayListsSchedules->Thaw();
@@ -1013,6 +990,7 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
         CreateButtons();
     }
 
+    UpdateUI();
     ValidateWindow();
 }
 
@@ -1058,10 +1036,8 @@ void xScheduleFrame::CreateButtons()
     }
 
     SendSizeEvent();
-    //FlexGridSizer4->Fit(Panel1);
-    //FlexGridSizer4->SetSizeHints(Panel1);
-    //Panel1->Fit();
-    //Layout();
+
+    UpdateUI();
 }
 
 void xScheduleFrame::RateNotification(wxCommandEvent& event)
@@ -1105,6 +1081,7 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
     }
 
     UpdateSchedule();
+    UpdateUI();
 }
 
 void xScheduleFrame::SetTempMessage(const std::string& msg)
@@ -1550,40 +1527,47 @@ void xScheduleFrame::UpdateStatus()
 void xScheduleFrame::OnBitmapButton_OutputToLightsClick(wxCommandEvent& event)
 {
     __schedule->ManualOutputToLightsClick();
+    UpdateUI();
 }
 
 void xScheduleFrame::OnBitmapButton_RandomClick(wxCommandEvent& event)
 {
     std::string msg = "";
     __schedule->ToggleCurrentPlayListRandom(msg);
+    UpdateUI();
 }
 
 void xScheduleFrame::OnBitmapButton_PlayingClick(wxCommandEvent& event)
 {
     std::string msg = "";
     __schedule->ToggleCurrentPlayListPause(msg);
+    UpdateUI();
 }
 
 void xScheduleFrame::OnBitmapButton_PLLoopClick(wxCommandEvent& event)
 {
     std::string msg = "";
     __schedule->ToggleCurrentPlayListLoop(msg);
+    UpdateUI();
 }
 
 void xScheduleFrame::OnBitmapButton_StepLoopClick(wxCommandEvent& event)
 {
     std::string msg = "";
     __schedule->ToggleCurrentPlayListStepLoop(msg);
+    UpdateUI();
 }
 
 void xScheduleFrame::OnBitmapButton_IsScheduledClick(wxCommandEvent& event)
 {
     // do nothing
+    UpdateUI();
 }
 
 void xScheduleFrame::OnBitmapButton_UnsavedClick(wxCommandEvent& event)
 {
     __schedule->Save();
+    UpdateUI();
 }
 
 void xScheduleFrame::CreateDebugReport(wxDebugReportCompress *report) {
@@ -1640,6 +1624,7 @@ void xScheduleFrame::SendReport(const wxString &loc, wxDebugReportCompress &repo
 void xScheduleFrame::OnKeyDown(wxKeyEvent& event)
 {
     HandleHotkeys(event);
+    UpdateUI();
 }
 
 bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
@@ -1687,31 +1672,37 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
 void xScheduleFrame::OnBitmapButton_VolumeDownClick(wxCommandEvent& event)
 {
     __schedule->AdjustVolumeBy(-10);
+    UpdateUI();
 }
 
 void xScheduleFrame::OnBitmapButton_VolumeUpClick(wxCommandEvent& event)
 {
     __schedule->AdjustVolumeBy(10);
+    UpdateUI();
 }
 
 void xScheduleFrame::OnCustom_VolumeLeftDown(wxMouseEvent& event)
 {
     __schedule->ToggleMute();
+    UpdateUI();
 }
 
 void xScheduleFrame::OnMenuItem_StandaloneSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::STANDALONE);
+    UpdateUI();
 }
 
 void xScheduleFrame::OnMenuItem_FPPMasterSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::FPPMASTER);
+    UpdateUI();
 }
 
 void xScheduleFrame::OnMenuItem_FPPRemoteSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::FPPSLAVE);
+    UpdateUI();
 }
 
 void xScheduleFrame::OnMenuItem_WebInterfaceSelected(wxCommandEvent& event)
@@ -1722,6 +1713,7 @@ void xScheduleFrame::OnMenuItem_WebInterfaceSelected(wxCommandEvent& event)
 void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
 {
     AddPlayList();
+    UpdateUI();
     ValidateWindow();
 }
 
@@ -1744,18 +1736,21 @@ void xScheduleFrame::AddPlayList()
 void xScheduleFrame::OnButton_AddClick(wxCommandEvent& event)
 {
     AddPlayList();
+    UpdateUI();
     ValidateWindow();
 }
 
 void xScheduleFrame::OnButton_EditClick(wxCommandEvent& event)
 {
     EditSelectedItem();
+    UpdateUI();
     ValidateWindow();
 }
 
 void xScheduleFrame::OnButton_DeleteClick(wxCommandEvent& event)
 {
     DeleteSelectedItem();
+    UpdateUI();
     ValidateWindow();
 }
 
@@ -1789,6 +1784,49 @@ void xScheduleFrame::OnMenu_OutputProcessingSelected(wxCommandEvent& event)
     if (dlg.ShowModal() == wxID_OK)
     {
         __schedule->OutputProcessingChanged();
+    }
+
+    UpdateUI();
+    ValidateWindow();
+}
+
+// This is called when anything interesting happens in schedule manager
+void xScheduleFrame::ScheduleChange(wxCommandEvent& event)
+{
+    UpdateUI();
+}
+
+void xScheduleFrame::UpdateUI()
+{
+    UpdateStatus();
+
+    Brightness->SetValue(__schedule->GetBrightness());
+
+    if (!__schedule->GetOptions()->IsSendOffWhenNotRunning() && __schedule->GetManualOutputToLights() == -1)
+    {
+        if (__schedule->GetRunningPlayList() == nullptr)
+        {
+            if (__schedule->IsOutputToLights())
+                __schedule->SetOutputToLights(false);
+        }
+        else
+        {
+            if (!__schedule->IsOutputToLights())
+                __schedule->SetOutputToLights(true);
+        }
+    }
+    else
+    {
+        if (__schedule->GetManualOutputToLights() == 0)
+        {
+            if (__schedule->IsOutputToLights())
+                __schedule->SetOutputToLights(false);
+        }
+        else if (__schedule->GetManualOutputToLights() == 1)
+        {
+            if (!__schedule->IsOutputToLights())
+                __schedule->SetOutputToLights(true);
+        }
     }
 
     ValidateWindow();

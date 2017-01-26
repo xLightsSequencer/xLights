@@ -41,6 +41,7 @@ class VolumeDisplay;
 
 wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_STATUSMSG, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
 
 class xScheduleFrame : public wxFrame
 {
@@ -64,6 +65,7 @@ class xScheduleFrame : public wxFrame
     bool HandleHotkeys(wxKeyEvent& event);
     void AddPlayList();
     void EditSelectedItem();
+    void UpdateUI();
 
     wxBitmap _otlon;
     wxBitmap _otloff;
@@ -141,6 +143,7 @@ public:
         void OnButton_UserClick(wxCommandEvent& event);
         void RateNotification(wxCommandEvent& event);
         void StatusMsgNotification(wxCommandEvent& event);
+        void ScheduleChange(wxCommandEvent& event);
 
         //(*Identifiers(xScheduleFrame)
         static const long ID_BITMAPBUTTON1;
