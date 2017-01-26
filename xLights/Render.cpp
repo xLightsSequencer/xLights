@@ -752,18 +752,19 @@ void xLightsFrame::UpdateRenderStatus() {
     if (renderProgressInfo.empty()) {
         return;
     }
-    bool done = true;
+
     int countModels = 0;
     int countFrames = 0;
     bool shown = renderProgressDialog == nullptr ? false : renderProgressDialog->IsShown();
     for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end();) {
+        bool done = true;
         RenderProgressInfo *rpi = *it;
         int frames = rpi->endFrame - rpi->startFrame + 1;
         for (size_t row = 0; row < rpi->numRows; row++) {
             
             if (rpi->jobs[row]) {
                 int i = rpi->jobs[row]->GetCurrentFrame();
-                if (i <= rpi->endFrame) {
+                if (i != END_OF_RENDER_FRAME) {
                     done = false;
                 }
                 countModels++;
