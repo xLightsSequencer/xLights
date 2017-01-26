@@ -11,6 +11,7 @@ OpenDMXOutput::OpenDMXOutput(SerialOutput* output) : SerialOutput(output)
 
 OpenDMXOutput::OpenDMXOutput(wxXmlNode* node) : SerialOutput(node)
 {
+    _baudRate = 250000;
     memset(_data, 0x00, sizeof(_data));
 }
 

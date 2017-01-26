@@ -6,18 +6,21 @@
 #pragma region Constructors and Destructors
 DMXOutput::DMXOutput(SerialOutput* output) : SerialOutput(output)
 {
+    _baudRate = 250000;
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));
 }
 
 DMXOutput::DMXOutput(wxXmlNode* node) : SerialOutput(node)
 {
+    _baudRate = 250000;
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));
 }
 
 DMXOutput::DMXOutput() : SerialOutput()
 {
+    _baudRate = 250000;
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));
 }
