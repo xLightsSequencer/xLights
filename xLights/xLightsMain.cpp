@@ -2168,7 +2168,8 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
     }
 
     if (CopyFiles("*.xml", srcDir, targetDirName, lastCreatedDirectory, forceallfiles) +
-        CopyFiles("*.xbkp", srcDir, targetDirName, lastCreatedDirectory, forceallfiles) > 0)
+        CopyFiles("*.xbkp", srcDir, targetDirName, lastCreatedDirectory, forceallfiles) +
+        CopyFiles("*.xschedule", srcDir, targetDirName, lastCreatedDirectory, forceallfiles) > 0)
     {
         lastCreatedDirectory = targetDirName;
     }
