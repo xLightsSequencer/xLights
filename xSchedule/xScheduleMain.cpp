@@ -469,6 +469,13 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     y = config->ReadLong("xsWindowPosY", 50);
     w = config->ReadLong("xsWindowPosW", 800);
     h = config->ReadLong("xsWindowPosH", 600);
+
+    // limit weirdness
+    if (x < -100) x = 0;
+    if (x > 2000) x = 400;
+    if (y < -100) y = 0;
+    if (y > 2000) y = 400;
+
     SetPosition(wxPoint(x, y));
     SetSize(w, h);
 
@@ -859,6 +866,14 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     if (__schedule == nullptr) return;
 
     __schedule->Frame(_timerOutputFrame);
+
+    auto now = wxDateTime::Now().GetMillisecond();
+    if (now >= 0 && now <= _timer.GetInterval() * 2 && _timerOutputFrame)
+    {
+        wxCommandEvent event(EVT_SCHEDULECHANGED);
+        wxPostEvent(this, event);
+    }
+
     _timerOutputFrame = !_timerOutputFrame;
 }
 

@@ -88,8 +88,12 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     _outputManager = new OutputManager();
     _outputManager->Load(_showDir, _scheduleOptions->IsSync());
     logger_base.info("Loaded outputs from %s.", (const char *)(_showDir + "/" + _outputManager->GetNetworksFileName()).c_str());
-    _outputManager->StartOutput();
-    logger_base.info("Started outputting to lights.");
+
+    if (_scheduleOptions->IsSendOffWhenNotRunning())
+    {
+        _outputManager->StartOutput();
+        logger_base.info("Started outputting to lights.");
+    }
 
     // This is out frame data buffer ... it cannot be resized
     logger_base.info("Allocated frame buffer of %ld bytes", _outputManager->GetTotalChannels());
@@ -1087,6 +1091,84 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         result = false;
                         msg = "Unable to start playlist.";
                     }
+                }
+            }
+            else if (command == "Refresh current playlist")
+            {
+                if (IsCurrentPlayListScheduled())
+                {
+                    auto rs = GetRunningSchedule();
+                    auto plid = rs->GetPlayList()->GetId();
+                    auto sid = rs->GetSchedule()->GetId();
+
+                    bool loop = rs->GetPlayList()->IsLooping();
+                    std::string step = "";
+                    if (rs->GetPlayList()->GetRunningStep() != nullptr)
+                    {
+                        step = rs->GetPlayList()->GetRunningStep()->GetNameNoTime();
+                    }
+                    int loopsLeft = rs->GetPlayList()->GetLoopsLeft();
+                    bool random = rs->GetPlayList()->IsRandom();
+
+                    rs->GetPlayList()->Stop();
+                    _activeSchedules.remove(rs);
+                    delete rs;
+
+                    PlayList* pl = nullptr;
+                    Schedule* sc = nullptr;
+
+                    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+                    {
+                        if ((*it)->GetId() == plid)
+                        {
+                            pl = new PlayList(**it);
+                        }
+                    }
+
+                    if (pl != nullptr)
+                    {
+                        auto schs = pl->GetSchedules();
+                        for (auto it = schs.begin(); it != schs.end(); ++it)
+                        {
+                            if ((*it)->GetId() == sid)
+                            {
+                                sc = new  Schedule(**it);
+                            }
+                        }
+
+                        if (sc != nullptr)
+                        {
+                            rs = new RunningSchedule(pl, sc);
+                            _activeSchedules.push_back(rs);
+                            rs->GetPlayList()->StartSuspended(loop, random, loopsLeft, step);
+
+                            _activeSchedules.sort(compare_runningschedules);
+                        }
+                    }
+
+                    CheckSchedule();
+                }
+                else if (_immediatePlay != nullptr)
+                {
+                    PlayList* p = GetRunningPlayList();
+                    if (p != nullptr)
+                    {
+                        bool loop = p->IsLooping();
+                        bool forcelast = p->IsFinishingUp();
+                        int loopsLeft = p->GetLoopsLeft();
+                        bool random = p->IsRandom();
+
+                        std::string step = p->GetRunningStep()->GetNameNoTime();
+                        int steploopsleft = p->GetRunningStep()->GetLoopsLeft();
+
+                        p->Stop();
+                        PlayPlayList(p, rate, loop, step, forcelast, loopsLeft, random, steploopsleft);
+                    }
+                }
+                else
+                {
+                    result = false;
+                    msg = "Only scheduled and immediately played playlists can be restarted.";
                 }
             }
             else if (command == "Play specified playlist step n times")

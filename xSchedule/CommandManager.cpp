@@ -190,5 +190,6 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Toggle mute", 0, {}, false, false, false, false, true, true));
     _commands.push_back(new Command("Enqueue playlist step", 2, plst, false, false, false, false, false, true));
     _commands.push_back(new Command("Clear playlist queue", 0, {}, false, false, true, false, false, true));
+    _commands.push_back(new Command("Refresh current playlist", 0, {}, false, false, true, false, false, false)); // this is called to load a changed playlist that is currently playing
 }
 

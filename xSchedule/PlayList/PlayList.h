@@ -92,8 +92,8 @@ public:
     void MoveStepAfterStep(PlayListStep* movethis, PlayListStep* afterthis);
     void AddSchedule(Schedule* schedule);
     bool IsRunning() const;
-    void Start(bool loop = false, bool random = false, int loops = -1);
-    void StartSuspended(bool loop = false, bool random = false, int loops = -1);
+    void Start(bool loop = false, bool random = false, int loops = -1, const std::string& step = "");
+    void StartSuspended(bool loop = false, bool random = false, int loops = -1, const std::string& step = "");
     int Suspend(bool suspend);
     bool IsSuspended() const;
     void Stop();

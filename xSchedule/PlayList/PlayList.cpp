@@ -367,13 +367,13 @@ bool PlayList::IsRunning() const
     return _currentStep != nullptr;
 }
 
-void PlayList::StartSuspended(bool loop, bool random, int loops)
+void PlayList::StartSuspended(bool loop, bool random, int loops, const std::string& step)
 {
-    Start(loop, random, loops);
+    Start(loop, random, loops, step);
     Suspend(true);
 }
 
-void PlayList::Start(bool loop, bool random, int loops)
+void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
 {
     if (IsRunning()) return;
     if (_steps.size() == 0) return;
@@ -391,13 +391,32 @@ void PlayList::Start(bool loop, bool random, int loops)
     _jumpToEndStepsAtEndOfCurrentStep = false;
     _lastLoop = false;
     _stopAtEndOfCurrentStep = false;
-    if (_random && !_firstOnlyOnce)
+
+    if (step == "")
     {
-        _currentStep = GetRandomStep();
+        if (_random && !_firstOnlyOnce)
+        {
+            _currentStep = GetRandomStep();
+        }
+        else
+        {
+            _currentStep = _steps.front();
+        }
     }
     else
     {
-        _currentStep = _steps.front();
+        _currentStep = GetStep(step);
+        if (_currentStep == nullptr)
+        {
+            if (_random && !_firstOnlyOnce)
+            {
+                _currentStep = GetRandomStep();
+            }
+            else
+            {
+                _currentStep = _steps.front();
+            }
+        }
     }
     _currentStep->Start(-1);
 }
