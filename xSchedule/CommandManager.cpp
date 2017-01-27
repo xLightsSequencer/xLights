@@ -117,7 +117,7 @@ Command* CommandManager::GetCommand(std::string name) const
 {
     for (auto it = _commands.begin(); it != _commands.end(); ++it)
     {
-        if ((*it)->_command == name)
+        if (wxString((*it)->_command).Lower() == wxString(name).Lower())
         {
             return *it;
         }

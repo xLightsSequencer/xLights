@@ -174,8 +174,10 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
     CheckBox_SimpleMode->SetValue(options->IsAdvancedMode());
 
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
+    SpinCtrl_PasswordTimeout->SetValue(options->GetPasswordTimeout());
 
     TextCtrl_wwwRoot->SetValue(options->GetWWWRoot());
+    TextCtrl_Password->SetValue(options->GetPassword());
 
     LoadProjectors();
 

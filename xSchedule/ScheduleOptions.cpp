@@ -235,7 +235,7 @@ UserButton* ScheduleOptions::GetButton(const std::string& label) const
 {
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
     {
-        if ((*it)->GetLabel() == label)
+        if (wxString((*it)->GetLabel()).Lower() == wxString(label).Lower())
         {
             return *it;
         }

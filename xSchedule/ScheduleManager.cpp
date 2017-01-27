@@ -604,7 +604,7 @@ PlayList* ScheduleManager::GetPlayList(const std::string& playlist) const
 {
     for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
     {
-        if ((*it)->GetNameNoTime() == playlist)
+        if (wxString((*it)->GetNameNoTime()).Lower() == wxString(playlist).Lower())
         {
             return *it;
         }
@@ -1652,7 +1652,7 @@ RunningSchedule* ScheduleManager::GetRunningSchedule(const std::string& schedule
 {
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
     {
-        if ((*it)->GetSchedule()->GetName() == schedulename) return *it;
+        if (wxString((*it)->GetSchedule()->GetName()).Lower() == wxString(schedulename).Lower()) return *it;
     }
 
     return nullptr;

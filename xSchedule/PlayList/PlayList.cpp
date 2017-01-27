@@ -465,7 +465,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
     {
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
-            if ((*it)->GetNameNoTime() == _forceNextStep)
+            if (wxString((*it)->GetNameNoTime()).Lower() == wxString(_forceNextStep).Lower())
             {
                 return *it;
             }
@@ -694,7 +694,7 @@ bool PlayList::JumpToStep(const std::string& step)
     _loopStep = false;
     _forceNextStep = "";
 
-    if (_currentStep != nullptr && _currentStep->GetName() == step)
+    if (_currentStep != nullptr && wxString(_currentStep->GetName()).Lower() == wxString(step).Lower())
     {
         _currentStep->Restart();
         return success;
@@ -727,7 +727,7 @@ PlayListStep* PlayList::GetStep(const std::string& step)
 {
     for (auto it = _steps.begin(); it != _steps.end(); ++it)
     {
-        if ((*it)->GetNameNoTime() == step) return (*it);
+        if (wxString((*it)->GetNameNoTime()).Lower() == wxString(step).Lower()) return (*it);
     }
 
     return nullptr;
@@ -798,7 +798,7 @@ PlayListStep* PlayList::GetRandomStep()
 
 bool PlayList::LoopStep(const std::string step)
 {
-    if (_currentStep == nullptr || _currentStep->GetName() != step)
+    if (_currentStep == nullptr || wxString(_currentStep->GetName()).Lower() != wxString(step).Lower())
     {
         JumpToStep(step);
     }
@@ -856,7 +856,7 @@ Schedule* PlayList::GetSchedule(const std::string& name) const
 {
     for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
     {
-        if ((*it)->GetName() == name) return *it;
+        if (wxString((*it)->GetName()).Lower() == wxString(name).Lower()) return *it;
     }
 
     return nullptr;

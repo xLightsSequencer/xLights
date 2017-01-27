@@ -133,7 +133,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
     std::string wwwroot = xScheduleFrame::GetScheduleManager()->GetOptions()->GetWWWRoot();
 
-    if (request.URI().StartsWith("/xScheduleCommand"))
+    if (request.URI().Lower().StartsWith("/xschedulecommand"))
     {
         if (!CheckLoggedIn(connection, request)) return true;
 
@@ -166,7 +166,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         connection.SendResponse(response);
         return true;
     }
-    else if (request.URI().StartsWith("/xScheduleLogin"))
+    else if (request.URI().Lower().StartsWith("/xschedulelogin"))
     {
         if (__password != "")
         {
@@ -210,7 +210,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
             return true;
         }
     }
-    else if (request.URI().StartsWith("/xScheduleStash"))
+    else if (request.URI().Lower().StartsWith("/xschedulestash"))
     {
         if (!CheckLoggedIn(connection, request)) return true;
 
@@ -223,7 +223,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
         logger_base.info("xScheduleStash received command = '%s' key = '%s'.", (const char *)command.c_str(), (const char *)key.c_str());
 
-        if (command == "Store")
+        if (wxString(command).Lower() == "store")
         {
             std::string data = request.Data().ToStdString();
 
@@ -244,7 +244,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
             }
             connection.SendResponse(response);
         }
-        else if (command == "Retrieve")
+        else if (wxString(command).Lower() == "retrieve")
         {
             std::string data = "";
             std::string msg = "";
@@ -273,7 +273,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         }
         return true;
     }
-    else if (request.URI().StartsWith("/xScheduleQuery"))
+    else if (request.URI().Lower().StartsWith("/xschedulequery"))
     {
         if (!CheckLoggedIn(connection, request)) return true;
 

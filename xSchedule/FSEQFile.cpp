@@ -244,7 +244,7 @@ std::string FSEQFile::FixFile(const std::string& ShowDir, const std::string& fil
     }
     else
     {
-        if (ShowDir != RememberShowDir)
+        if (wxString(ShowDir).Lower() != wxString(RememberShowDir).Lower())
         {
             RememberShowDir = ShowDir;
         }
@@ -284,7 +284,7 @@ std::string FSEQFile::FixFile(const std::string& ShowDir, const std::string& fil
     wxString fname;
     wxString ext;
     wxFileName::SplitPath(sd, &path, &fname, &ext);
-    wxArrayString parts = wxSplit(path, '\\', 0);
+    //wxArrayString parts = wxSplit(path, '\\', 0);
     if (fname == "")
     {
         // no subdirectory
