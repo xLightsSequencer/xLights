@@ -1722,7 +1722,7 @@ void xScheduleFrame::OnMenuItem_FPPRemoteSelected(wxCommandEvent& event)
 
 void xScheduleFrame::OnMenuItem_WebInterfaceSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser("http://localhost");
+    ::wxLaunchDefaultBrowser(wxString::Format("http://localhost:%d", __schedule->GetOptions()->GetWebServerPort()));
 }
 
 void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
