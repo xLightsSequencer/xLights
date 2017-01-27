@@ -71,7 +71,7 @@ PlayList& PlayList::operator=(PlayList& playlist)
     return *this;
 }
 
-PlayList::PlayList(const PlayList& playlist)
+PlayList::PlayList(const PlayList& playlist, bool newid)
 {
     _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
@@ -89,7 +89,14 @@ PlayList::PlayList(const PlayList& playlist)
     _lastOnlyOnce = playlist._lastOnlyOnce;
     _name = playlist._name;
     _loops = playlist._loops;
-    _id = playlist._id;
+    if (newid)
+    {
+        _id = __playlistid++;
+    }
+    else
+    {
+        _id = playlist._id;
+    }
     for (auto it = playlist._steps.begin(); it != playlist._steps.end(); ++it)
     {
         _steps.push_back(new PlayListStep(**it));
@@ -833,4 +840,24 @@ bool PlayList::IsSimple() const
     }
 
     return true;
+}
+
+Schedule* PlayList::GetSchedule(int id) const
+{
+    for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
+    {
+        if ((*it)->GetId() == id) return *it;
+    }
+
+    return nullptr;
+}
+
+Schedule* PlayList::GetSchedule(const std::string& name) const
+{
+    for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
+    {
+        if ((*it)->GetName() == name) return *it;
+    }
+
+    return nullptr;
 }

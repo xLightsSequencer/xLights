@@ -302,14 +302,17 @@ void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
 {
     if (outputframe)
     {
-        if (_channels > 0)
+        if (_fseqFile != nullptr)
         {
-            wxASSERT(_startChannel > 0);
-            _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, _startChannel - 1, _channels);
-        }
-        else
-        {
-            _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, 0, 0);
+            if (_channels > 0)
+            {
+                wxASSERT(_startChannel > 0);
+                _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, _startChannel - 1, _channels);
+            }
+            else
+            {
+                _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, 0, 0);
+            }
         }
     }
 }

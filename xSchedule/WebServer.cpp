@@ -145,7 +145,9 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         std::string query = parms["Query"];
         std::string parameters = parms["Parameters"];
 
-        logger_base.info("xScheduleQuery received query = '%s' parameters = '%s'.", (const char *)query.c_str(), (const char *)parameters.c_str());
+        // log everything but playing status
+        if (query != "GetPlayingStatus")
+            logger_base.info("xScheduleQuery received query = '%s' parameters = '%s'.", (const char *)query.c_str(), (const char *)parameters.c_str());
 
         std::string data = "";
         std::string msg;

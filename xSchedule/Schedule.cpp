@@ -84,11 +84,36 @@ Schedule::Schedule()
     _dow = "MonTueWedThuFriSatSun";
 }
 
-Schedule::Schedule(const Schedule& schedule)
+std::string Schedule::GetJSON()
+{
+    std::string res;
+
+    res = "{\"name\":\"" + _name +
+        "\",\"id\":\"" + wxString::Format(wxT("%i"), _id).ToStdString() +
+        "\",\"enabled\":\"" + std::string(_enabled ? "TRUE": "FALSE") +
+        "\",\"active\":\"" + std::string(CheckActive() ? "TRUE": "FALSE") +
+        "\",\"looping\":\"" + std::string(_loop ? "TRUE": "FALSE") +
+        "\",\"loops\":\"" + wxString::Format(wxT("%i"), _loops).ToStdString() +
+        "\",\"random\":\"" + std::string(_random ? "TRUE": "FALSE") +
+        "\",\"nextactive\":\"" + GetNextTriggerTime() +
+        "\",\"scheduleend\":\"" + (CheckActive() ? GetNextEndTime() : "N/A") +
+        "\"}";
+
+    return res;
+}
+
+Schedule::Schedule(const Schedule& schedule, bool newid)
 {
     _active = schedule._active;
     _enabled = schedule._enabled;
-    _id = schedule._id;
+    if (newid)
+    {
+        _id = __scheduleid++;
+    }
+    else
+    {
+        _id = schedule._id;
+    }
     _changeCount = schedule._changeCount;
     _lastSavedChangeCount = schedule._lastSavedChangeCount;
     _loop = schedule._loop;
@@ -266,4 +291,22 @@ std::string Schedule::GetNextTriggerTime()
 void Schedule::AddMinsToEndTime(int mins)
 {
     _endTime += wxTimeSpan(0, mins);
+}
+
+std::string Schedule::GetNextEndTime()
+{
+    if (!_active) return "N/A";
+
+    wxDateTime end = wxDateTime::Now();
+
+    if (_endTime < _startTime)
+    {
+        end += wxTimeSpan(24);
+    }
+
+    end.SetHour(_endTime.GetHour());
+    end.SetMinute(_endTime.GetMinute());
+    end.SetSecond(0);
+
+    return end.Format("%Y-%m-%d %H:%M").ToStdString();
 }

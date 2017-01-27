@@ -63,9 +63,12 @@ class xScheduleFrame : public wxFrame
     std::string GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const;
     void LoadSchedule();
     bool HandleHotkeys(wxKeyEvent& event);
+    bool HandleSpecialKeys(wxKeyEvent& event);
     void AddPlayList();
     void EditSelectedItem();
     void UpdateUI();
+    void DoPaste();
+    void DoCopy();
 
     wxBitmap _otlon;
     wxBitmap _otloff;

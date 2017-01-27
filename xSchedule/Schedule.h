@@ -62,9 +62,10 @@ class Schedule
         void SetEndDate(const wxDateTime& end) { if (_endDate != end) { _endDate = end; _changeCount++; } }
         bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
         void ClearDirty() { _lastSavedChangeCount = _changeCount; }
+        std::string GetJSON();
         Schedule();
         Schedule(wxXmlNode* node);
-        Schedule(const Schedule& schedule);
+        Schedule(const Schedule& schedule, bool newid = false);
         virtual ~Schedule() {}
 		void Load(wxXmlNode* node);
 		wxXmlNode* Save();
@@ -72,6 +73,7 @@ class Schedule
         bool IsActive() const { return _active; }
         bool CheckActive();
         std::string GetNextTriggerTime();
+        std::string GetNextEndTime();
         void AddMinsToEndTime(int mins);
 };
 

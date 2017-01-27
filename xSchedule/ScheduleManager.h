@@ -64,6 +64,7 @@ class ScheduleManager
         void ManualOutputToLightsClick();
         bool IsScheduleActive(Schedule* schedue);
         std::list<RunningSchedule*> GetRunningSchedules() const { return _activeSchedules; }
+        PlayList* GetPlayList(int  id) const;
         RunningSchedule* GetRunningSchedule() const;
         RunningSchedule* GetRunningSchedule(const std::string& schedulename) const;
         RunningSchedule* GetRunningSchedule(Schedule* schedule) const;

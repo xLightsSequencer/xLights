@@ -93,7 +93,10 @@ void PlayListItemESEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
 {
     if (outputframe)
     {
-        _ESEQFile->ReadData(buffer, size, ms / framems, _applyMethod);
+        if (_ESEQFile != nullptr)
+        {
+            _ESEQFile->ReadData(buffer, size, ms / framems, _applyMethod);
+        }
     }
 }
 

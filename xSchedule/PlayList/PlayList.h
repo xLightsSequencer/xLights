@@ -44,7 +44,7 @@ public:
 
     #pragma region Constructors and Destructors
     PlayList(wxXmlNode* node);
-    PlayList(const PlayList& playlist);
+    PlayList(const PlayList& playlist, bool newid = false);
     PlayList();
     virtual ~PlayList();
     #pragma endregion Constructors and Destructors
@@ -63,6 +63,8 @@ public:
     size_t GetLengthMS() const;
     bool IsDirty() const;
     void ClearDirty();
+    Schedule* GetSchedule(int id) const;
+    Schedule* GetSchedule(const std::string& name) const;
     int GetChangeCount() const { return _changeCount; }
     bool SupportsRandom() const;
     bool IsRandom() const { return _random; }

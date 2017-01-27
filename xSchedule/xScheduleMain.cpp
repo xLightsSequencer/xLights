@@ -29,6 +29,7 @@
 #include "RunningSchedule.h"
 #include "UserButton.h"
 #include "OutputProcessingDialog.h"
+#include <wx/clipbrd.h>
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -695,7 +696,7 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
     {
         PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
 
-        PlayList* newpl = new PlayList(*playlist);
+        PlayList* newpl = new PlayList(*playlist, true);
 
         wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(TreeCtrl_PlayListsSchedules->GetRootItem(), playlist->GetName(), -1, -1, new MyTreeItemData(newpl));
         TreeCtrl_PlayListsSchedules->Expand(newitem);
@@ -741,15 +742,100 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged(wxTreeEvent& 
     ValidateWindow();
 }
 
+void xScheduleFrame::DoPaste()
+{
+    wxTextDataObject clip;
+    if (wxTheClipboard->Open())
+    {
+        wxTheClipboard->GetData(clip);
+        wxTheClipboard->Close();
+    }
+    std::string _copybuffer = clip.GetText().ToStdString();
+
+    if (_copybuffer != "")
+    {
+        wxArrayString copy = wxSplit(_copybuffer, ',');
+
+        if (copy[0] == "PL")
+        {
+            if (copy.Count() == 2)
+            {
+                PlayList* playlist = __schedule->GetPlayList(wxAtoi(copy[1]));
+                if (playlist != nullptr)
+                {
+                    PlayList* newpl = new PlayList(*playlist, true);
+                    __schedule->AddPlayList(newpl);
+                    UpdateTree();
+                }
+            }
+        }
+        else if (copy[0] == "SC")
+        {
+            if (copy.Count() == 3)
+            {
+                PlayList* playlist = __schedule->GetPlayList(wxAtoi(copy[1]));
+                if (playlist != nullptr)
+                {
+                    Schedule* schedule = playlist->GetSchedule(wxAtoi(copy[2]));
+                    if (schedule != nullptr)
+                    {
+                        wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+                        PlayList* to = nullptr;
+                        if (IsSchedule(treeitem))
+                        {
+                            to = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
+                        }
+                        else if (IsPlayList(treeitem))
+                        {
+                            to = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+                        }
+
+                        if (to != nullptr)
+                        {
+                            to->AddSchedule(new Schedule(*schedule, true));
+                            UpdateTree();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void xScheduleFrame::DoCopy()
+{
+    std::string copybuffer = "";
+    wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+    if (IsPlayList(treeitem))
+    {
+        PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+        copybuffer = "PL," + wxString::Format(wxT("%i"), playlist->GetId());
+    }
+    else if (IsSchedule(treeitem))
+    {
+        PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
+        Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+        copybuffer = "SC," + wxString::Format(wxT("%i"), playlist->GetId()) + "," + wxString::Format(wxT("%i"), schedule->GetId());
+    }
+
+    if (wxTheClipboard->Open())
+    {
+        wxTheClipboard->Clear();
+        wxTheClipboard->SetData(new wxTextDataObject(copybuffer));
+        wxTheClipboard->Flush();
+        wxTheClipboard->Close();
+    }
+}
+
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesKeyDown(wxTreeEvent& event)
 {
-    if (event.GetKeyCode() == WXK_DELETE)
-    {
-        DeleteSelectedItem();
-        event.Skip();
-    }
-    UpdateUI();
-    ValidateWindow();
+    //wxKeyEvent e(event.GetKeyEvent());
+    //HandleSpecialKeys(e);
+    //HandleHotkeys(e);
+    //UpdateUI();
+    //ValidateWindow();
+
+    //if (e.GetSkipped()) event.Skip();
 }
 
 void xScheduleFrame::OnMenuItem_SaveSelected(wxCommandEvent& event)
@@ -1238,7 +1324,8 @@ void xScheduleFrame::UpdateStatus()
         StatusBar1->SetStatusText("");
     }
 
-    static int last = -1;
+    static int lastcc = -1;
+    static int lastid = -1;
     PlayList* p = __schedule->GetRunningPlayList();
 
     if (p == nullptr)
@@ -1256,9 +1343,10 @@ void xScheduleFrame::UpdateStatus()
     }
     else
     {
-        if (p->GetChangeCount() != last)
+        if (p->GetId() != lastid || p->GetChangeCount() != lastcc)
         {
-            last = p->GetChangeCount();
+            lastcc = p->GetChangeCount();
+            lastid = p->GetId();
 
             ListView_Running->DeleteAllItems();
 
@@ -1640,12 +1728,49 @@ void xScheduleFrame::SendReport(const wxString &loc, wxDebugReportCompress &repo
 
 void xScheduleFrame::OnKeyDown(wxKeyEvent& event)
 {
-    HandleHotkeys(event);
-    UpdateUI();
+    if (HandleSpecialKeys(event) || HandleHotkeys(event))
+    {
+        UpdateUI();
+        UpdateSchedule();
+        ValidateWindow();
+    }
+}
+
+bool xScheduleFrame::HandleSpecialKeys(wxKeyEvent& event)
+{
+    if (event.GetSkipped()) return false;
+
+    wxChar uc = event.GetUnicodeKey();
+
+    if (event.GetKeyCode() == WXK_DELETE)
+    {
+        DeleteSelectedItem();
+        event.Skip();
+        return true;
+    }
+    else if (uc == (wxChar)WXK_CONTROL_C || uc == 'C' || uc == 'c')
+    {
+        if (event.CmdDown() || event.ControlDown()) {
+            DoCopy();
+            event.Skip();
+            return true;
+        }
+    }
+    else if (uc == (wxChar)WXK_CONTROL_V || uc == 'V' || uc == 'v')
+    {
+        if (event.CmdDown() || event.ControlDown()) {
+            DoPaste();
+            event.Skip();
+            return true;
+        }
+    }
+    return false;
 }
 
 bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
 {
+    if (event.GetSkipped()) return false;
+
     auto bs = __schedule->GetOptions()->GetButtons();
 
     for (auto it = bs.begin(); it != bs.end(); ++it)

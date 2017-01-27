@@ -1357,6 +1357,63 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
         }
         data += "]}";
     }
+    else if (command == "GetPlayListSchedules")
+    {
+        PlayList* p = GetPlayList(parameters);
+        if (p != nullptr)
+        {
+            data = "{\"schedules\":[";
+            auto scheds = p->GetSchedules();
+            for (auto it = scheds.begin(); it != scheds.end(); ++it)
+            {
+                if (it != scheds.begin())
+                {
+                    data += ",";
+                }
+                data += (*it)->GetJSON();
+            }
+            data += "]}";
+        }
+        else
+        {
+            data = "{\"schedules\":[]}";
+            result = false;
+            msg = "Playlist '" + parameters + "' not found.";
+        }
+    }
+    else if (command == "GetPlayListSchedule")
+    {
+        wxArrayString plsc = wxSplit(parameters, ',');
+
+        if (plsc.Count() == 2)
+        {
+            PlayList* p = GetPlayList(plsc[0].ToStdString());
+            if (p != nullptr)
+            {
+                Schedule* schedule = p->GetSchedule(plsc[1].ToStdString());
+
+                if (schedule != nullptr)
+                {
+                    data = schedule->GetJSON();
+                }
+                else
+                {
+                    result = false;
+                    msg = "Playlist '" + plsc[0] + "' does not have a schedule '"+plsc[1]+"'.";
+                }
+            }
+            else
+            {
+                result = false;
+                msg = "Playlist '" + plsc[0] + "' not found.";
+            }
+        }
+        else
+        {
+            result = false;
+            msg = "Incorrect parameters. Playlist and schedule expected: " + parameters;
+        }
+    }
     else if (command == "GetPlayingStatus")
     {
         PlayList* p = GetRunningPlayList();
@@ -1384,6 +1441,8 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 nextsong = next->GetNameNoTime();
             }
 
+            RunningSchedule* rs = GetRunningSchedule();
+
             data = "{\"status\":\"" + std::string(p->IsPaused() ? "paused" : "playing") + 
                 "\",\"playlist\":\"" + p->GetNameNoTime() +
                 "\",\"playlistid\":\"" + wxString::Format(wxT("%i"), p->GetId()).ToStdString() +
@@ -1398,6 +1457,9 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"position\":\"" + FormatTime(p->GetRunningStep()->GetPosition()) +
                 "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) + 
                 "\",\"trigger\":\"" + std::string(IsCurrentPlayListScheduled() ? "scheduled": (_immediatePlay != nullptr) ? "manual" : "queued") +
+                "\",\"schedulename\":\"" + std::string((IsCurrentPlayListScheduled() && rs != nullptr) ? rs->GetSchedule()->GetName() : "N/A") +
+                "\",\"scheduleend\":\"" + std::string((IsCurrentPlayListScheduled() && rs != nullptr) ? rs->GetSchedule()->GetNextEndTime() : "N/A") +
+                "\",\"scheduleid\":\"" + std::string((IsCurrentPlayListScheduled() && rs != nullptr) ? wxString::Format(wxT("%i"), rs->GetSchedule()->GetId()).ToStdString()  : "N/A") +
                 "\",\"nextstep\":\"" + nextsong +
                 "\",\"version\":\"" + xlights_version_string +
                 "\",\"queuelength\":\"" + wxString::Format(wxT("%i"), _queuedSongs->GetSteps().size()) +
@@ -1735,4 +1797,14 @@ void ScheduleManager::CloseFPPSyncSendSocket()
         delete _fppSync;
         _fppSync = nullptr;
     }
+}
+
+PlayList* ScheduleManager::GetPlayList(int id) const
+{
+    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+    {
+        if ((*it)->GetId() == id) return *it;
+    }
+
+    return nullptr;
 }
