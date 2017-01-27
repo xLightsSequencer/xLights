@@ -559,7 +559,7 @@ void xScheduleFrame::LoadSchedule()
         delete _webServer;
         _webServer = nullptr;
     }
-    _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly());
+    _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly(), __schedule->GetOptions()->GetPassword(), __schedule->GetOptions()->GetPasswordTimeout());
 
     if (wxFile::Exists(_showDir + "/xlights_networks.xml"))
     {
@@ -1082,11 +1082,14 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
         if (oldport != __schedule->GetOptions()->GetWebServerPort())
         {
             delete _webServer;
-            _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly());
+            _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly(),
+                __schedule->GetOptions()->GetPassword(), __schedule->GetOptions()->GetPasswordTimeout());
         }
         else
         {
             _webServer->SetAPIOnly(__schedule->GetOptions()->GetAPIOnly());
+            _webServer->SetPassword(__schedule->GetOptions()->GetPassword());
+            _webServer->SetPasswordTimeout(__schedule->GetOptions()->GetPasswordTimeout());
         }
 
         __schedule->OptionsChanged();

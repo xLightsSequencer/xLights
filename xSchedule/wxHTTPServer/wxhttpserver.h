@@ -24,8 +24,8 @@
 #include <wx/dynarray.h>
 #include <wx/hash.h>
 
-#define SERVER_NAME    "wx HTTP Web Server"
-#define SERVER_VERSION "0.1"
+#define SERVER_NAME    "xLights Web Server"
+#define SERVER_VERSION "1.0"
 
 // server can be extended to allow using IPv6 sockets
 #if wxUSE_IPV6

@@ -29,6 +29,10 @@ const long OptionsDialog::ID_BUTTON7 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT4 = wxNewId();
 const long OptionsDialog::ID_TEXTCTRL1 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX1 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT5 = wxNewId();
+const long OptionsDialog::ID_TEXTCTRL2 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT6 = wxNewId();
+const long OptionsDialog::ID_SPINCTRL2 = wxNewId();
 const long OptionsDialog::ID_BUTTON1 = wxNewId();
 const long OptionsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -73,7 +77,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	SpinCtrl_WebServerPort = new wxSpinCtrl(this, ID_SPINCTRL1, _T("80"), wxDefaultPosition, wxDefaultSize, 0, 1, 64000, 80, _T("ID_SPINCTRL1"));
 	SpinCtrl_WebServerPort->SetValue(_T("80"));
 	FlexGridSizer7->Add(SpinCtrl_WebServerPort, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer3->AddGrowableCol(1);
 	FlexGridSizer3->AddGrowableRow(0);
@@ -89,7 +93,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	Button_DeleteProjector = new wxButton(this, ID_BUTTON3, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	FlexGridSizer4->Add(Button_DeleteProjector, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
 	FlexGridSizer5->AddGrowableRow(0);
@@ -105,7 +109,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	Button_ButtonDelete = new wxButton(this, ID_BUTTON7, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
 	FlexGridSizer6->Add(Button_ButtonDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer8->AddGrowableCol(1);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Web Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
@@ -116,7 +120,16 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	CheckBox_APIOnly = new wxCheckBox(this, ID_CHECKBOX1, _("API Only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_APIOnly->SetValue(false);
 	FlexGridSizer8->Add(CheckBox_APIOnly, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Password:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	FlexGridSizer8->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Password = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+	FlexGridSizer8->Add(TextCtrl_Password, 1, wxALL|wxEXPAND, 5);
+	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Timeout (minutes):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	FlexGridSizer8->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_PasswordTimeout = new wxSpinCtrl(this, ID_SPINCTRL2, _T("30"), wxDefaultPosition, wxDefaultSize, 0, 1, 1440, 30, _T("ID_SPINCTRL2"));
+	SpinCtrl_PasswordTimeout->SetValue(_T("30"));
+	FlexGridSizer8->Add(SpinCtrl_PasswordTimeout, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	Button_Ok->SetDefault();
@@ -168,7 +181,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 
     LoadButtons();
 
-    SetSize(800, 600);
+    SetSize(800, 650);
     wxWindowBase::Layout();
 
     int namew = 150;
@@ -239,6 +252,8 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetWebServerPort(SpinCtrl_WebServerPort->GetValue());
     _options->SetWWWRoot(TextCtrl_wwwRoot->GetValue().ToStdString());
     _options->SetAPIOnly(CheckBox_APIOnly->GetValue());
+    _options->SetPassword(TextCtrl_Password->GetValue().ToStdString());
+    _options->SetPasswordTimeout(SpinCtrl_PasswordTimeout->GetValue());
     _options->SetAdvancedMode(CheckBox_SimpleMode->GetValue());
 
     _options->ClearProjectors();

@@ -10,8 +10,92 @@
 #include <wx/dir.h>
 #include "xScheduleApp.h"
 #include "ScheduleOptions.h"
+#include "md5.h"
 
 bool __apiOnly = false;
+std::string __password = "";
+std::list<std::string> __Loggedin;
+int __loginTimeout = 30;
+
+void RemoveFromValid(HttpConnection& connection)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // remove any existing entry for this machine ... one logged in entry per machine
+    for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it)
+    {
+        wxArrayString li = wxSplit(*it, '|');
+        if (li[0] == connection.Address().IPAddress())
+        {
+            logger_base.debug("Security: Removing ip %s.", (const char *)li[0].c_str());
+            __Loggedin.remove(*it);
+            break;
+        }
+    }
+}
+
+void AddToValid(HttpConnection& connection, const HttpHeaders& headers)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // remove any existing entry for this machine ... one logged in entry per machine
+    for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it)
+    {
+        wxArrayString li = wxSplit(*it, '|');
+        if (li[0] == connection.Address().IPAddress())
+        {
+            logger_base.debug("Security: Removing ip %s.", (const char *)li[0].c_str());
+            __Loggedin.remove(*it);
+            break;
+        }
+    }
+
+    std::string security = connection.Address().IPAddress().ToStdString() + "|" + headers["User-Agent"].ToStdString() + "|" + wxDateTime::Now().FormatISOCombined().ToStdString();
+
+    logger_base.debug("Security: Adding record %s.", (const char *)security.c_str());
+    __Loggedin.push_back(security);
+}
+
+bool CheckLoggedIn(HttpConnection& connection, const HttpHeaders& headers)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (__password == "") return true; // no password ... always logged in
+
+    // remove old logins
+    std::list<std::string> toremove;
+    for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it)
+    {
+        wxArrayString li = wxSplit(*it, '|');
+        wxDateTime lastused;
+        lastused.ParseISOCombined(li[2]);
+        if (wxDateTime::Now() - lastused > __loginTimeout * 60000)
+        {
+            logger_base.debug("Security: Removing ip %s due to timout.", (const char *)li[0].c_str());
+            toremove.push_back(*it);
+        }
+    }
+    for (auto it = toremove.begin(); it != toremove.end(); ++it)
+    {
+        __Loggedin.remove(*it);
+    }
+
+    for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it)
+    {
+        wxArrayString li = wxSplit(*it, '|');
+
+        if (li[0] == connection.Address().IPAddress())
+        {
+            if (li[1] == headers["User-Agent"])
+            {
+                li[2] = wxDateTime::Now().FormatISOCombined();
+                *it = li[0] + "|" + li[1] + "|" + li[2];
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
 
 std::map<std::string, std::string> ParseURI(std::string uri)
 {
@@ -46,6 +130,8 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
     if (request.URI().StartsWith("/xScheduleCommand"))
     {
+        if (!CheckLoggedIn(connection, request.Headers())) return false;
+
         wxURI url(request.URI());
 
         std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
@@ -75,8 +161,54 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         connection.SendResponse(response);
         return true;
     }
+    else if (request.URI().StartsWith("/xScheduleLogin"))
+    {
+        if (__password != "")
+        {
+            wxURI url(request.URI());
+
+            std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
+
+            std::string credential = parms["Credential"];
+
+            std::string cred = connection.Address().IPAddress().ToStdString() + __password;
+
+            // calculate md5 hash
+            std::string hash = md5(cred);
+
+            HttpResponse response(connection, request, HttpStatus::OK);
+            if (hash == credential)
+            {
+                // this is a valid login
+                AddToValid(connection, request.Headers());
+                response.MakeFromText("{\"result\":\"ok\"}", "application/json");
+                // THIS SHOULD BE REMOVED
+                logger_base.debug("Security: Login %s success.", (const char *)credential.c_str());
+            }
+            else
+            {
+                // not a valid login
+                // THIS SHOULD BE REMOVED
+                logger_base.debug("Security: Login failed - credential was %s when it should have been %s.", (const char *)credential.c_str(), (const char *)hash.c_str());
+                RemoveFromValid(connection);
+                std::string data = "{\"result\":\"failed\",\"message\":\"Login failed.\"}";
+                response.MakeFromText(data, "application/json");
+            }
+            connection.SendResponse(response);
+            return true;
+        }
+        else
+        {
+            HttpResponse response(connection, request, HttpStatus::OK);
+            response.MakeFromText("{\"result\":\"ok\"}", "application/json");
+            connection.SendResponse(response);
+            return true;
+        }
+    }
     else if (request.URI().StartsWith("/xScheduleStash"))
     {
+        if (!CheckLoggedIn(connection, request.Headers())) return false;
+
         wxURI url(request.URI());
 
         std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
@@ -138,6 +270,8 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     }
     else if (request.URI().StartsWith("/xScheduleQuery"))
     {
+        if (!CheckLoggedIn(connection, request.Headers())) return false;
+
         wxURI url(request.URI());
 
         std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
@@ -170,6 +304,8 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     }
     else if (!__apiOnly && request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/")
     {
+        if (!CheckLoggedIn(connection, request.Headers())) return false;
+
         int port = connection.Server()->Context().Port;
 
         // Chris if you need this line to be this way on linux then use a #ifdef as the other works on windows
@@ -187,6 +323,8 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     }
     else
     {
+        if (!CheckLoggedIn(connection, request.Headers())) return false;
+
         if (!__apiOnly && request.URI().StartsWith("/" + wwwroot))
         {
             wxString d;
@@ -240,9 +378,11 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
     }
 }
 
-WebServer::WebServer(int port, bool apionly)
+WebServer::WebServer(int port, bool apionly, const std::string& password, int mins)
 {
     __apiOnly = apionly; // put this in a global.
+    __password = password;
+    __loginTimeout = mins;
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -268,4 +408,14 @@ WebServer::~WebServer()
 void WebServer::SetAPIOnly(bool apiOnly)
 {
     __apiOnly = apiOnly;
+}
+
+void WebServer::SetPasswordTimeout(int mins)
+{
+    __loginTimeout = mins;
+}
+
+void WebServer::SetPassword(const std::string& password)
+{
+    __password = password;
 }

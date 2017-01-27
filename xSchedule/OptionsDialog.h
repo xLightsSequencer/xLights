@@ -41,11 +41,13 @@ class OptionsDialog: public wxDialog
 		wxStaticText* StaticText2;
 		wxListView* ListView_Buttons;
 		wxButton* Button_ButtonAdd;
+		wxStaticText* StaticText6;
 		wxButton* Button_DeleteProjector;
 		wxListView* ListView_Projectors;
 		wxCheckBox* CheckBox_Sync;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
+		wxStaticText* StaticText5;
 		wxButton* Button_Cancel;
 		wxCheckBox* CheckBox_APIOnly;
 		wxButton* Button_ProjectorEdit;
@@ -53,6 +55,8 @@ class OptionsDialog: public wxDialog
 		wxCheckBox* CheckBox_SimpleMode;
 		wxStaticText* StaticText4;
 		wxButton* Button_ButtonEdit;
+		wxTextCtrl* TextCtrl_Password;
+		wxSpinCtrl* SpinCtrl_PasswordTimeout;
 		wxCheckBox* CheckBox_SendOffWhenNotRunning;
 		//*)
 
@@ -77,6 +81,10 @@ class OptionsDialog: public wxDialog
 		static const long ID_STATICTEXT4;
 		static const long ID_TEXTCTRL1;
 		static const long ID_CHECKBOX1;
+		static const long ID_STATICTEXT5;
+		static const long ID_TEXTCTRL2;
+		static const long ID_STATICTEXT6;
+		static const long ID_SPINCTRL2;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

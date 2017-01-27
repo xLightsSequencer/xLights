@@ -18,6 +18,8 @@ class ScheduleOptions
     bool _webAPIOnly;
     int _port;
     std::string _wwwRoot;
+    std::string _password;
+    int _passwordTimeout;
     std::map<std::string, std::string> _projectorIPs;
     std::map<std::string, std::string> _projectorPasswords;
     std::vector<UserButton*> _buttons;
@@ -52,7 +54,11 @@ class ScheduleOptions
         void SetWWWRoot(const std::string& wwwRoot) { if (_wwwRoot != wwwRoot) { _wwwRoot = wwwRoot; _changeCount++; } }
         void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey);
         bool GetAPIOnly() const { return _webAPIOnly; }
+        std::string GetPassword() const { return _password; }
+        int GetPasswordTimeout() const { return _passwordTimeout; }
         void SetAPIOnly(bool apiOnly) { if (_webAPIOnly != apiOnly) { _webAPIOnly = apiOnly; _changeCount++; } }
+        void SetPasswordTimeout(int passwordTimeout) { if (_passwordTimeout != passwordTimeout) { _passwordTimeout = passwordTimeout; _changeCount++; } }
+        void SetPassword(const std::string& password) { if (_password != password) { _password = password; _changeCount++; } }
 };
 
 #endif

@@ -12,7 +12,9 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
+    _passwordTimeout = wxAtoi(node->GetAttribute("PasswordTimeout", "30"));
     _wwwRoot = node->GetAttribute("WWWRoot", "xScheduleWeb");
+    _password = node->GetAttribute("Password", "");
 
     for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
     {
@@ -40,6 +42,8 @@ void ScheduleOptions::AddButton(const std::string& label, const std::string& com
 
 ScheduleOptions::ScheduleOptions()
 {
+    _password = "";
+    _passwordTimeout = 30;
     _wwwRoot = "xScheduleWeb";
     _port = 80;
     _webAPIOnly = false;
@@ -64,6 +68,7 @@ wxXmlNode* ScheduleOptions::Save()
     wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Options");
 
     res->AddAttribute("WWWRoot", _wwwRoot);
+    res->AddAttribute("Password", _password);
     if (IsSync())
     {
         res->AddAttribute("Sync", "TRUE");
@@ -85,6 +90,7 @@ wxXmlNode* ScheduleOptions::Save()
     }
 
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));
+    res->AddAttribute("PasswordTimeout", wxString::Format(wxT("%i"), _passwordTimeout));
 
     for (auto it = _projectorIPs.begin(); it != _projectorIPs.end(); ++it)
     {
