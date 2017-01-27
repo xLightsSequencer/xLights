@@ -293,7 +293,8 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         HttpResponse response(connection, request, HttpStatus::OK);
         if (xScheduleFrame::GetScheduleManager()->Query(query, parameters, data, msg))
         {
-            logger_base.info("    data = '%s'.", (const char *)data.c_str());
+            if (query != "GetPlayingStatus")
+                logger_base.info("    data = '%s'.", (const char *)data.c_str());
 
             response.MakeFromText(data, "application/json");
         }
