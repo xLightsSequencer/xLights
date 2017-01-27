@@ -55,7 +55,7 @@ void AddToValid(HttpConnection& connection, const HttpHeaders& headers)
     __Loggedin.push_back(security);
 }
 
-bool CheckLoggedIn(HttpConnection& connection, const HttpHeaders& headers)
+bool CheckLoggedIn(HttpConnection& connection, HttpRequest &request)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -85,7 +85,7 @@ bool CheckLoggedIn(HttpConnection& connection, const HttpHeaders& headers)
 
         if (li[0] == connection.Address().IPAddress())
         {
-            if (li[1] == headers["User-Agent"])
+            if (li[1] == request.Headers()["User-Agent"])
             {
                 li[2] = wxDateTime::Now().FormatISOCombined();
                 *it = li[0] + "|" + li[1] + "|" + li[2];
@@ -93,6 +93,11 @@ bool CheckLoggedIn(HttpConnection& connection, const HttpHeaders& headers)
             }
         }
     }
+
+    HttpResponse response(connection, request, HttpStatus::OK);
+    std::string data = "{\"result\":\"not logged in\"}";
+    response.MakeFromText(data, "application/json");
+    connection.SendResponse(response);
 
     return false;
 }
@@ -130,7 +135,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
     if (request.URI().StartsWith("/xScheduleCommand"))
     {
-        if (!CheckLoggedIn(connection, request.Headers())) return false;
+        if (!CheckLoggedIn(connection, request)) return true;
 
         wxURI url(request.URI());
 
@@ -207,7 +212,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     }
     else if (request.URI().StartsWith("/xScheduleStash"))
     {
-        if (!CheckLoggedIn(connection, request.Headers())) return false;
+        if (!CheckLoggedIn(connection, request)) return true;
 
         wxURI url(request.URI());
 
@@ -270,7 +275,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     }
     else if (request.URI().StartsWith("/xScheduleQuery"))
     {
-        if (!CheckLoggedIn(connection, request.Headers())) return false;
+        if (!CheckLoggedIn(connection, request)) return true;
 
         wxURI url(request.URI());
 
@@ -304,8 +309,6 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     }
     else if (!__apiOnly && request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/")
     {
-        if (!CheckLoggedIn(connection, request.Headers())) return false;
-
         int port = connection.Server()->Context().Port;
 
         // Chris if you need this line to be this way on linux then use a #ifdef as the other works on windows
@@ -323,8 +326,6 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     }
     else
     {
-        if (!CheckLoggedIn(connection, request.Headers())) return false;
-
         if (!__apiOnly && request.URI().StartsWith("/" + wwwroot))
         {
             wxString d;
