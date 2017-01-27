@@ -921,7 +921,6 @@ private:
 
     void OnProgressBarDoubleClick(wxMouseEvent& event);
     std::list<RenderProgressInfo *>renderProgressInfo;
-    RenderProgressDialog *renderProgressDialog;
 
     wxString mediaFilename;
     wxString showDirectory;

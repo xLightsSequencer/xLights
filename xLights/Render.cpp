@@ -196,7 +196,7 @@ public:
     RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false)
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), deleteWhenComplete(false),
             gauge(nullptr), currentFrame(0), renderLog(log4cpp::Category::getInstance(std::string("log_render"))),
-            clearAllFrames(false), supportsModelBlending(false)
+            clearAllFrames(false), supportsModelBlending(false), abort(false)
     {
         if (row != NULL) {
             name = row->GetModelName();
@@ -520,6 +520,9 @@ public:
                         }
                     }
                 }
+                if (abort) {
+                    break;
+                }
 
                 if (!HasNext() &&
                         (origChangeCount != rowToRender->getChangeCount()
@@ -609,6 +612,11 @@ public:
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
 		renderLog.debug("Rendering thread exiting.");
 	}
+    void AbortRender() {
+        std::unique_lock<std::mutex> lock(nextLock);
+        abort = true;
+    }
+    
 
 private:
 
@@ -662,7 +670,6 @@ private:
         effect->CopySettingsMap(settingsMap, true);
     }
 
-
     ModelElement *rowToRender;
     std::string name;
     int startFrame;
@@ -690,6 +697,7 @@ private:
 
     wxGauge *gauge;
     int currentFrame;
+    bool abort;
 
     std::vector<EffectLayerInfo *> subModelInfos;
 
@@ -725,6 +733,8 @@ public:
     int endFrame;
     RenderJob **jobs;
     AggregatorRenderer **aggregators;
+    RenderProgressDialog *renderProgressDialog;
+    Model *restriction;
 };
 
 static bool HasEffects(ModelElement *me) {
@@ -748,6 +758,17 @@ static bool HasEffects(ModelElement *me) {
     return false;
 }
 
+void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent &evt) {
+    if (renderProgressInfo.empty()) {
+        return;
+    }
+    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end(); it++) {
+        if ((*it)->renderProgressDialog) {
+            (*it)->renderProgressDialog->Show();
+            return;
+        }
+    }
+}
 void xLightsFrame::UpdateRenderStatus() {
     if (renderProgressInfo.empty()) {
         return;
@@ -755,10 +776,12 @@ void xLightsFrame::UpdateRenderStatus() {
 
     int countModels = 0;
     int countFrames = 0;
-    bool shown = renderProgressDialog == nullptr ? false : renderProgressDialog->IsShown();
-    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end();) {
+        for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end();) {
+        
         bool done = true;
         RenderProgressInfo *rpi = *it;
+        bool shown = rpi->renderProgressDialog == nullptr ? false : rpi->renderProgressDialog->IsShown();
+
         int frames = rpi->endFrame - rpi->startFrame + 1;
         for (size_t row = 0; row < rpi->numRows; row++) {
             
@@ -797,8 +820,10 @@ void xLightsFrame::UpdateRenderStatus() {
                 }
                 delete rpi->aggregators[row];
             }
-            delete renderProgressDialog;
-            renderProgressDialog = nullptr;
+            if (rpi->renderProgressDialog) {
+                delete rpi->renderProgressDialog;
+                rpi->renderProgressDialog = nullptr;
+            }
             RenderDone();
             delete []rpi->jobs;
             delete []rpi->aggregators;
@@ -988,7 +1013,7 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
         }
     }
     channelMaps.clear();
-    
+    RenderProgressDialog *renderProgressDialog = nullptr;
     if (progressDialog) {
         renderProgressDialog = new RenderProgressDialog(this);
     }
@@ -1038,10 +1063,15 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
         pi->startFrame = startFrame;
         pi->endFrame = endFrame;
         pi->jobs = jobs;
+        pi->renderProgressDialog = renderProgressDialog;
+        pi->restriction = restrictToModel;
         pi->aggregators = aggregators;
         renderProgressInfo.push_back(pi);
     } else {
         callback();
+        if (progressDialog) {
+            delete renderProgressDialog;
+        }
     }
 }
 void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
@@ -1057,6 +1087,15 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
     std::list<Model *> models;
     for (auto it = renderTree.data.begin(); it != renderTree.data.end(); it++) {
         models.push_back((*it)->model);
+    }
+    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end(); it++) {
+        //we're going to render EVERYTHING, abort whatever is rendering
+        RenderProgressInfo *rpi = (*it);
+        for (size_t row = 0; row < rpi->numRows; row++) {
+            if (rpi->jobs[row]) {
+               rpi->jobs[row]->AbortRender();
+            }
+        }
     }
     Render(models, nullptr, 0, SeqData.NumFrames() - 1, true, false, std::move(callback));
 }
@@ -1074,6 +1113,25 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
     }
     for (auto it = renderTree.data.begin(); it != renderTree.data.end(); it++) {
         if ((*it)->model->GetName() == model) {
+            
+            for (auto it2 = renderProgressInfo.begin(); it2 != renderProgressInfo.end(); it2++) {
+                //we're going to render this model, abort whatever is rendering and accumulate the frames
+                RenderProgressInfo *rpi = (*it2);
+                if ((*it)->model == rpi->restriction) {
+                    if (startframe > rpi->startFrame) {
+                        startframe = rpi->startFrame;
+                    }
+                    if (endframe < rpi->endFrame) {
+                        endframe = rpi->endFrame;
+                    }
+                    for (size_t row = 0; row < rpi->numRows; row++) {
+                        if (rpi->jobs[row]) {
+                            rpi->jobs[row]->AbortRender();
+                        }
+                    }
+                }
+            }
+            
             Render((*it)->renderOrder, (*it)->model, startframe, endframe, false, true, [] {});
         }
     }

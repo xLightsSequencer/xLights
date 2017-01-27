@@ -881,11 +881,7 @@ void xLightsFrame::SaveAsSequence()
     SaveSequence();
     SetTitle(xlights_base_name + " - " + NewFilename);
 }
-void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent &evt) {
-    if (renderProgressDialog) {
-        renderProgressDialog->Show();
-    }
-}
+
 void xLightsFrame::RenderAll()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
