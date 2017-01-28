@@ -188,13 +188,15 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
                 AddToValid(connection, request.Headers());
                 response.MakeFromText("{\"result\":\"ok\"}", "application/json");
                 // THIS SHOULD BE REMOVED
-                logger_base.debug("Security: Login %s success.", (const char *)credential.c_str());
+                //logger_base.debug("Security: Login %s success.", (const char *)credential.c_str());
+                logger_base.debug("Security: Login success %s.", (const char *)connection.Address().IPAddress().c_str());
             }
             else
             {
                 // not a valid login
                 // THIS SHOULD BE REMOVED
-                logger_base.debug("Security: Login failed - credential was %s for %s when it should have been %s.", (const char *)credential.c_str(), (const char *)cred.c_str(), (const char *)hash.c_str());
+                //logger_base.debug("Security: Login failed - credential was %s for %s when it should have been %s.", (const char *)credential.c_str(), (const char *)cred.c_str(), (const char *)hash.c_str());
+                logger_base.debug("Security: Login failed.");
                 RemoveFromValid(connection);
                 std::string data = "{\"result\":\"failed\",\"message\":\"Login failed.\",\"ip\":\""+ connection.Address().IPAddress().ToStdString() +"\"}";
                 response.MakeFromText(data, "application/json");

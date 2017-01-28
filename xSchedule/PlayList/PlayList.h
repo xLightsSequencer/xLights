@@ -21,6 +21,8 @@ protected:
     int _changeCount;
     std::string _name;
     bool _stopAtEndOfCurrentStep;
+    std::string _commandAtEndOfCurrentStep;
+    std::string _commandParametersAtEndOfCurrentStep;
     bool _firstOnlyOnce;
     bool _lastOnlyOnce;
     PlayListStep* _currentStep;
@@ -54,6 +56,7 @@ public:
 
     #pragma region Getters and Setters
     void RemoveEmptySteps();
+    void SetCommandAtEndOfCurrentStep(const std::string& command, const std::string& parameters) { _commandAtEndOfCurrentStep = command; _commandParametersAtEndOfCurrentStep = parameters; }
     wxUint32 GetId() const { return _id; }
     bool IsFinishingUp() const { return _jumpToEndStepsAtEndOfCurrentStep; }
     void JumpToStepAtEndOfCurrentStep(const std::string& step) { _forceNextStep = step; }

@@ -255,6 +255,7 @@ END_EVENT_TABLE()
 
 wxDEFINE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_STATUSMSG, wxCommandEvent);
+wxDEFINE_EVENT(EVT_RUNACTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
@@ -262,6 +263,7 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     //*)
     EVT_COMMAND(wxID_ANY, EVT_FRAMEMS, xScheduleFrame::RateNotification)
     EVT_COMMAND(wxID_ANY, EVT_STATUSMSG, xScheduleFrame::StatusMsgNotification)
+    EVT_COMMAND(wxID_ANY, EVT_RUNACTION, xScheduleFrame::RunAction)
     EVT_COMMAND(wxID_ANY, EVT_SCHEDULECHANGED, xScheduleFrame::ScheduleChange)
     END_EVENT_TABLE()
 
@@ -460,6 +462,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     Connect(wxID_ANY, EVT_FRAMEMS, (wxObjectEventFunction)&xScheduleFrame::RateNotification);
     Connect(wxID_ANY, EVT_STATUSMSG, (wxObjectEventFunction)&xScheduleFrame::StatusMsgNotification);
+    Connect(wxID_ANY, EVT_RUNACTION, (wxObjectEventFunction)&xScheduleFrame::RunAction);
     Connect(wxID_ANY, EVT_SCHEDULECHANGED, (wxObjectEventFunction)&xScheduleFrame::ScheduleChange);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
@@ -1193,6 +1196,22 @@ void xScheduleFrame::RateNotification(wxCommandEvent& event)
 void xScheduleFrame::StatusMsgNotification(wxCommandEvent& event)
 {
     SetTempMessage(event.GetString().ToStdString());
+}
+
+void xScheduleFrame::RunAction(wxCommandEvent& event)
+{
+    wxArrayString a = wxSplit(event.GetString(), '|');
+
+    if (a.Count() == 2)
+    {
+        size_t rate;
+        std::string msg;
+        __schedule->Action(a[0].ToStdString(), a[1].ToStdString(), nullptr, nullptr, rate, msg);
+        if (msg != "")
+        {
+            SetTempMessage(msg);
+        }
+    }
 }
 
 void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)

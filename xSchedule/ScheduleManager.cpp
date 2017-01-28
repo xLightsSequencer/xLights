@@ -89,7 +89,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
 
     if (backgroundPlayList != "")
     {
-        _backgroundPlayList = GetPlayList(backgroundPlayList);
+        _backgroundPlayList = new PlayList(*GetPlayList(backgroundPlayList));
     }
 
     if (_scheduleOptions == nullptr)
@@ -1092,6 +1092,27 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             else if (command == "Save schedule")
             {
                 Save();
+            }
+            else if (command == "Run command at end of current step")
+            {
+                PlayList* p = GetRunningPlayList();
+
+                if (p != nullptr)
+                {
+                    wxArrayString parms = wxSplit(parameters, ',');
+
+                    if (parms.Count() > 0)
+                    {
+                        std::string newparms = "";
+                        for (auto i = 1; i < parms.Count(); i++)
+                        {
+                            if (newparms != "") newparms += ",";
+                            newparms += parms[i].ToStdString();
+                        }
+
+                        p->SetCommandAtEndOfCurrentStep(parms[0].ToStdString(), newparms);
+                    }
+                }
             }
             else if (command == "Restart selected schedule")
             {

@@ -42,6 +42,7 @@ class VolumeDisplay;
 wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_RUNACTION, wxCommandEvent);
 
 class xScheduleFrame : public wxFrame
 {
@@ -147,6 +148,7 @@ public:
         void OnButton_UserClick(wxCommandEvent& event);
         void RateNotification(wxCommandEvent& event);
         void StatusMsgNotification(wxCommandEvent& event);
+        void RunAction(wxCommandEvent& event);
         void ScheduleChange(wxCommandEvent& event);
 
         //(*Identifiers(xScheduleFrame)

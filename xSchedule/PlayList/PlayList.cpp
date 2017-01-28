@@ -6,6 +6,8 @@
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
 #include "PlayListSimpleDialog.h"
+#include "../xScheduleMain.h"
+#include "../xScheduleApp.h"
 
 int __playlistid = 0;
 
@@ -16,6 +18,8 @@ bool compare_sched(const Schedule* first, const Schedule* second)
 
 PlayList::PlayList(wxXmlNode* node)
 {
+    _commandAtEndOfCurrentStep = "";
+    _commandParametersAtEndOfCurrentStep = "";
     _loops = -1;
     _id = __playlistid++;
     _forceNextStep = "";
@@ -40,11 +44,12 @@ void PlayList::ForgetChildren()
 {
     _steps.clear();
     _schedules.clear();
-
 }
 
 PlayList& PlayList::operator=(PlayList& playlist)
 {
+    _commandAtEndOfCurrentStep = "";
+    _commandParametersAtEndOfCurrentStep = "";
     _lastSavedChangeCount = playlist._lastSavedChangeCount;
     _changeCount = playlist._changeCount;
     _firstOnlyOnce = playlist._firstOnlyOnce;
@@ -73,6 +78,8 @@ PlayList& PlayList::operator=(PlayList& playlist)
 
 PlayList::PlayList(const PlayList& playlist, bool newid)
 {
+    _commandAtEndOfCurrentStep = "";
+    _commandParametersAtEndOfCurrentStep = "";
     _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
     _loopStep = false;
@@ -112,6 +119,8 @@ PlayList::PlayList(const PlayList& playlist, bool newid)
 
 PlayList::PlayList()
 {
+    _commandAtEndOfCurrentStep = "";
+    _commandParametersAtEndOfCurrentStep = "";
     _loops = -1;
     _id = __playlistid++;
     _forceNextStep = "";
@@ -665,6 +674,20 @@ bool PlayList::MoveToNextStep()
     if (_currentStep == nullptr) return false;
 
     _currentStep->Stop();
+
+    if (_commandAtEndOfCurrentStep != "")
+    {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("Step completed so running command: '%s' parameters: '%s'.", (const char *)_commandAtEndOfCurrentStep.c_str(), (const char *)_commandParametersAtEndOfCurrentStep.c_str());
+
+        wxCommandEvent event(EVT_RUNACTION);
+        event.SetString(_commandAtEndOfCurrentStep + "|" + _commandParametersAtEndOfCurrentStep);
+        wxPostEvent(wxGetApp().GetTopWindow(), event);
+
+        _commandAtEndOfCurrentStep = "";
+        _commandParametersAtEndOfCurrentStep = "";
+    }
+
     bool didloop;
     _currentStep = GetNextStep(didloop);
     if (didloop) DoLoop();

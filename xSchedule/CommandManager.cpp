@@ -24,7 +24,7 @@ bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* s
 {
     auto components = wxSplit(parms, ',');
 
-    if (components.Count() != _parms)
+    if (_parms != -1 && components.Count() != _parms)
     {
         msg = wxString::Format("Invalid number of parameters. Found %d when there should be %d.", components.Count(), _parms).ToStdString();
         return false;
@@ -70,6 +70,7 @@ bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* s
 
     for (int i = 0; i < _parms; i++)
     {
+
         if (_parmtype[i] == PARMTYPE::INTEGER && !components[i].IsNumber())
         {
             msg = wxString::Format("Parameter %d: '%s' is not a number.", i + 1, components[i].c_str()).ToStdString();
@@ -146,6 +147,7 @@ CommandManager::CommandManager()
     PARMTYPE i[] = { PARMTYPE::INTEGER };
     PARMTYPE s[] = { PARMTYPE::STRING };
     PARMTYPE sch[] = { PARMTYPE::SCHEDULE };
+    PARMTYPE c[] = { PARMTYPE::COMMAND };
 
     _commands.push_back(new Command("Stop all now", 0, {}, false, false, true, false, false, true));
     _commands.push_back(new Command("Stop", 0,{}, false, false, true, false, false, false));
@@ -191,5 +193,6 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Enqueue playlist step", 2, plst, false, false, false, false, false, true));
     _commands.push_back(new Command("Clear playlist queue", 0, {}, false, false, true, false, false, true));
     _commands.push_back(new Command("Refresh current playlist", 0, {}, false, false, true, false, false, false)); // this is called to load a changed playlist that is currently playing
+    _commands.push_back(new Command("Run command at end of current step", -1, {}, false, false, true, false, false, true)); // this is called to run a command but only at the end of the current step
 }
 
