@@ -38,6 +38,7 @@ public:
     void SetBlendMode(int blendMode) { if (_applyMethod != (APPLYMETHOD)blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; } }
     virtual size_t GetDurationMS(size_t frameMS) const override;
     virtual std::string GetTitle() const override;
+    virtual std::list<std::string> GetMissingFiles() const override;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

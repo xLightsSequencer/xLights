@@ -30,6 +30,7 @@
 #include "UserButton.h"
 #include "OutputProcessingDialog.h"
 #include <wx/clipbrd.h>
+#include "BackgroundPlaylistDialog.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -122,6 +123,7 @@ const long xScheduleFrame::ID_MNU_SAVE = wxNewId();
 const long xScheduleFrame::idMenuQuit = wxNewId();
 const long xScheduleFrame::ID_MNU_MNUADDPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MENUITEM1 = wxNewId();
+const long xScheduleFrame::ID_MNU_BACKGROUND = wxNewId();
 const long xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
 const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
 const long xScheduleFrame::ID_MNU_OPTIONS = wxNewId();
@@ -136,10 +138,12 @@ const long xScheduleFrame::ID_TIMER2 = wxNewId();
 //*)
 
 const long xScheduleFrame::ID_MNU_ADDPLAYLIST = wxNewId();
+const long xScheduleFrame::ID_MNU_ADDADVPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_DUPLICATEPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_SCHEDULEPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_DELETE = wxNewId();
 const long xScheduleFrame::ID_MNU_EDIT = wxNewId();
+const long xScheduleFrame::ID_MNU_EDITADV = wxNewId();
 const long xScheduleFrame::ID_BUTTON_USER = wxNewId();
 
 class BrightnessControl : public wxControl
@@ -251,6 +255,7 @@ END_EVENT_TABLE()
 
 wxDEFINE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_STATUSMSG, wxCommandEvent);
+wxDEFINE_EVENT(EVT_RUNACTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
@@ -258,6 +263,7 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     //*)
     EVT_COMMAND(wxID_ANY, EVT_FRAMEMS, xScheduleFrame::RateNotification)
     EVT_COMMAND(wxID_ANY, EVT_STATUSMSG, xScheduleFrame::StatusMsgNotification)
+    EVT_COMMAND(wxID_ANY, EVT_RUNACTION, xScheduleFrame::RunAction)
     EVT_COMMAND(wxID_ANY, EVT_SCHEDULECHANGED, xScheduleFrame::ScheduleChange)
     END_EVENT_TABLE()
 
@@ -378,12 +384,14 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu5->Append(MenuItem_AddPlayList);
     Menu_OutputProcessing = new wxMenuItem(Menu5, ID_MENUITEM1, _("&Output Processing"), wxEmptyString, wxITEM_NORMAL);
     Menu5->Append(Menu_OutputProcessing);
+    MenuItem_BackgroundPlaylist = new wxMenuItem(Menu5, ID_MNU_BACKGROUND, _("&Background Playlist"), wxEmptyString, wxITEM_CHECK);
+    Menu5->Append(MenuItem_BackgroundPlaylist);
     MenuBar1->Append(Menu5, _("&Edit"));
     Menu3 = new wxMenu();
     MenuItem_ViewLog = new wxMenuItem(Menu3, ID_MNU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_ViewLog);
-    MenuItem6 = new wxMenuItem(Menu3, ID_MNU_CHECK_SCHEDULE, _("&Check Schedule"), wxEmptyString, wxITEM_NORMAL);
-    Menu3->Append(MenuItem6);
+    MenuItem_CheckSchedule = new wxMenuItem(Menu3, ID_MNU_CHECK_SCHEDULE, _("&Check Schedule"), wxEmptyString, wxITEM_NORMAL);
+    Menu3->Append(MenuItem_CheckSchedule);
     MenuItem_Options = new wxMenuItem(Menu3, ID_MNU_OPTIONS, _("&Options"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_Options);
     MenuItem_WebInterface = new wxMenuItem(Menu3, ID_MNU_WEBINTERFACE, _("&Web Interface"), wxEmptyString, wxITEM_NORMAL);
@@ -439,7 +447,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(idMenuQuit,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnQuit);
     Connect(ID_MNU_MNUADDPLAYLIST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_AddPlayListSelected);
     Connect(ID_MENUITEM1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenu_OutputProcessingSelected);
+    Connect(ID_MNU_BACKGROUND,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected);
     Connect(ID_MNU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ViewLogSelected);
+    Connect(ID_MNU_CHECK_SCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CheckScheduleSelected);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_WEBINTERFACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
     Connect(ID_MNU_MODENORMAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
@@ -453,6 +463,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     Connect(wxID_ANY, EVT_FRAMEMS, (wxObjectEventFunction)&xScheduleFrame::RateNotification);
     Connect(wxID_ANY, EVT_STATUSMSG, (wxObjectEventFunction)&xScheduleFrame::StatusMsgNotification);
+    Connect(wxID_ANY, EVT_RUNACTION, (wxObjectEventFunction)&xScheduleFrame::RunAction);
     Connect(wxID_ANY, EVT_SCHEDULECHANGED, (wxObjectEventFunction)&xScheduleFrame::ScheduleChange);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
@@ -634,7 +645,10 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu(wxTreeEvent& event)
 
     wxMenu mnu;
     mnu.Append(ID_MNU_ADDPLAYLIST, "Add Playlist");
-
+    if (!__schedule->GetOptions()->IsAdvancedMode())
+    {
+        wxMenuItem* addadv = mnu.Append(ID_MNU_ADDADVPLAYLIST, "Add Advanced Playlist");
+    }
     wxMenuItem* sched = mnu.Append(ID_MNU_SCHEDULEPLAYLIST, "Schedule");
     if (!IsPlayList(treeitem))
     {
@@ -644,6 +658,14 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu(wxTreeEvent& event)
     wxMenuItem* del = mnu.Append(ID_MNU_DELETE, "Delete");
     wxMenuItem* duplicate = mnu.Append(ID_MNU_DUPLICATEPLAYLIST, "Duplicate");
     wxMenuItem* edit = mnu.Append(ID_MNU_EDIT, "Edit");
+    wxMenuItem* editadv = nullptr;
+    if (!__schedule->GetOptions()->IsAdvancedMode())
+    {
+        if (IsPlayList(treeitem))
+        {
+            wxMenuItem* editadv = mnu.Append(ID_MNU_EDITADV, "Edit Advanced");
+        }
+    }
 
     if (!IsPlayList(treeitem) && !IsSchedule(treeitem))
     {
@@ -668,6 +690,10 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
     {
         AddPlayList();
     }
+    else if (event.GetId() == ID_MNU_ADDADVPLAYLIST)
+    {
+        AddPlayList(true);
+    }
     else if (event.GetId() == ID_MNU_SCHEDULEPLAYLIST)
     {
         Schedule* schedule = new Schedule();
@@ -691,6 +717,10 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_EDIT)
     {
         EditSelectedItem();
+    }
+    else if (event.GetId() == ID_MNU_EDITADV)
+    {
+        EditSelectedItem(true);
     }
     else if (event.GetId() == ID_MNU_DUPLICATEPLAYLIST)
     {
@@ -1069,6 +1099,15 @@ void xScheduleFrame::ValidateWindow()
         Button_Delete->Enable(false);
         Button_Edit->Enable(false);
     }
+
+    if (__schedule->GetBackgroundPlayList() == nullptr)
+    {
+        MenuItem_BackgroundPlaylist->Check(false);
+    }
+    else
+    {
+        MenuItem_BackgroundPlaylist->Check();
+    }
 }
 
 void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
@@ -1158,6 +1197,22 @@ void xScheduleFrame::RateNotification(wxCommandEvent& event)
 void xScheduleFrame::StatusMsgNotification(wxCommandEvent& event)
 {
     SetTempMessage(event.GetString().ToStdString());
+}
+
+void xScheduleFrame::RunAction(wxCommandEvent& event)
+{
+    wxArrayString a = wxSplit(event.GetString(), '|');
+
+    if (a.Count() == 2)
+    {
+        size_t rate;
+        std::string msg;
+        __schedule->Action(a[0].ToStdString(), a[1].ToStdString(), nullptr, nullptr, rate, msg);
+        if (msg != "")
+        {
+            SetTempMessage(msg);
+        }
+    }
 }
 
 void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
@@ -1864,10 +1919,10 @@ void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void xScheduleFrame::AddPlayList()
+void xScheduleFrame::AddPlayList(bool forceadvanced)
 {
     PlayList* playlist = new PlayList();
-    if (playlist->Configure(this, __schedule->GetOptions()->IsAdvancedMode()) == nullptr)
+    if (playlist->Configure(this, forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) == nullptr)
     {
         delete playlist;
     }
@@ -1901,13 +1956,13 @@ void xScheduleFrame::OnButton_DeleteClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void xScheduleFrame::EditSelectedItem()
+void xScheduleFrame::EditSelectedItem(bool forceadvanced)
 {
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
     if (IsPlayList(treeitem))
     {
         PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-        if (playlist->Configure(this, __schedule->GetOptions()->IsAdvancedMode()) != nullptr)
+        if (playlist->Configure(this, forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) != nullptr)
         {
             TreeCtrl_PlayListsSchedules->SetItemText(treeitem, playlist->GetName());
         }
@@ -1977,4 +2032,27 @@ void xScheduleFrame::UpdateUI()
     }
 
     ValidateWindow();
+}
+
+void xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event)
+{
+    int bid = -1;
+    if (__schedule->GetBackgroundPlayList() != nullptr)
+    {
+        bid = __schedule->GetBackgroundPlayList()->GetId();
+    }
+
+    BackgroundPlaylistDialog dlg(this, bid, __schedule->GetPlayLists());
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        __schedule->SetBackgroundPlayList(__schedule->GetPlayList(bid));
+    }
+
+    ValidateWindow();
+}
+
+void xScheduleFrame::OnMenuItem_CheckScheduleSelected(wxCommandEvent& event)
+{
+    __schedule->CheckScheduleIntegrity(true);
 }

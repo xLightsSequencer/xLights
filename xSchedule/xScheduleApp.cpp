@@ -357,6 +357,8 @@ void handleCrash(void *data) {
     report->AddAll(wxDebugReport::Context_Exception);
     report->AddAll(wxDebugReport::Context_Current);
 
+    xScheduleFrame::GetScheduleManager()->CheckScheduleIntegrity(false);
+
     wxFileName fn(xScheduleFrame::GetScheduleManager()->GetShowDir(), OutputManager::GetNetworksFileName());
     if (fn.Exists()) {
         report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());

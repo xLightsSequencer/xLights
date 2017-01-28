@@ -39,6 +39,10 @@
 //(*IdInit(PlayListDialog)
 const long PlayListDialog::ID_TREECTRL1 = wxNewId();
 const long PlayListDialog::ID_STATICTEXT2 = wxNewId();
+const long PlayListDialog::ID_BUTTON3 = wxNewId();
+const long PlayListDialog::ID_BUTTON4 = wxNewId();
+const long PlayListDialog::ID_BUTTON5 = wxNewId();
+const long PlayListDialog::ID_BUTTON6 = wxNewId();
 const long PlayListDialog::ID_BUTTON1 = wxNewId();
 const long PlayListDialog::ID_BUTTON2 = wxNewId();
 const long PlayListDialog::ID_PANEL1 = wxNewId();
@@ -64,6 +68,7 @@ const long PlayListDialog::ID_MNU_ADDCOMMAND = wxNewId();
 const long PlayListDialog::ID_MNU_ADDPROCESS = wxNewId();
 const long PlayListDialog::ID_MNU_ADDCURL = wxNewId();
 const long PlayListDialog::ID_MNU_DELETE = wxNewId();
+const long PlayListDialog::ID_MNU_REMOVEEMPTYSTEPS = wxNewId();
 
 BEGIN_EVENT_TABLE(PlayListDialog,wxDialog)
 	//(*EventTable(PlayListDialog)
@@ -78,6 +83,7 @@ PlayListDialog::PlayListDialog(wxWindow* parent, PlayList* playlist, wxWindowID 
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, id, _("Play List"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
@@ -93,12 +99,22 @@ PlayListDialog::PlayListDialog(wxWindow* parent, PlayList* playlist, wxWindowID 
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	FlexGridSizer3->AddGrowableRow(1);
+	FlexGridSizer3->AddGrowableRow(0);
 	TreeCtrl_PlayList = new wxTreeCtrl(Panel1, ID_TREECTRL1, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL1"));
 	TreeCtrl_PlayList->SetMinSize(wxSize(300,300));
 	FlexGridSizer3->Add(TreeCtrl_PlayList, 1, wxALL|wxEXPAND, 5);
-	StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT2, _("Right click on tree to add/remove steps and items."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT2, _("Right click on tree to add steps and advanced items."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer3->Add(StaticText2, 1, wxALL|wxEXPAND, 5);
+	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
+	Button_AddFSEQ = new wxButton(Panel1, ID_BUTTON3, _("Add FSEQ"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	BoxSizer1->Add(Button_AddFSEQ, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_FSEQVideo = new wxButton(Panel1, ID_BUTTON4, _("Add FSEQ + Video"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	BoxSizer1->Add(Button_FSEQVideo, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_AddAudio = new wxButton(Panel1, ID_BUTTON5, _("Add Audio Only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	BoxSizer1->Add(Button_AddAudio, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Delete = new wxButton(Panel1, ID_BUTTON6, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
+	BoxSizer1->Add(Button_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
 	Button_Ok = new wxButton(Panel1, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	Button_Ok->SetDefault();
@@ -121,6 +137,7 @@ PlayListDialog::PlayListDialog(wxWindow* parent, PlayList* playlist, wxWindowID 
 	SplitterWindow1->SplitVertically(Panel1, Panel2);
 	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
+	FileDialog1 = new wxFileDialog(this, _("Select files"), wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_DEFAULT_STYLE|wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	Center();
@@ -130,6 +147,10 @@ PlayListDialog::PlayListDialog(wxWindow* parent, PlayList* playlist, wxWindowID 
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&PlayListDialog::OnTreeCtrl_PlayListSelectionChanged);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_KEY_DOWN,(wxObjectEventFunction)&PlayListDialog::OnTreeCtrl_PlayListKeyDown);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_MENU,(wxObjectEventFunction)&PlayListDialog::OnTreeCtrl_PlayListItemMenu);
+	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListDialog::OnButton_AddFSEQClick);
+	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListDialog::OnButton_FSEQVideoClick);
+	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListDialog::OnButton_AddAudioClick);
+	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListDialog::OnButton_DeleteClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListDialog::OnButton_CancelClick);
 	Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&PlayListDialog::OnNotebook1PageChanged);
@@ -303,6 +324,7 @@ void PlayListDialog::OnTreeCtrl_PlayListSelectionChanged(wxTreeEvent& event)
         Notebook1->Thaw();
         Panel2->Thaw();
     }
+    ValidateWindow();
 }
 
 void PlayListDialog::OnTreeMouseMove(wxMouseEvent& event)
@@ -543,6 +565,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     {
         mi->Enable(false);
     }
+    mi = mnu.Append(ID_MNU_REMOVEEMPTYSTEPS, "Remove Empty Steps");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&PlayListDialog::OnTreeCtrlMenu, nullptr, this);
     ModalPopup(this, mnu);
@@ -665,6 +688,11 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     {
         DeleteSelectedItem();
     }
+    else if (event.GetId() == ID_MNU_REMOVEEMPTYSTEPS)
+    {
+        _playlist->RemoveEmptySteps();
+        PopulateTree(_playlist, nullptr, nullptr);
+    }
 }
 
 void PlayListDialog::DeleteSelectedItem()
@@ -717,6 +745,16 @@ void PlayListDialog::ValidateWindow()
     else
     {
         Button_Ok->Enable(false);
+    }
+
+    wxTreeItemId treeitem = TreeCtrl_PlayList->GetSelection();
+    if (treeitem.IsOk() && !IsPlayList(treeitem))
+    {
+        Button_Delete->Enable();
+    }
+    else
+    {
+        Button_Delete->Enable(false);
     }
 }
 
@@ -851,4 +889,118 @@ void PlayListDialog::AddItem(PlayList* playlist, PlayListStep* step, PlayListIte
     }
     pls->AddItem(newitem);
     PopulateTree(_playlist, pls, newitem);
+}
+
+void PlayListDialog::OnButton_AddFSEQClick(wxCommandEvent& event)
+{
+    FileDialog1->SetWildcard(FSEQFILES);
+
+    if (FileDialog1->ShowModal() == wxID_OK)
+    {
+        wxTreeItemId treeitem = TreeCtrl_PlayList->GetSelection();
+        PlayListStep* step = nullptr;
+        if (IsPlayListStep(treeitem))
+        {
+            step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
+        }
+
+        wxArrayString files;
+        FileDialog1->GetPaths(files);
+
+        for (auto it = files.begin(); it != files.end(); ++it)
+        {
+            PlayListItemFSEQ* pli = new PlayListItemFSEQ();
+            pli->SetFSEQFileName(it->ToStdString());
+            PlayListStep* pls = new PlayListStep();
+            pls->AddItem(pli);
+
+            if (!treeitem.IsOk() || IsPlayList(treeitem))
+            {
+                _playlist->AddStep(pls, 0);
+            }
+            else
+            {
+                _playlist->AddStep(pls, GetPos(treeitem) + 1);
+            }
+        }
+        PopulateTree(_playlist, step, nullptr);
+    }
+}
+
+void PlayListDialog::OnButton_FSEQVideoClick(wxCommandEvent& event)
+{
+    FileDialog1->SetWildcard(FSEQFILES);
+
+    if (FileDialog1->ShowModal() == wxID_OK)
+    {
+        wxTreeItemId treeitem = TreeCtrl_PlayList->GetSelection();
+        PlayListStep* step = nullptr;
+        if (IsPlayListStep(treeitem))
+        {
+            step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
+        }
+
+        wxArrayString files;
+        FileDialog1->GetPaths(files);
+
+        for (auto it = files.begin(); it != files.end(); ++it)
+        {
+            PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo();
+            pli->SetFSEQFileName(it->ToStdString());
+            PlayListStep* pls = new PlayListStep();
+            pls->AddItem(pli);
+
+            if (!treeitem.IsOk() || IsPlayList(treeitem))
+            {
+                _playlist->AddStep(pls, 0);
+            }
+            else
+            {
+                _playlist->AddStep(pls, GetPos(treeitem) + 1);
+            }
+        }
+        PopulateTree(_playlist, step, nullptr);
+    }
+}
+
+void PlayListDialog::OnButton_AddAudioClick(wxCommandEvent& event)
+{
+    FileDialog1->SetWildcard(AUDIOFILES);
+
+    if (FileDialog1->ShowModal() == wxID_OK)
+    {
+        wxTreeItemId treeitem = TreeCtrl_PlayList->GetSelection();
+        PlayListStep* step = nullptr;
+        if (IsPlayListStep(treeitem))
+        {
+            step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
+        }
+
+        wxArrayString files;
+        FileDialog1->GetPaths(files);
+
+        for (auto it = files.begin(); it != files.end(); ++it)
+        {
+            PlayListItemAudio* pli = new PlayListItemAudio();
+            pli->SetAudioFile(it->ToStdString());
+            PlayListStep* pls = new PlayListStep();
+            pls->AddItem(pli);
+
+            if (!treeitem.IsOk() || IsPlayList(treeitem))
+            {
+                _playlist->AddStep(pls, 0);
+            }
+            else
+            {
+                _playlist->AddStep(pls, GetPos(treeitem) + 1);
+            }
+        }
+        PopulateTree(_playlist, step, nullptr);
+    }
+}
+
+void PlayListDialog::OnButton_DeleteClick(wxCommandEvent& event)
+{
+    DeleteSelectedItem();
+    PopulateTree(_playlist, nullptr, nullptr);
 }

@@ -189,6 +189,7 @@
     <ClCompile Include="..\xLights\vamp-hostsdk\RealTime.cpp" />
     <ClCompile Include="..\xLights\VideoReader.cpp" />
     <ClCompile Include="..\xLights\xLightsTimer.cpp" />
+    <ClCompile Include="BackgroundPlaylistDialog.cpp" />
     <ClCompile Include="ButtonDetailsDialog.cpp" />
     <ClCompile Include="CommandManager.cpp" />
     <ClCompile Include="DimDialog.cpp" />
@@ -285,6 +286,7 @@
     <ClInclude Include="..\xLights\outputs\TestPreset.h" />
     <ClInclude Include="..\xLights\VideoReader.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />
+    <ClInclude Include="BackgroundPlaylistDialog.h" />
     <ClInclude Include="ButtonDetailsDialog.h" />
     <ClInclude Include="CommandManager.h" />
     <ClInclude Include="DimDialog.h" />

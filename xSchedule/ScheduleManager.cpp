@@ -5,6 +5,7 @@
 #include "ScheduleOptions.h"
 #include "PlayList/PlayList.h"
 #include "../xLights/outputs/OutputManager.h"
+#include "../xLights/outputs/Output.h"
 #include "PlayList/PlayListStep.h"
 #include "RunningSchedule.h"
 #include <log4cpp/Category.hh>
@@ -20,6 +21,12 @@
 #include "UserButton.h"
 #include "FSEQFile.h"
 #include "OutputProcess.h"
+#include <wx/filename.h>
+#include <wx/mimetype.h>
+#include "PlayList/PlayListItemAudio.h"
+#include "PlayList/PlayListItemFSEQ.h"
+#include "PlayList/PlayListItemFSEQVideo.h"
+#include <wx/stdpaths.h>
 
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
@@ -29,6 +36,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     // prime fix file with our show directory for any filename fixups
     FSEQFile::FixFile(showDir, "");
 
+    _backgroundPlayList = nullptr;
     _queuedSongs = new PlayList();
     _fppSync = nullptr;
     _manualOTL = -1;
@@ -49,6 +57,8 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     _changeCount = 0;
 	wxXmlDocument doc;
 	doc.Load(showDir + "/" + GetScheduleFile());
+
+    std::string backgroundPlayList = "";
 
     if (doc.IsOk())
     {
@@ -73,11 +83,20 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
                     }
                 }
             }
+            else if (n->GetName() == "Background")
+            {
+                backgroundPlayList = n->GetAttribute("PlayList", "");
+            }
         }
     }
     else
     {
         logger_base.error("Problem loading xml file %s.", (const char *)(showDir + "/" + GetScheduleFile()).c_str());
+    }
+
+    if (backgroundPlayList != "")
+    {
+        _backgroundPlayList = new PlayList(*GetPlayList(backgroundPlayList));
     }
 
     if (_scheduleOptions == nullptr)
@@ -92,6 +111,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     if (_scheduleOptions->IsSendOffWhenNotRunning())
     {
         _outputManager->StartOutput();
+        ManageBackground();
         logger_base.info("Started outputting to lights.");
     }
 
@@ -117,6 +137,7 @@ ScheduleManager::~ScheduleManager()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     CloseFPPSyncSendSocket();
     _outputManager->StopOutput();
+    ManageBackground();
     logger_base.info("Stopped outputting to lights.");
     if (IsDirty())
 	{
@@ -125,6 +146,13 @@ ScheduleManager::~ScheduleManager()
 			Save();
 		}
 	}
+
+    if (_backgroundPlayList != nullptr)
+    {
+        _backgroundPlayList->Stop();
+        delete _backgroundPlayList;
+        _backgroundPlayList = nullptr;
+    }
 
     while (_outputProcessing.size() > 0)
     {
@@ -213,6 +241,13 @@ void ScheduleManager::Save()
         root->AddChild(op);
     }
 
+    if (_backgroundPlayList != nullptr)
+    {
+        wxXmlNode* background = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Background");
+        background->AddAttribute("PlayList", _backgroundPlayList->GetNameNoTime());
+        root->AddChild(background);
+    }
+
     doc.Save(_showDir + "/" + GetScheduleFile());
     ClearDirty();
     logger_base.info("Saved Schedule to %s.", (const char*)(_showDir + "/" + GetScheduleFile()).c_str());
@@ -298,12 +333,24 @@ void ScheduleManager::Frame(bool outputframe)
     if (running != nullptr)
     {
         long msec = wxGetUTCTimeMillis().GetLo() - _startTime;
+        
         if (outputframe)
         {
             memset(_buffer, 0x00, _outputManager->GetTotalChannels()); // clear out any prior frame data
             _outputManager->StartFrame(msec);
         }
+ 
         bool done = running->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+
+        if (_backgroundPlayList != nullptr)
+        {
+            if (!_backgroundPlayList->IsRunning())
+            {
+                _backgroundPlayList->Start(true);
+            }
+            _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+        }
+
         if (outputframe)
         {
             // apply any output processing
@@ -335,6 +382,16 @@ void ScheduleManager::Frame(bool outputframe)
         {
             _outputManager->StartFrame(0);
             _outputManager->AllOff();
+
+            if (_backgroundPlayList != nullptr)
+            {
+                if (!_backgroundPlayList->IsRunning())
+                {
+                    _backgroundPlayList->Start(true);
+                }
+                _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+            }
+
             // apply any output processing
             for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
             {
@@ -1043,6 +1100,27 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             {
                 Save();
             }
+            else if (command == "Run command at end of current step")
+            {
+                PlayList* p = GetRunningPlayList();
+
+                if (p != nullptr)
+                {
+                    wxArrayString parms = wxSplit(parameters, ',');
+
+                    if (parms.Count() > 0)
+                    {
+                        std::string newparms = "";
+                        for (auto i = 1; i < parms.Count(); i++)
+                        {
+                            if (newparms != "") newparms += ",";
+                            newparms += parms[i].ToStdString();
+                        }
+
+                        p->SetCommandAtEndOfCurrentStep(parms[0].ToStdString(), newparms);
+                    }
+                }
+            }
             else if (command == "Restart selected schedule")
             {
                 auto rs = GetRunningSchedule();
@@ -1667,6 +1745,7 @@ void ScheduleManager::SetOutputToLights(bool otl)
             if (!IsOutputToLights())
             {
                 _outputManager->StartOutput();
+                ManageBackground();
             }
         }
         else
@@ -1674,6 +1753,7 @@ void ScheduleManager::SetOutputToLights(bool otl)
             if (IsOutputToLights())
             {
                 _outputManager->StopOutput();
+                ManageBackground();
             }
         }
     }
@@ -1686,10 +1766,12 @@ void ScheduleManager::ManualOutputToLightsClick()
     if (_manualOTL == 1)
     {
         _outputManager->StartOutput();
+        ManageBackground();
     }
     else if (_manualOTL == 0)
     {
         _outputManager->StopOutput();
+        ManageBackground();
     }
 }
 
@@ -1807,4 +1889,619 @@ PlayList* ScheduleManager::GetPlayList(int id) const
     }
 
     return nullptr;
+}
+
+void ScheduleManager::SetBackgroundPlayList(PlayList* playlist)
+{
+    if (playlist == nullptr && _backgroundPlayList != nullptr)
+    {
+        _backgroundPlayList->Stop();
+        delete _backgroundPlayList;
+        _backgroundPlayList = nullptr;
+        _changeCount++;
+    }
+    else if (playlist != nullptr)
+    {
+        if (_backgroundPlayList == nullptr)
+        {
+            _backgroundPlayList = new PlayList(*playlist);
+            _changeCount++;
+        }
+        else
+        {
+            if (playlist->GetId() != _backgroundPlayList->GetId())
+            {
+                _backgroundPlayList->Stop();
+                delete _backgroundPlayList;
+                _backgroundPlayList = new PlayList(*playlist);
+                _changeCount++;
+            }
+        }
+    }
+}
+
+void ScheduleManager::ManageBackground()
+{
+    if (_backgroundPlayList != nullptr)
+    {
+        if (IsOutputToLights())
+        {
+            _backgroundPlayList->Stop();
+            int id = _backgroundPlayList->GetId();
+            delete _backgroundPlayList;
+            _backgroundPlayList = nullptr;
+            PlayList* pl = GetPlayList(id);
+            if (pl != nullptr)
+            {
+                _backgroundPlayList = new PlayList(*pl);
+                _backgroundPlayList->Start(true);
+            }
+        }
+        else
+        {
+            _backgroundPlayList->Stop();
+        }
+    }
+}
+
+void LogAndWrite(wxFile& f, const std::string& msg)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("CheckSchedule: " + msg);
+    if (f.IsOpened())
+    {
+        f.Write(msg + "\r\n");
+    }
+}
+
+void ScheduleManager::CheckScheduleIntegrity(bool display)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    int errcount = 0;
+    int warncount = 0;
+    int errcountsave = 0;
+    int warncountsave = 0;
+
+    wxFile f;
+    wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
+
+    if (display)
+    {
+        f.Open(filename, wxFile::write);
+        if (!f.IsOpened())
+        {
+            logger_base.warn("Unable to create results file for Check Sequence. Aborted.");
+            wxMessageBox(_("Unable to create results file for Check Sequence. Aborted."), _("Error"));
+            return;
+        }
+    }
+
+    LogAndWrite(f, "Checking schedule.");
+
+    wxIPV4address addr;
+    addr.Hostname(wxGetHostName());
+    LogAndWrite(f, "");
+    LogAndWrite(f, "IP Address we are outputing data from: " + addr.IPAddress().ToStdString());
+    LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isnt your controllers may not receive output data.");
+    LogAndWrite(f, "If you are experiencing this problem you may need to disable this network connection.");
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Inactive Outputs");
+
+    // Check for inactive outputs
+    auto outputs = _outputManager->GetOutputs();
+    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    {
+        if (!(*it)->IsEnabled())
+        {
+            wxString msg = wxString::Format("    WARN: Inactive output %d %s:%s:%s:%s:'%s'.",
+                (*it)->GetOutputNumber(), (*it)->GetType(), (*it)->GetIP(), (*it)->GetUniverseString(), (*it)->GetCommPort(), (*it)->GetDescription());
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // multiple outputs to same universe and same IP
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Multiple outputs sending to same destination");
+
+    std::list<std::string> used;
+    outputs = _outputManager->GetOutputs();
+    for (auto n = outputs.begin(); n != outputs.end(); ++n)
+    {
+        if ((*n)->IsIpOutput())
+        {
+            std::string usedval = (*n)->GetIP() + "|" + (*n)->GetUniverseString();
+
+            if (std::find(used.begin(), used.end(), usedval) != used.end())
+            {
+                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller '%s' (%s) and universe %s.", (const char*)(*n)->GetDescription().c_str(), (const char*)(*n)->GetIP().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
+            }
+            else
+            {
+                used.push_back(usedval);
+            }
+        }
+        else if ((*n)->IsSerialOutput())
+        {
+            if (std::find(used.begin(), used.end(), (*n)->GetCommPort()) != used.end())
+            {
+                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)(*n)->GetType().c_str(), (const char *)(*n)->GetCommPort().c_str(), (const char*)(*n)->GetDescription().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
+            }
+            else
+            {
+                used.push_back((*n)->GetCommPort());
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // duplicate playlist names
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Duplicate playlist names");
+
+    for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
+    {
+        auto n1 = n;
+        n1++;
+        
+        while (n1 != _playLists.end())
+        {
+            if ((*n1)->GetNameNoTime() == (*n)->GetNameNoTime())
+            {
+                wxString msg = wxString::Format("    ERR: Multiple PlayLists named '%s'. Commands which rely on playlist name may pick up the wrong one.", (const char*)(*n)->GetNameNoTime().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
+            }
+
+            n1++;
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Duplicate step names within a playlist
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Duplicate step names within a playlist");
+
+    for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
+    {
+        auto steps = (*n)->GetSteps();
+        for (auto s = steps.begin(); s != steps.end(); ++s)
+        {
+            auto s1 = s;
+            ++s1;
+            
+            while (s1 != steps.end())
+            {
+                if ((*s1)->GetNameNoTime() == (*s)->GetNameNoTime())
+                {
+                    wxString msg = wxString::Format("    ERR: Multiple playlists steps named '%s' exist in playlist '%s'. Commands which rely on step name may pick up the wrong one.", (const char *)(*s)->GetNameNoTime().c_str(), (const char*)(*n)->GetNameNoTime().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+
+                ++s1;
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Duplicate schedule names within a playlist
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Duplicate schedule names within a playlist");
+
+    for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
+    {
+        auto scheds = (*n)->GetSchedules();
+        for (auto s = scheds.begin(); s != scheds.end(); ++s)
+        {
+            auto s1 = s;
+            ++s1;
+
+            while (s1 != scheds.end())
+            {
+                if ((*s1)->GetName() == (*s)->GetName())
+                {
+                    wxString msg = wxString::Format("    ERR: Multiple playlists schedules named '%s' exist in playlist '%s'. Commands which rely on schedule name may pick up the wrong one.", (const char *)(*s)->GetName().c_str(), (const char*)(*n)->GetNameNoTime().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+
+                ++s1;
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Empty Playlists
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Empty playlists");
+
+    for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
+    {
+        if ((*n)->GetSteps().size() == 0)
+        {
+            wxString msg = wxString::Format("    WARN: Playlist '%s' has no steps.", (const char*)(*n)->GetNameNoTime().c_str());
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Empty Steps
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Empty steps");
+
+    for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
+    { 
+        auto steps = (*n)->GetSteps();
+        for (auto s = steps.begin(); s != steps.end(); ++s)
+        {
+            if ((*s)->GetItems().size() == 0)
+            {
+                wxString msg = wxString::Format("    WARN: Playlist '%s' has step '%s' with no items.", (const char*)(*n)->GetNameNoTime().c_str(), (const char*)(*s)->GetNameNoTime().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Multiple FSEQ in one step
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Steps with multiple FSEQs");
+
+    for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
+    {
+        auto steps = (*n)->GetSteps();
+        for (auto s = steps.begin(); s != steps.end(); ++s)
+        {
+            int fseqcount = 0;
+
+            auto items = (*s)->GetItems();
+
+            for (auto i  = items.begin(); i != items.end(); ++i)
+            {
+                if (wxString((*i)->GetTitle()).Contains("FSEQ"))
+                {
+                    fseqcount++;
+                }
+            }
+
+            if (fseqcount > 1)
+            {
+                wxString msg = wxString::Format("    WARN: Playlist '%s' has step '%s' with more than one FSEQ item.", (const char*)(*n)->GetNameNoTime().c_str(), (const char*)(*s)->GetNameNoTime().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Multiple Audio in one step
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Steps with multiple audio");
+
+    for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
+    {
+        auto steps = (*n)->GetSteps();
+        for (auto s = steps.begin(); s != steps.end(); ++s)
+        {
+            int audiocount = 0;
+
+            auto items = (*s)->GetItems();
+
+            for (auto i = items.begin(); i != items.end(); ++i)
+            {
+                if ((*i)->GetTitle() == "Audio" || 
+                    ((*i)->GetTitle() == "FSEQ" && ((PlayListItemFSEQ*)(*i))->GetAudioFilename() != "") ||
+                    ((*i)->GetTitle() == "FSEQ & Video" && ((PlayListItemFSEQVideo*)(*i))->GetAudioFilename() != "")
+                    )
+                {
+                    audiocount++;
+                }
+            }
+
+            if (audiocount > 1)
+            {
+                wxString msg = wxString::Format("    WARN: Playlist '%s' has step '%s' with more than one item playing audio.", (const char*)(*n)->GetNameNoTime().c_str(), (const char*)(*s)->GetNameNoTime().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Excessive video in one step
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Steps with many videos");
+
+    for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
+    {
+        auto steps = (*n)->GetSteps();
+        for (auto s = steps.begin(); s != steps.end(); ++s)
+        {
+            int videocount = 0;
+
+            auto items = (*s)->GetItems();
+
+            for (auto i = items.begin(); i != items.end(); ++i)
+            {
+                if (wxString((*i)->GetTitle()).Contains("Video"))
+                {
+                    videocount++;
+                }
+            }
+
+            if (videocount > 3)
+            {
+                wxString msg = wxString::Format("    WARN: Playlist '%s' has step '%s' with more than 3 videos ... this can cause performance issues.", (const char*)(*n)->GetNameNoTime().c_str(), (const char*)(*s)->GetNameNoTime().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Multiple schedules with the same priority
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Multiple schedules with the same priority");
+
+    std::vector<int> priorities;
+    priorities.resize(20);
+
+    for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
+    {
+        auto scheds = (*n)->GetSchedules();
+        for (auto s = scheds.begin(); s != scheds.end(); ++s)
+        {
+            priorities[(*s)->GetPriority()]++;
+        }
+    }
+
+    for (int i = 0; i < 20; i++)
+    {
+        if (priorities[i] > 1)
+        {
+            wxString msg = wxString::Format("    WARN: More than one schedule has priority %d. If these trigger at the same time then it is not certain which we will choose.", i);
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // No web password
+    LogAndWrite(f, "");
+    LogAndWrite(f, "No password set on website");
+
+    if (_scheduleOptions->GetPassword() == "")
+    {
+            wxString msg = wxString::Format("    WARN: Website does not have a password set.");
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Non standard web port
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Non standard web port");
+
+    if (_scheduleOptions->GetWebServerPort() != 80)
+    {
+        wxString msg = wxString::Format("    WARN: Website is listening on a non standard port %d.", _scheduleOptions->GetWebServerPort());
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // API Only mode
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Web in API only mode");
+
+    if (_scheduleOptions->GetAPIOnly())
+    {
+        wxString msg = wxString::Format("    WARN: Website is listening only for API calls. It will not allow connection from a browser.");
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Web server folder blank
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Web server folder blank");
+
+    if (_scheduleOptions->GetWWWRoot() == "")
+    {
+        wxString msg = wxString::Format("    ERR: Website folder is set to blank.");
+        LogAndWrite(f, msg.ToStdString());
+        errcount++;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Missing index.html
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Missing index.html");
+
+    wxString d;
+#ifdef __WXMSW__
+    d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+#elif __LINUX__
+    d = wxStandardPaths::Get().GetDataDir();
+    if (!wxDir::Exists(d)) {
+        d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+    }
+#else
+    d = wxStandardPaths::Get().GetExecutablePath();
+#endif
+
+    wxString file = d + "/" + _scheduleOptions->GetWWWRoot() + "/index.html";
+
+    if (_scheduleOptions->GetWWWRoot() != "" && !wxFile::Exists(file))
+    {
+        wxString msg = wxString::Format("    ERR: index.html not found. It should be here '%s'.", (const char *)file.c_str());
+        LogAndWrite(f, msg.ToStdString());
+        errcount++;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Missing referenced files
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Missing referenced files");
+
+    for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
+    {
+        auto steps = (*n)->GetSteps();
+        for (auto s = steps.begin(); s != steps.end(); ++s)
+        {
+            int videocount = 0;
+
+            auto items = (*s)->GetItems();
+
+            for (auto i = items.begin(); i != items.end(); ++i)
+            {
+                auto missing = (*i)->GetMissingFiles();
+
+                for (auto ff= missing.begin(); ff != missing.end(); ++ff)
+                {
+                    wxString msg = wxString::Format("    ERR: Playlist '%s' step '%s' item '%s' references file '%s' which does not exist.", (const char*)(*n)->GetNameNoTime().c_str(), (const char*)(*s)->GetNameNoTime().c_str(), (const char*)(*i)->GetNameNoTime().c_str(), (const char *)(ff->c_str()));
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Check schedule done.");
+    LogAndWrite(f, wxString::Format("Errors: %d. Warnings: %d", errcount, warncount).ToStdString());
+
+    if (f.IsOpened())
+    {
+        f.Close();
+
+        wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+        if (ft)
+        {
+            wxString command = ft->GetOpenCommand(filename);
+
+            logger_base.debug("Viewing xSchedule Check Schedule results %s.", (const char *)filename.c_str());
+
+            wxExecute(command);
+            delete ft;
+        }
+        else
+        {
+            logger_base.warn("Unable to view xSchedule Check Schedule results %s.", (const char *)filename.c_str());
+            wxMessageBox(_("Unable to show xSchedule Check Schedule results."), _("Error"));
+        }
+    }
 }

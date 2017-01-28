@@ -42,6 +42,7 @@ class VolumeDisplay;
 wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_RUNACTION, wxCommandEvent);
 
 class xScheduleFrame : public wxFrame
 {
@@ -64,8 +65,8 @@ class xScheduleFrame : public wxFrame
     void LoadSchedule();
     bool HandleHotkeys(wxKeyEvent& event);
     bool HandleSpecialKeys(wxKeyEvent& event);
-    void AddPlayList();
-    void EditSelectedItem();
+    void AddPlayList(bool  forceadvanced = false);
+    void EditSelectedItem(bool  forceadvanced = false);
     void UpdateUI();
     void DoPaste();
     void DoCopy();
@@ -138,6 +139,8 @@ public:
         void OnButton_EditClick(wxCommandEvent& event);
         void OnButton_DeleteClick(wxCommandEvent& event);
         void OnMenu_OutputProcessingSelected(wxCommandEvent& event);
+        void OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event);
+        void OnMenuItem_CheckScheduleSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -146,6 +149,7 @@ public:
         void OnButton_UserClick(wxCommandEvent& event);
         void RateNotification(wxCommandEvent& event);
         void StatusMsgNotification(wxCommandEvent& event);
+        void RunAction(wxCommandEvent& event);
         void ScheduleChange(wxCommandEvent& event);
 
         //(*Identifiers(xScheduleFrame)
@@ -178,6 +182,7 @@ public:
         static const long idMenuQuit;
         static const long ID_MNU_MNUADDPLAYLIST;
         static const long ID_MENUITEM1;
+        static const long ID_MNU_BACKGROUND;
         static const long ID_MNU_VIEW_LOG;
         static const long ID_MNU_CHECK_SCHEDULE;
         static const long ID_MNU_OPTIONS;
@@ -192,9 +197,11 @@ public:
         //*)
 
         static const long ID_MNU_ADDPLAYLIST;
+        static const long ID_MNU_ADDADVPLAYLIST;
         static const long ID_MNU_DUPLICATEPLAYLIST;
         static const long ID_MNU_SCHEDULEPLAYLIST;
         static const long ID_MNU_EDIT;
+        static const long ID_MNU_EDITADV;
         static const long ID_MNU_DELETE;
         static const long ID_BUTTON_USER;
 
@@ -215,12 +222,13 @@ public:
         xLightsTimer _timer;
         wxMenuItem* MenuItem_Save;
         wxPanel* Panel1;
+        wxMenuItem* MenuItem_BackgroundPlaylist;
         wxPanel* Panel3;
         wxStaticText* StaticText_ShowDir;
+        wxMenuItem* MenuItem_CheckSchedule;
         wxButton* Button_Delete;
         wxStatusBar* StatusBar1;
         wxDirDialog* DirDialog1;
-        wxMenuItem* MenuItem6;
         wxTimer _timerSchedule;
         wxListView* ListView_Running;
         wxMenuItem* MenuItem_FPPRemote;

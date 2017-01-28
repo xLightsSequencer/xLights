@@ -48,6 +48,7 @@ public:
     virtual std::string GetTitle() const override;
     bool GetFastStartAudio() const { return _fastStartAudio; }
     void SetFastStartAudio(bool fastStartAudio);
+    virtual std::list<std::string> GetMissingFiles() const override;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

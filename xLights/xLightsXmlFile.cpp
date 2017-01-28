@@ -893,7 +893,7 @@ bool xLightsXmlFile::Open(const wxString& ShowDir, bool ignore_audio)
     return false;
 }
 
-wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
+wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // This is cheating ... saves me from having every call know the showdir as long as an early one passes it in
@@ -905,11 +905,14 @@ wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
 	}
 	else
 	{
-		if (ShowDir != RememberShowDir)
+		if (!recurse)
 		{
-			RememberShowDir = ShowDir;
+			if (ShowDir != RememberShowDir)
+			{
+				RememberShowDir = ShowDir;
+			}
 		}
-		sd = RememberShowDir;
+		sd = ShowDir;
 	}
 
     if (file == "")
@@ -969,11 +972,11 @@ wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
     }
 #ifndef __WXMSW__
     if (ShowDir == "" && fnUnix.GetDirCount() > 0) {
-        return FixFile(sd + "/" + fnUnix.GetDirs().Last(), file);
+        return FixFile(sd + "/" + fnUnix.GetDirs().Last(), file, true);
     }
 #endif
     if (ShowDir == "" && fnWin.GetDirCount() > 0) {
-        return FixFile(sd + "\\" + fnWin.GetDirs().Last(), file);
+        return FixFile(sd + "\\" + fnWin.GetDirs().Last(), file, true);
     }
    	return file;
 }

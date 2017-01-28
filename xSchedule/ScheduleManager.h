@@ -36,6 +36,7 @@ class ScheduleManager
     wxByte* _buffer;
     wxUint32 _startTime;
     PlayList* _immediatePlay;
+    PlayList* _backgroundPlayList;
     CommandManager _commandManager;
     PlayList* _queuedSongs;
     std::list<RunningSchedule*> _activeSchedules;
@@ -51,6 +52,7 @@ class ScheduleManager
     void OpenFPPSyncSendSocket();
     void CloseFPPSyncSendSocket();
     void EnqueueSong(PlayListStep* step);
+    void ManageBackground();
 
     public:
 
@@ -65,6 +67,8 @@ class ScheduleManager
         bool IsScheduleActive(Schedule* schedue);
         std::list<RunningSchedule*> GetRunningSchedules() const { return _activeSchedules; }
         PlayList* GetPlayList(int  id) const;
+        PlayList* GetBackgroundPlayList() const { return _backgroundPlayList; }
+        void SetBackgroundPlayList(PlayList* playlist);
         RunningSchedule* GetRunningSchedule() const;
         RunningSchedule* GetRunningSchedule(const std::string& schedulename) const;
         RunningSchedule* GetRunningSchedule(Schedule* schedule) const;
@@ -112,6 +116,7 @@ class ScheduleManager
         bool IsOutputToLights() const;
         bool IsCurrentPlayListScheduled() const { return _immediatePlay == nullptr; }
         void SetOutputToLights(bool otl);
+        void CheckScheduleIntegrity(bool display);
 };
 
 #endif

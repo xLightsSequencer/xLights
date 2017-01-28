@@ -20,7 +20,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>1</growablerows>
+							<growablerows>0</growablerows>
 							<object class="sizeritem">
 								<object class="wxTreeCtrl" name="ID_TREECTRL1" variable="TreeCtrl_PlayList" member="yes">
 									<image_list>&lt;none&gt;</image_list>
@@ -46,9 +46,52 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
-									<label>Right click on tree to add/remove steps and items.</label>
+									<label>Right click on tree to add steps and advanced items.</label>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON3" variable="Button_AddFSEQ" member="yes">
+											<label>Add FSEQ</label>
+											<handler function="OnButton_AddFSEQClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON4" variable="Button_FSEQVideo" member="yes">
+											<label>Add FSEQ + Video</label>
+											<handler function="OnButton_FSEQVideoClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON5" variable="Button_AddAudio" member="yes">
+											<label>Add Audio Only</label>
+											<handler function="OnButton_AddAudioClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON6" variable="Button_Delete" member="yes">
+											<label>Delete</label>
+											<handler function="OnButton_DeleteClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -102,6 +145,10 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+		</object>
+		<object class="wxFileDialog" variable="FileDialog1" member="yes">
+			<message>Select files</message>
+			<style>wxFD_DEFAULT_STYLE|wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE</style>
 		</object>
 	</object>
 </wxsmith>

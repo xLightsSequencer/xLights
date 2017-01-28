@@ -2,6 +2,7 @@
 #define PLAYLISTITEM_H
 
 #include <string>
+#include <list>
 #include <wx/wx.h>
 #include <wx/notebook.h>
 
@@ -58,6 +59,7 @@ public:
     virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) = 0;
     virtual std::string GetSyncItemName() const { return ""; }
     virtual std::string GetTitle() const = 0;
+    virtual std::list<std::string> GetMissingFiles() const { return std::list<std::string>(); }
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() = 0;

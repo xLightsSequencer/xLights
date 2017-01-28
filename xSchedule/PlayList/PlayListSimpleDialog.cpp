@@ -66,7 +66,7 @@ PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, PlayList* playlist,
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	FlexGridSizer3->AddGrowableRow(1);
+	FlexGridSizer3->AddGrowableRow(0);
 	TreeCtrl_PlayList = new wxTreeCtrl(Panel1, ID_TREECTRL1, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL1"));
 	TreeCtrl_PlayList->SetMinSize(wxSize(300,300));
 	FlexGridSizer3->Add(TreeCtrl_PlayList, 1, wxALL|wxEXPAND, 5);
@@ -141,6 +141,8 @@ PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, PlayList* playlist,
     SetEscapeId(Button_Cancel->GetId());
 
     ValidateWindow();
+
+    Button_Cancel->Enable();
 }
 
 PlayListSimpleDialog::~PlayListSimpleDialog()
@@ -245,30 +247,33 @@ bool PlayListSimpleDialog::IsPlayListStep(wxTreeItemId id)
 void PlayListSimpleDialog::OnTreeCtrl_PlayListSelectionChanged(wxTreeEvent& event)
 {
     wxTreeItemId treeitem = TreeCtrl_PlayList->GetSelection();
-    if (!treeitem.IsOk()) return;
-
-    if (IsPlayList(treeitem))
+    if (treeitem.IsOk())
     {
-        PlayList* pl = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
-        SwapPage(new PlayListPanel(Notebook1, pl), "Playlist");
-    }
-    else if (IsPlayListStep(treeitem))
-    {
-        PlayListStep* pls = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
-        //SwapPage(new PlayListStepPanel(Notebook1, pls), "Playlist Step");
-
-        if (pls->GetItems().size() > 0)
+        if (IsPlayList(treeitem))
         {
-            // get the playlist entry
-            PlayListItem* pli = pls->GetItems().front();
-            Panel2->Freeze();
-            Notebook1->Freeze();
-            SwapPage(nullptr);
-            pli->Configure(Notebook1);
-            Notebook1->Thaw();
-            Panel2->Thaw();
+            PlayList* pl = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
+            SwapPage(new PlayListPanel(Notebook1, pl), "Playlist");
+        }
+        else if (IsPlayListStep(treeitem))
+        {
+            PlayListStep* pls = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
+            //SwapPage(new PlayListStepPanel(Notebook1, pls), "Playlist Step");
+
+            if (pls->GetItems().size() > 0)
+            {
+                // get the playlist entry
+                PlayListItem* pli = pls->GetItems().front();
+                Panel2->Freeze();
+                Notebook1->Freeze();
+                SwapPage(nullptr);
+                pli->Configure(Notebook1);
+                Notebook1->Thaw();
+                Panel2->Thaw();
+            }
         }
     }
+
+    ValidateWindow();
 }
 
 void PlayListSimpleDialog::OnTreeMouseMove(wxMouseEvent& event)

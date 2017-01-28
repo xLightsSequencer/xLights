@@ -51,6 +51,14 @@ std::string PlayListItemFSEQ::GetAudioFilename() const
         {
             return _fseqFile->GetAudioFileName();
         }
+        else
+        {
+            FSEQFile f(_fseqFileName);
+            if (f.IsOk())
+            {
+                return f.GetAudioFileName();
+            }
+        }
     }
 
     return "";
@@ -386,4 +394,20 @@ void PlayListItemFSEQ::CloseFiles()
 PlayListItemFSEQ::~PlayListItemFSEQ()
 {
     CloseFiles();
+}
+
+std::list<std::string> PlayListItemFSEQ::GetMissingFiles() const
+{
+    std::list<std::string> res;
+    if (!wxFile::Exists(GetFSEQFileName()))
+    {
+        res.push_back(GetFSEQFileName());
+    }
+    auto af = GetAudioFilename();
+    if (af != "" && !wxFile::Exists(af))
+    {
+        res.push_back(af);
+    }
+
+    return res;
 }

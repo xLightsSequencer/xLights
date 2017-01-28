@@ -273,6 +273,7 @@
     <ClCompile Include="PlayList\PlayListItemFSEQVideoPanel.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
+    <ClCompile Include="BackgroundPlaylistDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -488,6 +489,7 @@
     <ClInclude Include="PlayList\PlayListItemFSEQVideoPanel.h">
       <Filter>PlayList</Filter>
     </ClInclude>
+    <ClInclude Include="BackgroundPlaylistDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
