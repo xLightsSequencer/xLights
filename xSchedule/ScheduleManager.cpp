@@ -29,6 +29,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     // prime fix file with our show directory for any filename fixups
     FSEQFile::FixFile(showDir, "");
 
+    _backgroundPlayList = nullptr;
     _queuedSongs = new PlayList();
     _fppSync = nullptr;
     _manualOTL = -1;
@@ -49,6 +50,8 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     _changeCount = 0;
 	wxXmlDocument doc;
 	doc.Load(showDir + "/" + GetScheduleFile());
+
+    std::string backgroundPlayList = "";
 
     if (doc.IsOk())
     {
@@ -73,11 +76,20 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
                     }
                 }
             }
+            else if (n->GetName() == "Background")
+            {
+                backgroundPlayList = n->GetAttribute("PlayList", "");
+            }
         }
     }
     else
     {
         logger_base.error("Problem loading xml file %s.", (const char *)(showDir + "/" + GetScheduleFile()).c_str());
+    }
+
+    if (backgroundPlayList != "")
+    {
+        _backgroundPlayList = GetPlayList(backgroundPlayList);
     }
 
     if (_scheduleOptions == nullptr)
@@ -92,6 +104,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     if (_scheduleOptions->IsSendOffWhenNotRunning())
     {
         _outputManager->StartOutput();
+        ManageBackground();
         logger_base.info("Started outputting to lights.");
     }
 
@@ -117,6 +130,7 @@ ScheduleManager::~ScheduleManager()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     CloseFPPSyncSendSocket();
     _outputManager->StopOutput();
+    ManageBackground();
     logger_base.info("Stopped outputting to lights.");
     if (IsDirty())
 	{
@@ -125,6 +139,13 @@ ScheduleManager::~ScheduleManager()
 			Save();
 		}
 	}
+
+    if (_backgroundPlayList != nullptr)
+    {
+        _backgroundPlayList->Stop();
+        delete _backgroundPlayList;
+        _backgroundPlayList = nullptr;
+    }
 
     while (_outputProcessing.size() > 0)
     {
@@ -213,6 +234,13 @@ void ScheduleManager::Save()
         root->AddChild(op);
     }
 
+    if (_backgroundPlayList != nullptr)
+    {
+        wxXmlNode* background = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Background");
+        background->AddAttribute("PlayList", _backgroundPlayList->GetNameNoTime());
+        root->AddChild(background);
+    }
+
     doc.Save(_showDir + "/" + GetScheduleFile());
     ClearDirty();
     logger_base.info("Saved Schedule to %s.", (const char*)(_showDir + "/" + GetScheduleFile()).c_str());
@@ -298,12 +326,24 @@ void ScheduleManager::Frame(bool outputframe)
     if (running != nullptr)
     {
         long msec = wxGetUTCTimeMillis().GetLo() - _startTime;
+        
         if (outputframe)
         {
             memset(_buffer, 0x00, _outputManager->GetTotalChannels()); // clear out any prior frame data
             _outputManager->StartFrame(msec);
         }
+ 
         bool done = running->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+
+        if (_backgroundPlayList != nullptr)
+        {
+            if (!_backgroundPlayList->IsRunning())
+            {
+                _backgroundPlayList->Start(true);
+            }
+            _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+        }
+
         if (outputframe)
         {
             // apply any output processing
@@ -335,6 +375,16 @@ void ScheduleManager::Frame(bool outputframe)
         {
             _outputManager->StartFrame(0);
             _outputManager->AllOff();
+
+            if (_backgroundPlayList != nullptr)
+            {
+                if (!_backgroundPlayList->IsRunning())
+                {
+                    _backgroundPlayList->Start(true);
+                }
+                _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+            }
+
             // apply any output processing
             for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
             {
@@ -1667,6 +1717,7 @@ void ScheduleManager::SetOutputToLights(bool otl)
             if (!IsOutputToLights())
             {
                 _outputManager->StartOutput();
+                ManageBackground();
             }
         }
         else
@@ -1674,6 +1725,7 @@ void ScheduleManager::SetOutputToLights(bool otl)
             if (IsOutputToLights())
             {
                 _outputManager->StopOutput();
+                ManageBackground();
             }
         }
     }
@@ -1686,10 +1738,12 @@ void ScheduleManager::ManualOutputToLightsClick()
     if (_manualOTL == 1)
     {
         _outputManager->StartOutput();
+        ManageBackground();
     }
     else if (_manualOTL == 0)
     {
         _outputManager->StopOutput();
+        ManageBackground();
     }
 }
 
@@ -1807,4 +1861,57 @@ PlayList* ScheduleManager::GetPlayList(int id) const
     }
 
     return nullptr;
+}
+
+void ScheduleManager::SetBackgroundPlayList(PlayList* playlist)
+{
+    if (playlist == nullptr && _backgroundPlayList != nullptr)
+    {
+        _backgroundPlayList->Stop();
+        delete _backgroundPlayList;
+        _backgroundPlayList = nullptr;
+        _changeCount++;
+    }
+    else if (playlist != nullptr)
+    {
+        if (_backgroundPlayList == nullptr)
+        {
+            _backgroundPlayList = new PlayList(*playlist);
+            _changeCount++;
+        }
+        else
+        {
+            if (playlist->GetId() != _backgroundPlayList->GetId())
+            {
+                _backgroundPlayList->Stop();
+                delete _backgroundPlayList;
+                _backgroundPlayList = new PlayList(*playlist);
+                _changeCount++;
+            }
+        }
+    }
+}
+
+void ScheduleManager::ManageBackground()
+{
+    if (_backgroundPlayList != nullptr)
+    {
+        if (IsOutputToLights())
+        {
+            _backgroundPlayList->Stop();
+            int id = _backgroundPlayList->GetId();
+            delete _backgroundPlayList;
+            _backgroundPlayList = nullptr;
+            PlayList* pl = GetPlayList(id);
+            if (pl != nullptr)
+            {
+                _backgroundPlayList = new PlayList(*pl);
+                _backgroundPlayList->Start(true);
+            }
+        }
+        else
+        {
+            _backgroundPlayList->Stop();
+        }
+    }
 }

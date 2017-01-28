@@ -138,6 +138,7 @@ public:
         void OnButton_EditClick(wxCommandEvent& event);
         void OnButton_DeleteClick(wxCommandEvent& event);
         void OnMenu_OutputProcessingSelected(wxCommandEvent& event);
+        void OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -178,6 +179,7 @@ public:
         static const long idMenuQuit;
         static const long ID_MNU_MNUADDPLAYLIST;
         static const long ID_MENUITEM1;
+        static const long ID_MNU_BACKGROUND;
         static const long ID_MNU_VIEW_LOG;
         static const long ID_MNU_CHECK_SCHEDULE;
         static const long ID_MNU_OPTIONS;
@@ -217,6 +219,7 @@ public:
         xLightsTimer _timer;
         wxMenuItem* MenuItem_Save;
         wxPanel* Panel1;
+        wxMenuItem* MenuItem_BackgroundPlaylist;
         wxPanel* Panel3;
         wxStaticText* StaticText_ShowDir;
         wxButton* Button_Delete;

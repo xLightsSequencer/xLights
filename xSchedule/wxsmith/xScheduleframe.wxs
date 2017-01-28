@@ -278,6 +278,11 @@
 					<label>&amp;Output Processing</label>
 					<handler function="OnMenu_OutputProcessingSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_BACKGROUND" variable="MenuItem_BackgroundPlaylist" member="yes">
+					<label>&amp;Background Playlist</label>
+					<handler function="OnMenuItem_BackgroundPlaylistSelected" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu3" member="yes">
 				<label>&amp;Tools</label>
