@@ -73,6 +73,9 @@ void FSEQFile::Close()
         _fh->Close();
         delete _fh;
         _fh = nullptr;
+
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("FSEQ file %s closed.", (const char *)_filename.c_str());
     }
 
     if (_frameBuffer != nullptr)
@@ -80,9 +83,6 @@ void FSEQFile::Close()
         free(_frameBuffer);
         _frameBuffer = nullptr;
     }
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("FSEQ file %s closed.", (const char *)_filename.c_str());
 
     _ok = false;
 }
@@ -114,6 +114,7 @@ void FSEQFile::Load(const std::string& filename)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     Close();
 
+    _filename = filename;
     _fh = new wxFile(filename);
 
     if (_fh->IsOpened())

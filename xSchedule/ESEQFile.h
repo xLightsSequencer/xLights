@@ -28,15 +28,15 @@ class ESEQFile
     size_t _frame0Offset;
     size_t _currentFrame;
     bool _ok;
-	
+
     public:
 
         static int ReadInt16(wxFile* fh);
         static int ReadInt32(wxFile* fh);
         static std::list<std::string> GetBlendModes();
 
-		ESEQFile();
-		ESEQFile(const std::string& filename);
+        ESEQFile();
+        ESEQFile(const std::string& filename);
 		void Load(const std::string& filename);
 		virtual ~ESEQFile();
 		int GetLengthFrames() const { return _frames; }

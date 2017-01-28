@@ -99,6 +99,7 @@ void ESEQFile::Load(const std::string& filename)
 
     Close();
 
+    _filename = filename;
     _fh = new wxFile(filename);
 
     if (_fh->IsOpened())

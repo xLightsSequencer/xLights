@@ -352,6 +352,9 @@ wxImage PlayListItemFSEQVideo::CreateImageFromFrame(AVFrame* frame)
 
 void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxStopWatch sw;
     if (outputframe)
     {
         if (_channels > 0)
@@ -367,6 +370,11 @@ void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t
 	
     AVFrame* img = _videoReader->GetNextFrame(ms, framems);
     _window->SetImage(CreateImageFromFrame(img));
+
+    if (sw.Time() > framems / 2)
+    {
+        logger_base.warn("   Getting frame %ld from FSEQvideo %s took more than half a frame: %ld.", (long)ms, (const char *)GetNameNoTime().c_str(), (long)sw.Time());
+    }
 }
 
 void PlayListItemFSEQVideo::Restart()
