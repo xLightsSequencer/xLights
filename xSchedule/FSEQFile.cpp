@@ -233,24 +233,28 @@ void FSEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
     }
 }
 
-std::string FSEQFile::FixFile(const std::string& ShowDir, const std::string& file)
+std::string FSEQFile::FixFile(const std::string& ShowDir, const std::string& file, bool recurse)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // This is cheating ... saves me from having every call know the showdir as long as an early one passes it in
     static wxString RememberShowDir;
     wxString sd;
-    if (ShowDir == "")
-    {
-        sd = RememberShowDir;
-    }
-    else
-    {
-        if (wxString(ShowDir).Lower() != wxString(RememberShowDir).Lower())
+
+        if (ShowDir == "")
         {
-            RememberShowDir = ShowDir;
+            sd = RememberShowDir;
         }
-        sd = RememberShowDir;
-    }
+        else
+        {
+            if (!recurse)
+            {
+                if (wxString(ShowDir).Lower() != wxString(RememberShowDir).Lower())
+                {
+                    RememberShowDir = ShowDir;
+                }
+            }
+            sd = ShowDir;
+        }
 
     if (file == "")
     {
@@ -261,6 +265,8 @@ std::string FSEQFile::FixFile(const std::string& ShowDir, const std::string& fil
     {
         return file;
     }
+
+    logger_base.debug("    Looking for file %s ... not found.", (const char *)file.c_str());
 
 #ifndef __WXMSW__
     wxFileName fnUnix(file, wxPATH_UNIX);
@@ -274,7 +280,6 @@ std::string FSEQFile::FixFile(const std::string& ShowDir, const std::string& fil
     if (fn4.Exists()) {
         return fn4.GetFullPath().ToStdString();
     }
-
 
     wxString sdlc = sd;
     sdlc.LowerCase();
@@ -310,11 +315,11 @@ std::string FSEQFile::FixFile(const std::string& ShowDir, const std::string& fil
     }
 #ifndef __WXMSW__
     if (ShowDir == "" && fnUnix.GetDirCount() > 0) {
-        return FixFile((sd + "/" + fnUnix.GetDirs().Last()).ToStdString() , file);
+        return FixFile((sd + "/" + fnUnix.GetDirs().Last()).ToStdString() , file, true);
     }
 #endif
     if (ShowDir == "" && fnWin.GetDirCount() > 0) {
-        return FixFile((sd + "\\" + fnWin.GetDirs().Last()).ToStdString(), file);
+        return FixFile((sd + "\\" + fnWin.GetDirs().Last()).ToStdString(), file, true);
     }
     return file;
 }

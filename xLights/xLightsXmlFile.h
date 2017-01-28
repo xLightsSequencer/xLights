@@ -67,7 +67,7 @@ class xLightsXmlFile : public wxFileName
         void SetSequenceDuration(const wxString& length);
         void SetSequenceDuration(double length);
 
-		static wxString FixFile(const wxString& ShowDir, const wxString& file);
+		static wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse = false);
 		static wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir);
 
         const wxString &GetSequenceTiming() const { return seq_timing; }
