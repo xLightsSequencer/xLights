@@ -365,7 +365,7 @@ void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t
         }
     }
 	
-    AVFrame* img = _videoReader->GetNextFrame(ms);
+    AVFrame* img = _videoReader->GetNextFrame(ms, framems);
     _window->SetImage(CreateImageFromFrame(img));
 }
 

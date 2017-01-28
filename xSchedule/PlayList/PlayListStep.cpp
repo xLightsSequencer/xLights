@@ -272,6 +272,8 @@ PlayListItem* PlayListStep::GetTimeSource(size_t &ms) const
 
 bool PlayListStep::Frame(wxByte* buffer, size_t size, bool outputframe)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     size_t msPerFrame = 1000;
     PlayListItem* timesource = GetTimeSource(msPerFrame);
 
@@ -290,10 +292,20 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size, bool outputframe)
         frameMS = wxGetUTCTimeMillis().GetLo() - _startTime;
     }
 
+    logger_base.debug("Step %s frame %ld start.", (const char *)GetNameNoTime().c_str(), (long)frameMS);
+
+    wxStopWatch sw;
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
         (*it)->Frame(buffer, size, frameMS, msPerFrame, outputframe);
     }
+
+    if (sw.Time() > frameMS / 2)
+    {
+        logger_base.warn("Step %s frame %ld took longer than half the frame time to output: %ld.", (const char *)GetNameNoTime().c_str(), (long)frameMS, sw.Time());
+    }
+
+    logger_base.debug("    Step %s frame %ld done.", (const char *)GetNameNoTime().c_str(), (long)frameMS);
 
     if (timesource != nullptr)
     {

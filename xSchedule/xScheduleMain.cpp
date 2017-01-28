@@ -1329,6 +1329,7 @@ void xScheduleFrame::UpdateStatus()
 
     static int lastcc = -1;
     static int lastid = -1;
+    static int lastrunning = -1;
     PlayList* p = __schedule->GetRunningPlayList();
 
     if (p == nullptr)
@@ -1346,10 +1347,11 @@ void xScheduleFrame::UpdateStatus()
     }
     else
     {
-        if (p->GetId() != lastid || p->GetChangeCount() != lastcc)
+        if (p->GetId() != lastid || p->GetChangeCount() != lastcc || (int)p->IsRunning() != lastrunning)
         {
             lastcc = p->GetChangeCount();
             lastid = p->GetId();
+            lastrunning = (int)p->IsRunning();
 
             ListView_Running->DeleteAllItems();
 

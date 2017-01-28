@@ -770,9 +770,9 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             {
                 PlayList* p = GetRunningPlayList();
 
-                if (p != nullptr && IsQueuedPlaylistRunning())
+                if (p != nullptr)
                 {
-                    if (p->GetId() == _queuedSongs->GetId())
+                    if (_queuedSongs != nullptr && p->GetId() == _queuedSongs->GetId())
                     {
                         _queuedSongs->Stop();
                         _queuedSongs->RemoveStep(_queuedSongs->GetSteps().front());

@@ -4,6 +4,7 @@
 #include "PlayListItemVideoPanel.h"
 #include "../../xLights/VideoReader.h"
 #include "PlayerWindow.h"
+#include <log4cpp/Category.hh>
 
 PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
 {
@@ -150,8 +151,13 @@ wxImage PlayListItemVideo::CreateImageFromFrame(AVFrame* frame)
 
 void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    AVFrame* img = _videoReader->GetNextFrame(ms);
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("Video rendering frame %ld for video %s.", (long)ms, (const char *)GetNameNoTime().c_str());
+
+    AVFrame* img = _videoReader->GetNextFrame(ms, framems);
     _window->SetImage(CreateImageFromFrame(img));
+
+    //logger_base.debug("   Done rendering frame %ld for video %s.", (long)ms, (const char *)GetNameNoTime().c_str());
 }
 
 void PlayListItemVideo::Start()

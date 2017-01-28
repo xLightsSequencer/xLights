@@ -18,17 +18,19 @@ public:
 	~VideoReader();
 	int GetLengthMS() { return _lengthMS; };
 	void Seek(int timestampMS);
-	AVFrame* GetNextFrame(int timestampMS);
+	AVFrame* GetNextFrame(int timestampMS, int gracetime = 0); // grace time is the minimum the video must be ahead before we bother to seek back to a frame
 	bool IsValid() { return _valid; };
 	int GetWidth() { return _width; };
 	int GetHeight() { return _height; };
 	bool AtEnd() { return _atEnd; };
     int GetPos();
+    std::string GetFilename() const { return _filename; }
 
 private:
 	bool _valid;
     int _lengthMS;
     int _dtspersec;
+    long _frames;
 	AVFormatContext* _formatContext;
 	AVCodecContext* _codecContext;
 	AVStream* _videoStream;
@@ -41,5 +43,6 @@ private:
     AVPacket _packet;
 	AVPixelFormat _pixelFmt;
 	bool _atEnd;
+    std::string _filename;
 };
 #endif // VIDEOREADER_H

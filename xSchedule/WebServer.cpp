@@ -194,7 +194,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
             {
                 // not a valid login
                 // THIS SHOULD BE REMOVED
-                logger_base.debug("Security: Login failed - credential was %s when it should have been %s.", (const char *)credential.c_str(), (const char *)hash.c_str());
+                logger_base.debug("Security: Login failed - credential was %s for %s when it should have been %s.", (const char *)credential.c_str(), (const char *)cred.c_str(), (const char *)hash.c_str());
                 RemoveFromValid(connection);
                 std::string data = "{\"result\":\"failed\",\"message\":\"Login failed.\"}";
                 response.MakeFromText(data, "application/json");
