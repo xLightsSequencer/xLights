@@ -136,10 +136,12 @@ const long xScheduleFrame::ID_TIMER2 = wxNewId();
 //*)
 
 const long xScheduleFrame::ID_MNU_ADDPLAYLIST = wxNewId();
+const long xScheduleFrame::ID_MNU_ADDADVPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_DUPLICATEPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_SCHEDULEPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_DELETE = wxNewId();
 const long xScheduleFrame::ID_MNU_EDIT = wxNewId();
+const long xScheduleFrame::ID_MNU_EDITADV = wxNewId();
 const long xScheduleFrame::ID_BUTTON_USER = wxNewId();
 
 class BrightnessControl : public wxControl
@@ -634,7 +636,10 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu(wxTreeEvent& event)
 
     wxMenu mnu;
     mnu.Append(ID_MNU_ADDPLAYLIST, "Add Playlist");
-
+    if (!__schedule->GetOptions()->IsAdvancedMode())
+    {
+        wxMenuItem* addadv = mnu.Append(ID_MNU_ADDADVPLAYLIST, "Add Advanced Playlist");
+    }
     wxMenuItem* sched = mnu.Append(ID_MNU_SCHEDULEPLAYLIST, "Schedule");
     if (!IsPlayList(treeitem))
     {
@@ -644,6 +649,14 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu(wxTreeEvent& event)
     wxMenuItem* del = mnu.Append(ID_MNU_DELETE, "Delete");
     wxMenuItem* duplicate = mnu.Append(ID_MNU_DUPLICATEPLAYLIST, "Duplicate");
     wxMenuItem* edit = mnu.Append(ID_MNU_EDIT, "Edit");
+    wxMenuItem* editadv = nullptr;
+    if (!__schedule->GetOptions()->IsAdvancedMode())
+    {
+        if (IsPlayList(treeitem))
+        {
+            wxMenuItem* editadv = mnu.Append(ID_MNU_EDITADV, "Edit Advanced");
+        }
+    }
 
     if (!IsPlayList(treeitem) && !IsSchedule(treeitem))
     {
@@ -668,6 +681,10 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
     {
         AddPlayList();
     }
+    else if (event.GetId() == ID_MNU_ADDADVPLAYLIST)
+    {
+        AddPlayList(true);
+    }
     else if (event.GetId() == ID_MNU_SCHEDULEPLAYLIST)
     {
         Schedule* schedule = new Schedule();
@@ -691,6 +708,10 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_EDIT)
     {
         EditSelectedItem();
+    }
+    else if (event.GetId() == ID_MNU_EDITADV)
+    {
+        EditSelectedItem(true);
     }
     else if (event.GetId() == ID_MNU_DUPLICATEPLAYLIST)
     {
@@ -1864,10 +1885,10 @@ void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void xScheduleFrame::AddPlayList()
+void xScheduleFrame::AddPlayList(bool forceadvanced)
 {
     PlayList* playlist = new PlayList();
-    if (playlist->Configure(this, __schedule->GetOptions()->IsAdvancedMode()) == nullptr)
+    if (playlist->Configure(this, forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) == nullptr)
     {
         delete playlist;
     }
@@ -1901,13 +1922,13 @@ void xScheduleFrame::OnButton_DeleteClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void xScheduleFrame::EditSelectedItem()
+void xScheduleFrame::EditSelectedItem(bool forceadvanced)
 {
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
     if (IsPlayList(treeitem))
     {
         PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-        if (playlist->Configure(this, __schedule->GetOptions()->IsAdvancedMode()) != nullptr)
+        if (playlist->Configure(this, forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) != nullptr)
         {
             TreeCtrl_PlayListsSchedules->SetItemText(treeitem, playlist->GetName());
         }

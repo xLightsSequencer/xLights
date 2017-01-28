@@ -861,3 +861,21 @@ Schedule* PlayList::GetSchedule(const std::string& name) const
 
     return nullptr;
 }
+
+void PlayList::RemoveEmptySteps()
+{
+    std::list<PlayListStep*> toremove;
+
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        if ((*it)->GetItems().size() == 0)
+        {
+            toremove.push_back(*it);
+        }
+    }
+
+    for (auto it = toremove.begin(); it != toremove.end(); ++it)
+    {
+        _steps.remove(*it);
+    }
+}

@@ -53,6 +53,7 @@ public:
     PlayList& operator=(PlayList& playlist);
 
     #pragma region Getters and Setters
+    void RemoveEmptySteps();
     wxUint32 GetId() const { return _id; }
     bool IsFinishingUp() const { return _jumpToEndStepsAtEndOfCurrentStep; }
     void JumpToStepAtEndOfCurrentStep(const std::string& step) { _forceNextStep = step; }

@@ -20,7 +20,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>1</growablerows>
+							<growablerows>0</growablerows>
 							<object class="sizeritem">
 								<object class="wxTreeCtrl" name="ID_TREECTRL1" variable="TreeCtrl_PlayList" member="yes">
 									<image_list>&lt;none&gt;</image_list>

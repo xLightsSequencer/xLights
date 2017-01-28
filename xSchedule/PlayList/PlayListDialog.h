@@ -8,6 +8,7 @@
 #include <wx/stattext.h>
 #include <wx/splitter.h>
 #include <wx/panel.h>
+#include <wx/filedlg.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
 //*)
@@ -46,7 +47,12 @@ class PlayListDialog: public wxDialog
 		wxTreeCtrl* TreeCtrl_PlayList;
 		wxStaticText* StaticText2;
 		wxPanel* Panel1;
+		wxFileDialog* FileDialog1;
+		wxButton* Button_AddAudio;
+		wxButton* Button_FSEQVideo;
+		wxButton* Button_Delete;
 		wxButton* Button_Cancel;
+		wxButton* Button_AddFSEQ;
 		wxPanel* Panel2;
 		wxSplitterWindow* SplitterWindow1;
 		//*)
@@ -56,6 +62,10 @@ class PlayListDialog: public wxDialog
 		//(*Identifiers(PlayListDialog)
 		static const long ID_TREECTRL1;
 		static const long ID_STATICTEXT2;
+		static const long ID_BUTTON3;
+		static const long ID_BUTTON4;
+		static const long ID_BUTTON5;
+		static const long ID_BUTTON6;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		static const long ID_PANEL1;
@@ -81,6 +91,7 @@ class PlayListDialog: public wxDialog
         static const long ID_MNU_ADDIMAGE;
         static const long ID_MNU_ADDDELAY;
         static const long ID_MNU_DELETE;
+        static const long ID_MNU_REMOVEEMPTYSTEPS;
 
         bool IsPlayList(wxTreeItemId id);
         bool IsPlayListStep(wxTreeItemId id);
@@ -99,6 +110,10 @@ class PlayListDialog: public wxDialog
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnTreeCtrl_PlayListKeyDown(wxTreeEvent& event);
 		void OnNotebook1PageChanged(wxNotebookEvent& event);
+		void OnButton_AddFSEQClick(wxCommandEvent& event);
+		void OnButton_FSEQVideoClick(wxCommandEvent& event);
+		void OnButton_AddAudioClick(wxCommandEvent& event);
+		void OnButton_DeleteClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

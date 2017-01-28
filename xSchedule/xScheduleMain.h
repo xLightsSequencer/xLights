@@ -64,8 +64,8 @@ class xScheduleFrame : public wxFrame
     void LoadSchedule();
     bool HandleHotkeys(wxKeyEvent& event);
     bool HandleSpecialKeys(wxKeyEvent& event);
-    void AddPlayList();
-    void EditSelectedItem();
+    void AddPlayList(bool  forceadvanced = false);
+    void EditSelectedItem(bool  forceadvanced = false);
     void UpdateUI();
     void DoPaste();
     void DoCopy();
@@ -192,9 +192,11 @@ public:
         //*)
 
         static const long ID_MNU_ADDPLAYLIST;
+        static const long ID_MNU_ADDADVPLAYLIST;
         static const long ID_MNU_DUPLICATEPLAYLIST;
         static const long ID_MNU_SCHEDULEPLAYLIST;
         static const long ID_MNU_EDIT;
+        static const long ID_MNU_EDITADV;
         static const long ID_MNU_DELETE;
         static const long ID_BUTTON_USER;
 
