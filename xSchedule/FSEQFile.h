@@ -35,7 +35,7 @@ class FSEQFile
     size_t _frame0Offset;
     size_t _currentFrame;
     wxByte* _frameBuffer;
-	
+
     public:
 
         static int ReadInt16(wxFile* fh);
@@ -44,8 +44,8 @@ class FSEQFile
         static std::string FixFile(const std::string& ShowDir, const std::string& file);
         static std::string GrabAudioFilename(const std::string& fseqFilename);
 
-		FSEQFile();
-		FSEQFile(const std::string& filename);
+        FSEQFile();
+        FSEQFile(const std::string& filename);
 		void Load(const std::string& filename);
 		virtual ~FSEQFile();
 		int GetFrameMS() const { return _frameMS; }
