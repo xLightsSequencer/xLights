@@ -116,6 +116,7 @@ class ScheduleManager
         bool IsOutputToLights() const;
         bool IsCurrentPlayListScheduled() const { return _immediatePlay == nullptr; }
         void SetOutputToLights(bool otl);
+        void CheckScheduleIntegrity(bool display);
 };
 
 #endif

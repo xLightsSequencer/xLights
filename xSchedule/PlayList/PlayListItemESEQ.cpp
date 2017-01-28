@@ -132,3 +132,14 @@ void PlayListItemESEQ::CloseFiles()
         _ESEQFile = nullptr;
     }
 }
+
+std::list<std::string> PlayListItemESEQ::GetMissingFiles() const
+{
+    std::list<std::string> res;
+    if (!wxFile::Exists(GetESEQFileName()))
+    {
+        res.push_back(GetESEQFileName());
+    }
+
+    return res;
+}

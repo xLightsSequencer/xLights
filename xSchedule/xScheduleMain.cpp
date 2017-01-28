@@ -390,8 +390,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu3 = new wxMenu();
     MenuItem_ViewLog = new wxMenuItem(Menu3, ID_MNU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_ViewLog);
-    MenuItem6 = new wxMenuItem(Menu3, ID_MNU_CHECK_SCHEDULE, _("&Check Schedule"), wxEmptyString, wxITEM_NORMAL);
-    Menu3->Append(MenuItem6);
+    MenuItem_CheckSchedule = new wxMenuItem(Menu3, ID_MNU_CHECK_SCHEDULE, _("&Check Schedule"), wxEmptyString, wxITEM_NORMAL);
+    Menu3->Append(MenuItem_CheckSchedule);
     MenuItem_Options = new wxMenuItem(Menu3, ID_MNU_OPTIONS, _("&Options"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_Options);
     MenuItem_WebInterface = new wxMenuItem(Menu3, ID_MNU_WEBINTERFACE, _("&Web Interface"), wxEmptyString, wxITEM_NORMAL);
@@ -449,6 +449,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MENUITEM1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenu_OutputProcessingSelected);
     Connect(ID_MNU_BACKGROUND,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected);
     Connect(ID_MNU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ViewLogSelected);
+    Connect(ID_MNU_CHECK_SCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CheckScheduleSelected);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_WEBINTERFACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
     Connect(ID_MNU_MODENORMAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
@@ -2049,4 +2050,9 @@ void xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event
     }
 
     ValidateWindow();
+}
+
+void xScheduleFrame::OnMenuItem_CheckScheduleSelected(wxCommandEvent& event)
+{
+    __schedule->CheckScheduleIntegrity(true);
 }

@@ -62,6 +62,14 @@ std::string PlayListItemFSEQVideo::GetAudioFilename() const
         {
             return _fseqFile->GetAudioFileName();
         }
+        else
+        {
+            FSEQFile f(_fseqFileName);
+            if (f.IsOk())
+            {
+                return f.GetAudioFileName();
+            }
+        }
     }
 
     return "";
@@ -485,4 +493,24 @@ PlayListItemFSEQVideo::~PlayListItemFSEQVideo()
         delete _window;
         _window = nullptr;
     }
+}
+
+std::list<std::string> PlayListItemFSEQVideo::GetMissingFiles() const
+{
+    std::list<std::string> res;
+    if (!wxFile::Exists(GetFSEQFileName()))
+    {
+        res.push_back(GetFSEQFileName());
+    }
+    auto af = GetAudioFilename();
+    if (af != "" && !wxFile::Exists(af))
+    {
+        res.push_back(af);
+    }
+    if (!wxFile::Exists(GetVideoFile()))
+    {
+        res.push_back(GetVideoFile());
+    }
+
+    return res;
 }

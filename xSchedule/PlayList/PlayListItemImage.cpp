@@ -147,3 +147,14 @@ void PlayListItemImage::Suspend(bool suspend)
         if (_window != nullptr) _window->Show();
     }
 }
+
+std::list<std::string> PlayListItemImage::GetMissingFiles() const
+{
+    std::list<std::string> res;
+    if (!wxFile::Exists(GetImageFile()))
+    {
+        res.push_back(GetImageFile());
+    }
+
+    return res;
+}

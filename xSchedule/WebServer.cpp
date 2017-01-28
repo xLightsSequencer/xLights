@@ -312,6 +312,8 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     }
     else if (!__apiOnly && request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/")
     {
+        if (wwwroot == "") return false;
+
         int port = connection.Server()->Context().Port;
 
         // Chris if you need this line to be this way on linux then use a #ifdef as the other works on windows
@@ -329,6 +331,8 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     }
     else
     {
+        if (wwwroot == "") return false;
+
         if (!__apiOnly && request.URI().StartsWith("/" + wwwroot))
         {
             wxString d;

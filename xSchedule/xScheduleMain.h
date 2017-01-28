@@ -140,6 +140,7 @@ public:
         void OnButton_DeleteClick(wxCommandEvent& event);
         void OnMenu_OutputProcessingSelected(wxCommandEvent& event);
         void OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event);
+        void OnMenuItem_CheckScheduleSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -224,10 +225,10 @@ public:
         wxMenuItem* MenuItem_BackgroundPlaylist;
         wxPanel* Panel3;
         wxStaticText* StaticText_ShowDir;
+        wxMenuItem* MenuItem_CheckSchedule;
         wxButton* Button_Delete;
         wxStatusBar* StatusBar1;
         wxDirDialog* DirDialog1;
-        wxMenuItem* MenuItem6;
         wxTimer _timerSchedule;
         wxListView* ListView_Running;
         wxMenuItem* MenuItem_FPPRemote;

@@ -42,7 +42,8 @@ public:
     long GetDuration() const { return _duration; }
     void SetDuration(long duration) { if (_duration != duration) { _duration = duration; _changeCount++; } }
     virtual std::string GetTitle() const override;
-#pragma endregion Getters and Setters
+    virtual std::list<std::string> GetMissingFiles() const override;
+    #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
     void Load(wxXmlNode* node) override;

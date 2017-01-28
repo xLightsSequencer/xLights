@@ -151,6 +151,7 @@ void FSEQFile::Load(const std::string& filename)
             _frameBuffer = (wxByte*)malloc(_channelsPerFrame);
 
             logger_base.info("FSEQ file %s opened.", (const char *)filename.c_str());
+            _ok = true;
         }
         else
         {

@@ -81,7 +81,8 @@ public:
     std::string GetVideoFile() const { return _videoFile; }
     wxPoint GetPosition() const { return _origin; }
     wxSize GetSize() const { return _size; }
-	#pragma endregion Getters and Setters
+    virtual std::list<std::string> GetMissingFiles() const override;
+    #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
     void Load(wxXmlNode* node) override;

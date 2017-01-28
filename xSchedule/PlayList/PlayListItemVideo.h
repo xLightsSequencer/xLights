@@ -47,6 +47,7 @@ public:
     virtual std::string GetSyncItemName() const override { return GetVideoFile(); }
     static bool IsVideo(const std::string& ext);
     virtual std::string GetTitle() const override;
+    virtual std::list<std::string> GetMissingFiles() const override;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

@@ -260,3 +260,13 @@ void PlayListItemAudio::SetFastStartAudio(bool fastStartAudio)
     }
 }
 
+std::list<std::string> PlayListItemAudio::GetMissingFiles() const
+{
+    std::list<std::string> res;
+    if (!wxFile::Exists(GetAudioFile()))
+    {
+        res.push_back(GetAudioFile());
+    }
+
+    return res;
+}
