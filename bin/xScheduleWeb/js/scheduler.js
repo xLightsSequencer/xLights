@@ -1,6 +1,7 @@
 var easter_egg = new Konami('https://www.youtube.com/watch?v=oHg5SJYRHA0');
 
 $(window).ready(function() {
+  checkLogInStatus();
   var currentPage = window.location.pathname.split("/").pop();
   //Populate User Navigation
   $('#user-nav').load("core/usernav.html");
@@ -29,11 +30,38 @@ $(window).ready(function() {
   //Populate Page Color
   loadPageSettings();
 
+  window.setInterval(function() {
+    checkLogInStatus();
+  }, 1000);
 
 
 });
 //End onload
 
+
+function checkLogInStatus(){
+  $.ajax({
+    url: '/xScheduleQuery?Query=GetPlayingStatus',
+    dataType: "json",
+    success: function(response) {
+      if (response.result == "not logged in"){
+        window.location.href = "login.html";
+      }
+    }
+  });
+
+}
+
+function logout(){
+  $.ajax({
+    url: '/xScheduleLogin?Credential=logout',
+    dataType: "json",
+    success: function(response) {},
+    error: function(error) {
+      console.log("ERROR: " + error);
+    }
+  });
+}
 
 
 // GLobal Populate
