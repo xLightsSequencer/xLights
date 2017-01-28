@@ -156,13 +156,12 @@ void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
 
     wxStopWatch sw;
     AVFrame* img = _videoReader->GetNextFrame(ms, framems);
+    _window->SetImage(CreateImageFromFrame(img));
 
     if (sw.Time() > framems / 2)
     {
-        logger_base.warn("   Getting frame frame %ld from video %s took more than half a frame: %ld.", (long)ms, (const char *)GetNameNoTime().c_str(), (long)sw.Time());
+        logger_base.warn("   Getting frame %ld from video %s took more than half a frame: %ld.", (long)ms, (const char *)GetNameNoTime().c_str(), (long)sw.Time());
     }
-
-    _window->SetImage(CreateImageFromFrame(img));
 
     //logger_base.debug("   Done rendering frame %ld for video %s.", (long)ms, (const char *)GetNameNoTime().c_str());
 }

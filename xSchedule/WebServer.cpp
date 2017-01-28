@@ -95,7 +95,7 @@ bool CheckLoggedIn(HttpConnection& connection, HttpRequest &request)
     }
 
     HttpResponse response(connection, request, HttpStatus::OK);
-    std::string data = "{\"result\":\"not logged in\"}";
+    std::string data = "{\"result\":\"not logged in\",\"ip\":\""+ connection.Address().IPAddress().ToStdString() +"\"}";
     response.MakeFromText(data, "application/json");
     connection.SendResponse(response);
 
