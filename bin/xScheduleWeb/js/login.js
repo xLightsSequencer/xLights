@@ -26,9 +26,19 @@ function loginSubmit() {
   $.ajax({
     url: '/xScheduleLogin?Credential=' + hash,
     dataType: "json",
-    success: function(response) {},
+    success: function(response) {
+      console.log(response);
+      if (response.result == "failed") {
+        var message = "<h5>" + response.message + "</h5>";
+        $("#error").html(message);
+        $("#webPassword")[0].value = "";
+      } else if (response.result == "ok") {
+        var message = "<h5>Logging In</h5>";
+        $("#error").html(message);
+      }
+    },
     error: function(error) {
-      console.log("ERROR: " + error);
+      $("#error").html("ERROR: " + error);
     }
   });
 }
