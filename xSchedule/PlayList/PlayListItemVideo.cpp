@@ -151,10 +151,17 @@ wxImage PlayListItemVideo::CreateImageFromFrame(AVFrame* frame)
 
 void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("Video rendering frame %ld for video %s.", (long)ms, (const char *)GetNameNoTime().c_str());
 
+    wxStopWatch sw;
     AVFrame* img = _videoReader->GetNextFrame(ms, framems);
+
+    if (sw.Time() > framems / 2)
+    {
+        logger_base.warn("   Getting frame frame %ld from video %s took more than half a frame: %ld.", (long)ms, (const char *)GetNameNoTime().c_str(), (long)sw.Time());
+    }
+
     _window->SetImage(CreateImageFromFrame(img));
 
     //logger_base.debug("   Done rendering frame %ld for video %s.", (long)ms, (const char *)GetNameNoTime().c_str());

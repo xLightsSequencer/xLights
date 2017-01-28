@@ -292,7 +292,7 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size, bool outputframe)
         frameMS = wxGetUTCTimeMillis().GetLo() - _startTime;
     }
 
-    logger_base.debug("Step %s frame %ld start.", (const char *)GetNameNoTime().c_str(), (long)frameMS);
+    //logger_base.debug("Step %s frame %ld start.", (const char *)GetNameNoTime().c_str(), (long)frameMS);
 
     wxStopWatch sw;
     for (auto it = _items.begin(); it != _items.end(); ++it)
@@ -300,12 +300,12 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size, bool outputframe)
         (*it)->Frame(buffer, size, frameMS, msPerFrame, outputframe);
     }
 
-    if (sw.Time() > frameMS / 2)
+    if (sw.Time() > msPerFrame / 2)
     {
-        logger_base.warn("Step %s frame %ld took longer than half the frame time to output: %ld.", (const char *)GetNameNoTime().c_str(), (long)frameMS, sw.Time());
+        logger_base.warn("Step %s frame %ld took longer than half the frame time to output: %ld.", (const char *)GetNameNoTime().c_str(), (long)frameMS, (long)sw.Time());
     }
 
-    logger_base.debug("    Step %s frame %ld done.", (const char *)GetNameNoTime().c_str(), (long)frameMS);
+    //logger_base.debug("    Step %s frame %ld done in %ld.", (const char *)GetNameNoTime().c_str(), (long)frameMS, (long)sw.Time());
 
     if (timesource != nullptr)
     {
