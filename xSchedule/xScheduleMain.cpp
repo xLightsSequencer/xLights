@@ -32,7 +32,9 @@
 #include <wx/clipbrd.h>
 #include "../xLights/osxMacUtils.h"
 #include "BackgroundPlaylistDialog.h"
+#include "MatricesDialog.h"
 
+#include "../include/xs_xyzzy.xpm"
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
 #include "../include/xs_otloff.xpm"
@@ -126,9 +128,10 @@ const long xScheduleFrame::idMenuQuit = wxNewId();
 const long xScheduleFrame::ID_MNU_MNUADDPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MENUITEM1 = wxNewId();
 const long xScheduleFrame::ID_MNU_BACKGROUND = wxNewId();
+const long xScheduleFrame::ID_MNU_MATRICES = wxNewId();
+const long xScheduleFrame::ID_MNU_OPTIONS = wxNewId();
 const long xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
 const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
-const long xScheduleFrame::ID_MNU_OPTIONS = wxNewId();
 const long xScheduleFrame::ID_MNU_WEBINTERFACE = wxNewId();
 const long xScheduleFrame::ID_MNU_IMPORT = wxNewId();
 const long xScheduleFrame::ID_MNU_MODENORMAL = wxNewId();
@@ -272,6 +275,8 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
 
 xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, const std::string& playlist, wxWindowID id)
 {
+    //MatrixMapper::Test();
+
     _statusSetAt = wxDateTime::Now();
     __schedule = nullptr;
     _webServer = nullptr;
@@ -391,14 +396,16 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu5->Append(Menu_OutputProcessing);
     MenuItem_BackgroundPlaylist = new wxMenuItem(Menu5, ID_MNU_BACKGROUND, _("&Background Playlist"), wxEmptyString, wxITEM_CHECK);
     Menu5->Append(MenuItem_BackgroundPlaylist);
+    MenuItem_Matrices = new wxMenuItem(Menu5, ID_MNU_MATRICES, _("&Matrices"), wxEmptyString, wxITEM_NORMAL);
+    Menu5->Append(MenuItem_Matrices);
+    MenuItem_Options = new wxMenuItem(Menu5, ID_MNU_OPTIONS, _("&Options"), wxEmptyString, wxITEM_NORMAL);
+    Menu5->Append(MenuItem_Options);
     MenuBar1->Append(Menu5, _("&Edit"));
     Menu3 = new wxMenu();
     MenuItem_ViewLog = new wxMenuItem(Menu3, ID_MNU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_ViewLog);
     MenuItem_CheckSchedule = new wxMenuItem(Menu3, ID_MNU_CHECK_SCHEDULE, _("&Check Schedule"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_CheckSchedule);
-    MenuItem_Options = new wxMenuItem(Menu3, ID_MNU_OPTIONS, _("&Options"), wxEmptyString, wxITEM_NORMAL);
-    Menu3->Append(MenuItem_Options);
     MenuItem_WebInterface = new wxMenuItem(Menu3, ID_MNU_WEBINTERFACE, _("&Web Interface"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_WebInterface);
     MenuItem_ImportxLights = new wxMenuItem(Menu3, ID_MNU_IMPORT, _("Import xLights Playlist"), wxEmptyString, wxITEM_NORMAL);
@@ -457,9 +464,10 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_MNUADDPLAYLIST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_AddPlayListSelected);
     Connect(ID_MENUITEM1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenu_OutputProcessingSelected);
     Connect(ID_MNU_BACKGROUND,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected);
+    Connect(ID_MNU_MATRICES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MatricesSelected);
+    Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MNU_CHECK_SCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CheckScheduleSelected);
-    Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_WEBINTERFACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
     Connect(ID_MNU_IMPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ImportxLightsSelected);
     Connect(ID_MNU_MODENORMAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
@@ -2084,7 +2092,21 @@ void xScheduleFrame::AddSchedule()
             TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
             playlist->AddSchedule(schedule);
         }
+	}
+}
+
+void xScheduleFrame::OnMenuItem_MatricesSelected(wxCommandEvent& event)
+{
+    auto matrices = __schedule->GetOptions()->GetMatrices();
+    MatricesDialog dlg(this, matrices);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        // it is updated directly
     }
+
+    UpdateUI();
+    ValidateWindow();
 }
 
 void xScheduleFrame::OnMenuItem_ImportxLightsSelected(wxCommandEvent& event)

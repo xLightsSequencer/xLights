@@ -304,6 +304,8 @@
 		<Unit filename="ESEQFile.h" />
 		<Unit filename="FSEQFile.cpp" />
 		<Unit filename="FSEQFile.h" />
+		<Unit filename="MatricesDialog.cpp" />
+		<Unit filename="MatricesDialog.h" />
 		<Unit filename="OptionsDialog.cpp" />
 		<Unit filename="OptionsDialog.h" />
 		<Unit filename="OutputProcess.cpp" />
@@ -413,6 +415,8 @@
 		<Unit filename="UserButton.h" />
 		<Unit filename="WebServer.cpp" />
 		<Unit filename="WebServer.h" />
+		<Unit filename="MatrixDialog.cpp" />
+		<Unit filename="MatrixDialog.h" />
 		<Unit filename="md5.cpp" />
 		<Unit filename="md5.h" />
 		<Unit filename="resource.rc">
@@ -439,6 +443,7 @@
 		<Unit filename="wxsmith/ColourOrderDialog.wxs" />
 		<Unit filename="wxsmith/DimDialog.wxs" />
 		<Unit filename="wxsmith/DimWhiteDialog.wxs" />
+		<Unit filename="wxsmith/MatricesDialog1.wxs" />
 		<Unit filename="wxsmith/OptionsDialog.wxs" />
 		<Unit filename="wxsmith/OutputProcessingDialog.wxs" />
 		<Unit filename="wxsmith/PlayListDialog.wxs" />
@@ -465,6 +470,7 @@
 		<Unit filename="wxsmith/ScheduleDialog.wxs" />
 		<Unit filename="wxsmith/SetDialog.wxs" />
 		<Unit filename="wxsmith/VideoWindowPositionDialog.wxs" />
+		<Unit filename="wxsmith/MatrixDialog.wxs" />
 		<Unit filename="wxsmith/xScheduleframe.wxs" />
 		<Unit filename="xScheduleApp.cpp" />
 		<Unit filename="xScheduleApp.h" />
@@ -510,6 +516,8 @@
 					<wxDialog wxs="wxsmith/BackgroundPlaylistDialog.wxs" src="BackgroundPlaylistDialog.cpp" hdr="BackgroundPlaylistDialog.h" fwddecl="0" i18n="1" name="BackgroundPlaylistDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ColourOrderDialog.wxs" src="ColourOrderDialog.cpp" hdr="ColourOrderDialog.h" fwddecl="0" i18n="1" name="ColourOrderDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AddReverseDialog.wxs" src="AddReverseDialog.cpp" hdr="AddReverseDialog.h" fwddecl="0" i18n="1" name="AddReverseDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/MatrixDialog.wxs" src="MatrixDialog.cpp" hdr="MatrixDialog.h" fwddecl="0" i18n="1" name="MatrixDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/MatricesDialog1.wxs" src="MatricesDialog.cpp" hdr="MatricesDialog.h" fwddecl="0" i18n="1" name="MatricesDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>
