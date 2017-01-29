@@ -976,6 +976,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItem_File_Save_Sequence->Enable(false);
         MenuItem_File_Close_Sequence->Enable(false);
         MenuItem_PackageSequence->Enable(false);
+        MenuItem_ExportEffects->Enable(false);
         MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, false);
     }
     if (!enable && SeqData.NumFrames() > 0) {
