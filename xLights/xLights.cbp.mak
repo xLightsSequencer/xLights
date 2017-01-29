@@ -2320,7 +2320,7 @@ effects/PianoEffect.h: effects/RenderableEffect.h
 
 effects/PianoPanel.h: ValueCurveButton.h
 
-effects/PianoPanel.cpp: effects/PianoPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/PianoEffect.h xLightsMain.h
+effects/PianoPanel.cpp: effects/PianoPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/PianoEffect.h sequencer/Effect.h xLightsMain.h
 
 effects/LightningEffect.cpp: effects/LightningEffect.h effects/LightningPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/lightning-16.xpm ../include/lightning-24.xpm ../include/lightning-32.xpm ../include/lightning-48.xpm ../include/lightning-64.xpm
 
@@ -2522,7 +2522,7 @@ effects/FireworksEffect.cpp: effects/FireworksEffect.h effects/FireworksPanel.h 
 
 effects/FireworksEffect.h: effects/RenderableEffect.h
 
-effects/FireworksPanel.cpp: effects/FireworksPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h ValueCurveButton.h
+effects/FireworksPanel.cpp: effects/FireworksPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h sequencer/Effect.h ValueCurveButton.h
 
 effects/GalaxyEffect.cpp: effects/GalaxyEffect.h effects/GalaxyPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/galaxy-16.xpm ../include/galaxy-24.xpm ../include/galaxy-32.xpm ../include/galaxy-48.xpm ../include/galaxy-64.xpm
 
