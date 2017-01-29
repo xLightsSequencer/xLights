@@ -415,7 +415,7 @@ void PlayListDialog::OnTreeCtrl_PlayListBeginDrag(wxTreeEvent& event)
 
     if (IsPlayList(dragitem))
     {
-        event.Skip();
+        //event.Skip();
         return;
     }
 

@@ -70,6 +70,7 @@ class xScheduleFrame : public wxFrame
     void UpdateUI();
     void DoPaste();
     void DoCopy();
+    void AddSchedule();
 
     wxBitmap _otlon;
     wxBitmap _otloff;
@@ -141,6 +142,7 @@ public:
         void OnMenu_OutputProcessingSelected(wxCommandEvent& event);
         void OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event);
         void OnMenuItem_CheckScheduleSelected(wxCommandEvent& event);
+        void OnButton_ScheduleClick(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -169,6 +171,7 @@ public:
         static const long ID_BUTTON1;
         static const long ID_BUTTON2;
         static const long ID_BUTTON3;
+        static const long ID_BUTTON4;
         static const long ID_PANEL3;
         static const long ID_LISTVIEW1;
         static const long ID_PANEL5;
@@ -219,6 +222,7 @@ public:
         wxMenuItem* MenuItem_FPPMaster;
         wxPanel* Panel4;
         wxMenu* Menu3;
+        wxButton* Button_Schedule;
         xLightsTimer _timer;
         wxMenuItem* MenuItem_Save;
         wxPanel* Panel1;
