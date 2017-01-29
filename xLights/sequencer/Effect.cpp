@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include "../SequenceCheck.h"
 
+wxDEFINE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
+
 class ControlRenameMap
 {
 public:

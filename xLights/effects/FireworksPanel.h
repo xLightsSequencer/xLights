@@ -20,7 +20,7 @@ class FireworksPanel: public wxPanel
 
 		FireworksPanel(wxWindow* parent);
 		virtual ~FireworksPanel();
-        void SetTimingTrack(std::list<std::string> timingtracks);
+        void SetTimingTracks(wxCommandEvent& event);
 
 		//(*Declarations(FireworksPanel)
 		wxSlider* Slider_Fireworks_Velocity;

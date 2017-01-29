@@ -66,18 +66,23 @@ void PianoEffect::SetPanelTimingTracks()
     }
 
     // Load the names of the timing tracks
-    std::list<std::string> timingtracks;
+    std::string timingtracks = "";
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
         if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
         {
-            timingtracks.push_back(e->GetName());
+            if (timingtracks != "")
+            {
+                timingtracks += "|";
+            }
+            timingtracks += e->GetName();
         }
     }
 
-    // Select the first one
-    fp->SetTimingTrack(timingtracks);
+    wxCommandEvent event(EVT_SETTIMINGTRACKS);
+    event.SetString(timingtracks);
+    wxPostEvent(fp, event);
 }
 
 void PianoEffect::adjustSettings(const std::string &version, Effect *effect)

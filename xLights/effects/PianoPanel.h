@@ -25,7 +25,7 @@ public:
 
 		PianoPanel(wxWindow* parent);
 		virtual ~PianoPanel();
-        void SetTimingTrack(std::list<std::string> timingtracks);
+        void SetTimingTracks(wxCommandEvent& event);
 
 		//(*Declarations(PianoPanel)
 		wxStaticText* StaticText9;

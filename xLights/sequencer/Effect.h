@@ -16,6 +16,9 @@ class EffectLayer;
 #define EFFECT_RT_SELECTED      2
 #define EFFECT_SELECTED         3
 
+wxDECLARE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
+
+
 class Effect
 {
     private:

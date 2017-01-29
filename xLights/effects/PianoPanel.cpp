@@ -3,6 +3,7 @@
 #include "EffectPanelUtils.h"
 #include "PianoEffect.h"
 #include <wx/textfile.h>
+#include "../sequencer/Effect.h"
 
 //(*InternalHeaders(PianoPanel)
 #include <wx/sizer.h>
@@ -54,6 +55,7 @@ const long PianoPanel::ID_BITMAPBUTTON_Piano_XOffset = wxNewId();
 BEGIN_EVENT_TABLE(PianoPanel,wxPanel)
 	//(*EventTable(PianoPanel)
 	//*)
+    EVT_COMMAND(wxID_ANY, EVT_SETTIMINGTRACKS, PianoPanel::SetTimingTracks)
 END_EVENT_TABLE()
 
 PianoPanel::PianoPanel(wxWindow* parent)
@@ -201,7 +203,9 @@ void PianoPanel::ValidateWindow()
     SpinCtrl_Piano_EndMIDI->SetToolTip(wxString(xLightsFrame::DecodeMidi(SpinCtrl_Piano_EndMIDI->GetValue()).c_str()));
 }
 
-void PianoPanel::SetTimingTrack(std::list<std::string> timingtracks) {
+void PianoPanel::SetTimingTracks(wxCommandEvent& event)
+{
+    auto timingtracks = wxSplit(event.GetString(), '|');
 
     wxString selection = Choice_Piano_MIDITrack_APPLYLAST->GetStringSelection();
 

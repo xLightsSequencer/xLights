@@ -1,6 +1,7 @@
 #include "FireworksPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "../sequencer/Effect.h"
 
 //(*InternalHeaders(FireworksPanel)
 #include <wx/sizer.h>
@@ -45,6 +46,7 @@ const long FireworksPanel::ID_CHOICE_FIRETIMINGTRACK = wxNewId();
 BEGIN_EVENT_TABLE(FireworksPanel,wxPanel)
 	//(*EventTable(FireworksPanel)
 	//*)
+    EVT_COMMAND(wxID_ANY, EVT_SETTIMINGTRACKS, FireworksPanel::SetTimingTracks)
 END_EVENT_TABLE()
 
 FireworksPanel::FireworksPanel(wxWindow* parent)
@@ -171,7 +173,9 @@ void FireworksPanel::OnChoice_TimingTrackSelect(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void FireworksPanel::SetTimingTrack(std::list<std::string> timingtracks) {
+void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
+{
+    auto timingtracks = wxSplit(event.GetString(), '|');
 
     wxString selection = Choice_TimingTrack->GetStringSelection();
 
