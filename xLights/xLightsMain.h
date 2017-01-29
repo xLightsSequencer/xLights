@@ -501,6 +501,7 @@ private:
     void OnMenuItemShiftEffectsSelected(wxCommandEvent& event);
     void OnMenuItem_PackageSequenceSelected(wxCommandEvent& event);
     void OnMenuItem_BackupSubfoldersSelected(wxCommandEvent& event);
+    void OnMenuItem_xScheduleSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -614,6 +615,7 @@ private:
     static const long ID_MNU_EXPORT_EFFECTS;
     static const long ID_MENU_FPP_CONNECT;
     static const long ID_MNU_PACKAGESEQUENCE;
+    static const long ID_MNU_XSCHEDULE;
     static const long idMenuSaveSched;
     static const long idMenuAddList;
     static const long idMenuRenameList;
@@ -834,6 +836,7 @@ private:
     wxMenu* MenuItem1;
     wxGauge* ProgressBar;
     xlAuiToolBar* EffectsToolBar;
+    wxMenuItem* MenuItem_xSchedule;
     wxButton* ButtonSaveSchedule;
     wxMenuItem* MenuItem_Help_Forum;
     wxButton* ButtonAddShow;

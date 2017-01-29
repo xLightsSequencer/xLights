@@ -28,6 +28,7 @@
 #include <wx/debugrpt.h>
 #include <wx/cmdline.h>
 #include <wx/confbase.h>
+#include <wx/snglinst.h>
 
 IMPLEMENT_APP(xScheduleApp)
 
@@ -353,18 +354,25 @@ void handleCrash(void *data) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Crash handler called.");
     wxDebugReportCompress *report = new wxDebugReportCompress();
-    report->SetCompressedFileDirectory(xScheduleFrame::GetScheduleManager()->GetShowDir());
+    if (xScheduleFrame::GetScheduleManager() != nullptr)
+    {
+        report->SetCompressedFileDirectory(xScheduleFrame::GetScheduleManager()->GetShowDir());
+    }
+
     report->AddAll(wxDebugReport::Context_Exception);
     report->AddAll(wxDebugReport::Context_Current);
 
-    xScheduleFrame::GetScheduleManager()->CheckScheduleIntegrity(false);
+    if (xScheduleFrame::GetScheduleManager() != nullptr)
+    {
+        xScheduleFrame::GetScheduleManager()->CheckScheduleIntegrity(false);
+        wxFileName fn(xScheduleFrame::GetScheduleManager()->GetShowDir(), OutputManager::GetNetworksFileName());
+        if (fn.Exists()) {
+            report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
+        }
 
-    wxFileName fn(xScheduleFrame::GetScheduleManager()->GetShowDir(), OutputManager::GetNetworksFileName());
-    if (fn.Exists()) {
-        report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
-    }
-    if (wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()).Exists()) {
-        report->AddFile(wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()).GetFullPath(), ScheduleManager::GetScheduleFile());
+        if (wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()).Exists()) {
+            report->AddFile(wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()).GetFullPath(), ScheduleManager::GetScheduleFile());
+        }
     }
 
     wxString dir;
@@ -443,8 +451,24 @@ void xScheduleApp::WipeSettings()
     config->DeleteAll();
 }
 
+int xScheduleApp::OnExit()
+{
+    if (_checker != nullptr)
+    {
+        delete _checker;
+        _checker = nullptr;
+    }
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("xSchedule exiting.");
+
+    return 0;
+}
+
 bool xScheduleApp::OnInit()
 {
+    _checker = nullptr;
+
     wxLog::SetLogLevel(wxLOG_FatalError);
 
 #ifdef _MSC_VER
@@ -463,6 +487,22 @@ bool xScheduleApp::OnInit()
     InitialiseLogging(false);
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: xSchedule started.");
+
+    _checker = new wxSingleInstanceChecker();
+    _checker->CreateDefault();
+    if (_checker->IsAnotherRunning())
+    {
+        logger_base.info("Another instance of xSchedule is running.");
+        delete _checker; // OnExit() won't be called if we return false
+        _checker = nullptr;
+
+        // WOuld be nice to switch focuse here to the existing instance ... but that doesnt work ... this only sees windows in this process
+        //wxWindow* x = wxWindow::FindWindowByLabel(_("xLights Scheduler"));
+
+        wxMessageBox("Another instance of xSchedule is already running. A second instance not allowed. Exiting.");
+
+        return false;
+    }
 
     static const wxCmdLineEntryDesc cmdLineDesc[] =
     {

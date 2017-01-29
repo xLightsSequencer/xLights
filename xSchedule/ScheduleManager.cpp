@@ -1263,6 +1263,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     msg = "Only scheduled and immediately played playlists can be restarted.";
                 }
             }
+            else if (command == "Bring to foreground")
+            {
+                ((wxFrame*)wxGetApp().GetTopWindow())->Iconize(false);
+                wxGetApp().GetTopWindow()->Raise();
+            }
             else if (command == "Play specified playlist step n times")
             {
                 wxString parameter = parameters;
@@ -1371,7 +1376,7 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
 // 127.0.0.1/xScheduleQuery?Query=GetPlayingStatus&Parameters=
 // 127.0.0.1/xScheduleQuery?Query=GetButtons&Parameters=
 
-bool ScheduleManager::Query(const std::string command, const std::string parameters, std::string& data, std::string& msg)
+bool ScheduleManager::Query(const std::string command, const std::string parameters, std::string& data, std::string& msg, const std::string& ip)
 {
     bool result = true;
     data = "";
@@ -1499,24 +1504,29 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
         {
             data = "{\"status\":\"idle\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + 
                 "\",\"volume\":\"" + wxString::Format(wxT("%i"), GetVolume()) +
+                "\",\"ip\":\"" + ip +
                 "\",\"time\":\""+ wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +"\"}";
         }
         else
         {
             std::string nextsong;
+            std::string nextsongid;
             bool didloop;
             auto next = p->GetNextStep(didloop);
             if (next == nullptr)
             {
                 nextsong = "";
+                nextsongid = "";
             }
             else if (p->IsRandom())
             {
                 nextsong = "God knows";
+                nextsongid = "";
             }
             else
             {
                 nextsong = next->GetNameNoTime();
+                nextsongid = wxString::Format(wxT("%i"), next->GetId());
             }
 
             RunningSchedule* rs = GetRunningSchedule();
@@ -1539,13 +1549,15 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"scheduleend\":\"" + std::string((IsCurrentPlayListScheduled() && rs != nullptr) ? rs->GetSchedule()->GetNextEndTime() : "N/A") +
                 "\",\"scheduleid\":\"" + std::string((IsCurrentPlayListScheduled() && rs != nullptr) ? wxString::Format(wxT("%i"), rs->GetSchedule()->GetId()).ToStdString()  : "N/A") +
                 "\",\"nextstep\":\"" + nextsong +
+                "\",\"nextstepid\":\"" + nextsongid +
                 "\",\"version\":\"" + xlights_version_string +
                 "\",\"queuelength\":\"" + wxString::Format(wxT("%i"), _queuedSongs->GetSteps().size()) +
                 "\",\"volume\":\"" + wxString::Format(wxT("%i"), GetVolume()) +
                 "\",\"time\":\"" + wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +
+                "\",\"ip\":\"" + ip +
                 "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\"}";
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.info("%s", (const char*)data.c_str());
+            //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            //logger_base.info("%s", (const char*)data.c_str());
         }
     }
     else if (command == "GetButtons")

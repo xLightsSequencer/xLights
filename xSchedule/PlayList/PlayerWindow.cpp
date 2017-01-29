@@ -12,19 +12,27 @@ PlayerWindow::PlayerWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 {
     _image = wxImage(size, true);
 #ifndef __WXOSX__
-	SetDoubleBuffered(true);
+    SetDoubleBuffered(true);
 #endif
     _dragging = false;
-	
-	Create(parent, id, "Player Window", pos , size, wxBORDER_NONE, _T("id"));
-	SetClientSize(size);
-	Move(pos);
+
+    wxWindow *wind = wxWindow::FindFocus();
+
+    Create(parent, id, "Player Window", pos, size, wxBORDER_NONE, _T("id"));
+    SetClientSize(size);
+    Move(pos);
     wxWindow::Show();
 
     Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&PlayerWindow::OnMouseLeftDown, 0, this);
     Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&PlayerWindow::OnMouseLeftUp, 0, this);
     Connect(wxEVT_MOTION, (wxObjectEventFunction)&PlayerWindow::OnMouseMove, 0, this);
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&PlayerWindow::Paint, 0, this);
+
+    // prevent this window from stealing focus
+    if (wind != nullptr)
+    {
+        wind->SetFocus();
+    }
 }
 
 PlayerWindow::~PlayerWindow()

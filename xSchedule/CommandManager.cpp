@@ -194,5 +194,6 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Clear playlist queue", 0, {}, false, false, true, false, false, true));
     _commands.push_back(new Command("Refresh current playlist", 0, {}, false, false, true, false, false, false)); // this is called to load a changed playlist that is currently playing
     _commands.push_back(new Command("Run command at end of current step", -1, {}, false, false, true, false, false, true)); // this is called to run a command but only at the end of the current step
+    _commands.push_back(new Command("Bring to foreground", 0, {}, false, false, false, false, true, true)); // this is useful from the web UI to force the scheduler into the foreground on the PC
 }
 

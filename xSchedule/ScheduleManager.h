@@ -51,7 +51,7 @@ class ScheduleManager
     void SendFPPSync(const std::string& syncItem, size_t msec);
     void OpenFPPSyncSendSocket();
     void CloseFPPSyncSendSocket();
-    void EnqueueSong(PlayListStep* step);
+    //void EnqueueSong(PlayListStep* step);
     void ManageBackground();
 
     public:
@@ -103,7 +103,7 @@ class ScheduleManager
         void OutputProcessingChanged() {};
         bool Action(const std::string label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
         bool Action(const std::string command, const std::string parameters, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
-        bool Query(const std::string command, const std::string parameters, std::string& data, std::string& msg);
+        bool Query(const std::string command, const std::string parameters, std::string& data, std::string& msg, const std::string& ip);
         PlayList * GetPlayList(const std::string& playlist) const;
         void StopPlayList(PlayList* playlist, bool atendofcurrentstep);
         bool StoreData(const std::string& key, const std::string& data, std::string& msg) const;

@@ -1130,6 +1130,10 @@
 					<label>Package &amp;Sequence</label>
 					<handler function="OnMenuItem_PackageSequenceSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_XSCHEDULE" variable="MenuItem_xSchedule" member="yes">
+					<label>xSchedu&amp;le</label>
+					<handler function="OnMenuItem_xScheduleSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuPlaylist" member="no">
 				<label>&amp;Playlist</label>

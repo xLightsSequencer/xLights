@@ -18,12 +18,17 @@
 #include <crtdbg.h>
 #endif
 
+class wxSingleInstanceChecker;
+
 class xScheduleApp : public wxApp
 {
+    wxSingleInstanceChecker* _checker;
+
     public:
         virtual bool OnInit();
         virtual void OnFatalException();
         void WipeSettings();
+        virtual int OnExit();
 };
 
 DECLARE_APP(xScheduleApp)

@@ -293,7 +293,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         std::string data = "";
         std::string msg;
         HttpResponse response(connection, request, HttpStatus::OK);
-        if (xScheduleFrame::GetScheduleManager()->Query(query, parameters, data, msg))
+        if (xScheduleFrame::GetScheduleManager()->Query(query, parameters, data, msg, connection.Address().IPAddress().ToStdString()))
         {
             if (query != "GetPlayingStatus")
                 logger_base.info("    data = '%s'.", (const char *)data.c_str());
