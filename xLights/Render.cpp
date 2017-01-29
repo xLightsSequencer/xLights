@@ -1152,7 +1152,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         isboxed = true;
     }
 
-    SeqExportDialog dialog(this);
+    SeqExportDialog dialog(this, m->GetName());
     dialog.ModelExportTypes(isgroup || !isboxed);
 
     if (dialog.ShowModal() == wxID_OK) {

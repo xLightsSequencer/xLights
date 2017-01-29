@@ -25,8 +25,10 @@ BEGIN_EVENT_TABLE(SeqExportDialog,wxDialog)
     //*)
 END_EVENT_TABLE()
 
-SeqExportDialog::SeqExportDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+SeqExportDialog::SeqExportDialog(wxWindow* parent, const std::string& model, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _model = model;
+
     //(*Initialize(SeqExportDialog)
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer3;
@@ -135,39 +137,43 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
 
     if (fmt == "LOR. *.lms or *.las")
     {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "LOR", wxEmptyString, "LOR (*.lms;*.las)|*.lms;*.las", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "LOR (*.lms;*.las)|*.lms;*.las", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
     }
     else if (fmt == "Lcb, LOR Clipboard *.lcb")
     {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "LOR Clipboard", wxEmptyString, "LOR Clipboard (*.lcb)|*.lcb", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "LOR Clipboard (*.lcb)|*.lcb", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
     }
     else if (fmt == "Vixen, Vixen sequence file *.vix")
     {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "Vixen", wxEmptyString, "Vixen Sequence File (*.vix)|*.vix", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "Vixen Sequence File (*.vix)|*.vix", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
     }
     else if (fmt == "Vir, Vixen Routine file. *.vir")
     {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "VIR", wxEmptyString, "Vixen Routine File (*.vir)|*.vir", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "Vixen Routine File (*.vir)|*.vir", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
     }
     else if (fmt == "LSP, Light Show Pro ")
     {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "LSP", wxEmptyString, "Light Show Pro (*.*)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "Light Show Pro (*.*)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
     }
     else if (fmt == "HLS, Hinkle Lighte Sequencer *.hlsnc")
     {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "HLS", wxEmptyString, "Hinkle Light Sequencer (*.hlsnc)|*.hlsnc", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "Hinkle Light Sequencer (*.hlsnc)|*.hlsnc", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
     }
     else if (fmt == "xLights, *.xseq")
     {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "xLights", wxEmptyString, "xLights (*.xseq)|*.xseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "xLights (*.xseq)|*.xseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+    }
+    else if (fmt == "Falcon Pi Sub sequence. *.eseq")
+    {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "Falcon Sub Sequence (*.eseq)|*.eseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
     }
     else if (fmt == "Falcon, *.fseq")
     {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "Falcon", wxEmptyString, "Falcon (*.fseq)|*.fseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "Falcon (*.fseq)|*.fseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
     }
     else if (fmt == "Compressed Video, *.avi" || fmt == "Uncompressed Video, *.avi")
     {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, "Video", wxEmptyString, "Video (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "Video (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
     }
 
     ValidateWindow();

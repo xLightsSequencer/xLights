@@ -12,11 +12,12 @@
 
 class SeqExportDialog: public wxDialog
 {
+    std::string _model;
     void ValidateWindow();
 
 public:
 
-    SeqExportDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+    SeqExportDialog(wxWindow* parent, const std::string& model, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
     virtual ~SeqExportDialog();
     void ModelExportTypes(bool isgroup);
 
