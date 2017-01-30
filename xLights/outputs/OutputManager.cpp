@@ -135,7 +135,7 @@ bool OutputManager::Discover()
 #pragma endregion Controller Discovery
 
 #pragma region Getters and Setters
-// get an output based on an output number
+// get an output based on an output number - zero based
 Output* OutputManager::GetOutput(int outputNumber) const
 {
     if (outputNumber >= (int)_outputs.size())
@@ -144,7 +144,7 @@ Output* OutputManager::GetOutput(int outputNumber) const
     }
 
     auto iter = _outputs.begin();
-    std::advance(iter, outputNumber - 1);
+    std::advance(iter, outputNumber);
     return *iter;
 }
 
@@ -683,7 +683,7 @@ void OutputManager::SetManyChannels(long channel, unsigned char* data, long size
         o->SetManyChannels(stch - 1, &data[size - left], send);
         stch = 1;
         left -= send;
-        o = GetOutput(o->GetOutputNumber() + 1);
+        o = GetOutput(o->GetOutputNumber()); // get the next output
     }
 }
 #pragma endregion Data Setting
