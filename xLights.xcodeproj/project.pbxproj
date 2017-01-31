@@ -309,6 +309,10 @@
 		67D2B0481D54CC6A006D324F /* ColorCurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D2B0421D54CC6A006D324F /* ColorCurve.cpp */; };
 		67D2B0491D54CC6A006D324F /* ColorCurveDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D2B0441D54CC6A006D324F /* ColorCurveDialog.cpp */; };
 		67D2B04C1D54CCA4006D324F /* colorcurves in Resources */ = {isa = PBXBuildFile; fileRef = 67D2B04B1D54CCA4006D324F /* colorcurves */; };
+		67D640E91E41168F00381DDA /* BackgroundPlaylistDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D640E71E41168F00381DDA /* BackgroundPlaylistDialog.cpp */; };
+		67D640F01E41169F00381DDA /* PlayListSimpleDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D640EA1E41169F00381DDA /* PlayListSimpleDialog.cpp */; };
+		67D640F11E41169F00381DDA /* PlayListItemFSEQVideo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D640EB1E41169F00381DDA /* PlayListItemFSEQVideo.cpp */; };
+		67D640F21E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D640ED1E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp */; };
 		67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D678FC1A7E628400421B05 /* tmGridCell.cpp */; };
 		67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D7DD031B23C586007A3F20 /* UndoManager.cpp */; };
 		67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B317C45BAF00FE40EA /* TabSequence.cpp */; };
@@ -1093,6 +1097,14 @@
 		67D2B0441D54CC6A006D324F /* ColorCurveDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorCurveDialog.cpp; sourceTree = "<group>"; };
 		67D2B0451D54CC6A006D324F /* colorcurvedialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = colorcurvedialog.h; sourceTree = "<group>"; };
 		67D2B04B1D54CCA4006D324F /* colorcurves */ = {isa = PBXFileReference; lastKnownFileType = folder; path = colorcurves; sourceTree = "<group>"; };
+		67D640E71E41168F00381DDA /* BackgroundPlaylistDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BackgroundPlaylistDialog.cpp; sourceTree = "<group>"; };
+		67D640E81E41168F00381DDA /* BackgroundPlaylistDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BackgroundPlaylistDialog.h; sourceTree = "<group>"; };
+		67D640EA1E41169F00381DDA /* PlayListSimpleDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListSimpleDialog.cpp; path = PlayList/PlayListSimpleDialog.cpp; sourceTree = "<group>"; };
+		67D640EB1E41169F00381DDA /* PlayListItemFSEQVideo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemFSEQVideo.cpp; path = PlayList/PlayListItemFSEQVideo.cpp; sourceTree = "<group>"; };
+		67D640EC1E41169F00381DDA /* PlayListItemFSEQVideo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemFSEQVideo.h; path = PlayList/PlayListItemFSEQVideo.h; sourceTree = "<group>"; };
+		67D640ED1E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemFSEQVideoPanel.cpp; path = PlayList/PlayListItemFSEQVideoPanel.cpp; sourceTree = "<group>"; };
+		67D640EE1E41169F00381DDA /* PlayListItemFSEQVideoPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemFSEQVideoPanel.h; path = PlayList/PlayListItemFSEQVideoPanel.h; sourceTree = "<group>"; };
+		67D640EF1E41169F00381DDA /* PlayListSimpleDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListSimpleDialog.h; path = PlayList/PlayListSimpleDialog.h; sourceTree = "<group>"; };
 		67D678FC1A7E628400421B05 /* tmGridCell.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tmGridCell.cpp; sourceTree = "<group>"; };
 		67D7DD031B23C586007A3F20 /* UndoManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = UndoManager.cpp; path = sequencer/UndoManager.cpp; sourceTree = "<group>"; };
 		67DA0AE81E39C8EB00E2A859 /* DimDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DimDialog.cpp; sourceTree = "<group>"; };
@@ -2126,6 +2138,8 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				67D640E71E41168F00381DDA /* BackgroundPlaylistDialog.cpp */,
+				67D640E81E41168F00381DDA /* BackgroundPlaylistDialog.h */,
 				67DA0B001E39C96F00E2A859 /* RemapDialog.cpp */,
 				67DA0B011E39C96F00E2A859 /* RemapDialog.h */,
 				67DA0B021E39C96F00E2A859 /* SetDialog.cpp */,
@@ -2218,6 +2232,12 @@
 		67F23FA91E329E6100F8B985 /* PlayList */ = {
 			isa = PBXGroup;
 			children = (
+				67D640EA1E41169F00381DDA /* PlayListSimpleDialog.cpp */,
+				67D640EB1E41169F00381DDA /* PlayListItemFSEQVideo.cpp */,
+				67D640EC1E41169F00381DDA /* PlayListItemFSEQVideo.h */,
+				67D640ED1E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp */,
+				67D640EE1E41169F00381DDA /* PlayListItemFSEQVideoPanel.h */,
+				67D640EF1E41169F00381DDA /* PlayListSimpleDialog.h */,
 				67630E021E38F0FC0047CF05 /* PlayListItemVirtualMatrix.cpp */,
 				67630E031E38F0FC0047CF05 /* PlayListItemVirtualMatrix.h */,
 				67630E041E38F0FC0047CF05 /* PlayListItemVirtualMatrixPanel.cpp */,
@@ -2748,6 +2768,7 @@
 				67F2402B1E32A0C900F8B985 /* kfc.c in Sources */,
 				67F2402C1E32A0C900F8B985 /* kiss_fft.c in Sources */,
 				67DA0B061E39C96F00E2A859 /* RemapDialog.cpp in Sources */,
+				67D640F11E41169F00381DDA /* PlayListItemFSEQVideo.cpp in Sources */,
 				67F2401B1E32A09E00F8B985 /* JobPool.cpp in Sources */,
 				67F2401C1E32A09E00F8B985 /* PluginBufferingAdapter.cpp in Sources */,
 				67F2401D1E32A09E00F8B985 /* Files.cpp in Sources */,
@@ -2790,6 +2811,8 @@
 				67F23F5E1E329AD800F8B985 /* ButtonDetailsDialog.cpp in Sources */,
 				67F23FA41E329E3300F8B985 /* request.cpp in Sources */,
 				67F23FE91E329E7400F8B985 /* PlayListItem.cpp in Sources */,
+				67D640F21E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp in Sources */,
+				67D640E91E41168F00381DDA /* BackgroundPlaylistDialog.cpp in Sources */,
 				67F240011E329E7400F8B985 /* PlayListStep.cpp in Sources */,
 				67F23FE81E329E7400F8B985 /* PlayListDialog.cpp in Sources */,
 				67F23FE61E329E7400F8B985 /* PlayerWindow.cpp in Sources */,
@@ -2819,6 +2842,7 @@
 				67F23FED1E329E7400F8B985 /* PlayListItemAudioPanel.cpp in Sources */,
 				67F23F5A1E329AD800F8B985 /* ScheduleDialog.cpp in Sources */,
 				67F23FEA1E329E7400F8B985 /* PlayListItemAllOff.cpp in Sources */,
+				67D640F01E41169F00381DDA /* PlayListSimpleDialog.cpp in Sources */,
 				67F23FF31E329E7400F8B985 /* PlayListItemFSEQPanel.cpp in Sources */,
 				67F23F691E329AD800F8B985 /* FSEQFile.cpp in Sources */,
 				67F23FA71E329E3300F8B985 /* sha1.cpp in Sources */,
