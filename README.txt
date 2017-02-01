@@ -8,6 +8,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.2  Jan 31, 2017
+	-- bug (sean)   Bundle up package so that xSchedule has the properties files needed to run
 2017.1  Jan 31, 2017
    -- enh (dkulp)   Support groups within groups. Preview should be correct with groups within groups
    -- enh (dkulp)   Add sequence option for allowing blending of effects between models/groups

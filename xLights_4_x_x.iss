@@ -31,7 +31,7 @@ UninstallDisplayIcon={app}\xLights.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=output
-OutputBaseFilename=xLights_Nutcracker_2016_x
+OutputBaseFilename=xLights_Nutcracker_2017_x
 
 
 [Tasks]
@@ -40,6 +40,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "D
 
 [Files]
 Source: "bin/xLights.exe"; DestDir: "{app}"
+Source: "bin/xSchedule.exe"; DestDir: "{app}"
 
 Source: "C:\wxWidgets-3.1.0\lib\gcc_dll\wxmsw310u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "C:\wxWidgets-3.1.0\lib\gcc_dll\wxmsw310u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
@@ -73,6 +74,11 @@ Source: "bin/standard_dictionary"; DestDir: "{app}"
 Source: "bin/user_dictionary";     DestDir: "{app}"
 ;
 
+; xschedule
+Source: "bin/xschedule.windows.properties";     DestDir: "{app}"
+Source: "bin/xSchedule.map";     DestDir: "{app}"
+Source: "bin/xScheduleWeb\*.*";     DestDir: "{app}/xScheduleWeb"; Flags: replacesameversion recursesubdirs
+
 Source: "bin/gawk.exe";            DestDir: "{app}"
 Source: "bin/coroface.awk";        DestDir: "{app}"
 Source: "bin/corofaces.bat";       DestDir: "{app}"
@@ -82,6 +88,7 @@ Source: "bin/modelxls.bat";        DestDir: "{app}"
 Source: "bin/merge_xml.awk";       DestDir: "{app}"
 Source: "bin/PathEditor.exe";      DestDir: "{app}"
 Source: "include\xLights.ico";     DestDir: "{app}"
+Source: "include\xSchedule.ico";     DestDir: "{app}"
 ;mar4 Source: "include\xLights_orig.ico"; DestDir: "{app}"
 Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
 Source: "C:\Users\Sean_Dell\Documents\xLights\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
@@ -93,6 +100,7 @@ Source: "colorcurves\*.*"; DestDir: "{app}/colorcurves"   ; Flags: replacesameve
 
 [Icons] 
 Name: "{commondesktop}\xLights4"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xLights.ico";
+Name: "{commondesktop}\xSchedule"; Filename: "{app}\xSchedule.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule.ico";
 
 
 
