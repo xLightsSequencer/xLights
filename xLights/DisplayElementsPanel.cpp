@@ -669,6 +669,7 @@ void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
         }
     }
     ListCtrlModels->Thaw();  // free up the list
+    ListCtrlModels->Refresh();
 
     if( items_moved )
     {
@@ -726,6 +727,7 @@ void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
         }
     }
     ListCtrlModels->Thaw();  // free up the list
+    ListCtrlModels->Refresh();
 
     if( items_moved )
     {

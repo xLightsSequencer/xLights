@@ -228,6 +228,8 @@ void PlayListDialog::SwapPage(wxNotebookPage* newpage, const std::string& text)
     {
         Notebook1->Thaw();
         Panel2->Thaw();
+        Notebook1->Refresh();
+        Panel2->Refresh();
     }
 }
 
@@ -281,6 +283,7 @@ void PlayListDialog::PopulateTree(PlayList* selplaylist, PlayListStep* selstep, 
     TreeCtrl_PlayList->SetIndent(8);
 
     TreeCtrl_PlayList->Thaw();
+    TreeCtrl_PlayList->Refresh();
 }
 
 void PlayListDialog::OnTextCtrl_PlayListNameText(wxCommandEvent& event)
@@ -323,6 +326,8 @@ void PlayListDialog::OnTreeCtrl_PlayListSelectionChanged(wxTreeEvent& event)
         pli->Configure(Notebook1);
         Notebook1->Thaw();
         Panel2->Thaw();
+        Notebook1->Refresh();
+        Panel2->Refresh();
     }
     ValidateWindow();
 }

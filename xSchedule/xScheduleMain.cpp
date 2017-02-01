@@ -938,6 +938,7 @@ void xScheduleFrame::UpdateTree() const
     TreeCtrl_PlayListsSchedules->Expand(root);
 
     TreeCtrl_PlayListsSchedules->Thaw();
+    TreeCtrl_PlayListsSchedules->Refresh();
 }
 
 std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const
@@ -1055,6 +1056,7 @@ void xScheduleFrame::UpdateSchedule()
     ValidateWindow();
 
     TreeCtrl_PlayListsSchedules->Thaw();
+    TreeCtrl_PlayListsSchedules->Refresh();
 }
 
 void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
@@ -1460,6 +1462,7 @@ void xScheduleFrame::UpdateStatus()
     }
 
     ListView_Running->Thaw();
+    ListView_Running->Refresh();
 
     static int saved = -1;
     static int otl = -1;
