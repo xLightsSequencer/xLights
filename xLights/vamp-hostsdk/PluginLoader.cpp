@@ -192,7 +192,11 @@ PluginLoader::Impl::setInstanceToClean(PluginLoader *instance)
 vector<PluginLoader::PluginKey>
 PluginLoader::Impl::listPlugins() 
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (!m_allPluginsEnumerated) enumeratePlugins();
+
+    logger_base.debug("Vamp: plugin dlls found %d.", m_pluginLibraryNameMap.size());
 
     vector<PluginKey> plugins;
     for (map<PluginKey, string>::iterator mi = m_pluginLibraryNameMap.begin();
@@ -207,6 +211,7 @@ void
 PluginLoader::Impl::enumeratePlugins(PluginKey forPlugin)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Vamp: PluginLoader: enumerating plugins for %s.", (const std::string*)forPlugin.c_str());
 
     string libraryName, identifier;
     vector<string> fullPaths;
@@ -329,6 +334,8 @@ PluginLoader::Impl::loadPlugin(PluginKey key,
                                float inputSampleRate, int adapterFlags)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.error("Vamp: PluginLoader: Loading plugin %s.", (const std::string*)key.c_str());
+
     string libname, identifier;
     if (!decomposePluginKey(key, libname, identifier)) {
         logger_base.error("Vamp: PluginLoader: Invalid plugin key %s in loadPlugin.", (const std::string*)key.c_str());

@@ -73,6 +73,9 @@ Files::listLibraryFiles()
 vector<string>
 Files::listLibraryFilesMatching(string libraryName)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Vamp: List library files matching %s.", (const char *)libraryName.c_str());
+
     vector<string> path = Vamp::PluginHostAdapter::getPluginPath();
     vector<string> libraryFiles;
 
@@ -106,8 +109,9 @@ Files::listLibraryFilesMatching(string libraryName)
 
             string fullPath = path[i];
             fullPath = splicePath(fullPath, *fi);
-	    libraryFiles.push_back(fullPath);
-	}
+            logger_base.debug("Vamp: Adding file %s.", (const char *)fullPath.c_str());
+            libraryFiles.push_back(fullPath);
+	    }
     }
 
     return libraryFiles;
@@ -207,6 +211,7 @@ Files::splicePath(string a, string b)
 vector<string>
 Files::listFiles(string dir, string extension)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     vector<string> files;
 
 #ifdef _WIN32
@@ -216,6 +221,7 @@ Files::listFiles(string dir, string extension)
     wchar_t *buffer = new wchar_t[len];
     int rv = MultiByteToWideChar(CP_UTF8, 0, expression.c_str(), len, buffer, len);
     if (rv <= 0) {
+        logger_base.error("Vamp: HostExt: Unable to convert wildcard path %s to wide characters", (const char *)expression.c_str());
         cerr << "Vamp::HostExt: Unable to convert wildcard path \""
              << expression << "\" to wide characters" << endl;
         delete[] buffer;
