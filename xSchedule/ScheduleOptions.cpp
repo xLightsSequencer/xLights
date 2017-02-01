@@ -1,6 +1,7 @@
 #include "ScheduleOptions.h"
 #include <wx/xml/xml.h>
 #include <wx/wxcrt.h>
+#include <wx/stdpaths.h>
 #include "UserButton.h"
 
 ScheduleOptions::ScheduleOptions(wxXmlNode* node)
@@ -11,7 +12,11 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
     _advancedMode = node->GetAttribute("AdvancedMode", "FALSE") == "TRUE";
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
+#ifdef __WXMSW__
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
+#else
+    _port = wxAtoi(node->GetAttribute("WebServerPort", "8080"));
+#endif
     _passwordTimeout = wxAtoi(node->GetAttribute("PasswordTimeout", "30"));
     _wwwRoot = node->GetAttribute("WWWRoot", "xScheduleWeb");
     _password = node->GetAttribute("Password", "");
@@ -45,7 +50,11 @@ ScheduleOptions::ScheduleOptions()
     _password = "";
     _passwordTimeout = 30;
     _wwwRoot = "xScheduleWeb";
+#ifdef __WXMSW__
     _port = 80;
+#else
+    _port = 8080;
+#endif
     _webAPIOnly = false;
     _changeCount = 1;
     _lastSavedChangeCount = 0;

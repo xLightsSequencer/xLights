@@ -132,7 +132,6 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string wwwroot = xScheduleFrame::GetScheduleManager()->GetOptions()->GetWWWRoot();
-
     if (request.URI().Lower().StartsWith("/xschedulecommand"))
     {
         if (!CheckLoggedIn(connection, request)) return true;
@@ -314,16 +313,18 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     {
         if (wwwroot == "") return false;
 
-        int port = connection.Server()->Context().Port;
 
         // Chris if you need this line to be this way on linux then use a #ifdef as the other works on windows
+        //int port = connection.Server()->Context().Port;
         //wxString url = "http://" + request.Host() + ":" + wxString::Format(wxT("%i"), port) + "/" + wwwroot + "/index.html";
         wxString url = "http://" + request.Host() + "/" + wwwroot + "/index.html";
 
         logger_base.info("Redirecting to '%s'.", (const char *)url.c_str());
 
         HttpResponse response(connection, request, HttpStatus::PermanentRedirect);
-        response.AddHeader("location", url);
+        response.AddHeader("Location", url);
+        //response.AddHeader("Connection", "Close");
+        response.MakeFromText("Redirected to " + url + "\n", "text/plain");
 
         connection.SendResponse(response);
 
@@ -344,7 +345,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
                 d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
             }
 #else
-            d = wxStandardPaths::Get().GetExecutablePath();
+            d = wxStandardPaths::Get().GetResourcesDir();
 #endif
 
             wxString file = d + wxURI(request.URI()).GetPath();

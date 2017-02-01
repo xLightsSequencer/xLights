@@ -93,6 +93,7 @@
 		675DE26A1B53381800A9BB44 /* xlColorPicker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE25B1B53381800A9BB44 /* xlColorPicker.cpp */; };
 		675DE26B1B53381800A9BB44 /* xlColorPickerFields.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE25D1B53381800A9BB44 /* xlColorPickerFields.cpp */; };
 		675DE26F1B53381800A9BB44 /* xlSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2651B53381800A9BB44 /* xlSlider.cpp */; };
+		675EF49C1E422B2500AA189F /* xScheduleWeb in Resources */ = {isa = PBXBuildFile; fileRef = 675EF49B1E422B2500AA189F /* xScheduleWeb */; };
 		676013E51B9D34F7001179FA /* SaveChangesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676013E41B9D34F7001179FA /* SaveChangesDialog.cpp */; };
 		6761F5F51C4EA041009780DA /* AssistPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5EB1C4EA041009780DA /* AssistPanel.cpp */; };
 		6761F5F61C4EA041009780DA /* PicturesAssistPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5ED1C4EA041009780DA /* PicturesAssistPanel.cpp */; };
@@ -706,6 +707,7 @@
 		675DE25E1B53381800A9BB44 /* xlColorPickerFields.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlColorPickerFields.h; sourceTree = "<group>"; };
 		675DE2651B53381800A9BB44 /* xlSlider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlSlider.cpp; sourceTree = "<group>"; };
 		675DE2661B53381800A9BB44 /* xlSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlSlider.h; sourceTree = "<group>"; };
+		675EF49B1E422B2500AA189F /* xScheduleWeb */ = {isa = PBXFileReference; lastKnownFileType = folder; name = xScheduleWeb; path = bin/xScheduleWeb; sourceTree = SOURCE_ROOT; };
 		676013E41B9D34F7001179FA /* SaveChangesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SaveChangesDialog.cpp; sourceTree = "<group>"; };
 		6761F5EB1C4EA041009780DA /* AssistPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AssistPanel.cpp; path = effects/assist/AssistPanel.cpp; sourceTree = "<group>"; };
 		6761F5EC1C4EA041009780DA /* AssistPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AssistPanel.h; path = effects/assist/AssistPanel.h; sourceTree = "<group>"; };
@@ -2207,6 +2209,7 @@
 		67F23F261E32994400F8B985 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				675EF49B1E422B2500AA189F /* xScheduleWeb */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -2423,6 +2426,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				67F23F2A1E32994400F8B985 /* Assets.xcassets in Resources */,
+				675EF49C1E422B2500AA189F /* xScheduleWeb in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

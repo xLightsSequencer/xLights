@@ -30,6 +30,7 @@
 #include "UserButton.h"
 #include "OutputProcessingDialog.h"
 #include <wx/clipbrd.h>
+#include "../xLights/osxMacUtils.h"
 #include "BackgroundPlaylistDialog.h"
 
 #include "../include/xs_save.xpm"
@@ -542,8 +543,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         _showDir = showdir;
     }
 
-    __schedule = new ScheduleManager(_showDir);
-
+    __schedule = nullptr;
     LoadSchedule();
 
     wxFrame::SendSizeEvent();
@@ -560,6 +560,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _timer.Start(rate/2, false);
     _timerSchedule.Stop();
     _timerSchedule.Start(500, true);
+    
+    AddWindowsMenu();
 
     UpdateUI();
     ValidateWindow();

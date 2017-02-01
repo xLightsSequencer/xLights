@@ -202,12 +202,13 @@ PlayListDialog::~PlayListDialog()
 
 void PlayListDialog::SwapPage(wxNotebookPage* newpage, const std::string& text)
 {
-    if (newpage != nullptr)
-    {
-        Panel2->Freeze();
-        Notebook1->Freeze();
+    if (newpage == nullptr && Notebook1->GetPageCount() == 0) {
+        return;
     }
-
+    
+    WINDOW_LOCKER(Panel2);
+    WINDOW_LOCKER(Notebook1);
+    
     if (Notebook1->GetPageCount() > 0)
     {
         wxNotebookPage* p = Notebook1->GetPage(0);
@@ -222,14 +223,6 @@ void PlayListDialog::SwapPage(wxNotebookPage* newpage, const std::string& text)
     if (newpage != nullptr)
     {
         Notebook1->AddPage(newpage, text, true);
-    }
-
-    if (newpage != nullptr)
-    {
-        Notebook1->Thaw();
-        Panel2->Thaw();
-        Notebook1->Refresh();
-        Panel2->Refresh();
     }
 }
 
@@ -279,10 +272,9 @@ void PlayListDialog::PopulateTree(PlayList* selplaylist, PlayListStep* selstep, 
     TreeCtrl_PlayList->ExpandAll();
     TreeCtrl_PlayList->EnsureVisible(select);
     TreeCtrl_PlayList->UnselectAll();
-    TreeCtrl_PlayList->SelectItem(select);
     TreeCtrl_PlayList->SetIndent(8);
-
     TreeCtrl_PlayList->Thaw();
+    TreeCtrl_PlayList->SelectItem(select);
     TreeCtrl_PlayList->Refresh();
 }
 
@@ -320,14 +312,10 @@ void PlayListDialog::OnTreeCtrl_PlayListSelectionChanged(wxTreeEvent& event)
     {
         // must be a playlist entry
         PlayListItem* pli = (PlayListItem*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
-        Panel2->Freeze();
-        Notebook1->Freeze();
+        WINDOW_LOCKER(Panel2);
+        WINDOW_LOCKER(Notebook1);
         SwapPage(nullptr);
         pli->Configure(Notebook1);
-        Notebook1->Thaw();
-        Panel2->Thaw();
-        Notebook1->Refresh();
-        Panel2->Refresh();
     }
     ValidateWindow();
 }

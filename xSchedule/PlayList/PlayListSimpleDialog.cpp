@@ -10,6 +10,7 @@
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemAudio.h"
+#include "../xLights/osxMacUtils.h"
 
 #include <wx/xml/xml.h>
 #include <wx/menu.h>
@@ -41,6 +42,7 @@ BEGIN_EVENT_TABLE(PlayListSimpleDialog,wxDialog)
 	//(*EventTable(PlayListSimpleDialog)
 	//*)
 END_EVENT_TABLE()
+
 
 PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, PlayList* playlist, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
@@ -168,11 +170,12 @@ PlayListSimpleDialog::~PlayListSimpleDialog()
 
 void PlayListSimpleDialog::SwapPage(wxNotebookPage* newpage, const std::string& text)
 {
-    if (newpage != nullptr)
-    {
-        Panel2->Freeze();
-        Notebook1->Freeze();
+    if (newpage == nullptr && Notebook1->GetPageCount() == 0) {
+        return;
     }
+    
+    WINDOW_LOCKER(Panel2);
+    WINDOW_LOCKER(Notebook1);
 
     if (Notebook1->GetPageCount() > 0)
     {
@@ -188,14 +191,6 @@ void PlayListSimpleDialog::SwapPage(wxNotebookPage* newpage, const std::string& 
     if (newpage != nullptr)
     {
         Notebook1->AddPage(newpage, text, true);
-    }
-
-    if (newpage != nullptr)
-    {
-        Notebook1->Thaw();
-        Panel2->Thaw();
-        Notebook1->Refresh();
-        Panel2->Refresh();
     }
 }
 
@@ -225,10 +220,10 @@ void PlayListSimpleDialog::PopulateTree(PlayList* selplaylist, PlayListStep* sel
     TreeCtrl_PlayList->ExpandAll();
     TreeCtrl_PlayList->EnsureVisible(select);
     TreeCtrl_PlayList->UnselectAll();
-    TreeCtrl_PlayList->SelectItem(select);
     TreeCtrl_PlayList->SetIndent(8);
 
     TreeCtrl_PlayList->Thaw();
+    TreeCtrl_PlayList->SelectItem(select);
     TreeCtrl_PlayList->Refresh();
 }
 
@@ -266,14 +261,10 @@ void PlayListSimpleDialog::OnTreeCtrl_PlayListSelectionChanged(wxTreeEvent& even
             {
                 // get the playlist entry
                 PlayListItem* pli = pls->GetItems().front();
-                Panel2->Freeze();
-                Notebook1->Freeze();
+                WINDOW_LOCKER(Panel2);
+                WINDOW_LOCKER(Notebook1);
                 SwapPage(nullptr);
                 pli->Configure(Notebook1);
-                Notebook1->Thaw();
-                Panel2->Thaw();
-                Notebook1->Refresh();
-                Panel2->Refresh();
             }
         }
     }
