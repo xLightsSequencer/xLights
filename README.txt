@@ -12,6 +12,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (gil)     Increase DMXModel selection area hotspot.  Fixes #795.
    -- bug (gil)     Fix blue screen crash when turning off outputs while using LOR USB dongle.  Fixes #797.
    -- bug (gil)     Fix forcing of color for RGB nodes in LMS import. Red and Blue were swapped.
+   -- enh (keith)   Add xSchedule
+   -- enh (keith)   Refactor output processing. This should generally be invisible other than some performance enhancements and 
+                    useability enhancements on the setup tab. This includes Fix #789, #808 and #812
+   -- fix (keith)   Fix #760 - ESEQ elispses doesnt open dialog
+   -- enh (keith)   Fix #796 - disable export effects if no sequence open
+   -- fix (keith)   Fix #785 - mac crash due to UI update on background thread in Fireworks effect.
+   -- enh (keith)   Optionally allow backup to backup xml files in subdirectories for users that dont keep their xml files in the show
+                    directory itself but a folder underneath it 
 2016.56  Dec 31, 2016
    -- enh (gil)     Rounder ends for the Galaxy effect.
    -- enh (gil)     Use dynamic step angle to prevent holes in Galaxy effect for large radii.
