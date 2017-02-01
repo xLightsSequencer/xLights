@@ -39,12 +39,12 @@ $(window).ready(function() {
 //End onload
 
 
-function checkLogInStatus(){
+function checkLogInStatus() {
   $.ajax({
     url: '/xScheduleQuery?Query=GetPlayingStatus',
     dataType: "json",
     success: function(response) {
-      if (response.result == "not logged in"){
+      if (response.result == "not logged in") {
         window.location.href = "login.html";
       }
     }
@@ -52,7 +52,7 @@ function checkLogInStatus(){
 
 }
 
-function logout(){
+function logout() {
   $.ajax({
     url: '/xScheduleLogin?Credential=logout',
     dataType: "json",
@@ -82,7 +82,7 @@ function loadPageSettings() {
     document.title = title;
   });
   retrieveKey('webColor', function(resp) {
-    value = "#ff0000";
+    value = "#009aea";
     if (resp == "\n" || resp == null || resp == "") {
       storeKey("webColor", value);
       //console.log("Default Color Saved: "+ value);
@@ -108,8 +108,9 @@ function buttonsLoadButtons() {
         $("#buttonsPageButtons ul").append(li);
       }
     },
-    error: function(response){
-      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Cannot Load Buttons</div>`;
+    error: function(response) {
+      var error =
+        `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Cannot Load Buttons</div>`;
       $("#connectionError").html(error);
     }
   });
@@ -136,29 +137,6 @@ function settingsLoadSettings() {
     }
     $("#webColor")[0].value = value;
     $("#webColorDisplay").css("background-color", value)
-  });
-  retrieveKey('webLoginRequire', function(resp) {
-    r = resp.split('\n');
-    if (r[0] == "true") {
-      $("#webLoginRequire").prop("checked", true).uniform('refresh');
-    } else {
-      $("#webLoginRequire").prop("checked", false).uniform('refresh');
-    }
-  });
-
-  retrieveKey('webUsername', function(resp) {
-    value = "";
-    if (resp != "") {
-      value = resp;
-    }
-    $("#webUsername")[0].value = value;
-  });
-  retrieveKey('webPassword', function(resp) {
-    value = "";
-    if (resp != "") {
-      value = resp;
-    }
-    $("#webPassword")[0].value = value;
   });
 }
 
@@ -247,8 +225,9 @@ function dashboardLoadStatus() {
         dashboardUpdateToggleButtons();
       }
     },
-    error: function(response){
-      var error = `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Lost connect to xScheduler</div>`;
+    error: function(response) {
+      var error =
+        `<div id="error" style="text-align: center; padding-top: 19px; background-color: red; font-size: xx-large; height: 36px;">Lost connect to xScheduler</div>`;
       $("#connectionError").html(error);
     }
   });
@@ -385,14 +364,14 @@ function buttonClick(name) {
 }
 
 function runCommand(name, param) {
-  if (param == undefined){
+  if (param == undefined) {
     $.ajax({
       url: '/xScheduleCommand?Command=' + name,
       error: function(response) {
         jAlert('This is a custom alert box', 'Alert Dialog');
       }
     });
-  }else{
+  } else {
     $.ajax({
       url: '/xScheduleCommand?Command=' + name + '&Parameters=' + param,
       success: function(response) {
