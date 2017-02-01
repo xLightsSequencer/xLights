@@ -117,6 +117,7 @@ class ScheduleManager
         bool IsCurrentPlayListScheduled() const { return _immediatePlay == nullptr; }
         void SetOutputToLights(bool otl);
         void CheckScheduleIntegrity(bool display);
+        void ImportxLightsSchedule(const std::string& filename);
 };
 
 #endif

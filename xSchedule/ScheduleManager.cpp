@@ -27,6 +27,7 @@
 #include "PlayList/PlayListItemFSEQ.h"
 #include "PlayList/PlayListItemFSEQVideo.h"
 #include <wx/stdpaths.h>
+#include "PlayList/PlayListItemVideo.h"
 
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
@@ -2517,3 +2518,73 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
         }
     }
 }
+
+void ScheduleManager::ImportxLightsSchedule(const std::string& filename)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxFileName fn(filename);
+    std::string base = fn.GetPath().ToStdString();
+
+    wxXmlDocument doc;
+    doc.Load(filename);
+
+    if (doc.IsOk())
+    {
+        for (wxXmlNode* n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext())
+        {
+            if (n->GetName() == "playlists")
+            {
+                for (wxXmlNode* n1 = n->GetChildren(); n1 != nullptr; n1 = n1->GetNext())
+                {
+                    if (n1->GetName() == "playlist")
+                    {
+                        std::string name = n1->GetAttribute("name", "").ToStdString();
+                        PlayList* p = new PlayList();
+                        p->SetName(name);
+                        for (wxXmlNode* n2 = n1->GetChildren(); n2 != nullptr; n2 = n2->GetNext())
+                        {
+                            if (n2->GetName() == "listitem")
+                            {
+                                std::string itemname = n2->GetAttribute("name", "").ToStdString();
+                                int delay = wxAtoi(n2->GetAttribute("delay", "0"));
+                                PlayListStep* step = new PlayListStep();
+                                step->SetName(itemname);
+                                std::string ext = wxFileName(itemname).GetExt().Lower().ToStdString();
+                                if (PlayListItemAudio::IsAudio(ext))
+                                {
+                                    PlayListItemAudio* pli = new PlayListItemAudio();
+                                    pli->SetAudioFile(base + "/" + itemname);
+                                    pli->SetDelay(delay * 1000);
+                                    step->AddItem(pli);
+                                }
+                                else if (PlayListItemVideo::IsVideo(ext))
+                                {
+                                    PlayListItemVideo* pli = new PlayListItemVideo();
+                                    pli->SetVideoFile(base + "/" + itemname);
+                                    pli->SetDelay(delay * 1000);
+                                    step->AddItem(pli);
+                                }
+                                else if (ext == "fseq")
+                                {
+                                    PlayListItemFSEQ* pli = new PlayListItemFSEQ();
+                                    pli->SetFSEQFileName(base + "/" + itemname);
+                                    pli->SetDelay(delay * 1000);
+                                    step->AddItem(pli);
+                                }
+                                p->AddStep(step, p->GetSteps().size());
+                            }
+                        }
+                        AddPlayList(p);
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        logger_base.error("Invalid xLights schedule file.");
+        wxMessageBox("Invalid xLights schedule file.");
+    }
+}
+

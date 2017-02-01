@@ -311,6 +311,10 @@
 					<label>&amp;Web Interface</label>
 					<handler function="OnMenuItem_WebInterfaceSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_IMPORT" variable="MenuItem_ImportxLights" member="yes">
+					<label>Import xLights Playlist</label>
+					<handler function="OnMenuItem_ImportxLightsSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu4" member="yes">
 				<label>&amp;Modes</label>
@@ -355,6 +359,12 @@
 		<object class="wxTimer" name="ID_TIMER2" variable="_timerSchedule" member="yes">
 			<interval>50000</interval>
 			<handler function="On_timerScheduleTrigger" entry="EVT_TIMER" />
+		</object>
+		<object class="wxFileDialog" variable="FileDialog1" member="yes">
+			<message>Select file</message>
+			<default_file>xlights__schedule.xml</default_file>
+			<wildcard>xlights__schedule.xml</wildcard>
+			<style>wxFD_DEFAULT_STYLE|wxFD_OPEN|wxFD_FILE_MUST_EXIST</style>
 		</object>
 	</object>
 </wxsmith>

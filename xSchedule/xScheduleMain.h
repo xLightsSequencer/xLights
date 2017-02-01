@@ -20,6 +20,7 @@ class BrightnessControl;
 #include <wx/menu.h>
 #include <wx/splitter.h>
 #include <wx/panel.h>
+#include <wx/filedlg.h>
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/dirdlg.h>
@@ -143,6 +144,7 @@ public:
         void OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event);
         void OnMenuItem_CheckScheduleSelected(wxCommandEvent& event);
         void OnButton_ScheduleClick(wxCommandEvent& event);
+        void OnMenuItem_ImportxLightsSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -190,6 +192,7 @@ public:
         static const long ID_MNU_CHECK_SCHEDULE;
         static const long ID_MNU_OPTIONS;
         static const long ID_MNU_WEBINTERFACE;
+        static const long ID_MNU_IMPORT;
         static const long ID_MNU_MODENORMAL;
         static const long ID_MNU_FPPMASTER;
         static const long ID_MNU_FPPREMOTE;
@@ -226,6 +229,7 @@ public:
         xLightsTimer _timer;
         wxMenuItem* MenuItem_Save;
         wxPanel* Panel1;
+        wxFileDialog* FileDialog1;
         wxMenuItem* MenuItem_BackgroundPlaylist;
         wxPanel* Panel3;
         wxStaticText* StaticText_ShowDir;
@@ -248,6 +252,7 @@ public:
         wxFlexGridSizer* FlexGridSizer1;
         wxSplitterWindow* SplitterWindow1;
         wxMenuItem* MenuItem_WebInterface;
+        wxMenuItem* MenuItem_ImportxLights;
         wxMenuItem* MenuItem_Options;
         BrightnessControl* Brightness;
         wxMenuItem* Menu_OutputProcessing;

@@ -403,6 +403,7 @@ WebServer::WebServer(int port, bool apionly, const std::string& password, int mi
     if (!Start(context))
     {
         logger_base.error("Error starting web server.");
+        wxMessageBox("Error starting web server. You may already have a program listening on port " + wxString::Format(wxT("%i"), port));
     }
 }
 
