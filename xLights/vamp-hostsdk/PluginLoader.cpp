@@ -46,6 +46,8 @@
 
 #include <fstream>
 
+#include <log4cpp/Category.hh>
+
 using namespace std;
 
 _VAMP_SDK_HOSTSPACE_BEGIN(PluginLoader.cpp)
@@ -117,7 +119,9 @@ PluginLoader::Impl::m_cleaner;
 
 PluginLoader::PluginLoader()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     m_impl = new Impl();
+    logger_base.debug("Vamp plugin loader ... created");
 }
 
 PluginLoader::~PluginLoader()
@@ -202,11 +206,15 @@ PluginLoader::Impl::listPlugins()
 void
 PluginLoader::Impl::enumeratePlugins(PluginKey forPlugin)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     string libraryName, identifier;
     vector<string> fullPaths;
     
     if (forPlugin != "") {
+        logger_base.debug("Vamp: PluginLoader: plugin key %s:%s:%s.", (const std::string*)forPlugin.c_str(), (const char*)libraryName.c_str(), (const char *)identifier.c_str());
         if (!decomposePluginKey(forPlugin, libraryName, identifier)) {
+            logger_base.warn("Vamp: WARNING: Vamp::HostExt::PluginLoader: Invalid plugin key %s in enumerate.", (const std::string*)forPlugin.c_str());
             std::cerr << "WARNING: Vamp::HostExt::PluginLoader: Invalid plugin key \""
                       << forPlugin << "\" in enumerate" << std::endl;
             return;
@@ -219,6 +227,7 @@ PluginLoader::Impl::enumeratePlugins(PluginKey forPlugin)
     for (size_t i = 0; i < fullPaths.size(); ++i) {
 
         string fullPath = fullPaths[i];
+        logger_base.debug("Vamp: Trying to load library: %s.", (const std::string*)fullPath.c_str());
         void *handle = Files::loadLibrary(fullPath);
         if (!handle) continue;
             
@@ -228,6 +237,7 @@ PluginLoader::Impl::enumeratePlugins(PluginKey forPlugin)
             
         if (!fn) {
             if (forPlugin != "") {
+                logger_base.error("Vamp: PluginLoader: No vampGetPluginDescriptor function found in library: %s.", (const std::string*)fullPath.c_str());
                 cerr << "Vamp::HostExt::PluginLoader: No vampGetPluginDescriptor function found in library \""
                      << fullPath << "\"" << endl;
             }
@@ -254,6 +264,7 @@ PluginLoader::Impl::enumeratePlugins(PluginKey forPlugin)
         }
 
         if (!found && forPlugin != "") {
+            logger_base.error("Vamp: PluginLoader: Plugin %s not found in library %s.", (const std::string*)identifier.c_str(), (const std::string*)fullPath.c_str());
             cerr << "Vamp::HostExt::PluginLoader: Plugin \""
                  << identifier << "\" not found in library \""
                  << fullPath << "\"" << endl;
@@ -314,8 +325,10 @@ Plugin *
 PluginLoader::Impl::loadPlugin(PluginKey key,
                                float inputSampleRate, int adapterFlags)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     string libname, identifier;
     if (!decomposePluginKey(key, libname, identifier)) {
+        logger_base.error("Vamp: PluginLoader: Invalid plugin key %s in loadPlugin.", (const std::string*)key.c_str());
         std::cerr << "Vamp::HostExt::PluginLoader: Invalid plugin key \""
                   << key << "\" in loadPlugin" << std::endl;
         return 0;
@@ -323,6 +336,7 @@ PluginLoader::Impl::loadPlugin(PluginKey key,
         
     string fullPath = getLibraryPathForPlugin(key);
     if (fullPath == "") {
+        logger_base.error("Vamp: PluginLoader: No library found in Vamp path for plugin %s.", (const std::string*)key.c_str());
         std::cerr << "Vamp::HostExt::PluginLoader: No library found in Vamp path for plugin \"" << key << "\"" << std::endl;
         return 0;
     }
@@ -335,6 +349,7 @@ PluginLoader::Impl::loadPlugin(PluginKey key,
         (handle, "vampGetPluginDescriptor");
 
     if (!fn) {
+        logger_base.error("Vamp: PluginLoader: No vampGetPluginDescriptor function found in library %s.", (const std::string*)fullPath.c_str());
         cerr << "Vamp::HostExt::PluginLoader: No vampGetPluginDescriptor function found in library \""
              << fullPath << "\"" << endl;
         Files::unloadLibrary(handle);
@@ -375,6 +390,7 @@ PluginLoader::Impl::loadPlugin(PluginKey key,
         ++index;
     }
 
+    logger_base.error("Vamp: PluginLoader: Plugin %s not found in library %s.", (const std::string*)identifier.c_str(), (const std::string*)fullPath.c_str());
     cerr << "Vamp::HostExt::PluginLoader: Plugin \""
          << identifier << "\" not found in library \""
          << fullPath << "\"" << endl;

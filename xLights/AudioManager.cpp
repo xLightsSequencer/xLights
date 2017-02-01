@@ -1787,13 +1787,18 @@ void xLightsVamp::ProcessFeatures(Vamp::Plugin::FeatureList &feature, std::vecto
 // Load plugins
 void xLightsVamp::LoadPlugins(AudioManager* paudio)
 {
-	// dont need to load it twice
+    // dont need to load it twice
 	if (_loadedPlugins.size() > 0)
 	{
 		return;
 	}
 
-	Vamp::HostExt::PluginLoader::PluginKeyList pluginList = _loader->listPlugins();
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Loading plugins.");
+
+    Vamp::HostExt::PluginLoader::PluginKeyList pluginList = _loader->listPlugins();
+    
+    logger_base.debug("Plugins found %d.", pluginList.size());
 
 	for (size_t x = 0; x < pluginList.size(); x++)
 	{
@@ -1861,7 +1866,7 @@ std::list<std::string> xLightsVamp::GetAvailablePlugins(AudioManager* paudio)
 // Get a list of all plugins
 std::list<std::string> xLightsVamp::GetAllAvailablePlugins(AudioManager* paudio)
 {
-	std::list<std::string> ret;
+    std::list<std::string> ret;
 
 	// load the plugins if they have not already been loaded
 	LoadPlugins(paudio);
@@ -1903,7 +1908,7 @@ std::list<std::string> xLightsVamp::GetAllAvailablePlugins(AudioManager* paudio)
 // Get a plugin
 Vamp::Plugin* xLightsVamp::GetPlugin(std::string name)
 {
-	Plugin* p = _plugins[name];
+    Plugin* p = _plugins[name];
 
 	if (p == nullptr)
 	{
