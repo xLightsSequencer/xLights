@@ -311,6 +311,9 @@ PluginLoader::Impl::getPluginCategory(PluginKey plugin)
 string
 PluginLoader::Impl::getLibraryPathForPlugin(PluginKey plugin)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Getting library path for plugin %s.", (const char*)plugin.c_str());
+
     if (m_pluginLibraryNameMap.find(plugin) == m_pluginLibraryNameMap.end()) {
         if (m_allPluginsEnumerated) return "";
         enumeratePlugins(plugin);
@@ -341,9 +344,14 @@ PluginLoader::Impl::loadPlugin(PluginKey key,
         return 0;
     }
     
+    logger_base.debug("Vamp: PluginLoader: Loading library %s.", (const std::string*)fullPath.c_str());
     void *handle = Files::loadLibrary(fullPath);
-    if (!handle) return 0;
-    
+    if (!handle)
+    {
+        logger_base.debug("Vamp: PluginLoader: Library loading %s failed.", (const std::string*)fullPath.c_str());
+        return 0;
+    }
+
     VampGetPluginDescriptorFunction fn =
         (VampGetPluginDescriptorFunction)Files::lookupInLibrary
         (handle, "vampGetPluginDescriptor");

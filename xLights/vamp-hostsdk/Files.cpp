@@ -41,6 +41,7 @@
 #include <cctype> // tolower
 
 #include <cstring>
+#include <log4cpp/Category.hh>
 
 #ifdef _WIN32
 
@@ -115,6 +116,8 @@ Files::listLibraryFilesMatching(string libraryName)
 void *
 Files::loadLibrary(string path)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     void *handle = 0;
 #ifdef _WIN32
 #ifdef UNICODE
@@ -122,6 +125,7 @@ Files::loadLibrary(string path)
     wchar_t *buffer = new wchar_t[len];
     int rv = MultiByteToWideChar(CP_UTF8, 0, path.c_str(), len, buffer, len);
     if (rv <= 0) {
+        logger_base.error("Vamp: HostExt: Unable to convert library path %s to wide characters.", (const std::string*)path.c_str());
         cerr << "Vamp::HostExt: Unable to convert library path \""
              << path << "\" to wide characters " << endl;
         delete[] buffer;
@@ -133,6 +137,7 @@ Files::loadLibrary(string path)
     handle = LoadLibrary(path.c_str());
 #endif
     if (!handle) {
+        logger_base.error("Vamp: HostExt: Unable to load library %s: %ld.", (const std::string*)path.c_str(), GetLastError());
         cerr << "Vamp::HostExt: Unable to load library \""
              << path << "\"" << endl;
     }
@@ -229,8 +234,8 @@ Files::listFiles(string dir, string extension)
         int wlen = wcslen(fn) + 1;
         int maxlen = wlen * 6;
         char *conv = new char[maxlen];
-        int rv = WideCharToMultiByte(CP_UTF8, 0, fn, wlen, conv, maxlen, 0, 0);
-        if (rv > 0) {
+        int rv2 = WideCharToMultiByte(CP_UTF8, 0, fn, wlen, conv, maxlen, 0, 0);
+        if (rv2 > 0) {
             files.push_back(conv);
         }
         delete[] conv;
