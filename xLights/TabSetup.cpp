@@ -411,7 +411,7 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
     }
 
     GridNetwork->Thaw();
-    GridNetwork->ForceRefresh()
+    GridNetwork->Refresh();
 }
 
 // reset test channel listbox
