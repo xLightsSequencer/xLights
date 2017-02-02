@@ -1577,7 +1577,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 xLightsFrame::~xLightsFrame()
 {
     Timer_AutoSave.Stop();
+    EffectSettingsTimer.Stop();
     Timer1.Stop();
+    
     selectedEffect = nullptr;
 
     wxConfigBase* config = wxConfigBase::Get();
@@ -1859,7 +1861,6 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
         //modelPreview->SetScaleBackgroundImage(mScaleBackgroundImage);
         UpdatePreview();
         SetStatusText(_(""));
-        EffectSettingsTimer.Stop();
     }
     else if (pagenum == NEWSEQUENCER)
     {
@@ -1870,7 +1871,6 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     else
     {
         SetStatusText(_(""));
-        EffectSettingsTimer.Stop();
     }
 }
 
