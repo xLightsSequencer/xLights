@@ -306,6 +306,10 @@
 		<Unit filename="FSEQFile.h" />
 		<Unit filename="MatricesDialog.cpp" />
 		<Unit filename="MatricesDialog.h" />
+		<Unit filename="MatrixDialog.cpp" />
+		<Unit filename="MatrixDialog.h" />
+		<Unit filename="MatrixMapper.cpp" />
+		<Unit filename="MatrixMapper.h" />
 		<Unit filename="OptionsDialog.cpp" />
 		<Unit filename="OptionsDialog.h" />
 		<Unit filename="OutputProcess.cpp" />
@@ -415,8 +419,8 @@
 		<Unit filename="UserButton.h" />
 		<Unit filename="WebServer.cpp" />
 		<Unit filename="WebServer.h" />
-		<Unit filename="MatrixDialog.cpp" />
-		<Unit filename="MatrixDialog.h" />
+		<Unit filename="Xyzzy.cpp" />
+		<Unit filename="Xyzzy.h" />
 		<Unit filename="md5.cpp" />
 		<Unit filename="md5.h" />
 		<Unit filename="resource.rc">
@@ -444,6 +448,7 @@
 		<Unit filename="wxsmith/DimDialog.wxs" />
 		<Unit filename="wxsmith/DimWhiteDialog.wxs" />
 		<Unit filename="wxsmith/MatricesDialog1.wxs" />
+		<Unit filename="wxsmith/MatrixDialog.wxs" />
 		<Unit filename="wxsmith/OptionsDialog.wxs" />
 		<Unit filename="wxsmith/OutputProcessingDialog.wxs" />
 		<Unit filename="wxsmith/PlayListDialog.wxs" />
@@ -470,7 +475,6 @@
 		<Unit filename="wxsmith/ScheduleDialog.wxs" />
 		<Unit filename="wxsmith/SetDialog.wxs" />
 		<Unit filename="wxsmith/VideoWindowPositionDialog.wxs" />
-		<Unit filename="wxsmith/MatrixDialog.wxs" />
 		<Unit filename="wxsmith/xScheduleframe.wxs" />
 		<Unit filename="xScheduleApp.cpp" />
 		<Unit filename="xScheduleApp.h" />

@@ -28,6 +28,7 @@
 #include "PlayList/PlayListItemFSEQVideo.h"
 #include <wx/stdpaths.h>
 #include "PlayList/PlayListItemVideo.h"
+#include "Xyzzy.h"
 
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
@@ -49,6 +50,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     _buffer = nullptr;
     _brightness = 100;
     _lastBrightness = 100;
+    _xyzzy = nullptr;
 
     wxConfigBase* config = wxConfigBase::Get();
     _mode = (SYNCMODE)config->ReadLong("SyncMode", SYNCMODE::STANDALONE);
@@ -147,6 +149,12 @@ ScheduleManager::~ScheduleManager()
 			Save();
 		}
 	}
+
+    if (_xyzzy != nullptr)
+    {
+        delete _xyzzy;
+        _xyzzy = nullptr;
+    }
 
     if (_backgroundPlayList != nullptr)
     {
@@ -331,7 +339,7 @@ void ScheduleManager::Frame(bool outputframe)
 {
     PlayList* running = GetRunningPlayList();
 
-    if (running != nullptr)
+    if (running != nullptr || _xyzzy != nullptr)
     {
         long msec = wxGetUTCTimeMillis().GetLo() - _startTime;
         
@@ -341,7 +349,11 @@ void ScheduleManager::Frame(bool outputframe)
             _outputManager->StartFrame(msec);
         }
  
-        bool done = running->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+        bool done = false;
+        if (running != nullptr)
+        {
+            done = running->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+        }
 
         if (_backgroundPlayList != nullptr)
         {
@@ -350,6 +362,11 @@ void ScheduleManager::Frame(bool outputframe)
                 _backgroundPlayList->Start(true);
             }
             _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+        }
+
+        if (_xyzzy != nullptr)
+        {
+            _xyzzy->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
         }
 
         if (outputframe)
@@ -372,7 +389,7 @@ void ScheduleManager::Frame(bool outputframe)
             wxPostEvent(wxGetApp().GetTopWindow(), event);
         }
 
-        if (outputframe && _mode == SYNCMODE::FPPMASTER)
+        if (running != nullptr && outputframe && _mode == SYNCMODE::FPPMASTER)
         {
             SendFPPSync(running->GetActiveSyncItemName(), msec);
         }
@@ -1422,6 +1439,20 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
             result = false;
             msg = "Playlist '" + parameters + "' not found.";
         }
+    }
+    else if (command == "GetMatrices")
+    {
+        data = "{\"matrices\":[";
+        auto ms = _scheduleOptions->GetMatrices();
+        for (auto it = ms->begin(); it != ms->end(); ++it)
+        {
+            if (it != ms->begin())
+            {
+                data += ",";
+            }
+            data += "\"name\":\"" + (*it)->GetName() + "\"";
+        }
+        data += "]}";
     }
     else if (command == "GetQueuedSteps")
     {
@@ -2588,3 +2619,29 @@ void ScheduleManager::ImportxLightsSchedule(const std::string& filename)
     }
 }
 
+bool ScheduleManager::DoXyzzy(const std::string& command, const std::string& parameters, std::string& result)
+{
+    if (_xyzzy == nullptr)
+    {
+        _xyzzy = new Xyzzy();
+    }
+
+    if (command == "initialise")
+    {
+        _xyzzy->Initialise(parameters, result);
+        //result = "{\"result\":\"ok\",\"message\":\"initialised\",\"highscore\":\""+_xyzzy->GetHighScore()+"\"}";
+    }
+    else if (command == "close")
+    {
+        _xyzzy->Close(result);
+        delete _xyzzy;
+        _xyzzy = nullptr;
+        //result = "{\"result\":\"ok\",\"message\":\"closed\"}";
+    }
+    else
+    {
+        _xyzzy->Action(command, parameters, result);
+    }
+
+    return true;
+}

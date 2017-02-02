@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xrgb>
+  <models>
+    <model StringType="RGB Nodes" Antialias="1" PixelSize="2" Transparency="0" name="Matrix" LayoutGroup="Default" DisplayAs="Horiz Matrix" parm2="150" parm3="1" parm1="40" Dir="L" StartSide="T" offsetXpct="0.1562" offsetYpct="0.8917" PreviewScaleX="0.1156" PreviewScaleY="0.1083" PreviewRotation="0" versionNumber="1" StartChannel="1"/>
+  </models>
+  <effects version="0006"/>
+  <palettes/>
+  <views/>
+  <modelGroups/>
+  <layoutGroups/>
+  <perspectives current="Default Perspective">
+    <perspective name="Default Perspective" settings="layout2|name=ModelPreview;caption=Model Preview;state=2099196;dir=4;layer=1;row=0;pos=0;prop=100000;bestw=250;besth=250;minw=-1;minh=-1;maxw=-1;maxh=-1;floatx=-1;floaty=-1;floatw=-1;floath=-1|name=HousePreview;caption=House Preview;state=2099196;dir=4;layer=1;row=0;pos=1;prop=100000;bestw=250;besth=250;minw=-1;minh=-1;maxw=-1;maxh=-1;floatx=-1;floaty=-1;floatw=-1;floath=-1|name=EffectAssist;caption=Effect Assist;state=2099196;dir=4;layer=1;row=0;pos=2;prop=100000;bestw=250;besth=250;minw=-1;minh=-1;maxw=-1;maxh=-1;floatx=-1;floaty=-1;floatw=-1;floath=-1|name=DisplayElements;caption=Display Elements;state=2099199;dir=4;layer=0;row=0;pos=0;prop=100000;bestw=304;besth=353;minw=-1;minh=-1;maxw=-1;maxh=-1;floatx=156;floaty=156;floatw=320;floath=392|name=Perspectives;caption=Perspectives;state=2099198;dir=4;layer=1;row=0;pos=0;prop=100000;bestw=188;besth=133;minw=-1;minh=-1;maxw=-1;maxh=-1;floatx=-1;floaty=-1;floatw=-1;floath=-1|name=Effect;caption=Effect Settings;state=2099196;dir=4;layer=1;row=0;pos=3;prop=100000;bestw=423;besth=479;minw=-1;minh=-1;maxw=-1;maxh=-1;floatx=-1;floaty=-1;floatw=-1;floath=-1|name=EffectDropper;caption=Effects;state=2099196;dir=1;layer=0;row=0;pos=0;prop=100000;bestw=900;besth=500;minw=-1;minh=-1;maxw=-1;maxh=-1;floatx=-1;floaty=-1;floatw=-1;floath=-1|name=Color;caption=Color;state=2099196;dir=1;layer=0;row=0;pos=1;prop=100000;bestw=265;besth=183;minw=-1;minh=-1;maxw=-1;maxh=-1;floatx=-1;floaty=-1;floatw=-1;floath=-1|name=LayerTiming;caption=Layer Blending;state=2099196;dir=1;layer=0;row=0;pos=2;prop=100000;bestw=301;besth=262;minw=-1;minh=-1;maxw=-1;maxh=-1;floatx=-1;floaty=-1;floatw=-1;floath=-1|name=LayerSettings;caption=Layer Settings;state=2099196;dir=1;layer=0;row=0;pos=3;prop=100000;bestw=288;besth=231;minw=-1;minh=-1;maxw=-1;maxh=-1;floatx=-1;floaty=-1;floatw=-1;floath=-1|name=Main Sequencer;caption=Main Sequencer;state=768;dir=5;layer=0;row=0;pos=0;prop=100000;bestw=118;besth=50;minw=-1;minh=-1;maxw=-1;maxh=-1;floatx=-1;floaty=-1;floatw=-1;floath=-1|dock_size(4,1,0)=350|dock_size(1,0,0)=106|dock_size(5,0,0)=120|" version="2.0"/>
+  </perspectives>
+  <settings>
+    <previewWidth value="1280"/>
+    <previewHeight value="720"/>
+  </settings>
+</xrgb>

@@ -13,6 +13,7 @@ class RunningSchedule;
 class wxSocketClient;
 class PlayListStep;
 class OutputProcess;
+class Xyzzy;
 
 typedef enum
 {
@@ -45,6 +46,7 @@ class ScheduleManager
     wxByte _brightnessArray[255];
     wxSocketClient* _fppSync;
     std::list<OutputProcess*> _outputProcessing;
+    Xyzzy* _xyzzy;
 
     std::string FormatTime(size_t timems);
     void CreateBrightnessArray();
@@ -118,6 +120,7 @@ class ScheduleManager
         void SetOutputToLights(bool otl);
         void CheckScheduleIntegrity(bool display);
         void ImportxLightsSchedule(const std::string& filename);
+        bool DoXyzzy(const std::string& command, const std::string& parameters, std::string& result);
 };
 
 #endif

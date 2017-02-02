@@ -59,6 +59,9 @@ wxXmlNode* MatrixMapper::Save()
 
 size_t MatrixMapper::Map(int x, int y) const
 {
+    wxASSERT(x >= 0 && x < GetWidth());
+    wxASSERT(y >= 0 && y < GetHeight());
+
     size_t loc = _startChannel;
 
     if (_orientation == MMORIENTATION::VERTICAL)
@@ -80,7 +83,7 @@ size_t MatrixMapper::Map(int x, int y) const
             }
             else
             {
-                if ((x - ((x / _strandsPerString) * _strandsPerString)) % 2 == 0)
+                if (_strandsPerString == 1 || ((x - ((x / _strandsPerString) * _strandsPerString)) % 2 == 0))
                 {
                     loc += y * 3;
                 }
@@ -105,7 +108,7 @@ size_t MatrixMapper::Map(int x, int y) const
             }
             else
             {
-                if (((GetWidth() - x - 1) - (((GetWidth() - x - 1) / _strandsPerString) * _strandsPerString)) % 2 == 0)
+                if (_strandsPerString != 1 && (((GetWidth() - x - 1) - (((GetWidth() - x - 1) / _strandsPerString) * _strandsPerString)) % 2 == 0))
                 {
                     loc += y * 3;
                 }
@@ -130,7 +133,7 @@ size_t MatrixMapper::Map(int x, int y) const
             }
             else
             {
-                if ((x - ((x / _strandsPerString) * _strandsPerString)) % 2 == 1)
+                if (_strandsPerString == 1 || (x - ((x / _strandsPerString) * _strandsPerString)) % 2 == 1)
                 {
                     loc += y * 3;
                 }
@@ -155,7 +158,7 @@ size_t MatrixMapper::Map(int x, int y) const
             }
             else
             {
-                if (((GetWidth() - x - 1) - (((GetWidth() - x - 1) / _strandsPerString) * _strandsPerString)) % 2 == 1)
+                if (_strandsPerString != 1 && (((GetWidth() - x - 1) - (((GetWidth() - x - 1) / _strandsPerString) * _strandsPerString)) % 2 == 1))
                 {
                     loc += y * 3;
                 }
@@ -186,7 +189,7 @@ size_t MatrixMapper::Map(int x, int y) const
             }
             else
             {
-                if ((y - ((y / _strandsPerString) * _strandsPerString)) % 2 == 0)
+                if (_strandsPerString == 1 || ((y - ((y / _strandsPerString) * _strandsPerString)) % 2 == 0))
                 {
                     loc += x * 3;
                 }
@@ -211,7 +214,7 @@ size_t MatrixMapper::Map(int x, int y) const
             }
             else
             {
-                if ((y - ((y / _strandsPerString) * _strandsPerString)) % 2 == 1)
+                if (_strandsPerString != 1 && ((y - ((y / _strandsPerString) * _strandsPerString)) % 2 == 1))
                 {
                     loc += x * 3;
                 }
@@ -236,7 +239,7 @@ size_t MatrixMapper::Map(int x, int y) const
             }
             else
             {
-                if (((GetHeight() - y - 1) - (((GetHeight() - y - 1) / _strandsPerString) * _strandsPerString)) % 2 == 0)
+                if (_strandsPerString == 1 || (((GetHeight() - y - 1) - (((GetHeight() - y - 1) / _strandsPerString) * _strandsPerString)) % 2 == 0))
                 {
                     loc += x * 3;
                 }
@@ -393,6 +396,11 @@ void MatrixMapper::Test()
     wxASSERT(h_br_o.Map(0, 0) == 148);
     wxASSERT(h_br_o.Map(49, 0) == 1);
     wxASSERT(h_br_o.Map(0, 3) == 598);
+
+    MatrixMapper h_tl_o(40, 1, 150, "Horizontal", "Top Left", 1, "Test");
+    wxASSERT(h_tl_o.Map(0, 0) == 17551);
+    wxASSERT(h_tl_o.Map(149, 0) == 17998);
+    wxASSERT(h_tl_o.Map(0, 3) == 16201);
 }
 
 MatrixMapper::MatrixMapper()

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xSchedule>
+  <Options WWWRoot="xScheduleWeb" Password="" WebServerPort="80" PasswordTimeout="30">
+    <Button Label="Play Selected" Command="Play selected playlist" Parameters="" Hotkey="~"/>
+    <Button Label="Stop All" Command="Stop all now" Parameters="" Hotkey="~"/>
+    <Button Label="Next Step" Command="Next step in current playlist" Parameters="" Hotkey="~"/>
+    <Button Label="End Gracefully" Command="Jump to play once at end at end of current step and then stop" Parameters="" Hotkey="~"/>
+    <Button Label="Add 10 Mins To Schedule" Command="Add to the current schedule n minutes" Parameters="10" Hotkey="~"/>
+    <Matrix Name="Matrix" Strings="40" StrandsPerString="1" StringLength="150" Orientation="0" StartLocation="2" StartChannel="1"/>
+  </Options>
+  <PlayList Name="Patterns">
+    <PlayListStep Name="">
+      <PLIFSEQ FSEQFile="C:\Users\keith\Desktop\Tetris\patterns.fseq" ApplyMethod="0" Delay="0" Priority="1"/>
+      <PLIVirtualMatrix X="1135" Y="441" W="300" H="300" MatrixWidth="150" MatrixHeight="40" StartChannel="1" Delay="0" Priority="20"/>
+    </PlayListStep>
+  </PlayList>
+  <PlayList Name="Test">
+    <PlayListStep Name="">
+      <PLITest Name="" Mode="Alternate" StartChannel="1" Channels="18000" Value1="0" Value2="255" Duration="60000" FrameDuration="500" Delay="0"/>
+      <PLIVirtualMatrix X="0" Y="0" W="300" H="300" MatrixWidth="150" MatrixHeight="40" StartChannel="1" Delay="0" Priority="20"/>
+    </PlayListStep>
+  </PlayList>
+</xSchedule>

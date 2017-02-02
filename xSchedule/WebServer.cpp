@@ -165,6 +165,28 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         connection.SendResponse(response);
         return true;
     }
+    else if (request.URI().Lower().StartsWith("/xyzzy"))
+    {
+        wxURI url(request.URI().Lower());
+        std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
+        std::string command = parms["c"];
+        std::string parameters = parms["p"];
+
+        std::string msg;
+        HttpResponse response(connection, request, HttpStatus::OK);
+        if (xScheduleFrame::GetScheduleManager()->DoXyzzy(command, parameters, msg))
+        {
+            response.MakeFromText(msg, "application/json");
+        }
+        else
+        {
+            std::string data = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
+            logger_base.info("    data = '%s'.", (const char *)data.c_str());
+            response.MakeFromText(data, "application/json");
+        }
+        connection.SendResponse(response);
+        return true;
+    }
     else if (request.URI().Lower().StartsWith("/xschedulelogin"))
     {
         if (__password != "")
