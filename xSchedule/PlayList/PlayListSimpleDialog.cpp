@@ -18,6 +18,7 @@
 #include <wx/dir.h>
 #include <wx/filename.h>
 #include <wx/confbase.h>
+#include <wx/wupdlock.h>
 
 //(*InternalHeaders(PlayListSimpleDialog)
 #include <wx/intl.h>
@@ -174,8 +175,8 @@ void PlayListSimpleDialog::SwapPage(wxNotebookPage* newpage, const std::string& 
         return;
     }
     
-    WINDOW_LOCKER(Panel2);
-    WINDOW_LOCKER(Notebook1);
+    WINDOW_LOCKER(Panel2, lockPanel);
+    WINDOW_LOCKER(Notebook1, lockNotebook);
 
     if (Notebook1->GetPageCount() > 0)
     {
@@ -261,8 +262,8 @@ void PlayListSimpleDialog::OnTreeCtrl_PlayListSelectionChanged(wxTreeEvent& even
             {
                 // get the playlist entry
                 PlayListItem* pli = pls->GetItems().front();
-                WINDOW_LOCKER(Panel2);
-                WINDOW_LOCKER(Notebook1);
+                WINDOW_LOCKER(Panel2, lockPanel);
+                WINDOW_LOCKER(Notebook1, lockNotebook);
                 SwapPage(nullptr);
                 pli->Configure(Notebook1);
             }

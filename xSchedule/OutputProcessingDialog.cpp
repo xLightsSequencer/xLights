@@ -1,5 +1,7 @@
 #include "OutputProcessingDialog.h"
 #include "OutputProcessDimWhite.h"
+#include "OutputProcessColourOrder.h"
+#include "OutputProcessReverse.h"
 #include "OutputProcessDim.h"
 #include "OutputProcessSet.h"
 #include "OutputProcessRemap.h"
@@ -7,6 +9,8 @@
 #include "DimWhiteDialog.h"
 #include "SetDialog.h"
 #include "RemapDialog.h"
+#include "ColourOrderDialog.h"
+#include "AddReverseDialog.h"
 
 //(*InternalHeaders(OutputProcessingDialog)
 #include <wx/intl.h>
@@ -21,6 +25,8 @@ const long OutputProcessingDialog::ID_BUTTON3 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON6 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON7 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON8 = wxNewId();
+const long OutputProcessingDialog::ID_BUTTON9 = wxNewId();
+const long OutputProcessingDialog::ID_BUTTON10 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON5 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON4 = wxNewId();
 //*)
@@ -68,6 +74,10 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
 	BoxSizer2->Add(Button_Dim, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_DimWhite = new wxButton(this, ID_BUTTON8, _("Add Dim White"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
 	BoxSizer2->Add(Button_DimWhite, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_ColourOrder = new wxButton(this, ID_BUTTON9, _("Add Color Order"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
+	BoxSizer2->Add(Button_ColourOrder, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Reverse = new wxButton(this, ID_BUTTON10, _("Add Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
+	BoxSizer2->Add(Button_Reverse, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(BoxSizer2, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	Button_Ok = new wxButton(this, ID_BUTTON5, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
@@ -75,7 +85,7 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
 	BoxSizer1->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Cancel = new wxButton(this, ID_BUTTON4, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
 	BoxSizer1->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -90,6 +100,8 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_AddSetClick);
 	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_AddDimClick);
 	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_AddDimWhiteClick);
+	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_ColourOrderClick);
+	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_ReverseClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_OkClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_CancelClick);
 	//*)
@@ -311,6 +323,14 @@ void OutputProcessingDialog::OnButton_OkClick(wxCommandEvent& event)
         {
             op = new OutputProcessRemap(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
         }
+        else if (type == "Color Order")
+        {
+            op = new OutputProcessColourOrder(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
+        }
+        else if (type == "Reverse")
+        {
+            op = new OutputProcessReverse(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
+        }
 
         if (op != nullptr)
         {
@@ -372,6 +392,8 @@ bool OutputProcessingDialog::EditSelectedItem()
         DimWhiteDialog dlgdw(this, sc, p1, p2, d);
         SetDialog dlgs(this, sc, p1, p2, d);
         RemapDialog dlgr(this, sc, p1, p2, d);
+        AddReverseDialog dlgrv(this, sc, p1, p2, d);
+        ColourOrderDialog dlgc(this, sc, p1, p2, d);
         int res = wxID_CANCEL;
 
         if (type == "Dim")
@@ -389,6 +411,14 @@ bool OutputProcessingDialog::EditSelectedItem()
         else if (type == "Remap")
         {
             res = dlgr.ShowModal();
+        }
+        else if (type == "Color Order")
+        {
+            res = dlgc.ShowModal();
+        }
+        else if (type == "Reverse")
+        {
+            res = dlgrv.ShowModal();
         }
 
         if (res == wxID_OK)
@@ -420,6 +450,28 @@ void OutputProcessingDialog::OnButton_AddDimClick(wxCommandEvent& event)
 void OutputProcessingDialog::OnButton_AddDimWhiteClick(wxCommandEvent& event)
 {
     ListView_Processes->InsertItem(ListView_Processes->GetItemCount(), "Dim White");
+    ListView_Processes->Select(ListView_Processes->GetItemCount() - 1);
+    if (!EditSelectedItem())
+    {
+        ListView_Processes->DeleteItem(ListView_Processes->GetItemCount() - 1);
+    }
+    ValidateWindow();
+}
+
+void OutputProcessingDialog::OnButton_ColourOrderClick(wxCommandEvent& event)
+{
+    ListView_Processes->InsertItem(ListView_Processes->GetItemCount(), "Color Order");
+    ListView_Processes->Select(ListView_Processes->GetItemCount() - 1);
+    if (!EditSelectedItem())
+    {
+        ListView_Processes->DeleteItem(ListView_Processes->GetItemCount() - 1);
+    }
+    ValidateWindow();
+}
+
+void OutputProcessingDialog::OnButton_ReverseClick(wxCommandEvent& event)
+{
+    ListView_Processes->InsertItem(ListView_Processes->GetItemCount(), "Reverse");
     ListView_Processes->Select(ListView_Processes->GetItemCount() - 1);
     if (!EditSelectedItem())
     {

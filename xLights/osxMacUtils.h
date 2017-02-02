@@ -24,7 +24,7 @@ void AddWindowsMenu();
 
 void ModalPopup(wxWindow *p, wxMenu &menu);
 
-#define WINDOW_LOCKER(a)
+#define WINDOW_LOCKER(a, b)
 
 #else
 #define xlSetOpenGLRetina(a)
@@ -35,7 +35,7 @@ void ModalPopup(wxWindow *p, wxMenu &menu);
 #define DisableSleepModes()
 #define AddWindowsMenu()
 #define ModalPopup(p, a) p->PopupMenu(&a)
-#define WINDOW_LOCKER(a) wxWindowUpdateLocker(a)
+#define WINDOW_LOCKER(a, b) wxWindowUpdateLocker b(a)
 #endif
 
 

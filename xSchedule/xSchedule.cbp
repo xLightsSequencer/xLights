@@ -286,10 +286,14 @@
 		<Unit filename="../xLights/vamp-hostsdk/RealTime.cpp" />
 		<Unit filename="../xLights/xLightsTimer.cpp" />
 		<Unit filename="../xLights/xLightsTimer.h" />
+		<Unit filename="AddReverseDialog.cpp" />
+		<Unit filename="AddReverseDialog.h" />
 		<Unit filename="BackgroundPlaylistDialog.cpp" />
 		<Unit filename="BackgroundPlaylistDialog.h" />
 		<Unit filename="ButtonDetailsDialog.cpp" />
 		<Unit filename="ButtonDetailsDialog.h" />
+		<Unit filename="ColourOrderDialog.cpp" />
+		<Unit filename="ColourOrderDialog.h" />
 		<Unit filename="CommandManager.cpp" />
 		<Unit filename="CommandManager.h" />
 		<Unit filename="DimDialog.cpp" />
@@ -303,9 +307,11 @@
 		<Unit filename="OptionsDialog.cpp" />
 		<Unit filename="OptionsDialog.h" />
 		<Unit filename="OutputProcess.cpp" />
+		<Unit filename="OutputProcessColourOrder.cpp" />
 		<Unit filename="OutputProcessDim.cpp" />
 		<Unit filename="OutputProcessDimWhite.cpp" />
 		<Unit filename="OutputProcessRemap.cpp" />
+		<Unit filename="OutputProcessReverse.cpp" />
 		<Unit filename="OutputProcessSet.cpp" />
 		<Unit filename="OutputProcessingDialog.cpp" />
 		<Unit filename="OutputProcessingDialog.h" />
@@ -427,8 +433,10 @@
 		<Unit filename="wxHTTPServer/sha1.h" />
 		<Unit filename="wxHTTPServer/status.cpp" />
 		<Unit filename="wxHTTPServer/wxhttpserver.h" />
+		<Unit filename="wxsmith/AddReverseDialog.wxs" />
 		<Unit filename="wxsmith/BackgroundPlaylistDialog.wxs" />
 		<Unit filename="wxsmith/ButtonDetailsDialog.wxs" />
+		<Unit filename="wxsmith/ColourOrderDialog.wxs" />
 		<Unit filename="wxsmith/DimDialog.wxs" />
 		<Unit filename="wxsmith/DimWhiteDialog.wxs" />
 		<Unit filename="wxsmith/OptionsDialog.wxs" />
@@ -500,6 +508,8 @@
 					<wxDialog wxs="wxsmith/RemapDialog.wxs" src="RemapDialog.cpp" hdr="RemapDialog.h" fwddecl="0" i18n="1" name="RemapDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SetDialog.wxs" src="SetDialog.cpp" hdr="SetDialog.h" fwddecl="0" i18n="1" name="SetDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BackgroundPlaylistDialog.wxs" src="BackgroundPlaylistDialog.cpp" hdr="BackgroundPlaylistDialog.h" fwddecl="0" i18n="1" name="BackgroundPlaylistDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ColourOrderDialog.wxs" src="ColourOrderDialog.cpp" hdr="ColourOrderDialog.h" fwddecl="0" i18n="1" name="ColourOrderDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/AddReverseDialog.wxs" src="AddReverseDialog.cpp" hdr="AddReverseDialog.h" fwddecl="0" i18n="1" name="AddReverseDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

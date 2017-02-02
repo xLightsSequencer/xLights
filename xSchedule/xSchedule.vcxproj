@@ -189,8 +189,10 @@
     <ClCompile Include="..\xLights\vamp-hostsdk\RealTime.cpp" />
     <ClCompile Include="..\xLights\VideoReader.cpp" />
     <ClCompile Include="..\xLights\xLightsTimer.cpp" />
+    <ClCompile Include="AddReverseDialog.cpp" />
     <ClCompile Include="BackgroundPlaylistDialog.cpp" />
     <ClCompile Include="ButtonDetailsDialog.cpp" />
+    <ClCompile Include="ColourOrderDialog.cpp" />
     <ClCompile Include="CommandManager.cpp" />
     <ClCompile Include="DimDialog.cpp" />
     <ClCompile Include="DimWhiteDialog.cpp" />
@@ -199,10 +201,12 @@
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="OptionsDialog.cpp" />
     <ClCompile Include="OutputProcess.cpp" />
+    <ClCompile Include="OutputProcessColourOrder.cpp" />
     <ClCompile Include="OutputProcessDim.cpp" />
     <ClCompile Include="OutputProcessDimWhite.cpp" />
     <ClCompile Include="OutputProcessingDialog.cpp" />
     <ClCompile Include="OutputProcessRemap.cpp" />
+    <ClCompile Include="OutputProcessReverse.cpp" />
     <ClCompile Include="OutputProcessSet.cpp" />
     <ClCompile Include="PlayList\PlayerWindow.cpp" />
     <ClCompile Include="PlayList\PlayList.cpp" />
@@ -286,8 +290,10 @@
     <ClInclude Include="..\xLights\outputs\TestPreset.h" />
     <ClInclude Include="..\xLights\VideoReader.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />
+    <ClInclude Include="AddReverseDialog.h" />
     <ClInclude Include="BackgroundPlaylistDialog.h" />
     <ClInclude Include="ButtonDetailsDialog.h" />
+    <ClInclude Include="ColourOrderDialog.h" />
     <ClInclude Include="CommandManager.h" />
     <ClInclude Include="DimDialog.h" />
     <ClInclude Include="DimWhiteDialog.h" />
@@ -297,10 +303,12 @@
     <ClInclude Include="MyTreeItemData.h" />
     <ClInclude Include="OptionsDialog.h" />
     <ClInclude Include="OutputProcess.h" />
+    <ClInclude Include="OutputProcessColourOrder.h" />
     <ClInclude Include="OutputProcessDim.h" />
     <ClInclude Include="OutputProcessDimWhite.h" />
     <ClInclude Include="OutputProcessingDialog.h" />
     <ClInclude Include="OutputProcessRemap.h" />
+    <ClInclude Include="OutputProcessReverse.h" />
     <ClInclude Include="OutputProcessSet.h" />
     <ClInclude Include="PlayList\PlayerWindow.h" />
     <ClInclude Include="PlayList\PlayList.h" />

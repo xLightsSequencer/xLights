@@ -274,6 +274,10 @@
       <Filter>PlayList</Filter>
     </ClCompile>
     <ClCompile Include="BackgroundPlaylistDialog.cpp" />
+    <ClCompile Include="AddReverseDialog.cpp" />
+    <ClCompile Include="ColourOrderDialog.cpp" />
+    <ClCompile Include="OutputProcessReverse.cpp" />
+    <ClCompile Include="OutputProcessColourOrder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -490,6 +494,10 @@
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="BackgroundPlaylistDialog.h" />
+    <ClInclude Include="AddReverseDialog.h" />
+    <ClInclude Include="ColourOrderDialog.h" />
+    <ClInclude Include="OutputProcessReverse.h" />
+    <ClInclude Include="OutputProcessColourOrder.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

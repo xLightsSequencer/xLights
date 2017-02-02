@@ -31,7 +31,9 @@ class OutputProcessingDialog: public wxDialog
 		//(*Declarations(OutputProcessingDialog)
 		wxButton* Button_Dim;
 		wxButton* Button_Ok;
+		wxButton* Button_Reverse;
 		wxListView* ListView_Processes;
+		wxButton* Button_ColourOrder;
 		wxButton* Button_DimWhite;
 		wxButton* Button_Delete;
 		wxButton* Button_Cancel;
@@ -50,6 +52,8 @@ class OutputProcessingDialog: public wxDialog
 		static const long ID_BUTTON6;
 		static const long ID_BUTTON7;
 		static const long ID_BUTTON8;
+		static const long ID_BUTTON9;
+		static const long ID_BUTTON10;
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON4;
 		//*)
@@ -70,6 +74,8 @@ class OutputProcessingDialog: public wxDialog
 		void OnButton_DimWhiteClick(wxCommandEvent& event);
 		void OnButton_AddDimClick(wxCommandEvent& event);
 		void OnButton_AddDimWhiteClick(wxCommandEvent& event);
+		void OnButton_ColourOrderClick(wxCommandEvent& event);
+		void OnButton_ReverseClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
