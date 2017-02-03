@@ -951,7 +951,7 @@ bool Model::UpdateStartChannelFromChannelString(std::map<std::string, Model*>& m
     std::string dependsonmodel;
     ModelStartChannel = ModelXml->GetAttribute("StartChannel");
     long StartChannel = GetNumberFromChannelString(ModelStartChannel, valid, dependsonmodel);
-    while (valid && dependsonmodel != "" && std::find(used.begin(), used.end(), dependsonmodel) == used.end())
+    while (!valid && dependsonmodel != "" && std::find(used.begin(), used.end(), dependsonmodel) == used.end())
     {
         Model* m = models[dependsonmodel];
         if (m != nullptr)
