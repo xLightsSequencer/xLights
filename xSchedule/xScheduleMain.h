@@ -145,6 +145,7 @@ public:
         void OnMenuItem_CheckScheduleSelected(wxCommandEvent& event);
         void OnButton_ScheduleClick(wxCommandEvent& event);
         void OnMenuItem_ImportxLightsSelected(wxCommandEvent& event);
+        void OnMenuItem_MatricesSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -188,9 +189,10 @@ public:
         static const long ID_MNU_MNUADDPLAYLIST;
         static const long ID_MENUITEM1;
         static const long ID_MNU_BACKGROUND;
+        static const long ID_MNU_MATRICES;
+        static const long ID_MNU_OPTIONS;
         static const long ID_MNU_VIEW_LOG;
         static const long ID_MNU_CHECK_SCHEDULE;
-        static const long ID_MNU_OPTIONS;
         static const long ID_MNU_WEBINTERFACE;
         static const long ID_MNU_IMPORT;
         static const long ID_MNU_MODENORMAL;
@@ -226,6 +228,7 @@ public:
         wxPanel* Panel4;
         wxMenu* Menu3;
         wxButton* Button_Schedule;
+        wxMenuItem* MenuItem_Matrices;
         xLightsTimer _timer;
         wxMenuItem* MenuItem_Save;
         wxPanel* Panel1;

@@ -198,6 +198,8 @@
     <ClCompile Include="DimWhiteDialog.cpp" />
     <ClCompile Include="ESEQFile.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
+    <ClCompile Include="MatricesDialog.cpp" />
+    <ClCompile Include="MatrixMapper.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="OptionsDialog.cpp" />
     <ClCompile Include="OutputProcess.cpp" />
@@ -268,6 +270,7 @@
     <ClCompile Include="wxHTTPServer\status.cpp" />
     <ClCompile Include="xScheduleApp.cpp" />
     <ClCompile Include="xScheduleMain.cpp" />
+    <ClCompile Include="MatrixDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -299,6 +302,8 @@
     <ClInclude Include="DimWhiteDialog.h" />
     <ClInclude Include="ESEQFile.h" />
     <ClInclude Include="FSEQFile.h" />
+    <ClInclude Include="MatricesDialog.h" />
+    <ClInclude Include="MatrixMapper.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="MyTreeItemData.h" />
     <ClInclude Include="OptionsDialog.h" />
@@ -363,6 +368,7 @@
     <ClInclude Include="wxHTTPServer\wxhttpserver.h" />
     <ClInclude Include="xScheduleApp.h" />
     <ClInclude Include="xScheduleMain.h" />
+    <ClInclude Include="MatrixDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

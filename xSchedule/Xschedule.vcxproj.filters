@@ -278,6 +278,9 @@
     <ClCompile Include="ColourOrderDialog.cpp" />
     <ClCompile Include="OutputProcessReverse.cpp" />
     <ClCompile Include="OutputProcessColourOrder.cpp" />
+    <ClCompile Include="MatrixMapper.cpp" />
+    <ClCompile Include="XyzzyDialog.cpp" />
+    <ClCompile Include="MatricesDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OptionsDialog.h" />
@@ -494,10 +497,16 @@
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="BackgroundPlaylistDialog.h" />
+<<<<<<< 1b1ef6b4eb3df32ace90dcb16d41141812dd6f7f
     <ClInclude Include="AddReverseDialog.h" />
     <ClInclude Include="ColourOrderDialog.h" />
     <ClInclude Include="OutputProcessReverse.h" />
     <ClInclude Include="OutputProcessColourOrder.h" />
+=======
+    <ClInclude Include="MatrixMapper.h" />
+    <ClInclude Include="XyzzyDialog.h" />
+    <ClInclude Include="MatricesDialog.h" />
+>>>>>>> 880deaa1a373ddb7c51e66ebfa1ff394e8686dba
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

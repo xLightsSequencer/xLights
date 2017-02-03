@@ -32,6 +32,10 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
         {
             _buttons.push_back(new UserButton(n));
         }
+        else if (n->GetName() == "Matrix")
+        {
+            _matrices.push_back(new MatrixMapper(n));
+        }
     }
 }
 
@@ -112,6 +116,11 @@ wxXmlNode* ScheduleOptions::Save()
     }
 
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    {
+        res->AddChild((*it)->Save());
+    }
+
+    for (auto it = _matrices.begin(); it != _matrices.end(); ++it)
     {
         res->AddChild((*it)->Save());
     }
@@ -224,7 +233,12 @@ bool ScheduleOptions::IsDirty() const
 
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
     {
-        res = res && (*it)->IsDirty();
+        res = res || (*it)->IsDirty();
+    }
+
+    for (auto it = _matrices.begin(); it != _matrices.end(); ++it)
+    {
+        res = res || (*it)->IsDirty();
     }
 
     return res;
@@ -235,6 +249,11 @@ void ScheduleOptions::ClearDirty()
     _lastSavedChangeCount = _changeCount;
 
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    {
+        (*it)->ClearDirty();
+    }
+
+    for (auto it = _matrices.begin(); it != _matrices.end(); ++it)
     {
         (*it)->ClearDirty();
     }
@@ -252,3 +271,4 @@ UserButton* ScheduleOptions::GetButton(const std::string& label) const
 
     return nullptr;
 }
+

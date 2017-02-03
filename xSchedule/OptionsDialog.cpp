@@ -183,7 +183,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 
     LoadButtons();
 
-    SetSize(800, 650);
+    SetSize(800, 700);
     wxWindowBase::Layout();
 
     int namew = 150;
