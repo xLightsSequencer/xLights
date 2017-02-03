@@ -117,7 +117,7 @@ void PlayListItemTest::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
         {
             for (int i = 0; i < toset; i++)
             {
-                if (_state % 2 == 0)
+                if ((_state + i) % 2 == 0)
                 {
                     *(buffer + _startChannel - 1 + i) = _value1;
                 }
