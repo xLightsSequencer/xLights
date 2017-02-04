@@ -8,8 +8,9 @@ EVT_LEFT_UP(PlayerWindow::OnMouseLeftUp)
 EVT_PAINT(PlayerWindow::Paint)
 END_EVENT_TABLE()
 
-PlayerWindow::PlayerWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+PlayerWindow::PlayerWindow(wxWindow* parent, bool topMost, wxImageResizeQuality quality = wxIMAGE_QUALITY_HIGH, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
+    _quality = quality;
     _image = wxImage(size, true);
 #ifndef __WXOSX__
     SetDoubleBuffered(true);
@@ -18,7 +19,14 @@ PlayerWindow::PlayerWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 
     wxWindow *wind = wxWindow::FindFocus();
 
-    Create(parent, id, "Player Window", pos, size, wxBORDER_NONE, _T("id"));
+    if (topMost)
+    {
+        Create(parent, id, "Player Window", pos, size, wxBORDER_NONE | wxSTAY_ON_TOP, _T("id"));
+    }
+    else
+    {
+        Create(parent, id, "Player Window", pos, size, wxBORDER_NONE, _T("id"));
+    }
     SetClientSize(size);
     Move(pos);
     wxWindow::Show();
@@ -45,7 +53,7 @@ void PlayerWindow::SetImage(const wxImage& image)
     int height = 0;
     GetSize(&width, &height);
     _image = image;
-    _image.Rescale(width, height, wxIMAGE_QUALITY_HIGH);
+    _image.Rescale(width, height, _quality);
     Refresh(false);
 }
 

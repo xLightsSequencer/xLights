@@ -41,6 +41,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxCheckBox* CheckBox_LimitChannels;
+		wxCheckBox* CheckBox_Topmost;
 		wxTextCtrl* TextCtrl_Delay;
 		wxSpinCtrl* SpinCtrl_Priority;
 		wxCheckBox* CheckBox_OverrideAudio;
@@ -62,6 +63,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		static const long ID_STATICTEXT8;
 		static const long ID_FILEPICKERCTRL3;
 		static const long ID_BUTTON1;
+		static const long ID_CHECKBOX5;
 		static const long ID_STATICTEXT5;
 		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX3;

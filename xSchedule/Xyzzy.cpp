@@ -9,7 +9,7 @@
 #include "PlayList/PlayListItemVirtualMatrix.h"
 #endif
 
-wxColor __colours[] = { *wxRED, wxColor(255, 0, 255), *wxYELLOW, *wxBLUE, wxColor(64, 255, 64), wxColor(0,255,255), wxColor(40,40,40), *wxWHITE };
+wxColor __colours[] = { *wxRED, wxColor(255, 0, 255), *wxYELLOW, *wxBLUE, wxColor(64, 255, 64), wxColor(0,255,255), wxColor(255,80,0), *wxWHITE };
 
 wxColor XyzzyPiece::GetColour() const
 {
@@ -22,12 +22,8 @@ void XyzzyPiece::Rotate()
     if (_rotation > 3) _rotation = 0;
 }
 
-Xyzzy::Xyzzy()
+void Xyzzy::Reset()
 {
-    wxConfigBase* config = wxConfigBase::Get();
-    _highScore = config->ReadLong("XyzzyHighScore", 0);
-    _highScoreOwner = config->Read("XyzzyHighScoreOwner", "").ToStdString();
-    
     _lastUpdatedMovement = wxDateTime::Now();
     _score = 0;
     _playerName = "";
@@ -35,16 +31,48 @@ Xyzzy::Xyzzy()
     _colsPerSquare = 0;
     _rowsPerSquare = 0;
     _isOk = false;
-    _nextPiece = nullptr;
-    _currentPiece = nullptr;
+    if (_nextPiece != nullptr)
+    {
+        delete _nextPiece;
+        _nextPiece = nullptr;
+    }
+    if (_currentPiece != nullptr)
+    {
+        delete _currentPiece;
+        _currentPiece = nullptr;
+    }
     _dropSpeed = STARTSPEED;
     _sideBorder = 0;
     _bottomBorder = 0;
     _matrixMapper = nullptr;
     _gameRunning = false;
     _fullTime = wxDateTime((time_t)0);
+#ifdef _DEBUG
+    if (_virtualMatrix != nullptr)
+    {
+        _virtualMatrix->Stop();
+        delete _virtualMatrix;
+        _virtualMatrix = nullptr;
+    }
+#endif
+}
 
-    MatrixMapper::Test();
+Xyzzy::Xyzzy()
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    _highScore = config->ReadLong("XyzzyHighScore", 0);
+    _highScoreOwner = config->Read("XyzzyHighScoreOwner", "").ToStdString();
+
+    _nextPiece = nullptr;
+    _currentPiece = nullptr;
+    _matrixMapper = nullptr;
+#ifdef _DEBUG
+    _virtualMatrix = nullptr;
+#endif
+
+    Reset();
+
+    //MatrixMapper::Test();
 }
 
 Xyzzy::~Xyzzy()
@@ -54,6 +82,9 @@ Xyzzy::~Xyzzy()
 
 void Xyzzy::DrawNode(int x, int y, wxColour c, wxByte* buffer)
 {
+    if (x < 0 || x >= _matrixMapper->GetWidth()) return;
+    if (y < 0 || y >= _matrixMapper->GetHeight()) return;
+
     int bl = _matrixMapper->Map(x, y) - 1;
     if (bl >= _matrixMapper->GetChannels())
     {
@@ -160,6 +191,10 @@ bool Xyzzy::Frame(wxByte* buffer, size_t size, bool outputframe)
 // <matrix name>
 void Xyzzy::Initialise(const std::string& parameters, std::string& result)
 {
+    Close(result);
+
+    Reset();
+
     auto p = wxSplit(parameters, ',');
 
     if (p.Count() != 2)
@@ -195,11 +230,16 @@ void Xyzzy::Initialise(const std::string& parameters, std::string& result)
     _bottomBorder = (_matrixMapper->GetHeight() - (BOARDHEIGHT * _rowsPerSquare)) / 2;
 
 #ifdef _DEBUG
-    _virtualMatrix = new PlayListItemVirtualMatrix();
-    _virtualMatrix->SetWidth(_matrixMapper->GetWidth());
-    _virtualMatrix->SetHeight(_matrixMapper->GetHeight());
-    _virtualMatrix->SetStartChannel(_matrixMapper->GetStartChannel());
-    _virtualMatrix->Start();
+    if (_virtualMatrix == nullptr)
+    {
+        _virtualMatrix = new PlayListItemVirtualMatrix();
+        _virtualMatrix->SetWidth(_matrixMapper->GetWidth());
+        _virtualMatrix->SetHeight(_matrixMapper->GetHeight());
+        _virtualMatrix->SetStartChannel(_matrixMapper->GetStartChannel());
+        _virtualMatrix->SetTopmost(true);
+        _virtualMatrix->SetImageResizeQuality(wxIMAGE_QUALITY_NORMAL);
+        _virtualMatrix->Start();
+    }
 #endif
 
     _playerName = p[1];
@@ -230,6 +270,7 @@ void Xyzzy::Close(std::string& result)
         _nextPiece = nullptr;
     }
     SaveHighScore();
+    _matrixMapper = nullptr;
     _gameRunning = false;
 }
 
@@ -320,7 +361,7 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
     {
         if (_gameRunning)
         {
-        Drop();
+            Drop();
             result = "{\"result\":\"ok\",\"score\":\"" + GetScore() + "\",\"next\":\"" + GetNextPiece() + "\"}";
         }
         else
@@ -328,11 +369,13 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
             result = GameNotRunningResult();
         }
     }
-    else if (command == "c") // quit
+    else if (command == "c") // quit game ... but dont close it
     {
         if (_gameRunning)
         {
-            Close(result);
+            _gameRunning = false();
+            SaveHighScore();
+            result = "{\"result\":\"ok\",\"score\":\"" + GetScore() + "\"}";
         }
         else
         {
@@ -438,6 +481,8 @@ bool Xyzzy::TestSpin() const
 
 void Xyzzy::Drop()
 {
+    if (!_gameRunning) return;
+
     int dropdistance = 0;
     while (TestMoveDown())
     {
@@ -445,12 +490,26 @@ void Xyzzy::Drop()
         dropdistance++;
     }
 
+    auto loc = _currentPiece->DrawPoints();
+    for (auto it = loc.begin(); it != loc.end(); ++it)
+    {
+        if (it->y >= BOARDHEIGHT)
+        {
+            SaveHighScore();
+            _gameRunning = false;
+            return;
+        }
+    }
+
     _score += dropdistance * DROPBONUSPERROW;
 
     MakePiecePermanent();
+
     delete _currentPiece;
     _currentPiece = _nextPiece;
     _nextPiece = XyzzyPiece::CreatePiece();
+
+    CheckFullRow();
 }
 
 bool Xyzzy::TestMoveDown() const
@@ -645,7 +704,7 @@ std::list<wxPoint> SPiece::GetPoints(int rotation, wxPoint position) const
         // what would it look like vertical
         res.push_back(wxPoint(position.x, position.y + 1));
         res.push_back(wxPoint(position.x, position.y));
-        res.push_back(wxPoint(position.x + 1, position.y + 1));
+        res.push_back(wxPoint(position.x + 1, position.y - 1));
         res.push_back(wxPoint(position.x + 1, position.y));
         break;
     }
@@ -826,60 +885,65 @@ bool Xyzzy::AdvanceGame()
             _nextPiece = XyzzyPiece::CreatePiece();
             _score += PIECESCORE;
 
-            // now check if any row is complete
-            int fullcount = 0;
-            for (int y = 0; y < BOARDHEIGHT; y++)
-            {
-                bool full = true;
-                for (int x = 0; x < BOARDWIDTH; x++)
-                {
-                    if (_board[y * BOARDWIDTH + x] == 0xFF)
-                    {
-                        full = false;
-                        break;
-                    }
-                }
-
-                if (full)
-                {
-                    fullcount++;
-                    for (int x = 0; x < BOARDWIDTH; x++)
-                    {
-                        _board[y * BOARDWIDTH + x] = 7;
-                        _fullTime = wxDateTime::Now();
-                    }
-                }
-            }
-
-            if (fullcount > 0)
-            {
-                _dropSpeed += ROWADJUSTSPEED;
-                if (_dropSpeed < MINDROPSPEED)
-                {
-                    _dropSpeed = MINDROPSPEED;
-                }
-            }
-
-            switch (fullcount)
-            {
-            case 1:
-                _score += ROWSCORE1;
-                break;
-            case 2:
-                _score += ROWSCORE2;
-                break;
-            case 3:
-                _score += ROWSCORE3;
-                break;
-            case 4:
-                _score += ROWSCORE4;
-                break;
-            }
+            CheckFullRow();
         }
     }
 
     // do game updates here
     return false;
+}
+
+void Xyzzy::CheckFullRow()
+{
+    // now check if any row is complete
+    int fullcount = 0;
+    for (int y = 0; y < BOARDHEIGHT; y++)
+    {
+        bool full = true;
+        for (int x = 0; x < BOARDWIDTH; x++)
+        {
+            if (_board[y * BOARDWIDTH + x] == 0xFF)
+            {
+                full = false;
+                break;
+            }
+        }
+
+        if (full)
+        {
+            fullcount++;
+            for (int x = 0; x < BOARDWIDTH; x++)
+            {
+                _board[y * BOARDWIDTH + x] = 7;
+                _fullTime = wxDateTime::Now();
+            }
+        }
+    }
+
+    if (fullcount > 0)
+    {
+        _dropSpeed += ROWADJUSTSPEED;
+        if (_dropSpeed < MINDROPSPEED)
+        {
+            _dropSpeed = MINDROPSPEED;
+        }
+    }
+
+    switch (fullcount)
+    {
+    case 1:
+        _score += ROWSCORE1;
+        break;
+    case 2:
+        _score += ROWSCORE2;
+        break;
+    case 3:
+        _score += ROWSCORE3;
+        break;
+    case 4:
+        _score += ROWSCORE4;
+        break;
+    }
 }
 
 void Xyzzy::SaveHighScore()

@@ -8,6 +8,7 @@
 
 PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
 {
+    _topMost = true;
     _window = nullptr;
     _videoFile = "";
     _origin.x = 0;
@@ -36,12 +37,14 @@ void PlayListItemVideo::Load(wxXmlNode* node)
     _videoFile = node->GetAttribute("VideoFile", "");
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
+    _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
     OpenFiles();
     CloseFiles();
 }
 
 PlayListItemVideo::PlayListItemVideo() : PlayListItem()
 {
+    _topMost = true;
     _window = nullptr;
     _videoFile = "";
     _origin.x = 0;
@@ -59,6 +62,7 @@ PlayListItem* PlayListItemVideo::Copy() const
     res->_size = _size;
     res->_videoFile = _videoFile;
     res->_durationMS = _durationMS;
+    res->_topMost = _topMost;
     PlayListItem::Copy(res);
 
     return res;
@@ -73,6 +77,11 @@ wxXmlNode* PlayListItemVideo::Save()
     node->AddAttribute("Y", wxString::Format(wxT("%i"), _origin.y));
     node->AddAttribute("W", wxString::Format(wxT("%i"), _size.GetWidth()));
     node->AddAttribute("H", wxString::Format(wxT("%i"), _size.GetHeight()));
+
+    if (!_topMost)
+    {
+        node->AddAttribute("Topmost", "FALSE");
+    }
 
     PlayListItem::Save(node);
 
@@ -173,7 +182,7 @@ void PlayListItemVideo::Start()
     // create the window
     if (_window == nullptr)
     {
-        _window = new PlayerWindow(nullptr, wxID_ANY, _origin, _size);
+        _window = new PlayerWindow(nullptr, _topMost, wxIMAGE_QUALITY_HIGH, wxID_ANY, _origin, _size);
     }
     else
     {

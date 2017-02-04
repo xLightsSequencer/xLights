@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/panel.h>
 #include <wx/button.h>
@@ -28,6 +29,7 @@ class PlayListItemVirtualMatrixPanel: public wxPanel
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxSpinCtrl* SpinCtrl_Height;
+		wxCheckBox* CheckBox_Topmost;
 		wxButton* Button_PositionWindow;
 		wxStaticText* StaticText4;
 		wxSpinCtrl* SpinCtrl_StartChannel;
@@ -46,6 +48,7 @@ class PlayListItemVirtualMatrixPanel: public wxPanel
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL3;
 		static const long ID_BUTTON1;
+		static const long ID_CHECKBOX1;
 		//*)
 
 	private:

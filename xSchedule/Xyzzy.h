@@ -14,7 +14,7 @@ class PlayListItemVirtualMatrix;
 #define BOARDHEIGHT 20
 #define PAUSEONCOMPLETEROWTIME 200
 #define STARTSPEED 300
-#define ROWADJUSTSPEED -10
+#define ROWADJUSTSPEED -20
 #define MAXHARDPIECES 3
 #define DROPBONUSPERROW 10
 #define PIECESCORE 1
@@ -162,6 +162,8 @@ class Xyzzy
     void MakePiecePermanent();
     std::string GameNotRunningResult();
     void DrawNode(int x, int y, wxColour c, wxByte* buffer);
+    void CheckFullRow();
+    void Reset();
 
 public:
 

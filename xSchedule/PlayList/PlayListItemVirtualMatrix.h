@@ -20,6 +20,8 @@ protected:
 	wxSize _size;
     wxImage* _image;
     PlayerWindow* _window;
+    bool _topMost;
+    wxImageResizeQuality _quality;
     #pragma endregion Member Variables
 
 public:
@@ -32,6 +34,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    void SetImageResizeQuality(wxImageResizeQuality quality) { _quality = quality; }
     virtual std::string GetNameNoTime() const override;
     void SetLocation(wxPoint pt, wxSize size) { if (_origin != pt || _size != size) { _origin = pt; _size = size; _changeCount++; } }
     wxPoint GetPosition() const { return _origin; }
@@ -42,6 +45,8 @@ public:
     int GetHeight() const { return _matrixHeight; }
     size_t GetStartChannel() const { return _startChannel; }
     void SetWidth(int width) { if (_matrixWidth != width) { _matrixWidth = width; _changeCount++; } }
+    bool GetTopMost() const { return _topMost; }
+    void SetTopmost(bool topmost) { if (_topMost != topmost) { _topMost = topmost; _changeCount++; } }
     void SetHeight(int height) { if (_matrixHeight != height) { _matrixHeight = height; _changeCount++; } }
     void SetStartChannel(size_t startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _changeCount++; } }
     #pragma endregion Getters and Setters

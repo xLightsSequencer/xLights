@@ -21,6 +21,7 @@ protected:
     std::string _fseqFileName;
     std::string _audioFile;
     bool _overrideAudio;
+    bool _topMost;
     FSEQFile* _fseqFile;
     AudioManager* _audioManager;
     size_t _durationMS;
@@ -52,6 +53,8 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    bool GetTopMost() const { return _topMost; }
+    void SetTopmost(bool topmost) { if (_topMost != topmost) { _topMost = topmost; _changeCount++; } }
     std::string GetAudioFilename() const;
     int GetBlendMode() const { return _applyMethod; }
     void SetBlendMode(int blendMode) { if (_applyMethod != (APPLYMETHOD)blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; } }

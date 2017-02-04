@@ -9,6 +9,7 @@
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo(wxXmlNode* node) : PlayListItem(node)
 {
+    _topMost = true;
     _window = nullptr;
     _videoFile = "";
     _origin.x = 0;
@@ -39,7 +40,8 @@ void PlayListItemFSEQVideo::Load(wxXmlNode* node)
     _videoFile = node->GetAttribute("VideoFile", "");
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
-	
+    _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
+
     if (_fastStartAudio)
     {
         LoadAudio();
@@ -136,6 +138,7 @@ void PlayListItemFSEQVideo::LoadFiles()
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
 {
+    _topMost = true;
     _fastStartAudio = false;
     _channels = 0;
     _startChannel = 1;
@@ -158,6 +161,7 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
 PlayListItem* PlayListItemFSEQVideo::Copy() const
 {
     PlayListItemFSEQVideo* res = new PlayListItemFSEQVideo();
+    res->_topMost = _topMost;
     res->_fseqFileName = _fseqFileName;
     res->_applyMethod = _applyMethod;
     res->_overrideAudio = _overrideAudio;
@@ -186,7 +190,12 @@ wxXmlNode* PlayListItemFSEQVideo::Save()
     node->AddAttribute("Y", wxString::Format(wxT("%i"), _origin.y));
     node->AddAttribute("W", wxString::Format(wxT("%i"), _size.GetWidth()));
     node->AddAttribute("H", wxString::Format(wxT("%i"), _size.GetHeight()));
-	
+
+    if (!_topMost)
+    {
+        node->AddAttribute("Topmost", "FALSE");
+    }
+
     if (_fastStartAudio)
     {
         node->AddAttribute("FastStartAudio", "TRUE");
@@ -408,7 +417,7 @@ void PlayListItemFSEQVideo::Start()
     // create the window
     if (_window == nullptr)
     {
-        _window = new PlayerWindow(nullptr, wxID_ANY, _origin, _size);
+        _window = new PlayerWindow(nullptr, _topMost, wxIMAGE_QUALITY_HIGH, wxID_ANY, _origin, _size);
     }
     else
     {

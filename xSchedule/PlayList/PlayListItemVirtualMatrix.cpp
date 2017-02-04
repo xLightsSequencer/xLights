@@ -6,6 +6,8 @@
 
 PlayListItemVirtualMatrix::PlayListItemVirtualMatrix(wxXmlNode* node) : PlayListItem(node)
 {
+    _topMost = true;
+    _quality = wxIMAGE_QUALITY_HIGH;
     _image = nullptr;
     _priority = 20;
     _window = nullptr;
@@ -36,10 +38,13 @@ void PlayListItemVirtualMatrix::Load(wxXmlNode* node)
     _matrixWidth = wxAtoi(node->GetAttribute("MatrixWidth", "100"));
     _matrixHeight = wxAtoi(node->GetAttribute("MatrixHeight", "100"));
     _startChannel = wxAtol(node->GetAttribute("StartChannel", "1"));
+    _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
 }
 
 PlayListItemVirtualMatrix::PlayListItemVirtualMatrix() : PlayListItem()
 {
+    _quality = wxIMAGE_QUALITY_HIGH;
+    _topMost = true;
     _image = nullptr;
     _priority = 20;
     _window = nullptr;
@@ -60,6 +65,7 @@ PlayListItem* PlayListItemVirtualMatrix::Copy() const
     res->_matrixWidth = _matrixWidth;
     res->_matrixHeight = _matrixHeight;
     res->_startChannel = _startChannel;
+    res->_topMost = _topMost;
     PlayListItem::Copy(res);
 
     return res;
@@ -76,6 +82,11 @@ wxXmlNode* PlayListItemVirtualMatrix::Save()
     node->AddAttribute("MatrixWidth", wxString::Format(wxT("%i"), _matrixWidth));
     node->AddAttribute("MatrixHeight", wxString::Format(wxT("%i"), _matrixHeight));
     node->AddAttribute("StartChannel", wxString::Format(wxT("%i"), _startChannel));
+
+    if (!_topMost)
+    {
+        node->AddAttribute("Topmost", "FALSE");
+    }
 
     PlayListItem::Save(node);
 
@@ -136,7 +147,7 @@ void PlayListItemVirtualMatrix::Start()
     // create the window
     if (_window == nullptr)
     {
-        _window = new PlayerWindow(nullptr, wxID_ANY, _origin, _size);
+        _window = new PlayerWindow(nullptr, _topMost, _quality, wxID_ANY, _origin, _size);
     }
     else
     {

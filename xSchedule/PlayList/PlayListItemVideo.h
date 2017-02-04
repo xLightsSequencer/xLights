@@ -19,6 +19,7 @@ protected:
 	wxPoint _origin;
 	wxSize _size;
     VideoReader* _videoReader;
+    bool _topMost;
     size_t _durationMS;
     PlayerWindow* _window;
     #pragma endregion Member Variables
@@ -37,6 +38,8 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    bool GetTopMost() const { return _topMost; }
+    void SetTopmost(bool topmost) { if (_topMost != topmost) { _topMost = topmost; _changeCount++; } }
     virtual size_t GetDurationMS() const override;
     virtual std::string GetNameNoTime() const override;
     void SetLocation(wxPoint pt, wxSize size) { if (_origin != pt || _size != size) { _origin = pt; _size = size; _changeCount++; } }

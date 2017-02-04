@@ -11,10 +11,11 @@ class PlayerWindow: public wxFrame
     wxPoint _startDragPos;
     wxPoint _startMousePos;
     bool _dragging;
+    wxImageResizeQuality _quality;
 
 	public:
 
-		PlayerWindow(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		PlayerWindow(wxWindow* parent, bool topMost, wxImageResizeQuality quality, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~PlayerWindow();
         void SetImage(const wxImage& image);
 

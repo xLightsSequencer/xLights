@@ -20,6 +20,7 @@ const long PlayListItemVirtualMatrixPanel::ID_SPINCTRL2 = wxNewId();
 const long PlayListItemVirtualMatrixPanel::ID_STATICTEXT4 = wxNewId();
 const long PlayListItemVirtualMatrixPanel::ID_SPINCTRL3 = wxNewId();
 const long PlayListItemVirtualMatrixPanel::ID_BUTTON1 = wxNewId();
+const long PlayListItemVirtualMatrixPanel::ID_CHECKBOX1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PlayListItemVirtualMatrixPanel,wxPanel)
@@ -59,6 +60,10 @@ PlayListItemVirtualMatrixPanel::PlayListItemVirtualMatrixPanel(wxWindow* parent,
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_PositionWindow = new wxButton(this, ID_BUTTON1, _("Position Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer1->Add(Button_PositionWindow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Topmost = new wxCheckBox(this, ID_CHECKBOX1, _("Topmost Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_Topmost->SetValue(true);
+	FlexGridSizer1->Add(CheckBox_Topmost, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -73,6 +78,7 @@ PlayListItemVirtualMatrixPanel::PlayListItemVirtualMatrixPanel(wxWindow* parent,
     SpinCtrl_Height->SetValue(VirtualMatrix->GetHeight());
     SpinCtrl_Width->SetValue(VirtualMatrix->GetWidth());
     SpinCtrl_StartChannel->SetValue(VirtualMatrix->GetStartChannel());
+    CheckBox_Topmost->SetValue(VirtualMatrix->GetTopMost());
 }
 
 PlayListItemVirtualMatrixPanel::~PlayListItemVirtualMatrixPanel()
@@ -82,6 +88,7 @@ PlayListItemVirtualMatrixPanel::~PlayListItemVirtualMatrixPanel()
     _VirtualMatrix->SetWidth(SpinCtrl_Width->GetValue());
     _VirtualMatrix->SetHeight(SpinCtrl_Height->GetValue());
     _VirtualMatrix->SetStartChannel(SpinCtrl_StartChannel->GetValue());
+    _VirtualMatrix->SetTopmost(CheckBox_Topmost->GetValue());
 }
 
 void PlayListItemVirtualMatrixPanel::OnButton_PositionWindowClick(wxCommandEvent& event)
