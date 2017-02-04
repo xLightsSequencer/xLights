@@ -77,7 +77,7 @@ Xyzzy::Xyzzy()
 
 Xyzzy::~Xyzzy()
 {
-    
+
 }
 
 void Xyzzy::DrawNode(int x, int y, wxColour c, wxByte* buffer)
@@ -373,7 +373,7 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
     {
         if (_gameRunning)
         {
-            _gameRunning = false();
+            _gameRunning = false;
             SaveHighScore();
             result = "{\"result\":\"ok\",\"score\":\"" + GetScore() + "\"}";
         }
