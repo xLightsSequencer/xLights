@@ -82,12 +82,56 @@ void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t fr
                 if (_startChannel > size) return;
 
                 size_t toset = _channels + _startChannel - 1 < size ? _channels : size - _startChannel + 1;
-                memset(buffer + _startChannel - 1, _value, toset);
+                if (_applyMethod == APPLYMETHOD::METHOD_OVERWRITE)
+                {
+                    memset(buffer + _startChannel - 1, _value, toset);
+                }
+                else
+                {
+                    for (size_t i = 0; i < toset; ++i)
+                    {
+                        SetChannel(buffer + i, _value, _applyMethod);
+                    }
+                }
             }
             else
             {
                 memset(buffer, _value, size);
             }
         }
+    }
+}
+
+void PlayListItemAllOff::SetChannel(wxByte* p, wxByte value, APPLYMETHOD blendMode)
+{
+    switch (blendMode)
+    {
+    case APPLYMETHOD::METHOD_OVERWRITE:
+        *p = value;
+        break;
+    case APPLYMETHOD::METHOD_AVERAGE:
+        *p = ((int)*p + (int)value) / 2;
+        break;
+    case APPLYMETHOD::METHOD_MASK:
+        if (value > 0)
+        {
+            *p = 0x00;
+        }
+        break;
+    case APPLYMETHOD::METHOD_UNMASK:
+        if (value == 0)
+        {
+            *p = 0x00;
+        }
+        break;
+    case APPLYMETHOD::METHOD_MAX:
+        *p = std::max(*p, value);
+        break;
+    case APPLYMETHOD::METHOD_OVERWRITEIFBLACK:
+        if (*p == 0)
+        {
+            *p = value;
+        }
+        break;
     }
 }

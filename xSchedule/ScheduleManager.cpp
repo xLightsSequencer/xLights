@@ -152,6 +152,8 @@ ScheduleManager::~ScheduleManager()
 
     if (_xyzzy != nullptr)
     {
+        std::string(res);
+        _xyzzy->Close(res);
         delete _xyzzy;
         _xyzzy = nullptr;
     }

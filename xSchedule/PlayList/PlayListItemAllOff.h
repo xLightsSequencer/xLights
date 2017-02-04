@@ -19,6 +19,8 @@ protected:
     APPLYMETHOD _applyMethod;
 #pragma endregion Member Variables
 
+    void SetChannel(wxByte* p, wxByte value, APPLYMETHOD blendMode);
+
 public:
 
 #pragma region Constructors and Destructors

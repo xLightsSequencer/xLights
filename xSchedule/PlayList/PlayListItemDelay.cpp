@@ -11,7 +11,7 @@ PlayListItemDelay::PlayListItemDelay(wxXmlNode* node) : PlayListItem(node)
 void PlayListItemDelay::Load(wxXmlNode* node) 
 {
     PlayListItem::Load(node);
-    _duration = wxAtoi(node->GetAttribute("Duration", "50"));
+    _duration = wxAtol(node->GetAttribute("Duration", "50"));
 }
 
 PlayListItemDelay::PlayListItemDelay() : PlayListItem()

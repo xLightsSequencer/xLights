@@ -379,6 +379,10 @@
 		<Unit filename="PlayList/PlayListItemTest.h" />
 		<Unit filename="PlayList/PlayListItemTestPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemTestPanel.h" />
+		<Unit filename="PlayList/PlayListItemText.cpp" />
+		<Unit filename="PlayList/PlayListItemText.h" />
+		<Unit filename="PlayList/PlayListItemTextPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemTextPanel.h" />
 		<Unit filename="PlayList/PlayListItemVideo.cpp" />
 		<Unit filename="PlayList/PlayListItemVideo.h" />
 		<Unit filename="PlayList/PlayListItemVideoPanel.cpp" />
@@ -465,6 +469,7 @@
 		<Unit filename="wxsmith/PlayListItemRunCommandPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunProcessPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTestPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemTextPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVirtualMatrixPanel.wxs" />
 		<Unit filename="wxsmith/PlayListPanel.wxs" />
@@ -522,6 +527,7 @@
 					<wxDialog wxs="wxsmith/AddReverseDialog.wxs" src="AddReverseDialog.cpp" hdr="AddReverseDialog.h" fwddecl="0" i18n="1" name="AddReverseDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MatrixDialog.wxs" src="MatrixDialog.cpp" hdr="MatrixDialog.h" fwddecl="0" i18n="1" name="MatrixDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MatricesDialog1.wxs" src="MatricesDialog.cpp" hdr="MatricesDialog.h" fwddecl="0" i18n="1" name="MatricesDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemTextPanel.wxs" src="PlayList/PlayListItemTextPanel.cpp" hdr="PlayList/PlayListItemTextPanel.h" fwddecl="0" i18n="1" name="PlayListItemTextPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

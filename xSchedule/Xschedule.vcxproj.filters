@@ -118,6 +118,8 @@
     <ClCompile Include="xScheduleMain.cpp" />
     <ClCompile Include="MatrixDialog.cpp" />
     <ClCompile Include="Xyzzy.cpp" />
+    <ClCompile Include="PlayList\PlayListItemTextPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemText.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -217,6 +219,8 @@
     <ClInclude Include="xScheduleMain.h" />
     <ClInclude Include="MatrixDialog.h" />
     <ClInclude Include="Xyzzy.h" />
+    <ClInclude Include="PlayList\PlayListItemText.h" />
+    <ClInclude Include="PlayList\PlayListItemTextPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

@@ -210,6 +210,8 @@
     <ClCompile Include="OutputProcessRemap.cpp" />
     <ClCompile Include="OutputProcessReverse.cpp" />
     <ClCompile Include="OutputProcessSet.cpp" />
+    <ClCompile Include="PlayList\PlayListItemText.cpp" />
+    <ClCompile Include="PlayList\PlayListItemTextPanel.cpp" />
     <ClCompile Include="PlayList\PlayerWindow.cpp" />
     <ClCompile Include="PlayList\PlayList.cpp" />
     <ClCompile Include="PlayList\PlayListDialog.cpp" />
@@ -316,6 +318,7 @@
     <ClInclude Include="OutputProcessRemap.h" />
     <ClInclude Include="OutputProcessReverse.h" />
     <ClInclude Include="OutputProcessSet.h" />
+    <ClInclude Include="PlayList\PlayListItemTextPanel.h" />
     <ClInclude Include="PlayList\PlayerWindow.h" />
     <ClInclude Include="PlayList\PlayList.h" />
     <ClInclude Include="PlayList\PlayListDialog.h" />
@@ -346,6 +349,7 @@
     <ClInclude Include="PlayList\PlayListItemRunProcessPanel.h" />
     <ClInclude Include="PlayList\PlayListItemTest.h" />
     <ClInclude Include="PlayList\PlayListItemTestPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemText.h" />
     <ClInclude Include="PlayList\PlayListItemVideo.h" />
     <ClInclude Include="PlayList\PlayListItemVideoPanel.h" />
     <ClInclude Include="PlayList\PlayListItemVirtualMatrix.h" />
