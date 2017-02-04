@@ -72,11 +72,11 @@ void Xyzzy::DrawPixel(int x, int y, wxColour c, wxByte* buffer)
 {
     for (int xout = 0; xout < _colsPerSquare; xout++)
     {
-        if (x + xout >= 0 && x + xout < BOARDWIDTH)
+        if (x >= 0 && x < BOARDWIDTH)
         {
             for (int yout = 0; yout < _rowsPerSquare; yout++)
             {
-                if (y + yout >= 0 && y + yout < BOARDHEIGHT)
+                if (y >= 0 && y < BOARDHEIGHT)
                 {
                     DrawNode(_sideBorder + x * _colsPerSquare + xout, _bottomBorder + y * _rowsPerSquare + yout, c, buffer);
                 }
@@ -362,6 +362,10 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
             memset(_board, 0xFF, sizeof(_board));
             _dropSpeed = STARTSPEED;
             _score = 0;
+            if (parameters != "")
+            {
+                _playerName = parameters;
+            }
             _gameRunning = true;
             result = "{\"result\":\"ok\",\"score\":\"" + GetScore() + "\",\"next\":\"" + GetNextPiece() + "\"}";
         }
