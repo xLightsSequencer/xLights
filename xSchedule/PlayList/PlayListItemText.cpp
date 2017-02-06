@@ -200,9 +200,9 @@ std::string PlayListItemText::GetText(size_t ms)
     working.Replace("%CDD_DAYS%", wxString::Format(wxT("%i"), countdown.GetDays()));
     working.Replace("%CDD_HOURS%", wxString::Format(wxT("%i"), countdown.GetHours() % 24));
     working.Replace("%CDD_MINS%", wxString::Format(wxT("%i"), countdown.GetMinutes() % 60));
-    working.Replace("%CDD_SECS%", wxString::Format(wxT("%i"), countdown.GetSeconds() % 60));
-    working.Replace("%CDD_TSECS%", wxString::Format(wxT("%i"), countdown.GetMilliseconds() / 1000));
-    working.Replace("%CDD_MS%", wxString::Format(wxT("%i"), countdown.GetMilliseconds() % 1000));
+    working.Replace("%CDD_SECS%", wxString::Format(wxT("%i"), (countdown.GetSeconds() % 60).ToLong()));
+    working.Replace("%CDD_TSECS%", wxString::Format(wxT("%i"), (countdown.GetMilliseconds() / 1000).ToLong()));
+    working.Replace("%CDD_MS%", wxString::Format(wxT("%i"), (countdown.GetMilliseconds() % 1000).ToLong()));
 
     // countdown to to item end
     working.Replace("%CD_DAYS%", wxString::Format(wxT("%i"), plicountdown.GetDays()));
