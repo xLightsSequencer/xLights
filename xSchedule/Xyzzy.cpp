@@ -479,7 +479,7 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
             result = "{\"result\":\"ok\",\"score\":\"" + GetScore() + "\",\"next\":\"" + GetNextPiece() + "\"}";
         }
     }
-    else if (command == "r") // reset to pristine state
+    else if (command == "reset") // reset to pristine state
     {
         Reset();
         result = "{\"result\":\"ok\"}";

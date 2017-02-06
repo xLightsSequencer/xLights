@@ -167,8 +167,6 @@ void PlayListItemText::Stop()
 
 std::string PlayListItemText::GetText(size_t ms)
 {
-    std::string res;
-
     wxString working = wxString(_format);
 
     wxTimeSpan plicountdown(_durationMS - ms);
@@ -206,19 +204,19 @@ std::string PlayListItemText::GetText(size_t ms)
 
     // countdown to to item end
     working.Replace("%CD_DAYS%", wxString::Format(wxT("%i"), plicountdown.GetDays()));
-    working.Replace("%CD_HOURS%", wxString::Format(wxT("%i"), plicountdown.GetHours()));
-    working.Replace("%CD_MINS%", wxString::Format(wxT("%i"), plicountdown.GetMinutes()));
-    working.Replace("%CD_SECS%", wxString::Format(wxT("%i"), plicountdown.GetSeconds()));
-    working.Replace("%CD_TSECS%", wxString::Format(wxT("%i"), plicountdown.GetMilliseconds() / 1000));
-    working.Replace("%CD_MS%", wxString::Format(wxT("%i"), plicountdown.GetMilliseconds() % 1000));
+    working.Replace("%CD_HOURS%", wxString::Format(wxT("%i"), plicountdown.GetHours() % 24));
+    working.Replace("%CD_MINS%", wxString::Format(wxT("%i"), plicountdown.GetMinutes() % 60));
+    working.Replace("%CD_SECS%", wxString::Format(wxT("%i"), (plicountdown.GetSeconds() % 60).ToLong()));
+    working.Replace("%CD_TSECS%", wxString::Format(wxT("%i"), (plicountdown.GetMilliseconds() / 1000).ToLong()));
+    working.Replace("%CD_MS%", wxString::Format(wxT("%i"), (plicountdown.GetMilliseconds() % 1000).ToLong()));
 
     // countup from item start
     working.Replace("%CU_DAYS%", wxString::Format(wxT("%i"), plicountup.GetDays()));
-    working.Replace("%CU_HOURS%", wxString::Format(wxT("%i"), plicountup.GetHours()));
-    working.Replace("%CU_MINS%", wxString::Format(wxT("%i"), plicountup.GetMinutes()));
-    working.Replace("%CU_SECS%", wxString::Format(wxT("%i"), plicountup.GetSeconds()));
-    working.Replace("%CU_TSECS%", wxString::Format(wxT("%i"), plicountup.GetMilliseconds() / 1000));
-    working.Replace("%CU_MS%", wxString::Format(wxT("%i"), plicountup.GetMilliseconds() % 1000));
+    working.Replace("%CU_HOURS%", wxString::Format(wxT("%i"), plicountup.GetHours() % 24));
+    working.Replace("%CU_MINS%", wxString::Format(wxT("%i"), plicountup.GetMinutes() % 60));
+    working.Replace("%CU_SECS%", wxString::Format(wxT("%i"), (plicountup.GetSeconds() % 60).ToLong()));
+    working.Replace("%CU_TSECS%", wxString::Format(wxT("%i"), (plicountup.GetMilliseconds() / 1000).ToLong()));
+    working.Replace("%CU_MS%", wxString::Format(wxT("%i"), (plicountup.GetMilliseconds() % 1000).ToLong()));
 
     // current date time
     working.Replace("%DAY%", wxString::Format(wxT("%i"), now.GetDay()));
@@ -232,12 +230,12 @@ std::string PlayListItemText::GetText(size_t ms)
     working.Replace("%MS%", wxString::Format(wxT("%i"), now.GetMillisecond()));
     working.Replace("%AMPM%", now.GetHour() > 12 ? "PM" : "AM");
 
-    return res;
+    return working.ToStdString();
 }
 
 wxPoint PlayListItemText::GetLocation(size_t ms)
 {
-    wxPoint res(_x, _y);
+    wxPoint res(_x + _matrixMapper->GetWidth() / 2, _y + _matrixMapper->GetHeight());
 
     if (_movement == "None")
     {
@@ -274,7 +272,7 @@ void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
         size_t effms = ms - _delay;
 
         wxBitmap bitmap;
-        bitmap.Create(_matrixMapper->GetWidth(), _matrixMapper->GetWidth());
+        bitmap.Create(_matrixMapper->GetWidth(), _matrixMapper->GetHeight());
         wxMemoryDC dc(bitmap);
 
         // work out our Text
@@ -320,14 +318,29 @@ void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
         }
 
         // write out the bitmap
+        dc.SelectObject(wxNullBitmap);
         wxImage image = bitmap.ConvertToImage();
         for (int x = 0; x < _matrixMapper->GetWidth(); ++x)
         {
             for (int y = 0; y < _matrixMapper->GetHeight(); ++y)
             {
-                wxByte* p = buffer + _matrixMapper->Map(x, y);
+                size_t bl = _matrixMapper->Map(x, y);
 
-                SetPixel(p, image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y), _blendMode);
+                if (bl < size)
+                {
+                    wxByte* p = buffer + bl;
+
+                    if (image.GetRed(x, y) + image.GetGreen(x, y) + image.GetBlue(x, y) > 0)
+                    {
+                        int a = 0;
+                    }
+
+                    SetPixel(p, image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y), _blendMode);
+                }
+                else
+                {
+                    wxASSERT(false);
+                }
             }
         }
     }
