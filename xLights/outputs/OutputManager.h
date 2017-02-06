@@ -65,8 +65,10 @@ public:
 
     #pragma region Channel Mapping
     long GetTotalChannels() const;
-    long GetAbsoluteChannel(int outputNumber, int startChannel = 1) const;
-    long GetAbsoluteChannel(const std::string& ip, int universe, int startChannel = 1) const;
+    
+    //both outputNumber and startChannel are 0 based
+    long GetAbsoluteChannel(int outputNumber, int startChannel) const;
+    long GetAbsoluteChannel(const std::string& ip, int universe, int startChannel) const;
     #pragma endregion Channel Mapping
 
     #pragma region Start and Stop

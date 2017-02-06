@@ -214,7 +214,7 @@ long OutputManager::GetAbsoluteChannel(int outputNumber, int startChannel) const
         ++it;
     }
 
-    return (*it)->GetStartChannel() + startChannel - 1;
+    return (*it)->GetStartChannel() + startChannel;
 }
 
 long OutputManager::GetAbsoluteChannel(const std::string& ip, int universe, int startChannel) const
