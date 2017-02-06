@@ -43,6 +43,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    std::string GetRawName() const { return _name; }
     void SetSpeed(int speed) { if (_speed != speed) { _speed = speed; _changeCount++; } }
     int GetSpeed() const { return _speed; }
     void SetBlendMode(APPLYMETHOD blendMode) { if (_blendMode != blendMode) { _blendMode = blendMode; _changeCount++; } }

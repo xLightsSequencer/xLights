@@ -66,6 +66,7 @@
 //(*InternalHeaders(xScheduleFrame)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "VirtualMatricesDialog.h"
 //*)
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
@@ -129,6 +130,7 @@ const long xScheduleFrame::ID_MNU_MNUADDPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MENUITEM1 = wxNewId();
 const long xScheduleFrame::ID_MNU_BACKGROUND = wxNewId();
 const long xScheduleFrame::ID_MNU_MATRICES = wxNewId();
+const long xScheduleFrame::ID_MNU_VIRTUALMATRICES = wxNewId();
 const long xScheduleFrame::ID_MNU_OPTIONS = wxNewId();
 const long xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
 const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
@@ -281,6 +283,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     __schedule = nullptr;
     _webServer = nullptr;
     _timerOutputFrame = false;
+    _suspendOTL = false;
 
     //(*Initialize(xScheduleFrame)
     wxMenuItem* MenuItem2;
@@ -398,6 +401,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu5->Append(MenuItem_BackgroundPlaylist);
     MenuItem_Matrices = new wxMenuItem(Menu5, ID_MNU_MATRICES, _("&Matrices"), wxEmptyString, wxITEM_NORMAL);
     Menu5->Append(MenuItem_Matrices);
+    MenuItem_VirtualMatrices = new wxMenuItem(Menu5, ID_MNU_VIRTUALMATRICES, _("&Virtual Matrices"), wxEmptyString, wxITEM_NORMAL);
+    Menu5->Append(MenuItem_VirtualMatrices);
     MenuItem_Options = new wxMenuItem(Menu5, ID_MNU_OPTIONS, _("&Options"), wxEmptyString, wxITEM_NORMAL);
     Menu5->Append(MenuItem_Options);
     MenuBar1->Append(Menu5, _("&Edit"));
@@ -465,6 +470,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MENUITEM1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenu_OutputProcessingSelected);
     Connect(ID_MNU_BACKGROUND,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected);
     Connect(ID_MNU_MATRICES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MatricesSelected);
+    Connect(ID_MNU_VIRTUALMATRICES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_VirtualMatricesSelected);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MNU_CHECK_SCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CheckScheduleSelected);
@@ -568,7 +574,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _timer.Start(rate/2, false);
     _timerSchedule.Stop();
     _timerSchedule.Start(500, true);
-    
+
     AddWindowsMenu();
 
     UpdateUI();
@@ -1218,7 +1224,7 @@ void xScheduleFrame::RunAction(wxCommandEvent& event)
     {
         size_t rate;
         std::string msg;
-        __schedule->Action(a[0].ToStdString(), a[1].ToStdString(), nullptr, nullptr, rate, msg);
+        __schedule->Action(a[0].ToStdString(), a[1].ToStdString(), "", nullptr, nullptr, rate, msg);
         if (msg != "")
         {
             SetTempMessage(msg);
@@ -1368,7 +1374,7 @@ void xScheduleFrame::OnListView_RunningItemActivated(wxListEvent& event)
     {
         size_t rate;
         std::string msg;
-        __schedule->Action("Jump to specified step in current playlist", ListView_Running->GetItemText(selected, 0).ToStdString(), p, nullptr, rate, msg);
+        __schedule->Action("Jump to specified step in current playlist", ListView_Running->GetItemText(selected, 0).ToStdString(), "", p, nullptr, rate, msg);
     }
 }
 
@@ -2015,31 +2021,39 @@ void xScheduleFrame::UpdateUI()
 
     Brightness->SetValue(__schedule->GetBrightness());
 
-    if (!__schedule->GetOptions()->IsSendOffWhenNotRunning() && __schedule->GetManualOutputToLights() == -1)
+    if (!_suspendOTL)
     {
-        if (__schedule->GetRunningPlayList() == nullptr)
+        if (!__schedule->GetOptions()->IsSendOffWhenNotRunning() && __schedule->GetManualOutputToLights() == -1)
         {
-            if (__schedule->IsOutputToLights())
-                __schedule->SetOutputToLights(false);
+            if (__schedule->GetRunningPlayList() == nullptr && !__schedule->IsXyzzy())
+            {
+                if (__schedule->IsOutputToLights())
+                    __schedule->SetOutputToLights(false);
+            }
+            else
+            {
+                if (!__schedule->IsOutputToLights())
+                    __schedule->SetOutputToLights(true);
+            }
         }
         else
         {
-            if (!__schedule->IsOutputToLights())
-                __schedule->SetOutputToLights(true);
+            if (__schedule->GetManualOutputToLights() == 0)
+            {
+                if (__schedule->IsOutputToLights())
+                    __schedule->SetOutputToLights(false);
+            }
+            else if (__schedule->GetManualOutputToLights() == 1)
+            {
+                if (!__schedule->IsOutputToLights())
+                    __schedule->SetOutputToLights(true);
+            }
         }
     }
     else
     {
-        if (__schedule->GetManualOutputToLights() == 0)
-        {
-            if (__schedule->IsOutputToLights())
-                __schedule->SetOutputToLights(false);
-        }
-        else if (__schedule->GetManualOutputToLights() == 1)
-        {
-            if (!__schedule->IsOutputToLights())
-                __schedule->SetOutputToLights(true);
-        }
+        if (__schedule->IsOutputToLights())
+            __schedule->SetOutputToLights(false);
     }
 
     ValidateWindow();
@@ -2118,4 +2132,32 @@ void xScheduleFrame::OnMenuItem_ImportxLightsSelected(wxCommandEvent& event)
         UpdateUI();
         ValidateWindow();
     }
+}
+
+void xScheduleFrame::OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event)
+{
+    // suspend output to lights as we may make a change not compatible with outputting to lights
+    bool ol = __schedule->IsOutputToLights();
+    _suspendOTL = true;
+    if (ol)
+    {
+        __schedule->SetOutputToLights(false);
+    }
+
+    auto vmatrices = __schedule->GetOptions()->GetVirtualMatrices();
+    VirtualMatricesDialog dlg(this, vmatrices);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        // it is updated directly
+    }
+
+    _suspendOTL = false;
+    if (ol)
+    {
+        __schedule->SetOutputToLights(true);
+    }
+
+    UpdateUI();
+    ValidateWindow();
 }

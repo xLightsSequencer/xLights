@@ -33,6 +33,7 @@ class PlayListItemTextPanel: public wxPanel
 		wxSpinCtrl* SpinCtrl_X;
 		wxFontPickerCtrl* FontPickerCtrl1;
 		wxChoice* Choice_BlendMode;
+		wxTextCtrl* TextCtrl_Name;
 		wxStaticText* StaticText13;
 		wxStaticText* StaticText2;
 		wxChoice* Choice_Matrices;
@@ -43,6 +44,7 @@ class PlayListItemTextPanel: public wxPanel
 		wxStaticText* StaticText8;
 		wxStaticText* StaticText11;
 		wxTextCtrl* TextCtrl_Text;
+		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Format;
 		wxStaticText* StaticText5;
@@ -57,6 +59,8 @@ class PlayListItemTextPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(PlayListItemTextPanel)
+		static const long ID_STATICTEXT14;
+		static const long ID_TEXTCTRL4;
 		static const long ID_STATICTEXT11;
 		static const long ID_CHOICE5;
 		static const long ID_STATICTEXT2;
@@ -90,6 +94,7 @@ class PlayListItemTextPanel: public wxPanel
 		//(*Handlers(PlayListItemTextPanel)
 		void OnChoice_TypeSelect(wxCommandEvent& event);
 		void OnButton_ColorClick(wxCommandEvent& event);
+		void OnTextCtrl_NameText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

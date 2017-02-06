@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
-	<object class="wxDialog" name="MatrixDialog">
+	<object class="wxDialog" name="VirtualMatrixDialog">
 		<title>Matrix Configuration</title>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
@@ -23,17 +23,17 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-					<label>Strings:</label>
+					<label>Height:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_Strings" member="yes">
+				<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_Height" member="yes">
 					<value>16</value>
 					<min>1</min>
-					<max>500</max>
+					<max>5000</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -41,17 +41,17 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
-					<label>String Length:</label>
+					<label>Width:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_StringLength" member="yes">
-					<value>150</value>
+				<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_Width" member="yes">
+					<value>32</value>
 					<min>1</min>
-					<max>1024</max>
+					<max>5000</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -59,16 +59,43 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
-					<label>Strands Per String:</label>
+					<label>Rotation:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSpinCtrl" name="ID_SPINCTRL3" variable="SpinCtrl_StrandsPerString" member="yes">
-					<value>1</value>
-					<max>64</max>
+				<object class="wxChoice" name="ID_CHOICE1" variable="Choice_Rotation" member="yes">
+					<content>
+						<item>None</item>
+						<item>90 CW</item>
+						<item>90 CCW</item>
+					</content>
+					<selection>0</selection>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
+					<label>Scaling Quality:</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE2" variable="Choice_Quality" member="yes">
+					<content>
+						<item>Normal</item>
+						<item>High</item>
+						<item>Bicubic</item>
+						<item>Bilinear</item>
+						<item>Box Average</item>
+					</content>
+					<selection>1</selection>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -91,43 +118,29 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
-					<label>Start Location:</label>
-				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE1" variable="Choice_StartLocation" member="yes">
-					<content>
-						<item>Bottom Left</item>
-						<item>Bottom Right</item>
-						<item>Top Left</item>
-						<item>Top Right</item>
-					</content>
-					<selection>0</selection>
+				<object class="wxButton" name="ID_BUTTON3" variable="Button_Position" member="yes">
+					<label>Position Window</label>
+					<handler function="OnButton_PositionClick" entry="EVT_BUTTON" />
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
-					<label>Orientation:</label>
-				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE2" variable="Choice_Orientation" member="yes">
-					<content>
-						<item>Vertical</item>
-						<item>Horizontal</item>
-					</content>
-					<selection>0</selection>
+				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_Topmost" member="yes">
+					<label>Topmost Window</label>
+					<checked>1</checked>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

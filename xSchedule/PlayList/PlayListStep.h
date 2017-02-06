@@ -4,6 +4,7 @@
 #include <string>
 #include <wx/wx.h>
 
+class PlayListItemText;
 class wxXmlNode;
 class PlayListItem;
 class wxWindow;
@@ -40,6 +41,7 @@ public:
     bool operator==(const PlayListStep& rhs) const { return _id == rhs._id; }
 
 #pragma region Getters and Setters
+    PlayListItemText* GetTextItem(const std::string& name) const;
     wxUint32 GetId() const { return _id; }
     PlayListItem* GetTimeSource(size_t& ms) const;
     std::list<PlayListItem*> GetItems();

@@ -145,10 +145,11 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
         logger_base.info("xScheduleCommand received command = '%s' parameters = '%s'.", (const char *)command.c_str(), (const char *)parameters.c_str());
 
+        std::string data = request.Data().ToStdString();
         size_t rate = 0;
         std::string msg = "";
         HttpResponse response(connection, request, HttpStatus::OK);
-        if (xScheduleFrame::GetScheduleManager()->Action(command, parameters, nullptr, nullptr, rate, msg))
+        if (xScheduleFrame::GetScheduleManager()->Action(command, parameters, data, nullptr, nullptr, rate, msg))
         {
             wxCommandEvent event(EVT_FRAMEMS);
             event.SetInt(rate);
@@ -176,12 +177,13 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         HttpResponse response(connection, request, HttpStatus::OK);
         if (xScheduleFrame::GetScheduleManager()->DoXyzzy(command, parameters, msg))
         {
+            logger_base.info("xyzzy command=%s parameters=%s result='%s'.", (const char *)command.c_str(), (const char*)parameters.c_str(), (const char *)msg.c_str());
             response.MakeFromText(msg, "application/json");
         }
         else
         {
             std::string data = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
-            logger_base.info("    data = '%s'.", (const char *)data.c_str());
+            logger_base.info("xyzzy command=%s parameters=%s result='%s'.", (const char *)command.c_str(), (const char*)parameters.c_str(), (const char *)data.c_str());
             response.MakeFromText(data, "application/json");
         }
         connection.SendResponse(response);

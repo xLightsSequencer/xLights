@@ -7,7 +7,6 @@
 #include "PlayListPanel.h"
 #include "PlayListStepPanel.h"
 #include "PlayListItemVideo.h"
-#include "PlayListItemVirtualMatrix.h"
 #include "PlayListItemAllOff.h"
 #include "PlayListItemRunCommand.h"
 #include "PlayListItemRunProcess.h"
@@ -55,7 +54,6 @@ const long PlayListDialog::ID_SPLITTERWINDOW1 = wxNewId();
 
 const long PlayListDialog::ID_MNU_ADDSTEP = wxNewId();
 const long PlayListDialog::ID_MNU_ADDVIDEO = wxNewId();
-const long PlayListDialog::ID_MNU_ADDVIRTUALMATRIX = wxNewId();
 const long PlayListDialog::ID_MNU_ADDAUDIO = wxNewId();
 const long PlayListDialog::ID_MNU_ADDESEQ = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFSEQ = wxNewId();
@@ -548,7 +546,6 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     mi = mnu.Append(ID_MNU_ADDTEST, "Add Test");
     mi = mnu.Append(ID_MNU_ADDCURL, "Add CURL");
     mi = mnu.Append(ID_MNU_ADDCOMMAND, "Add Command");
-    mi = mnu.Append(ID_MNU_ADDVIRTUALMATRIX, "Add Virtual Matrix");
     mi = mnu.Append(ID_MNU_ADDTEXT, "Add Text");
 
     mi = mnu.Append(ID_MNU_ADDSTEP, "Add Step");
@@ -601,11 +598,6 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_ADDIMAGE)
     {
         PlayListItemImage* pli = new PlayListItemImage();
-        AddItem(_playlist, step, pli);
-    }
-    else if (event.GetId() == ID_MNU_ADDVIRTUALMATRIX)
-    {
-        PlayListItemVirtualMatrix* pli = new PlayListItemVirtualMatrix();
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDALLOFF)

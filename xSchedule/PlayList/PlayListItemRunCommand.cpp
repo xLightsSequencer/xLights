@@ -93,7 +93,7 @@ void PlayListItemRunCommand::Frame(wxByte* buffer, size_t size, size_t ms, size_
 
         size_t rate;
         std::string msg;
-        if (!xScheduleFrame::GetScheduleManager()->Action(_command, parms, nullptr, nullptr, rate, msg))
+        if (!xScheduleFrame::GetScheduleManager()->Action(_command, parms, "", nullptr, nullptr, rate, msg))
         {
             logger_base.info("Command failed: %s.", (const char *)msg.c_str());
         }

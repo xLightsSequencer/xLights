@@ -59,7 +59,7 @@ MatrixDialog::MatrixDialog(wxWindow* parent, std::string& name, std::string& ori
 	FlexGridSizer1->Add(TextCtrl_Name, 1, wxALL|wxEXPAND, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Strings:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_Strings = new wxSpinCtrl(this, ID_SPINCTRL1, _T("16"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 16, _T("ID_SPINCTRL1"));
+	SpinCtrl_Strings = new wxSpinCtrl(this, ID_SPINCTRL1, _T("16"), wxDefaultPosition, wxDefaultSize, 0, 1, 500, 16, _T("ID_SPINCTRL1"));
 	SpinCtrl_Strings->SetValue(_T("16"));
 	FlexGridSizer1->Add(SpinCtrl_Strings, 1, wxALL|wxEXPAND, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("String Length:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));

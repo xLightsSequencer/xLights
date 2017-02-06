@@ -21,9 +21,13 @@ class Command
 	bool _requiresPlayingSchedule;
     bool _worksInSlaveMode;
     bool _worksInQueuedMode;
+    bool _userSelectable;
+    bool _uiOnly;
 	std::vector<PARMTYPE> _parmtype;
-	Command(const std::string& name, int parms, const PARMTYPE *parmtypes, bool reqSelPL, bool reqSelSch, bool reqPlayPL, bool reqPlaySch, bool worksInSlaveMode, bool worksInQueuedMode);
+	Command(const std::string& name, int parms, const PARMTYPE *parmtypes, bool reqSelPL, bool reqSelSch, bool reqPlayPL, bool reqPlaySch, bool worksInSlaveMode, bool worksInQueuedMode, bool userSelectable, bool uiOnly);
     bool IsValid(std::string parms, PlayList* selectedPlayList, Schedule* selectedSchedule, ScheduleManager* scheduleManager, std::string& msg, bool queueMode);
+    bool IsUserSelectable() const { return _userSelectable; }
+    bool IsUIOnly() const { return _uiOnly; }
 };
 
 class CommandManager

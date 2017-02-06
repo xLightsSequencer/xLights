@@ -902,3 +902,10 @@ void PlayList::RemoveEmptySteps()
         _steps.remove(*it);
     }
 }
+
+PlayListItemText* PlayList::GetRunningText(const std::string& name) const
+{
+    if (_currentStep == nullptr) return nullptr;
+
+    return _currentStep->GetTextItem(name);
+}

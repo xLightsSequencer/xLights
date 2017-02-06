@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Networks computer="DESKTOP-RQ932DH">
-  <network NetworkType="NULL" MaxChannels="18000" Description=""/>
+  <network NetworkType="NULL" MaxChannels="300000" Description=""/>
 </Networks>

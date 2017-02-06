@@ -5,7 +5,9 @@
 #include <map>
 #include <vector>
 #include "MatrixMapper.h"
+#include "VirtualMatrix.h"
 
+class CommandManager;
 class wxXmlNode;
 class UserButton;
 
@@ -25,6 +27,7 @@ class ScheduleOptions
     std::map<std::string, std::string> _projectorPasswords;
     std::vector<UserButton*> _buttons;
     std::list<MatrixMapper*> _matrices;
+    std::list<VirtualMatrix*> _virtualMatrices;
 
     public:
 
@@ -38,6 +41,7 @@ class ScheduleOptions
         bool IsSync() const { return _sync; }
         bool IsAdvancedMode() const { return _advancedMode; }
         std::list<MatrixMapper*>* GetMatrices() { return &_matrices; }
+        std::list<VirtualMatrix*>* GetVirtualMatrices() { return &_virtualMatrices; }
         void SetAdvancedMode(bool advancedMode) { if (_advancedMode != advancedMode) { _advancedMode = advancedMode; _changeCount++; } }
         void SetSync(bool sync) { if (_sync != sync) { _sync = sync; _changeCount++; } }
         void SetSendOffWhenNotRunning(bool send) { if (_sendOffWhenNotRunning != send) { _sendOffWhenNotRunning = send; _changeCount++; } }
@@ -50,7 +54,7 @@ class ScheduleOptions
         void ClearButtons();
         void SetProjectorIPAddress(const std::string& projector, const std::string& ip);
         void SetProjectorPassword(const std::string& projector, const std::string& ip);
-        std::string GetButtonsJSON() const;
+        std::string GetButtonsJSON(const CommandManager &cmdMgr) const;
         int GetWebServerPort() const { return _port; }
         void SetWebServerPort(int port) { if (_port != port) { _port = port; _changeCount++; } }
         std::string GetWWWRoot() const { return _wwwRoot; }

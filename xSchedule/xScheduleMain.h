@@ -52,6 +52,7 @@ class xScheduleFrame : public wxFrame
     std::string _showDir;
     wxDateTime _statusSetAt;
     bool _timerOutputFrame;
+    bool _suspendOTL;
 
     void LoadShowDir();
     void SaveShowDir() const;
@@ -146,6 +147,7 @@ public:
         void OnButton_ScheduleClick(wxCommandEvent& event);
         void OnMenuItem_ImportxLightsSelected(wxCommandEvent& event);
         void OnMenuItem_MatricesSelected(wxCommandEvent& event);
+        void OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -190,6 +192,7 @@ public:
         static const long ID_MENUITEM1;
         static const long ID_MNU_BACKGROUND;
         static const long ID_MNU_MATRICES;
+        static const long ID_MNU_VIRTUALMATRICES;
         static const long ID_MNU_OPTIONS;
         static const long ID_MNU_VIEW_LOG;
         static const long ID_MNU_CHECK_SCHEDULE;
@@ -256,6 +259,7 @@ public:
         wxSplitterWindow* SplitterWindow1;
         wxMenuItem* MenuItem_WebInterface;
         wxMenuItem* MenuItem_ImportxLights;
+        wxMenuItem* MenuItem_VirtualMatrices;
         wxMenuItem* MenuItem_Options;
         BrightnessControl* Brightness;
         wxMenuItem* Menu_OutputProcessing;

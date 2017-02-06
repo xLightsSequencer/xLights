@@ -387,10 +387,6 @@
 		<Unit filename="PlayList/PlayListItemVideo.h" />
 		<Unit filename="PlayList/PlayListItemVideoPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemVideoPanel.h" />
-		<Unit filename="PlayList/PlayListItemVirtualMatrix.cpp" />
-		<Unit filename="PlayList/PlayListItemVirtualMatrix.h" />
-		<Unit filename="PlayList/PlayListItemVirtualMatrixPanel.cpp" />
-		<Unit filename="PlayList/PlayListItemVirtualMatrixPanel.h" />
 		<Unit filename="PlayList/PlayListPanel.cpp" />
 		<Unit filename="PlayList/PlayListPanel.h" />
 		<Unit filename="PlayList/PlayListSimpleDialog.cpp" />
@@ -421,6 +417,12 @@
 		<Unit filename="SetDialog.h" />
 		<Unit filename="UserButton.cpp" />
 		<Unit filename="UserButton.h" />
+		<Unit filename="VirtualMatricesDialog.cpp" />
+		<Unit filename="VirtualMatricesDialog.h" />
+		<Unit filename="VirtualMatrix.cpp" />
+		<Unit filename="VirtualMatrix.h" />
+		<Unit filename="VirtualMatrixDialog.cpp" />
+		<Unit filename="VirtualMatrixDialog.h" />
 		<Unit filename="WebServer.cpp" />
 		<Unit filename="WebServer.h" />
 		<Unit filename="Xyzzy.cpp" />
@@ -471,7 +473,6 @@
 		<Unit filename="wxsmith/PlayListItemTestPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTextPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
-		<Unit filename="wxsmith/PlayListItemVirtualMatrixPanel.wxs" />
 		<Unit filename="wxsmith/PlayListPanel.wxs" />
 		<Unit filename="wxsmith/PlayListSimpleDialog.wxs" />
 		<Unit filename="wxsmith/PlayListStepPanel.wxs" />
@@ -480,6 +481,8 @@
 		<Unit filename="wxsmith/ScheduleDialog.wxs" />
 		<Unit filename="wxsmith/SetDialog.wxs" />
 		<Unit filename="wxsmith/VideoWindowPositionDialog.wxs" />
+		<Unit filename="wxsmith/VirtualMatricesDialog1.wxs" />
+		<Unit filename="wxsmith/VirtualMatrixDialog.wxs" />
 		<Unit filename="wxsmith/xScheduleframe.wxs" />
 		<Unit filename="xScheduleApp.cpp" />
 		<Unit filename="xScheduleApp.h" />
@@ -508,7 +511,6 @@
 					<wxPanel wxs="wxsmith/PlayListItemFSEQVideoPanel.wxs" src="PlayList/PlayListItemFSEQVideoPanel.cpp" hdr="PlayList/PlayListItemFSEQVideoPanel.h" fwddecl="0" i18n="1" name="PlayListItemFSEQVideoPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemAudioPanel.wxs" src="PlayList/PlayListItemAudioPanel.cpp" hdr="PlayList/PlayListItemAudioPanel.h" fwddecl="0" i18n="1" name="PlayListItemAudioPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemVideoPanel.wxs" src="PlayList/PlayListItemVideoPanel.cpp" hdr="PlayList/PlayListItemVideoPanel.h" fwddecl="0" i18n="1" name="PlayListItemVideoPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/PlayListItemVirtualMatrixPanel.wxs" src="PlayList/PlayListItemVirtualMatrixPanel.cpp" hdr="PlayList/PlayListItemVirtualMatrixPanel.h" fwddecl="0" i18n="1" name="PlayListItemVirtualMatrixPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListPanel.wxs" src="PlayList/PlayListPanel.cpp" hdr="PlayList/PlayListPanel.h" fwddecl="0" i18n="1" name="PlayListPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListStepPanel.wxs" src="PlayList/PlayListStepPanel.cpp" hdr="PlayList/PlayListStepPanel.h" fwddecl="0" i18n="1" name="PlayListStepPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/VideoWindowPositionDialog.wxs" src="PlayList/VideoWindowPositionDialog.cpp" hdr="PlayList/VideoWindowPositionDialog.h" fwddecl="0" i18n="1" name="VideoWindowPositionDialog" language="CPP" />
@@ -527,6 +529,8 @@
 					<wxDialog wxs="wxsmith/AddReverseDialog.wxs" src="AddReverseDialog.cpp" hdr="AddReverseDialog.h" fwddecl="0" i18n="1" name="AddReverseDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MatrixDialog.wxs" src="MatrixDialog.cpp" hdr="MatrixDialog.h" fwddecl="0" i18n="1" name="MatrixDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MatricesDialog1.wxs" src="MatricesDialog.cpp" hdr="MatricesDialog.h" fwddecl="0" i18n="1" name="MatricesDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/VirtualMatrixDialog.wxs" src="VirtualMatrixDialog.cpp" hdr="VirtualMatrixDialog.h" fwddecl="0" i18n="1" name="VirtualMatrixDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/VirtualMatricesDialog1.wxs" src="VirtualMatricesDialog.cpp" hdr="VirtualMatricesDialog.h" fwddecl="0" i18n="1" name="VirtualMatricesDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemTextPanel.wxs" src="PlayList/PlayListItemTextPanel.cpp" hdr="PlayList/PlayListItemTextPanel.h" fwddecl="0" i18n="1" name="PlayListItemTextPanel" language="CPP" />
 				</resources>
 			</wxsmith>

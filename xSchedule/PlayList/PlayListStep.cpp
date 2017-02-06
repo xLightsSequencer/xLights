@@ -3,7 +3,6 @@
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
 #include "PlayListItemVideo.h"
-#include "PlayListItemVirtualMatrix.h"
 #include "PlayListItemImage.h"
 #include "PlayListItemESEQ.h"
 #include "PlayListItemFSEQ.h"
@@ -138,10 +137,6 @@ void PlayListStep::Load(wxXmlNode* node)
         {
             _items.push_back(new PlayListItemFSEQVideo(n));
         }
-        else if (n->GetName() == "PLIVirtualMatrix")
-        {
-            _items.push_back(new PlayListItemVirtualMatrix(n));
-        }
         else if (n->GetName() == "PLITest")
         {
             _items.push_back(new PlayListItemTest(n));
@@ -181,6 +176,10 @@ void PlayListStep::Load(wxXmlNode* node)
         else if (n->GetName() == "PLICommand")
         {
             _items.push_back(new PlayListItemRunCommand(n));
+        }
+        else if (n->GetName() == "PLIVirtualMatrix")
+        {
+            // ignore this node ... these are not supported here any more.
         }
         else
         {
@@ -544,4 +543,17 @@ bool PlayListStep::IsSimple() const
     }
 
     return false;
+}
+
+PlayListItemText* PlayListStep::GetTextItem(const std::string& name) const
+{
+    for (auto it = _items.begin(); it != _items.end(); ++it)
+    {
+        if ((*it)->GetTitle() == "Text" && wxString((*it)->GetNameNoTime()).Lower() == wxString(name).Lower())
+        {
+            return (PlayListItemText*)*it;
+        }
+    }
+
+    return nullptr;
 }

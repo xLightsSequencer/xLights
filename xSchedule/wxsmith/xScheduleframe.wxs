@@ -296,6 +296,10 @@
 					<label>&amp;Matrices</label>
 					<handler function="OnMenuItem_MatricesSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_VIRTUALMATRICES" variable="MenuItem_VirtualMatrices" member="yes">
+					<label>&amp;Virtual Matrices</label>
+					<handler function="OnMenuItem_VirtualMatricesSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_OPTIONS" variable="MenuItem_Options" member="yes">
 					<label>&amp;Options</label>
 					<handler function="OnMenuItem_OptionsSelected" entry="EVT_MENU" />

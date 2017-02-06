@@ -12,8 +12,11 @@
 #include "../ScheduleOptions.h"
 #include "../ScheduleManager.h"
 #include "../MatrixMapper.h"
+#include "PlayListDialog.h"
 
 //(*IdInit(PlayListItemTextPanel)
+const long PlayListItemTextPanel::ID_STATICTEXT14 = wxNewId();
+const long PlayListItemTextPanel::ID_TEXTCTRL4 = wxNewId();
 const long PlayListItemTextPanel::ID_STATICTEXT11 = wxNewId();
 const long PlayListItemTextPanel::ID_CHOICE5 = wxNewId();
 const long PlayListItemTextPanel::ID_STATICTEXT2 = wxNewId();
@@ -71,6 +74,10 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT14, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT14"));
+	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Name = new wxTextCtrl(this, ID_TEXTCTRL4, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL4"));
+	FlexGridSizer1->Add(TextCtrl_Name, 1, wxALL|wxEXPAND, 5);
 	StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("Matrix:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
 	FlexGridSizer1->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Matrices = new wxChoice(this, ID_CHOICE5, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE5"));
@@ -123,7 +130,7 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
 	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("Blend Mode:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
 	FlexGridSizer1->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_BlendMode = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
-	FlexGridSizer1->Add(Choice_BlendMode, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(Choice_BlendMode, 1, wxALL|wxEXPAND, 5);
 	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("X Position:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
 	FlexGridSizer1->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_X = new wxSpinCtrl(this, ID_SPINCTRL2, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -1000, 1000, 0, _T("ID_SPINCTRL2"));
@@ -138,6 +145,7 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
 	FlexGridSizer1->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Duration = new wxTextCtrl(this, ID_TEXTCTRL3, _("0.050"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer1->Add(TextCtrl_Duration, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -160,6 +168,7 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
     }
     if (Choice_Matrices->GetCount() > 0) Choice_Matrices->SetSelection(0);
 
+    TextCtrl_Name->SetValue(text->GetRawName());
     TextCtrl_Text->SetValue(text->GetText());
     TextCtrl_Format->SetValue(text->GetFormat());
     SpinCtrl_Speed->SetValue(text->GetSpeed());
@@ -195,6 +204,7 @@ PlayListItemTextPanel::~PlayListItemTextPanel()
     _text->SetMatrix(Choice_Matrices->GetStringSelection().ToStdString());
     _text->SetX(SpinCtrl_X->GetValue());
     _text->SetY(SpinCtrl_Y->GetValue());
+    _text->SetName(TextCtrl_Name->GetValue().ToStdString());
 }
 
 void PlayListItemTextPanel::OnChoice_TypeSelect(wxCommandEvent& event)
@@ -226,4 +236,10 @@ void PlayListItemTextPanel::ValidateWindow()
     {
         StaticText_Text->SetLabel("To Date/Time");
     }
+}
+
+void PlayListItemTextPanel::OnTextCtrl_NameText(wxCommandEvent& event)
+{
+    _text->SetName(TextCtrl_Name->GetValue().ToStdString());
+    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
 }

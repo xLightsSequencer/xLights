@@ -4,7 +4,7 @@
 #include "PlayList/PlayList.h"
 #include "Schedule.h"
 
-Command::Command(const std::string& name, int parms, const PARMTYPE* parmtypes, bool reqSelPL, bool reqSelSch, bool reqPlayPL, bool reqPlaySch, bool worksinslavemode, bool worksInQueuedMode)
+Command::Command(const std::string& name, int parms, const PARMTYPE* parmtypes, bool reqSelPL, bool reqSelSch, bool reqPlayPL, bool reqPlaySch, bool worksinslavemode, bool worksInQueuedMode, bool userSelectable, bool uiOnly)
 {
     _command = name;
     _parms = parms;
@@ -18,6 +18,8 @@ Command::Command(const std::string& name, int parms, const PARMTYPE* parmtypes, 
     _requiresPlayingSchedule = reqPlaySch;
     _worksInSlaveMode = worksinslavemode;
     _worksInQueuedMode = worksInQueuedMode;
+    _userSelectable = userSelectable;
+    _uiOnly = uiOnly;
 }
 
 bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* selectedSchedule, ScheduleManager* scheduleManager, std::string& msg, bool queuedMode)
@@ -146,54 +148,58 @@ CommandManager::CommandManager()
     PARMTYPE plsti[] = { PARMTYPE::PLAYLIST, PARMTYPE::STEP, PARMTYPE::INTEGER };
     PARMTYPE i[] = { PARMTYPE::INTEGER };
     PARMTYPE s[] = { PARMTYPE::STRING };
+    PARMTYPE ss[] = { PARMTYPE::STRING, PARMTYPE::STRING };
+    PARMTYPE sss[] = { PARMTYPE::STRING, PARMTYPE::STRING, PARMTYPE::STRING };
     PARMTYPE sch[] = { PARMTYPE::SCHEDULE };
     PARMTYPE c[] = { PARMTYPE::COMMAND };
 
-    _commands.push_back(new Command("Stop all now", 0, {}, false, false, true, false, false, true));
-    _commands.push_back(new Command("Stop", 0,{}, false, false, true, false, false, false));
-    _commands.push_back(new Command("Play selected playlist", 0, {}, true, false, false, false, false, true));
-    _commands.push_back(new Command("Play selected playlist looped", 0, {}, true, false, false, false, false, true));
-    _commands.push_back(new Command("Play specified playlist", 1, pl, false, false, false, false, false, true));
-    _commands.push_back(new Command("Play specified playlist looped", 1, pl, false, false, false, false, false, true));
-    _commands.push_back(new Command("Stop specified playlist", 1, pl, false, false, true, false, false, false));
-    _commands.push_back(new Command("Stop specified playlist at end of current step", 1, pl, false, false, true, false, false, false));
-    _commands.push_back(new Command("Stop specified playlist at end of current loop", 1, pl, false, false, true, false, false, false));
-    _commands.push_back(new Command("Stop playlist at end of current step", 0, {}, false, false, true, false, false, false));
-    _commands.push_back(new Command("Stop playlist at end of current loop", 0 ,{}, false, false, true, false, false, false));
-    _commands.push_back(new Command("Jump to play once at end at end of current step and then stop", 0, {}, false, false, true, false, false, false));
-    _commands.push_back(new Command("Pause", 0, {}, false, false, true, false, false, true));
-    _commands.push_back(new Command("Next step in current playlist", 0, {}, false, false, true, false, false, true));
-    _commands.push_back(new Command("Restart step in current playlist", 0, {}, false, false, true, false, false, true));
-    _commands.push_back(new Command("Prior step in current playlist", 0, {}, false, false, true, false, false, false));
-    _commands.push_back(new Command("Jump to random step in current playlist", 0, {}, false, false, true, false, false, false));
-    _commands.push_back(new Command("Jump to random step in specified playlist", 1, pl, false, false, false, false, false, false));
-    _commands.push_back(new Command("Jump to specified step in current playlist", 1, st, false, false, true, false, false, false));
-    _commands.push_back(new Command("Jump to specified step in current playlist at the end of current step", 1, st, false, false, true, false, false, false));
-    _commands.push_back(new Command("Play playlist starting at step", 2, plst, false, false, false, false, false, true));
-    _commands.push_back(new Command("Play playlist step", 2, plst, false, false, false, false, false, true));
-    _commands.push_back(new Command("Play playlist starting at step looped", 2, plst, false, false, false, false, false, true));
-    _commands.push_back(new Command("Toggle loop current step", 0, {}, false, false, true, false, false, false));
-    _commands.push_back(new Command("Play specified step in specified playlist looped", 2, plst, false, false, false, false, false, true));
-    _commands.push_back(new Command("Add to the current schedule n minutes", 1, i, false, false, true, true, false, true));
-    _commands.push_back(new Command("Set volume to", 1, i, false, false, false, false, true, true));
-    _commands.push_back(new Command("Adjust volume by", 1, i, false, false, false, false, true, true));
-    _commands.push_back(new Command("Save schedule", 0, {}, false, false, false, false, true, true));
-    _commands.push_back(new Command("Toggle output to lights", 0, {}, false, false, false, false, true, true));
-    _commands.push_back(new Command("Toggle current playlist random", 0, {}, false, false, true, false, false, false));
-    _commands.push_back(new Command("Toggle current playlist loop", 0, {}, false, false, true, false, false, false));
-    _commands.push_back(new Command("Play specified playlist step once only", 2, plst, false, false, false, false, false, true));
-    _commands.push_back(new Command("Play specified playlist n times", 2, pli, false, false, false, false, false, true));
-    _commands.push_back(new Command("Play specified playlist step n times", 3, plsti, false, false, false, false, false, true));
-    _commands.push_back(new Command("Increase brightness by n%", 1, i, false, false, false, false, true, true));
-    _commands.push_back(new Command("Set brightness to n%", 1, i, false, false, false, false, true, true));
-    _commands.push_back(new Command("PressButton", 1, s, false, false, false, false, true, true));
-    _commands.push_back(new Command("Restart selected schedule", 0, {}, false, true, false, true, false, true));
-    _commands.push_back(new Command("Restart named schedule", 1, sch, false, false, false, true, false, true));
-    _commands.push_back(new Command("Toggle mute", 0, {}, false, false, false, false, true, true));
-    _commands.push_back(new Command("Enqueue playlist step", 2, plst, false, false, false, false, false, true));
-    _commands.push_back(new Command("Clear playlist queue", 0, {}, false, false, true, false, false, true));
-    _commands.push_back(new Command("Refresh current playlist", 0, {}, false, false, true, false, false, false)); // this is called to load a changed playlist that is currently playing
-    _commands.push_back(new Command("Run command at end of current step", -1, {}, false, false, true, false, false, true)); // this is called to run a command but only at the end of the current step
-    _commands.push_back(new Command("Bring to foreground", 0, {}, false, false, false, false, true, true)); // this is useful from the web UI to force the scheduler into the foreground on the PC
+    _commands.push_back(new Command("Stop all now", 0, {}, false, false, true, false, false, true, true, false));
+    _commands.push_back(new Command("Stop", 0,{}, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Play selected playlist", 0, {}, true, false, false, false, false, true, true, true));
+    _commands.push_back(new Command("Play selected playlist looped", 0, {}, true, false, false, false, false, true, true, true));
+    _commands.push_back(new Command("Play specified playlist", 1, pl, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Play specified playlist looped", 1, pl, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Stop specified playlist", 1, pl, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Stop specified playlist at end of current step", 1, pl, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Stop specified playlist at end of current loop", 1, pl, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Stop playlist at end of current step", 0, {}, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Stop playlist at end of current loop", 0 ,{}, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Jump to play once at end at end of current step and then stop", 0, {}, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Pause", 0, {}, false, false, true, false, false, true, true, false));
+    _commands.push_back(new Command("Next step in current playlist", 0, {}, false, false, true, false, false, true, true, false));
+    _commands.push_back(new Command("Restart step in current playlist", 0, {}, false, false, true, false, false, true, true, false));
+    _commands.push_back(new Command("Prior step in current playlist", 0, {}, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Jump to random step in current playlist", 0, {}, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Jump to random step in specified playlist", 1, pl, false, false, false, false, false, false, true, false));
+    _commands.push_back(new Command("Jump to specified step in current playlist", 1, st, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Jump to specified step in current playlist at the end of current step", 1, st, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Play playlist starting at step", 2, plst, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Play playlist step", 2, plst, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Play playlist starting at step looped", 2, plst, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Toggle loop current step", 0, {}, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Play specified step in specified playlist looped", 2, plst, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Add to the current schedule n minutes", 1, i, false, false, true, true, false, true, true, false));
+    _commands.push_back(new Command("Set volume to", 1, i, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Adjust volume by", 1, i, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Save schedule", 0, {}, false, false, false, false, true, true, true, true));
+    _commands.push_back(new Command("Toggle output to lights", 0, {}, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Toggle current playlist random", 0, {}, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Toggle current playlist loop", 0, {}, false, false, true, false, false, false, true, false));
+    _commands.push_back(new Command("Play specified playlist step once only", 2, plst, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Play specified playlist n times", 2, pli, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Play specified playlist step n times", 3, plsti, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Increase brightness by n%", 1, i, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Set brightness to n%", 1, i, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("PressButton", 1, s, false, false, false, false, true, true, false, true));
+    _commands.push_back(new Command("Restart selected schedule", 0, {}, false, true, false, true, false, true, true, true));
+    _commands.push_back(new Command("Restart named schedule", 1, sch, false, false, false, true, false, true, true, false));
+    _commands.push_back(new Command("Toggle mute", 0, {}, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Enqueue playlist step", 2, plst, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Clear playlist queue", 0, {}, false, false, true, false, false, true, true, false));
+    _commands.push_back(new Command("Refresh current playlist", 0, {}, false, false, true, false, false, false, true, false)); // this is called to load a changed playlist that is currently playing
+    _commands.push_back(new Command("Run command at end of current step", -1, {}, false, false, true, false, false, true, true, false)); // this is called to run a command but only at the end of the current step
+    _commands.push_back(new Command("Bring to foreground", 0, {}, false, false, false, false, true, true, false, false)); // this is useful from the web UI to force the scheduler into the foreground on the PC
+    _commands.push_back(new Command("Set current text", 3, sss, false, false, true, false, true, true, false, true)); // <text name>,<text>, <properties>
+    _commands.push_back(new Command("Set pixels", 3, sss, false, false, true, false, true, true, false, true)); // <set channels name>,<base64 encoded data>, <properties>
 }
 

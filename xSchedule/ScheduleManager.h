@@ -5,7 +5,9 @@
 #include <wx/wx.h>
 #include "Schedule.h"
 #include "CommandManager.h"
+#include "FSEQFile.h"
 
+class PlayListItemText;
 class ScheduleOptions;
 class PlayList;
 class OutputManager;
@@ -24,6 +26,21 @@ typedef enum
     ARTNETSLAVE
 } SYNCMODE;
 
+class PixelData
+{
+    size_t _startChannel;
+    size_t _size;
+    std::vector<unsigned char> _data;
+    APPLYMETHOD _blendMode;
+
+public:
+    PixelData(size_t startChannel, const std::string& data, APPLYMETHOD blendMode);
+    virtual ~PixelData();
+    void Set(wxByte* buffer, size_t size);
+    void SetData(const std::string& data, APPLYMETHOD blendMode);
+    size_t GetStartChannel() const { return _startChannel; }
+};
+
 class ScheduleManager
 {
     SYNCMODE _mode;
@@ -38,6 +55,7 @@ class ScheduleManager
     wxUint32 _startTime;
     PlayList* _immediatePlay;
     PlayList* _backgroundPlayList;
+    std::list<PixelData*> _overlayData;
     CommandManager _commandManager;
     PlayList* _queuedSongs;
     std::list<RunningSchedule*> _activeSchedules;
@@ -53,8 +71,10 @@ class ScheduleManager
     void SendFPPSync(const std::string& syncItem, size_t msec);
     void OpenFPPSyncSendSocket();
     void CloseFPPSyncSendSocket();
-    //void EnqueueSong(PlayListStep* step);
     void ManageBackground();
+    bool DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties);
+    void StartVirtualMatrices();
+    void StopVirtualMatrices();
 
     public:
 
@@ -79,6 +99,7 @@ class ScheduleManager
         bool IsDirty();
         void ClearDirty();
         size_t GetTotalChannels() const;
+        bool IsXyzzy() const { return _xyzzy != nullptr; }
         ScheduleManager(const std::string& showDir);
         virtual ~ScheduleManager();
         std::string GetStatus() const;
@@ -104,7 +125,7 @@ class ScheduleManager
         void OptionsChanged() {};
         void OutputProcessingChanged() {};
         bool Action(const std::string label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
-        bool Action(const std::string command, const std::string parameters, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
+        bool Action(const std::string command, const std::string parameters, const std::string& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
         bool Query(const std::string command, const std::string parameters, std::string& data, std::string& msg, const std::string& ip);
         PlayList * GetPlayList(const std::string& playlist) const;
         void StopPlayList(PlayList* playlist, bool atendofcurrentstep);

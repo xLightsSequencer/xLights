@@ -88,8 +88,6 @@
     <ClCompile Include="PlayList\PlayListItemTestPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemVideo.cpp" />
     <ClCompile Include="PlayList\PlayListItemVideoPanel.cpp" />
-    <ClCompile Include="PlayList\PlayListItemVirtualMatrix.cpp" />
-    <ClCompile Include="PlayList\PlayListItemVirtualMatrixPanel.cpp" />
     <ClCompile Include="PlayList\PlayListPanel.cpp" />
     <ClCompile Include="PlayList\PlayListSimpleDialog.cpp" />
     <ClCompile Include="PlayList\PlayListStep.cpp" />
@@ -120,6 +118,9 @@
     <ClCompile Include="Xyzzy.cpp" />
     <ClCompile Include="PlayList\PlayListItemTextPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemText.cpp" />
+    <ClCompile Include="VirtualMatrixDialog.cpp" />
+    <ClCompile Include="VirtualMatricesDialog.cpp" />
+    <ClCompile Include="VirtualMatrix.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -196,8 +197,6 @@
     <ClInclude Include="PlayList\PlayListItemTestPanel.h" />
     <ClInclude Include="PlayList\PlayListItemVideo.h" />
     <ClInclude Include="PlayList\PlayListItemVideoPanel.h" />
-    <ClInclude Include="PlayList\PlayListItemVirtualMatrix.h" />
-    <ClInclude Include="PlayList\PlayListItemVirtualMatrixPanel.h" />
     <ClInclude Include="PlayList\PlayListPanel.h" />
     <ClInclude Include="PlayList\PlayListSimpleDialog.h" />
     <ClInclude Include="PlayList\PlayListStep.h" />
@@ -221,6 +220,9 @@
     <ClInclude Include="Xyzzy.h" />
     <ClInclude Include="PlayList\PlayListItemText.h" />
     <ClInclude Include="PlayList\PlayListItemTextPanel.h" />
+    <ClInclude Include="VirtualMatrixDialog.h" />
+    <ClInclude Include="VirtualMatricesDialog.h" />
+    <ClInclude Include="VirtualMatrix.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

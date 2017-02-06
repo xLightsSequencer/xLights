@@ -4,17 +4,19 @@
 #include <wx/wx.h>
 #include <list>
 
+//#define SHOWVIRTUALMATRIX
+
 class MatrixMapper;
 
-#ifdef _DEBUG
-class PlayListItemVirtualMatrix;
+#ifdef SHOWVIRTUALMATRIX
+class VirtualMatrix;
 #endif
 
 #define BOARDWIDTH 10
 #define BOARDHEIGHT 20
 #define PAUSEONCOMPLETEROWTIME 200
-#define STARTSPEED 300
-#define ROWADJUSTSPEED -20
+#define STARTSPEED 800
+#define ROWADJUSTSPEED -30
 #define MAXHARDPIECES 3
 #define DROPBONUSPERROW 10
 #define PIECESCORE 1
@@ -22,7 +24,7 @@ class PlayListItemVirtualMatrix;
 #define ROWSCORE2 250
 #define ROWSCORE3 500
 #define ROWSCORE4 1000
-#define MINDROPSPEED 30
+#define MINDROPSPEED 50
 
 class XyzzyPiece
 {
@@ -126,7 +128,7 @@ public:
 
 class Xyzzy 
 {
-    wxDateTime _lastUpdatedMovement;
+    wxLongLong _lastUpdatedMovement;
     int _highScore;
     int _score;
     std::string _playerName;
@@ -142,14 +144,15 @@ class Xyzzy
     int _bottomBorder;
     MatrixMapper* _matrixMapper;
     bool _gameRunning;
-    wxDateTime _fullTime;
+    wxLongLong _fullTime;
 
-#ifdef _DEBUG
-    PlayListItemVirtualMatrix* _virtualMatrix;
+#ifdef SHOWVIRTUALMATRIX
+    VirtualMatrix* _virtualMatrix;
 #endif
 
     void SaveHighScore();
     std::string GetHighScore() const;
+    std::string GetHighScorePlayer() const { return _highScoreOwner; }
     std::string GetScore() const;
     std::string GetNextPiece() const;
     bool TestMoveLeft() const;
@@ -157,11 +160,11 @@ class Xyzzy
     bool TestMoveDown() const;
     bool TestSpin() const;
     void Drop();
-    void DrawPixel(int x, int y, wxColour c, wxByte* buffer);
+    void DrawPixel(int x, int y, wxColour c, wxByte* buffer, size_t size);
     bool AdvanceGame();
     void MakePiecePermanent();
     std::string GameNotRunningResult();
-    void DrawNode(int x, int y, wxColour c, wxByte* buffer);
+    void DrawNode(int x, int y, wxColour c, wxByte* buffer, size_t size);
     void CheckFullRow();
     void Reset();
 
@@ -173,6 +176,7 @@ public:
         void Initialise(const std::string& parameters, std::string& result);
         void Close(std::string& result);
         bool Action(const std::string& command, const std::string& parameters, std::string& result);
+        bool IsOk() const { return _isOk; }
 };
 
 #endif

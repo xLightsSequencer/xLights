@@ -4,6 +4,7 @@
 #include <map>
 #include <wx/wx.h>
 
+class PlayListItemText;
 class wxXmlNode;
 class PlayListStep;
 class wxWindow;
@@ -118,6 +119,7 @@ public:
     PlayListStep* GetStep(const std::string& step);
     PlayListStep* GetRandomStep();
     bool LoopStep(const std::string step);
+    PlayListItemText* GetRunningText(const std::string& name) const;
     #pragma endregion Getters and Setters
 
     wxXmlNode* Save();

@@ -29,6 +29,7 @@
 #include <wx/stdpaths.h>
 #include "PlayList/PlayListItemVideo.h"
 #include "Xyzzy.h"
+#include "PlayList/PlayListItemText.h"
 
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
@@ -116,6 +117,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
         _outputManager->StartOutput();
         ManageBackground();
         logger_base.info("Started outputting to lights.");
+        StartVirtualMatrices();
     }
 
     // This is out frame data buffer ... it cannot be resized
@@ -126,7 +128,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
 
 void ScheduleManager::AddPlayList(PlayList* playlist)
 {
-    _playLists.push_back(playlist);     
+    _playLists.push_back(playlist);
     _changeCount++;
 }
 
@@ -140,6 +142,7 @@ ScheduleManager::~ScheduleManager()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     CloseFPPSyncSendSocket();
     _outputManager->StopOutput();
+    StopVirtualMatrices();
     ManageBackground();
     logger_base.info("Stopped outputting to lights.");
     if (IsDirty())
@@ -149,6 +152,13 @@ ScheduleManager::~ScheduleManager()
 			Save();
 		}
 	}
+
+    while (_overlayData.size() > 0)
+    {
+        auto todelete = _overlayData.front();
+        _overlayData.remove(todelete);
+        delete todelete;
+    }
 
     if (_xyzzy != nullptr)
     {
@@ -218,9 +228,9 @@ bool ScheduleManager::IsDirty()
 
     res = res || _scheduleOptions->IsDirty();
 
-    for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+    for (auto it2 = _outputProcessing.begin(); it2 != _outputProcessing.end(); ++it2)
     {
-        res = res || (*it)->IsDirty();
+        res = res || (*it2)->IsDirty();
     }
 
     return res;
@@ -344,13 +354,13 @@ void ScheduleManager::Frame(bool outputframe)
     if (running != nullptr || _xyzzy != nullptr)
     {
         long msec = wxGetUTCTimeMillis().GetLo() - _startTime;
-        
+
         if (outputframe)
         {
             memset(_buffer, 0x00, _outputManager->GetTotalChannels()); // clear out any prior frame data
             _outputManager->StartFrame(msec);
         }
- 
+
         bool done = false;
         if (running != nullptr)
         {
@@ -373,12 +383,24 @@ void ScheduleManager::Frame(bool outputframe)
 
         if (outputframe)
         {
+            // apply any overlay data
+            for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
+            {
+                (*it)->Set(_buffer, _outputManager->GetTotalChannels());
+            }
+
             // apply any output processing
             for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
             {
                 (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
             }
 
+            auto vm = GetOptions()->GetVirtualMatrices();
+            for (auto it = vm->begin(); it != vm->end(); ++it)
+            {
+                (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
+            }
+            
             _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
             _outputManager->EndFrame();
         }
@@ -696,7 +718,7 @@ bool ScheduleManager::IsQueuedPlaylistRunning() const
 }
 
 // localhost/xScheduleCommand?Command=<command>&Parameters=<comma separated parameters>
-bool ScheduleManager::Action(const std::string command, const std::string parameters, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg)
+bool ScheduleManager::Action(const std::string command, const std::string parameters, const std::string& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg)
 {
     bool result = true;
 
@@ -1164,7 +1186,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                     if (c != "")
                     {
-                        result = Action(c, p, selplaylist, selschedule, rate, msg);
+                        result = Action(c, p, "", selplaylist, selschedule, rate, msg);
                     }
                 }
                 else
@@ -1288,6 +1310,101 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 ((wxFrame*)wxGetApp().GetTopWindow())->Iconize(false);
                 wxGetApp().GetTopWindow()->Raise();
             }
+            else if (command == "Set current text")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string textname = split[0].ToStdString();
+                PlayListItemText* pliText = nullptr;
+                PlayList* p = GetRunningPlayList();
+                if (p != nullptr)
+                {
+                    pliText = p->GetRunningText(textname);
+                }
+                if (pliText == nullptr && _backgroundPlayList != nullptr)
+                {
+                    pliText = _backgroundPlayList->GetRunningText(textname);
+                }
+
+                if (pliText != nullptr)
+                {
+                    std::string text = "";
+                    if (split.size() > 1)
+                    {
+                        text = split[1];
+                    }
+
+                    std::string properties = "";
+                    if (split.size() > 2)
+                    {
+                        properties = split[2];
+                    }
+
+                    DoText(pliText, text, properties);
+                }
+                else
+                {
+                    result = false;
+                    msg = "Text not found to set ... it may not be running.";
+                }
+            }
+            else if (command == "Set pixels")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                size_t sc = wxAtol(split[0]);
+
+                APPLYMETHOD blendMode = APPLYMETHOD::METHOD_OVERWRITE;
+                if (split.size() > 1)
+                {
+                    if (split[1].Lower() == "average")
+                    {
+                        blendMode = APPLYMETHOD::METHOD_AVERAGE;
+                    }
+                    else if (split[1].Lower() == "mask")
+                    {
+                        blendMode = APPLYMETHOD::METHOD_MASK;
+                    }
+                    else if (split[1].Lower() == "max")
+                    {
+                        blendMode = APPLYMETHOD::METHOD_MAX;
+                    }
+                    else if (split[1].Lower() == "overwriteifblack")
+                    {
+                        blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
+                    }
+                    else if (split[1].Lower() == "unmask")
+                    {
+                        blendMode = APPLYMETHOD::METHOD_UNMASK;
+                    }
+                }
+
+                PixelData * p = nullptr;
+                for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
+                {
+                    if ((*it)->GetStartChannel() == sc)
+                    {
+                        p = *it;
+                        if (data.length() == 0)
+                        {
+                            _overlayData.remove(p);
+                        }
+                        else
+                        {
+                            p->SetData(data, blendMode);
+                        }
+                        break;
+                    }
+                }
+
+                if (p == nullptr)
+                {
+                    p = new PixelData(sc, data, blendMode);
+                    _overlayData.push_back(p);
+                }
+            }
             else if (command == "Play specified playlist step n times")
             {
                 wxString parameter = parameters;
@@ -1310,7 +1427,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
         }
     }
- 
+
     if (!result)
     {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1347,7 +1464,7 @@ bool ScheduleManager::Action(const std::string label, PlayList* selplaylist, Sch
         std::string command = b->GetCommand();
         std::string parameters = b->GetParameters();
 
-        return Action(command, parameters, selplaylist, selschedule, rate, msg);
+        return Action(command, parameters, "", selplaylist, selschedule, rate, msg);
     }
     else
     {
@@ -1409,8 +1526,8 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
             {
                 data += ",";
             }
-            data += "{\"name\":\"" + (*it)->GetNameNoTime() + 
-                    "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() + 
+            data += "{\"name\":\"" + (*it)->GetNameNoTime() +
+                    "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() +
                     "\",\"length\":\""+ FormatTime((*it)->GetLengthMS()) +"\"}";
         }
         data += "]}";
@@ -1429,8 +1546,8 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 {
                     data += ",";
                 }
-                data += "{\"name\":\"" + (*it)->GetNameNoTime() + 
-                        "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() + 
+                data += "{\"name\":\"" + (*it)->GetNameNoTime() +
+                        "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() +
                         "\",\"length\":\""+FormatTime((*it)->GetLengthMS())+"\"}";
             }
             data += "]}";
@@ -1452,7 +1569,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
             {
                 data += ",";
             }
-            data += "\"name\":\"" + (*it)->GetName() + "\"";
+            data += "\"" + (*it)->GetName() + "\"";
         }
         data += "]}";
     }
@@ -1468,8 +1585,8 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
             {
                 data += ",";
             }
-            data += "{\"name\":\"" + (*it)->GetNameNoTime() + 
-                    "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() + 
+            data += "{\"name\":\"" + (*it)->GetNameNoTime() +
+                    "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() +
                     "\",\"length\":\"" + FormatTime((*it)->GetLengthMS()) + "\"}";
         }
         data += "]}";
@@ -1536,7 +1653,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
         PlayList* p = GetRunningPlayList();
         if (p == nullptr || p->GetRunningStep() == nullptr)
         {
-            data = "{\"status\":\"idle\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + 
+            data = "{\"status\":\"idle\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") +
                 "\",\"volume\":\"" + wxString::Format(wxT("%i"), GetVolume()) +
                 "\",\"ip\":\"" + ip +
                 "\",\"time\":\""+ wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +"\"}";
@@ -1565,7 +1682,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
 
             RunningSchedule* rs = GetRunningSchedule();
 
-            data = "{\"status\":\"" + std::string(p->IsPaused() ? "paused" : "playing") + 
+            data = "{\"status\":\"" + std::string(p->IsPaused() ? "paused" : "playing") +
                 "\",\"playlist\":\"" + p->GetNameNoTime() +
                 "\",\"playlistid\":\"" + wxString::Format(wxT("%i"), p->GetId()).ToStdString() +
                 "\",\"playlistlooping\":\"" + (p->IsLooping() || p->GetLoopsLeft() > 0 ? "true" : "false") +
@@ -1577,7 +1694,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"steploopsleft\":\"" + wxString::Format(wxT("%i"), p->GetRunningStep()->GetLoopsLeft()).ToStdString() +
                 "\",\"length\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS()) +
                 "\",\"position\":\"" + FormatTime(p->GetRunningStep()->GetPosition()) +
-                "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) + 
+                "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) +
                 "\",\"trigger\":\"" + std::string(IsCurrentPlayListScheduled() ? "scheduled": (_immediatePlay != nullptr) ? "manual" : "queued") +
                 "\",\"schedulename\":\"" + std::string((IsCurrentPlayListScheduled() && rs != nullptr) ? rs->GetSchedule()->GetName() : "N/A") +
                 "\",\"scheduleend\":\"" + std::string((IsCurrentPlayListScheduled() && rs != nullptr) ? rs->GetSchedule()->GetNextEndTime() : "N/A") +
@@ -1596,7 +1713,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
     }
     else if (command == "GetButtons")
     {
-        data = _scheduleOptions->GetButtonsJSON();
+        data = _scheduleOptions->GetButtonsJSON(_commandManager);
     }
     else
     {
@@ -1791,6 +1908,7 @@ void ScheduleManager::SetOutputToLights(bool otl)
             if (!IsOutputToLights())
             {
                 _outputManager->StartOutput();
+                StartVirtualMatrices();
                 ManageBackground();
             }
         }
@@ -1799,6 +1917,7 @@ void ScheduleManager::SetOutputToLights(bool otl)
             if (IsOutputToLights())
             {
                 _outputManager->StopOutput();
+                StopVirtualMatrices();
                 ManageBackground();
             }
         }
@@ -1812,11 +1931,13 @@ void ScheduleManager::ManualOutputToLightsClick()
     if (_manualOTL == 1)
     {
         _outputManager->StartOutput();
+        StartVirtualMatrices();
         ManageBackground();
     }
     else if (_manualOTL == 0)
     {
         _outputManager->StopOutput();
+        StopVirtualMatrices();
         ManageBackground();
     }
 }
@@ -1901,7 +2022,7 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec)
 {
     if (_fppSync == nullptr) return;
     if (syncItem == "") return;
-    
+
 #pragma todo
 }
 
@@ -2108,7 +2229,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     {
         auto n1 = n;
         n1++;
-        
+
         while (n1 != _playLists.end())
         {
             if ((*n1)->GetNameNoTime() == (*n)->GetNameNoTime())
@@ -2140,7 +2261,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
         {
             auto s1 = s;
             ++s1;
-            
+
             while (s1 != steps.end())
             {
                 if ((*s1)->GetNameNoTime() == (*s)->GetNameNoTime())
@@ -2221,7 +2342,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     LogAndWrite(f, "Empty steps");
 
     for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
-    { 
+    {
         auto steps = (*n)->GetSteps();
         for (auto s = steps.begin(); s != steps.end(); ++s)
         {
@@ -2293,7 +2414,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
 
             for (auto i = items.begin(); i != items.end(); ++i)
             {
-                if ((*i)->GetTitle() == "Audio" || 
+                if ((*i)->GetTitle() == "Audio" ||
                     ((*i)->GetTitle() == "FSEQ" && ((PlayListItemFSEQ*)(*i))->GetAudioFilename() != "") ||
                     ((*i)->GetTitle() == "FSEQ & Video" && ((PlayListItemFSEQVideo*)(*i))->GetAudioFilename() != "")
                     )
@@ -2626,24 +2747,272 @@ bool ScheduleManager::DoXyzzy(const std::string& command, const std::string& par
     if (_xyzzy == nullptr)
     {
         _xyzzy = new Xyzzy();
+        wxCommandEvent event(EVT_SCHEDULECHANGED);
+        wxPostEvent(wxGetApp().GetTopWindow(), event);
     }
 
     if (command == "initialise")
     {
         _xyzzy->Initialise(parameters, result);
-        //result = "{\"result\":\"ok\",\"message\":\"initialised\",\"highscore\":\""+_xyzzy->GetHighScore()+"\"}";
     }
     else if (command == "close")
     {
         _xyzzy->Close(result);
         delete _xyzzy;
         _xyzzy = nullptr;
-        //result = "{\"result\":\"ok\",\"message\":\"closed\"}";
+        wxCommandEvent event(EVT_SCHEDULECHANGED);
+        wxPostEvent(wxGetApp().GetTopWindow(), event);
     }
     else
     {
         _xyzzy->Action(command, parameters, result);
     }
 
+    if (_xyzzy != nullptr && !_xyzzy->IsOk())
+    {
+        delete _xyzzy;
+        _xyzzy = nullptr;
+    }
+
     return true;
+}
+
+static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static inline bool is_base64(unsigned char c)
+{
+    return (isalnum(c) || (c == '+') || (c == '/'));
+}
+
+//returns number of chars at the end that couldn't be decoded
+static int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data)
+{
+    size_t in_len = encoded_string.size();
+    int i = 0;
+    int j = 0;
+    int in_ = 0;
+    unsigned char char_array_4[4], char_array_3[3];
+
+    while (in_len-- && (encoded_string[in_] != '=') && is_base64(encoded_string[in_]))
+    {
+        char_array_4[i++] = encoded_string[in_];
+        in_++;
+        if (i == 4)
+        {
+            for (i = 0; i <4; i++)
+            {
+                char_array_4[i] = base64_chars.find(char_array_4[i]);
+            }
+
+            char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+            char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+            char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+            for (i = 0; (i < 3); i++)
+            {
+                data.resize(data.size() + 1);
+                data[data.size() - 1] = char_array_3[i];
+            }
+            i = 0;
+        }
+    }
+
+    if (i && encoded_string[in_] == '=')
+    {
+        for (j = i; j <4; j++)
+        {
+            char_array_4[j] = 0;
+        }
+
+        for (j = 0; j <4; j++)
+        {
+            char_array_4[j] = base64_chars.find(char_array_4[j]);
+        }
+
+        char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+        char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+        char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+        for (j = 0; (j < i - 1); j++)
+        {
+            data.resize(data.size() + 1);
+            data[data.size() - 1] = char_array_3[j];
+        }
+    }
+    return i;
+}
+
+PixelData::PixelData(size_t startChannel, const std::string& data, APPLYMETHOD blendMode)
+{
+    _startChannel = startChannel;
+    _blendMode = blendMode;
+    base64_decode(data, _data);
+    _size = _data.size();
+}
+
+PixelData::~PixelData()
+{
+}
+
+void PixelData::Set(wxByte* buffer, size_t size)
+{
+    size_t toset = std::min(_size, size - (_startChannel - 1));
+
+    for (size_t i = 0; i < toset; i++)
+    {
+        wxByte* p = buffer + _startChannel - 1 + i;
+        switch (_blendMode)
+        {
+        case APPLYMETHOD::METHOD_OVERWRITE:
+            *p = _data[i];
+            break;
+        case APPLYMETHOD::METHOD_AVERAGE:
+            *p = ((int)*p + (int)_data[i]) / 2;
+            break;
+        case APPLYMETHOD::METHOD_MASK:
+            if (_data[i] > 0)
+            {
+                *p = 0x00;
+            }
+            break;
+        case APPLYMETHOD::METHOD_UNMASK:
+            if (_data[i] == 0)
+            {
+                *p = 0x00;
+            }
+            break;
+        case APPLYMETHOD::METHOD_MAX:
+            *p = std::max(*p, _data[i]);
+            break;
+        case APPLYMETHOD::METHOD_OVERWRITEIFBLACK:
+            if (*p == 0)
+            {
+                *p = _data[i];
+            }
+            break;
+        }
+    }
+}
+
+void PixelData::SetData(const std::string& data, APPLYMETHOD blendMode)
+{
+    _blendMode = blendMode;
+    base64_decode(data, _data);
+    _size = _data.size();
+}
+
+bool ScheduleManager::DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties)
+{
+    bool valid = true;
+
+    if (pliText == nullptr) return false;
+
+    pliText->SetText(text);
+
+    wxArrayString p = wxSplit(properties, '|');
+
+    for (auto it = p.begin(); it != p.end(); ++it)
+    {
+        wxArrayString pv = wxSplit(*it, '=');
+
+        if (pv.size() == 2)
+        {
+            std::string pvl = pv[0].Lower().ToStdString();
+
+            if (pvl == "color" || pvl == "colour")
+            {
+                wxColour c(pv[1]);
+                pliText->SetColour(c);
+            }
+            else if (pvl == "blendmode")
+            {
+                std::string vl = pv[1].Lower().ToStdString();
+
+                if (vl == "overwrite")
+                {
+                    pliText->SetBlendMode(APPLYMETHOD::METHOD_OVERWRITE);
+                }
+                else if (vl == "max")
+                {
+                    pliText->SetBlendMode(APPLYMETHOD::METHOD_MAX);
+                }
+                else if (vl == "mask")
+                {
+                    pliText->SetBlendMode(APPLYMETHOD::METHOD_MASK);
+                }
+                else if (vl == "unmask")
+                {
+                    pliText->SetBlendMode(APPLYMETHOD::METHOD_UNMASK);
+                }
+                else if (vl == "overwrite black")
+                {
+                    pliText->SetBlendMode(APPLYMETHOD::METHOD_OVERWRITEIFBLACK);
+                }
+                else if (vl == "average")
+                {
+                    pliText->SetBlendMode(APPLYMETHOD::METHOD_AVERAGE);
+                }
+                else
+                {
+                    valid = false;
+                }
+            }
+            else if (pvl == "speed")
+            {
+                pliText->SetSpeed(wxAtoi(pv[1]));
+            }
+            else if (pvl == "orientation")
+            {
+                pliText->SetOrientation(pv[1].ToStdString());
+            }
+            else if (pvl == "movement")
+            {
+                pliText->SetOrientation(pv[1].ToStdString());
+            }
+            else if (pvl == "font")
+            {
+                wxFont font;
+                font.SetNativeFontInfoUserDesc(pv[1]);
+                pliText->SetFont(font);
+            }
+            else if (pvl == "x")
+            {
+                pliText->SetX(wxAtoi(pv[1]));
+            }
+            else if (pvl== "y")
+            {
+                pliText->SetY(wxAtoi(pv[1]));
+            }
+            else
+            {
+                valid = false;
+            }
+        }
+        else
+        {
+            valid = false;
+        }
+    }
+
+    return valid;
+}
+
+void ScheduleManager::StartVirtualMatrices()
+{
+    auto v = GetOptions()->GetVirtualMatrices();
+
+    for (auto it = v->begin(); it != v->end(); ++it)
+    {
+        (*it)->Start();
+    }
+}
+
+void ScheduleManager::StopVirtualMatrices()
+{
+    auto v = GetOptions()->GetVirtualMatrices();
+
+    for (auto it = v->begin(); it != v->end(); ++it)
+    {
+        (*it)->Stop();
+    }
 }

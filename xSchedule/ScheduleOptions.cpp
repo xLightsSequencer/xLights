@@ -3,6 +3,7 @@
 #include <wx/wxcrt.h>
 #include <wx/stdpaths.h>
 #include "UserButton.h"
+#include "CommandManager.h"
 
 ScheduleOptions::ScheduleOptions(wxXmlNode* node)
 {
@@ -35,6 +36,10 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
         else if (n->GetName() == "Matrix")
         {
             _matrices.push_back(new MatrixMapper(n));
+        }
+        else if (n->GetName() == "VMatrix")
+        {
+            _virtualMatrices.push_back(new VirtualMatrix(n));
         }
     }
 }
@@ -125,6 +130,11 @@ wxXmlNode* ScheduleOptions::Save()
         res->AddChild((*it)->Save());
     }
 
+    for (auto it = _virtualMatrices.begin(); it != _virtualMatrices.end(); ++it)
+    {
+        res->AddChild((*it)->Save());
+    }
+
     return res;
 }
 
@@ -203,16 +213,15 @@ void ScheduleOptions::SetProjectorPassword(const std::string& projector, const s
     }
 }
 
-std::string ScheduleOptions::GetButtonsJSON() const
+std::string ScheduleOptions::GetButtonsJSON(const CommandManager &cmdMgr) const
 {
     std::string res;
     bool first = true;
     res = "{\"buttons\":[";
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
     {
-        wxString c((*it)->GetCommand());
-
-        if (!c.Contains("selected") && !c.Contains("Selected"))
+        auto cmd = cmdMgr.GetCommand((*it)->GetCommand());
+        if (!cmd->IsUIOnly())
         {
             if (!first)
             {
@@ -241,6 +250,11 @@ bool ScheduleOptions::IsDirty() const
         res = res || (*it)->IsDirty();
     }
 
+    for (auto it = _virtualMatrices.begin(); it != _virtualMatrices.end(); ++it)
+    {
+        res = res || (*it)->IsDirty();
+    }
+
     return res;
 }
 
@@ -254,6 +268,11 @@ void ScheduleOptions::ClearDirty()
     }
 
     for (auto it = _matrices.begin(); it != _matrices.end(); ++it)
+    {
+        (*it)->ClearDirty();
+    }
+
+    for (auto it = _virtualMatrices.begin(); it != _virtualMatrices.end(); ++it)
     {
         (*it)->ClearDirty();
     }

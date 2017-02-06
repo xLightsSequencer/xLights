@@ -53,6 +53,7 @@ void PlayListItemText::Load(wxXmlNode* node)
 
 PlayListItemText::PlayListItemText() : PlayListItem()
 {
+    _matrixMapper = nullptr;
     _blendMode = APPLYMETHOD::METHOD_OVERWRITE;
     _colour = *wxWHITE;
     _durationMS = 50;
@@ -124,6 +125,10 @@ std::string PlayListItemText::GetTitle() const
 
 std::string PlayListItemText::GetNameNoTime() const
 {
+    if (_name != "")
+    {
+        return _name;
+    }
     if (_format != "")
     {
         return _format;
@@ -193,9 +198,9 @@ std::string PlayListItemText::GetText(size_t ms)
     // countdown to date
     working.Replace("%CDD_MINUS%", minus);
     working.Replace("%CDD_DAYS%", wxString::Format(wxT("%i"), countdown.GetDays()));
-    working.Replace("%CDD_HOURS%", wxString::Format(wxT("%i"), countdown.GetHours()));
-    working.Replace("%CDD_MINS%", wxString::Format(wxT("%i"), countdown.GetMinutes()));
-    working.Replace("%CDD_SECS%", wxString::Format(wxT("%i"), countdown.GetSeconds()));
+    working.Replace("%CDD_HOURS%", wxString::Format(wxT("%i"), countdown.GetHours() % 24));
+    working.Replace("%CDD_MINS%", wxString::Format(wxT("%i"), countdown.GetMinutes() % 60));
+    working.Replace("%CDD_SECS%", wxString::Format(wxT("%i"), countdown.GetSeconds() % 60));
     working.Replace("%CDD_TSECS%", wxString::Format(wxT("%i"), countdown.GetMilliseconds() / 1000));
     working.Replace("%CDD_MS%", wxString::Format(wxT("%i"), countdown.GetMilliseconds() % 1000));
 
@@ -281,18 +286,29 @@ void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
         // draw the text into our DC
         dc.SetTextForeground(_colour);
         dc.SetFont(_font);
-        wxSize size = dc.GetTextExtent(_text);
+        wxSize sz = dc.GetTextExtent(_text);
         if (_orientation == "Normal")
         {
             dc.DrawText(text, loc);
         }
-        else if (_orientation == "Vertical Up")
+        else if (_orientation == "Vertical Up" || _orientation == "Vertical Down")
         {
-#pragma todo
-        }
-        else if (_orientation == "Vertical Down")
-        {
-#pragma todo
+            int yinc = sz.GetHeight() + 2;
+            int y = loc.y;
+            for (auto c = text.begin(); c != text.end(); ++c)
+            {
+                wxSize cSize = dc.GetTextExtent(*c);
+                int xoffset = cSize.GetWidth() / 2;
+                dc.DrawText(wxString(*c), loc.x - xoffset, y);
+                if (_orientation == "Vertical Down")
+                {
+                    y += yinc;
+                }
+                else
+                {
+                    y -= yinc;
+                }
+            }
         }
         else if (_orientation == "Rotate Up 90")
         {
@@ -332,7 +348,7 @@ void PlayListItemText::SetPixel(wxByte* p, wxByte r, wxByte g, wxByte b, APPLYME
         *(p + 2) = ((int)*(p + 2) + (int)b) / 2;
         break;
     case APPLYMETHOD::METHOD_MASK:
-        if (*p > 0 || *(p + 1) > 0 || *(p + 2))
+        if (r > 0 || g > 0 || b > 0)
         {
             *p = 0x00;
             *(p + 1) = 0x00;
@@ -340,7 +356,7 @@ void PlayListItemText::SetPixel(wxByte* p, wxByte r, wxByte g, wxByte b, APPLYME
         }
         break;
     case APPLYMETHOD::METHOD_UNMASK:
-        if (*p == 0 && *(p + 1) == 0 && *(p + 2) == 0)
+        if (r == 0 && g == 0 && b == 0)
         {
             *p = 0x00;
             *(p + 1) = 0x00;
