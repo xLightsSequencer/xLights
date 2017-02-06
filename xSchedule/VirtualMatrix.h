@@ -41,6 +41,7 @@ public:
         void Start();
         void Stop();
         size_t GetStartChannel() const { return _startChannel; }
+        size_t GetChannels() const { return _width * _height * 3; }
         void SetStartChannel(const size_t startChannel) { if (startChannel != _startChannel) { _startChannel = startChannel; _changeCount++; } }
         std::string GetName() const { return _name; }
         void SetName(const std::string& name) { if (name != _name) { _name = name; _changeCount++; } }

@@ -7,7 +7,7 @@
     <Button Label="End Gracefully" Command="Jump to play once at end at end of current step and then stop" Parameters="" Hotkey="~"/>
     <Button Label="Add 10 Mins To Schedule" Command="Add to the current schedule n minutes" Parameters="10" Hotkey="~"/>
     <Matrix Name="Matrix" Strings="384" StrandsPerString="1" StringLength="128" Orientation="0" StartLocation="2" StartChannel="1"/>
-    <VMatrix Name="Xyzzy" Width="128" Height="384" Rotation="None" Quality="Normal" WW="237" WH="452" X="0" Y="0" StartChannel="1"/>
+    <VMatrix Name="Xyzzy" Width="128" Height="384" Rotation="90 CW" Quality="Normal" WW="655" WH="243" X="818" Y="43" StartChannel="1"/>
   </Options>
   <PlayList Name="Patterns">
     <PlayListStep Name="">

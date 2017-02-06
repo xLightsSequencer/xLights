@@ -2476,6 +2476,104 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    // Duplicate matrix names
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Duplicate matrix names");
+    
+    used.clear();
+    auto m = GetOptions()->GetMatrices();
+    for (auto n = m->begin(); n != m->end(); ++n)
+    {
+        if (std::find(used.begin(), used.end(), (*n)->GetName()) == used.end())
+        {
+            used.push_back((*n)->GetName());
+        }
+        else
+        {
+            wxString msg = wxString::Format("    ERR: Duplicate matrix '%s'.", (const char*)(*n)->GetName().c_str());
+            LogAndWrite(f, msg.ToStdString());
+            errcount++;
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Matrices greater than available channels
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Matrices greater than available channels");
+
+    m = GetOptions()->GetMatrices();
+    for (auto n = m->begin(); n != m->end(); ++n)
+    {
+        if ((*n)->GetStartChannel() + (*n)->GetChannels() >= _outputManager->GetTotalChannels())
+        {
+            wxString msg = wxString::Format("    ERR: Matrix '%s' is meant to finish at channel %ld but last available channel is %ld.", (const char*)(*n)->GetName().c_str(), (long)((*n)->GetStartChannel() + (*n)->GetChannels()), (long)_outputManager->GetTotalChannels());
+            LogAndWrite(f, msg.ToStdString());
+            errcount++;
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Virtual Matrices greater than available channels
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Virtual matrices greater than available channels");
+
+    auto vm = GetOptions()->GetVirtualMatrices();
+    for (auto n = vm->begin(); n != vm->end(); ++n)
+    {
+        if ((*n)->GetStartChannel() + (*n)->GetChannels() >= _outputManager->GetTotalChannels())
+        {
+            wxString msg = wxString::Format("    ERR: Virtual Matrix '%s' is meant to finish at channel %ld but last available channel is %ld.", (const char*)(*n)->GetName().c_str(), (long)((*n)->GetStartChannel() + (*n)->GetChannels()), (long)_outputManager->GetTotalChannels());
+            LogAndWrite(f, msg.ToStdString());
+            errcount++;
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Duplicate virtual matrix names
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Duplicate virtual matrix names");
+
+    used.clear();
+    vm = GetOptions()->GetVirtualMatrices();
+    for (auto n = vm->begin(); n != vm->end(); ++n)
+    {
+        if (std::find(used.begin(), used.end(), (*n)->GetName()) == used.end())
+        {
+            used.push_back((*n)->GetName());
+        }
+        else
+        {
+            wxString msg = wxString::Format("    ERR: Duplicate virtual matrix '%s'.", (const char*)(*n)->GetName().c_str());
+            LogAndWrite(f, msg.ToStdString());
+            errcount++;
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
     // Multiple schedules with the same priority
     LogAndWrite(f, "");
     LogAndWrite(f, "Multiple schedules with the same priority");

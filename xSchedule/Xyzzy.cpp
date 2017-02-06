@@ -93,7 +93,7 @@ void Xyzzy::DrawNode(int x, int y, wxColour c, wxByte* buffer, size_t size)
     if (x < 0 || x >= _matrixMapper->GetWidth()) return;
     if (y < 0 || y >= _matrixMapper->GetHeight()) return;
 
-    int bl = _matrixMapper->Map(x, y) - 1;
+    size_t bl = _matrixMapper->Map(x, y) - 1;
 
     if (bl > size) return; // outside bounds ... this would crash
 
@@ -136,13 +136,20 @@ bool Xyzzy::Frame(wxByte* buffer, size_t size, bool outputframe)
 
     if (outputframe)
     {
+        wxColor colour = *wxWHITE;
+
+        if (!_gameRunning)
+        {
+            colour = *wxRED;
+        }
+
         // draw borders
         // left
         for (int x = 0; x < _sideBorder; x++)
         {
             for (int y = 0; y < _matrixMapper->GetHeight(); y++)
             {
-                DrawNode(x, y, *wxWHITE, buffer, size);
+                DrawNode(x, y, colour, buffer, size);
             }
         }
         // right
@@ -150,7 +157,7 @@ bool Xyzzy::Frame(wxByte* buffer, size_t size, bool outputframe)
         {
             for (int y = 0; y < _matrixMapper->GetHeight(); y++)
             {
-                DrawNode(x, y, *wxWHITE, buffer, size);
+                DrawNode(x, y, colour, buffer, size);
             }
         }
         // bottom
@@ -158,7 +165,7 @@ bool Xyzzy::Frame(wxByte* buffer, size_t size, bool outputframe)
         {
             for (int x = 0; x < _matrixMapper->GetWidth(); x++)
             {
-                DrawNode(x, y, *wxWHITE, buffer, size);
+                DrawNode(x, y, colour, buffer, size);
             }
         }
         // top
@@ -166,7 +173,7 @@ bool Xyzzy::Frame(wxByte* buffer, size_t size, bool outputframe)
         {
             for (int x = 0; x < _matrixMapper->GetWidth(); x++)
             {
-                DrawNode(x, y, *wxWHITE, buffer, size);
+                DrawNode(x, y, colour, buffer, size);
             }
         }
 
@@ -923,11 +930,8 @@ bool Xyzzy::AdvanceGame()
 
     auto elapsed = (wxGetUTCTimeMillis() - _lastUpdatedMovement).ToLong();
 
-    logger_base.debug("Elapsed: %ld", elapsed);
-
     if (elapsed > _dropSpeed)
     {
-        logger_base.debug("Moving");
         if (TestMoveDown())
         {
             _currentPiece->MoveDown();
