@@ -118,7 +118,9 @@ class PicturesPanel: public wxPanel
 		void OnChoicePicturesDirectionSelect(wxCommandEvent& event);
 		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
 		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
+        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+        void OnVCButtonClick(wxCommandEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		//*)

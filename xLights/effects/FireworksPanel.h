@@ -89,7 +89,9 @@ class FireworksPanel: public wxPanel
 		void OnVCChanged(wxCommandEvent& event);
 		void OnCheckBox_FireTimingClick(wxCommandEvent& event);
 		void OnChoice_TimingTrackSelect(wxCommandEvent& event);
-		//*)
+        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

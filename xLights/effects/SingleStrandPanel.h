@@ -126,6 +126,8 @@ class SingleStrandPanel: public wxPanel
     void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
     void OnVCButtonClick(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);
+    void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+    void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
     //*)
 
 		DECLARE_EVENT_TABLE()

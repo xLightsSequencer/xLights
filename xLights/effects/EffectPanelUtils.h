@@ -18,7 +18,9 @@ public:
     static void enableControlsByName(wxWindow *window, const wxString &name, bool enable);
 
     static void UpdateLinkedSliderFloat(wxCommandEvent& event);
+    static void UpdateLinkedSliderFloat2(wxCommandEvent& event);
     static void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+    static void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
     static void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
     static void UpdateLinkedTextCtrl360(wxScrollEvent& event);
     static void UpdateLinkedSlider360(wxCommandEvent& event);
@@ -39,8 +41,14 @@ private:
 void cls::UpdateLinkedSliderFloat(wxCommandEvent& event) { \
    EffectPanelUtils::UpdateLinkedSliderFloat(event); \
 } \
+void cls::UpdateLinkedSliderFloat2(wxCommandEvent& event) { \
+   EffectPanelUtils::UpdateLinkedSliderFloat2(event); \
+} \
 void cls::UpdateLinkedTextCtrlFloat(wxScrollEvent& event) { \
     EffectPanelUtils::UpdateLinkedTextCtrlFloat(event); \
+} \
+void cls::UpdateLinkedTextCtrlFloat2(wxScrollEvent& event) { \
+    EffectPanelUtils::UpdateLinkedTextCtrlFloat2(event); \
 } \
 void cls::UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event) { \
     EffectPanelUtils::UpdateLinkedTextCtrlFloatVC(event); \

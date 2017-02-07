@@ -83,7 +83,9 @@ class RipplePanel: public wxPanel
 		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
-		void OnChoice_Ripple_Object_To_DrawSelect(wxCommandEvent& event);
+        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+        void OnChoice_Ripple_Object_To_DrawSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

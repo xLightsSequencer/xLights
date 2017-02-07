@@ -123,9 +123,9 @@ class VUMeterPanel: public wxPanel
 		void OnLockButtonClick(wxCommandEvent& event);
         void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
         void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-        void OnChoiceVUMeterDirectionSelect(wxCommandEvent& event);
-		void OnTextCtrl1Text(wxCommandEvent& event);
-		void OnChoice_VUMeter_TypeSelect(wxCommandEvent& event);
+        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+        void OnChoice_VUMeter_TypeSelect(wxCommandEvent& event);
 		void OnSlider_VUMeter_StartNoteCmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_VUMeter_StartNoteText(wxCommandEvent& event);
         void OnVCButtonClick(wxCommandEvent& event);

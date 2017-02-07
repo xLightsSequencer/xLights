@@ -61,7 +61,7 @@ protected:
 		//(*Identifiers(VideoPanel)
 		static const long ID_FILEPICKERCTRL_Video_Filename;
 		static const long ID_STATICTEXT8;
-		static const long ID_SLIDER_Video_Starttime;
+		static const long IDD_SLIDER_Video_Starttime;
 		static const long ID_TEXTCTRL_Video_Starttime;
 		static const long ID_CHOICE_Video_DurationTreatment;
 		static const long ID_CHECKBOX_Video_AspectRatio;
@@ -70,9 +70,11 @@ protected:
 	public:
 
 		//(*Handlers(VideoPanel)
-		void UpdateLinkedSliderFloat(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
+        void UpdateLinkedSliderFloat(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+        void UpdateLinkedTextCtrl360(wxScrollEvent& event);
 		void UpdateLinkedSlider360(wxCommandEvent& event);
 		void UpdateLinkedTextCtrl(wxScrollEvent& event);
 		void UpdateLinkedSlider(wxCommandEvent& event);
@@ -80,8 +82,6 @@ protected:
         void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
         void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
         void OnVCButtonClick(wxCommandEvent& event);
-        void OnChoiceVideoDirectionSelect(wxCommandEvent& event);
-		void OnTextCtrl1Text(wxCommandEvent& event);
 		void OnSlider_Video_StarttimeCmdSliderUpdated(wxScrollEvent& event);
 		void OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event);
         void OnVCChanged(wxCommandEvent& event);

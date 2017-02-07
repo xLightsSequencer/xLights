@@ -165,9 +165,9 @@ class TendrilPanel: public wxPanel
 		void OnLockButtonClick(wxCommandEvent& event);
 		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
 		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-		void OnChoiceTendrilDirectionSelect(wxCommandEvent& event);
-		void OnTextCtrl1Text(wxCommandEvent& event);
-		void OnVCButtonClick(wxCommandEvent& event);
+        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+        void OnVCButtonClick(wxCommandEvent& event);
 		void OnChoice_Tendril_MovementSelect(wxCommandEvent& event);
         void OnVCChanged(wxCommandEvent& event);
         //*)

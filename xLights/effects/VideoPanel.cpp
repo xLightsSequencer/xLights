@@ -17,7 +17,7 @@
 //(*IdInit(VideoPanel)
 const long VideoPanel::ID_FILEPICKERCTRL_Video_Filename = wxNewId();
 const long VideoPanel::ID_STATICTEXT8 = wxNewId();
-const long VideoPanel::ID_SLIDER_Video_Starttime = wxNewId();
+const long VideoPanel::IDD_SLIDER_Video_Starttime = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Video_Starttime = wxNewId();
 const long VideoPanel::ID_CHOICE_Video_DurationTreatment = wxNewId();
 const long VideoPanel::ID_CHECKBOX_Video_AspectRatio = wxNewId();
@@ -53,9 +53,9 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	FlexGridSizer2->AddGrowableCol(1);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Start Time"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer2->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Video_Starttime = new wxSlider(this, ID_SLIDER_Video_Starttime, 0, 0, 20, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("ID_SLIDER_Video_Starttime"));
+	Slider_Video_Starttime = new wxSlider(this, IDD_SLIDER_Video_Starttime, 0, 0, 20, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_Starttime"));
 	FlexGridSizer2->Add(Slider_Video_Starttime, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Video_Starttime = new wxTextCtrl(this, ID_TEXTCTRL_Video_Starttime, _("0.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_READONLY|wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_Starttime"));
+	TextCtrl_Video_Starttime = new wxTextCtrl(this, ID_TEXTCTRL_Video_Starttime, _("0.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_Starttime"));
 	FlexGridSizer2->Add(TextCtrl_Video_Starttime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer2, 1, wxEXPAND, 2);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -80,11 +80,11 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	FlexGridSizer42->SetSizeHints(this);
 
 	Connect(ID_FILEPICKERCTRL_Video_Filename,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&VideoPanel::OnFilePicker_Video_FilenameFileChanged);
-	Connect(ID_SLIDER_Video_Starttime,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VideoPanel::OnSlider_Video_StarttimeCmdSliderUpdated);
-	Connect(ID_TEXTCTRL_Video_Starttime,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VideoPanel::UpdateLinkedSlider);
+	Connect(IDD_SLIDER_Video_Starttime,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VideoPanel::UpdateLinkedTextCtrlFloat2);
+	Connect(ID_TEXTCTRL_Video_Starttime,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VideoPanel::UpdateLinkedSliderFloat2);
 	//*)
     SetName("ID_PANEL_Video");
-	TextCtrl_Video_Starttime->SetValue("0.000");
+	TextCtrl_Video_Starttime->SetValue("0.00");
 	CheckBox_Video_AspectRatio->SetValue(false);
 }
 
@@ -101,21 +101,12 @@ void VideoPanel::addVideoTime(std::string fn, unsigned long ms) {
 	// If it is not correct then set it
 	if (Slider_Video_Starttime->GetMax() != ms)
 	{
-		Slider_Video_Starttime->SetMax(ms);
+		Slider_Video_Starttime->SetMax(ms / 10);
 	}
 }
 
-
 PANEL_EVENT_HANDLERS(VideoPanel)
 
-
-void VideoPanel::OnSlider_Video_StarttimeCmdSliderUpdated(wxScrollEvent& event)
-{
-	int ms = Slider_Video_Starttime->GetValue();
-	int seconds = ms / 1000;
-	ms = ms - seconds * 1000;
-	TextCtrl_Video_Starttime->SetValue(wxString::Format("%d.%03d", seconds, ms));
-}
 void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event) {
     std::unique_lock<std::mutex> locker(lock);
     wxFileName fn = FilePicker_Video_Filename->GetFileName();
@@ -124,6 +115,6 @@ void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& ev
         Slider_Video_Starttime->SetMax(i);
     } else {
         Slider_Video_Starttime->SetMax(1);
-    }    
+    }
 }
 

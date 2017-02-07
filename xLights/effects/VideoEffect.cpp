@@ -108,6 +108,13 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect)
             settings["E_FILEPICKERCTRL_Video_Filename"] = xLightsXmlFile::FixFile("", file);
         }
     }
+
+    if (settings.Contains("E_SLIDER_Video_Starttime"))
+    {
+        settings.erase("E_SLIDER_Video_Starttime");
+        //long st = wxAtol(settings["E_SLIDER_Video_Starttime"]);
+        //settings["E_SLIDER_Video_Starttime"] = wxString::Format(wxT("%i"), st / 10);
+    }
 }
 
 void VideoEffect::SetDefaultParameters(Model *cls)

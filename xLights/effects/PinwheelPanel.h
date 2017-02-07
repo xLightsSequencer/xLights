@@ -114,11 +114,8 @@ class PinwheelPanel: public wxPanel
     void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
     void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
     void OnVCButtonClick(wxCommandEvent& event);
-
-    void OnTextCtrl_Pinwheel_ArmsText(wxCommandEvent& event);
-    void OnTextCtrl_Pinwheel_TwistText(wxCommandEvent& event);
-    void OnTextCtrl_Pinwheel_ThicknessText(wxCommandEvent& event);
-    void OnSlider_Pinwheel_ArmsCmdScroll(wxScrollEvent& event);
+    void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+    void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
     void OnVCChanged(wxCommandEvent& event);
     //*)
 

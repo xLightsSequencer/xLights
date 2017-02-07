@@ -256,6 +256,24 @@ void EffectPanelUtils::UpdateLinkedTextCtrlFloat(wxScrollEvent& event)
     txt->ChangeValue(wxString::Format("%0.1f",slider->GetValue()/10.0));
 }
 
+void EffectPanelUtils::UpdateLinkedTextCtrlFloat2(wxScrollEvent& event)
+{
+    wxSlider * slider = (wxSlider*)event.GetEventObject();
+    wxTextCtrl *txt = (wxTextCtrl*)LINKED_CONTROLS[slider];
+    if (txt == nullptr) {
+        wxString name = slider->GetName();
+        if (name.Contains("ID_")) {
+            name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
+        }
+        else {
+            name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
+        }
+        txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
+        LINKED_CONTROLS[slider] = txt;
+    }
+    txt->ChangeValue(wxString::Format("%0.2f", slider->GetValue() / 100.0));
+}
+
 void EffectPanelUtils::UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event)
 {
     UpdateLinkedTextCtrlFloat(event);
@@ -319,6 +337,44 @@ void EffectPanelUtils::UpdateLinkedSliderFloat(wxCommandEvent& event)
     slider->SetValue(value);
 }
 
+void EffectPanelUtils::UpdateLinkedSliderFloat2(wxCommandEvent& event)
+{
+    wxTextCtrl * txt = (wxTextCtrl*)event.GetEventObject();
+    wxSlider *slider = (wxSlider*)LINKED_CONTROLS[txt];
+    if (slider == nullptr) {
+        wxString name = txt->GetName();
+        if (name.Contains("IDD_")) {
+            name.Replace("IDD_TEXTCTRL_", "ID_SLIDER_");
+        }
+        else {
+            name.Replace("ID_TEXTCTRL_", "IDD_SLIDER_");
+        }
+        slider = (wxSlider*)txt->GetParent()->FindWindowByName(name);
+        if (slider == nullptr) {
+            return;
+        }
+        LINKED_CONTROLS[txt] = slider;
+    }
+    if (slider == nullptr) {
+        return;
+    }
+
+    double val;
+    txt->GetValue().ToDouble(&val);
+    int value = (int)(val * 100.0);
+
+    if (value < slider->GetMin()) {
+        value = slider->GetMin();
+        txt->ChangeValue(wxString::Format("%0.2f", (double)value / 100.0));
+    }
+    else if (value > slider->GetMax()) {
+        value = slider->GetMax();
+        wxString val_str;
+        val_str << value;
+        txt->ChangeValue(wxString::Format("%0.2f", (double)value / 100.0));
+    }
+    slider->SetValue(value);
+}
 
 void EffectPanelUtils::enableControlsByName(wxWindow *window, const wxString &name, bool enable) {
     wxWindow *w = window->FindWindowByName(name);

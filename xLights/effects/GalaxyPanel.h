@@ -117,15 +117,12 @@ class GalaxyPanel: public wxPanel
     void UpdateLinkedTextCtrl(wxScrollEvent& event);
     void UpdateLinkedSlider(wxCommandEvent& event);
     void OnLockButtonClick(wxCommandEvent& event);
-    void OnCheckBox_Galaxy_Start_Radius_x10Click(wxCommandEvent& event);
-    void OnCheckBox_Galaxy_Start_Width_x10Click(wxCommandEvent& event);
-    void OnCheckBox_Galaxy_End_Radius_x10Click(wxCommandEvent& event);
-    void OnCheckBox_Galaxy_End_Width_x10Click(wxCommandEvent& event);
-    void OnCheckBox_Galaxy_Revs_x2Click(wxCommandEvent& event);
     void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
     void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
     void OnVCButtonClick(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);
+    void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+    void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
     //*)
 
 		DECLARE_EVENT_TABLE()
