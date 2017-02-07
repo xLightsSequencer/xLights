@@ -48,6 +48,8 @@ public:
     virtual void MoveRight() { _position.x++; }
     virtual int GetType() const = 0;
     static XyzzyPiece* CreatePiece();
+    int GetX() const { return _position.x; }
+    int GetY() const { return _position.y; }
 };
 
 // xxxx red 0

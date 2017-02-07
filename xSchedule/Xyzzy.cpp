@@ -136,7 +136,7 @@ bool Xyzzy::Frame(wxByte* buffer, size_t size, bool outputframe)
 
     if (outputframe)
     {
-        wxColor colour = *wxWHITE;
+        wxColor colour = *wxLIGHT_GREY;
 
         if (!_gameRunning)
         {
@@ -192,6 +192,26 @@ bool Xyzzy::Frame(wxByte* buffer, size_t size, bool outputframe)
             for (auto it = pixels.begin(); it != pixels.end(); ++it)
             {
                 DrawPixel(it->x, it->y, _currentPiece->GetColour(), buffer, size);
+            }
+
+            for (int i = 0; i < _currentPiece->GetY(); ++i)
+            {
+                if (_board[i * BOARDWIDTH + _currentPiece->GetX()] == 0xFF)
+                {
+                    bool found = false;
+                    for (auto it = pixels.begin(); it != pixels.end(); ++it)
+                    {
+                        if (it->x == _currentPiece->GetX() && it->y == i)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found)
+                    {
+                        DrawPixel(_currentPiece->GetX(), i, wxColour(40, 40, 40), buffer, size);
+                    }
+                }
             }
         }
 
