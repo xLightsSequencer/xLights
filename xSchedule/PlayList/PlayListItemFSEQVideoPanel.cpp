@@ -334,6 +334,16 @@ void PlayListItemFSEQVideoPanel::ValidateWindow()
         SpinCtrl_StartChannel->Enable(false);
         SpinCtrl_Channels->Enable(false);
     }
+
+    if (FilePickerCtrl_AudioFile->GetFileName() == "")
+    {
+        CheckBox_FastStartAudio->Enable(false);
+        CheckBox_FastStartAudio->SetValue(false);
+    }
+    else
+    {
+        CheckBox_FastStartAudio->Enable();
+    }
 }
 
 void PlayListItemFSEQVideoPanel::OnCheckBox_OverrideVolumeClick(wxCommandEvent& event)

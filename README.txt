@@ -8,8 +8,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add text output to xSchedule allowing run time countdowns and text overlays
+   -- bug (keith)   Fix #814 Make video start time editable
+   -- bug (keith)   Fix #820 Fix triangle wave form in wave effect
+   -- bug (keith)   Fix end channel not updating on layout tab
+   -- enh (keith)   Add documentation of xSchedule web api to the source repository
+   -- enh (keith)   Add colour reordering as an output process in the scheduler.
+   -- enh (keith)   Add pixel reversing as an output process in the scheduler
+   -- enh (keith)   Add import to xSchedule to allow importing of xLights 4 schedules.
 2017.2  Jan 31, 2017
-	-- bug (sean)   Bundle up package so that xSchedule has the properties files needed to run
+   -- bug (sean)   Bundle up package so that xSchedule has the properties files needed to run
 2017.1  Jan 31, 2017
    -- enh (dkulp)   Support groups within groups. Preview should be correct with groups within groups
    -- enh (dkulp)   Add sequence option for allowing blending of effects between models/groups
@@ -32,44 +40,44 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (gil)     Update Fan to support spatial colors and not leave any holes.
    -- enh (gil)     Update Shockwave to support spatial colors and not leave any holes.
    -- bug (gil)     Fix cell highlight movement that was broken by other fixes in August.  Fixes #755.
-   -- enh (keithsw) Add sequence packaging to the tools menu 	"Tools,Package Sequence"
-   -- bug (keithsw) Make xbkp auto recovery smarter. Dont trigger after a sequence is discarded. Dont trigger when doing batch rendering.
-   -- enh (keithsw) Add more sub buffer panel right click menu options for fast setting sub buffers
-   -- enh (keithsw) Add manual sub buffer editing allowing more precise control over sub buffer sizing
-   -- enh (keithsw) Add home (start of song) /end (end of song) /pause (pause playing song) shortcut keys in sequencer
-   -- enh (keithsw) Add spatial color curves to single strand
-   -- enh (keithsw) Add spatial color curves to pinwheel
-   -- enh (keithsw) Add reset to default on remaining effects when you select a different effect to the one currently selected (fan/morph/shockwave/dmx/fill/galaxy)
+   -- enh (keith)   Add sequence packaging to the tools menu 	"Tools,Package Sequence"
+   -- bug (keith)   Make xbkp auto recovery smarter. Dont trigger after a sequence is discarded. Dont trigger when doing batch rendering.
+   -- enh (keith)   Add more sub buffer panel right click menu options for fast setting sub buffers
+   -- enh (keith)   Add manual sub buffer editing allowing more precise control over sub buffer sizing
+   -- enh (keith)   Add home (start of song) /end (end of song) /pause (pause playing song) shortcut keys in sequencer
+   -- enh (keith)   Add spatial color curves to single strand
+   -- enh (keith)   Add spatial color curves to pinwheel
+   -- enh (keith)   Add reset to default on remaining effects when you select a different effect to the one currently selected (fan/morph/shockwave/dmx/fill/galaxy)
 2016.55  Dec 20, 2016
-   -- enh (keithsw) Add spatial color curves to spirals
-   -- enh (keithsw) Add spatial color curves to bars
-   -- enh (cjd) Rewrite pinwheel effect to handle larger buffer sizes cleanly
-   -- enh (keithsw) Reset buffer panel when selecting a new effect
-   -- enh (keithsw) Reset buffer panel when selecting a new effect
-   -- enh (keithsw) Add spatial colour curves on the On effect
-   -- enh (keithsw) When opening sequence check for a newer xbkp file. If it exists prompt the user to use it instead.
-   -- enh (keithsw) Add -w command line switch which wipes all saved settings restoring machine settings back to a true fresh install
-   -- enh (keithsw) Add checks for large blocks of unused channels between models
-   -- enh (keithsw) Add fireworks fire with timing mark
-   -- enh (keithsw) Add flip to colour curve
-   -- enh (Keithsw) Detect multiple outputs sending data to the same place in check sequence
-   -- enh (keithsw) Input config upload to FPP for bridge mode
-   -- enh (keithsw) Input config upload to falcon controllers
-   -- enh (keithsw) Output config upload to falcon controllers
+   -- enh (keith)   Add spatial color curves to spirals
+   -- enh (keith)   Add spatial color curves to bars
+   -- enh (cjd)     Rewrite pinwheel effect to handle larger buffer sizes cleanly
+   -- enh (keith)   Reset buffer panel when selecting a new effect
+   -- enh (keith)   Reset buffer panel when selecting a new effect
+   -- enh (keith)   Add spatial colour curves on the On effect
+   -- enh (keith)   When opening sequence check for a newer xbkp file. If it exists prompt the user to use it instead.
+   -- enh (keith)   Add -w command line switch which wipes all saved settings restoring machine settings back to a true fresh install
+   -- enh (keith)   Add checks for large blocks of unused channels between models
+   -- enh (keith)   Add fireworks fire with timing mark
+   -- enh (keith)   Add flip to colour curve
+   -- enh (Keith)   Detect multiple outputs sending data to the same place in check sequence
+   -- enh (keith)   Input config upload to FPP for bridge mode
+   -- enh (keith)   Input config upload to falcon controllers
+   -- enh (keith)   Output config upload to falcon controllers
 2016.54  Dec 14, 2016
-   -- bug (dkulp) Make sure we have a valid show directory at startup... too many crashes occur without one
-   -- bug (dkulp) Fix bugs with file based dimming curves
-   -- enh (gjones) Add ability to time shift all effects in a sequence under Edit menu.
-   -- enh (dkulp) Basic TouchBar support on latest MacBookPros
-   -- bug (dkulp) Don't crash if an invalid model or submodel causes a buffer to be size 0
-   -- bug (dkulp) Don't crash if special characters are using timing track labels. Fixes #762
-   -- bug (dkulp) Fix crash if sequence has % in name
-   -- bug (keithsw) Fix video effect crash on Mac
-   -- bug (keithsw) Strip leading zeroes from ip addresses to prevent issues
-   -- bug (keithsw) Fix video looping
-   -- bug (keithsw) On piano effect fix reset of timing track when note range changed
-   -- bug (keithsw) Fix updating of start/end time in the status bar when an effect is moved
-   -- bug (keithsw) Fix export models to export all models not just those in current preview
+   -- bug (dkulp)   Make sure we have a valid show directory at startup... too many crashes occur without one
+   -- bug (dkulp)   Fix bugs with file based dimming curves
+   -- enh (gjones)  Add ability to time shift all effects in a sequence under Edit menu.
+   -- enh (dkulp)   Basic TouchBar support on latest MacBookPros
+   -- bug (dkulp)   Don't crash if an invalid model or submodel causes a buffer to be size 0
+   -- bug (dkulp)   Don't crash if special characters are using timing track labels. Fixes #762
+   -- bug (dkulp)   Fix crash if sequence has % in name
+   -- bug (keith)   Fix video effect crash on Mac
+   -- bug (keith)   Strip leading zeroes from ip addresses to prevent issues
+   -- bug (keith)   Fix video looping
+   -- bug (keith)   On piano effect fix reset of timing track when note range changed
+   -- bug (keith)   Fix updating of start/end time in the status bar when an effect is moved
+   -- bug (keith)   Fix export models to export all models not just those in current preview
 2016.53  Nov 17, 2016
    -- bug (dkulp)   Fix overlap of icicle drops when using multiple strings
    -- bug (dkulp)   Fix crash when Undo is used after closing a sequence and opening another
@@ -82,8 +90,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
                     submodel layers on the grid
 2016.52  Nov 09, 2016
    -- bug (dkulp)   Allow using @ModelName:# for individual strands where ModelName is the current model
-   -- bug (keithsw) Fix picture effect image scaling
-   -- bug (keithsw) Set default FPP user to fpp instead of pi
+   -- bug (keith)   Fix picture effect image scaling
+   -- bug (keith)   Set default FPP user to fpp instead of pi
    -- bug (dkulp)   Fix crash if node effects are on nodes that don't exist
    -- bug (dkulp)   Fix crash on scheduler page on OSX due to obsolete code
    -- enh (jwylie)  changed minute : second counter to accept prepended and appended text
@@ -91,20 +99,20 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp)   Fix crash on drag/drop if no sequence loaded
    -- bug (dkulp)   CreateCustomModel dialog would not allow selecting node type on OSX
 2016.51  Nov 04, 2016
-   -- enh (cjd)  Update sequence checker to handle start channels in #IP:UNIVERSE:CHANNEL format
-   -- bug (keithsw) Performance fix for animated GIFs. Example: "This is Halloween" went from 300 second save to 65 seconds.
+   -- enh (cjd)     Update sequence checker to handle start channels in #IP:UNIVERSE:CHANNEL format
+   -- bug (keith)   Performance fix for animated GIFs. Example: "This is Halloween" went from 300 second save to 65 seconds.
    -- bug (dkulp)   Fix mac<-->windows pictures effect filename mapping
    -- bug (dkulp)   Fix mapping onto nodes if nothing is mapped to the strand
    -- bug (dkulp)   Fix "Create Random Effects" taking forever to complete
    -- enh (dkulp)   Get the FPP Connect via FTP stuff working on the Mac, also allow named based FPP
-   -- bug (keithsw) Fix GIF scaleing not working.
-   -- bug (keithsw) Sequence Checker issue for Stars layers #721
+   -- bug (keith)   Fix GIF scaleing not working.
+   -- bug (keith)   Sequence Checker issue for Stars layers #721
    -- bug (dkulp)   Don't crash if polyline is set to singlechannel and start at right
-   -- bug (keithsw) Fix #612 ... missing effect settings scroll bars
-   -- enh (keithsw) Optimise logging in render loop ... means you cant turn on logging
-   -- bug (cjd)  Avoid crash if pasted data is empty
-   -- bug (cjd)  Fix github issue #709 "Fire effect height textbox entry"
-   -- enh (keithsw) fixed change the link button image and hover text in the Setup screen #342
+   -- bug (keith)   Fix #612 ... missing effect settings scroll bars
+   -- enh (keith)   Optimise logging in render loop ... means you cant turn on logging
+   -- bug (cjd)     Avoid crash if pasted data is empty
+   -- bug (cjd)     Fix github issue #709 "Fire effect height textbox entry"
+   -- enh (keith)   fixed change the link button image and hover text in the Setup screen #342
    -- bug (dkulp)   Make sure picture effect is re-initted at start of effect
    -- bug (dkulp)   Fix crash on toggle strands when clicked on a strand instead of model
    -- enh (gil)     Add shutter support to DMX model.
@@ -114,16 +122,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp)   Fix crash on render on some sequences
    -- enh (Jennifer)added tool tips for countdowns
    -- enh (Jennifer)New enhancements for countdown timer in text effect
-   -- bug (keithsw) Fix GIF handling of   animated gifs where first frame is not full size ... ie it has an offset.
-   -- bug (keithsw) Fix video effect start time bug.
-   -- enh (keithsw) Allow VU Meter to use Papagayo layer 0 as a timing track
-   -- bug (keithsw) Fix GIF handling of animated gifs where first frame is not full size ... ie it has an offset.
-   -- bug (cjd)  Fix rounding issue leading to unwanted gap between spirals
+   -- bug (keith)   Fix GIF handling of   animated gifs where first frame is not full size ... ie it has an offset.
+   -- bug (keith)   Fix video effect start time bug.
+   -- enh (keith)   Allow VU Meter to use Papagayo layer 0 as a timing track
+   -- bug (keith)   Fix GIF handling of animated gifs where first frame is not full size ... ie it has an offset.
+   -- bug (cjd)     Fix rounding issue leading to unwanted gap between spirals
    -- bug (gil)     Fix model staying highlighted when removed from group.  Fixes #707.
    -- bug (gil)     Prevent creation of unnecessary layer when promoting effects from only 1 strand.
    -- bug (gil)     Fix exception when opening Lyric Dialog.  Fixes #710.
-   -- bug (keithsw) More animated GIF fixes ... all should work now
-   -- enh (keithsw) Add right click menu to controller list on setup tab including:
+   -- bug (keith)   More animated GIF fixes ... all should work now
+   -- enh (keith)   Add right click menu to controller list on setup tab including:
 						- Inserts controller(s) at a point in the list
 						- Bulk update IP address, channel count and description
 						- Bulk delete
@@ -131,13 +139,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 						- activate and deactivate are now available as right click menu items. Double click or ENTER key open the controller to edit it
 						- grey out inactive controllers
 						- open controller in your browser
-   -- enh (keithsw) Allow rubber band selection of models on layout tab without holding down shift key
-   -- bug (keithsw) keyboard nudging of multiple selected models now works
-   -- enh (keithsw) Add multi artnet universe adding
-   -- bug (keithsw) Fix seven segment states not sticking
-   -- enh (keithsw) Add FPP Connect which will upload universe configuration, fseq and media files.
-   -- enh (keithsw) Add start channel checks to check sequence
-   -- enh (keithsw) Fix #342 - add a tooltip to show dir/media dir link button to make it clearer what the button does in each state
+   -- enh (keith)   Allow rubber band selection of models on layout tab without holding down shift key
+   -- bug (keith)   keyboard nudging of multiple selected models now works
+   -- enh (keith)   Add multi artnet universe adding
+   -- bug (keith)   Fix seven segment states not sticking
+   -- enh (keith)   Add FPP Connect which will upload universe configuration, fseq and media files.
+   -- enh (keith)   Add start channel checks to check sequence
+   -- enh (keith)   Fix #342 - add a tooltip to show dir/media dir link button to make it clearer what the button does in each state
 2016.50  Sep 27, 2016
    -- enh (gil)     Allow arrow key to be used to scroll in model list in Layout.  Fixes #582.
    -- enh (dkulp)   Add -r command line switch to render and save the fseq file and then exit
@@ -145,23 +153,23 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (gil)     Fix crash when pasting bad data.  Fixes #693 and fixes #694.
    -- bug (gil)     Fix extra preview windows not holding their saved position.
    -- bug (dkulp)   Fix node names used for HLS imports truncating the last character
-   -- bug (keithsw) Fix animated GIF files which were not rendering correctly
-   -- enh (keithsw) Make import and export of effects remember the last type used under assumption user is likely to want to use it again next time
-   -- bug (keithsw) Fix contrast on oversized sub-buffer. Yellow on light grey
-   -- enh (keithsw) Add links to common web resources to the help menu
-   -- enh (keithsw) Add palette reversal and deletion
-   -- enh (keithsw) Add multilayer insertion
-   -- bug (keithsw) Make output and model descriptions XML safe
-   -- enh (keithsw) Make garland lights on tree effect optional
-   -- bug (keithsw) Fix start channel check in check sequence calculating start channel incorrectly
-   -- enh (keithsw) Add custom model checks to check sequence
-   -- enh (keithsw) Add model checks to star and circles models to ensure all nodes correctly allocated
-   -- bug (keithsw) Fix some preset layer counting issues - string v3 presets from display as they cant be applied
-   -- enh (keithsw) Fix #340 - Add key model stats to model export
-   -- enh (keithsw) Add effect decriptions and effect export to get easy list of your effects in sequence and analysis of effect frequency.
-   -- enh (keithsw) Add check sequence check to highlight the network adapter we will output lights data to.
-   -- bug (keithsw) Increase maximum time offset for effects import from 10 seconds to 10 minutes
-   -- bug (keithsw) Fix model channel overlap checking in layout panel
+   -- bug (keith)   Fix animated GIF files which were not rendering correctly
+   -- enh (keith)   Make import and export of effects remember the last type used under assumption user is likely to want to use it again next time
+   -- bug (keith)   Fix contrast on oversized sub-buffer. Yellow on light grey
+   -- enh (keith)   Add links to common web resources to the help menu
+   -- enh (keith)   Add palette reversal and deletion
+   -- enh (keith)   Add multilayer insertion
+   -- bug (keith)   Make output and model descriptions XML safe
+   -- enh (keith)   Make garland lights on tree effect optional
+   -- bug (keith)   Fix start channel check in check sequence calculating start channel incorrectly
+   -- enh (keith)   Add custom model checks to check sequence
+   -- enh (keith)   Add model checks to star and circles models to ensure all nodes correctly allocated
+   -- bug (keith)   Fix some preset layer counting issues - string v3 presets from display as they cant be applied
+   -- enh (keith)   Fix #340 - Add key model stats to model export
+   -- enh (keith)   Add effect decriptions and effect export to get easy list of your effects in sequence and analysis of effect frequency.
+   -- enh (keith)   Add check sequence check to highlight the network adapter we will output lights data to.
+   -- bug (keith)   Increase maximum time offset for effects import from 10 seconds to 10 minutes
+   -- bug (keith)   Fix model channel overlap checking in layout panel
 2016.49  Sep 13, 2016
    -- bug (dkulp)   Strand/Submodel/Node effects were not clearing their buffer area on control updates resulting in ghosted data until a full render
    -- bug (dkulp)   DimmingCurve dialog not initialized properly for models that don't already have a dimming curve
@@ -178,21 +186,21 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (gil)     Add value curves to Shockwave effect.
    -- enh (gil)     Add value curves to the Fan effect.
    -- enh (gil)     Add value curves to Morph effect.
-   -- enh (keithsw) Implement e1.31 sync
-   -- enh (keithsw) Add more checks in check sequence
-   -- enh (keithsw) Show single colour string colour in sequencer row heading
-   -- enh (keithsw) Add mouth image hints to faces dialog
-   -- enh (keithsw) Show waveform selected duration under Time/FPS display
-   -- bug (keithsw) Fix dropping of ranged timing tracks between two existing ranges. Also prevent spanning ranges.
-   -- enh (keithsw) Add star to ripple effect and VUMeter
-   -- enh (keithsw) Add a free model description property which is included in model export. Useful for documenting things like which controller output it should be on or the cable tag or anything else that you may currently record in a spreadsheet.
-   -- bug (keithsw) Fix some problems with timing mark creation
-   -- enh (keithsw) Shift + Double click on effect highlights corresponding portion of the waveform
-   -- enh (keithsw) Add a random color curve type ... randomly sets the color to a color between the colors of the color stops
-   -- enh (keithsw) Add palette quick sets
-   -- enh (keithsw) Add ArtNET support - DMX and Sync packets only
+   -- enh (keith)   Implement e1.31 sync
+   -- enh (keith)   Add more checks in check sequence
+   -- enh (keith)   Show single colour string colour in sequencer row heading
+   -- enh (keith)   Add mouth image hints to faces dialog
+   -- enh (keith)   Show waveform selected duration under Time/FPS display
+   -- bug (keith)   Fix dropping of ranged timing tracks between two existing ranges. Also prevent spanning ranges.
+   -- enh (keith)   Add star to ripple effect and VUMeter
+   -- enh (keith)   Add a free model description property which is included in model export. Useful for documenting things like which controller output it should be on or the cable tag or anything else that you may currently record in a spreadsheet.
+   -- bug (keith)   Fix some problems with timing mark creation
+   -- enh (keith)   Shift + Double click on effect highlights corresponding portion of the waveform
+   -- enh (keith)   Add a random color curve type ... randomly sets the color to a color between the colors of the color stops
+   -- enh (keith)   Add palette quick sets
+   -- enh (keith)   Add ArtNET support - DMX and Sync packets only
 2016.48  Aug 29, 2016
-   -- enh (keithsw) Add sequence checker, "Tools,Check Sequence". This scans your Setup/Layout/Open sequence and highlights any
+   -- enh (keith)   Add sequence checker, "Tools,Check Sequence". This scans your Setup/Layout/Open sequence and highlights any
                     items that might cause issues or unexpected behaviour in xLights.
    -- bug (dkulp)   Fix WaveForm rendering beyond the end of the sequence
    -- bug (dkulp)   Add error check for faces effect with non-default buffer style
@@ -207,9 +215,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp)   Fix prompt of modified sequence when closing an unmodified sequence
    -- bug (gil)     Fix import of Superstar Spirals spin direction.
    -- bug (gil)     Fix PolyLine when controller is position is right.
-   -- bug (keithsw) Fix seven segment bitmap
-   -- bug (keithsw) Fix video export of model for non matrices
-   -- enh (keithsw) Add value curve user definable presets
+   -- bug (keith)   Fix seven segment bitmap
+   -- bug (keith)   Fix video export of model for non matrices
+   -- enh (keith)   Add value curve user definable presets
 2016.46  Aug 17, 2016
    -- enh (dkulp)   Add SubModels for defining effects for specific parts of a model
    -- bug (dkulp)   Check for invalid models before adding the models associated with the current view so those models can be selected for mapping
@@ -230,33 +238,33 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (gil)     Fix Pictures WrapX to wrap at model size instead of image size.
    -- enh (gil)     Make the transition smooth if you cancel a model Import.  Fixes #647.
    -- enh (gil)     Enhance the Layout page by combining the Model Groups and Models.
-   -- enh (keithsw) Add model preview to face and state dialogs to make setting channel ranges easier
-   -- bug (keithsw) Fix crash when importing fseq when creating a new sequence
-   -- bug (keithsw) Fix oversize LCB export. Fixes #648
-   -- bug (keithsw) Fix display of tooltips on test tab to display models against channels.
-   -- enh (keithsw) Remove all but timing track option for piano effect
-   -- bug (keithsw) Strip out video export for models that dont make sense or model groups. Fix colour handling for non RGB colour orders
-   -- enh (keithsw) Add simple way to add 7 segment labels to model state definition
-   -- enh (keithsw) Add a view from rear option on custom model dialog to help you insert pixels correctly into your coro models Fix #646
-   -- bug (keithsw) Fix #u:ch format calc when non e131 controllers are present.
-   -- bug (keithsw) Fix accidentally disabled prompt for missing media file.
-   -- enh (keithsw) Add state and submodel settings to xmodel files.
-   -- bug (keithsw) Fix channel count on models export when channels are not contiguous
-   -- bug (keithsw) Trigger start channel recalculation if setup tab is changed ... this helps if you are using o:c or #u:c formats for start channel
-   -- enh (keithsw) Add model wiring dialog for custom models ... shows you a reverse view of the model with the wiring.
+   -- enh (keith)   Add model preview to face and state dialogs to make setting channel ranges easier
+   -- bug (keith)   Fix crash when importing fseq when creating a new sequence
+   -- bug (keith)   Fix oversize LCB export. Fixes #648
+   -- bug (keith)   Fix display of tooltips on test tab to display models against channels.
+   -- enh (keith)   Remove all but timing track option for piano effect
+   -- bug (keith)   Strip out video export for models that dont make sense or model groups. Fix colour handling for non RGB colour orders
+   -- enh (keith)   Add simple way to add 7 segment labels to model state definition
+   -- enh (keith)   Add a view from rear option on custom model dialog to help you insert pixels correctly into your coro models Fix #646
+   -- bug (keith)   Fix #u:ch format calc when non e131 controllers are present.
+   -- bug (keith)   Fix accidentally disabled prompt for missing media file.
+   -- enh (keith)   Add state and submodel settings to xmodel files.
+   -- bug (keith)   Fix channel count on models export when channels are not contiguous
+   -- bug (keith)   Trigger start channel recalculation if setup tab is changed ... this helps if you are using o:c or #u:c formats for start channel
+   -- enh (keith)   Add model wiring dialog for custom models ... shows you a reverse view of the model with the wiring.
 2016.45  Aug 09, 2016
-   -- bug (keithsw) Fix colour curve preset scanning.
+   -- bug (keith)   Fix colour curve preset scanning.
    -- bug (dkulp)   Prevent crash at startup if preview background image doesn't exist
    -- bug (gil)     Set selected effect when it gets selected by a cell selection.  Fixes #623.
 2016.44  Aug 08, 2016
-   -- enh (keithsw) Add Import Notes to right click menu on timing tracks ... this will create a timing track containing notes from Polyphonic Transcription, MIDI, Audacity and Music XML files. All sources other than 'Timing Track' will be removed from the piano effect in a future release.
-   -- enh (keithsw) Enhance autosave to be smarter and only save when it needs to
-   -- enh (keithsw) Add metronome arbitrary fixed timing timing tracks
-   -- enh (keithsw) Add color curves
-   -- enh (keithsw) Add some built in color curves
-   -- enh (keithsw) Add Timing Event Jump effect to VU Meter
-   -- enh (keithsw) Make fireworks follow the colour curve
-   -- bug (keithsw) Fix crashes in music and piano effects
+   -- enh (keith)   Add Import Notes to right click menu on timing tracks ... this will create a timing track containing notes from Polyphonic Transcription, MIDI, Audacity and Music XML files. All sources other than 'Timing Track' will be removed from the piano effect in a future release.
+   -- enh (keith)   Enhance autosave to be smarter and only save when it needs to
+   -- enh (keith)   Add metronome arbitrary fixed timing timing tracks
+   -- enh (keith)   Add color curves
+   -- enh (keith)   Add some built in color curves
+   -- enh (keith)   Add Timing Event Jump effect to VU Meter
+   -- enh (keith)   Make fireworks follow the colour curve
+   -- bug (keith)   Fix crashes in music and piano effects
    -- enh (gil)     Add ability to import/export PolyLine models to .xmodel files.
    -- enh (gil)     Add ability to PolyLine to create curved segments.
    -- enh (gil)     Shift+MouseWheel will now scroll grid right/left when in Waveform or Grid.  Fixes #644.
@@ -283,11 +291,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (gil)     Fix typo that prevented the Layer Star render style from working for Star Model.
    -- enh (gil)     Add PolyLine model.
    -- bug (gil)     Fix crash when trying to paste with active timing track and no cell selected. Fixes #634.
-   -- bug (keithsw) Corrected by allowing a 1 second target to be selected when outside of a cell.
-   -- bug (keithsw) Fix music effect crash when dragged past end of song
-   -- bug (keithsw) Reduce errors when video effect cant find video file to just one on first frame
-   -- bug (keithsw) Add support for model start channel in form #ip:universe:channel
-   -- bug (keithsw) Update start channel dialog for new format + also make it smarter about which outputs and universes exist.
+   -- bug (keith)   Corrected by allowing a 1 second target to be selected when outside of a cell.
+   -- bug (keith)   Fix music effect crash when dragged past end of song
+   -- bug (keith)   Reduce errors when video effect cant find video file to just one on first frame
+   -- bug (keith)   Add support for model start channel in form #ip:universe:channel
+   -- bug (keith)   Update start channel dialog for new format + also make it smarter about which outputs and universes exist.
    -- bug (dkulp)   Don't add/remove layers if the element is being rendered
    -- bug (dkulp)   Fix a crash when loading an invalid sequence that had effect names of ""
 2016.41  Jul 22, 2016
@@ -301,55 +309,55 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (dkulp)   Add Left/Right starting locations for Icicles
    -- enh (dkulp)   Write all data in fseq file direcly in one call instead of copied by frame
    -- enh (dkulp)   Read from fseq files full frames at a time directly into data buffer instead of by channel
-   -- bug (keithsw) Fix video drift in auto custom model generation
-   -- enh (keithsw) Add video export of a models effects
-   -- enh (keithsw) Add new #x.y format for specifying start channel x = universe, y = channel within universe
-   -- enh (keithsw) Include xbkp files in log packaging and crash dumps
-   -- bug (keithsw) Fix handling of multiple e131 universes in a single output
-   -- enh (keithsw) Add timing track renaming on sequencer window and make it automatically update any effects that were using the timing track
-   -- bug (keithsw) Prevent illegal characters in model and model group names
-   -- bug (keithsw) Handle duplicate timing tracks in XML file without crashing
-   -- enh (keithsw) Add additional columns to models export
-   -- bug (keithsw) Fix test tab handling of models which are single node but multiple nodes such as DMX model
-   -- enh (keithsw) Add count of effect layers on presets window
+   -- bug (keith)   Fix video drift in auto custom model generation
+   -- enh (keith)   Add video export of a models effects
+   -- enh (keith)   Add new #x.y format for specifying start channel x = universe, y = channel within universe
+   -- enh (keith)   Include xbkp files in log packaging and crash dumps
+   -- bug (keith)   Fix handling of multiple e131 universes in a single output
+   -- enh (keith)   Add timing track renaming on sequencer window and make it automatically update any effects that were using the timing track
+   -- bug (keith)   Prevent illegal characters in model and model group names
+   -- bug (keith)   Handle duplicate timing tracks in XML file without crashing
+   -- enh (keith)   Add additional columns to models export
+   -- bug (keith)   Fix test tab handling of models which are single node but multiple nodes such as DMX model
+   -- enh (keith)   Add count of effect layers on presets window
 2016.40  Jul 10, 2016
-   -- bug (gil)  Make the initial pane size larger for Model Preview, House Preview, and Effect Assist windows.  Fixes #617
+   -- bug (gil)   Make the initial pane size larger for Model Preview, House Preview, and Effect Assist windows.  Fixes #617
    -- bug (dkulp) Fix dotted lines in model preview selection stuff
-   -- enh (keithsw) Add end channel to model export
-   -- enh (keithsw) Log very slow rendered frames
-   -- bug (keithsw) Fix value curve problems with some waveforms
-   -- bug (keithsw) Stop custom model leading to crashes if non numerics are entered in grid cells
-   -- enh (keithsw) Add view log to the tools menu so users can easily access the log file
-   -- bug (keithsw) Stop tab dragging on main window
-   -- bug (keithsw) Make video Effect render red if video file does not exist or single line buffer style is used
-   -- enh (keithsw) Add value curve to sparkles
-   -- enh (keithsw) Add preset export/import *.xpreset files
-   -- bug (keithsw) Fix crash in piano when start note > end note
-   -- bug (keithsw) Fix tendril music line effect that was broken in v39
-   -- bug (keithsw) Fix blur effect that was broken in v39
-   -- enh (keithsw) Add model face and state data to xmodel files
-   -- bug (gil)     Fix conversion to LOR format.
-   -- enh (gil)     Modify On and Colorwash effects to support DMX models.
-   -- enh (gil)     New DMX model added with 5 types so far: Top view, Side view, Bars view, Top w/Bars, and Side w/Bars.
-   -- bug (gil)     Prevent scenario where model groups could show up to be added to a model group.
-   -- bug (gil)     Delete model and all effects from grid and views when a model is deleted. Fixes #611
-   -- enh (gil)     More improvements to SuperStar imports of images.
-   -- enh (gil)     Better placement of Text Effects imported from SuperStar.
-   -- enh (gil)     Add option to average colors for SuperStar import.  More closely matches it's blending method.
-   -- enh (gil)     Improve SuperStar import settings for Fan effect.  This effect is close but not an exact duplicate.
-   -- enh (gil)     Fix proper start/end angles for flowys imported from Superstar for horizontal layout.
-   -- bug (gil)     Fix potential crashes with right-click popup menus in Layout page.
-   -- enh (gil)     Make the initial pane size larger for Model Preview, House Preview, and Effect Assist windows.  Fixes #617.
+   -- enh (keith) Add end channel to model export
+   -- enh (keith) Log very slow rendered frames
+   -- bug (keith) Fix value curve problems with some waveforms
+   -- bug (keith) Stop custom model leading to crashes if non numerics are entered in grid cells
+   -- enh (keith) Add view log to the tools menu so users can easily access the log file
+   -- bug (keith) Stop tab dragging on main window
+   -- bug (keith) Make video Effect render red if video file does not exist or single line buffer style is used
+   -- enh (keith) Add value curve to sparkles
+   -- enh (keith) Add preset export/import *.xpreset files
+   -- bug (keith) Fix crash in piano when start note > end note
+   -- bug (keith) Fix tendril music line effect that was broken in v39
+   -- bug (keith) Fix blur effect that was broken in v39
+   -- enh (keith) Add model face and state data to xmodel files
+   -- bug (gil)   Fix conversion to LOR format.
+   -- enh (gil)   Modify On and Colorwash effects to support DMX models.
+   -- enh (gil)   New DMX model added with 5 types so far: Top view, Side view, Bars view, Top w/Bars, and Side w/Bars.
+   -- bug (gil)   Prevent scenario where model groups could show up to be added to a model group.
+   -- bug (gil)   Delete model and all effects from grid and views when a model is deleted. Fixes #611
+   -- enh (gil)   More improvements to SuperStar imports of images.
+   -- enh (gil)   Better placement of Text Effects imported from SuperStar.
+   -- enh (gil)   Add option to average colors for SuperStar import.  More closely matches it's blending method.
+   -- enh (gil)   Improve SuperStar import settings for Fan effect.  This effect is close but not an exact duplicate.
+   -- enh (gil)   Fix proper start/end angles for flowys imported from Superstar for horizontal layout.
+   -- bug (gil)   Fix potential crashes with right-click popup menus in Layout page.
+   -- enh (gil)   Make the initial pane size larger for Model Preview, House Preview, and Effect Assist windows.  Fixes #617.
 2016.39  Jun 30, 2016
-   -- enh (keithsw) Make network setup save button work like the layout panel ... red when it needs saving.
+   -- enh (keith) Make network setup save button work like the layout panel ... red when it needs saving.
    -- bug (dkulp) Fix background brightness setting with OpenGL 1.1
-   -- enh (keithsw) Add backup when xlights started or show directory changed
-   -- bug (keithsw) Fix value curve enabling/disabling
-   -- bug (keithsw) Fix piano and VUMeter reaction to changes in timing marks.
-   -- enh (keithsw) Add model state settings and effect to control states.
-   -- enh (keithsw) Add autosave to layout
-   -- bug (keithsw) Ensure effect settings reset when first selected for dropping if they are different to the current effect. Most effects done.
-   -- enh (keithsw) Add value curves to Pinwheel, Shimmer, Spirograph, Ripple effects
+   -- enh (keith) Add backup when xlights started or show directory changed
+   -- bug (keith) Fix value curve enabling/disabling
+   -- bug (keith) Fix piano and VUMeter reaction to changes in timing marks.
+   -- enh (keith) Add model state settings and effect to control states.
+   -- enh (keith) Add autosave to layout
+   -- bug (keith) Ensure effect settings reset when first selected for dropping if they are different to the current effect. Most effects done.
+   -- enh (keith) Add value curves to Pinwheel, Shimmer, Spirograph, Ripple effects
    -- enh (gil) DMX effect automatically determines number of channels to use
    -- enh (gil) DMX effect will show node names if defined in place of channel numbers
    -- enh (gil) DMX effect now uses value curves to do ramps and works with single color channels
@@ -361,9 +369,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (cjd) Don't crash when loading perspectives menu if current perspective not defined
    -- bug (cjd) Update default perspective if it is renamed
    -- bug (cjd) Reload default perspective on show directory change - fixes issue #601
-   -- bug (keithsw) Fix matrix faces not able to be changed to scaled. It always resets to centred.
-   -- bug (keithsw) For text effect with no movement ... x start slider was being ignored. Fixed.
-   -- bug (keithsw) Fix vertical fade on colorwash effect. It only worked if horizontal fade was also selected.
+   -- bug (keith) Fix matrix faces not able to be changed to scaled. It always resets to centred.
+   -- bug (keith) For text effect with no movement ... x start slider was being ignored. Fixed.
+   -- bug (keith) Fix vertical fade on colorwash effect. It only worked if horizontal fade was also selected.
    -- bug (dkulp) Check the file extension based on the lowercase version of the extension, so *.lms and *.LMS both work
    -- enh (gil) NEW: Multiple Previews
    -- bug (gil) Fix SuperStar import for Scenes to account for scaling changes to the Pictures effect.
@@ -374,42 +382,42 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
                           (helps performance, particularly when multiple previews are shown)
    -- enh (dkulp) Fix warnings/crash if background image doesn't exist
    -- bug (dkulp) Fix crash on mac when swithing show directories.
-   -- bug (keithsw) Fix circles effect not changing colour.
-   -- bug (keithsw) Fix #589 - guard against nulll ptr
-   -- enh (keithsw) Implement alternate backup F11 allows the user to specify an alternate backup location and
+   -- bug (keith) Fix circles effect not changing colour.
+   -- bug (keith) Fix #589 - guard against nulll ptr
+   -- enh (keith) Implement alternate backup F11 allows the user to specify an alternate backup location and
            backs up there instead. There is no auto backup to this location.
-   -- bug (keithsw) Make video more resilient to missing files
-   -- enh (keithsw) Add models export - now with controller details as well
-   -- enh (keithsw) Add optional backup on save ... this is by default disabled.
-   -- enh (keithsw) Add value curves to: Music, Piano, Tendrils, Lightning, VUMeter, Wave
-   -- enh (keithsw) Allow custom value curve points to be moved sideways as well as vertically.
-   -- bug (keithsw) Fix bugs in piano effect: Piano not drawn without notes source, Polyphonic Transcription broken.
-   -- bug (keithsw) Fix problem with fire effect when buffer size changes
-   -- enh (keithsw) Add square wave to value effect presets
-   -- enh (keithsw) Add multicolour support to Tendrils ... should also fix bug with Tendril not holding colour change
-   -- bug (keithsw) Disable bitmap brightness slider and show/hide button if no bitmap defined on custom model.
+   -- bug (keith) Make video more resilient to missing files
+   -- enh (keith) Add models export - now with controller details as well
+   -- enh (keith) Add optional backup on save ... this is by default disabled.
+   -- enh (keith) Add value curves to: Music, Piano, Tendrils, Lightning, VUMeter, Wave
+   -- enh (keith) Allow custom value curve points to be moved sideways as well as vertically.
+   -- bug (keith) Fix bugs in piano effect: Piano not drawn without notes source, Polyphonic Transcription broken.
+   -- bug (keith) Fix problem with fire effect when buffer size changes
+   -- enh (keith) Add square wave to value effect presets
+   -- enh (keith) Add multicolour support to Tendrils ... should also fix bug with Tendril not holding colour change
+   -- bug (keith) Disable bitmap brightness slider and show/hide button if no bitmap defined on custom model.
 2016.37  Jun 10, 2016
-   -- enh (keithsw) Extra logging on startup to isolate problems ... also logs config so we can understand settings.
+   -- enh (keith) Extra logging on startup to isolate problems ... also logs config so we can understand settings.
    -- enh (dkulp) Allow 10K nodes/string for SingleLineModel.  Fixes #592
-   -- enh (keithsw) Allow bars effect centre for compress/expand to be moved
-   -- enh (keithsw) Add spinner model
-   -- bug (keithsw) Fix a possible crash with perspectives.
-   -- enh (keithsw) Make image files in faces and assist easier to load by not having separate filter for each file type.
+   -- enh (keith) Allow bars effect centre for compress/expand to be moved
+   -- enh (keith) Add spinner model
+   -- bug (keith) Fix a possible crash with perspectives.
+   -- enh (keith) Make image files in faces and assist easier to load by not having separate filter for each file type.
    -- bug (dkulp) Fix problems with "Single Strand" buffer mode and custom models
    -- bug (dkulp) fix "Per Preview" mode cutting off right most pixels of custom models
 2016.36  Jun 06, 2016
-   -- enh (keithsw) Change backup files to *.xbkp extension to minimise risk of users opening them accidentally. Include them in F10 backup.
+   -- enh (keith) Change backup files to *.xbkp extension to minimise risk of users opening them accidentally. Include them in F10 backup.
    -- bug (dkulp) Don't use OpenGL 2.1 if context is 2.0
 			Use glMapBufferRange instead of glBufferSubData (latter is SLOOOW on ATI cards)
    -- bug (dkulp) fix the background image button not working
    -- bug (dkulp) Update borders for singlestrand
    -- enh (dkulp) Strip out the defaults for the On/ColorWash and buffer/layer/color panels at load time.   Reduces file size
    -- bug (dkulp) Use an icon bundle with different sized icons to hopefully fix the volume meter issue on windows
-   -- bug (keithsw) Fix custom value curves not being editable when you re-open them
-   -- enh (keithsw) Value curves added to single strand, garlands, fire, plasma, curtain. color wash
-   -- bug (keithsw) Fix tendril effect
-   -- bug (keithsw) Fix custom value curves not being editable when you re-open them
-   -- bug (keithsw) When changing value curves use a sensible set of defaults.
+   -- bug (keith) Fix custom value curves not being editable when you re-open them
+   -- enh (keith) Value curves added to single strand, garlands, fire, plasma, curtain. color wash
+   -- bug (keith) Fix tendril effect
+   -- bug (keith) Fix custom value curves not being editable when you re-open them
+   -- bug (keith) When changing value curves use a sensible set of defaults.
    -- enh (cjd)  Add menu items to load/save perspectives directly
    -- enh (gil)     Add new effect Fill.
    -- enh Improve several effect toolbar icons.
@@ -420,28 +428,28 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Ability to disable/change the autosave interval.  Move settings query to its own timer (that doesn't need to be precise)
    -- bug (dkulp)  Fix subbufferpanel not clearing the lines
    -- bug (cjd)  Update makefile for linux
-   -- enh (keithsw) Add value curves to butterfly, bars, spirals, circles
-   -- enh (keithsw) Add a reset to roto-zoom
-   -- bug (keithsw) Fix lights off button. Ensure I send a lights off packet to all lights when it is turned off.
-   -- enh (keithsw) Add value curve to brightness
+   -- enh (keith) Add value curves to butterfly, bars, spirals, circles
+   -- enh (keith) Add a reset to roto-zoom
+   -- bug (keith) Fix lights off button. Ensure I send a lights off packet to all lights when it is turned off.
+   -- enh (keith) Add value curve to brightness
 2016.34  May 31, 2016
    -- bug (gil)     Fix crash when delete key was hit in Layout with no model selected.  Fixes #533.
    -- enh (gil)     Restructure how model groups are handled by providing a panel for them and allowing the
                     members of the group to be managed in the property grid area.
    -- enh (gil)     Add tilt parameter to the Arch model to allow better 3D perspective.  Fixes #250.
-   -- enh (keithsw) Add starfield option to meteors implode/explode look more like a starfield
-   -- enh (keithsw) Add autosave to .working.xml files ... saves every 3 minutes as long as the sequence is not playing
-   -- enh (keithsw) Zoom and rotate added to buffer panel including value curves for most parameters
-   -- enh (keithsw) Blur Value Curve Added
+   -- enh (keith) Add starfield option to meteors implode/explode look more like a starfield
+   -- enh (keith) Add autosave to .working.xml files ... saves every 3 minutes as long as the sequence is not playing
+   -- enh (keith) Zoom and rotate added to buffer panel including value curves for most parameters
+   -- enh (keith) Blur Value Curve Added
    -- bug (dkulp)   DOn't corrupt rgb-effects if mouth set to (off).  Fixes #577
    -- bug (dkulp)   Refresh the start/end channels when various properties (string type, strands, etc...) are changed. Fixes #575
 2016.33  May 25, 2016
    -- bug (dkulp) Maybe fix #571?   Don't post the event, call directly.
    -- bug (dkulp) don't draw the grid and then immediately refresh anyway.
    -- bug (dkulp) Log a few more opengl things, Force GDI driver down to 1.x
-   -- enh (keithsw) General import improvements: filename in title bar, warnings
+   -- enh (keith) General import improvements: filename in title bar, warnings
              if you have not saved mapping and the ability to suppress excessive error messages.
-   -- enh (keithsw) Improved xLights sequence import.
+   -- enh (keith) Improved xLights sequence import.
    -- enh (gil)   Add right-click delete model option in layout list.
    -- bug (gil)   Fix node layout for custom models. Fixes #574.
 2016.32  May 19, 2016
@@ -457,20 +465,20 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Remove some unused vars
    -- enh (dkulp) Use non-shader method for smooth points on Intel
    -- bug (dkulp) Fix setting transparency and black transparency
-   -- enh (keithsw) VideoReader ... more protection for possible divide by zero errors.
+   -- enh (keith) VideoReader ... more protection for possible divide by zero errors.
             Includes logging of any problems found.
-   -- bug (keithsw) Make logs 1MB as originally intended. These should zip to well under 50% when sent to us.
+   -- bug (keith) Make logs 1MB as originally intended. These should zip to well under 50% when sent to us.
    -- bug (cjd) Force TendrilEffect and TextEffect on foreground thread under Linux
 2016.31  May 16, 2016
    -- bug (dkulp)   Fix for Model window not displaying
 2016.30  May 16, 2016
-   -- enh (keithsw) PGO export for those LOR etc users that would like to use xlights to create their PGO files.
-   -- enh (keithsw) Add scrubbing to audio (hold control key and left mouse button on waveform)
+   -- enh (keith) PGO export for those LOR etc users that would like to use xlights to create their PGO files.
+   -- enh (keith) Add scrubbing to audio (hold control key and left mouse button on waveform)
    -- bug (gil)     Correction to FSEQ data layer import.  Should only reset sequence data on import not on render.
    -- bug (dkulp)   Fix for OpenGL on Intel graphics card. Intel 2.1 has issues with POINT_SPRITE
 2016.29  May 14, 2016
-   -- bug (keithsw) Fix prompt for custom model import so it happens after you size the custom model
-   -- enh (keithsw) Remove Papagayo tab
+   -- bug (keith) Fix prompt for custom model import so it happens after you size the custom model
+   -- enh (keith) Remove Papagayo tab
    -- bug (gil)     Fix FSEQ filetype data layer import.
    -- enh (gil)     Highlight Model row when effects are selected.  Fixes #145.
    -- enh (dkulp)   Changing timing panel to OpenGL - Mac now can support up to 60fps
@@ -482,25 +490,25 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (gil)     Add automatic channel placement in custom models with mouse clicks.
    -- enh (gil)     Add ability to lighten the custom model background image.
    -- enh (gil)     Add ability to place a background image on a custom model grid.  Fixes #5.
-   -- enh (keithsw) Add Manual Custom Model building assisted by image/video.
-   -- enh (keithsw) Add LSP timing track import
+   -- enh (keith) Add Manual Custom Model building assisted by image/video.
+   -- enh (keith) Add LSP timing track import
    -- bug (gil)     Mark the sequence dirty when sequence duration is changed to prompt for save on exit.  Fixes #563.
    -- bug (gil)     Fix jumping back to start briefly after an unpause.  Fixes #565.
 2016.28  May 10, 2016
    -- bug (gil) Better fix for effects dragging past zero. This fixes dragging a timing mark to zero seconds.
-   -- enh (keithsw) Add papagayo timing track import via Timing Track Import context menu
-   -- enh (keithsw) Add progress display during rendering all
+   -- enh (keith) Add papagayo timing track import via Timing Track Import context menu
+   -- enh (keith) Add progress display during rendering all
 2016.27  May 09, 2016
    -- bug (dkulp) Fix problems of the model groups that are set to the old default of grid
                   as per preview using a buffer significantly smaller than they used to
-   -- enh (keithsw) Add FPS display when playing the sequence
-   -- bug (keithsw) Fix a bug with filename fixups
-   -- enh (keithsw) Cleanup scaling options on Music Effect ... now via a choice - None/Individual Notes/All Notes
-   -- enh (keithsw) Sparkles now can optionally grow with music intensity
-   -- enh (keithsw) Strobe effect now can optionally grow with music intensity
-   -- enh (keithsw) Fire effect now can optionally grow with music intensity
-   -- enh (keithsw) Add timing track export/import. Includes support for Papagayo and Piano timing tracks.
-   -- bug (keithsw) Lots of fixes to auto custom model generation
+   -- enh (keith) Add FPS display when playing the sequence
+   -- bug (keith) Fix a bug with filename fixups
+   -- enh (keith) Cleanup scaling options on Music Effect ... now via a choice - None/Individual Notes/All Notes
+   -- enh (keith) Sparkles now can optionally grow with music intensity
+   -- enh (keith) Strobe effect now can optionally grow with music intensity
+   -- enh (keith) Fire effect now can optionally grow with music intensity
+   -- enh (keith) Add timing track export/import. Includes support for Papagayo and Piano timing tracks.
+   -- bug (keith) Lots of fixes to auto custom model generation
 2016.26  May 06, 2016
    -- enh (gil)   Change Render All toolbar icon and make common on Mac.  Fixes #436.
    -- bug (dkulp) Add a bunch more debugging stuff to the OpenGL things
@@ -516,15 +524,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Bunch more fixes to OPENGL calls. Now Radeon cards should work
    -- enh (dkulp) Add a menu item to select the max OpenGL version to use. Higher the version, the higher
            the eprformance of graphics. The lower, the more graphic cards that can be supported.
-   -- enh (keithsw) New option "Tools,Log". This will create a zip file of your xlights log file. No longer need to
+   -- enh (keith) New option "Tools,Log". This will create a zip file of your xlights log file. No longer need to
            search the hidden appdata directory to find it. Keith described it like this: Add "Package Problem Files"
 		   to tools menu which lets the user package current config/sequence/logs when reporting a problem.
    -- enh (dkulp) Sub-Buffers. Add ability to specify what section of a buffer you want the effect applied to
-   -- enh (keithsw) Block manual switching between wizard tabs in auto generation of custom model.
+   -- enh (keith) Block manual switching between wizard tabs in auto generation of custom model.
 2016.24  May 04, 2016
    -- bug (dkulp) Fix OPENGL calls so that Sound wavefile shows on Intel Graphics cards
 2016.23  May 03, 2016
-   -- enh (keithsw) Added new option "Tools, Generate Custom Model"
+   -- enh (keith) Added new option "Tools, Generate Custom Model"
    -- enh (dkulp) Upgrade to newer OpenGL library.
                   The OpenGL rendering has been updated from the “fixed pipeline” code
 				  (which was state of the art in 1998) to using modern OpenGL shaders (>2010).
@@ -547,33 +555,33 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
                        3 Channel RGB and controller on right.  Fixes #525.
    -- bug (gil)     Fix so playback works after an XML file import.  Fixes #535.
    -- bug (gil)     Fix SuperStar import to work with horizontal layouts.  Fixes #537.
-   -- bug (keithsw) Fix bug in music effect not working unless at the start of the song
-   -- enh (keithsw) Add video acceleration and slow down so video fully plays in time periods
+   -- bug (keith) Fix bug in music effect not working unless at the start of the song
+   -- enh (keith) Add video acceleration and slow down so video fully plays in time periods
                       different to their actual length
-   -- bug (keithsw) Fix sensitivity bug in music effect
-   -- bug (keithsw) Fix spectrograms wider than the model
-   -- bug (keithsw) Similar fix for video
+   -- bug (keith) Fix sensitivity bug in music effect
+   -- bug (keith) Fix spectrograms wider than the model
+   -- bug (keith) Similar fix for video
    -- bug (gil)     Fix Pictures effect broken by last release.
 2016.21  Apr 22, 2016
-   -- enh (keithsw) Add x/y offset and some new movements to tendril
-   -- enh (keithsw) Custom model export and import allowing simple sharing
-   -- enh (keithsw) Add x offset to piano
-   -- enh (keithsw) Add x and y offsets to select meteor effects
-   -- enh (keithsw) Add x and y offsets to select vumeter effects
-   -- enh (keithsw) Add timing track option for defining piano notes
+   -- enh (keith) Add x/y offset and some new movements to tendril
+   -- enh (keith) Custom model export and import allowing simple sharing
+   -- enh (keith) Add x offset to piano
+   -- enh (keith) Add x and y offsets to select meteor effects
+   -- enh (keith) Add x and y offsets to select vumeter effects
+   -- enh (keith) Add timing track option for defining piano notes
    -- bug (gil)     Fix first frame and last frame buttons so the grid will scroll.  Fixes #544.
-   -- enh (keithsw) Add Music Effect
-   -- enh (keithsw) Add Note On sub effect to VU Meter - Like On but you can filter the notes it responds to
-   -- enh (keithsw) Add Note Level Pulse sub effect to VU Meter - Like Level Pulse but you can
+   -- enh (keith) Add Music Effect
+   -- enh (keith) Add Note On sub effect to VU Meter - Like On but you can filter the notes it responds to
+   -- enh (keith) Add Note Level Pulse sub effect to VU Meter - Like Level Pulse but you can
                       filter the notes it responds to
-   -- enh (keithsw) Add Timing Event Colour sub effect to VU Meter - This changes colour on timing events
-   -- enh (keithsw) Add option to trigger firework effects based on the audio intensity
-   -- enh (keithsw) Add the option to vary meteor effect meteor count based on the audio intensity
-   -- enh (keithsw) Add Colour On sub effect to VU Meter - Selects a colour based on the intensity of the audio
-   -- enh (keithsw) Add the ability to constrain the frequency range of the spectrogram. Columns in
+   -- enh (keith) Add Timing Event Colour sub effect to VU Meter - This changes colour on timing events
+   -- enh (keith) Add option to trigger firework effects based on the audio intensity
+   -- enh (keith) Add the option to vary meteor effect meteor count based on the audio intensity
+   -- enh (keith) Add Colour On sub effect to VU Meter - Selects a colour based on the intensity of the audio
+   -- enh (keith) Add the ability to constrain the frequency range of the spectrogram. Columns in
                      this effect are now aligned with MIDI notes.
-   -- fix (keithsw) Ensure pictures, piano and video effect move when moving folders around
-   -- enh (keithsw) Move convert tab into a dialog under TOOLS. Now go to convert "TOOLS,CONVERT"
+   -- fix (keith) Ensure pictures, piano and video effect move when moving folders around
+   -- enh (keith) Move convert tab into a dialog under TOOLS. Now go to convert "TOOLS,CONVERT"
 2016.20  Apr 13, 2016
    -- bug (gil)   Fix right-click Paste not active after a Control-C copy.
    -- bug (gil)   Fix single copied effect not pasting to multiple cell selection.
@@ -588,8 +596,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Fix icicles buffer width
    -- enh (gil)     Add EditToolBar with Paste By Cell and Paste By Time options.  Fixes #418 and Fixes #421.
    -- enh (gil)     Add ability to select, copy, and paste timing effects. Several restrictions in place.  Fixes #366.
-   -- bug (keithsw) Fix implemented ripple missing triangle option #524
-   -- bug (keithsw) Cleaned up docking windows toolbar icons #519
+   -- bug (keith) Fix implemented ripple missing triangle option #524
+   -- bug (keith) Cleaned up docking windows toolbar icons #519
 2016.18  Apr 7, 2016
    -- bug (gil)   Fix bug when Papagayo timing was collapsed and selected grid cell selection wasn't working.
    -- bug (gil)   Fix Delete key operation so it doesn't do a Cut unless Shift is pressed.
@@ -599,17 +607,17 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Find a solution to some crashing in release builds
    -- bug (dkulp) Remove model properties dialog and model list dialog
    -- bug (dkulp) Fix crash in editing groups
-   -- enh (keithsw) Add writing of FPP universes file when saving networks
-   -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log
+   -- enh (keith) Add writing of FPP universes file when saving networks
+   -- bug (keith) Fix logging on windows ... log file is named xlights_l4cpp.log
          found typically in c:\users\<user>\AppData\Roaming
 2016.17  Apr 3, 2016
-   -- enh (keithsw) Add writing of FPP universes file when saving networks
-   -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log
+   -- enh (keith) Add writing of FPP universes file when saving networks
+   -- bug (keith) Fix logging on windows ... log file is named xlights_l4cpp.log
           found typically in c:\users\<user>\AppData\Roaming
    -- bug (dkulp) Fix text effect on Windows
    -- bug (dkulp) Fix single lines that are 1 channel/string with multiple lights
    -- bug (dkulp) Fix circle radius
-   -- bug (keithsw) Add true cancel when mis-loading a sequence when in wrong folder ...
+   -- bug (keith) Add true cancel when mis-loading a sequence when in wrong folder ...
                  what it actually does is just delete all models that dont exist ...
 				 you should then not save the sequence.
    -- enh (sean) Added "bin/xlights.windows.properties" to installation script per Keith's request
@@ -631,31 +639,31 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (gil)   Add mutex to prevent crash when deleting presets rapidly.  Fixes #495.
    -- enh (gil)   Shift key will help snap model handles to horizontal/vertical alignments for two handle models.
    -- enh (gil)   Draw red/blue alignment lines for two handle models.
-   -- bug (keithsw) Fix test dialog handling of multi-universe E131
-   -- bug (keithsw) Fix test dialog handling of different start pixel specifications on models
-   -- enh (keithsw) Move windows version to wxWidgets 3.1
+   -- bug (keith) Fix test dialog handling of multi-universe E131
+   -- bug (keith) Fix test dialog handling of different start pixel specifications on models
+   -- enh (keith) Move windows version to wxWidgets 3.1
 2016.14  Mar 23, 2016
-   -- enh (keithsw) Piano support for audacity file reading.
+   -- enh (keith) Piano support for audacity file reading.
    -- bug (dkulp) Fix crash if mapping maps a model that isn't used in the source sequence. This fixes #505
    -- enh (dkulp) Change how the group add/remove/editing is handled in Layout
    -- enh (dkulp) New model type "CandyCanes". Added cane rotation
-   -- enh (keithsw) log capture on crash in debug report.
-   -- bug (keithsw) Fix bulbs flashing in test mode.
-   -- enh (keithsw) log4cpp added. These are library routines that allow enhanced logging of errors.
-   -- bug (keithsw) Add back in output control in test mode.
-   -- enh (keithsw) Redevelop Piano effect ... this is a ground up rewrite and is not compatible with the old piano effect.
-   -- enh (keithsw) Add logging as a runtime capability for better debugability
-   -- bug (keithsw) Fix LOR controllers in test mode Fix #502
-   -- bug (keithsw) Add back in multiselection in test mode
+   -- enh (keith) log capture on crash in debug report.
+   -- bug (keith) Fix bulbs flashing in test mode.
+   -- enh (keith) log4cpp added. These are library routines that allow enhanced logging of errors.
+   -- bug (keith) Add back in output control in test mode.
+   -- enh (keith) Redevelop Piano effect ... this is a ground up rewrite and is not compatible with the old piano effect.
+   -- enh (keith) Add logging as a runtime capability for better debugability
+   -- bug (keith) Fix LOR controllers in test mode Fix #502
+   -- bug (keith) Add back in multiselection in test mode
    -- bug (gil)     Fix timings not draw correctly when window is resized. Fixes #504.
    -- bug (gil)     Fix Pictures scaling issues.  Fixes #501.
 2016.13  Mar 15, 2016
    -- enh (gil) Added gradient option to bars effect
-   -- enh (keithsw) Add a colour aware test mode ... RGBW.
+   -- enh (keith) Add a colour aware test mode ... RGBW.
    -- enh (dkulp)   Optimize the redraws on timer events a bit.
                       Drops CPU usage from 95% to about 60% on my machine.
    -- bug (gil)     Send render event for effects pasted to multiple cells.  Fixes #497.
-   -- enh (keithsw) Move test tab to a separate dialog ... add new ways of selecting channels for testing.
+   -- enh (keith) Move test tab to a separate dialog ... add new ways of selecting channels for testing.
                   Access new TEST tab by going "Tools,Test" from main menu. We removed the TEST tab.
                   Side effect of this change is that switching show directories is now 1000% faster
    -- bug (gil)     Restore the audacity style operation of the Play button and fix animation play/pause.  Fixes #493.
@@ -669,16 +677,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 2016.11  Mar 8, 2016
    -- bug (sean)    Modified Windows install script to it always prompts for install directory
    -- enh (sean)    Updated xlights icon images from Charles Suhr. Fixes ragged edge.
-   -- enh (keithsw) Add video looping
-   -- bug (keithsw) Fix some video formats that were not playing
-   -- bug (keithsw) Fix audio controls on the toolbar
+   -- enh (keith) Add video looping
+   -- bug (keith) Fix some video formats that were not playing
+   -- bug (keith) Fix audio controls on the toolbar
    -- bug (gil)     Fix bug moving effects that aren't fully visible.  Fixes #488.
    -- bug (gil)     Allow min period effects to move with mouse.  Fixes #479.
    -- bug (dkulp)   Imports from other formats were generating invalid key ID's
    -- bug (dkulp)   Pictures imported from SS were not displaying properly
    -- enh (dkulp)   Update On/ColorWash to only output non-defaults in XML
 2016.10  Mar 3, 2016
-   -- enh (keithsw) Support old-school CTRL-INSERT, SHIFT-INSERT and SHIFT-DELETE (windows only)
+   -- enh (keith) Support old-school CTRL-INSERT, SHIFT-INSERT and SHIFT-DELETE (windows only)
    -- bug (dkulp)   Fix problem with first pixel with grouped arches in SingleStrand . Fixes #474
    -- bug (dkulp)   Fix crash on close when preview running
    -- bug (dkulp)   Fix color/blur sliders not updating to defaults.  Fixes #477.  Fixes #476.
@@ -687,16 +695,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
                   This failure was found when testing a sequence of 900K channels on a MAC
    -- enh (dkulp)   Add begin/end effect transitions
    -- enh (gil)     Update Morph to use all 8 colors allowing 6 color tails.
-   -- enh (keithsw) Add video effect. Now supports *.mp4, *.mpg, *.avi, *.mov, *.flv, *.mkv, *.asf
+   -- enh (keith) Add video effect. Now supports *.mp4, *.mpg, *.avi, *.mov, *.flv, *.mkv, *.asf
    -- bug (gil)     Fix crash when moving effect left or right with arrow keys and not timing track active.  Fixes #473.
-   -- enh (keithsw) Replace media handling with ffmpeg and SDL eliminating the VBR problem and adding new media support.
-   -- enh (keithsw) Add tooltips to explain controller and channel a xLights channel maps to
-   -- enh (keithsw) Handle movement of show directory (as long as it isnt renamed) automatically
+   -- enh (keith) Replace media handling with ffmpeg and SDL eliminating the VBR problem and adding new media support.
+   -- enh (keith) Add tooltips to explain controller and channel a xLights channel maps to
+   -- enh (keith) Handle movement of show directory (as long as it isnt renamed) automatically
 2016.9  Feb 24, 2016
    -- enh (gil)   Allow single effect to be moved left and right using arrow keys if timing grid is active.
    -- enh (gil)   Allow single effect to be moved up and down on grid.  No longer restricted to a single model.
-   -- enh (keithsw) Add description against rows on the setup tab Issue #422
-   -- enh (keithsw) Add View->Windows->Dock All menu item to wrangle all free windows back into their docked position
+   -- enh (keith) Add description against rows on the setup tab Issue #422
+   -- enh (keith) Add View->Windows->Dock All menu item to wrangle all free windows back into their docked position
    -- enh (gil)   Pictures effect change: Separate scale as an independent parameter and allow start and end scaling motions.  Fixes #451.
    -- bug (gil)   Fix bug when pasting single effects and fix copy row bug when multiple effects are selected.
    -- bug (gil)   Clear waveform when switching to an animation.  Fixes #469.
@@ -707,11 +715,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (dkulp) Use dimming curve from individual models when applying effects to Groups
    -- enh (dkulp) Change to "Smooth" as default for pixel appearance when loading old rgbeffects
    -- bug (dkulp) Make sure we don't have Models and ModelGroups of the same name when loading rgbeffects
-   -- enh (keithsw) Added blur capability in the layer blending window
+   -- enh (keith) Added blur capability in the layer blending window
    -- bug (gil)  Fix crash if down arrow is hit on a timing track.
-   -- bug (keithsw) Fix crash if two 2016 versions are compared
+   -- bug (keith) Fix crash if two 2016 versions are compared
    -- regr(dkulp) If media from XML doesn't exist but is in the Media directory, use it from there.
-   -- bug (keithsw) Fix false positive VBR file detection
+   -- bug (keith) Fix false positive VBR file detection
 2016.8  Feb 16, 2016
    -- bug(gil)   Allow media sequence to play to defined duration and not stop at media length. Fixes #138.
    -- enh(gil)   Add Layered description to tooltip.  Fixes #179.
@@ -719,11 +727,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug(gil)   Rebuild sequence data length when media file is changed.
    -- enh(gil)   Model groups are now indicated with an icon on sequencer grid.
    -- enh(gil)   Morph corner images now have a minimum size so they are always easily seen.
-   -- enh(keithsw) Add music suppport to Tendril effect.
+   -- enh(keith) Add music suppport to Tendril effect.
    -- bug(dkulp) Fix faces not blinking properly. Fixes #458
    -- bug(dkulp) DisplayElements panel default display is not sized correctly on Mac.  Fixes #466
    -- bug(dkulp) Check to make sure a model exists before adding it to a sequence
-   -- enh(keithsw) Add VUMeter effect (very much beta in this release. Appearance may change in near future releases. Please do not rely on it at this stage)
+   -- enh(keith) Add VUMeter effect (very much beta in this release. Appearance may change in near future releases. Please do not rely on it at this stage)
    -- bug(gil)   Fix selected cells moving into timing area when vertically scrolling.  Fixes #419.
    -- bug(gil)   Fix arrow keys not moving selection properly which could cause hotkey paste in wrong locations. Fixes #432.
    -- bug(gil)   Fix effect duplicating when using arrow keys on grid.  Fixes #424.
@@ -732,7 +740,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug(dkulp) Fix crashes on animations
    -- bug(dkulp) Fix crashes caused by old Whole House Models
 2016.6  Feb 07, 2016
-   -- enh(keithsw) Add warning when using variable bit rate audio files
+   -- enh(keith) Add warning when using variable bit rate audio files
    -- bug(dkulp) Fix channel number on nodes in CustomModel
    -- bug(gil)   Add missing Circle model to new ModelManager.
 2016.5  Feb 05, 2016
@@ -768,9 +776,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh(dkulp) Update Linux Text effect to render on background thread
    -- bug(dkulp) Linux toolbar buttons sizing problem and buttons on effect panel
    -- enh(dkulp) Plasma/Butterfly/Meteors render performance enhancements
-   -- enh(keithsw) Add tendrils effect. Also includes introduction of GraphicsContext.
+   -- enh(keith) Add tendrils effect. Also includes introduction of GraphicsContext.
                  Builders please see README.Windows for rebuild instructions.
-   -- enh(keithsw) Add natural snowfall without accumulating to the snowflakes effect
+   -- enh(keith) Add natural snowfall without accumulating to the snowflakes effect
 4.3.02  Jan 8, 2016
    -- enh(gil)   Add copy/paste tool to the Picture Effect Assist window.
 4.3.01  Jan 3, 2016
@@ -846,7 +854,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug(dkulp) Fix problem where numChannels*numFrames > 2G
    -- bug(gil)   Fix Marquee not rendering smooth when reverse is checked.
 4.2.16  Oct 13, 2015
-   -- bug(keithsw) Fix broken picture wiggle style
+   -- bug(keith) Fix broken picture wiggle style
    -- enh (sean) Added slider to give horizontal movement to lightning bolts
    -- enh (sean) Added check box to give chose to have forked lightning.
 4.2.15  Oct 08, 2015
@@ -855,14 +863,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh(ChrisD) Add application launcher for linux
    -- bug(ChrisD) New timing dialog should be titled as such (partial fix for issue #377)
    -- bug(gil)   Buttons will now re-enable after an LSP export model operation.
-   -- enh(Keithsw) New feature in pictures, tiled pictures
+   -- enh(Keith) New feature in pictures, tiled pictures
    -- bug(gil)   Fix potential crashes for all imports where models may be hidden.
    -- bug(gil)   Fix LSP import effects when a target model is hidden.
    -- enh (sean) New effect class Lightning
    -- bug(gil)   Sequence SaveAs was not saving XML in new directory.
    -- bug(gil)   Remove fixed attribute for timing track converted to papagayo timing.
    -- enh(gil)   Add LOR conversion option to show verbose channel mapping.
-   -- enh(Keithsw) Updated tile code to support x/y offsets in Picture effect
+   -- enh(Keith) Updated tile code to support x/y offsets in Picture effect
    -- bug(dkulp) After deleting an effect, if you hit Up/Down, crash will result
    -- bug(dkulp) Use native ObjectC code for clipboard paste for custom models to support pasting from Numbers
    -- bug(dkulp) Click on a "node" may not hit test properly if an effect exists on the model or strand layers

@@ -150,7 +150,6 @@ public:
 		void OnSlider_ZoomCmdSliderUpdated(wxScrollEvent& event);
 		void OnSlider_RotationCmdSliderUpdated(wxScrollEvent& event);
 		void OnBufferTransformSelect(wxCommandEvent& event);
-		void OnButton_PropertiesClick(wxCommandEvent& event);
 		void OnSlider_RotationsCmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_RotationsText(wxCommandEvent& event);
 		void OnTextCtrl_ZoomText(wxCommandEvent& event);
@@ -164,7 +163,9 @@ public:
 		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnButton_ResetClick(wxCommandEvent& event);
-		//*)
+        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+        //*)
 
 		DECLARE_EVENT_TABLE()
 };

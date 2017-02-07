@@ -119,6 +119,7 @@ void FSEQFile::Load(const std::string& filename)
 
     if (_fh->IsOpened())
     {
+        int offset = 0;
         char tag[5];
         memset(tag, 0x00, sizeof(tag));
         _fh->Read(tag, sizeof(tag)-1);
@@ -127,25 +128,28 @@ void FSEQFile::Load(const std::string& filename)
             _frame0Offset = ReadInt16(_fh);
             _fh->Read(&_minorVersion, sizeof(_minorVersion));
             _fh->Read(&_majorVersion, sizeof(_majorVersion));
-            ReadInt16(_fh); // fixed header length
+            int fixedheader = ReadInt16(_fh); // fixed header length
             _channelsPerFrame = ReadInt32(_fh);
             _frames = ReadInt32(_fh);
             _frameMS = ReadInt16(_fh);
-            ReadInt16(_fh); // universes
-            ReadInt16(_fh); // universe size
+            int universes = ReadInt16(_fh); // universes
+            int usize  = ReadInt16(_fh); // universe size
             _gamma = _fh->Read(&_gamma, sizeof(_gamma));
             _fh->Read(&_colourEncoding, sizeof(_colourEncoding));
-            ReadInt16(_fh); // fill
-            int mediafilenamelength = ReadInt16(_fh);
-            if (mediafilenamelength > 0)
+            int fill = ReadInt16(_fh); // fill
+            if (_frame0Offset > 28)
             {
-                char* buf = (char*)malloc(mediafilenamelength + 1);
-                memset(buf, 0x00, mediafilenamelength + 1);
-                ReadInt16(_fh); // mf
-                _fh->Read(buf, mediafilenamelength);
-                _audiofilename = std::string(buf);
-                _audiofilename = FSEQFile::FixFile("", _audiofilename);
-                free(buf);
+                int mediafilenamelength = ReadInt16(_fh);
+                if (mediafilenamelength > 0)
+                {
+                    char* buf = (char*)malloc(mediafilenamelength + 1);
+                    memset(buf, 0x00, mediafilenamelength + 1);
+                    ReadInt16(_fh); // mf
+                    _fh->Read(buf, mediafilenamelength);
+                    _audiofilename = std::string(buf);
+                    _audiofilename = FSEQFile::FixFile("", _audiofilename);
+                    free(buf);
+                }
             }
             _currentFrame = 0;
             _frameBuffer = (wxByte*)malloc(_channelsPerFrame);
