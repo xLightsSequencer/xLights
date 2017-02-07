@@ -199,21 +199,12 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
              .
              */
 
-            a = buffer.BufferWi/(NumberWaves/180) ;
-            if (a <1) a=1;
+            double waves = ((double)NumberWaves/180.0) / 5; // number of waves
+            int wavelen = buffer.BufferWi / waves;
+            int amp = buffer.BufferHt * WaveHeight / 100;
 
-            dy = a/2;
-            if(dy<1) dy=1;
-
-            modx = state%(int) dy;
-            modx2 = state%(int) a;
-            if(modx2>dy)
-                ystart = yc - modx*dy ;
-            else
-                ystart = yc + modx*dy ;
-
-
-            //  if( buffer.sin(radian)<0.0) ystart=-ystart;
+            ystart = (buffer.BufferHt - amp) / 2 + abs((int)((state / 10 + x) * waves) % (int)(2 * amp) - amp);
+            if (ystart > buffer.BufferHt - 1) ystart = buffer.BufferHt - 1;
         } else if (WaveType == WAVETYPE_IVYFRACTAL) {
             int eff_x = (WaveDirection? x: buffer.BufferWi - x - 1) + buffer.BufferWi * (state / 2 / buffer.BufferWi); //effective x before wrap
             if (eff_x >= NumberWaves * buffer.BufferWi) break;
