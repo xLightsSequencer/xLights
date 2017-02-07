@@ -32,6 +32,8 @@ END_EVENT_TABLE()
 
 void PlayListItemRunCommandPanel::SetChoiceFromString(wxChoice* choice, std::string value)
 {
+    int sel = choice->GetSelection();
+
     choice->SetSelection(-1);
     for (size_t i = 0; i < choice->GetCount(); i++)
     {
@@ -41,6 +43,8 @@ void PlayListItemRunCommandPanel::SetChoiceFromString(wxChoice* choice, std::str
             return;
         }
     }
+
+    choice->SetSelection(sel);
 }
 
 PlayListItemRunCommandPanel::PlayListItemRunCommandPanel(wxWindow* parent, PlayListItemRunCommand* Command, wxWindowID id,const wxPoint& pos,const wxSize& size)

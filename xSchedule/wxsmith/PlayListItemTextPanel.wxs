@@ -160,23 +160,6 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText8" member="yes">
-					<label>Color:</label>
-				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxButton" name="ID_BUTTON2" variable="Button_Color" member="yes">
-					<label>Color</label>
-					<handler function="OnButton_ColorClick" entry="EVT_BUTTON" />
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText10" member="yes">
 					<label>Blend Mode:</label>
 				</object>
@@ -227,10 +210,28 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText8" member="yes">
+					<label>Priority:</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSpinCtrl" name="ID_SPINCTRL4" variable="SpinCtrl_Priority" member="yes">
+					<value>5</value>
+					<min>1</min>
+					<max>10</max>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText9" member="yes">
 					<label>Duration:</label>
 				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_LEFT</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

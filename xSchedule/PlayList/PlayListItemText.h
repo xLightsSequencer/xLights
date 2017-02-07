@@ -23,14 +23,15 @@ protected:
     std::string _type;
     std::string _orientation;
     std::string _movement;
-    wxFont _font;
+    wxFont* _font;
     int _x;
     int _y;
+    wxSize _maxSize;
     MatrixMapper* _matrixMapper;
     #pragma endregion Member Variables
 
     std::string GetText(size_t ms);
-    wxPoint GetLocation(size_t ms);
+    wxPoint GetLocation(size_t ms, wxSize size);
     void SetPixel(wxByte* p, wxByte r, wxByte g, wxByte b, APPLYMETHOD blendMode);
 
 public:
@@ -64,8 +65,8 @@ public:
     std::string GetOrientation() const { return _orientation; }
     void SetMovement(const std::string& movement) { if (_movement != movement) { _movement = movement; _changeCount++; } }
     std::string GetMovement() const { return _movement; }
-    void SetFont(const wxFont& font) { if (_font != font) { _font = font; _changeCount++; } }
-    wxFont GetFont() const { return _font; }
+    void SetFont(wxFont* font);
+    wxFont* GetFont() const { return _font; }
     void SetX(int x) { if (_x != x) { _x = x; _changeCount++; } }
     int GetX() const { return _x; }
     void SetY(int y) { if (_y != y) { _y = y; _changeCount++; } }

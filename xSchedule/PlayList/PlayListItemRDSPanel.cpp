@@ -33,6 +33,8 @@ END_EVENT_TABLE()
 
 void PlayListItemRDSPanel::SetChoiceFromString(wxChoice* choice, std::string value)
 {
+    int sel = choice->GetSelection();
+
     choice->SetSelection(-1);
     for (size_t i = 0; i < choice->GetCount(); i++)
     {
@@ -42,6 +44,8 @@ void PlayListItemRDSPanel::SetChoiceFromString(wxChoice* choice, std::string val
             return;
         }
     }
+
+    choice->SetSelection(sel);
 }
 
 PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rds, wxWindowID id,const wxPoint& pos,const wxSize& size)

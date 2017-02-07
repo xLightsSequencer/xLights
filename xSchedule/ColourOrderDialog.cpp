@@ -27,6 +27,8 @@ END_EVENT_TABLE()
 
 void ColourOrderDialog::SetChoiceFromString(wxChoice* choice, std::string value)
 {
+    int sel = choice->GetSelection();
+
     choice->SetSelection(-1);
     for (size_t i = 0; i < choice->GetCount(); i++)
     {
@@ -36,6 +38,8 @@ void ColourOrderDialog::SetChoiceFromString(wxChoice* choice, std::string value)
             return;
         }
     }
+
+    choice->SetSelection(sel);
 }
 
 ColourOrderDialog::ColourOrderDialog(wxWindow* parent, size_t& startChannel, size_t& nodes, size_t& colourOrder, std::string& description,wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _nodes(nodes), _colourOrder(colourOrder), _description(description)

@@ -33,14 +33,14 @@ const long PlayListItemTextPanel::ID_STATICTEXT4 = wxNewId();
 const long PlayListItemTextPanel::ID_CHOICE2 = wxNewId();
 const long PlayListItemTextPanel::ID_STATICTEXT6 = wxNewId();
 const long PlayListItemTextPanel::ID_SPINCTRL1 = wxNewId();
-const long PlayListItemTextPanel::ID_STATICTEXT8 = wxNewId();
-const long PlayListItemTextPanel::ID_BUTTON2 = wxNewId();
 const long PlayListItemTextPanel::ID_STATICTEXT10 = wxNewId();
 const long PlayListItemTextPanel::ID_CHOICE4 = wxNewId();
 const long PlayListItemTextPanel::ID_STATICTEXT12 = wxNewId();
 const long PlayListItemTextPanel::ID_SPINCTRL2 = wxNewId();
 const long PlayListItemTextPanel::ID_STATICTEXT13 = wxNewId();
 const long PlayListItemTextPanel::ID_SPINCTRL3 = wxNewId();
+const long PlayListItemTextPanel::ID_STATICTEXT8 = wxNewId();
+const long PlayListItemTextPanel::ID_SPINCTRL4 = wxNewId();
 const long PlayListItemTextPanel::ID_STATICTEXT9 = wxNewId();
 const long PlayListItemTextPanel::ID_TEXTCTRL3 = wxNewId();
 //*)
@@ -52,6 +52,8 @@ END_EVENT_TABLE()
 
 void PlayListItemTextPanel::SetChoiceFromString(wxChoice* choice, std::string value)
 {
+    int sel = choice->GetSelection();
+
     choice->SetSelection(-1);
     for (size_t i = 0; i < choice->GetCount(); i++)
     {
@@ -61,6 +63,8 @@ void PlayListItemTextPanel::SetChoiceFromString(wxChoice* choice, std::string va
             return;
         }
     }
+
+    choice->SetSelection(sel);
 }
 
 
@@ -123,10 +127,6 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
 	SpinCtrl_Speed = new wxSpinCtrl(this, ID_SPINCTRL1, _T("10"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 10, _T("ID_SPINCTRL1"));
 	SpinCtrl_Speed->SetValue(_T("10"));
 	FlexGridSizer1->Add(SpinCtrl_Speed, 1, wxALL|wxEXPAND, 5);
-	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Color:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-	FlexGridSizer1->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Color = new wxButton(this, ID_BUTTON2, _("Color"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-	FlexGridSizer1->Add(Button_Color, 1, wxALL|wxEXPAND, 5);
 	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("Blend Mode:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
 	FlexGridSizer1->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_BlendMode = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
@@ -141,8 +141,13 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
 	SpinCtrl_Y = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -1000, 1000, 0, _T("ID_SPINCTRL3"));
 	SpinCtrl_Y->SetValue(_T("0"));
 	FlexGridSizer1->Add(SpinCtrl_Y, 1, wxALL|wxEXPAND, 5);
+	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Priority:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+	FlexGridSizer1->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_Priority = new wxSpinCtrl(this, ID_SPINCTRL4, _T("5"), wxDefaultPosition, wxDefaultSize, 0, 1, 10, 5, _T("ID_SPINCTRL4"));
+	SpinCtrl_Priority->SetValue(_T("5"));
+	FlexGridSizer1->Add(SpinCtrl_Priority, 1, wxALL|wxEXPAND, 5);
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, _("Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
-	FlexGridSizer1->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(StaticText9, 1, wxALL|wxALIGN_LEFT, 5);
 	TextCtrl_Duration = new wxTextCtrl(this, ID_TEXTCTRL3, _("0.050"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer1->Add(TextCtrl_Duration, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -151,7 +156,6 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PlayListItemTextPanel::OnChoice_TypeSelect);
-	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListItemTextPanel::OnButton_ColorClick);
 	//*)
 
     auto bms = FSEQFile::GetBlendModes();
@@ -159,7 +163,7 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
     {
         Choice_BlendMode->AppendString(*it);
     }
-    Choice_BlendMode->SetSelection(0);
+    Choice_BlendMode->SetSelection(1);
 
     auto m = xScheduleFrame::GetScheduleManager()->GetOptions()->GetMatrices();
     for (auto it = m->begin(); it != m->end(); ++it)
@@ -172,8 +176,8 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
     TextCtrl_Text->SetValue(text->GetText());
     TextCtrl_Format->SetValue(text->GetFormat());
     SpinCtrl_Speed->SetValue(text->GetSpeed());
-    FontPickerCtrl1->SetSelectedFont(text->GetFont());
-    Button_Color->SetBackgroundColour(text->GetColour());
+    FontPickerCtrl1->SetSelectedFont(*text->GetFont());
+    FontPickerCtrl1->SetSelectedColour(text->GetColour());
     SetChoiceFromString(Choice_Orientation, text->GetOrientation());
     SetChoiceFromString(Choice_Movement, text->GetMovement());
     SetChoiceFromString(Choice_Type, text->GetType());
@@ -182,6 +186,7 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
     SetChoiceFromString(Choice_Matrices, text->GetMatrix());
     SpinCtrl_X->SetValue(_text->GetX());
     SpinCtrl_Y->SetValue(_text->GetY());
+    SpinCtrl_Priority->SetValue(_text->GetPriority());
 
     ValidateWindow();
 }
@@ -194,8 +199,8 @@ PlayListItemTextPanel::~PlayListItemTextPanel()
     _text->SetText(TextCtrl_Text->GetValue().ToStdString());
     _text->SetFormat(TextCtrl_Format->GetValue().ToStdString());
     _text->SetSpeed(SpinCtrl_Speed->GetValue());
-    _text->SetFont(FontPickerCtrl1->GetSelectedFont());
-    _text->SetColour(Button_Color->GetBackgroundColour());
+    _text->SetFont(new wxFont(FontPickerCtrl1->GetSelectedFont()));
+    _text->SetColour(FontPickerCtrl1->GetSelectedColour());
     _text->SetOrientation(Choice_Orientation->GetStringSelection().ToStdString());
     _text->SetMovement(Choice_Movement->GetStringSelection().ToStdString());
     _text->SetType(Choice_Type->GetStringSelection().ToStdString());
@@ -205,25 +210,12 @@ PlayListItemTextPanel::~PlayListItemTextPanel()
     _text->SetX(SpinCtrl_X->GetValue());
     _text->SetY(SpinCtrl_Y->GetValue());
     _text->SetName(TextCtrl_Name->GetValue().ToStdString());
+    _text->SetPriority(SpinCtrl_Priority->GetValue());
 }
 
 void PlayListItemTextPanel::OnChoice_TypeSelect(wxCommandEvent& event)
 {
     ValidateWindow();
-}
-
-void PlayListItemTextPanel::OnButton_ColorClick(wxCommandEvent& event)
-{
-    wxColourData colorData;
-    wxColour colour = Button_Color->GetBackgroundColour();
-    colorData.SetColour(colour);
-    wxColourDialog dialog(this, &colorData);
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        wxColourData retData = dialog.GetColourData();
-        colour = retData.GetColour();
-        Button_Color->SetBackgroundColour(colour);
-    }
 }
 
 void PlayListItemTextPanel::ValidateWindow()

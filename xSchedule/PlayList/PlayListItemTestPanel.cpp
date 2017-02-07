@@ -35,6 +35,8 @@ END_EVENT_TABLE()
 
 void PlayListItemTestPanel::SetChoiceFromString(wxChoice* choice, std::string value)
 {
+    int sel = choice->GetSelection();
+
     choice->SetSelection(-1);
     for (size_t i = 0; i < choice->GetCount(); i++)
     {
@@ -44,6 +46,8 @@ void PlayListItemTestPanel::SetChoiceFromString(wxChoice* choice, std::string va
             return;
         }
     }
+
+    choice->SetSelection(sel);
 }
 
 PlayListItemTestPanel::PlayListItemTestPanel(wxWindow* parent, PlayListItemTest* test, wxWindowID id,const wxPoint& pos,const wxSize& size)

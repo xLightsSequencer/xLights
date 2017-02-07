@@ -8,7 +8,6 @@
 #include <wx/spinctrl.h>
 #include <wx/panel.h>
 #include <wx/choice.h>
-#include <wx/button.h>
 #include <wx/fontpicker.h>
 //*)
 
@@ -38,7 +37,6 @@ class PlayListItemTextPanel: public wxPanel
 		wxStaticText* StaticText2;
 		wxChoice* Choice_Matrices;
 		wxStaticText* StaticText6;
-		wxButton* Button_Color;
 		wxSpinCtrl* SpinCtrl_Speed;
 		wxChoice* Choice_Movement;
 		wxStaticText* StaticText8;
@@ -47,6 +45,7 @@ class PlayListItemTextPanel: public wxPanel
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Format;
+		wxSpinCtrl* SpinCtrl_Priority;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText_Text;
@@ -77,14 +76,14 @@ class PlayListItemTextPanel: public wxPanel
 		static const long ID_CHOICE2;
 		static const long ID_STATICTEXT6;
 		static const long ID_SPINCTRL1;
-		static const long ID_STATICTEXT8;
-		static const long ID_BUTTON2;
 		static const long ID_STATICTEXT10;
 		static const long ID_CHOICE4;
 		static const long ID_STATICTEXT12;
 		static const long ID_SPINCTRL2;
 		static const long ID_STATICTEXT13;
 		static const long ID_SPINCTRL3;
+		static const long ID_STATICTEXT8;
+		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT9;
 		static const long ID_TEXTCTRL3;
 		//*)

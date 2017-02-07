@@ -36,7 +36,7 @@ PlayListStep::PlayListStep(wxXmlNode* node)
 
 bool compare_priority(const PlayListItem* first, const PlayListItem* second)
 {
-    return first->GetPriority() < second->GetPriority();
+    return first->GetPriority() > second->GetPriority();
 }
 
 PlayListStep::PlayListStep()

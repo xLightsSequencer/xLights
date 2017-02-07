@@ -31,6 +31,8 @@ END_EVENT_TABLE()
 
 void MatrixDialog::SetChoiceFromString(wxChoice* choice, std::string value)
 {
+    int sel = choice->GetSelection();
+
     choice->SetSelection(-1);
     for (size_t i = 0; i < choice->GetCount(); i++)
     {
@@ -40,6 +42,8 @@ void MatrixDialog::SetChoiceFromString(wxChoice* choice, std::string value)
             return;
         }
     }
+
+    choice->SetSelection(sel);
 }
 
 MatrixDialog::MatrixDialog(wxWindow* parent, std::string& name, std::string& orientation, std::string& startingLocation, int& stringLength, int& strings, int& strandsPerString, long startChannel, wxWindowID id,const wxPoint& pos,const wxSize& size) : _name(name), _orientation(orientation), _startChannel(startChannel), _startingLocation(startingLocation), _strandsPerString(strandsPerString), _strings(strings), _stringLength(stringLength)

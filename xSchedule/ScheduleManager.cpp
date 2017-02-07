@@ -3071,7 +3071,8 @@ bool ScheduleManager::DoText(PlayListItemText* pliText, const std::string& text,
             {
                 wxFont font;
                 font.SetNativeFontInfoUserDesc(pv[1]);
-                pliText->SetFont(font);
+                auto f = wxTheFontList->FindOrCreateFont(font.GetPointSize(), font.GetFamily(), font.GetStyle(), font.GetWeight(), font.GetUnderlined(), font.GetFaceName(), font.GetEncoding());
+                pliText->SetFont(f);
             }
             else if (pvl == "x")
             {

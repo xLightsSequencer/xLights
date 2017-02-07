@@ -32,6 +32,8 @@ END_EVENT_TABLE()
 
 void VirtualMatrixDialog::SetChoiceFromString(wxChoice* choice, std::string value)
 {
+    int sel = choice->GetSelection();
+
     choice->SetSelection(-1);
     for (size_t i = 0; i < choice->GetCount(); i++)
     {
@@ -41,6 +43,8 @@ void VirtualMatrixDialog::SetChoiceFromString(wxChoice* choice, std::string valu
             return;
         }
     }
+
+    choice->SetSelection(sel);
 }
 
 VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, long startChannel, wxWindowID id, const wxPoint& pos, const wxSize& size) : _name(name), _rotation(rotation), _startChannel(startChannel), _width(width), _height(height), _topMost(topMost), _size(vmsize), _location(vmlocation), _quality(quality)
