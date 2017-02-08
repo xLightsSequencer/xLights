@@ -4478,7 +4478,7 @@ void xLightsFrame::OnMenuItem_Help_FacebookSelected(wxCommandEvent& event)
     ::wxLaunchDefaultBrowser("https://www.facebook.com/groups/628061113896314/");
 }
 
-int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime)
+int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles)
 {
     int effects = 0;
     wxString type = "Node";
@@ -4487,6 +4487,8 @@ int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n,
     for (int k = 0; k < nl->GetEffectCount(); k++)
     {
         Effect* ef = nl->GetEffect(k);
+        RenderableEffect *eff = effectManager[ef->GetEffectIndex()];
+        auto files = eff->GetFileReferences(ef->GetSettings());
         int duration = ef->GetEndTimeMS() - ef->GetStartTimeMS();
         if (effectfrequency.find(ef->GetEffectName()) != effectfrequency.end())
         {
@@ -4499,8 +4501,20 @@ int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n,
             effectTotalTime[ef->GetEffectName()] = duration;
         }
 
+        std::string fs = "";
+        for(auto it = files.begin(); it != files.end(); ++it)
+        {
+            if (fs!= "" )
+            {
+                fs += ",";
+            }
+            fs += (*it);
+        }
+
+        allfiles.splice(allfiles.end(), files);
+
         SettingsMap& sm = ef->GetSettings();
-        f.Write(wxString::Format("\"%s\",%02d:%02d.%03d,%02d:%02d.%03d,%02d:%02d.%03d,\"%s\",\"%s\",%s\n",
+        f.Write(wxString::Format("\"%s\",%02d:%02d.%03d,%02d:%02d.%03d,%02d:%02d.%03d,\"%s\",\"%s\",%s,%s\n",
             ef->GetEffectName(),
             ef->GetStartTimeMS() / 60000,
             (ef->GetStartTimeMS() % 60000) / 1000,
@@ -4513,14 +4527,16 @@ int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n,
             duration % 1000,
             sm.Contains("X_Effect_Description") ? sm["X_Effect_Description"] : "",
             name,
-            type));
+            type,
+            fs
+        ));
         effects++;
     }
 
     return effects;
 }
 
-int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime)
+int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles)
 {
     int effects = 0;
 
@@ -4561,6 +4577,8 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
             for (int k = 0; k < el->GetEffectCount(); k++)
             {
                 Effect* ef = el->GetEffect(k);
+                RenderableEffect *eff = effectManager[ef->GetEffectIndex()];
+                auto files = eff->GetFileReferences(ef->GetSettings());
 
                 int duration = ef->GetEndTimeMS() - ef->GetStartTimeMS();
                 if (effectfrequency.find(ef->GetEffectName()) != effectfrequency.end())
@@ -4574,8 +4592,20 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
                     effectTotalTime[ef->GetEffectName()] = duration;
                 }
 
+                std::string fs = "";
+                for (auto it = files.begin(); it != files.end(); ++it)
+                {
+                    if (fs != "")
+                    {
+                        fs += ",";
+                    }
+                    fs += (*it);
+                }
+
+                allfiles.splice(allfiles.end(), files);
+
                 SettingsMap& sm = ef->GetSettings();
-                f.Write(wxString::Format("\"%s\",%02d:%02d.%03d,%02d:%02d.%03d,%02d:%02d.%03d,\"%s\",\"%s\",%s\n",
+                f.Write(wxString::Format("\"%s\",%02d:%02d.%03d,%02d:%02d.%03d,%02d:%02d.%03d,\"%s\",\"%s\",%s,%s\n",
                     ef->GetEffectName(),
                     ef->GetStartTimeMS() / 60000,
                     (ef->GetStartTimeMS() % 60000) / 1000,
@@ -4588,7 +4618,9 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
                     duration % 1000,
                     sm.Contains("X_Effect_Description") ? sm["X_Effect_Description"] : "",
                     (const char *)(e->GetFullName() + subname).c_str(),
-                    type));
+                    type,
+                    fs
+                ));
                 effects++;
             }
         }
@@ -4627,18 +4659,20 @@ void xLightsFrame::ExportEffects(wxString filename)
     std::map<std::string, int> effecttotaltime;
 
     int effects = 0;
-    f.Write(_("Effect Name,StartTime,EndTime,Duration,Description,Element,ElementType\n"));
+    f.Write(_("Effect Name,StartTime,EndTime,Duration,Description,Element,ElementType,Files\n"));
+
+    std::list<std::string> files;
 
     for (size_t i = 0; i < mSequenceElements.GetElementCount(0); i++)
     {
         Element* e = mSequenceElements.GetElement(i);
-        effects += ExportElement(f, e, effectfrequency, effecttotaltime);
+        effects += ExportElement(f, e, effectfrequency, effecttotaltime, files);
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
         {
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelCount(); s++) {
                 SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
-                effects += ExportElement(f, se, effectfrequency, effecttotaltime);
+                effects += ExportElement(f, se, effectfrequency, effecttotaltime, files);
             }
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
                 StrandElement *se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
@@ -4646,7 +4680,7 @@ void xLightsFrame::ExportEffects(wxString filename)
                 for (size_t n = 0; n < se->GetNodeLayerCount(); n++)
                 {
                     NodeLayer* nl = se->GetNodeLayer(n);
-                    effects += ExportNodes(f, se, nl, node++, effectfrequency, effecttotaltime);
+                    effects += ExportNodes(f, se, nl, node++, effectfrequency, effecttotaltime, files);
                 }
             }
         }
@@ -4666,6 +4700,16 @@ void xLightsFrame::ExportEffects(wxString filename)
             tt % 1000
         ));
     }
+    f.Write(_("\n"));
+    f.Write(_("Summary of files used\n"));
+
+    files.sort();
+    files.unique();
+    for (auto it = files.begin(); it != files.end(); ++it)
+    {
+        f.Write(wxString::Format("%s\n", *it));
+    }
+
     f.Close();
 }
 

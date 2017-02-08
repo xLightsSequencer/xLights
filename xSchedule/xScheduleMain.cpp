@@ -1916,12 +1916,16 @@ void xScheduleFrame::OnMenuItem_FPPMasterSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::FPPMASTER);
     UpdateUI();
+
+    wxMessageBox("FPP Master/Slave not implemented yet.");
 }
 
 void xScheduleFrame::OnMenuItem_FPPRemoteSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::FPPSLAVE);
     UpdateUI();
+
+    wxMessageBox("FPP Master/Slave not implemented yet.");
 }
 
 void xScheduleFrame::OnMenuItem_WebInterfaceSelected(wxCommandEvent& event)
