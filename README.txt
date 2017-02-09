@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Don't stop the timer when flipping pages. Fixes #817
    -- enh (keith)   Add list of referenced files to export effects
    -- enh (keith)   Add text output to xSchedule allowing run time countdowns and text overlays
    -- bug (keith)   Fix #814 Make video start time editable
@@ -2087,4 +2088,4 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 
 
 
-
+

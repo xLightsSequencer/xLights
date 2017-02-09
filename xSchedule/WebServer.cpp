@@ -333,7 +333,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         connection.SendResponse(response);
         return true;
     }
-    else if (!__apiOnly && request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/")
+    else if (!__apiOnly && (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/"))
     {
         if (wwwroot == "") return false;
 
@@ -435,7 +435,6 @@ WebServer::WebServer(int port, bool apionly, const std::string& password, int mi
 WebServer::~WebServer()
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     Stop();
 }
 

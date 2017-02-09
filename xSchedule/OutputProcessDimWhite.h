@@ -19,7 +19,7 @@ class OutputProcessDimWhite : public OutputProcess
         virtual void Frame(wxByte* buffer, size_t size) override;
         virtual size_t GetP1() const override { return _nodes; }
         virtual size_t GetP2() const override { return _dim; }
-        virtual std::string GetType() const { return "Dim White"; }
+        virtual std::string GetType() const override { return "Dim White"; }
 };
 
 #endif

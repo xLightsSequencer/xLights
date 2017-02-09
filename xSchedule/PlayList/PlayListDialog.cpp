@@ -697,7 +697,6 @@ void PlayListDialog::DeleteSelectedItem()
         if (wxMessageBox("Are you sure?", "Are you sure?", wxYES_NO) == wxYES)
         {
             SwapPage(nullptr);
-            wxTreeItemId parent = TreeCtrl_PlayList->GetItemParent(treeitem);
             if (IsPlayListStep(treeitem))
             {
                 PlayListStep* playliststep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();

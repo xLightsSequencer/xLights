@@ -127,8 +127,8 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
      FillColors.Add("Palette");  // 2
      */
 
-    int x,y,y1,y2,y1mirror,y2mirror,ystart,dy,modx,modx2;
-    double a,r,yc,deltay;
+    int x,y,y1,y2,y1mirror,y2mirror,ystart;
+    double r,yc,deltay;
     double degree,radian,degree_per_x;
     static const double pi_180 = 0.01745329;
     xlColor color;
@@ -200,7 +200,6 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
              */
 
             double waves = ((double)NumberWaves/180.0) / 5; // number of waves
-            int wavelen = buffer.BufferWi / waves;
             int amp = buffer.BufferHt * WaveHeight / 100;
 
             ystart = (buffer.BufferHt - amp) / 2 + abs((int)((state / 10 + x) * waves) % (int)(2 * amp) - amp);

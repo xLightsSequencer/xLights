@@ -59,7 +59,7 @@ public:
     LinePiece() { _rotation = 0; _position = wxPoint(5, 20); }
     virtual ~LinePiece() {}
     virtual std::list<wxPoint> GetPoints(int rotation, wxPoint position) const override;
-    virtual int GetType() const { return 0; }
+    virtual int GetType() const override { return 0; }
 };
 
 //   x
@@ -70,7 +70,7 @@ public:
     LPiece() { _rotation = 0; _position = wxPoint(5, 20); }
     virtual ~LPiece() {}
     virtual std::list<wxPoint> GetPoints(int rotation, wxPoint position) const override;
-    virtual int GetType() const { return 1; }
+    virtual int GetType() const override { return 1; }
 };
 
 // x
@@ -81,7 +81,7 @@ public:
     JPiece() { _rotation = 0; _position = wxPoint(5, 20); }
     virtual ~JPiece() {}
     virtual std::list<wxPoint> GetPoints(int rotation, wxPoint position) const override;
-    virtual int GetType() const { return 2; }
+    virtual int GetType() const override { return 2; }
 };
 
 //  xx  Blue 3
@@ -92,7 +92,7 @@ public:
     SPiece() { _rotation = 0; _position = wxPoint(5, 20); }
     virtual ~SPiece() {}
     virtual std::list<wxPoint> GetPoints(int rotation, wxPoint position) const override;
-    virtual int GetType() const { return 3; }
+    virtual int GetType() const override { return 3; }
 };
 
 // xx   lime green 4
@@ -103,7 +103,7 @@ public:
     ZPiece() { _rotation = 0; _position = wxPoint(5, 20); }
     virtual ~ZPiece() {}
     virtual std::list<wxPoint> GetPoints(int rotation, wxPoint position) const override;
-    virtual int GetType() const { return 4; }
+    virtual int GetType() const override { return 4; }
 };
 
 // xx   cyan 5
@@ -114,7 +114,7 @@ public:
     OPiece() { _rotation = 0; _position = wxPoint(5, 20); }
     virtual ~OPiece() {}
     virtual std::list<wxPoint> GetPoints(int rotation, wxPoint position) const override;
-    virtual int GetType() const { return 5; }
+    virtual int GetType() const override { return 5; }
 };
 
 //  x   light grey 6
@@ -125,7 +125,7 @@ public:
     TPiece() { _rotation = 0; _position = wxPoint(5, 20); }
     virtual ~TPiece() {}
     virtual std::list<wxPoint> GetPoints(int rotation, wxPoint position) const override;
-    virtual int GetType() const { return 6; }
+    virtual int GetType() const override { return 6; }
 };
 
 class Xyzzy 

@@ -103,8 +103,6 @@
 		67623E711AD07E320022667B /* KeyBindings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E6F1AD07E320022667B /* KeyBindings.cpp */; };
 		67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E721AD2BF3F0022667B /* BitmapCache.cpp */; };
 		6762EFF51D5A323300F28879 /* SubModelsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6762EFF31D5A323300F28879 /* SubModelsDialog.cpp */; };
-		67630E061E38F0FC0047CF05 /* PlayListItemVirtualMatrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67630E021E38F0FC0047CF05 /* PlayListItemVirtualMatrix.cpp */; };
-		67630E071E38F0FC0047CF05 /* PlayListItemVirtualMatrixPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67630E041E38F0FC0047CF05 /* PlayListItemVirtualMatrixPanel.cpp */; };
 		6764010C1C8FBFC30079A4CF /* LayoutPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */; };
 		67653D5C1CA589830026A30B /* ModelScreenLocation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */; };
 		6766038E1D01CA0800589601 /* FillEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6766038C1D01CA0800589601 /* FillEffect.cpp */; };
@@ -299,6 +297,19 @@
 		67BC8BBB1D2152EC009B660F /* NodesGridCellEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC8BB71D2152EC009B660F /* NodesGridCellEditor.cpp */; };
 		67BE75131CAC2EB200D7BA82 /* IciclesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */; };
 		67C0EEE31C755ABE002FE25E /* MatrixModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */; };
+		67C5814B1E4B95A400932DFA /* ColourOrderDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581381E4B95A400932DFA /* ColourOrderDialog.cpp */; };
+		67C5814C1E4B95A400932DFA /* MatrixDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581391E4B95A400932DFA /* MatrixDialog.cpp */; };
+		67C5814D1E4B95A400932DFA /* VirtualMatrixDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C5813A1E4B95A400932DFA /* VirtualMatrixDialog.cpp */; };
+		67C5814E1E4B95A400932DFA /* Xyzzy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C5813B1E4B95A400932DFA /* Xyzzy.cpp */; };
+		67C5814F1E4B95A400932DFA /* MatricesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C5813C1E4B95A400932DFA /* MatricesDialog.cpp */; };
+		67C581501E4B95A400932DFA /* VirtualMatricesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C5813D1E4B95A400932DFA /* VirtualMatricesDialog.cpp */; };
+		67C581511E4B95A400932DFA /* VirtualMatrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C5813F1E4B95A400932DFA /* VirtualMatrix.cpp */; };
+		67C581521E4B95A400932DFA /* MatrixMapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581421E4B95A400932DFA /* MatrixMapper.cpp */; };
+		67C581531E4B95A400932DFA /* AddReverseDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581461E4B95A400932DFA /* AddReverseDialog.cpp */; };
+		67C581541E4B95A400932DFA /* OutputProcessColourOrder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581491E4B95A400932DFA /* OutputProcessColourOrder.cpp */; };
+		67C581551E4B95A400932DFA /* OutputProcessReverse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C5814A1E4B95A400932DFA /* OutputProcessReverse.cpp */; };
+		67C5815A1E4B95CA00932DFA /* PlayListItemText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581561E4B95CA00932DFA /* PlayListItemText.cpp */; };
+		67C5815B1E4B95CA00932DFA /* PlayListItemTextPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */; };
 		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
@@ -724,10 +735,6 @@
 		67623E721AD2BF3F0022667B /* BitmapCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BitmapCache.cpp; sourceTree = "<group>"; };
 		6762EFF31D5A323300F28879 /* SubModelsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubModelsDialog.cpp; sourceTree = "<group>"; };
 		6762EFF41D5A323300F28879 /* SubModelsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubModelsDialog.h; sourceTree = "<group>"; };
-		67630E021E38F0FC0047CF05 /* PlayListItemVirtualMatrix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemVirtualMatrix.cpp; path = PlayList/PlayListItemVirtualMatrix.cpp; sourceTree = "<group>"; };
-		67630E031E38F0FC0047CF05 /* PlayListItemVirtualMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemVirtualMatrix.h; path = PlayList/PlayListItemVirtualMatrix.h; sourceTree = "<group>"; };
-		67630E041E38F0FC0047CF05 /* PlayListItemVirtualMatrixPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemVirtualMatrixPanel.cpp; path = PlayList/PlayListItemVirtualMatrixPanel.cpp; sourceTree = "<group>"; };
-		67630E051E38F0FC0047CF05 /* PlayListItemVirtualMatrixPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemVirtualMatrixPanel.h; path = PlayList/PlayListItemVirtualMatrixPanel.h; sourceTree = "<group>"; };
 		6764010A1C8FBFC30079A4CF /* LayoutPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutPanel.h; sourceTree = "<group>"; };
 		6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutPanel.cpp; sourceTree = "<group>"; };
 		67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelScreenLocation.cpp; path = models/ModelScreenLocation.cpp; sourceTree = "<group>"; };
@@ -1078,6 +1085,31 @@
 		67BE75121CAC2EB200D7BA82 /* IciclesModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IciclesModel.h; path = models/IciclesModel.h; sourceTree = "<group>"; };
 		67C0EEE11C755ABE002FE25E /* MatrixModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MatrixModel.h; path = models/MatrixModel.h; sourceTree = "<group>"; };
 		67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MatrixModel.cpp; path = models/MatrixModel.cpp; sourceTree = "<group>"; };
+		67C581361E4B95A400932DFA /* OutputProcessReverse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputProcessReverse.h; sourceTree = "<group>"; };
+		67C581371E4B95A400932DFA /* OutputProcessColourOrder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputProcessColourOrder.h; sourceTree = "<group>"; };
+		67C581381E4B95A400932DFA /* ColourOrderDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColourOrderDialog.cpp; sourceTree = "<group>"; };
+		67C581391E4B95A400932DFA /* MatrixDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MatrixDialog.cpp; sourceTree = "<group>"; };
+		67C5813A1E4B95A400932DFA /* VirtualMatrixDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VirtualMatrixDialog.cpp; sourceTree = "<group>"; };
+		67C5813B1E4B95A400932DFA /* Xyzzy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Xyzzy.cpp; sourceTree = "<group>"; };
+		67C5813C1E4B95A400932DFA /* MatricesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MatricesDialog.cpp; sourceTree = "<group>"; };
+		67C5813D1E4B95A400932DFA /* VirtualMatricesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VirtualMatricesDialog.cpp; sourceTree = "<group>"; };
+		67C5813E1E4B95A400932DFA /* VirtualMatricesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VirtualMatricesDialog.h; sourceTree = "<group>"; };
+		67C5813F1E4B95A400932DFA /* VirtualMatrix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VirtualMatrix.cpp; sourceTree = "<group>"; };
+		67C581401E4B95A400932DFA /* VirtualMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VirtualMatrix.h; sourceTree = "<group>"; };
+		67C581411E4B95A400932DFA /* VirtualMatrixDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VirtualMatrixDialog.h; sourceTree = "<group>"; };
+		67C581421E4B95A400932DFA /* MatrixMapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MatrixMapper.cpp; sourceTree = "<group>"; };
+		67C581431E4B95A400932DFA /* MatricesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatricesDialog.h; sourceTree = "<group>"; };
+		67C581441E4B95A400932DFA /* MatrixDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatrixDialog.h; sourceTree = "<group>"; };
+		67C581451E4B95A400932DFA /* MatrixMapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatrixMapper.h; sourceTree = "<group>"; };
+		67C581461E4B95A400932DFA /* AddReverseDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AddReverseDialog.cpp; sourceTree = "<group>"; };
+		67C581471E4B95A400932DFA /* AddReverseDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AddReverseDialog.h; sourceTree = "<group>"; };
+		67C581481E4B95A400932DFA /* ColourOrderDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColourOrderDialog.h; sourceTree = "<group>"; };
+		67C581491E4B95A400932DFA /* OutputProcessColourOrder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OutputProcessColourOrder.cpp; sourceTree = "<group>"; };
+		67C5814A1E4B95A400932DFA /* OutputProcessReverse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OutputProcessReverse.cpp; sourceTree = "<group>"; };
+		67C581561E4B95CA00932DFA /* PlayListItemText.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemText.cpp; path = PlayList/PlayListItemText.cpp; sourceTree = "<group>"; };
+		67C581571E4B95CA00932DFA /* PlayListItemText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemText.h; path = PlayList/PlayListItemText.h; sourceTree = "<group>"; };
+		67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemTextPanel.cpp; path = PlayList/PlayListItemTextPanel.cpp; sourceTree = "<group>"; };
+		67C581591E4B95CA00932DFA /* PlayListItemTextPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemTextPanel.h; path = PlayList/PlayListItemTextPanel.h; sourceTree = "<group>"; };
 		67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewsDialog.cpp; sourceTree = "<group>"; };
 		67C7969017B5791700CEE775 /* TabConvert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabConvert.cpp; sourceTree = "<group>"; };
 		67CA857E18BE86B800A6268C /* heartbeat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heartbeat.cpp; sourceTree = "<group>"; };
@@ -2140,6 +2172,27 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				67C581361E4B95A400932DFA /* OutputProcessReverse.h */,
+				67C581371E4B95A400932DFA /* OutputProcessColourOrder.h */,
+				67C581381E4B95A400932DFA /* ColourOrderDialog.cpp */,
+				67C581391E4B95A400932DFA /* MatrixDialog.cpp */,
+				67C5813A1E4B95A400932DFA /* VirtualMatrixDialog.cpp */,
+				67C5813B1E4B95A400932DFA /* Xyzzy.cpp */,
+				67C5813C1E4B95A400932DFA /* MatricesDialog.cpp */,
+				67C5813D1E4B95A400932DFA /* VirtualMatricesDialog.cpp */,
+				67C5813E1E4B95A400932DFA /* VirtualMatricesDialog.h */,
+				67C5813F1E4B95A400932DFA /* VirtualMatrix.cpp */,
+				67C581401E4B95A400932DFA /* VirtualMatrix.h */,
+				67C581411E4B95A400932DFA /* VirtualMatrixDialog.h */,
+				67C581421E4B95A400932DFA /* MatrixMapper.cpp */,
+				67C581431E4B95A400932DFA /* MatricesDialog.h */,
+				67C581441E4B95A400932DFA /* MatrixDialog.h */,
+				67C581451E4B95A400932DFA /* MatrixMapper.h */,
+				67C581461E4B95A400932DFA /* AddReverseDialog.cpp */,
+				67C581471E4B95A400932DFA /* AddReverseDialog.h */,
+				67C581481E4B95A400932DFA /* ColourOrderDialog.h */,
+				67C581491E4B95A400932DFA /* OutputProcessColourOrder.cpp */,
+				67C5814A1E4B95A400932DFA /* OutputProcessReverse.cpp */,
 				67D640E71E41168F00381DDA /* BackgroundPlaylistDialog.cpp */,
 				67D640E81E41168F00381DDA /* BackgroundPlaylistDialog.h */,
 				67DA0B001E39C96F00E2A859 /* RemapDialog.cpp */,
@@ -2235,16 +2288,16 @@
 		67F23FA91E329E6100F8B985 /* PlayList */ = {
 			isa = PBXGroup;
 			children = (
+				67C581561E4B95CA00932DFA /* PlayListItemText.cpp */,
+				67C581571E4B95CA00932DFA /* PlayListItemText.h */,
+				67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */,
+				67C581591E4B95CA00932DFA /* PlayListItemTextPanel.h */,
 				67D640EA1E41169F00381DDA /* PlayListSimpleDialog.cpp */,
 				67D640EB1E41169F00381DDA /* PlayListItemFSEQVideo.cpp */,
 				67D640EC1E41169F00381DDA /* PlayListItemFSEQVideo.h */,
 				67D640ED1E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp */,
 				67D640EE1E41169F00381DDA /* PlayListItemFSEQVideoPanel.h */,
 				67D640EF1E41169F00381DDA /* PlayListSimpleDialog.h */,
-				67630E021E38F0FC0047CF05 /* PlayListItemVirtualMatrix.cpp */,
-				67630E031E38F0FC0047CF05 /* PlayListItemVirtualMatrix.h */,
-				67630E041E38F0FC0047CF05 /* PlayListItemVirtualMatrixPanel.cpp */,
-				67630E051E38F0FC0047CF05 /* PlayListItemVirtualMatrixPanel.h */,
 				67F23FAA1E329E7400F8B985 /* PlayerWindow.cpp */,
 				67F23FAB1E329E7400F8B985 /* PlayerWindow.h */,
 				67F23FAC1E329E7400F8B985 /* PlayList.cpp */,
@@ -2767,10 +2820,10 @@
 				67F240281E32A0C900F8B985 /* kiss_fftr.c in Sources */,
 				67F240291E32A0C900F8B985 /* kiss_fftndr.c in Sources */,
 				67F2402A1E32A0C900F8B985 /* kiss_fftnd.c in Sources */,
-				67630E061E38F0FC0047CF05 /* PlayListItemVirtualMatrix.cpp in Sources */,
 				67DA0AFB1E39C8EB00E2A859 /* OutputProcessDim.cpp in Sources */,
 				67F2402B1E32A0C900F8B985 /* kfc.c in Sources */,
 				67F2402C1E32A0C900F8B985 /* kiss_fft.c in Sources */,
+				67C5814C1E4B95A400932DFA /* MatrixDialog.cpp in Sources */,
 				67DA0B061E39C96F00E2A859 /* RemapDialog.cpp in Sources */,
 				67D640F11E41169F00381DDA /* PlayListItemFSEQVideo.cpp in Sources */,
 				67F2401B1E32A09E00F8B985 /* JobPool.cpp in Sources */,
@@ -2792,10 +2845,12 @@
 				67F240061E32A03F00F8B985 /* ArtNetOutput.cpp in Sources */,
 				67F240071E32A03F00F8B985 /* Controller.cpp in Sources */,
 				67F240081E32A03F00F8B985 /* DMXOutput.cpp in Sources */,
+				67C5814E1E4B95A400932DFA /* Xyzzy.cpp in Sources */,
 				67F240091E32A03F00F8B985 /* E131Dialog.cpp in Sources */,
 				67F2400A1E32A03F00F8B985 /* E131Output.cpp in Sources */,
 				67F2400B1E32A03F00F8B985 /* IPOutput.cpp in Sources */,
 				67F2400C1E32A03F00F8B985 /* LOROutput.cpp in Sources */,
+				67C581511E4B95A400932DFA /* VirtualMatrix.cpp in Sources */,
 				67F2400D1E32A03F00F8B985 /* NullOutput.cpp in Sources */,
 				67F2400E1E32A03F00F8B985 /* NullOutputDialog.cpp in Sources */,
 				1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */,
@@ -2814,6 +2869,7 @@
 				67F2401A1E32A03F00F8B985 /* AudioManager.cpp in Sources */,
 				67F23F5E1E329AD800F8B985 /* ButtonDetailsDialog.cpp in Sources */,
 				67F23FA41E329E3300F8B985 /* request.cpp in Sources */,
+				67C5814B1E4B95A400932DFA /* ColourOrderDialog.cpp in Sources */,
 				67F23FE91E329E7400F8B985 /* PlayListItem.cpp in Sources */,
 				67D640F21E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp in Sources */,
 				67D640E91E41168F00381DDA /* BackgroundPlaylistDialog.cpp in Sources */,
@@ -2826,12 +2882,16 @@
 				67DA0AFC1E39C8EB00E2A859 /* OutputProcessDimWhite.cpp in Sources */,
 				67F23F611E329AD800F8B985 /* RunningSchedule.cpp in Sources */,
 				67F23FA61E329E3300F8B985 /* server.cpp in Sources */,
+				67C581531E4B95A400932DFA /* AddReverseDialog.cpp in Sources */,
 				67F23FFC1E329E7400F8B985 /* PlayListItemRunProcess.cpp in Sources */,
 				67F23F641E329AD800F8B985 /* WebServer.cpp in Sources */,
+				67C581521E4B95A400932DFA /* MatrixMapper.cpp in Sources */,
 				67F23FFA1E329E7400F8B985 /* PlayListItemRunCommand.cpp in Sources */,
+				67C581541E4B95A400932DFA /* OutputProcessColourOrder.cpp in Sources */,
 				67F23FF91E329E7400F8B985 /* PlayListItemRDSPanel.cpp in Sources */,
 				1E3E25071E3716CF001D48E3 /* PlayListItemTestPanel.cpp in Sources */,
 				1E3E25061E3716CF001D48E3 /* PlayListItemTest.cpp in Sources */,
+				67C5814D1E4B95A400932DFA /* VirtualMatrixDialog.cpp in Sources */,
 				67F23FFB1E329E7400F8B985 /* PlayListItemRunCommandPanel.cpp in Sources */,
 				67F23F5D1E329AD800F8B985 /* xScheduleMain.cpp in Sources */,
 				67F23FF01E329E7400F8B985 /* PlayListItemESEQ.cpp in Sources */,
@@ -2852,9 +2912,11 @@
 				67F23FA71E329E3300F8B985 /* sha1.cpp in Sources */,
 				67F23F621E329AD800F8B985 /* Schedule.cpp in Sources */,
 				67F23F601E329AD800F8B985 /* OptionsDialog.cpp in Sources */,
+				67C5815B1E4B95CA00932DFA /* PlayListItemTextPanel.cpp in Sources */,
 				67F23F5C1E329AD800F8B985 /* xScheduleApp.cpp in Sources */,
 				67F23FE71E329E7400F8B985 /* PlayList.cpp in Sources */,
 				67F23FEB1E329E7400F8B985 /* PlayListItemAllOffPanel.cpp in Sources */,
+				67C581501E4B95A400932DFA /* VirtualMatricesDialog.cpp in Sources */,
 				67F23FF21E329E7400F8B985 /* PlayListItemFSEQ.cpp in Sources */,
 				1E3E24F81E371555001D48E3 /* UserButton.cpp in Sources */,
 				67F23FF11E329E7400F8B985 /* PlayListItemESEQPanel.cpp in Sources */,
@@ -2867,15 +2929,17 @@
 				67F23F681E329AD800F8B985 /* ESEQFile.cpp in Sources */,
 				67F240031E329E7400F8B985 /* VideoWindowPositionDialog.cpp in Sources */,
 				67DA0AFA1E39C8EB00E2A859 /* OutputProcess.cpp in Sources */,
+				67C5815A1E4B95CA00932DFA /* PlayListItemText.cpp in Sources */,
 				67F23FF41E329E7400F8B985 /* PlayListItemImage.cpp in Sources */,
 				67F23FA51E329E3300F8B985 /* response.cpp in Sources */,
 				67DA0AF91E39C8EB00E2A859 /* DimWhiteDialog.cpp in Sources */,
+				67C581551E4B95A400932DFA /* OutputProcessReverse.cpp in Sources */,
 				67F23FA01E329E3300F8B985 /* connection.cpp in Sources */,
 				67F23FF61E329E7400F8B985 /* PlayListItemPJLink.cpp in Sources */,
 				67DA0AFE1E39C8EB00E2A859 /* OutputProcessRemap.cpp in Sources */,
 				67F23FFE1E329E7400F8B985 /* PlayListItemVideo.cpp in Sources */,
-				67630E071E38F0FC0047CF05 /* PlayListItemVirtualMatrixPanel.cpp in Sources */,
 				67F23FA21E329E3300F8B985 /* message.cpp in Sources */,
+				67C5814F1E4B95A400932DFA /* MatricesDialog.cpp in Sources */,
 				1E3E24FD1E3715BB001D48E3 /* PlayListItemCURL.cpp in Sources */,
 				67F23FEE1E329E7400F8B985 /* PlayListItemDelay.cpp in Sources */,
 				67F23FA81E329E3300F8B985 /* status.cpp in Sources */,

@@ -18,7 +18,7 @@ class OutputProcessReverse : public OutputProcess
         virtual void Frame(wxByte* buffer, size_t size) override;
         virtual size_t GetP1() const override { return _nodes; }
         virtual size_t GetP2() const override { return 0; }
-        virtual std::string GetType() const { return "Reverse"; }
+        virtual std::string GetType() const override { return "Reverse"; }
 };
 
 #endif

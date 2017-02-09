@@ -120,10 +120,10 @@ Files::listLibraryFilesMatching(string libraryName)
 void *
 Files::loadLibrary(string path)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     void *handle = 0;
 #ifdef _WIN32
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 #ifdef UNICODE
     int len = path.length() + 1; // cannot be more wchars than length in bytes of utf8 string
     wchar_t *buffer = new wchar_t[len];
@@ -211,12 +211,12 @@ Files::splicePath(string a, string b)
 vector<string>
 Files::listFiles(string dir, string extension)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     vector<string> files;
 
 #ifdef _WIN32
     string expression = dir + "\\*." + extension;
 #ifdef UNICODE
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int len = expression.length() + 1; // cannot be more wchars than length in bytes of utf8 string
     wchar_t *buffer = new wchar_t[len];
     int rv = MultiByteToWideChar(CP_UTF8, 0, expression.c_str(), len, buffer, len);
