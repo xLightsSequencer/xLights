@@ -343,7 +343,7 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
         }
     }
 
-    wxFileDialog dlg(this);
+    wxFileDialog dlg(this, "Load mapping", wxEmptyString, wxEmptyString, "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dlg.ShowModal() == wxID_OK) {
         for (size_t x = 0; x <  modelNames.size(); x++) {
             ModelsChoice->Append(modelNames[x]);
@@ -422,7 +422,7 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
 void LMSImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
 {
-    wxFileDialog dlg(this, wxFileSelectorPromptStr, wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxFileDialog dlg(this, "Save mapping", wxEmptyString, "mapping", "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (dlg.ShowModal() == wxID_OK) {
         wxFileOutputStream output(dlg.GetPath());
         wxTextOutputStream text(output);
