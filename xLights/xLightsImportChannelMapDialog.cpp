@@ -8,11 +8,66 @@
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 #include <wx/msgdlg.h>
+#include <wx/colordlg.h>
 
 //(*InternalHeaders(xLightsImportChannelMapDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+
+class ColorRenderer : public wxDataViewCustomRenderer
+{
+    wxColor _color;
+
+public:
+    ColorRenderer() : wxDataViewCustomRenderer(GetDefaultType(), wxDATAVIEW_CELL_ACTIVATABLE)
+    {
+    }
+
+    virtual bool ActivateCell(const wxRect &cell, wxDataViewModel *model, const wxDataViewItem &item, unsigned int col, const wxMouseEvent *mouseEvent) override
+    {
+        wxColourData data;
+        data.SetColour(_color);
+        wxColourDialog dlg(GetOwner()->GetOwner()->GetParent(), &data);
+
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            _color = dlg.GetColourData().GetColour();
+            model->SetValue(wxVariant(_color.GetAsString()), item, col);
+        }
+
+        return false;
+    }
+
+    virtual bool Render(wxRect cell, wxDC *dc, int state) override
+    {
+        wxPen p(_color);
+        wxBrush b(_color);
+        dc->SetPen(p);
+        dc->SetBrush(b);
+        dc->DrawRectangle(cell);
+        dc->SetBrush(wxNullBrush);
+        dc->SetPen(wxNullPen);
+        return true;
+    }
+
+    virtual wxSize 	GetSize() const override
+    {
+        return wxSize(GetOwner()->GetWidth(), 15);
+    }
+
+    virtual bool GetValue(wxVariant &value) const override
+    {
+        value = wxVariant(_color.GetAsString());
+        return true;
+    }
+
+    virtual bool SetValue(const wxVariant &value) override
+    {
+        _color = wxColor(value.GetString());
+        return true;
+    }
+};
 
 xLightsImportTreeModel::xLightsImportTreeModel()
 {
@@ -104,6 +159,9 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
     case 1:
         variant = wxVariant(node->_mapping);
         break;
+    case 2:
+        variant = wxVariant(node->_color.GetAsString());
+        break;
     default:
         {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -122,6 +180,11 @@ bool xLightsImportTreeModel::SetValue(const wxVariant &variant,
     if (col == 1)
     {
         node->_mapping = variant.GetString();
+        return true;
+    }
+    else if (col == 2)
+    {
+        node->_color = wxColour(variant.GetString());
         return true;
     }
     return false;
@@ -195,6 +258,7 @@ const long xLightsImportChannelMapDialog::ID_TREELISTCTRL1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHOICE = wxNewId();
 
 //(*IdInit(xLightsImportChannelMapDialog)
+const long xLightsImportChannelMapDialog::ID_SPINCTRL1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKLISTBOX1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON4 = wxNewId();
@@ -207,8 +271,11 @@ BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, wxWindowID id,const wxPoint& pos,const wxSize& size)
+xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _allowTimingOffset = allowTimingOffset;
+    _allowTimingTrack = _allowTimingTrack;
+    _allowColorChoice = allowColorChoice;
     _filename = filename;
 
 	//(*Initialize(xLightsImportChannelMapDialog)
@@ -220,6 +287,13 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	SetMaxSize(wxDLG_UNIT(parent,wxSize(-1,500)));
 	Sizer = new wxFlexGridSizer(0, 1, 0, 0);
 	Sizer->AddGrowableCol(0);
+	Sizer_TimeAdjust = new wxFlexGridSizer(0, 2, 0, 0);
+	StaticText_TimeAdjust = new wxStaticText(this, wxID_ANY, _("Time Adjust (ms)"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	Sizer_TimeAdjust->Add(StaticText_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TimeAdjustSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -10000, 600000, 0, _T("ID_SPINCTRL1"));
+	TimeAdjustSpinCtrl->SetValue(_T("0"));
+	Sizer_TimeAdjust->Add(TimeAdjustSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Sizer->Add(Sizer_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Timing Tracks"));
 	TimingTrackListBox = new wxCheckListBox(this, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
 	TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -283,19 +357,40 @@ bool xLightsImportChannelMapDialog::Init() {
         return false;
     }
 
-    if (timingTracks.empty()) {
+    if (!_allowTimingOffset)
+    {
+        TimeAdjustSpinCtrl->Hide();
+        StaticText_TimeAdjust->Hide();
+        Sizer->Remove(Sizer_TimeAdjust);
+    }
+
+    if (timingTracks.empty() || !_allowTimingTrack) {
         Sizer->Remove(TimingTrackPanel);
-        Sizer->AddGrowableRow(0);
-        Sizer->Fit(this);
-        Sizer->SetSizeHints(this);
+        TimingTrackListBox->Hide();
+        if (!_allowTimingOffset)
+        {
+            Sizer->AddGrowableRow(0);
+        }
+        else
+        {
+            Sizer->AddGrowableRow(1);
+        }
     } else {
-        Sizer->AddGrowableRow(1);
+        if (!_allowTimingOffset)
+        {
+            Sizer->AddGrowableRow(1);
+        }
+        else
+        {
+            Sizer->AddGrowableRow(2);
+        }
         for (auto it = timingTracks.begin(); it != timingTracks.end(); it++) {
             TimingTrackListBox->Append(*it);
         }
     }
-    
-    
+    Sizer->Fit(this);
+    Sizer->SetSizeHints(this);
+
     // load the tree
     for (auto it = channelNames.begin(); it != channelNames.end(); it++)
     {
@@ -307,7 +402,11 @@ bool xLightsImportChannelMapDialog::Init() {
     TreeListCtrl_Mapping = new wxDataViewCtrl(this, ID_TREELISTCTRL1, wxDefaultPosition, wxDefaultSize, wxDV_HORIZ_RULES | wxDV_VERT_RULES, wxDefaultValidator);
     TreeListCtrl_Mapping->AssociateModel(dataModel);
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
-    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewChoiceRenderer(_importModels, wxDATAVIEW_CELL_EDITABLE, wxALIGN_LEFT), 1, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewChoiceRenderer(_importModels, wxDATAVIEW_CELL_EDITABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 1, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+    if (_allowColorChoice)
+    {
+        TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Color", new ColorRenderer(), 2, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+    }
     TreeListCtrl_Mapping->SetMinSize(wxSize(0, 300));
     SizerMap->Add(TreeListCtrl_Mapping, 1, wxALL | wxEXPAND, 5);
     SizerMap->Layout();
@@ -334,21 +433,29 @@ bool xLightsImportChannelMapDialog::Init() {
     
     return true;
 }
+
 void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
-    for (int x = 0; x < dataModel->GetChildCount(); x++) {
+    for (size_t x = 0; x < dataModel->GetChildCount(); x++) {
         xLightsImportModelNode * tmp = dataModel->GetNthChild(x);
         if (tmp->_model == m->GetName()) {
             return;
         }
     }
     
-    
-    xLightsImportModelNode *lastmodel = new xLightsImportModelNode(NULL, m->GetName(), "");
+    xLightsImportModelNode *lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), "");
     dataModel->Insert(lastmodel, ms++);
             
     for (int s = 0; s < m->GetNumSubModels(); s++) {
         Model *subModel = m->GetSubModel(s);
-        xLightsImportModelNode* laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), "");
+        xLightsImportModelNode* laststrand = nullptr;
+        if (channelColors.find(subModel->GetName()) != channelColors.end())
+        {
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), "", channelColors.find(subModel->GetName())->second.asWxColor());
+        }
+        else
+        {
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), "", *wxWHITE);
+        }
         lastmodel->Append(laststrand);
     }
     
@@ -357,7 +464,15 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         if ("" == sn) {
             sn = wxString::Format("Strand %d", s + 1);
         }
-        xLightsImportModelNode* laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, "");
+        xLightsImportModelNode* laststrand = nullptr;
+        if (channelColors.find(sn.ToStdString()) != channelColors.end())
+        {
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, "", channelColors.find(sn.ToStdString())->second.asWxColor());
+        }
+        else
+        {
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, "", *wxWHITE);
+        }
         lastmodel->Append(laststrand);
         for (int n = 0; n < m->GetStrandLength(s); n++)
         {
@@ -366,7 +481,15 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
             {
                 nn = wxString::Format("Node %d", n + 1);
             }
-            xLightsImportModelNode* lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, "");
+            xLightsImportModelNode* lastnode = nullptr;
+            if (channelColors.find(nn.ToStdString()) != channelColors.end())
+            {
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, "", channelColors.find(nn.ToStdString())->second.asWxColor());
+            }
+            else
+            {
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, "", *wxWHITE);
+            }
             laststrand->Insert(lastnode, n);
         }
     }
@@ -399,6 +522,22 @@ void xLightsImportChannelMapDialog::OnSelectionChanged(wxDataViewEvent& event)
 void xLightsImportChannelMapDialog::OnValueChanged(wxDataViewEvent& event)
 {
     _dirty = true;
+    if (_allowColorChoice)
+    {
+        if (event.GetItem().IsOk())
+        {
+            if (event.GetColumn() == 1)
+            {
+                wxVariant vvalue;
+                event.GetModel()->GetValue(vvalue, event.GetItem(), 1);
+                std::string value = vvalue.GetString().ToStdString();
+                if (channelColors.find(value) != channelColors.end())
+                {
+                    event.GetModel()->SetValue(wxVariant(channelColors.find(value)->second.asWxColor().GetAsString()), event.GetItem(), 2);
+                }
+            }
+        }
+    }
 }
 
 wxString xLightsImportChannelMapDialog::FindTab(wxString &line) {

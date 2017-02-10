@@ -8,7 +8,9 @@
 
 //(*Headers(xLightsImportChannelMapDialog)
 #include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <wx/checklst.h>
+#include <wx/spinctrl.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
 //*)
@@ -32,7 +34,7 @@ class xLightsImportModelNode : wxDataViewTreeStoreNode
 public:
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model, const wxString &strand, const wxString &node,
-        const wxString &mapping) : wxDataViewTreeStoreNode(parent, "XXX")
+        const wxString &mapping, const wxColor& color = *wxWHITE) : wxDataViewTreeStoreNode(parent, "XXX")
     {
         m_parent = parent;
 
@@ -40,13 +42,14 @@ public:
         _strand = strand;
         _node = node;
         _mapping = mapping;
+        _color = color;
 
         m_container = false;
     }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model, const wxString &strand,
-        const wxString &mapping) : wxDataViewTreeStoreNode(parent, "XXX")
+        const wxString &mapping, const wxColor& color = *wxWHITE) : wxDataViewTreeStoreNode(parent, "XXX")
     {
         m_parent = parent;
 
@@ -54,13 +57,14 @@ public:
         _strand = strand;
         _node = "";
         _mapping = mapping;
+        _color = color;
 
         m_container = true;
     }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model,
-        const wxString &mapping) : wxDataViewTreeStoreNode(parent, "XXX")
+        const wxString &mapping, const wxColor& color = *wxWHITE) : wxDataViewTreeStoreNode(parent, "XXX")
     {
         m_parent = parent;
 
@@ -68,6 +72,7 @@ public:
         _strand = "";
         _node = "";
         _mapping = mapping;
+        _color = color;
 
         m_container = true;
     }
@@ -86,6 +91,7 @@ public:
     void ClearMapping()
     {
         _mapping = "";
+        _color = *wxWHITE;
         size_t count = m_children.GetCount();
         for (size_t i = 0; i < count; i++)
         {
@@ -148,6 +154,7 @@ public:     // public to avoid getters/setters
     wxString                _strand;
     wxString                _node;
     wxString                _mapping;
+    wxColor                 _color;
 
     // TODO/FIXME:
     // the GTK version of wxDVC (in particular wxDataViewCtrlInternal::ItemAdded)
@@ -222,6 +229,7 @@ public:
     wxString GetStrand(const wxDataViewItem &item) const;
     wxString GetNode(const wxDataViewItem &item) const;
     wxString GetMapping(const wxDataViewItem &item) const;
+    wxColor GetColor(const wxDataViewItem &item) const;
     void Delete(const wxDataViewItem &item);
     virtual unsigned int GetColumnCount() const wxOVERRIDE
     {
@@ -261,20 +269,26 @@ class xLightsImportChannelMapDialog: public wxDialog
     wxDataViewCtrl* TreeListCtrl_Mapping;
     bool _dirty;
     wxFileName _filename;
+    bool _allowTimingOffset;
+    bool _allowTimingTrack;
+    bool _allowColorChoice;
 
 	public:
    
-		xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~xLightsImportChannelMapDialog();
     
         bool Init();
         xLightsImportTreeModel *dataModel;
 
 		//(*Declarations(xLightsImportChannelMapDialog)
+		wxFlexGridSizer* Sizer_TimeAdjust;
+		wxSpinCtrl* TimeAdjustSpinCtrl;
 		wxButton* Button_Ok;
 		wxFlexGridSizer* Sizer;
 		wxCheckListBox* TimingTrackListBox;
 		wxButton* Button_Cancel;
+		wxStaticText* StaticText_TimeAdjust;
 		wxStaticBoxSizer* TimingTrackPanel;
 		wxFlexGridSizer* SizerMap;
 		//*)
@@ -283,12 +297,14 @@ class xLightsImportChannelMapDialog: public wxDialog
         xLightsFrame * xlights;
     
         std::vector<std::string> channelNames;
+        std::map<std::string, xlColor> channelColors;
         std::vector<std::string> timingTracks;
         static const long ID_TREELISTCTRL1;
         static const long ID_CHOICE;
 protected:
 
 		//(*Identifiers(xLightsImportChannelMapDialog)
+		static const long ID_SPINCTRL1;
 		static const long ID_CHECKLISTBOX1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;

@@ -226,7 +226,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         xlightsFilename = fseq_file.GetFullPath();
         if( fseq_file.FileExists() )
         {
-            if (plog != NULL)
+            if (plog != nullptr)
             {
                 plog->Show(true);
             }
@@ -956,7 +956,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                                  bool allowAllModels, bool clearSrc) {
     std::map<std::string, EffectLayer *> layerMap;
     std::map<std::string, Element *>elementMap;
-    xLightsImportChannelMapDialog dlg(this, filename);
+    xLightsImportChannelMapDialog dlg(this, filename, false, true, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<EffectLayer *> mapped;
@@ -1044,8 +1044,8 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     target->AddEffectLayer();
                 }
                 EffectLayer *dst = target->GetEffectLayer(l);
-                std::vector<EffectLayer *> mapped;
-                MapXLightsEffects(dst, src, mapped);
+                std::vector<EffectLayer *> mapped2;
+                MapXLightsEffects(dst, src, mapped2);
             }
         }
     }
@@ -2137,14 +2137,13 @@ bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxX
 }
 bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filename)
 {
-    LMSImportChannelMapDialog dlg(this, filename);
+    xLightsImportChannelMapDialog dlg(this, filename, true, false, true);
     dlg.mSequenceElements = &mSequenceElements;
-    dlg.TimeAdjustPanel->Show();
     dlg.xlights = this;
 
-    for(wxXmlNode* e=input_xml.GetRoot()->GetChildren(); e!=NULL; e=e->GetNext()) {
+    for(wxXmlNode* e=input_xml.GetRoot()->GetChildren(); e!=nullptr; e=e->GetNext()) {
         if (e->GetName() == "channels"){
-            for (wxXmlNode* chan=e->GetChildren(); chan!=NULL; chan=chan->GetNext()) {
+            for (wxXmlNode* chan=e->GetChildren(); chan!=nullptr; chan=chan->GetNext()) {
                 if (chan->GetName() == "channel" || chan->GetName() == "rgbChannel") {
                     std::string name = chan->GetAttribute("name").ToStdString();
                     if (chan->GetName() == "rgbChannel") {
@@ -2154,7 +2153,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                         dlg.channelColors[name] = GetColor(color);
                     }
 
-                    dlg.channelNames.push_back(name);
+                    bool ccr = false;
                     if (chan->GetName() == "rgbChannel") {
                         int idxDP = name.find("-P");
                         int idxUP = name.find(" P");
@@ -2167,11 +2166,17 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                         }
                         if (idxSP != wxNOT_FOUND) {
                             int i = wxAtoi(name.substr(idxSP + 2, name.size()));
-                            if (i > 0
-                                && (dlg.ccrNames.size() == 0 || dlg.ccrNames.back() != name.substr(0, idxSP - 1))) {
-                                dlg.ccrNames.push_back(name.substr(0, idxSP - 1));
+                            if (i > 0)
+                            {
+                                ccr = true;
+                                dlg.channelNames.push_back(name.substr(0, idxSP - 1) + "/" + name);
                             }
                         }
+                    }
+
+                    if (!ccr)
+                    {
+                        dlg.channelNames.push_back(name);
                     }
                 }
             }
@@ -2179,8 +2184,6 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
     }
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
     dlg.channelNames.insert(dlg.channelNames.begin(), "");
-    std::sort(dlg.ccrNames.begin(), dlg.ccrNames.end());
-    dlg.ccrNames.insert(dlg.ccrNames.begin(), "");
 
     dlg.Init();
 
@@ -2193,87 +2196,72 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         AdjustAllTimings(input_xml.GetRoot(), offset / 10);
     }
 
-    int row = 0;
-    for (size_t m = 0; m < dlg.modelNames.size(); m++) {
-        std::string modelName = dlg.modelNames[m];
+    for (size_t i = 0; i < dlg.dataModel->GetChildCount(); i++)
+    {
+        xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
+        std::string modelName = m->_model.ToStdString();
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
-        for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-            if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
-                && modelName == mSequenceElements.GetElement(i)->GetName()) {
-                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
+        for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
+            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+                && modelName == mSequenceElements.GetElement(x)->GetName()) {
+                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+                break;
             }
         }
-        MapChannelInformation(effectManager,
-                              model->GetEffectLayer(0), input_xml,
-                              dlg.ChannelMapGrid->GetCellValue(row, 3),
-                              dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), *mc);
-        row++;
-        if (!dlg.MapByStrand->GetValue()) {
-            for (int str = 0; str < mc->GetNumSubModels(); str++) {
-                SubModelElement *sm = model->GetSubModel(str);
-                EffectLayer *sl = sm->GetEffectLayer(0);
-                MapChannelInformation(effectManager, sl,
-                                      input_xml,
-                                      dlg.ChannelMapGrid->GetCellValue(row, 3),
-                                      dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), *mc);
-                row++;
+        if (m->_mapping != "") {
+            if (model == nullptr) {
+                model = AddModel(GetModel(modelName), mSequenceElements);
             }
+            MapChannelInformation(effectManager,
+                model->GetEffectLayer(0), input_xml,
+                m->_mapping,
+                m->_color, *mc);
         }
-        for (int str = 0; str < mc->GetNumStrands(); str++) {
-            StrandElement *se = model->GetStrand(str, true);
-            EffectLayer *sl = se->GetEffectLayer(0);
 
-            if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                if (!dlg.MapByStrand->GetValue()) {
-                    MapChannelInformation(effectManager, sl,
-                                      input_xml,
-                                      dlg.ChannelMapGrid->GetCellValue(row, 3),
-                                      dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), *mc);
-                } else {
-                    wxString ccrName = dlg.ChannelMapGrid->GetCellValue(row, 3);
-                    for (int n = 0; n < se->GetNodeLayerCount(); n++) {
-                        EffectLayer *layer = se->GetNodeLayer(n, true);
-                        wxString nm = ccrName + wxString::Format("-P%02d", (n + 1));
-                        if (std::find(dlg.channelNames.begin(), dlg.channelNames.end(), nm) == dlg.channelNames.end()) {
-                            nm = ccrName + wxString::Format(" p%02d", (n + 1));
+        int str = 0;
+        for (size_t j = 0; j < m->GetChildCount(); j++)
+        {
+            xLightsImportModelNode* s = m->GetNthChild(j);
+
+            if ("" != s->_mapping) {
+                if (model == nullptr) {
+                    model = AddModel(GetModel(modelName), mSequenceElements);
+                }
+                SubModelElement *ste = model->GetSubModel(str);
+                if (ste != nullptr) {
+                    MapChannelInformation(effectManager,
+                        ste->GetEffectLayer(0), input_xml,
+                        s->_mapping,
+                        s->_color, *mc);
+                }
+            }
+            for (size_t n = 0; n < s->GetChildCount(); n++) {
+                xLightsImportModelNode* ns = s->GetNthChild(n);
+                if ("" != ns->_mapping) {
+                    if (model == nullptr) {
+                        model = AddModel(GetModel(modelName), mSequenceElements);
+                    }
+                    SubModelElement *ste = model->GetSubModel(str);
+                    StrandElement *stre = dynamic_cast<StrandElement *>(ste);
+                    if (stre != nullptr) {
+                        NodeLayer *nl = stre->GetNodeLayer(n, true);
+                        if (nl != nullptr) {
+                            MapChannelInformation(effectManager,
+                                nl, input_xml,
+                                ns->_mapping,
+                                ns->_color, *mc);
                         }
-                        if (std::find(dlg.channelNames.begin(), dlg.channelNames.end(), nm) == dlg.channelNames.end()) {
-                            nm = ccrName + wxString::Format("-P%d", (n + 1));
-                        }
-                        if (std::find(dlg.channelNames.begin(), dlg.channelNames.end(), nm) == dlg.channelNames.end()) {
-                            nm = ccrName + wxString::Format(" p%d", (n + 1));
-                        }
-                        if (std::find(dlg.channelNames.begin(), dlg.channelNames.end(), nm) == dlg.channelNames.end()) {
-                            nm = ccrName + wxString::Format(" P %02d", (n + 1));
-                        }
-                        MapChannelInformation(effectManager, layer,
-                                              input_xml,
-                                              nm,
-                                              dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
-                                              *mc);
                     }
                 }
             }
-            row++;
-            if (!dlg.MapByStrand->GetValue()) {
-                for (int n = 0; n < mc->GetStrandLength(str); n++) {
-                    if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                        MapChannelInformation(effectManager, se->GetNodeLayer(n, true),
-                                              input_xml,
-                                              dlg.ChannelMapGrid->GetCellValue(row, 3),
-                                              dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
-                                              *mc);
-                    }
-                    row++;
-                }
-            }
+            str++;
         }
-
     }
 
     return true;
 }
+
 unsigned char ChannelBlend(unsigned char c1, unsigned char  c2, double ratio)
 {
     return c1 + floor(ratio*(c2-c1)+0.5);
