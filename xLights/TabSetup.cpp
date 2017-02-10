@@ -197,6 +197,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     CheckBoxLightOutput->SetValue(false);
     CheckBoxRunSchedule->SetValue(false);
     _outputManager.StopOutput();
+    _outputManager.DeleteAllOutputs();
     CurrentDir=newdir;
     showDirectory=newdir;
 
