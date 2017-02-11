@@ -3991,7 +3991,7 @@ void xLightsFrame::CheckSequence(bool display)
                 }
                 maxn++;
                 int chssize = (maxn+1) * sizeof(int);
-                logger_base.debug("    CheckSequence: Checking custom model %d nodes", maxn);
+                //logger_base.debug("    CheckSequence: Checking custom model %d nodes", maxn);
                 int* chs = (int*)malloc(chssize);
                 if (chs == nullptr)
                 {
