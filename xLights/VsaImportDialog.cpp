@@ -3,9 +3,9 @@
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "VSAFile.h"
-#include "FastComboEditor.h"
-#include "GridCellChoiceRenderer.h"
-#include "EzGrid.h"
+#include "support/FastComboEditor.h"
+#include "support/GridCellChoiceRenderer.h"
+#include "support/EzGrid.h"
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 #include <wx/msgdlg.h>

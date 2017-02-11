@@ -115,7 +115,7 @@ void wxFastComboEditor::BeginEdit(int row, int col, wxGrid* grid)
 
     wxGridCellEditorEvtHandler* evtHandler = NULL;
     if (m_control)
-        evtHandler = dynamic_cast<wxGridCellEditorEvtHandler*>(m_control->GetEventHandler());
+        evtHandler = (wxGridCellEditorEvtHandler*)(m_control->GetEventHandler());
 
     // Don't immediately end if we get a kill focus event within BeginEdit
     if (evtHandler)

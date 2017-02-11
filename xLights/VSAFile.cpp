@@ -43,9 +43,9 @@ void VSAFile::Load(const std::string& filename)
 
     if (_fh->IsOpened())
     {
-        byte version[12];
+        uint8_t version[12];
         _fh->Read(version, 12);
-        byte num_bytes;
+        uint8_t num_bytes;
         // Read license level
         _fh->Read(&num_bytes, 1);
         std::string level;

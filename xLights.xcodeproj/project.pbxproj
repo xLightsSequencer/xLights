@@ -26,6 +26,13 @@
 		670E47421C62F4AD008F4C60 /* CircleModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670E47411C62F4AD008F4C60 /* CircleModel.cpp */; };
 		670F163F1CDBC53F0039D4DB /* xlights.mac.properties in Resources */ = {isa = PBXBuildFile; fileRef = 670F163E1CDBC53F0039D4DB /* xlights.mac.properties */; };
 		670F23661CCE664500A09765 /* DrawGLUtils21.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670F23651CCE664500A09765 /* DrawGLUtils21.cpp */; };
+		671130AD1E4EB13B00AF09A7 /* ServoEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130A91E4EB13B00AF09A7 /* ServoEffect.cpp */; };
+		671130AE1E4EB13B00AF09A7 /* ServoPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130AB1E4EB13B00AF09A7 /* ServoPanel.cpp */; };
+		671130B31E4EB18100AF09A7 /* VSAFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130AF1E4EB18100AF09A7 /* VSAFile.cpp */; };
+		671130B41E4EB18100AF09A7 /* VsaImportDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130B11E4EB18100AF09A7 /* VsaImportDialog.cpp */; };
+		671130BB1E4EB29B00AF09A7 /* EzGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130B51E4EB29B00AF09A7 /* EzGrid.cpp */; };
+		671130BC1E4EB29B00AF09A7 /* FastComboEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130B71E4EB29B00AF09A7 /* FastComboEditor.cpp */; };
+		671130BD1E4EB29B00AF09A7 /* GridCellChoiceRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130B91E4EB29B00AF09A7 /* GridCellChoiceRenderer.cpp */; };
 		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
 		67145C2D1D6607AE00A35D4B /* SubModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67145C2B1D6607AE00A35D4B /* SubModel.cpp */; };
 		671859E31D61FFF5008F52AA /* SevenSegmentDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */; };
@@ -575,6 +582,20 @@
 		670E47411C62F4AD008F4C60 /* CircleModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CircleModel.cpp; path = models/CircleModel.cpp; sourceTree = "<group>"; };
 		670F163E1CDBC53F0039D4DB /* xlights.mac.properties */ = {isa = PBXFileReference; lastKnownFileType = text; name = xlights.mac.properties; path = bin/xlights.mac.properties; sourceTree = "<group>"; };
 		670F23651CCE664500A09765 /* DrawGLUtils21.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils21.cpp; sourceTree = "<group>"; };
+		671130A91E4EB13B00AF09A7 /* ServoEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ServoEffect.cpp; path = effects/ServoEffect.cpp; sourceTree = "<group>"; };
+		671130AA1E4EB13B00AF09A7 /* ServoEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ServoEffect.h; path = effects/ServoEffect.h; sourceTree = "<group>"; };
+		671130AB1E4EB13B00AF09A7 /* ServoPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ServoPanel.cpp; path = effects/ServoPanel.cpp; sourceTree = "<group>"; };
+		671130AC1E4EB13B00AF09A7 /* ServoPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ServoPanel.h; path = effects/ServoPanel.h; sourceTree = "<group>"; };
+		671130AF1E4EB18100AF09A7 /* VSAFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VSAFile.cpp; sourceTree = "<group>"; };
+		671130B01E4EB18100AF09A7 /* VSAFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VSAFile.h; sourceTree = "<group>"; };
+		671130B11E4EB18100AF09A7 /* VsaImportDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VsaImportDialog.cpp; sourceTree = "<group>"; };
+		671130B21E4EB18100AF09A7 /* VsaImportDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VsaImportDialog.h; sourceTree = "<group>"; };
+		671130B51E4EB29B00AF09A7 /* EzGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EzGrid.cpp; path = support/EzGrid.cpp; sourceTree = "<group>"; };
+		671130B61E4EB29B00AF09A7 /* EzGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EzGrid.h; path = support/EzGrid.h; sourceTree = "<group>"; };
+		671130B71E4EB29B00AF09A7 /* FastComboEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FastComboEditor.cpp; path = support/FastComboEditor.cpp; sourceTree = "<group>"; };
+		671130B81E4EB29B00AF09A7 /* FastComboEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FastComboEditor.h; path = support/FastComboEditor.h; sourceTree = "<group>"; };
+		671130B91E4EB29B00AF09A7 /* GridCellChoiceRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GridCellChoiceRenderer.cpp; path = support/GridCellChoiceRenderer.cpp; sourceTree = "<group>"; };
+		671130BA1E4EB29B00AF09A7 /* GridCellChoiceRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GridCellChoiceRenderer.h; path = support/GridCellChoiceRenderer.h; sourceTree = "<group>"; };
 		6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StrandNodeNamesDialog.cpp; sourceTree = "<group>"; };
 		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
 		67145C2B1D6607AE00A35D4B /* SubModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SubModel.cpp; path = models/SubModel.cpp; sourceTree = "<group>"; };
@@ -1462,6 +1483,19 @@
 			name = Models;
 			sourceTree = "<group>";
 		};
+		671130BF1E4EB2A900AF09A7 /* support */ = {
+			isa = PBXGroup;
+			children = (
+				671130B51E4EB29B00AF09A7 /* EzGrid.cpp */,
+				671130B61E4EB29B00AF09A7 /* EzGrid.h */,
+				671130B71E4EB29B00AF09A7 /* FastComboEditor.cpp */,
+				671130B81E4EB29B00AF09A7 /* FastComboEditor.h */,
+				671130B91E4EB29B00AF09A7 /* GridCellChoiceRenderer.cpp */,
+				671130BA1E4EB29B00AF09A7 /* GridCellChoiceRenderer.h */,
+			);
+			name = support;
+			sourceTree = "<group>";
+		};
 		67582EC61C7363FF00850363 /* osx_utils */ = {
 			isa = PBXGroup;
 			children = (
@@ -1661,6 +1695,10 @@
 				67B2CFB31C3A1869003C17CA /* RippleEffect.h */,
 				67B2CF471C39D98A003C17CA /* RipplePanel.cpp */,
 				67B2CF481C39D98A003C17CA /* RipplePanel.h */,
+				671130A91E4EB13B00AF09A7 /* ServoEffect.cpp */,
+				671130AA1E4EB13B00AF09A7 /* ServoEffect.h */,
+				671130AB1E4EB13B00AF09A7 /* ServoPanel.cpp */,
+				671130AC1E4EB13B00AF09A7 /* ServoPanel.h */,
 				67B2CFB01C3A1869003C17CA /* ShimmerEffect.cpp */,
 				67B2CFB11C3A1869003C17CA /* ShimmerEffect.h */,
 				67B2CF491C39D98A003C17CA /* ShimmerPanel.cpp */,
@@ -1916,7 +1954,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
-				67B2B1F51E19478D0024F0BB /* Outputs */,
+				671130BF1E4EB2A900AF09A7 /* support */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
 				67FA9FD11C67837500FED13B /* AudioManager.h */,
@@ -2005,6 +2043,7 @@
 				67FF39921D57F5D000290DB4 /* NoteImportDialog.h */,
 				677674481B38E7F70018E14B /* OptionChooser.cpp */,
 				67582EC61C7363FF00850363 /* osx_utils */,
+				67B2B1F51E19478D0024F0BB /* Outputs */,
 				67A619D417B51C0F008E95BB /* PaletteMgmtDialog.cpp */,
 				67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */,
 				67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */,
@@ -2062,6 +2101,10 @@
 				679484AB1CD8E998001A7B4F /* VideoReader.cpp */,
 				679484AC1CD8E998001A7B4F /* VideoReader.h */,
 				67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */,
+				671130AF1E4EB18100AF09A7 /* VSAFile.cpp */,
+				671130B01E4EB18100AF09A7 /* VSAFile.h */,
+				671130B11E4EB18100AF09A7 /* VsaImportDialog.cpp */,
+				671130B21E4EB18100AF09A7 /* VsaImportDialog.h */,
 				6784F9281A5653670018EC0C /* Waveform.cpp */,
 				67AB29491D649008007F7CF3 /* WiringDialog.cpp */,
 				67AB294A1D649008007F7CF3 /* WiringDialog.h */,
@@ -2563,6 +2606,7 @@
 				67B2B2321E1947BE0024F0BB /* PixelNetOutput.cpp in Sources */,
 				67B2B2331E1947BE0024F0BB /* RenardOutput.cpp in Sources */,
 				67B2B2371E1947BE0024F0BB /* serial.cpp in Sources */,
+				671130AE1E4EB13B00AF09A7 /* ServoPanel.cpp in Sources */,
 				67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */,
 				675DE2691B53381800A9BB44 /* xlColorCanvas.cpp in Sources */,
 				67B2B2281E1947BE0024F0BB /* E131Dialog.cpp in Sources */,
@@ -2630,6 +2674,7 @@
 				67E0BB991E08460400C07EF7 /* Falcon.cpp in Sources */,
 				67B2CF8D1C39D98A003C17CA /* TwinklePanel.cpp in Sources */,
 				675AB42D1B5ACEDA00853A28 /* PluginLoader.cpp in Sources */,
+				671130B31E4EB18100AF09A7 /* VSAFile.cpp in Sources */,
 				679BD3361C37555C000539FE /* EffectPanelUtils.cpp in Sources */,
 				679BD3351C37555C000539FE /* OnPanel.cpp in Sources */,
 				670E47421C62F4AD008F4C60 /* CircleModel.cpp in Sources */,
@@ -2720,10 +2765,12 @@
 				67B2CF721C39D98A003C17CA /* FacesPanel.cpp in Sources */,
 				67D11C791BEA691900000A7F /* ModelDimmingCurveDialog.cpp in Sources */,
 				67145C2D1D6607AE00A35D4B /* SubModel.cpp in Sources */,
+				671130B41E4EB18100AF09A7 /* VsaImportDialog.cpp in Sources */,
 				675AB42E1B5ACEDA00853A28 /* PluginSummarisingAdapter.cpp in Sources */,
 				670C82891C45C48B000AA5D8 /* TreeModel.cpp in Sources */,
 				67B2CF751C39D98A003C17CA /* FireworksPanel.cpp in Sources */,
 				67B2CF7C1C39D98A003C17CA /* MeteorsPanel.cpp in Sources */,
+				671130BB1E4EB29B00AF09A7 /* EzGrid.cpp in Sources */,
 				672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */,
 				67623E711AD07E320022667B /* KeyBindings.cpp in Sources */,
 				67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */,
@@ -2761,6 +2808,7 @@
 				67B2CFE61C3A186A003C17CA /* PianoEffect.cpp in Sources */,
 				67B2B22D1E1947BE0024F0BB /* NullOutputDialog.cpp in Sources */,
 				67B2CF811C39D98A003C17CA /* PlasmaPanel.cpp in Sources */,
+				671130AD1E4EB13B00AF09A7 /* ServoEffect.cpp in Sources */,
 				6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */,
 				67D11C7A1BEA691900000A7F /* DimmingCurve.cpp in Sources */,
 				675D1E961D0B54B800CC6C02 /* PreviewPane.cpp in Sources */,
@@ -2787,6 +2835,7 @@
 				670C828A1C45C48B000AA5D8 /* ModelManager.cpp in Sources */,
 				6701999F1CE5A03200AE9B7E /* RenderProgressDialog.cpp in Sources */,
 				67DAFDE01CA1A63C004B3237 /* MidiMessage.cpp in Sources */,
+				671130BC1E4EB29B00AF09A7 /* FastComboEditor.cpp in Sources */,
 				67B2B2241E1947BE0024F0BB /* ArtNetDialog.cpp in Sources */,
 				6719BF4C1CCB1D8800899A4B /* MusicPanel.cpp in Sources */,
 				6719BF4B1CCB1D8800899A4B /* MusicEffect.cpp in Sources */,
@@ -2808,6 +2857,7 @@
 				67B2B2341E1947BE0024F0BB /* serial_osx.cpp in Sources */,
 				679BD3381C37555C000539FE /* OffPanel.cpp in Sources */,
 				67B2CFE41C3A186A003C17CA /* PinwheelEffect.cpp in Sources */,
+				671130BD1E4EB29B00AF09A7 /* GridCellChoiceRenderer.cpp in Sources */,
 				67B2CF7A1C39D98A003C17CA /* LightningPanel.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
