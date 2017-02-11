@@ -109,6 +109,15 @@ wxString xLightsImportTreeModel::GetMapping(const wxDataViewItem &item) const
     return node->_mapping;
 }
 
+wxColor xLightsImportTreeModel::GetColor(const wxDataViewItem &item) const
+{
+    xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
+    if (!node)      // happens if item.IsOk()==false
+        return *wxWHITE;
+
+    return node->_color;
+}
+
 void xLightsImportTreeModel::Delete(const wxDataViewItem &item)
 {
     xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
@@ -326,7 +335,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 
     if (_filename != "")
     {
-        SetLabel(GetLabel() + " - " + _filename.GetFullName());
+        wxWindow::SetLabel(wxWindow::GetLabel() + " - " + _filename.GetFullName());
     }
 
     _dirty = false;
@@ -637,7 +646,7 @@ xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::st
             }
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
@@ -677,7 +686,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             wxString strand;
             wxString node;
             wxString mapping;
-            xlColor color;
+            wxColor color = *wxWHITE;
 
             if (CountChar(line, '\t') == 4)
             {
@@ -685,7 +694,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                 strand = FindTab(line);
                 node = FindTab(line);
                 mapping = FindTab(line);
-                color = xlColor(FindTab(line));
+                color = wxColor(FindTab(line));
             }
             else
             {
@@ -710,7 +719,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                 xLightsImportModelNode* msi = TreeContainsModel(model.ToStdString(), strand.ToStdString());
                 xLightsImportModelNode* mni = TreeContainsModel(model.ToStdString(), strand.ToStdString(), node.ToStdString());
 
-                if (mi == NULL || (msi == NULL && strand != "") || (mni == NULL && node != ""))
+                if (mi == nullptr || (msi == nullptr && strand != "") || (mni == nullptr && node != ""))
                 {
                     if (!strandwarning)
                     {
@@ -725,18 +734,21 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                     {
                         wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
                         mni->_mapping = mapping;
+                        mni->_color = color;
                         dataModel->ValueChanged(item, 1);
                     }
                     else if (msi != nullptr)
                     {
                         wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString());
                         msi->_mapping = mapping;
+                        msi->_color = color;
                         dataModel->ValueChanged(item, 1);
                     }
                     else
                     {
                         wxDataViewItem item = FindItem(model.ToStdString());
                         mi->_mapping = mapping;
+                        mi->_color = color;
                         dataModel->ValueChanged(item, 1);
                     }
                 }
@@ -800,7 +812,8 @@ void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
                 text.WriteString(mn
                     + "\t" +
                     + "\t" +
-                    +"\t" + m->_mapping
+                    + "\t" + m->_mapping
+                    + "\t" + m->_color.GetAsString()
                     + "\n");
                 for (size_t j = 0; j < m->GetChildCount(); j++)
                 {
@@ -810,7 +823,8 @@ void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
                         text.WriteString(mn
                             + "\t" + s->_strand
                             + "\t" +
-                            +"\t" + s->_mapping
+                            + "\t" + s->_mapping
+                            + "\t" + s->_color.GetAsString()
                             + "\n");
                         for (size_t k = 0; k < s->GetChildCount(); k++)
                         {
@@ -821,6 +835,7 @@ void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
                                     + "\t" + n->_strand
                                     + "\t" + n->_node
                                     + "\t" + n->_mapping
+                                    + "\t" + n->_color.GetAsString()
                                     + "\n");
                             }
                         }

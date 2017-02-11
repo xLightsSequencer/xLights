@@ -20,7 +20,6 @@
 #include "Color.h"
 #include <wx/arrstr.h>
 #include <wx/filename.h>
-#include <wx/choice.h>
 
 class SequenceElements;
 class xLightsFrame;
@@ -124,7 +123,7 @@ public:
         return m_container;
     }
 
-    xLightsImportModelNode* GetParent()
+    xLightsImportModelNode* GetParent() const
     {
         return m_parent;
     }
