@@ -8,6 +8,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Add new Skulltronix skull display option for the DMX model.
+   -- enh (gil)     Add new 3D DMX head display option for the DMX model.
+   -- enh (gil)     Add new Servo Effect mainly for 16 bit servos but also works with 8 bit channels.
+   -- enh (gil)     Add capability to import a VSA file.
    -- bug (dkulp)   Don't stop the timer when flipping pages. Fixes #817
    -- enh (keith)   Add list of referenced files to export effects
    -- enh (keith)   Add text output to xSchedule allowing run time countdowns and text overlays
@@ -23,19 +27,19 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 2017.1  Jan 31, 2017
    -- enh (dkulp)   Support groups within groups. Preview should be correct with groups within groups
    -- enh (dkulp)   Add sequence option for allowing blending of effects between models/groups
-   -- bug (dkulp)   Fix problem in JobPool where not enough threads may be created 
+   -- bug (dkulp)   Fix problem in JobPool where not enough threads may be created
    -- bug (gil)     Fix import of LOR timings during new sequence wizard.  Fixes #805.
    -- enh (gil)     Increase DMXModel selection area hotspot.  Fixes #795.
    -- bug (gil)     Fix blue screen crash when turning off outputs while using LOR USB dongle.  Fixes #797.
    -- bug (gil)     Fix forcing of color for RGB nodes in LMS import. Red and Blue were swapped.
    -- enh (keith)   Add xSchedule
-   -- enh (keith)   Refactor output processing. This should generally be invisible other than some performance enhancements and 
+   -- enh (keith)   Refactor output processing. This should generally be invisible other than some performance enhancements and
                     useability enhancements on the setup tab. This includes Fix #789, #808 and #812
    -- fix (keith)   Fix #760 - ESEQ elispses doesnt open dialog
    -- enh (keith)   Fix #796 - disable export effects if no sequence open
    -- fix (keith)   Fix #785 - mac crash due to UI update on background thread in Fireworks effect.
    -- enh (keith)   Optionally allow backup to backup xml files in subdirectories for users that dont keep their xml files in the show
-                    directory itself but a folder underneath it 
+                    directory itself but a folder underneath it
 2016.56  Dec 31, 2016
    -- enh (gil)     Rounder ends for the Galaxy effect.
    -- enh (gil)     Use dynamic step angle to prevent holes in Galaxy effect for large radii.

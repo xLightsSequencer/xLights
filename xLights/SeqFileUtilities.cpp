@@ -2,10 +2,13 @@
 #include "SeqSettingsDialog.h"
 #include "FileConverter.h"
 #include "DataLayer.h"
+#include "DmxModel.h"
+#include "VSAFile.h"
 
 #include "LMSImportChannelMapDialog.h"
 #include "xLightsImportChannelMapDialog.h"
 #include "SuperStarImportDialog.h"
+#include "VsaImportDialog.h"
 #include "SaveChangesDialog.h"
 #include "ConvertLogDialog.h"
 
@@ -795,12 +798,13 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
 
     filters.push_back("SuperStar File (*.sup)|*.sup");
     filters.push_back("LOR Music Sequences (*.lms)|*.lms");
-        filters.push_back("xLights Sequence (*.xml)|*.xml");
-            filters.push_back("HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata");
-                filters.push_back("Vixen 2.x Sequence(*.vix)|*.vix");
-                    filters.push_back("LSP 2.x Sequence(*.msq)|*.msq");
+    filters.push_back("xLights Sequence (*.xml)|*.xml");
+    filters.push_back("HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata");
+    filters.push_back("Vixen 2.x Sequence(*.vix)|*.vix");
+    filters.push_back("LSP 2.x Sequence(*.msq)|*.msq");
+    filters.push_back("VSA Files(*.vsa)|*.vsa");
 
-                    wxString filter;
+    wxString filter;
     for (auto it = filters.begin(); it != filters.end(); ++it)
     {
         if (filter != "")
@@ -857,6 +861,8 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
             ImportXLights(fn);
         } else if (ext == "msq") {
             ImportLSP(fn);
+        } else if (ext == "vsa") {
+            ImportVsa(fn);
         }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(this, eventRowHeaderChanged);
@@ -2086,7 +2092,7 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
                 }
                 settings += "E_TEXTCTRL_Eff_On_End=" + endi;
             }
-            if ("intensity" != ch->GetAttribute("type")) {
+            if (("intensity" != ch->GetAttribute("type")) && ("DMX intensity" != ch->GetAttribute("type"))) {
                 if (!settings.empty()) {
                     settings += ",";
                 }
@@ -3412,6 +3418,134 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
                                       dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4));
                     }
                     row++;
+                }
+            }
+        }
+    }
+
+    float elapsedTime = sw.Time()/1000.0; //msec => sec
+    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+}
+
+static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, std::string name,
+                            const std::vector< VSAFile::vsaEventRecord > &events, bool is_16bit = true)
+{
+    float start_pos;
+    float end_pos;
+    float last_pos = -1.0;
+    int last_time = 0;
+    bool warn = true;
+
+    for( int i=0; i < events.size(); ++i ) {
+        std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
+        std::string settings;
+        if( is_16bit ) {
+            settings += "E_CHECKBOX_16bit=1,";
+        } else {
+            settings += "E_CHECKBOX_16bit=0,";
+        }
+        settings += "E_CHOICE_Channel=" + name + ",";
+        settings += "E_VALUECURVE_Servo=Active=TRUE|Id=ID_VALUECURVE_Servo|Type=Ramp|Min=0.00|Max=100.00|";
+        start_pos = (events[i].start_pos - min_limit) / (float)(max_limit - min_limit) * 100.0;
+        settings += "P1=" + wxString::Format("%3.1f", start_pos).ToStdString() + "|";
+        end_pos = (events[i].end_pos - min_limit) / (float)(max_limit - min_limit) * 100.0;
+        if( start_pos < 0.0 ) {
+            if( warn ) {
+                wxMessageBox(wxString::Format("%s: Servo Limit Exceeded", name));
+                warn = false;
+            }
+            start_pos = 0.0;
+        }
+        if( end_pos > 100.0 ) {
+            if( warn ) {
+                wxMessageBox(wxString::Format("%s: Servo Limit Exceeded", name));
+                warn = false;
+            }
+            end_pos = 100.0;
+        }
+        settings += "P2=" + wxString::Format("%3.1f", end_pos).ToStdString() + "|";
+        if( last_pos == -1.0 ) {
+            last_pos = start_pos;
+        }
+        if( events[i].start_time > 0 ) {
+            std::string settings2;
+            if( is_16bit ) {
+                settings2 += "E_CHECKBOX_16bit=1,";
+            } else {
+                settings2 += "E_CHECKBOX_16bit=0,";
+            }
+            settings2 += "E_CHOICE_Channel=" + name + ",";
+            settings2 += "E_TEXTCTRL_Servo=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
+            settings2 += "E_VALUECURVE_Servo=Active=FALSE|";
+            layer->AddEffect(0, "Servo", settings2, palette, last_time, events[i].start_time * 33, false, false);
+        }
+        layer->AddEffect(0, "Servo", settings, palette, events[i].start_time * 33, events[i].end_time * 33, false, false);
+        last_pos = end_pos;
+        last_time = events[i].end_time * 33;
+    }
+}
+
+static int GetTrackNumber(const std::vector< VSAFile::vsaTrackRecord > &tracks, const std::string &channel)
+{
+    int track_number = -1;
+
+    for( int i = 0; i < tracks.size(); ++i ) {
+        if( tracks[i].name == channel ) {
+            track_number = i;
+            break;
+        }
+    }
+
+    return track_number;
+}
+
+void xLightsFrame::ImportVsa(const wxFileName &filename) {
+
+    wxStopWatch sw; // start a stopwatch timer
+
+    VsaImportDialog dlg(this);
+    VSAFile vsa(filename.GetFullPath().ToStdString());
+    dlg.mSequenceElements = &mSequenceElements;
+    dlg.xlights = this;
+    dlg.Init(&vsa, false);
+
+    if (dlg.ShowModal() == wxID_CANCEL) {
+        return;
+    }
+
+    const std::vector< VSAFile::vsaTrackRecord > &tracks = vsa.GetTrackInfo();
+    const std::vector< std::vector< VSAFile::vsaEventRecord > > &events = vsa.GetEventInfo();
+
+    for( int m = 0; m < dlg.selectedModels.size(); ++m ) {
+        std::string modelName = dlg.selectedModels[m];
+        if( modelName != "" ) {
+            ModelElement * model = nullptr;
+            for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
+                if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
+                    && modelName == mSequenceElements.GetElement(i)->GetName()) {
+                    model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
+                    break;
+                }
+            }
+
+            if( model != nullptr ) {
+                EffectLayer* layer;
+                int layer_number = dlg.selectedLayers[m];
+                while( model->GetEffectLayerCount() < layer_number+1 ) {
+                    layer = model->AddEffectLayer();
+                }
+
+                layer = model->GetEffectLayer(layer_number);
+                if( layer != nullptr && dlg.selectedChannels[m] != "" ) {
+                    bool is_16bit = true;
+                    switch( (VSAFile::vsaControllers)(tracks[m].controller) )
+                    {
+                    case VSAFile::DMX_DIMMER:
+                        is_16bit = false;
+                    default:
+                        break;
+                    }
+                    ImportServoData(tracks[m].min_limit, tracks[m].max_limit, layer, dlg.selectedChannels[m], events[m], is_16bit);
                 }
             }
         }

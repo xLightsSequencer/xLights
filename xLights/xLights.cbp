@@ -40,6 +40,7 @@
 					<Add directory="models" />
 					<Add directory="effects/assist" />
 					<Add directory="models/" />
+					<Add directory="support" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -114,6 +115,7 @@
 					<Add directory="models" />
 					<Add directory="effects/assist" />
 					<Add directory="models/" />
+					<Add directory="support" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -184,6 +186,7 @@
 					<Add directory="ffmpeg-dev/include" />
 					<Add directory="../include" />
 					<Add directory="models/" />
+					<Add directory="support" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -241,6 +244,7 @@
 					<Add directory="ffmpeg-dev/include" />
 					<Add directory="../include" />
 					<Add directory="models/" />
+					<Add directory="support" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -297,6 +301,7 @@
 					<Add directory="effects/assist" />
 					<Add directory="../include" />
 					<Add directory="models/" />
+					<Add directory="support" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -337,6 +342,7 @@
 					<Add directory="effects/assist" />
 					<Add directory="../include" />
 					<Add directory="models/" />
+					<Add directory="support" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -381,6 +387,7 @@
 					<Add directory="models/" />
 					<Add directory="ffmpeg-dev/include" />
 					<Add directory="../include" />
+					<Add directory="support" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx64)/include" />
@@ -442,6 +449,7 @@
 					<Add directory="models/" />
 					<Add directory="ffmpeg-dev/include" />
 					<Add directory="../include" />
+					<Add directory="support" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx64)/include" />
@@ -660,6 +668,8 @@
 		<Unit filename="TopEffectsPanel.h" />
 		<Unit filename="VAMPPluginDialog.cpp" />
 		<Unit filename="VAMPPluginDialog.h" />
+		<Unit filename="VSAFile.cpp" />
+		<Unit filename="VSAFile.h" />
 		<Unit filename="ValueCurve.cpp" />
 		<Unit filename="ValueCurve.h" />
 		<Unit filename="ValueCurveButton.cpp" />
@@ -670,6 +680,8 @@
 		<Unit filename="VideoReader.h" />
 		<Unit filename="ViewsDialog.cpp" />
 		<Unit filename="ViewsDialog.h" />
+		<Unit filename="VsaImportDialog.cpp" />
+		<Unit filename="VsaImportDialog.h" />
 		<Unit filename="WiringDialog.cpp" />
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
@@ -790,6 +802,10 @@
 		<Unit filename="effects/RippleEffect.h" />
 		<Unit filename="effects/RipplePanel.cpp" />
 		<Unit filename="effects/RipplePanel.h" />
+		<Unit filename="effects/ServoEffect.cpp" />
+		<Unit filename="effects/ServoEffect.h" />
+		<Unit filename="effects/ServoPanel.cpp" />
+		<Unit filename="effects/ServoPanel.h" />
 		<Unit filename="effects/ShimmerEffect.cpp" />
 		<Unit filename="effects/ShimmerEffect.h" />
 		<Unit filename="effects/ShimmerPanel.cpp" />
@@ -996,6 +1012,12 @@
 		<Unit filename="sequencer/Waveform.h" />
 		<Unit filename="sequencer/tabSequencer.cpp" />
 		<Unit filename="serial.h" />
+		<Unit filename="support/EzGrid.cpp" />
+		<Unit filename="support/EzGrid.h" />
+		<Unit filename="support/FastComboEditor.cpp" />
+		<Unit filename="support/FastComboEditor.h" />
+		<Unit filename="support/GridCellChoiceRenderer.cpp" />
+		<Unit filename="support/GridCellChoiceRenderer.h" />
 		<Unit filename="tmGridCell.cpp" />
 		<Unit filename="tmGridCell.h" />
 		<Unit filename="vamp-hostsdk/Files.cpp" />
@@ -1108,6 +1130,7 @@
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
+		<Unit filename="wxsmith/ServoPanel.wxs" />
 		<Unit filename="wxsmith/SevenSegmentDialog.wxs" />
 		<Unit filename="wxsmith/ShimmerPanel.wxs" />
 		<Unit filename="wxsmith/ShockwavePanel.wxs" />
@@ -1133,6 +1156,7 @@
 		<Unit filename="wxsmith/ValueCurveDialog.wxs" />
 		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
+		<Unit filename="wxsmith/VsaImportDialog.wxs" />
 		<Unit filename="wxsmith/WavePanel.wxs" />
 		<Unit filename="wxsmith/WiringDialog.wxs" />
 		<Unit filename="wxsmith/xLightsImportChannelMapDialog.wxs" />
@@ -1281,6 +1305,8 @@
 					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="FPPConnectDialog.cpp" hdr="FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ControllerConnectionDialog.wxs" src="ControllerConnectionDialog.cpp" hdr="ControllerConnectionDialog.h" fwddecl="0" i18n="1" name="ControllerConnectionDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BufferSizeDialog.wxs" src="BufferSizeDialog.cpp" hdr="BufferSizeDialog.h" fwddecl="0" i18n="1" name="BufferSizeDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/ServoPanel.wxs" src="effects/ServoPanel.cpp" hdr="effects/ServoPanel.h" fwddecl="1" i18n="1" name="ServoPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/VsaImportDialog.wxs" src="VsaImportDialog.cpp" hdr="VsaImportDialog.h" fwddecl="0" i18n="1" name="VsaImportDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

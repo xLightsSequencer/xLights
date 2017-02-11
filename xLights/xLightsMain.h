@@ -359,6 +359,7 @@ public:
     void ImportHLS(const wxFileName &filename);
     void ImportLMS(const wxFileName &filename);
     void ImportLSP(const wxFileName &filename);
+    void ImportVsa(const wxFileName &filename);
     void ImportSuperStar(const wxFileName &filename);
     void SaveWorking();
     void SaveWorkingLayout();
@@ -1133,7 +1134,7 @@ private:
     bool mGridNodeValues;
     int mEffectAssistMode;
 	bool mRendering;
-    
+
     class RenderTree {
     public:
         RenderTree() : renderTreeChangeCount(0) {}
@@ -1141,7 +1142,7 @@ private:
         void Clear();
         void Add(Model *el);
         void Print();
-        
+
         unsigned int renderTreeChangeCount;
         std::list<RenderTreeData*> data;
     } renderTree;

@@ -40,6 +40,7 @@ public:
         eff_PINWHEEL,
         eff_PLASMA,
         eff_RIPPLE,
+        eff_SERVO,
         eff_SHIMMER,
         eff_SHOCKWAVE,
         eff_SINGLESTRAND,

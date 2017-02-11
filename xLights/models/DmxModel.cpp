@@ -5,6 +5,10 @@
 #include "ModelScreenLocation.h"
 #include "../ModelPreview.h"
 #include "../RenderBuffer.h"
+#include <glm/mat4x4.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 DmxModel::DmxModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -22,6 +26,21 @@ DmxModel::~DmxModel()
 
 const double PI  =3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
+
+/*struct dmxCoord {
+    float x;
+    float y;
+    float z;
+};
+
+const dmxCoord base_points[7] = {{-3,-1,-5} sx, sy, scale, pan_angle_raw, 0);
+        dmxPoint3 p11(3,-1,-5, sx, sy, scale, pan_angle_raw, 0);
+        dmxPoint3 p12(-3,-5,-5, sx, sy, scale, pan_angle_raw, 0);
+        dmxPoint3 p13(3,-5,-5, sx, sy, scale, pan_angle_raw, 0);
+        dmxPoint3 p14(0,-1,-5, sx, sy, scale, pan_angle_raw, 0);
+        dmxPoint3 p15(-1,1,-5, sx, sy, scale, pan_angle_raw, 0);
+        dmxPoint3 p16(1,1,-5, sx, sy, scale, pan_angle_raw, 0);
+*/
 
 class dmxPoint {
 
@@ -54,6 +73,34 @@ private:
     float scale;
 };
 
+class dmxPoint3 {
+
+public:
+    float x;
+    float y;
+    float z;
+
+    dmxPoint3( float x_, float y_, float z_, int cx_, int cy_, float scale_, float pan_angle_, float tilt_angle_, float nod_angle_ = 0.0 )
+    : x(x_), y(y_), z(z_)
+    {
+        float pan_angle = wxDegToRad(pan_angle_);
+        float tilt_angle = wxDegToRad(tilt_angle_);
+        float nod_angle = wxDegToRad(nod_angle_);
+
+        glm::vec4 position = glm::vec4(glm::vec3(x_,y_,z_), 1.0);
+
+        glm::mat4 projMatrix = glm::perspective(45.0f, 1.0f, 1.0f, 25.0f);
+        glm::mat4 rotationMatrixPan = glm::rotate(glm::mat4(1.0f), pan_angle, glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 rotationMatrixTilt = glm::rotate(glm::mat4(1.0f), tilt_angle, glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 rotationMatrixNod = glm::rotate(glm::mat4(1.0f), nod_angle, glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3((float)cx_, (float)cy_, 0.0f));
+        glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale_));
+        glm::vec4 model_position = translateMatrix * rotationMatrixPan * rotationMatrixTilt * rotationMatrixNod * scaleMatrix * position;
+        x = model_position.x;
+        y = model_position.y;
+    }
+};
+
 static wxPGChoices DMX_STYLES;
 
 enum DMX_STYLE {
@@ -61,7 +108,9 @@ enum DMX_STYLE {
     DMX_STYLE_MOVING_HEAD_SIDE,
     DMX_STYLE_MOVING_HEAD_BARS,
     DMX_STYLE_MOVING_HEAD_TOP_BARS,
-    DMX_STYLE_MOVING_HEAD_SIDE_BARS
+    DMX_STYLE_MOVING_HEAD_SIDE_BARS,
+    DMX_STYLE_MOVING_HEAD_3D,
+    DMX_STYLE_SKULLTRONIX_SKULL
 };
 
 void DmxModel::GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const {
@@ -89,6 +138,8 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         DMX_STYLES.Add("Moving Head Bars");
         DMX_STYLES.Add("Moving Head Top Bars");
         DMX_STYLES.Add("Moving Head Side Bars");
+        DMX_STYLES.Add("Moving Head 3D");
+        DMX_STYLES.Add("Skulltronix Skull");
     }
 
     AddStyleProperties(grid);
@@ -113,6 +164,18 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
 
+    if( dmx_style_val == DMX_STYLE_SKULLTRONIX_SKULL ) {
+        p = grid->Append(new wxUIntProperty("Pan Min Limit", "DmxPanMinLimit", pan_min_limit));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 2500);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Pan Max Limit", "DmxPanMaxLimit", pan_max_limit));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 2500);
+        p->SetEditor("SpinCtrl");
+    }
+
     p = grid->Append(new wxUIntProperty("Tilt Channel", "DmxTiltChannel", tilt_channel));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
@@ -127,6 +190,88 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
+
+    if( dmx_style_val == DMX_STYLE_SKULLTRONIX_SKULL ) {
+        p = grid->Append(new wxUIntProperty("Tilt Min Limit", "DmxTiltMinLimit", tilt_min_limit));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 2500);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Tilt Max Limit", "DmxTiltMaxLimit", tilt_max_limit));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 2500);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Nod Channel", "DmxNodChannel", nod_channel));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 512);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Nod Orientation", "DmxNodOrient", nod_orient));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 360);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Nod Deg of Rot", "DmxNodDegOfRot", nod_deg_of_rot));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 1000);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Nod Min Limit", "DmxNodMinLimit", nod_min_limit));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 2500);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Nod Max Limit", "DmxNodMaxLimit", nod_max_limit));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 2500);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Jaw Channel", "DmxJawChannel", jaw_channel));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 512);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Jaw Min Limit", "DmxJawMinLimit", jaw_min_limit));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 2500);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Jaw Max Limit", "DmxJawMaxLimit", jaw_max_limit));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 2500);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Eye UD Channel", "DmxEyeUDChannel", eye_ud_channel));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 512);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Eye UD Min Limit", "DmxEyeUDMinLimit", eye_ud_min_limit));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 2500);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Eye UD Max Limit", "DmxEyeUDMaxLimit", eye_ud_max_limit));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 2500);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Eye LR Channel", "DmxEyeLRChannel", eye_lr_channel));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 512);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Eye LR Min Limit", "DmxEyeLRMinLimit", eye_lr_min_limit));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 2500);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Eye LR Max Limit", "DmxEyeLRMaxLimit", eye_lr_max_limit));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 2500);
+        p->SetEditor("SpinCtrl");
+    }
 
     p = grid->Append(new wxUIntProperty("Red Channel", "DmxRedChannel", red_channel));
     p->SetAttribute("Min", 0);
@@ -143,15 +288,17 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Shutter Channel", "DmxShutterChannel", shutter_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
+    if( dmx_style_val != DMX_STYLE_SKULLTRONIX_SKULL ) {
+        p = grid->Append(new wxUIntProperty("Shutter Channel", "DmxShutterChannel", shutter_channel));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 512);
+        p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxIntProperty("Shutter Open Threshold", "DmxShutterOpen", shutter_threshold));
-    p->SetAttribute("Min", -255);
-    p->SetAttribute("Max", 255);
-    p->SetEditor("SpinCtrl");
+        p = grid->Append(new wxIntProperty("Shutter Open Threshold", "DmxShutterOpen", shutter_threshold));
+        p->SetAttribute("Min", -255);
+        p->SetAttribute("Max", 255);
+        p->SetEditor("SpinCtrl");
+    }
 }
 void DmxModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     grid->Append(new wxEnumProperty("DMX Style", "DmxStyle", DMX_STYLES, dmx_style_val));
@@ -201,10 +348,14 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
             dmx_style = "Moving Head TopBars";
         } else if( dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS ) {
             dmx_style = "Moving Head SideBars";
+        } else if( dmx_style_val == DMX_STYLE_MOVING_HEAD_3D ) {
+            dmx_style = "Moving Head 3D";
+        } else if( dmx_style_val == DMX_STYLE_SKULLTRONIX_SKULL ) {
+            dmx_style = "Skulltronix Skull";
         }
         ModelXml->AddAttribute("DmxStyle", dmx_style );
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return 7;
     } else if ("DmxChannelCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
@@ -225,6 +376,16 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         ModelXml->AddAttribute("DmxPanDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
+    } else if ("DmxPanMinLimit" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxPanMinLimit");
+        ModelXml->AddAttribute("DmxPanMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxPanMaxLimit" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxPanMaxLimit");
+        ModelXml->AddAttribute("DmxPanMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
     } else if ("DmxTiltChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltChannel");
         ModelXml->AddAttribute("DmxTiltChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
@@ -238,6 +399,86 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     } else if ("DmxTiltDegOfRot" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltDegOfRot");
         ModelXml->AddAttribute("DmxTiltDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxTiltMinLimit" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxTiltMinLimit");
+        ModelXml->AddAttribute("DmxTiltMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxTiltMaxLimit" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxTiltMaxLimit");
+        ModelXml->AddAttribute("DmxTiltMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxNodChannel" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxNodChannel");
+        ModelXml->AddAttribute("DmxNodChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxNodOrient" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxNodOrient");
+        ModelXml->AddAttribute("DmxNodOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxNodDegOfRot" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxNodDegOfRot");
+        ModelXml->AddAttribute("DmxNodDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxNodMinLimit" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxNodMinLimit");
+        ModelXml->AddAttribute("DmxNodMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxNodMaxLimit" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxNodMaxLimit");
+        ModelXml->AddAttribute("DmxNodMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxJawChannel" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxJawChannel");
+        ModelXml->AddAttribute("DmxJawChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxJawMinLimit" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxJawMinLimit");
+        ModelXml->AddAttribute("DmxJawMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxJawMaxLimit" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxJawMaxLimit");
+        ModelXml->AddAttribute("DmxJawMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxEyeUDChannel" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxEyeUDChannel");
+        ModelXml->AddAttribute("DmxEyeUDChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxEyeUDMinLimit" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxEyeUDMinLimit");
+        ModelXml->AddAttribute("DmxEyeUDMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxEyeUDMaxLimit" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxEyeUDMaxLimit");
+        ModelXml->AddAttribute("DmxEyeUDMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxEyeLRChannel" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxEyeLRChannel");
+        ModelXml->AddAttribute("DmxEyeLRChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxEyeLRMinLimit" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxEyeLRMinLimit");
+        ModelXml->AddAttribute("DmxEyeLRMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("DmxEyeLRMaxLimit" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxEyeLRMaxLimit");
+        ModelXml->AddAttribute("DmxEyeLRMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("DmxRedChannel" == event.GetPropertyName()) {
@@ -301,17 +542,6 @@ void DmxModel::InitModel() {
     SetBufferSize(1,parm1);
     screenLocation.SetRenderSize(1, 1);
 
-	dmx_style = ModelXml->GetAttribute("DmxStyle", "Moving Head Top");
-    dmx_style_val = DMX_STYLE_MOVING_HEAD_TOP;
-    if( dmx_style == "Moving Head Side" ) {
-        dmx_style_val = DMX_STYLE_MOVING_HEAD_SIDE;
-    } else if( dmx_style == "Moving Head Bars" ) {
-        dmx_style_val = DMX_STYLE_MOVING_HEAD_BARS;
-    } else if( dmx_style == "Moving Head TopBars" ) {
-        dmx_style_val = DMX_STYLE_MOVING_HEAD_TOP_BARS;
-    } else if( dmx_style == "Moving Head SideBars" ) {
-        dmx_style_val = DMX_STYLE_MOVING_HEAD_SIDE_BARS;
-    }
 	pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "0"));
 	pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "0"));
 	pan_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxPanDegOfRot", "540"));
@@ -323,6 +553,49 @@ void DmxModel::InitModel() {
 	blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "0"));
 	shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
 	shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
+
+	dmx_style = ModelXml->GetAttribute("DmxStyle", "Moving Head Top");
+    dmx_style_val = DMX_STYLE_MOVING_HEAD_TOP;
+    if( dmx_style == "Moving Head Side" ) {
+        dmx_style_val = DMX_STYLE_MOVING_HEAD_SIDE;
+    } else if( dmx_style == "Moving Head Bars" ) {
+        dmx_style_val = DMX_STYLE_MOVING_HEAD_BARS;
+    } else if( dmx_style == "Moving Head TopBars" ) {
+        dmx_style_val = DMX_STYLE_MOVING_HEAD_TOP_BARS;
+    } else if( dmx_style == "Moving Head SideBars" ) {
+        dmx_style_val = DMX_STYLE_MOVING_HEAD_SIDE_BARS;
+    } else if( dmx_style == "Moving Head 3D" ) {
+        dmx_style_val = DMX_STYLE_MOVING_HEAD_3D;
+    } else if( dmx_style == "Skulltronix Skull" ) {
+        dmx_style_val = DMX_STYLE_SKULLTRONIX_SKULL;
+        pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "5"));
+        pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "90"));
+        pan_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxPanDegOfRot", "180"));
+        tilt_channel = wxAtoi(ModelXml->GetAttribute("DmxTiltChannel", "11"));
+        tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "315"));
+        tilt_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxTiltDegOfRot", "90"));
+        red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "16"));
+        green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "17"));
+        blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "18"));
+        tilt_min_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMinLimit", "442"));
+        tilt_max_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMaxLimit", "836"));
+        pan_min_limit = wxAtoi(ModelXml->GetAttribute("DmxPanMinLimit", "250"));
+        pan_max_limit = wxAtoi(ModelXml->GetAttribute("DmxPanMaxLimit", "1250"));
+        nod_channel = wxAtoi(ModelXml->GetAttribute("DmxNodChannel", "3"));
+        nod_orient = wxAtoi(ModelXml->GetAttribute("DmxNodOrient", "331"));
+        nod_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxNodDegOfRot", "58"));
+        nod_min_limit = wxAtoi(ModelXml->GetAttribute("DmxNodMinLimit", "452"));
+        nod_max_limit = wxAtoi(ModelXml->GetAttribute("DmxNodMaxLimit", "745"));
+        jaw_channel = wxAtoi(ModelXml->GetAttribute("DmxJawChannel", "1"));
+        jaw_min_limit = wxAtoi(ModelXml->GetAttribute("DmxJawMinLimit", "500"));
+        jaw_max_limit = wxAtoi(ModelXml->GetAttribute("DmxJawMaxLimit", "750"));
+        eye_ud_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeUDChannel", "7"));
+        eye_ud_min_limit = wxAtoi(ModelXml->GetAttribute("DmxEyeUDMinLimit", "575"));
+        eye_ud_max_limit = wxAtoi(ModelXml->GetAttribute("DmxEyeUDMaxLimit", "1000"));
+        eye_lr_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeLRChannel", "9"));
+        eye_lr_min_limit = wxAtoi(ModelXml->GetAttribute("DmxEyeLRMinLimit", "499"));
+        eye_lr_max_limit = wxAtoi(ModelXml->GetAttribute("DmxEyeLRMaxLimit", "878"));
+    }
 }
 
 void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
@@ -345,7 +618,11 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
         sx=w/2;
         sy=h/2;
 
-        DrawModelOnWindow(preview, va, nullptr, sx, sy, true);
+        if( dmx_style_val == DMX_STYLE_SKULLTRONIX_SKULL ) {
+            DrawSkullModelOnWindow(preview, va, nullptr, sx, sy, true);
+        } else {
+            DrawModelOnWindow(preview, va, nullptr, sx, sy, true);
+        }
 
         DrawGLUtils::Draw(va);
 
@@ -369,7 +646,11 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
     sy=0;
     GetModelScreenLocation().TranslatePoint(sx, sy);
 
-    DrawModelOnWindow(preview, va, c, sx, sy, !allowSelected);
+    if( dmx_style_val == DMX_STYLE_SKULLTRONIX_SKULL ) {
+        DrawSkullModelOnWindow(preview, va, c, sx, sy, !allowSelected);
+    } else {
+        DrawModelOnWindow(preview, va, c, sx, sy, !allowSelected);
+    }
 
     if (Selected && c != NULL && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
@@ -378,7 +659,7 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
 
 void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
 {
-    float angle, pan_angle, tilt_angle, angle1, angle2, beam_length;
+    float angle, pan_angle, pan_angle_raw, tilt_angle, angle1, angle2, beam_length;
     int x1, x2, y1, y2;
     size_t NodeCount=Nodes.size();
     bool beam_off = false;
@@ -398,6 +679,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     xlColor marker_color(xlBLACK);
     xlColor black(xlBLACK);
     xlColor base_color(200, 200, 200);
+    xlColor base_color2(150, 150, 150);
     xlColor color;
     if (c != NULL) {
         color = *c;
@@ -426,6 +708,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     }
     ApplyTransparency(ccolor, trans);
     ApplyTransparency(base_color, trans);
+    ApplyTransparency(base_color2, trans);
     ApplyTransparency(pnt_color, trans);
 
     if( pan_channel > 0 ) {
@@ -434,6 +717,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     } else {
         pan_angle = 0.0f;
     }
+    pan_angle_raw = pan_angle;
     if( tilt_channel > 0 ) {
         Nodes[tilt_channel-1]->GetColor(color_angle);
         tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
@@ -500,7 +784,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     }
 
     // Draw the light beam
-    if( dmx_style_val != DMX_STYLE_MOVING_HEAD_BARS && shutter_open ) {
+    if( dmx_style_val != DMX_STYLE_MOVING_HEAD_BARS && dmx_style_val != DMX_STYLE_MOVING_HEAD_3D && shutter_open ) {
         va.AddVertex(sx, sy, beam_color);
         ApplyTransparency(beam_color, beam_off ? 0 : 100);
         va.AddVertex(sx+x1, sy+y1, beam_color);
@@ -610,5 +894,616 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         }
     }
 
+    if( dmx_style_val == DMX_STYLE_MOVING_HEAD_3D ) {
+        xlColor beam_color_end(beam_color);
+        ApplyTransparency(beam_color_end, beam_off ? 0 : 100);
+
+        dmxPoint3 p1(beam_length,-5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
+        dmxPoint3 p2(beam_length,-5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
+        dmxPoint3 p3(beam_length,5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
+        dmxPoint3 p4(beam_length,5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
+        dmxPoint3 p0(0,0,0, sx, sy, scale, pan_angle_raw, tilt_angle);
+
+        while (pan_angle_raw > 360.0f ) pan_angle_raw -= 360.0f;
+
+        bool facing_right = pan_angle_raw <= 90.0f || pan_angle_raw >= 270.0f;
+
+        if( facing_right ) {
+            va.AddVertex(p2.x, p2.y, beam_color_end);
+            va.AddVertex(p4.x, p4.y, beam_color_end);
+            va.AddVertex(p0.x, p0.y, beam_color);
+        } else {
+            va.AddVertex(p1.x, p1.y, beam_color_end);
+            va.AddVertex(p3.x, p3.y, beam_color_end);
+            va.AddVertex(p0.x, p0.y, beam_color);
+        }
+
+        va.AddVertex(p1.x, p1.y, beam_color_end);
+        va.AddVertex(p2.x, p2.y, beam_color_end);
+        va.AddVertex(p0.x, p0.y, beam_color);
+
+        va.AddVertex(p3.x, p3.y, beam_color_end);
+        va.AddVertex(p4.x, p4.y, beam_color_end);
+        va.AddVertex(p0.x, p0.y, beam_color);
+
+        if( !facing_right ) {
+            va.AddVertex(p2.x, p2.y, beam_color_end);
+            va.AddVertex(p4.x, p4.y, beam_color_end);
+            va.AddVertex(p0.x, p0.y, beam_color);
+        } else {
+            va.AddVertex(p1.x, p1.y, beam_color_end);
+            va.AddVertex(p3.x, p3.y, beam_color_end);
+            va.AddVertex(p0.x, p0.y, beam_color);
+        }
+
+        if( facing_right ) {
+            Draw3DDMXBaseRight(va, base_color, sx, sy, scale, pan_angle_raw);
+            Draw3DDMXHead(va, base_color2, sx, sy, scale, pan_angle_raw, tilt_angle);
+            Draw3DDMXBaseLeft(va, base_color, sx, sy, scale, pan_angle_raw);
+        } else {
+            Draw3DDMXBaseLeft(va, base_color, sx, sy, scale, pan_angle_raw);
+            Draw3DDMXHead(va, base_color2, sx, sy, scale, pan_angle_raw, tilt_angle);
+            Draw3DDMXBaseRight(va, base_color, sx, sy, scale, pan_angle_raw);
+        }
+    }
+
     va.Finish(GL_TRIANGLES);
 }
+
+int DmxModel::GetChannelValue( int channel )
+{
+    xlColor color_angle;
+    int lsb = 0;
+    int msb = 0;
+    if( dmx_style_val == DMX_STYLE_SKULLTRONIX_SKULL ) {
+        Nodes[channel]->GetColor(color_angle);
+        msb = color_angle.red;
+        Nodes[channel+1]->GetColor(color_angle);
+        lsb = color_angle.red;
+    } else {
+        Nodes[channel]->GetColor(color_angle);
+        lsb = color_angle.red;
+   }
+   return ((msb << 8) | lsb);
+}
+
+void DmxModel::DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
+{
+    float angle, pan_angle, pan_angle_raw, tilt_angle, nod_angle, jaw_pos, eye_x, eye_y;
+    float jaw_range_of_motion = -4.0;
+    float eye_range_of_motion = 3.8;
+    int channel_value;
+    size_t NodeCount=Nodes.size();
+    bool beam_off = false;
+
+    if( pan_channel > NodeCount ||
+        tilt_channel > NodeCount ||
+        red_channel > NodeCount ||
+        green_channel > NodeCount ||
+        blue_channel > NodeCount )
+    {
+        return;
+    }
+
+    xlColor ccolor(xlWHITE);
+    xlColor pnt_color(xlRED);
+    xlColor eye_color(xlWHITE);
+    xlColor marker_color(xlBLACK);
+    xlColor black(xlBLACK);
+    xlColor base_color(200, 200, 200);
+    xlColor base_color2(150, 150, 150);
+    xlColor color;
+    if (c != NULL) {
+        color = *c;
+    }
+
+    int dmx_size = ((BoxedScreenLocation)screenLocation).GetScaleX() * screenLocation.previewW;
+    float radius = (float)(dmx_size) / 2.0f;
+    xlColor color_angle;
+
+    int trans = color == xlBLACK ? blackTransparency : transparency;
+    if( red_channel > 0 && green_channel > 0 && blue_channel > 0 ) {
+        xlColor proxy;
+        Nodes[red_channel-1]->GetColor(proxy);
+        eye_color.red = proxy.red;
+        Nodes[green_channel-1]->GetColor(proxy);
+        eye_color.green = proxy.red;
+        Nodes[blue_channel-1]->GetColor(proxy);
+        eye_color.blue = proxy.red;
+    }
+    if( (eye_color.red == 0 && eye_color.green == 0 && eye_color.blue == 0) || !active ) {
+        eye_color = xlWHITE;
+        beam_off = true;
+    } else {
+        ApplyTransparency(eye_color, trans);
+        marker_color = eye_color;
+    }
+    ApplyTransparency(ccolor, trans);
+    ApplyTransparency(base_color, trans);
+    ApplyTransparency(base_color2, trans);
+    ApplyTransparency(pnt_color, trans);
+
+    if( pan_channel > 0 ) {
+        channel_value = GetChannelValue(pan_channel-1);
+        pan_angle = ((channel_value - pan_min_limit) / (double)(pan_max_limit - pan_min_limit)) * pan_deg_of_rot + pan_orient;
+    } else {
+        pan_angle = 0.0f;
+    }
+    pan_angle_raw = pan_angle;
+    if( tilt_channel > 0 ) {
+        channel_value = GetChannelValue(tilt_channel-1);
+        tilt_angle = (1.0 - ((channel_value - tilt_min_limit) / (double)(tilt_max_limit - tilt_min_limit))) * tilt_deg_of_rot + tilt_orient;
+    } else {
+        tilt_angle = 0.0f;
+    }
+    if( nod_channel > 0 ) {
+        channel_value = GetChannelValue(nod_channel-1);
+        nod_angle = (1.0 - ((channel_value - nod_min_limit) / (double)(nod_max_limit - nod_min_limit))) * nod_deg_of_rot + nod_orient;
+    } else {
+        nod_angle = 0.0f;
+    }
+    if( jaw_channel > 0 ) {
+        channel_value = GetChannelValue(jaw_channel-1);
+        jaw_pos = ((channel_value - jaw_min_limit) / (double)(jaw_max_limit - jaw_min_limit)) * jaw_range_of_motion - 0.5;
+    } else {
+        jaw_pos = -0.5f;
+    }
+    if( eye_lr_channel > 0 ) {
+        channel_value = GetChannelValue(eye_lr_channel-1);
+        eye_x = (1.0 - ((channel_value - eye_lr_min_limit) / (double)(eye_lr_max_limit - eye_lr_min_limit))) * eye_range_of_motion - eye_range_of_motion/2.0;
+    } else {
+        eye_x = 0.0f;
+    }
+    if( eye_ud_channel > 0 ) {
+        channel_value = GetChannelValue(eye_ud_channel-1);
+        eye_y = ((channel_value - eye_ud_min_limit) / (double)(eye_ud_max_limit - eye_ud_min_limit)) * eye_range_of_motion - eye_range_of_motion/2.0;
+    } else {
+        eye_y = 0.0f;
+    }
+
+    float sf = 12.0f;
+    float scale = radius / sf;
+
+    // Create Head
+    dmxPoint3 p1(-7.5, 13.7, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p2(7.5, 13.7, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p3(13.2, 6.0, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p8(-13.2, 6.0, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p4(9, -11.4, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p7(-9, -11.4, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p5(6.3, -16, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p6(-6.3, -16, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+
+    dmxPoint3 p9(0, 3.5, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p10(-2.5, -1.7, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p11(2.5, -1.7, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+
+    dmxPoint3 p14(0, -6.5, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p12(-6, -6.5, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p16(6, -6.5, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p13(-3, -11.4, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p15(3, -11.4, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+
+    // Create Back of Head
+    dmxPoint3 p1b(-7.5, 13.7, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p2b(7.5, 13.7, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p3b(13.2, 6.0, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p8b(-13.2, 6.0, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p4b(9, -11.4, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p7b(-9, -11.4, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p5b(6.3, -16, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p6b(-6.3, -16, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+
+    // Create Lower Mouth
+    dmxPoint3 p4m(9, -11.4+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p7m(-9, -11.4+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p5m(6.3, -16+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p6m(-6.3, -16+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p14m(0, -6.5+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p12m(-6, -6.5+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p16m(6, -6.5+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p13m(-3, -11.4+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p15m(3, -11.4+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+
+    // Create Eyes
+    dmxPoint3 left_eye_socket(-5, 7.5, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 right_eye_socket(5, 7.5, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 left_eye(-5+eye_x, 7.5+eye_y, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 right_eye(5+eye_x, 7.5+eye_y, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+
+    // Draw Back of Head
+    va.AddVertex(p1.x, p1.y, base_color2);
+    va.AddVertex(p1b.x, p1b.y, base_color2);
+    va.AddVertex(p2.x, p2.y, base_color2);
+    va.AddVertex(p2b.x, p2b.y, base_color2);
+    va.AddVertex(p1b.x, p1b.y, base_color2);
+    va.AddVertex(p2.x, p2.y, base_color2);
+
+    va.AddVertex(p2.x, p2.y, base_color);
+    va.AddVertex(p2b.x, p2b.y, base_color);
+    va.AddVertex(p3.x, p3.y, base_color);
+    va.AddVertex(p3b.x, p3b.y, base_color);
+    va.AddVertex(p2b.x, p2b.y, base_color);
+    va.AddVertex(p3.x, p3.y, base_color);
+
+    va.AddVertex(p3.x, p3.y, base_color2);
+    va.AddVertex(p3b.x, p3b.y, base_color2);
+    va.AddVertex(p4.x, p4.y, base_color2);
+    va.AddVertex(p4b.x, p4b.y, base_color2);
+    va.AddVertex(p3b.x, p3b.y, base_color2);
+    va.AddVertex(p4.x, p4.y, base_color2);
+
+    va.AddVertex(p4.x, p4.y, base_color);
+    va.AddVertex(p4b.x, p4b.y, base_color);
+    va.AddVertex(p5.x, p5.y, base_color);
+    va.AddVertex(p5b.x, p5b.y, base_color);
+    va.AddVertex(p4b.x, p4b.y, base_color);
+    va.AddVertex(p5.x, p5.y, base_color);
+
+    va.AddVertex(p5.x, p5.y, base_color2);
+    va.AddVertex(p5b.x, p5b.y, base_color2);
+    va.AddVertex(p6.x, p6.y, base_color2);
+    va.AddVertex(p6b.x, p6b.y, base_color2);
+    va.AddVertex(p5b.x, p5b.y, base_color2);
+    va.AddVertex(p6.x, p6.y, base_color2);
+
+    va.AddVertex(p6.x, p6.y, base_color);
+    va.AddVertex(p6b.x, p6b.y, base_color);
+    va.AddVertex(p7.x, p7.y, base_color);
+    va.AddVertex(p7b.x, p7b.y, base_color);
+    va.AddVertex(p6b.x, p6b.y, base_color);
+    va.AddVertex(p7.x, p7.y, base_color);
+
+    va.AddVertex(p7.x, p7.y, base_color2);
+    va.AddVertex(p7b.x, p7b.y, base_color2);
+    va.AddVertex(p8.x, p8.y, base_color2);
+    va.AddVertex(p8b.x, p8b.y, base_color2);
+    va.AddVertex(p7b.x, p7b.y, base_color2);
+    va.AddVertex(p8.x, p8.y, base_color2);
+
+    va.AddVertex(p8.x, p8.y, base_color);
+    va.AddVertex(p8b.x, p8b.y, base_color);
+    va.AddVertex(p1.x, p1.y, base_color);
+    va.AddVertex(p1b.x, p1b.y, base_color);
+    va.AddVertex(p8b.x, p8b.y, base_color);
+    va.AddVertex(p1.x, p1.y, base_color);
+
+    // Draw Front of Head
+    va.AddVertex(p1.x, p1.y, ccolor);
+    va.AddVertex(p2.x, p2.y, ccolor);
+    va.AddVertex(p9.x, p9.y, ccolor);
+
+    va.AddVertex(p2.x, p2.y, ccolor);
+    va.AddVertex(p9.x, p9.y, ccolor);
+    va.AddVertex(p11.x, p11.y, ccolor);
+
+    va.AddVertex(p1.x, p1.y, ccolor);
+    va.AddVertex(p9.x, p9.y, ccolor);
+    va.AddVertex(p10.x, p10.y, ccolor);
+
+    va.AddVertex(p1.x, p1.y, ccolor);
+    va.AddVertex(p8.x, p8.y, ccolor);
+    va.AddVertex(p10.x, p10.y, ccolor);
+
+    va.AddVertex(p2.x, p2.y, ccolor);
+    va.AddVertex(p3.x, p3.y, ccolor);
+    va.AddVertex(p11.x, p11.y, ccolor);
+
+    va.AddVertex(p8.x, p8.y, ccolor);
+    va.AddVertex(p10.x, p10.y, ccolor);
+    va.AddVertex(p12.x, p12.y, ccolor);
+
+    va.AddVertex(p3.x, p3.y, ccolor);
+    va.AddVertex(p11.x, p11.y, ccolor);
+    va.AddVertex(p16.x, p16.y, ccolor);
+
+    va.AddVertex(p7.x, p7.y, ccolor);
+    va.AddVertex(p8.x, p8.y, ccolor);
+    va.AddVertex(p12.x, p12.y, ccolor);
+
+    va.AddVertex(p3.x, p3.y, ccolor);
+    va.AddVertex(p4.x, p4.y, ccolor);
+    va.AddVertex(p16.x, p16.y, ccolor);
+
+    va.AddVertex(p10.x, p10.y, ccolor);
+    va.AddVertex(p12.x, p12.y, ccolor);
+    va.AddVertex(p14.x, p14.y, ccolor);
+
+    va.AddVertex(p10.x, p10.y, ccolor);
+    va.AddVertex(p11.x, p11.y, ccolor);
+    va.AddVertex(p14.x, p14.y, ccolor);
+
+    va.AddVertex(p11.x, p11.y, ccolor);
+    va.AddVertex(p14.x, p14.y, ccolor);
+    va.AddVertex(p16.x, p16.y, ccolor);
+
+    va.AddVertex(p12.x, p12.y, ccolor);
+    va.AddVertex(p13.x, p13.y, ccolor);
+    va.AddVertex(p14.x, p14.y, ccolor);
+
+    va.AddVertex(p14.x, p14.y, ccolor);
+    va.AddVertex(p15.x, p15.y, ccolor);
+    va.AddVertex(p16.x, p16.y, ccolor);
+
+    // Draw Lower Mouth
+    va.AddVertex(p4m.x, p4m.y, ccolor);
+    va.AddVertex(p6m.x, p6m.y, ccolor);
+    va.AddVertex(p7m.x, p7m.y, ccolor);
+
+    va.AddVertex(p4m.x, p4m.y, ccolor);
+    va.AddVertex(p5m.x, p5m.y, ccolor);
+    va.AddVertex(p6m.x, p6m.y, ccolor);
+
+    va.AddVertex(p7m.x, p7m.y, ccolor);
+    va.AddVertex(p12m.x, p12m.y, ccolor);
+    va.AddVertex(p13m.x, p13m.y, ccolor);
+
+    va.AddVertex(p13m.x, p13m.y, ccolor);
+    va.AddVertex(p14m.x, p14m.y, ccolor);
+    va.AddVertex(p15m.x, p15m.y, ccolor);
+
+    va.AddVertex(p4m.x, p4m.y, ccolor);
+    va.AddVertex(p15m.x, p15m.y, ccolor);
+    va.AddVertex(p16m.x, p16m.y, ccolor);
+
+    // Draw Eyes
+    va.AddTrianglesCircle(left_eye_socket.x, left_eye_socket.y, scale*sf*0.25, black, black);
+    va.AddTrianglesCircle(right_eye_socket.x, right_eye_socket.y, scale*sf*0.25, black, black);
+    va.AddTrianglesCircle(left_eye.x, left_eye.y, scale*sf*0.10, eye_color, eye_color);
+    va.AddTrianglesCircle(right_eye.x, right_eye.y, scale*sf*0.10, eye_color, eye_color);
+
+    va.Finish(GL_TRIANGLES);
+}
+
+void DmxModel::Draw3DDMXBaseLeft(DrawGLUtils::xlAccumulator &va, const xlColor &c, float &sx, float &sy, float &scale, float &pan_angle)
+{
+    dmxPoint3 p10(-3,-1,-5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p11(3,-1,-5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p12(-3,-5,-5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p13(3,-5,-5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p14(0,-1,-5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p15(-1,1,-5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p16(1,1,-5, sx, sy, scale, pan_angle, 0);
+
+    va.AddVertex(p10.x, p10.y, c);
+    va.AddVertex(p11.x, p11.y, c);
+    va.AddVertex(p12.x, p12.y, c);
+    va.AddVertex(p11.x, p11.y, c);
+    va.AddVertex(p12.x, p12.y, c);
+    va.AddVertex(p13.x, p13.y, c);
+    va.AddVertex(p10.x, p10.y, c);
+    va.AddVertex(p14.x, p14.y, c);
+    va.AddVertex(p15.x, p15.y, c);
+    va.AddVertex(p11.x, p11.y, c);
+    va.AddVertex(p14.x, p14.y, c);
+    va.AddVertex(p16.x, p16.y, c);
+    va.AddVertex(p15.x, p15.y, c);
+    va.AddVertex(p14.x, p14.y, c);
+    va.AddVertex(p16.x, p16.y, c);
+
+    dmxPoint3 p210(-3,-1,-3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p211(3,-1,-3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p212(-3,-5,-3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p213(3,-5,-3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p214(0,-1,-3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p215(-1,1,-3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p216(1,1,-3, sx, sy, scale, pan_angle, 0);
+
+    va.AddVertex(p210.x, p210.y, c);
+    va.AddVertex(p211.x, p211.y, c);
+    va.AddVertex(p212.x, p212.y, c);
+    va.AddVertex(p211.x, p211.y, c);
+    va.AddVertex(p212.x, p212.y, c);
+    va.AddVertex(p213.x, p213.y, c);
+    va.AddVertex(p210.x, p210.y, c);
+    va.AddVertex(p214.x, p214.y, c);
+    va.AddVertex(p215.x, p215.y, c);
+    va.AddVertex(p211.x, p211.y, c);
+    va.AddVertex(p214.x, p214.y, c);
+    va.AddVertex(p216.x, p216.y, c);
+    va.AddVertex(p215.x, p215.y, c);
+    va.AddVertex(p214.x, p214.y, c);
+    va.AddVertex(p216.x, p216.y, c);
+
+    va.AddVertex(p10.x, p10.y, c);
+    va.AddVertex(p210.x, p210.y, c);
+    va.AddVertex(p212.x, p212.y, c);
+    va.AddVertex(p10.x, p10.y, c);
+    va.AddVertex(p12.x, p12.y, c);
+    va.AddVertex(p212.x, p212.y, c);
+    va.AddVertex(p10.x, p10.y, c);
+    va.AddVertex(p210.x, p210.y, c);
+    va.AddVertex(p215.x, p215.y, c);
+    va.AddVertex(p10.x, p10.y, c);
+    va.AddVertex(p15.x, p15.y, c);
+    va.AddVertex(p215.x, p215.y, c);
+    va.AddVertex(p15.x, p15.y, c);
+    va.AddVertex(p16.x, p16.y, c);
+    va.AddVertex(p215.x, p215.y, c);
+    va.AddVertex(p16.x, p16.y, c);
+    va.AddVertex(p216.x, p216.y, c);
+    va.AddVertex(p215.x, p215.y, c);
+    va.AddVertex(p16.x, p16.y, c);
+    va.AddVertex(p11.x, p11.y, c);
+    va.AddVertex(p211.x, p211.y, c);
+    va.AddVertex(p16.x, p16.y, c);
+    va.AddVertex(p211.x, p211.y, c);
+    va.AddVertex(p216.x, p216.y, c);
+    va.AddVertex(p13.x, p13.y, c);
+    va.AddVertex(p211.x, p211.y, c);
+    va.AddVertex(p213.x, p213.y, c);
+    va.AddVertex(p13.x, p13.y, c);
+    va.AddVertex(p211.x, p211.y, c);
+    va.AddVertex(p11.x, p11.y, c);
+}
+
+void DmxModel::Draw3DDMXBaseRight(DrawGLUtils::xlAccumulator &va, const xlColor &c, float &sx, float &sy, float &scale, float &pan_angle)
+{
+    dmxPoint3 p20(-3,-1,5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p21(3,-1,5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p22(-3,-5,5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p23(3,-5,5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p24(0,-1,5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p25(-1,1,5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p26(1,1,5, sx, sy, scale, pan_angle, 0);
+
+    va.AddVertex(p20.x, p20.y, c);
+    va.AddVertex(p21.x, p21.y, c);
+    va.AddVertex(p22.x, p22.y, c);
+    va.AddVertex(p21.x, p21.y, c);
+    va.AddVertex(p22.x, p22.y, c);
+    va.AddVertex(p23.x, p23.y, c);
+    va.AddVertex(p20.x, p20.y, c);
+    va.AddVertex(p24.x, p24.y, c);
+    va.AddVertex(p25.x, p25.y, c);
+    va.AddVertex(p21.x, p21.y, c);
+    va.AddVertex(p24.x, p24.y, c);
+    va.AddVertex(p26.x, p26.y, c);
+    va.AddVertex(p25.x, p25.y, c);
+    va.AddVertex(p24.x, p24.y, c);
+    va.AddVertex(p26.x, p26.y, c);
+
+    dmxPoint3 p220(-3,-1,3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p221(3,-1,3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p222(-3,-5,3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p223(3,-5,3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p224(0,-1,3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p225(-1,1,3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p226(1,1,3, sx, sy, scale, pan_angle, 0);
+
+    va.AddVertex(p220.x, p220.y, c);
+    va.AddVertex(p221.x, p221.y, c);
+    va.AddVertex(p222.x, p222.y, c);
+    va.AddVertex(p221.x, p221.y, c);
+    va.AddVertex(p222.x, p222.y, c);
+    va.AddVertex(p223.x, p223.y, c);
+    va.AddVertex(p220.x, p220.y, c);
+    va.AddVertex(p224.x, p224.y, c);
+    va.AddVertex(p225.x, p225.y, c);
+    va.AddVertex(p221.x, p221.y, c);
+    va.AddVertex(p224.x, p224.y, c);
+    va.AddVertex(p226.x, p226.y, c);
+    va.AddVertex(p225.x, p225.y, c);
+    va.AddVertex(p224.x, p224.y, c);
+    va.AddVertex(p226.x, p226.y, c);
+
+    va.AddVertex(p20.x, p20.y, c);
+    va.AddVertex(p220.x, p220.y, c);
+    va.AddVertex(p222.x, p222.y, c);
+    va.AddVertex(p20.x, p20.y, c);
+    va.AddVertex(p22.x, p22.y, c);
+    va.AddVertex(p222.x, p222.y, c);
+    va.AddVertex(p20.x, p20.y, c);
+    va.AddVertex(p220.x, p220.y, c);
+    va.AddVertex(p225.x, p225.y, c);
+    va.AddVertex(p20.x, p20.y, c);
+    va.AddVertex(p25.x, p25.y, c);
+    va.AddVertex(p225.x, p225.y, c);
+    va.AddVertex(p25.x, p25.y, c);
+    va.AddVertex(p26.x, p26.y, c);
+    va.AddVertex(p225.x, p225.y, c);
+    va.AddVertex(p26.x, p26.y, c);
+    va.AddVertex(p226.x, p226.y, c);
+    va.AddVertex(p225.x, p225.y, c);
+    va.AddVertex(p26.x, p26.y, c);
+    va.AddVertex(p21.x, p21.y, c);
+    va.AddVertex(p221.x, p221.y, c);
+    va.AddVertex(p26.x, p26.y, c);
+    va.AddVertex(p221.x, p221.y, c);
+    va.AddVertex(p226.x, p226.y, c);
+    va.AddVertex(p23.x, p23.y, c);
+    va.AddVertex(p221.x, p221.y, c);
+    va.AddVertex(p223.x, p223.y, c);
+    va.AddVertex(p23.x, p23.y, c);
+    va.AddVertex(p221.x, p221.y, c);
+    va.AddVertex(p21.x, p21.y, c);
+}
+
+void DmxModel::Draw3DDMXHead(DrawGLUtils::xlAccumulator &va, const xlColor &c, float &sx, float &sy, float &scale, float &pan_angle, float &tilt_angle)
+{
+    // draw the head
+    float pan_angle1 = pan_angle + 270.0f;  // needs to be rotated from reference we drew it
+    if (pan_angle1 > 360.0f ) pan_angle1 -= 360.0f;
+    dmxPoint3 p31(-2,3.45,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p32(2,3.45,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p33(4,0,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p34(2,-3.45,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p35(-2,-3.45,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p36(-4,0,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+
+    dmxPoint3 p41(-1,1.72,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p42(1,1.72,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p43(2,0,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p44(1,-1.72,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p45(-1,-1.72,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p46(-2,0,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+
+    va.AddVertex(p31.x, p31.y, c);
+    va.AddVertex(p32.x, p32.y, c);
+    va.AddVertex(p35.x, p35.y, c);
+    va.AddVertex(p34.x, p34.y, c);
+    va.AddVertex(p32.x, p32.y, c);
+    va.AddVertex(p35.x, p35.y, c);
+    va.AddVertex(p32.x, p32.y, c);
+    va.AddVertex(p33.x, p33.y, c);
+    va.AddVertex(p34.x, p34.y, c);
+    va.AddVertex(p31.x, p31.y, c);
+    va.AddVertex(p36.x, p36.y, c);
+    va.AddVertex(p35.x, p35.y, c);
+
+    va.AddVertex(p41.x, p41.y, c);
+    va.AddVertex(p42.x, p42.y, c);
+    va.AddVertex(p45.x, p45.y, c);
+    va.AddVertex(p44.x, p44.y, c);
+    va.AddVertex(p42.x, p42.y, c);
+    va.AddVertex(p45.x, p45.y, c);
+    va.AddVertex(p42.x, p42.y, c);
+    va.AddVertex(p43.x, p43.y, c);
+    va.AddVertex(p44.x, p44.y, c);
+    va.AddVertex(p41.x, p41.y, c);
+    va.AddVertex(p46.x, p46.y, c);
+    va.AddVertex(p45.x, p45.y, c);
+
+    va.AddVertex(p31.x, p31.y, c);
+    va.AddVertex(p41.x, p41.y, c);
+    va.AddVertex(p42.x, p42.y, c);
+    va.AddVertex(p31.x, p31.y, c);
+    va.AddVertex(p32.x, p32.y, c);
+    va.AddVertex(p42.x, p42.y, c);
+
+    va.AddVertex(p32.x, p32.y, c);
+    va.AddVertex(p42.x, p42.y, c);
+    va.AddVertex(p43.x, p43.y, c);
+    va.AddVertex(p32.x, p32.y, c);
+    va.AddVertex(p33.x, p33.y, c);
+    va.AddVertex(p43.x, p43.y, c);
+
+    va.AddVertex(p33.x, p33.y, c);
+    va.AddVertex(p43.x, p43.y, c);
+    va.AddVertex(p44.x, p44.y, c);
+    va.AddVertex(p33.x, p33.y, c);
+    va.AddVertex(p34.x, p34.y, c);
+    va.AddVertex(p44.x, p44.y, c);
+
+    va.AddVertex(p34.x, p34.y, c);
+    va.AddVertex(p44.x, p44.y, c);
+    va.AddVertex(p45.x, p45.y, c);
+    va.AddVertex(p34.x, p34.y, c);
+    va.AddVertex(p35.x, p35.y, c);
+    va.AddVertex(p45.x, p45.y, c);
+
+    va.AddVertex(p35.x, p35.y, c);
+    va.AddVertex(p45.x, p45.y, c);
+    va.AddVertex(p46.x, p46.y, c);
+    va.AddVertex(p35.x, p35.y, c);
+    va.AddVertex(p36.x, p36.y, c);
+    va.AddVertex(p46.x, p46.y, c);
+
+    va.AddVertex(p36.x, p36.y, c);
+    va.AddVertex(p46.x, p46.y, c);
+    va.AddVertex(p41.x, p41.y, c);
+    va.AddVertex(p36.x, p36.y, c);
+    va.AddVertex(p31.x, p31.y, c);
+    va.AddVertex(p41.x, p41.y, c);
+}
+

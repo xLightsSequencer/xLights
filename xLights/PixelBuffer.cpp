@@ -116,13 +116,14 @@ void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing
     if (ssModel == nullptr) {
         ssModel = new SingleLineModel(pbc.GetModelManager());
     }
-        
+
     ssModel->Reset(pbc.GetStrandLength(strand), pbc, strand);
     model = ssModel;
     reset(layers + 1, timing);
 }
 void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, int timing)
 {
+    modelName = pbc.name;
     if (ssModel == nullptr) {
         ssModel = new SingleLineModel(pbc.GetModelManager());
     }
@@ -497,7 +498,7 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
             c.Set(r, g, b);
         }
         break;
-            
+
     case Mix_Min:
         {
             int r = std::min(c0.red, c1.red);
@@ -514,7 +515,7 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
             c.Set(r, g, b);
         }
         break;
-            
+
     }
     if (layers[layer]->effectMixVaries)
     {
@@ -530,7 +531,7 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
     unsigned short &sparkle = layers[0]->buffer.Nodes[node]->sparkle;
     int cnt = 0;
     c = xlBLACK;
-    
+
     int effStartPer, effEndPer;
     layers[0]->buffer.GetEffectPeriods(effStartPer, effEndPer);
     float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
@@ -546,8 +547,8 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
             int y = thelayer->buffer.Nodes[node]->Coords[0].bufY;
 
             xlColor color;
-            if (layers[layer]->isMasked(x, y) 
-                || x < 0 
+            if (layers[layer]->isMasked(x, y)
+                || x < 0
                 || y < 0
                 || x >= thelayer->BufferWi
                 || y >= thelayer->BufferHt
@@ -559,10 +560,10 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
             }
 
             // add sparkles
-            if (color != xlBLACK && 
+            if (color != xlBLACK &&
                 (thelayer->music_sparkle_count ||
-                 thelayer->sparkle_count > 0 || 
-                 thelayer->SparklesValueCurve.IsActive()) 
+                 thelayer->sparkle_count > 0 ||
+                 thelayer->SparklesValueCurve.IsActive())
                 )
             {
                 int sc = thelayer->sparkle_count;
@@ -571,7 +572,7 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                     sc = (int)thelayer->SparklesValueCurve.GetOutputValueAt(offset);
                 }
 
-                if (thelayer->music_sparkle_count && 
+                if (thelayer->music_sparkle_count &&
                     thelayer->buffer.GetMedia() != nullptr)
                 {
                     float f = 0.0;
@@ -723,8 +724,8 @@ static void boxesForGauss(int d, int n, std::vector<float> &boxes)  // standard 
             boxes.push_back(b + 2.0);
     }
 
-    
-    
+
+
     /*
     float wIdeal = std::sqrt((12.0f*sigma*sigma/n)+1.0f);  // Ideal averaging filter width
     float wl = std::floor(wIdeal);
@@ -732,10 +733,10 @@ static void boxesForGauss(int d, int n, std::vector<float> &boxes)  // standard 
         wl -= 1.0;
     }
     float wu = wl+2;
-				
+
     float mIdeal = (12.0f*sigma*sigma - n*wl*wl - 4.0f*n*wl - 3.0f*n)/(-4.0f*wl - 4.0f);
     int m = std::round(mIdeal);
-				
+
     for(int i=1; i<(n+1); i++) {
         boxes.push_back(i<=m?wl:wu);
         printf("%f  %d:    %f\n", sigma, i,  boxes.back());
@@ -764,12 +765,12 @@ static void boxBlurH_4 (const float  * const scl, float *tcl, int w, int h, floa
         int maxri = ti + w - 1;
         int fvIdx = ti;
         int lvIdx = ti+w-1;
-        
+
         float valr = (r+1.0) * RED(scl,fvIdx);
         float valg = (r+1.0) * GREEN(scl,fvIdx);
         float valb = (r+1.0) * BLUE(scl,fvIdx);
         float vala = (r+1.0) * ALPHA(scl,fvIdx);
-        
+
         float fvRed = RED(scl, fvIdx);
         float fvGreen = GREEN(scl, fvIdx);
         float fvBlue = BLUE(scl, fvIdx);
@@ -810,7 +811,7 @@ static void boxBlurH_4 (const float  * const scl, float *tcl, int w, int h, floa
                 ti++;
             }
         }
-        
+
         for (int j=w-r; j<w  ; j++) {
             int c2 = li <= maxri ? li++: lvIdx;
             valr += lvRed - RED(scl, c2);
@@ -830,12 +831,12 @@ static void boxBlurT_4 (const float * const scl, float *tcl, int w, int h, float
         int ti = i;
         int li = ti;
         int ri = ti+r*w;
-        
+
         int maxri = ti+w*(h-1);
-        
+
         int fvIdx = ti;
         int lvIdx = ti+w*(h-1);
-        
+
         float fvRed = RED(scl, fvIdx);
         float fvGreen = GREEN(scl, fvIdx);
         float fvBlue = BLUE(scl, fvIdx);
@@ -844,7 +845,7 @@ static void boxBlurT_4 (const float * const scl, float *tcl, int w, int h, float
         float lvGreen = GREEN(scl, lvIdx);
         float lvBlue = BLUE(scl, lvIdx);
         float lvAlpha = ALPHA(scl, lvIdx);
-        
+
         float valr = (r+1)*fvRed;
         float valg = (r+1)*fvGreen;
         float valb = (r+1)*fvBlue;
@@ -1071,7 +1072,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
 
     if (x1 > x2) std::swap(x1, x2);
     if (y1 > y2) std::swap(y1, y2);
-    
+
     x1 *= (float)bufferWi;
     x2 *= (float)bufferWi;
     y1 *= (float)bufferHi;
@@ -1080,7 +1081,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
     x2 /= 100.0;
     y1 /= 100.0;
     y2 /= 100.0;
-    
+
     for (size_t x = 0; x < newNodes.size(); x++) {
         for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
             it2->bufX -= x1;
@@ -1472,15 +1473,15 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
     }
     uint8_t m1 = 255;
     uint8_t m2 = 0;
-    
+
     if (reverse) {
         factor = 1.0 - factor;
         m1 = 0;
         m2 = 255;
     }
-    
+
     float step = ((float)buffer.BufferWi / 2.0) * factor;
-   
+
     int x1 = BufferWi / 2 - step;
     int x2 = BufferWi / 2 + step;
     for (int x = 0; x < BufferWi; x++)
@@ -1504,25 +1505,25 @@ void PixelBufferClass::LayerInfo::createCircleExplodeMask(bool out) {
     // distance from centre
     // sqrt((x - buffer.BufferWi / 2) ^ 2 + (y - buffer.BufferHt / 2) ^ 2);
     float maxradius = sqrt(((buffer.BufferWi / 2) * (buffer.BufferWi / 2)) + ((buffer.BufferHt / 2) * (buffer.BufferHt / 2)));
-    
+
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     if (out) {
         reverse = !outTransitionReverse;
         factor = outMaskFactor;
     }
-    
+
     uint8_t m1 = 255;
     uint8_t m2 = 0;
-    
+
     if (reverse) {
         factor = 1.0 - factor;
         m1 = 0;
         m2 = 255;
     }
-    
+
     float rad = maxradius * factor;
-    
+
     for (int x = 0; x < BufferWi; x++)
     {
         for (int y = 0; y < BufferHt; y++)
@@ -1585,21 +1586,21 @@ void PixelBufferClass::LayerInfo::createWipeMask(bool out)
         reverse = outTransitionReverse;
         factor = outMaskFactor;
     }
-    
+
     if (reverse) {
         adjust += 50;
         if (adjust >= 100) {
             adjust -= 100;
         }
     }
-    
+
     float angle = 2.0 * M_PI * (float)adjust / 100.0;
 
     float slope = tan(angle);
 
     uint8_t m1 = 255;
     uint8_t m2 = 0;
-    
+
     float curx = std::round(factor * ((float)BufferWi - 1.0));
     float cury = std::round(factor * ((float)BufferHt - 1.0));
 
@@ -1648,7 +1649,7 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
     }
-    
+
     float startradians = 2.0 * M_PI * (float)adjust / 100.0;
     float currentradians = 2.0 * M_PI * factor;
     if (reverse) {
@@ -1662,7 +1663,7 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
     } else {
         currentradians = startradians + currentradians;
     }
-    
+
     for (int x = 0; x < BufferWi; x++)
     {
         for (int y = 0; y < BufferHt; y++)
@@ -1684,13 +1685,13 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
             if (currentradians > 2.0f * (float)M_PI && radianspixel < startradians) {
                 radianspixel += 2.0f * (float)M_PI;
             }
-            
+
             bool s_lt_p = radianspixel > startradians;
             bool c_gt_p = radianspixel < currentradians;
             mask[x * BufferHt + y] = (s_lt_p && c_gt_p) ? m2 : m1;
         }
     }
-    
+
 }
 
 
@@ -1712,7 +1713,7 @@ void PixelBufferClass::LayerInfo::createBlindsMask(bool out) {
     if (adjust == 0) {
         adjust = 1;
     }
-    
+
     int per = buffer.BufferWi / adjust;
     if (per < 1) {
         per = 1;
@@ -1732,7 +1733,7 @@ void PixelBufferClass::LayerInfo::createBlindsMask(bool out) {
             for (int y = 0; y < BufferHt; y++) {
                 mask[x * BufferHt + y] = c;
             }
-    
+
         }
     }
 }
@@ -1748,9 +1749,9 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
     }
-    
+
     std::minstd_rand rng(1234);
-    
+
     int pixels = BufferWi * BufferHt;
     adjust = 10 * adjust / 100;
     if (adjust == 0) {
@@ -1758,7 +1759,7 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
     }
     int actualpixels = pixels / (adjust * adjust);
     float step = ((float)pixels / (adjust*adjust)) * factor;
-    
+
     int xpixels = BufferWi / adjust;
     while (xpixels * adjust < BufferWi) {
         xpixels++;
@@ -1767,19 +1768,19 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
     while (ypixels * adjust < BufferHt) {
         ypixels++;
     }
-    
+
     // set all the background first
     for (int x = 0; x < BufferWi; x++) {
         for (int y = 0; y < BufferHt; y++) {
             mask[x * BufferHt + y] = m1;
         }
     }
-    
+
     for (int i = 0; i < step; i++)
     {
         int jy = rng() % actualpixels;
         int jx = rng() % actualpixels;
-        
+
         int x = jx % xpixels * adjust;
         int y = jy % ypixels * adjust;
         if (mask[x * BufferHt + y] == m2) {
@@ -1868,7 +1869,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
     if (adjust == 0) {
         adjust = 1;
     }
-    
+
     int per = BufferHt / adjust;
     if (per < 1) {
         per = 1;
@@ -1877,7 +1878,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
     while (blinds * per < BufferHt) {
         blinds++;
     }
-    
+
     float step = (float)BufferWi * factor;
     for (int y = 0; y < BufferHt; y++) {
         int blind = y / per;
