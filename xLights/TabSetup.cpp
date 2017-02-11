@@ -105,7 +105,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     }
 
     // reject change if something is playing
-    if (play_mode == play_sched || play_mode == play_list || play_mode == play_single)
+    if (play_mode == play_list || play_mode == play_single)
     {
         wxMessageBox(_("Cannot change directories during playback"),_("Error"));
         return false;
@@ -195,7 +195,6 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     
     // update UI
     CheckBoxLightOutput->SetValue(false);
-    CheckBoxRunSchedule->SetValue(false);
     _outputManager.StopOutput();
     _outputManager.DeleteAllOutputs();
     CurrentDir=newdir;
@@ -228,7 +227,6 @@ bool xLightsFrame::SetDir(const wxString& newdir)
         BitmapButton_Link_Dirs->SetToolTip("Link Directories");
     }
 
-    TextCtrlLog->Clear();
     while (Notebook1->GetPageCount() > FixedPages)
     {
         Notebook1->DeletePage(FixedPages);
@@ -260,19 +258,6 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     UnsavedNetworkChanges = false;
     ShowDirectoryLabel->SetLabel(showDirectory);
     ShowDirectoryLabel->GetParent()->Layout();
-
-    // load schedule
-    UpdateShowDates(wxDateTime::Now(),wxDateTime::Now());
-    ShowEvents.Clear();
-    scheduleFile.AssignDir( CurrentDir );
-    scheduleFile.SetFullName(_(XLIGHTS_SCHEDULE_FILE));
-    if (scheduleFile.FileExists())
-    {
-        logger_base.debug("Loading schedule %s", (const char *)scheduleFile.GetFullPath().ToStdString().c_str());
-        LoadScheduleFile();
-        logger_base.debug("Loaded schedule %s", (const char *)scheduleFile.GetFullPath().ToStdString().c_str());
-    }
-    DisplaySchedule();
 
     // load sequence effects
 //~    EffectsPanel1->SetDefaultPalette();
@@ -405,7 +390,9 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
     {
         GridNetwork->EnsureVisible(item);
     }
-    if (itemselected >= GridNetwork->GetItemCount()) item = GridNetwork->GetItemCount() - 1;
+
+    if (itemselected >= GridNetwork->GetItemCount()) itemselected = GridNetwork->GetItemCount() - 1;
+
     if (itemselected != -1)
     {
         GridNetwork->EnsureVisible(itemselected);

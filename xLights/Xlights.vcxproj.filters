@@ -375,9 +375,6 @@
     <ClCompile Include="vamp-hostsdk\RealTime.cpp">
       <Filter>Source Files\vamp-hostsdk</Filter>
     </ClCompile>
-    <ClCompile Include="AddShowDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BitmapCache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -492,12 +489,6 @@
     <ClCompile Include="PixelBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PlaybackOptionsDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerFrame.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PreviewModels.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -529,9 +520,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SequenceData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ShowDatesDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StrandNodeNamesDialog.cpp">
@@ -1280,9 +1268,6 @@
     <ClInclude Include="vamp-hostsdk\Window.h">
       <Filter>Header Files\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="AddShowDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="BitmapCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1400,12 +1385,6 @@
     <ClInclude Include="PixelBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PlaybackOptionsDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerFrame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PreviewModels.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1434,9 +1413,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SequenceData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ShowDatesDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StrandNodeNamesDialog.h">

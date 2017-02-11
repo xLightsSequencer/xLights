@@ -484,8 +484,6 @@
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
 		</Compiler>
-		<Unit filename="AddShowDialog.cpp" />
-		<Unit filename="AddShowDialog.h" />
 		<Unit filename="AudioManager.cpp" />
 		<Unit filename="AudioManager.h" />
 		<Unit filename="BitmapCache.cpp" />
@@ -607,9 +605,6 @@
 		<Unit filename="PixelAppearanceDlg.h" />
 		<Unit filename="PixelBuffer.cpp" />
 		<Unit filename="PixelBuffer.h" />
-		<Unit filename="PlaybackOptionsDialog.cpp" />
-		<Unit filename="PlaybackOptionsDialog.h" />
-		<Unit filename="PlayerFrame.cpp" />
 		<Unit filename="PlayerFrame.h" />
 		<Unit filename="PreviewModels.cpp" />
 		<Unit filename="PreviewModels.h" />
@@ -640,8 +635,6 @@
 		<Unit filename="SequenceData.h" />
 		<Unit filename="SevenSegmentDialog.cpp" />
 		<Unit filename="SevenSegmentDialog.h" />
-		<Unit filename="ShowDatesDialog.cpp" />
-		<Unit filename="ShowDatesDialog.h" />
 		<Unit filename="SimpleFTP.cpp" />
 		<Unit filename="SimpleFTP.h" />
 		<Unit filename="StartChannelDialog.cpp" />
@@ -656,10 +649,6 @@
 		<Unit filename="SuperStarImportDialog.h" />
 		<Unit filename="TabConvert.cpp" />
 		<Unit filename="TabPreview.cpp" />
-		<Unit filename="TabSchedule.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
 		<Unit filename="TabSequence.cpp" />
 		<Unit filename="TabSetup.cpp" />
 		<Unit filename="TestDialog.cpp" />
@@ -1121,8 +1110,6 @@
 		<Unit filename="wxsmith/PinwheelPanel.wxs" />
 		<Unit filename="wxsmith/PixelAppearanceDlg.wxs" />
 		<Unit filename="wxsmith/PlasmaPanel.wxs" />
-		<Unit filename="wxsmith/PlaybackOptionsDialog.wxs" />
-		<Unit filename="wxsmith/PlayerFrame.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
 		<Unit filename="wxsmith/PreviewPane.wxs" />
 		<Unit filename="wxsmith/RenameTextDialog.wxs" />
@@ -1167,10 +1154,6 @@
 		<Unit filename="wxsmith/xlColorPickerFields.wxs" />
 		<Unit filename="xLightsApp.cpp" />
 		<Unit filename="xLightsApp.h" />
-		<Unit filename="xLightsBasic.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
 		<Unit filename="xLightsImportChannelMapDialog.cpp" />
 		<Unit filename="xLightsImportChannelMapDialog.h" />
 		<Unit filename="xLightsMain.cpp" />
@@ -1200,10 +1183,6 @@
 					<wxFrame wxs="wxsmith/xLightsframe.wxs" src="xLightsMain.cpp" hdr="xLightsMain.h" fwddecl="0" i18n="1" name="xLightsFrame" language="CPP" />
 					<wxDialog wxs="wxsmith/SerialPortWithRate.wxs" src="outputs/SerialPortWithRate.cpp" hdr="outputs/SerialPortWithRate.h" fwddecl="0" i18n="1" name="SerialPortWithRate" language="CPP" />
 					<wxDialog wxs="wxsmith/E131Dialog.wxs" src="outputs/E131Dialog.cpp" hdr="outputs/E131Dialog.h" fwddecl="0" i18n="1" name="E131Dialog" language="CPP" />
-					<wxFrame wxs="wxsmith/PlayerFrame.wxs" src="PlayerFrame.cpp" hdr="PlayerFrame.h" fwddecl="0" i18n="1" name="PlayerFrame" language="CPP" />
-					<wxDialog wxs="wxsmith/AddShowDialog.wxs" src="AddShowDialog.cpp" hdr="AddShowDialog.h" fwddecl="0" i18n="1" name="AddShowDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ShowDatesDialog.wxs" src="ShowDatesDialog.cpp" hdr="ShowDatesDialog.h" fwddecl="0" i18n="1" name="ShowDatesDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/PlaybackOptionsDialog.wxs" src="PlaybackOptionsDialog.cpp" hdr="PlaybackOptionsDialog.h" fwddecl="0" i18n="1" name="PlaybackOptionsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectListDialog.wxs" src="EffectListDialog.cpp" hdr="EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ChannelLayoutDialog.wxs" src="ChannelLayoutDialog.cpp" hdr="ChannelLayoutDialog.h" fwddecl="0" i18n="1" name="ChannelLayoutDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PaletteMgmtDialog.wxs" src="PaletteMgmtDialog.cpp" hdr="PaletteMgmtDialog.h" fwddecl="0" i18n="1" name="PaletteMgmtDialog" language="CPP" />

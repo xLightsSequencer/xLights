@@ -2,9 +2,9 @@
 #define CHANNELLAYOUTDIALOG_H
 
 //(*Headers(ChannelLayoutDialog)
-#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/button.h>
+#include <wx/dialog.h>
 #include <wx/html/htmlwin.h>
 //*)
 

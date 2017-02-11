@@ -1,8 +1,8 @@
 #include "ChannelLayoutDialog.h"
 
 //(*InternalHeaders(ChannelLayoutDialog)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(ChannelLayoutDialog)
@@ -18,9 +18,9 @@ END_EVENT_TABLE()
 ChannelLayoutDialog::ChannelLayoutDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     //(*Initialize(ChannelLayoutDialog)
-    wxFlexGridSizer* FlexGridSizer1;
-    wxButton* Button_Print;
     wxBoxSizer* BoxSizer1;
+    wxButton* Button_Print;
+    wxFlexGridSizer* FlexGridSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, id, _("Node Layout"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
