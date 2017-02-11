@@ -156,6 +156,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AddShowDialog.cpp" />
+    <ClCompile Include="effects\ServoEffect.cpp" />
+    <ClCompile Include="effects\ServoPanel.cpp" />
     <ClCompile Include="outputs\ArtNetDialog.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
@@ -397,6 +399,9 @@
     <ClCompile Include="SubBufferPanel.cpp" />
     <ClCompile Include="SubModelsDialog.cpp" />
     <ClCompile Include="SuperStarImportDialog.cpp" />
+    <ClCompile Include="support\EzGrid.cpp" />
+    <ClCompile Include="support\FastComboEditor.cpp" />
+    <ClCompile Include="support\GridCellChoiceRenderer.cpp" />
     <ClCompile Include="TabConvert.cpp" />
     <ClCompile Include="TabPreview.cpp" />
     <ClCompile Include="TabSequence.cpp" />
@@ -424,6 +429,8 @@
     <ClCompile Include="VAMPPluginDialog.cpp" />
     <ClCompile Include="VideoReader.cpp" />
     <ClCompile Include="ViewsDialog.cpp" />
+    <ClCompile Include="VSAFile.cpp" />
+    <ClCompile Include="VsaImportDialog.cpp" />
     <ClCompile Include="WiringDialog.cpp" />
     <ClCompile Include="wxCheckedListCtrl.cpp" />
     <ClCompile Include="xlColorCanvas.cpp" />
@@ -441,6 +448,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddShowDialog.h" />
+    <ClInclude Include="effects\ServoEffect.h" />
+    <ClInclude Include="effects\ServoPanel.h" />
     <ClInclude Include="outputs/ArtNetDialog.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
@@ -671,6 +680,9 @@
     <ClInclude Include="SubBufferPanel.h" />
     <ClInclude Include="SubModelsDialog.h" />
     <ClInclude Include="SuperStarImportDialog.h" />
+    <ClInclude Include="support\EzGrid.h" />
+    <ClInclude Include="support\FastComboEditor.h" />
+    <ClInclude Include="support\GridCellChoiceRenderer.h" />
     <ClInclude Include="TestDialog.h" />
     <ClInclude Include="TimingPanel.h" />
     <ClInclude Include="tmGridCell.h" />
@@ -702,6 +714,8 @@
     <ClInclude Include="VAMPPluginDialog.h" />
     <ClInclude Include="VideoReader.h" />
     <ClInclude Include="ViewsDialog.h" />
+    <ClInclude Include="VSAFile.h" />
+    <ClInclude Include="VsaImportDialog.h" />
     <ClInclude Include="wininet.h" />
     <ClInclude Include="WiringDialog.h" />
     <ClInclude Include="wxCheckedListCtrl.h" />
