@@ -24,6 +24,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Add import to xSchedule to allow importing of xLights 4 schedules.
    -- enh (keith)   Make LOR import more like xLights import ... using a tree rather than a grid. There is some risk this breaks "CCR" 
                     import mode in which case someone needs to send me a sample file. 
+   -- enh (keith)   Make Vixen 2 import more like xLights import ... using a tree rather than a grid. 
    -- bug (keith)   Fix erasure of outputs on setup when changing to a new empty folder
    -- enh (keith)   Give mapping files an extension (*.xmap) to make them easier to locate
 2017.2  Jan 31, 2017

@@ -1345,11 +1345,9 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     int time = 0;
     int frameTime = 50;
 
-
-    LMSImportChannelMapDialog dlg(this, filename);
+    xLightsImportChannelMapDialog dlg(this, filename, false, false, true);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
-
 
     SP_XmlPullParser *parser = new SP_XmlPullParser();
     parser->setMaxTextSize(MAX_READ_BLOCK_SIZE / 2);
@@ -1489,75 +1487,81 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
 
     int numFrames = time / frameTime;
 
-    std::sort(dlg.ccrNames.begin(), dlg.ccrNames.end());
-    dlg.ccrNames.insert(dlg.ccrNames.begin(), "");
-
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
     dlg.channelNames.insert(dlg.channelNames.begin(), "");
 
-    dlg.MapByStrand->Hide();
     dlg.Init();
 
     if (dlg.ShowModal() != wxID_OK) {
         return;
     }
 
-    int row = 0;
-    for (size_t m = 0; m < dlg.modelNames.size(); m++) {
-        std::string modelName = dlg.modelNames[m];
+    for (size_t i = 0; i < dlg.dataModel->GetChildCount(); i++)
+    {
+        xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
+        std::string modelName = m->_model.ToStdString();
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
-        for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-            if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
-                && modelName == mSequenceElements.GetElement(i)->GetName()) {
-                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
+        for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
+            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+                && modelName == mSequenceElements.GetElement(x)->GetName()) {
+                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+                break;
             }
         }
-        MapVixChannelInformation(this, model->GetEffectLayer(0),
-                                 VixSeqData, frameTime, numFrames,
-                                 dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(),
-                                 unsortedChannels,
-                                 dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
-                                 *mc);
-        row++;
-        for (int str = 0; str < mc->GetNumSubModels(); str++) {
-            SubModelElement *se =  model->GetSubModel(str);
-            EffectLayer *sl = se->GetEffectLayer(0);
-
-            if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                MapVixChannelInformation(this, sl,
-                                         VixSeqData, frameTime, numFrames,
-                                         dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(),
-                                         unsortedChannels,
-                                         dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), *mc);
+        if (m->_mapping != "") {
+            if (model == nullptr) {
+                model = AddModel(GetModel(modelName), mSequenceElements);
             }
-            row++;
+            MapVixChannelInformation(this, model->GetEffectLayer(0),
+                                        VixSeqData, frameTime, numFrames,
+                                        m->_mapping.ToStdString(),
+                                        unsortedChannels,
+                                        m->_color,
+                                        *mc);
         }
-        for (int str = 0; str < mc->GetNumStrands(); str++) {
-            StrandElement *se =  model->GetStrand(str, true);
-            EffectLayer *sl = se->GetEffectLayer(0);
 
-            if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                    MapVixChannelInformation(this, sl,
-                                             VixSeqData, frameTime, numFrames,
-                                             dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(),
-                                             unsortedChannels,
-                                             dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), *mc);
-            }
-            row++;
-            for (int n = 0; n < mc->GetStrandLength(str); n++) {
-                if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                    MapVixChannelInformation(this, se->GetNodeLayer(n, true),
-                                             VixSeqData, frameTime, numFrames,
-                                             dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(),
-                                             unsortedChannels,
-                                             dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), *mc);
+        int str = 0;
+        for (size_t j = 0; j < m->GetChildCount(); j++)
+        {
+            xLightsImportModelNode* s = m->GetNthChild(j);
+
+            if ("" != s->_mapping) {
+                if (model == nullptr) {
+                    model = AddModel(GetModel(modelName), mSequenceElements);
                 }
-                row++;
+                SubModelElement *ste = model->GetSubModel(str);
+                if (ste != nullptr) {
+                    MapVixChannelInformation(this, ste->GetEffectLayer(0),
+                                                VixSeqData, frameTime, numFrames,
+                                                s->_mapping.ToStdString(),
+                                                unsortedChannels,
+                                                s->_color, *mc);
+                }
             }
+            for (size_t n = 0; n < s->GetChildCount(); n++) {
+                xLightsImportModelNode* ns = s->GetNthChild(n);
+                if ("" != ns->_mapping) {
+                    if (model == nullptr) {
+                        model = AddModel(GetModel(modelName), mSequenceElements);
+                    }
+                    SubModelElement *ste = model->GetSubModel(str);
+                    StrandElement *stre = dynamic_cast<StrandElement *>(ste);
+                    if (stre != nullptr) {
+                        NodeLayer *nl = stre->GetNodeLayer(n, true);
+                        if (nl != nullptr) {
+                            MapVixChannelInformation(this, nl,
+                                VixSeqData, frameTime, numFrames,
+                                ns->_mapping.ToStdString(),
+                                unsortedChannels,
+                                ns->_color, *mc);
+                        }
+                    }
+                }
+            }
+            str++;
         }
     }
-
 
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
