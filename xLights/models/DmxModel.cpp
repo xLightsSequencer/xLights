@@ -662,7 +662,6 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     float angle, pan_angle, pan_angle_raw, tilt_angle, angle1, angle2, beam_length;
     int x1, x2, y1, y2;
     size_t NodeCount=Nodes.size();
-    bool beam_off = false;
 
     if( pan_channel > NodeCount ||
         tilt_channel > NodeCount ||
@@ -701,24 +700,23 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     }
     if( (beam_color.red == 0 && beam_color.green == 0 && beam_color.blue == 0) || !active ) {
         beam_color = xlWHITE;
-        beam_off = true;
     } else {
-        ApplyTransparency(beam_color, trans);
         marker_color = beam_color;
     }
+    ApplyTransparency(beam_color, trans);
     ApplyTransparency(ccolor, trans);
     ApplyTransparency(base_color, trans);
     ApplyTransparency(base_color2, trans);
     ApplyTransparency(pnt_color, trans);
 
-    if( pan_channel > 0 ) {
+    if( pan_channel > 0 && active) {
         Nodes[pan_channel-1]->GetColor(color_angle);
         pan_angle = (color_angle.red / 255.0f) * pan_deg_of_rot + pan_orient;
     } else {
         pan_angle = 0.0f;
     }
     pan_angle_raw = pan_angle;
-    if( tilt_channel > 0 ) {
+    if( tilt_channel > 0 && active ) {
         Nodes[tilt_channel-1]->GetColor(color_angle);
         tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
     } else {
@@ -772,7 +770,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
-    if( shutter_channel > 0 ) {
+    if( shutter_channel > 0 && active ) {
         xlColor proxy;
         Nodes[shutter_channel-1]->GetColor(proxy);
         int shutter_value = proxy.red;
@@ -786,7 +784,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     // Draw the light beam
     if( dmx_style_val != DMX_STYLE_MOVING_HEAD_BARS && dmx_style_val != DMX_STYLE_MOVING_HEAD_3D && shutter_open ) {
         va.AddVertex(sx, sy, beam_color);
-        ApplyTransparency(beam_color, beam_off ? 0 : 100);
+        ApplyTransparency(beam_color, 100);
         va.AddVertex(sx+x1, sy+y1, beam_color);
         va.AddVertex(sx+x2, sy+y2, beam_color);
     }
@@ -896,7 +894,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
     if( dmx_style_val == DMX_STYLE_MOVING_HEAD_3D ) {
         xlColor beam_color_end(beam_color);
-        ApplyTransparency(beam_color_end, beam_off ? 0 : 100);
+        ApplyTransparency(beam_color_end, 100);
 
         dmxPoint3 p1(beam_length,-5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
         dmxPoint3 p2(beam_length,-5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
@@ -1044,7 +1042,7 @@ void DmxModel::DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
     }
     if( jaw_channel > 0 ) {
         channel_value = GetChannelValue(jaw_channel-1);
-        jaw_pos = ((channel_value - jaw_min_limit) / (double)(jaw_max_limit - jaw_min_limit)) * jaw_range_of_motion - 0.5;
+        jaw_pos = ((channel_value - jaw_min_limit) / (double)(jaw_max_limit - jaw_min_limit)) * jaw_range_of_motion - 0.5f;
     } else {
         jaw_pos = -0.5f;
     }
@@ -1059,6 +1057,15 @@ void DmxModel::DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
         eye_y = ((channel_value - eye_ud_min_limit) / (double)(eye_ud_max_limit - eye_ud_min_limit)) * eye_range_of_motion - eye_range_of_motion/2.0;
     } else {
         eye_y = 0.0f;
+    }
+
+    if( !active ) {
+        pan_angle = 0.5f * pan_deg_of_rot + pan_orient;
+        tilt_angle = 0.5f * tilt_deg_of_rot + tilt_orient;
+        nod_angle = 0.5f * nod_deg_of_rot + nod_orient;
+        jaw_pos = -0.5f;
+        eye_x = 0.5f * eye_range_of_motion - eye_range_of_motion/2.0;
+        eye_y = 0.5f * eye_range_of_motion - eye_range_of_motion/2.0;
     }
 
     float sf = 12.0f;
