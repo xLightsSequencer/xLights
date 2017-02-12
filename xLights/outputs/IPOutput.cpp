@@ -4,6 +4,8 @@
 #include <wx/regex.h>
 #include <log4cpp/Category.hh>
 
+std::string IPOutput::__localIP = "";
+
 #pragma region Constructors and Destructors
 IPOutput::IPOutput(wxXmlNode* node) : Output(node)
 {

@@ -125,7 +125,14 @@ void E131Output::SendSync(int syncUniverse)
             syncdata[46] = syncUniverse & 0xff;
 
             wxIPV4address localaddr;
-            localaddr.AnyAddress();
+            if (IPOutput::__localIP == "")
+            {
+                localaddr.AnyAddress();
+            }
+            else
+            {
+                localaddr.Hostname(IPOutput::__localIP);
+            }
 
             if (syncdatagram != nullptr)
             {
@@ -227,7 +234,14 @@ bool E131Output::Open()
         _data[124] = 0x01;  // Property value count (low)
 
         wxIPV4address localaddr;
-        localaddr.AnyAddress();
+        if (IPOutput::__localIP == "")
+        {
+            localaddr.AnyAddress();
+        }
+        else
+        {
+            localaddr.Hostname(IPOutput::__localIP);
+        }
 
         _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
         if (_datagram == nullptr)

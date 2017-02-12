@@ -548,6 +548,8 @@
 		<Unit filename="FlickerFreeBitmapButton.h" />
 		<Unit filename="GenerateCustomModelDialog.cpp" />
 		<Unit filename="GenerateCustomModelDialog.h" />
+		<Unit filename="IPEntryDialog.cpp" />
+		<Unit filename="IPEntryDialog.h" />
 		<Unit filename="Image.cpp" />
 		<Unit filename="Image.h" />
 		<Unit filename="Image_Loader.cpp" />
@@ -1089,6 +1091,7 @@
 		<Unit filename="wxsmith/GarlandsPanel.wxs" />
 		<Unit filename="wxsmith/GenerateCustomModelDialog.wxs" />
 		<Unit filename="wxsmith/GlediatorPanel.wxs" />
+		<Unit filename="wxsmith/IPEntryDialog.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
@@ -1307,6 +1310,7 @@
 					<wxDialog wxs="wxsmith/BufferSizeDialog.wxs" src="BufferSizeDialog.cpp" hdr="BufferSizeDialog.h" fwddecl="0" i18n="1" name="BufferSizeDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ServoPanel.wxs" src="effects/ServoPanel.cpp" hdr="effects/ServoPanel.h" fwddecl="1" i18n="1" name="ServoPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/VsaImportDialog.wxs" src="VsaImportDialog.cpp" hdr="VsaImportDialog.h" fwddecl="0" i18n="1" name="VsaImportDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/IPEntryDialog.wxs" src="IPEntryDialog.cpp" hdr="IPEntryDialog.h" fwddecl="0" i18n="1" name="IPEntryDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

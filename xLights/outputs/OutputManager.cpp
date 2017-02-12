@@ -329,6 +329,11 @@ void OutputManager::SomethingChanged() const
         start += (*it)->GetChannels() * (*it)->GetUniverses();
     }
 }
+
+void OutputManager::SetForceFromIP(const std::string& forceFromIP)
+{
+    IPOutput::SetLocalIP(forceFromIP);
+}
 #pragma endregion Getters and Setters
 
 #pragma region Output Management

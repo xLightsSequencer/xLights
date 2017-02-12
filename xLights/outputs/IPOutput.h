@@ -6,6 +6,7 @@
 class IPOutput : public Output
 {
 protected:
+    static std::string __localIP;
 
     virtual void Save(wxXmlNode* node) override;
 
@@ -20,6 +21,7 @@ public:
     #pragma region Static Functions
     static bool IsIPValid(std::string ip);
     static std::string CleanupIP(std::string ip);
+    static void SetLocalIP(const std::string& localIP) { __localIP = localIP; }
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters

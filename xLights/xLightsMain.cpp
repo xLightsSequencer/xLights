@@ -31,12 +31,12 @@
 #include "LayoutPanel.h"
 #include "models/ModelGroup.h"
 #include "models/CustomModel.h"
-
 #include "TestDialog.h"
 #include "ConvertDialog.h"
 #include "GenerateCustomModelDialog.h"
 #include "SequenceCheck.h"
 #include "FPPConnectDialog.h"
+#include "IPEntryDialog.h"
 
 // scripting language
 #include "xLightsBasic.cpp"
@@ -269,6 +269,7 @@ const long xLightsFrame::ID_MENUITEM_AUTOSAVE_15 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_30 = wxNewId();
 const long xLightsFrame::ID_MENUITEM20 = wxNewId();
 const long xLightsFrame::ID_E131_Sync = wxNewId();
+const long xLightsFrame::ID_MNU_FORCEIP = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::ID_MENU_HELP_FORMUM = wxNewId();
@@ -581,7 +582,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     ButtonNetworkDeleteAll = new wxButton(PanelSetup, ID_BUTTON_NETWORK_DELETE_ALL, _("Delete All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_DELETE_ALL"));
     BoxSizer1->Add(ButtonNetworkDeleteAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
     StaticText5 = new wxStaticText(PanelSetup, ID_STATICTEXT8, _("\nE1.31 Sync Universe:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-    BoxSizer1->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 0);
+    BoxSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT, 2);
     SpinCtrl_SyncUniverse = new wxSpinCtrl(PanelSetup, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 63999, 0, _T("ID_SPINCTRL1"));
     SpinCtrl_SyncUniverse->SetValue(_T("0"));
     SpinCtrl_SyncUniverse->SetToolTip(_("This should be left as 0 unless you have controllers which support it."));
@@ -958,6 +959,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuSettings->Append(ID_MENUITEM20, _("Auto Save"), AutoSaveMenu, wxEmptyString);
     MenuItem_e131sync = new wxMenuItem(MenuSettings, ID_E131_Sync, _("Frame Sync"), _("Only enable this if your controllers support e1.31 sync. You will also need to set the synchronisation universe on the setup tab."), wxITEM_CHECK);
     MenuSettings->Append(MenuItem_e131sync);
+    MenuItem_ForceLocalIP = new wxMenuItem(MenuSettings, ID_MNU_FORCEIP, _("&Force Local IP"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(MenuItem_ForceLocalIP);
     MenuItem13 = new wxMenuItem(MenuSettings, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(MenuItem13);
     MenuBar->Append(MenuSettings, _("&Settings"));
@@ -1129,6 +1132,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM_AUTOSAVE_15,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_30,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_E131_Sync,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_e131syncSelected);
+    Connect(ID_MNU_FORCEIP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ForceLocalIPSelected);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_MENU_HELP_FORMUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_ForumSelected);
@@ -1183,6 +1187,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     mBackupOnSave = false;
     mBackupOnLaunch = true;
     me131Sync = false;
+    mLocalIP = "";
     mAltBackupDir = "";
     mIconSize = 16;
 
@@ -1552,6 +1557,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     logger_base.debug("e1.31 Sync: %s.", me131Sync ? "true" : "false");
     ShowHideSync();
 
+    config->Read("xLightsLocalIP", &mLocalIP, "");
+    _outputManager.SetForceFromIP(mLocalIP.ToStdString());
+
+    if (mLocalIP != "")
+    {
+        MenuItem_ForceLocalIP->Check(true);
+    }
+    else
+    {
+        MenuItem_ForceLocalIP->Check(false);
+    }
+
     //start out with 50ms timer, once we load a file or create a new one, we'll reset
     //to whatever the timing that is selected
     Timer1.Start(50, wxTIMER_CONTINUOUS);
@@ -1579,7 +1596,7 @@ xLightsFrame::~xLightsFrame()
     Timer_AutoSave.Stop();
     EffectSettingsTimer.Stop();
     Timer1.Stop();
-    
+
     selectedEffect = nullptr;
 
     wxConfigBase* config = wxConfigBase::Get();
@@ -1600,6 +1617,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
     config->Write("xLightse131Sync", me131Sync);
+    config->Write("xLightsLocalIP", mLocalIP);
     config->Write("xLightsEffectAssistMode", mEffectAssistMode);
     config->Write("xLightsAltBackupDir", mAltBackupDir);
 
@@ -3713,11 +3731,19 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Checking sequence.");
 
     wxIPV4address addr;
-    addr.Hostname(wxGetHostName());
+    if (mLocalIP != "")
+    {
+        addr.Hostname(mLocalIP);
+    }
+    else
+    {
+        addr.Hostname(wxGetHostName());
+    }
+
     LogAndWrite(f, "");
     LogAndWrite(f, "IP Address we are outputing data from: " + addr.IPAddress().ToStdString());
     LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isnt your controllers may not receive output data.");
-    LogAndWrite(f, "If you are experiencing this problem you may need to disable this network connection.");
+    LogAndWrite(f, "If you are experiencing this problem you may need to set the local IP address to use.");
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Inactive Outputs");
@@ -4427,7 +4453,11 @@ void xLightsFrame::OnMenuItem_e131syncSelected(wxCommandEvent& event)
     if (me131Sync)
     {
         // recycle output connections if necessary
-        EnableOutputs();
+        if (_outputManager.IsOutputting())
+        {
+            _outputManager.StopOutput();
+            _outputManager.StartOutput();
+        }
     }
     NetworkChange();
 }
@@ -5017,3 +5047,36 @@ void xLightsFrame::OnMenuItem_xScheduleSelected(wxCommandEvent& event)
 {
     wxExecute("xSchedule.exe");
 }
+
+void xLightsFrame::ValidateWindow()
+{
+}
+
+void xLightsFrame::OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event)
+{
+    IPEntryDialog dlg(this);
+    dlg.TextCtrl_IPAddress->SetValue(mLocalIP);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        mLocalIP = dlg.TextCtrl_IPAddress->GetValue();
+        _outputManager.SetForceFromIP(mLocalIP.ToStdString());
+
+        if (_outputManager.IsOutputting())
+        {
+            _outputManager.StopOutput();
+            _outputManager.StartOutput();
+        }
+
+        if (mLocalIP == "")
+        {
+            MenuItem_ForceLocalIP->Check(false);
+        }
+        else
+        {
+            MenuItem_ForceLocalIP->Check(true);
+        }
+    }
+}
+
+

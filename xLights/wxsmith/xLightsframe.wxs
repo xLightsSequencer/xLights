@@ -581,7 +581,8 @@
 															<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText5" member="yes">
 																<label>&#x0A;E1.31 Sync Universe:</label>
 															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+															<flag>wxALL|wxALIGN_LEFT</flag>
+															<border>2</border>
 															<option>1</option>
 														</object>
 														<object class="sizeritem">
@@ -1485,6 +1486,11 @@
 					<label>Frame Sync</label>
 					<help>Only enable this if your controllers support e1.31 sync. You will also need to set the synchronisation universe on the setup tab.</help>
 					<handler function="OnMenuItem_e131syncSelected" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_FORCEIP" variable="MenuItem_ForceLocalIP" member="yes">
+					<label>&amp;Force Local IP</label>
+					<handler function="OnMenuItem_ForceLocalIPSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
 				<object class="wxMenuItem" name="ID_MENUITEM5" variable="MenuItem13" member="no">

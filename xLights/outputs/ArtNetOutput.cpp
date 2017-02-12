@@ -79,7 +79,14 @@ void ArtNetOutput::SendSync()
         syncdata[11] = 0x0E; // Protocol version Low
 
         wxIPV4address localaddr;
-        localaddr.AnyAddress();
+        if (IPOutput::__localIP == "")
+        {
+            localaddr.AnyAddress();
+        }
+        else
+        {
+            localaddr.Hostname(IPOutput::__localIP);
+        }
 
         if (syncdatagram != nullptr)
         {
@@ -136,7 +143,15 @@ bool ArtNetOutput::Open()
     _data[16] = 0x02; // we are going to send all 512 bytes
 
     wxIPV4address localaddr;
-    localaddr.AnyAddress();
+    if (IPOutput::__localIP == "")
+    {
+        localaddr.AnyAddress();
+    }
+    else
+    {
+        localaddr.Hostname(IPOutput::__localIP);
+    }
+
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
     if (_datagram == nullptr)
     {

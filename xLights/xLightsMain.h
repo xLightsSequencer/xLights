@@ -503,6 +503,7 @@ private:
     void OnMenuItem_PackageSequenceSelected(wxCommandEvent& event);
     void OnMenuItem_BackupSubfoldersSelected(wxCommandEvent& event);
     void OnMenuItem_xScheduleSelected(wxCommandEvent& event);
+    void OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -687,6 +688,7 @@ private:
     static const long ID_MENUITEM_AUTOSAVE_30;
     static const long ID_MENUITEM20;
     static const long ID_E131_Sync;
+    static const long ID_MNU_FORCEIP;
     static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
     static const long ID_MENU_HELP_FORMUM;
@@ -796,6 +798,7 @@ private:
     wxStaticText* StaticText5;
     wxTreeCtrl* ListBoxSched;
     wxListCtrl* GridNetwork;
+    wxMenuItem* MenuItem_ForceLocalIP;
     wxStaticText* ShowDirectoryLabel;
     wxPanel* PanelCal;
     wxMenu* MenuFile;
@@ -1127,6 +1130,7 @@ private:
     bool mBackupOnSave;
     bool mBackupOnLaunch;
     bool me131Sync;
+    wxString mLocalIP;
     wxString mAltBackupDir;
     int mIconSize;
     int mGridSpacing;
@@ -1255,6 +1259,7 @@ private:
     void ShowHidePreviewWindow(wxCommandEvent& event);
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
     void ShowHideSync();
+    void ValidateWindow();
 
     std::map<int, std::list<float>> LoadPolyphonicTranscription(AudioManager* audio, int intervalMS);
     std::map<int, std::list<float>> LoadAudacityFile(std::string file, int intervalMS);

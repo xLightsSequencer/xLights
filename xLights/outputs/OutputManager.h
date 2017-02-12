@@ -85,9 +85,10 @@ public:
 
     #pragma region Packet Sync
     bool IsSyncEnabled() const { return _syncEnabled; }
-    void SetSyncEnabled(bool syncEnabled) { _syncEnabled = syncEnabled; }
+    void SetSyncEnabled(bool syncEnabled) { _syncEnabled = syncEnabled; _dirty = true; }
     int GetSyncUniverse() const { return _syncUniverse; }
-    void SetSyncUniverse(int syncUniverse) { _syncUniverse = syncUniverse; }
+    void SetSyncUniverse(int syncUniverse) { _syncUniverse = syncUniverse; _dirty = true;}
+    void SetForceFromIP(const std::string& forceFromIP);
     bool UseE131() const;
     bool UseArtnet() const;
     #pragma endregion Packet Sync
