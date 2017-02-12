@@ -28,6 +28,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Fix erasure of outputs on setup when changing to a new empty folder
    -- enh (keith)   Give mapping files an extension (*.xmap) to make them easier to locate
    -- enh (keith)   Allow user to specify the local IP address to use for e131/Artnet output
+   -- bug (keith)   Fix #753 Preset not showing the correct number of layers
 2017.2  Jan 31, 2017
    -- bug (sean)   Bundle up package so that xSchedule has the properties files needed to run
 2017.1  Jan 31, 2017

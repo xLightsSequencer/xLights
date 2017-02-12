@@ -283,6 +283,7 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
 
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("Name: %s", (const char *)name.c_str());
+    //logger_base.debug("Settings: %s", (const char *)settings.c_str());
     int res = 0;
 
     if (settings.Contains("\t"))
@@ -292,17 +293,34 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
 
         wxArrayString all_efdata = wxSplit(settings, '\n');
 
+        bool cf1 = false;
         for (int i = 0; i < all_efdata.size(); i++)
         {
             //logger_base.debug("    %d: %s", i, (const char *)all_efdata[i].c_str());
 
             wxArrayString efdata = wxSplit(all_efdata[i], '\t');
-            if (efdata.size() > 6 && efdata[0] != "CopyFormat1" && efdata[0] != "None")
+
+            if (efdata.size() > 0)
             {
-                int row = wxAtoi(efdata[efdata.size()-2]);
-                //logger_base.debug("        %d", row);
-                if (row < start) start = row;
-                if (row > end) end = row;
+                if (efdata[0] == "CopyFormat1")
+                {
+                    cf1 = true;
+                }
+
+                if (cf1 && efdata.size() > 6 && efdata[0] != "CopyFormat1" && efdata[0] != "None")
+                {
+                    int row = wxAtoi(efdata[efdata.size() - 6]);
+                    if (row < start) start = row;
+                    if (row > end) end = row;
+                    //logger_base.debug("        row: %d start: %d end: %d", row, start, end);
+                }
+                else if (!cf1 && efdata.size() > 2 && efdata[0] != "None")
+                {
+                    int row = wxAtoi(efdata[efdata.size() - 2]);
+                    if (row < start) start = row;
+                    if (row > end) end = row;
+                    //logger_base.debug("        row: %d start: %d end: %d", row, start, end);
+                }
             }
         }
 
@@ -320,7 +338,7 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
         if (efdata[1] != "None") res++;
     }
 
-    //logger_base.debug("    **** %s", (const char *)res.c_str());
+    //logger_base.debug("    **** %d", res);
 
     return wxString::Format("%d", res);
 }
