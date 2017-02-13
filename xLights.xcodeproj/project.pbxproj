@@ -362,6 +362,7 @@
 		67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */; };
 		67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */; };
 		67E42C1F1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E42C1D1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp */; };
+		67E8F6501E513B380096546A /* IPEntryDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E8F64E1E513B380096546A /* IPEntryDialog.cpp */; };
 		67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */; };
 		67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C7969017B5791700CEE775 /* TabConvert.cpp */; };
 		67EB24B11D2F399200C7C4A1 /* DmxModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67EB24B01D2F399200C7C4A1 /* DmxModel.cpp */; };
@@ -401,11 +402,6 @@
 		67F23F821E329DDC00F8B985 /* libwx_osx_cocoau_media-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F721E329DDC00F8B985 /* libwx_osx_cocoau_media-3.1.1.0.0.dylib */; };
 		67F23F831E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F731E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib */; };
 		67F23F841E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F741E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.1.0.0.dylib */; };
-		67F23F851E329DDC00F8B985 /* libwx_osx_cocoau_ribbon-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F751E329DDC00F8B985 /* libwx_osx_cocoau_ribbon-3.1.1.0.0.dylib */; };
-		67F23F861E329DDC00F8B985 /* libwx_osx_cocoau_richtext-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F761E329DDC00F8B985 /* libwx_osx_cocoau_richtext-3.1.1.0.0.dylib */; };
-		67F23F871E329DDC00F8B985 /* libwx_osx_cocoau_stc-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F771E329DDC00F8B985 /* libwx_osx_cocoau_stc-3.1.1.0.0.dylib */; };
-		67F23F881E329DDC00F8B985 /* libwx_osx_cocoau_webview-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F781E329DDC00F8B985 /* libwx_osx_cocoau_webview-3.1.1.0.0.dylib */; };
-		67F23F891E329DDC00F8B985 /* libwx_osx_cocoau_xrc-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F791E329DDC00F8B985 /* libwx_osx_cocoau_xrc-3.1.1.0.0.dylib */; };
 		67F23F8A1E329DF500F8B985 /* libavcodec.57.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */; };
 		67F23F8B1E329DF500F8B985 /* libavformat.57.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A11C7E372E001D2377 /* libavformat.57.dylib */; };
 		67F23F8C1E329DF500F8B985 /* libavutil.55.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A01C7E372E001D2377 /* libavutil.55.dylib */; };
@@ -1219,6 +1215,8 @@
 		67E7087417B51AB400A22034 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		67E7087517B51AB400A22034 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		67E7087817B51AB400A22034 /* xLights-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "xLights-Info.plist"; sourceTree = "<group>"; };
+		67E8F64E1E513B380096546A /* IPEntryDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IPEntryDialog.cpp; sourceTree = "<group>"; };
+		67E8F64F1E513B380096546A /* IPEntryDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IPEntryDialog.h; sourceTree = "<group>"; };
 		67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SeqFileUtilities.cpp; sourceTree = "<group>"; };
 		67EB24AF1D2F399200C7C4A1 /* DmxModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DmxModel.h; path = models/DmxModel.h; sourceTree = "<group>"; };
 		67EB24B01D2F399200C7C4A1 /* DmxModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DmxModel.cpp; path = models/DmxModel.cpp; sourceTree = "<group>"; };
@@ -1415,11 +1413,6 @@
 				67F23F821E329DDC00F8B985 /* libwx_osx_cocoau_media-3.1.1.0.0.dylib in Frameworks */,
 				67F23F831E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib in Frameworks */,
 				67F23F841E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.1.0.0.dylib in Frameworks */,
-				67F23F851E329DDC00F8B985 /* libwx_osx_cocoau_ribbon-3.1.1.0.0.dylib in Frameworks */,
-				67F23F861E329DDC00F8B985 /* libwx_osx_cocoau_richtext-3.1.1.0.0.dylib in Frameworks */,
-				67F23F871E329DDC00F8B985 /* libwx_osx_cocoau_stc-3.1.1.0.0.dylib in Frameworks */,
-				67F23F881E329DDC00F8B985 /* libwx_osx_cocoau_webview-3.1.1.0.0.dylib in Frameworks */,
-				67F23F891E329DDC00F8B985 /* libwx_osx_cocoau_xrc-3.1.1.0.0.dylib in Frameworks */,
 				67F23F361E329A1E00F8B985 /* AudioToolbox.framework in Frameworks */,
 				67F23F371E329A1E00F8B985 /* IOKit.framework in Frameworks */,
 				67F23F351E329A0000F8B985 /* Cocoa.framework in Frameworks */,
@@ -1954,6 +1947,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67E8F64E1E513B380096546A /* IPEntryDialog.cpp */,
+				67E8F64F1E513B380096546A /* IPEntryDialog.h */,
 				671130BF1E4EB2A900AF09A7 /* support */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
@@ -2825,6 +2820,7 @@
 				67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */,
 				67BC8BB41D2152C5009B660F /* StateEffect.cpp in Sources */,
 				67B2CFD91C3A186A003C17CA /* SpirographEffect.cpp in Sources */,
+				67E8F6501E513B380096546A /* IPEntryDialog.cpp in Sources */,
 				675AB4291B5ACEDA00853A28 /* host-c.cpp in Sources */,
 				67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */,
 				679BD3421C375D9F000539FE /* BarsEffect.cpp in Sources */,
