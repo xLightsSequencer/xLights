@@ -1,7 +1,4 @@
 #include "FastComboEditor.h"
-#ifdef __WXGTK__
-#include <gtk/gtk.h>
-#endif
 #include <wx/tokenzr.h>
 #include "EzGrid.h"
 #include <wx/app.h>
