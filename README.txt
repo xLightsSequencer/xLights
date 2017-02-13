@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.3  Feb 13, 2017
    -- enh (gil)     Add new Skulltronix skull display option for the DMX model.
    -- enh (gil)     Add new 3D DMX head display option for the DMX model.
    -- enh (gil)     Add new Servo Effect mainly for 16 bit servos but also works with 8 bit channels.
