@@ -5045,7 +5045,11 @@ void xLightsFrame::OnMenuItem_BackupSubfoldersSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_xScheduleSelected(wxCommandEvent& event)
 {
+#ifdef LINUX
+    wxExecute("xSchedule");
+#else
     wxExecute("xSchedule.exe");
+#endif
 }
 
 void xLightsFrame::ValidateWindow()
