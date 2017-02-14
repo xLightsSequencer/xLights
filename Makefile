@@ -11,7 +11,7 @@ MKDIR           = mkdir -p
 CHK_DIR_EXISTS  = test -d
 INSTALL_PROGRAM = install -m 755 -p
 DEL_FILE        = rm -f
-ICON_SIZES      = 16x16 32x32 64x64 256x256
+ICON_SIZES      = 16x16 32x32 64x64 128x128 256x256
 SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary xschedule.linux.properties
 PATH            := $(CURDIR)/wxWidgets-3.1.0:$(PATH)
 
@@ -65,6 +65,7 @@ install:
 	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(INSTALL_PROGRAM) -D bin/xSchedule $(DESTDIR)/${PREFIX}/bin/xSchedule
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
+	-$(INSTALL_PROGRAM) -D bin/xschedule.desktop $(DESTDIR)/${PREFIX}/share/applications/xschedule.desktop
 	$(foreach share, $(SHARE_FILES), install -D -m 644 bin/$(share) $(DESTDIR)/${PREFIX}/share/xLights/$(share) ;)
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
 	cp -r colorcurves/* $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
@@ -75,10 +76,14 @@ install:
 	#install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/songs
 	#cp -r songs/* $(DESTDIR)/${PREFIX}/share/xLights/songs
 	$(foreach size, $(ICON_SIZES), install -D -m 644 xLights/Images.xcassets/AppIcon.appiconset/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
+	install -D -m 644 xSchedule/Assets.xcassets/AppIcon.appiconset/xschedule-6.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/16x16/apps/xschedule.png
+	install -D -m 644 xSchedule/Assets.xcassets/AppIcon.appiconset/xschedule-9.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/32x32/apps/xschedule.png
+	install -D -m 644 xSchedule/Assets.xcassets/AppIcon.appiconset/xschedule-13.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/256x256/apps/xschedule.png
 
 uninstall:
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xschedule.desktop
 
 #############################################################################
 
