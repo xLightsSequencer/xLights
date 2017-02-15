@@ -259,9 +259,23 @@ std::list<int> OutputManager::GetIPUniverses(const std::string& ip) const
     {
         if ((*it)->IsIpOutput() && (ip == "" || ip == (*it)->GetIP()))
         {
-            if (std::find(res.begin(), res.end(), (*it)->GetUniverse()) == res.end())
+            if ((*it)->IsOutputCollection())
             {
-                res.push_back((*it)->GetUniverse());
+                auto coll = (*it)->GetOutputs();
+                for (auto it2 = coll.begin(); it2 != coll.end(); ++it2)
+                {
+                    if (std::find(res.begin(), res.end(), (*it2)->GetUniverse()) == res.end())
+                    {
+                        res.push_back((*it2)->GetUniverse());
+                    }
+                }
+            }
+            else
+            {
+                if (std::find(res.begin(), res.end(), (*it)->GetUniverse()) == res.end())
+                {
+                    res.push_back((*it)->GetUniverse());
+                }
             }
         }
     }
