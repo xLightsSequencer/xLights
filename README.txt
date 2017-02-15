@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add option to video effect to automatically synchronise with a video file that has been used for the sequence audio track.
    -- enh (keith)   Remove the old scheduler
    -- bug (keith)   Fix universe dropdown in start channel dialog did not show all universes available on an ip address if they were grouped under a single output
    -- enh (keith)   On value curve dialog show a tooltip when manipulating a custom curve showing the real value that will be returned by the curve at the chosen point.

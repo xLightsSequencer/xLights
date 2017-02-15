@@ -16,11 +16,12 @@ class VideoEffect : public RenderableEffect
         virtual ~VideoEffect();
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         void Render(RenderBuffer &buffer,
-					const std::string& filename, double starttime, bool keepaspectratio, std::string durationTreatment);
+					std::string filename, double starttime, bool keepaspectratio, std::string durationTreatment, bool synchroniseAudio);
         virtual bool CanBeRandom() override {return false;}
         virtual void SetDefaultParameters(Model *cls) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
+        static bool IsVideo(const std::string& file);
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent)override;

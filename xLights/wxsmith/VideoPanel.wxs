@@ -108,6 +108,15 @@
 								<border>2</border>
 								<option>1</option>
 							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_SynchroniseWithAudio" variable="CheckBox_SynchroniseWithAudio" member="yes">
+									<label>Use sequence audio file as video file and synchronise</label>
+									<handler function="OnCheckBox_SynchroniseWithAudioClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxEXPAND</flag>
 						<border>2</border>

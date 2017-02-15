@@ -38,6 +38,8 @@ public:
 
 class VideoPanel: public wxPanel
 {
+    void ValidateWindow();
+
 	public:
 
 		VideoPanel(wxWindow* parent);
@@ -49,6 +51,7 @@ class VideoPanel: public wxPanel
         wxSlider* Slider_Video_Starttime;
         wxCheckBox* CheckBox_Video_AspectRatio;
         wxStaticText* StaticText8;
+        wxCheckBox* CheckBox_SynchroniseWithAudio;
         xlVideoFilePickerCtrl* FilePicker_Video_Filename;
         wxTextCtrl* TextCtrl_Video_Starttime;
         //*)
@@ -65,27 +68,29 @@ protected:
 		static const long ID_TEXTCTRL_Video_Starttime;
 		static const long ID_CHOICE_Video_DurationTreatment;
 		static const long ID_CHECKBOX_Video_AspectRatio;
+		static const long ID_CHECKBOX_SynchroniseWithAudio;
 		//*)
 
 	public:
 
 		//(*Handlers(VideoPanel)
-        void UpdateLinkedSliderFloat(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
-        void UpdateLinkedTextCtrl360(wxScrollEvent& event);
+		void UpdateLinkedSliderFloat(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+		void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
 		void UpdateLinkedSlider360(wxCommandEvent& event);
 		void UpdateLinkedTextCtrl(wxScrollEvent& event);
 		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+		void OnVCButtonClick(wxCommandEvent& event);
 		void OnSlider_Video_StarttimeCmdSliderUpdated(wxScrollEvent& event);
 		void OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        //*)
+		void OnVCChanged(wxCommandEvent& event);
+		void OnCheckBox_SynchroniseWithAudioClick(wxCommandEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

@@ -21,6 +21,7 @@ const long VideoPanel::IDD_SLIDER_Video_Starttime = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Video_Starttime = wxNewId();
 const long VideoPanel::ID_CHOICE_Video_DurationTreatment = wxNewId();
 const long VideoPanel::ID_CHECKBOX_Video_AspectRatio = wxNewId();
+const long VideoPanel::ID_CHECKBOX_SynchroniseWithAudio = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(VideoPanel,wxPanel)
@@ -73,6 +74,9 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	CheckBox_Video_AspectRatio = new wxCheckBox(this, ID_CHECKBOX_Video_AspectRatio, _("Maintain Aspect Ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Video_AspectRatio"));
 	CheckBox_Video_AspectRatio->SetValue(false);
 	FlexGridSizer4->Add(CheckBox_Video_AspectRatio, 1, wxALL|wxEXPAND, 2);
+	CheckBox_SynchroniseWithAudio = new wxCheckBox(this, ID_CHECKBOX_SynchroniseWithAudio, _("Use sequence audio file as video file and synchronise"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_SynchroniseWithAudio"));
+	CheckBox_SynchroniseWithAudio->SetValue(false);
+	FlexGridSizer4->Add(CheckBox_SynchroniseWithAudio, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxEXPAND, 2);
 	FlexGridSizer42->Add(FlexGridSizer3, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
@@ -82,10 +86,13 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	Connect(ID_FILEPICKERCTRL_Video_Filename,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&VideoPanel::OnFilePicker_Video_FilenameFileChanged);
 	Connect(IDD_SLIDER_Video_Starttime,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VideoPanel::UpdateLinkedTextCtrlFloat2);
 	Connect(ID_TEXTCTRL_Video_Starttime,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VideoPanel::UpdateLinkedSliderFloat2);
+	Connect(ID_CHECKBOX_SynchroniseWithAudio,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&VideoPanel::OnCheckBox_SynchroniseWithAudioClick);
 	//*)
     SetName("ID_PANEL_Video");
 	TextCtrl_Video_Starttime->SetValue("0.00");
 	CheckBox_Video_AspectRatio->SetValue(false);
+
+	ValidateWindow();
 }
 
 VideoPanel::~VideoPanel()
@@ -118,3 +125,25 @@ void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& ev
     }
 }
 
+void VideoPanel::OnCheckBox_SynchroniseWithAudioClick(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void VideoPanel::ValidateWindow()
+{
+    if (CheckBox_SynchroniseWithAudio->GetValue())
+    {
+        Slider_Video_Starttime->Enable(false);
+        TextCtrl_Video_Starttime->Enable(false);
+        Choice_Video_DurationTreatment->Enable(false);
+        FilePicker_Video_Filename->Enable(false);
+    }
+    else
+    {
+        Slider_Video_Starttime->Enable(true);
+        TextCtrl_Video_Starttime->Enable(true);
+        Choice_Video_DurationTreatment->Enable(true);
+        FilePicker_Video_Filename->Enable(true);
+    }
+}

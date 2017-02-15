@@ -142,7 +142,8 @@ void VideoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 		   SettingsMap["FILEPICKERCTRL_Video_Filename"],
 		SettingsMap.GetDouble("TEXTCTRL_Video_Starttime", 0.0),
 		SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", false),
-		SettingsMap.Get("CHOICE_Video_DurationTreatment", "Normal")
+		SettingsMap.Get("CHOICE_Video_DurationTreatment", "Normal"),
+        SettingsMap.GetBool("CHECKBOX_SynchroniseWithAudio", false)
 		);
 }
 
@@ -152,6 +153,8 @@ public:
 	{
 		_videoframerate = -1;
 		_videoreader = nullptr;
+        _loops = 0;
+        _frameMS = 50;
 	};
     virtual ~VideoRenderCache() {
 		if (_videoreader != nullptr)
@@ -161,20 +164,37 @@ public:
 		}
 	};
 
-	std::string _filename;
-	double _starttime;
     VideoReader* _videoreader;
 	int _videoframerate;
-	bool _aspectratio;
-	std::string _durationTreatment;
 	int _loops;
     int _frameMS;
 };
 
-void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
-	double starttime, bool aspectratio, std::string durationTreatment)
+bool VideoEffect::IsVideo(const std::string& file)
 {
-    wxStopWatch sw;
+    wxFileName fn(file);
+    auto ext = fn.GetExt().ToStdString();
+
+    if (ext == "avi" ||
+        ext == "mp4" ||
+        ext == "mkv" ||
+        ext == "mov" ||
+        ext == "asf" ||
+        ext == "flv" ||
+        ext == "mpg" ||
+        ext == "mpeg" ||
+        ext == "m4v"
+        )
+    {
+        return true;
+    }
+
+    return false;
+}
+
+void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
+	double starttime, bool aspectratio, std::string durationTreatment, bool synchroniseAudio)
+{
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     VideoRenderCache *cache = (VideoRenderCache*)buffer.infoCache[id];
 	if (cache == nullptr) {
@@ -182,26 +202,26 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 		buffer.infoCache[id] = cache;
 	}
 
-	std::string &_filename = cache->_filename;
-	double &_starttime = cache->_starttime;
-	bool &_aspectratio = cache->_aspectratio;
-	std::string &_durationTreatment = cache->_durationTreatment;
 	int &_loops = cache->_loops;
-    int &_frameMS = cache->_frameMS;
 	VideoReader* &_videoreader = cache->_videoreader;
+    int& _frameMS = cache->_frameMS;
 
-	if (_starttime != starttime)
-	{
-		_starttime = starttime;
-	}
-    
+    if (synchroniseAudio)
+    {
+        starttime = 0;
+        durationTreatment = "Normal";
+        if (buffer.GetMedia() != nullptr)
+        {
+            filename = buffer.GetMedia()->FileName();
+            starttime = buffer.curEffStartPer * buffer.frameTimeInMs / 1000;
+        }
+    }
+
 	// we always reopen video on first frame or if it is not open or if the filename has changed
 	if (buffer.needToInit)
 	{
         buffer.needToInit = false;
-		_filename = filename;
-		_aspectratio = aspectratio;
-		_durationTreatment = durationTreatment;
+
 		_loops = 0;
         _frameMS = buffer.frameTimeInMs;
 		if (_videoreader != nullptr)
@@ -214,14 +234,14 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
         {
             logger_base.warn("VideoEffect::Cannot render video onto a 1 pixel high model. Have you set it to single line?");
         }
-        else if (wxFileExists(_filename))
+        else if (wxFileExists(filename))
 		{
 			// have to open the file
-			_videoreader = new VideoReader(_filename, buffer.BufferWi, buffer.BufferHt, _aspectratio);
+			_videoreader = new VideoReader(filename, buffer.BufferWi, buffer.BufferHt, aspectratio);
 
             if (_videoreader == nullptr)
             {
-                logger_base.warn("VideoEffect: Failed to load video file %s.", (const char *)_filename.c_str());
+                logger_base.warn("VideoEffect: Failed to load video file %s.", (const char *)filename.c_str());
             }
             else
             {
@@ -234,28 +254,28 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
                     fp->addVideoTime(filename, videolen);
                 }
 
-                if (_starttime != 0)
+                if (starttime != 0)
                 {
-                    _videoreader->Seek(_starttime * 1000);
+                    _videoreader->Seek(starttime * 1000);
                 }
 
-                if (_durationTreatment == "Slow/Accelerate")
+                if (durationTreatment == "Slow/Accelerate")
                 {
                     int effectFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
-                    int videoFrames = (videolen - (_starttime * 1000)) / buffer.frameTimeInMs;
+                    int videoFrames = (videolen - (starttime * 1000)) / buffer.frameTimeInMs;
                     float speedFactor = (float)videoFrames / (float)effectFrames;
                     _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
                 }
                 logger_base.debug("Video effect length: %d, video length: %d, startoffset: %f, duration treatment: %s.",
-                                  (buffer.curEffEndPer - buffer.curEffStartPer + 1) * _frameMS, videolen, (float)_starttime,
-                                  (const char *)_durationTreatment.c_str());
+                                  (buffer.curEffEndPer - buffer.curEffStartPer + 1) * _frameMS, videolen, (float)starttime,
+                                  (const char *)durationTreatment.c_str());
             }
 		}
         else
         {
             if (buffer.curPeriod == buffer.curEffStartPer)
             {
-                logger_base.warn("VideoEffect: Video file '%s' not found.", (const char *)_filename.c_str());
+                logger_base.warn("VideoEffect: Video file '%s' not found.", (const char *)filename.c_str());
             }
         }
 	}
@@ -263,16 +283,16 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 
 	if (_videoreader != nullptr)
 	{
-        long frame = _starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
+        long frame = starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
         // get the image for the current frame
 		AVFrame* image = _videoreader->GetNextFrame(frame);
 		
 		// if we have reached the end and we are to loop
-		if (_videoreader->AtEnd() && _durationTreatment == "Loop")
+		if (_videoreader->AtEnd() && durationTreatment == "Loop")
 		{
             // jump back to start and try to read frame again
             _loops++;
-            frame = _starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
+            frame = starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
             if (frame < 0)
             {
                 frame = 0;
