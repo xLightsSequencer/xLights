@@ -284,11 +284,19 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     else if(id == ID_ROW_MNU_DELETE_LAYER)
     {
         int layerIndex = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->layerIndex;
-        wxString prompt = wxString::Format("Delete 'Layer %d' of '%s'?",
-                                      layerIndex+1,element->GetModelName());
-        wxString caption = "Confirm Layer Deletion";
 
-        int answer = wxMessageBox(prompt,caption,wxYES_NO);
+        int answer = wxYES;
+
+        // only prompt the user if there are effects on the layer
+        if (element->GetEffectLayer(layerIndex)->GetEffectCount() > 0)
+        {
+            wxString prompt = wxString::Format("Layer contains one or more effects. Are you sure you want to delete 'Layer %d' of '%s'?",
+                layerIndex + 1, element->GetModelName());
+            wxString caption = "Confirm Layer Deletion";
+
+            answer = wxMessageBox(prompt, caption, wxYES_NO);
+        }
+
         if(answer == wxYES)
         {
             element->RemoveEffectLayer(layerIndex);
