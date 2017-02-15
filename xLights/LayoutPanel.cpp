@@ -900,8 +900,8 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
         if (model->GetDisplayAs() == "ModelGroup") {
             ModelGroup *grp = (ModelGroup*)(model);
             if (group == "All Models" || model->GetLayoutGroup() == group || (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
-                for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
-                    Model *m = xlights->AllModels[*it];
+                for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); it2++) {
+                    Model *m = xlights->AllModels[*it2];
                     if (m != nullptr) {
                         if (mark_selected) {
                             m->GroupSelected = true;
@@ -913,15 +913,15 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                         } else if (m->DisplayAs == "ModelGroup") {
                             ModelGroup *mg = (ModelGroup*)m;
                             if (mark_selected) {
-                                for (auto it = mg->Models().begin(); it != mg->Models().end(); it++) {
-                                    if ((*it)->DisplayAs != "ModelGroup") {
-                                        (*it)->GroupSelected = true;
-                                        prev_models.push_back(*it);
+                                for (auto it3 = mg->Models().begin(); it3 != mg->Models().end(); it3++) {
+                                    if ((*it3)->DisplayAs != "ModelGroup") {
+                                        (*it3)->GroupSelected = true;
+                                        prev_models.push_back(*it3);
                                     }
                                 }
                             }
-                        } else if (modelsAdded.find(*it) == modelsAdded.end()) {
-                            modelsAdded.insert(*it);
+                        } else if (modelsAdded.find(*it2) == modelsAdded.end()) {
+                            modelsAdded.insert(*it2);
                             prev_models.push_back(m);
                         }
                     }
@@ -1068,6 +1068,7 @@ void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
     Model *m = xlights->AllModels[name];
     SelectModel(m, highlight_tree);
 }
+
 void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
 
     modelPreview->SetFocus();
@@ -1264,6 +1265,7 @@ bool LayoutPanel::SelectSingleModel(int x,int y)
     }
     return false;
 }
+
 void LayoutPanel::SelectAllInBoundingRect()
 {
     for (size_t i=0; i<modelPreview->GetModels().size(); i++)
@@ -1271,6 +1273,11 @@ void LayoutPanel::SelectAllInBoundingRect()
         if(modelPreview->GetModels()[i]->IsContained(modelPreview,m_bound_start_x,m_bound_start_y,
                                          m_bound_end_x,m_bound_end_y))
         {
+            // if we dont have a selected model make the first one we find the selected model so alignment etc works
+            if (selectedModel == nullptr)
+            {
+                SelectModel(modelPreview->GetModels()[i]->GetName(), false);
+            }
             modelPreview->GetModels()[i]->GroupSelected = true;
         }
     }
