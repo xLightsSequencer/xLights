@@ -537,7 +537,6 @@ bool xLightsApp::OnInit()
     static const wxCmdLineEntryDesc cmdLineDesc [] =
     {
         { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters", wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
-        { wxCMD_LINE_SWITCH, "n", "noauto", "enable auto-run prompt"},
         { wxCMD_LINE_SWITCH, "d", "debug", "enable debug mode"},
         { wxCMD_LINE_SWITCH, "r", "render", "render files and exit"},
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
@@ -563,11 +562,6 @@ bool xLightsApp::OnInit()
         if (WantDebug) {
             logger_base.info("-d: Debug is ON");
             info += _("Debug is ON\n");
-        }
-        RunPrompt = parser.Found("n");
-        if (RunPrompt) {
-            logger_base.info("-n: Auto-run prompt is ON");
-            info += _("Auto-run prompt is ON\n");
         }
         if (parser.Found("s", &showDir)) {
             logger_base.info("-s: Show directory set to %s.", (const char *)showDir.c_str());
@@ -645,7 +639,6 @@ void xLightsApp::WipeSettings()
 
 //global flags from command line:
 bool xLightsApp::WantDebug = false;
-bool xLightsApp::RunPrompt = false; //prompt before running schedule (allows override) -DJ
 wxString xLightsApp::DebugPath;
 wxString xLightsApp::mediaDir;
 wxString xLightsApp::showDir;

@@ -38,7 +38,6 @@
 #include "../include/model_preview_24.xpm"
 #include "../include/house_preview_24.xpm"
 #include "../include/lights_off_24.xpm"
-#include "../include/graceful_stop_24.xpm"
 #include "../include/zoom-out-24.xpm"
 #include "../include/zoom-in-24.xpm"
 #include "../include/settings-24.xpm"
@@ -300,8 +299,6 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, model_preview_xpm, model_preview_xpm, model_preview_xpm, model_preview_xpm, model_preview_xpm);
     } else if ("xlART_HOUSE_PREVIEW" == id) {
         return effectBitmaps.get(24, false, id, house_preview_xpm, house_preview_xpm, house_preview_xpm, house_preview_xpm, house_preview_xpm);
-    } else if ("xlART_GRACEFUL_STOP" == id) {
-        return effectBitmaps.get(24, false, id, graceful_stop_24_xpm, graceful_stop_24_xpm, graceful_stop_24_xpm, graceful_stop_24_xpm, graceful_stop_24_xpm);
     } else if ("xlART_LIGHTS_OFF" == id) {
         return effectBitmaps.get(24, false, id, lights_off_24_xpm, lights_off_24_xpm, lights_off_24_xpm, lights_off_24_xpm, lights_off_24_xpm);
     } else if ("xlART_ZOOM_IN" == id) {

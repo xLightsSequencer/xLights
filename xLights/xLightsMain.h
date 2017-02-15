@@ -18,13 +18,9 @@
 
 //(*Headers(xLightsFrame)
 #include <wx/listctrl.h>
-#include <wx/treectrl.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/menu.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/splitter.h>
 #include <wx/spinctrl.h>
 #include <wx/aui/aui.h>
 #include <wx/panel.h>
@@ -57,9 +53,7 @@
 
 #include "outputs/OutputManager.h"
 #include "EffectTreeDialog.h"
-#include "PlayerFrame.h"
 #include "EffectsPanel.h"
-#include "AddShowDialog.h"
 #include "PixelBuffer.h"
 #include "ModelPreview.h"
 #include "EffectAssist.h"
@@ -95,8 +89,7 @@ class RenderTreeData;
 // notebook pages
 #define SETUPTAB 0
 #define PREVIEWTAB 1
-#define SCHEDULETAB 2
-#define NEWSEQUENCER 3
+#define NEWSEQUENCER 2
 
 #define PLAY_TYPE_STOPPED 0
 #define PLAY_TYPE_EFFECT 1
@@ -104,7 +97,7 @@ class RenderTreeData;
 #define PLAY_TYPE_EFFECT_PAUSED 3
 #define PLAY_TYPE_MODEL_PAUSED  4
 
-#define FixedPages 4
+#define FixedPages 3
 
 #define TEXT_ENTRY_TIMING           0
 #define TEXT_ENTRY_EFFECT           1
@@ -162,8 +155,7 @@ enum play_modes
 {
     play_off,
     play_single,
-    play_list,
-    play_sched
+    play_list
 };
 
 enum SeqPlayerStates
@@ -283,16 +275,6 @@ public:
 
     PhonemeDictionary dictionary;
 
-    void BasicPrompt(char* prompt, char* buff, int size);
-    void BasicOutput(char *msg);
-    void BasicError(const char *msg);
-    char ExtType(const wxString& ext);
-    bool Play(wxString& filename, long delay);
-    void StopPlayback();
-    void StartScript(const char *scriptname);
-    void EndScript(const char *scriptname);
-    int  FindNotebookPage(wxString& pagename);
-    wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
     void SetEffectControls(const std::string &modelName, const std::string &name,
                            const SettingsMap &settings, const SettingsMap &palette,
                            bool setDefaults);
@@ -342,7 +324,6 @@ public:
     static wxString GetFilename() { return xlightsFilename; }
     void ConversionInit();
     void ConversionError(const wxString& msg);
-    void PlayerError(const wxString& msg);
     void SetMediaFilename(const wxString& filename);
     void RenderIseqData(bool bottom_layers, ConvertLogDialog* plog);
     bool IsSequenceDataValid() const
@@ -363,6 +344,7 @@ public:
     void ImportSuperStar(const wxFileName &filename);
     void SaveWorking();
     void SaveWorkingLayout();
+    void PlayerError(const wxString& msg);
 
     EffectManager &GetEffectManager() { return effectManager; }
 
@@ -377,16 +359,6 @@ private:
     void OnAbout(wxCommandEvent& event);
     void OnMenuOpenFolderSelected(wxCommandEvent& event);
     void OnTimer1Trigger(wxTimerEvent& event);
-    void OnCheckBoxRunScheduleClick(wxCommandEvent& event);
-    void OnButtonAddShowClick(wxCommandEvent& event);
-    void OnButtonUpdateShowClick(wxCommandEvent& event);
-    void OnButtonDeleteShowClick(wxCommandEvent& event);
-    void OnButtonShowDatesChangeClick(wxCommandEvent& event);
-    void OnButtonClearLogClick(wxCommandEvent& event);
-    void OnButtonSaveLogClick(wxCommandEvent& event);
-    void OnMenuItemRenameListSelected(wxCommandEvent& event);
-    void OnMenuItemRefreshSelected(wxCommandEvent& event);
-    void OnMenuItemCustomScriptSelected(wxCommandEvent& event);
     void OnButtonNetworkChangeClick(wxCommandEvent& event);
     void OnButtonNetworkDeleteClick(wxCommandEvent& event);
     void OnButtonNetworkMoveUpClick(wxCommandEvent& event);
@@ -396,14 +368,9 @@ private:
     void OnButtonAddDongleClick(wxCommandEvent& event);
     void OnButtonSaveSetupClick(wxCommandEvent& event);
     void OnBitmapButtonTabInfoClick(wxCommandEvent& event);
-    void OnMenuItemDelListSelected(wxCommandEvent& event);
-    void OnMenuItemAddListSelected(wxCommandEvent& event);
     void OnButtonLightsOffClick(wxCommandEvent& event);
     void OnCheckBoxLightOutputClick(wxCommandEvent& event);
     void OnButtonStopNowClick(wxCommandEvent& event);
-    void OnButtonGracefulStopClick(wxCommandEvent& event);
-    void OnButtonSaveScheduleClick(wxCommandEvent& event);
-    void OnMenuItemSavePlaylistsSelected(wxCommandEvent& event);
     void OnButtonNetworkDeleteAllClick(wxCommandEvent& event);
     void OnBitmapButtonOpenSeqClick(wxCommandEvent& event);
     void OnBitmapButtonSaveSeqClick(wxCommandEvent& event);
@@ -546,7 +513,6 @@ private:
     static const long ID_AUITOOLBAR_VIEW;
     static const long ID_BITMAPBUTTON_TAB_INFO;
     static const long ID_BUTTON_STOP_NOW;
-    static const long ID_BUTTON_GRACEFUL_STOP;
     static const long ID_BUTTON_LIGHTS_OFF;
     static const long ID_CHECKBOX_LIGHT_OUTPUT;
     static const long ID_AUITOOLBAR_OUTPUT;
@@ -571,26 +537,6 @@ private:
     static const long ID_LISTCTRL_NETWORKS;
     static const long ID_PANEL_SETUP;
     static const long ID_PANEL_PREVIEW;
-    static const long ID_TREECTRL1;
-    static const long ID_CHECKBOX_RUN_SCHEDULE;
-    static const long ID_BUTTON_SAVE_SCHEDULE;
-    static const long ID_BUTTON_ADD_SHOW;
-    static const long ID_BUTTON_UPDATE_SHOW;
-    static const long ID_BUTTON_DELETE_SHOW;
-    static const long ID_STATICTEXT2;
-    static const long ID_BUTTON_SHOW_DATES_CHANGE;
-    static const long ID_STATICTEXT3;
-    static const long ID_STATICTEXT_SHOWSTART;
-    static const long ID_STATICTEXT5;
-    static const long ID_STATICTEXT_SHOWEND;
-    static const long ID_PANEL3;
-    static const long ID_STATICTEXT1;
-    static const long ID_TEXTCTRL_LOG;
-    static const long ID_BUTTON_CLEARLOG;
-    static const long ID_BUTTON_SAVELOG;
-    static const long ID_PANEL2;
-    static const long ID_SPLITTERWINDOW1;
-    static const long ID_PANEL_CAL;
     static const long ID_PANEL7;
     static const long ID_NOTEBOOK1;
     static const long ID_STATICTEXT6;
@@ -618,12 +564,6 @@ private:
     static const long ID_MENU_FPP_CONNECT;
     static const long ID_MNU_PACKAGESEQUENCE;
     static const long ID_MNU_XSCHEDULE;
-    static const long idMenuSaveSched;
-    static const long idMenuAddList;
-    static const long idMenuRenameList;
-    static const long idMenuDelList;
-    static const long ID_MENUITEM1;
-    static const long idCustomScript;
     static const long ID_MENUITEM_SAVE_PERSPECTIVE;
     static const long ID_MENUITEM_SAVE_AS_PERSPECTIVE;
     static const long ID_MENUITEM_LOAD_PERSPECTIVE;
@@ -723,25 +663,19 @@ private:
     wxMenuItem* MenuItem33;
     wxMenuItem* MenuItemLoadEditPerspective;
     wxMenuItem* MenuItemGridNodeValuesOff;
-    wxCheckBox* CheckBoxRunSchedule;
     wxMenuItem* MenuItem40;
-    wxButton* ButtonClearLog;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
     wxMenu* ToolIconSizeMenu;
     wxMenuItem* MenuItem_File_Open_Sequence;
     wxAuiManager* m_mgr;
-    wxStaticText* StaticText2;
     wxMenuItem* MenuItem_ExportEffects;
     wxAuiManager* MainAuiManager;
     wxMenuItem* MenuItemRenderCanvasMode;
     wxMenuItem* MenuItem_BackupSubfolders;
-    wxStaticText* StaticTextShowEnd;
     wxMenuItem* MenuItemGridNodeValuesOn;
     wxMenu* Menu3;
-    wxTextCtrl* TextCtrlLog;
     wxMenu* MenuItemRenderMode;
     wxButton* Button_Change_Media_Dir;
-    wxMenuItem* MenuItemRefresh;
     wxMenuItem* mAltBackupLocationMenuItem;
     wxMenuItem* MenuItemShiftEffects;
     wxMenuItem* MenuItem_File_Save_Sequence;
@@ -751,25 +685,20 @@ private:
     wxTimer EffectSettingsTimer;
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItem_File_Close_Sequence;
-    wxStaticText* StaticTextShowStart;
     wxPanel* AUIStatusBar;
     xlAuiToolBar* ViewToolBar;
     wxMenuItem* MenuItem37;
-    wxStaticText* StaticText1;
     wxMenuItem* MenuItem_BackupOnLaunch;
     wxMenuItem* MenuItem32;
     wxMenuItem* MenuItem_ViewZoomIn;
     wxPanel* PanelPreview;
     xLightsTimer Timer1;
     wxMenuItem* MenuItem_Help_Isue_Tracker;
-    wxStaticText* StaticText3;
     xlAuiToolBar* PlayToolBar;
     wxMenu* Menu1;
     wxFlexGridSizer* GaugeSizer;
     wxPanel* PanelSequencer;
-    wxButton* ButtonSaveLog;
     wxMenuItem* MenuItem42;
-    wxPanel* Panel3;
     wxMenuItem* MenuItemEffectAssistAlwaysOn;
     wxMenu* MenuItem7;
     wxButton* ButtonAddDongle;
@@ -796,17 +725,13 @@ private:
     wxMenuItem* MenuItemEffectAssistAlwaysOff;
     wxMenuItem* MenuItem_FPP_Connect;
     wxStaticText* StaticText5;
-    wxTreeCtrl* ListBoxSched;
     wxListCtrl* GridNetwork;
     wxMenuItem* MenuItem_ForceLocalIP;
     wxStaticText* ShowDirectoryLabel;
-    wxPanel* PanelCal;
     wxMenu* MenuFile;
     wxDirDialog* DirDialog1;
     wxAuiNotebook* Notebook1;
     wxMenuItem* MenuItem35;
-    wxButton* ButtonDeleteShow;
-    wxButton* ButtonShowDatesChange;
     wxMenu* OpenGLMenu;
     wxStaticText* StatusText;
     wxMenuItem* MenuItem_File_SaveAs_Sequence;
@@ -819,11 +744,8 @@ private:
     wxPanel* PanelSetup;
     wxMenuItem* MenuItem_e131sync;
     wxButton* ButtonSaveSetup;
-    wxPanel* Panel2;
     wxMenuItem* mBackupOnSaveMenuItem;
-    wxMenuItem* MenuItemSavePlaylists;
     wxMenu* MenuItemPerspectives;
-    wxButton* ButtonUpdateShow;
     wxMenu* GridSpacingMenu;
     wxMenuItem* MenuItem_PackageSequence;
     wxStaticText* FileNameText;
@@ -831,19 +753,15 @@ private:
     wxMenuItem* MenuItem_Help_Download;
     wxMenuItem* MenuItem16;
     wxMenuItem* MenuItem34;
-    wxSplitterWindow* SplitterWindow1;
     wxMenuItem* MenuItem43;
     wxMenuItem* MenuItemEffectAssistWindow;
     wxMenuItem* ActionTestMenuItem;
-    wxStaticText* StaticText4;
     wxMenu* MenuItem18;
     wxMenu* MenuItem1;
     wxGauge* ProgressBar;
     xlAuiToolBar* EffectsToolBar;
     wxMenuItem* MenuItem_xSchedule;
-    wxButton* ButtonSaveSchedule;
     wxMenuItem* MenuItem_Help_Forum;
-    wxButton* ButtonAddShow;
     wxGridBagSizer* StatusBarSizer;
     wxMenu* MenuView;
     wxMenuItem* MenuItem_ViewLog;
@@ -855,7 +773,6 @@ private:
     //*)
 
     AUIToolbarButtonWrapper *CheckBoxLightOutput;
-    AUIToolbarButtonWrapper *ButtonGracefulStop;
     AUIToolbarButtonWrapper *ButtonPasteByTime;
     AUIToolbarButtonWrapper *ButtonPasteByCell;
 
@@ -864,8 +781,6 @@ private:
     bool previewLoaded;
     bool previewPlaying;
     wxFileName networkFile;
-    wxFileName scheduleFile;
-    PlayerFrame* PlayerDlg;
     wxArrayString mru;  // most recently used directories
     wxMenuItem* mru_MenuItem[MRU_LENGTH];
     OutputManager _outputManager;
@@ -972,55 +887,6 @@ private:
 
     JobPool jobPool;
 
-    // schedule
-    wxDateTime ShowStartDate,ShowEndDate;
-    wxArrayString ShowEvents;
-    SeqPlayerStates SeqPlayerState;
-    wxString LastMoDay;
-    long DelayAfterPlayMSEC;
-
-    void AddShow(const wxDateTime& d, const wxString& StartStop, const wxString& Playlist);
-    void DisplaySchedule();
-    int DisplayScheduleOneDay(const wxDateTime& d, const wxTreeItemId& root);
-    void PopulateShowDialog(AddShowDialog& dialog, wxSortedArrayString& SelectedDates);
-    void UnpackSchedCode(const wxString& SchedCode, wxString& StartTime, wxString& EndTime, wxString& RepeatOptions, wxString& Playlist);
-    void ForceScheduleCheck();
-    void CheckRunSchedule();
-    long GetSelectedItem(wxListCtrl* ListBoxPlay);
-    void UpdateShowDates(const wxDateTime& NewStart, const wxDateTime NewEnd);
-    bool DisplayAddShowDialog(AddShowDialog& dialog);
-    int DeleteSelectedShows();
-    void CheckSchedule();
-    void LoadScheduleFile();
-    void LoadSchedule(wxXmlNode* n);
-    void LoadPlaylists(wxXmlNode* n);
-    void LoadPlaylist(wxXmlNode* n);
-    int AddPlaylist(const wxString& name);
-    wxString OnOffString(bool b);
-    wxString CreateScript(wxString ListName, bool Repeat, bool FirstItemOnce, bool LastItemOnce, bool LightsOff, bool Random);
-    bool PlayCurrentXlightsFile();
-    void RunPlaylist(int nbidx, wxString& script);
-    void SendToLogAndStatusBar(const wxString& msg);
-    void ScanForFiles();
-    long DiffSeconds(wxString& strTime, wxTimeSpan& tsCurrent);
-    int Time2Seconds(const wxString& hhmm);
-    void ResetTimer(SeqPlayerStates newstate, long OffsetMsec=0);
-    void SaveScheduleFile();
-    void OnButtonPlaylistAddClick(wxCommandEvent& event);
-    void OnButtonPlaylistAddAllClick(wxCommandEvent& event);
-    void OnButtonPlaylistDeleteClick(wxCommandEvent& event);
-    void OnButtonPlaylistDeleteAllClick(wxCommandEvent& event);
-    void OnButtonRemoveScriptClick(wxCommandEvent& event);
-    void OnButtonRunPlaylistClick(wxCommandEvent& event);
-    void OnButtonPlayItemClick(wxCommandEvent& event);
-    void OnButtonUpClick(wxCommandEvent& event);
-    void OnButtonDownClick(wxCommandEvent& event);
-    void OnButtonSetDelayClick(wxCommandEvent& event);
-    void OnFileTypeButtonClicked(wxCommandEvent& event);
-    void OnPlayListBeginDrag(wxListEvent& event);
-    void OnPlayListDragEnd(wxMouseEvent& event);
-    void OnPlayListDragQuit(wxMouseEvent& event);
-    void OnTimerPlaylist(long msec);
     void OnNetworkPopup(wxCommandEvent &event);
 
     // sequence

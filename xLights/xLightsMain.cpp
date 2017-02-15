@@ -38,9 +38,6 @@
 #include "FPPConnectDialog.h"
 #include "IPEntryDialog.h"
 
-// scripting language
-#include "xLightsBasic.cpp"
-
 // image files
 #include "../include/xLights.xpm"
 #include "../include/xLights-16.xpm"
@@ -55,8 +52,6 @@
 //(*InternalHeaders(xLightsFrame)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
-#include <wx/settings.h>
-#include <wx/font.h>
 #include <wx/intl.h>
 #include <wx/image.h>
 #include <wx/string.h>
@@ -127,7 +122,6 @@ const long xLightsFrame::ID_AUITOOLBARITEM14 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_VIEW = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON_TAB_INFO = wxNewId();
 const long xLightsFrame::ID_BUTTON_STOP_NOW = wxNewId();
-const long xLightsFrame::ID_BUTTON_GRACEFUL_STOP = wxNewId();
 const long xLightsFrame::ID_BUTTON_LIGHTS_OFF = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_OUTPUT = wxNewId();
@@ -152,26 +146,6 @@ const long xLightsFrame::ID_BITMAPBUTTON2 = wxNewId();
 const long xLightsFrame::ID_LISTCTRL_NETWORKS = wxNewId();
 const long xLightsFrame::ID_PANEL_SETUP = wxNewId();
 const long xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
-const long xLightsFrame::ID_TREECTRL1 = wxNewId();
-const long xLightsFrame::ID_CHECKBOX_RUN_SCHEDULE = wxNewId();
-const long xLightsFrame::ID_BUTTON_SAVE_SCHEDULE = wxNewId();
-const long xLightsFrame::ID_BUTTON_ADD_SHOW = wxNewId();
-const long xLightsFrame::ID_BUTTON_UPDATE_SHOW = wxNewId();
-const long xLightsFrame::ID_BUTTON_DELETE_SHOW = wxNewId();
-const long xLightsFrame::ID_STATICTEXT2 = wxNewId();
-const long xLightsFrame::ID_BUTTON_SHOW_DATES_CHANGE = wxNewId();
-const long xLightsFrame::ID_STATICTEXT3 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT_SHOWSTART = wxNewId();
-const long xLightsFrame::ID_STATICTEXT5 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT_SHOWEND = wxNewId();
-const long xLightsFrame::ID_PANEL3 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT1 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL_LOG = wxNewId();
-const long xLightsFrame::ID_BUTTON_CLEARLOG = wxNewId();
-const long xLightsFrame::ID_BUTTON_SAVELOG = wxNewId();
-const long xLightsFrame::ID_PANEL2 = wxNewId();
-const long xLightsFrame::ID_SPLITTERWINDOW1 = wxNewId();
-const long xLightsFrame::ID_PANEL_CAL = wxNewId();
 const long xLightsFrame::ID_PANEL7 = wxNewId();
 const long xLightsFrame::ID_NOTEBOOK1 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT6 = wxNewId();
@@ -199,12 +173,6 @@ const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
 const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
 const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
-const long xLightsFrame::idMenuSaveSched = wxNewId();
-const long xLightsFrame::idMenuAddList = wxNewId();
-const long xLightsFrame::idMenuRenameList = wxNewId();
-const long xLightsFrame::idMenuDelList = wxNewId();
-const long xLightsFrame::ID_MENUITEM1 = wxNewId();
-const long xLightsFrame::idCustomScript = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SAVE_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SAVE_AS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_LOAD_PERSPECTIVE = wxNewId();
@@ -426,20 +394,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenuItem* MenuItem31;
     wxMenu* MenuHelp;
     wxMenuItem* MenuItem8;
-    wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizerSetup;
     wxMenuItem* MenuItem26;
-    wxMenuItem* MenuItemCustomScript;
     wxMenuItem* MenuItem25;
     wxMenuItem* MenuItem5;
     wxMenuItem* MenuItem2;
-    wxMenuItem* MenuItemAddList;
     wxGridBagSizer* GridBagSizer1;
-    wxFlexGridSizer* FlexGridSizer27;
     wxMenuItem* MenuItem46;
     wxMenuItem* MenuItem4;
     wxMenuItem* MenuItem14;
-    wxFlexGridSizer* FlexGridSizer5;
     wxMenuItem* MenuItem11;
     wxMenuItem* MenuItem29;
     wxStaticText* StaticText38;
@@ -447,19 +410,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenuItem* MenuItem22;
     wxPanel* Panel1;
     wxMenuItem* MenuItem17;
-    wxBoxSizer* BoxSizer2;
     wxMenuItem* MenuItem13;
-    wxFlexGridSizer* FlexGridSizer7;
     wxMenuItem* MenuItem10;
-    wxFlexGridSizer* FlexGridSizerCal;
     wxMenu* MenuItem_Grid_Icon_Backgrounds;
-    wxMenuItem* MenuItemDelList;
     wxMenuItem* MenuItem12;
     wxMenuItem* MenuItem24;
     wxMenuItem* MenuItem27;
     wxMenuItem* MenuItem44;
     wxFlexGridSizer* FlexGridSizerNetworks;
-    wxFlexGridSizer* FlexGridSizer29;
     wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
     wxMenuItem* MenuItem28;
@@ -468,7 +426,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenuItem* MenuItem23;
     wxStaticText* StaticText28;
     wxBoxSizer* BoxSizer1;
-    wxMenuItem* MenuItemRenameList;
     wxStaticBoxSizer* StaticBoxSizer1;
     wxMenuItem* MenuItem21;
     wxMenu* Menu2;
@@ -477,8 +434,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenuItem* MenuItem47;
     wxMenuItem* MenuItem30;
     wxMenuItem* MenuItem48;
-    wxFlexGridSizer* FlexGridSizer28;
-    wxMenu* MenuPlaylist;
     wxMenuItem* MenuItem19;
     wxButton* Button03;
 
@@ -528,7 +483,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     OutputToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_OUTPUT, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     OutputToolBar->AddTool(ID_BITMAPBUTTON_TAB_INFO, _("Information"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_INFORMATION")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Tips for using current tab"), wxEmptyString, NULL);
     OutputToolBar->AddTool(ID_BUTTON_STOP_NOW, _("Stop"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_STOP_NOW")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Stop Now!"), wxEmptyString, NULL);
-    OutputToolBar->AddTool(ID_BUTTON_GRACEFUL_STOP, _("Graceful Stop"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_GRACEFUL_STOP")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Graceful Stop"), wxEmptyString, NULL);
     OutputToolBar->AddTool(ID_BUTTON_LIGHTS_OFF, _("Lights Off"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LIGHTS_OFF")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Lights Off"), wxEmptyString, NULL);
     OutputToolBar->AddTool(ID_CHECKBOX_LIGHT_OUTPUT, _("Output To Lights"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Output To Lights"), wxEmptyString, NULL);
     OutputToolBar->Realize();
@@ -611,95 +565,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     PanelPreview->SetSizer(FlexGridSizerPreview);
     FlexGridSizerPreview->Fit(PanelPreview);
     FlexGridSizerPreview->SetSizeHints(PanelPreview);
-    PanelCal = new wxPanel(Notebook1, ID_PANEL_CAL, wxPoint(49,10), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_CAL"));
-    FlexGridSizerCal = new wxFlexGridSizer(2, 2, 0, 0);
-    FlexGridSizerCal->AddGrowableCol(0);
-    FlexGridSizerCal->AddGrowableRow(0);
-    SplitterWindow1 = new wxSplitterWindow(PanelCal, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3DSASH|wxSP_NOBORDER|wxSP_NO_XP_THEME, _T("ID_SPLITTERWINDOW1"));
-    SplitterWindow1->SetMinSize(wxSize(10,10));
-    SplitterWindow1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
-    SplitterWindow1->SetMinimumPaneSize(10);
-    SplitterWindow1->SetSashGravity(0.5);
-    Panel3 = new wxPanel(SplitterWindow1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
-    Panel3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
-    FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer4->AddGrowableCol(0);
-    FlexGridSizer4->AddGrowableRow(0);
-    ListBoxSched = new wxTreeCtrl(Panel3, ID_TREECTRL1, wxDefaultPosition, wxDefaultSize, wxTR_HAS_BUTTONS|wxTR_NO_LINES|wxTR_HIDE_ROOT|wxTR_MULTIPLE|wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL1"));
-    FlexGridSizer4->Add(ListBoxSched, 0, wxEXPAND, 0);
-    FlexGridSizer27 = new wxFlexGridSizer(0, 1, 0, 0);
-    BoxSizer2 = new wxBoxSizer(wxVERTICAL);
-    CheckBoxRunSchedule = new wxCheckBox(Panel3, ID_CHECKBOX_RUN_SCHEDULE, _("Run Schedule"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_RUN_SCHEDULE"));
-    CheckBoxRunSchedule->SetValue(false);
-    BoxSizer2->Add(CheckBoxRunSchedule, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonSaveSchedule = new wxButton(Panel3, ID_BUTTON_SAVE_SCHEDULE, _("Save Schedule"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_SCHEDULE"));
-    ButtonSaveSchedule->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    BoxSizer2->Add(ButtonSaveSchedule, 1, wxALL|wxEXPAND, 5);
-    ButtonAddShow = new wxButton(Panel3, ID_BUTTON_ADD_SHOW, _("Schedule Playlist"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD_SHOW"));
-    ButtonAddShow->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    BoxSizer2->Add(ButtonAddShow, 1, wxALL|wxEXPAND, 3);
-    ButtonUpdateShow = new wxButton(Panel3, ID_BUTTON_UPDATE_SHOW, _("Update Selected Items"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_UPDATE_SHOW"));
-    ButtonUpdateShow->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    BoxSizer2->Add(ButtonUpdateShow, 1, wxALL|wxEXPAND, 3);
-    ButtonDeleteShow = new wxButton(Panel3, ID_BUTTON_DELETE_SHOW, _("Delete Selected Items"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DELETE_SHOW"));
-    ButtonDeleteShow->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    BoxSizer2->Add(ButtonDeleteShow, 1, wxALL|wxEXPAND, 3);
-    FlexGridSizer27->Add(BoxSizer2, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
-    StaticText2 = new wxStaticText(Panel3, ID_STATICTEXT2, _("Show Dates"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    wxFont StaticText2Font(wxDEFAULT,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText2->SetFont(StaticText2Font);
-    FlexGridSizer7->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonShowDatesChange = new wxButton(Panel3, ID_BUTTON_SHOW_DATES_CHANGE, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SHOW_DATES_CHANGE"));
-    ButtonShowDatesChange->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    FlexGridSizer7->Add(ButtonShowDatesChange, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText3 = new wxStaticText(Panel3, ID_STATICTEXT3, _("Start"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-    FlexGridSizer7->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticTextShowStart = new wxStaticText(Panel3, ID_STATICTEXT_SHOWSTART, _("xx/xx/xxxx"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_SHOWSTART"));
-    FlexGridSizer7->Add(StaticTextShowStart, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText4 = new wxStaticText(Panel3, ID_STATICTEXT5, _("End"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-    FlexGridSizer7->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticTextShowEnd = new wxStaticText(Panel3, ID_STATICTEXT_SHOWEND, _("xx/xx/xxxx"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_SHOWEND"));
-    FlexGridSizer7->Add(StaticTextShowEnd, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer27->Add(FlexGridSizer7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer4->Add(FlexGridSizer27, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
-    Panel3->SetSizer(FlexGridSizer4);
-    FlexGridSizer4->Fit(Panel3);
-    FlexGridSizer4->SetSizeHints(Panel3);
-    Panel2 = new wxPanel(SplitterWindow1, ID_PANEL2, wxPoint(13,93), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-    Panel2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
-    FlexGridSizer28 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer28->AddGrowableCol(0);
-    FlexGridSizer28->AddGrowableRow(1);
-    StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("While the scheduler is running, each item that is played is logged here"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer28->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer29 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer29->AddGrowableCol(0);
-    FlexGridSizer29->AddGrowableRow(0);
-    TextCtrlLog = new wxTextCtrl(Panel2, ID_TEXTCTRL_LOG, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxHSCROLL, wxDefaultValidator, _T("ID_TEXTCTRL_LOG"));
-    FlexGridSizer29->Add(TextCtrlLog, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
-    ButtonClearLog = new wxButton(Panel2, ID_BUTTON_CLEARLOG, _("Clear"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CLEARLOG"));
-    ButtonClearLog->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    FlexGridSizer5->Add(ButtonClearLog, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonSaveLog = new wxButton(Panel2, ID_BUTTON_SAVELOG, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVELOG"));
-    ButtonSaveLog->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    FlexGridSizer5->Add(ButtonSaveLog, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer29->Add(FlexGridSizer5, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
-    FlexGridSizer28->Add(FlexGridSizer29, 1, wxALL|wxEXPAND, 5);
-    Panel2->SetSizer(FlexGridSizer28);
-    FlexGridSizer28->Fit(Panel2);
-    FlexGridSizer28->SetSizeHints(Panel2);
-    SplitterWindow1->SplitVertically(Panel3, Panel2);
-    FlexGridSizerCal->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
-    PanelCal->SetSizer(FlexGridSizerCal);
-    FlexGridSizerCal->Fit(PanelCal);
-    FlexGridSizerCal->SetSizeHints(PanelCal);
     PanelSequencer = new wxPanel(Notebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("ID_PANEL7"));
     m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT);
     Notebook1->AddPage(PanelSetup, _("Setup"), true);
     Notebook1->AddPage(PanelPreview, _("Layout"));
-    Notebook1->AddPage(PanelCal, _("Schedule"));
     Notebook1->AddPage(PanelSequencer, _("Sequencer"));
     MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).Floatable().PaneBorder(false));
     AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
@@ -797,20 +666,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_xSchedule = new wxMenuItem(Menu1, ID_MNU_XSCHEDULE, _("xSchedu&le"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_xSchedule);
     MenuBar->Append(Menu1, _("&Tools"));
-    MenuPlaylist = new wxMenu();
-    MenuItemSavePlaylists = new wxMenuItem(MenuPlaylist, idMenuSaveSched, _("Save Playlists"), wxEmptyString, wxITEM_NORMAL);
-    MenuPlaylist->Append(MenuItemSavePlaylists);
-    MenuItemAddList = new wxMenuItem(MenuPlaylist, idMenuAddList, _("Add"), wxEmptyString, wxITEM_NORMAL);
-    MenuPlaylist->Append(MenuItemAddList);
-    MenuItemRenameList = new wxMenuItem(MenuPlaylist, idMenuRenameList, _("Rename"), wxEmptyString, wxITEM_NORMAL);
-    MenuPlaylist->Append(MenuItemRenameList);
-    MenuItemDelList = new wxMenuItem(MenuPlaylist, idMenuDelList, _("Delete"), wxEmptyString, wxITEM_NORMAL);
-    MenuPlaylist->Append(MenuItemDelList);
-    MenuItemRefresh = new wxMenuItem(MenuPlaylist, ID_MENUITEM1, _("Refresh"), wxEmptyString, wxITEM_NORMAL);
-    MenuPlaylist->Append(MenuItemRefresh);
-    MenuItemCustomScript = new wxMenuItem(MenuPlaylist, idCustomScript, _("Custom Script"), wxEmptyString, wxITEM_NORMAL);
-    MenuPlaylist->Append(MenuItemCustomScript);
-    MenuBar->Append(MenuPlaylist, _("&Playlist"));
     MenuView = new wxMenu();
     MenuItem_ViewZoomIn = new wxMenuItem(MenuView, wxID_ZOOM_IN, _("Zoom In"), wxEmptyString, wxITEM_NORMAL);
     MenuView->Append(MenuItem_ViewZoomIn);
@@ -1013,7 +868,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_AUITOOLBARITEM14,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
-    Connect(ID_BUTTON_GRACEFUL_STOP,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonGracefulStopClick);
     Connect(ID_BUTTON_LIGHTS_OFF,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonLightsOffClick);
     Connect(ID_CHECKBOX_LIGHT_OUTPUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxLightOutputClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
@@ -1037,14 +891,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_ITEM_FOCUSED,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkItemFocused);
     Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkItemRClick);
     Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkKeyDown);
-    Connect(ID_CHECKBOX_RUN_SCHEDULE,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxRunScheduleClick);
-    Connect(ID_BUTTON_SAVE_SCHEDULE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveScheduleClick);
-    Connect(ID_BUTTON_ADD_SHOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddShowClick);
-    Connect(ID_BUTTON_UPDATE_SHOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonUpdateShowClick);
-    Connect(ID_BUTTON_DELETE_SHOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonDeleteShowClick);
-    Connect(ID_BUTTON_SHOW_DATES_CHANGE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonShowDatesChangeClick);
-    Connect(ID_BUTTON_CLEARLOG,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonClearLogClick);
-    Connect(ID_BUTTON_SAVELOG,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveLogClick);
     m_mgr->Connect(wxEVT_AUI_PANE_CLOSE,(wxObjectEventFunction)&xLightsFrame::OnPaneClose,0,this);
     PanelSequencer->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint,0,this);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
@@ -1070,12 +916,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENU_FPP_CONNECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
     Connect(ID_MNU_PACKAGESEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PackageSequenceSelected);
     Connect(ID_MNU_XSCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScheduleSelected);
-    Connect(idMenuSaveSched,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSavePlaylistsSelected);
-    Connect(idMenuAddList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemAddListSelected);
-    Connect(idMenuRenameList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenameListSelected);
-    Connect(idMenuDelList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemDelListSelected);
-    Connect(ID_MENUITEM1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRefreshSelected);
-    Connect(idCustomScript,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemCustomScriptSelected);
     Connect(wxID_ZOOM_IN,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(wxID_ZOOM_OUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_MENUITEM_SAVE_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
@@ -1177,7 +1017,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + ") " + xlights_build_date );
 
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
-    ButtonGracefulStop = new AUIToolbarButtonWrapper(OutputToolBar, ID_BUTTON_GRACEFUL_STOP);
     ButtonPasteByTime = new AUIToolbarButtonWrapper(EditToolBar, ID_PASTE_BY_TIME);
     ButtonPasteByCell = new AUIToolbarButtonWrapper(EditToolBar, ID_PASTE_BY_CELL);
     ButtonPasteByTime->SetValue(true);
@@ -1507,19 +1346,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     EffectTreeDlg = nullptr;  // must be before any call to SetDir
 
-    // Check if schedule should be running
-    long RunFlag=0;
-
-    config->Read(_("RunSchedule"), &RunFlag);
-    //delete config;  // close config before calling SetDir, which will open config
-    if (RunFlag && xLightsApp::RunPrompt) //give user a chance to edit before running -DJ
-        if (wxMessageBox("Auto-run schedule?", "Confirm", wxYES_DEFAULT | wxYES_NO) != wxYES) RunFlag = 0; //, main_frame);
-    logger_base.debug("Run Schedule: %s.", RunFlag ? "true" : "false");
-
     SetPlayMode(play_off);
     ResetEffectsXml();
     EnableSequenceControls(true);
-    UpdateShowDates(wxDateTime::Now(),wxDateTime::Now());
     if (ok && !dir.IsEmpty())
     {
         if (!SetDir(dir)) {
@@ -1532,24 +1361,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     }
 
     MixTypeChanged=true;
-    basic.setFrame(this);
 
-    // I create this but we only use it for the scheduler
-    PlayerDlg = new PlayerFrame(this, ID_PLAYER_DIALOG);
-    if (RunFlag && !ShowEvents.IsEmpty())
-    {
-        // open ports
-        Notebook1->ChangeSelection(SCHEDULETAB);
-        CheckBoxLightOutput->SetValue(true);
-        CheckBoxRunSchedule->SetValue(true);
-        EnableOutputs();
-        CheckRunSchedule();
-    }
-    else
-    {
-        Notebook1->ChangeSelection(SETUPTAB);
-        EnableNetworkChanges();
-    }
+    Notebook1->ChangeSelection(SETUPTAB);
+    EnableNetworkChanges();
+
     wxImage::AddHandler(new wxGIFHandler);
 
     config->Read("xLightse131Sync", &me131Sync, false);
@@ -1639,8 +1454,6 @@ xLightsFrame::~xLightsFrame()
     }
 
     delete CheckBoxLightOutput;
-    delete ButtonGracefulStop;
-
 
     //(*Destroy(xLightsFrame)
     //*)
@@ -1701,17 +1514,12 @@ void xLightsFrame::SetPlayMode(play_modes newmode)
         break;
     }
 
-    ButtonGracefulStop->Enable(newmode == play_sched || newmode == play_list);
     play_mode=newmode;
     starttime = wxDateTime::UNow();
-#ifndef NDEBUG
-    TextCtrlLog->AppendText(wxString::Format(_("SetPlayMode mode=%d state=%d\n"),play_mode,SeqPlayerState));
-#endif
 }
 
 void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
 {
-    if (CheckBoxRunSchedule->IsChecked()) CheckSchedule();
     wxTimeSpan ts = wxDateTime::UNow() - starttime;
     long curtime = ts.GetMilliseconds().ToLong();
     _outputManager.StartFrame(curtime);
@@ -1725,22 +1533,9 @@ void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
         }
         break;
     default:
-        OnTimerPlaylist(curtime);
         break;
     }
     _outputManager.EndFrame();
-}
-
-void xLightsFrame::ResetTimer(SeqPlayerStates newstate, long OffsetMsec)
-{
-    SeqPlayerState = newstate;
-#ifndef NDEBUG
-    TextCtrlLog->AppendText(wxString::Format(_("ResetTimer mode=%d state=%d\n"),play_mode,SeqPlayerState));
-#endif
-    //if (newstate == NO_SEQ) SetPlayMode(play_off);
-    _outputManager.ResetFrame();
-    wxTimeSpan offset(0,0,0,OffsetMsec);
-    starttime = wxDateTime::UNow() - offset;
 }
 
 void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
@@ -1765,14 +1560,7 @@ void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
         caption=_("Sequencer Tab");
         msg=_("The Sequencer tab can be used to create RGB sequences. First, create a model of your RGB display element(s) by clicking on the Models button. Then try the different effects and settings until you create something you like. You can save the settings as a preset by clicking the New Preset button. From then on, that preset will be available in the presets drop-down list. You can combine effects by creating a second effect in the Effect 2 area, then choosing a Layering Method. To create a series of effects that will be used in a sequence, click the open file icon to open an xLights (.xseq) sequence. Choose which display elements/models you will use in this sequence. Then click the insert rows icon and type in the start time in seconds when that effect should begin. Rows will automatically sort by start time. To add an effect to the sequence, click on the grid cell in the desired display model column and the desired start time row, then click the Update button. When you are done creating effects for the sequence, click the save icon and the xLights sequence will be updated with the effects you stored in the grid.");
         break;
-    //case PAPAGAYOTAB:
-    //    caption=_("Papagayo Tab");
-    //    msg=_("The Papagayo tab can be used to create animated faces from a Papagayo file. There are four different types faces that you can create. \n1) Automatic, scaled faces for matrix and megatrees. \n2) You provide 10 images of the Phonemes, they will be selected for you. \n3) You provide moth , eyes and a backgroudn image. A mp4 movie will be created. \n4) You assign channels for each of the 10 Phonemes. This method matches standard coro singing faces ");
-    //    break;
     default:
-        // playlist
-        caption=_("Playlist Tab");
-        msg=_("Files in your show directory are listed on the left. Click the 'Audio', 'Video', or 'xLights' checkbox to see files of the desired type. Files in the playlist are listed on the right. To move files between the left and right lists, use the arrow buttons in the middle. You can rename or delete a list by using the Playlist menu. Selecting Playlist > Save Playlists from the menu will save all playlists as well as the schedule. You can play a single item on the playlist by selecting it and then clicking 'Play Item'. Use 'Play All' to play the entire playlist. You can reorder the playlist by dragging items up or down, or selecting items and using the up/down buttons.");
         break;
     }
     wxMessageBox(msg,caption);
@@ -1948,9 +1736,7 @@ void xLightsFrame::EnableNetworkChanges()
     BitmapButtonMoveNetworkDown->Enable(flag);
     SpinCtrl_SyncUniverse->Enable(flag);
     ButtonSaveSetup->Enable(!CurrentDir.IsEmpty());
-    ButtonSaveSchedule->Enable(!CurrentDir.IsEmpty());
     CheckBoxLightOutput->Enable(!CurrentDir.IsEmpty());
-    CheckBoxRunSchedule->Enable(!CurrentDir.IsEmpty());
 }
 
 void xLightsFrame::OnCheckBoxLightOutputClick(wxCommandEvent& event)
@@ -1968,15 +1754,8 @@ void xLightsFrame::StopNow(void)
 	{
 		CurrentSeqXmlFile->GetMedia()->Stop();
 	}
-    if (play_mode == play_sched)
-    {
-        CheckBoxRunSchedule->SetValue(false);
-        CheckRunSchedule();
-    }
     heartbeat("playback end", true); //tell fido to stop watching -DJ
-    if (basic.IsRunning()) basic.halt();
     SetPlayMode(play_off);
-    ResetTimer(NO_SEQ);
     switch (actTab)
     {
     case NEWSEQUENCER:
@@ -1991,43 +1770,12 @@ void xLightsFrame::OnButtonStopNowClick(wxCommandEvent& event)
     StopNow();
 }
 
-void xLightsFrame::OnButtonGracefulStopClick(wxCommandEvent& event)
-{
-    if (play_mode == play_sched)
-    {
-        EndTimeSec = 0;
-    }
-    else if (basic.IsRunning())
-    {
-        SecondsRemaining = 0;
-        SetStatusText(_("Finishing playlist"));
-        heartbeat("exit", true); //tell fido about graceful exit -DJ
-    }
-    else
-    {
-        wxMessageBox(_("Graceful Stop is only useful when a schedule or playlist is running"));
-    }
-}
-
 //make these static so they can be accessed outside of xLightsFrame: -DJ
 //NOTE: this assumes there will only be one xLightsMain object
 wxString xLightsFrame::CurrentDir = "";
 wxString xLightsFrame::PlaybackMarker = "";
 wxString xLightsFrame::xlightsFilename = "";
 xLightsXmlFile* xLightsFrame::CurrentSeqXmlFile = nullptr;
-
-void xLightsFrame::OnButtonSaveScheduleClick(wxCommandEvent& event)
-{
-    SaveScheduleFile();
-}
-
-void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
-{
-    SaveScheduleFile();
-}
-
-
-#include "TabSchedule.cpp"
 
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
@@ -2790,12 +2538,6 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect, RenderableEffect* re
 
 void xLightsFrame::CheckUnsavedChanges()
 {
-    if ( UnsavedPlaylistChanges && wxYES == wxMessageBox("Save Scheduler/Playlist changes?",
-            "Scheduler Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
-    {
-        SaveScheduleFile();
-    }
-
     if (UnsavedRgbEffectsChanges)
     {
         // This is not necessary but it shows the user that the save button is red which I am hoping makes it clearer
@@ -5083,4 +4825,22 @@ void xLightsFrame::OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event)
     }
 }
 
+void xLightsFrame::TimerOutput(int period)
+{
+    if (CheckBoxLightOutput->IsChecked())
+    {
+        _outputManager.SetManyChannels(0, &SeqData[period][0], SeqData.NumChannels());
+    }
+}
+
+void xLightsFrame::PlayerError(const wxString& msg)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxString m = msg;
+    m.Replace("\n", " ", true);
+    m.Replace("%", "%%", true);
+
+    logger_base.warn(m);
+    wxMessageBox(msg, _("Error"), wxOK | wxICON_EXCLAMATION);
+}
 

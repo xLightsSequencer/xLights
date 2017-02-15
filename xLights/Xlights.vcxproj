@@ -155,7 +155,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AddShowDialog.cpp" />
     <ClCompile Include="effects\ServoEffect.cpp" />
     <ClCompile Include="effects\ServoPanel.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
@@ -363,8 +362,6 @@
     <ClCompile Include="PhonemeDictionary.cpp" />
     <ClCompile Include="PixelAppearanceDlg.cpp" />
     <ClCompile Include="PixelBuffer.cpp" />
-    <ClCompile Include="PlaybackOptionsDialog.cpp" />
-    <ClCompile Include="PlayerFrame.cpp" />
     <ClCompile Include="PreviewModels.cpp" />
     <ClCompile Include="PreviewPane.cpp" />
     <ClCompile Include="RenameTextDialog.cpp" />
@@ -393,7 +390,6 @@
     <ClCompile Include="sequencer\Waveform.cpp" />
     <ClCompile Include="outputs\SerialPortWithRate.cpp" />
     <ClCompile Include="SevenSegmentDialog.cpp" />
-    <ClCompile Include="ShowDatesDialog.cpp" />
     <ClCompile Include="SimpleFTP.cpp" />
     <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
@@ -448,7 +444,6 @@
     <ClCompile Include="xlSlider.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AddShowDialog.h" />
     <ClInclude Include="effects\ServoEffect.h" />
     <ClInclude Include="effects\ServoPanel.h" />
     <ClInclude Include="IPEntryDialog.h" />
@@ -645,8 +640,6 @@
     <ClInclude Include="PhonemeDictionary.h" />
     <ClInclude Include="PixelAppearanceDlg.h" />
     <ClInclude Include="PixelBuffer.h" />
-    <ClInclude Include="PlaybackOptionsDialog.h" />
-    <ClInclude Include="PlayerFrame.h" />
     <ClInclude Include="PreviewModels.h" />
     <ClInclude Include="PreviewPane.h" />
     <ClInclude Include="RenameTextDialog.h" />
@@ -676,7 +669,6 @@
     <ClInclude Include="sequencer\Waveform.h" />
     <ClInclude Include="outputs\SerialPortWithRate.h" />
     <ClInclude Include="SevenSegmentDialog.h" />
-    <ClInclude Include="ShowDatesDialog.h" />
     <ClInclude Include="StartChannelDialog.h" />
     <ClInclude Include="StrandNodeNamesDialog.h" />
     <ClInclude Include="SubBufferPanel.h" />

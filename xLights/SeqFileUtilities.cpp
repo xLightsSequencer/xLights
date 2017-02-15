@@ -436,7 +436,6 @@ bool xLightsFrame::CloseSequence()
     mediaFilename.Clear();
     previewLoaded = false;
     previewPlaying = false;
-    ResetTimer(NO_SEQ);
     playType = 0;
     selectedEffect = NULL;
     if( CurrentSeqXmlFile )
