@@ -3,11 +3,6 @@
 
 #include "RenderableEffect.h"
 #include "../RenderBuffer.h"
-//#include <string>
-//#include <list>
-#include <wx/gdicmn.h>
-#include <wx/colour.h>
-#include <wx/dcmemory.h>
 
 class VideoEffect : public RenderableEffect
 {

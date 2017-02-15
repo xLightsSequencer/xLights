@@ -21,6 +21,25 @@
 											<cols>3</cols>
 											<growablecols>1</growablecols>
 											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOX_ResetTimingPanel" variable="CheckBox_ResetTimingPanel" member="yes">
+													<label>Reset panel when changing effects</label>
+													<checked>1</checked>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
 												<object class="wxCheckBox" name="ID_CHECKBOX_LayerMorph" variable="CheckBox_LayerMorph" member="yes">
 													<label>Morph</label>
 													<tooltip>Gradual cross-fade from Effect1 to Effect2</tooltip>

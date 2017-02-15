@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Let the user turn on/off buffer and timing panel reset when changing effects. This setting is not saved when xlights is closed.
    -- enh (keith)   Add option to video effect to automatically synchronise with a video file that has been used for the sequence audio track.
    -- enh (keith)   Remove the old scheduler
    -- bug (keith)   Fix universe dropdown in start channel dialog did not show all universes available on an ip address if they were grouped under a single output

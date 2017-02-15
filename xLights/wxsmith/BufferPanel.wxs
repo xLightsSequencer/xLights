@@ -5,9 +5,17 @@
 		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
-			<rows>1</rows>
 			<growablecols>0</growablecols>
-			<growablerows>0</growablerows>
+			<growablerows>1</growablerows>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_ResetBufferPanel" variable="CheckBox_ResetBufferPanel" member="yes">
+					<label>Reset panel when changing effects</label>
+					<checked>1</checked>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 			<object class="sizeritem">
 				<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
 					<object class="notebookpage">

@@ -1,6 +1,4 @@
 #include "TimingPanel.h"
-#include "../include/padlock16x16-green.xpm" //-DJ
-#include "../include/padlock16x16-red.xpm" //-DJ
 #include "../include/padlock16x16-blue.xpm" //-DJ
 #include <wx/msgdlg.h>
 //(*InternalHeaders(TimingPanel)
@@ -15,6 +13,7 @@
 #include "effects/EffectPanelUtils.h"
 
 //(*IdInit(TimingPanel)
+const long TimingPanel::ID_CHECKBOX_ResetTimingPanel = wxNewId();
 const long TimingPanel::ID_CHECKBOX_LayerMorph = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_CHECKBOX_LayerMorph = wxNewId();
 const long TimingPanel::ID_CHOICE_LayerMethod = wxNewId();
@@ -76,6 +75,11 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer5->AddGrowableCol(0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
+	CheckBox_ResetTimingPanel = new wxCheckBox(ScrolledWindowTiming, ID_CHECKBOX_ResetTimingPanel, _("Reset panel when changing effects"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ResetTimingPanel"));
+	CheckBox_ResetTimingPanel->SetValue(true);
+	FlexGridSizer2->Add(CheckBox_ResetTimingPanel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_LayerMorph = new wxCheckBox(ScrolledWindowTiming, ID_CHECKBOX_LayerMorph, _("Morph"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LayerMorph"));
 	CheckBox_LayerMorph->SetValue(false);
 	CheckBox_LayerMorph->SetToolTip(_("Gradual cross-fade from Effect1 to Effect2"));
@@ -255,23 +259,26 @@ void TimingPanel::OnResize(wxSizeEvent& event)
     ScrolledWindowTiming->Refresh();
 }
 
-void TimingPanel::SetDefaultControls(const Model *model) {
-    CheckBox_LayerMorph->SetValue(false);
-    Choice_LayerMethod->SetSelection(0);
-    Slider_EffectLayerMix->SetValue(0);
-    TextCtrl_Fadein->SetValue("0.00");
-    TextCtrl_Fadeout->SetValue("0.00");
+void TimingPanel::SetDefaultControls(const Model *model, bool optionbased) {
+    if (!optionbased || CheckBox_ResetTimingPanel->GetValue())
+    {
+        CheckBox_LayerMorph->SetValue(false);
+        Choice_LayerMethod->SetSelection(0);
+        Slider_EffectLayerMix->SetValue(0);
+        TextCtrl_Fadein->SetValue("0.00");
+        TextCtrl_Fadeout->SetValue("0.00");
 
-    Choice_In_Transition_Type->SetSelection(0);
-    Choice_Out_Transition_Type->SetSelection(0);
-    CheckBox_In_Reverse->SetValue(false);
-    CheckBox_In_Reverse->Enable(false);
-    CheckBox_Out_Reverse->SetValue(false);
-    CheckBox_Out_Reverse->Enable(false);
-    Slider_Out_Adjust->Enable(false);
-    Slider_In_Adjust->Enable(false);
-    TextCtrl_In_Adjust->Enable(false);
-    TextCtrl_Out_Adjust->Enable(false);
+        Choice_In_Transition_Type->SetSelection(0);
+        Choice_Out_Transition_Type->SetSelection(0);
+        CheckBox_In_Reverse->SetValue(false);
+        CheckBox_In_Reverse->Enable(false);
+        CheckBox_Out_Reverse->SetValue(false);
+        CheckBox_Out_Reverse->Enable(false);
+        Slider_Out_Adjust->Enable(false);
+        Slider_In_Adjust->Enable(false);
+        TextCtrl_In_Adjust->Enable(false);
+        TextCtrl_Out_Adjust->Enable(false);
+    }
 }
 
 wxString TimingPanel::GetTimingString()

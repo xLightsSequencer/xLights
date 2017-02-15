@@ -18,6 +18,7 @@
 //#include "BufferTransformProperties.h"
 
 //(*IdInit(BufferPanel)
+const long BufferPanel::ID_CHECKBOX_ResetBufferPanel = wxNewId();
 const long BufferPanel::ID_CHOICE_BufferStyle = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_CHOICE_BufferStyle = wxNewId();
 const long BufferPanel::ID_CHOICE_BufferTransform = wxNewId();
@@ -124,9 +125,12 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	wxBitmapButton* BitmapButton_BufferTransform;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
-	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	FlexGridSizer1->AddGrowableRow(0);
+	FlexGridSizer1->AddGrowableRow(1);
+	CheckBox_ResetBufferPanel = new wxCheckBox(this, ID_CHECKBOX_ResetBufferPanel, _("Reset panel when changing effects"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ResetBufferPanel"));
+	CheckBox_ResetBufferPanel->SetValue(true);
+	FlexGridSizer1->Add(CheckBox_ResetBufferPanel, 1, wxALL|wxEXPAND, 5);
 	Notebook1 = new wxNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
 	Panel3 = new wxPanel(Notebook1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -521,59 +525,62 @@ wxString BufferPanel::GetBufferString() {
     return s;
 }
 
-void BufferPanel::SetDefaultControls(const Model *model) {
-    Slider_EffectBlur->SetValue(1);
-    CheckBox_OverlayBkg->SetValue(false);
-    BufferStyleChoice->Clear();
-    if (model != nullptr) {
-        const std::vector<std::string> &types = model->GetBufferStyles();
-        for (auto it = types.begin(); it != types.end(); it++) {
-            BufferStyleChoice->Append(*it);
+void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
+    if (!optionbased || CheckBox_ResetBufferPanel->GetValue())
+    {
+        Slider_EffectBlur->SetValue(1);
+        CheckBox_OverlayBkg->SetValue(false);
+        BufferStyleChoice->Clear();
+        if (model != nullptr) {
+            const std::vector<std::string> &types = model->GetBufferStyles();
+            for (auto it = types.begin(); it != types.end(); ++it) {
+                BufferStyleChoice->Append(*it);
+            }
         }
-    }
-    if (BufferStyleChoice->IsEmpty()) {
-        BufferStyleChoice->Append("Default");
-    }
-    subBufferPanel->SetDefaults();
+        if (BufferStyleChoice->IsEmpty()) {
+            BufferStyleChoice->Append("Default");
+        }
+        subBufferPanel->SetDefaults();
 
-    __blur = 1;
-    Slider_EffectBlur->SetValue(1);
-    TextCtrl_EffectBlur->SetValue("1");
-    BufferStyleChoice->SetSelection(0);
-    BufferTransform->SetSelection(0);
-    BitmapButton_Blur->GetValue()->SetDefault(1.0f, 15.0f);
-    BitmapButton_Blur->UpdateState();
-    __rotation = 0;
-    Slider_Rotation->SetValue(0);
-    TextCtrl_Rotation->SetValue("0");
-    BitmapButton_VCRotation->GetValue()->SetDefault(0.0f, 100.0f);
-    BitmapButton_VCRotation->UpdateState();
-    __zoom = 1;
-    Slider_Zoom->SetValue(1);
-    TextCtrl_Zoom->SetValue("1");
-    BitmapButton_VCZoom->GetValue()->SetDefault(0.0f, 3.0f);
-    BitmapButton_VCZoom->UpdateState();
-    __rotations = 0;
-    Slider_Rotations->SetValue(0);
-    TextCtrl_Rotations->SetValue("0.0");
-    BitmapButton_VCRotations->GetValue()->SetDefault(0.0f, 10.0f);
-    BitmapButton_VCRotations->UpdateState();
-    __zoomquality = 1;
-    Slider_ZoomQuality->SetValue(1);
-    TextCtrl_ZoomQuality->SetValue("1");
-    __pivotpointx = 50;
-    Slider_PivotPointX->SetValue(50);
-    TextCtrl_PivotPointX->SetValue("50");
-    BitmapButton_VCPivotPointX->GetValue()->SetDefault(0.0f, 100.0f);
-    BitmapButton_VCPivotPointX->UpdateState();
-    __pivotpointy = 50;
-    Slider_PivotPointY->SetValue(50);
-    TextCtrl_PivotPointY->SetValue("50");
-    BitmapButton_VCPivotPointY->GetValue()->SetDefault(0.0f, 100.0f);
-    BitmapButton_VCPivotPointY->UpdateState();
-    ValidateWindow();
-    wxSizeEvent evt;
-    OnResize(evt);
+        __blur = 1;
+        Slider_EffectBlur->SetValue(1);
+        TextCtrl_EffectBlur->SetValue("1");
+        BufferStyleChoice->SetSelection(0);
+        BufferTransform->SetSelection(0);
+        BitmapButton_Blur->GetValue()->SetDefault(1.0f, 15.0f);
+        BitmapButton_Blur->UpdateState();
+        __rotation = 0;
+        Slider_Rotation->SetValue(0);
+        TextCtrl_Rotation->SetValue("0");
+        BitmapButton_VCRotation->GetValue()->SetDefault(0.0f, 100.0f);
+        BitmapButton_VCRotation->UpdateState();
+        __zoom = 1;
+        Slider_Zoom->SetValue(1);
+        TextCtrl_Zoom->SetValue("1");
+        BitmapButton_VCZoom->GetValue()->SetDefault(0.0f, 3.0f);
+        BitmapButton_VCZoom->UpdateState();
+        __rotations = 0;
+        Slider_Rotations->SetValue(0);
+        TextCtrl_Rotations->SetValue("0.0");
+        BitmapButton_VCRotations->GetValue()->SetDefault(0.0f, 10.0f);
+        BitmapButton_VCRotations->UpdateState();
+        __zoomquality = 1;
+        Slider_ZoomQuality->SetValue(1);
+        TextCtrl_ZoomQuality->SetValue("1");
+        __pivotpointx = 50;
+        Slider_PivotPointX->SetValue(50);
+        TextCtrl_PivotPointX->SetValue("50");
+        BitmapButton_VCPivotPointX->GetValue()->SetDefault(0.0f, 100.0f);
+        BitmapButton_VCPivotPointX->UpdateState();
+        __pivotpointy = 50;
+        Slider_PivotPointY->SetValue(50);
+        TextCtrl_PivotPointY->SetValue("50");
+        BitmapButton_VCPivotPointY->GetValue()->SetDefault(0.0f, 100.0f);
+        BitmapButton_VCPivotPointY->UpdateState();
+        ValidateWindow();
+        wxSizeEvent evt;
+        OnResize(evt);
+    }
 }
 
 

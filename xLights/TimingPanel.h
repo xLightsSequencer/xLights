@@ -38,6 +38,7 @@ class TimingPanel: public wxPanel
 		wxCheckBox* CheckBox_Out_Reverse;
 		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
 		wxCheckBox* CheckBox_LayerMorph;
+		wxCheckBox* CheckBox_ResetTimingPanel;
 		wxStaticText* OutAdjustmentText;
 		wxChoice* Choice_Out_Transition_Type;
 		wxChoice* Choice_LayerMethod;
@@ -52,11 +53,12 @@ class TimingPanel: public wxPanel
 		//*)
     
     
-        void SetDefaultControls(const Model *model);
+        void SetDefaultControls(const Model *model, bool optionbased = false);
 
 	protected:
 
 		//(*Identifiers(TimingPanel)
+		static const long ID_CHECKBOX_ResetTimingPanel;
 		static const long ID_CHECKBOX_LayerMorph;
 		static const long ID_BITMAPBUTTON_CHECKBOX_LayerMorph;
 		static const long ID_CHOICE_LayerMethod;

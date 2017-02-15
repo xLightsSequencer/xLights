@@ -40,7 +40,7 @@ public:
 		virtual ~BufferPanel();
 
         wxString GetBufferString();
-        void SetDefaultControls(const Model *model);
+        void SetDefaultControls(const Model *model, bool optionbased = false);
 
     
 		//(*Declarations(BufferPanel)
@@ -74,6 +74,7 @@ public:
 		ValueCurveButton* BitmapButton_VCZoom;
 		ValueCurveButton* BitmapButton_Blur;
 		wxTextCtrl* TextCtrl_PivotPointY;
+		wxCheckBox* CheckBox_ResetBufferPanel;
 		wxSlider* Slider_Rotations;
 		wxCheckBox* CheckBox_OverlayBkg;
 		wxFlexGridSizer* RotoZoomSizer;
@@ -90,6 +91,7 @@ public:
 	protected:
 
 		//(*Identifiers(BufferPanel)
+		static const long ID_CHECKBOX_ResetBufferPanel;
 		static const long ID_CHOICE_BufferStyle;
 		static const long ID_BITMAPBUTTON_CHOICE_BufferStyle;
 		static const long ID_CHOICE_BufferTransform;

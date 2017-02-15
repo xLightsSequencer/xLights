@@ -714,11 +714,8 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
         if (EffectsPanel1->EffectChoicebook->GetSelection()!=pageIndex) {
             EffectsPanel1->EffectChoicebook->SetSelection(pageIndex);
 
-            // KW - A proposal ... I really think we should reset these 2 panels when the user changes effects.
-            // While effect settings and colours are often reused I think if you are changing effects more often you are looking
-            // to reset these settings.
-            timingPanel->SetDefaultControls(nullptr);
-            bufferPanel->SetDefaultControls(nullptr);
+            timingPanel->SetDefaultControls(nullptr, true);
+            bufferPanel->SetDefaultControls(nullptr, true);
         } else {
             event.updateUI = false;
         }
