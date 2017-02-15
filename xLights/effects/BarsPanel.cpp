@@ -175,6 +175,7 @@ BarsPanel::BarsPanel(wxWindow* parent)
 
     BitmapButton_Bars_BarCount->GetValue()->SetLimits(1, 5);
     BitmapButton_Bars_Cycles->GetValue()->SetLimits(0, 300);
+    BitmapButton_Bars_Cycles->GetValue()->SetDivisor(10);
 
     ValidateWindow();
 }

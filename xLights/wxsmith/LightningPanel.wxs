@@ -195,10 +195,11 @@
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Lightning_TopX" variable="TextCtrl86" member="yes">
 					<value>0</value>
+					<maxlength>4</maxlength>
 					<size>20,-1</size>
 					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -254,7 +255,7 @@
 					<size>20,-1</size>
 					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -293,7 +294,7 @@
 					<size>20,-1</size>
 					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -330,7 +331,7 @@
 					<size>20,-1</size>
 					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

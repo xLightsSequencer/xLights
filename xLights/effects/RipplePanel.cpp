@@ -151,6 +151,7 @@ RipplePanel::RipplePanel(wxWindow* parent)
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&RipplePanel::OnVCChanged, 0, this);
 
     BitmapButton_Ripple_CyclesVC->GetValue()->SetLimits(0, 300);
+    BitmapButton_Ripple_CyclesVC->GetValue()->SetDivisor(10);
     BitmapButton_Ripple_ThicknessVC->GetValue()->SetLimits(1, 100);
 
     ValidateWindow();

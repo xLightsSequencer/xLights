@@ -353,13 +353,14 @@ void ValueCurve::RenderType()
     _values.sort();
 }
 
-ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::string type, float parameter1, float parameter2, float parameter3, float parameter4, bool wrap)
+ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::string type, float parameter1, float parameter2, float parameter3, float parameter4, bool wrap, float divisor)
 {
     _type = type;
     _id = id;
     _min = min;
     _max = max;
     _wrap = wrap;
+    _divisor = divisor;
     _parameter1 = SafeParameter(1, parameter1);
     _parameter2 = SafeParameter(2, parameter2);
     _parameter3 = SafeParameter(3, parameter3);
@@ -390,6 +391,7 @@ void ValueCurve::SetDefault(float min, float max)
 
 ValueCurve::ValueCurve(const std::string& s)
 {
+    _divisor = 1;
     Deserialise(s);
 }
 
@@ -554,6 +556,11 @@ void ValueCurve::SetType(std::string type)
 {
     _type = type;
     RenderType();
+}
+
+float ValueCurve::GetOutputValue(float offset)
+{
+    return (_min + (_max - _min) * offset) / _divisor;
 }
 
 float ValueCurve::GetOutputValueAt(float offset)

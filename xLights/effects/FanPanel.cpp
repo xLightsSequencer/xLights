@@ -379,6 +379,7 @@ FanPanel::FanPanel(wxWindow* parent)
     ValueCurve_Fan_Start_Angle->GetValue()->SetLimits(0, 360);
     ValueCurve_Fan_End_Radius->GetValue()->SetLimits(0, 500);
     ValueCurve_Fan_Revolutions->GetValue()->SetLimits(0, 3600);
+    ValueCurve_Fan_Revolutions->GetValue()->SetDivisor(360);
     ValueCurve_Fan_Num_Blades->GetValue()->SetLimits(1, 16);
     ValueCurve_Fan_Blade_Width->GetValue()->SetLimits(5, 100);
     ValueCurve_Fan_Blade_Angle->GetValue()->SetLimits(-360, 360);

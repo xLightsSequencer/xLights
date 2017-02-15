@@ -248,7 +248,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             y2mirror= yc + (yc -y2);
             deltay = y2-y1;
 
-            if (x < 2) debug(10, "wave out: x %d, y %d..%d", x, y1, y2);
+            //if (x < 2) debug(10, "wave out: x %d, y %d..%d", x, y1, y2);
 
             if(WaveType==WAVETYPE_SQUARE) { // Square Wave
                 if(buffer.sin(radian)>0.0) {

@@ -189,6 +189,7 @@ FillPanel::FillPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
     BitmapButton_Fill_Position->GetValue()->SetLimits(0, 100);
     BitmapButton_Fill_Band_Size->GetValue()->SetLimits(0, 250);
     BitmapButton_Fill_Skip_Size->GetValue()->SetLimits(0, 250);
+    BitmapButton_Fill_Offset->GetValue()->SetLimits(0, 100);
 }
 
 FillPanel::~FillPanel()

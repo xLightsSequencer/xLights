@@ -375,7 +375,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     BitmapButton_Blur->GetValue()->SetLimits(1, 15);
     BitmapButton_VCRotation->GetValue()->SetLimits(0, 100);
     BitmapButton_VCZoom->GetValue()->SetLimits(0, 3);
-    BitmapButton_VCRotations->GetValue()->SetLimits(0, 10);
+    BitmapButton_VCRotations->GetValue()->SetLimits(0, 20);
     BitmapButton_VCPivotPointX->GetValue()->SetLimits(0, 100);
     BitmapButton_VCPivotPointY->GetValue()->SetLimits(0, 100);
 

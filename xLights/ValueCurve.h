@@ -65,6 +65,7 @@ class ValueCurve
     std::string _id;
     float _max;
     float _min;
+    float _divisor;
     float _parameter1;
     float _parameter2;
     float _parameter3;
@@ -80,7 +81,7 @@ class ValueCurve
 public:
     ValueCurve() { ValueCurve(""); };
     ValueCurve(const std::string& serialised);
-    ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false);
+    ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false, float divisor = 1.0);
     wxBitmap GetImage(int x, int y);
     void SetDefault(float min = -9.1234f, float max = -9.1234f);
     std::string Serialise();
@@ -92,12 +93,14 @@ public:
     void SetLimits(float min, float max) { _min = min; _max = max; }
     float GetValueAt(float offset);
     float GetOutputValueAt(float offset);
+    float GetOutputValue(float offset);
     void SetActive(bool a) { _active = a; RenderType(); }
     bool IsActive() { return IsOk() && _active; }
     void ToggleActive() { _active = !_active; if (_active) RenderType(); }
     void SetValueAt(float offset, float value);
     void DeletePoint(float offset);
     bool IsSetPoint(float offset);
+    void SetDivisor(float divisor) { _divisor = divisor; }
     int GetPointCount() { return _values.size(); }
     void SetParameter1(float parameter1) { _parameter1 = SafeParameter(1, parameter1); RenderType(); }
     void SetUnscaledParameter1(float v);

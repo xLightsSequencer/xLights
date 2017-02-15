@@ -308,6 +308,7 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SingleStrandPanel::OnVCChanged, 0, this);
 
     BitmapButton_Chase_Rotations->GetValue()->SetLimits(1, 200);
+    BitmapButton_Chase_Rotations->GetValue()->SetDivisor(10);
     BitmapButton_Number_ChasesVC->GetValue()->SetLimits(1, 20);
     BitmapButton_Color_Mix1VC->GetValue()->SetLimits(1, 100);
 

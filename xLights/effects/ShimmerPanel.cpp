@@ -109,6 +109,7 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShimmerPanel::OnVCChanged, 0, this);
 
     BitmapButton_Shimmer_CyclesVC->GetValue()->SetLimits(0, 300);
+    BitmapButton_Shimmer_CyclesVC->GetValue()->SetDivisor(10);
     BitmapButton_Shimmer_Duty_FactorVC->GetValue()->SetLimits(1, 100);
 }
 
