@@ -97,7 +97,8 @@ static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors
                 if (mPaletteMap[BUTTON_IDS[x]].find("Active") != std::string::npos)
                 {
                     mCC.push_back(ColorCurve(mPaletteMap[BUTTON_IDS[x]]));
-                    mColors.push_back(xlBLACK);
+                    ColorCurve cv = ColorCurve(mPaletteMap[BUTTON_IDS[x]]);
+                    mColors.push_back(cv.GetValueAt(0));
                 }
                 else
                 {
@@ -118,7 +119,7 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     mSettings.Parse(settings);
 
     // Fixes an erroneous blank settings created by using:
-    //  settings["key"] == "test val" 
+    //  settings["key"] == "test val"
     // code which as a side effect creates a blank value under the key
     // an example of this is fix to issue #622
     if (mSettings.Get("T_CHOICE_Out_Transition_Type", "XXX") == "")
@@ -136,7 +137,7 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
         if (it->second == "")
         {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn("Effect '%s' on model '%s' at time '%s' has setting '%s' with a blank value.", 
+            logger_base.warn("Effect '%s' on model '%s' at time '%s' has setting '%s' with a blank value.",
                 (const char *)name.c_str(),
                 (const char *)parent->GetParentElement()->GetName().c_str(),
                 FORMATTIME(startTimeMS),

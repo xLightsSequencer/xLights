@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Fix effect backgrounds so that they default to first color of a gradient instead of black.  Fixes #823.
    -- enh (keith)   Let the user turn on/off buffer and timing panel reset when changing effects. This setting is not saved when xlights is closed.
    -- enh (keith)   Add option to video effect to automatically synchronise with a video file that has been used for the sequence audio track.
    -- enh (keith)   Remove the old scheduler
@@ -28,9 +29,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Add colour reordering as an output process in the scheduler.
    -- enh (keith)   Add pixel reversing as an output process in the scheduler
    -- enh (keith)   Add import to xSchedule to allow importing of xLights 4 schedules.
-   -- enh (keith)   Make LOR import more like xLights import ... using a tree rather than a grid. There is some risk this breaks "CCR" 
-                    import mode in which case someone needs to send me a sample file. 
-   -- enh (keith)   Make Vixen 2 import more like xLights import ... using a tree rather than a grid. 
+   -- enh (keith)   Make LOR import more like xLights import ... using a tree rather than a grid. There is some risk this breaks "CCR"
+                    import mode in which case someone needs to send me a sample file.
+   -- enh (keith)   Make Vixen 2 import more like xLights import ... using a tree rather than a grid.
    -- bug (keith)   Fix erasure of outputs on setup when changing to a new empty folder
    -- enh (keith)   Give mapping files an extension (*.xmap) to make them easier to locate
    -- enh (keith)   Allow user to specify the local IP address to use for e131/Artnet output
