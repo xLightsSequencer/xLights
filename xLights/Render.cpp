@@ -16,6 +16,7 @@
 #include "RenderProgressDialog.h"
 #include "SeqExportDialog.h"
 #include "RenderUtils.h"
+#include "models/ModelGroup.h"
 
 #define END_OF_RENDER_FRAME INT_MAX
 
@@ -205,7 +206,25 @@ public:
             numLayers = rowToRender->GetEffectLayerCount();
 
             if (xframe->InitPixelBuffer(name, *mainBuffer, numLayers, zeroBased)) {
-
+                if ("ModelGroup" == model->GetDisplayAs()) {
+                    for (int l = 0; l < numLayers; l++) {
+                        EffectLayer *layer = row->GetEffectLayer(l);
+                        bool perModelEffects = false;
+                        for (int e = 0; e < layer->GetEffectCount() && !perModelEffects; e++) {
+                            static const std::string CHOICE_BufferStyle("B_CHOICE_BufferStyle");
+                            static const std::string DEFAULT("Default");
+                            static const std::string PER_MODEL("Per Model");
+                            const std::string &bt = layer->GetEffect(e)->GetSettings().Get(CHOICE_BufferStyle, DEFAULT);
+                            if (bt.compare(0, 9, PER_MODEL) == 0) {
+                                perModelEffects = true;
+                            }
+                        }
+                        if (perModelEffects) {
+                            ModelGroup *grp = dynamic_cast<ModelGroup*>(model);
+                            mainBuffer->InitPerModelBuffers(*grp, l);
+                        }
+                    }
+                }
                 for (int x = 0; x < row->GetSubModelCount(); x++) {
                     SubModelElement *se = row->GetSubModel(x);
                     if (se->HasEffects() > 0) {
@@ -454,7 +473,7 @@ public:
         if (sw.Time() > 1000)
         {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            RenderBuffer& b = buffer->BufferForLayer(0);
+            RenderBuffer& b = buffer->BufferForLayer(0, -1);
             logger_base.warn("*** Frame #%d at %dms render on model %s (%dx%d) took more than 1s => %dms.", frame, frame * b.frameTimeInMs, (const char *)el->GetName().c_str(), b.BufferWi, b.BufferHt, sw.Time());
         }
         return effectsToUpdate;
@@ -629,20 +648,13 @@ private:
                             settingsMap);
         }
         buffer->SetLayerSettings(layer, settingsMap);
-        updateBufferPaletteFromMap(layer, el, buffer);
-
         if (el != NULL) {
+            xlColorVector newcolors;
+            xlColorCurveVector newcc;
+            el->CopyPalette(newcolors, newcc);
+            buffer->SetPalette(layer, newcolors, newcc);
             buffer->SetTimes(layer, el->GetStartTimeMS(), el->GetEndTimeMS());
         }
-    }
-
-    void updateBufferPaletteFromMap(int layer, Effect *effect, PixelBufferClass *buffer) {
-        xlColorVector newcolors;
-        xlColorCurveVector newcc;
-        if (effect != nullptr) {
-            effect->CopyPalette(newcolors, newcc);
-        }
-        buffer->SetPalette(layer, newcolors, newcc);
     }
 
     Effect *findEffectForFrame(EffectLayer* layer, int frame, int &lastIdx) {
@@ -1260,7 +1272,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                        PixelBufferClass &buffer, bool &resetEffectState,
                                        bool bgThread, RenderEvent *event) {
     
-    if (buffer.BufferForLayer(layer).BufferHt == 0 || buffer.BufferForLayer(layer).BufferWi == 0) {
+    if (buffer.BufferForLayer(layer, -1).BufferHt == 0 || buffer.BufferForLayer(layer, -1).BufferWi == 0) {
         return false;
     }
     bool retval=true;
@@ -1273,43 +1285,45 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
     }
     if (eidx >= 0) {
         RenderableEffect *reff = effectManager.GetEffect(eidx);
-        if (reff == nullptr) {
-            retval= false;
-        } else if (!bgThread || reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, buffer.BufferForLayer(layer))) {
-            wxStopWatch sw;
-            reff->Render(effectObj, SettingsMap, buffer.BufferForLayer(layer));
-            // Log slow render frames ... this takes time but at this point it is already slow
-            if (sw.Time() > 150)
-            {
-                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                RenderBuffer& b = buffer.BufferForLayer(layer);
-                logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 150 ms => %dms.", b.curPeriod, (const char *)buffer.GetModelName().c_str(),b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer, sw.Time());
-            }
-        } else {
-            event->effect = effectObj;
-            event->layer = layer;
-            event->period = period;
-            event->settingsMap = &SettingsMap;
-            event->ResetEffectState = &resetEffectState;
-
-            std::unique_lock<std::mutex> lock(event->mutex);
-            CallAfter(&xLightsFrame::RenderEffectOnMainThread, event);
-            if (event->signal.wait_for(lock, std::chrono::seconds(60)) == std::cv_status::no_timeout) {
-                retval = event->returnVal;
+        for (int bufn = 0; bufn < buffer.BufferCountForLayer(layer); bufn++) {
+            RenderBuffer &b = buffer.BufferForLayer(layer, bufn);
+            if (reff == nullptr) {
+                retval= false;
+            } else if (!bgThread || reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, b)) {
+                wxStopWatch sw;
+                reff->Render(effectObj, SettingsMap, b);
+                // Log slow render frames ... this takes time but at this point it is already slow
+                if (sw.Time() > 150)
+                {
+                    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                    logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 150 ms => %dms.", b.curPeriod, (const char *)buffer.GetModelName().c_str(),b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer, sw.Time());
+                }
             } else {
-                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                RenderBuffer& b = buffer.BufferForLayer(layer);
-                logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out.", b.curPeriod, (const char *)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);
-                printf("HELP!!!!\n");
-			}
-            if (period % 10 == 0) {
-                //constantly putting stuff on CallAfter can result in the main
-                //dispatch thread never being able to empty the CallAfter
-                //queue and thus effectively blocking.   We'll yield periodically to
-                //allow the main thread to hopefully continue
-                wxThread::Yield();
+                event->effect = effectObj;
+                event->layer = layer;
+                event->period = period;
+                event->settingsMap = &SettingsMap;
+                event->ResetEffectState = &resetEffectState;
+                
+                std::unique_lock<std::mutex> lock(event->mutex);
+                CallAfter(&xLightsFrame::RenderEffectOnMainThread, event);
+                if (event->signal.wait_for(lock, std::chrono::seconds(60)) == std::cv_status::no_timeout) {
+                    retval = event->returnVal;
+                } else {
+                    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                    logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out.", b.curPeriod, (const char *)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);
+                    printf("HELP!!!!\n");
+                }
+                if (period % 10 == 0) {
+                    //constantly putting stuff on CallAfter can result in the main
+                    //dispatch thread never being able to empty the CallAfter
+                    //queue and thus effectively blocking.   We'll yield periodically to
+                    //allow the main thread to hopefully continue
+                    wxThread::Yield();
+                }
             }
         }
+        buffer.MergeBuffersForLayer(layer);
     } else {
         retval = false;
     }

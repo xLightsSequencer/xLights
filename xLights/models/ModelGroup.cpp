@@ -17,6 +17,10 @@ static const std::string OVERLAY_CENTER("Overlay - Centered");
 static const std::string OVERLAY_SCALED("Overlay - Scaled");
 static const std::string SINGLE_LINE("Single Line");
 
+static const std::string PER_MODEL_DEFAULT("Per Model Default");
+static const std::string PER_MODEL_PER_PREVIEW("Per Model Per Preview");
+static const std::string PER_MODEL_SINGLE_LINE("Per Model Single Line");
+
 
 std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES;
 const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
@@ -29,6 +33,10 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
             GROUP_BUFFER_STYLES.push_back(VERT_PER_MODELSTRAND);
             GROUP_BUFFER_STYLES.push_back(OVERLAY_CENTER);
             GROUP_BUFFER_STYLES.push_back(OVERLAY_SCALED);
+
+            GROUP_BUFFER_STYLES.push_back(PER_MODEL_DEFAULT);
+            GROUP_BUFFER_STYLES.push_back(PER_MODEL_PER_PREVIEW);
+            GROUP_BUFFER_STYLES.push_back(PER_MODEL_SINGLE_LINE);
         }
     };
     static Initializer ListInitializationGuard;
@@ -65,6 +73,9 @@ bool ModelGroup::Reset() {
     int gridSize = wxAtoi(ModelXml->GetAttribute("GridSize", "400"));
     std::string layout = ModelXml->GetAttribute("layout", "minimalGrid").ToStdString();
     defaultBufferStyle = layout;
+    if (layout.compare(0, 9, "Per Model") == 0) {
+        layout = "Default";
+    }
     if (layout == "grid" || layout == "minimalGrid") {
         defaultBufferStyle = "Default";
     } else if (layout == "vertical") {
@@ -265,6 +276,9 @@ void ModelGroup::CheckForChanges() const {
 void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transform, int &BufferWi, int &BufferHi) const {
     CheckForChanges();
     std::string type = tp;
+    if (type.compare(0, 9, "Per Model") == 0) {
+        type = "Default";
+    }
     if (type == "Default") {
         type = defaultBufferStyle;
     }
@@ -324,6 +338,9 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                                        int &BufferWi, int &BufferHi) const {
     CheckForChanges();
     std::string type = tp;
+    if (type.compare(0, 9, "Per Model") == 0) {
+        type = "Default";
+    }
     if (type == "Default") {
         type = defaultBufferStyle;
     }

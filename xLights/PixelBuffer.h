@@ -63,6 +63,7 @@ class Effect;
 class SequenceElements;
 class SettingsMap;
 class DimmingCurve;
+class ModelGroup;
 
 class PixelBufferClass
 {
@@ -87,6 +88,7 @@ private:
             effectMixVaries = false;
             BufferHt = BufferWi = 0;
             persistent = false;
+            usingModelBuffers = false;
 
             fadeInSteps = fadeOutSteps = 0;
             inTransitionAdjust = outTransitionAdjust = 0;
@@ -141,7 +143,9 @@ private:
         bool outTransitionReverse;
         float inMaskFactor;
         float outMaskFactor;
-        
+        bool usingModelBuffers;
+        std::vector<std::unique_ptr<RenderBuffer>> modelBuffers;
+
         std::vector<uint8_t> mask;
         void calculateMask(bool isFirstFrame);
         void calculateMask(const std::string &type, bool mode, bool isFirstFrame);
@@ -196,11 +200,15 @@ public:
     const std::string &GetModelName() const
     { return modelName;};
 
-    RenderBuffer &BufferForLayer(int i);
-
+    RenderBuffer &BufferForLayer(int i, int idx);
+    int BufferCountForLayer(int i);
+    void MergeBuffersForLayer(int i);
+    
+    
     void InitBuffer(const Model &pbc, int layers, int timing, bool zeroBased=false);
     void InitStrandBuffer(const Model &pbc, int strand, int timing, int layers);
     void InitNodeBuffer(const Model &pbc, int strand, int node, int timing);
+    void InitPerModelBuffers(const ModelGroup& model, int layer);
 
     void Clear(int which);
     

@@ -26,11 +26,14 @@
 #include "DimmingCurve.h"
 #include "models/ModelManager.h"
 #include "models/SingleLineModel.h"
+#include "models/ModelGroup.h"
 #include "UtilClasses.h"
 #include "AudioManager.h"
+#include "xLightsMain.h"
 #include <log4cpp/Category.hh>
 
 #include <random>
+
 
 // This is needed for visual studio
 #ifdef _MSC_VER
@@ -96,6 +99,15 @@ void PixelBufferClass::reset(int nlayers, int timing)
     }
 }
 
+void PixelBufferClass::InitPerModelBuffers(const ModelGroup &model, int layer) {
+    for (auto it = model.Models().begin(); it != model.Models().end(); it++) {
+        Model *m = *it;
+        RenderBuffer *buf = new RenderBuffer(frame, false);
+        m->InitRenderBufferNodes("Default", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
+        buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
+        layers[layer]->modelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
+    }
+}
 
 void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, bool zeroBased)
 {
@@ -137,6 +149,11 @@ void PixelBufferClass::Clear(int which)
     if (which != -1)
     {
         layers[which]->buffer.Clear(); //just clear this one
+        if (layers[which]->usingModelBuffers) {
+            for (auto it = layers[which]->modelBuffers.begin();  it != layers[which]->modelBuffers.end(); it++) {
+                (*it)->Clear();
+            }
+        }
     }
     else
     {
@@ -144,6 +161,11 @@ void PixelBufferClass::Clear(int which)
         for (size_t i = 0; i < numLayers; i++)
         {
             layers[i]->buffer.Clear();
+            if (layers[i]->usingModelBuffers) {
+                for (auto it = layers[i]->modelBuffers.begin();  it != layers[i]->modelBuffers.end(); it++) {
+                    (*it)->Clear();
+                }
+            }
         }
     }
 }
@@ -1004,6 +1026,11 @@ void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors, xlColorCu
 {
     RenderBuffer& buf = layers[layer]->buffer;
     buf.SetPalette(newcolors, newcc);
+    if (layers[layer]->usingModelBuffers) {
+        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); it++)  {
+            (*it)->SetPalette(newcolors, newcc);
+        }
+    }
 }
 
 
@@ -1165,25 +1192,80 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->pivotpointxValueCurve = pivotpointxValueCurve;
         inf->pivotpointyValueCurve = pivotpointyValueCurve;
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->bufferTransform);
+        
+        if (type.compare(0, 9, "Per Model") == 0) {
+            inf->usingModelBuffers = true;
+            const ModelGroup *gp = dynamic_cast<const ModelGroup*>(model);
+            int cnt = 0;
+            for (auto it = inf->modelBuffers.begin(); it != inf->modelBuffers.end(); it++, cnt++) {
+                std::string ntype = type.substr(10, type.length() - 10);
+                int bw, bh;
+                (*it)->Nodes.clear();
+                gp->Models()[cnt]->InitRenderBufferNodes(ntype, transform, (*it)->Nodes, bw, bh);
+                (*it)->InitBuffer(bh, bw, transform);
+                (*it)->SetAllowAlphaChannel(inf->buffer.allowAlpha);
+            }
+        } else {
+            inf->usingModelBuffers = false;
+        }
     }
 }
 bool PixelBufferClass::IsPersistent(int layer) {
     return layers[layer]->persistent;
 }
 
-RenderBuffer& PixelBufferClass::BufferForLayer(int layer)
+RenderBuffer& PixelBufferClass::BufferForLayer(int layer, int idx)
 {
+    if (idx >= 0 && layers[layer]->usingModelBuffers && idx < layers[layer]->modelBuffers.size()) {
+        return *layers[layer]->modelBuffers[idx];
+    }
     return layers[layer]->buffer;
 }
+int PixelBufferClass::BufferCountForLayer(int layer)
+{
+    if (layers[layer]->usingModelBuffers) {
+        return layers[layer]->modelBuffers.size();
+    }
+    return 1;
+}
+void PixelBufferClass::MergeBuffersForLayer(int layer) {
+    if (layers[layer]->usingModelBuffers) {
+        //get all the data
+        xlColor color;
+        int nc = 0;
+        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); it++) {
+            for (auto node = (*it)->Nodes.begin(); node != (*it)->Nodes.end(); node++, nc++) {
+                (*it)->GetPixel((*node)->Coords[0].bufX, (*node)->Coords[0].bufY, color);
+                for (auto coord = layers[layer]->buffer.Nodes[nc]->Coords.begin(); coord != layers[layer]->buffer.Nodes[nc]->Coords.end(); coord++) {
+                    layers[layer]->buffer.SetPixel(coord->bufX, coord->bufY, color);
+                }
+            }
+        }
+    }
+}
+
 void PixelBufferClass::SetLayer(int newlayer, int period, bool resetState)
 {
     CurrentLayer=newlayer;
     layers[CurrentLayer]->buffer.SetState(period, resetState, modelName);
+    if (layers[CurrentLayer]->usingModelBuffers) {
+        int cnt = 0;
+        const ModelGroup *grp = dynamic_cast<const ModelGroup*>(model);
+        for (auto it = layers[CurrentLayer]->modelBuffers.begin(); it != layers[CurrentLayer]->modelBuffers.end(); it++, cnt++)  {
+            (*it)->SetState(period, resetState, grp->Models()[cnt]->Name());
+        }
+    }
 }
 
 void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 {
     layers[layer]->buffer.SetEffectDuration(startTime, endTime);
+    if (layers[layer]->usingModelBuffers) {
+        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); it++)  {
+            (*it)->SetEffectDuration(startTime, endTime);
+        }
+    }
+
 }
 static inline bool IsInRange(const std::vector<NodeRange> &restrictRange, size_t start) {
     if (restrictRange.empty()) {
