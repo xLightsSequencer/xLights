@@ -254,13 +254,29 @@ std::string Schedule::GetNextTriggerTime()
     // deal with the simple cases
     if (CheckActive()) return "NOW!";
     if (end < wxDateTime::Now()) return "Never";
+
     if (_startDate > wxDateTime::Now()) // tomorrow or later
     {
         // some time in the future
         wxDateTime next = _startDate;
         next.SetHour(_startTime.GetHour());
         next.SetMinute(_startTime.GetMinute());
-        return next.Format("%Y-%m-%d %H:%M").ToStdString();
+
+        if (next > wxDateTime::Now() && CheckActiveAt(next))
+        {
+            return next.Format("%Y-%m-%d %H:%M").ToStdString();
+        }
+
+        for (int i = 0; i < 7; i++)
+        {
+            next += wxTimeSpan(24);
+            if (next > wxDateTime::Now() && CheckActiveAt(next))
+            {
+                return next.Format("%Y-%m-%d %H:%M").ToStdString();
+            }
+        }
+
+        return "Never";
     }
 
     // so now is between _startDate and end
