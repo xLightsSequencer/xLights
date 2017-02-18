@@ -75,7 +75,9 @@ public:
     size_t GetLengthMS() const;
     size_t GetFrameMS() const;
     void AdjustTime(wxTimeSpan by);
-    #pragma endregion Getters and Setters
+    bool IsRunningFSEQ(const std::string& fseqFile);
+    void SetSyncPosition(size_t frame, size_t ms);
+#pragma endregion Getters and Setters
 
     wxXmlNode* Save();
     void Load(wxXmlNode * node);

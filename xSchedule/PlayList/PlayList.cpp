@@ -930,3 +930,16 @@ int PlayList::GetFrameMS() const
         return _currentStep->GetFrameMS();
     }
 }
+
+PlayListStep* PlayList::GetStepWithFSEQ(const std::string fseqFile)
+{
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        if ((*it)->IsRunningFSEQ(fseqFile))
+        {
+            return *it;
+        }
+    }
+
+    return nullptr;
+}

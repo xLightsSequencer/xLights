@@ -1416,6 +1416,9 @@ void xScheduleFrame::UpdateStatus()
     if (p == nullptr)
     {
         ListView_Running->DeleteAllItems();
+        lastcc = -1;
+        lastid = -1;
+        lastrunning = -1;
     }
     else
     {
@@ -1573,7 +1576,15 @@ void xScheduleFrame::UpdateStatus()
     }
     else
     {
-        if (__schedule->IsCurrentPlayListScheduled())
+        if (__schedule->GetMode() == SYNCMODE::FPPSLAVE)
+        {
+            if (scheduled != 13)
+                BitmapButton_IsScheduled->SetBitmap(_falconremote);
+            if (BitmapButton_IsScheduled->GetToolTipText() != "FPP remote.")
+                BitmapButton_IsScheduled->SetToolTip("FPP remote.");
+            scheduled = 13;
+        }
+        else if (__schedule->IsCurrentPlayListScheduled())
         {
             if (scheduled != 1)
                 BitmapButton_IsScheduled->SetBitmap(_scheduled);
@@ -1922,8 +1933,6 @@ void xScheduleFrame::OnMenuItem_FPPRemoteSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::FPPSLAVE);
     UpdateUI();
-
-    wxMessageBox("FPP Master/Slave not implemented yet.");
 }
 
 void xScheduleFrame::OnMenuItem_WebInterfaceSelected(wxCommandEvent& event)

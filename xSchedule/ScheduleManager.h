@@ -41,7 +41,7 @@ public:
     size_t GetStartChannel() const { return _startChannel; }
 };
 
-class ScheduleManager
+class ScheduleManager : public wxEvtHandler
 {
     SYNCMODE _mode;
     int _manualOTL;
@@ -62,7 +62,8 @@ class ScheduleManager
     int _brightness;
     int _lastBrightness;
     wxByte _brightnessArray[255];
-    wxDatagramSocket* _fppSync;
+    wxDatagramSocket* _fppSyncMaster;
+    wxDatagramSocket* _fppSyncSlave;
     std::list<OutputProcess*> _outputProcessing;
     Xyzzy* _xyzzy;
 
@@ -71,10 +72,16 @@ class ScheduleManager
     void SendFPPSync(const std::string& syncItem, size_t msec, size_t frameMS);
     void OpenFPPSyncSendSocket();
     void CloseFPPSyncSendSocket();
+    void OpenFPPSyncListenSocket();
+    void CloseFPPSyncListenSocket();
     void ManageBackground();
     bool DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties);
     void StartVirtualMatrices();
     void StopVirtualMatrices();
+    void OnServerEvent(wxSocketEvent& event);
+    void StartFSEQ(const std::string fseq);
+
+    DECLARE_EVENT_TABLE()
 
     public:
 

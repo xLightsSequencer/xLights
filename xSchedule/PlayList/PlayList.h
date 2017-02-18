@@ -119,6 +119,7 @@ public:
     bool JumpToEndStepsAtEndOfCurrentStep();
     void RestartCurrentStep();
     PlayListStep* GetStep(const std::string& step);
+    PlayListStep* GetStepWithFSEQ(const std::string fseqFile);
     PlayListStep* GetRandomStep();
     bool LoopStep(const std::string step);
     PlayListItemText* GetRunningText(const std::string& name) const;

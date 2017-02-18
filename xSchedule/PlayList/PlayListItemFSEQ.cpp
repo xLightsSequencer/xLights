@@ -411,3 +411,14 @@ std::list<std::string> PlayListItemFSEQ::GetMissingFiles() const
 
     return res;
 }
+
+bool PlayListItemFSEQ::SetPosition(size_t frame, size_t ms)
+{
+    if (_audioManager != nullptr)
+    {
+        _audioManager->Seek(frame * _msPerFrame);
+        return true;
+    }
+
+    return false;
+}

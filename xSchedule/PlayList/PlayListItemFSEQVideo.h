@@ -79,7 +79,7 @@ public:
     void SetStartChannel(long startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _changeCount++; } }
     long GetChannels() const { return _channels; }
     void SetChannels(long channels) { if (_channels != channels) { _channels = channels; _changeCount++; } }
-	
+    bool SetPosition(size_t frame, size_t ms);
     void SetLocation(wxPoint pt, wxSize size) { if (_origin != pt || _size != size) { _origin = pt; _size = size; _changeCount++; } }
     void SetVideoFile(const std::string& videoFile);
     std::string GetVideoFile() const { return _videoFile; }

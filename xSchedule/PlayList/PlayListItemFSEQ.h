@@ -69,6 +69,7 @@ public:
     long GetChannels() const { return _channels; }
     void SetChannels(long channels) { if (_channels != channels) { _channels = channels; _changeCount++; } }
     virtual std::list<std::string> GetMissingFiles() const override;
+    bool SetPosition(size_t frame, size_t ms);
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

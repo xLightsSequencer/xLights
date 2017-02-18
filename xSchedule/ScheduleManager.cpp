@@ -43,7 +43,8 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
 
     _backgroundPlayList = nullptr;
     _queuedSongs = new PlayList();
-    _fppSync = nullptr;
+    _fppSyncMaster = nullptr;
+    _fppSyncSlave = nullptr;
     _manualOTL = -1;
     _immediatePlay = nullptr;
     _scheduleOptions = nullptr;
@@ -59,6 +60,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     _mode = (SYNCMODE)config->ReadLong("SyncMode", SYNCMODE::STANDALONE);
 
     if (_mode == SYNCMODE::FPPMASTER) OpenFPPSyncSendSocket();
+    if (_mode == SYNCMODE::FPPSLAVE) OpenFPPSyncListenSocket();
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     _lastSavedChangeCount = 0;
@@ -543,6 +545,8 @@ bool compare_runningschedules(const RunningSchedule* first, const RunningSchedul
 
 int ScheduleManager::CheckSchedule()
 {
+    if (_mode == SYNCMODE::FPPSLAVE) return 50;
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Checking the schedule ...");
 
@@ -2037,10 +2041,17 @@ void ScheduleManager::SetMode(SYNCMODE mode)
         if (_mode == SYNCMODE::FPPMASTER)
         {
             OpenFPPSyncSendSocket();
+            CloseFPPSyncListenSocket();
+        }
+        else if (_mode == SYNCMODE::FPPSLAVE)
+        {
+            CloseFPPSyncSendSocket();
+            OpenFPPSyncListenSocket();
         }
         else
         {
             CloseFPPSyncSendSocket();
+            CloseFPPSyncListenSocket();
         }
     }
 }
@@ -3135,12 +3146,12 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
         return;
     }
 
-    if (_mode == SYNCMODE::FPPMASTER && _fppSync == nullptr)
+    if (_mode == SYNCMODE::FPPMASTER && _fppSyncMaster == nullptr)
     {
         OpenFPPSyncSendSocket();
     }
 
-    if (_fppSync == nullptr) return;
+    if (_fppSyncMaster == nullptr) return;
 
     bool dosend = false;
     if (msec == 0 || msec == 0xFFFFFFFF) dosend = true;
@@ -3269,7 +3280,7 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
 
         strcpy(&sp->filename[0], fn.GetFullName().c_str());
 
-        _fppSync->SendTo(remoteAddr, buffer, bufsize);
+        _fppSyncMaster->SendTo(remoteAddr, buffer, bufsize);
 
         free(buffer);
     }
@@ -3291,8 +3302,8 @@ void ScheduleManager::OpenFPPSyncSendSocket()
         localaddr.Hostname(IPOutput::GetLocalIP());
     }
 
-    _fppSync = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
-    if (_fppSync == nullptr)
+    _fppSyncMaster = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+    if (_fppSyncMaster == nullptr)
     {
         logger_base.error("Error opening datagram for FPP Sync as master.");
     }
@@ -3304,12 +3315,189 @@ void ScheduleManager::OpenFPPSyncSendSocket()
 
 void ScheduleManager::CloseFPPSyncSendSocket()
 {
-    if (_fppSync != nullptr) {
+    if (_fppSyncMaster != nullptr) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("FPP Sync as master datagram closed.");
-        _fppSync->Close();
-        delete _fppSync;
-        _fppSync = nullptr;
+        _fppSyncMaster->Close();
+        delete _fppSyncMaster;
+        _fppSyncMaster = nullptr;
     }
 }
 
+void ScheduleManager::CloseFPPSyncListenSocket()
+{
+    if (_fppSyncSlave != nullptr) {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.error("FPP Sync as remote datagram closed.");
+        _fppSyncSlave->Close();
+        delete _fppSyncSlave;
+        _fppSyncSlave = nullptr;
+    }
+}
+
+#define SERVER_ID	200
+
+BEGIN_EVENT_TABLE(ScheduleManager, wxEvtHandler)
+EVT_SOCKET(SERVER_ID, ScheduleManager::OnServerEvent)
+END_EVENT_TABLE()
+
+void ScheduleManager::OpenFPPSyncListenSocket()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    CloseFPPSyncListenSocket();
+
+    wxIPV4address localaddr;
+    if (IPOutput::GetLocalIP() == "")
+    {
+        localaddr.AnyAddress();
+    }
+    else
+    {
+        localaddr.Hostname(IPOutput::GetLocalIP());
+    }
+    localaddr.Service(FPP_CTRL_PORT);
+
+    _fppSyncSlave = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+    if (_fppSyncSlave == nullptr)
+    {
+        logger_base.error("Error opening datagram for FPP Sync as remote.");
+    }
+    else
+    {
+        _fppSyncSlave->SetEventHandler(*this, SERVER_ID);
+        _fppSyncSlave->SetNotify(wxSOCKET_INPUT_FLAG);
+        _fppSyncSlave->Notify(true);
+        logger_base.error("FPP Sync as remote datagram opened successfully.");
+    }
+}
+
+void ScheduleManager::StartFSEQ(const std::string fseq)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // find this fseq file and run it
+    PlayList* pl = GetRunningPlayList();
+    PlayListStep* pls = nullptr;
+    if (pl != nullptr)
+    {
+        pls = pl->GetStepWithFSEQ(fseq);
+        StopPlayList(pl, false);
+    }
+
+    if (pls == nullptr)
+    {
+        for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+        {
+            pls = (*it)->GetStepWithFSEQ(fseq);
+
+            if (pls != nullptr) {
+                pl = *it;
+                break;
+            }
+        }
+    }
+
+    if (pls != nullptr)
+    {
+        logger_base.debug("... Starting %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
+
+        size_t rate;
+        PlayPlayList(pl, rate, false, pls->GetNameNoTime(), true);
+
+        wxCommandEvent event1(EVT_FRAMEMS);
+        event1.SetInt(rate);
+        wxPostEvent(wxGetApp().GetTopWindow(), event1);
+
+        wxCommandEvent event2(EVT_SCHEDULECHANGED);
+        wxPostEvent(wxGetApp().GetTopWindow(), event2);
+    }
+}
+
+void ScheduleManager::OnServerEvent(wxSocketEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    unsigned char buffer[2048];
+
+    int lastcount = -1;
+
+    while (lastcount != 0)
+    {
+        wxIPV4address remoteaddr;
+        _fppSyncSlave->RecvFrom(remoteaddr, &buffer[0], sizeof(buffer));
+        lastcount = _fppSyncSlave->LastCount();
+
+        if (lastcount >= sizeof(ControlPkt) + sizeof(SyncPkt))
+        {
+            ControlPkt* cp = (ControlPkt*)&buffer[0];
+            if (strncmp(cp->fppd, "FPPD", 4) == 0)
+            {
+                if (cp->pktType == CTRL_PKT_SYNC)
+                {
+                    SyncPkt* sp = (SyncPkt*)(&buffer[0] + sizeof(ControlPkt));
+
+                    if (sp->fileType == SYNC_FILE_SEQ)
+                    {
+                        switch (sp->pktType)
+                        {
+                        case SYNC_PKT_START:
+                            {
+                                logger_base.debug("Remote start %s.", (const char *)sp->filename);
+
+                                StartFSEQ(std::string(sp->filename));
+                            }
+                            break;
+                        case SYNC_PKT_STOP:
+                            {
+                                logger_base.debug("Remote stop %s.", (const char *)sp->filename);
+                                PlayList* pl = GetRunningPlayList();
+                                if (pl != nullptr)
+                                {
+                                    PlayListStep* pls = pl->GetRunningStep();
+
+                                    if (pls != nullptr && pls->IsRunningFSEQ(sp->filename))
+                                    {
+                                        logger_base.debug("... Stopping %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
+
+                                        // if this fseq file is running stop it
+                                        StopPlayList(pl, false);
+                                        wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                                        wxPostEvent(wxGetApp().GetTopWindow(), event2);
+                                    }
+                                }
+                            }
+                            break;
+                        case SYNC_PKT_SYNC:
+                            {
+                                PlayList* pl = GetRunningPlayList();
+
+                                if (pl == nullptr)
+                                {
+                                    StartFSEQ(std::string(sp->filename));
+                                    pl = GetRunningPlayList();
+                                }
+
+                                if (pl != nullptr)
+                                {
+                                    PlayListStep* pls = pl->GetRunningStep();
+
+                                    if (pls != nullptr && pls->IsRunningFSEQ(sp->filename))
+                                    {
+                                        // if this fseq file is running stop it
+                                        pls->SetSyncPosition(sp->frameNumber, (size_t)sp->secondsElapsed * 1000);
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        // media file ... not sure what to do with this ... so ignoring it
+                    }
+                }
+            }
+        }
+    }
+}

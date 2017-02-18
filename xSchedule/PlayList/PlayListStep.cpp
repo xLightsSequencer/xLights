@@ -17,6 +17,7 @@
 #include "PlayListItemCURL.h"
 #include "PlayListItemRunCommand.h"
 #include "PlayListItemAudio.h"
+#include <wx/filename.h>
 
 int __playliststepid = 0;
 
@@ -518,6 +519,47 @@ std::string PlayListStep::GetActiveSyncItemMedia() const
     }
 
     return res;
+}
+
+bool PlayListStep::IsRunningFSEQ(const std::string& fseqFile)
+{
+    std::string fseq = GetActiveSyncItemFSEQ();
+    wxFileName fn(fseq);
+
+    return (fn.GetFullName().Lower() == wxString(fseqFile).Lower());
+}
+
+void PlayListStep::SetSyncPosition(size_t frame, size_t ms)
+{
+    std::string fseq = GetActiveSyncItemFSEQ();
+
+    for (auto it = _items.begin(); it != _items.end(); ++it)
+    {
+        if ((*it)->GetTitle() == "FSEQ")
+        {
+            PlayListItemFSEQ* pli = (PlayListItemFSEQ*)(*it);
+            if (fseq == pli->GetFSEQFileName())
+            {
+                if (!pli->SetPosition(frame, ms))
+                {
+                    _startTime += frame * pli->GetFrameMS() - GetPosition();
+                }
+                break;
+            }
+        }
+        else if ((*it)->GetTitle() == "FSEQ & Video")
+        {
+            PlayListItemFSEQVideo* pli = (PlayListItemFSEQVideo*)(*it);
+            if (fseq == pli->GetFSEQFileName())
+            {
+                if (!pli->SetPosition(frame, ms))
+                {
+                    _startTime += frame * pli->GetFrameMS() - GetPosition();
+                }
+                break;
+            }
+        }
+    }
 }
 
 void PlayListStep::AdjustTime(wxTimeSpan by)
