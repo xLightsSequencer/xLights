@@ -14,6 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Remove the old scheduler
    -- bug (keith)   Fix universe dropdown in start channel dialog did not show all universes available on an ip address if they were grouped under a single output
    -- enh (keith)   On value curve dialog show a tooltip when manipulating a custom curve showing the real value that will be returned by the curve at the chosen point.
+   -- enh (keith)   Complete FPP Master mode to xScheduler
 2017.3  Feb 13, 2017
    -- enh (gil)     Add new Skulltronix skull display option for the DMX model.
    -- enh (gil)     Add new 3D DMX head display option for the DMX model.

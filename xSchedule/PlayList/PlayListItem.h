@@ -57,7 +57,8 @@ public:
     void SetPriority(size_t priority) { if (_priority != priority) { _priority = priority; _changeCount++; } }
     virtual bool Done() const { return false; }
     virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) = 0;
-    virtual std::string GetSyncItemName() const { return ""; }
+    virtual std::string GetSyncItemFSEQ() const { return ""; }
+    virtual std::string GetSyncItemMedia() const { return ""; }
     virtual std::string GetTitle() const = 0;
     virtual std::list<std::string> GetMissingFiles() const { return std::list<std::string>(); }
     #pragma endregion Getters and Setters

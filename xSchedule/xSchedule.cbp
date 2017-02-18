@@ -296,6 +296,7 @@
 		<Unit filename="ColourOrderDialog.h" />
 		<Unit filename="CommandManager.cpp" />
 		<Unit filename="CommandManager.h" />
+		<Unit filename="Control.h" />
 		<Unit filename="DimDialog.cpp" />
 		<Unit filename="DimDialog.h" />
 		<Unit filename="DimWhiteDialog.cpp" />

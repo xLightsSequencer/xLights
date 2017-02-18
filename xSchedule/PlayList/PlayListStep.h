@@ -65,7 +65,8 @@ public:
     void Suspend(bool suspend);
     void Restart();
     void Pause(bool pause);
-    std::string GetActiveSyncItemName() const;
+    std::string GetActiveSyncItemFSEQ() const;
+    std::string GetActiveSyncItemMedia() const;
     int GetPlayStepSize() const { return _items.size(); }
     void AddItem(PlayListItem* item) { _items.push_back(item); _items.sort(); _changeCount++; }
     void RemoveItem(PlayListItem* item);

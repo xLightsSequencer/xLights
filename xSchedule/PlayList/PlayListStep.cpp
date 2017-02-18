@@ -474,7 +474,7 @@ size_t PlayListStep::GetLengthMS() const
     }
 }
 
-std::string PlayListStep::GetActiveSyncItemName() const
+std::string PlayListStep::GetActiveSyncItemFSEQ() const
 {
     std::string res;
     size_t ms;
@@ -482,14 +482,37 @@ std::string PlayListStep::GetActiveSyncItemName() const
 
     if (ts != nullptr)
     {
-        res = ts->GetSyncItemName();
+        res = ts->GetSyncItemFSEQ();
     }
 
     if (res == "")
     {
-        for (auto it = _items.begin(); it != _items.end(); ++it)
+        for (auto it = _items.rbegin(); it != _items.rend(); ++it)
         {
-            res = (*it)->GetSyncItemName();
+            res = (*it)->GetSyncItemFSEQ();
+            if (res != "") break;
+        }
+    }
+
+    return res;
+}
+
+std::string PlayListStep::GetActiveSyncItemMedia() const
+{
+    std::string res;
+    size_t ms;
+    auto ts = GetTimeSource(ms);
+
+    if (ts != nullptr)
+    {
+        res = ts->GetSyncItemMedia();
+    }
+
+    if (res == "")
+    {
+        for (auto it = _items.rbegin(); it != _items.rend(); ++it)
+        {
+            res = (*it)->GetSyncItemMedia();
             if (res != "") break;
         }
     }

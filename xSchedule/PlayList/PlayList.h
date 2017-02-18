@@ -68,6 +68,7 @@ public:
     size_t GetLengthMS() const;
     bool IsDirty() const;
     void ClearDirty();
+    int GetFrameMS() const;
     Schedule* GetSchedule(int id) const;
     Schedule* GetSchedule(const std::string& name) const;
     int GetChangeCount() const { return _changeCount; }
@@ -94,7 +95,8 @@ public:
     bool IsLooping() const { return _looping; }
     void StopAtEndOfThisLoop() { _lastLoop = true; }
     bool IsSimple() const;
-    std::string GetActiveSyncItemName() const;
+    std::string GetActiveSyncItemFSEQ() const;
+    std::string GetActiveSyncItemMedia() const;
     void AddStep(PlayListStep* item, int pos);
     void RemoveStep(PlayListStep* item);
     void RemoveSchedule(Schedule* item);

@@ -1916,8 +1916,6 @@ void xScheduleFrame::OnMenuItem_FPPMasterSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::FPPMASTER);
     UpdateUI();
-
-    wxMessageBox("FPP Master/Slave not implemented yet.");
 }
 
 void xScheduleFrame::OnMenuItem_FPPRemoteSelected(wxCommandEvent& event)
@@ -2058,6 +2056,25 @@ void xScheduleFrame::UpdateUI()
     {
         if (__schedule->IsOutputToLights())
             __schedule->SetOutputToLights(false);
+    }
+
+    if (__schedule->GetMode() == SYNCMODE::FPPMASTER)
+    {
+        MenuItem_FPPMaster->Check(true);
+        MenuItem_FPPRemote->Check(false);
+        MenuItem_Standalone->Check(false);
+    }
+    else if (__schedule->GetMode() == SYNCMODE::FPPSLAVE)
+    {
+        MenuItem_FPPMaster->Check(false);
+        MenuItem_FPPRemote->Check(true);
+        MenuItem_Standalone->Check(false);
+    }
+    else
+    {
+        MenuItem_FPPMaster->Check(false);
+        MenuItem_FPPRemote->Check(false);
+        MenuItem_Standalone->Check(true);
     }
 
     ValidateWindow();

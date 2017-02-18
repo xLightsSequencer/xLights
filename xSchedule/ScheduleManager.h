@@ -6,13 +6,13 @@
 #include "Schedule.h"
 #include "CommandManager.h"
 #include "FSEQFile.h"
+#include <wx/socket.h>
 
 class PlayListItemText;
 class ScheduleOptions;
 class PlayList;
 class OutputManager;
 class RunningSchedule;
-class wxSocketClient;
 class PlayListStep;
 class OutputProcess;
 class Xyzzy;
@@ -62,13 +62,13 @@ class ScheduleManager
     int _brightness;
     int _lastBrightness;
     wxByte _brightnessArray[255];
-    wxSocketClient* _fppSync;
+    wxDatagramSocket* _fppSync;
     std::list<OutputProcess*> _outputProcessing;
     Xyzzy* _xyzzy;
 
     std::string FormatTime(size_t timems);
     void CreateBrightnessArray();
-    void SendFPPSync(const std::string& syncItem, size_t msec);
+    void SendFPPSync(const std::string& syncItem, size_t msec, size_t frameMS);
     void OpenFPPSyncSendSocket();
     void CloseFPPSyncSendSocket();
     void ManageBackground();

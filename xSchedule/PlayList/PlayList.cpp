@@ -832,11 +832,20 @@ bool PlayList::LoopStep(const std::string step)
     return true;
 }
 
-std::string PlayList::GetActiveSyncItemName() const
+std::string PlayList::GetActiveSyncItemFSEQ() const
 {
     if (_currentStep != nullptr)
     {
-        return _currentStep->GetActiveSyncItemName();
+        return _currentStep->GetActiveSyncItemFSEQ();
+    }
+    return "";
+}
+
+std::string PlayList::GetActiveSyncItemMedia() const
+{
+    if (_currentStep != nullptr)
+    {
+        return _currentStep->GetActiveSyncItemMedia();
     }
     return "";
 }
@@ -908,4 +917,16 @@ PlayListItemText* PlayList::GetRunningText(const std::string& name) const
     if (_currentStep == nullptr) return nullptr;
 
     return _currentStep->GetTextItem(name);
+}
+
+int PlayList::GetFrameMS() const
+{
+    if (_currentStep == nullptr)
+    {
+        return 50;
+    }
+    else
+    {
+        return _currentStep->GetFrameMS();
+    }
 }
