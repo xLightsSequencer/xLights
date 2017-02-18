@@ -644,9 +644,8 @@ void xScheduleFrame::OnQuit(wxCommandEvent& event)
 
 void xScheduleFrame::OnAbout(wxCommandEvent& event)
 {
-    wxString msg = wxbuildinfo(long_f);
-    wxMessageBox(msg, _("Welcome to..."));
-    ValidateWindow();
+    auto about = wxString::Format(wxT("xSchedule v%s, the xLights scheduler."), xlights_version_string);
+    wxMessageBox(about, _("Welcome to..."));
 }
 
 bool xScheduleFrame::IsPlayList(wxTreeItemId id) const
