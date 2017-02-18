@@ -528,7 +528,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
                            float tension, int trails, int length, int xoffset, int yoffset, int manualx, int manualy)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    buffer.pathDrawingContext->Clear();
+    buffer.GetPathDrawingContext()->Clear();
 
     if (friction < 0.4f)
     {
@@ -908,9 +908,9 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 
 	if (_tendril != NULL)
 	{
-		_tendril->Draw(buffer.pathDrawingContext, colour, thickness);
+		_tendril->Draw(buffer.GetPathDrawingContext(), colour, thickness);
 	}
-    wxImage * image = buffer.pathDrawingContext->FlushAndGetImage();
+    wxImage * image = buffer.GetPathDrawingContext()->FlushAndGetImage();
     bool hasAlpha = image->HasAlpha();
 
     xlColor c;

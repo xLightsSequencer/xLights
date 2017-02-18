@@ -1238,6 +1238,10 @@
 					<label>Forum</label>
 					<handler function="OnMenuItem_Help_ForumSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_VIDEOS" variable="MenuItem_VideoTutorials" member="yes">
+					<label>Video Tutorials</label>
+					<handler function="OnMenuItem_VideoTutorialsSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MENU_HELP_DOWNLOAD" variable="MenuItem_Help_Download" member="yes">
 					<label>Download</label>
 					<handler function="OnMenuItem_Help_DownloadSelected" entry="EVT_MENU" />

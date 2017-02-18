@@ -71,6 +71,10 @@ inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
 DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha) : nullBitmap(wxNullBitmap)
 {
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    gc = nullptr;
+    dc = nullptr;
     unshare(nullBitmap);
     image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
     if (alpha) {
@@ -121,10 +125,10 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, boo
     dc->SelectObject(nullBitmap);
     delete bitmap;
     bitmap = nullptr;
-    gc = nullptr;
 }
 
 DrawingContext::~DrawingContext() {
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (gc != nullptr) {
         delete gc;
     }
@@ -179,26 +183,33 @@ void DrawingContext::ResetSize(int BufferWi, int BufferHt) {
 }
 
 void DrawingContext::Clear() {
-    dc->SelectObject(nullBitmap);
-    if (bitmap != nullptr) {
-        delete bitmap;
-    }
-    image->Clear();
-
-    if (AllowAlphaChannel()) {
-        image->SetAlpha();
-        for(wxCoord x=0; x<image->GetWidth(); x++) {
-            for(wxCoord y=0; y<image->GetHeight(); y++) {
-                image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
-            }
+    if (dc != nullptr)
+    {
+        dc->SelectObject(nullBitmap);
+        if (bitmap != nullptr) {
+            delete bitmap;
         }
-        bitmap = new wxBitmap(*image, 32);
-    } else {
-        bitmap = new wxBitmap(*image);
+        image->Clear();
+
+        if (AllowAlphaChannel()) {
+            image->SetAlpha();
+            for (wxCoord x = 0; x < image->GetWidth(); x++) {
+                for (wxCoord y = 0; y < image->GetHeight(); y++) {
+                    image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
+                }
+            }
+            bitmap = new wxBitmap(*image, 32);
+        }
+        else {
+            bitmap = new wxBitmap(*image);
+        }
+        dc->SelectObject(*bitmap);
     }
-    dc->SelectObject(*bitmap);
 }
+
 void PathDrawingContext::Clear() {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (gc != nullptr) {
         delete gc;
         gc = nullptr;
@@ -209,12 +220,21 @@ void PathDrawingContext::Clear() {
 #else
     gc = wxGraphicsContext::Create(*dc);
 #endif
+
+    if (gc == nullptr)
+    {
+        logger_base.error("PathDrawingContext DC creation failed.");
+        return;
+    }
+
     gc->SetAntialiasMode(wxANTIALIAS_NONE);
     gc->SetInterpolationQuality(wxInterpolationQuality::wxINTERPOLATION_FAST);
     gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_SOURCE);
-    //gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_OVER);
 }
+
 void TextDrawingContext::Clear() {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (gc != nullptr) {
         delete gc;
         gc = nullptr;
@@ -227,12 +247,20 @@ void TextDrawingContext::Clear() {
 #else
     gc = wxGraphicsContext::Create(*dc);
 #endif
+
+    if (gc == nullptr)
+    {
+        logger_base.error("PathDrawingContext DC creation failed.");
+        return;
+    }
+
     gc->SetAntialiasMode(wxANTIALIAS_NONE);
     gc->SetInterpolationQuality(wxInterpolationQuality::wxINTERPOLATION_FAST);
     gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_SOURCE);
     //gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_OVER);
 #endif
 }
+
 bool TextDrawingContext::AllowAlphaChannel() {
 #ifdef __WXMSW__
     return false;
@@ -241,8 +269,8 @@ bool TextDrawingContext::AllowAlphaChannel() {
 #endif
 }
 
-
 wxImage *DrawingContext::FlushAndGetImage() {
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (gc != nullptr) {
         gc->Flush();
         delete gc;
@@ -257,8 +285,10 @@ wxImage *DrawingContext::FlushAndGetImage() {
 }
 
 void PathDrawingContext::SetPen(wxPen &pen) {
-    gc->SetPen(pen);
+    if (gc != nullptr)
+        gc->SetPen(pen);
 }
+
 void TextDrawingContext::SetPen(wxPen &pen) {
     if (gc != nullptr) {
         gc->SetPen(pen);
@@ -276,7 +306,6 @@ void PathDrawingContext::StrokePath(wxGraphicsPath& path)
 {
     gc->StrokePath(path);
 }
-
 
 void TextDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
     if (gc != nullptr) {
@@ -371,9 +400,10 @@ void TextDrawingContext::GetTextExtent(const wxString &msg, double *width, doubl
 
 RenderBuffer::RenderBuffer(xLightsFrame *f, bool b) : frame(f)
 {
+    _onlyOnMain = false;
     frameTimeInMs = 50;
-    textDrawingContext = nullptr;
-    pathDrawingContext = nullptr;
+    _textDrawingContext = nullptr;
+    _pathDrawingContext = nullptr;
     tempInt = tempInt2 = 0;
     onlyOnMain = b;
     isTransformed = false;
@@ -382,28 +412,51 @@ RenderBuffer::RenderBuffer(xLightsFrame *f, bool b) : frame(f)
 RenderBuffer::~RenderBuffer()
 {
     //dtor
-    if (textDrawingContext != nullptr) {
-        delete textDrawingContext;
+    if (_textDrawingContext != nullptr) {
+        delete _textDrawingContext;
     }
-    if (pathDrawingContext != nullptr) {
-        delete pathDrawingContext;
+    if (_pathDrawingContext != nullptr) {
+        delete _pathDrawingContext;
     }
     for (std::map<int, EffectRenderCache*>::iterator i = infoCache.begin(); i != infoCache.end(); i++) {
         delete i->second;
     }
 }
 
+PathDrawingContext * RenderBuffer::GetPathDrawingContext()
+{
+    if (_pathDrawingContext == nullptr)
+    {
+        _pathDrawingContext = new PathDrawingContext(BufferWi, BufferHt, _onlyOnMain);
+    }
+
+    return _pathDrawingContext; 
+}
+
+TextDrawingContext * RenderBuffer::GetTextDrawingContext()
+{
+    if (_textDrawingContext == nullptr)
+    {
+        _textDrawingContext = new TextDrawingContext(BufferWi, BufferHt, _onlyOnMain);
+    }
+
+    return _textDrawingContext;
+}
+
 void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform)
 {
-    if (pathDrawingContext == nullptr) {
-        pathDrawingContext = new PathDrawingContext(newBufferWi, newBufferHt, onlyOnMain);
+    _onlyOnMain = onlyOnMain;
+    if (_pathDrawingContext == nullptr) {
+        // change to just in time creation
+        //_pathDrawingContext = new PathDrawingContext(newBufferWi, newBufferHt, onlyOnMain);
     } else if (BufferHt != newBufferHt || BufferWi != newBufferWi) {
-        pathDrawingContext->ResetSize(newBufferWi, newBufferHt);
+        _pathDrawingContext->ResetSize(newBufferWi, newBufferHt);
     }
-    if (textDrawingContext == nullptr) {
-        textDrawingContext = new TextDrawingContext(newBufferWi, newBufferHt, onlyOnMain);
+    if (_textDrawingContext == nullptr) {
+        // change to just in time creation
+        //_textDrawingContext = new TextDrawingContext(newBufferWi, newBufferHt, onlyOnMain);
     } else if (BufferHt != newBufferHt || BufferWi != newBufferWi) {
-        textDrawingContext->ResetSize(newBufferWi, newBufferHt);
+        _textDrawingContext->ResetSize(newBufferWi, newBufferHt);
     }
     BufferHt=newBufferHt;
     BufferWi=newBufferWi;
@@ -415,15 +468,10 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
 
 void RenderBuffer::Clear()
 {
-    // KW This is massively faster
     if (pixels.size() > 0)
     {
         memset(&pixels[0], 0x00, sizeof(xlColor) * pixels.size());
     }
-    //for(size_t i=0; i<pixels.size(); i++)
-    //{
-    //    pixels[i]=bgColor;
-    //}
 }
 
 void RenderBuffer::SetPalette(xlColorVector& newcolors, xlColorCurveVector& newcc)
@@ -441,7 +489,6 @@ double RenderBuffer::rand01()
 {
     return (double)rand()/(double)RAND_MAX;
 }
-
 
 class SinTable {
 public:
@@ -1000,10 +1047,11 @@ double RenderBuffer::calcAccel(double ratio, double accel)
 // create a copy of the buffer suitable only for copying out pixel data
 RenderBuffer::RenderBuffer(RenderBuffer& buffer)
 {
+    _onlyOnMain = buffer._onlyOnMain;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
 
     pixels = buffer.pixels;
-    textDrawingContext = NULL;
-    pathDrawingContext = NULL;
+    _textDrawingContext = nullptr;
+    _pathDrawingContext = nullptr;
 }

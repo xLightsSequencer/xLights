@@ -340,14 +340,14 @@ static int TextEffectsIndex(const wxString &st) {
 }
 void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     xlColor c;
-    buffer.textDrawingContext->Clear();
+    buffer.GetTextDrawingContext()->Clear();
 
     buffer.palette.GetColor(0,c);
 
     wxString text = SettingsMap["TEXTCTRL_Text"];
     if (text != "") {
         std::string fontString = SettingsMap["FONTPICKER_Text_Font"];
-        SetFont(buffer.textDrawingContext,fontString,c);
+        SetFont(buffer.GetTextDrawingContext(),fontString,c);
 
         bool pixelOffsets = false;
         int startx = 0;
@@ -362,7 +362,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         pixelOffsets = wxAtoi(SettingsMap.Get("CHECKBOX_Text_PixelOffsets", "0"));
 
         RenderTextLine(buffer,
-                       buffer.textDrawingContext,
+                       buffer.GetTextDrawingContext(),
                        text,
                        TextEffectDirectionsIndex(SettingsMap["CHOICE_Text_Dir"]),
                        wxAtoi(SettingsMap["CHECKBOX_TextToCenter"]),
@@ -372,7 +372,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                        startx, starty, endx, endy, pixelOffsets);
     }
 
-    wxImage * i = buffer.textDrawingContext->FlushAndGetImage();
+    wxImage * i = buffer.GetTextDrawingContext()->FlushAndGetImage();
 
     bool ha = i->HasAlpha();
     for(wxCoord x=0; x<buffer.BufferWi; x++)

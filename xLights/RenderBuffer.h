@@ -382,17 +382,17 @@ public:
     ~RenderBuffer();
     RenderBuffer(RenderBuffer& buffer);
     void InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform);
-	AudioManager* GetMedia();
+    AudioManager* GetMedia();
 
     void Clear();
     void SetPalette(xlColorVector& newcolors, xlColorCurveVector& newcc);
     size_t GetColorCount();
-	void SetAllowAlphaChannel(bool a);
+    void SetAllowAlphaChannel(bool a);
 
     void SetState(int period, bool reset, const std::string& model_name);
 
     void SetEffectDuration(int startMsec, int endMsec);
-    void GetEffectPeriods( int& curEffStartPer, int& curEffEndPer);  // nobody wants endPer?
+    void GetEffectPeriods(int& curEffStartPer, int& curEffEndPer);  // nobody wants endPer?
     void SetFrameTimeInMs(int i);
 
     const xlColor &GetPixel(int x, int y);
@@ -414,8 +414,8 @@ public:
     void DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap = false);
     void DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap = false);
     void DrawCircle(int xc, int yc, int r, const xlColor& color, bool filled = false, bool wrap = false);
-    void DrawLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color );
-    void DrawThickLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction );
+    void DrawLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color);
+    void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction);
 
     //aproximation of sin/cos, but much faster
     static float sin(float rad);
@@ -438,7 +438,9 @@ public:
     float GetEffectTimeIntervalPosition();
     float GetEffectTimeIntervalPosition(float cycles);
 
-
+    bool _onlyOnMain;
+    PathDrawingContext * GetPathDrawingContext();
+    TextDrawingContext * GetTextDrawingContext();
 
     void CopyPixelsToDisplayListX(Effect *eff, int y, int sx, int ex, int inc = 1);
     // must hold the lock and be sized appropriately
@@ -468,9 +470,6 @@ public:
     int fadeinsteps;
     int fadeoutsteps;
 
-    PathDrawingContext *pathDrawingContext;
-    TextDrawingContext *textDrawingContext;
-
     bool needToInit;
     bool allowAlpha;
 
@@ -483,6 +482,8 @@ public:
 
 private:
     bool onlyOnMain;
+    PathDrawingContext *_pathDrawingContext;
+    TextDrawingContext *_textDrawingContext;
 };
 
 

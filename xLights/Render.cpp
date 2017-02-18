@@ -1031,7 +1031,7 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
     }
     bool first = true;
     unsigned int count = 0;
-    for (size_t row = 0; row < numRows; row++) {
+    for (row = 0; row < numRows; row++) {
         if (jobs[row]) {
             if (aggregators[row]->getNumAggregated() == 0) {
                 //start all the jobs that don't depend on anything above them
@@ -1055,7 +1055,7 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
             }
         }
     }
-    for (size_t row = 0; row < numRows; row++) {
+    for (row = 0; row < numRows; row++) {
         if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
             //now start the rest
             jobPool.PushJob(jobs[row]);

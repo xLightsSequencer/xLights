@@ -241,6 +241,7 @@ const long xLightsFrame::ID_MNU_FORCEIP = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::ID_MENU_HELP_FORMUM = wxNewId();
+const long xLightsFrame::ID_MNU_VIDEOS = wxNewId();
 const long xLightsFrame::ID_MENU_HELP_DOWNLOAD = wxNewId();
 const long xLightsFrame::ID_MNU_HELP_RELEASE_NOTES = wxNewId();
 const long xLightsFrame::ID_MENU_HELP_ISSUE = wxNewId();
@@ -824,6 +825,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuHelp->Append(MenuItem4);
     MenuItem_Help_Forum = new wxMenuItem(MenuHelp, ID_MENU_HELP_FORMUM, _("Forum"), wxEmptyString, wxITEM_NORMAL);
     MenuHelp->Append(MenuItem_Help_Forum);
+    MenuItem_VideoTutorials = new wxMenuItem(MenuHelp, ID_MNU_VIDEOS, _("Video Tutorials"), wxEmptyString, wxITEM_NORMAL);
+    MenuHelp->Append(MenuItem_VideoTutorials);
     MenuItem_Help_Download = new wxMenuItem(MenuHelp, ID_MENU_HELP_DOWNLOAD, _("Download"), wxEmptyString, wxITEM_NORMAL);
     MenuHelp->Append(MenuItem_Help_Download);
     MenuItem_Help_ReleaseNotes = new wxMenuItem(MenuHelp, ID_MNU_HELP_RELEASE_NOTES, _("Release Notes"), wxEmptyString, wxITEM_NORMAL);
@@ -976,6 +979,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_MENU_HELP_FORMUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_ForumSelected);
+    Connect(ID_MNU_VIDEOS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_VideoTutorialsSelected);
     Connect(ID_MENU_HELP_DOWNLOAD,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_DownloadSelected);
     Connect(ID_MNU_HELP_RELEASE_NOTES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected);
     Connect(ID_MENU_HELP_ISSUE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_Isue_TrackerSelected);
@@ -4844,3 +4848,8 @@ void xLightsFrame::PlayerError(const wxString& msg)
     wxMessageBox(msg, _("Error"), wxOK | wxICON_EXCLAMATION);
 }
 
+
+void xLightsFrame::OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event)
+{
+    ::wxLaunchDefaultBrowser("http://videos.xlights.org");
+}

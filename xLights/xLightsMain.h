@@ -471,6 +471,7 @@ private:
     void OnMenuItem_BackupSubfoldersSelected(wxCommandEvent& event);
     void OnMenuItem_xScheduleSelected(wxCommandEvent& event);
     void OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event);
+    void OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -632,6 +633,7 @@ private:
     static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
     static const long ID_MENU_HELP_FORMUM;
+    static const long ID_MNU_VIDEOS;
     static const long ID_MENU_HELP_DOWNLOAD;
     static const long ID_MNU_HELP_RELEASE_NOTES;
     static const long ID_MENU_HELP_ISSUE;
@@ -656,6 +658,7 @@ private:
 
     //(*Declarations(xLightsFrame)
     xlAuiToolBar* OutputToolBar;
+    wxMenuItem* MenuItem_VideoTutorials;
     wxButton* ButtonAddE131;
     wxMenuItem* MenuItemViewSavePerspective;
     wxButton* ButtonArtNET;
