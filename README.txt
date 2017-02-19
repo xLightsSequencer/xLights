@@ -8,6 +8,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.4  Feb 14, 2017
+   -- bug (sean)    Include latest xSchedule.exe in release. 2017.3 had old version.
    -- enh (dkulp)   Add a couple "Per Model" render buffer styles to the ModelGroup render styles
    -- enh (gil)     Fix effect backgrounds so that they default to first color of a gradient instead of black.  Fixes #823.
    -- enh (keith)   Let the user turn on/off buffer and timing panel reset when changing effects. This setting is not saved when xlights is closed.
