@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add arduino code for physical button control of xSchedule - this is available from GitHub only ... it isnt installed.
 2017.4  Feb 14, 2017
    -- bug (sean)    Include latest xSchedule.exe in release. 2017.3 had old version.
    -- enh (dkulp)   Add a couple "Per Model" render buffer styles to the ModelGroup render styles

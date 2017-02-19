@@ -1193,7 +1193,11 @@ void xScheduleFrame::CreateButtons()
 
     for (auto it = bs.begin(); it != bs.end(); ++it)
     {
-        CreateButton((*it)->GetLabel());
+        // only show not hidden buttons
+        if (!wxString((*it)->GetLabel()).StartsWith("HIDE_"))
+        {
+            CreateButton((*it)->GetLabel());
+        }
     }
 
     SendSizeEvent();

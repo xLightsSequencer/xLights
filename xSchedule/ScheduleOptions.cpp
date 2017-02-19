@@ -220,15 +220,22 @@ std::string ScheduleOptions::GetButtonsJSON(const CommandManager &cmdMgr) const
     res = "{\"buttons\":[";
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
     {
-        auto cmd = cmdMgr.GetCommand((*it)->GetCommand());
-        if (!cmd->IsUIOnly())
+        if (wxString((*it)->GetLabel()).StartsWith("HIDE_"))
         {
-            if (!first)
+            // dont return these
+        }
+        else
+        {
+            auto cmd = cmdMgr.GetCommand((*it)->GetCommand());
+            if (!cmd->IsUIOnly())
             {
-                res += ",";
+                if (!first)
+                {
+                    res += ",";
+                }
+                first = false;
+                res += "\"" + (*it)->GetLabel() + "\"";
             }
-            first = false;
-            res += "\"" + (*it)->GetLabel() + "\"";
         }
     }
     res += "]}";
