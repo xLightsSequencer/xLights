@@ -948,6 +948,9 @@
     <ClCompile Include="SubModelGenerateDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ViewsModelsPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1833,6 +1836,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SubModelGenerateDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewsModelsPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

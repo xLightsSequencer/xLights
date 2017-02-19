@@ -68,7 +68,7 @@
 #include "ColorPanel.h"
 #include "PerspectivesPanel.h"
 #include "EffectIconPanel.h"
-#include "DisplayElementsPanel.h"
+#include "ViewsModelsPanel.h"
 #include "effects/EffectManager.h"
 #include "models/ModelManager.h"
 #include "LayoutGroup.h"
@@ -1101,7 +1101,7 @@ private:
     PerspectivesPanel* perspectivePanel;
     EffectIconPanel *effectPalettePanel;
     BufferPanel *bufferPanel;
-    DisplayElementsPanel *displayElementsPanel;
+    ViewsModelsPanel *displayElementsPanel;
 
 
     int mMediaLengthMS;

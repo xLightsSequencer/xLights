@@ -684,6 +684,8 @@
 		<Unit filename="VideoReader.h" />
 		<Unit filename="ViewsDialog.cpp" />
 		<Unit filename="ViewsDialog.h" />
+		<Unit filename="ViewsModelsPanel.cpp" />
+		<Unit filename="ViewsModelsPanel.h" />
 		<Unit filename="VsaImportDialog.cpp" />
 		<Unit filename="VsaImportDialog.h" />
 		<Unit filename="WiringDialog.cpp" />
@@ -1178,6 +1180,7 @@
 		<Unit filename="wxsmith/ValueCurveDialog.wxs" />
 		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
+		<Unit filename="wxsmith/ViewsModelsPanel.wxs" />
 		<Unit filename="wxsmith/VsaImportDialog.wxs" />
 		<Unit filename="wxsmith/WavePanel.wxs" />
 		<Unit filename="wxsmith/WiringDialog.wxs" />
@@ -1328,6 +1331,7 @@
 					<wxDialog wxs="wxsmith/IPEntryDialog.wxs" src="IPEntryDialog.cpp" hdr="IPEntryDialog.h" fwddecl="0" i18n="1" name="IPEntryDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CustomTimingDialog.wxs" src="CustomTimingDialog.cpp" hdr="CustomTimingDialog.h" fwddecl="0" i18n="1" name="CustomTimingDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SubModelGenerateDialog.wxs" src="SubModelGenerateDialog.cpp" hdr="SubModelGenerateDialog.h" fwddecl="0" i18n="1" name="SubModelGenerateDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/ViewsModelsPanel.wxs" src="ViewsModelsPanel.cpp" hdr="ViewsModelsPanel.h" fwddecl="0" i18n="1" name="ViewsModelsPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

@@ -13,7 +13,7 @@
 #include "Effect.h"
 #include "../BufferPanel.h"
 #include "../SeqSettingsDialog.h"
-#include "../DisplayElementsPanel.h"
+#include "../ViewsModelsPanel.h"
 #include "../effects/RenderableEffect.h"
 #include "../xlCustomControl.h"
 #include "../NoteImportDialog.h"
@@ -74,7 +74,7 @@ void xLightsFrame::CreateSequencer()
     effectPalettePanel = new EffectIconPanel(effectManager, PanelSequencer);
 
     // DisplayElements Panel
-    displayElementsPanel = new DisplayElementsPanel(this, PanelSequencer);
+    displayElementsPanel = new ViewsModelsPanel(this, PanelSequencer);
     displayElementsPanel->SetViewChoice(mainSequencer->ViewChoice);
     displayElementsPanel->Fit();
 

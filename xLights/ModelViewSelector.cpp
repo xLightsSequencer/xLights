@@ -3,7 +3,6 @@
 //(*InternalHeaders(ModelViewSelector)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "SequenceViewManager.h"
 //*)
 
 //(*IdInit(ModelViewSelector)
