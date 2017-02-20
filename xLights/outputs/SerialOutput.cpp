@@ -281,15 +281,15 @@ bool SerialOutput::Open()
         return false;
     }
 
-    _serial = new SerialPort();
-
     if (_commPort == "NotConnected")
     {
-        logger_base.warn("Serial port for %s not opened as it is tagged as not connected '%s'.", (const char *)GetType().c_str() ,(const char *)_description.c_str());
+        logger_base.warn("Serial port %s for %s not opened as it is tagged as not connected '%s'.", (const char *)_commPort.c_str(), (const char *)GetType().c_str(), (const char *)_description.c_str());
         // dont set ok to false ... while this is not really open it is not an error as the user meant it to be not connected.
     }
     else
     {
+        _serial = new SerialPort();
+
         int errcode = _serial->Open(_commPort, _baudRate, _serialConfig);
         if (errcode < 0)
         {

@@ -65,6 +65,7 @@ void E131Output::CreateMultiUniverses(int num)
 #pragma region Static Functions
 void E131Output::SendSync(int syncUniverse)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static wxByte syncdata[E131_SYNCPACKET_LEN];
     static wxByte syncSequenceNum = 0;
     static bool initialised = false;
@@ -138,20 +139,37 @@ void E131Output::SendSync(int syncUniverse)
             {
                 delete syncdatagram;
             }
+
             syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+
+            if (syncdatagram == nullptr)
+            {
+                logger_base.error("Error initialising E131 sync datagram.");
+            }
+            else if (!syncdatagram->IsOk())
+            {
+                delete syncdatagram;
+                syncdatagram = nullptr;
+                logger_base.error("Error initialising E131 sync datagram ... is network connected.");
+            }
 
             // multicast - universe number must be in lower 2 bytes
             wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d", 239, 255, syncdata[45], syncdata[46]);
             syncremoteAddr.Hostname(ipaddrWithUniv);
             syncremoteAddr.Service(E131_PORT);
 
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.debug("e131 Sync sync universe changed to %d => %s:%d.", syncUniverse, (const char *)ipaddrWithUniv.c_str(), E131_PORT);
         }
+
         syncdata[44] = syncSequenceNum++;   // sequence number
         syncdata[45] = syncUniverse >> 8;
         syncdata[46] = syncUniverse & 0xff;
-        syncdatagram->SendTo(syncremoteAddr, syncdata, E131_SYNCPACKET_LEN);
+
+        // bail if we dont have a datagram to use
+        if (syncdatagram != nullptr)
+        {
+            syncdatagram->SendTo(syncremoteAddr, syncdata, E131_SYNCPACKET_LEN);
+        }
     }
 }
 #pragma endregion Static Functions
@@ -247,6 +265,12 @@ bool E131Output::Open()
         if (_datagram == nullptr)
         {
             logger_base.error("E131Output: Error opening datagram.");
+        }
+        else if (!_datagram->IsOk())
+        {
+            logger_base.error("E131Output: Error opening datagram ... network may not be connected.");
+            delete _datagram;
+            _datagram = nullptr;
         }
 
         if (wxString(_ip).StartsWith("239.255.") || _ip == "MULTICAST")

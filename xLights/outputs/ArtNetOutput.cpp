@@ -100,6 +100,14 @@ void ArtNetOutput::SendSync()
             return;
         }
 
+        if (!syncdatagram->IsOk())
+        {
+            delete syncdatagram;
+            syncdatagram = nullptr;
+            logger_base.error("Error initialising Artnet sync datagram ... is network connected.");
+            return;
+        }
+
         // broadcast ... this is not really in line with the spec
         // I should use the net mask but i cant find a good way to do that
         //syncremoteAddr.BroadcastAddress();
@@ -155,6 +163,15 @@ bool ArtNetOutput::Open()
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
     if (_datagram == nullptr)
     {
+        logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d.", (const char *)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse());
+        _ok = false;
+        return _ok;
+    }
+
+    if (!_datagram->IsOk())
+    {
+        delete _datagram;
+        _datagram = nullptr;
         logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d.", (const char *)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse());
         _ok = false;
         return _ok;
