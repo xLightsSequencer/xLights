@@ -426,6 +426,22 @@ void ScheduleManager::Frame(bool outputframe)
                 (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
             }
 
+            if (outputframe && _brightness < 100)
+            {
+                if (_brightness != _lastBrightness)
+                {
+                    _lastBrightness = _brightness;
+                    CreateBrightnessArray();
+                }
+
+                wxByte* pb = _buffer;
+                for (int i = 0; i < _outputManager->GetTotalChannels(); ++i)
+                {
+                    *pb = _brightnessArray[*pb];
+                    pb++;
+                }
+            }
+
             _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
             _outputManager->EndFrame();
         }
@@ -462,32 +478,33 @@ void ScheduleManager::Frame(bool outputframe)
             {
                 (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
             }
+
+            if (outputframe && _brightness < 100)
+            {
+                if (_brightness != _lastBrightness)
+                {
+                    _lastBrightness = _brightness;
+                    CreateBrightnessArray();
+                }
+
+                wxByte* pb = _buffer;
+                for (int i = 0; i < _outputManager->GetTotalChannels(); ++i)
+                {
+                    *pb = _brightnessArray[*pb];
+                    pb++;
+                }
+            }
+
             _outputManager->EndFrame();
-        }
-    }
-
-    if (outputframe && _brightness < 100)
-    {
-        if (_brightness != _lastBrightness)
-        {
-            _lastBrightness = _brightness;
-            CreateBrightnessArray();
-        }
-
-        wxByte* pb = _buffer;
-        for (int i = 0; i < _outputManager->GetTotalChannels(); ++i)
-        {
-            *pb = _brightnessArray[*pb];
-            pb++;
         }
     }
 }
 
 void ScheduleManager::CreateBrightnessArray()
 {
-    for (int i = 0; i < 255; i++)
+    for (int i = 0; i < 256; i++)
     {
-        _brightnessArray[i] = ((255 * _brightness) / 100) & 0xFF;
+        _brightnessArray[i] = ((i * _brightness) / 100) & 0xFF;
     }
 }
 
