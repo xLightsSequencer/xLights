@@ -1698,6 +1698,64 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
         }
         data += "]}";
     }
+    else if (command == "ListWebFolders")
+    {
+        if (wxString(parameters).Contains(".."))
+        {
+            result = false;
+            msg = "Illegal request.";
+        }
+        else
+        {
+            // parameters holds the subdirectory to scan ... blank is the web directory
+
+            wxString d;
+#ifdef __WXMSW__
+            d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+#elif __LINUX__
+            d = wxStandardPaths::Get().GetDataDir();
+            if (!wxDir::Exists(d)) {
+                d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+            }
+#else
+            d = wxStandardPaths::Get().GetResourcesDir();
+#endif
+            d += "/" + _scheduleOptions->GetWWWRoot();
+
+            if (parameters != "")
+            {
+                d += "/" + parameters;
+            }
+
+            if (!wxDir::Exists(d))
+            {
+                result = false;
+                msg = "Unknown folder.";
+            }
+            else
+            {
+                wxDir dir(d);
+
+                data = "{\"folders\":[";
+                bool first = true;
+                wxString dirname;
+                bool found = dir.GetFirst(&dirname, "", wxDIR_DIRS);
+
+                while (found)
+                {
+                    if (!first)
+                    {
+                        data += ",";
+                    }
+                    first = false;
+                    data += "\"" + dirname + "\"";
+
+                    found = dir.GetNext(&dirname);
+                }
+                data += "]}";
+            }
+        }
+    }
     else if (command == "GetPlayListSchedules")
     {
         PlayList* p = GetPlayList(parameters);

@@ -327,7 +327,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         {
             data = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
             logger_base.info("    data = '' : '%s'.", (const char *)data.c_str());
-            response.MakeFromText("", "application/json");
+            response.MakeFromText(data, "application/json");
         }
 
         connection.SendResponse(response);
