@@ -945,9 +945,11 @@ void xLightsFrame::BuildRenderTree() {
         }
         for (size_t row = 0; row < numEls; row++) {
             Element *rowEl = mSequenceElements.GetElement(row, MASTER_VIEW);
-            if (rowEl->GetType() == ELEMENT_TYPE_MODEL) {
+            if (rowEl != nullptr && rowEl->GetType() == ELEMENT_TYPE_MODEL) {
                 Model *model = GetModel(rowEl->GetModelName());
-                renderTree.Add(model);
+                if (model != nullptr) {
+                    renderTree.Add(model);
+                }
             }
         }
         //renderTree.Print();
