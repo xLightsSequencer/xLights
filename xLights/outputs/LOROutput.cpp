@@ -41,6 +41,8 @@ void LOROutput::SendHeartbeat() const
 #pragma region Start and Stop
 bool LOROutput::Open()
 {
+    if (!_enabled) return true;
+
     _ok = SerialOutput::Open();
 
     for (size_t i = 0; i <= 255; i++)

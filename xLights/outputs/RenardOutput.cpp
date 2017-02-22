@@ -26,6 +26,8 @@ RenardOutput::RenardOutput() : SerialOutput()
 #pragma region Start and Stop
 bool RenardOutput::Open()
 {
+    if (!_enabled) return true;
+
     _ok = SerialOutput::Open();
 
     _datalen = _channels + 2;

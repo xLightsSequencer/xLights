@@ -128,6 +128,9 @@ void ArtNetOutput::SendSync()
 bool ArtNetOutput::Open()
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!_enabled) return true;
+
     _ok = IPOutput::Open();
 
     memset(_data, 0x00, sizeof(_data));

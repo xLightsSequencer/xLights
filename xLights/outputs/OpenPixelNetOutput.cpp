@@ -30,6 +30,8 @@ OpenPixelNetOutput::OpenPixelNetOutput() : SerialOutput()
 #pragma region Start and Stop
 bool OpenPixelNetOutput::Open()
 {
+    if (!_enabled) return true;
+
     _ok = SerialOutput::Open();
 
     _datalen = _channels;

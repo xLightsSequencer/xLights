@@ -178,7 +178,7 @@ void E131Output::SendSync(int syncUniverse)
 bool E131Output::Open()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (!_enabled) return false;
+    if (!_enabled) return true;
 
     if (IsOutputCollection())
     {
@@ -286,8 +286,8 @@ bool E131Output::Open()
         _remoteAddr.Service(E131_PORT);
 
         int i = _channels;
-        wxByte NumHi = i >> 8;   // Channels (high)
-        wxByte NumLo = i & 0xff; // Channels (low)
+        wxByte NumHi = (_channels + 1) >> 8;   // Channels (high)
+        wxByte NumLo = (_channels + 1) & 0xff; // Channels (low)
 
         _data[123] = NumHi;  // Property value count (high)
         _data[124] = NumLo;  // Property value count (low)

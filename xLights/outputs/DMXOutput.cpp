@@ -29,6 +29,8 @@ DMXOutput::DMXOutput() : SerialOutput()
 #pragma region Start and Stop
 bool DMXOutput::Open()
 {
+    if (!_enabled) return true;
+
     _ok = SerialOutput::Open();
 
     int len = _channels < 512 ? 513 : _channels + 1;

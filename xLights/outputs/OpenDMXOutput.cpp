@@ -25,6 +25,8 @@ OpenDMXOutput::OpenDMXOutput() : SerialOutput()
 #pragma region Start and Stop
 bool OpenDMXOutput::Open()
 {
+    if (!_enabled) return true;
+
     _ok = SerialOutput::Open();
 
     _data[0] = 0;   // dmx start code

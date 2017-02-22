@@ -9,6 +9,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- bug (dkulp)   Fix nullptr crash if master view has models that don't exist
+   -- bug (keith)   Fix incorrect Property value count in e131 packets
+   -- bug (keith)   Fix not handling inactive controllers correctly
    -- bug (keith)   Fix handling of Not Connected serial outputs
    -- bug (keith)   Fix xSchedule not applying global brightness correctly
    -- enh (keith)   Add arduino code for physical button control of xSchedule - this is available from GitHub only ... it isnt installed.

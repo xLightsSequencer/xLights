@@ -274,6 +274,7 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts()
 bool SerialOutput::Open()
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     _ok = Output::Open();
 
     if (_commPort == "")

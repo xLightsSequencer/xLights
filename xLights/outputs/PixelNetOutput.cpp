@@ -28,6 +28,8 @@ PixelNetOutput::PixelNetOutput() : SerialOutput()
 #pragma region Start and Stop
 bool PixelNetOutput::Open()
 {
+    if (!_enabled) return true;
+
     _ok = SerialOutput::Open();
 
     _datalen = _channels;
