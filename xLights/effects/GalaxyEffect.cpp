@@ -181,7 +181,7 @@ void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     double step = GetStep(current_radius+half_width);
     double end_angle_start = end_angle + (inward ? step : -step);
 
-    if( current_radius >= half_width ) {
+    if( current_radius >= half_width && half_width > 0.0 ) {
         for( double i = end_angle_start; current_distance <= half_width; (inward ? i += step : i -= step) )
         {
             adj_angle = i + (double)start_angle;
@@ -336,7 +336,7 @@ void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     end_angle_start = end_angle + (inward ? -step : step);
     current_delta = 0.0;
     current_distance = 0.0;
-    if( current_radius >= half_width ) {
+    if( current_radius >= half_width && half_width > 0.0) {
         for( double i = end_angle_start; current_distance <= half_width; (inward ? i -= step : i += step) )
         {
             adj_angle = i + (double)start_angle;
