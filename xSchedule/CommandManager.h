@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-typedef enum { PLAYLIST, STEP, SCHEDULE, INTEGER, STRING, COMMAND, ANY} PARMTYPE;
+typedef enum { PLAYLIST, STEP, SCHEDULE, INTEGER, STRING, COMMAND, ANY, ITEM} PARMTYPE;
 
 class PlayList;
 class Schedule;

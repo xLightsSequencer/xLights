@@ -14,6 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Fix handling of Not Connected serial outputs
    -- bug (keith)   Fix xSchedule not applying global brightness correctly
    -- enh (keith)   Add arduino code for physical button control of xSchedule - this is available from GitHub only ... it isnt installed.
+   -- enh (keith)   Add a run process to the scheduler that does not interrupt current playlist
 2017.4  Feb 14, 2017
    -- bug (sean)    Include latest xSchedule.exe in release. 2017.3 had old version.
    -- enh (dkulp)   Add a couple "Per Model" render buffer styles to the ModelGroup render styles

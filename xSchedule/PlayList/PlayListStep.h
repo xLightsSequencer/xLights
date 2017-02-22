@@ -72,11 +72,14 @@ public:
     void RemoveItem(PlayListItem* item);
     bool Frame(wxByte* buffer, size_t size, bool outputframe);
     size_t GetPosition() const;
+    PlayListItem* GetItem(const std::string item) const;
+    PlayListItem* GetItem(const wxUint32 id) const;
     size_t GetLengthMS() const;
     size_t GetFrameMS() const;
     void AdjustTime(wxTimeSpan by);
     bool IsRunningFSEQ(const std::string& fseqFile);
     void SetSyncPosition(size_t frame, size_t ms);
+    PlayListItem* FindRunProcessNamed(const std::string& item) const;
 #pragma endregion Getters and Setters
 
     wxXmlNode* Save();

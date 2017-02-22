@@ -16,6 +16,7 @@ class RunningSchedule;
 class PlayListStep;
 class OutputProcess;
 class Xyzzy;
+class PlayListItem;
 
 typedef enum
 {
@@ -80,6 +81,7 @@ class ScheduleManager : public wxEvtHandler
     void StopVirtualMatrices();
     void OnServerEvent(wxSocketEvent& event);
     void StartFSEQ(const std::string fseq);
+    PlayListItem* FindRunProcessNamed(const std::string& item) const;
 
     DECLARE_EVENT_TABLE()
 

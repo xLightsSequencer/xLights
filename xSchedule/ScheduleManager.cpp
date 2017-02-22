@@ -971,6 +971,60 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     }
                 }
             }
+            else if (command == "Run process")
+            {
+                bool run = false;
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = split[0].ToStdString();
+                std::string step = split[1].ToStdString();
+                std::string item = split[2].ToStdString();
+
+                if (pl == "" && step == "")
+                {
+                    PlayListItem* pli = FindRunProcessNamed(item);
+                    if (pli != nullptr)
+                    {
+                        if (pli->GetTitle() == "Run Process")
+                        {
+                            pli->Start();
+                            pli->Frame(nullptr, 0, 50, 50, true);
+                            pli->Stop();
+                            run = true;
+                        }
+                    }
+                }
+                else
+                {
+                    PlayList* p = GetPlayList(pl);
+                    if (p != nullptr)
+                    {
+                        PlayListStep* pls = p->GetStep(step);
+
+                        if (pls != nullptr)
+                        {
+                            PlayListItem* pli = pls->GetItem(item);
+
+                            if (pli != nullptr)
+                            {
+                                if (pli->GetTitle() == "Run Process")
+                                {
+                                    pli->Start();
+                                    pli->Frame(nullptr, 0, 50, 50, true);
+                                    pli->Stop();
+                                    run = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (!run)
+                {
+                    result = false;
+                    msg = "Unable to find run process.";
+                }
+            }
             else if (command == "Play specified playlist step once only")
             {
                 wxString parameter = parameters;
@@ -1470,6 +1524,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         msg = "Unable to start playlist.";
                     }
                 }
+            }
+            else
+            {
+                result = false;
+                msg = "Unrecognised command. Check command case.";
             }
         }
     }
@@ -3517,4 +3576,18 @@ void ScheduleManager::OnServerEvent(wxSocketEvent& event)
             }
         }
     }
+}
+
+PlayListItem* ScheduleManager::FindRunProcessNamed(const std::string& item) const
+{
+    PlayListItem *pli = nullptr;
+
+    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+    {
+        pli = (*it)->FindRunProcessNamed(item);
+
+        if (pli != nullptr) break;
+    }
+
+    return pli;
 }

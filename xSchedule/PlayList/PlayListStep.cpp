@@ -623,3 +623,42 @@ PlayListItemText* PlayListStep::GetTextItem(const std::string& name) const
 
     return nullptr;
 }
+
+PlayListItem* PlayListStep::GetItem(const std::string item) const
+{
+    for (auto it = _items.begin(); it != _items.end(); ++it)
+    {
+        if (wxString((*it)->GetNameNoTime()).Lower() == wxString(item).Lower())
+        {
+            return *it;
+        }
+    }
+
+    return nullptr;
+}
+
+PlayListItem* PlayListStep::GetItem(const wxUint32 id) const
+{
+    for (auto it = _items.begin(); it != _items.end(); ++it)
+    {
+        if ((*it)->GetId() == id)
+        {
+            return *it;
+        }
+    }
+
+    return nullptr;
+}
+
+PlayListItem* PlayListStep::FindRunProcessNamed(const std::string& item) const
+{
+    for (auto it = _items.begin(); it != _items.end(); ++it)
+    {
+        if ((*it)->GetTitle() == "Run Process" && wxString((*it)->GetNameNoTime()).Lower() == wxString(item).Lower())
+        {
+            return (*it);
+        }
+    }
+
+    return nullptr;
+}

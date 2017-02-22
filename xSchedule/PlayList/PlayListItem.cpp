@@ -13,6 +13,7 @@ PlayListItem::PlayListItem(wxXmlNode* node)
     _frames = 0;
     _msPerFrame = 50;
     _delay = 0;
+    _name = "";
     PlayListItem::Load(node);
 }
 
@@ -21,10 +22,12 @@ void PlayListItem::Load(wxXmlNode* node)
     _delay = wxAtoi(node->GetAttribute("Delay", "0"));
     _volume = wxAtoi(node->GetAttribute("Volume", "-1"));
     _priority = wxAtoi(node->GetAttribute("Priority", "0"));
+    _name = node->GetAttribute("Name", "");
 }
 
 PlayListItem::PlayListItem()
 {
+    _name = "";
     _id = __playlistitemid++;
     _volume = -1;
     _lastSavedChangeCount = 0;
@@ -38,6 +41,7 @@ PlayListItem::PlayListItem()
 void PlayListItem::Save(wxXmlNode* node)
 {
     node->AddAttribute("Delay", wxString::Format(wxT("%i"), _delay));
+    node->AddAttribute("Name", _name);
     if (_volume != -1)
     {
         node->AddAttribute("Volume", wxString::Format(wxT("%i"), _volume));

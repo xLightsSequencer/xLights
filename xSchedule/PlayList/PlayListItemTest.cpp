@@ -10,7 +10,6 @@ PlayListItemTest::PlayListItemTest(wxXmlNode* node) : PlayListItem(node)
     _duration = 60000;
     _frameDuration = 500;
     _mode = "Value 2";
-    _name = "";
     _state = 0;
     _value1 = 0;
     _value2 = 255;
@@ -25,7 +24,6 @@ PlayListItemTest::~PlayListItemTest()
 void PlayListItemTest::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
-    _name = node->GetAttribute("Name", "");
     _mode = node->GetAttribute("Mode", "");
     _startChannel = wxAtoi(node->GetAttribute("StartChannel", "1"));
     _channels = wxAtoi(node->GetAttribute("Channels", "1000"));
@@ -42,7 +40,6 @@ PlayListItemTest::PlayListItemTest() : PlayListItem()
     _duration = 60000;
     _frameDuration = 500;
     _mode = "Value 2";
-    _name = "";
     _state = 0;
     _value1 = 0;
     _value2 = 255;
@@ -56,7 +53,6 @@ PlayListItem* PlayListItemTest::Copy() const
     res->_duration = _duration;
     res->_frameDuration = _frameDuration;
     res->_mode = _mode;
-    res->_name = _name;
     res->_value1 = _value1;
     res->_value2 = _value2;
     PlayListItem::Copy(res);
@@ -68,7 +64,6 @@ wxXmlNode* PlayListItemTest::Save()
 {
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLITest");
 
-    node->AddAttribute("Name", _name);
     node->AddAttribute("Mode", _mode);
     node->AddAttribute("StartChannel", wxString::Format(wxT("%i"), _startChannel));
     node->AddAttribute("Channels", wxString::Format(wxT("%i"), _channels));

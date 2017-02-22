@@ -2,7 +2,9 @@
 #include <wx/wx.h>
 #include "ScheduleManager.h"
 #include "PlayList/PlayList.h"
+#include "PlayList/PlayListStep.h"
 #include "Schedule.h"
+#include "PlayList/PlayListItem.h"
 
 Command::Command(const std::string& name, int parms, const PARMTYPE* parmtypes, bool reqSelPL, bool reqSelSch, bool reqPlayPL, bool reqPlaySch, bool worksinslavemode, bool worksInQueuedMode, bool userSelectable, bool uiOnly)
 {
@@ -111,6 +113,42 @@ bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* s
                 return false;
             }
         }
+        else if (_parmtype[i] == PARMTYPE::ITEM)
+        {
+            // assume the prior parameters are playlist and step ... this is important
+            if (components.Count() < 3)
+            {
+                    msg = "Not enough parameters.";
+                    return false;
+            }
+
+            pl = scheduleManager->GetPlayList(components[i - 2].ToStdString());
+            if (pl == nullptr)
+            {
+                msg = wxString::Format("Parameter %d: '%s' is not a known playlist.", i - 1, components[i - 2].c_str()).ToStdString();
+                return false;
+            }
+
+            PlayListStep* pls = pl->GetStep(components[i - 1].ToStdString());
+            if (pls == nullptr)
+            {
+                msg = wxString::Format("Parameter %d: '%s' is not a known step in playlist '%s'.", i, components[i-1].c_str(), pl->GetNameNoTime().c_str()).ToStdString();
+                return false;
+            }
+
+            PlayListItem* pli = pls->GetItem(components[i].ToStdString());
+            if (pli == nullptr)
+            {
+                msg = wxString::Format("Parameter %d: '%s' is not a known item in step '%s' in playlist '%s'.", i + 1, components[i].c_str(), pls->GetNameNoTime().c_str(), pl->GetNameNoTime().c_str()).ToStdString();
+                return false;
+            }
+
+            if (pli->GetTitle() != "Run Process")
+            {
+                msg = wxString::Format("Parameter %d: '%s' is not a run process item in step '%s' in playlist '%s'.", i + 1, components[i].c_str(), pls->GetNameNoTime().c_str(), pl->GetNameNoTime().c_str()).ToStdString();
+                return false;
+            }
+        }
     }
 
     return true;
@@ -152,6 +190,7 @@ CommandManager::CommandManager()
     PARMTYPE sss[] = { PARMTYPE::STRING, PARMTYPE::STRING, PARMTYPE::STRING };
     PARMTYPE sch[] = { PARMTYPE::SCHEDULE };
     PARMTYPE c[] = { PARMTYPE::COMMAND };
+    PARMTYPE plstit[] = { PARMTYPE::PLAYLIST, PARMTYPE::STEP, PARMTYPE::ITEM };
 
     _commands.push_back(new Command("Stop all now", 0, {}, false, false, true, false, false, true, true, false));
     _commands.push_back(new Command("Stop", 0,{}, false, false, true, false, false, false, true, false));
@@ -201,5 +240,6 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Bring to foreground", 0, {}, false, false, false, false, true, true, false, false)); // this is useful from the web UI to force the scheduler into the foreground on the PC
     _commands.push_back(new Command("Set current text", 3, sss, false, false, true, false, true, true, false, true)); // <text name>,<text>, <properties>
     _commands.push_back(new Command("Set pixels", 3, sss, false, false, true, false, true, true, false, true)); // <set channels name>,<base64 encoded data>, <properties>
+    _commands.push_back(new Command("Run process", 3, plstit, false, false, false, false, true, true, true, false));
 }
 

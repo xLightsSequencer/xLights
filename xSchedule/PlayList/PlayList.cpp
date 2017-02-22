@@ -943,3 +943,17 @@ PlayListStep* PlayList::GetStepWithFSEQ(const std::string fseqFile)
 
     return nullptr;
 }
+
+PlayListItem* PlayList::FindRunProcessNamed(const std::string& item) const
+{
+    PlayListItem *pli = nullptr;
+
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        pli = (*it)->FindRunProcessNamed(item);
+
+        if (pli != nullptr) break;
+    }
+
+    return pli;
+}

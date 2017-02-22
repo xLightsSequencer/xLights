@@ -9,6 +9,7 @@ class wxXmlNode;
 class PlayListStep;
 class wxWindow;
 class Schedule;
+class PlayListItem;
 
 class PlayList
 {
@@ -68,6 +69,7 @@ public:
     size_t GetLengthMS() const;
     bool IsDirty() const;
     void ClearDirty();
+    PlayListItem* FindRunProcessNamed(const std::string& item) const;
     int GetFrameMS() const;
     Schedule* GetSchedule(int id) const;
     Schedule* GetSchedule(const std::string& name) const;
