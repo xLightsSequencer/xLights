@@ -1446,7 +1446,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     colorPanel->SetSupports(ef->SupportsLinearColorCurves(settings), ef->SupportsRadialColorCurves(settings));
 }
 
-void xLightsFrame::ApplySetting(wxString name, wxString value)
+void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     long TempLong;

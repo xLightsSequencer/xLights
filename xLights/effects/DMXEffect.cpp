@@ -153,7 +153,7 @@ void DMXEffect::adjustSettings(const std::string &version, Effect *effect)
 bool DMXEffect::SetDMXSinglColorPixel(int chan, int num_channels, const SettingsMap &SettingsMap, double eff_pos, xlColor& color, RenderBuffer &buffer)
 {
     if( num_channels >= chan ) {
-        wxString name = wxString::Format("DMX%d", chan);
+        std::string name = wxString::Format("DMX%d", chan).ToStdString();
         int value = GetValueCurveInt(name, 0, SettingsMap, eff_pos);
         color.red = value;
         color.green = value;
@@ -183,7 +183,7 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, const SettingsMap &Set
     color = xlBLACK;
     int base_chan = ((node-1)*3+1);
     if( num_channels >= base_chan || buffer.BufferWi < node) {
-        wxString name = wxString::Format("DMX%d", base_chan);
+        std::string name = wxString::Format("DMX%d", base_chan).ToStdString();
         int value = GetValueCurveInt(name, 0, SettingsMap, eff_pos);
         SetColorBasedOnStringType(value, 1, color, string_type);
         if( num_channels >= base_chan+1 ) {

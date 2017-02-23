@@ -72,6 +72,14 @@ public:
         }
         return i->second;
     }
+    bool Contains(const std::string &key) const {
+        std::map<std::string, std::string>::const_iterator i(find(key));
+        if (i == end()) {
+            return false;
+        }
+        return true;
+    }
+    
 
 
 
@@ -99,11 +107,7 @@ public:
     }
     bool Contains(const char* ckey) const {
         std::string key(ckey);
-        std::map<std::string, std::string>::const_iterator i(find(key));
-        if (i == end()) {
-            return false;
-        }
-        return true;
+        return Contains(key);
     }
 
     std::string Get(const char *ckey, const char *def) const {

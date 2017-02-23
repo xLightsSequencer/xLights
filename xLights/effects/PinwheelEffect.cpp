@@ -50,6 +50,25 @@ void PinwheelEffect::SetDefaultParameters(Model *cls) {
     SetCheckBoxValue(pp->CheckBox_Pinwheel_Rotation, true);
 }
 
+bool PinwheelEffect::needToAdjustSettings(const std::string &version) {
+    // give the base class a chance to adjust any settings
+    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2017.5", version);
+}
+void PinwheelEffect::adjustSettings(const std::string &version, Effect *effect) {
+    // give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect);
+    }
+    SettingsMap &settings = effect->GetSettings();
+    if (settings.Contains("E_TEXTCTRL_Pinwheel_Speed")) {
+        std::string val = settings["E_TEXTCTRL_Pinwheel_Speed"];
+        settings.erase("E_TEXTCTRL_Pinwheel_Speed");
+        settings["E_SLIDER_Pinwheel_Speed"] = val;
+    }
+}
+
+
 void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();

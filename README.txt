@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Fix Pinwheel effects created before June 2016
    -- bug (dkulp)   Re-allow use of hostnames instead of IP addresses for outputs
    -- bug (dkulp)   Fix nullptr crash if master view has models that don't exist
    -- bug (keith)   Fix incorrect Property value count in e131 packets

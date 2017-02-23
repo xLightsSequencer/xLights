@@ -279,7 +279,7 @@ public:
                            const SettingsMap &settings, const SettingsMap &palette,
                            bool setDefaults);
     void SetEffectControls(const SettingsMap &settings);
-	void ApplySetting(wxString name, wxString value);
+	void ApplySetting(wxString name, const wxString &value);
     void LoadPerspectivesMenu(wxXmlNode* perspectivesNode);
     struct PerspectiveId {
         int id;

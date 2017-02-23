@@ -185,7 +185,7 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
         else if (ChildName.StartsWith("ID_VALUECURVE"))
         {
             ValueCurveButton* ctrl = (ValueCurveButton*)ChildWin;
-            //if (ctrl->GetValue()->IsActive())
+            if (ctrl->GetValue()->IsActive())
             {
                 s += AttrName + "=" + ctrl->GetValue()->Serialise() + ",";
             }
@@ -768,7 +768,7 @@ void RenderableEffect::SetRadioValue(wxRadioButton *r) {
     r->ProcessWindowEvent(evt);
 }
 
-double RenderableEffect::GetValueCurveDouble(wxString name, double def, const SettingsMap &SettingsMap, float offset)
+double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, const SettingsMap &SettingsMap, float offset)
 {
     double res = SettingsMap.GetDouble("TEXTCTRL_" + name, def);
 
@@ -784,21 +784,24 @@ double RenderableEffect::GetValueCurveDouble(wxString name, double def, const Se
 
     return res;
 }
-int RenderableEffect::GetValueCurveInt(wxString name, int def, const SettingsMap &SettingsMap, float offset)
+int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const SettingsMap &SettingsMap, float offset)
 {
     int res = def;
-    if (SettingsMap.Contains("SLIDER_" + name))
+    const std::string sn = "SLIDER_" + name;
+    const std::string tn = "TEXTCTRL_" + name;
+    if (SettingsMap.Contains(sn))
     {
-        res = SettingsMap.GetInt("SLIDER_" + name, def);
+        res = SettingsMap.GetInt(sn, def);
     }
-    else if (SettingsMap.Contains("TEXTCTRL_" + name))
+    else if (SettingsMap.Contains(tn))
     {
-        res = SettingsMap.GetInt("TEXTCTRL_" + name, def);
+        res = SettingsMap.GetInt(tn, def);
     }
 
-    if (SettingsMap.Contains("VALUECURVE_" + name))
+    const std::string vn = "VALUECURVE_" + name;
+    if (SettingsMap.Contains(vn))
     {
-        wxString vc = SettingsMap.Get("VALUECURVE_" + name, "");
+        wxString vc = SettingsMap.Get(vn, "");
         ValueCurve valc(vc.ToStdString());
         if (valc.IsActive())
         {

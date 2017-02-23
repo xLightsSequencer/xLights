@@ -77,8 +77,8 @@ class RenderableEffect
         static void SetTextValue(wxTextCtrl* choice, std::string value);
         static void SetCheckBoxValue(wxCheckBox *w, bool b);
 
-        double GetValueCurveDouble(wxString name, double def, const SettingsMap &SettingsMap, float offset);
-        int GetValueCurveInt(wxString name, int def, const SettingsMap &SettingsMap, float offset);
+        double GetValueCurveDouble(const std::string & name, double def, const SettingsMap &SettingsMap, float offset);
+        int GetValueCurveInt(const std::string &name, int def, const SettingsMap &SettingsMap, float offset);
         bool IsVersionOlder(const std::string& compare, const std::string& version);
         void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS, xlColorVector &colors);
         virtual void RemoveDefaults(const std::string &version, Effect *effect);
