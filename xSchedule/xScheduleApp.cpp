@@ -126,12 +126,12 @@ void InitialiseLogging(bool fromMain)
 #endif
 #ifdef __WXOSX_MAC__
         std::string initFileName = "xschedule.mac.properties";
+        std::string resourceName = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/xschedule.mac.properties";
         if (!wxFile::Exists(initFileName)) {
             if (fromMain) {
                 return;
-            }
-            else if (wxFile::Exists(wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties")) {
-                initFileName = wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties";
+            } else if (wxFile::Exists(resourceName)) {
+                initFileName = resourceName;
             }
         }
         loggingInitialised = true;
