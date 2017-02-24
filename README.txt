@@ -8,6 +8,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.5  Feb 23, 2017
    -- bug (dkulp)   Fix Pinwheel effects created before June 2016
    -- bug (dkulp)   Re-allow use of hostnames instead of IP addresses for outputs
    -- bug (dkulp)   Fix nullptr crash if master view has models that don't exist
@@ -17,7 +18,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Fix xSchedule not applying global brightness correctly
    -- enh (keith)   Add arduino code for physical button control of xSchedule - this is available from GitHub only ... it isnt installed.
    -- enh (keith)   Add a run process to the scheduler that does not interrupt current playlist
-2017.4  Feb 14, 2017
+2017.4  Feb 18, 2017
    -- bug (sean)    Include latest xSchedule.exe in release. 2017.3 had old version.
    -- enh (dkulp)   Add a couple "Per Model" render buffer styles to the ModelGroup render styles
    -- enh (gil)     Fix effect backgrounds so that they default to first color of a gradient instead of black.  Fixes #823.
