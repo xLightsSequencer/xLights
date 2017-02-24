@@ -4727,6 +4727,25 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
         lostfiles[fnMedia.GetFullPath().ToStdString()] = lost;
     }
 
+    // Add any iseq files
+    prog.Update(35, fnMedia.GetFullName());
+    DataLayerSet& data_layers = CurrentSeqXmlFile->GetDataLayers();
+    for (int j = 0; j < data_layers.GetNumLayers(); ++j)
+    {
+        DataLayer* dl = data_layers.GetDataLayer(j);
+
+        if (dl->GetName() != "Nutcracker")
+        {
+            wxFileName fndl(dl->GetDataSource());
+
+            lost = AddFileToZipFile(CurrentDir.ToStdString(), fndl.GetFullPath().ToStdString(), zip);
+            if (lost != "")
+            {
+                lostfiles[fndl.GetFullPath().ToStdString()] = lost;
+            }
+        }
+    }
+
     // Add any effects images/videos/glediator files
     std::list<std::string> effectfiles;
     for (size_t j = 0; j < mSequenceElements.GetElementCount(0); j++)
@@ -4756,7 +4775,7 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
         wxFileName fnf(*f);
         if (fnf.Exists())
         {
-            prog.Update(30 + (int)(64.0 * i / (float)effectfiles.size()), fnf.GetFullName());
+            prog.Update(35 + (int)(59.0 * i / (float)effectfiles.size()), fnf.GetFullName());
             lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
             if (lost != "")
             {
