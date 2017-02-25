@@ -161,7 +161,7 @@ ScheduleManager::~ScheduleManager()
     logger_base.info("Stopped outputting to lights.");
     if (IsDirty())
 	{
-		if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsave changes", wxYES_NO) == wxID_YES)
+		if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsaved changes", wxYES_NO) == wxID_YES)
 		{
 			Save();
 		}
@@ -2834,7 +2834,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
         d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
     }
 #else
-    d = wxStandardPaths::Get().GetExecutablePath();
+    d = wxStandardPaths::Get().GetResourcesDir();
 #endif
 
     wxString file = d + "/" + _scheduleOptions->GetWWWRoot() + "/index.html";
