@@ -45,8 +45,8 @@ class PicturesPanel: public wxPanel
 
 		//(*Declarations(PicturesPanel)
 		wxSlider* Slider_PicturesEndXC;
+		wxChoice* Choice_Scaling;
 		wxCheckBox* CheckBox_Pictures_PixelOffsets;
-		wxCheckBox* CheckBox_Pictures_ScaleToFit;
 		wxSlider* Slider_Pictures_Speed;
 		wxCheckBox* CheckBox_Pictures_WrapX;
 		wxChoice* Choice_Pictures_Direction;
@@ -83,7 +83,7 @@ class PicturesPanel: public wxPanel
 		static const long ID_TEXTCTRL_Pictures_FrameRateAdj;
 		static const long ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed;
 		static const long ID_CHECKBOX_Pictures_PixelOffsets;
-		static const long ID_CHECKBOX_Pictures_ScaleToFit;
+		static const long ID_CHOICE_Scaling;
 		static const long ID_CHECKBOX_Pictures_Shimmer;
 		static const long ID_SLIDER_PicturesXC;
 		static const long ID_CHECKBOX_Pictures_WrapX;

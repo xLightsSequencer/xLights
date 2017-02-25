@@ -11,6 +11,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp)   Fix xScheduler logging on OSX
    -- enh (keith)   Add duration treatments to glediator effect
    -- bug (keith)   Include iseq files in package sequence
+   -- enh (keith)   Add a scale but keep aspect ration option to Pictures effect
 2017.5  Feb 23, 2017
    -- bug (dkulp)   Fix Pinwheel effects created before June 2016
    -- bug (dkulp)   Re-allow use of hostnames instead of IP addresses for outputs

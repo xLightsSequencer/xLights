@@ -20,7 +20,7 @@ class PicturesEffect : public RenderableEffect
                            float movementSpeed, float frameRateAdj,
                            int xc_adj, int yc_adj,
                            int xce_adj, int yce_adj,
-                           int start_scale, int end_scale, bool scale_to_fit,
+                           int start_scale, int end_scale, const std::string& scale_to_fit,
                            bool pixelOffsets, bool wrap_x, bool shimmer);
 
         virtual AssistPanel *GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame) override;

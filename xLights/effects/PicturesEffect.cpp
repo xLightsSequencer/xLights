@@ -90,6 +90,19 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect)
         settings.erase("E_CHECKBOX_Pictures_ForceGIFOverlay");
     }
 
+    if (settings.Contains("E_CHECKBOX_Pictures_ScaleToFit"))
+    {
+        if (settings.GetBool("E_CHECKBOX_Pictures_ScaleToFit", false))
+        {
+            settings["E_CHOICE_Scaling"] = "Scale To Fit";
+        }
+        else
+        {
+            settings["E_CHOICE_Scaling"] = "No Scaling";
+        }
+        settings.erase("E_CHECKBOX_Pictures_ScaleToFit");
+    }
+
     std::string file = settings["E_FILEPICKER_Pictures_Filename"];
     if (file != "")
     {
@@ -321,9 +334,9 @@ void PicturesEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(pp->Slider_Pictures_StartScale, 100);
 
     SetChoiceValue(pp->Choice_Pictures_Direction, "none");
+    SetChoiceValue(pp->Choice_Scaling, "No Scaling");
 
     SetCheckBoxValue(pp->CheckBox_Pictures_PixelOffsets, false);
-    SetCheckBoxValue(pp->CheckBox_Pictures_ScaleToFit, false);
     SetCheckBoxValue(pp->CheckBox_Pictures_WrapX, false);
     SetCheckBoxValue(pp->CheckBox_Pictures_Shimmer, false);
 
@@ -349,7 +362,7 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
            SettingsMap.GetInt("SLIDER_PicturesEndYC", 0),
            SettingsMap.GetInt("SLIDER_Pictures_StartScale", 100),
            SettingsMap.GetInt("SLIDER_Pictures_EndScale", 100),
-           SettingsMap.GetBool("CHECKBOX_Pictures_ScaleToFit", false),
+           SettingsMap.Get("CHOICE_Scaling", "No Scaling"),
            SettingsMap.GetBool("CHECKBOX_Pictures_PixelOffsets", false),
            SettingsMap.GetBool("CHECKBOX_Pictures_WrapX", false),
         SettingsMap.GetBool("CHECKBOX_Pictures_Shimmer", false)
@@ -477,7 +490,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                             float movementSpeed, float frameRateAdj,
                             int xc_adj, int yc_adj,
                             int xce_adj, int yce_adj,
-                            int start_scale, int end_scale, bool scale_to_fit,
+                            int start_scale, int end_scale, const std::string& scale_to_fit,
                             bool pixelOffsets, bool wrap_x, bool shimmer) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -627,7 +640,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         }
     }
     
-    if (!scale_to_fit && (start_scale != end_scale))
+    if (scale_to_fit == "No Scaling" && (start_scale != end_scale))
     {
         image = rawimage;
         scale_image = true;
@@ -640,13 +653,24 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     int waveX=0, waveY=0, waveW=0, waveN=0; //location of first wave, height adjust, width, wave# -DJ
     float xscale=0, yscale=0;
 
-    if( scale_to_fit )
+    if( scale_to_fit == "Scale To Fit")
     {
         image.Rescale(BufferWi, BufferHt);
         imgwidth=image.GetWidth();
         imght = image.GetHeight();
         yoffset =(BufferHt+imght)/2; //centered if sizes don't match
         xoffset =(imgwidth-BufferWi)/2; //centered if sizes don't match
+    }
+    else if (scale_to_fit == "Scale Keep Aspect Ratio")
+    {
+        float xr = (float)BufferWi / (float)image.GetWidth();
+        float yr = (float)BufferHt / (float)image.GetHeight();
+        float sc = std::min(xr, yr);
+        image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc);
+        imgwidth = image.GetWidth();
+        imght = image.GetHeight();
+        yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
+        xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
     }
     else
     {

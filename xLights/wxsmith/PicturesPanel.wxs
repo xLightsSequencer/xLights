@@ -199,10 +199,15 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Pictures_ScaleToFit" variable="CheckBox_Pictures_ScaleToFit" member="yes">
-									<label>Scale To Fit</label>
+								<object class="wxChoice" name="ID_CHOICE_Scaling" variable="Choice_Scaling" member="yes">
+									<content>
+										<item>No Scaling</item>
+										<item>Scale To Fit</item>
+										<item>Scale Keep Aspect Ratio</item>
+									</content>
+									<selection>0</selection>
 								</object>
-								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
