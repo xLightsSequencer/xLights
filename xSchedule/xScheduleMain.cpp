@@ -571,6 +571,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     }
 
     _timer.Stop();
+    if (rate == 0) rate = 50;
     _timer.Start(rate/2, false);
     _timerSchedule.Stop();
     _timerSchedule.Start(500, true);
@@ -1057,6 +1058,7 @@ void xScheduleFrame::UpdateSchedule()
     if (_timer.GetInterval() != rate / 2)
     {
         _timer.Stop();
+        if (rate == 0) rate = 50;
         _timer.Start(rate / 2);
     }
 
@@ -1210,7 +1212,9 @@ void xScheduleFrame::RateNotification(wxCommandEvent& event)
     if (_timer.GetInterval() != event.GetInt() / 2)
     {
         _timer.Stop();
-        _timer.Start(event.GetInt() / 2);
+        int rate = event.GetInt();
+        if (rate == 0) rate = 50;
+        _timer.Start(rate / 2);
     }
 }
 
@@ -1258,6 +1262,7 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
     if (rate / 2 != _timer.GetInterval())
     {
         _timer.Stop();
+        if (rate == 0) rate = 50;
         _timer.Start(rate / 2);
     }
 
@@ -1891,6 +1896,7 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
             if (rate / 2 != _timer.GetInterval())
             {
                 _timer.Stop();
+                if (rate == 0) rate = 50;
                 _timer.Start(rate / 2);
             }
 
