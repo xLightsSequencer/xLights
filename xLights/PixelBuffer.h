@@ -81,6 +81,9 @@ private:
             sparkle_count = 0;
             music_sparkle_count = false;
             brightness = 100;
+            hueadjust = 0;
+            saturationadjust = 0;
+            valueadjust = 0;
             contrast = 0;
             fadeFactor = 0.0;
             mixType = Mix_Normal;
@@ -101,6 +104,9 @@ private:
         std::string blurValueCurve;
         std::string sparklesValueCurve;
         std::string brightnessValueCurve;
+        std::string hueAdjustValueCurve;
+        std::string saturationAdjustValueCurve;
+        std::string valueAdjustValueCurve;
         std::string rotationValueCurve;
         std::string zoomValueCurve;
         std::string rotationsValueCurve;
@@ -112,6 +118,9 @@ private:
         ValueCurve BlurValueCurve;
         ValueCurve SparklesValueCurve;
         ValueCurve BrightnessValueCurve;
+        ValueCurve HueAdjustValueCurve;
+        ValueCurve SaturationAdjustValueCurve;
+        ValueCurve ValueAdjustValueCurve;
         ValueCurve RotationValueCurve;
         ValueCurve ZoomValueCurve;
         ValueCurve RotationsValueCurve;
@@ -127,6 +136,9 @@ private:
         int pivotpointx;
         int pivotpointy;
         int brightness;
+        int hueadjust;
+        int saturationadjust;
+        int valueadjust;
         int contrast;
         double fadeFactor;
         MixTypes mixType;

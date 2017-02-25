@@ -2,15 +2,15 @@
 #define COLORPANEL_H
 
 //(*Headers(ColorPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
-#include <wx/button.h>
-#include <wx/panel.h>
 #include <wx/scrolwin.h>
-#include <wx/slider.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/slider.h>
+#include <wx/panel.h>
+#include <wx/bmpbuttn.h>
+#include <wx/button.h>
 //*)
 
 #include <wx/dir.h>
@@ -69,31 +69,44 @@ public:
 
 		//(*Declarations(ColorPanel)
 		wxStaticText* StaticText22;
-		wxTextCtrl* txtCtlBrightness;
-		wxTextCtrl* txtCtrlSparkleFreq;
-		wxScrolledWindow* ColorScrollWindow;
-		wxStaticText* StaticText126;
-		wxBitmapButton* BitmapButton_normal;
-		wxBitmapButton* BitmapButton_MusicSparkles;
-		wxCheckBox* CheckBox_MusicSparkles;
-		wxTextCtrl* txtCtlContrast;
-		wxBitmapButton* BitmapButton_SparkleFrequency;
-		wxSlider* Slider_Contrast;
-		wxSlider* Slider_SparkleFrequency;
 		wxBitmapButton* BitmapButton_Contrast;
-		ValueCurveButton* BitmapButton_SparkleFrequencyVC;
-		wxPanel* Panel_Sizer;
-		wxBitmapButton* BitmapButton_random;
-		wxStaticText* StaticText127;
-		wxBitmapButton* BitmapButton_ShuffleColours;
+		wxSlider* Slider_Color_HueAdjust;
 		wxBitmapButton* BitmapButton_Brightness;
-		wxBitmapButton* BitmapButton_locked;
-		ValueCurveButton* BitmapButton_VCBrightness;
+		ValueCurveButton* BitmapButton_Color_ValueAdjust;
 		wxFlexGridSizer* FlexGridSizer_Palette;
-		wxBitmapButton* BitmapButton_DeletePalette;
-		ColourList* BitmapButton_ColourChoice;
+		wxBitmapButton* BitmapButton_ShuffleColours;
+		wxStaticText* StaticText2;
+		wxSlider* Slider_Color_SaturationAdjust;
 		wxBitmapButton* BitmapButton_SavePalette;
+		wxBitmapButton* BitmapButton_random;
+		wxTextCtrl* TextCtrl_Color_ValueAdjust;
+		wxBitmapButton* BitmapButton_normal;
+		wxPanel* Panel_Sizer;
+		ColourList* BitmapButton_ColourChoice;
+		wxBitmapButton* BitmapButton_SparkleFrequency;
+		wxStaticText* StaticText1;
+		ValueCurveButton* BitmapButton_Color_SaturationAdjust;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText127;
+		wxTextCtrl* txtCtlBrightness;
+		wxTextCtrl* txtCtlContrast;
+		wxBitmapButton* BitmapButton_locked;
+		wxSlider* Slider_Color_ValueAdjust;
+		wxBitmapButton* BitmapButton_MusicSparkles;
 		wxSlider* Slider_Brightness;
+		wxStaticText* StaticText126;
+		wxSlider* Slider_SparkleFrequency;
+		wxScrolledWindow* ColorScrollWindow;
+		ValueCurveButton* BitmapButton_VCBrightness;
+		ValueCurveButton* BitmapButton_Color_HueAdjust;
+		wxTextCtrl* txtCtrlSparkleFreq;
+		wxSlider* Slider_Contrast;
+		wxBitmapButton* BitmapButton_DeletePalette;
+		wxCheckBox* CheckBox_MusicSparkles;
+		wxStaticText* StaticText4;
+		ValueCurveButton* BitmapButton_SparkleFrequencyVC;
+		wxTextCtrl* TextCtrl_Color_HueAdjust;
+		wxTextCtrl* TextCtrl_Color_SaturationAdjust;
 		//*)
 
 	protected:
@@ -120,6 +133,19 @@ public:
 		static const long ID_SLIDER_Contrast;
 		static const long IDD_TEXTCTRL_Contrast;
 		static const long ID_BITMAPBUTTON_SLIDER_Contrast;
+		static const long ID_STATICTEXT4;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_Color_HueAdjust;
+		static const long ID_VALUECURVE_Color_HueAdjust;
+		static const long IDD_TEXTCTRL_Color_HueAdjust;
+		static const long ID_STATICTEXT2;
+		static const long ID_SLIDER_Color_SaturationAdjust;
+		static const long ID_VALUECURVE_Color_SaturationAdjust;
+		static const long IDD_TEXTCTRL_Color_SaturationAdjust;
+		static const long ID_STATICTEXT3;
+		static const long ID_SLIDER_Color_ValueAdjust;
+		static const long ID_VALUECURVE_Color_ValueAdjust;
+		static const long IDD_TEXTCTRL_Color_ValueAdjust;
 		static const long ID_BITMAPBUTTON87;
 		static const long ID_BITMAPBUTTON1;
 		static const long ID_BITMAPBUTTON88;

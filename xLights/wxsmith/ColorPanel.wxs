@@ -61,7 +61,6 @@
 															<object class="sizeritem">
 																<object class="Custom" name="ID_CUSTOM1" subclass="ColourList" variable="BitmapButton_ColourChoice" member="yes">
 																	<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
-																	<style></style>
 																</object>
 																<flag>wxALL|wxEXPAND</flag>
 																<border>2</border>
@@ -306,6 +305,174 @@
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxFlexGridSizer" variable="FlexGridSizer12" member="no">
+											<cols>3</cols>
+											<growablecols>1</growablecols>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+													<label>Adjustment</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+													<label>Hue</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer13" member="no">
+													<cols>3</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Color_HueAdjust" variable="Slider_Color_HueAdjust" member="yes">
+															<min>-100</min>
+															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_HueAdjust" subclass="ValueCurveButton" variable="BitmapButton_Color_HueAdjust" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_HueAdjust" variable="TextCtrl_Color_HueAdjust" member="yes">
+													<value>0</value>
+													<maxlength>4</maxlength>
+													<size>35,-1</size>
+													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+													<label>Saturation</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer15" member="no">
+													<cols>2</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Color_SaturationAdjust" variable="Slider_Color_SaturationAdjust" member="yes">
+															<min>-100</min>
+															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_SaturationAdjust" subclass="ValueCurveButton" variable="BitmapButton_Color_SaturationAdjust" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_SaturationAdjust" variable="TextCtrl_Color_SaturationAdjust" member="yes">
+													<value>0</value>
+													<maxlength>4</maxlength>
+													<size>35,-1</size>
+													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+													<label>Value</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer14" member="no">
+													<cols>3</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Color_ValueAdjust" variable="Slider_Color_ValueAdjust" member="yes">
+															<min>-100</min>
+															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_ValueAdjust" subclass="ValueCurveButton" variable="BitmapButton_Color_ValueAdjust" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_ValueAdjust" variable="TextCtrl_Color_ValueAdjust" member="yes">
+													<value>0</value>
+													<maxlength>4</maxlength>
+													<size>35,-1</size>
+													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">

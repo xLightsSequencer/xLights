@@ -19,11 +19,11 @@
 
 class xLightsFrame;
 //(*InternalHeaders(ColorPanel)
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/intl.h>
 #include <wx/bitmap.h>
+#include <wx/settings.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 #include <wx/valnum.h>
@@ -60,6 +60,19 @@ const long ColorPanel::ID_STATICTEXT128 = wxNewId();
 const long ColorPanel::ID_SLIDER_Contrast = wxNewId();
 const long ColorPanel::IDD_TEXTCTRL_Contrast = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON_SLIDER_Contrast = wxNewId();
+const long ColorPanel::ID_STATICTEXT4 = wxNewId();
+const long ColorPanel::ID_STATICTEXT1 = wxNewId();
+const long ColorPanel::ID_SLIDER_Color_HueAdjust = wxNewId();
+const long ColorPanel::ID_VALUECURVE_Color_HueAdjust = wxNewId();
+const long ColorPanel::IDD_TEXTCTRL_Color_HueAdjust = wxNewId();
+const long ColorPanel::ID_STATICTEXT2 = wxNewId();
+const long ColorPanel::ID_SLIDER_Color_SaturationAdjust = wxNewId();
+const long ColorPanel::ID_VALUECURVE_Color_SaturationAdjust = wxNewId();
+const long ColorPanel::IDD_TEXTCTRL_Color_SaturationAdjust = wxNewId();
+const long ColorPanel::ID_STATICTEXT3 = wxNewId();
+const long ColorPanel::ID_SLIDER_Color_ValueAdjust = wxNewId();
+const long ColorPanel::ID_VALUECURVE_Color_ValueAdjust = wxNewId();
+const long ColorPanel::IDD_TEXTCTRL_Color_ValueAdjust = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON87 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON1 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON88 = wxNewId();
@@ -158,18 +171,22 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
     _brightness.SetMax(400);
 
 	//(*Initialize(ColorPanel)
-	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxButton* ButtonColor1;
-	wxFlexGridSizer* FlexGridSizer11;
-	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxButton* ButtonColor1;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer15;
+	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer14;
+	wxFlexGridSizer* FlexGridSizer13;
+	wxFlexGridSizer* FlexGridSizer12;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer11;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
@@ -259,6 +276,49 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	BitmapButton_Contrast->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_Contrast, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer4->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer12->AddGrowableCol(1);
+	StaticText4 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT4, _("Adjustment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer12->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer12->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer12->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText1 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT1, _("Hue"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer12->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer13 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer13->AddGrowableCol(0);
+	Slider_Color_HueAdjust = new wxSlider(ColorScrollWindow, ID_SLIDER_Color_HueAdjust, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Color_HueAdjust"));
+	FlexGridSizer13->Add(Slider_Color_HueAdjust, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Color_HueAdjust = new ValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Color_HueAdjust, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Color_HueAdjust"));
+	FlexGridSizer13->Add(BitmapButton_Color_HueAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer12->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_Color_HueAdjust = new wxTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_Color_HueAdjust, _("0"), wxDefaultPosition, wxSize(35,-1), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Color_HueAdjust"));
+	TextCtrl_Color_HueAdjust->SetMaxLength(4);
+	FlexGridSizer12->Add(TextCtrl_Color_HueAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText2 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT2, _("Saturation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer12->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer15 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer15->AddGrowableCol(0);
+	Slider_Color_SaturationAdjust = new wxSlider(ColorScrollWindow, ID_SLIDER_Color_SaturationAdjust, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Color_SaturationAdjust"));
+	FlexGridSizer15->Add(Slider_Color_SaturationAdjust, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Color_SaturationAdjust = new ValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Color_SaturationAdjust, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Color_SaturationAdjust"));
+	FlexGridSizer15->Add(BitmapButton_Color_SaturationAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer12->Add(FlexGridSizer15, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_Color_SaturationAdjust = new wxTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_Color_SaturationAdjust, _("0"), wxDefaultPosition, wxSize(35,-1), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Color_SaturationAdjust"));
+	TextCtrl_Color_SaturationAdjust->SetMaxLength(4);
+	FlexGridSizer12->Add(TextCtrl_Color_SaturationAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText3 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT3, _("Value"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer12->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer14 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer14->AddGrowableCol(0);
+	Slider_Color_ValueAdjust = new wxSlider(ColorScrollWindow, ID_SLIDER_Color_ValueAdjust, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Color_ValueAdjust"));
+	FlexGridSizer14->Add(Slider_Color_ValueAdjust, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Color_ValueAdjust = new ValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Color_ValueAdjust, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Color_ValueAdjust"));
+	FlexGridSizer14->Add(BitmapButton_Color_ValueAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer12->Add(FlexGridSizer14, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_Color_ValueAdjust = new wxTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_Color_ValueAdjust, _("0"), wxDefaultPosition, wxSize(35,-1), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Color_ValueAdjust"));
+	TextCtrl_Color_ValueAdjust->SetMaxLength(4);
+	FlexGridSizer12->Add(TextCtrl_Color_ValueAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 4, 0, 0);
 	BitmapButton_normal = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON87, padlock16x16_green_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON87"));
 	BitmapButton_normal->Hide();
@@ -299,6 +359,15 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(ID_SLIDER_Contrast,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrl);
 	Connect(IDD_TEXTCTRL_Contrast,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Contrast,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
+	Connect(ID_SLIDER_Color_HueAdjust,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Color_HueAdjust,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
+	Connect(IDD_TEXTCTRL_Color_HueAdjust,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedSlider);
+	Connect(ID_SLIDER_Color_SaturationAdjust,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Color_SaturationAdjust,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
+	Connect(IDD_TEXTCTRL_Color_SaturationAdjust,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedSlider);
+	Connect(ID_SLIDER_Color_ValueAdjust,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Color_ValueAdjust,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
+	Connect(IDD_TEXTCTRL_Color_ValueAdjust,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedSlider);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ColorPanel::OnResize);
 	//*)
 
@@ -593,6 +662,16 @@ wxString ColorPanel::GetRandomColorString() {
     if (Slider_Contrast->GetValue() != 0) {
         ret+= wxString::Format("C_SLIDER_Contrast=%d",Slider_Contrast->GetValue());
     }
+    if (Slider_Color_HueAdjust->GetValue() != 0) {
+        ret += wxString::Format("C_SLIDER_Color_HueAdjust=%d", Slider_Color_HueAdjust->GetValue());
+    }
+    if (Slider_Color_SaturationAdjust->GetValue() != 0) {
+        ret += wxString::Format("C_SLIDER_Color_SaturationAdjust=%d", Slider_Color_SaturationAdjust->GetValue());
+    }
+    if (Slider_Color_ValueAdjust->GetValue() != 0) {
+        ret += wxString::Format("C_SLIDER_Color_ValueAdjust=%d", Slider_Color_ValueAdjust->GetValue());
+    }
+
     return ret;
 }
 
@@ -674,6 +753,46 @@ wxString ColorPanel::GetColorString()
         }
     }
 
+    if (BitmapButton_Color_HueAdjust->GetValue()->IsActive())
+    {
+        wxString hueVC = wxString(BitmapButton_Color_HueAdjust->GetValue()->Serialise().c_str());
+        s += "C_VALUECURVE_Color_HueAdjust=";
+        s += hueVC;
+        s += ",";
+    }
+    else
+    {
+        if (Slider_Color_HueAdjust->GetValue() != 0) {
+            s += wxString::Format("C_SLIDER_Color_HueAdjust=%d,", Slider_Color_HueAdjust->GetValue());
+        }
+    }
+    if (BitmapButton_Color_SaturationAdjust->GetValue()->IsActive())
+    {
+        wxString satVC = wxString(BitmapButton_Color_SaturationAdjust->GetValue()->Serialise().c_str());
+        s += "C_VALUECURVE_Color_SaturationAdjust=";
+        s += satVC;
+        s += ",";
+    }
+    else
+    {
+        if (Slider_Color_SaturationAdjust->GetValue() != 0) {
+            s += wxString::Format("C_SLIDER_Color_SaturationAdjust=%d,", Slider_Color_SaturationAdjust->GetValue());
+        }
+    }
+    if (BitmapButton_Color_ValueAdjust->GetValue()->IsActive())
+    {
+        wxString valueVC = wxString(BitmapButton_Color_ValueAdjust->GetValue()->Serialise().c_str());
+        s += "C_VALUECURVE_Color_ValueAdjust=";
+        s += valueVC;
+        s += ",";
+    }
+    else
+    {
+        if (Slider_Color_ValueAdjust->GetValue() != 0) {
+            s += wxString::Format("C_SLIDER_Color_ValueAdjust=%d,", Slider_Color_ValueAdjust->GetValue());
+        }
+    }
+
     if (Slider_Contrast->GetValue() != 0) {
         s+= wxString::Format("C_SLIDER_Contrast=%d",Slider_Contrast->GetValue());
     }
@@ -723,6 +842,12 @@ void ColorPanel::SetDefaultSettings() {
     Slider_Contrast->SetValue(0);
     txtCtlContrast->SetValue("0");
     txtCtrlSparkleFreq->SetValue("0");
+    Slider_Color_HueAdjust->SetValue(0);
+    TextCtrl_Color_HueAdjust->SetValue("0");
+    Slider_Color_SaturationAdjust->SetValue(0);
+    TextCtrl_Color_SaturationAdjust->SetValue("0");
+    Slider_Color_ValueAdjust->SetValue(0);
+    TextCtrl_Color_ValueAdjust->SetValue("0");
 
     if (touchBar != nullptr) {
         touchBar->SetSparkles(0);

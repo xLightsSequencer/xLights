@@ -88,6 +88,9 @@ void PixelBufferClass::reset(int nlayers, int timing)
         layers[x]->inTransitionType = "Fade";
         layers[x]->subBuffer = "";
         layers[x]->brightnessValueCurve = "";
+        layers[x]->hueAdjustValueCurve = "";
+        layers[x]->saturationAdjustValueCurve = "";
+        layers[x]->valueAdjustValueCurve = "";
         layers[x]->blurValueCurve = "";
         layers[x]->sparklesValueCurve = "";
         layers[x]->rotationValueCurve = "";
@@ -581,6 +584,81 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                 thelayer->buffer.GetPixel(x, y, color);
             }
 
+            // adjust for HSV adjustments
+            {
+                HSVValue hsv = color.asHSV();
+
+                float ha = 0.0;
+                if (thelayer->HueAdjustValueCurve.IsActive())
+                {
+                    ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                }
+                else
+                {
+                    ha = (float)thelayer->hueadjust / 100.0;
+                }
+                if (ha != 0)
+                {
+                    hsv.hue += ha;
+                    if (hsv.hue < 0)
+                    {
+                        hsv.hue += 1.0;
+                    }
+                    else if (hsv.hue > 1)
+                    {
+                        hsv.hue -= 1.0;
+                    }
+                }
+
+                float sa = 0.0;
+                if (thelayer->SaturationAdjustValueCurve.IsActive())
+                {
+                    sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                }
+                else
+                {
+                    sa = (float)thelayer->saturationadjust / 100.0;
+                }
+                if (sa != 0)
+                {
+                    hsv.saturation += sa;
+                    if (hsv.saturation < 0)
+                    {
+                        hsv.saturation = 0.0;
+                    }
+                    else if (hsv.saturation > 1)
+                    {
+                        hsv.saturation = 1.0;
+                    }
+                }
+
+                float va = 0.0;
+                if (thelayer->ValueAdjustValueCurve.IsActive())
+                {
+                    va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                }
+                else
+                {
+                    va = (float)thelayer->valueadjust / 100.0;
+                }
+                if (va != 0)
+                {
+                    hsv.value += va;
+                    if (hsv.value < 0)
+                    {
+                        hsv.value = 0.0;
+                    }
+                    else if (hsv.value > 1)
+                    {
+                        hsv.value = 1.0;
+                    }
+                }
+
+                unsigned char alpha = color.Alpha();
+                color = hsv;
+                color.alpha = alpha;
+            }
+
             // add sparkles
             if (color != xlBLACK &&
                 (thelayer->music_sparkle_count ||
@@ -1054,6 +1132,9 @@ static const std::string CUSTOM_SubBuffer("CUSTOM_SubBuffer");
 static const std::string VALUECURVE_Blur("VALUECURVE_Blur");
 static const std::string VALUECURVE_Sparkles("VALUECURVE_SparkleFrequency");
 static const std::string VALUECURVE_Brightness("VALUECURVE_Brightness");
+static const std::string VALUECURVE_HueAdjust("VALUECURVE_Color_HueAdjust");
+static const std::string VALUECURVE_SaturationAdjust("VALUECURVE_Color_SaturationAdjust");
+static const std::string VALUECURVE_ValueAdjust("VALUECURVE_Color_ValueAdjust");
 static const std::string VALUECURVE_Zoom("VALUECURVE_Zoom");
 static const std::string VALUECURVE_Rotation("VALUECURVE_Rotation");
 static const std::string VALUECURVE_Rotations("VALUECURVE_Rotations");
@@ -1065,6 +1146,9 @@ static const std::string STR_EMPTY("");
 static const std::string SLIDER_SparkleFrequency("SLIDER_SparkleFrequency");
 static const std::string CHECKBOX_MusicSparkles("CHECKBOX_MusicSparkles");
 static const std::string SLIDER_Brightness("SLIDER_Brightness");
+static const std::string SLIDER_HueAdjust("SLIDER_Color_HueAdjust");
+static const std::string SLIDER_SaturationAdjust("SLIDER_Color_SaturationAdjust");
+static const std::string SLIDER_ValueAdjust("SLIDER_Color_ValueAdjust");
 static const std::string SLIDER_Contrast("SLIDER_Contrast");
 static const std::string STR_NORMAL("Normal");
 static const std::string STR_NONE("None");
@@ -1147,6 +1231,9 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->music_sparkle_count = settingsMap.GetBool(CHECKBOX_MusicSparkles, false);
 
     inf->brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
+    inf->hueadjust = settingsMap.GetInt(SLIDER_HueAdjust, 0);
+    inf->saturationadjust = settingsMap.GetInt(SLIDER_SaturationAdjust, 0);
+    inf->valueadjust = settingsMap.GetInt(SLIDER_ValueAdjust, 0);
     inf->contrast=settingsMap.GetInt(SLIDER_Contrast, 0);
 
     SetMixType(layer, settingsMap.Get(CHOICE_LayerMethod, STR_NORMAL));
@@ -1161,18 +1248,24 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     const std::string &blurValueCurve = settingsMap.Get(VALUECURVE_Blur, STR_EMPTY);
     const std::string &sparklesValueCurve = settingsMap.Get(VALUECURVE_Sparkles, STR_EMPTY);
     const std::string &brightnessValueCurve = settingsMap.Get(VALUECURVE_Brightness, STR_EMPTY);
+    const std::string &hueAdjustValueCurve = settingsMap.Get(VALUECURVE_HueAdjust, STR_EMPTY);
+    const std::string &saturationAdjustValueCurve = settingsMap.Get(VALUECURVE_SaturationAdjust, STR_EMPTY);
+    const std::string &valueAdjustValueCurve = settingsMap.Get(VALUECURVE_ValueAdjust, STR_EMPTY);
     const std::string &rotationValueCurve = settingsMap.Get(VALUECURVE_Rotation, STR_EMPTY);
     const std::string &zoomValueCurve = settingsMap.Get(VALUECURVE_Zoom, STR_EMPTY);
     const std::string &rotationsValueCurve = settingsMap.Get(VALUECURVE_Rotations, STR_EMPTY);
     const std::string &pivotpointxValueCurve = settingsMap.Get(VALUECURVE_PivotPointX, STR_EMPTY);
     const std::string &pivotpointyValueCurve = settingsMap.Get(VALUECURVE_PivotPointY, STR_EMPTY);
 
-    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve || inf->sparklesValueCurve != sparklesValueCurve || inf->zoomValueCurve != zoomValueCurve || inf->rotationValueCurve != rotationValueCurve || inf->rotationsValueCurve != rotationsValueCurve || inf->pivotpointxValueCurve != pivotpointxValueCurve || inf->pivotpointyValueCurve != pivotpointyValueCurve || inf->brightnessValueCurve != brightnessValueCurve)
+    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve || inf->sparklesValueCurve != sparklesValueCurve || inf->zoomValueCurve != zoomValueCurve || inf->rotationValueCurve != rotationValueCurve || inf->rotationsValueCurve != rotationsValueCurve || inf->pivotpointxValueCurve != pivotpointxValueCurve || inf->pivotpointyValueCurve != pivotpointyValueCurve || inf->brightnessValueCurve != brightnessValueCurve || inf->hueAdjustValueCurve != hueAdjustValueCurve || inf->saturationAdjustValueCurve != saturationAdjustValueCurve || inf->valueAdjustValueCurve != valueAdjustValueCurve)
     {
         inf->buffer.Nodes.clear();
         model->InitRenderBufferNodes(type, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
+        ComputeValueCurve(hueAdjustValueCurve, inf->HueAdjustValueCurve);
+        ComputeValueCurve(saturationAdjustValueCurve, inf->SaturationAdjustValueCurve);
+        ComputeValueCurve(valueAdjustValueCurve, inf->ValueAdjustValueCurve);
         ComputeValueCurve(blurValueCurve, inf->BlurValueCurve);
         ComputeValueCurve(sparklesValueCurve, inf->SparklesValueCurve);
         ComputeValueCurve(rotationValueCurve, inf->RotationValueCurve);
@@ -1186,6 +1279,9 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->blurValueCurve = blurValueCurve;
         inf->sparklesValueCurve = sparklesValueCurve;
         inf->brightnessValueCurve = brightnessValueCurve;
+        inf->hueAdjustValueCurve = hueAdjustValueCurve;
+        inf->saturationAdjustValueCurve = saturationAdjustValueCurve;
+        inf->valueAdjustValueCurve = valueAdjustValueCurve;
         inf->zoomValueCurve = zoomValueCurve;
         inf->rotationValueCurve = rotationValueCurve;
         inf->rotationsValueCurve = rotationsValueCurve;

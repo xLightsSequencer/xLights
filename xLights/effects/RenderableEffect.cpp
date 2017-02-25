@@ -339,6 +339,18 @@ void RenderableEffect::RemoveDefaults(const std::string &version, Effect *effect
         palette.erase("C_SLIDER_Brightness");
         changed = true;
     }
+    if (palette.Get("C_SLIDER_Color_HueAdjust", "") == "0") {
+        palette.erase("C_SLIDER_Color_HueAdjust");
+        changed = true;
+    }
+    if (palette.Get("C_SLIDER_Color_SaturationAdjust", "") == "0") {
+        palette.erase("C_SLIDER_Color_SaturationAdjust");
+        changed = true;
+    }
+    if (palette.Get("C_SLIDER_Color_ValueAdjust", "") == "0") {
+        palette.erase("C_SLIDER_Color_ValueAdjust");
+        changed = true;
+    }
     if (palette.Get("C_SLIDER_Contrast", "") == "0") {
         palette.erase("C_SLIDER_Contrast");
         changed = true;
