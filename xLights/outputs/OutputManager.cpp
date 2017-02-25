@@ -491,9 +491,11 @@ bool OutputManager::AreAllIPOutputs(std::list<int> outputNumbers)
     return true;
 }
 
-std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip) const
+std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std::list<int>& selected) const
 {
     std::list<Output*> res;
+
+    std::list<Output*> sel = GetAllOutputs(selected);
 
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
@@ -510,6 +512,27 @@ std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip) const
             else
             {
                 res.push_back(*it);
+            }
+        }
+        else
+        {
+            for (auto it2 = sel.begin(); it2 != sel.end(); ++it2)
+            {
+                if ((*it2)->GetOutputNumber() == (*it)->GetOutputNumber())
+                {
+                    if ((*it2)->IsOutputCollection())
+                    {
+                        auto o = (*it2)->GetOutputs();
+                        for (auto it3 = o.begin(); it3 != o.end(); ++it3)
+                        {
+                            res.push_back(*it3);
+                        }
+                    }
+                    else
+                    {
+                        res.push_back(*it2);
+                    }
+                }
             }
         }
     }

@@ -175,15 +175,7 @@ void Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& sel
     int output = 0;
 
     // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip);
-
-    // get outputs based on selected
-    std::list<Output*> o2 = outputManager->GetAllOutputs(selected);
-
-    // now merge them together and eleminate the duplicates
-    outputs.merge(o2);
-    outputs.sort();
-    outputs.unique();
+    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
 
     for (auto it = outputs.begin(); it != outputs.end(); ++it)
     {
@@ -261,15 +253,7 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     int maxport = 0;
 
     // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip);
-
-    // get outputs based on selected
-    std::list<Output*> o2 = outputManager->GetAllOutputs(selected);
-
-    // now merge them together and eleminate the duplicates
-    outputs.merge(o2);
-    outputs.sort();
-    outputs.unique();
+    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
 
     for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
     {

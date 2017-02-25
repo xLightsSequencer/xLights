@@ -207,15 +207,7 @@ std::string FPP::SaveFPPUniverses(const std::string& onlyip, const std::list<int
     if (universes.IsOpened())
     {
         // Get universes based on IP
-        std::list<Output*> outputs = _outputManager->GetAllOutputs(onlyip);
-
-        // get outputs based on selected
-        std::list<Output*> o2 = _outputManager->GetAllOutputs(selected);
-
-        // now merge them together and eleminate the duplicates
-        outputs.merge(o2);
-        outputs.sort();
-        outputs.unique();
+        std::list<Output*> outputs = _outputManager->GetAllOutputs(onlyip, selected);
 
         long onebasedcount = 1;
 
