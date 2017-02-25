@@ -3,10 +3,10 @@
 
 //(*Headers(GlediatorPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxBitmapButton;
+class wxFilePickerCtrl;
+class wxStaticText;
 class wxFlexGridSizer;
-class wxButton;
+class wxChoice;
 //*)
 
 class GlediatorPanel: public wxPanel
@@ -17,9 +17,10 @@ class GlediatorPanel: public wxPanel
 		virtual ~GlediatorPanel();
 
 		//(*Declarations(GlediatorPanel)
-		wxTextCtrl* TextCtrl_Glediator_Filename;
-		wxButton* ButtonGledFile;
-		wxBitmapButton* BitmapButton_Glediator_Filename;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText1;
+		wxFilePickerCtrl* FilePickerCtrl_Glediator_Filename;
+		wxChoice* Choice_Glediator_DurationTreatment;
 		//*)
     
         wxString defaultDir;
@@ -27,9 +28,10 @@ class GlediatorPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(GlediatorPanel)
-		static const long ID_BUTTON_GLED_FILE;
-		static const long ID_BITMAPBUTTON10;
-		static const long ID_TEXTCTRL_Glediator_Filename;
+		static const long ID_STATICTEXT2;
+		static const long ID_FILEPICKERCTRL_Glediator_Filename;
+		static const long ID_STATICTEXT1;
+		static const long ID_CHOICE_Glediator_DurationTreatment;
 		//*)
 
 	public:
@@ -42,7 +44,6 @@ class GlediatorPanel: public wxPanel
     void UpdateLinkedTextCtrl(wxScrollEvent& event);
     void UpdateLinkedSlider(wxCommandEvent& event);
     void OnLockButtonClick(wxCommandEvent& event);
-    void OnButton_Glediator_FilenameClick(wxCommandEvent& event);
     void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
     void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
     void OnVCButtonClick(wxCommandEvent& event);

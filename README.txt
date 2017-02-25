@@ -8,6 +8,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Fix xScheduler logging on OSX
+   -- enh (keith)   Add duration treatments to glediator effect
+   -- bug (keith)   Include iseq files in package sequence
 2017.5  Feb 23, 2017
    -- bug (dkulp)   Fix Pinwheel effects created before June 2016
    -- bug (dkulp)   Re-allow use of hostnames instead of IP addresses for outputs
@@ -64,9 +67,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Add xSchedule
    -- enh (keith)   Refactor output processing. This should generally be invisible other than some performance enhancements and
                     useability enhancements on the setup tab. This includes Fix #789, #808 and #812
-   -- fix (keith)   Fix #760 - ESEQ elispses doesnt open dialog
+   -- bug (keith)   Fix #760 - ESEQ elispses doesnt open dialog
    -- enh (keith)   Fix #796 - disable export effects if no sequence open
-   -- fix (keith)   Fix #785 - mac crash due to UI update on background thread in Fireworks effect.
+   -- bug (keith)   Fix #785 - mac crash due to UI update on background thread in Fireworks effect.
    -- enh (keith)   Optionally allow backup to backup xml files in subdirectories for users that dont keep their xml files in the show
                     directory itself but a folder underneath it
 2016.56  Dec 31, 2016
@@ -615,7 +618,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith) Add Colour On sub effect to VU Meter - Selects a colour based on the intensity of the audio
    -- enh (keith) Add the ability to constrain the frequency range of the spectrogram. Columns in
                      this effect are now aligned with MIDI notes.
-   -- fix (keith) Ensure pictures, piano and video effect move when moving folders around
+   -- bug (keith) Ensure pictures, piano and video effect move when moving folders around
    -- enh (keith) Move convert tab into a dialog under TOOLS. Now go to convert "TOOLS,CONVERT"
 2016.20  Apr 13, 2016
    -- bug (gil)   Fix right-click Paste not active after a Control-C copy.

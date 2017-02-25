@@ -612,21 +612,9 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
 				{
 					settings = xLightsXmlFile::FixEffectFileParameter("E_FILEPICKER_Pictures_Filename", settings, "");
 				}
-				else if (settings.find("E_TEXTCTRL_Glediator_Filename") != std::string::npos)
+				else if (settings.find("E_FILEPICKER_Glediator_Filename") != std::string::npos)
 				{
-					settings = xLightsXmlFile::FixEffectFileParameter("E_TEXTCTRL_Glediator_Filename", settings, "");
-				}
-				else if (settings.find("E_TEXTCTRL_Piano_CueFilename") != std::string::npos)
-				{
-					settings = xLightsXmlFile::FixEffectFileParameter("E_TEXTCTRL_Piano_CueFilename", settings, "");
-				}
-				else if (settings.find("E_TEXTCTRL_Piano_MapFilename") != std::string::npos)
-				{
-					settings = xLightsXmlFile::FixEffectFileParameter("E_TEXTCTRL_Piano_MapFilename", settings, "");
-				}
-				else if (settings.find("E_TEXTCTRL_Piano_ShapeFilename") != std::string::npos)
-				{
-					settings = xLightsXmlFile::FixEffectFileParameter("E_TEXTCTRL_Piano_ShapeFilename", settings, "");
+					settings = xLightsXmlFile::FixEffectFileParameter("E_FILEPICKER_Glediator_Filename", settings, "");
 				}
 
                 wxString tmp;

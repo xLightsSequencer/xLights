@@ -4,13 +4,10 @@
 
 //(*InternalHeaders(GlediatorPanel)
 #include <wx/sizer.h>
-#include <wx/textctrl.h>
-#include <wx/bitmap.h>
-#include <wx/settings.h>
-#include <wx/bmpbuttn.h>
+#include <wx/stattext.h>
+#include <wx/filepicker.h>
+#include <wx/choice.h>
 #include <wx/intl.h>
-#include <wx/button.h>
-#include <wx/image.h>
 #include <wx/string.h>
 //*)
 
@@ -18,9 +15,10 @@
 
 
 //(*IdInit(GlediatorPanel)
-const long GlediatorPanel::ID_BUTTON_GLED_FILE = wxNewId();
-const long GlediatorPanel::ID_BITMAPBUTTON10 = wxNewId();
-const long GlediatorPanel::ID_TEXTCTRL_Glediator_Filename = wxNewId();
+const long GlediatorPanel::ID_STATICTEXT2 = wxNewId();
+const long GlediatorPanel::ID_FILEPICKERCTRL_Glediator_Filename = wxNewId();
+const long GlediatorPanel::ID_STATICTEXT1 = wxNewId();
+const long GlediatorPanel::ID_CHOICE_Glediator_DurationTreatment = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(GlediatorPanel,wxPanel)
@@ -31,28 +29,24 @@ END_EVENT_TABLE()
 GlediatorPanel::GlediatorPanel(wxWindow* parent)
 {
 	//(*Initialize(GlediatorPanel)
-	wxFlexGridSizer* FlexGridSizer54;
 	wxFlexGridSizer* FlexGridSizer53;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer53 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer54 = new wxFlexGridSizer(0, 2, 0, 0);
-	ButtonGledFile = new wxButton(this, ID_BUTTON_GLED_FILE, _("Glediator *.gled File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_GLED_FILE"));
-	FlexGridSizer54->Add(ButtonGledFile, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Glediator_Filename = new wxBitmapButton(this, ID_BITMAPBUTTON10, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,17), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON10"));
-	BitmapButton_Glediator_Filename->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	FlexGridSizer54->Add(BitmapButton_Glediator_Filename, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer53->Add(FlexGridSizer54, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer53->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Glediator_Filename = new wxTextCtrl(this, ID_TEXTCTRL_Glediator_Filename, wxEmptyString, wxDefaultPosition, wxDLG_UNIT(this,wxSize(180,-1)), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Glediator_Filename"));
-	FlexGridSizer53->Add(TextCtrl_Glediator_Filename, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer53->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Glediator File:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer53->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FilePickerCtrl_Glediator_Filename = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL_Glediator_Filename, wxEmptyString, _("Select a glediator file"), _T("Glediator Files (*.gled)|*.gled|Jinx! Glediator files (*.out)|*.out"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_Glediator_Filename"));
+	FlexGridSizer53->Add(FilePickerCtrl_Glediator_Filename, 1, wxALL|wxEXPAND, 5);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Duration Treatment:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer53->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Glediator_DurationTreatment = new wxChoice(this, ID_CHOICE_Glediator_DurationTreatment, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Glediator_DurationTreatment"));
+	Choice_Glediator_DurationTreatment->SetSelection( Choice_Glediator_DurationTreatment->Append(_("Normal")) );
+	Choice_Glediator_DurationTreatment->Append(_("Loop"));
+	Choice_Glediator_DurationTreatment->Append(_("Slow/Accelerate"));
+	FlexGridSizer53->Add(Choice_Glediator_DurationTreatment, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer53);
 	FlexGridSizer53->Fit(this);
 	FlexGridSizer53->SetSizeHints(this);
-
-	Connect(ID_BUTTON_GLED_FILE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GlediatorPanel::OnButton_Glediator_FilenameClick);
-	Connect(ID_BITMAPBUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GlediatorPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_GLEDIATOR");
 }
@@ -65,9 +59,3 @@ GlediatorPanel::~GlediatorPanel()
 
 PANEL_EVENT_HANDLERS(GlediatorPanel)
 
-void GlediatorPanel::OnButton_Glediator_FilenameClick(wxCommandEvent& event)
-{
-    wxString filename = wxFileSelector( "Choose Glediator *.gled", defaultDir, "", "",
-                                       "Glediator files (*.gled)|*.gled|Jinx! Glediator files (*.out)|*.out", wxFD_OPEN );
-    if (!filename.IsEmpty()) TextCtrl_Glediator_Filename->SetValue(filename);
-}

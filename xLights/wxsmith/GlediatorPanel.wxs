@@ -5,49 +5,40 @@
 		<object class="wxFlexGridSizer" variable="FlexGridSizer53" member="no">
 			<cols>2</cols>
 			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer54" member="no">
-					<cols>2</cols>
-					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON_GLED_FILE" variable="ButtonGledFile" member="yes">
-							<label>Glediator *.gled File</label>
-							<handler function="OnButton_Glediator_FilenameClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON10" variable="BitmapButton_Glediator_Filename" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>20,17</size>
-							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
+				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+					<label>Glediator File:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
-			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+			<object class="sizeritem">
+				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_Glediator_Filename" variable="FilePickerCtrl_Glediator_Filename" member="yes">
+					<message>Select a glediator file</message>
+					<wildcard>Glediator Files (*.gled)|*.gled|Jinx! Glediator files (*.out)|*.out</wildcard>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL_Glediator_Filename" variable="TextCtrl_Glediator_Filename" member="yes">
-					<size>180,-1d</size>
-					<style>wxTE_READONLY</style>
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+					<label>Duration Treatment:</label>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
 				<option>1</option>
 			</object>
-			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE_Glediator_DurationTreatment" variable="Choice_Glediator_DurationTreatment" member="yes">
+					<content>
+						<item>Normal</item>
+						<item>Loop</item>
+						<item>Slow/Accelerate</item>
+					</content>
+					<selection>0</selection>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
