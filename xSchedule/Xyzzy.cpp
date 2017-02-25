@@ -561,6 +561,9 @@ bool Xyzzy::TestSpin() const
 
     for (auto it = pts.begin(); it != pts.end(); ++it)
     {
+        if (it->x < 0) return false;
+        if (it->x >= BOARDWIDTH) return false;
+
         if (it->y < BOARDHEIGHT)
         {
             if (_board[(it->y) * BOARDWIDTH + it->x] != 0xFF) return false;
