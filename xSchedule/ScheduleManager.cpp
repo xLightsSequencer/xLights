@@ -55,6 +55,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     _brightness = 100;
     _lastBrightness = 100;
     _xyzzy = nullptr;
+    _lastXyzzyCommand = wxDateTime::Now();
 
     wxConfigBase* config = wxConfigBase::Get();
     _mode = (SYNCMODE)config->ReadLong("SyncMode", SYNCMODE::STANDALONE);
@@ -365,6 +366,17 @@ void ScheduleManager::StopAll()
 
 void ScheduleManager::Frame(bool outputframe)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // timeout xyzzy if no api calls for 15 seconds
+    if (_xyzzy != nullptr && (wxDateTime::Now() - _lastXyzzyCommand).GetSeconds() > 15)
+    {
+        logger_base.info("Stopping xyzzy due to timeout.");
+
+        std::string msg;
+        DoXyzzy("close", "", msg);
+    }
+
     PlayList* running = GetRunningPlayList();
 
     if (running != nullptr || _xyzzy != nullptr)
@@ -2984,6 +2996,8 @@ void ScheduleManager::ImportxLightsSchedule(const std::string& filename)
 
 bool ScheduleManager::DoXyzzy(const std::string& command, const std::string& parameters, std::string& result)
 {
+    _lastXyzzyCommand = wxDateTime::Now();
+
     if (_xyzzy == nullptr)
     {
         _xyzzy = new Xyzzy();

@@ -259,7 +259,7 @@ void Xyzzy::Initialise(const std::string& parameters, std::string& result)
 
     if (_matrixMapper == nullptr)
     {
-        result = "{\"result\":\"failed\",\"message\":\"Matrix not found.\",\"highscore\":\"" + GetHighScore() +
+        result = "{\"result\":\"failed\",\"message\":\"Matrix '"+p[0]+"' not found.\",\"highscore\":\"" + GetHighScore() +
             "\",\"highscoreplayer\":\"" + GetHighScorePlayer() +
             "\"}";
         return;

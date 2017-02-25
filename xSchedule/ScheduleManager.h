@@ -67,6 +67,7 @@ class ScheduleManager : public wxEvtHandler
     wxDatagramSocket* _fppSyncSlave;
     std::list<OutputProcess*> _outputProcessing;
     Xyzzy* _xyzzy;
+    wxDateTime _lastXyzzyCommand;
 
     std::string FormatTime(size_t timems);
     void CreateBrightnessArray();
