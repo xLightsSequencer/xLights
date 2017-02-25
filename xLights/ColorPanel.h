@@ -43,8 +43,8 @@ public:
 		virtual ~ColorPanel();
 
         void SetColorCount(int count);
-        void SetDefaultSettings();
-		wxString GetColorString();
+        void SetDefaultSettings(bool optionbased = false);
+        wxString GetColorString();
         wxString GetRandomColorString();
         void SetSupports(bool linear, bool radial);
 
@@ -69,6 +69,7 @@ public:
 
 		//(*Declarations(ColorPanel)
 		wxStaticText* StaticText22;
+		wxCheckBox* CheckBox_ResetColorPanel;
 		wxBitmapButton* BitmapButton_Contrast;
 		wxSlider* Slider_Color_HueAdjust;
 		wxBitmapButton* BitmapButton_Brightness;
@@ -117,6 +118,7 @@ public:
 		static const long ID_BITMAPBUTTON3;
 		static const long ID_BUTTON1;
 		static const long ID_BITMAPBUTTON2;
+		static const long ID_CHECKBOX_ResetColorPanel;
 		static const long ID_STATICTEXT24;
 		static const long ID_SLIDER_SparkleFrequency;
 		static const long ID_VALUECURVE_SparkleFrequency;

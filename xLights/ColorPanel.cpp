@@ -44,6 +44,7 @@ const long ColorPanel::ID_CUSTOM1 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON3 = wxNewId();
 const long ColorPanel::ID_BUTTON1 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON2 = wxNewId();
+const long ColorPanel::ID_CHECKBOX_ResetColorPanel = wxNewId();
 const long ColorPanel::ID_STATICTEXT24 = wxNewId();
 const long ColorPanel::ID_SLIDER_SparkleFrequency = wxNewId();
 const long ColorPanel::ID_VALUECURVE_SparkleFrequency = wxNewId();
@@ -172,6 +173,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 
 	//(*Initialize(ColorPanel)
 	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer16;
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxButton* ButtonColor1;
@@ -224,6 +226,11 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer9->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer16 = new wxFlexGridSizer(0, 3, 0, 0);
+	CheckBox_ResetColorPanel = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_ResetColorPanel, _("Reset panel when changing effects"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ResetColorPanel"));
+	CheckBox_ResetColorPanel->SetValue(true);
+	FlexGridSizer16->Add(CheckBox_ResetColorPanel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(FlexGridSizer16, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
 	StaticText22 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT24, _("Sparkles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
@@ -826,31 +833,39 @@ wxButton* ColorPanel::GetPaletteButton(int idx)
     return buttons[0]; //0;
 }
 
-void ColorPanel::SetDefaultSettings() {
-    for (auto it = checkBoxes.begin(); it != checkBoxes.end(); ++it) {
-        (*it)->SetValue(false);
+void ColorPanel::SetDefaultSettings(bool optionbased) 
+{
+    if (!optionbased)
+    {
+        for (auto it = checkBoxes.begin(); it != checkBoxes.end(); ++it) {
+            (*it)->SetValue(false);
+        }
     }
-    BitmapButton_SparkleFrequencyVC->GetValue()->SetDefault(0.0f, 200.0f);
-    BitmapButton_SparkleFrequencyVC->UpdateState();
-    Slider_SparkleFrequency->SetValue(0);
-    CheckBox_MusicSparkles->SetValue(false);
-    __brightness = 100;
-    BitmapButton_VCBrightness->GetValue()->SetDefault(0.0f, 400.0f);
-    BitmapButton_VCBrightness->UpdateState();
-    Slider_Brightness->SetValue(100);
-    txtCtlBrightness->SetValue("100");
-    Slider_Contrast->SetValue(0);
-    txtCtlContrast->SetValue("0");
-    txtCtrlSparkleFreq->SetValue("0");
-    Slider_Color_HueAdjust->SetValue(0);
-    TextCtrl_Color_HueAdjust->SetValue("0");
-    Slider_Color_SaturationAdjust->SetValue(0);
-    TextCtrl_Color_SaturationAdjust->SetValue("0");
-    Slider_Color_ValueAdjust->SetValue(0);
-    TextCtrl_Color_ValueAdjust->SetValue("0");
 
-    if (touchBar != nullptr) {
-        touchBar->SetSparkles(0);
+    if (!optionbased || CheckBox_ResetColorPanel->GetValue())
+    {
+        BitmapButton_SparkleFrequencyVC->GetValue()->SetDefault(0.0f, 200.0f);
+        BitmapButton_SparkleFrequencyVC->UpdateState();
+        Slider_SparkleFrequency->SetValue(0);
+        CheckBox_MusicSparkles->SetValue(false);
+        __brightness = 100;
+        BitmapButton_VCBrightness->GetValue()->SetDefault(0.0f, 400.0f);
+        BitmapButton_VCBrightness->UpdateState();
+        Slider_Brightness->SetValue(100);
+        txtCtlBrightness->SetValue("100");
+        Slider_Contrast->SetValue(0);
+        txtCtlContrast->SetValue("0");
+        txtCtrlSparkleFreq->SetValue("0");
+        Slider_Color_HueAdjust->SetValue(0);
+        TextCtrl_Color_HueAdjust->SetValue("0");
+        Slider_Color_SaturationAdjust->SetValue(0);
+        TextCtrl_Color_SaturationAdjust->SetValue("0");
+        Slider_Color_ValueAdjust->SetValue(0);
+        TextCtrl_Color_ValueAdjust->SetValue("0");
+
+        if (touchBar != nullptr) {
+            touchBar->SetSparkles(0);
+        }
     }
     ValidateWindow();
 }

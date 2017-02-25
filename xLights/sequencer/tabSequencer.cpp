@@ -716,6 +716,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 
             timingPanel->SetDefaultControls(nullptr, true);
             bufferPanel->SetDefaultControls(nullptr, true);
+            colorPanel->SetDefaultSettings(true);
         } else {
             event.updateUI = false;
         }
