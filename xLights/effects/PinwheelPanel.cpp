@@ -3,18 +3,18 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(PinwheelPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
 #include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(PinwheelPanel)
@@ -67,29 +67,29 @@ END_EVENT_TABLE()
 PinwheelPanel::PinwheelPanel(wxWindow* parent)
 {
 	//(*Initialize(PinwheelPanel)
-	wxTextCtrl* TextCtrl70;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer59;
 	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer55;
-	wxTextCtrl* TextCtrl68;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxTextCtrl* TextCtrl65;
-	wxStaticText* StaticText184;
-	wxFlexGridSizer* FlexGridSizer68;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer64;
-	wxFlexGridSizer* FlexGridSizer128;
-	wxTextCtrl* TextCtrl67;
-	wxTextCtrl* TextCtrl64;
+	wxFlexGridSizer* FlexGridSizer59;
+	wxTextCtrl* TextCtrl69;
 	wxFlexGridSizer* FlexGridSizer63;
-	wxBoxSizer* BoxSizer1;
+	wxTextCtrl* TextCtrl70;
+	wxTextCtrl* TextCtrl68;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxTextCtrl* TextCtrl64;
 	wxFlexGridSizer* FlexGridSizer62;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer55;
 	wxTextCtrl* TextCtrl66;
 	wxFlexGridSizer* FlexGridSizer61;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxTextCtrl* TextCtrl69;
+	wxBoxSizer* BoxSizer1;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxTextCtrl* TextCtrl67;
+	wxFlexGridSizer* FlexGridSizer64;
+	wxStaticText* StaticText184;
+	wxFlexGridSizer* FlexGridSizer68;
+	wxFlexGridSizer* FlexGridSizer128;
+	wxTextCtrl* TextCtrl65;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer55 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -193,6 +193,7 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
 	Choice_Pinwheel_3D->SetSelection( Choice_Pinwheel_3D->Append(_("None")) );
 	Choice_Pinwheel_3D->Append(_("3D"));
 	Choice_Pinwheel_3D->Append(_("3D Inverted"));
+	Choice_Pinwheel_3D->Append(_("Sweep"));
 	FlexGridSizer61->Add(Choice_Pinwheel_3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Pinwheel3D = new wxBitmapButton(this, ID_BITMAPBUTTON_Pinwheel3D, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Pinwheel3D"));
 	BitmapButton_Pinwheel3D->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
