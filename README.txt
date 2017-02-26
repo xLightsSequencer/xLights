@@ -16,6 +16,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Let the user turn on/off color panel reset when changing effects. This setting is not saved when xlights is closed. It also does not control the pallette itself
    -- bug (keith)   Fix spatial colour curves on pinwheel using old render style
    -- enh (keith)   Add a new sweep 3d style to pinwheel
+   -- bug (keith)   Fix projector details not saving correctly in xSchedule options
 2017.5  Feb 23, 2017
    -- bug (dkulp)   Fix Pinwheel effects created before June 2016
    -- bug (dkulp)   Re-allow use of hostnames instead of IP addresses for outputs

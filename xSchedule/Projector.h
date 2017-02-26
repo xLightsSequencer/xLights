@@ -25,7 +25,7 @@ class Projector
     bool IsDirty() const { return _changeCount != _lastSavedChangeCount; }
     void ClearDirty() { _lastSavedChangeCount = _changeCount; }
 		void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
-    void SetCommand(const std::string& ip) { if (_ip != ip) { _ip = ip; _changeCount++; } }
+    void SetIP(const std::string& ip) { if (_ip != ip) { _ip = ip; _changeCount++; } }
     void SetPassword(const std::string& password) { if (_password != password) { _password = password; _changeCount++; } }
 		std::string GetName() const { return _name; }
     std::string GetIP() const { return _ip; }

@@ -1,6 +1,7 @@
 #include "PlayListItemPJLinkPanel.h"
 #include "PlayListItemPJLink.h"
 #include "PlayListDialog.h"
+#include "../Projector.h"
 
 //(*InternalHeaders(PlayListItemPJLinkPanel)
 #include <wx/intl.h>
@@ -97,7 +98,7 @@ PlayListItemPJLinkPanel::PlayListItemPJLinkPanel(wxWindow* parent, PlayListItemP
     auto pjs = PJLink->GetProjectors();
     for (auto it = pjs.begin(); it != pjs.end(); ++it)
     {
-        Choice_Projector->AppendString(*it);
+        Choice_Projector->AppendString((*it)->GetName());
     }
 
     SetChoiceFromString(Choice_Command, PJLink->GetCommand());

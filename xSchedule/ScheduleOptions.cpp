@@ -4,6 +4,7 @@
 #include <wx/stdpaths.h>
 #include "UserButton.h"
 #include "CommandManager.h"
+#include "Projector.h"
 
 ScheduleOptions::ScheduleOptions(wxXmlNode* node)
 {
@@ -26,8 +27,7 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
     {
         if (n->GetName() == "Projector")
         {
-            _projectorIPs[n->GetAttribute("Projector", "").ToStdString()] = n->GetAttribute("IP", "").ToStdString();
-            _projectorPasswords[n->GetAttribute("Projector", "").ToStdString()] = n->GetAttribute("Password", "").ToStdString();
+            _projectors.push_back(new Projector(n));
         }
         else if (n->GetName() == "Button")
         {
@@ -42,6 +42,15 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
             _virtualMatrices.push_back(new VirtualMatrix(n));
         }
     }
+}
+
+void ScheduleOptions::AddProjector(const std::string& name, const std::string& ip, const std::string& password)
+{
+    Projector* p = new Projector();
+    p->SetName(name);
+    p->SetIP(ip);
+    p->SetPassword(password);
+    _projectors.push_back(p);
 }
 
 void ScheduleOptions::AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey)
@@ -74,6 +83,12 @@ ScheduleOptions::ScheduleOptions()
 
 ScheduleOptions::~ScheduleOptions()
 {
+    for (auto it = _projectors.begin(); it != _projectors.end(); ++it)
+    {
+        delete *it;
+    }
+    _projectors.clear();
+
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
     {
         delete *it;
@@ -110,14 +125,9 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));
     res->AddAttribute("PasswordTimeout", wxString::Format(wxT("%i"), _passwordTimeout));
 
-    for (auto it = _projectorIPs.begin(); it != _projectorIPs.end(); ++it)
+    for (auto it = _projectors.begin(); it != _projectors.end(); ++it)
     {
-        wxXmlNode* projector = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Projector");
-        std::string indx = it->first;
-        projector->AddAttribute("Projector", indx);
-        projector->AddAttribute("IP", it->second);
-        projector->AddAttribute("Password", GetProjectorPassword(indx));
-        res->AddChild(projector);
+        res->AddChild((*it)->Save());
     }
 
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
@@ -138,16 +148,9 @@ wxXmlNode* ScheduleOptions::Save()
     return res;
 }
 
-std::list<std::string> ScheduleOptions::GetProjectors() const
+std::list<Projector*> ScheduleOptions::GetProjectors() const
 {
-    std::list<std::string> res;
-
-    for (auto it = _projectorIPs.begin(); it != _projectorIPs.end(); ++it)
-    {
-        res.push_back(it->first);
-    }
-
-    return res;
+    return _projectors;
 }
 
 std::vector<UserButton*> ScheduleOptions::GetButtons() const
@@ -155,34 +158,27 @@ std::vector<UserButton*> ScheduleOptions::GetButtons() const
     return _buttons;
 }
 
-std::string ScheduleOptions::GetProjectorIpAddress(const std::string& projector)
+Projector* ScheduleOptions::GetProjector(const std::string& projector)
 {
-    if (_projectorIPs.find(projector) != _projectorIPs.end())
+    for (auto it = _projectors.begin(); it != _projectors.end(); ++it)
     {
-        return _projectorIPs[projector];
+        if ((*it)->GetName() == projector)
+        {
+            return *it;
+        }
     }
 
-    return "";
-}
-
-std::string ScheduleOptions::GetProjectorPassword(const std::string& projector)
-{
-    if (_projectorPasswords.find(projector) != _projectorPasswords.end())
-    {
-        return _projectorPasswords[projector];
-    }
-
-    return "";
+    return nullptr;
 }
 
 void ScheduleOptions::ClearProjectors()
 {
-    if (_projectorIPs.size() > 0)
+    for (auto it = _projectors.begin(); it != _projectors.end(); ++it)
     {
-        _projectorIPs.clear();
-        _projectorPasswords.clear();
-        _changeCount++;
+        delete *it;
     }
+    _projectors.clear();
+    _changeCount++;
 }
 
 void ScheduleOptions::ClearButtons()
@@ -193,24 +189,6 @@ void ScheduleOptions::ClearButtons()
     }
     _buttons.clear();
     _changeCount++;
-}
-
-void ScheduleOptions::SetProjectorIPAddress(const std::string& projector, const std::string& ip)
-{
-    if (_projectorIPs.find(projector) == _projectorIPs.end() || _projectorIPs[projector] != ip)
-    {
-        _projectorIPs[projector] = ip;
-        _changeCount++;
-    }
-}
-
-void ScheduleOptions::SetProjectorPassword(const std::string& projector, const std::string& password)
-{
-    if (_projectorPasswords.find(projector) == _projectorPasswords.end() || _projectorPasswords[projector] != password)
-    {
-        _projectorPasswords[projector] = password;
-        _changeCount++;
-    }
 }
 
 std::string ScheduleOptions::GetButtonsJSON(const CommandManager &cmdMgr) const
@@ -252,6 +230,11 @@ bool ScheduleOptions::IsDirty() const
         res = res || (*it)->IsDirty();
     }
 
+    for (auto it = _projectors.begin(); it != _projectors.end(); ++it)
+    {
+        res = res || (*it)->IsDirty();
+    }
+
     for (auto it = _matrices.begin(); it != _matrices.end(); ++it)
     {
         res = res || (*it)->IsDirty();
@@ -270,6 +253,11 @@ void ScheduleOptions::ClearDirty()
     _lastSavedChangeCount = _changeCount;
 
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    {
+        (*it)->ClearDirty();
+    }
+
+    for (auto it = _projectors.begin(); it != _projectors.end(); ++it)
     {
         (*it)->ClearDirty();
     }

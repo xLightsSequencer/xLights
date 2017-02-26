@@ -400,6 +400,7 @@
 		<Unit filename="PlayList/PlayerWindow.h" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.cpp" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.h" />
+		<Unit filename="Projector.cpp" />
 		<Unit filename="ProjectorDetailsDialog.cpp" />
 		<Unit filename="ProjectorDetailsDialog.h" />
 		<Unit filename="RemapDialog.cpp" />

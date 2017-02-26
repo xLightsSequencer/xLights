@@ -4,6 +4,7 @@
 #include "ButtonDetailsDialog.h"
 #include "ProjectorDetailsDialog.h"
 #include "UserButton.h"
+#include "Projector.h"
 
 //(*InternalHeaders(OptionsDialog)
 #include <wx/intl.h>
@@ -211,9 +212,9 @@ void OptionsDialog::LoadProjectors()
     int i = 0;
     for (auto it = ps.begin(); it != ps.end(); ++it)
     {
-        ListView_Projectors->InsertItem(i, *it);
-        ListView_Projectors->SetItem(i, 1, _options->GetProjectorIpAddress(*it));
-        ListView_Projectors->SetItem(i, 2, _options->GetProjectorPassword(*it));
+        ListView_Projectors->InsertItem(i, (*it)->GetName());
+        ListView_Projectors->SetItem(i, 1, (*it)->GetIP());
+        ListView_Projectors->SetItem(i, 2, (*it)->GetPassword());
         i++;
     }
 }
@@ -261,8 +262,9 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->ClearProjectors();
     for (int i = 0; i < ListView_Projectors->GetItemCount(); i++)
     {
-        _options->SetProjectorIPAddress(ListView_Projectors->GetItemText(i,0).ToStdString(), ListView_Projectors->GetItemText(i, 1).ToStdString());
-        _options->SetProjectorIPAddress(ListView_Projectors->GetItemText(i, 0).ToStdString(), ListView_Projectors->GetItemText(i, 2).ToStdString());
+        _options->AddProjector(ListView_Projectors->GetItemText(i, 0).ToStdString(),
+                                ListView_Projectors->GetItemText(i, 1).ToStdString(),
+                                ListView_Projectors->GetItemText(i, 2).ToStdString());
     }
 
     _options->ClearButtons();
@@ -578,7 +580,7 @@ void OptionsDialog::OnListView_ProjectorsItemActivated(wxListEvent& event)
 {
     if (ListView_Projectors->GetSelectedItemCount() >= 0)
     {
-        EditButton(ListView_Projectors->GetFirstSelected());
+        EditProjector(ListView_Projectors->GetFirstSelected());
     }
     ValidateWindow();
 }

@@ -10,6 +10,7 @@
 #include <wx/socket.h>
 #include "../md5.h"
 #include <log4cpp/Category.hh>
+#include "../Projector.h"
 
 PlayListItemPJLink::PlayListItemPJLink(wxXmlNode* node) : PlayListItem(node)
 {
@@ -145,7 +146,7 @@ void PlayListItemPJLink::ExecutePJLinkCommand()
     Logout();
 }
 
-std::list<std::string> PlayListItemPJLink::GetProjectors()
+std::list<Projector*> PlayListItemPJLink::GetProjectors()
 {
     return xScheduleFrame::GetScheduleManager()->GetOptions()->GetProjectors();
 }
@@ -158,8 +159,8 @@ bool PlayListItemPJLink::Login()
 
     ScheduleOptions* options = xScheduleFrame::GetScheduleManager()->GetOptions();
 
-    std::string ip = options->GetProjectorIpAddress(_projector);
-    std::string password = options->GetProjectorPassword(_projector);
+    std::string ip = options->GetProjector(_projector)->GetIP();
+    std::string password = options->GetProjector(_projector)->GetPassword();
 
     if (ip == "") return false;
 

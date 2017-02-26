@@ -9,6 +9,7 @@ class wxXmlNode;
 class wxWindow;
 class AudioManager;
 class wxSocketClient;
+class Projector;
 
 class PlayListItemPJLink : public PlayListItem
 {
@@ -45,7 +46,7 @@ public:
     std::string GetProjector() const { return _projector; }
     void SetParameter(const std::string& parameter) { if (_parameter != parameter) { _parameter = parameter; _changeCount++; } }
     void SetProjector(const std::string& projector) { if (_projector != projector) { _projector = projector; _changeCount++; } }
-    std::list<std::string> GetProjectors();
+    std::list<Projector*> GetProjectors();
     virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 

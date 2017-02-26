@@ -121,6 +121,7 @@
     <ClCompile Include="VirtualMatrixDialog.cpp" />
     <ClCompile Include="VirtualMatricesDialog.cpp" />
     <ClCompile Include="VirtualMatrix.cpp" />
+    <ClCompile Include="Projector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -224,6 +225,7 @@
     <ClInclude Include="VirtualMatricesDialog.h" />
     <ClInclude Include="VirtualMatrix.h" />
     <ClInclude Include="Control.h" />
+    <ClInclude Include="Projector.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
