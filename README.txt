@@ -17,6 +17,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Fix spatial colour curves on pinwheel using old render style
    -- enh (keith)   Add a new sweep 3d style to pinwheel
    -- bug (keith)   Fix projector details not saving correctly in xSchedule options
+   -- enh (keith)   Default color curves to the colour of the swatch (instead of black)
 2017.5  Feb 23, 2017
    -- bug (dkulp)   Fix Pinwheel effects created before June 2016
    -- bug (dkulp)   Re-allow use of hostnames instead of IP addresses for outputs

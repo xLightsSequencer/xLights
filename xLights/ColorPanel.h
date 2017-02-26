@@ -54,7 +54,7 @@ public:
         void SetDefaultPalette();
     
         ColorPanelTouchBar *SetupTouchBar(xlTouchBarSupport &tbs);
-        ColorPanelTouchBar *GetTouchBar() { return touchBar; }
+        ColorPanelTouchBar *GetTouchBar() const { return touchBar; }
 private:
         void ValidateWindow();
         std::string GetCurrentPalette() const;

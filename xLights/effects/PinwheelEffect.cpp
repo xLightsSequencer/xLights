@@ -212,7 +212,6 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
         size_t colorcnt = buffer.GetColorCount();
 
         int xc= (int)(std::max(buffer.BufferWi, buffer.BufferHt)/2);
-        float radius = xc/100.0;
 
         for(int a = 1; a <= pinwheel_arms; a++)
         {
@@ -244,12 +243,12 @@ void PinwheelEffect::Draw_arm(RenderBuffer &buffer,
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     float pi_180 = M_PI/180;
 
-    int xc = (int)(buffer.BufferWi/2);
-    int yc= (int)(buffer.BufferHt/2);
-    xc = xc + (xc_adj/100.0)*xc; // xc_adj is from -100 to 100
-    yc = yc + (yc_adj/100.0)*yc;
+    int xc = buffer.BufferWi / 2;
+    int yc= buffer.BufferHt / 2;
+    xc = xc + (xc_adj / 100.0) * xc; // xc_adj is from -100 to 100
+    yc = yc + (yc_adj / 100.0) * yc;
 
-    for(float r=0.0; r<=max_radius; r+=0.5)
+    for(float r=0.0; r <= max_radius; r += 0.5)
     {
         int degrees_twist=(r/max_radius)*pinwheel_twist;
         int degrees = base_degrees + degrees_twist;

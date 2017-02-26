@@ -362,6 +362,15 @@ void ColorCurve::Flip()
     }
 }
 
+void ColorCurve::SetDefault(const wxColor& color)
+{
+    // we should only set default if the current CC only has one point
+    if (_values.size() == 1)
+    {
+        _values.front().color = color;
+    }
+}
+
 void ColorCurve::SetValueAt(float offset, xlColor c)
 {
     auto it = _values.begin();
@@ -509,6 +518,7 @@ void ColorCurveButton::LeftClick(wxCommandEvent& event)
         wxColourData retData = dialog.GetColourData();
         color = retData.GetColour();
         _color = color.GetAsString();
+        _cc->SetDefault(color);
         UpdateBitmap();
         NotifyChange();
     }
@@ -545,6 +555,11 @@ void ColorCurveButton::ToggleActive()
 {
     _cc->ToggleActive();
     UpdateState();
+}
+
+void ColorCurveButton::SetDefaultCC(const std::string& color)
+{
+    _cc->SetDefault(wxColor(color));
 }
 
 void ColorCurveButton::SetColor(std::string color, bool notify)

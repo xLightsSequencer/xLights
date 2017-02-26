@@ -628,6 +628,7 @@ void ColorPanel::SetButtonColor(ColorCurveButton* btn, const std::string& cstr, 
     {
         btn->SetActive(false, false);
         btn->SetColor(cstr, notify);
+        btn->SetDefaultCC(cstr);
     }
     if (touchBar) {
         for (int x = 0; x < PALETTE_SIZE; x++) {

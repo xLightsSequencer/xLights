@@ -181,6 +181,7 @@ public:
     bool NearPoint(float x);
     float FindMinPointLessThan(float point);
     float FindMaxPointGreaterThan(float point);
+    void SetDefault(const wxColor& color);
 };
 
 wxDECLARE_EVENT(EVT_CC_CHANGED, wxCommandEvent);
@@ -212,6 +213,7 @@ public:
     void UpdateBitmap();
     std::string GetColor() const { return _color; }
     void SetColor(std::string color, bool notify = true);
+    void SetDefaultCC(const std::string& color);
 };
 
 #endif
