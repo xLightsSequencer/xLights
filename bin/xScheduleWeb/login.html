@@ -1,37 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>xLights Scheduler | Login</title>
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <script src="http://cdn.ckeditor.com/4.6.1/standard/ckeditor.js"></script>
+  </head>
+  <body>
 
-<head>
-    <title>xLights Login</title><meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<link rel="stylesheet" href="css/bootstrap.min.css" />
-		<link rel="stylesheet" href="css/bootstrap-responsive.min.css" />
-    <link rel="stylesheet" href="css/maruti-login.css" />
-</head>
-    <body>
-        <div id="loginbox">
-            <form id="loginform" class="form-vertical" onSubmit="return loginSubmit()">
-				 <div class="control-group normal_text"> <h3>xLights Scheduler Login</h3></div>
-                <div class="control-group">
-                    <div class="controls">
-                        <div class="main_input_box">
-                          <h3>Please enter your password:</h3>
-                          <div style="color: red;" id="error"></div>
-                            <span class="add-on"><i class="icon-lock"></i></span><input type="password" placeholder="Password" id="webPassword" />
-                        </div>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <span class="pull-left"><a href="#" onclick="forgotPassword()" class="flip-link btn btn-inverse" id="forgotPassword">Lost password?</a></span>
-                    <span class="pull-right"><a href="#" onclick="loginSubmit()" class="flip-link btn btn-success" id="loginSubmit">Submit</a></span>
-                </div>
-            </form>
+
+    <header id="header">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <h1 class="text-center">xLights Scheduler</h1>
+          </div>
         </div>
+      </div>
+    </header>
 
-        <script src="js/jquery.min.js"></script>
-        <script src="js/md5.js"></script>
-        <script src="js/login.js"></script>
+    <section id="main">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 col-md-offset-4">
+            <div id="login" class="well">
+                  <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-control" id="webPassword" placeholder="Password">
+                  </div>
+                  <a href="#" onclick="forgotPassword()" class="flip-link btn btn-inverse" id="forgotPassword">Lost password?</a>
+                  <span class="text-right"><button type="submit" onclick="loginSubmit()" class="btn btn-default btn-success pull-right">Login</button></class>
 
-    </body>
 
+              </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer id="footer">
+      <p>Copyright AdminStrap, &copy; 2017</p>
+    </footer>
+
+  <script>
+     CKEDITOR.replace( 'editor1' );
+ </script>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/login.js"></script>
+    <script src="js/md5.js"></script>
+  </body>
 </html>
