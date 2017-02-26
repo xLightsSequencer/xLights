@@ -44,6 +44,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    AudioManager* GetAudioManager() const { return _audioManager; }
     std::string GetAudioFilename() const;
     int GetBlendMode() const { return _applyMethod; }
     void SetBlendMode(int blendMode) { if (_applyMethod != (APPLYMETHOD)blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; } }

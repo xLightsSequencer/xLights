@@ -8,6 +8,7 @@ class PlayListItemText;
 class wxXmlNode;
 class PlayListItem;
 class wxWindow;
+class AudioManager;
 
 class PlayListStep
 {
@@ -28,6 +29,7 @@ protected:
 #pragma endregion Member Variables
 
     std::string FormatTime(size_t timems, bool ms = false) const;
+    AudioManager* GetAudioManager(PlayListItem* pli) const;
 
 public:
 
@@ -80,7 +82,8 @@ public:
     bool IsRunningFSEQ(const std::string& fseqFile);
     void SetSyncPosition(size_t frame, size_t ms);
     PlayListItem* FindRunProcessNamed(const std::string& item) const;
-#pragma endregion Getters and Setters
+    AudioManager* GetAudioManager() const;
+    #pragma endregion Getters and Setters
 
     wxXmlNode* Save();
     void Load(wxXmlNode * node);

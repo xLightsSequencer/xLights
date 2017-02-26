@@ -326,8 +326,7 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size, bool outputframe)
 size_t PlayListStep::GetFrameMS() const
 {
     size_t ms = 0;
-    PlayListItem* timesource = GetTimeSource(ms);
-
+    GetTimeSource(ms);
     return ms;
 }
 
@@ -662,3 +661,51 @@ PlayListItem* PlayListStep::FindRunProcessNamed(const std::string& item) const
 
     return nullptr;
 }
+
+AudioManager* PlayListStep::GetAudioManager(PlayListItem* pli) const
+{
+    auto title = pli->GetTitle();
+    if (title == "Audio")
+    {
+        PlayListItemAudio* p = (PlayListItemAudio*)pli;
+        return p->GetAudioManager();
+    }
+    else if (title == "FSEQ")
+    {
+        PlayListItemFSEQ* p = (PlayListItemFSEQ*)pli;
+        return p->GetAudioManager();
+    }
+    else if (title == "FSEQ & Video")
+    {
+        PlayListItemFSEQVideo* p = (PlayListItemFSEQVideo*)pli;
+        return p->GetAudioManager();
+    }
+
+    return nullptr;
+}
+
+AudioManager* PlayListStep::GetAudioManager() const
+{
+    size_t ms;
+    auto pli = GetTimeSource(ms);
+
+    if (pli != nullptr)
+    {
+        return GetAudioManager(pli);
+    }
+    else
+    {
+        for (auto it=  _items.begin(); it != _items.end(); ++it)
+        {
+            if (GetAudioManager(*it) != nullptr)
+            {
+                return GetAudioManager(*it);
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+
+

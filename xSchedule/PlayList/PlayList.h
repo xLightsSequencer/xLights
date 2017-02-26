@@ -120,6 +120,7 @@ public:
     bool JumpToStep(const std::string& step);
     bool JumpToEndStepsAtEndOfCurrentStep();
     void RestartCurrentStep();
+    PlayListStep* GetStepContainingPlayListItem(wxUint32 id) const;
     PlayListStep* GetStep(const std::string& step);
     PlayListStep* GetStepWithFSEQ(const std::string fseqFile);
     PlayListStep* GetRandomStep();

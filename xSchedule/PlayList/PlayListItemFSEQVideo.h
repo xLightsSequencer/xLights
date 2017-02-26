@@ -53,6 +53,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    AudioManager* GetAudioManager() const { return _audioManager; }
     bool GetTopMost() const { return _topMost; }
     void SetTopmost(bool topmost) { if (_topMost != topmost) { _topMost = topmost; _changeCount++; } }
     std::string GetAudioFilename() const;

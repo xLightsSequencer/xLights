@@ -152,6 +152,7 @@ class ScheduleManager : public wxEvtHandler
         void CheckScheduleIntegrity(bool display);
         void ImportxLightsSchedule(const std::string& filename);
         bool DoXyzzy(const std::string& command, const std::string& parameters, std::string& result);
+        PlayListStep* GetStepContainingPlayListItem(wxUint32 id) const;
 };
 
 #endif

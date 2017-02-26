@@ -36,6 +36,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    AudioManager* GetAudioManager() const { return _audioManager; }
     virtual size_t GetDurationMS() const override { return _delay + _durationMS; }
     virtual std::string GetNameNoTime() const override;
     std::string GetAudioFile() const { return _audioFile; }

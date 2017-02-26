@@ -72,6 +72,7 @@ std::string PlayListItem::GetNameNoTime() const
 
 void PlayListItem::Copy(PlayListItem* to) const
 {
+    to->_id = _id;
     to->_lastSavedChangeCount = _lastSavedChangeCount;
     to->_changeCount = _changeCount;
     to->_delay = _delay;

@@ -8,6 +8,7 @@
 #include <wx/notebook.h>
 #include <log4cpp/Category.hh>
 #include "../RunningSchedule.h"
+#include "../../xLights/AudioManager.h"
 
 PlayListItemRunProcess::PlayListItemRunProcess(wxXmlNode* node) : PlayListItem(node)
 {
@@ -122,6 +123,26 @@ void PlayListItemRunProcess::Frame(wxByte* buffer, size_t size, size_t ms, size_
             if (rs != nullptr && rs->GetPlayList()->IsRunning())
             {
                 cmd.Replace("%RUNNING_SCHEDULE%", rs->GetSchedule()->GetName(), true);
+            }
+        }
+
+        auto step = xScheduleFrame::GetScheduleManager()->GetRunningPlayList()->GetRunningStep();
+
+        if (step == nullptr)
+        {
+            step = xScheduleFrame::GetScheduleManager()->GetStepContainingPlayListItem(GetId());
+        }
+
+        if (step != nullptr)
+        {
+            cmd.Replace("%STEPNAME%", step->GetNameNoTime());
+
+            AudioManager* audio = step->GetAudioManager();
+            if (audio != nullptr)
+            {
+                cmd.Replace("%TITLE%", audio->Title());
+                cmd.Replace("%ARTIST%", audio->Artist());
+                cmd.Replace("%ALBUM%", audio->Album());
             }
         }
 

@@ -957,3 +957,17 @@ PlayListItem* PlayList::FindRunProcessNamed(const std::string& item) const
 
     return pli;
 }
+
+PlayListStep* PlayList::GetStepContainingPlayListItem(wxUint32 id) const
+{
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        if ((*it)->GetItem(id) != nullptr)
+        {
+            return *it;
+        }
+    }
+
+    return nullptr;
+}
+

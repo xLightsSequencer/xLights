@@ -58,7 +58,6 @@ public:
 
 	xLightsVamp();
 	~xLightsVamp();
-	std::string ProcessPlugin(AudioManager* paudio, std::string& plugin);
 	void ProcessFeatures(Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels);
 	std::list<std::string> GetAvailablePlugins(AudioManager* paudio);
 	std::list<std::string> GetAllAvailablePlugins(AudioManager* paudio);

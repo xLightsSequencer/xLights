@@ -4,6 +4,11 @@
 #include <wx/notebook.h>
 #include <log4cpp/Category.hh>
 #include "../../xLights/outputs/serial.h"
+#include "../xScheduleMain.h"
+#include "../ScheduleManager.h"
+#include "PlayListStep.h"
+#include "../../xLights/AudioManager.h"
+#include "PlayList.h"
 
 PlayListItemRDS::PlayListItemRDS(wxXmlNode* node) : PlayListItem(node)
 {
@@ -109,6 +114,31 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
 
         log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+        auto step = xScheduleFrame::GetScheduleManager()->GetRunningPlayList()->GetRunningStep();
+        
+        if (step == nullptr)
+        {
+            step = xScheduleFrame::GetScheduleManager()->GetStepContainingPlayListItem(GetId());
+        }
+
+        wxString text = wxString(_text);
+        wxString stationName = wxString(_stationName);
+
+        if (step != nullptr)
+        {
+            text.Replace("%STEPNAME%", step->GetNameNoTime());
+
+            AudioManager* audio = step->GetAudioManager();
+            if (audio != nullptr)
+            {
+                text.Replace("%TITLE%", audio->Title());
+                text.Replace("%ARTIST%", audio->Artist());
+                text.Replace("%ALBUM%", audio->Album());
+            }
+        }
+
+        logger_base.info("RDS: PS '%s' DPS '%s'.", (const char *)stationName.c_str(), (const char *)text.c_str());
+
         if (_commPort == "")
         {
             logger_base.warn("RDS: No comm port specified.");
@@ -127,59 +157,57 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
             return;
         }
 
-        char buffer[100];
+        char outBuffer[100];
 
         // 
-        buffer[0] = (wxByte)0xFE;
-        buffer[1] = (wxByte)0x02;
-        strncpy(&buffer[2], _stationName.c_str(), 8);
-        for (int i = _stationName.length(); i < 8; i++)
+        outBuffer[0] = (wxByte)0xFE;
+        outBuffer[1] = (wxByte)0x02;
+        strncpy(&outBuffer[2], stationName.c_str(), 8);
+        for (int i = stationName.length(); i < 8; i++)
         {
-            buffer[2 + i] = ' ';
+            outBuffer[2 + i] = ' ';
         }
-        buffer[10] = (wxByte)0xFF;
-        serial->Write(&buffer[0], 11);
+        outBuffer[10] = (wxByte)0xFF;
+        serial->Write(&outBuffer[0], 11);
 
-        buffer[1] = (wxByte)0x0C;
-        buffer[2] = (wxByte)1;
-        buffer[3] = (wxByte)0xFF;
-        serial->Write(&buffer[0], 4);
+        outBuffer[1] = (wxByte)0x0C;
+        outBuffer[2] = (wxByte)1;
+        outBuffer[3] = (wxByte)0xFF;
+        serial->Write(&outBuffer[0], 4);
 
-        buffer[1] = (wxByte)0x72;
-        buffer[2] = _stationDuration;
-        serial->Write(&buffer[0], 4);
+        outBuffer[1] = (wxByte)0x72;
+        outBuffer[2] = _stationDuration;
+        serial->Write(&outBuffer[0], 4);
 
-        buffer[1] = (wxByte)0x73;
-        buffer[2] = _mode;
-        serial->Write(&buffer[0], 4);
+        outBuffer[1] = (wxByte)0x73;
+        outBuffer[2] = _mode;
+        serial->Write(&outBuffer[0], 4);
 
-        buffer[1] = (wxByte)0x74;
-        buffer[2] = (wxByte)_lineDuration;
-        serial->Write(&buffer[0], 4);
+        outBuffer[1] = (wxByte)0x74;
+        outBuffer[2] = (wxByte)_lineDuration;
+        serial->Write(&outBuffer[0], 4);
 
-        buffer[1] = (wxByte)0x75;
-        buffer[2] = (wxByte)(_highSpeed ? 0: 1);
-        serial->Write(&buffer[0], 4);
+        outBuffer[1] = (wxByte)0x75;
+        outBuffer[2] = (wxByte)(_highSpeed ? 0: 1);
+        serial->Write(&outBuffer[0], 4);
 
-        buffer[1] = (wxByte)0x76;
-        buffer[2] = (wxByte)0;
-        serial->Write(&buffer[0], 4);
+        outBuffer[1] = (wxByte)0x76;
+        outBuffer[2] = (wxByte)0;
+        serial->Write(&outBuffer[0], 4);
 
-        buffer[1] = (wxByte)0x77;
-        strncpy(&buffer[1], _text.c_str(), 80);
-        for (int i = _text.length(); i < 80; i++)
+        outBuffer[1] = (wxByte)0x77;
+        strncpy(&outBuffer[1], _text.c_str(), 80);
+        for (int i = text.length(); i < 80; i++)
         {
-            buffer[2 + i] = ' ';
+            outBuffer[2 + i] = ' ';
         }
-        buffer[82] = (wxByte)0xFF;
-        serial->Write(&buffer[0], 83);
+        outBuffer[82] = (wxByte)0xFF;
+        serial->Write(&outBuffer[0], 83);
 
-        buffer[1] = (wxByte)0x76;
-        buffer[2] = (wxByte)_text.length();
-        buffer[3] = (wxByte)0xFF;
-        serial->Write(&buffer[0], 4);
-
-        logger_base.info("RDS: PS '%s' DPS '%s'.", (const char *)_stationName.c_str(), (const char *)_text.c_str());
+        outBuffer[1] = (wxByte)0x76;
+        outBuffer[2] = (wxByte)text.length();
+        outBuffer[3] = (wxByte)0xFF;
+        serial->Write(&outBuffer[0], 4);
 
         delete serial;
     }

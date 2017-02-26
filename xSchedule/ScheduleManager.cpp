@@ -2874,8 +2874,6 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
         auto steps = (*n)->GetSteps();
         for (auto s = steps.begin(); s != steps.end(); ++s)
         {
-            int videocount = 0;
-
             auto items = (*s)->GetItems();
 
             for (auto i = items.begin(); i != items.end(); ++i)
@@ -2896,8 +2894,6 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     {
         LogAndWrite(f, "    No problems found");
     }
-    errcountsave = errcount;
-    warncountsave = warncount;
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Check schedule done.");
@@ -3662,4 +3658,18 @@ PlayListItem* ScheduleManager::FindRunProcessNamed(const std::string& item) cons
     }
 
     return pli;
+}
+
+PlayListStep* ScheduleManager::GetStepContainingPlayListItem(wxUint32 id) const
+{
+    PlayListStep *pls = nullptr;
+
+    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+    {
+        pls = (*it)->GetStepContainingPlayListItem(id);
+
+        if (pls != nullptr) break;
+    }
+
+    return pls;
 }
