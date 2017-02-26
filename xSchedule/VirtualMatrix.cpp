@@ -3,6 +3,7 @@
 #include <wx/xml/xml.h>
 #include <wx/wx.h>
 #include <log4cpp/Category.hh>
+#include "xScheduleApp.h"
 
 VirtualMatrix::VirtualMatrix(int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, size_t startChannel, const std::string& name, wxSize size, wxPoint loc)
 {
@@ -217,7 +218,7 @@ void VirtualMatrix::Start()
     // create the window
     if (_window == nullptr)
     {
-        _window = new PlayerWindow(nullptr, _topMost, _quality, wxID_ANY, _location, _size);
+        _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, _quality, wxID_ANY, _location, _size);
     }
     else
     {

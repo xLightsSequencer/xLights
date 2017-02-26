@@ -6,6 +6,7 @@
 #include <log4cpp/Category.hh>
 #include "../../xLights/VideoReader.h"
 #include "PlayerWindow.h"
+#include "../xScheduleApp.h"
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo(wxXmlNode* node) : PlayListItem(node)
 {
@@ -417,7 +418,7 @@ void PlayListItemFSEQVideo::Start()
     // create the window
     if (_window == nullptr)
     {
-        _window = new PlayerWindow(nullptr, _topMost, wxIMAGE_QUALITY_HIGH, wxID_ANY, _origin, _size);
+        _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, wxIMAGE_QUALITY_HIGH, wxID_ANY, _origin, _size);
     }
     else
     {

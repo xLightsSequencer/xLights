@@ -1,5 +1,6 @@
 #include "PlayerWindow.h"
 #include <wx/dcclient.h>
+#include <log4cpp/Category.hh>
 
 BEGIN_EVENT_TABLE(PlayerWindow, wxWindow)
 EVT_MOTION(PlayerWindow::OnMouseMove)
@@ -41,6 +42,13 @@ PlayerWindow::PlayerWindow(wxWindow* parent, bool topMost, wxImageResizeQuality 
     {
         wind->SetFocus();
     }
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int w, h;
+    GetSize(&w, &h);
+    int x, y;
+    GetPosition(&x, &y);
+    logger_base.info("Player window created location (%d, %d) size (%d, %d).", x, y, w, h);
 }
 
 PlayerWindow::~PlayerWindow()
