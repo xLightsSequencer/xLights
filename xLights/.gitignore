@@ -4,3 +4,6 @@ xLights.layout
 *.psess
 *.vsp
 *.vspx
+x64/
+Debug/
+Release/
