@@ -565,6 +565,7 @@ void ColorCurveButton::SetDefaultCC(const std::string& color)
 void ColorCurveButton::SetColor(std::string color, bool notify)
 {
     _cc->SetActive(false);
+    _cc->SetDefault(wxColor(color));
     _color = color;
     UpdateBitmap();
     if (notify) {
