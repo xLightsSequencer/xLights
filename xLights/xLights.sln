@@ -10,16 +10,28 @@ Global
 		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug with Boost|x64 = Debug with Boost|x64
+		Debug with Boost|x86 = Debug with Boost|x86
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Release with Boost|x64 = Release with Boost|x64
+		Release with Boost|x86 = Release with Boost|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Debug with Boost|x64.ActiveCfg = Debug|x64
+		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Debug with Boost|x64.Build.0 = Debug|x64
+		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Debug with Boost|x86.ActiveCfg = Debug|Win32
+		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Debug with Boost|x86.Build.0 = Debug|Win32
 		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Debug|x64.ActiveCfg = Debug|x64
 		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Debug|x64.Build.0 = Debug|x64
 		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Debug|x86.ActiveCfg = Debug|Win32
 		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Debug|x86.Build.0 = Debug|Win32
+		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Release with Boost|x64.ActiveCfg = Release|x64
+		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Release with Boost|x64.Build.0 = Release|x64
+		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Release with Boost|x86.ActiveCfg = Release|Win32
+		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Release with Boost|x86.Build.0 = Release|Win32
 		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Release|x64.ActiveCfg = Release|x64
 		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Release|x64.Build.0 = Release|x64
 		{48F219FA-C28E-457B-9A85-DC3A8F949F9B}.Release|x86.ActiveCfg = Release|Win32
