@@ -220,8 +220,6 @@ http://<host:port>/xScheduleCommand?Command-<command>&Parameters=<parameters>
 		
 		Bring to foreground	
 			This API forces the scheduler (and all its windows) into the foreground. Why? Good question ... I was asked for it.
-			
-http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 
 		Set current text <text name><text><properties>
 			This api sets the text property of a Text Playlist Item allowing you to change the text displayed. The <text name> is the unique name of a text play list item to set. It must be playing when this api is called to be accepted. The properties can be blank or a | delimted list of the following property types:
@@ -244,6 +242,9 @@ http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 				overwriteifblack
 				max
 			Once set this data will continue to be output until it is overwritten using the same start channel. If the data size is blank then the pixel data is removed.
+
+http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
+
 
 	This API allows the webpage to store and retrieve data between sessions. The key used should be unique to the webpage. There is no security or protection beyond the password protection to this data. There are 2 commands supported:
 	
