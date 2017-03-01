@@ -122,10 +122,7 @@ void IPOutput::Save(wxXmlNode* node)
         node->AddAttribute("ComPort", _ip);
     }
 
-    if (_universe != 0)
-    {
-        node->AddAttribute("BaudRate", wxString::Format("%d", _universe));
-    }
+    node->AddAttribute("BaudRate", wxString::Format("%d", _universe));
 
     Output::Save(node);
 }
