@@ -130,7 +130,7 @@ void GlediatorEffect::adjustSettings(const std::string &version, Effect *effect)
 
     SettingsMap &settings = effect->GetSettings();
 
-    std::string file = settings["E_TEXTCTRL_Glediator_Filename"];
+    std::string file = settings.Get("E_TEXTCTRL_Glediator_Filename", "");
 
     if (file != "")
     {
