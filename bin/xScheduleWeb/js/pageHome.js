@@ -1,3 +1,13 @@
+$("#volume").slider();
+$("#volume").on("slide", function(slideEvt) {
+  $("#volumeSliderVal").text(slideEvt.value);
+});
+$("#brightness").slider();
+$("#brightness").on("slide", function(slideEvt) {
+  $("#brightnessSliderVal").text(slideEvt.value);
+  console.log(slideEvt.value);
+});
+
 $(document).ready(function() {
   window.setInterval(function() {
     checkForUpdate();
@@ -11,13 +21,14 @@ $(document).ready(function() {
 var oldPlayingStatus = '';
 
 function checkForUpdate() {
-  console.log(playingStatus);
-  console.log(oldPlayingStatus);
+  //update clock
+  $('#homeTimeContainer').html(playingStatus.time);
+
   if (oldPlayingStatus.status != playingStatus.status) {
     dashboardLoadStatus();
   }
   if (playingStatus.status == 'playing') {
-    //update info on page
+    dashboardLoadStatus();
   }
 
   oldPlayingStatus = playingStatus;

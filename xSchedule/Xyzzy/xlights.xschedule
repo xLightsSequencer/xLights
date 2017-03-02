@@ -1,27 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xSchedule>
-  <Options WWWRoot="xScheduleWeb" Password="" WebServerPort="80" PasswordTimeout="30">
+  <Options WWWRoot="xScheduleWeb" Password="" WebServerPort="2082" PasswordTimeout="30">
     <Button Label="Play Selected" Command="Play selected playlist" Parameters="" Hotkey="~"/>
     <Button Label="Stop All" Command="Stop all now" Parameters="" Hotkey="~"/>
     <Button Label="Next Step" Command="Next step in current playlist" Parameters="" Hotkey="~"/>
     <Button Label="End Gracefully" Command="Jump to play once at end at end of current step and then stop" Parameters="" Hotkey="~"/>
     <Button Label="Add 10 Mins To Schedule" Command="Add to the current schedule n minutes" Parameters="10" Hotkey="~"/>
+    <Button Label="Looped" Command="Play selected playlist" Parameters="" Hotkey="~"/>
     <Matrix Name="Matrix" Strings="384" StrandsPerString="1" StringLength="128" Orientation="0" StartLocation="2" StartChannel="1"/>
     <VMatrix Name="Xyzzy" Width="128" Height="384" Rotation="90 CW" Quality="Normal" WW="655" WH="243" X="818" Y="43" StartChannel="1"/>
   </Options>
   <PlayList Name="Patterns">
     <PlayListStep Name="">
-      <PLIFSEQ FSEQFile="C:\Users\keith\Desktop\Tetris\patterns.fseq" ApplyMethod="0" Delay="0" Priority="1"/>
+      <PLIFSEQ FSEQFile="C:\Users\keith\Desktop\Tetris\patterns.fseq" ApplyMethod="0" Delay="0" Name="" Priority="1"/>
     </PlayListStep>
   </PlayList>
   <PlayList Name="Test">
     <PlayListStep Name="">
-      <PLITest Name="" Mode="Alternate" StartChannel="1" Channels="18000" Value1="0" Value2="255" Duration="60000" FrameDuration="500" Delay="0"/>
+      <PLITest Mode="Alternate" StartChannel="1" Channels="18000" Value1="0" Value2="255" Duration="60000" FrameDuration="500" Delay="0" Name=""/>
     </PlayListStep>
   </PlayList>
   <PlayList Name="Text">
     <PlayListStep Name="">
-      <PLIText ApplyMethod="0" Colour="white" Duration="60000" Font="0;-12;0;0;0;400;0;0;0;1;0;0;2;48;Courier New" Format="" Text="Test" Matrix="Matrix" Movement="None" Orientation="Normal" Type="Normal" Speed="10" X="0" Y="0" Delay="0"/>
+      <PLIText ApplyMethod="0" Colour="green" Duration="10000" Font="0;-16;0;0;0;400;0;0;0;0;0;0;2;48;Courier New" Format="" Text="This is a test" Matrix="Matrix" Movement="Right to Left" Orientation="Vertical Up" Type="Normal" Speed="10" X="0" Y="0" Delay="0" Name="Test" Priority="1"/>
     </PlayListStep>
   </PlayList>
 </xSchedule>
