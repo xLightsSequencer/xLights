@@ -86,6 +86,8 @@ Files::listLibraryFilesMatching(string libraryName)
 
     for (size_t i = 0; i < path.size(); ++i) {
         
+        logger_base.debug("Vamp: Looking in path %s.", (const char *)path[i].c_str());
+
         vector<string> files = listFiles(path[i], PLUGIN_SUFFIX);
 
         for (vector<string>::iterator fi = files.begin();

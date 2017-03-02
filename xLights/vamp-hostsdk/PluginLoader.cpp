@@ -246,6 +246,10 @@ PluginLoader::Impl::enumeratePlugins(PluginKey forPlugin)
                 cerr << "Vamp::HostExt::PluginLoader: No vampGetPluginDescriptor function found in library \""
                      << fullPath << "\"" << endl;
             }
+            else
+            {
+                logger_base.error("Vamp: PluginLoader: No vampGetPluginDescriptor function found in library: %s.", (const std::string*)fullPath.c_str());
+            }
             Files::unloadLibrary(handle);
             continue;
         }
