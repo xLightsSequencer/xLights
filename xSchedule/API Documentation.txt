@@ -243,6 +243,10 @@ http://<host:port>/xScheduleCommand?Command-<command>&Parameters=<parameters>
 				max
 			Once set this data will continue to be output until it is overwritten using the same start channel. If the data size is blank then the pixel data is removed.
 
+		Run process <playlist name>,<step name>,<run process name>
+			This api will run the run process specified without interupting any playlists that happen to be playing at that time. This can be used to run a script which maybe does some more complicated control of the scheduler. For example ... if you wanted to fade the volume down over a period of 3 seconds you could kick off a script that called the api to change the volume several times over the time period.
+		
+
 http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 
 
