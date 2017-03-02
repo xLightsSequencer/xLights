@@ -30,9 +30,19 @@ function dashboardLoadStatus() {
     //Populate Idle Page
     var notPlaying = '<p><center>Show Not Running!</center></p>';
     $('#currentStep').html(notPlaying);
+    $("#controlButtonContainer").html("");
     populatePlaylists();
   } else {
     //playing
+
+    var toggleButtons =
+      `<div class="span6 text-center">
+    <button onclick="runCommand('Prior step in current playlist')" class="btn btn-default glyphicon glyphicon-backward" title='Back' type="button"></button>
+    <button onclick="runCommand('Pause')" class="btn btn-default glyphicon glyphicon-play" title='Play' type="button"></button>
+    <button onclick="runCommand('Pause')" class="btn btn-default glyphicon glyphicon-pause" title='Pause' type="button"></button>
+    <button onclick="runCommand('Stop all now')" class="btn btn-default glyphicon glyphicon-stop" title='Stop All' ype="button"></button>
+    <button onclick="runCommand('Next step in current playlist')" class="btn btn-default glyphicon glyphicon-forward" title='Next' type="button"></button>
+    </div>`;
 
     var currentPlaylist =
       `<span class="icon"><i class="icon-file"></i></span><h5>Playlist: ` +
@@ -41,6 +51,7 @@ function dashboardLoadStatus() {
       .split(".")[0] + `Duration: ` + playingStatus.length.split(".")[0];
 
     $("#currentStep").html(Playing);
+    $("#controlButtonContainer").html(toggleButtons);
     //Set bar
     // $("#currentPlaylistLoadingBar").css("width", findPercent(
     //   playingStatus
