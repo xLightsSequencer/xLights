@@ -267,68 +267,82 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
         case 3: // "Auto reverse r-l"
             AutoReverse=true;
             break;
-        case 4: // "Bounce"
+        case 4: // "Bounce" // Note this should actually be called "Dual Chase" here and in the UI, not dual bounce. Because this doesn't set [AutoReverse] to true, so it's only chasing
             Dual_Chases=true;
             break;
+        /*case 6: // "Actual Dual Bounce" // This is all you'd have to do to have a dual bounce
+             Dual_Chases=true;
+             AutoReverse=true;
+             break;*/
     }
-
+    
     int width;
     if (Chase_Group_All) {
         width=MaxNodes;
     } else {
         width=buffer.BufferWi;
     }
-
+    
     if (Mirror) width /= 2;
     if (width == 0) width = 1;
-
-    double chaseOffset = width * chaseSize / 100.0 - 1.0;
-
-    double rtval;
-    if (AutoReverse) {
-        rtval = (double)(buffer.curPeriod - buffer.curEffStartPer)/(double)(buffer.curEffEndPer - buffer.curEffStartPer);
-        rtval *= chaseSpeed;
-        while (rtval > 1.0) {
-            rtval -= 1.0;
-        }
-        rtval *= 2.0;
-    } else {
-        rtval = (double)(buffer.curPeriod-buffer.curEffStartPer)/(double)(buffer.curEffEndPer-buffer.curEffStartPer + (Number_Chases == 1 ? 1 : 0));
-        rtval *= chaseSpeed;
-        while (rtval > 1.0) {
-            rtval -= 1.0;
-        }
+    
+    // Make this a variable since it's used regularly
+    int scaledChaseWidth = width * chaseSize / 100.0;
+    // Make sure the chase is at least 1 pixel wide
+    if(scaledChaseWidth < 1) {
+        scaledChaseWidth = 1;
     }
-
+    
+    // This is a 0.0-1.0 value that determine how far along the current chase cycle we are
+    double rtval = (double)(buffer.curPeriod - buffer.curEffStartPer)/(double)(buffer.curEffEndPer - buffer.curEffStartPer);
+    rtval *= chaseSpeed;
+    while (rtval > 1.0) {
+        rtval -= 1.0;
+    }
+    if (AutoReverse) {
+        rtval *= 2.0;
+    }
+    
     if (Number_Chases < 1) Number_Chases=1;
     if (ColorScheme < 0) ColorScheme=0;
     float dx = double(width)/double(Number_Chases);
     if (dx < 1.0) dx=1.0;
-
-    double startState = (width + width * chaseSize / 100.0 - 1.0) * rtval;
+    
+    // All of this math needs to happen with integars because we can only deal with integar number of pixels when we render, so it doesn't do us any good to deal with floats
+    int startState;
+    // If we are wrapping, cap the width the buffer width
     if (Number_Chases > 1) {
-        startState = width * rtval;
+        // The +1 assure that the chaes start at index 0 (rather than index -1 or index [width] - 1 in the case of wrapping)
+        startState = width * rtval + 1;
     }
-    if (chaseOffset < 0) {
-        chaseOffset = 0;
-        startState = (width - 1) * rtval;
+    // If we aren't wrapping, add the chaseWidth to the total so the chase fully completes
+    else
+    {
+        // The -1 assures divides the time apprpriately so an equal amount of time is spent at each index
+        // Imagine a 10 pixel wide buffer, and a 2 pixel wide chase. We want to start the chase with 1 pixel visible, and end with 1 pixel visible, so that means there are actually 11 time slots ( [width] + [scaledChaseWidth] - 1 )
+        // The only problem is when we hit 1.0 exactly for the time, we'll roll over to the 12th slot, so the if statement fudges the math so the last slot actually gets 1 extra frame
+        // The +1 assure that the chaes start at index 0 rather than index -1
+        startState = (width + scaledChaseWidth - 1) * rtval + 1; // -2) + 1
+        if(rtval >= 0.999999) {
+            startState -= 1;
+        }
     }
+    
+    // Loop through each chase
     for(int chase=0; chase<Number_Chases; chase++)
     {
         int x;
+        // Bouncing chases
         if (AutoReverse) {
-            x = chase*dx + width*rtval - width * chaseSize / 200.0;
-        } else {
-            double x1 = chase*dx + startState - chaseOffset; // L-R
-            int maxChaseWid = (width * chaseSize/100.0);
-            if (round(chaseOffset) == maxChaseWid) {
-                x1 = chase * dx + startState - trunc(chaseOffset);
-            }
-            x = std::round(x1);
+            x = chase*dx + width*rtval - scaledChaseWidth / 2.0;
         }
-
+        // Full width chases
+        else {
+            x = chase*dx + startState - scaledChaseWidth; // L-R
+        }
+        
         draw_chase(buffer, x, Chase_Group_All, ColorScheme,Number_Chases,AutoReverse, width,chaseSize,Chase_Fade3d1,ChaseDirection, Mirror); // Turn pixel on
-        if(Dual_Chases) 
+        if(Dual_Chases)
         {
             draw_chase(buffer, x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Chase_Fade3d1, !ChaseDirection, Mirror);
         }
