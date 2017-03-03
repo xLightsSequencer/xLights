@@ -250,7 +250,7 @@ PlayListItem* PlayListStep::GetTimeSource(size_t &ms) const
             }
             else
             {
-                if ((*it)->GetPriority() > timesource->GetPriority())
+                if (timesource != nullptr && (*it)->GetPriority() > timesource->GetPriority())
                 {
                     timesource = *it;
                     ms = (*it)->GetFrameMS();
