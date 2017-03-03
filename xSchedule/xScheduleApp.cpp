@@ -240,7 +240,7 @@ wxString windows_get_stacktrace(void *data)
             symbol                      // Where to save the symbol
         )) {
             // Add the name of the function to the function list:
-            char buffer[2048]; sprintf(buffer, "0x%08x %s\n", frame.AddrPC.Offset, symbol->Name);
+            char buffer[2048]; sprintf(buffer, "0x%08llx %s\n", frame.AddrPC.Offset, symbol->Name);
             trace += buffer;
         }
         else {

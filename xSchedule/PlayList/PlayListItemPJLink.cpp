@@ -222,6 +222,10 @@ bool PlayListItemPJLink::Login()
             _socket = nullptr;
         }
     }
+    else
+    {
+        logger_base.error("PJLink refused connection %s:4352.", (const char *)ip.c_str());
+    }
 
     return _socket != nullptr;
 }
@@ -256,8 +260,11 @@ void PlayListItemPJLink::Logout()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("PJLink logging out.");
 
-    _socket->Close();
-    delete _socket;
-    _socket = nullptr;
+    if (_socket != nullptr)
+    {
+        _socket->Close();
+        delete _socket;
+        _socket = nullptr;
+    }
     _hash = "";
 }
