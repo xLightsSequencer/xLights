@@ -17,14 +17,14 @@ class MatrixDialog: public wxDialog
     int& _stringLength;
     int& _strings;
     int& _strandsPerString;
-    long _startChannel;
+    long& _startChannel;
     std::string& _orientation;
     std::string& _startingLocation;
     void SetChoiceFromString(wxChoice* choice, std::string value);
 
 	public:
 
-		MatrixDialog(wxWindow* parent, std::string& name, std::string& orientation, std::string& startLocation, int& stringLength, int& _strings, int& _strandsPerString, long _startChannel, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		MatrixDialog(wxWindow* parent, std::string& name, std::string& orientation, std::string& startLocation, int& stringLength, int& _strings, int& _strandsPerString, long& _startChannel, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~MatrixDialog();
 
 		//(*Declarations(MatrixDialog)

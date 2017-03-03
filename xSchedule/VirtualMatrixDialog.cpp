@@ -1,5 +1,7 @@
 #include "VirtualMatrixDialog.h"
 #include "PlayList/VideoWindowPositionDialog.h"
+#include "xScheduleMain.h"
+#include "ScheduleManager.h"
 
 //(*InternalHeaders(VirtualMatrixDialog)
 #include <wx/intl.h>
@@ -47,7 +49,7 @@ void VirtualMatrixDialog::SetChoiceFromString(wxChoice* choice, std::string valu
     choice->SetSelection(sel);
 }
 
-VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, long startChannel, wxWindowID id, const wxPoint& pos, const wxSize& size) : _name(name), _rotation(rotation), _startChannel(startChannel), _width(width), _height(height), _topMost(topMost), _size(vmsize), _location(vmlocation), _quality(quality)
+VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, long& startChannel, wxWindowID id, const wxPoint& pos, const wxSize& size) : _name(name), _rotation(rotation), _startChannel(startChannel), _width(width), _height(height), _topMost(topMost), _size(vmsize), _location(vmlocation), _quality(quality)
 {
     _tempSize = _size;
     _tempLocation = _location;
@@ -119,6 +121,9 @@ VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, std::string& name, st
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VirtualMatrixDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VirtualMatrixDialog::OnButton_CancelClick);
 	//*)
+
+    long channels = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
+    SpinCtrl_StartChannel->SetRange(1, channels);
 
     TextCtrl_Name->SetValue(_name);
     SetChoiceFromString(Choice_Rotation, _rotation);

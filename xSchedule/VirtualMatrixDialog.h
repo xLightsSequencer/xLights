@@ -18,7 +18,7 @@ class VirtualMatrixDialog: public wxDialog
     int& _width;
     int& _height;
     bool& _topMost;
-    long _startChannel;
+    long& _startChannel;
     wxSize& _size;
     wxPoint& _location;
     std::string& _rotation;
@@ -31,7 +31,7 @@ class VirtualMatrixDialog: public wxDialog
 
 	public:
 
-		VirtualMatrixDialog(wxWindow* parent, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, long _startChannel, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		VirtualMatrixDialog(wxWindow* parent, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, long& _startChannel, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~VirtualMatrixDialog();
 
 		//(*Declarations(VirtualMatrixDialog)

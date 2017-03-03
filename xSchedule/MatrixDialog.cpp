@@ -1,4 +1,6 @@
 #include "MatrixDialog.h"
+#include "xScheduleMain.h"
+#include "ScheduleManager.h"
 
 //(*InternalHeaders(MatrixDialog)
 #include <wx/intl.h>
@@ -46,7 +48,7 @@ void MatrixDialog::SetChoiceFromString(wxChoice* choice, std::string value)
     choice->SetSelection(sel);
 }
 
-MatrixDialog::MatrixDialog(wxWindow* parent, std::string& name, std::string& orientation, std::string& startingLocation, int& stringLength, int& strings, int& strandsPerString, long startChannel, wxWindowID id,const wxPoint& pos,const wxSize& size) : _name(name), _orientation(orientation), _startChannel(startChannel), _startingLocation(startingLocation), _strandsPerString(strandsPerString), _strings(strings), _stringLength(stringLength)
+MatrixDialog::MatrixDialog(wxWindow* parent, std::string& name, std::string& orientation, std::string& startingLocation, int& stringLength, int& strings, int& strandsPerString, long& startChannel, wxWindowID id,const wxPoint& pos,const wxSize& size) : _name(name), _orientation(orientation), _startChannel(startChannel), _startingLocation(startingLocation), _strandsPerString(strandsPerString), _strings(strings), _stringLength(stringLength)
 {
 	//(*Initialize(MatrixDialog)
 	wxBoxSizer* BoxSizer1;
@@ -110,6 +112,9 @@ MatrixDialog::MatrixDialog(wxWindow* parent, std::string& name, std::string& ori
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MatrixDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MatrixDialog::OnButton_CancelClick);
 	//*)
+
+    long channels = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
+    SpinCtrl_StartChannel->SetRange(1, channels);
 
     TextCtrl_Name->SetValue(_name);
     SetChoiceFromString(Choice_Orientation, _orientation);
