@@ -7,10 +7,11 @@
 #include "xScheduleMain.h"
 #include "ScheduleManager.h"
 #include <wx/uri.h>
-#include <wx/dir.h>
 #include "xScheduleApp.h"
 #include "ScheduleOptions.h"
 #include "md5.h"
+
+//#define DETAILED_LOGGING
 
 bool __apiOnly = false;
 std::string __password = "";
@@ -131,6 +132,8 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    wxStopWatch sw;
+
     std::string wwwroot = xScheduleFrame::GetScheduleManager()->GetOptions()->GetWWWRoot();
     if (request.URI().Lower().StartsWith("/xschedulecommand"))
     {
@@ -143,7 +146,9 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         std::string command = parms["Command"];
         std::string parameters = parms["Parameters"];
 
+#ifdef DETAILED_LOGGING
         logger_base.info("xScheduleCommand received command = '%s' parameters = '%s'.", (const char *)command.c_str(), (const char *)parameters.c_str());
+#endif
 
         std::string data = request.Data().ToStdString();
         size_t rate = 0;
@@ -156,12 +161,16 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
             wxPostEvent(wxGetApp().GetTopWindow(), event);
 
             response.MakeFromText("{\"result\":\"ok\"}", "application/json");
+
+#ifdef DETAILED_LOGGING
+            logger_base.info("    Time %ld.", sw.Time());
+#endif
         }
         else
         {
-            std::string data = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
-            logger_base.info("    data = '%s'.", (const char *)data.c_str());
-            response.MakeFromText(data, "application/json");
+            std::string respdata = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
+            logger_base.info("    data = '%s'. Time %ld.", (const char *)respdata.c_str(), sw.Time());
+            response.MakeFromText(respdata, "application/json");
         }
         connection.SendResponse(response);
         return true;
@@ -177,13 +186,15 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         HttpResponse response(connection, request, HttpStatus::OK);
         if (xScheduleFrame::GetScheduleManager()->DoXyzzy(command, parameters, msg))
         {
-            logger_base.info("xyzzy command=%s parameters=%s result='%s'.", (const char *)command.c_str(), (const char*)parameters.c_str(), (const char *)msg.c_str());
+#ifdef DETAILED_LOGGING
+            logger_base.info("xyzzy command=%s parameters=%s result='%s'. Time %ld.", (const char *)command.c_str(), (const char*)parameters.c_str(), (const char *)msg.c_str(), sw.Time());
+#endif
             response.MakeFromText(msg, "application/json");
         }
         else
         {
             std::string data = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
-            logger_base.info("xyzzy command=%s parameters=%s result='%s'.", (const char *)command.c_str(), (const char*)parameters.c_str(), (const char *)data.c_str());
+            logger_base.info("xyzzy command=%s parameters=%s result='%s'. Time %ld.", (const char *)command.c_str(), (const char*)parameters.c_str(), (const char *)data.c_str(), sw.Time());
             response.MakeFromText(data, "application/json");
         }
         connection.SendResponse(response);
@@ -212,17 +223,17 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
                 response.MakeFromText("{\"result\":\"ok\"}", "application/json");
                 // THIS SHOULD BE REMOVED
                 //logger_base.debug("Security: Login %s success.", (const char *)credential.c_str());
-                logger_base.debug("Security: Login success %s.", (const char *)connection.Address().IPAddress().c_str());
+                logger_base.debug("Security: Login success %s. Time %ld.", (const char *)connection.Address().IPAddress().c_str(), sw.Time());
             }
             else
             {
                 // not a valid login
                 // THIS SHOULD BE REMOVED
                 //logger_base.debug("Security: Login failed - credential was %s for %s when it should have been %s.", (const char *)credential.c_str(), (const char *)cred.c_str(), (const char *)hash.c_str());
-                logger_base.debug("Security: Login failed.");
                 RemoveFromValid(connection);
                 std::string data = "{\"result\":\"failed\",\"message\":\"Login failed.\",\"ip\":\""+ connection.Address().IPAddress().ToStdString() +"\"}";
                 response.MakeFromText(data, "application/json");
+                logger_base.debug("Security: Login failed. data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
             }
             connection.SendResponse(response);
             return true;
@@ -259,12 +270,15 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
             HttpResponse response(connection, request, HttpStatus::OK);
             if (xScheduleFrame::GetScheduleManager()->StoreData(key, data, msg))
             {
+#ifdef DETAILED_LOGGING
+                logger_base.info("    Time %ld.", sw.Time());
+#endif
                 response.MakeFromText("{\"result\":\"ok\"}", "application/json");
             }
             else
             {
                 data = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
-                logger_base.info("    data = '%s'.", (const char *)data.c_str());
+                logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
                 response.MakeFromText(data, "application/json");
             }
             connection.SendResponse(response);
@@ -276,14 +290,14 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
             HttpResponse response(connection, request, HttpStatus::OK);
             if (xScheduleFrame::GetScheduleManager()->RetrieveData(key, data, msg))
             {
-                logger_base.info("    data = '%s'.", (const char *)data.c_str());
+                logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
 
                 response.MakeFromText(data, "text/plain");
             }
             else
             {
                 data = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
-                logger_base.info("    data = '' : '%s'.", (const char *)data.c_str());
+                logger_base.info("    data = '' : '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
                 response.MakeFromText("", "application/json");
             }
             connection.SendResponse(response);
@@ -292,7 +306,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         {
             HttpResponse response(connection, request, HttpStatus::OK);
             std::string data = "{\"result\":\"failed\",\"message\":\"Unknown stash command.\"}";
-            logger_base.info("    '%s'.", (const char *)data.c_str());
+            logger_base.info("    '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
             response.MakeFromText(data, "application/json");
             connection.SendResponse(response);
         }
@@ -310,7 +324,9 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         std::string parameters = parms["Parameters"];
 
         // log everything but playing status
+#ifndef DETAILED_LOGGING
         if (query != "GetPlayingStatus")
+#endif
             logger_base.info("xScheduleQuery received query = '%s' parameters = '%s'.", (const char *)query.c_str(), (const char *)parameters.c_str());
 
         std::string data = "";
@@ -318,15 +334,17 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         HttpResponse response(connection, request, HttpStatus::OK);
         if (xScheduleFrame::GetScheduleManager()->Query(query, parameters, data, msg, connection.Address().IPAddress().ToStdString()))
         {
+#ifndef DETAILED_LOGGING
             if (query != "GetPlayingStatus")
-                logger_base.info("    data = '%s'.", (const char *)data.c_str());
+#endif
+                logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
 
             response.MakeFromText(data, "application/json");
         }
         else
         {
             data = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
-            logger_base.info("    data = '' : '%s'.", (const char *)data.c_str());
+            logger_base.info("    data = '' : '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
             response.MakeFromText(data, "application/json");
         }
 
