@@ -23,6 +23,7 @@ class GIFImage
     int CalcFrameForTime(int msec, bool loop);
     wxPoint LoadRawImageFrame(wxImage& image, int frame, wxAnimationDisposal& disposal);
     void CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool overlay);
+    void DoCreate(const std::string& filename, wxSize desiredSize);
 
 	public:
 		GIFImage(const std::string& filename);

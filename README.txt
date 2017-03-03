@@ -13,6 +13,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Fix Glediator effect causing field errors
    -- enh (keith)   Get x64 build working for Visual Studio.
    -- enh (keith)   Get Vamp 64 bit working
+   -- enh (keith)   Scheduler - Add support for animated GIFs to image playlist item
+   -- bug (keith)   Scheduler - Fix crash on exit when using PJLink
+   -- bug (keith)   Scheduler - Fix matrix start channels not saving or able to set to > 100
 2017.6  Feb 27, 2017
    -- bug (dkulp)   Fix xScheduler logging on OSX
    -- enh (keith)   Add duration treatments to glediator effect

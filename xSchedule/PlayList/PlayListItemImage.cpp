@@ -4,9 +4,11 @@
 #include "PlayListItemImagePanel.h"
 #include "PlayerWindow.h"
 #include "../xScheduleApp.h"
+#include "../../xLights/effects/GIFImage.h"
 
 PlayListItemImage::PlayListItemImage(wxXmlNode* node) : PlayListItem(node)
 {
+    _gifImage = nullptr;
     _topMost = true;
     _duration = 0;
     _done = false;
@@ -21,6 +23,12 @@ PlayListItemImage::PlayListItemImage(wxXmlNode* node) : PlayListItem(node)
 
 PlayListItemImage::~PlayListItemImage()
 {
+    if (_gifImage != nullptr)
+    {
+        delete _gifImage;
+        _gifImage = nullptr;
+    }
+
     if (_window != nullptr)
     {
         delete _window;
@@ -40,6 +48,7 @@ void PlayListItemImage::Load(wxXmlNode* node)
 
 PlayListItemImage::PlayListItemImage() : PlayListItem()
 {
+    _gifImage = nullptr;
     _topMost = true;
     _duration = 0;
     _done = false;
@@ -112,8 +121,15 @@ void PlayListItemImage::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
 {
     if (ms > _delay)
     {
-        _window->SetImage(_image);
-        _done = true;
+        if (_gifImage == nullptr && !_done)
+        {
+            _window->SetImage(_image);
+            _done = true;
+        }
+        else if (_gifImage != nullptr)
+        {
+            _window->SetImage(_gifImage->GetFrameForTime(ms - _delay, true));
+        }
     }
 }
 
@@ -123,6 +139,21 @@ void PlayListItemImage::Start()
 
     // reload the image file
     _image.LoadFile(_ImageFile);
+
+    if (wxImage::GetImageCount(_ImageFile) > 1)
+    {
+        if (_gifImage != nullptr && _gifImage->GetFilename() != _ImageFile)
+        {
+            delete _gifImage;
+            _gifImage = nullptr;
+        }
+        _gifImage = new GIFImage(_ImageFile);
+        if (_gifImage != nullptr && !_gifImage->IsOk())
+        {
+            delete _gifImage;
+            _gifImage = nullptr;
+        }
+    }
 
     // create the window
     if (_window == nullptr)

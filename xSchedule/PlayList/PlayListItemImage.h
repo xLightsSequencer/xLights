@@ -7,6 +7,7 @@
 class wxXmlNode;
 class wxWindow;
 class PlayerWindow;
+class GIFImage;
 
 class PlayListItemImage : public PlayListItem
 {
@@ -17,6 +18,7 @@ protected:
 	wxPoint _origin;
 	wxSize _size;
     wxImage _image;
+    GIFImage* _gifImage;
     PlayerWindow* _window;
     bool _topMost;
     bool _done;

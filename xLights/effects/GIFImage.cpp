@@ -21,7 +21,7 @@ GIFImage::GIFImage(const std::string& filename)
     _totalTime = 0;
     _lastFrame = -1;
     _lastDispose = wxAnimationDisposal::wxANIM_UNSPECIFIED;
-    GIFImage(filename, wxSize(-1, -1));
+    DoCreate(filename, wxSize(-1, -1));
 }
 
 int GIFImage::GetMSUntilNextFrame(int msec, bool loop)
@@ -86,6 +86,11 @@ void GIFImage::ReadFrameTimes()
 }
 
 GIFImage::GIFImage(const std::string& filename, wxSize desiredSize)
+{
+    DoCreate(filename, desiredSize);
+}
+
+void GIFImage::DoCreate(const std::string& filename, wxSize desiredSize)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

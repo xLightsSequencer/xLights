@@ -229,6 +229,8 @@
 		<Unit filename="../xLights/JobPool.h" />
 		<Unit filename="../xLights/VideoReader.cpp" />
 		<Unit filename="../xLights/VideoReader.h" />
+		<Unit filename="../xLights/effects/GIFImage.cpp" />
+		<Unit filename="../xLights/effects/GIFImage.h" />
 		<Unit filename="../xLights/kiss_fft/kiss_fft.c">
 			<Option compilerVar="CC" />
 		</Unit>
