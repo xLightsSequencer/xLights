@@ -10,7 +10,7 @@ std::string NullOutput::GetLongDescription() const
 
     if (!_enabled) res += "INACTIVE ";
     res += "NULL (" + std::string(wxString::Format(wxT("%i"), _nullNumber)) + ") ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), _startChannel)) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+    res += "(" + std::string(wxString::Format(wxT("%i"), (long)_startChannel)) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
     res += _description;
 
     return res;

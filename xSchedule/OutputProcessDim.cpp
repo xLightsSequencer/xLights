@@ -29,7 +29,7 @@ wxXmlNode* OutputProcessDim::Save()
 {
     wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "OPDim");
 
-    res->AddAttribute("Channels", wxString::Format(wxT("%i"), _channels));
+    res->AddAttribute("Channels", wxString::Format(wxT("%i"), (long)_channels));
     res->AddAttribute("Dim", wxString::Format(wxT("%i"), _dim));
 
     return res;

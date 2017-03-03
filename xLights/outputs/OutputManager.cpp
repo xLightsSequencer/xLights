@@ -200,7 +200,7 @@ std::string OutputManager::GetChannelName(long channel)
     }
     else
     {
-        return wxString::Format(wxT("Ch %i: Net %i #%i"), channel + 1, o->GetOutputNumber(), channel - o->GetStartChannel()).ToStdString();
+        return wxString::Format(wxT("Ch %i: Net %i #%i"), channel + 1, o->GetOutputNumber(), (long)(channel - o->GetStartChannel())).ToStdString();
     }
 }
 

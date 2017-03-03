@@ -65,12 +65,12 @@ wxXmlNode* PlayListItemTest::Save()
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLITest");
 
     node->AddAttribute("Mode", _mode);
-    node->AddAttribute("StartChannel", wxString::Format(wxT("%i"), _startChannel));
-    node->AddAttribute("Channels", wxString::Format(wxT("%i"), _channels));
+    node->AddAttribute("StartChannel", wxString::Format(wxT("%i"), (long)_startChannel));
+    node->AddAttribute("Channels", wxString::Format(wxT("%i"), (long)_channels));
     node->AddAttribute("Value1", wxString::Format(wxT("%i"), _value1));
     node->AddAttribute("Value2", wxString::Format(wxT("%i"), _value2));
-    node->AddAttribute("Duration", wxString::Format(wxT("%i"), _duration));
-    node->AddAttribute("FrameDuration", wxString::Format(wxT("%i"), _frameDuration));
+    node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
+    node->AddAttribute("FrameDuration", wxString::Format(wxT("%i"), (long)_frameDuration));
 
     PlayListItem::Save(node);
 

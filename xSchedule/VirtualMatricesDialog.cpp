@@ -276,7 +276,7 @@ void VirtualMatricesDialog::PopulateList()
         ListView1->SetItem(row, 4, (*it)->GetRotation());
         ListView1->SetItem(row, 5, wxString::Format(wxT("%i,%i"), (*it)->GetSize().GetWidth(), (*it)->GetSize().GetHeight()));
         ListView1->SetItem(row, 6, wxString::Format(wxT("%i,%i"), (*it)->GetLocation().x, (*it)->GetLocation().y));
-        ListView1->SetItem(row, 7, wxString::Format(wxT("%i"), (*it)->GetStartChannel()));
+        ListView1->SetItem(row, 7, wxString::Format(wxT("%i"), (long)(*it)->GetStartChannel()));
         ListView1->SetItem(row, 8, (*it)->GetScalingQuality());
     }
 }

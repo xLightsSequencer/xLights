@@ -535,8 +535,8 @@ std::string E131Output::GetLongDescription() const
     {
         if (!_enabled) res += "INACTIVE ";
         res += "E1.31 " + _ip + " {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
-        res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
-        res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetActualEndChannel())) + ") ";
+        res += "[1-" + std::string(wxString::Format(wxT("%i"), (long)_channels)) + "] ";
+        res += "(" + std::string(wxString::Format(wxT("%i"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), (long)GetActualEndChannel())) + ") ";
         res += _description;
     }
 

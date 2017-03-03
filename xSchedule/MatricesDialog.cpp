@@ -244,6 +244,6 @@ void MatricesDialog::PopulateList()
         ListView1->SetItem(row, 3, wxString::Format(wxT("%i"), (*it)->GetStringLength()));
         ListView1->SetItem(row, 4, wxString::Format(wxT("%i"), (*it)->GetStrandsPerString()));
         ListView1->SetItem(row, 5, (*it)->GetStartLocation());
-        ListView1->SetItem(row, 6, wxString::Format(wxT("%i"), (*it)->GetStartChannel()));
+        ListView1->SetItem(row, 6, wxString::Format(wxT("%i"), (long)(*it)->GetStartChannel()));
     }
 }

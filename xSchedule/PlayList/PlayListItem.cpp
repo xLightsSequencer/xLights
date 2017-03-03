@@ -40,7 +40,7 @@ PlayListItem::PlayListItem()
 
 void PlayListItem::Save(wxXmlNode* node)
 {
-    node->AddAttribute("Delay", wxString::Format(wxT("%i"), _delay));
+    node->AddAttribute("Delay", wxString::Format(wxT("%i"), (long)_delay));
     node->AddAttribute("Name", _name);
     if (_volume != -1)
     {
@@ -48,7 +48,7 @@ void PlayListItem::Save(wxXmlNode* node)
     }
     if (_priority != 0)
     {
-        node->AddAttribute("Priority", wxString::Format(wxT("%i"), _priority));
+        node->AddAttribute("Priority", wxString::Format(wxT("%i"), (int)_priority));
     }
 }
 

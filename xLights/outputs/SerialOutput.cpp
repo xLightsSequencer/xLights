@@ -124,8 +124,8 @@ std::string SerialOutput::GetLongDescription() const
 
     if (!_enabled) res += "INACTIVE ";
     res += GetType() + " " + _commPort;
-    res += " [1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+    res += " [1-" + std::string(wxString::Format(wxT("%i"), (long)_channels)) + "] ";
+    res += "(" + std::string(wxString::Format(wxT("%i"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), (long)GetEndChannel())) + ") ";
     res += _description;
 
     return res;

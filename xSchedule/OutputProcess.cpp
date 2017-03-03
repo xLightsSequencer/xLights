@@ -40,7 +40,7 @@ OutputProcess::OutputProcess(size_t startChannel, const std::string& description
 
 void OutputProcess::Save(wxXmlNode* node)
 {
-    node->AddAttribute("StartChannel", wxString::Format(wxT("%i"), _startChannel));
+    node->AddAttribute("StartChannel", wxString::Format(wxT("%i"), (long)_startChannel));
     node->AddAttribute("Description", _description);
 }
 

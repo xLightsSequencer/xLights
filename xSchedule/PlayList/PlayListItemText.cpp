@@ -137,7 +137,7 @@ wxXmlNode* PlayListItemText::Save()
 
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_blendMode));
     node->AddAttribute("Colour", _colour.GetAsString());
-    node->AddAttribute("Duration", wxString::Format(wxT("%i"), _durationMS));
+    node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_durationMS));
     node->AddAttribute("Font", _font->GetNativeFontInfoDesc());
     node->AddAttribute("Format", _format);
     node->AddAttribute("Text", _text);

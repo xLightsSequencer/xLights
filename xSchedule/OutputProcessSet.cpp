@@ -29,7 +29,7 @@ wxXmlNode* OutputProcessSet::Save()
 {
     wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "OPSet");
 
-    res->AddAttribute("Channels", wxString::Format(wxT("%i"), _channels));
+    res->AddAttribute("Channels", wxString::Format(wxT("%i"), (long)_channels));
     res->AddAttribute("Value", wxString::Format(wxT("%i"), _value));
 
     return res;

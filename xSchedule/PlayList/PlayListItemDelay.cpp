@@ -33,8 +33,8 @@ wxXmlNode* PlayListItemDelay::Save()
 {
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIDelay");
 
-    node->AddAttribute("Duration", wxString::Format(wxT("%i"), _duration));
-
+    node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
+   
     PlayListItem::Save(node);
 
     return node;

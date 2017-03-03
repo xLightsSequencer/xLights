@@ -82,7 +82,7 @@ wxXmlNode* PlayListItemImage::Save()
     node->AddAttribute("Y", wxString::Format(wxT("%i"), _origin.y));
     node->AddAttribute("W", wxString::Format(wxT("%i"), _size.GetWidth()));
     node->AddAttribute("H", wxString::Format(wxT("%i"), _size.GetHeight()));
-    node->AddAttribute("Duration", wxString::Format(wxT("%i"), _duration));
+    node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
 
     if (!_topMost)
     {

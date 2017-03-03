@@ -120,7 +120,7 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
     for (auto it = op->begin(); it != op->end(); ++it)
     {
         ListView_Processes->InsertItem(i, (*it)->GetType());
-        ListView_Processes->SetItem(i, 1, wxString::Format(wxT("%i"), (*it)->GetStartChannel()));
+        ListView_Processes->SetItem(i, 1, wxString::Format(wxT("%i"), (long)(*it)->GetStartChannel()));
         ListView_Processes->SetItem(i, 2, wxString::Format(wxT("%i"), (*it)->GetP1()));
         ListView_Processes->SetItem(i, 3, wxString::Format(wxT("%i"), (*it)->GetP2()));
         ListView_Processes->SetItem(i, 4, (*it)->GetDescription());

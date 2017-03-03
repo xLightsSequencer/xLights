@@ -50,11 +50,11 @@ wxXmlNode* PlayListItemAllOff::Save()
 {
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIAllSet");
 
-    node->AddAttribute("Duration", wxString::Format(wxT("%i"), _duration));
+    node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
     node->AddAttribute("Value", wxString::Format(wxT("%i"), _value));
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
-    node->AddAttribute("StartChannel", wxString::Format(wxT("%i"), _startChannel));
-    node->AddAttribute("Channels", wxString::Format(wxT("%i"), _channels));
+    node->AddAttribute("StartChannel", wxString::Format(wxT("%i"), (long)_startChannel));
+    node->AddAttribute("Channels", wxString::Format(wxT("%i"), (long)_channels));
 
     PlayListItem::Save(node);
 
