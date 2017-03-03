@@ -15,8 +15,8 @@ class BezierCurve
             float y;
             float length;
             glm::mat3 *matrix;
-            xlPointf( ) : x(0.0f), y(0.0f) {}
-            xlPointf( float x_, float y_ ) : x(x_), y(y_) {}
+            xlPointf( ) : x(0.0f), y(0.0f), length(0.0f), matrix(nullptr) {}
+            xlPointf( float x_, float y_ ) : x(x_), y(y_), length(0.0f), matrix(nullptr) {}
         };
 
         virtual void UpdatePoints() = 0;
@@ -24,8 +24,8 @@ class BezierCurve
         void CreateNormalizedMatrix(float &minX, float &maxX, float &minY, float &maxY);
         float GetLength();
         float GetSegLength(int segment);
-        int GetNumPoints() {return num_points;}
-        int GetNumSegments() {return num_points-1;}
+        int GetNumPoints() const {return num_points;}
+        int GetNumSegments() const {return num_points-1;}
         glm::mat3* GetMatrix(int segment) {return points[segment].matrix;}
         float get_px(int num);
         float get_py(int num);
@@ -43,12 +43,12 @@ class BezierCurve
         void set_p1( float x_, float y_ ) { p1.x = x_; p1.y = y_; }
         void set_cp0( float x_, float y_ ) { cp0.x = x_; cp0.y = y_; }
 
-        float get_p0x() {return p0.x;}
-        float get_p0y() {return p0.y;}
-        float get_p1x() {return p1.x;}
-        float get_p1y() {return p1.y;}
-        float get_cp0x() {return cp0.x;}
-        float get_cp0y() {return cp0.y;}
+        float get_p0x() const {return p0.x;}
+        float get_p0y() const {return p0.y;}
+        float get_p1x() const {return p1.x;}
+        float get_p1y() const {return p1.y;}
+        float get_cp0x() const {return cp0.x;}
+        float get_cp0y() const {return cp0.y;}
 
 	protected:
 		xlPointf p0;
@@ -79,13 +79,13 @@ class BezierCurveCubic : public BezierCurve
         virtual ~BezierCurveCubic();
 
         void set_cp1( float x_, float y_ ) { cp1.x = x_; cp1.y = y_; }
-        virtual void OffsetX(float diff);
-        virtual void OffsetY(float diff);
+        virtual void OffsetX(float diff) override;
+        virtual void OffsetY(float diff) override;
 
-        float get_cp1x() {return cp1.x;}
-        float get_cp1y() {return cp1.y;}
+        float get_cp1x() const {return cp1.x;}
+        float get_cp1y() const {return cp1.y;}
 
-	virtual void UpdatePoints();
+    	virtual void UpdatePoints() override;
 
 	private:
 		xlPointf cp1;

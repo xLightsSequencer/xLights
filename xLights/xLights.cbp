@@ -727,6 +727,8 @@
 		<Unit filename="effects/FireworksEffect.h" />
 		<Unit filename="effects/FireworksPanel.cpp" />
 		<Unit filename="effects/FireworksPanel.h" />
+		<Unit filename="effects/GIFImage.cpp" />
+		<Unit filename="effects/GIFImage.h" />
 		<Unit filename="effects/GalaxyEffect.cpp" />
 		<Unit filename="effects/GalaxyEffect.h" />
 		<Unit filename="effects/GalaxyPanel.cpp" />

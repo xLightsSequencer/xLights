@@ -21,7 +21,7 @@ class PicturesEffect : public RenderableEffect
                            int xc_adj, int yc_adj,
                            int xce_adj, int yce_adj,
                            int start_scale, int end_scale, const std::string& scale_to_fit,
-                           bool pixelOffsets, bool wrap_x, bool shimmer);
+                           bool pixelOffsets, bool wrap_x, bool shimmer, bool loopGIF);
 
         virtual AssistPanel *GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame) override;
         virtual bool HasAssistPanel() override { return true; }

@@ -1,7 +1,6 @@
 #include "PianoPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
-#include "PianoEffect.h"
 #include <wx/textfile.h>
 #include "../sequencer/Effect.h"
 
@@ -20,9 +19,7 @@
 #include <wx/string.h>
 //*)
 
-#include <wx/msgdlg.h>
 #include <wx/filename.h>
-#include <wx/filepicker.h>
 #include <wx/valnum.h>
 
 #include "../xLightsMain.h"
@@ -145,7 +142,8 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	Connect(IDD_TEXTCTRL_Piano_XOffset,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PianoPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_Piano_XOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
 	//*)
-    SetName("ID_PANEL_PIANO");
+
+    wxWindowBase::SetName("ID_PANEL_PIANO");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&PianoPanel::OnVCChanged, 0, this);
     // Set value curve limits
@@ -211,7 +209,7 @@ void PianoPanel::SetTimingTracks(wxCommandEvent& event)
 
     // check if anything has been removed ... if it has clear the list and we will have to rebuild it as you cant delete items from a combo box
     bool removed = false;
-    for (int i = 0; i < Choice_Piano_MIDITrack_APPLYLAST->GetCount(); i++)
+    for (size_t i = 0; i < Choice_Piano_MIDITrack_APPLYLAST->GetCount(); i++)
     {
         bool found = false;
         for (auto it = timingtracks.begin(); it != timingtracks.end(); ++it)

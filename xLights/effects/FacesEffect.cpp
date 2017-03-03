@@ -949,7 +949,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         std::string i = "none"; /*RENDER_PICTURE_NONE*/
         if (model_info->faceInfo[definition]["ImagePlacement"] == "Centered") {
             i = "none"; /*RENDER_PICTURE_NONE */
-        }        PicturesEffect::Render(buffer, i, picture, 0, 0, 0, 0, 0, 0, 100, 100, "Scale To Fit", false, false, false);  // set for scale to fit
+        }        PicturesEffect::Render(buffer, i, picture, 0, 0, 0, 0, 0, 0, 100, 100, "Scale To Fit", false, false, false, false);  // set for scale to fit
     }
     for (size_t t = 0; t < todo.size(); t++) {
         std::string channels = model_info->faceInfo[definition][todo[t]];
@@ -958,9 +958,9 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             wxString valstr = wtkz.GetNextToken();
 
             if (type == 0) {
-                auto it = cache->nodeNameCache.find(valstr.ToStdString());
-                if (it != cache->nodeNameCache.end()) {
-                    int n = it->second;
+                auto it2 = cache->nodeNameCache.find(valstr.ToStdString());
+                if (it2 != cache->nodeNameCache.end()) {
+                    int n = it2->second;
                     for (auto a = buffer.Nodes[n]->Coords.begin() ; a != buffer.Nodes[n]->Coords.end(); a++) {
                         buffer.SetPixel(a->bufX, a->bufY, colors[t]);
                     }

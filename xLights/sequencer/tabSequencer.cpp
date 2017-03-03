@@ -3,7 +3,6 @@
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
 #include <wx/filename.h>
-#include <wx/tipwin.h>
 #include <wx/filepicker.h>
 #include <wx/fontpicker.h>
 #include "../xLightsMain.h"
@@ -23,6 +22,7 @@
 #include "../osxMacUtils.h"
 #include "../SeqElementMismatchDialog.h"
 #include "../RenderCommandEvent.h"
+#include "../xLightsVersion.h"
 
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
@@ -122,7 +122,7 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     m_mgr->Update();
 
     // reset preview pane positions
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); it++) {
+    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         if (grp != nullptr) {
             grp->ResetPositions();
@@ -141,16 +141,17 @@ void xLightsFrame::InitSequencer()
     {
         return;
     }
-    if(mCurrentPerpective!=NULL)
+    if(mCurrentPerpective!=nullptr)
     {
-        LoadPerspective(mCurrentPerpective);
+        DoLoadPerspective(mCurrentPerpective);
     }
     mSequencerInitialize = true;
     sPreview2->InitializePreview(mBackgroundImage,mBackgroundBrightness);
     sPreview2->SetScaleBackgroundImage(mScaleBackgroundImage);
 }
 
-Model *xLightsFrame::GetModel(const std::string& name) {
+Model *xLightsFrame::GetModel(const std::string& name) const
+{
     return AllModels[name];
 }
 
@@ -199,14 +200,14 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
     }
 }
 
-
 static wxArrayString ToArrayString(const std::vector<std::string> &names) {
     wxArrayString ret;
-    for (auto it = names.begin(); it != names.end(); it++) {
+    for (auto it = names.begin(); it != names.end(); ++it) {
         ret.push_back(*it);
     }
     return ret;
 }
+
 static void Remove(std::vector<std::string> &names, const std::string &str) {
     names.erase(std::remove(names.begin(), names.end(), str), names.end());
 }
@@ -300,7 +301,7 @@ void xLightsFrame::CheckForValidModels()
 
     std::vector<std::string> AllNames;
     std::vector<std::string> ModelNames;
-    for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
         AllNames.push_back(it->first);
         if (it->second->GetDisplayAs() != "ModelGroup") {
             ModelNames.push_back(it->first);
@@ -353,7 +354,7 @@ void xLightsFrame::CheckForValidModels()
             ImportXLights(mSequenceElements, toMap, wxFileName(), true, true);
         }
         toMap.clear();
-        for (auto a = mapLater.begin(); a != mapLater.end(); a++) {
+        for (auto a = mapLater.begin(); a != mapLater.end(); ++a) {
             toMap.push_back(*a);
         }
         mapLater.clear();
@@ -387,7 +388,7 @@ void xLightsFrame::CheckForValidModels()
                             }
                         }
                     }
-                    for (auto a = ignore.begin(); a != ignore.end(); a++) {
+                    for (auto a = ignore.begin(); a != ignore.end(); ++a) {
                         if (el == *a) {
                             hasNodeEffects = false;
                             hasStrandEffects = false;
@@ -748,7 +749,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
         }
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
-            StopSequence();
+            DoStopSequence();
         }
 
         if (playType != PLAY_TYPE_MODEL) {
@@ -811,7 +812,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
         mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
-            StopSequence();
+            DoStopSequence();
 			SetAudioControls();
 		}
 
@@ -875,7 +876,7 @@ void xLightsFrame::ModelSelected(wxCommandEvent& event)
     }
 }
 
-void xLightsFrame::PlaySequence()
+void xLightsFrame::DoPlaySequence()
 {
 	if (CurrentSeqXmlFile != nullptr)
 	{
@@ -914,7 +915,7 @@ void xLightsFrame::PlaySequence()
 void xLightsFrame::PlaySequence(wxCommandEvent& event)
 {
 	mLoopAudio = false;
-	PlaySequence();
+	DoPlaySequence();
 }
 
 void xLightsFrame::PauseSequence(wxCommandEvent& event)
@@ -1060,7 +1061,7 @@ void xLightsFrame::TogglePlay(wxCommandEvent& event)
     }
 }
 
-void xLightsFrame::StopSequence()
+void xLightsFrame::DoStopSequence()
 {
     _fps = -1;
 	mLoopAudio = false;
@@ -1087,7 +1088,7 @@ void xLightsFrame::StopSequence()
 
 void xLightsFrame::StopSequence(wxCommandEvent& event)
 {
-    StopSequence();
+    DoStopSequence();
 }
 
 void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)
@@ -1128,7 +1129,7 @@ void xLightsFrame::SequenceReplaySection(wxCommandEvent& event)
 {
     //FIXME implement this:  use as a loop flag?
 	mLoopAudio = true;
-	PlaySequence();
+	DoPlaySequence();
 }
 
 void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
@@ -1347,7 +1348,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         if (curt >= playEndTime) {
 			if (mLoopAudio)
 			{
-				PlaySequence();
+				DoPlaySequence();
 				return;
 			}
 			else
@@ -1647,15 +1648,16 @@ std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette)
 
 void xLightsFrame::ForceSequencerRefresh(wxCommandEvent& event)
 {
-    ForceSequencerRefresh();
+    DoForceSequencerRefresh();
 }
-void xLightsFrame::ForceSequencerRefresh()
+
+void xLightsFrame::DoForceSequencerRefresh()
 {
     mSequenceElements.PopulateRowInformation();
     ResizeMainSequencer();
 }
 
-void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
+void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (perspective == nullptr)
@@ -1733,7 +1735,7 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
 {
     wxXmlNode* perspective = (wxXmlNode*)(event.GetClientData());
     mCurrentPerpective = perspective;
-    LoadPerspective(mCurrentPerpective);
+    DoLoadPerspective(mCurrentPerpective);
 }
 
 void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
@@ -1782,7 +1784,7 @@ void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event
         mCurrentPerpective=p;
         OnMenuItemViewSavePerspectiveSelected(event);
         PerspectivesChanged(event);
-        LoadPerspective(mCurrentPerpective);
+        DoLoadPerspective(mCurrentPerpective);
         wxCommandEvent eventPerspectivesChanged(EVT_PERSPECTIVES_CHANGED);
         wxPostEvent(this, eventPerspectivesChanged);
     }
@@ -2552,7 +2554,7 @@ int RampLenColor(int start, std::vector<xlColor> &colors) {
 }
 
 
-void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime) {
+void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime) {
     colors.push_back(xlBLACK);
     int startTime = 0;
     xlColor lastColor(xlBLACK);
@@ -2619,7 +2621,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
         xlColor c = model->GetNodeColor(0);
         colors.push_back(c);
     }
-    ConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
+    DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
 }
 
 wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
@@ -2649,7 +2651,7 @@ void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString &pasteDataV
 }
 void xLightsFrame::PromoteEffects(wxCommandEvent &command) {
     ModelElement *el = dynamic_cast<ModelElement*>((Element*)command.GetClientData());
-    PromoteEffects(el);
+    DoPromoteEffects(el);
 }
 
 bool equals(Effect *e, Effect *e2, const wxString &pal, const wxString &set) {
@@ -2664,7 +2666,7 @@ bool equals(Effect *e, Effect *e2, const wxString &pal, const wxString &set) {
     }
     return true;
 }
-void xLightsFrame::PromoteEffects(ModelElement *element) {
+void xLightsFrame::DoPromoteEffects(ModelElement *element) {
     //first promote from nodes to strands
     for (int x = 0;  x < element->GetStrandCount(); x++) {
         StrandElement *se = element->GetStrand(x);

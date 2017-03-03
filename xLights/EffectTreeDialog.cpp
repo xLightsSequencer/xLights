@@ -1,5 +1,6 @@
 #include "EffectTreeDialog.h"
 #include "xLightsMain.h"
+#include "xLightsVersion.h"
 //#include <log4cpp/Category.hh>
 
 //(*InternalHeaders(EffectTreeDialog)

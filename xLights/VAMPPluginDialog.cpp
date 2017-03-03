@@ -293,8 +293,8 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
 		int percent = 0;
         int start = 0;
         while (len) {
-            int request = block;
-            if (request > len) request = len;
+            //int request = block;
+            //if (request > len) request = len;
 
 			pdata[0] = media->GetLeftDataPtr(start);
 			pdata[1] = media->GetRightDataPtr(start);

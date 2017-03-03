@@ -1,5 +1,6 @@
 #include "ColorCurveDialog.h"
 #include "xLightsMain.h"
+#include "xLightsVersion.h"
 
 //(*InternalHeaders(ColorCurveDialog)
 #include <wx/intl.h>
@@ -8,7 +9,6 @@
 
 #include <wx/dcbuffer.h>
 #include <wx/file.h>
-#include "ValueCurve.h"
 #include <log4cpp/Category.hh>
 #include <wx/colordlg.h>
 #include <wx/stdpaths.h>

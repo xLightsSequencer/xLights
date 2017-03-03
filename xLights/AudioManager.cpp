@@ -1431,8 +1431,8 @@ int AudioManager::OpenMediaFile()
     // only initialise if we successfully got data
     if (_pcmdata != nullptr)
     {
-        Uint64 total_len = ((Uint64)_lengthMS * (Uint64)_rate * 2 * 2) / 1000;
-        total_len -= total_len % 4;
+        //Uint64 total_len = ((Uint64)_lengthMS * (Uint64)_rate * 2 * 2) / 1000;
+        //total_len -= total_len % 4;
         _sdlid = __sdl.AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
     }
 

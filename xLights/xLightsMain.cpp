@@ -25,7 +25,7 @@
 #include "SeqSettingsDialog.h"
 #include <wx/grid.h>
 #include <wx/mimetype.h>
-
+#include "xLightsVersion.h"
 #include "RenderCommandEvent.h"
 #include "effects/RenderableEffect.h"
 #include "LayoutPanel.h"
@@ -46,8 +46,6 @@
 #include "../include/xLights-128.xpm"
 #include "../include/control-pause-blue-icon.xpm"
 #include "../include/control-play-blue-icon.xpm"
-
-
 
 //(*InternalHeaders(xLightsFrame)
 #include <wx/artprov.h>
@@ -1018,7 +1016,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     info.BestSize(sz);
     MainAuiManager->Update();
 
-    SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + ") " + xlights_build_date );
+    wxTopLevelWindowMSW::SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + ") " + xlights_build_date );
 
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
     ButtonPasteByTime = new AUIToolbarButtonWrapper(EditToolBar, ID_PASTE_BY_TIME);
@@ -1085,11 +1083,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     icons.AddIcon(wxIcon(xlights_128_xpm));
     icons.AddIcon(wxIcon(xlights_xpm));
 
-    SetIcons(icons);
+    wxTopLevelWindowMSW::SetIcons(icons);
     logger_base.debug("IconBundle creation done.");
 
-
-    SetName("xLights");
+    wxWindowBase::SetName("xLights");
     wxPersistenceManager::Get().RegisterAndRestore(this);
     logger_base.debug("Window Location Restored.");
 
@@ -1544,12 +1541,8 @@ void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
 
 void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
 {
-    wxString caption,msg,selectmethod;
-#ifdef __WXOSX__
-    selectmethod=_("cmd-click");
-#else
-    selectmethod=_("ctrl-click or shift-click");
-#endif
+    wxString caption,msg;
+
     switch (Notebook1->GetSelection())
     {
     case SETUPTAB:
@@ -3013,7 +3006,6 @@ void xLightsFrame::AutoSaveIntervalSelected(wxCommandEvent& event)
     AutoSaveMenu->Check(event.GetId(), true);
     int nasi = -1;
     if (v == "Disabled") {
-        nasi = -1;
         Timer_AutoSave.Stop();
     } else {
         nasi = wxAtoi(v);

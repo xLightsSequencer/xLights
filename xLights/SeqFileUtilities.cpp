@@ -4,13 +4,13 @@
 #include "DataLayer.h"
 #include "models/DmxModel.h"
 #include "VSAFile.h"
-
 #include "LMSImportChannelMapDialog.h"
 #include "xLightsImportChannelMapDialog.h"
 #include "SuperStarImportDialog.h"
 #include "VsaImportDialog.h"
 #include "SaveChangesDialog.h"
 #include "ConvertLogDialog.h"
+#include "xLightsVersion.h"
 
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
@@ -1029,7 +1029,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         return;
     }
 
-    for (int tt = 0; tt < dlg.TimingTrackListBox->GetCount(); tt++) {
+    for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); tt++) {
         if (dlg.TimingTrackListBox->IsChecked(tt)) {
             TimingElement *tel = timingTracks[timingTrackNames[tt]];
             TimingElement *target = (TimingElement*)mSequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false);
@@ -1233,7 +1233,7 @@ void MapHLSChannelInformation(xLightsFrame *xlights, EffectLayer *layer, wxXmlNo
             colors[x] = hsv;
         }
     }
-    xlights->ConvertDataRowToEffects(layer, colors, frameTime);
+    xlights->DoConvertDataRowToEffects(layer, colors, frameTime);
 }
 std::string FindHLSStrandName(const std::string &ccrName, int node, const std::vector<std::string> &channelNames) {
     std::string r = ccrName + wxString::Format("P%03d", node).ToStdString();
@@ -1321,7 +1321,7 @@ void MapVixChannelInformation(xLightsFrame *xlights, EffectLayer *layer,
             colors[x] = hsv;
         }
     }
-    xlights->ConvertDataRowToEffects(layer, colors, frameTime);
+    xlights->DoConvertDataRowToEffects(layer, colors, frameTime);
 }
 
 // xml
@@ -1339,7 +1339,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     std::vector<unsigned char> VixSeqData;
     long cnt = 0;
     wxArrayString context;
-    long MaxIntensity = 255;
+    //long MaxIntensity = 255;
 
     int time = 0;
     int frameTime = 50;
@@ -1393,7 +1393,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                     if (cnt >= 2) {
                         NodeValue = stagEvent->getText();
                         if (context[1] == wxString("MaximumLevel")) {
-                            MaxIntensity = wxAtoi(NodeValue);
+                            //MaxIntensity = wxAtoi(NodeValue);
                         } else if (context[1] == wxString("EventPeriodInMilliseconds")) {
                             frameTime = wxAtoi(NodeValue);
                         } else if (context[1] == wxString("Time")) {

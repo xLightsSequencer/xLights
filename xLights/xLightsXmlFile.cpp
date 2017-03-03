@@ -2,7 +2,6 @@
 #include <wx/tokenzr.h>
 #include "OptionChooser.h"
 #include "../include/spxml-0.5/spxmlparser.hpp"
-#include "../include/spxml-0.5/spxmlevent.hpp"
 #include "effects/EffectManager.h"
 #include "effects/RenderableEffect.h"
 #include "xLightsXmlFile.h"
@@ -11,6 +10,7 @@
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
 #include "osxMacUtils.h"
+#include "xLightsVersion.h"
 
 #define string_format wxString::Format
 
@@ -179,13 +179,11 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
     seq_type = type;
 
     wxXmlNode* root=seqDocument.GetRoot();
-    wxXmlNode* head;
 
     for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
        if (e->GetName() == "head")
        {
-            head = e;
             for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext() )
             {
                 if( element->GetName() == "sequenceType")
@@ -225,13 +223,11 @@ void xLightsXmlFile::SetSequenceTiming( const wxString& timing )
     seq_timing = timing;
 
     wxXmlNode* root=seqDocument.GetRoot();
-    wxXmlNode* head;
 
     for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
        if (e->GetName() == "head")
        {
-            head = e;
             for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext() )
             {
                 if( element->GetName() == "sequenceTiming")
@@ -248,13 +244,11 @@ void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filen
     media_file = FixFile(ShowDir, filename);
 
     wxXmlNode* root=seqDocument.GetRoot();
-    wxXmlNode* head;
 
     for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
        if (e->GetName() == "head")
        {
-            head = e;
             for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext() )
             {
                 if( element->GetName() == "mediaFile")
@@ -840,8 +834,7 @@ void xLightsXmlFile::DeleteTimingSection(const std::string & section)
 void xLightsXmlFile::CreateNew()
 {
     // construct the new XML file
-    wxXmlNode* root=seqDocument.GetRoot();
-    root = new wxXmlNode(wxXML_ELEMENT_NODE,"xsequence");
+    wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE,"xsequence");
     root->AddAttribute("BaseChannel","0");
     root->AddAttribute("ChanCtrlBasic","0");
     root->AddAttribute("ChanCtrlColor","0");
@@ -849,8 +842,7 @@ void xLightsXmlFile::CreateNew()
     root->AddAttribute("ModelBlending", "true");
     seqDocument.SetRoot(root);
 
-    wxXmlNode* node;
-    node = AddChildXmlNode(root, "head");
+    wxXmlNode* node = AddChildXmlNode(root, "head");
     AddChildXmlNode(node, "version", xlights_version_string);
     AddChildXmlNode(node, "author", header_info[AUTHOR]);
     AddChildXmlNode(node, "author-email", header_info[AUTHOR_EMAIL]);
@@ -1124,10 +1116,10 @@ bool xLightsXmlFile::LoadV3Sequence()
                 data1 = AdjustV3Effect(effect1, data1);
                 data2 = AdjustV3Effect(effect2, data2);
 
-                wxString end_time = (j+1<num_effects) ? timing[j+1] : last_time;
+                wxString end_time2 = (j+1<num_effects) ? timing[j+1] : last_time;
 
-                AddEffect( layer1, paletteCache, effect1, data1, effect_protection[j], "0", string_format("%d",effect_id), timing[j], end_time );
-                AddEffect( layer2, paletteCache, effect2, data2, effect_protection[j], "0", string_format("%d",effect_id), timing[j], end_time );
+                AddEffect( layer1, paletteCache, effect1, data1, effect_protection[j], "0", string_format("%d",effect_id), timing[j], end_time2 );
+                AddEffect( layer2, paletteCache, effect2, data2, effect_protection[j], "0", string_format("%d",effect_id), timing[j], end_time2 );
 
                 effect_id++;
             }
@@ -1804,9 +1796,9 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
                         {
                             grid_name = "Unnamed" + grid_id;
                         }
-                        for (size_t i = 0; i < timing_grids.GetCount(); i++ )
+                        for (size_t i1 = 0; i1 < timing_grids.GetCount(); i1++ )
                         {
-                            if( grid_name == timing_grids[i] )
+                            if( grid_name == timing_grids[i1] )
                             {
                                 std::string new_timing_name = filename + ": " + grid_name;
                                 Element* element = nullptr;
@@ -2196,9 +2188,9 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                     {
                         line = RemoveTabs(f.GetNextLine(), 4);
                         linenum++;
-                        int space1 = line.find(' ');
+                        int space4 = line.find(' ');
 
-                        ss = line.SubString(0, space1 - 1);
+                        ss = line.SubString(0, space4 - 1);
                         //end = number.Matches(ss) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(ss)) * ms, GetFrequency()) : 0;
                         end = number.Matches(ss) ? (offset + wxAtoi(ss)) * ms : 0;
                         linenum++;
@@ -2218,7 +2210,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                                 AddTimingEffect(l3, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
                             }
                         }
-                        label = line.SubString(space1 + 1, line.Length());
+                        label = line.SubString(space4 + 1, line.Length());
                         if (label == "")
                         {
                             ProcessError(wxString::Format(_("Missing phoneme# %d of %d for %s"), ph, numphonemes, desc.c_str()));
@@ -2335,7 +2327,7 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
                                             }
 
                                             int mask = 1;
-                                            for (size_t i = 0; i < 10; i++) {
+                                            for (size_t i1 = 0; i1 < 10; i1++) {
                                                 if (present & mask) {
                                                     wxString tname = DecodeLSPTTColour(mask) + "-" + name;
                                                     logger_base.info("  Adding timing track " + std::string(tname.c_str()) + "(" + std::string(wxString::Format("%d",mask).c_str()) + ")");
@@ -2450,8 +2442,8 @@ void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayStri
         if (dlg.ShowModal() == wxID_OK) {
             wxArrayInt selections = dlg.GetSelections();
 
-            for (int i = 0; i < selections.size(); i++) {
-                TimingElement *ti = elements[selections[i]];
+            for (int i1 = 0; i1 < selections.size(); i1++) {
+                TimingElement *ti = elements[selections[i1]];
                 if (sequence_loaded) {
                     element = xLightsParent->AddTimingElement(ti->GetName());
                 } else {
@@ -3311,7 +3303,6 @@ void xLightsXmlFile::FixVersionDifferences(const wxString& filename)
             pos_SLIDER_Slider=str.find("SLIDER_Slider",0);
             if(pos_SLIDER_Slider>0) // if we have SLIDER_Slider bad text,
             {
-                modified=true;  // yes,fix it
                 str.Replace("SLIDER_Slider","SLIDER");
             }
 
@@ -3319,7 +3310,6 @@ void xLightsXmlFile::FixVersionDifferences(const wxString& filename)
             pos_ID_TEXTCTRL4=str.find("ID_TEXTCTRL4",0);
             if(pos_ID_TEXTCTRL4>0) // if we have ID_TEXTCTRL4 bad text,
             {
-                modified=true;  // yes,fix it
                 str.Replace("ID_TEXTCTRL4","ID_TEXTCTRL_Text1_1_Font");
             }
 

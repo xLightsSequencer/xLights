@@ -17,6 +17,7 @@
 #include <wx/generic/statbmpg.h>
 
 #include "xLightsMain.h"
+#include "xLightsVersion.h"
 #include "xLightsXmlFile.h"
 #include <log4cpp/Category.hh>
 #include "osxMacUtils.h"

@@ -36,7 +36,6 @@
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
-#include <wx/fontdlg.h>
 #include <wx/dir.h>
 #include <unordered_map> //-DJ
 
@@ -142,9 +141,6 @@ wxDECLARE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_RGBEFFECTS_CHANGED, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
-
-// version info has been moved to this header file
-#include "xLightsVersion.h"
 
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
 static const wxString strSequenceSaveAsFileTypes = "xLights Sequences(*.xml)|*.xml";
@@ -905,7 +901,7 @@ private:
 
 public:
     bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
-    Model *GetModel(const std::string& name);
+    Model *GetModel(const std::string& name) const;
     void RenderGridToSeqData(std::function<void()>&& callback);
     void UpdateRenderStatus();
     bool RenderEffectFromMap(Effect *effect, int layer, int period, const SettingsMap& SettingsMap,
@@ -931,9 +927,9 @@ public:
     void ExecuteImportTimingElement(wxCommandEvent &command);
     void ExecuteImportNotes(wxCommandEvent &command);
     void ConvertDataRowToEffects(wxCommandEvent &command);
-    void ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime);
+    void DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime);
     void PromoteEffects(wxCommandEvent &command);
-    void PromoteEffects(ModelElement *element);
+    void DoPromoteEffects(ModelElement *element);
     wxXmlNode* CreateEffectNode(wxString& name);
     void UpdateEffectNode(wxXmlNode* node);
     void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion);
@@ -1060,7 +1056,7 @@ public:
     void UpdatePreview();
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
-    void ForceSequencerRefresh();
+    void DoForceSequencerRefresh();
     void RefreshLayout();
     void AddPreviewOption(LayoutGroup* grp);
     void RemovePreviewOption(LayoutGroup* grp);
@@ -1094,7 +1090,7 @@ private:
     // Methods
     void InitSequencer();
     void CreateSequencer();
-    void StopSequence();
+    void DoStopSequence();
     // Events
     void Zoom( wxCommandEvent& event);
     void Scroll( wxCommandEvent& event);
@@ -1146,7 +1142,7 @@ private:
     int ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
 
     void LoadSequencer(xLightsXmlFile& xml_file);
-    void LoadPerspective(wxXmlNode *p);
+    void DoLoadPerspective(wxXmlNode *p);
 
     void CheckForAndCreateDefaultPerpective();
     void ResizeAndMakeEffectsScroll();
@@ -1206,7 +1202,7 @@ public:
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
 
     wxString GetSeqXmlFileName();
-	void PlaySequence();
+	void DoPlaySequence();
     static std::string DecodeMidi(int midi);
 
     EffectTreeDialog *EffectTreeDlg;

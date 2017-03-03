@@ -2,10 +2,10 @@
 //  KeyBindings.cpp
 //  xLights
 
-#include "wx/file.h"
 #include <wx/xml/xml.h>
 #include "KeyBindings.h"
 #include "xLightsMain.h"
+#include "xLightsVersion.h"
 
 void KeyBindingMap::LoadDefaults() {
     bindings.push_back(KeyBinding('t', TIMING_ADD));
@@ -41,7 +41,7 @@ void KeyBindingMap::Load(wxFileName &fileName) {
             wxXmlNode *root = doc.GetRoot();
             wxXmlNode *child = root->GetChildren();
 
-            while (child != NULL) {
+            while (child != nullptr) {
                 if ("keybinding" == child->GetName()) {
                     wxString type = child->GetAttribute("type");
                     unsigned char k = child->GetAttribute("key")[0];
@@ -58,7 +58,7 @@ void KeyBindingMap::Load(wxFileName &fileName) {
                     } else {
                         wxString effect = child->GetAttribute("effect");
                         wxString settings = "";
-                        if (child->GetChildren() != NULL) {
+                        if (child->GetChildren() != nullptr) {
                             settings = child->GetChildren()->GetContent();
                         }
                         bindings.push_back(KeyBinding(k, effect, settings, child->GetAttribute("xLightsVersion", "4.0")));
@@ -108,11 +108,11 @@ void KeyBindingMap::Save(wxFileName &fileName) {
 }
 
 KeyBinding *KeyBindingMap::Find(unsigned char ch) {
-    for (int x = 0; x < bindings.size(); x++) {
+    for (size_t x = 0; x < bindings.size(); x++) {
         if (bindings[x].GetKey() == ch) {
             return &bindings[x];
         }
     }
-    return NULL;
+    return nullptr;
 }
 

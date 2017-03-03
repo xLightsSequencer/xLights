@@ -2,7 +2,7 @@
 #include "wx/wx.h"
 #include "wx/brush.h"
 #include "../xLightsMain.h"
-#include "EffectDropTarget.h"
+#include "../xLightsVersion.h"
 #include "../BitmapCache.h"
 #include <wx/numdlg.h> 
 

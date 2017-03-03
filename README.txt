@@ -8,6 +8,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add ability for picture effect to play GIF files with their encoded timing and loop it
+   -- bug (keith)   Fix ArtNET universe 0 not saving
+   -- bug (keith)   Fix Glediator effect causing field errors
+   -- enh (keith)   Get x64 build working for Visual Studio.
+   -- enh (keith)   Get Vamp 64 bit working
 2017.6  Feb 27, 2017
    -- bug (dkulp)   Fix xScheduler logging on OSX
    -- enh (keith)   Add duration treatments to glediator effect

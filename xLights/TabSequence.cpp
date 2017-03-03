@@ -3,16 +3,12 @@
 #include <wx/clipbrd.h>
 #include <wx/xml/xml.h>
 #include "xLightsMain.h"
-#include "heartbeat.h"
-
 #include "SeqSettingsDialog.h"
 #include "xLightsXmlFile.h"
 #include "effects/RenderableEffect.h"
-
 #include "models/ModelGroup.h"
 #include "BufferPanel.h"
 #include "LayoutPanel.h"
-#include "RenderProgressDialog.h"
 #include "osxMacUtils.h"
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
@@ -226,10 +222,10 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
                 LayoutGroups.push_back(grp);
                 AddPreviewOption(grp);
                 layoutPanel->AddPreviewChoice(grp_name.ToStdString());
-                if( grp_name.ToStdString() == mStoredLayoutGroup )
-                {
-                    found_saved_preview = true;
-                }
+                //if( grp_name.ToStdString() == mStoredLayoutGroup )
+                //{
+                //    found_saved_preview = true;
+                //}
             }
         }
     }
@@ -412,7 +408,7 @@ void xLightsFrame::OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event)
 {
     for (int i=0;i<10;i++) {
         if (perspectives[i].id == event.GetId()) {
-            LoadPerspective(perspectives[i].p);
+            DoLoadPerspective(perspectives[i].p);
             return;
         }
     }

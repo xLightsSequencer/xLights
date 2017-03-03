@@ -1,6 +1,5 @@
 #include <wx/filedlg.h>
 #include "SeqSettingsDialog.h"
-#include "RenameTextDialog.h"
 #include "NewTimingDialog.h"
 #include "xLightsXmlFile.h"
 #include "DataLayer.h"

@@ -8,6 +8,7 @@
 #include <glm/mat3x3.hpp>
 #include "ModelScreenLocation.h"
 #include "../xLightsMain.h"
+#include "../xLightsVersion.h"
 
 PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     parm1 = parm2 = parm3 = 0;

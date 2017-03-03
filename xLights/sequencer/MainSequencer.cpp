@@ -1,10 +1,10 @@
 #include "../xLightsMain.h"
 #include "MainSequencer.h"
-#include "../RenderCommandEvent.h"
 #include "TimeLine.h"
 #include "../SequenceCheck.h"
 #include <wx/event.h>
 #include <wx/clipbrd.h>
+#include "../xLightsVersion.h"
 
 //(*InternalHeaders(MainSequencer)
 #include <wx/intl.h>
@@ -76,7 +76,7 @@ public:
     TimeDisplayControl(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                        const wxSize &size=wxDefaultSize, long style=0)
     : xlGLCanvas(parent, id, pos, size, style, "TimeDisplay", true) {
-        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        wxWindowBase::SetBackgroundStyle(wxBG_STYLE_PAINT);
         time = "Time: 00:00:00";
         selected = "";
         fps = "";
@@ -230,7 +230,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     keyBindings.LoadDefaults();
     mCanUndo = false;
     mPasteByCell = false;
-    SetName("MainSequencer");
+    wxWindowBase::SetName("MainSequencer");
     touchBarSupport.Init(this);
 }
 

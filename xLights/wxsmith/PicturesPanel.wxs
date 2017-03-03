@@ -219,6 +219,14 @@
 								<border>5</border>
 								<option>1</option>
 							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_LoopGIF" variable="CheckBox_LoopGIF" member="yes">
+									<label>Loop Animated GIF</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>

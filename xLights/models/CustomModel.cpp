@@ -7,6 +7,7 @@
 #include "CustomModel.h"
 #include "../CustomModelDialog.h"
 #include "../xLightsMain.h"
+#include "../xLightsVersion.h"
 
 #define retmsg(msg)  \
 { \

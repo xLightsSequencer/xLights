@@ -1,5 +1,3 @@
-//#define DEBUG_GIF
-
 #include "PicturesEffect.h"
 #include "PicturesPanel.h"
 
@@ -12,6 +10,7 @@
 #include "../models/Model.h"
 #include "../SequenceCheck.h"
 #include <log4cpp/Category.hh>
+#include "GIFImage.h"
 
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
@@ -207,20 +206,22 @@ typedef std::vector< std::pair<wxPoint, xlColor> > PixelVector;
 
 class PicturesRenderCache : public EffectRenderCache {
 public:
-    PicturesRenderCache() : imageCount(0), imageIndex(0), frame(0), lastframe(-1), lastdispose(wxAnimationDisposal::wxANIM_UNSPECIFIED), maxmovieframes(0) {};
-    virtual ~PicturesRenderCache() {};
+    PicturesRenderCache() : imageCount(0), frame(0),  gifImage(nullptr), maxmovieframes(0) {};
+    virtual ~PicturesRenderCache()
+    {
+        if (gifImage != nullptr) {
+            delete gifImage;
+            gifImage = nullptr;
+        }
+    };
 
     wxImage image;
     wxImage rawimage;
-    wxImage lastimage;
     int imageCount;
-    int imageIndex;
     int frame;
-    int lastframe;
-    wxAnimationDisposal lastdispose;
     int maxmovieframes;
     wxString PictureName;
-    wxGIFDecoder GIFdecoder;
+    GIFImage* gifImage;
     std::vector<PixelVector> PixelsByFrame;
 };
 static PicturesRenderCache *GetCache(RenderBuffer &buf) {
@@ -251,7 +252,6 @@ void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug,
     wxByte rgb[3] = {0,0,0};
     PicturesRenderCache *cache = GetCache(buffer);
     cache->imageCount = 0;
-    cache->imageIndex = 0;
     wxImage &image = cache->image;
     wxImage &rawimage = cache->rawimage;
     std::vector<PixelVector> &PixelsByFrame = cache->PixelsByFrame;
@@ -339,6 +339,7 @@ void PicturesEffect::SetDefaultParameters(Model *cls) {
     SetCheckBoxValue(pp->CheckBox_Pictures_PixelOffsets, false);
     SetCheckBoxValue(pp->CheckBox_Pictures_WrapX, false);
     SetCheckBoxValue(pp->CheckBox_Pictures_Shimmer, false);
+    SetCheckBoxValue(pp->CheckBox_LoopGIF, false);
 
     pp->FilePickerCtrl1->SetFileName(wxFileName());
 }
@@ -365,124 +366,9 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
            SettingsMap.Get("CHOICE_Scaling", "No Scaling"),
            SettingsMap.GetBool("CHECKBOX_Pictures_PixelOffsets", false),
            SettingsMap.GetBool("CHECKBOX_Pictures_WrapX", false),
-        SettingsMap.GetBool("CHECKBOX_Pictures_Shimmer", false)
+           SettingsMap.GetBool("CHECKBOX_Pictures_Shimmer", false),
+           SettingsMap.GetBool("CHECKBOX_LoopGIF", false)
     );
-}
-
-void CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool overlay)
-{
-    if (from.GetWidth() != to.GetWidth() || from.GetHeight() != to.GetHeight() || overlay)
-    {
-        int tox = std::min(from.GetWidth(), to.GetWidth() - offset.x);
-        int toy = std::min(from.GetHeight(), to.GetHeight() - offset.y);
-
-        for (size_t y = 0; y < toy; y++)
-        {
-            for (size_t x = 0; x < tox; x++)
-            {
-                if (!from.IsTransparent(x, y))
-                {
-                    to.SetRGB(x + offset.x, y + offset.y, from.GetRed(x, y), from.GetGreen(x, y), from.GetBlue(x, y));
-                }
-            }
-        }
-    }
-    else
-    {
-        to = from;
-    }
-}
-
-wxPoint LoadRawImageFrame(wxGIFDecoder& GIFdecoder, wxImage& image, int frame, wxAnimationDisposal& disposal)
-{
-#ifdef DEBUG_GIF
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Frame %d loaded actual image size (%d,%d)", frame, image.GetWidth(), image.GetHeight());
-#endif
-
-    wxSize size = GIFdecoder.GetFrameSize(frame);
-#ifdef DEBUG_GIF
-    logger_base.debug("    size (%d,%d)", size.GetWidth(), size.GetHeight());
-#endif
-    image.Resize(size, wxPoint(0, 0));
-    GIFdecoder.ConvertToImage(frame, &image);
-    disposal = GIFdecoder.GetDisposalMethod(frame);
-#ifdef DEBUG_GIF
-    logger_base.debug("    disposal %d", disposal);
-#endif
-    wxPoint offset = GIFdecoder.GetFramePosition(frame);
-#ifdef DEBUG_GIF
-    logger_base.debug("    offset (%d,%d)", offset.x, offset.y);
-#endif
-
-    // handle first frame with an offset
-    if (frame == 0 && (offset.x > 0 || offset.y > 0))
-    {
-        image.Resize(wxSize(size.GetWidth() + offset.x, size.GetHeight() + offset.y), offset);
-        offset.x = 0;
-        offset.y = 0;
-#ifdef DEBUG_GIF
-        logger_base.debug("    Frame 0 had non zero offset so image size now (%d,%d)", image.GetWidth(), image.GetHeight());
-#endif
-    }
-
-    return offset;
-}
-
-void LoadImageFrame(wxGIFDecoder& GIFdecoder, wxImage& image, int frame, int& lastframe, wxImage& lastimage, wxAnimationDisposal& lastdispose)
-{
-    int startframe = 0;
-    if (lastframe < 0)
-    {
-        // we start at 0
-    }
-    else if (lastframe == frame)
-    {
-        image = lastimage;
-        return;
-    }
-    else if (lastframe < frame)
-    {
-        image = lastimage;
-        startframe = lastframe+1;
-    }
-    else
-    {
-        //lastframe is greater than the frame we want so we have to start from zero again
-    }
-
-    for (size_t i = startframe; i <= frame; i++)
-    {
-        wxImage newframe(image.GetWidth(), image.GetHeight());
-        wxAnimationDisposal dispose = wxANIM_TOBACKGROUND;
-        wxPoint offset = LoadRawImageFrame(GIFdecoder, newframe, i, dispose);
-        
-#ifdef DEBUG_GIF
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Frame %d loaded offset (%d,%d) size (%d,%d) dispose %d actual image size (%d,%d)", i, offset.x, offset.y, newframe.GetWidth(), newframe.GetHeight(), dispose, image.GetWidth(), image.GetHeight());
-#endif
-
-        if (i == 0 || lastdispose == wxANIM_TOBACKGROUND || lastdispose == wxANIM_UNSPECIFIED)
-        {
-            image.Clear();
-            CopyImageToImage(image, newframe, offset, true);
-        }
-        else
-        {
-            CopyImageToImage(image, newframe, offset, true);
-        }
-
-        if (dispose == wxANIM_DONOTREMOVE)
-        {
-            lastimage = image;
-        }
-
-        lastdispose = dispose;
-    }    
-
-    lastframe = frame;
-
-    return;
 }
 
 void PicturesEffect::Render(RenderBuffer &buffer,
@@ -491,7 +377,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                             int xc_adj, int yc_adj,
                             int xce_adj, int yce_adj,
                             int start_scale, int end_scale, const std::string& scale_to_fit,
-                            bool pixelOffsets, bool wrap_x, bool shimmer) {
+                            bool pixelOffsets, bool wrap_x, bool shimmer, bool loopGIF) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -519,9 +405,9 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     PicturesRenderCache *cache = GetCache(buffer);
     wxImage &image = cache->image;
     wxImage &rawimage = cache->rawimage;
+    GIFImage*& gifImage = cache->gifImage;
     std::vector<PixelVector> &PixelsByFrame = cache->PixelsByFrame;
     int &frame = cache->frame;
-    wxGIFDecoder& GIFDecoder = cache->GIFdecoder;
 
     sPicture = NewPictureName2;
     suffix = NewPictureName2.substr(NewPictureName2.length()-6,2);
@@ -584,15 +470,12 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         scale_image = true;
         wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
         cache->imageCount = wxImage::GetImageCount(NewPictureName);
-        cache->imageIndex = 0;
-        cache->lastframe = 0;
         if (!image.LoadFile(NewPictureName,wxBITMAP_TYPE_ANY,0))
         {
             logger_base.error("Error loading image file: %s.", (const char *)NewPictureName.c_str());
             image.Create(5, 5, true);
         }
         rawimage = image;
-        cache->lastimage = image;
         cache->PictureName=NewPictureName;
 
         if (cache->imageCount > 1)
@@ -600,23 +483,22 @@ void PicturesEffect::Render(RenderBuffer &buffer,
 #ifdef DEBUG_GIF
             logger_base.debug("Preparing GIF file for reading: %s", (const char *)NewPictureName.c_str());
 #endif
-            wxFileInputStream stream(NewPictureName);
-            GIFDecoder.Destroy();
-            if (!stream.IsOk() || GIFDecoder.LoadGIF(stream) != wxGIF_OK)
+            if (gifImage != nullptr && gifImage->GetFilename() != NewPictureName)
             {
-                logger_base.warn("Error opening GIF file %s.", (const char *)NewPictureName.c_str());
+                delete gifImage;
+                gifImage = nullptr;
+            }
+            gifImage = new GIFImage(NewPictureName.ToStdString(), image.GetSize());
+
+            if (!gifImage->IsOk())
+            {
+                delete gifImage;
+                gifImage = nullptr;
                 return;
             }
-            else
-            {
-                wxImage tmp = rawimage;
-                LoadRawImageFrame(GIFDecoder, tmp, 0, cache->lastdispose);
 
-                // update our cache in case first image had an offset ... this is not handled properly by LoadFile
-                cache->lastimage = tmp;
-                image = tmp;
-                rawimage = tmp;
-            }
+            image = gifImage->GetFrame(0);
+            rawimage = image;
         }
 
         if (!image.IsOk())
@@ -626,18 +508,22 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     if(cache->imageCount > 1) {
 
         //animated Gif,
-        int ii = cache->imageCount * buffer.GetEffectTimeIntervalPosition(frameRateAdj) * 0.99;
-        if (ii != cache->imageIndex) {
-            cache->imageIndex = ii;
-            scale_image = true;
+        scale_image = true;
 
-            LoadImageFrame(GIFDecoder, rawimage, ii, cache->lastframe, cache->lastimage, cache->lastdispose);
-
-            if (!rawimage.IsOk())
-                return;
-
-            image = rawimage;
+        if (loopGIF)
+        {
+            image = gifImage->GetFrameForTime((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs * frameRateAdj, true);
         }
+        else
+        {
+            int ii = cache->imageCount * buffer.GetEffectTimeIntervalPosition(frameRateAdj) * 0.99;
+            image = gifImage->GetFrame(ii);
+        }
+
+        rawimage = image;
+
+        if (!rawimage.IsOk())
+            return;
     }
     
     if (scale_to_fit == "No Scaling" && (start_scale != end_scale))

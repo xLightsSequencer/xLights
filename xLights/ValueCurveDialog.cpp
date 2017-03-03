@@ -14,6 +14,7 @@
 #include <wx/msgdlg.h>
 #include "ValueCurve.h"
 #include <log4cpp/Category.hh>
+#include "xLightsVersion.h"
 
 BEGIN_EVENT_TABLE(ValueCurvePanel, wxWindow)
 EVT_MOTION(ValueCurvePanel::mouseMoved)
@@ -35,7 +36,7 @@ ValueCurvePanel::ValueCurvePanel(wxWindow* parent, wxWindowID id, const wxPoint 
     Connect(wxEVT_MOTION, (wxObjectEventFunction)&ValueCurvePanel::mouseMoved, 0, this);
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&ValueCurvePanel::Paint, 0, this);
     Connect(wxEVT_MOUSE_CAPTURE_LOST, (wxObjectEventFunction)&ValueCurvePanel::mouseCaptureLost, 0, this);
-    SetBackgroundStyle(wxBG_STYLE_PAINT);
+    wxWindowBase::SetBackgroundStyle(wxBG_STYLE_PAINT);
     _grabbedPoint = -1;
 }
 
@@ -210,8 +211,8 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     _vcp->SetValue(_vc);
     _vcp->SetType(_vc->GetType());
     FlexGridSizer4->Add(_vcp, 1, wxALL | wxEXPAND, 2);
-    Layout();
-    Fit();
+    wxWindowBase::Layout();
+    wxWindowBase::Fit();
 
     _backup = *_vc;
 
@@ -926,7 +927,7 @@ void ValueCurveDialog::ValidateWindow()
 void ValueCurveDialog::OnChar(wxKeyEvent& event)
 {
     wxChar uc = event.GetUnicodeKey();
-    if (uc == WXK_DELETE)
+    if ((int)uc == (int)WXK_DELETE)
     {
         _vcp->SaveUndoSelected();
         _vcp->Delete();

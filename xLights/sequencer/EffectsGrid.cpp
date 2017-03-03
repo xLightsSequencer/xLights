@@ -86,7 +86,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mTimeline = nullptr;
     magSinceLast = 0.0f;
 
-    SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+    wxWindowBase::SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
     mEffectColor = new xlColor(192,192,192);
     mGridlineColor = new xlColor(40,40,40);
@@ -101,9 +101,9 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mWordColor = new xlColor(255, 218, 145);
     mPhonemeColor = new xlColor(255, 181, 218);
 
-    SetDropTarget(new EffectDropTarget(this));
+    wxWindow::SetDropTarget(new EffectDropTarget(this));
     playArgs = new EventPlayEffectArgs();
-    mSequenceElements = NULL;
+    mSequenceElements = nullptr;
     xlights = nullptr;
 }
 
@@ -1740,7 +1740,7 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
     }
     int sel_eff_start = mSelectedEffect->GetStartTimeMS();
     int sel_eff_end = mSelectedEffect->GetEndTimeMS();
-    int sel_eff_center;
+    int sel_eff_center = 0;
     if(align_mode == ALIGN_CENTERPOINTS) {
         sel_eff_center = sel_eff_end - sel_eff_start;
         if( sel_eff_center < mSequenceElements->GetMinPeriod() ) {
@@ -1841,7 +1841,7 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
             }
         }
     }
-    xlights->ForceSequencerRefresh();
+    xlights->DoForceSequencerRefresh();
 }
 
 bool EffectsGrid::PapagayoEffectsSelected()
@@ -2064,7 +2064,7 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
                     if( paste_by_cell )
                     {
-                        EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+                        EffectLayer* tel1 = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
                         int timingIndex1 = mRangeStartCol;
                         int timingIndex2 = mRangeEndCol;
                         if( timingIndex1 > timingIndex2 ) {
@@ -2072,12 +2072,12 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                         }
                         if (timingIndex1 != -1 && timingIndex2 != -1) {
                             mSequenceElements->get_undo_mgr().CreateUndoStep();
-                            for( int row = row1; row <= row2; row++)
+                            for( int row4 = row1; row4 <= row2; row4++)
                             {
-                                EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(row);
+                                EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(row4);
                                 for(int i = timingIndex1; i <= timingIndex2; i++)
                                 {
-                                    Effect* eff = tel->GetEffect(i);
+                                    Effect* eff = tel1->GetEffect(i);
                                     if( effectLayer->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS()) )
                                     {
                                         Effect* ef = effectLayer->AddEffect(0,
@@ -3001,13 +3001,13 @@ void EffectsGrid::DrawLines()
     // Draw vertical lines
     int y1 = 0;
     int y2 = mWindowHeight-1;
-    for(size_t x1=0;x1<mWindowWidth;x1++)
+    for(size_t x3=0;x3<mWindowWidth;x3++)
     {
         // Draw hash marks
-        if ((x1+mStartPixelOffset)%(PIXELS_PER_MAJOR_HASH)==0)
+        if ((x3+mStartPixelOffset)%(PIXELS_PER_MAJOR_HASH)==0)
         {
-            va.AddVertex(x1, y1);
-            va.AddVertex(x1, y2);
+            va.AddVertex(x3, y1);
+            va.AddVertex(x3, y2);
         }
     }
 
@@ -3101,13 +3101,13 @@ void EffectsGrid::DrawEffects()
                 xs.push_back(mTimeline->GetPositionFromTimeMS(timems));
 
                 backgrounds.PreAlloc(xs.size() * 6);
-                float y1 = (row*DEFAULT_ROW_HEADING_HEIGHT)+3;
-                float y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-3;
+                float y1a = (row*DEFAULT_ROW_HEADING_HEIGHT)+3;
+                float y2a = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-3;
                 float x =  mTimeline->GetPositionFromTimeMS(0);
                 for (size_t n = 0; n < xs.size(); n++) {
                     int x2 = xs[n];
                     if (x2 >= 0) {
-                        backgrounds.AddRect(x, y1, x2, y2, colors[n]);
+                        backgrounds.AddRect(x, y1a, x2, y2a, colors[n]);
                     }
                     x = x2;
                     if (x > width) {
@@ -3307,8 +3307,6 @@ void EffectsGrid::DrawTimingEffects(int row)
         linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
             effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?&timingEffLines:&selectedLines;
         linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectedLines:&timingEffLines;
-
-
 
         if(mode!=SCREEN_L_R_OFF) {
             // Draw Left line
