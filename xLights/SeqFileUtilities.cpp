@@ -455,7 +455,7 @@ bool xLightsFrame::CloseSequence()
     sPreview1->Refresh();
     sPreview2->Refresh();
 
-    SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + ") " + xlights_build_date );
+    SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date );
 
     return true;
 }

@@ -1016,7 +1016,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     info.BestSize(sz);
     MainAuiManager->Update();
 
-    wxTopLevelWindowMSW::SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + ") " + xlights_build_date );
+    wxTopLevelWindowMSW::SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date );
 
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
     ButtonPasteByTime = new AUIToolbarButtonWrapper(EditToolBar, ID_PASTE_BY_TIME);
@@ -1494,7 +1494,7 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
-    wxString hdg = wxString::Format(_("About xLights %s"),xlights_version_string);
+    wxString hdg = wxString::Format(_("About xLights %s %s"),xlights_version_string, GetBitness());
     wxMessageBox(XLIGHTS_LICENSE, hdg);
 }
 
@@ -2727,7 +2727,7 @@ void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report
     const char *bound = "--------------------------b29a7c2fe47b9481";
     int i = wxGetUTCTimeMillis().GetLo();
     i &= 0xFFFFFFF;
-    wxString fn = wxString::Format("xlights-%s_%d_%s.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), i, xlights_version_string);
+    wxString fn = wxString::Format("xlights-%s_%d_%s_%s.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), i, xlights_version_string, GetBitness());
     const char *ct = "Content-Type: application/octet-stream\n";
     std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
 

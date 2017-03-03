@@ -1161,6 +1161,7 @@
 		<Unit filename="xLightsMain.cpp" />
 		<Unit filename="xLightsMain.h" />
 		<Unit filename="xLightsTimer.cpp" />
+		<Unit filename="xLightsVersion.cpp" />
 		<Unit filename="xLightsXmlFile.cpp" />
 		<Unit filename="xLightsXmlFile.h" />
 		<Unit filename="xlColorCanvas.cpp" />

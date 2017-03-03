@@ -288,6 +288,7 @@
 		<Unit filename="../xLights/vamp-hostsdk/RealTime.cpp" />
 		<Unit filename="../xLights/xLightsTimer.cpp" />
 		<Unit filename="../xLights/xLightsTimer.h" />
+		<Unit filename="../xLights/xLightsVersion.cpp" />
 		<Unit filename="AddReverseDialog.cpp" />
 		<Unit filename="AddReverseDialog.h" />
 		<Unit filename="BackgroundPlaylistDialog.cpp" />

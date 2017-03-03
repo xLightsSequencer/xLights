@@ -446,6 +446,7 @@
     <ClCompile Include="xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="xLightsMain.cpp" />
     <ClCompile Include="xLightsTimer.cpp" />
+    <ClCompile Include="xLightsVersion.cpp" />
     <ClCompile Include="xLightsXmlFile.cpp" />
     <ClCompile Include="xlSlider.cpp" />
   </ItemGroup>

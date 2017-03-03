@@ -912,6 +912,9 @@
     <ClCompile Include="effects\GIFImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="xLightsVersion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">

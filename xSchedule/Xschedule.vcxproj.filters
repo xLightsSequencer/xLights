@@ -123,6 +123,7 @@
     <ClCompile Include="VirtualMatrix.cpp" />
     <ClCompile Include="Projector.cpp" />
     <ClCompile Include="..\xLights\effects\GIFImage.cpp" />
+    <ClCompile Include="..\xLights\xLightsVersion.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -228,6 +229,7 @@
     <ClInclude Include="Control.h" />
     <ClInclude Include="Projector.h" />
     <ClInclude Include="..\xLights\effects\GIFImage.h" />
+    <ClInclude Include="..\xLights\xLightsVersion.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

@@ -302,6 +302,7 @@ void DumpConfig()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Version: " + std::string(xlights_version_string.c_str()));
+    logger_base.info("Bits: " + std::string(GetBitness().c_str()));
     logger_base.info("Build Date: " + std::string(xlights_build_date.c_str()));
     logger_base.info("Machine configuration:");
     wxMemorySize s = wxGetFreeMemory();
@@ -451,7 +452,7 @@ void handleCrash(void *data) {
             report->AddFile(fnb.GetFullPath(), fnb.GetName());
         }
     }
-    wxString trace = wxString::Format("xLights version %s\n\n", xlights_version_string);
+    wxString trace = wxString::Format("xLights version %s %s\n\n", xlights_version_string, GetBitness());
 
 #ifndef __WXMSW__
     void* callstack[128];
