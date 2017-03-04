@@ -581,6 +581,20 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
 
         SetToolTip(wxString::Format(wxT("%.1f"), _vc->GetOutputValue(y)));
     }
+    else
+    {
+        float x, y;
+        Convert(x, y, event);
+        if (y < 0.0f)
+        {
+            y = 0.0f;
+        }
+        else if (y > 1.0f)
+        {
+            y = 1.0f;
+        }
+        SetToolTip(wxString::Format(wxT("%.1f"), _vc->GetOutputValue(y)));
+    }
 }
 #pragma endregion Mouse Control
 
