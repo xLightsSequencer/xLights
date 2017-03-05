@@ -153,14 +153,15 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         if (!buffer.needToInit || (WaveBuffer0.size() != NumberWaves * buffer.BufferWi)) {
             r = 0;
             debug(10, "regen wave path, state %d", state);
-            int delay = 0, delta; //next branch length, angle
+            int delay = 0;
+            int delta = 0; //next branch length, angle
             WaveBuffer0.resize(NumberWaves * buffer.BufferWi);
-            for (int x = 0; x < NumberWaves * buffer.BufferWi; ++x) {
+            for (int x1 = 0; x1 < NumberWaves * buffer.BufferWi; ++x1) {
                 //                if (delay < 1) angle = (rand() % 45) - 22.5;
                 //                int xx = WaveDirection? NumberWaves * BufferWi - x - 1: x;
-                WaveBuffer0[x] = (delay-- > 0) ? WaveBuffer0[x - 1] + delta : 2 * yc;
-                if (WaveBuffer0[x] >= 2 * buffer.BufferHt) { delta = -2; WaveBuffer0[x] = 2 * buffer.BufferHt - 1; if (delay > 1) delay = 1; }
-                if (WaveBuffer0[x] < 0) { delta = 2; WaveBuffer0[x] = 0; if (delay > 1) delay = 1; }
+                WaveBuffer0[x1] = (delay-- > 0) ? WaveBuffer0[x1 - 1] + delta : 2 * yc; 
+                if (WaveBuffer0[x1] >= 2 * buffer.BufferHt) { delta = -2; WaveBuffer0[x1] = 2 * buffer.BufferHt - 1; if (delay > 1) delay = 1; }
+                if (WaveBuffer0[x1] < 0) { delta = 2; WaveBuffer0[x1] = 0; if (delay > 1) delay = 1; }
                 if (delay < 1) {
                     delta = (rand() % 7) - 3;
                     delay = 2 + (rand() % 3);
@@ -247,6 +248,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             y1mirror= yc + (yc -y1);
             y2mirror= yc + (yc -y2);
             deltay = y2-y1;
+            wxASSERT(deltay > 0);
 
             //if (x < 2) debug(10, "wave out: x %d, y %d..%d", x, y1, y2);
 

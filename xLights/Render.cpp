@@ -774,7 +774,7 @@ void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent &evt) {
     if (renderProgressInfo.empty()) {
         return;
     }
-    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end(); it++) {
+    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end(); ++it) {
         if ((*it)->renderProgressDialog) {
             (*it)->renderProgressDialog->Show();
             return;
@@ -811,7 +811,14 @@ void xLightsFrame::UpdateRenderStatus() {
                         g->SetValue(val);
                     }
                 }
-                countFrames += i;
+                if (i == END_OF_RENDER_FRAME)
+                {
+                    countFrames += rpi->endFrame - rpi->startFrame + 1;
+                }
+                else
+                {
+                    countFrames += i;
+                }
             }
         }
         if (countFrames > 0) {
@@ -1080,6 +1087,7 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
         pi->renderProgressDialog = renderProgressDialog;
         pi->restriction = restrictToModel;
         pi->aggregators = aggregators;
+
         renderProgressInfo.push_back(pi);
     } else {
         callback();
