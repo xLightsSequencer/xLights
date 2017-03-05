@@ -9,6 +9,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <wx/log.h>
+#include <wx/filedlg.h>
+#include "../xLightsVersion.h"
+#include <wx/msgdlg.h>
+#include "../xLightsMain.h"
 
 DmxModel::DmxModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -1514,3 +1519,275 @@ void DmxModel::Draw3DDMXHead(DrawGLUtils::xlAccumulator &va, const xlColor &c, f
     va.AddVertex(p41.x, p41.y, c);
 }
 
+#define retmsg(msg)  \
+{ \
+wxMessageBox(msg, _("Export Error")); \
+return; \
+}
+
+void DmxModel::ExportXlightsModel()
+{
+    wxString name = ModelXml->GetAttribute("name");
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (filename.IsEmpty()) return;
+    wxFile f(filename);
+    //    bool isnew = !wxFile::Exists(filename);
+    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    wxString p1 = ModelXml->GetAttribute("parm1");
+    wxString p2 = ModelXml->GetAttribute("parm2");
+    wxString p3 = ModelXml->GetAttribute("parm3");
+    wxString st = ModelXml->GetAttribute("StringType");
+    wxString ps = ModelXml->GetAttribute("PixelSize");
+    wxString t = ModelXml->GetAttribute("Transparency");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString a = ModelXml->GetAttribute("Antialias");
+    wxString ss = ModelXml->GetAttribute("StartSide");
+    wxString dir = ModelXml->GetAttribute("Dir");
+    wxString sn = ModelXml->GetAttribute("StrandNames");
+    wxString nn = ModelXml->GetAttribute("NodeNames");
+    wxString da = ModelXml->GetAttribute("DisplayAs");
+
+    wxString pdr = ModelXml->GetAttribute("DmxPanDegOfRot", "540");
+    wxString tdr = ModelXml->GetAttribute("DmxTiltDegOfRot", "180");
+    wxString s = ModelXml->GetAttribute("DmxStyle");
+    wxString pc = ModelXml->GetAttribute("DmxPanChannel", "0");
+    wxString po = ModelXml->GetAttribute("DmxPanOrient", "0");
+    wxString tc = ModelXml->GetAttribute("DmxTiltChannel", "0");
+    wxString to = ModelXml->GetAttribute("DmxTiltOrient","0");
+    wxString rc = ModelXml->GetAttribute("DmxRedChannel","0");
+    wxString gc = ModelXml->GetAttribute("DmxGreenChannel","0");
+    wxString bc = ModelXml->GetAttribute("DmxBlueChannel","0");
+    wxString sc = ModelXml->GetAttribute("DmxShutterChannel","0");
+    wxString so = ModelXml->GetAttribute("DmxShutterOpen","1");
+
+    // I need to do this because there are different defaults
+    if (s == "Skulltronix Skull")
+    {
+        pc = ModelXml->GetAttribute("DmxPanChannel", "5");
+        po = ModelXml->GetAttribute("DmxPanOrient", "90");
+        pdr = ModelXml->GetAttribute("DmxPanDegOfRot", "180");
+        tc = ModelXml->GetAttribute("DmxTiltChannel", "11");
+        to = ModelXml->GetAttribute("DmxTiltOrient", "315");
+        tdr = ModelXml->GetAttribute("DmxTiltDegOfRot", "90");
+        rc = ModelXml->GetAttribute("DmxRedChannel", "16");
+        gc = ModelXml->GetAttribute("DmxGreenChannel", "17");
+        bc = ModelXml->GetAttribute("DmxBlueChannel", "18");
+    }
+    
+    wxString tml = ModelXml->GetAttribute("DmxTiltMinLimit", "442");
+    wxString tmxl = ModelXml->GetAttribute("DmxTiltMaxLimit", "836");
+    wxString pml = ModelXml->GetAttribute("DmxPanMinLimit", "250");
+    wxString pmxl = ModelXml->GetAttribute("DmxPanMaxLimit", "1250");
+    wxString nc = ModelXml->GetAttribute("DmxNodChannel", "3");
+    wxString no = ModelXml->GetAttribute("DmxNodOrient", "331");
+    wxString ndr = ModelXml->GetAttribute("DmxNodDegOfRot", "58");
+    wxString nml = ModelXml->GetAttribute("DmxNodMinLimit", "452");
+    wxString nmxl = ModelXml->GetAttribute("DmxNodMaxLimit", "745");
+    wxString jc = ModelXml->GetAttribute("DmxJawChannel", "1");
+    wxString jml = ModelXml->GetAttribute("DmxJawMinLimit", "500");
+    wxString jmxl = ModelXml->GetAttribute("DmxJawMaxLimit", "750");
+    wxString eudc = ModelXml->GetAttribute("DmxEyeUDChannel", "7");
+    wxString eudml = ModelXml->GetAttribute("DmxEyeUDMinLimit", "575");
+    wxString eudmxl = ModelXml->GetAttribute("DmxEyeUDMaxLimit", "1000");
+    wxString elrc = ModelXml->GetAttribute("DmxEyeLRChannel", "9");
+    wxString elml = ModelXml->GetAttribute("DmxEyeLRMinLimit", "499");
+    wxString elrmxl = ModelXml->GetAttribute("DmxEyeLRMaxLimit", "878");
+
+    wxString v = xlights_version_string;
+
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
+    f.Write(wxString::Format("name=\"%s\" ", name));
+    f.Write(wxString::Format("parm1=\"%s\" ", p1));
+    f.Write(wxString::Format("parm2=\"%s\" ", p2));
+    f.Write(wxString::Format("parm3=\"%s\" ", p3));
+    f.Write(wxString::Format("DisplayAs=\"%s\" ", da));
+    f.Write(wxString::Format("StringType=\"%s\" ", st));
+    f.Write(wxString::Format("Transparency=\"%s\" ", t));
+    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
+    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
+    f.Write(wxString::Format("Antialias=\"%s\" ", a));
+    f.Write(wxString::Format("StartSide=\"%s\" ", ss));
+    f.Write(wxString::Format("Dir=\"%s\" ", dir));
+    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
+    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(wxString::Format("DmxPanDegOfRot=\"%s\" ", pdr));
+    f.Write(wxString::Format("DmxTiltDegOfRot=\"%s\" ", tdr));
+    f.Write(wxString::Format("DmxStyle=\"%s\" ", s));
+    f.Write(wxString::Format("DmxPanChannel=\"%s\" ", pc));
+    f.Write(wxString::Format("DmxPanOrient=\"%s\" ", po));
+    f.Write(wxString::Format("DmxTiltChannel=\"%s\" ", tc));
+    f.Write(wxString::Format("DmxTiltOrient=\"%s\" ", to));
+    f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));
+    f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
+    f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
+    f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
+    f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
+
+    f.Write(wxString::Format("DmxTiltMinLimit=\"%s\" ", tml));
+    f.Write(wxString::Format("DmxTiltMaxLimit=\"%s\" ", tmxl));
+    f.Write(wxString::Format("DmxPanMinLimit=\"%s\" ", pml));
+    f.Write(wxString::Format("DmxPanMaxLimit=\"%s\" ", pmxl));
+    f.Write(wxString::Format("DmxNodChannel=\"%s\" ", nc));
+    f.Write(wxString::Format("DmxNodOrient=\"%s\" ", no));
+    f.Write(wxString::Format("DmxNodDegOfRot=\"%s\" ", ndr));
+    f.Write(wxString::Format("DmxNodMinLimit=\"%s\" ", nml));
+    f.Write(wxString::Format("DmxNodMaxLimit=\"%s\" ", nmxl));
+    f.Write(wxString::Format("DmxJawChannel=\"%s\" ", jc));
+    f.Write(wxString::Format("DmxJawMinLimit=\"%s\" ", jml));
+    f.Write(wxString::Format("DmxJawMaxLimit=\"%s\" ", jmxl));
+    f.Write(wxString::Format("DmxEyeUDChannel=\"%s\" ", eudc));
+    f.Write(wxString::Format("DmxEyeUDMinLimit=\"%s\" ", eudml));
+    f.Write(wxString::Format("DmxEyeUDMaxLimit=\"%s\" ", eudmxl));
+    f.Write(wxString::Format("DmxEyeLRChannel=\"%s\" ", elrc));
+    f.Write(wxString::Format("DmxEyeLRMinLimit=\"%s\" ", elml));
+    f.Write(wxString::Format("DmxEyeLRMaxLimit=\"%s\" ", elrmxl));
+    f.Write(" >\n");
+    wxString submodel = SerialiseSubmodel();
+    if (submodel != "")
+    {
+        f.Write(submodel);
+    }
+    f.Write("</dmxmodel>");
+    f.Close();
+}
+
+void DmxModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    wxXmlDocument doc(filename);
+
+    if (doc.IsOk())
+    {
+        wxXmlNode* root = doc.GetRoot();
+
+        if (root->GetName() == "dmxmodel")
+        {
+            wxString name = root->GetAttribute("name");
+            wxString p1 = root->GetAttribute("parm1");
+            wxString p2 = root->GetAttribute("parm2");
+            wxString p3 = root->GetAttribute("parm3");
+            wxString st = root->GetAttribute("StringType");
+            wxString ps = root->GetAttribute("PixelSize");
+            wxString t = root->GetAttribute("Transparency");
+            wxString mb = root->GetAttribute("ModelBrightness");
+            wxString a = root->GetAttribute("Antialias");
+            wxString ss = root->GetAttribute("StartSide");
+            wxString dir = root->GetAttribute("Dir");
+            wxString sn = root->GetAttribute("StrandNames");
+            wxString nn = root->GetAttribute("NodeNames");
+            wxString v = root->GetAttribute("SourceVersion");
+            wxString da = root->GetAttribute("DisplayAs");
+
+            wxString pdr = root->GetAttribute("DmxPanDegOfRot");
+            wxString tdr = root->GetAttribute("DmxTiltDegOfRot");
+            wxString s = root->GetAttribute("DmxStyle");
+            wxString pc = root->GetAttribute("DmxPanChannel");
+            wxString po = root->GetAttribute("DmxPanOrient");
+            wxString tc = root->GetAttribute("DmxTiltChannel");
+            wxString to = root->GetAttribute("DmxTiltOrient");
+            wxString rc = root->GetAttribute("DmxRedChannel");
+            wxString gc = root->GetAttribute("DmxGreenChannel");
+            wxString bc = root->GetAttribute("DmxBlueChannel");
+            wxString sc = root->GetAttribute("DmxShutterChannel");
+            wxString so = root->GetAttribute("DmxShutterOpen");
+
+            wxString tml = root->GetAttribute("DmxTiltMinLimit");
+            wxString tmxl = root->GetAttribute("DmxTiltMaxLimit");
+            wxString pml = root->GetAttribute("DmxPanMinLimit");
+            wxString pmxl = root->GetAttribute("DmxPanMaxLimit");
+            wxString nc = root->GetAttribute("DmxNodChannel");
+            wxString no = root->GetAttribute("DmxNodOrient");
+            wxString ndr = root->GetAttribute("DmxNodDegOfRot");
+            wxString nml = root->GetAttribute("DmxNodMinLimit");
+            wxString nmxl = root->GetAttribute("DmxNodMaxLimit");
+            wxString jc = root->GetAttribute("DmxJawChannel");
+            wxString jml = root->GetAttribute("DmxJawMinLimit");
+            wxString jmxl = root->GetAttribute("DmxJawMaxLimit");
+            wxString eudc = root->GetAttribute("DmxEyeUDChannel");
+            wxString eudml = root->GetAttribute("DmxEyeUDMinLimit");
+            wxString eudmxl = root->GetAttribute("DmxEyeUDMaxLimit");
+            wxString elrc = root->GetAttribute("DmxEyeLRChannel");
+            wxString elml = root->GetAttribute("DmxEyeLRMinLimit");
+            wxString elrmxl = root->GetAttribute("DmxEyeLRMaxLimit");
+
+            // Add any model version conversion logic here
+            // Source version will be the program version that created the custom model
+
+            SetProperty("parm1", p1);
+            SetProperty("parm2", p2);
+            SetProperty("parm3", p3);
+            SetProperty("StringType", st);
+            SetProperty("PixelSize", ps);
+            SetProperty("Transparency", t);
+            SetProperty("ModelBrightness", mb);
+            SetProperty("Antialias", a);
+            SetProperty("StartSide", ss);
+            SetProperty("Dir", dir);
+            SetProperty("StrandNames", sn);
+            SetProperty("NodeNames", nn);
+            SetProperty("DisplayAs", da);
+
+            SetProperty("DmxPanDegOfRot", pdr);
+            SetProperty("DmxTiltDegOfRot", tdr);
+            SetProperty("DmxStyle", s);
+            SetProperty("DmxPanChannel", pc);
+            SetProperty("DmxPanOrient", po);
+            SetProperty("DmxTiltChannel", tc);
+            SetProperty("DmxTiltOrient", to);
+            SetProperty("DmxRedChannel", rc);
+            SetProperty("DmxGreenChannel", gc);
+            SetProperty("DmxBlueChannel", bc);
+            SetProperty("DmxShutterChannel", sc);
+            SetProperty("DmxShutterOpen", so);
+
+            SetProperty("DmxTiltMinLimit", tml);
+            SetProperty("DmxTiltMaxLimit", tmxl);
+            SetProperty("DmxPanMinLimit", pml);
+            SetProperty("DmxPanMaxLimit", pmxl);
+            SetProperty("DmxNodChannel", nc);
+            SetProperty("DmxNodOrient", no);
+            SetProperty("DmxNodDegOfRot", ndr);
+            SetProperty("DmxNodMinLimit", nml);
+            SetProperty("DmxNodMaxLimit", nmxl);
+            SetProperty("DmxJawChannel", jc);
+            SetProperty("DmxJawMinLimit", jml);
+            SetProperty("DmxJawMaxLimit", jmxl);
+            SetProperty("DmxEyeUDChannel", eudc);
+            SetProperty("DmxEyeUDMinLimit", eudml);
+            SetProperty("DmxEyeUDMaxLimit", eudmxl);
+            SetProperty("DmxEyeLRChannel", elrc);
+            SetProperty("DmxEyeLRMinLimit", elml);
+            SetProperty("DmxEyeLRMaxLimit", elrmxl);
+
+            wxString newname = name;
+            int cnt = 1;
+            while (xlights->AllModels[std::string(newname.c_str())] != nullptr)
+            {
+                newname = name + "-" + wxString::Format("%d", cnt++);
+            }
+
+            GetModelScreenLocation().Write(ModelXml);
+
+            SetProperty("name", newname, true);
+
+            for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
+            {
+                if (n->GetName() == "subModel")
+                {
+                    AddSubmodel(n);
+                }
+            }
+
+            xlights->MarkEffectsFileDirty(true);
+        }
+        else
+        {
+            wxMessageBox("Failure loading DMX model file.");
+        }
+    }
+    else
+    {
+        wxMessageBox("Failure loading DMX model file.");
+    }
+}
