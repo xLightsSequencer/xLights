@@ -2581,6 +2581,27 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             model->Selected = true;
             return model;
         }
+        else if (root->GetName() == "treemodel") {
+
+            // grab the attributes I want to keep
+            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+            auto x = model->GetHcenterOffset();
+            auto y = model->GetVcenterOffset();
+            auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
+            auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
+
+            // not a custom model so delete the default model that was created
+            if (model != nullptr) {
+                delete model;
+            }
+            model = xlights->AllModels.CreateDefaultModel("Tree", startChannel);
+            model->SetHcenterOffset(x);
+            model->SetVcenterOffset(y);
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
+            model->SetLayoutGroup(model->GetLayoutGroup());
+            model->Selected = true;
+            return model;
+        }
         else
         {
             cancelled = true;

@@ -11,6 +11,9 @@ class TreeModel : public MatrixModel
         virtual ~TreeModel();
     
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        virtual bool SupportsXlightsModel() override { return true; }
+        void ExportXlightsModel();
+        virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
     protected:
         virtual void AddStyleProperties(wxPropertyGridInterface *grid) override;

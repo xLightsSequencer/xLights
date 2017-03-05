@@ -19,7 +19,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Scheduler - Add support for animated GIFs to image playlist item
    -- bug (keith)   Scheduler - Fix crash on exit when using PJLink
    -- bug (keith)   Scheduler - Fix matrix start channels not saving or able to set to > 100
-   -- enh (keith)   Add export/import of matrix models
+   -- enh (keith)   Add export/import of matrix & tree models
    -- bug (keith)   Fix render progress bar not pressing properly
    -- enh (keith)   Add value curve displaying value of point under mouse even when model isnt custom
 2017.6  Feb 27, 2017
