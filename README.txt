@@ -1,9 +1,12 @@
-xLights is a program that allows you to play the sequence files from Vixen and
-LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers.
-xLights has a extensive scheduler. Nutcracker is a program that generates animated effects
-on massive RGB devices such as megatrees, matrices, and arches.
+xLights is a show sequencer and player/scheduler designed to control 
+USB/sACN(e1.31)/ArtNET(e.1.17) controllers.
+xLights also integrates with the Falcon Player.
+xLights imports and exports sequence data from sequencers such as LOR (SE & SS),
+Vixen2, LSP, HLS.
 
 Latest releases are found at www.xlights.org
+Videos tutorials are found at videos.xlights.org
+Forums are located at nutcracker123.com/forum
 Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
@@ -16,6 +19,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Scheduler - Add support for animated GIFs to image playlist item
    -- bug (keith)   Scheduler - Fix crash on exit when using PJLink
    -- bug (keith)   Scheduler - Fix matrix start channels not saving or able to set to > 100
+   -- enh (keith)   Add export/import of matrix models
+   -- bug (keith)   Fix render progress bar not pressing properly
+   -- enh (keith)   Add value curve displaying value of point under mouse even when model isnt custom
 2017.6  Feb 27, 2017
    -- bug (dkulp)   Fix xScheduler logging on OSX
    -- enh (keith)   Add duration treatments to glediator effect

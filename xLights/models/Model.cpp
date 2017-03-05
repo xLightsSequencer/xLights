@@ -153,19 +153,19 @@ public:
         if (dlg.ShowModal() == wxID_OK) {
             dimmingInfo.clear();
             dlg.Update(dimmingInfo);
-            wxXmlNode *f = m_model->GetModelXml()->GetChildren();
-            while (f != nullptr) {
-                if ("dimmingCurve" == f->GetName()) {
-                    m_model->GetModelXml()->RemoveChild(f);
-                    delete f;
-                    f = m_model->GetModelXml()->GetChildren();
+            wxXmlNode *f1 = m_model->GetModelXml()->GetChildren();
+            while (f1 != nullptr) {
+                if ("dimmingCurve" == f1->GetName()) {
+                    m_model->GetModelXml()->RemoveChild(f1);
+                    delete f1;
+                    f1 = m_model->GetModelXml()->GetChildren();
                 } else {
-                    f = f->GetNext();
+                    f1 = f1->GetNext();
                 }
             }
-            f = new wxXmlNode(m_model->GetModelXml(), wxXML_ELEMENT_NODE , "dimmingCurve");
+            f1 = new wxXmlNode(m_model->GetModelXml(), wxXML_ELEMENT_NODE , "dimmingCurve");
             for (auto it = dimmingInfo.begin(); it != dimmingInfo.end(); it++) {
-                wxXmlNode *dc = new wxXmlNode(f, wxXML_ELEMENT_NODE , it->first);
+                wxXmlNode *dc = new wxXmlNode(f1, wxXML_ELEMENT_NODE , it->first);
                 for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
                     dc->AddAttribute(it2->first, it2->second);
                 }
@@ -2549,18 +2549,41 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
         if (root->GetName() == "custommodel") {
             return model;
-        } else {
-            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel","1").ToStdString();
-            if (root->GetName() == "polylinemodel") {
-                // not a custom model so delete the default model that was created
-                if( model != nullptr ) {
-                    delete model;
-                }
-                model = xlights->AllModels.CreateDefaultModel("Poly Line", startChannel);
-                model->SetLayoutGroup(model->GetLayoutGroup());
-                model->Selected = true;
-                return model;
+        } else if (root->GetName() == "polylinemodel") {
+            // not a custom model so delete the default model that was created
+            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+            if( model != nullptr ) {
+                delete model;
             }
+            model = xlights->AllModels.CreateDefaultModel("Poly Line", startChannel);
+            model->SetLayoutGroup(model->GetLayoutGroup());
+            model->Selected = true;
+            return model;
+        }
+        else if (root->GetName() == "matrixmodel") {
+            
+            // grab the attributes I want to keep
+            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+            auto x = model->GetHcenterOffset();
+            auto y = model->GetVcenterOffset();
+            auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
+            auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
+            
+            // not a custom model so delete the default model that was created
+            if (model != nullptr) {
+                delete model;
+            }
+            model = xlights->AllModels.CreateDefaultModel("Matrix", startChannel);
+            model->SetHcenterOffset(x);
+            model->SetVcenterOffset(y);
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
+            model->SetLayoutGroup(model->GetLayoutGroup());
+            model->Selected = true;
+            return model;
+        }
+        else
+        {
+            cancelled = true;
         }
     }
     return model;
