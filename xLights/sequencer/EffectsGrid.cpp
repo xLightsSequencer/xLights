@@ -2735,7 +2735,7 @@ void EffectsGrid::SetEffectStatusText(Effect* eff)
 {
     if (eff != nullptr)
     {
-        wxString e = wxString::Format("start: %s end: %s duration: %s %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()), eff->GetDescription());
+        wxString e = wxString::Format("start: %s end: %s duration: %s %s %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()), eff->GetEffectName(), eff->GetDescription());
         xlights->SetStatusText(e, 1);
     }
     else
