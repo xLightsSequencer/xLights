@@ -22,7 +22,7 @@ void PopulateBlendModes(wxChoice* choice)
 
 APPLYMETHOD EncodeBlendMode(const std::string blendMode)
 {
-    std::string bm = wxString(blendMode).Lower();
+    std::string bm = wxString(blendMode).Lower().ToStdString();
 
     if (bm == "Overwrite")
     {

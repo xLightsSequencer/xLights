@@ -29,12 +29,6 @@ wxPanel *ServoEffect::CreatePanel(wxWindow *parent) {
     return new ServoPanel(parent);
 }
 
-static int GetPct(wxString val)
-{
-    int value = wxAtoi(val);
-    return (value * 100) / 255;
-}
-
 void ServoEffect::SetDefaultParameters(Model *cls) {
     ServoPanel *dp = (ServoPanel*)panel;
     if (dp == nullptr) {

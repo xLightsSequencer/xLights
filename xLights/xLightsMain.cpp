@@ -1016,7 +1016,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     info.BestSize(sz);
     MainAuiManager->Update();
 
-    wxTopLevelWindowMSW::SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date );
+    SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date );
 
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
     ButtonPasteByTime = new AUIToolbarButtonWrapper(EditToolBar, ID_PASTE_BY_TIME);
@@ -1083,10 +1083,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     icons.AddIcon(wxIcon(xlights_128_xpm));
     icons.AddIcon(wxIcon(xlights_xpm));
 
-    wxTopLevelWindowMSW::SetIcons(icons);
+    SetIcons(icons);
     logger_base.debug("IconBundle creation done.");
 
-    wxWindowBase::SetName("xLights");
+    SetName("xLights");
     wxPersistenceManager::Get().RegisterAndRestore(this);
     logger_base.debug("Window Location Restored.");
 

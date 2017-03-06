@@ -283,7 +283,7 @@ END_EVENT_TABLE()
 xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _allowTimingOffset = allowTimingOffset;
-    _allowTimingTrack = _allowTimingTrack;
+    _allowTimingTrack = allowTimingTrack;
     _allowColorChoice = allowColorChoice;
     _filename = filename;
 
