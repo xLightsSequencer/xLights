@@ -24,10 +24,10 @@ function populateSideBar() {
   console.log(uiSettings);
   if (uiSettings != undefined) {
     if (uiSettings.home[0] == true) {
-      $('#sideBar2').load('inc/sidebarNav.html');
+      $('#sideBar1').load('inc/sidebarNav.html');
     }
     if (uiSettings.home[1] == true) {
-      $('#sideBar1').load('inc/sidebarPlayerStatus.html');
+      $('#sideBar2').load('inc/sidebarPlayerStatus.html');
     }
   }
 }
@@ -44,9 +44,7 @@ function checkForUpdate() {
   if (playingStatus.status == 'playing') {
     dashboardLoadStatus();
   }
-
   oldPlayingStatus = playingStatus;
-
 }
 
 function dashboardLoadStatus() {
@@ -134,10 +132,8 @@ function updatePlaylistSteps(playlist, currentStep) {
             ".")[0] +
           `</td>
             <td>
-              <button type="button" onclick="runCommand('Play specified playlist', '` +
-          response.steps[i].name +
-          `')" class="btn btn-info btn-xs" name="button">Play</button>
-              <button type="button" class="btn btn-default btn-xs" name="button">Query</button>
+              <button type="button" onclick="runCommand('Play specified playlist', '` + response.steps[i].name + `')" class="btn btn-info btn-xs " name="button" title="Jump to this step">Play</button>
+              <button type="button" class="btn btn-default btn-xs glyphicon glyphicon-plus" name="button" title="Queue step next"</button>
             </td>
           </tr>`;
 

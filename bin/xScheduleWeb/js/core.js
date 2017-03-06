@@ -13,6 +13,13 @@ $(document).ready(function() {
   navLoadPlugins();
   checkLogInStatus();
 
+  //Add Hover effect to menus
+  jQuery('ul.nav li.dropdown').hover(function() {
+    jQuery(this).find('.dropdown-menu').stop(true, true).delay(200).fadeIn();
+  }, function() {
+    jQuery(this).find('.dropdown-menu').stop(true, true).delay(200).fadeOut();
+  });
+
 
   // if mobile
   if (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)) {
@@ -47,16 +54,20 @@ function loadUISettings() {
     success: function(response) {
       uiSettings = JSON.parse(response);
       populateUI();
-      console.log("Hi");
       console.log(getQueryVariable("plugins"));
       if (getQueryVariable("plugins") == false) {
-        console.log("Hi");
         populateSideBar();
       }
     },
     error: function(response) {
       var defaultSettings =
-        `{"webName":"xLights Scheduler","webColor":"#e74c3c","home":["true","false"],"playlists":["true", "true"],"settings":["true", "true"]}`;
+        `{
+    "webName":"xLights Scheduler",
+    "webColor":"#e74c3c",
+    "home":[true, false],
+    "playlists":[true, true],
+    "settings":[true, true]
+    }`;
       storeKey('uiSettings', defaultSettings);
       uiSettings = JSON.parse(defaultSettings);
       populateUI();
@@ -71,6 +82,7 @@ function populateUI() {
   $('#headerName').html(uiSettings.webName);
   $('#nav').css("background-color", uiSettings.webColor);
   $('#nav').css("border-color", uiSettings.webColor);
+  document.title = uiSettings.webName;
 }
 
 function checkLogInStatus() {

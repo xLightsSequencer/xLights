@@ -6,10 +6,10 @@ $(document).ready(function() {
 function populateSideBar() {
   if (uiSettings != undefined) {
     if (uiSettings.settings[0] == true) {
-      $('#sideBar2').load('inc/sidebarNav.html');
+      $('#sideBar1').load('inc/sidebarNav.html');
     }
     if (uiSettings.settings[1] == true) {
-      $('#sideBar1').load('inc/sidebarPlayerStatus.html');
+      $('#sideBar2').load('inc/sidebarPlayerStatus.html');
     }
   }
 }
