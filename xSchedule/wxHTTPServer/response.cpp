@@ -70,7 +70,7 @@ void HttpResponse::MakeFromFile(const wxString &fileName, const wxString &charse
 			_headers.Add("Vary", "Accept-Encoding,Cookie");
 			_headers.Add("Cache-Control", "private, s-maxage=0, max-age=0, must-revalidate");
 			_headers.Add("Content-Type", mimeType + (charset.IsEmpty() ? "" : ("; " + charset)));
-			_headers.Add("Content-Length", wxString::Format("%d", _content.GetDataLen()));
+			_headers.Add("Content-Length", wxString::Format("%i", (long)_content.GetDataLen()));
 			_headers.Add("Content-Language", "it");
 			_headers.Add("Connection", "close");
 		}
@@ -89,7 +89,7 @@ void HttpResponse::MakeFromText(const wxString &text, const wxString &mimeType /
 	_headers.Add("Vary", "Accept-Encoding,Cookie");
 	_headers.Add("Cache-Control", "private, s-maxage=0, max-age=0, must-revalidate");
 	_headers.Add("Content-Type", mimeType + "; utf-8");
-	_headers.Add("Content-Length", wxString::Format("%d", _content.GetDataLen()));
+	_headers.Add("Content-Length", wxString::Format("%i", (long)_content.GetDataLen()));
 	_headers.Add("Content-Language", "it");
 	_headers.Add("Connection", "close");
 }
@@ -122,6 +122,6 @@ void HttpResponse::MakeFromCode(HttpStatus::HttpStatusCode code /*= HttpStatus::
 		_content.AppendData(buffer.data(), buffer.length());
 
 		_headers.Add("Content-Type", "text/html; utf-8");
-		_headers.Add("Content-Length", wxString::Format("%d", _content.GetDataLen()));
+		_headers.Add("Content-Length", wxString::Format("%i", (long)_content.GetDataLen()));
 	}
 }

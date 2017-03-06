@@ -47,7 +47,7 @@ public:
     std::string GetRawName() const { return _name; }
     void SetSpeed(int speed) { if (_speed != speed) { _speed = speed; _changeCount++; } }
     int GetSpeed() const { return _speed; }
-    void SetBlendMode(APPLYMETHOD blendMode) { if (_blendMode != blendMode) { _blendMode = blendMode; _changeCount++; } }
+    void SetBlendMode(const std::string& blendMode) { if (_blendMode != EncodeBlendMode(blendMode)) { _blendMode = EncodeBlendMode(blendMode); _changeCount++; } }
     int GetBlendMode() const { return _blendMode; }
     void SetDuration(size_t duration) { if (_durationMS != duration) { _durationMS = duration; _changeCount++; } }
     size_t GetDuration() const { return _durationMS; }

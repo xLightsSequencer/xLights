@@ -31,8 +31,10 @@ class PixelData
 {
     size_t _startChannel;
     size_t _size;
-    std::vector<unsigned char> _data;
+    wxByte* _data;
     APPLYMETHOD _blendMode;
+
+    void ExtractData(const std::string& data);
 
 public:
     PixelData(size_t startChannel, const std::string& data, APPLYMETHOD blendMode);

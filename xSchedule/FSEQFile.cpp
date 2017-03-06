@@ -52,20 +52,6 @@ FSEQFile::~FSEQFile()
     Close();
 }
 
-std::list<std::string> FSEQFile::GetBlendModes()
-{
-    std::list<std::string> res;
-
-    res.push_back("Overwrite");
-    res.push_back("Overwrite if black");
-    res.push_back("Mask out if not black");
-    res.push_back("Mask out if black");
-    res.push_back("Average");
-    res.push_back("Maximum");
-
-    return res;
-}
-
 void FSEQFile::Close()
 {
     if (_fh != nullptr)
@@ -184,57 +170,13 @@ void FSEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
     _fh->Read(_frameBuffer, _channelsPerFrame);
     _currentFrame = frame + 1;
 
-    size_t bytesToUse = std::min(buffersize, _channelsPerFrame);
-
     if (channels > 0)
     {
-        bytesToUse = std::min(bytesToUse, channels);
+        Blend(buffer, buffersize, _frameBuffer, std::min(_channelsPerFrame, channels), applyMethod, offset);
     }
-
-    switch(applyMethod)
+    else
     {
-    case APPLYMETHOD::METHOD_OVERWRITE:
-        memcpy(buffer+offset, _frameBuffer+offset, bytesToUse);
-        break;
-    case APPLYMETHOD::METHOD_AVERAGE:
-        for (size_t i = 0; i < bytesToUse; i++)
-        {
-            *(buffer + i + offset) = ((int)*(buffer + i + offset) + (int)*(_frameBuffer + i + offset)) / 2;
-        }
-        break;
-    case APPLYMETHOD::METHOD_MASK:
-        for (size_t i = 0; i < bytesToUse; i++)
-        {
-            if (*(_frameBuffer + i + offset) > 0)
-            {
-                *(buffer + i + offset) = 0x00;
-            }
-        }
-        break;
-    case APPLYMETHOD::METHOD_UNMASK:
-        for (size_t i = 0; i < bytesToUse; i++)
-        {
-            if (*(_frameBuffer + i + offset) == 0)
-            {
-                *(buffer + i + offset) = 0x00;
-            }
-        }
-        break;
-    case APPLYMETHOD::METHOD_MAX:
-        for (size_t i = 0; i < bytesToUse; i++)
-        {
-            *(buffer + i + offset) = std::max(*(buffer + i + offset), *(_frameBuffer + i + offset));
-        }
-        break;
-    case APPLYMETHOD::METHOD_OVERWRITEIFBLACK:
-        for (size_t i = 0; i < bytesToUse; i++)
-        {
-            if (*(buffer + i + offset) == 0)
-            {
-                *(buffer + i + offset) = *(_frameBuffer + i + offset);
-            }
-        }
-        break;
+        Blend(buffer, buffersize, _frameBuffer, _channelsPerFrame, applyMethod, offset);
     }
 }
 

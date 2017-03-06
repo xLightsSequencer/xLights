@@ -150,50 +150,5 @@ void ESEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
     _fh->Read(_frameBuffer, _channelsPerFrame);
     _currentFrame = frame + 1;
 
-    size_t bytesToUse = buffersize - _offset < _channelsPerFrame ? buffersize - _offset : _channelsPerFrame;
-
-    switch(applyMethod)
-    {
-    case APPLYMETHOD::METHOD_OVERWRITE:
-        memcpy(buffer + _offset, _frameBuffer, bytesToUse);
-        break;
-    case APPLYMETHOD::METHOD_AVERAGE:
-        for (size_t i = 0; i < bytesToUse; i++)
-        {
-            *(buffer + i) = ((int)*(buffer + _offset + i) + (int)*(_frameBuffer + i)) / 2;
-        }
-        break;
-    case APPLYMETHOD::METHOD_MASK:
-        for (size_t i = 0; i < bytesToUse; i++)
-        {
-            if (*(_frameBuffer + i) > 0)
-            {
-                *(buffer + _offset + i) = 0x00;
-            }
-        }
-        break;
-    case APPLYMETHOD::METHOD_UNMASK:
-        for (size_t i = 0; i < bytesToUse; i++)
-        {
-            if (*(_frameBuffer + i) == 0)
-            {
-                *(buffer + _offset + i) = 0x00;
-            }
-        }
-        break;
-    case APPLYMETHOD::METHOD_MAX:
-        for (size_t i = 0; i < bytesToUse; i++)
-        {
-            *(buffer + _offset + i) = *(buffer + _offset + i) > *(_frameBuffer + i) ? *(buffer + _offset + i) : *(_frameBuffer + i);
-        }
-        break;
-    case APPLYMETHOD::METHOD_OVERWRITEIFBLACK:
-        for (size_t i = 0; i < bytesToUse; i++)
-        {
-            if (*(buffer + _offset + i) == 0)
-            {
-                *(buffer + _offset + i) = *(_frameBuffer + i);
-            }
-        }
-    }
+    Blend(buffer, buffersize, _frameBuffer, _channelsPerFrame, applyMethod, _offset);
 }

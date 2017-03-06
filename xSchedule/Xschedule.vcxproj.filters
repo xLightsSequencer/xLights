@@ -124,6 +124,7 @@
     <ClCompile Include="Projector.cpp" />
     <ClCompile Include="..\xLights\effects\GIFImage.cpp" />
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
+    <ClCompile Include="Blend.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -230,6 +231,7 @@
     <ClInclude Include="Projector.h" />
     <ClInclude Include="..\xLights\effects\GIFImage.h" />
     <ClInclude Include="..\xLights\xLightsVersion.h" />
+    <ClInclude Include="Blend.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

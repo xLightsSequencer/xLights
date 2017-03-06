@@ -427,46 +427,10 @@ void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
 
 void PlayListItemText::SetPixel(wxByte* p, wxByte r, wxByte g, wxByte b, APPLYMETHOD blendMode)
 {
-    switch (blendMode)
-    {
-    case APPLYMETHOD::METHOD_OVERWRITE:
-        *p = r;
-        *(p + 1) = g;
-        *(p + 2) = b;
-        break;
-    case APPLYMETHOD::METHOD_AVERAGE:
-        *p = ((int)*p + (int)r) / 2;
-        *(p + 1) = ((int)*(p + 1) + (int)g) / 2;
-        *(p + 2) = ((int)*(p + 2) + (int)b) / 2;
-        break;
-    case APPLYMETHOD::METHOD_MASK:
-        if (r > 0 || g > 0 || b > 0)
-        {
-            *p = 0x00;
-            *(p + 1) = 0x00;
-            *(p + 2) = 0x00;
-        }
-        break;
-    case APPLYMETHOD::METHOD_UNMASK:
-        if (r == 0 && g == 0 && b == 0)
-        {
-            *p = 0x00;
-            *(p + 1) = 0x00;
-            *(p + 2) = 0x00;
-        }
-        break;
-    case APPLYMETHOD::METHOD_MAX:
-        *p = std::max(*p, r);
-        *(p + 1) = std::max(*(p + 1), g);
-        *(p + 2) = std::max(*(p + 2), b);
-        break;
-    case APPLYMETHOD::METHOD_OVERWRITEIFBLACK:
-        if (*p == 0 && *(p + 1) == 0 && *(p + 2) == 0)
-        {
-            *p = r;
-            *(p+1) = g;
-            *(p+2) = b;
-        }
-        break;
-    }
+    wxByte rgb[3];
+    rgb[0] = r;
+    rgb[1] = g;
+    rgb[2] = b;
+
+    Blend(p, 3, rgb, 3, blendMode);
 }

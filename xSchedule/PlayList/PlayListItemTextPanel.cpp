@@ -158,12 +158,8 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PlayListItemTextPanel::OnChoice_TypeSelect);
 	//*)
 
-    auto bms = FSEQFile::GetBlendModes();
-    for (auto it = bms.begin(); it != bms.end(); ++it)
-    {
-        Choice_BlendMode->AppendString(*it);
-    }
-    Choice_BlendMode->SetSelection(1);
+    PopulateBlendModes(Choice_BlendMode);
+    Choice_BlendMode->SetSelection(0);
 
     auto m = xScheduleFrame::GetScheduleManager()->GetOptions()->GetMatrices();
     for (auto it = m->begin(); it != m->end(); ++it)
@@ -205,7 +201,7 @@ PlayListItemTextPanel::~PlayListItemTextPanel()
     _text->SetMovement(Choice_Movement->GetStringSelection().ToStdString());
     _text->SetType(Choice_Type->GetStringSelection().ToStdString());
     _text->SetDuration(wxAtof(TextCtrl_Duration->GetValue()) * 1000);
-    _text->SetBlendMode((APPLYMETHOD)Choice_BlendMode->GetSelection());
+    _text->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
     _text->SetMatrix(Choice_Matrices->GetStringSelection().ToStdString());
     _text->SetX(SpinCtrl_X->GetValue());
     _text->SetY(SpinCtrl_Y->GetValue());

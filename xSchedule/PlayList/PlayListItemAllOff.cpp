@@ -77,61 +77,25 @@ void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t fr
     {
         if (ms >= _delay && ms <= _delay + _duration)
         {
-            if (_channels > 0)
-            {
-                if (_startChannel > size) return;
+            if (_startChannel > size) return;
 
-                size_t toset = _channels + _startChannel - 1 < size ? _channels : size - _startChannel + 1;
-                if (_applyMethod == APPLYMETHOD::METHOD_OVERWRITE)
-                {
-                    memset(buffer + _startChannel - 1, _value, toset);
-                }
-                else
-                {
-                    for (size_t i = 0; i < toset; ++i)
-                    {
-                        SetChannel(buffer + i, _value, _applyMethod);
-                    }
-                }
-            }
-            else
+            size_t toset = _channels + _startChannel - 1 < size ? _channels : size - _startChannel + 1;
+            if (_channels == 0)
             {
-                memset(buffer, _value, size);
+                toset = size;
+            }
+
+            if (toset > 0)
+            {
+                wxByte* values = (wxByte*)malloc(toset);
+                if (values != nullptr)
+                {
+                    memset(values, _value, toset);
+                    Blend(buffer, _channels, values, toset, _applyMethod, _startChannel - 1);
+                    free(values);
+                }
             }
         }
     }
 }
 
-void PlayListItemAllOff::SetChannel(wxByte* p, wxByte value, APPLYMETHOD blendMode)
-{
-    switch (blendMode)
-    {
-    case APPLYMETHOD::METHOD_OVERWRITE:
-        *p = value;
-        break;
-    case APPLYMETHOD::METHOD_AVERAGE:
-        *p = ((int)*p + (int)value) / 2;
-        break;
-    case APPLYMETHOD::METHOD_MASK:
-        if (value > 0)
-        {
-            *p = 0x00;
-        }
-        break;
-    case APPLYMETHOD::METHOD_UNMASK:
-        if (value == 0)
-        {
-            *p = 0x00;
-        }
-        break;
-    case APPLYMETHOD::METHOD_MAX:
-        *p = std::max(*p, value);
-        break;
-    case APPLYMETHOD::METHOD_OVERWRITEIFBLACK:
-        if (*p == 0)
-        {
-            *p = value;
-        }
-        break;
-    }
-}

@@ -19,8 +19,6 @@ protected:
     APPLYMETHOD _applyMethod;
 #pragma endregion Member Variables
 
-    void SetChannel(wxByte* p, wxByte value, APPLYMETHOD blendMode);
-
 public:
 
 #pragma region Constructors and Destructors
@@ -41,7 +39,7 @@ public:
     wxByte GetValue() const { return _value; }
     void SetValue(wxByte value) { if (_value != value) { _value = value; _changeCount++; } }
     int GetBlendMode() const { return _applyMethod; }
-    void SetBlendMode(int blendMode) { if (_applyMethod != (APPLYMETHOD)blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; } }
+    void SetBlendMode(const std::string& blendMode) { if (_applyMethod != EncodeBlendMode(blendMode)) { _applyMethod = EncodeBlendMode(blendMode); _changeCount++; } }
     virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 

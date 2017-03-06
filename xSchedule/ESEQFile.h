@@ -4,18 +4,7 @@
 #include <string>
 #include <wx/file.h>
 #include <list>
-
-#ifndef APPLYMETHOD_DEF
-#define APPLYMETHOD_DEF
-typedef enum {
-	METHOD_OVERWRITE,
-	METHOD_OVERWRITEIFBLACK,
-	METHOD_MASK,
-	METHOD_UNMASK,
-	METHOD_AVERAGE,
-	METHOD_MAX
-} APPLYMETHOD;
-#endif
+#include "Blend.h"
 
 class ESEQFile
 {

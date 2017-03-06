@@ -85,11 +85,8 @@ PlayListItemAllOffPanel::PlayListItemAllOffPanel(wxWindow* parent, PlayListItemA
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PlayListItemAllOffPanel::OnCheckBox_LimitChannelsClick);
 	//*)
 
-    auto bms = FSEQFile::GetBlendModes();
-    for (auto it = bms.begin(); it != bms.end(); ++it)
-    {
-        Choice_BlendMode->AppendString(*it);
-    }
+    PopulateBlendModes(Choice_BlendMode);
+    Choice_BlendMode->SetSelection(0);
 
     TextCtrl_AllOffDuration->SetValue(wxString::Format(wxT("%.3f"), (float)alloff->GetDuration() / 1000.0));
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)alloff->GetDelay() / 1000.0));
@@ -123,7 +120,7 @@ PlayListItemAllOffPanel::~PlayListItemAllOffPanel()
     _alloff->SetDuration(wxAtof(TextCtrl_AllOffDuration->GetValue()) * 1000);
     _alloff->SetValue(SpinCtrl_AllSet->GetValue());
     _alloff->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
-    _alloff->SetBlendMode(Choice_BlendMode->GetSelection());
+    _alloff->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
     _alloff->SetPriority(SpinCtrl_Priority->GetValue());
     if (CheckBox_LimitChannels->GetValue())
     {

@@ -15,6 +15,8 @@
 #include "wxhttpserver.h"
 #include <log4cpp/Category.hh>
 
+//#define DETAILED_LOGGING
+
 #define SERVER_ID	100
 #define SOCKET_ID	101
 
@@ -100,54 +102,82 @@ bool HttpServer::Stop()
 
 void HttpServer::OnServerEvent(wxSocketEvent& event)
 {
-	switch(event.GetSocketEvent())
-	{
-	case wxSOCKET_CONNECTION:
-		wxLogMessage(_("OnServerEvent: wxSOCKET_CONNECTION"));
-		break;
-	default:
-		wxLogError(_("OnServerEvent: unexpected event %d"), event.GetSocketEvent());
-		break;
-	}
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxStopWatch sw;
 
-	// Accept new connection if there is one in the pending connections queue, else exit. We use Accept(false) for
-	// non-blocking accept (although if we got here, there should ALWAYS be a pending connection).
-	wxSocketBase *socket = _server->Accept(false);
+    switch (event.GetSocketEvent())
+    {
+    case wxSOCKET_CONNECTION:
+#ifdef DETAILED_LOGGING
+        logger_base.info("OnServerEvent: wxSOCKET_CONNECTION");
+#endif
+        break;
+    default:
+#ifdef DETAILED_LOGGING
+        logger_base.info("OnServerEvent: unexpected event %d", event.GetSocketEvent());
+#endif
+        break;
+    }
 
-	if (socket)
-	{
-		HttpConnection *connection = NULL;
+    // Accept new connection if there is one in the pending connections queue, else exit. We use Accept(false) for
+    // non-blocking accept (although if we got here, there should ALWAYS be a pending connection).
+    wxSocketBase *socket = _server->Accept(false);
 
-		if (event.GetSocketEvent() == wxSOCKET_CONNECTION)
-		{
-			connection = new HttpConnection(this, socket);
-			_connections[socket] = connection;
-		}
-		else
-			connection = _connections[socket];
+    if (socket)
+    {
+#ifdef DETAILED_LOGGING
+        logger_base.info("created socket client (socket %d)", socket->GetSocket());
+#endif
 
-		wxASSERT(connection != NULL);
+        HttpConnection *connection = nullptr;
 
-		socket->SetEventHandler(*this, SOCKET_ID);
-		socket->SetNotify(wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
-		socket->Notify(true);
-	}
-	else
-		wxLogMessage(_("error, impossible to accept a new connection"));
+        if (event.GetSocketEvent() == wxSOCKET_CONNECTION)
+        {
+            connection = new HttpConnection(this, socket);
+            _connections[socket] = connection;
+        }
+        else
+            connection = _connections[socket];
+
+        wxASSERT(connection != nullptr);
+
+        socket->SetEventHandler(*this, SOCKET_ID);
+        socket->SetNotify(wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
+        socket->Notify(true);
+    }
+    else
+    {
+#ifdef DETAILED_LOGGING
+        logger_base.info("error, impossible to accept a new connection");
+#endif
+    }
+
+#ifdef DETAILED_LOGGING
+    logger_base.info("OnServerEvent Time %ld.", sw.Time());
+#endif
 }
 
 void HttpServer::OnSocketEvent(wxSocketEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxStopWatch sw;
+
 	switch(event.GetSocketEvent())
 	{
 	case wxSOCKET_INPUT:
-		wxLogMessage(_("OnSocketEvent: wxSOCKET_INPUT"));
+#ifdef DETAILED_LOGGING
+        logger_base.info("OnSocketEvent: wxSOCKET_INPUT");
+#endif
 		break;
 	case wxSOCKET_LOST:
-		wxLogMessage(_("OnSocketEvent: wxSOCKET_LOST"));
+#ifdef DETAILED_LOGGING
+        logger_base.info("OnSocketEvent: wxSOCKET_LOST");
+#endif
 		break;
 	default:
-		wxLogError(_("OnServerEvent: unexpected event %d"), event.GetSocketEvent());
+#ifdef DETAILED_LOGGING
+        logger_base.info("OnServerEvent: unexpected event %d", event.GetSocketEvent());
+#endif
 		break;
 	}
 
@@ -180,9 +210,15 @@ void HttpServer::OnSocketEvent(wxSocketEvent& event)
 			// (see the documentation for wxPostEvent) and we don't want an event to arrive to the event handler (the frame,
 			// here) after the socket has been deleted. Also, we might be doing some other thing with the socket at the same
 			// time; for example, we might be in the middle of a test or something. Destroy() takes care of all this for us.
-			wxLogMessage(_("deleted socket client (socket %d)"), socket->GetSocket());
+#ifdef DETAILED_LOGGING
+            logger_base.info("deleted socket client (socket %d)", socket->GetSocket());
+#endif
 			socket->Destroy();
 			break;
 		}
 	}
+
+#ifdef DETAILED_LOGGING
+    logger_base.info("OnSocketEvent Time %ld.", sw.Time());
+#endif
 }

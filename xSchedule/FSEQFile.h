@@ -4,18 +4,7 @@
 #include <wx/wx.h>
 #include <string>
 #include <list>
-
-#ifndef APPLYMETHOD_DEF
-#define APPLYMETHOD_DEF
-typedef enum {
-	METHOD_OVERWRITE,
-	METHOD_OVERWRITEIFBLACK,
-	METHOD_MASK,
-	METHOD_UNMASK,
-	METHOD_AVERAGE,
-	METHOD_MAX
-} APPLYMETHOD;
-#endif
+#include "Blend.h"
 
 class wxFile;
 
@@ -40,7 +29,6 @@ class FSEQFile
 
         static int ReadInt16(wxFile* fh);
         static int ReadInt32(wxFile* fh);
-        static std::list<std::string> GetBlendModes();
         static std::string FixFile(const std::string& ShowDir, const std::string& file, bool recurse = false);
         static std::string GrabAudioFilename(const std::string& fseqFilename);
 

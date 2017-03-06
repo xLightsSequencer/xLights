@@ -196,6 +196,7 @@
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="AddReverseDialog.cpp" />
     <ClCompile Include="BackgroundPlaylistDialog.cpp" />
+    <ClCompile Include="Blend.cpp" />
     <ClCompile Include="ButtonDetailsDialog.cpp" />
     <ClCompile Include="ColourOrderDialog.cpp" />
     <ClCompile Include="CommandManager.cpp" />
@@ -307,6 +308,7 @@
     <ClInclude Include="..\xLights\xLightsVersion.h" />
     <ClInclude Include="AddReverseDialog.h" />
     <ClInclude Include="BackgroundPlaylistDialog.h" />
+    <ClInclude Include="Blend.h" />
     <ClInclude Include="ButtonDetailsDialog.h" />
     <ClInclude Include="ColourOrderDialog.h" />
     <ClInclude Include="CommandManager.h" />

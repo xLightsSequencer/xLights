@@ -738,7 +738,7 @@ int ScheduleManager::CheckSchedule()
 
 std::string ScheduleManager::FormatTime(size_t timems)
 {
-    return wxString::Format(wxT("%i:%02i.%03i"), timems / 60000, (timems % 60000) / 1000, timems % 1000).ToStdString();
+    return wxString::Format(wxT("%i:%02i.%03i"), (long)(timems / 60000), (long)((timems % 60000) / 1000), (long)(timems % 1000)).ToStdString();
 }
 
 std::string ScheduleManager::GetStatus() const
@@ -1471,26 +1471,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 APPLYMETHOD blendMode = APPLYMETHOD::METHOD_OVERWRITE;
                 if (split.size() > 1)
                 {
-                    if (split[1].Lower() == "average")
-                    {
-                        blendMode = APPLYMETHOD::METHOD_AVERAGE;
-                    }
-                    else if (split[1].Lower() == "mask")
-                    {
-                        blendMode = APPLYMETHOD::METHOD_MASK;
-                    }
-                    else if (split[1].Lower() == "max")
-                    {
-                        blendMode = APPLYMETHOD::METHOD_MAX;
-                    }
-                    else if (split[1].Lower() == "overwriteifblack")
-                    {
-                        blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
-                    }
-                    else if (split[1].Lower() == "unmask")
-                    {
-                        blendMode = APPLYMETHOD::METHOD_UNMASK;
-                    }
+                    blendMode = EncodeBlendMode(split[1].ToStdString());
                 }
 
                 PixelData * p = nullptr;
@@ -1879,7 +1860,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"nextstep\":\"" + nextsong +
                 "\",\"nextstepid\":\"" + nextsongid +
                 "\",\"version\":\"" + xlights_version_string +
-                "\",\"queuelength\":\"" + wxString::Format(wxT("%i"), _queuedSongs->GetSteps().size()) +
+                "\",\"queuelength\":\"" + wxString::Format(wxT("%i"), (long)_queuedSongs->GetSteps().size()) +
                 "\",\"volume\":\"" + wxString::Format(wxT("%i"), GetVolume()) +
                 "\",\"time\":\"" + wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +
                 "\",\"ip\":\"" + ip +
@@ -3094,52 +3075,45 @@ static int base64_decode(const wxString& encoded_string, std::vector<unsigned ch
 
 PixelData::PixelData(size_t startChannel, const std::string& data, APPLYMETHOD blendMode)
 {
+    _data = nullptr;
     _startChannel = startChannel;
     _blendMode = blendMode;
-    base64_decode(data, _data);
-    _size = _data.size();
+
+    ExtractData(data);
 }
 
 PixelData::~PixelData()
 {
+    if (_data != nullptr)
+    {
+        free(_data);
+    }
 }
 
 void PixelData::Set(wxByte* buffer, size_t size)
 {
-    size_t toset = std::min(_size, size - (_startChannel - 1));
-
-    for (size_t i = 0; i < toset; i++)
+    if (_data != nullptr)
     {
-        wxByte* p = buffer + _startChannel - 1 + i;
-        switch (_blendMode)
+        Blend(buffer, size, _data, _size, _blendMode, _startChannel - 1);
+    }
+}
+
+void PixelData::ExtractData(const std::string& data)
+{
+    std::vector<unsigned char> dout;
+    base64_decode(data, dout);
+    _size = dout.size();
+
+    if (_data != nullptr)
+    {
+        delete _data;
+    }
+    _data = (wxByte*)malloc(_size);
+    if (_data != nullptr)
+    {
+        for (size_t i = 0; i < _size; ++i)
         {
-        case APPLYMETHOD::METHOD_OVERWRITE:
-            *p = _data[i];
-            break;
-        case APPLYMETHOD::METHOD_AVERAGE:
-            *p = ((int)*p + (int)_data[i]) / 2;
-            break;
-        case APPLYMETHOD::METHOD_MASK:
-            if (_data[i] > 0)
-            {
-                *p = 0x00;
-            }
-            break;
-        case APPLYMETHOD::METHOD_UNMASK:
-            if (_data[i] == 0)
-            {
-                *p = 0x00;
-            }
-            break;
-        case APPLYMETHOD::METHOD_MAX:
-            *p = std::max(*p, _data[i]);
-            break;
-        case APPLYMETHOD::METHOD_OVERWRITEIFBLACK:
-            if (*p == 0)
-            {
-                *p = _data[i];
-            }
-            break;
+            *(_data + i) = dout[i];
         }
     }
 }
@@ -3147,8 +3121,8 @@ void PixelData::Set(wxByte* buffer, size_t size)
 void PixelData::SetData(const std::string& data, APPLYMETHOD blendMode)
 {
     _blendMode = blendMode;
-    base64_decode(data, _data);
-    _size = _data.size();
+
+    ExtractData(data);
 }
 
 bool ScheduleManager::DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties)
@@ -3177,35 +3151,7 @@ bool ScheduleManager::DoText(PlayListItemText* pliText, const std::string& text,
             else if (pvl == "blendmode")
             {
                 std::string vl = pv[1].Lower().ToStdString();
-
-                if (vl == "overwrite")
-                {
-                    pliText->SetBlendMode(APPLYMETHOD::METHOD_OVERWRITE);
-                }
-                else if (vl == "max")
-                {
-                    pliText->SetBlendMode(APPLYMETHOD::METHOD_MAX);
-                }
-                else if (vl == "mask")
-                {
-                    pliText->SetBlendMode(APPLYMETHOD::METHOD_MASK);
-                }
-                else if (vl == "unmask")
-                {
-                    pliText->SetBlendMode(APPLYMETHOD::METHOD_UNMASK);
-                }
-                else if (vl == "overwrite black")
-                {
-                    pliText->SetBlendMode(APPLYMETHOD::METHOD_OVERWRITEIFBLACK);
-                }
-                else if (vl == "average")
-                {
-                    pliText->SetBlendMode(APPLYMETHOD::METHOD_AVERAGE);
-                }
-                else
-                {
-                    valid = false;
-                }
+                pliText->SetBlendMode(pv[1].ToStdString());
             }
             else if (pvl == "speed")
             {

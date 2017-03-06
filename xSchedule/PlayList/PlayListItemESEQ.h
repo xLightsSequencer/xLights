@@ -35,7 +35,7 @@ public:
     std::string GetESEQFileName() const { return _ESEQFileName; }
     void SetESEQFileName(const std::string& ESEQFileName);
     int GetBlendMode() const { return _applyMethod; }
-    void SetBlendMode(int blendMode) { if (_applyMethod != (APPLYMETHOD)blendMode) { _applyMethod = (APPLYMETHOD)blendMode; _changeCount++; } }
+    void SetBlendMode(const std::string& blendMode) { if (_applyMethod != EncodeBlendMode(blendMode)) { _applyMethod = EncodeBlendMode(blendMode); _changeCount++; } }
     virtual size_t GetDurationMS(size_t frameMS) const override;
     virtual std::string GetTitle() const override;
     virtual std::list<std::string> GetMissingFiles() const override;

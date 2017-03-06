@@ -97,7 +97,7 @@ PlayListItemESEQPanel::~PlayListItemESEQPanel()
 	//*)
     _ESEQ->SetESEQFileName(FilePickerCtrl_ESEQFile->GetFileName().GetFullPath().ToStdString());
     _ESEQ->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
-    _ESEQ->SetBlendMode(Choice_BlendMode->GetSelection());
+    _ESEQ->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
     _ESEQ->SetPriority(SpinCtrl_Priority->GetValue());
 }
 

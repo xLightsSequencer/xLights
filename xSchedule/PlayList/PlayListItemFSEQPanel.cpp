@@ -145,11 +145,8 @@ PlayListItemFSEQPanel::PlayListItemFSEQPanel(wxWindow* parent, PlayListItemFSEQ*
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PlayListItemFSEQPanel::OnCheckBox_OverrideVolumeClick);
 	//*)
 
-    auto bms = FSEQFile::GetBlendModes();
-    for (auto it = bms.begin(); it != bms.end(); ++it)
-    {
-        Choice_BlendMode->AppendString(*it);
-    }
+    PopulateBlendModes(Choice_BlendMode);
+    Choice_BlendMode->SetSelection(0);
 
     FilePickerCtrl_FSEQFile->SetFileName(wxFileName(fseq->GetFSEQFileName()));
     FilePickerCtrl_AudioFile->SetFileName(wxFileName(fseq->GetAudioFile()));
@@ -203,7 +200,7 @@ PlayListItemFSEQPanel::~PlayListItemFSEQPanel()
     _fseq->SetAudioFile(FilePickerCtrl_AudioFile->GetFileName().GetFullPath().ToStdString());
     _fseq->SetOverrideAudio(CheckBox_OverrideAudio->GetValue());
     _fseq->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
-    _fseq->SetBlendMode(Choice_BlendMode->GetSelection());
+    _fseq->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
     _fseq->SetPriority(SpinCtrl_Priority->GetValue());
     _fseq->SetFastStartAudio(CheckBox_FastStartAudio->GetValue());
 

@@ -14,6 +14,7 @@
 
 PlayListItemPJLink::PlayListItemPJLink(wxXmlNode* node) : PlayListItem(node)
 {
+    _socket = nullptr;
     _command = "";
     _parameter = "1";
     _projector = "";
@@ -35,6 +36,7 @@ PlayListItemPJLink::PlayListItemPJLink() : PlayListItem()
     _parameter = "1";
     _projector = "";
     _started = false;
+    _socket = nullptr;
 }
 
 PlayListItem* PlayListItemPJLink::Copy() const
