@@ -7,6 +7,10 @@ class OutputProcessDimWhite : public OutputProcess
 {
     size_t _nodes;
     int _dim;
+    int _lastDim;
+    wxByte _dimTable[256];
+
+    void BuildDimTable();
 
     public:
 

@@ -7,6 +7,10 @@ class OutputProcessDim : public OutputProcess
 {
     size_t _channels;
     int _dim;
+    int _lastDim;
+    wxByte _dimTable[256];
+
+    void BuildDimTable();
 
 public:
 

@@ -3,24 +3,30 @@
 
 OutputProcessDimWhite::OutputProcessDimWhite(wxXmlNode* node) : OutputProcess(node)
 {
+    _lastDim = -1;
     _nodes = wxAtol(node->GetAttribute("Nodes", "1"));
     _dim = wxAtol(node->GetAttribute("Dim", "100"));
+    BuildDimTable();
 }
 
 OutputProcessDimWhite::OutputProcessDimWhite(const OutputProcessDimWhite& op) : OutputProcess(op)
 {
     _nodes = op._nodes;
     _dim = op._dim;
+    BuildDimTable();
 }
 
 OutputProcessDimWhite::OutputProcessDimWhite() : OutputProcess()
 {
+    _lastDim = -1;
     _nodes = 1;
     _dim = 100;
+    BuildDimTable();
 }
 
 OutputProcessDimWhite::OutputProcessDimWhite(size_t _startChannel, size_t p1, size_t p2, const std::string& description) : OutputProcess(_startChannel, description)
 {
+    _lastDim = -1;
     _nodes = p1;
     _dim = p2;
 }
@@ -35,6 +41,17 @@ wxXmlNode* OutputProcessDimWhite::Save()
     return res;
 }
 
+void OutputProcessDimWhite::BuildDimTable()
+{
+    if (_lastDim != _dim)
+    {
+        for (int i = 0; i < 256; i++)
+        {
+            _dimTable[i] = i * _dim / 100;
+        }
+    }
+}
+
 void OutputProcessDimWhite::Frame(wxByte* buffer, size_t size)
 {
     if (_dim == 100) return;
@@ -47,7 +64,7 @@ void OutputProcessDimWhite::Frame(wxByte* buffer, size_t size)
 
         if (*p == *(p+1) == *(p+2))
         {
-            *p = *p * _dim / 100;
+            *p = _dimTable[*p];
             *(p + 1) = *p;
             *(p + 2) = *p;
         }

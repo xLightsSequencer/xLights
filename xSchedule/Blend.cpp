@@ -1,5 +1,11 @@
 #include "Blend.h"
 
+//#define SIMD
+
+#ifdef SIMD
+#include "emmintrin.h"
+#endif
+
 void PopulateBlendModes(wxChoice* choice)
 {
     choice->AppendString("Overwrite");
@@ -130,6 +136,32 @@ void Overwrite(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 
 void OverwriteIfZero(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 {
+#ifdef SIMD
+    __m128i zero = _mm_setr_epi32(0, 0, 0, 0);
+    int simd = channels / 16;
+
+    for (size_t i = 0; i < simd; ++i)
+    {
+        __m128i b = _mm_load_si128((__m128i*)(buffer + i * 16));
+        __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + i * 16));
+
+        __m128i mask = _mm_cmpeq_epi8(b, zero); // sets FF where B is zero
+        __m128i newv = _mm_and_si128(mask, bb); // grab bb where B has zero
+        __m128i r = _mm_or_si128(b, newv); // merge them
+
+        _mm_store_si128((__m128i*)(buffer + i * 16), r);
+    }
+
+    // do the residual
+    for (size_t i = 0; i < channels % 16; ++i)
+    {
+        size_t offset = i + simd * 16;
+        if (*(buffer + offset) == 0)
+        {
+            *(buffer + offset) = *(blendBuffer + offset);
+        }
+    }
+#else
     for (size_t i = 0; i < channels; ++i)
     {
         if (*(buffer + i) == 0x00)
@@ -137,10 +169,36 @@ void OverwriteIfZero(wxByte* buffer, wxByte* blendBuffer, size_t channels)
             *(buffer + i) = *(blendBuffer + i);
         }
     }
+#endif
 }
 
 void Mask(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 {
+#ifdef SIMD
+    __m128i zero = _mm_setr_epi32(0, 0, 0, 0);
+    int simd = channels / 16;
+
+    for (size_t i = 0; i < simd; ++i)
+    {
+        __m128i b = _mm_load_si128((__m128i*)(buffer + i * 16));
+        __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + i * 16));
+
+        __m128i mask = _mm_cmpeq_epi8(bb, zero); // sets FF where BB is zero
+        __m128i r = _mm_and_si128(mask, b); // and the mask
+
+        _mm_store_si128((__m128i*)(buffer + i * 16), r);
+    }
+
+    // do the residual
+    for (size_t i = 0; i < channels % 16; ++i)
+    {
+        size_t offset = i + simd * 16;
+        if (*(blendBuffer + offset) > 0)
+        {
+            *(buffer + offset) = 0x00;
+        }
+    }
+#else
     for (size_t i = 0; i < channels; ++i)
     {
         if (*(blendBuffer + i) > 0)
@@ -148,6 +206,7 @@ void Mask(wxByte* buffer, wxByte* blendBuffer, size_t channels)
             *(buffer + i) = 0x00;
         }
     }
+#endif
 }
 
 void MaskPixel(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
@@ -168,6 +227,31 @@ void MaskPixel(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
 
 void Unmask(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 {
+#ifdef SIMD
+    __m128i zero = _mm_setr_epi32(0, 0, 0, 0);
+    int simd = channels / 16;
+
+    for (size_t i = 0; i < simd; ++i)
+    {
+        __m128i b = _mm_load_si128((__m128i*)(buffer + i * 16));
+        __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + i * 16));
+
+        __m128i mask = _mm_cmpeq_epi8(bb, zero); // sets FF where BB is zero
+        __m128i r = _mm_andnot_si128(mask, b); // invert the mask and then and it
+
+        _mm_store_si128((__m128i*)(buffer + i * 16), r);
+    }
+
+    // do the residual
+    for (size_t i = 0; i < channels % 16; ++i)
+    {
+        size_t offset = i + simd * 16;
+        if (*(blendBuffer + offset) == 0)
+        {
+            *(buffer + offset) = 0x00;
+        }
+    }
+#else
     for (size_t i = 0; i < channels; ++i)
     {
         if (*(blendBuffer + i) == 0)
@@ -175,6 +259,7 @@ void Unmask(wxByte* buffer, wxByte* blendBuffer, size_t channels)
             *(buffer + i) = 0x00;
         }
     }
+#endif
 }
 
 void UnmaskPixel(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
@@ -195,26 +280,89 @@ void UnmaskPixel(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
 
 void Average(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 {
+#ifdef SIMD
+    int simd = channels / 16;
+
+    for (size_t i = 0; i < simd; ++i)
+    {
+        __m128i b = _mm_load_si128((__m128i*)(buffer + i * 16));
+        __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + i * 16));
+
+        __m128i r = _mm_avg_epu8(b, bb);
+
+        _mm_store_si128((__m128i*)(buffer + i * 16), r);
+    }
+
+    // do the residual
+    for (size_t i = 0; i < channels % 16; ++i)
+    {
+        size_t offset = i + simd * 16;
+        *(buffer + offset) = (wxByte)(((int)*(buffer + offset) + (int)*(blendBuffer + offset)) / 2);
+    }
+#else
     for (size_t i = 0; i < channels; ++i)
     {
         *(buffer + i) = (wxByte)(((int)*(buffer + i) + (int)*(blendBuffer + i)) / 2);
     }
+#endif
 }
 
 void Maximum(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 {
+#ifdef SIMD
+    int simd = channels / 16;
+
+    for (size_t i = 0; i < simd; ++i)
+    {
+        __m128i b = _mm_load_si128((__m128i*)(buffer + i * 16));
+        __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + i * 16));
+
+        __m128i r = _mm_min_epu8(b, bb);
+
+        _mm_store_si128((__m128i*)(buffer + i * 16), r);
+    }
+
+    // do the residual
+    for (size_t i = 0; i < channels % 16; ++i)
+    {
+        size_t offset = i + simd * 16;
+        *(buffer + offset) = std::max(*(buffer + offset), *(blendBuffer + offset));
+    }
+#else
     for (size_t i = 0; i < channels; ++i)
     {
         *(buffer + i) = std::max(*(buffer + i), *(blendBuffer + i));
     }
+#endif
 }
 
 void Minimum(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 {
+#ifdef SIMD
+    int simd = channels / 16;
+
+    for (size_t i = 0; i < simd; ++i)
+    {
+        __m128i b = _mm_load_si128((__m128i*)(buffer + i * 16));
+        __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + i * 16));
+
+        __m128i r = _mm_max_epu8(b, bb);
+
+        _mm_store_si128((__m128i*)(buffer + i * 16), r);
+    }
+
+    // do the residual
+    for (size_t i = 0; i < channels % 16; ++i)
+    {
+        size_t offset = i + simd * 16;
+        *(buffer + offset) = std::min(*(buffer + offset), *(blendBuffer + offset));
+    }
+#else
     for (size_t i = 0; i < channels; ++i)
     {
         *(buffer + i) = std::min(*(buffer + i), *(blendBuffer + i));
     }
+#endif
 }
 
 void OverwriteIfBlack(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
