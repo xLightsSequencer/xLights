@@ -8,6 +8,7 @@ $(document).ready(function() {
     updateNavStatus();
   }, 1000);
 
+  loadUISettings();
   navLoadPlaylists();
   navLoadPlugins();
   checkLogInStatus();
@@ -35,6 +36,41 @@ function updateStatus() {
       playingStatus = response;
     }
   });
+}
+
+var uiSettings;
+
+function loadUISettings() {
+  $.ajax({
+    type: "GET",
+    url: '/xScheduleStash?Command=Retrieve&Key=uiSettings',
+    success: function(response) {
+      uiSettings = JSON.parse(response);
+      populateUI();
+      console.log("Hi");
+      console.log(getQueryVariable("plugins"));
+      if (getQueryVariable("plugins") == false) {
+        console.log("Hi");
+        populateSideBar();
+      }
+    },
+    error: function(response) {
+      var defaultSettings =
+        `{"webName":"xLights Scheduler","webColor":"#e74c3c","home":["true","false"],"playlists":["true", "true"],"settings":["true", "true"]}`;
+      storeKey('uiSettings', defaultSettings);
+      uiSettings = JSON.parse(defaultSettings);
+      populateUI();
+      if (getQueryVariable("plugins") == false) {
+        populateSideBar();
+      }
+    },
+  });
+}
+
+function populateUI() {
+  $('#headerName').html(uiSettings.webName);
+  $('#nav').css("background-color", uiSettings.webColor);
+  $('#nav').css("border-color", uiSettings.webColor);
 }
 
 function checkLogInStatus() {
@@ -175,4 +211,30 @@ function updateNavStatus() {
       "btn btn-success glyphicon glyphicon-eye-open");
   }
 
+}
+
+function storeKey(key, value) {
+  // written by cp16net so blame him.
+  $.ajax({
+    type: "POST",
+    url: '/xScheduleStash?Command=Store&Key=' + key,
+    data: value,
+    success: function(response) {},
+    error: function(error) {
+      console.log("ERROR: " + error);
+    }
+  });
+}
+
+function retrieveKey(key, f) {
+  // written by cp16net so blame him.
+  $.ajax({
+    type: "GET",
+    url: '/xScheduleStash?Command=Retrieve&Key=' + key,
+    success: f,
+    error: f,
+    // error: function(error) {
+    //   console.log("ERROR: " + error);
+
+  });
 }

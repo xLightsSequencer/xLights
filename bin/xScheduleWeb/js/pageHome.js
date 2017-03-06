@@ -16,8 +16,22 @@ $(document).ready(function() {
   if (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)) {
     $('#sideNav').html("");
   }
+  populateSideBar();
 
 });
+
+function populateSideBar() {
+  console.log(uiSettings);
+  if (uiSettings != undefined) {
+    if (uiSettings.home[0] == true) {
+      $('#sideBar2').load('inc/sidebarNav.html');
+    }
+    if (uiSettings.home[1] == true) {
+      $('#sideBar1').load('inc/sidebarPlayerStatus.html');
+    }
+  }
+}
+
 var oldPlayingStatus = '';
 
 function checkForUpdate() {

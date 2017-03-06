@@ -15,7 +15,7 @@
   </head>
   <body>
 
-    <nav class="navbar navbar-default">
+    <nav id='nav' class="navbar navbar-default">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -34,12 +34,12 @@
               <span class="caret"></span></a>
               <ul class="dropdown-menu"></ul>
             </li>
-            <li id="plugins" class="dropdown">
+            <!-- <li id="plugins" class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown" href="#">Plugins
               <span class="caret"></span></a>
               <ul class="dropdown-menu">
               </ul>
-            </li>
+            </li> -->
             <li id="settings"><a onclick="updatePage('page','settings')">Settings</a></li>
           </ul>
 
@@ -54,7 +54,7 @@
       <div class="container">
         <div class="row">
           <div class="col-md-7">
-            <h3><img id='nutcrackerLogo' src="img/xlights.png" height="50px"> Wonderland At Roseville</h3>
+            <h3><img id='nutcrackerLogo' src="img/xlights.png" height="50px"><span id='headerName'><span></h3>
           </div>
           <div id="toggleButtonContainer" class="col-md-5 text-right nav-buttons">
             <button onclick="runCommand('Toggle current playlist random')" id="random" title='Randomize Playlist' class="btn btn-default glyphicon glyphicon-random disabled"></button>

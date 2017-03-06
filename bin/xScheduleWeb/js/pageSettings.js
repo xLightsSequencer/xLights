@@ -1,76 +1,50 @@
-//Setting Page
+$(document).ready(function() {
+  loadSettings();
+  populateSideBar();
+});
 
-
-function settingsLoadSettings() {
-  //Populate Settings Page
-  retrieveKey('webName', function(resp) {
-    value = "xLights Scheduler";
-    if (resp == "\n" || resp == null || resp == "") {
-      //console.log("Default Setting Loaded "+ value);
-    } else {
-      value = resp;
+function populateSideBar() {
+  if (uiSettings != undefined) {
+    if (uiSettings.settings[0] == true) {
+      $('#sideBar2').load('inc/sidebarNav.html');
     }
-    $("#webName")[0].value = value;
-    document.title = value;
-  });
-  retrieveKey('webColor', function(resp) {
-    value = "#ff0000";
-    if (resp != "") {
-      value = resp;
+    if (uiSettings.settings[1] == true) {
+      $('#sideBar1').load('inc/sidebarPlayerStatus.html');
     }
-    $("#webColor")[0].value = value;
-    $("#webColorDisplay").css("background-color", value)
-  });
-  retrieveKey('webLoginRequire', function(resp) {
-    r = resp.split('\n');
-    if (r[0] == "true") {
-      $("#webLoginRequire").prop("checked", true).uniform('refresh');
-    } else {
-      $("#webLoginRequire").prop("checked", false).uniform('refresh');
-    }
-  });
-
-  retrieveKey('webUsername', function(resp) {
-    value = "";
-    if (resp != "") {
-      value = resp;
-    }
-    $("#webUsername")[0].value = value;
-  });
-  retrieveKey('webPassword', function(resp) {
-    value = "";
-    if (resp != "") {
-      value = resp;
-    }
-    $("#webPassword")[0].value = value;
-  });
+  }
 }
 
-function settingsUpdateWebSettings() {
 
-  var inputs = $('#webSettings :input')
-  var dataArr = [];
-  for (var i = 0; i < inputs.length; i++) {
-    dataArr.push({
-      'name': inputs[i].id,
-      'value': inputs[i].value
-    });
+function loadSettings() {
+  if (uiSettings != undefined) {
+    $('#webName').val(uiSettings.webName);
+    $('#webColor').val(uiSettings.webColor);
+    //home
+    $("#homeNav").prop("checked", uiSettings.home[0]);
+    $("#homeStatus").prop("checked", uiSettings.home[1]);
+    //playlists
+    $("#playlistNav").prop("checked", uiSettings.playlists[0]);
+    $("#playlistStatus").prop("checked", uiSettings.playlists[1]);
+    //settings
+    $("#settingsNav").prop("checked", uiSettings.settings[0]);
+    $("#settingsStatus").prop("checked", uiSettings.settings[1]);
   }
-  for (var i = 0; i < dataArr.length; i++) {
-    storeKey(dataArr[i].name, dataArr[i].value);
-  }
-  //prevent Page Reload
-  $("#webSettings").submit(function(e) {
-    e.preventDefault();
-  });
-  //Reload Current Page Information
-  loadPageSettings();
-  settingsLoadSettings();
+}
 
 
-  // for (var data in dataArr) {
-  //   console.log("saving data: " + data);
-  //     storeKey(data.name, data.value);
-  // };
+function updateSettings() {
 
+  var defaultSettings =
+    `{
+    "webName":"` + $('#webName').val() + `",
+    "webColor":"` + $('#webColor').val() + `",
+    "home":[` + $("#homeNav").prop("checked") + `, ` + $("#homeStatus").prop("checked") + `],
+    "playlists":[` + $("#playlistNav").prop("checked") + `, ` + $("#playlistStatus").prop("checked") + `],
+    "settings":[` + $("#settingsNav").prop("checked") + `, ` + $("#settingsStatus").prop("checked") + `]
+    }`;
+
+  defaultSettings.replace(/(\r\n|\n|\r)/gm, " ");
+  storeKey('uiSettings', defaultSettings);
+  uiSettings = defaultSettings;
+  loadUISettings();
 }
