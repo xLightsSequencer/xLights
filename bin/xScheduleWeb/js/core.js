@@ -54,7 +54,6 @@ function loadUISettings() {
     success: function(response) {
       uiSettings = JSON.parse(response);
       populateUI();
-      console.log(getQueryVariable("plugins"));
       if (getQueryVariable("plugins") == false) {
         populateSideBar();
       }
@@ -64,6 +63,7 @@ function loadUISettings() {
         `{
     "webName":"xLights Scheduler",
     "webColor":"#e74c3c",
+    "notificationLevel":"1",
     "home":[true, false],
     "playlists":[true, true],
     "settings":[true, true]
@@ -142,7 +142,10 @@ function logout() {
   $.ajax({
     url: '/xScheduleLogin?Credential=logout',
     dataType: "json",
-    success: function(response) {},
+    success: function(response) {
+      notification('Logged Out', 'success', '2');
+
+    },
     error: function(error) {
       console.log("ERROR: " + error);
     }
@@ -153,8 +156,14 @@ function runCommand(name, param) {
   if (param == undefined) {
     $.ajax({
       url: '/xScheduleCommand?Command=' + name,
+      success: function(response) {
+        if (response.result == 'ok')
+          notification(response.result + ': ' + response.message, 'success', '2')
+        if (response.result == 'failed')
+          notification('Failed: ' + response.message, 'danger', '0');
+      },
       error: function(response) {
-        jAlert('This is a custom alert box', 'Alert Dialog');
+        notification(response.result + ': ' + response.message, 'danger', '1');
       }
     });
   } else {
@@ -231,7 +240,10 @@ function storeKey(key, value) {
     type: "POST",
     url: '/xScheduleStash?Command=Store&Key=' + key,
     data: value,
-    success: function(response) {},
+    success: function(response) {
+      notification("Settings Saved", "success", "0");
+      notification(response.result + response.message, "success", "2");
+    },
     error: function(error) {
       console.log("ERROR: " + error);
     }
@@ -249,4 +261,29 @@ function retrieveKey(key, f) {
     //   console.log("ERROR: " + error);
 
   });
+}
+
+function notification(message, color, priority) {
+
+  // priority   //
+  // "" = always //
+  // 1 = debug   //
+  console.log(uiSettings.notificationLevel);
+  if (priority <= uiSettings.notificationLevel) {
+    $.notify({
+      // options
+      message: message
+    }, {
+      // settings
+      type: color
+    });
+  }
+}
+
+function findPercent(length, left) {
+  var secLength = parseInt(length.split(":")[0]) * 60 + parseInt(length.split(
+    ":")[1]);
+  var secLeft = parseInt(left.split(":")[0]) * 60 + parseInt(left.split(":")[1]);
+  var percent = (secLength - secLeft) / secLength * 100;
+  return Math.round(percent) + "%";
 }

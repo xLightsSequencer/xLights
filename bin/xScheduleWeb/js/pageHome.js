@@ -66,12 +66,19 @@ function dashboardLoadStatus() {
     <button onclick="runCommand('Stop all now')" class="btn btn-default glyphicon glyphicon-stop" title='Stop All' ype="button"></button>
     <button onclick="runCommand('Next step in current playlist')" class="btn btn-default glyphicon glyphicon-forward" title='Next' type="button"></button>
     </div>`;
-
+    //CLEAN UP!
     var currentPlaylist =
       `<span class="icon"><i class="icon-file"></i></span><h5>Playlist: ` +
       playingStatus.playlist + `</h5>`
-    var Playing = `Song` + playingStatus.step + ` Time Left:` + playingStatus.left
-      .split(".")[0] + `Duration: ` + playingStatus.length.split(".")[0];
+    var Playing = `
+    <h3>` + playingStatus.step + `</h3><h5>Duration: ` + playingStatus.length.split(".")[0] + `</h5>
+      <div class="progress">
+  <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: ` + findPercent(playingStatus.length, playingStatus.left) + `;">
+    ` + playingStatus.left.split(".")[0] + `
+  </div>
+</div>
+<h4>Next: ` + playingStatus.nextstep + `</h4>
+      `;
 
     $("#currentStep").html(Playing);
     $("#controlButtonContainer").html(toggleButtons);
@@ -132,8 +139,8 @@ function updatePlaylistSteps(playlist, currentStep) {
             ".")[0] +
           `</td>
             <td>
-              <button type="button" onclick="runCommand('Play specified playlist', '` + response.steps[i].name + `')" class="btn btn-info btn-xs " name="button" title="Jump to this step">Play</button>
-              <button type="button" class="btn btn-default btn-xs glyphicon glyphicon-plus" name="button" title="Queue step next"</button>
+              <button type="button" onclick="runCommand('Play specified playlist', '` + response.steps[i].name + `', '1')" class="btn btn-info btn-xs " name="button" title="Jump to this step">Play</button>
+              <button type="button" class="btn btn-default btn-xs glyphicon glyphicon-plus" onclick="runCommand('Enqueue playlist step', '` + playlist + `,` + response.steps[i].name + `')" name="button" title="Queue step next"</button>
             </td>
           </tr>`;
 

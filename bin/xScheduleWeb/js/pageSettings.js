@@ -14,11 +14,19 @@ function populateSideBar() {
   }
 }
 
+//if enter
+$(document).keypress(function(e) {
+  if (e.which == 13) {
+    updateSettings();
+  }
+});
+
 
 function loadSettings() {
   if (uiSettings != undefined) {
     $('#webName').val(uiSettings.webName);
     $('#webColor').val(uiSettings.webColor);
+    $('#notificationLevel').val(uiSettings.notificationLevel);
     //home
     $("#homeNav").prop("checked", uiSettings.home[0]);
     $("#homeStatus").prop("checked", uiSettings.home[1]);
@@ -34,17 +42,17 @@ function loadSettings() {
 
 function updateSettings() {
 
-  var defaultSettings =
+  var updatedSettings =
     `{
     "webName":"` + $('#webName').val() + `",
     "webColor":"` + $('#webColor').val() + `",
+    "notificationLevel":"` + $('#notificationLevel').val() + `",
     "home":[` + $("#homeNav").prop("checked") + `, ` + $("#homeStatus").prop("checked") + `],
     "playlists":[` + $("#playlistNav").prop("checked") + `, ` + $("#playlistStatus").prop("checked") + `],
     "settings":[` + $("#settingsNav").prop("checked") + `, ` + $("#settingsStatus").prop("checked") + `]
     }`;
 
-  defaultSettings.replace(/(\r\n|\n|\r)/gm, " ");
-  storeKey('uiSettings', defaultSettings);
-  uiSettings = defaultSettings;
+  updatedSettings.replace(/(\r\n|\n|\r)/gm, " ");
+  storeKey('uiSettings', updatedSettings);
   loadUISettings();
 }
