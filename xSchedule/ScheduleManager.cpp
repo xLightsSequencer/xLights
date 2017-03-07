@@ -463,8 +463,16 @@ void ScheduleManager::Frame(bool outputframe)
             SendFPPSync(running->GetActiveSyncItemFSEQ(), 0xFFFFFFFF, running->GetFrameMS());
             SendFPPSync(running->GetActiveSyncItemMedia(), 0xFFFFFFFF, running->GetFrameMS());
 
-            // playlist is done
-            StopPlayList(running, false);
+            if (IsQueuedPlaylistRunning())
+            {
+                _queuedSongs->MoveToNextStep();
+            }
+            else
+            {
+                // playlist is done
+                StopPlayList(running, false);
+            }
+
             wxCommandEvent event(EVT_SCHEDULECHANGED);
             wxPostEvent(wxGetApp().GetTopWindow(), event);
         }
@@ -1072,12 +1080,15 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                     if (pls != nullptr)
                     {
-                        if (_queuedSongs->GetSteps().size() > 1 && _queuedSongs->GetSteps().back()->GetId() != pls->GetId())
+                        if (_queuedSongs->GetSteps().size() == 0 || (_queuedSongs->GetSteps().size() > 0 && _queuedSongs->GetSteps().back()->GetId() != pls->GetId()))
                         {
                             _queuedSongs->AddStep(new PlayListStep(*pls), -1);
                             if (!_queuedSongs->IsRunning())
                             {
                                 _queuedSongs->StartSuspended();
+
+                                wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                                wxPostEvent(wxGetApp().GetTopWindow(), event);
                             }
                         }
                         else
@@ -1102,6 +1113,9 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                 _queuedSongs->RemoveAllSteps();
                 SendFPPSync("", 0xFFFFFFFF, 50);
+
+                wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                wxPostEvent(wxGetApp().GetTopWindow(), event);
             }
             else if (command == "Play playlist starting at step")
             {

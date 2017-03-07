@@ -22,6 +22,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Add export/import of matrix, tree and dmx models
    -- bug (keith)   Fix render progress bar not pressing properly
    -- enh (keith)   Add value curve displaying value of point under mouse even when model isnt custom
+   -- bug (keith)   Fix schedule queueing
+   -- bug (keith)   Fix schedule blend modes
+   -- enh (keith)   Code SSE instructions for scheduler blend mode. Currently disabled.
 2017.6  Feb 27, 2017
    -- bug (dkulp)   Fix xScheduler logging on OSX
    -- enh (keith)   Add duration treatments to glediator effect

@@ -91,7 +91,7 @@ void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t fr
                 if (values != nullptr)
                 {
                     memset(values, _value, toset);
-                    Blend(buffer, _channels, values, toset, _applyMethod, _startChannel - 1);
+                    Blend(buffer, size, values, toset, _applyMethod, _startChannel - 1);
                     free(values);
                 }
             }

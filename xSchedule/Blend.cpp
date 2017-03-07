@@ -4,19 +4,29 @@
 
 #ifdef SIMD
 #include "emmintrin.h"
+#define ALIGNMENT (128 / 8)
+
+int GetMisalignedBytes(wxByte* b1, wxByte* b2)
+{
+    int m1 = (size_t)b1 % ALIGNMENT;
+    int m2 = (size_t)b2 % ALIGNMENT;
+
+    if (m1 == m2) return m1;
+    return -1;
+}
 #endif
 
 void PopulateBlendModes(wxChoice* choice)
 {
     choice->AppendString("Overwrite");
     choice->AppendString("Overwrite if zero");
-    choice->AppendString("Overwrite if black");
     choice->AppendString("Mask out if not zero");
-    choice->AppendString("Mask out if not black");
-    choice->AppendString("Mask out if black");
     choice->AppendString("Mask out if zero");
     choice->AppendString("Average");
     choice->AppendString("Maximum");
+    choice->AppendString("Overwrite if black");
+    choice->AppendString("Mask out if not black");
+    choice->AppendString("Mask out if black");
     choice->AppendString("Minimum");
 }
 
@@ -24,43 +34,43 @@ APPLYMETHOD EncodeBlendMode(const std::string blendMode)
 {
     std::string bm = wxString(blendMode).Lower().ToStdString();
 
-    if (bm == "Overwrite")
+    if (bm == "overwrite")
     {
         return APPLYMETHOD::METHOD_OVERWRITE;
     }
-    else if (bm == "Overwrite if zero")
+    else if (bm == "overwrite if zero")
     {
         return APPLYMETHOD::METHOD_OVERWRITEIFZERO;
     }
-    else if (bm == "Overwrite if black")
+    else if (bm == "overwrite if black")
     {
         return APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
     }
-    else if (bm == "Mask out if not zero")
+    else if (bm == "mask out if not zero")
     {
         return APPLYMETHOD::METHOD_MASK;
     }
-    else if (bm == "Mask out if not black")
+    else if (bm == "mask out if not black")
     {
         return APPLYMETHOD::METHOD_MASKPIXEL;
     }
-    else if (bm == "Mask out if black")
+    else if (bm == "mask out if black")
     {
         return APPLYMETHOD::METHOD_UNMASKPIXEL;
     }
-    else if (bm == "Mask out if zero")
+    else if (bm == "mask out if zero")
     {
         return APPLYMETHOD::METHOD_UNMASK;
     }
-    else if (bm == "Average")
+    else if (bm == "average")
     {
         return APPLYMETHOD::METHOD_AVERAGE;
     }
-    else if (bm == "Maximum")
+    else if (bm == "maximum")
     {
         return APPLYMETHOD::METHOD_MAX;
     }
-    else if (bm == "Minimum")
+    else if (bm == "minimum")
     {
         return APPLYMETHOD::METHOD_MIN;
     }
@@ -71,7 +81,7 @@ APPLYMETHOD EncodeBlendMode(const std::string blendMode)
 std::string DecodeBlendMode(APPLYMETHOD blendMode)
 {
     switch(blendMode)
-    { 
+    {
     case APPLYMETHOD::METHOD_OVERWRITE:
         return "Overwrite";
     case APPLYMETHOD::METHOD_OVERWRITEIFZERO:
@@ -137,76 +147,107 @@ void Overwrite(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 void OverwriteIfZero(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 {
 #ifdef SIMD
-    __m128i zero = _mm_setr_epi32(0, 0, 0, 0);
-    int simd = channels / 16;
-
-    for (size_t i = 0; i < simd; ++i)
+    int misaligned = GetMisalignedBytes(buffer, blendBuffer);
+    if (misaligned >= 0 && (channels - misaligned) >= ALIGNMENT) // we can only use SIMD if misalignment is the same for both buffers and we have the minimum number of bytes to do
     {
-        __m128i b = _mm_load_si128((__m128i*)(buffer + i * 16));
-        __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + i * 16));
-
-        __m128i mask = _mm_cmpeq_epi8(b, zero); // sets FF where B is zero
-        __m128i newv = _mm_and_si128(mask, bb); // grab bb where B has zero
-        __m128i r = _mm_or_si128(b, newv); // merge them
-
-        _mm_store_si128((__m128i*)(buffer + i * 16), r);
-    }
-
-    // do the residual
-    for (size_t i = 0; i < channels % 16; ++i)
-    {
-        size_t offset = i + simd * 16;
-        if (*(buffer + offset) == 0)
+        // do the misaligned
+        for (size_t i = 0; i < misaligned; ++i)
         {
-            *(buffer + offset) = *(blendBuffer + offset);
+            if (*(buffer + i) == 0x00)
+            {
+                *(buffer + i) = *(blendBuffer + i);
+            }
+        }
+
+        __m128i zero = _mm_setr_epi32(0, 0, 0, 0);
+        int simd = channels / ALIGNMENT;
+        for (size_t i = 0; i < simd; ++i)
+        {
+            size_t offset = misaligned + i * ALIGNMENT;
+            __m128i b = _mm_load_si128((__m128i*)(buffer + offset));
+            __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + offset));
+
+            __m128i mask = _mm_cmpeq_epi8(b, zero); // sets FF where B is zero
+            __m128i newv = _mm_and_si128(mask, bb); // grab bb where B has zero
+            __m128i r = _mm_or_si128(b, newv); // merge them
+
+            _mm_store_si128((__m128i*)(buffer + offset), r);
+        }
+
+        // do the residual
+        for (size_t i = 0; i < channels % ALIGNMENT; ++i)
+        {
+            size_t offset = misaligned + i + simd * ALIGNMENT;
+            if (*(buffer + offset) == 0)
+            {
+                *(buffer + offset) = *(blendBuffer + offset);
+            }
         }
     }
-#else
-    for (size_t i = 0; i < channels; ++i)
-    {
-        if (*(buffer + i) == 0x00)
-        {
-            *(buffer + i) = *(blendBuffer + i);
-        }
-    }
+    else
 #endif
+    {
+        for (size_t i = 0; i < channels; ++i)
+        {
+            if (*(buffer + i) == 0x00)
+            {
+                *(buffer + i) = *(blendBuffer + i);
+            }
+        }
+    }
 }
 
 void Mask(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 {
 #ifdef SIMD
-    __m128i zero = _mm_setr_epi32(0, 0, 0, 0);
-    int simd = channels / 16;
-
-    for (size_t i = 0; i < simd; ++i)
+    int misaligned = GetMisalignedBytes(buffer, blendBuffer);
+    if (misaligned >= 0 && (channels - misaligned) >= ALIGNMENT) // we can only use SIMD if misalignment is the same for both buffers and we have the minimum number of bytes to do
     {
-        __m128i b = _mm_load_si128((__m128i*)(buffer + i * 16));
-        __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + i * 16));
-
-        __m128i mask = _mm_cmpeq_epi8(bb, zero); // sets FF where BB is zero
-        __m128i r = _mm_and_si128(mask, b); // and the mask
-
-        _mm_store_si128((__m128i*)(buffer + i * 16), r);
-    }
-
-    // do the residual
-    for (size_t i = 0; i < channels % 16; ++i)
-    {
-        size_t offset = i + simd * 16;
-        if (*(blendBuffer + offset) > 0)
+        // do the misaligned
+        for (size_t i = 0; i < misaligned; ++i)
         {
-            *(buffer + offset) = 0x00;
+            if (*(blendBuffer + i) > 0)
+            {
+                *(buffer + i) = 0x00;
+            }
+        }
+
+        __m128i zero = _mm_setr_epi32(0, 0, 0, 0);
+        int simd = channels / ALIGNMENT;
+
+        for (size_t i = 0; i < simd; ++i)
+        {
+            size_t offset = misaligned + i * ALIGNMENT;
+            __m128i b = _mm_load_si128((__m128i*)(buffer + offset));
+            __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + offset));
+
+            __m128i mask = _mm_cmpeq_epi8(bb, zero); // sets FF where BB is zero
+            __m128i r = _mm_and_si128(mask, b); // and the mask
+
+            _mm_store_si128((__m128i*)(buffer + offset), r);
+        }
+
+        // do the residual
+        for (size_t i = 0; i < channels % ALIGNMENT; ++i)
+        {
+            size_t offset = misaligned + i + simd * ALIGNMENT;
+            if (*(blendBuffer + offset) > 0)
+            {
+                *(buffer + offset) = 0x00;
+            }
         }
     }
-#else
-    for (size_t i = 0; i < channels; ++i)
-    {
-        if (*(blendBuffer + i) > 0)
-        {
-            *(buffer + i) = 0x00;
-        }
-    }
+    else
 #endif
+    {
+        for (size_t i = 0; i < channels; ++i)
+        {
+            if (*(blendBuffer + i) > 0)
+            {
+                *(buffer + i) = 0x00;
+            }
+        }
+    }
 }
 
 void MaskPixel(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
@@ -228,38 +269,53 @@ void MaskPixel(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
 void Unmask(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 {
 #ifdef SIMD
-    __m128i zero = _mm_setr_epi32(0, 0, 0, 0);
-    int simd = channels / 16;
-
-    for (size_t i = 0; i < simd; ++i)
+    int misaligned = GetMisalignedBytes(buffer, blendBuffer);
+    if (misaligned >= 0 && (channels - misaligned) >= ALIGNMENT) // we can only use SIMD if misalignment is the same for both buffers and we have the minimum number of bytes to do
     {
-        __m128i b = _mm_load_si128((__m128i*)(buffer + i * 16));
-        __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + i * 16));
-
-        __m128i mask = _mm_cmpeq_epi8(bb, zero); // sets FF where BB is zero
-        __m128i r = _mm_andnot_si128(mask, b); // invert the mask and then and it
-
-        _mm_store_si128((__m128i*)(buffer + i * 16), r);
-    }
-
-    // do the residual
-    for (size_t i = 0; i < channels % 16; ++i)
-    {
-        size_t offset = i + simd * 16;
-        if (*(blendBuffer + offset) == 0)
+        // do the misaligned
+        for (size_t i = 0; i < misaligned; ++i)
         {
-            *(buffer + offset) = 0x00;
+            if (*(blendBuffer + i) == 0)
+            {
+                *(buffer + i) = 0x00;
+            }
+        }
+
+        __m128i zero = _mm_setr_epi32(0, 0, 0, 0);
+        int simd = channels / ALIGNMENT;
+        for (size_t i = 0; i < simd; ++i)
+        {
+            size_t offset = misaligned + i * ALIGNMENT;
+            __m128i b = _mm_load_si128((__m128i*)(buffer + offset));
+            __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + offset));
+
+            __m128i mask = _mm_cmpeq_epi8(bb, zero); // sets FF where BB is zero
+            __m128i r = _mm_andnot_si128(mask, b); // invert the mask and then and it
+
+            _mm_store_si128((__m128i*)(buffer + offset), r);
+        }
+
+        // do the residual
+        for (size_t i = 0; i < channels % ALIGNMENT; ++i)
+        {
+            size_t offset = misaligned + i + simd * ALIGNMENT;
+            if (*(blendBuffer + offset) == 0)
+            {
+                *(buffer + offset) = 0x00;
+            }
         }
     }
-#else
-    for (size_t i = 0; i < channels; ++i)
-    {
-        if (*(blendBuffer + i) == 0)
-        {
-            *(buffer + i) = 0x00;
-        }
-    }
+    else
 #endif
+    {
+        for (size_t i = 0; i < channels; ++i)
+        {
+            if (*(blendBuffer + i) == 0)
+            {
+                *(buffer + i) = 0x00;
+            }
+        }
+    }
 }
 
 void UnmaskPixel(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
@@ -281,88 +337,126 @@ void UnmaskPixel(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
 void Average(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 {
 #ifdef SIMD
-    int simd = channels / 16;
-
-    for (size_t i = 0; i < simd; ++i)
+    int misaligned = GetMisalignedBytes(buffer, blendBuffer);
+    if (misaligned >= 0 && (channels - misaligned) >= ALIGNMENT) // we can only use SIMD if misalignment is the same for both buffers and we have the minimum number of bytes to do
     {
-        __m128i b = _mm_load_si128((__m128i*)(buffer + i * 16));
-        __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + i * 16));
+        // do the misaligned
+        for (size_t i = 0; i < misaligned; ++i)
+        {
+            *(buffer + i) = (wxByte)(((int)*(buffer + i) + (int)*(blendBuffer + i)) / 2);
+        }
 
-        __m128i r = _mm_avg_epu8(b, bb);
+        int simd = channels / ALIGNMENT;
+        for (size_t i = 0; i < simd; ++i)
+        {
+            size_t offset = misaligned + i * ALIGNMENT;
+            __m128i b = _mm_load_si128((__m128i*)(buffer + offset));
+            __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + offset));
 
-        _mm_store_si128((__m128i*)(buffer + i * 16), r);
-    }
+            __m128i r = _mm_avg_epu8(b, bb);
 
-    // do the residual
-    for (size_t i = 0; i < channels % 16; ++i)
-    {
-        size_t offset = i + simd * 16;
-        *(buffer + offset) = (wxByte)(((int)*(buffer + offset) + (int)*(blendBuffer + offset)) / 2);
+            _mm_store_si128((__m128i*)(buffer + offset), r);
+        }
+
+        // do the residual
+        for (size_t i = 0; i < channels % ALIGNMENT; ++i)
+        {
+            size_t offset = i + misaligned + simd * ALIGNMENT;
+            *(buffer + offset) = (wxByte)(((int)*(buffer + offset) + (int)*(blendBuffer + offset)) / 2);
+        }
     }
-#else
-    for (size_t i = 0; i < channels; ++i)
-    {
-        *(buffer + i) = (wxByte)(((int)*(buffer + i) + (int)*(blendBuffer + i)) / 2);
-    }
+    else
 #endif
+    {
+        for (size_t i = 0; i < channels; ++i)
+        {
+            *(buffer + i) = (wxByte)(((int)*(buffer + i) + (int)*(blendBuffer + i)) / 2);
+        }
+    }
 }
 
 void Maximum(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 {
 #ifdef SIMD
-    int simd = channels / 16;
-
-    for (size_t i = 0; i < simd; ++i)
+    int misaligned = GetMisalignedBytes(buffer, blendBuffer);
+    if (misaligned >= 0 && (channels - misaligned) >= ALIGNMENT) // we can only use SIMD if misalignment is the same for both buffers and we have the minimum number of bytes to do
     {
-        __m128i b = _mm_load_si128((__m128i*)(buffer + i * 16));
-        __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + i * 16));
+        // do the misaligned
+        for (size_t i = 0; i < misaligned; ++i)
+        {
+            *(buffer + i) = std::max(*(buffer + i), *(blendBuffer + i));
+        }
 
-        __m128i r = _mm_min_epu8(b, bb);
+        // do the aligned pieces using SIMD instructions ... up to 16 times faster
+        int simd = (channels - misaligned) / ALIGNMENT;
+        for (size_t i = 0; i < simd; ++i)
+        {
+            size_t offset = misaligned + i * ALIGNMENT;
+            __m128i b = _mm_load_si128((__m128i*)(buffer + offset));
+            __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + offset));
 
-        _mm_store_si128((__m128i*)(buffer + i * 16), r);
-    }
+            __m128i r = _mm_max_epu8(b, bb);
 
-    // do the residual
-    for (size_t i = 0; i < channels % 16; ++i)
-    {
-        size_t offset = i + simd * 16;
-        *(buffer + offset) = std::max(*(buffer + offset), *(blendBuffer + offset));
+            _mm_store_si128((__m128i*)(buffer + offset), r);
+                                }
+
+        // do the residual part at the end where we dont have enough bytes to process
+        for (size_t i = 0; i < channels % ALIGNMENT; ++i)
+        {
+            size_t offset = i + misaligned + simd * ALIGNMENT;
+            *(buffer + offset) = std::max(*(buffer + offset), *(blendBuffer + offset));
+        }
     }
-#else
-    for (size_t i = 0; i < channels; ++i)
-    {
-        *(buffer + i) = std::max(*(buffer + i), *(blendBuffer + i));
-    }
+    else
 #endif
+    {
+        for (size_t i = 0; i < channels; ++i)
+        {
+            *(buffer + i) = std::max(*(buffer + i), *(blendBuffer + i));
+        }
+    }
 }
 
 void Minimum(wxByte* buffer, wxByte* blendBuffer, size_t channels)
 {
 #ifdef SIMD
-    int simd = channels / 16;
+    int misaligned = GetMisalignedBytes(buffer, blendBuffer);
 
-    for (size_t i = 0; i < simd; ++i)
+    if (misaligned >= 0 && (channels - misaligned) >= ALIGNMENT) // we can only use SIMD if misalignment is the same for both buffers and we have the minimum number of bytes to do
     {
-        __m128i b = _mm_load_si128((__m128i*)(buffer + i * 16));
-        __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + i * 16));
+        // do the misaligned
+        for (size_t i = 0; i < misaligned; ++i)
+        {
+            *(buffer + i) = std::min(*(buffer + i), *(blendBuffer + i));
+        }
 
-        __m128i r = _mm_max_epu8(b, bb);
+        int simd = channels / ALIGNMENT;
+        for (size_t i = 0; i < simd; ++i)
+        {
+            size_t offset = misaligned + i * ALIGNMENT;
+            __m128i b = _mm_load_si128((__m128i*)(buffer + offset));
+            __m128i bb = _mm_load_si128((__m128i*)(blendBuffer + offset));
 
-        _mm_store_si128((__m128i*)(buffer + i * 16), r);
-    }
+            __m128i r = _mm_min_epu8(b, bb);
 
-    // do the residual
-    for (size_t i = 0; i < channels % 16; ++i)
-    {
-        size_t offset = i + simd * 16;
-        *(buffer + offset) = std::min(*(buffer + offset), *(blendBuffer + offset));
+            _mm_store_si128((__m128i*)(buffer + offset), r);
+        }
+
+        // do the residual
+        for (size_t i = 0; i < channels % ALIGNMENT; ++i)
+        {
+            size_t offset = i + misaligned + simd * ALIGNMENT;
+            *(buffer + offset) = std::min(*(buffer + offset), *(blendBuffer + offset));
+        }
     }
-#else
-    for (size_t i = 0; i < channels; ++i)
-    {
-        *(buffer + i) = std::min(*(buffer + i), *(blendBuffer + i));
-    }
+    else
 #endif
+    {
+        for (size_t i = 0; i < channels; ++i)
+        {
+            *(buffer + i) = std::min(*(buffer + i), *(blendBuffer + i));
+        }
+    }
 }
 
 void OverwriteIfBlack(wxByte* buffer, wxByte* blendBuffer, size_t pixels)

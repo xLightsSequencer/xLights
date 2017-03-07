@@ -265,6 +265,7 @@ wxDEFINE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_RUNACTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_DOCHECKSCHEDULE, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     //(*EventTable(xScheduleFrame)
@@ -273,6 +274,7 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_STATUSMSG, xScheduleFrame::StatusMsgNotification)
     EVT_COMMAND(wxID_ANY, EVT_RUNACTION, xScheduleFrame::RunAction)
     EVT_COMMAND(wxID_ANY, EVT_SCHEDULECHANGED, xScheduleFrame::ScheduleChange)
+    EVT_COMMAND(wxID_ANY, EVT_DOCHECKSCHEDULE, xScheduleFrame::DoCheckSchedule)
     END_EVENT_TABLE()
 
 xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, const std::string& playlist, wxWindowID id)
@@ -489,6 +491,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_STATUSMSG, (wxObjectEventFunction)&xScheduleFrame::StatusMsgNotification);
     Connect(wxID_ANY, EVT_RUNACTION, (wxObjectEventFunction)&xScheduleFrame::RunAction);
     Connect(wxID_ANY, EVT_SCHEDULECHANGED, (wxObjectEventFunction)&xScheduleFrame::ScheduleChange);
+    Connect(wxID_ANY, EVT_DOCHECKSCHEDULE, (wxObjectEventFunction)&xScheduleFrame::DoCheckSchedule);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
     wxIconBundle icons;
@@ -2032,6 +2035,12 @@ void xScheduleFrame::OnMenu_OutputProcessingSelected(wxCommandEvent& event)
 // This is called when anything interesting happens in schedule manager
 void xScheduleFrame::ScheduleChange(wxCommandEvent& event)
 {
+    UpdateUI();
+}
+
+void xScheduleFrame::DoCheckSchedule(wxCommandEvent& event)
+{
+    UpdateSchedule();
     UpdateUI();
 }
 
