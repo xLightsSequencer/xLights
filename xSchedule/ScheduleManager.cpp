@@ -402,6 +402,19 @@ void ScheduleManager::Frame(bool outputframe)
                     SendFPPSync(running->GetActiveSyncItemMedia(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
                 }
             }
+
+            // for queued songs we must remove the queued song when it finishes
+            if (running == _queuedSongs)
+            {
+                if (_queuedSongs->GetRunningStep() != _queuedSongs->GetSteps().front())
+                {
+                    _queuedSongs->RemoveStep(_queuedSongs->GetSteps().front());
+                    wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
+                    wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event2);
+                }
+            }
         }
 
         if (_backgroundPlayList != nullptr)
@@ -463,15 +476,8 @@ void ScheduleManager::Frame(bool outputframe)
             SendFPPSync(running->GetActiveSyncItemFSEQ(), 0xFFFFFFFF, running->GetFrameMS());
             SendFPPSync(running->GetActiveSyncItemMedia(), 0xFFFFFFFF, running->GetFrameMS());
 
-            if (IsQueuedPlaylistRunning())
-            {
-                _queuedSongs->MoveToNextStep();
-            }
-            else
-            {
-                // playlist is done
-                StopPlayList(running, false);
-            }
+            // playlist is done
+            StopPlayList(running, false);
 
             wxCommandEvent event(EVT_SCHEDULECHANGED);
             wxPostEvent(wxGetApp().GetTopWindow(), event);
@@ -1086,10 +1092,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                             if (!_queuedSongs->IsRunning())
                             {
                                 _queuedSongs->StartSuspended();
-
-                                wxCommandEvent event(EVT_DOCHECKSCHEDULE);
-                                wxPostEvent(wxGetApp().GetTopWindow(), event);
                             }
+                            wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                            wxPostEvent(wxGetApp().GetTopWindow(), event);
+                            wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                            wxPostEvent(wxGetApp().GetTopWindow(), event2);
                         }
                         else
                         {
@@ -1116,6 +1123,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                 wxCommandEvent event(EVT_DOCHECKSCHEDULE);
                 wxPostEvent(wxGetApp().GetTopWindow(), event);
+                wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                wxPostEvent(wxGetApp().GetTopWindow(), event2);
             }
             else if (command == "Play playlist starting at step")
             {
