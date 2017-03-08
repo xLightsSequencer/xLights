@@ -149,7 +149,7 @@ class ScheduleManager : public wxEvtHandler
         bool ToggleCurrentPlayListLoop(std::string& msg);
         bool ToggleCurrentPlayListStepLoop(std::string& msg);
         bool IsOutputToLights() const;
-        bool IsCurrentPlayListScheduled() const { return _immediatePlay == nullptr; }
+        bool IsCurrentPlayListScheduled() const { return _immediatePlay == nullptr && GetRunningPlayList() != _queuedSongs; }
         void SetOutputToLights(bool otl);
         void CheckScheduleIntegrity(bool display);
         void ImportxLightsSchedule(const std::string& filename);
