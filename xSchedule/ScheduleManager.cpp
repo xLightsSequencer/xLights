@@ -479,8 +479,10 @@ void ScheduleManager::Frame(bool outputframe)
             // playlist is done
             StopPlayList(running, false);
 
-            wxCommandEvent event(EVT_SCHEDULECHANGED);
+            wxCommandEvent event(EVT_DOCHECKSCHEDULE);
             wxPostEvent(wxGetApp().GetTopWindow(), event);
+            wxCommandEvent event2(EVT_SCHEDULECHANGED);
+            wxPostEvent(wxGetApp().GetTopWindow(), event2);
         }
     }
     else
