@@ -293,6 +293,8 @@
 		<Unit filename="AddReverseDialog.h" />
 		<Unit filename="BackgroundPlaylistDialog.cpp" />
 		<Unit filename="BackgroundPlaylistDialog.h" />
+		<Unit filename="Blend.cpp" />
+		<Unit filename="Blend.h" />
 		<Unit filename="ButtonDetailsDialog.cpp" />
 		<Unit filename="ButtonDetailsDialog.h" />
 		<Unit filename="ColourOrderDialog.cpp" />
@@ -452,6 +454,10 @@
 		<Unit filename="wxHTTPServer/sha1.h" />
 		<Unit filename="wxHTTPServer/status.cpp" />
 		<Unit filename="wxHTTPServer/wxhttpserver.h" />
+		<Unit filename="wxJSON/jsonreader.cpp" />
+		<Unit filename="wxJSON/jsonreader.h" />
+		<Unit filename="wxJSON/jsonval.cpp" />
+		<Unit filename="wxJSON/jsonval.h" />
 		<Unit filename="wxsmith/AddReverseDialog.wxs" />
 		<Unit filename="wxsmith/BackgroundPlaylistDialog.wxs" />
 		<Unit filename="wxsmith/ButtonDetailsDialog.wxs" />
