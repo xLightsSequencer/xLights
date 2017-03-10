@@ -592,6 +592,18 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
     }
 }
 
+void WebServer::SendMessageToAllWebSockets(const std::string& message)
+{
+    for (auto it = _connections.begin(); it != _connections.end(); ++it)
+    {
+        if ((*it).second->IsWebSocket())
+        {
+            WebSocketMessage wsm(message);
+            (*it).second->SendMessage(wsm);
+        }
+    }
+}
+
 WebServer::WebServer(int port, bool apionly, const std::string& password, int mins)
 {
     __apiOnly = apionly; // put this in a global.

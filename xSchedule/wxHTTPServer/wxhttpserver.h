@@ -329,12 +329,12 @@ protected:
 	// event handlers (these functions should _not_ be virtual)
 	void OnServerEvent(wxSocketEvent &event);
 	void OnSocketEvent(wxSocketEvent &event);
+    ConnectionMap   _connections;
 
 private:
 	wxSocketServer *_server;
 	HttpContext     _context;
 	IPaddress       _address;
-	ConnectionMap   _connections;
 
 	DECLARE_EVENT_TABLE()
 

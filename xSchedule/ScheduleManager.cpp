@@ -3713,3 +3713,4 @@ PlayListStep* ScheduleManager::GetStepContainingPlayListItem(wxUint32 id) const
 
     return pls;
 }
+

@@ -13,6 +13,7 @@ public:
         void SetAPIOnly(bool apiOnly);
         void SetPasswordTimeout(int mins);
         void SetPassword(const std::string& password);
+        void SendMessageToAllWebSockets(const std::string& message);
 };
 
 #endif

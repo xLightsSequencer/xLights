@@ -97,6 +97,8 @@ class xScheduleFrame : public wxFrame
     wxBitmap _volumedown;
     wxBitmap _falconremote;
 
+    void SendStatus();
+
 public:
 
         static ScheduleManager* GetScheduleManager() { return __schedule; }

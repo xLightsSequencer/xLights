@@ -995,11 +995,16 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     __schedule->Frame(_timerOutputFrame);
 
+    if (__schedule->IsXyzzy())
+    {
+        SendStatus();
+    }
+
     if (last != wxDateTime::Now().GetSecond() && _timerOutputFrame)
     {
         last = wxDateTime::Now().GetSecond();
-        wxCommandEvent event(EVT_SCHEDULECHANGED);
-        wxPostEvent(this, event);
+        wxCommandEvent event2(EVT_SCHEDULECHANGED);
+        wxPostEvent(this, event2);
     }
 
     _timerOutputFrame = !_timerOutputFrame;
@@ -1730,6 +1735,8 @@ void xScheduleFrame::UpdateStatus()
     Custom_Volume->SetValue(__schedule->GetVolume());
 
     StaticText_Time->SetLabel(wxDateTime::Now().FormatTime());
+
+    SendStatus();
 }
 
 void xScheduleFrame::OnBitmapButton_OutputToLightsClick(wxCommandEvent& event)
@@ -2211,4 +2218,22 @@ void xScheduleFrame::OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event)
 
     UpdateUI();
     ValidateWindow();
+}
+
+void xScheduleFrame::SendStatus()
+{
+    if (_webServer != nullptr && __schedule != nullptr)
+    {
+        std::string result;
+        if (__schedule->IsXyzzy())
+        {
+            __schedule->DoXyzzy("q", "", result, "");
+        }
+        else
+        {
+            std::string msg;
+            __schedule->Query("GetPlayingStatus", "", result, msg, "", "");    
+        }
+        _webServer->SendMessageToAllWebSockets(result);
+    }
 }
