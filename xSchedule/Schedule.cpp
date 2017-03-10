@@ -246,6 +246,64 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
     return _active;
 }
 
+wxDateTime Schedule::GetNextTriggerDateTime()
+{
+    wxDateTime end = _endDate;
+    if (_everyYear) end.SetYear(wxDateTime::Now().GetYear() + 1);
+
+    // deal with the simple cases
+    if (CheckActive()) return wxDateTime::Now();
+    if (end < wxDateTime::Now()) return wxDateTime((time_t)0);
+
+    if (_startDate > wxDateTime::Now()) // tomorrow or later
+    {
+        // some time in the future
+        wxDateTime next = _startDate;
+        next.SetHour(_startTime.GetHour());
+        next.SetMinute(_startTime.GetMinute());
+
+        if (next > wxDateTime::Now() && CheckActiveAt(next))
+        {
+            return next;
+        }
+
+        for (int i = 0; i < 7; i++)
+        {
+            next += wxTimeSpan(24);
+            if (next > wxDateTime::Now() && CheckActiveAt(next))
+            {
+                return next;
+            }
+        }
+
+        return wxDateTime((time_t)0);
+    }
+
+    // so now is between _startDate and end
+
+    // check if the right answer is the starttime today
+    wxDateTime next = wxDateTime::Now();
+    next.SetHour(_startTime.GetHour());
+    next.SetMinute(_startTime.GetMinute());
+    next.SetSecond(0);
+    if (next > wxDateTime::Now() && CheckActiveAt(next))
+    {
+        return next;
+    }
+
+    for (int i = 0; i < 7; i++)
+    {
+        next += wxTimeSpan(24);
+        if (next > wxDateTime::Now() && CheckActiveAt(next))
+        {
+            return next;
+        }
+    }
+
+    // I give up
+    return wxDateTime((time_t)0);
+}
+
 std::string Schedule::GetNextTriggerTime()
 {
     wxDateTime end = _endDate;

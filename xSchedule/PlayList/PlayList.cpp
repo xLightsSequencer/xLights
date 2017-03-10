@@ -971,3 +971,36 @@ PlayListStep* PlayList::GetStepContainingPlayListItem(wxUint32 id) const
     return nullptr;
 }
 
+std::string PlayList::GetNextScheduledTime() const
+{
+    wxDateTime nextdt = wxDateTime((time_t)0);
+
+    for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
+    {
+        wxDateTime dt = (*it)->GetNextTriggerDateTime();
+
+        if (dt != wxDateTime((time_t)0))
+        {
+            if (nextdt == wxDateTime((time_t)0))
+            {
+                nextdt = dt;
+            }
+            else
+            {
+                if (dt < nextdt)
+                {
+                    nextdt = dt;
+                }
+            }
+        }
+    }
+
+    if (nextdt == wxDateTime((time_t)0))
+    {
+        return "";
+    }
+    else
+    {
+        return nextdt.Format("%Y-%m-%d %H:%M").ToStdString();
+    }
+}

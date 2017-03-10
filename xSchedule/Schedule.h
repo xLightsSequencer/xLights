@@ -75,6 +75,7 @@ class Schedule
         std::string GetNextTriggerTime();
         std::string GetNextEndTime();
         void AddMinsToEndTime(int mins);
+        wxDateTime Schedule::GetNextTriggerDateTime();
 };
 
 #endif 

@@ -65,6 +65,7 @@ public:
     PlayListStep* GetNextStep(bool& didloop);
     PlayListStep* GetRunningStep() const { return _currentStep; }
     std::list<PlayListStep*> GetSteps() const { return _steps; }
+    std::string GetNextScheduledTime() const;
     std::list<Schedule*> GetSchedules() const { return _schedules; }
     size_t GetLengthMS() const;
     bool IsDirty() const;

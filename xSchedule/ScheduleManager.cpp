@@ -1651,7 +1651,8 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
             }
             data += "{\"name\":\"" + (*it)->GetNameNoTime() +
                     "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() +
-                    "\",\"length\":\""+ FormatTime((*it)->GetLengthMS()) +"\"}";
+                "\",\"nextscheduled\":\"" + (*it)->GetNextScheduledTime() +
+                "\",\"length\":\""+ FormatTime((*it)->GetLengthMS()) +"\"}";
         }
         data += "]}";
     }
