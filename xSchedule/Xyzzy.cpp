@@ -227,12 +227,12 @@ bool Xyzzy::Frame(wxByte* buffer, size_t size, bool outputframe)
 }
 
 // <matrix name>
-void Xyzzy::Initialise(const std::string& parameters, std::string& result)
+void Xyzzy::Initialise(const std::string& parameters, std::string& result, const std::string& reference)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Xyzzy initialising.");
 
-    Close(result);
+    Close(result, reference);
 
     Reset();
 
@@ -241,7 +241,8 @@ void Xyzzy::Initialise(const std::string& parameters, std::string& result)
     if (p.Count() < 2)
     {
         result = "{\"result\":\"failed\",\"message\":\"Two parameters expected ... name of matrix and players name.\",\"highscore\":\""+GetHighScore()+
-                 "\",\"highscoreplayer\":\"" + GetHighScorePlayer() + 
+            "\",\"r\":\"" + reference +
+            "\",\"highscoreplayer\":\"" + GetHighScorePlayer() +
                  "\"}";
         return;
     }
@@ -260,6 +261,7 @@ void Xyzzy::Initialise(const std::string& parameters, std::string& result)
     if (_matrixMapper == nullptr)
     {
         result = "{\"result\":\"failed\",\"message\":\"Matrix '"+p[0]+"' not found.\",\"highscore\":\"" + GetHighScore() +
+            "\",\"r\":\"" + reference +
             "\",\"highscoreplayer\":\"" + GetHighScorePlayer() +
             "\"}";
         return;
@@ -307,11 +309,12 @@ void Xyzzy::Initialise(const std::string& parameters, std::string& result)
     _playerName = p[1];
     _isOk = true;
     result = "{\"result\":\"ok\",\"message\":\"Initialised.\",\"highscore\":\"" + GetHighScore() +
+        "\",\"r\":\"" + reference +
         "\",\"highscoreplayer\":\"" + GetHighScorePlayer() +
         "\"}";
 }
 
-void Xyzzy::Close(std::string& result)
+void Xyzzy::Close(std::string& result, const std::string& reference)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Xyzzy closing.");
@@ -340,11 +343,12 @@ void Xyzzy::Close(std::string& result)
     _matrixMapper = nullptr;
     _gameRunning = false;
     result = "{\"result\":\"ok\",\"message\":\"Initialised.\",\"highscore\":\"" + GetHighScore() +
+        "\",\"r\":\"" + reference +
         "\",\"highscoreplayer\":\"" + GetHighScorePlayer() +
         "\"}";
 }
 
-std::string Xyzzy::GameNotRunningResult()
+std::string Xyzzy::GameNotRunningResult(const std::string& reference)
 {
     if (_isOk)
     {
@@ -352,28 +356,33 @@ std::string Xyzzy::GameNotRunningResult()
             "\",\"playername\":\"" + _playerName +
             "\",\"highscore\":\"" + GetHighScore() +
             "\",\"highscoreplayer\":\"" + GetHighScorePlayer() +
+            "\",\"r\":\"" + reference +
             "\"}";
 
     }
     else
     {
         return "{\"result\":\"failed\",\"message\":\"Game not initialised.\",\"highscore\":\"" + GetHighScore() +
+            "\",\"r\":\"" + reference +
             "\",\"highscoreplayer\":\"" + GetHighScorePlayer() +
             "\"}";
     }
 }
 
-bool Xyzzy::Action(const std::string& command, const std::string& parameters, std::string& result)
+bool Xyzzy::Action(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference)
 {
     if (command == "q") // query state
     {
         if (_gameRunning)
         {
-            result = "{\"result\":\"running\",\"score\":\"" + GetScore() + "\",\"next\":\"" + GetNextPiece() + "\"}";
+            result = "{\"result\":\"running\",\"score\":\"" + 
+                GetScore() + "\",\"r\":\"" +
+                reference + "\",\"next\":\"" +
+                GetNextPiece() + "\"}";
         }
         else
         {
-            result = GameNotRunningResult();
+            result = GameNotRunningResult(reference);
         }
         return true;
     }
@@ -384,16 +393,22 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
             if (TestMoveLeft())
             {
                 _currentPiece->MoveLeft();
-                result = "{\"result\":\"ok\",\"score\":\"" + GetScore() + "\",\"next\":\"" + GetNextPiece() + "\"}";
+                result = "{\"result\":\"ok\",\"score\":\"" + 
+                    GetScore() + "\",\"r\":\"" +
+                    reference + "\",\"next\":\"" +
+                    GetNextPiece() + "\"}";
             }
             else
             {
-                result = "{\"result\":\"failed\",\"score\":\"" + GetScore() + "\",\"next\":\"" + GetNextPiece() + "\"}";
+                result = "{\"result\":\"failed\",\"score\":\"" + 
+                    GetScore() + "\",\"r\":\"" +
+                    reference + "\",\"next\":\"" +
+                    GetNextPiece() + "\"}";
             }
         }
         else
         {
-            result = GameNotRunningResult();
+            result = GameNotRunningResult(reference);
         }
     }
     else if (command == "r") // right
@@ -403,16 +418,22 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
             if (TestMoveRight())
             {
                 _currentPiece->MoveRight();
-                result = "{\"result\":\"ok\",\"score\":\"" + GetScore() + "\",\"next\":\"" + GetNextPiece() + "\"}";
+                result = "{\"result\":\"ok\",\"score\":\"" + 
+                    GetScore() + "\",\"r\":\"" +
+                    reference + "\",\"next\":\"" +
+                    GetNextPiece() + "\"}";
             }
             else
             {
-                result = "{\"result\":\"failed\",\"score\":\"" + GetScore() + "\",\"next\":\"" + GetNextPiece() + "\"}";
+                result = "{\"result\":\"failed\",\"score\":\"" + 
+                    GetScore() + "\",\"r\":\"" +
+                    reference + "\",\"next\":\"" +
+                    GetNextPiece() + "\"}";
             }
         }
         else
         {
-            result = GameNotRunningResult();
+            result = GameNotRunningResult(reference);
         }
     }
     else if (command == "s") // spin
@@ -422,16 +443,22 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
             if (TestSpin())
             {
                 _currentPiece->Rotate();
-                result = "{\"result\":\"ok\",\"score\":\"" + GetScore() + "\",\"next\":\"" + GetNextPiece() + "\"}";
+                result = "{\"result\":\"ok\",\"score\":\"" + 
+                    GetScore() + "\",\"r\":\"" +
+                    reference + "\",\"next\":\"" +
+                    GetNextPiece() + "\"}";
             }
             else
             {
-                result = "{\"result\":\"failed\",\"score\":\"" + GetScore() + "\",\"next\":\"" + GetNextPiece() + "\"}";
+                result = "{\"result\":\"failed\",\"score\":\"" + 
+                    GetScore() + "\",\"r\":\"" +
+                    reference + "\",\"next\":\"" +
+                    GetNextPiece() + "\"}";
             }
         }
         else
         {
-            result = GameNotRunningResult();
+            result = GameNotRunningResult(reference);
         }
     }
     else if (command == "d") // drop
@@ -439,11 +466,14 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
         if (_gameRunning)
         {
             Drop();
-            result = "{\"result\":\"ok\",\"score\":\"" + GetScore() + "\",\"next\":\"" + GetNextPiece() + "\"}";
+            result = "{\"result\":\"ok\",\"score\":\"" + 
+                GetScore() + "\",\"r\":\"" +
+                reference + "\",\"next\":\"" +
+                GetNextPiece() + "\"}";
         }
         else
         {
-            result = GameNotRunningResult();
+            result = GameNotRunningResult(reference);
         }
     }
     else if (command == "c") // quit game ... but dont close it
@@ -454,20 +484,24 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
             SaveHighScore();
             result = "{\"result\":\"ok\",\"score\":\"" + GetScore() + 
                 "\",\"playername\":\"" + _playerName +
+                "\",\"r\":\"" + reference +
                 "\",\"highscore\":\"" + GetHighScore() +
                 "\",\"highscoreplayer\":\"" + GetHighScorePlayer() +
                 "\"}";
         }
         else
         {
-            result = GameNotRunningResult();
+            result = GameNotRunningResult(reference);
         }
     }
     else if (command == "g") // start game
     {
         if (_gameRunning)
         {
-            result = "{\"result\":\"failed\",\"score\":\"" + GetScore() + "\",\"next\":\"" + GetNextPiece() + "\"}";
+            result = "{\"result\":\"failed\",\"score\":\"" + 
+                GetScore() + "\",\"r\":\"" +
+                reference + "\",\"next\":\"" +
+                GetNextPiece() + "\"}";
         }
         else
         {
@@ -496,13 +530,16 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
                 _playerName = parameters;
             }
             _gameRunning = true;
-            result = "{\"result\":\"ok\",\"score\":\"" + GetScore() + "\",\"next\":\"" + GetNextPiece() + "\"}";
+            result = "{\"result\":\"ok\",\"score\":\"" + 
+                GetScore() + "\",\"r\":\"" +
+                reference + "\",\"next\":\"" +
+                GetNextPiece() + "\"}";
         }
     }
     else if (command == "reset") // reset to pristine state
     {
         Reset();
-        result = "{\"result\":\"ok\"}";
+        result = "{\"result\":\"ok\",\"r\":\""+reference+"\"}";
     }
 
     return true;

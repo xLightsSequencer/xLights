@@ -178,7 +178,7 @@ ScheduleManager::~ScheduleManager()
     if (_xyzzy != nullptr)
     {
         std::string(res);
-        _xyzzy->Close(res);
+        _xyzzy->Close(res, "");
         delete _xyzzy;
         _xyzzy = nullptr;
     }
@@ -374,7 +374,7 @@ void ScheduleManager::Frame(bool outputframe)
         logger_base.info("Stopping xyzzy due to timeout.");
 
         std::string msg;
-        DoXyzzy("close", "", msg);
+        DoXyzzy("close", "", msg, "");
     }
 
     PlayList* running = GetRunningPlayList();
@@ -1636,7 +1636,7 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
 // 127.0.0.1/xScheduleQuery?Query=GetPlayingStatus&Parameters=
 // 127.0.0.1/xScheduleQuery?Query=GetButtons&Parameters=
 
-bool ScheduleManager::Query(const std::string command, const std::string parameters, std::string& data, std::string& msg, const std::string& ip)
+bool ScheduleManager::Query(const std::string command, const std::string parameters, std::string& data, std::string& msg, const std::string& ip, const std::string& reference)
 {
     bool result = true;
     data = "";
@@ -1654,7 +1654,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"nextscheduled\":\"" + (*it)->GetNextScheduledTime() +
                 "\",\"length\":\""+ FormatTime((*it)->GetLengthMS()) +"\"}";
         }
-        data += "]}";
+        data += "],\"reference\":\""+reference+"\"}";
     }
     else if (command == "GetPlayListSteps")
     {
@@ -1674,11 +1674,11 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                         "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() +
                         "\",\"length\":\""+FormatTime((*it)->GetLengthMS())+"\"}";
             }
-            data += "]}";
+            data += "],\"reference\":\""+reference+"\"}";
         }
         else
         {
-            data = "{\"steps\":[]}";
+            data = "{\"steps\":[],\"reference\":\""+reference+"\"}";
             result = false;
             msg = "Playlist '" + parameters + "' not found.";
         }
@@ -1695,7 +1695,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
             }
             data += "\"" + (*it)->GetName() + "\"";
         }
-        data += "]}";
+        data += "],\"reference\":\""+reference+"\"}";
     }
     else if (command == "GetQueuedSteps")
     {
@@ -1713,7 +1713,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                     "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() +
                     "\",\"length\":\"" + FormatTime((*it)->GetLengthMS()) + "\"}";
         }
-        data += "]}";
+        data += "],\"reference\":\""+reference+"\"}";
     }
     else if (command == "ListWebFolders")
     {
@@ -1769,7 +1769,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
 
                     found = dir.GetNext(&dirname);
                 }
-                data += "]}";
+                data += "],\"reference\":\""+reference+"\"}";
             }
         }
     }
@@ -1786,13 +1786,13 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 {
                     data += ",";
                 }
-                data += (*it)->GetJSON();
+                data += (*it)->GetJSON("");
             }
-            data += "]}";
+            data += "],\"reference\":\""+reference+"\"}";
         }
         else
         {
-            data = "{\"schedules\":[]}";
+            data = "{\"schedules\":[],\"reference\":\""+reference+"\"}";
             result = false;
             msg = "Playlist '" + parameters + "' not found.";
         }
@@ -1810,7 +1810,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
 
                 if (schedule != nullptr)
                 {
-                    data = schedule->GetJSON();
+                    data = schedule->GetJSON(reference);
                 }
                 else
                 {
@@ -1838,6 +1838,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
             data = "{\"status\":\"idle\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") +
                 "\",\"volume\":\"" + wxString::Format(wxT("%i"), GetVolume()) +
                 "\",\"ip\":\"" + ip +
+                "\",\"reference\":\"" + reference +
                 "\",\"time\":\""+ wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +"\"}";
         }
         else
@@ -1888,6 +1889,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"volume\":\"" + wxString::Format(wxT("%i"), GetVolume()) +
                 "\",\"time\":\"" + wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +
                 "\",\"ip\":\"" + ip +
+                "\",\"reference\":\"" + reference +
                 "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\"}";
             //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             //logger_base.info("%s", (const char*)data.c_str());
@@ -1895,7 +1897,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
     }
     else if (command == "GetButtons")
     {
-        data = _scheduleOptions->GetButtonsJSON(_commandManager);
+        data = _scheduleOptions->GetButtonsJSON(_commandManager, reference);
     }
     else
     {
@@ -2995,7 +2997,7 @@ void ScheduleManager::ImportxLightsSchedule(const std::string& filename)
     }
 }
 
-bool ScheduleManager::DoXyzzy(const std::string& command, const std::string& parameters, std::string& result)
+bool ScheduleManager::DoXyzzy(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference)
 {
     _lastXyzzyCommand = wxDateTime::Now();
 
@@ -3008,11 +3010,11 @@ bool ScheduleManager::DoXyzzy(const std::string& command, const std::string& par
 
     if (command == "initialise")
     {
-        _xyzzy->Initialise(parameters, result);
+        _xyzzy->Initialise(parameters, result, reference);
     }
     else if (command == "close")
     {
-        _xyzzy->Close(result);
+        _xyzzy->Close(result, reference);
         delete _xyzzy;
         _xyzzy = nullptr;
         wxCommandEvent event(EVT_SCHEDULECHANGED);
@@ -3020,7 +3022,7 @@ bool ScheduleManager::DoXyzzy(const std::string& command, const std::string& par
     }
     else
     {
-        _xyzzy->Action(command, parameters, result);
+        _xyzzy->Action(command, parameters, result, reference);
     }
 
     if (_xyzzy != nullptr && !_xyzzy->IsOk())

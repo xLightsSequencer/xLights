@@ -94,6 +94,8 @@ bool CheckLoggedIn(HttpConnection& connection)
             return true;
         }
     }
+
+    return false;
 }
 
 std::map<std::string, std::string> ParseURI(std::string uri)
@@ -120,14 +122,17 @@ std::map<std::string, std::string> ParseURI(std::string uri)
     return res;
 }
 
-std::string ProcessCommand(HttpConnection &connection, const std::string& command, const std::string& parameters, const std::string& data)
+std::string ProcessCommand(HttpConnection &connection, const std::string& command, const std::string& parameters, const std::string& data, const std::string& reference)
 {
     wxStopWatch sw;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!CheckLoggedIn(connection))
     {
-        return "{\"result\":\"not logged in\",\"command\":\""+command+"\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
+        return "{\"result\":\"not logged in\",\"command\":\""+
+            command + "\"reference\":\"" +
+            reference + "\"ip\":\"" +
+                connection.Address().IPAddress().ToStdString() + "\"}";
     }
 
 #ifdef DETAILED_LOGGING
@@ -143,7 +148,9 @@ std::string ProcessCommand(HttpConnection &connection, const std::string& comman
         event.SetInt(rate);
         wxPostEvent(wxGetApp().GetTopWindow(), event);
 
-        result = "{\"result\":\"ok\",\"command\":\""+command+"\"}", "application/json";
+        result = "{\"result\":\"ok\",\"reference\":\""+
+            reference+"\",\"command\":\""+
+            command+"\"}", "application/json";
 
 #ifdef DETAILED_LOGGING
         logger_base.info("    Time %ld.", sw.Time());
@@ -151,21 +158,27 @@ std::string ProcessCommand(HttpConnection &connection, const std::string& comman
     }
     else
     {
-        result = "{\"result\":\"failed\",\"command\":\""+command+"\",\"message\":\"" + msg + "\"}";
+        result = "{\"result\":\"failed\",\"command\":\""+
+            command + "\",\"reference\":\"" +
+            reference + "\",\"message\":\"" +
+                   msg + "\"}";
         logger_base.info("Command command=%s parameters=%s result='%s'. Time %ld.", (const char *)command.c_str(), (const char*)parameters.c_str(), (const char *)msg.c_str(), sw.Time());
     }
 
     return result;
 }
 
-std::string ProcessQuery(HttpConnection &connection, const std::string& query, const std::string& parameters)
+std::string ProcessQuery(HttpConnection &connection, const std::string& query, const std::string& parameters, const std::string& reference)
 {
     wxStopWatch sw;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!CheckLoggedIn(connection))
     {
-        return "{\"result\":\"not logged in\",\"query\":\""+query+"\",\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
+        return "{\"result\":\"not logged in\",\"query\":\""+
+            query + "\",\"reference\":\"" +
+            reference + "\",\"ip\":\"" +
+            connection.Address().IPAddress().ToStdString() + "\"}";
     }
 
     // log everything but playing status
@@ -176,7 +189,7 @@ std::string ProcessQuery(HttpConnection &connection, const std::string& query, c
 
     std::string result = "";
     std::string msg;
-    if (xScheduleFrame::GetScheduleManager()->Query(query, parameters, result, msg, connection.Address().IPAddress().ToStdString()))
+    if (xScheduleFrame::GetScheduleManager()->Query(query, parameters, result, msg, connection.Address().IPAddress().ToStdString(), reference))
     {
 #ifndef DETAILED_LOGGING
         if (query != "GetPlayingStatus")
@@ -185,21 +198,24 @@ std::string ProcessQuery(HttpConnection &connection, const std::string& query, c
     }
     else
     {
-        result = "{\"result\":\"failed\",\"query\":\""+query+"\",\"message\":\"" + msg + "\"}";
+        result = "{\"result\":\"failed\",\"query\":\""+
+            query + "\",\"reference\":\"" +
+            reference + "\",\"message\":\"" +
+            msg + "\"}";
         logger_base.info("    data = '' : '%s'. Time = %ld.", (const char *)result.c_str(), sw.Time());
     }
 
     return result;
 }
 
-std::string ProcessXyzzy(HttpConnection &connection, const std::string& command, const std::string& parameters)
+std::string ProcessXyzzy(HttpConnection &connection, const std::string& command, const std::string& parameters, const std::string& reference)
 {
     wxStopWatch sw;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string result = "";
     std::string msg;
-    if (xScheduleFrame::GetScheduleManager()->DoXyzzy(command, parameters, msg))
+    if (xScheduleFrame::GetScheduleManager()->DoXyzzy(command, parameters, msg, reference))
     {
         result = msg;
 #ifdef DETAILED_LOGGING
@@ -208,18 +224,21 @@ std::string ProcessXyzzy(HttpConnection &connection, const std::string& command,
     }
     else
     {
-        result = "{\"result\":\"failed\",\"xyzzy\":\""+command+"\",\"message\":\"" + msg + "\"}";
+        result = "{\"result\":\"failed\",\"xyzzy\":\""+
+            command + "\",\"reference\":\"" +
+            reference + "\",\"message\":\"" +
+            msg + "\"}";
         logger_base.info("xyzzy command=%s parameters=%s result='%s'. Time %ld.", (const char *)command.c_str(), (const char*)parameters.c_str(), (const char *)msg.c_str(), sw.Time());
     }
 
     return result;
 }
 
-std::string ProcessLogin(HttpConnection &connection, const std::string& credential)
+std::string ProcessLogin(HttpConnection &connection, const std::string& credential, const std::string& reference)
 {
     wxStopWatch sw;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+    
     std::string result = "";
     if (__password != "")
     {
@@ -232,7 +251,7 @@ std::string ProcessLogin(HttpConnection &connection, const std::string& credenti
         {
             // this is a valid login
             AddToValid(connection);
-            result = "{\"result\":\"ok\",\"command\":\"login\"}", "application/json";
+            result = "{\"result\":\"ok\",\"reference\":\""+reference+"\",\"command\":\"login\"}", "application/json";
 
             // THIS SHOULD BE REMOVED
             //logger_base.debug("Security: Login %s success.", (const char *)credential.c_str());
@@ -247,26 +266,29 @@ std::string ProcessLogin(HttpConnection &connection, const std::string& credenti
 
             RemoveFromValid(connection);
 
-            result = "{\"result\":\"failed\",\"command\":\"login\",\"message\":\"Login failed.\",\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
+            result = "{\"result\":\"failed\",\"command\":\"login\",\"message\":\"Login failed.\",\"reference\":\""+reference+"\",\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
             logger_base.debug("Security: Login failed. data = '%s'. Time = %ld.", (const char *)result.c_str(), sw.Time());
         }
     }
     else
     {
-        result = "{\"result\":\"ok\",\"command\":\"login\"}";
+        result = "{\"result\":\"ok\",\"command\":\"login\",\"reference\":\""+reference+"\"}";
     }
 
     return result;
 }
 
-std::string ProcessStash(HttpConnection &connection, const std::string& command, const std::string& key, std::string& data)
+std::string ProcessStash(HttpConnection &connection, const std::string& command, const std::string& key, std::string& data, const std::string& reference)
 {
     wxStopWatch sw;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!CheckLoggedIn(connection))
     {
-        return "{\"result\":\"not logged in\",\"stash\":\""+command+"\",\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
+        return "{\"result\":\"not logged in\",\"stash\":\""+
+            command + "\",\"reference\":\"" +
+            reference + "\",\"ip\":\"" +
+            connection.Address().IPAddress().ToStdString() + "\"}";
         data = "";
     }
 
@@ -284,11 +306,14 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
 #ifdef DETAILED_LOGGING
             logger_base.info("    Time %ld.", sw.Time());
 #endif
-            result = "{\"result\":\"ok\",\"stash\":\""+command+"\"}";
+            result = "{\"result\":\"ok\",\"reference\":\""+reference+"\",\"stash\":\""+command+"\"}";
         }
         else
         {
-            result = "{\"result\":\"failed\",\"stash\":\""+command+"\",\"message\":\"" + msg + "\"}";
+            result = "{\"result\":\"failed\",\"stash\":\""+
+                command + "\",\"reference\":\"" +
+                reference+"\",\"message\":\"" +
+                msg + "\"}";
             logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
         }
     }
@@ -302,13 +327,18 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
         }
         else
         {
-            result = "{\"result\":\"failed\",\"stash\":\""+command+"\",\"message\":\"" + msg + "\"}";
+            result = "{\"result\":\"failed\",\"stash\":\""+
+                command + "\",\"reference\":\"" +
+                reference+"\",\"message\":\"" +
+                msg + "\"}";
             logger_base.info("    data = '' : '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
         }
     }
     else
     {
-        result = "{\"result\":\"failed\",\"stash\":\""+command+"\",\"message\":\"Unknown stash command.\"}";
+        result = "{\"result\":\"failed\",\"stash\":\""+
+            command+"\",\"reference\":\""+
+            reference+"\",\"message\":\"Unknown stash command.\"}";
         logger_base.info("    '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
     }
     return result;
@@ -327,8 +357,9 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
         std::string command = parms["Command"];
         std::string parameters = parms["Parameters"];
+        std::string reference = parms["Reference"];
 
-        std::string result = ProcessCommand(connection, command, parameters, request.Data().ToStdString());
+        std::string result = ProcessCommand(connection, command, parameters, request.Data().ToStdString(), reference);
 
         HttpResponse response(connection, request, HttpStatus::OK);
         response.MakeFromText(result, "application/json");
@@ -342,8 +373,9 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
         std::string command = parms["c"];
         std::string parameters = parms["p"];
+        std::string reference = parms["r"];
 
-        std::string result = ProcessXyzzy(connection, command, parameters);
+        std::string result = ProcessXyzzy(connection, command, parameters, reference);
 
         HttpResponse response(connection, request, HttpStatus::OK);
         response.MakeFromText(result, "application/json");
@@ -357,8 +389,9 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
         std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
         std::string credential = parms["Credential"];
+        std::string reference = parms["Reference"];
 
-        std::string result = ProcessLogin(connection, credential);
+        std::string result = ProcessLogin(connection, credential, reference);
 
         HttpResponse response(connection, request, HttpStatus::OK);
         response.MakeFromText(result, "application/json");
@@ -373,9 +406,10 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
         std::string command = parms["Command"];
         std::string key = parms["Key"];
+        std::string reference = parms["Reference"];
         std::string data = request.Data().ToStdString();
 
-        std::string result = ProcessStash(connection, command, key, data);
+        std::string result = ProcessStash(connection, command, key, data, reference);
 
         HttpResponse response(connection, request, HttpStatus::OK);
         if (result == "")
@@ -397,8 +431,9 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
         std::string query = parms["Query"];
         std::string parameters = parms["Parameters"];
+        std::string reference = parms["Reference"];
 
-        std::string result = ProcessQuery(connection, query, parameters);
+        std::string result = ProcessQuery(connection, query, parameters, reference);
 
         HttpResponse response(connection, request, HttpStatus::OK);
         response.MakeFromText(result, "application/json");
@@ -503,31 +538,36 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
             wxString c = root["Command"].AsString();
             wxString p = root["Parameters"].AsString();
             wxString d = root["Data"].AsString();
-            result = ProcessCommand(connection, c.ToStdString(), p.ToStdString(), d.ToStdString());
+            wxString r = root["Reference"].AsString();
+            result = ProcessCommand(connection, c.ToStdString(), p.ToStdString(), d.ToStdString(), r.ToStdString());
         }
         else if (type == "query")
         {
             wxString q = root["Query"].AsString();
             wxString p = root["Parameters"].AsString();
-            result = ProcessQuery(connection, q.ToStdString(), p.ToStdString());
+            wxString r = root["Reference"].AsString();
+            result = ProcessQuery(connection, q.ToStdString(), p.ToStdString(), r.ToStdString());
         }
         else if (type == "xyzzy")
         {
             wxString c = root["C"].AsString();
             wxString p = root["P"].AsString();
-            result = ProcessXyzzy(connection, c.ToStdString(), p.ToStdString());
+            wxString r = root["Reference"].AsString();
+            result = ProcessXyzzy(connection, c.ToStdString(), p.ToStdString(), r.ToStdString());
         }
         else if (type == "login")
         {
             wxString c = root["Credential"].AsString();
-            result = ProcessLogin(connection, c.ToStdString());
+            wxString r = root["Reference"].AsString();
+            result = ProcessLogin(connection, c.ToStdString(), r.ToStdString());
         }
         else if (type == "stash")
         {
             wxString c = root["Command"].AsString();
             wxString k = root["Key"].AsString();
             std::string d = root["Data"].AsString().ToStdString();
-            result = ProcessStash(connection, c.ToStdString(), k.ToStdString(), d);
+            wxString r = root["Reference"].AsString();
+            result = ProcessStash(connection, c.ToStdString(), k.ToStdString(), d, r.ToStdString());
             if (result == "")
             {
                 result = d;
@@ -535,7 +575,8 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
         }
         else
         {
-            WebSocketMessage wsm("{\"result\":\"failed\",\"message\":\"Unknown request type.\"}");
+            wxString r = root["Reference"].AsString();
+            WebSocketMessage wsm("{\"result\":\"failed\",\"reference\":\""+r+"\",\"message\":\"Unknown request type.\"}");
             connection.SendMessage(wsm);
             return;
         }

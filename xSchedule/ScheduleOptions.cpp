@@ -191,7 +191,7 @@ void ScheduleOptions::ClearButtons()
     _changeCount++;
 }
 
-std::string ScheduleOptions::GetButtonsJSON(const CommandManager &cmdMgr) const
+std::string ScheduleOptions::GetButtonsJSON(const CommandManager &cmdMgr, const std::string& reference) const
 {
     std::string res;
     bool first = true;
@@ -216,7 +216,7 @@ std::string ScheduleOptions::GetButtonsJSON(const CommandManager &cmdMgr) const
             }
         }
     }
-    res += "]}";
+    res += "],\"reference\":\""+reference+"\"}";
 
     return res;
 }

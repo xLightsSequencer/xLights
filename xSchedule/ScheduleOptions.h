@@ -51,7 +51,7 @@ class ScheduleOptions
         Projector* GetProjector(const std::string& projector);
         void ClearProjectors();
         void ClearButtons();
-        std::string GetButtonsJSON(const CommandManager &cmdMgr) const;
+        std::string GetButtonsJSON(const CommandManager &cmdMgr, const std::string& reference) const;
         int GetWebServerPort() const { return _port; }
         void SetWebServerPort(int port) { if (_port != port) { _port = port; _changeCount++; } }
         std::string GetWWWRoot() const { return _wwwRoot; }

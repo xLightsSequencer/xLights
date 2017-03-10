@@ -84,19 +84,25 @@ Schedule::Schedule()
     _dow = "MonTueWedThuFriSatSun";
 }
 
-std::string Schedule::GetJSON()
+std::string Schedule::GetJSON(const std::string& reference)
 {
     std::string res;
 
     res = "{\"name\":\"" + _name +
         "\",\"id\":\"" + wxString::Format(wxT("%i"), _id).ToStdString() +
-        "\",\"enabled\":\"" + std::string(_enabled ? "TRUE": "FALSE") +
-        "\",\"active\":\"" + std::string(CheckActive() ? "TRUE": "FALSE") +
-        "\",\"looping\":\"" + std::string(_loop ? "TRUE": "FALSE") +
+        "\",\"enabled\":\"" + std::string(_enabled ? "TRUE" : "FALSE") +
+        "\",\"active\":\"" + std::string(CheckActive() ? "TRUE" : "FALSE") +
+        "\",\"looping\":\"" + std::string(_loop ? "TRUE" : "FALSE") +
         "\",\"loops\":\"" + wxString::Format(wxT("%i"), _loops).ToStdString() +
-        "\",\"random\":\"" + std::string(_random ? "TRUE": "FALSE") +
-        "\",\"nextactive\":\"" + GetNextTriggerTime() +
-        "\",\"scheduleend\":\"" + (CheckActive() ? GetNextEndTime() : "N/A") +
+        "\",\"random\":\"" + std::string(_random ? "TRUE" : "FALSE") +
+        "\",\"nextactive\":\"" + GetNextTriggerTime();
+ 
+    if (reference != "")
+    {
+        res += "\",\"reference\":\"" + reference;
+    }
+
+    res += "\",\"scheduleend\":\"" + (CheckActive() ? GetNextEndTime() : "N/A") +
         "\"}";
 
     return res;

@@ -165,7 +165,7 @@ class Xyzzy
     void DrawPixel(int x, int y, wxColour c, wxByte* buffer, size_t size);
     bool AdvanceGame();
     void MakePiecePermanent();
-    std::string GameNotRunningResult();
+    std::string GameNotRunningResult(const std::string& reference);
     void DrawNode(int x, int y, wxColour c, wxByte* buffer, size_t size);
     void CheckFullRow();
     void Reset();
@@ -175,9 +175,9 @@ public:
         Xyzzy();
         virtual ~Xyzzy();
         bool Frame(wxByte* buffer, size_t size, bool outputframe); 
-        void Initialise(const std::string& parameters, std::string& result);
-        void Close(std::string& result);
-        bool Action(const std::string& command, const std::string& parameters, std::string& result);
+        void Initialise(const std::string& parameters, std::string& result, const std::string& reference);
+        void Close(std::string& result, const std::string& reference);
+        bool Action(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference);
         bool IsOk() const { return _isOk; }
 };
 

@@ -138,7 +138,7 @@ class ScheduleManager : public wxEvtHandler
         void OutputProcessingChanged() {};
         bool Action(const std::string label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
         bool Action(const std::string command, const std::string parameters, const std::string& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
-        bool Query(const std::string command, const std::string parameters, std::string& data, std::string& msg, const std::string& ip);
+        bool Query(const std::string command, const std::string parameters, std::string& data, std::string& msg, const std::string& ip, const std::string& reference);
         PlayList * GetPlayList(const std::string& playlist) const;
         void StopPlayList(PlayList* playlist, bool atendofcurrentstep);
         bool StoreData(const std::string& key, const std::string& data, std::string& msg) const;
@@ -153,7 +153,7 @@ class ScheduleManager : public wxEvtHandler
         void SetOutputToLights(bool otl);
         void CheckScheduleIntegrity(bool display);
         void ImportxLightsSchedule(const std::string& filename);
-        bool DoXyzzy(const std::string& command, const std::string& parameters, std::string& result);
+        bool DoXyzzy(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference);
         PlayListStep* GetStepContainingPlayListItem(wxUint32 id) const;
 };
 
