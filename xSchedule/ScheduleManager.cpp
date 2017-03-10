@@ -1774,6 +1774,51 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
             }
         }
     }
+    else if (command == "GetNextScheduledPlayList")
+    {
+        PlayList* p = nullptr;
+        Schedule* s = nullptr;;
+        wxDateTime next = wxDateTime((time_t)0);
+        for (auto pit = _playLists.begin() ; pit != _playLists.end(); ++pit)
+        {
+            auto schedules = (*pit)->GetSchedules();
+            for (auto sit = schedules.begin(); sit != schedules.end(); ++sit)
+            {
+                wxDateTime n = (*sit)->GetNextTriggerDateTime();
+                if (n != wxDateTime((time_t)0))
+                {
+                    if (next == wxDateTime((time_t)0))
+                    {
+                        p = *pit;
+                        s = *sit;
+                        next = n;
+                    }
+                    else if (n < next)
+                    {
+                        p = *pit;
+                        s = *sit;
+                        next = n;
+                    }
+                }
+            }
+        }
+
+        if (p == nullptr)
+        {
+            data = "{\"playlistname\":\"\",\"playlistid\":\"\",\"schedulename\":\"\",\"scheduleid\":\"\",\"start\":\"Never\",\"end\":\"\",\"reference\":\"" + reference + "\"}";
+        }
+        else
+        {
+            data = "{\"playlistname\":\"" + p->GetNameNoTime() + "\"," +
+                "\"playlistid\":\"" + wxString::Format("%i", p->GetId()).ToStdString() + "\"," +
+                "\"schedulename\":\"" + s->GetName() + "\"," +
+                "\"scheduleid\":\"" + wxString::Format("%i", s->GetId()).ToStdString() + "\"," +
+                "\"start\":\"" + s->GetNextTriggerTime() + "\"," +
+                "\"end\":\"" + s->GetEndTimeAsString() + "\"," +
+                "\"reference\":\"" + reference + "\"" +
+                "}";
+        }
+    }
     else if (command == "GetPlayListSchedules")
     {
         PlayList* p = GetPlayList(parameters);
