@@ -5,3 +5,5 @@
 obj/
 x64/
 Debug/
+*.xschedule
+*.vcxproj.user
