@@ -1,5 +1,6 @@
 // Create WebSocket connection.
-const socket = new WebSocket('ws://localhost:2082');
+url = 'ws://' + location.hostname + (location.port ? ':' + location.port : '');
+const socket = new WebSocket(url);
 // Connection opened
 socket.addEventListener('open', function(event) {
   console.log("Socket Opened");
@@ -13,7 +14,7 @@ socket.addEventListener('message', function(event) {
     playingStatus = response;
   }
 });
-websocket_conn.onclose = function(e) {
+socket.onclose = function(e) {
   console.log('Socket Disconnected!');
 };
 
