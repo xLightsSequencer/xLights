@@ -507,14 +507,29 @@ Model *ModelManager::createAndAddModel(wxXmlNode *node) {
 
 void ModelManager::Delete(const std::string &name) {
 
-    if( xlights->CurrentSeqXmlFile != nullptr ) {
-        int result = wxMessageBox("Delete all effects and layers for the selected model(s)?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO);
-        if( result != wxYES ) return;
-
-        // Delete the model from the sequencer grid and views
+    if( xlights->CurrentSeqXmlFile != nullptr ) 
+    {
         Element* elem_to_delete = xlights->GetSequenceElements().GetElement(name);
-        if( elem_to_delete != NULL )
+        if (elem_to_delete != nullptr)
         {
+            // does model have any effects on it
+            bool effects_exist = false;
+            for (size_t i = 0; i < elem_to_delete->GetEffectLayerCount() && !effects_exist; ++i)
+            {
+                auto layer = elem_to_delete->GetEffectLayer(i);
+                if (layer->GetEffectCount() > 0)
+                {
+                    effects_exist = true;
+                }
+            }
+
+            if (effects_exist)
+            {
+                int result = wxMessageBox("Model '" + name + "' exists in the currently open sequence and has effects on it. Delete all effects and layers on this model?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO);
+                if (result != wxYES) return;
+            }
+
+            // Delete the model from the sequencer grid and views
             xlights->GetSequenceElements().DeleteElement(name);
         }
     }
@@ -527,9 +542,9 @@ void ModelManager::Delete(const std::string &name) {
             if (model != nullptr) {
                 model->GetModelXml()->GetParent()->RemoveChild(model->GetModelXml());
 
-                for (auto it = models.begin(); it != models.end(); ++it) {
-                    if (it->second->GetDisplayAs() == "ModelGroup") {
-                        ModelGroup *group = (ModelGroup*)it->second;
+                for (auto it2 = models.begin(); it2 != models.end(); ++it2) {
+                    if (it2->second->GetDisplayAs() == "ModelGroup") {
+                        ModelGroup *group = (ModelGroup*)it2->second;
                         group->ModelRemoved(name);
                     }
                 }
