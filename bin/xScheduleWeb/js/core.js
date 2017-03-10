@@ -2,7 +2,7 @@ $(document).ready(function() {
 
   window.setInterval(function() {
 
-    if (playingStatus != 'disabled') {
+    if (socket.readyState > '1') {
       updateStatus();
     }
     updateNavStatus();
