@@ -34,10 +34,10 @@ function playlistsLoadPlaylists() {
           `<tr>
             <td>` + response.playlists[i].name +
           `</td>
-            <td>` + response.playlists[i].length.split(
+            <td class="col-md-2">` + response.playlists[i].length.split(
             ".")[0] +
           `</td>
-            <td>
+            <td class="col-md-2">
               <button type="button" onclick="runCommand('Play specified playlist', '` + response.playlists[i].name + `')" class="btn btn-info btn-xs" name="button">Play</button>
               <button type="button" onclick="updatePage('page', 'playlists','` + response.playlists[i].name + `')" class="btn btn-default btn-xs" name="button">View</button>
             </td>
@@ -56,7 +56,7 @@ function playlistsLoadPlaylistsSteps(playlist, currentStep) {
     success: function(response) {
       var controls = `
       <span style="float:right;">
-      <button type="button" onclick="runCommand('Play specified playlist', '` + playlist + `'); updatePage('page', 'home');" class="btn btn-info btn-xs" name="button" title="Play this playlist now">Play Playlist</button>
+      <button type="button" onclick="updatePage('page','playlists')" class="btn btn-info btn-xs" name="button" title="Back to All Playlists">Back</button>
       </span>`;
 
       $('#currentPlaylist').html("Playlist: " + playlist + controls);
@@ -68,17 +68,21 @@ function playlistsLoadPlaylistsSteps(playlist, currentStep) {
           `<tr>
             <td>` + response.steps[i].name +
           `</td>
-            <td>` + response.steps[i].length.split(
+            <td class="col-md-2">` + response.steps[i].length.split(
             ".")[0] +
           `</td>
-            <td>
-              <button type="button" onclick="runCommand('Play playlist starting at step', '` + playlist + `,` + response.steps[i].name + `')" cl)" class="btn btn-info btn-xs" name="button" title="Play playlist starting at this step">Play</button>
-              <button type="button" onclick="runCommand('Enqueue playlist step', '` + playlist + `,` + response.steps[i].name + `')" class="btn btn-default btn-xs glyphicon glyphicon-plus" name="button" title="Queue song"></button>
+            <td class="col-md-2">
+              <button type="button" onclick="runCommand('Play playlist starting at step', '` + playlist + `,` + response.steps[i].name + `'); updatePage('page', 'home');" class="btn btn-info btn-xs" name="button" title="Play playlist starting at this step">Play</button>
+              <!--<button type="button" onclick="runCommand('Enqueue playlist step', '` + playlist + `,` + response.steps[i].name + `')" class="btn btn-default btn-xs glyphicon glyphicon-plus" name="button" title="Queue song"></button>-->
             </td>
           </tr>`;
 
         $("#playlist").append(notPlaying);
       }
+      $('#playlist').dataTable({
+        "ordering": false,
+        "searching": false,
+      });
     }
   });
 }

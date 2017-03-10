@@ -7,7 +7,6 @@ $("#brightness").on("slide", function(slideEvt) {
   $("#brightnessSliderVal").text(slideEvt.value);
   console.log(slideEvt.value);
 });
-
 $(document).ready(function() {
   window.setInterval(function() {
     checkForUpdate();
@@ -18,10 +17,12 @@ $(document).ready(function() {
   }
   populateSideBar();
 
+
 });
 
+
+
 function populateSideBar() {
-  console.log(uiSettings);
   if (uiSettings != undefined) {
     if (uiSettings.home[0] == true) {
       $('#sideBar1').load('inc/sidebarNav.html');
@@ -35,17 +36,106 @@ function populateSideBar() {
 var oldPlayingStatus = '';
 
 function checkForUpdate() {
-  //update clock
+  //update Clock begining
   $('#homeTimeContainer').html(playingStatus.time);
 
   if (oldPlayingStatus.status != playingStatus.status) {
+    //status changed redraw page
+    if (playingStatus.status == 'idle') {
+      populateTableIdle();
+    } else if (playingStatus.status == 'playing') {
+      populateTablePlaying();
+
+    }
     dashboardLoadStatus();
   }
+
   if (playingStatus.status == 'playing') {
+    //update "Playing status" box
     dashboardLoadStatus();
+
+    if (oldPlayingStatus.stepid != playingStatus.stepid) {
+      $('#table' + oldPlayingStatus.stepid).removeClass('success');
+      $('#table' + oldPlayingStatus.stepid).removeClass('warning');
+      $('#table' + playingStatus.stepid).addClass('success');
+      $('#table' + oldPlayingStatus.nextstepid).removeClass('warning');
+      $('#table' + playingStatus.nextstepid).addClass('warning');
+    }
   }
   oldPlayingStatus = playingStatus;
 }
+
+
+function populateTableIdle(status, query) {
+
+  $.ajax({
+    url: '/xScheduleQuery?Query=GetPlayLists',
+    dataType: "json",
+    indexValue: status,
+    success: function(response) {
+      populatePlaylistBox('playlists', 'Avalible Playlists');
+
+      for (var i = 0; i < response.playlists.length; i++) {
+
+
+        var idle =
+          `<tr id='table` + response.playlists[i].id + `'>
+                <td class="col-md-8">` + response.playlists[i].name + `</td>
+                <td class="col-md-3">` + response.playlists[i].nextscheduled + `</td>
+                <td class="col-md-1">` + response.playlists[i].length.split(".")[0] + `</td>
+                <td class="col-md-2">
+                  <button type="button" onclick="runCommand('Play specified playlist', '` + response.playlists[i].name + `')" class="btn btn-info btn-xs" name="button">Play</button>
+                  <button type="button" onclick="updatePage('page', 'playlists','` + response.playlists[i].name + `')" class="btn btn-default btn-xs" title='More info' name="button">View</button>
+                </td>
+             </tr>`;
+        $("#playlistItems").append(idle);
+      }
+
+      // load Table Logic
+
+
+      $('#tablePlaylists').dataTable({
+        "ordering": false,
+        "searching": false,
+      });
+
+
+    }
+  });
+}
+
+function populateTablePlaying() {
+
+  $.ajax({
+    url: '/xScheduleQuery?Query=GetPlayListSteps&Parameters=' + playingStatus.playlist,
+    dataType: "json",
+    success: function(response) {
+
+      populatePlaylistBox('steps', playingStatus.playlist + ': ');
+
+      for (var i = 0; i < response.steps.length; i++) {
+        var playing =
+          `<tr id='table` + response.steps[i].id + `'>
+              <td class="col-md-8">` + response.steps[i].name + `</td>
+              <td class="col-md-1">` + response.steps[i].length.split(".")[0] + `</td>
+              <td class="col-md-2">
+                  <button type="button" onclick="runCommand('Play playlist starting at step', '` + playingStatus.playlist + `,` + response.steps[i].name + `')" class="btn btn-info btn-xs " name="button" title="Jump to this step">Play</button>
+                   <!--<button type="button" class="btn btn-default btn-xs glyphicon glyphicon-plus" onclick="runCommand('Enqueue playlist step', '` + playingStatus.playlist + `,` + response.steps[i].name + `')" name="button" title="Queue step next"></button
+              </td>
+           </tr>`;
+        $("#playlistItems").append(playing);
+      }
+      // load Table Logic
+      $('#tableSteps').dataTable({
+        "ordering": false,
+        "searching": false,
+      });
+
+
+    }
+  });
+}
+
 
 function dashboardLoadStatus() {
 
@@ -54,7 +144,8 @@ function dashboardLoadStatus() {
     var notPlaying = '<p><center>Show Not Running!</center></p>';
     $('#currentStep').html(notPlaying);
     $("#controlButtonContainer").html("");
-    populatePlaylists();
+
+
   } else {
     //playing
 
@@ -86,91 +177,59 @@ function dashboardLoadStatus() {
     // $("#currentPlaylistLoadingBar").css("width", findPercent(
     //   playingStatus
     //   .length.split(".")[0], playingStatus.left.split(".")[0]));
-    updatePlaylistSteps(playingStatus.playlist, playingStatus.step);
+    //updatePlaylistSteps(playingStatus.playlist, playingStatus.step);
   }
 }
 
-function populatePlaylists() {
-  $.ajax({
-    url: '/xScheduleQuery?Query=GetPlayLists&Parameters=',
-    dataType: "json",
-    success: function(response) {
 
-      populatePlaylistBox("Avalible Playlists");
+var statusTable = '';
 
-      $("#playlistStatus tr").remove();
-      for (var i = 0; i < response.playlists.length; i++) {
-        var activeclass = "";
-        var notPlaying =
-          `<tr>
-            <td>` + response.playlists[i].name +
-          `</td>
-            <td>` + response.playlists[i].length.split(
-            ".")[0] +
-          `</td>
-            <td>
-              <button type="button" onclick="runCommand('Play specified playlist', '` +
-          response.playlists[i].name +
-          `')" class="btn btn-info btn-xs" name="button">Play</button>
-            </td>
-          </tr>`;
+function populatePlaylistBox(type, title) {
 
-        $("#playlistStatus").append(notPlaying);
-      }
-    }
-  });
-}
-
-function updatePlaylistSteps(playlist, currentStep) {
-  $.ajax({
-    url: '/xScheduleQuery?Query=GetPlayListSteps&Parameters=' + playlist,
-    dataType: "json",
-    success: function(response) {
-      populatePlaylistBox("Current Playlist");
-
-      $("#playlistStatus tr").remove();
-      for (var i = 0; i < response.steps.length; i++) {
-        var activeclass = "";
-        var notPlaying =
-          `<tr>
-            <td>` + response.steps[i].name +
-          `</td>
-            <td>` + response.steps[i].length.split(
-            ".")[0] +
-          `</td>
-            <td>
-              <button type="button" onclick="runCommand('Play specified playlist', '` + response.steps[i].name + `', '1')" class="btn btn-info btn-xs " name="button" title="Jump to this step">Play</button>
-              <button type="button" class="btn btn-default btn-xs glyphicon glyphicon-plus" onclick="runCommand('Enqueue playlist step', '` + playlist + `,` + response.steps[i].name + `')" name="button" title="Queue step next"</button>
-            </td>
-          </tr>`;
-
-        $("#playlistStatus").append(notPlaying);
-      }
-    }
-  });
-}
-
-function populatePlaylistBox(title) {
-  var html =
+  var playlists =
     `<div class="panel panel-default">
-      <div class="panel-heading">
-        <h3 id="currentPlaylist" class="panel-title">` +
-    title +
-    `</h3>
+      <div class="panel-heading main-color-bg">
+        <h3 id="currentPlaylist" id="playlistTableTitle" class="panel-title">` + title + `</h3>
       </div>
       <div class="panel-body">
-        <table class="table table-striped table-hover">
+        <table id="tablePlaylists" class="table table-striped table-hover  table-bordered">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Duration</th>
-              <th>Actions</th>
+              <th class="col-md-8">Name</th>
+              <th class="col-md-3">Schedule</th>
+              <th class="col-md-1">Length</th>
+              <th class="col-md-2">Actions</th>
             </tr>
           </thead>
-            <tbody id="playlistStatus">
+          <tbody id="playlistItems">
           </tbody>
           </table>
       </div>
     </div>`;
-  $("#homePlaylists").html(html);
+
+  var steps =
+    `<div class="panel panel-default">
+        <div class="panel-heading main-color-bg">
+          <h3 id="currentPlaylist" id="playlistTableTitle" class="panel-title">` + title + `</h3>
+        </div>
+        <div class="panel-body">
+          <table id="tableSteps" class="table table-striped table-hover  table-bordered">
+            <thead>
+              <tr>
+                <th class="col-md-8">Name</th>
+                <th class="col-md-1">Length</th>
+                <th class="col-md-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="playlistItems">
+            </tbody>
+            </table>
+        </div>
+      </div>`;
+  if (type == 'playlists') {
+    $("#playlistsTable").html(playlists);
+  } else if (type == 'steps') {
+    $("#playlistsTable").html(steps);
+  }
+
 }

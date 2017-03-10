@@ -54,20 +54,20 @@ function loadUISettings() {
     success: function(response) {
       uiSettings = JSON.parse(response);
       populateUI();
-      if (getQueryVariable("plugins") == false) {
+      if (getQueryVariable("plugin") == false) {
         populateSideBar();
       }
     },
     error: function(response) {
       var defaultSettings =
         `{
-    "webName":"xLights Scheduler",
-    "webColor":"#e74c3c",
-    "notificationLevel":"1",
-    "home":[true, false],
-    "playlists":[true, true],
-    "settings":[true, true]
-    }`;
+      "webName":"xLights Scheduler",
+      "webColor":"#e74c3c",
+      "notificationLevel":"1",
+      "home":[true, false],
+      "playlists":[true, true],
+      "settings":[true, true]
+      }`;
       storeKey('uiSettings', defaultSettings);
       uiSettings = JSON.parse(defaultSettings);
       populateUI();
@@ -153,26 +153,23 @@ function logout() {
 }
 
 function runCommand(name, param) {
-  if (param == undefined) {
-    $.ajax({
-      url: '/xScheduleCommand?Command=' + name,
-      success: function(response) {
-        if (response.result == 'ok')
-          notification(response.result + ': ' + response.message, 'success', '2')
-        if (response.result == 'failed')
-          notification('Failed: ' + response.message, 'danger', '0');
-      },
-      error: function(response) {
-        notification(response.result + ': ' + response.message, 'danger', '1');
-      }
-    });
-  } else {
-    $.ajax({
-      url: '/xScheduleCommand?Command=' + name + '&Parameters=' +
-        param,
-      success: function(response) {}
-    });
-  }
+  if (param == undefined)
+    var command = name
+  else
+    var command = name + '&Parameters=' + param
+
+  $.ajax({
+    url: '/xScheduleCommand?Command=' + command,
+    success: function(response) {
+      if (response.result == 'ok')
+        notification(response.result + ': ' + response.message, 'success', '2');
+      if (response.result == 'failed')
+        notification('Failed: ' + response.message, 'danger', '0');
+    },
+    error: function(response) {
+      notification(response.result + ': ' + response.message, 'danger', '1');
+    }
+  });
 }
 
 function findPercent(length, left) {
@@ -190,16 +187,13 @@ function updateNavStatus() {
 
   if (playingStatus.status == 'idle') {
 
-    $('#random').attr('class',
-      "btn btn-default glyphicon glyphicon-random disabled"
-    );
-    $('#steplooping').attr('class',
-      "btn btn-default glyphicon glyphicon-repeat disabled"
-    );
-    $('#playlistlooping').attr('class',
-      "btn btn-default glyphicon glyphicon-refresh disabled"
-    );
+    $('#random').attr('disabled', 'disabled');
+    $('#steplooping').attr('disabled', 'disabled');
+    $('#playlistlooping').attr('disabled', 'disabled');
   } else {
+    $('#random').removeAttr("disabled");
+    $('#steplooping').removeAttr("disabled");
+    $('#playlistlooping').removeAttr("disabled");
 
     if (playingStatus['random'] == "false") {
       $('#random').attr('class',

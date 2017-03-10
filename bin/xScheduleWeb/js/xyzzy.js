@@ -98,9 +98,8 @@ function xyzzyCommand(c) {
 
 function xyzzyDraw(step) {
   var step1 =
-    `<h2>Billy</h2>
-  <h4>High Score: 420</h4>
-  <br />
+    `<!--<h2>Billy</h2>
+  <h4>High Score: 420</h4>-->
   <h2>Enter Name:</h2>
   <input id="xyzzyName" type="text" class="form-control">
   <button data-dismiss="modal" aria-label="Close" onclick="startXyzzy($('#xyzzyName').value)" class="btn btn-success">Play</button>`;
@@ -122,11 +121,11 @@ function xyzzyDraw(step) {
   var step3 =
     `<h1>Game Over</h1>
     <h2 id="xyzzyPlayerName"></h2>
-  <h4 id="xyzzyScore"></h4>
-  <h2 id="xyzzyHighScoreName"></h2>
-<h4 id="xyzzyHighScore"></h4>
-  <br />
-  <button onclick="xyzzyRestart()" class="btn btn-info">Restart</button>`;
+    <h4 id="xyzzyScore"></h4>
+    <h2 id="xyzzyHighScoreName"></h2>
+    <h4 id="xyzzyHighScore"></h4>
+    <br />
+    <button onclick="xyzzyRestart()" class="btn btn-info">Restart</button>`;
 
   if (step == "step1") {
     $("#xyzzyContainer").html(step1);

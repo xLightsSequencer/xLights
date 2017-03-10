@@ -214,7 +214,7 @@ outline: 0;
   padding: 40px 40px;
 }
 tr {
-width: 90%;
+width: 100%;
 display: inline-table;
 table-layout: fixed;
 }
@@ -223,9 +223,9 @@ table{
  height:300px;              // <-- Select the height of the table
  display: -moz-groupbox;    // Firefox Bad Effect
 }
-tbody{
+/*tbody{
   overflow-y: scroll;
-  height: 250px;            //  <-- Select the height of the body
+  height: 300px;            //  <-- Select the height of the body
   width: 80%;
   position: absolute;
-}
+}*/

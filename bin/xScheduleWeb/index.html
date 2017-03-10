@@ -9,6 +9,7 @@
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/bootstrap-slider.min.css" rel="stylesheet">
+    <link href="css/dataTables.bootstrap.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -34,16 +35,17 @@
               <span class="caret"></span></a>
               <ul class="dropdown-menu"></ul>
             </li>
-            <!-- <li id="plugins" class="dropdown">
+            <li id="plugins" class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown" href="#">Plugins
               <span class="caret"></span></a>
               <ul class="dropdown-menu">
               </ul>
-            </li> -->
+            </li>
             <li id="settings"><a onclick="updatePage('page','settings')">Settings</a></li>
           </ul>
 
           <ul class="nav navbar-nav navbar-right">
+            <li><a onclick="runCommand('Bring to foreground')">Open xSchedule</a></li>
             <li><a onclick="logout()">Logout</a></li>
           </ul>
         </div><!--/.nav-collapse -->
@@ -57,9 +59,9 @@
             <h3><img id='nutcrackerLogo' src="img/xlights.png" height="50px"><span id='headerName'><span></h3>
           </div>
           <div id="toggleButtonContainer" class="col-md-5 text-right nav-buttons">
-            <button onclick="runCommand('Toggle current playlist random')" id="random" title='Randomize Playlist' class="btn btn-default glyphicon glyphicon-random disabled"></button>
-            <button onclick="runCommand('Toggle loop current step')" id="steplooping" title='Loop Current Step' class="btn btn-default glyphicon glyphicon-repeat disabled"></button>
-            <button onclick="runCommand('Toggle current playlist loop')" id="playlistlooping" title='Loop Playlist' class="btn btn-default glyphicon glyphicon-refresh disabled"></button>
+            <button onclick="runCommand('Toggle current playlist random')" id="random" title='Randomize Playlist' class="btn btn-default glyphicon glyphicon-random" disabled></button>
+            <button onclick="runCommand('Toggle loop current step')" id="steplooping" title='Loop Current Step' class="btn btn-default glyphicon glyphicon-repeat" disabled></button>
+            <button onclick="runCommand('Toggle current playlist loop')" id="playlistlooping" title='Loop Playlist' class="btn btn-default glyphicon glyphicon-refresh " disabled></button>
             <button class="btn btn-danger glyphicon glyphicon-eye-open" id="outputtolights"  title='Toggle Ouput to lights' type="button" onclick="runCommand('Toggle output to lights')"></button>
             <button class="btn btn-info glyphicon glyphicon-info-sign" type="button" title='Click for assistance' data-toggle="modal" data-target="#help"></button>
           </div>
@@ -89,9 +91,12 @@
     <script src="js/bootstrap.min.js"></script>
     <script src="js/bootstrap-slider.min.js"></script>
     <script src="js/bootstrap-notify.min.js"></script>
+    <script src="js/jquery.dataTables.min.js"></script>
+    <script src="js/dataTables.bootstrap4.min.js"></script>
     <script src="js/pageNavagation.js"></script>
     <script src="js/core.js"></script>
     <script src="js/webSocket.js"></script>
     <script src="js/xyzzy.js"></script>
+
   </body>
 </html>
