@@ -25,7 +25,7 @@ class Schedule
     int _priority;
     bool _active;
     bool _enabled;
-	
+
     bool IsOkDOW(const wxDateTime& date);
     bool CheckActiveAt(const wxDateTime& now);
 
@@ -75,7 +75,7 @@ class Schedule
         std::string GetNextTriggerTime();
         std::string GetNextEndTime();
         void AddMinsToEndTime(int mins);
-        wxDateTime Schedule::GetNextTriggerDateTime();
+        wxDateTime GetNextTriggerDateTime();
 };
 
-#endif 
+#endif
