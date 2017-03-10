@@ -127,7 +127,7 @@ std::string ProcessCommand(HttpConnection &connection, const std::string& comman
 
     if (!CheckLoggedIn(connection))
     {
-        return "{\"result\":\"not logged in\",\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
+        return "{\"result\":\"not logged in\",\"command\":\""+command+"\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
     }
 
 #ifdef DETAILED_LOGGING
@@ -143,7 +143,7 @@ std::string ProcessCommand(HttpConnection &connection, const std::string& comman
         event.SetInt(rate);
         wxPostEvent(wxGetApp().GetTopWindow(), event);
 
-        result = "{\"result\":\"ok\"}", "application/json";
+        result = "{\"result\":\"ok\",\"command\":\""+command+"\"}", "application/json";
 
 #ifdef DETAILED_LOGGING
         logger_base.info("    Time %ld.", sw.Time());
@@ -151,7 +151,7 @@ std::string ProcessCommand(HttpConnection &connection, const std::string& comman
     }
     else
     {
-        result = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
+        result = "{\"result\":\"failed\",\"command\":\""+command+"\",\"message\":\"" + msg + "\"}";
         logger_base.info("Command command=%s parameters=%s result='%s'. Time %ld.", (const char *)command.c_str(), (const char*)parameters.c_str(), (const char *)msg.c_str(), sw.Time());
     }
 
@@ -165,7 +165,7 @@ std::string ProcessQuery(HttpConnection &connection, const std::string& query, c
 
     if (!CheckLoggedIn(connection))
     {
-        return "{\"result\":\"not logged in\",\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
+        return "{\"result\":\"not logged in\",\"query\":\""+query+"\",\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
     }
 
     // log everything but playing status
@@ -185,7 +185,7 @@ std::string ProcessQuery(HttpConnection &connection, const std::string& query, c
     }
     else
     {
-        result = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
+        result = "{\"result\":\"failed\",\"query\":\""+query+"\",\"message\":\"" + msg + "\"}";
         logger_base.info("    data = '' : '%s'. Time = %ld.", (const char *)result.c_str(), sw.Time());
     }
 
@@ -208,7 +208,7 @@ std::string ProcessXyzzy(HttpConnection &connection, const std::string& command,
     }
     else
     {
-        result = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
+        result = "{\"result\":\"failed\",\"xyzzy\":\""+command+"\",\"message\":\"" + msg + "\"}";
         logger_base.info("xyzzy command=%s parameters=%s result='%s'. Time %ld.", (const char *)command.c_str(), (const char*)parameters.c_str(), (const char *)msg.c_str(), sw.Time());
     }
 
@@ -232,7 +232,7 @@ std::string ProcessLogin(HttpConnection &connection, const std::string& credenti
         {
             // this is a valid login
             AddToValid(connection);
-            result = "{\"result\":\"ok\"}", "application/json";
+            result = "{\"result\":\"ok\",\"command\":\"login\"}", "application/json";
 
             // THIS SHOULD BE REMOVED
             //logger_base.debug("Security: Login %s success.", (const char *)credential.c_str());
@@ -247,13 +247,13 @@ std::string ProcessLogin(HttpConnection &connection, const std::string& credenti
 
             RemoveFromValid(connection);
 
-            result = "{\"result\":\"failed\",\"message\":\"Login failed.\",\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
+            result = "{\"result\":\"failed\",\"command\":\"login\",\"message\":\"Login failed.\",\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
             logger_base.debug("Security: Login failed. data = '%s'. Time = %ld.", (const char *)result.c_str(), sw.Time());
         }
     }
     else
     {
-        result = "{\"result\":\"ok\"}";
+        result = "{\"result\":\"ok\",\"command\":\"login\"}";
     }
 
     return result;
@@ -266,7 +266,7 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
 
     if (!CheckLoggedIn(connection))
     {
-        return "{\"result\":\"not logged in\",\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
+        return "{\"result\":\"not logged in\",\"stash\":\""+command+"\",\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
         data = "";
     }
 
@@ -284,11 +284,11 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
 #ifdef DETAILED_LOGGING
             logger_base.info("    Time %ld.", sw.Time());
 #endif
-            result = "{\"result\":\"ok\"}";
+            result = "{\"result\":\"ok\",\"stash\":\""+command+"\"}";
         }
         else
         {
-            result = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
+            result = "{\"result\":\"failed\",\"stash\":\""+command+"\",\"message\":\"" + msg + "\"}";
             logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
         }
     }
@@ -302,13 +302,13 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
         }
         else
         {
-            result = "{\"result\":\"failed\",\"message\":\"" + msg + "\"}";
+            result = "{\"result\":\"failed\",\"stash\":\""+command+"\",\"message\":\"" + msg + "\"}";
             logger_base.info("    data = '' : '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
         }
     }
     else
     {
-        result = "{\"result\":\"failed\",\"message\":\"Unknown stash command.\"}";
+        result = "{\"result\":\"failed\",\"stash\":\""+command+"\",\"message\":\"Unknown stash command.\"}";
         logger_base.info("    '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
     }
     return result;
