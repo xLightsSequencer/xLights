@@ -43,6 +43,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
 
     _backgroundPlayList = nullptr;
     _queuedSongs = new PlayList();
+    _queuedSongs->SetName("Song Queue");
     _fppSyncMaster = nullptr;
     _fppSyncSlave = nullptr;
     _manualOTL = -1;
