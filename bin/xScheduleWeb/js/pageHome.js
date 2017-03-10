@@ -10,7 +10,7 @@ $("#brightness").on("slide", function(slideEvt) {
 $(document).ready(function() {
   window.setInterval(function() {
     checkForUpdate();
-  }, 1000);
+  }, 100);
 
   if (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)) {
     $('#sideNav').html("");
