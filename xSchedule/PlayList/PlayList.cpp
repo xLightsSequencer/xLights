@@ -821,7 +821,7 @@ PlayListStep* PlayList::GetRandomStep()
 
 bool PlayList::LoopStep(const std::string step)
 {
-    if (_currentStep == nullptr || wxString(_currentStep->GetName()).Lower() != wxString(step).Lower())
+    if (_currentStep == nullptr || wxString(_currentStep->GetNameNoTime()).Lower() != wxString(step).Lower())
     {
         JumpToStep(step);
     }
