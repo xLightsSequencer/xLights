@@ -1671,8 +1671,30 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 {
                     data += ",";
                 }
+
+                std::string first;
+                if (*it == steps.front()  && p->GetFirstOnce())
+                {
+                    first = "\",\"startonly\":\"true";
+                }
+                else
+                {
+                    first = "\",\"startonly\":\"false";
+                }
+
+                std::string last;
+                if (*it == steps.back() && p->GetLastOnce())
+                {
+                    last = "\",\"endonly\":\"true";
+                }
+                else
+                {
+                    last = "\",\"endonly\":\"false";
+                }
+
                 data += "{\"name\":\"" + (*it)->GetNameNoTime() +
-                        "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() +
+                    "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() +
+                    first + last +
                         "\",\"length\":\""+FormatTime((*it)->GetLengthMS())+"\"}";
             }
             data += "],\"reference\":\""+reference+"\"}";
