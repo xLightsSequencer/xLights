@@ -914,7 +914,8 @@ void xScheduleFrame::LoadShowDir()
     wxString showDir;
     if (!config->Read(_("SchedulerLastDir"), &showDir))
     {
-        if (!config->Read(_("LastDir"), &showDir))
+        wxConfig *xlconfig = new wxConfig(_("xLights"));
+        if (xlconfig == nullptr || !xlconfig->Read(_("LastDir"), &showDir))
         {
             DirDialog1->SetPath(_showDir);
 
@@ -932,6 +933,10 @@ void xScheduleFrame::LoadShowDir()
         {
             _showDir = showDir.ToStdString();
             SaveShowDir();
+        }
+        if (xlconfig != nullptr)
+        {
+            delete xlconfig;
         }
     }
     else

@@ -853,10 +853,13 @@ wxString Model::SerialiseState()
     wxString res = "";
 
     if (!stateInfo.empty()) {
-        for (auto it = stateInfo.begin(); it != stateInfo.end(); it++) {
+        for (auto it = stateInfo.begin(); it != stateInfo.end(); ++it) {
             res += "    <stateInfo Name=\"" + it->first + "\" ";
-            for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-                res += it2->first + "=\"" + it2->second + "\" ";
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
+                if (it2->first != "")
+                {
+                    res += it2->first + "=\"" + it2->second + "\" ";
+                }
             }
             res += "/>\n";
         }
