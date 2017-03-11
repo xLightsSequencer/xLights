@@ -4,6 +4,7 @@
 #include <log4cpp/Category.hh>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
+#include <wx/dir.h>
 #include "xScheduleMain.h"
 #include "ScheduleManager.h"
 #include <wx/uri.h>
@@ -150,7 +151,7 @@ std::string ProcessCommand(HttpConnection &connection, const std::string& comman
 
         result = "{\"result\":\"ok\",\"reference\":\""+
             reference+"\",\"command\":\""+
-            command+"\"}", "application/json";
+            command+"\"}";
 
 #ifdef DETAILED_LOGGING
         logger_base.info("    Time %ld.", sw.Time());
@@ -251,7 +252,7 @@ std::string ProcessLogin(HttpConnection &connection, const std::string& credenti
         {
             // this is a valid login
             AddToValid(connection);
-            result = "{\"result\":\"ok\",\"reference\":\""+reference+"\",\"command\":\"login\"}", "application/json";
+            result = "{\"result\":\"ok\",\"reference\":\""+reference+"\",\"command\":\"login\"}";
 
             // THIS SHOULD BE REMOVED
             //logger_base.debug("Security: Login %s success.", (const char *)credential.c_str());
