@@ -630,6 +630,7 @@ xScheduleFrame::~xScheduleFrame()
     config->Write("xsWindowPosY", y);
     config->Write("xsWindowPosW", w);
     config->Write("xsWindowPosH", h);
+    config->Flush();
 
     //(*Destroy(xScheduleFrame)
     //*)
@@ -903,6 +904,7 @@ void xScheduleFrame::SaveShowDir() const
 {
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("SchedulerLastDir", wxString(_showDir));
+    config->Flush();
 }
 
 void xScheduleFrame::LoadShowDir()

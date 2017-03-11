@@ -1097,5 +1097,6 @@ void Xyzzy::SaveHighScore()
         wxConfigBase* config = wxConfigBase::Get();
         config->Write("XyzzyHighScore", _highScore);
         config->Write("XyzzyHighScoreOwner", wxString(_highScoreOwner));
+        config->Flush();
     }
 }

@@ -196,6 +196,7 @@ PlayListDialog::~PlayListDialog()
     config->Write("xsPLWindowPosY", y);
     config->Write("xsPLWindowPosW", w);
     config->Write("xsPLWindowPosH", h);
+    config->Flush();
 
     // manually remove the notebook page to force updating now rather than during deletion
     SwapPage(nullptr);

@@ -2258,6 +2258,7 @@ void ScheduleManager::SetMode(SYNCMODE mode)
 
         wxConfigBase* config = wxConfigBase::Get();
         config->Write("SyncMode", (long)_mode);
+        config->Flush();
 
         if (_mode == SYNCMODE::FPPMASTER)
         {
