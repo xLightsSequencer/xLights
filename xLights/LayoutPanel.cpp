@@ -2092,7 +2092,24 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
 void LayoutPanel::DeleteSelectedModel() {
     if( selectedModel != nullptr ) {
         CreateUndoPoint("All", selectedModel->name);
-        xlights->AllModels.Delete(selectedModel->name);
+        // This should delete all selected models
+        //xlights->AllModels.Delete(selectedModel->name);
+        bool selectedModelFound = false;
+        for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
+        {
+            if (modelPreview->GetModels()[i]->GroupSelected)
+            {
+                if (!selectedModelFound && modelPreview->GetModels()[i]->name == selectedModel->name)
+                {
+                    selectedModelFound = true;
+                }
+                xlights->AllModels.Delete(modelPreview->GetModels()[i]->name);
+            }
+        }
+        if (!selectedModelFound)
+        {
+            xlights->AllModels.Delete(selectedModel->name);
+        }
         selectedModel = nullptr;
         xlights->UpdateModelsList();
         xlights->MarkEffectsFileDirty(true);
