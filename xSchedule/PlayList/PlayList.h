@@ -123,6 +123,8 @@ public:
     void RestartCurrentStep();
     PlayListStep* GetStepContainingPlayListItem(wxUint32 id) const;
     PlayListStep* GetStep(const std::string& step);
+    PlayListStep* GetStep(wxUint32 id);
+    PlayListItem* GetItem(wxUint32 id);
     PlayListStep* GetStepWithFSEQ(const std::string fseqFile);
     PlayListStep* GetRandomStep();
     bool LoopStep(const std::string step);

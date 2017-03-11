@@ -212,7 +212,7 @@ std::string ScheduleOptions::GetButtonsJSON(const CommandManager &cmdMgr, const 
                     res += ",";
                 }
                 first = false;
-                res += "\"" + (*it)->GetLabel() + "\"";
+                res += "{\"label\":\"" + (*it)->GetLabel() + "\",\"id\":\"" + wxString::Format("%i", (*it)->GetId()).ToStdString() + "\"}";
             }
         }
     }
@@ -278,6 +278,19 @@ UserButton* ScheduleOptions::GetButton(const std::string& label) const
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
     {
         if (wxString((*it)->GetLabel()).Lower() == wxString(label).Lower())
+        {
+            return *it;
+        }
+    }
+
+    return nullptr;
+}
+
+UserButton* ScheduleOptions::GetButton(wxUint32 id) const
+{
+    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    {
+        if ((*it)->GetId() == id)
         {
             return *it;
         }

@@ -756,6 +756,16 @@ PlayListStep* PlayList::GetStep(const std::string& step)
     return nullptr;
 }
 
+PlayListStep* PlayList::GetStep(wxUint32 step)
+{
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        if ((*it)->GetId() == step) return (*it);
+    }
+
+    return nullptr;
+}
+
 bool PlayList::SupportsRandom() const
 {
     int count = _steps.size();
@@ -1004,3 +1014,15 @@ std::string PlayList::GetNextScheduledTime() const
         return nextdt.Format("%Y-%m-%d %H:%M").ToStdString();
     }
 }
+
+PlayListItem* PlayList::GetItem(wxUint32 id)
+{
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        auto i = (*it)->GetItem(id);
+        if (i != nullptr) return i;
+    }
+
+    return nullptr;
+}
+

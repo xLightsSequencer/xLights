@@ -1,8 +1,11 @@
 #include "UserButton.h"
 #include <wx/xml/xml.h>
 
+int __buttonid = 0;
+
 UserButton::UserButton(wxXmlNode* node)
 {
+    _id = __buttonid++;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
     Load(node);
@@ -26,6 +29,7 @@ void UserButton::Load(wxXmlNode* node)
 
 UserButton::UserButton()
 {
+    _id = __buttonid++;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
     _label = "";

@@ -853,7 +853,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else if (command == "Play specified playlist")
             {
-                PlayList* p = GetPlayList(parameters);
+                PlayList* p = GetPlayList(DecodePlayList(parameters));
 
                 if (p != nullptr)
                 {
@@ -866,7 +866,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else if (command == "Play specified playlist looped")
             {
-                PlayList* p = GetPlayList(parameters);
+                PlayList* p = GetPlayList(DecodePlayList(parameters));
 
                 if (p != nullptr)
                 {
@@ -879,7 +879,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else if (command == "Stop specified playlist")
             {
-                PlayList* p = GetPlayList(parameters);
+                PlayList* p = GetPlayList(DecodePlayList(parameters));
 
                 if (p != nullptr)
                 {
@@ -888,7 +888,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else if (command == "Stop specified playlist at end of current step")
             {
-                PlayList* p = GetPlayList(parameters);
+                PlayList* p = GetPlayList(DecodePlayList(parameters));
 
                 if (p != nullptr)
                 {
@@ -906,7 +906,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else if (command == "Stop specified playlist at end of current loop")
             {
-                PlayList* p = GetPlayList(parameters);
+                PlayList* p = GetPlayList(DecodePlayList(parameters));
 
                 if (p != nullptr)
                 {
@@ -980,8 +980,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 wxString parameter = parameters;
                 wxArrayString split = wxSplit(parameter, ',');
 
-                std::string pl = split[0].ToStdString();
-                std::string step = split[1].ToStdString();
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
 
                 PlayList* p = GetPlayList(pl);
 
@@ -1004,9 +1004,9 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 wxString parameter = parameters;
                 wxArrayString split = wxSplit(parameter, ',');
 
-                std::string pl = split[0].ToStdString();
-                std::string step = split[1].ToStdString();
-                std::string item = split[2].ToStdString();
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
+                std::string item = DecodeItem(split[2].ToStdString());
 
                 if (pl == "" && step == "")
                 {
@@ -1057,8 +1057,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 wxString parameter = parameters;
                 wxArrayString split = wxSplit(parameter, ',');
 
-                std::string pl = split[0].ToStdString();
-                std::string step = split[1].ToStdString();
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
 
                 PlayList* p = GetPlayList(pl);
 
@@ -1076,8 +1076,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 wxString parameter = parameters;
                 wxArrayString split = wxSplit(parameter, ',');
 
-                std::string pl = split[0].ToStdString();
-                std::string step = split[1].ToStdString();
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
 
                 PlayList* p = GetPlayList(pl);
 
@@ -1132,8 +1132,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 wxString parameter = parameters;
                 wxArrayString split = wxSplit(parameter, ',');
 
-                std::string pl = split[0].ToStdString();
-                std::string step = split[1].ToStdString();
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
 
                 PlayList* p = GetPlayList(pl);
 
@@ -1151,8 +1151,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 wxString parameter = parameters;
                 wxArrayString split = wxSplit(parameter, ',');
 
-                std::string pl = split[0].ToStdString();
-                std::string step = split[1].ToStdString();
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
 
                 PlayList* p = GetPlayList(pl);
 
@@ -1170,8 +1170,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 wxString parameter = parameters;
                 wxArrayString split = wxSplit(parameter, ',');
 
-                std::string pl = split[0].ToStdString();
-                std::string step = split[1].ToStdString();
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
 
                 PlayList* p = GetPlayList(pl);
 
@@ -1217,7 +1217,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else if (command == "Jump to random step in specified playlist")
             {
-                PlayList* p = GetPlayList(parameters);
+                PlayList* p = GetPlayList(DecodePlayList(parameters));
 
                 if (p != nullptr)
                 {
@@ -1305,13 +1305,13 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else if (command == "Restart named schedule")
             {
-                auto rs = GetRunningSchedule(parameters);
+                auto rs = GetRunningSchedule(DecodeSchedule(parameters));
                 if (rs != nullptr)
                     rs->Reset();
             }
             else if (command == "PressButton")
             {
-                UserButton* b = _scheduleOptions->GetButton(parameters);
+                UserButton* b = _scheduleOptions->GetButton(DecodeButton(parameters));
 
                 if (b != nullptr)
                 {
@@ -1334,7 +1334,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 wxString parameter = parameters;
                 wxArrayString split = wxSplit(parameter, ',');
 
-                std::string pl = split[0].ToStdString();
+                std::string pl = DecodePlayList(split[0].ToStdString());
                 int loops = wxAtoi(split[1]);
                 PlayList* p = GetPlayList(pl);
 
@@ -1451,7 +1451,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 wxString parameter = parameters;
                 wxArrayString split = wxSplit(parameter, ',');
 
-                std::string textname = split[0].ToStdString();
+                std::string textname = DecodeItem(split[0].ToStdString());
                 PlayListItemText* pliText = nullptr;
                 PlayList* p = GetRunningPlayList();
                 if (p != nullptr)
@@ -1527,8 +1527,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 wxString parameter = parameters;
                 wxArrayString split = wxSplit(parameter, ',');
 
-                std::string pl = split[0].ToStdString();
-                std::string step = split[1].ToStdString();
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
                 int loops = wxAtoi(split[2]);
 
                 PlayList* p = GetPlayList(pl);
@@ -1659,7 +1659,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
     }
     else if (command == "GetPlayListSteps")
     {
-        PlayList* p = GetPlayList(parameters);
+        PlayList* p = GetPlayList(DecodePlayList(parameters));
 
         if (p != nullptr)
         {
@@ -1843,7 +1843,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
     }
     else if (command == "GetPlayListSchedules")
     {
-        PlayList* p = GetPlayList(parameters);
+        PlayList* p = GetPlayList(DecodePlayList(parameters));
         if (p != nullptr)
         {
             data = "{\"schedules\":[";
@@ -1871,10 +1871,10 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
 
         if (plsc.Count() == 2)
         {
-            PlayList* p = GetPlayList(plsc[0].ToStdString());
+            PlayList* p = GetPlayList(DecodePlayList(plsc[0].ToStdString()));
             if (p != nullptr)
             {
-                Schedule* schedule = p->GetSchedule(plsc[1].ToStdString());
+                Schedule* schedule = p->GetSchedule(DecodeSchedule(plsc[1].ToStdString()));
 
                 if (schedule != nullptr)
                 {
@@ -3714,3 +3714,92 @@ PlayListStep* ScheduleManager::GetStepContainingPlayListItem(wxUint32 id) const
     return pls;
 }
 
+std::string ScheduleManager::DecodePlayList(const std::string& playlistparameter)
+{
+    if (wxString(playlistparameter).Lower().StartsWith("id:"))
+    {
+        wxUint32 id = wxAtoi(wxString(playlistparameter).Mid(3));
+        auto p = GetPlayList(id);
+        if (p != nullptr)
+        {
+            return p->GetNameNoTime();
+        }
+        return "";
+    }
+    return playlistparameter;
+}
+
+std::string ScheduleManager::DecodeStep(const std::string& stepparameter)
+{
+    if (wxString(stepparameter).Lower().StartsWith("id:"))
+    {
+        wxUint32 id = wxAtoi(wxString(stepparameter).Mid(3));
+        for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+        { 
+            auto s = (*it)->GetStep(id);
+            if (s != nullptr)
+            {
+                return s->GetNameNoTime();
+            }
+        }
+
+        return "";
+    }
+
+    return stepparameter;
+}
+
+std::string ScheduleManager::DecodeSchedule(const std::string& scheduleparameter)
+{
+    if (wxString(scheduleparameter).Lower().StartsWith("id:"))
+    {
+        wxUint32 id = wxAtoi(wxString(scheduleparameter).Mid(3));
+        for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+        {
+            auto s = (*it)->GetSchedule(id);
+            if (s != nullptr)
+            {
+                return s->GetName();
+            }
+        }
+
+        return "";
+    }
+
+    return scheduleparameter;
+}
+
+std::string ScheduleManager::DecodeItem(const std::string& itemparameter)
+{
+    if (wxString(itemparameter).Lower().StartsWith("id:"))
+    {
+        wxUint32 id = wxAtoi(wxString(itemparameter).Mid(3));
+        for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+        {
+            auto i = (*it)->GetItem(id);
+            if (i != nullptr)
+            {
+                return i->GetNameNoTime();
+            }
+        }
+
+        return "";
+    }
+
+    return itemparameter;
+}
+
+std::string ScheduleManager::DecodeButton(const std::string& buttonlabelparameter)
+{
+    if (wxString(buttonlabelparameter).Lower().StartsWith("id:"))
+    {
+        wxUint32 id = wxAtoi(wxString(buttonlabelparameter).Mid(3));
+        auto b = _scheduleOptions->GetButton(id);
+        if (b != nullptr)
+        {
+            return b->GetLabel();
+        }
+        return "";
+    }
+    return buttonlabelparameter;
+}

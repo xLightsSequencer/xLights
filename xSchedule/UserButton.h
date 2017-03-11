@@ -3,11 +3,13 @@
 
 #include <string>
 #include <list>
+#include <wx/wx.h>
 
 class wxXmlNode;
 
 class UserButton
 {
+    wxUint32 _id;
 	std::string _label;
     std::string _command;
     std::string _parameters;
@@ -23,6 +25,7 @@ class UserButton
 		UserButton();
 		virtual ~UserButton() {}
 		wxXmlNode* Save();
+        wxUint32 GetId() const { return _id; }
         bool IsDirty() const { return _changeCount != _lastSavedChangeCount; }
         void ClearDirty() { _lastSavedChangeCount = _changeCount; }
 		void SetLabel(const std::string& label) { if (_label != label) { _label = label; _changeCount++; } }

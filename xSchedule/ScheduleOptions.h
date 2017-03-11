@@ -38,6 +38,7 @@ class ScheduleOptions
         virtual ~ScheduleOptions();
         wxXmlNode* Save();
         UserButton* GetButton(const std::string& label) const;
+        UserButton* GetButton(wxUint32 id) const;
         bool IsSync() const { return _sync; }
         bool IsAdvancedMode() const { return _advancedMode; }
         std::list<MatrixMapper*>* GetMatrices() { return &_matrices; }

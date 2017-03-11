@@ -85,6 +85,11 @@ class ScheduleManager : public wxEvtHandler
     void OnServerEvent(wxSocketEvent& event);
     void StartFSEQ(const std::string fseq);
     PlayListItem* FindRunProcessNamed(const std::string& item) const;
+    std::string DecodePlayList(const std::string& playlistparameter);
+    std::string DecodeStep(const std::string& stepparameter);
+    std::string DecodeSchedule(const std::string& scheduleparameter);
+    std::string DecodeItem(const std::string& itemparameter);
+    std::string DecodeButton(const std::string& buttonlabelparameter);
 
     DECLARE_EVENT_TABLE()
 
