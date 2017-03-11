@@ -59,7 +59,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     _lastXyzzyCommand = wxDateTime::Now();
 
     wxConfigBase* config = wxConfigBase::Get();
-    _mode = (SYNCMODE)config->ReadLong("SyncMode", SYNCMODE::STANDALONE);
+    _mode = (SYNCMODE)config->ReadLong(_("SyncMode"), SYNCMODE::STANDALONE);
 
     if (_mode == SYNCMODE::FPPMASTER) OpenFPPSyncSendSocket();
     if (_mode == SYNCMODE::FPPSLAVE) OpenFPPSyncListenSocket();
@@ -121,7 +121,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     logger_base.info("Loaded outputs from %s.", (const char *)(_showDir + "/" + _outputManager->GetNetworksFileName()).c_str());
 
     wxString localIP;
-    config->Read("xLightsLocalIP", &localIP, "");
+    config->Read(_("xLightsLocalIP"), &localIP, "");
     if (localIP != "")
     {
         _outputManager->SetForceFromIP(localIP.ToStdString());

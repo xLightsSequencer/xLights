@@ -33,7 +33,7 @@ public:
         MatrixMapper();
         virtual ~MatrixMapper() {}
 		size_t Map(int x, int y) const;
-		int GetChannels() const;
+		size_t GetChannels() const;
 		int GetWidth() const;
 		int GetHeight() const;
         size_t GetStartChannel() const { return _startChannel; }

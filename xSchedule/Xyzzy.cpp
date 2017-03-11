@@ -66,8 +66,8 @@ Xyzzy::Xyzzy()
     logger_base.debug("Xyzzy created.");
 
     wxConfigBase* config = wxConfigBase::Get();
-    _highScore = config->ReadLong("XyzzyHighScore", 0);
-    _highScoreOwner = config->Read("XyzzyHighScoreOwner", "").ToStdString();
+    _highScore = config->ReadLong(_("XyzzyHighScore"), 0);
+    _highScoreOwner = config->Read(_("XyzzyHighScoreOwner"), "").ToStdString();
 
     logger_base.debug("High score %d %s.", _highScore, (const char *)_highScoreOwner.c_str());
 

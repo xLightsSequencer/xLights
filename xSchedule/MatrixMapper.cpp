@@ -283,7 +283,7 @@ size_t MatrixMapper::Map(int x, int y) const
     return loc;
 }
 
-int MatrixMapper::GetChannels() const
+size_t MatrixMapper::GetChannels() const
 {
     return _stringLength * _strings * 3;
 }

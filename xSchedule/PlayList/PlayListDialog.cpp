@@ -159,10 +159,10 @@ PlayListDialog::PlayListDialog(wxWindow* parent, PlayList* playlist, wxWindowID 
 
     int x, y, w, h;
     wxConfigBase* config = wxConfigBase::Get();
-    x = config->ReadLong("xsPLWindowPosX", 50);
-    y = config->ReadLong("xsPLWindowPosY", 50);
-    w = config->ReadLong("xsPLWindowPosW", 800);
-    h = config->ReadLong("xsPLWindowPosH", 600);
+    x = config->ReadLong(_("xsPLWindowPosX"), 50);
+    y = config->ReadLong(_("xsPLWindowPosY"), 50);
+    w = config->ReadLong(_("xsPLWindowPosW"), 800);
+    h = config->ReadLong(_("xsPLWindowPosH"), 600);
     SetPosition(wxPoint(x, y));
     SetSize(w, h);
 

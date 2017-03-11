@@ -14,8 +14,8 @@ class VirtualMatrix
     int _changeCount;
     int _lastSavedChangeCount;
     std::string _name;
-	int _width;
-	int _height;
+	size_t _width;
+	size_t _height;
     bool _topMost;
     wxSize _size;
     wxPoint _location;
@@ -45,8 +45,8 @@ public:
         void SetStartChannel(const size_t startChannel) { if (startChannel != _startChannel) { _startChannel = startChannel; _changeCount++; } }
         std::string GetName() const { return _name; }
         void SetName(const std::string& name) { if (name != _name) { _name = name; _changeCount++; } }
-        int GetWidth() const { return _width; }
-        int GetHeight() const { return _height; }
+        size_t GetWidth() const { return _width; }
+        size_t GetHeight() const { return _height; }
         wxSize GetSize() const { return _size; }
         wxPoint GetLocation() const { return _location; }
         bool GetTopMost() const { return _topMost; }
@@ -55,8 +55,8 @@ public:
         bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
         void ClearDirty() { _lastSavedChangeCount = _changeCount; }
         wxXmlNode* Save();
-        void SetWidth(const int width) { if (width != _width) { _width = width; _changeCount++; } }
-        void SetHeight(const int height) { if (height != _height) { _height = height; _changeCount++; } }
+        void SetWidth(const size_t width) { if (width != _width) { _width = width; _changeCount++; } }
+        void SetHeight(const size_t height) { if (height != _height) { _height = height; _changeCount++; } }
         void SetTopMost(const bool topMost) { if (topMost != _topMost) { _topMost = topMost; _changeCount++; } }
         void SetScalingQuality(const wxImageResizeQuality quality) { if (quality != _quality) { _quality = quality; _changeCount++; } }
         void SetRotation(const VMROTATION rotation) { if (rotation != _rotation) { _rotation = rotation; _changeCount++; } }

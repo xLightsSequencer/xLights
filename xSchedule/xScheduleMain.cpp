@@ -504,10 +504,10 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     int x, y, w, h;
     wxConfigBase* config = wxConfigBase::Get();
-    x = config->ReadLong("xsWindowPosX", 50);
-    y = config->ReadLong("xsWindowPosY", 50);
-    w = config->ReadLong("xsWindowPosW", 800);
-    h = config->ReadLong("xsWindowPosH", 600);
+    x = config->ReadLong(_("xsWindowPosX"), 50);
+    y = config->ReadLong(_("xsWindowPosY"), 50);
+    w = config->ReadLong(_("xsWindowPosW"), 800);
+    h = config->ReadLong(_("xsWindowPosH"), 600);
 
     // limit weirdness
     if (x < -100) x = 0;
@@ -910,9 +910,9 @@ void xScheduleFrame::LoadShowDir()
     // get the show directory
     wxConfigBase* config = wxConfigBase::Get();
     wxString showDir;
-    if (!config->Read("SchedulerLastDir", &showDir))
+    if (!config->Read(_("SchedulerLastDir"), &showDir))
     {
-        if (!config->Read("LastDir", &showDir))
+        if (!config->Read(_("LastDir"), &showDir))
         {
             DirDialog1->SetPath(_showDir);
 
