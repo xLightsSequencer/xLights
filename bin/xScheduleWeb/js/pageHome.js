@@ -43,8 +43,29 @@ function checkForUpdate() {
     //status changed redraw page
     if (playingStatus.status == 'idle') {
       populateTableIdle();
+      $("#controlButtonContainer").html("");
     } else if (playingStatus.status == 'playing') {
       populateTablePlaying();
+
+      var toggleButtons =
+        `<div class="span6 text-center">
+      <button onclick="runCommand('Prior step in current playlist')" class="btn btn-default glyphicon glyphicon-backward" title='Back' type="button"></button>
+      <button id="buttonPlayPause" onclick="runCommand('Pause')" class="btn btn-default glyphicon glyphicon-pause" title='Pause' type="button"></button>
+      <button onclick="runCommand('Stop all now')" class="btn btn-default glyphicon glyphicon-stop" title='Stop All' ype="button"></button>
+      <button onclick="runCommand('Next step in current playlist')" class="btn btn-default glyphicon glyphicon-forward" title='Next' type="button"></button>
+      </div>`;
+      $("#controlButtonContainer").html(toggleButtons);
+
+
+    } else if (playingStatus.status == 'paused') {
+      var toggleButtons =
+        `<div class="span6 text-center">
+      <button onclick="runCommand('Prior step in current playlist')" class="btn btn-default glyphicon glyphicon-backward" title='Back' type="button"></button>
+      <button id="buttonPlayPause" onclick="runCommand('Pause')" class="btn btn-default glyphicon glyphicon-play" title='Pause' type="button"></button>
+      <button onclick="runCommand('Stop all now')" class="btn btn-default glyphicon glyphicon-stop" title='Stop All' ype="button"></button>
+      <button onclick="runCommand('Next step in current playlist')" class="btn btn-default glyphicon glyphicon-forward" title='Next' type="button"></button>
+      </div>`;
+      $("#controlButtonContainer").html(toggleButtons);
 
     }
     dashboardLoadStatus();
@@ -149,15 +170,6 @@ function dashboardLoadStatus() {
   } else {
     //playing
 
-    var toggleButtons =
-      `<div class="span6 text-center">
-    <button onclick="runCommand('Prior step in current playlist')" class="btn btn-default glyphicon glyphicon-backward" title='Back' type="button"></button>
-    <button onclick="runCommand('Pause')" class="btn btn-default glyphicon glyphicon-play" title='Play' type="button"></button>
-    <button onclick="runCommand('Pause')" class="btn btn-default glyphicon glyphicon-pause" title='Pause' type="button"></button>
-    <button onclick="runCommand('Stop all now')" class="btn btn-default glyphicon glyphicon-stop" title='Stop All' ype="button"></button>
-    <button onclick="runCommand('Next step in current playlist')" class="btn btn-default glyphicon glyphicon-forward" title='Next' type="button"></button>
-    </div>`;
-    //CLEAN UP!
     var currentPlaylist =
       `<span class="icon"><i class="icon-file"></i></span><h5>Playlist: ` +
       playingStatus.playlist + `</h5>`
@@ -172,7 +184,6 @@ function dashboardLoadStatus() {
       `;
 
     $("#currentStep").html(Playing);
-    $("#controlButtonContainer").html(toggleButtons);
     //Set bar
     // $("#currentPlaylistLoadingBar").css("width", findPercent(
     //   playingStatus

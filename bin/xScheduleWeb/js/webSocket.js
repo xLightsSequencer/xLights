@@ -4,14 +4,16 @@ const socket = new WebSocket(url);
 // Connection opened
 socket.addEventListener('open', function(event) {
   console.log("Socket Opened");
-  socket.send('{"GetPlaylistStatus"}');
-  wsStatus = 'connected';
 });
 
 socket.addEventListener('message', function(event) {
   var response = JSON.parse(event.data);
   if (response.status != undefined) {
     playingStatus = response;
+  }
+
+  if (response.result == 'failed') {
+    notification('Failed: ' + response.message, 'danger', '0');
   }
 });
 socket.onclose = function(e) {

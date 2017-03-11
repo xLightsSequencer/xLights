@@ -153,23 +153,36 @@ function logout() {
 }
 
 function runCommand(name, param) {
-  if (param == undefined)
-    var command = name
-  else
-    var command = name + '&Parameters=' + param
 
-  $.ajax({
-    url: '/xScheduleCommand?Command=' + command,
-    success: function(response) {
-      if (response.result == 'ok')
-        notification(response.result + ': ' + response.message, 'success', '2');
-      if (response.result == 'failed')
-        notification('Failed: ' + response.message, 'danger', '0');
-    },
-    error: function(response) {
-      notification(response.result + ': ' + response.message, 'danger', '1');
+  //if websocket if open use that
+  console.log('hello');
+  if (socket.readyState <= '1') {
+    if (param == undefined) {
+      socket.send('{"Type":"Command","Command":"' + name + '","Parameters":""}');
+    } else {
+      console.log("ran");
+      socket.send('{"Type":"Command","Command":"' + name + '","Parameters":"' + param + '"}');
     }
-  });
+  } else {
+
+    if (param == undefined)
+      var command = name
+    else
+      var command = name + '&Parameters=' + param
+
+    $.ajax({
+      url: '/xScheduleCommand?Command=' + command,
+      success: function(response) {
+        if (response.result == 'ok')
+          notification(response.result + ': ' + response.message, 'success', '2');
+        if (response.result == 'failed')
+          notification('Failed: ' + response.message, 'danger', '0');
+      },
+      error: function(response) {
+        notification(response.result + ': ' + response.message, 'danger', '1');
+      }
+    });
+  }
 }
 
 function findPercent(length, left) {
