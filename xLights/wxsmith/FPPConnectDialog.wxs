@@ -27,9 +27,8 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL_IPAddress" variable="TextCtrl_IPAddress" member="yes">
-										<maxlength>15</maxlength>
-										<handler function="OnTextCtrl_IPAddressText" entry="EVT_TEXT" />
+									<object class="wxComboBox" name="ID_COMBOBOX_IPAddress" variable="ComboBox_IPAddress" member="yes">
+										<handler function="OnComboBox_IPAddressSelected" entry="EVT_COMBOBOX" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>

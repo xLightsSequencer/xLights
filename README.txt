@@ -25,6 +25,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Fix schedule queueing
    -- bug (keith)   Fix schedule blend modes
    -- enh (keith)   Code SSE instructions for scheduler blend mode. Currently disabled.
+   -- enh (keith)   Enhance FPP connect to remember multiple FPP connection details
+   -- bug (keith)   Fix bug in model state corrupting rgbeffects file
+   -- enh (keith)   Enhance schedule api to allow playlists, steps, items, schedules and buttons to be identified by id
+   -- enh (keith)   All multiple model delete on layout tab. Only prompt to confirm if sequence is open with effects on that model
+   -- enh (keith)   Add support for xschedule web API using web sockets
 2017.6  Feb 27, 2017
    -- bug (dkulp)   Fix xScheduler logging on OSX
    -- enh (keith)   Add duration treatments to glediator effect

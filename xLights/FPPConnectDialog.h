@@ -2,6 +2,7 @@
 #define FPPCONNECTDIALOG_H
 
 #include <wx/progdlg.h>
+#include <list>
 
 //(*Headers(FPPConnectDialog)
 #include <wx/notebook.h>
@@ -15,12 +16,26 @@
 #include <wx/choice.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/combobox.h>
 //*)
 
 class OutputManager;
 
+class FPPConnectionDetails
+{
+    std::string _password;
+public:
+    std::string _ip;
+    std::string _user;
+    FPPConnectionDetails(const std::string& ip, const std::string& user, const std::string& password);
+    bool IsDefaultPassword() const;
+    static bool IsDefaultPassword(const std::string& user, const std::string& password);
+    std::string GetPassword() const;
+};
+
 class FPPConnectDialog: public wxDialog
 {
+    std::list<FPPConnectionDetails> _connectionDetails;
     OutputManager* _outputManager;
     void LoadSequencesFromFolder(wxString dir);
     void LoadSequences();
@@ -31,6 +46,8 @@ class FPPConnectDialog: public wxDialog
     bool FTPUpload();
     bool USBUpload();
     void OnPopup(wxCommandEvent &event);
+    void SaveConnectionDetails();
+    void LoadConnectionDetails();
 
 	public:
 
@@ -45,8 +62,8 @@ class FPPConnectDialog: public wxDialog
 		wxPanel* Panel_USB;
 		wxChoice* Choice_Drives;
 		wxDirPickerCtrl* DirPickerCtrl_FPPMedia;
+		wxComboBox* ComboBox_IPAddress;
 		wxButton* Button_Console;
-		wxTextCtrl* TextCtrl_IPAddress;
 		wxStaticText* StaticText1;
 		wxCheckBox* CheckBox_UploadController;
 		wxStaticText* StaticText3;
@@ -62,7 +79,7 @@ class FPPConnectDialog: public wxDialog
 
 		//(*Identifiers(FPPConnectDialog)
 		static const long ID_STATICTEXT1;
-		static const long ID_TEXTCTRL_IPAddress;
+		static const long ID_COMBOBOX_IPAddress;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL_Username;
 		static const long ID_STATICTEXT3;
@@ -97,6 +114,7 @@ class FPPConnectDialog: public wxDialog
 		void OnButton_ConsoleClick(wxCommandEvent& event);
 		void OnFilePickerCtrl_MediaFolderFileChanged(wxFileDirPickerEvent& event);
 		void OnCheckBox_UploadModelsClick(wxCommandEvent& event);
+		void OnComboBox_IPAddressSelected(wxCommandEvent& event);
 		//*)
 
         void OnSequenceRClick(wxMouseEvent& event);

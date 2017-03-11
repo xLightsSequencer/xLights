@@ -24,6 +24,7 @@ bool SimpleFTP::Connect(std::string ip, std::string user, std::string password)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     ftp.SetUser(user);
     ftp.SetPassword(password);
+    ftp.SetTimeout(5);
     if (!ftp.Connect(ip))
     {
         logger_base.warn("Could not connect using address '%s'.", (const char *)ip.c_str());

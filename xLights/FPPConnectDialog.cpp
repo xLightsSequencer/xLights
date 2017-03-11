@@ -15,7 +15,7 @@
 
 //(*IdInit(FPPConnectDialog)
 const long FPPConnectDialog::ID_STATICTEXT1 = wxNewId();
-const long FPPConnectDialog::ID_TEXTCTRL_IPAddress = wxNewId();
+const long FPPConnectDialog::ID_COMBOBOX_IPAddress = wxNewId();
 const long FPPConnectDialog::ID_STATICTEXT2 = wxNewId();
 const long FPPConnectDialog::ID_TEXTCTRL_Username = wxNewId();
 const long FPPConnectDialog::ID_STATICTEXT3 = wxNewId();
@@ -63,9 +63,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer2->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(Panel_FTP, ID_STATICTEXT1, _("IP Address"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_IPAddress = new wxTextCtrl(Panel_FTP, ID_TEXTCTRL_IPAddress, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_IPAddress"));
-	TextCtrl_IPAddress->SetMaxLength(15);
-	FlexGridSizer2->Add(TextCtrl_IPAddress, 1, wxALL|wxEXPAND, 5);
+	ComboBox_IPAddress = new wxComboBox(Panel_FTP, ID_COMBOBOX_IPAddress, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_COMBOBOX_IPAddress"));
+	FlexGridSizer2->Add(ComboBox_IPAddress, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(Panel_FTP, ID_STATICTEXT2, _("Username"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtr_Username = new wxTextCtrl(Panel_FTP, ID_TEXTCTRL_Username, _("fpp"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Username"));
@@ -112,7 +111,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_TEXTCTRL_IPAddress,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&FPPConnectDialog::OnTextCtrl_IPAddressText);
+	Connect(ID_COMBOBOX_IPAddress,wxEVT_COMMAND_COMBOBOX_SELECTED,(wxObjectEventFunction)&FPPConnectDialog::OnComboBox_IPAddressSelected);
 	Connect(ID_TEXTCTRL_Username,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&FPPConnectDialog::OnTextCtr_UsernameText);
 	Connect(ID_TEXTCTRL_Password,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&FPPConnectDialog::OnTextCtrl_PasswordText);
 	Connect(ID_BUTTON_Console,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_ConsoleClick);
@@ -190,38 +189,116 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
     LoadSequences();
 
+    LoadConnectionDetails();
+    ValidateWindow();
+}
+
+bool FPPConnectionDetails::IsDefaultPassword() const
+{
+    return _password == "true";
+}
+
+FPPConnectionDetails::FPPConnectionDetails(const std::string& ip, const std::string& user, const std::string& password)
+{
+    _ip = ip;
+    _user = user;
+    _password = password;
+}
+
+std::string FPPConnectionDetails::GetPassword() const
+{
+    if (IsDefaultPassword())
+    {
+        if (_user == "pi")
+        {
+            return "raspberry";
+        }
+        else if (_user == "fpp")
+        {
+            return "falcon";
+        }
+    }
+    return "";
+}
+
+bool FPPConnectionDetails::IsDefaultPassword(const std::string& user, const std::string& password)
+{
+    if ((user == "pi" && password == "raspberry") ||
+        (user == "fpp" && password == "falcon"))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+void FPPConnectDialog::SaveConnectionDetails()
+{
+    std::string ip = ComboBox_IPAddress->GetValue().ToStdString();
+    std::string user = TextCtr_Username->GetValue().ToStdString();
+    std::string password = (FPPConnectionDetails::IsDefaultPassword(user, TextCtrl_Password->GetValue().ToStdString()) ? "true" : "false");
+
+    for (auto it = _connectionDetails.begin(); it != _connectionDetails.end(); ++it)
+    {
+        if (it->_ip == ComboBox_IPAddress->GetValue().ToStdString())
+        {
+            // ignore this one
+        }
+        else
+        {
+            ip += "|" + it->_ip;
+            user += "|" + it->_user;
+            password += "|" + std::string(it->IsDefaultPassword() ? "true" : "false");
+        }
+    }
+
     wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsPiIP", wxString(ip));
+    config->Write("xLightsPiUser", wxString(user));
+    config->Write("xLightsPiPassword", wxString(password));
+    config->Flush();
+}
+
+void FPPConnectDialog::LoadConnectionDetails()
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config->Exists("xLightsPiDefaultPassword"))
+    {
+        bool usedefaultpwd;
+        config->Read("xLightsPiDefaultPassword", &usedefaultpwd, true);
+        if (!config->Exists("xLightsPiPassword"))
+        {
+            config->Write("xLightsPiPassword", (usedefaultpwd ? "true" : "false"));
+        }
+        config->DeleteEntry("xLightsPiDefaultPassword");
+    }
+
     wxString ip;
     config->Read("xLightsPiIP", &ip, "");
     wxString user;
     config->Read("xLightsPiUser", &user, "fpp");
-    TextCtrl_IPAddress->SetValue(ip);
-    TextCtr_Username->SetValue(user);
+    wxString password;
+    config->Read("xLightsPiPassword", &password, "true");
 
-    bool usedefaultpwd;
-    config->Read("xLightsPiDefaultPassword", &usedefaultpwd, true);
+    auto ips = wxSplit(ip, '|');
+    auto users = wxSplit(user, '|');
+    auto passwords = wxSplit(password, '|');
 
-    if (usedefaultpwd)
+    // they should all be the same size ... but if not base it off the smallest
+    int count = std::min(ips.size(), std::min(users.size(), passwords.size()));
+
+    for (int i = 0; i < count; ++i)
     {
-        if (user == "pi")
+        auto cd = FPPConnectionDetails(ips[i].ToStdString(), users[i].ToStdString(), passwords[i].ToStdString());
+        _connectionDetails.push_back(cd);
+        ComboBox_IPAddress->AppendString(ips[i]);
+        if (i == 0)
         {
-            TextCtrl_Password->SetValue("raspberry");
-        }
-        else if (user == "fpp")
-        {
-            TextCtrl_Password->SetValue("falcon");
-        }
-        else
-        {
-            TextCtrl_Password->SetValue("");
+            ComboBox_IPAddress->SetSelection(0);
+            TextCtr_Username->SetValue(cd._user);
+            TextCtrl_Password->SetValue(cd.GetPassword());
         }
     }
-    else
-    {
-        TextCtrl_Password->SetValue("");
-    }
-
-    ValidateWindow();
 }
 
 void FPPConnectDialog::OnSequenceRClick(wxMouseEvent& event)
@@ -355,7 +432,7 @@ void FPPConnectDialog::ValidateWindow()
     {
         wxArrayInt tmp;
         CheckListBox_Sequences->GetCheckedItems(tmp);
-        if (TextCtr_Username->GetValue() != "" && IsValidIP(TextCtrl_IPAddress->GetValue()) && (CheckBox_UploadModels->IsChecked() || CheckBox_UploadController->IsChecked() || tmp.size() > 0))
+        if (TextCtr_Username->GetValue() != "" && IsValidIP(ComboBox_IPAddress->GetValue()) && (CheckBox_UploadModels->IsChecked() || CheckBox_UploadController->IsChecked() || tmp.size() > 0))
         {
             Button_Upload->Enable();
         }
@@ -397,7 +474,7 @@ void FPPConnectDialog::ValidateWindow()
 #endif
     }
 
-    if (IsValidIP(TextCtrl_IPAddress->GetValue()))
+    if (IsValidIP(ComboBox_IPAddress->GetValue()))
     {
         Button_Console->Enable();
     }
@@ -412,12 +489,12 @@ bool FPPConnectDialog::FTPUpload()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
-    FPP fpp(_outputManager, TextCtrl_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
+    FPP fpp(_outputManager, ComboBox_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
 
     if (!fpp.IsConnected())
     {
-        logger_base.warn("Could not connect to FPP using address '%s'.", (const char *)TextCtrl_IPAddress->GetValue().c_str());
-        wxMessageBox("Could not connect to FPP using address '" + TextCtrl_IPAddress->GetValue() + "'.");
+        logger_base.warn("Could not connect to FPP using address '%s'.", (const char *)ComboBox_IPAddress->GetValue().c_str());
+        wxMessageBox("Could not connect to FPP using address '" + ComboBox_IPAddress->GetValue() + "'.");
         return true;
     }
 
@@ -556,7 +633,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 
     Button_Upload->Disable();
     TextCtr_Username->Disable();
-    TextCtrl_IPAddress->Disable();
+    ComboBox_IPAddress->Disable();
     TextCtrl_Password->Disable();
     CheckListBox_Sequences->Disable();
     Choice_Drives->Disable();
@@ -574,7 +651,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 
     Button_Upload->Enable();
     TextCtr_Username->Enable();
-    TextCtrl_IPAddress->Enable();
+    ComboBox_IPAddress->Enable();
     TextCtrl_Password->Enable();
     CheckListBox_Sequences->Enable();
     Choice_Drives->Enable();
@@ -584,21 +661,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     SetCursor(wxCURSOR_ARROW);
 
     // remember user name and ip address
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Write("xLightsPiIP", TextCtrl_IPAddress->GetValue());
-    config->Write("xLightsPiUser", TextCtr_Username->GetValue());
-
-    // deliberately not saving password ... while I dont think the password is sensitive others might
-
-    if ((TextCtr_Username->GetValue() == "pi" && TextCtrl_Password->GetValue() == "raspberry") ||
-        (TextCtr_Username->GetValue() == "fpp" && TextCtrl_Password->GetValue() == "falcon"))
-    {
-        config->Write("xLightsPiDefaultPassword", true);
-    }
-    else
-    {
-        config->Write("xLightsPiDefaultPassword", false);
-    }
+    SaveConnectionDetails();
 
     if (!cancelled)
     {
@@ -731,7 +794,7 @@ void FPPConnectDialog::OnNotebook_FPPPageChanged(wxNotebookEvent& event)
 
 void FPPConnectDialog::OnButton_ConsoleClick(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser(TextCtrl_IPAddress->GetValue());
+    ::wxLaunchDefaultBrowser(ComboBox_IPAddress->GetValue());
 }
 
 void FPPConnectDialog::OnFilePickerCtrl_MediaFolderFileChanged(wxFileDirPickerEvent& event)
@@ -742,4 +805,17 @@ void FPPConnectDialog::OnFilePickerCtrl_MediaFolderFileChanged(wxFileDirPickerEv
 void FPPConnectDialog::OnCheckBox_UploadModelsClick(wxCommandEvent& event)
 {
     ValidateWindow();
+}
+
+void FPPConnectDialog::OnComboBox_IPAddressSelected(wxCommandEvent& event)
+{
+    std::string ip = ComboBox_IPAddress->GetValue().ToStdString();
+    for (auto it = _connectionDetails.begin(); it != _connectionDetails.end(); ++it)
+    {
+        if (it->_ip == ip)
+        {
+            TextCtr_Username->SetValue(it->_user);
+            TextCtrl_Password->SetValue(it->GetPassword());
+        }
+    }
 }
