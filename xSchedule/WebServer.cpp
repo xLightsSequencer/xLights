@@ -531,43 +531,43 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
         }
 
         // extract the type of request
-        wxString type = root["Type"].AsString().Lower();
+        wxString type = root.Get("Type", "").AsString().Lower();
 
         std::string result = "";
         if (type == "command")
         {
-            wxString c = root["Command"].AsString();
-            wxString p = root["Parameters"].AsString();
-            wxString d = root["Data"].AsString();
-            wxString r = root["Reference"].AsString();
+            wxString c = root.Get("Command", "").AsString();
+            wxString p = root.Get("Parameters", "").AsString();
+            wxString d = root.Get("Data", "").AsString();
+            wxString r = root.Get("Reference", "").AsString();
             result = ProcessCommand(connection, c.ToStdString(), p.ToStdString(), d.ToStdString(), r.ToStdString());
         }
         else if (type == "query")
         {
-            wxString q = root["Query"].AsString();
-            wxString p = root["Parameters"].AsString();
-            wxString r = root["Reference"].AsString();
+            wxString q = root.Get("Query", "").AsString();
+            wxString p = root.Get("Parameters", "").AsString();
+            wxString r = root.Get("Reference", "").AsString();
             result = ProcessQuery(connection, q.ToStdString(), p.ToStdString(), r.ToStdString());
         }
         else if (type == "xyzzy")
         {
-            wxString c = root["C"].AsString();
-            wxString p = root["P"].AsString();
-            wxString r = root["Reference"].AsString();
+            wxString c = root.Get("c", "").AsString();
+            wxString p = root.Get("p", "").AsString();
+            wxString r = root.Get("p", "").AsString();
             result = ProcessXyzzy(connection, c.ToStdString(), p.ToStdString(), r.ToStdString());
         }
         else if (type == "login")
         {
-            wxString c = root["Credential"].AsString();
-            wxString r = root["Reference"].AsString();
+            wxString c = root.Get("Credential", "").AsString();
+            wxString r = root.Get("Reference", "").AsString();
             result = ProcessLogin(connection, c.ToStdString(), r.ToStdString());
         }
         else if (type == "stash")
         {
-            wxString c = root["Command"].AsString();
-            wxString k = root["Key"].AsString();
-            std::string d = root["Data"].AsString().ToStdString();
-            wxString r = root["Reference"].AsString();
+            wxString c = root.Get("Command", "").AsString();
+            wxString k = root.Get("Key", "").AsString();
+            std::string d = root.Get("Data", "").AsString().ToStdString();
+            wxString r = root.Get("Reference", "").AsString();
             result = ProcessStash(connection, c.ToStdString(), k.ToStdString(), d, r.ToStdString());
             if (result == "")
             {
@@ -576,7 +576,7 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
         }
         else
         {
-            wxString r = root["Reference"].AsString();
+            wxString r = root.Get("Reference", "").AsString();
             WebSocketMessage wsm("{\"result\":\"failed\",\"reference\":\""+r+"\",\"message\":\"Unknown request type.\"}");
             connection.SendMessage(wsm);
             return;
