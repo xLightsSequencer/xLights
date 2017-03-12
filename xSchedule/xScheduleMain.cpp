@@ -902,26 +902,33 @@ void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
 
 void xScheduleFrame::SaveShowDir() const
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxConfigBase* config = wxConfigBase::Get();
-    config->Write("SchedulerLastDir", wxString(_showDir));
+    auto sd = wxString(_showDir);
+    logger_base.debug("Saving show folder location %s.", (const char *)sd.c_str());
+    config->Write("SchedulerLastDir", sd);
     config->Flush();
 }
 
 void xScheduleFrame::LoadShowDir()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // get the show directory
     wxConfigBase* config = wxConfigBase::Get();
     wxString showDir;
     if (!config->Read(_("SchedulerLastDir"), &showDir))
     {
+        logger_base.debug("Could not read show folder from 'SchedulerLastDir'.");
         wxConfig *xlconfig = new wxConfig(_("xLights"));
         if (xlconfig == nullptr || !xlconfig->Read(_("LastDir"), &showDir))
         {
+            logger_base.debug("Could not read show folder from 'xLights::LastDir'.");
             DirDialog1->SetPath(_showDir);
 
             if (DirDialog1->ShowModal() == wxID_OK)
             {
                 _showDir = DirDialog1->GetPath().ToStdString();
+                logger_base.debug("User selected show folder '%s'.", (const char *)_showDir.c_str());
                 SaveShowDir();
             }
             else
@@ -931,6 +938,7 @@ void xScheduleFrame::LoadShowDir()
         }
         else
         {
+            logger_base.debug("Read show folder from 'xLights::LastDir' location %s.", (const char *)showDir.c_str());
             _showDir = showDir.ToStdString();
             SaveShowDir();
         }
@@ -941,6 +949,7 @@ void xScheduleFrame::LoadShowDir()
     }
     else
     {
+        logger_base.debug("Read show folder from 'SchedulerLastDir' location %s.", (const char *)showDir.c_str());
         _showDir = showDir.ToStdString();
     }
 }

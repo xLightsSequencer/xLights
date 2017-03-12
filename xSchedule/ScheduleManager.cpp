@@ -36,7 +36,7 @@
 ScheduleManager::ScheduleManager(const std::string& showDir)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Loading schedule from %s.", (const char *)_showDir.c_str());
+    logger_base.info("Loading schedule from %s.", (const char *)showDir.c_str());
 
     // prime fix file with our show directory for any filename fixups
     FSEQFile::FixFile(showDir, "");
