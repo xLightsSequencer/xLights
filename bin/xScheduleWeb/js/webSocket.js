@@ -25,7 +25,7 @@ socket.addEventListener('message', function(event) {
     if (typeof fn === "function") {
       fn(response);
     } else {
-      notification('Warning: Unknown refrence: "' + response.fefrence + '" Function', 'danger', '0');
+      notification('Unknown Reference Function: "' + response.reference + '"', 'danger', '0');
     }
   }
 });
