@@ -915,7 +915,8 @@ void xScheduleFrame::LoadShowDir()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // get the show directory
     wxConfigBase* config = wxConfigBase::Get();
-    logger_base.debug("Config: AppName '%s' Path '%s' Entries %d.", (const char *)config->GetAppName().c_str(), (const char *)config->GetPath().c_str(), (int)config->GetNumberOfEntries());
+    logger_base.debug("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor %s.", (const char *)config->GetAppName().c_str(), (const char *)config->GetPath().c_str(), (int)config->GetNumberOfEntries(), (int)config->GetNumberOfGroups(), config->GetStyle(), (const char*) config->GetVendorName().c_str());
+
     wxString showDir;
     if (!config->Read(_("SchedulerLastDir"), &showDir))
     {
