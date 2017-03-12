@@ -275,7 +275,7 @@ function notification(message, color, priority) {
   // priority   //
   // "" = always //
   // 1 = debug   //
-  console.log(uiSettings.notificationLevel);
+  //console.log(uiSettings.notificationLevel);
   if (priority <= uiSettings.notificationLevel) {
     $.notify({
       // options
@@ -293,4 +293,15 @@ function findPercent(length, left) {
   var secLeft = parseInt(left.split(":")[0]) * 60 + parseInt(left.split(":")[1]);
   var percent = (secLength - secLeft) / secLength * 100;
   return Math.round(percent) + "%";
+}
+
+
+//Upercase First Letter of string
+function jsUcfirst(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+//sleep
+function sleep(time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
 }

@@ -1,4 +1,4 @@
-var xyzzyStatus = "0";
+var xyzzyStatus = "";
 var xyzzyName;
 // not started = "0"
 // waiting for name = "1"
@@ -14,19 +14,27 @@ $(document).keydown(function(e) {
 
 function openXyzzy() {
   $('#xyzzy').modal('show');
-  xyzzyStatus = "1";
   xyzzyDraw("step1");
+  xyzzyStatus = "1";
+  //get high score
+  socket.send('{"Type":"xyzzy","c":"initialise"}');
+  sleep(1).then(() => {
+    socket.send('{"Type":"query","Query":"GetMatrices","Reference":"loadMatrix"}');
+  });
+
+
+  //xyzzyCommand('initialise');
   // $('#xyzzySelectionDisable').disableSelection();
 }
 
 function startXyzzy() {
-
   var xyzzyName = $('#xyzzyName')[0].value;
+  var matrixList = $('#matrixList')[0].value;
   if (xyzzyName == '') {
     xyzzyName = "Donald Trump";
   }
   //var xyzzyMatrix = $('#xyzzyMatrix')[0].value;
-  xyzzyCommand('initialise&p=Matrix,' + xyzzyName);
+  xyzzyCommand('initialise&p=' + matrixList + ',' + xyzzyName);
   xyzzyCommand('g');
   xyzzyStatusTimer();
   xyzzyDraw("step2");
@@ -39,6 +47,10 @@ function xyzzyRestart() {
   xyzzyCommand('close');
   xyzzyDraw("step1");
   xyzzyStatus = "1";
+  socket.send('{"Type":"xyzzy","c":"initialise"}');
+  sleep(2).then(() => {
+    socket.send('{"Type":"query","Query":"GetMatrices","Reference":"loadMatrix"}');
+  });
 }
 
 function xyzzyReset() {
@@ -46,13 +58,27 @@ function xyzzyReset() {
   xyzzyCommand('g');
 }
 
+//websocket listener
+socket.addEventListener('message', function(event) {
+  var response = JSON.parse(event.data);
+
+  if (response.score != undefined || response.highscore != undefined) {
+    if (xyzzyStatus == "1" & response.message == 'Two parameters expected ... name of matrix and players name.') {
+      $('#highscore').html("High Score: " + response.highscore);
+      $('#highscoreName').html(jsUcfirst(response.highscoreplayer));
+    }
+  }
+
+
+});
+
 function xyzzyStatusTimer() {
 
   var timer = window.setInterval(function() {
     $.ajax({
       url: '/xyzzy?c=q',
       success: function(response) {
-        console.log(response);
+        //console.log(response);
 
         if (response.result == 'running') {
           //update Score
@@ -69,7 +95,7 @@ function xyzzyStatusTimer() {
           xyzzyDraw("step3");
           $("#xyzzyPlayerName").html(response.playername);
           $("#xyzzyScore").html("Your Score: " + response.score);
-          console.log(response.score);
+          //console.log(response.score);
           $("#xyzzyHighScoreName").html(response.highscoreplayer);
           $("#xyzzyHighScore").html("High Score: " + response.highscore);
         }
@@ -91,16 +117,26 @@ function xyzzyCommand(c) {
   $.ajax({
     url: '/xyzzy?c=' + c,
     success: function(response) {
-      console.log("I win");
+      //console.log("I win");
     }
   });
 }
 
+function loadMatrix(response) {
+  console.log(response);
+  for (var i = 0; i < response.matrices.length; i++) {
+    $('#matrixList').append("<option value='" + response.matrices[i] + "'>" + response.matrices[i] + "</option>");
+  }
+}
+
 function xyzzyDraw(step) {
   var step1 =
-    `<!--<h2>Billy</h2>
-  <h4>High Score: 420</h4>-->
-  <h2>Enter Name:</h2>
+    `<h2 id="highscoreName"></h2>
+  <h4 id="highscore"></h4>
+  <label>Select Matrix</label>
+<select class="form-control" id="matrixList">
+</select>
+  <lable>Enter Name:</lable>
   <input id="xyzzyName" type="text" class="form-control">
   <button data-dismiss="modal" aria-label="Close" onclick="startXyzzy($('#xyzzyName').value)" class="btn btn-success">Play</button>`;
 
