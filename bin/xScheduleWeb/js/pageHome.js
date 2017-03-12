@@ -105,7 +105,7 @@ function populateTableIdle(status, query) {
                 <td class="col-md-3">` + response.playlists[i].nextscheduled + `</td>
                 <td class="col-md-1">` + response.playlists[i].length.split(".")[0] + `</td>
                 <td class="col-md-2">
-                  <button type="button" onclick="runCommand('Play specified playlist', '` + response.playlists[i].name + `')" class="btn btn-info btn-xs" name="button">Play</button>
+                  <button type="button" onclick="runCommand('Play specified playlist', 'id:` + response.playlists[i].id + `')" class="btn btn-info btn-xs" name="button">Play</button>
                   <button type="button" onclick="updatePage('page', 'playlists','` + response.playlists[i].name + `')" class="btn btn-default btn-xs" title='More info' name="button">View</button>
                 </td>
              </tr>`;
@@ -140,7 +140,7 @@ function populateTablePlaying() {
               <td class="col-md-8">` + response.steps[i].name + `</td>
               <td class="col-md-1">` + response.steps[i].length.split(".")[0] + `</td>
               <td class="col-md-2">
-                  <button type="button" onclick="runCommand('Play playlist starting at step', '` + playingStatus.playlist + `,` + response.steps[i].name + `')" class="btn btn-info btn-xs " name="button" title="Jump to this step">Play</button>
+                  <button type="button" onclick="runCommand('Play playlist starting at step', 'id:` + playingStatus.playlistid + `,id:` + response.steps[i].id + `')" class="btn btn-info btn-xs " name="button" title="Jump to this step">Play</button>
                    <!--<button type="button" class="btn btn-default btn-xs glyphicon glyphicon-plus" onclick="runCommand('Enqueue playlist step', '` + playingStatus.playlist + `,` + response.steps[i].name + `')" name="button" title="Queue step next"></button
               </td>
            </tr>`;
