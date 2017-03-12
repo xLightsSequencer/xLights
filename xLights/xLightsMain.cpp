@@ -1083,10 +1083,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     icons.AddIcon(wxIcon(xlights_128_xpm));
     icons.AddIcon(wxIcon(xlights_xpm));
 
-    SetIcons(icons);
+    wxTopLevelWindowMSW::SetIcons(icons);
     logger_base.debug("IconBundle creation done.");
 
-    SetName("xLights");
+    wxWindowBase::SetName("xLights");
     wxPersistenceManager::Get().RegisterAndRestore(this);
     logger_base.debug("Window Location Restored.");
 

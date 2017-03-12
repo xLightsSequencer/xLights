@@ -1403,18 +1403,13 @@ int AudioManager::OpenMediaFile()
 		_data[0] = nullptr;
 	}
 
-	_data[0] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
-	for (int i = 0; i < _trackSize + _extra; i++)
-	{
-		(*(_data[0] + i)) = 0.0;
-	}
+    size_t size = sizeof(float)*(_trackSize + _extra);
+	_data[0] = (float*)calloc(size, 1);
+    memset(_data[0], 0x00, size);
 	if (_channels == 2)
 	{
-		_data[1] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
-		for (int i = 0; i < _trackSize + _extra; i++)
-		{
-			(*(_data[1] + i)) = 0.0;
-		}
+		_data[1] = (float*)calloc(size, 1);
+        memset(_data[1], 0x00, size);
 	}
 	else
 	{
