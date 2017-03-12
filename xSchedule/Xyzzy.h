@@ -169,6 +169,7 @@ class Xyzzy
     void DrawNode(int x, int y, wxColour c, wxByte* buffer, size_t size);
     void CheckFullRow();
     void Reset();
+    void AddToScore(int add);
 
 public:
 

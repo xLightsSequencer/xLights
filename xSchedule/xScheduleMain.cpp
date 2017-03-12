@@ -266,6 +266,7 @@ wxDEFINE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_RUNACTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOCHECKSCHEDULE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_XYZZY, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     //(*EventTable(xScheduleFrame)
@@ -275,6 +276,7 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_RUNACTION, xScheduleFrame::RunAction)
     EVT_COMMAND(wxID_ANY, EVT_SCHEDULECHANGED, xScheduleFrame::ScheduleChange)
     EVT_COMMAND(wxID_ANY, EVT_DOCHECKSCHEDULE, xScheduleFrame::DoCheckSchedule)
+    EVT_COMMAND(wxID_ANY, EVT_XYZZY, xScheduleFrame::DoXyzzy)
     END_EVENT_TABLE()
 
 xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, const std::string& playlist, wxWindowID id)
@@ -492,6 +494,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_RUNACTION, (wxObjectEventFunction)&xScheduleFrame::RunAction);
     Connect(wxID_ANY, EVT_SCHEDULECHANGED, (wxObjectEventFunction)&xScheduleFrame::ScheduleChange);
     Connect(wxID_ANY, EVT_DOCHECKSCHEDULE, (wxObjectEventFunction)&xScheduleFrame::DoCheckSchedule);
+    Connect(wxID_ANY, EVT_XYZZY, (wxObjectEventFunction)&xScheduleFrame::DoXyzzy);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
     wxIconBundle icons;
@@ -1015,11 +1018,6 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     if (__schedule == nullptr) return;
 
     __schedule->Frame(_timerOutputFrame);
-
-    if (__schedule->IsXyzzy())
-    {
-        SendStatus();
-    }
 
     if (last != wxDateTime::Now().GetSecond() && _timerOutputFrame)
     {
@@ -2256,5 +2254,13 @@ void xScheduleFrame::SendStatus()
             __schedule->Query("GetPlayingStatus", "", result, msg, "", "");    
         }
         _webServer->SendMessageToAllWebSockets(result);
+    }
+}
+
+void xScheduleFrame::DoXyzzy(wxCommandEvent& event)
+{
+    if (__schedule->IsXyzzy())
+    {
+        SendStatus();
     }
 }

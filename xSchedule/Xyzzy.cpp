@@ -5,6 +5,7 @@
 #include "MatrixMapper.h"
 #include <wx/config.h>
 #include <log4cpp/Category.hh>
+#include "xScheduleApp.h"
 
 #ifdef SHOWVIRTUALMATRIX
 #include "VirtualMatrix.h"
@@ -58,6 +59,8 @@ void Xyzzy::Reset()
         _virtualMatrix = nullptr;
     }
 #endif
+    wxCommandEvent event(EVT_XYZZY);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
 }
 
 Xyzzy::Xyzzy()
@@ -81,6 +84,8 @@ Xyzzy::Xyzzy()
     Reset();
 
     //MatrixMapper::Test();
+    wxCommandEvent event(EVT_XYZZY);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
 }
 
 Xyzzy::~Xyzzy()
@@ -312,6 +317,9 @@ void Xyzzy::Initialise(const std::string& parameters, std::string& result, const
         "\",\"r\":\"" + reference +
         "\",\"highscoreplayer\":\"" + GetHighScorePlayer() +
         "\"}";
+
+    wxCommandEvent event(EVT_XYZZY);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
 }
 
 void Xyzzy::Close(std::string& result, const std::string& reference)
@@ -346,6 +354,9 @@ void Xyzzy::Close(std::string& result, const std::string& reference)
         "\",\"r\":\"" + reference +
         "\",\"highscoreplayer\":\"" + GetHighScorePlayer() +
         "\"}";
+
+    wxCommandEvent event(EVT_XYZZY);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
 }
 
 std::string Xyzzy::GameNotRunningResult(const std::string& reference)
@@ -542,6 +553,9 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
         result = "{\"result\":\"ok\",\"r\":\""+reference+"\"}";
     }
 
+    wxCommandEvent event(EVT_XYZZY);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
+
     return true;
 }
 
@@ -632,7 +646,7 @@ void Xyzzy::Drop()
         }
     }
 
-    _score += dropdistance * DROPBONUSPERROW;
+    AddToScore(dropdistance * DROPBONUSPERROW);
 
     MakePiecePermanent();
 
@@ -641,6 +655,13 @@ void Xyzzy::Drop()
     _nextPiece = XyzzyPiece::CreatePiece();
 
     CheckFullRow();
+}
+
+void Xyzzy::AddToScore(int add)
+{
+    _score += add;
+    wxCommandEvent event(EVT_XYZZY);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
 }
 
 bool Xyzzy::TestMoveDown() const
@@ -671,6 +692,9 @@ void Xyzzy::MakePiecePermanent()
 XyzzyPiece* XyzzyPiece::CreatePiece()
 {
     static int hardcount = 0;
+
+    wxCommandEvent event(EVT_XYZZY);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
 
     if (hardcount < MAXHARDPIECES)
     {
@@ -1021,7 +1045,7 @@ bool Xyzzy::AdvanceGame()
             delete _currentPiece;
             _currentPiece = _nextPiece;
             _nextPiece = XyzzyPiece::CreatePiece();
-            _score += PIECESCORE;
+            AddToScore(PIECESCORE);
 
             CheckFullRow();
         }
@@ -1073,16 +1097,16 @@ void Xyzzy::CheckFullRow()
     switch (fullcount)
     {
     case 1:
-        _score += ROWSCORE1;
+        AddToScore(ROWSCORE1);
         break;
     case 2:
-        _score += ROWSCORE2;
+        AddToScore(ROWSCORE2);
         break;
     case 3:
-        _score += ROWSCORE3;
+        AddToScore(ROWSCORE3);
         break;
     case 4:
-        _score += ROWSCORE4;
+        AddToScore(ROWSCORE4);
         break;
     }
 }
@@ -1098,5 +1122,8 @@ void Xyzzy::SaveHighScore()
         config->Write(_("XyzzyHighScore"), _highScore);
         config->Write(_("XyzzyHighScoreOwner"), wxString(_highScoreOwner));
         config->Flush();
+
+        wxCommandEvent event(EVT_XYZZY);
+        wxPostEvent(wxGetApp().GetTopWindow(), event);
     }
 }
