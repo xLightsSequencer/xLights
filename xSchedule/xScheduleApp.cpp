@@ -446,7 +446,7 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 void xScheduleApp::WipeSettings()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Wiping settings.");
+    logger_base.warn("------ Wiping settings ------");
 
     wxConfigBase* config = wxConfigBase::Get();
     config->DeleteAll();
