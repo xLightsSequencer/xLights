@@ -192,10 +192,10 @@ PlayListDialog::~PlayListDialog()
     GetSize(&w, &h);
 
     wxConfigBase* config = wxConfigBase::Get();
-    config->Write("xsPLWindowPosX", x);
-    config->Write("xsPLWindowPosY", y);
-    config->Write("xsPLWindowPosW", w);
-    config->Write("xsPLWindowPosH", h);
+    config->Write(_("xsPLWindowPosX"), x);
+    config->Write(_("xsPLWindowPosY"), y);
+    config->Write(_("xsPLWindowPosW"), w);
+    config->Write(_("xsPLWindowPosH"), h);
     config->Flush();
 
     // manually remove the notebook page to force updating now rather than during deletion

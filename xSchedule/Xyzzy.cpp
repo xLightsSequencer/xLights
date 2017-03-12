@@ -1095,8 +1095,8 @@ void Xyzzy::SaveHighScore()
         _highScoreOwner = _playerName;
 
         wxConfigBase* config = wxConfigBase::Get();
-        config->Write("XyzzyHighScore", _highScore);
-        config->Write("XyzzyHighScoreOwner", wxString(_highScoreOwner));
+        config->Write(_("XyzzyHighScore"), _highScore);
+        config->Write(_("XyzzyHighScoreOwner"), wxString(_highScoreOwner));
         config->Flush();
     }
 }

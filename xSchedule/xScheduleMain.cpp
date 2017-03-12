@@ -626,10 +626,10 @@ xScheduleFrame::~xScheduleFrame()
     GetSize(&w, &h);
 
     wxConfigBase* config = wxConfigBase::Get();
-    config->Write("xsWindowPosX", x);
-    config->Write("xsWindowPosY", y);
-    config->Write("xsWindowPosW", w);
-    config->Write("xsWindowPosH", h);
+    config->Write(_("xsWindowPosX"), x);
+    config->Write(_("xsWindowPosY"), y);
+    config->Write(_("xsWindowPosW"), w);
+    config->Write(_("xsWindowPosH"), h);
     config->Flush();
 
     //(*Destroy(xScheduleFrame)
@@ -906,7 +906,7 @@ void xScheduleFrame::SaveShowDir() const
     wxConfigBase* config = wxConfigBase::Get();
     auto sd = wxString(_showDir);
     logger_base.debug("Saving show folder location %s.", (const char *)sd.c_str());
-    config->Write("SchedulerLastDir", sd);
+    config->Write(_("SchedulerLastDir"), sd);
     config->Flush();
 }
 
@@ -915,6 +915,7 @@ void xScheduleFrame::LoadShowDir()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // get the show directory
     wxConfigBase* config = wxConfigBase::Get();
+    logger_base.debug("Config: AppName '%s' Path '%s' Entries %d.", (const char *)config->GetAppName().c_str(), (const char *)config->GetPath().c_str(), (int)config->GetNumberOfEntries());
     wxString showDir;
     if (!config->Read(_("SchedulerLastDir"), &showDir))
     {
