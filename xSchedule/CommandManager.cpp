@@ -80,7 +80,7 @@ bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* s
             msg = wxString::Format("Parameter %d: '%s' is not a number.", i + 1, components[i].c_str()).ToStdString();
             return false;
         }
-        else if (_parmtype[i] == PARMTYPE::PLAYLIST && scheduleManager->GetPlayList(components[i].ToStdString()) == nullptr)
+        else if (_parmtype[i] == PARMTYPE::PLAYLIST && scheduleManager->GetPlayList(components[i].ToStdString()) == nullptr && scheduleManager->GetPlayList(scheduleManager->DecodePlayList(components[i].ToStdString())) == nullptr)
         {
             msg = wxString::Format("Parameter %d: '%s' is not a known playlist.", i + 1, components[i].c_str()).ToStdString();
             return false;
@@ -102,12 +102,17 @@ bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* s
                 pl = scheduleManager->GetPlayList(components[i - 1].ToStdString());
                 if (pl == nullptr)
                 {
-                    msg = wxString::Format("Parameter %d: '%s' is not a known playlist.", i, components[i - 1].c_str()).ToStdString();
-                    return false;
+                    pl = scheduleManager->GetPlayList(scheduleManager->DecodePlayList(components[i-1].ToStdString()));
+
+                    if (pl == nullptr)
+                    {
+                        msg = wxString::Format("Parameter %d: '%s' is not a known playlist.", i, components[i - 1].c_str()).ToStdString();
+                        return false;
+                    }
                 }
             }
 
-            if (pl->GetStep(components[i].ToStdString()) == nullptr)
+            if (pl->GetStep(components[i].ToStdString()) == nullptr && pl->GetStep(scheduleManager->DecodeStep(components[i].ToStdString())) == nullptr)
             {
                 msg = wxString::Format("Parameter %d: '%s' is not a known step in playlist '%s'.", i+1, components[i].c_str(), pl->GetNameNoTime().c_str()).ToStdString();
                 return false;
@@ -125,22 +130,35 @@ bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* s
             pl = scheduleManager->GetPlayList(components[i - 2].ToStdString());
             if (pl == nullptr)
             {
-                msg = wxString::Format("Parameter %d: '%s' is not a known playlist.", i - 1, components[i - 2].c_str()).ToStdString();
-                return false;
+                pl = scheduleManager->GetPlayList(scheduleManager->DecodePlayList(components[i - 2].ToStdString()));
+
+                if (pl == nullptr)
+                {
+                    msg = wxString::Format("Parameter %d: '%s' is not a known playlist.", i - 1, components[i - 2].c_str()).ToStdString();
+                    return false;
+                }
             }
 
             PlayListStep* pls = pl->GetStep(components[i - 1].ToStdString());
             if (pls == nullptr)
             {
-                msg = wxString::Format("Parameter %d: '%s' is not a known step in playlist '%s'.", i, components[i-1].c_str(), pl->GetNameNoTime().c_str()).ToStdString();
-                return false;
+                pls = pl->GetStep(scheduleManager->DecodeStep(components[i - 1].ToStdString()));
+                if (pls == nullptr)
+                {
+                    msg = wxString::Format("Parameter %d: '%s' is not a known step in playlist '%s'.", i, components[i - 1].c_str(), pl->GetNameNoTime().c_str()).ToStdString();
+                    return false;
+                }
             }
 
             PlayListItem* pli = pls->GetItem(components[i].ToStdString());
             if (pli == nullptr)
             {
-                msg = wxString::Format("Parameter %d: '%s' is not a known item in step '%s' in playlist '%s'.", i + 1, components[i].c_str(), pls->GetNameNoTime().c_str(), pl->GetNameNoTime().c_str()).ToStdString();
-                return false;
+                pli = pls->GetItem(scheduleManager->DecodeItem(components[i].ToStdString()));
+                if (pli == nullptr)
+                {
+                    msg = wxString::Format("Parameter %d: '%s' is not a known item in step '%s' in playlist '%s'.", i + 1, components[i].c_str(), pls->GetNameNoTime().c_str(), pl->GetNameNoTime().c_str()).ToStdString();
+                    return false;
+                }
             }
 
             if (pli->GetTitle() != "Run Process")

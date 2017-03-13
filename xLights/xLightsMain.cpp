@@ -1083,7 +1083,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     icons.AddIcon(wxIcon(xlights_128_xpm));
     icons.AddIcon(wxIcon(xlights_xpm));
 
-    wxTopLevelWindowBase::SetIcons(icons);
+    SetIcons(icons);
     logger_base.debug("IconBundle creation done.");
 
     wxWindowBase::SetName("xLights");

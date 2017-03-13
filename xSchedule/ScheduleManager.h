@@ -85,11 +85,6 @@ class ScheduleManager : public wxEvtHandler
     void OnServerEvent(wxSocketEvent& event);
     void StartFSEQ(const std::string fseq);
     PlayListItem* FindRunProcessNamed(const std::string& item) const;
-    std::string DecodePlayList(const std::string& playlistparameter);
-    std::string DecodeStep(const std::string& stepparameter);
-    std::string DecodeSchedule(const std::string& scheduleparameter);
-    std::string DecodeItem(const std::string& itemparameter);
-    std::string DecodeButton(const std::string& buttonlabelparameter);
 
     DECLARE_EVENT_TABLE()
 
@@ -160,6 +155,11 @@ class ScheduleManager : public wxEvtHandler
         void ImportxLightsSchedule(const std::string& filename);
         bool DoXyzzy(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference);
         PlayListStep* GetStepContainingPlayListItem(wxUint32 id) const;
+        std::string DecodePlayList(const std::string& playlistparameter);
+        std::string DecodeStep(const std::string& stepparameter);
+        std::string DecodeSchedule(const std::string& scheduleparameter);
+        std::string DecodeItem(const std::string& itemparameter);
+        std::string DecodeButton(const std::string& buttonlabelparameter);
 };
 
 #endif
