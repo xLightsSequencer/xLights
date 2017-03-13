@@ -950,11 +950,54 @@ wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file, 
     wxString showfolder = fname;
     wxString sflc = showfolder;
     sflc.LowerCase();
+    wxString newLoc = sd;
+    
+    bool appending = false;
+    for (int x = 0; x < fnWin.GetDirs().size(); x++) {
+        if (fnWin.GetDirs()[x].Lower() == sflc) {
+            appending = true;
+        } else if (appending) {
+            newLoc += wxFileName::GetPathSeparator();
+            newLoc += fnWin.GetDirs()[x];
+        }
+    }
+    if (appending) {
+        newLoc += wxFileName::GetPathSeparator();
+        newLoc += fnWin.GetFullName();
+        if (wxFileExists(newLoc)) {
+            return newLoc;
+        }
+    }
+#ifndef __WXMSW__
+    newLoc = sd;
+    appending = false;
+    for (int x = 0; x < fnUnix.GetDirs().size(); x++) {
+        if (fnUnix.GetDirs()[x].Lower() == sflc) {
+            appending = true;
+        } else if (appending) {
+            newLoc += wxFileName::GetPathSeparator();
+            newLoc += fnWin.GetDirs()[x];
+        }
+    }
+    if (appending) {
+        newLoc += wxFileName::GetPathSeparator();
+        newLoc += fnUnix.GetFullName();
+        if (wxFileExists(newLoc)) {
+            return newLoc;
+        }
+    }
+#endif
+    
 
     if (flc.Contains(sflc))
     {
         int offset = flc.Find(sflc) + showfolder.Length();
-        wxString relative = sd + file.SubString(offset, file.Length());
+        wxString relative = file.SubString(offset, file.Length());
+        
+        if (fnWin.GetDirs().size() > 0) {
+            
+        }
+        wxFileName sdFn =  wxFileName::DirName(sd);
 
         if (wxFileExists(relative))
         {
