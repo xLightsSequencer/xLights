@@ -1744,7 +1744,7 @@ xScheduleMain.cpp: xScheduleMain.h MyTreeItemData.h ScheduleManager.h Schedule.h
 
 md5.cpp: md5.h
 
-Xyzzy.cpp: Xyzzy.h xScheduleMain.h ScheduleManager.h ScheduleOptions.h MatrixMapper.h VirtualMatrix.h
+Xyzzy.cpp: Xyzzy.h xScheduleMain.h ScheduleManager.h ScheduleOptions.h MatrixMapper.h xScheduleApp.h VirtualMatrix.h
 
 WebServer.cpp: WebServer.h xScheduleMain.h ScheduleManager.h xScheduleApp.h ScheduleOptions.h md5.h
 
