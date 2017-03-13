@@ -12,6 +12,7 @@ $(document).ready(function() {
   navLoadPlaylists();
   navLoadPlugins();
   checkLogInStatus();
+  loadXyzzyData();
 
   //Add Hover effect to menus
   jQuery('ul.nav li.dropdown').hover(function() {
@@ -42,6 +43,29 @@ function updateStatus() {
     success: function(response) {
       playingStatus = response;
     }
+  });
+}
+
+var availableMatrices;
+var xyzzyHighScore;
+
+function loadXyzzyData() {
+  //matrix
+  $.ajax({
+    type: "GET",
+    url: '/xScheduleQuery?Query=GetMatrices',
+    success: function(response) {
+      availableMatrices = response;
+    }
+  });
+
+  $.ajax({
+    type: "GET",
+    url: '/xyzzy?c=initialise',
+    success: function(response) {
+      xyzzyHighScore = JSON.parse('{"highscoreplayer":"' + response.highscoreplayer + '","highscore":' + response.highscore + '}');
+    }
+
   });
 }
 
