@@ -552,6 +552,11 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
         Reset();
         result = "{\"result\":\"ok\",\"r\":\""+reference+"\"}";
     }
+    else
+    {
+        result = "{\"result\":\"failed\",\"r\":\"" +
+            reference + "\",\"message\":\"Unknown command '"+command+"'.\"}";
+    }
 
     wxCommandEvent event(EVT_XYZZY);
     wxPostEvent(wxGetApp().GetTopWindow(), event);

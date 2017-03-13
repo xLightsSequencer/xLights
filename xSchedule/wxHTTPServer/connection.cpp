@@ -195,78 +195,91 @@ bool HttpConnection::ParseFrame(wxMemoryBuffer &buffer)
 	if (buffer.GetDataLen() < 2)
 		return false;
 
-	bool final = buffer[0] & 0x80 ? true : false;
+    bool done = false;
+    int pos = 0;
 
-	if (((buffer[0] & 0x40) != 0) || ((buffer[0] & 0x20) != 0) || ((buffer[0] & 0x10) != 0))
-	{
-		wxLogWarning("reserved bits must be 0");
-		return false; // Invalid ws message
-	}
+    while (!done)
+    {
+        bool final = buffer[pos + 0] & 0x80 ? true : false;
 
-	WebSocketMessage::Opcode type = (WebSocketMessage::Opcode)(buffer[0] & 0x0F);
+        if (((buffer[pos + 0] & 0x40) != 0) || ((buffer[pos + 0] & 0x20) != 0) || ((buffer[pos + 0] & 0x10) != 0))
+        {
+            wxLogWarning("reserved bits must be 0");
+            return false; // Invalid ws message
+        }
 
-	if (!_message)
-		_message = new WebSocketMessage(type);
+        WebSocketMessage::Opcode type = (WebSocketMessage::Opcode)(buffer[pos + 0] & 0x0F);
 
-	//ws_conn->close  = ((buffer[0] & 0x0F) == 0x08);
-	//ws_conn->ping   = ((buffer[0] & 0x0F) == 0x09);
-	//ws_conn->pong   = ((buffer[0] & 0x0F) == 0x0A);
+        if (!_message)
+            _message = new WebSocketMessage(type);
 
-	if (type == WebSocketMessage::Ping)
-		wxLogMessage("received a PING message");
+        //ws_conn->close  = ((buffer[0] & 0x0F) == 0x08);
+        //ws_conn->ping   = ((buffer[0] & 0x0F) == 0x09);
+        //ws_conn->pong   = ((buffer[0] & 0x0F) == 0x0A);
 
-	if (type == WebSocketMessage::Pong)
-		wxLogMessage("received a PONG message");
+        if (type == WebSocketMessage::Ping)
+            wxLogMessage("received a PING message");
 
-	int     length = buffer[1] & 0x7F;
-	int     start = 2;
-	wxUint8 mask[4] = { 0 };
+        if (type == WebSocketMessage::Pong)
+            wxLogMessage("received a PONG message");
 
-	if (length == 126)
-	{
-		length = ((((int)buffer[2]) << 8) + buffer[3]);
-		start = 4;
-	}
-	else if (length == 127)
-	{
-		length = 0;
-		for (int i = 0; i < 8; i++)
-			length = (wxUint64)length * 0x100 + buffer[2 + i];
-		start = 10;
-	}
+        int length = buffer[pos + 1] & 0x7F;
+        int     start = 2;
+        wxUint8 mask[4] = { 0 };
 
-	if (buffer[1] & 128)
-	{
-		memcpy(mask, &(buffer[start]), 4);
-		start += 4;
-	}
+        if (length == 126)
+        {
+            length = ((((int)buffer[pos + 2]) << 8) + buffer[pos + 3]);
+            start = 4;
+        }
+        else if (length == 127)
+        {
+            length = 0;
+            for (int i = 0; i < 8; i++)
+                length = (wxUint64)length * 0x100 + buffer[pos + 2 + i];
+            start = 10;
+        }
 
-	for (int i = 0; i < length; i++)
-		_message->_content.AppendByte(buffer[start + i] ^ mask[i % 4]);
+        if (buffer[pos + 1] & 128)
+        {
+            memcpy(mask, &(buffer[pos + start]), 4);
+            start += 4;
+        }
 
-	if (final && _server->_context.MessageHandler)
-	{
-		_server->_context.MessageHandler(*this, *_message);
+        for (int i = 0; i < length; i++)
+            _message->_content.AppendByte(buffer[pos + start + i] ^ mask[i % 4]);
 
-		switch (_message->_type)
-		{
-		case WebSocketMessage::Ping:
-		    {
-		        WebSocketMessage wsm(WebSocketMessage::Pong);
+        if (final && _server->_context.MessageHandler)
+        {
+            _server->_context.MessageHandler(*this, *_message);
+
+            switch (_message->_type)
+            {
+            case WebSocketMessage::Ping:
+            {
+                WebSocketMessage wsm(WebSocketMessage::Pong);
                 SendMessage(wsm);
-		    }
-			break;
-		case WebSocketMessage::Close:
-		    {
-		        WebSocketMessage wsm(WebSocketMessage::Close);
+            }
+            break;
+            case WebSocketMessage::Close:
+            {
+                WebSocketMessage wsm(WebSocketMessage::Close);
                 SendMessage(wsm);
-		    }
-			break;
-		}
+            }
+            break;
+            }
 
-		delete _message;
-		_message = NULL;
-	}
+            delete _message;
+            _message = nullptr;
+        }
+
+        pos += start + length;
+
+        if (pos >= buffer.GetDataLen())
+        {
+            done = true;
+        }
+    }
 
 	return true;
 }
