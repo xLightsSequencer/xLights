@@ -76,7 +76,7 @@ function loadUISettings() {
     type: "GET",
     url: '/xScheduleStash?Command=Retrieve&Key=uiSettings',
     success: function(response) {
-      uiSettings = JSON.parse(response);
+      uiSettings = response;
       if (response.result == 'failed' && response.message == '') {
         var defaultSettings =
           `{
