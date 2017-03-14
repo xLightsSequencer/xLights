@@ -77,28 +77,27 @@ function loadUISettings() {
     url: '/xScheduleStash?Command=Retrieve&Key=uiSettings',
     success: function(response) {
       uiSettings = JSON.parse(response);
-      populateUI();
-      if (getQueryVariable("plugin") == false) {
+      if (response.result == 'failed' && response.message == '') {
+        var defaultSettings =
+          `{
+        "webName":"xLights Scheduler",
+        "webColor":"#e74c3c",
+        "notificationLevel":"1",
+        "home":[true, false],
+        "playlists":[true, true],
+        "settings":[true, true]
+        }`;
+        storeKey('uiSettings', defaultSettings);
+        uiSettings = JSON.parse(defaultSettings);
+        if (getQueryVariable("plugins") == false) {
+          populateSideBar();
+        }
+      } else if (getQueryVariable("plugin") == false) {
         populateSideBar();
       }
-    },
-    error: function(response) {
-      var defaultSettings =
-        `{
-      "webName":"xLights Scheduler",
-      "webColor":"#e74c3c",
-      "notificationLevel":"1",
-      "home":[true, false],
-      "playlists":[true, true],
-      "settings":[true, true]
-      }`;
-      storeKey('uiSettings', defaultSettings);
-      uiSettings = JSON.parse(defaultSettings);
       populateUI();
-      if (getQueryVariable("plugins") == false) {
-        populateSideBar();
-      }
     },
+    error: function(response) {},
   });
 }
 
@@ -252,8 +251,17 @@ function updateNavStatus() {
     } else if (playingStatus['playlistlooping'] == "true") {
       $('#playlistlooping').attr('class',
         "btn btn-info glyphicon glyphicon-refresh");
+
     }
   }
+
+  if (playingStatus['volume'] == "0") {
+    $('#volumeMute').attr('class',
+      "btn btn-danger glyphicon glyphicon-volume-off");
+  } else if (playingStatus['volume'] > "0") {
+    $('#volumeMute').attr('class', "btn btn-default glyphicon glyphicon-volume-up");
+  }
+
   //output to lights
   if (playingStatus['outputtolights'] == 'false') {
     $('#outputtolights').attr('class',
@@ -262,6 +270,7 @@ function updateNavStatus() {
     $('#outputtolights').attr('class',
       "btn btn-success glyphicon glyphicon-eye-open");
   }
+
 
 }
 
