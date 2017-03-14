@@ -28,6 +28,9 @@ socket.addEventListener('message', function(event) {
       notification('Unknown Reference Function: "' + response.reference + '"', 'danger', '0');
     }
   }
+  if (response.result == 'not logged in') {
+    window.location.href = "login.html";
+  }
 });
 
 socket.onclose = function(e) {
