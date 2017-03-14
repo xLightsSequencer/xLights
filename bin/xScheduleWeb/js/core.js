@@ -1,12 +1,12 @@
 $(document).ready(function() {
 
   window.setInterval(function() {
-
     if (socket.readyState > '1') {
       updateStatus();
+      updateNavStatus();
     }
-    updateNavStatus();
   }, 1000);
+
 
   loadUISettings();
   navLoadPlaylists();
@@ -76,7 +76,6 @@ function loadUISettings() {
     type: "GET",
     url: '/xScheduleStash?Command=Retrieve&Key=uiSettings',
     success: function(response) {
-      uiSettings = response;
       if (response.result == 'failed' && response.message == '') {
         var defaultSettings =
           `{
@@ -87,13 +86,17 @@ function loadUISettings() {
         "playlists":[true, true],
         "settings":[true, true]
         }`;
-        storeKey('uiSettings', defaultSettings);
+        storeKey('uiSettings', defaultSettings, '10');
+        notification("Loaded Default Settings", "info", "0");
         uiSettings = JSON.parse(defaultSettings);
-        if (getQueryVariable("plugins") == false) {
+        if (getQueryVariable("plugin") == false) {
           populateSideBar();
         }
-      } else if (getQueryVariable("plugin") == false) {
-        populateSideBar();
+      } else {
+        if (getQueryVariable("plugin") == false) {
+          populateSideBar();
+        }
+        uiSettings = JSON.parse(response);
       }
       populateUI();
     },
@@ -178,12 +181,11 @@ function logout() {
 function runCommand(name, param) {
 
   //if websocket if open use that
-  console.log('hello');
+
   if (socket.readyState <= '1') {
     if (param == undefined) {
       socket.send('{"Type":"Command","Command":"' + name + '","Parameters":""}');
     } else {
-      console.log("ran");
       socket.send('{"Type":"Command","Command":"' + name + '","Parameters":"' + param + '"}');
     }
   } else {
@@ -274,18 +276,21 @@ function updateNavStatus() {
 
 }
 
-function storeKey(key, value) {
+function storeKey(key, value, notificationLevel) {
   // written by cp16net so blame him.
+  if (notificationLevel == undefined) {
+    notificationLevel = "";
+  }
   $.ajax({
     type: "POST",
     url: '/xScheduleStash?Command=Store&Key=' + key,
     data: value,
     success: function(response) {
-      notification("Settings Saved", "success", "0");
+      notification("Settings Saved", "success", notificationLevel);
       notification(response.result + response.message, "success", "2");
     },
     error: function(error) {
-      console.log("ERROR: " + error);
+      notification("POST failed: ", response, '0');
     }
   });
 }
@@ -309,7 +314,7 @@ function notification(message, color, priority) {
   // "" = always //
   // 1 = debug   //
   //console.log(uiSettings.notificationLevel);
-  if (priority <= uiSettings.notificationLevel) {
+  if (uiSettings == undefined || priority <= uiSettings.notificationLevel) {
     $.notify({
       // options
       message: message
