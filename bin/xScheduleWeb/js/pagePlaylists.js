@@ -38,7 +38,7 @@ function playlistsLoadPlaylists() {
             ".")[0] +
           `</td>
             <td class="col-md-2">
-              <button type="button" onclick="runCommand('Play specified playlist', '` + response.playlists[i].name + `')" class="btn btn-info btn-xs" name="button">Play</button>
+              <button type="button" onclick="runCommand('Play specified playlist', 'id:` + response.playlists[i].id + `')" class="btn btn-info btn-xs" name="button">Play</button>
               <button type="button" onclick="updatePage('page', 'playlists','` + response.playlists[i].name + `')" class="btn btn-default btn-xs" name="button">View</button>
             </td>
           </tr>`;
@@ -72,8 +72,8 @@ function playlistsLoadPlaylistsSteps(playlist, currentStep) {
             ".")[0] +
           `</td>
             <td class="col-md-2">
-              <button type="button" onclick="runCommand('Play playlist starting at step', '` + playlist + `,` + response.steps[i].name + `'); updatePage('page', 'home');" class="btn btn-info btn-xs" name="button" title="Play playlist starting at this step">Play</button>
-              <!--<button type="button" onclick="runCommand('Enqueue playlist step', '` + playlist + `,` + response.steps[i].name + `')" class="btn btn-default btn-xs glyphicon glyphicon-plus" name="button" title="Queue song"></button>-->
+              <button type="button" onclick="runCommand('Play playlist starting at step', '` + playlist + `, id:` + response.steps[i].id + `'); updatePage('page', 'home');" class="btn btn-info btn-xs" name="button" title="Play playlist starting at this step">Play</button>
+              <!--<button type="button" onclick="runCommand('Enqueue playlist step', '` + playlist + `,'id:` + response.steps[i].id + `')" class="btn btn-default btn-xs glyphicon glyphicon-plus" name="button" title="Queue song"></button>-->
             </td>
           </tr>`;
 
