@@ -86,6 +86,69 @@ function checkForUpdate() {
   oldPlayingStatus = playingStatus;
 }
 
+function dashboardLoadStatus() {
+
+  if (playingStatus.status == "idle") {
+    //Populate Idle Page
+    $.ajax({
+      url: '/xScheduleQuery?Query=GetNextScheduledPlayList',
+      dataType: "json",
+      indexValue: status,
+      success: function(response) {
+        if (response.start == "Never") {
+          var notPlaying = '<p><center>Show Not Running!</center></p>';
+          $('#currentStep').html(notPlaying);
+        } else {
+
+          var awaitingSchedule = `
+          <p><h2>Schedule: ` + response.schedulename + `</h2></p
+          <p><h4>Playlist: ` + response.playlistname + `</h4></p>
+          <p>Schedule Start: ` + response.start + `</p>
+          <p>Time End: ` + response.end + `</p>
+          </p>
+
+          `;
+          $('#currentStep').html(awaitingSchedule);
+
+          if (response.start == "NOW!") {
+            var restartButton = `<hr><p><b>Looks like your schedule should be running, but its not. A Restart may fix it.</b></p><button onclick="runCommand('Restart named schedule', 'id:` + response.playlistid + `')" class="btn btn-warning glyphicon glyphicon-triangle-right" title='Back' type="button">Restart</button>`;
+            $("#controlButtonContainer").html(restartButton);
+            console.log("Button Loaded");
+          }
+        }
+
+        console.log(response);
+        //$("#controlButtonContainer").html("");
+      }
+    });
+
+
+  } else {
+    //playing
+
+    var currentPlaylist =
+      `<span class="icon"><i class="icon-file"></i></span><h5>Playlist: ` +
+      playingStatus.playlist + `</h5>`
+    var Playing = `
+    <h3>` + playingStatus.step + `</h3><h5>Duration: ` + playingStatus.length.split(".")[0] + `</h5>
+      <div class="progress">
+  <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: ` + findPercent(playingStatus.length, playingStatus.left) + `;">
+    ` + playingStatus.left.split(".")[0] + `
+  </div>
+</div>
+<h4>Next: ` + playingStatus.nextstep + `</h4>
+      `;
+
+    $("#currentStep").html(Playing);
+    //Set bar
+    // $("#currentPlaylistLoadingBar").css("width", findPercent(
+    //   playingStatus
+    //   .length.split(".")[0], playingStatus.left.split(".")[0]));
+    //updatePlaylistSteps(playingStatus.playlist, playingStatus.step);
+  }
+}
+
+
 
 function populateTableIdle(status, query) {
 
@@ -156,42 +219,6 @@ function populateTablePlaying() {
     }
   });
 }
-
-
-function dashboardLoadStatus() {
-
-  if (playingStatus.status == "idle") {
-    //Populate Idle Page
-    var notPlaying = '<p><center>Show Not Running!</center></p>';
-    $('#currentStep').html(notPlaying);
-    $("#controlButtonContainer").html("");
-
-
-  } else {
-    //playing
-
-    var currentPlaylist =
-      `<span class="icon"><i class="icon-file"></i></span><h5>Playlist: ` +
-      playingStatus.playlist + `</h5>`
-    var Playing = `
-    <h3>` + playingStatus.step + `</h3><h5>Duration: ` + playingStatus.length.split(".")[0] + `</h5>
-      <div class="progress">
-  <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: ` + findPercent(playingStatus.length, playingStatus.left) + `;">
-    ` + playingStatus.left.split(".")[0] + `
-  </div>
-</div>
-<h4>Next: ` + playingStatus.nextstep + `</h4>
-      `;
-
-    $("#currentStep").html(Playing);
-    //Set bar
-    // $("#currentPlaylistLoadingBar").css("width", findPercent(
-    //   playingStatus
-    //   .length.split(".")[0], playingStatus.left.split(".")[0]));
-    //updatePlaylistSteps(playingStatus.playlist, playingStatus.step);
-  }
-}
-
 
 var statusTable = '';
 
