@@ -33,8 +33,6 @@ function openXyzzy() {
     $('#matrixList')[0].value = xyzzyMatrix;
   }
 
-  // Fix
-  //$('#xyzzySelectionDisable').disableSelection();
 }
 
 function startXyzzy() {
@@ -98,12 +96,10 @@ function updateXyzzy(response) {
   if (response.result == 'running') {
     //update Score
     //update next peice
-    $("#xyzzyNext").html(response.next);
+    console.log(response.next);
+    $("#xyzzyNext").html('<span class="xyzzy xyzzy-' + response.next + '"></span>');
     $("#xyzzyCurrentScore").html("Your Score: " + response.score);
 
-  } else if (response.result == 'failed') {
-    xyzzyStatus = "0";
-    //clearInterval(timer);
   } else if (response.result == 'gameover') {
     xyzzyStatus = "4";
     xyzzyDraw("step3");
@@ -188,6 +184,7 @@ function xyzzyDraw(step) {
   } else if (step == "step3") {
     $("#xyzzyContainer").html(step3);
   }
+  $('#xyzzySelectionDisable').disableSelection();
 
 }
 
