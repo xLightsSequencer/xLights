@@ -131,8 +131,8 @@ std::string ProcessCommand(HttpConnection &connection, const std::string& comman
     if (!CheckLoggedIn(connection))
     {
         return "{\"result\":\"not logged in\",\"command\":\""+
-            command + "\"reference\":\"" +
-            reference + "\"ip\":\"" +
+         command + "\",\"reference\":\"" +
+            reference + "\",\"ip\":\"" +
                 connection.Address().IPAddress().ToStdString() + "\"}";
     }
 
