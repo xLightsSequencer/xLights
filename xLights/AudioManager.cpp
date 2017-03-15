@@ -1329,7 +1329,8 @@ int AudioManager::CalcLengthMS()
 // Open and read the media file into memory
 int AudioManager::OpenMediaFile()
 {
-	int err = 0;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int err = 0;
 
 	if (_pcmdata != nullptr)
 	{
@@ -1405,10 +1406,24 @@ int AudioManager::OpenMediaFile()
 
     size_t size = sizeof(float)*(_trackSize + _extra);
 	_data[0] = (float*)calloc(size, 1);
+
+    if (_data[0] == nullptr)
+    {
+        logger_base.error("Unable to allocate %ld memory to load audio file %s.", (long)size, (const char *)_audio_file.c_str());
+        _ok = false;
+        return 1;
+    }
+
     memset(_data[0], 0x00, size);
 	if (_channels == 2)
 	{
 		_data[1] = (float*)calloc(size, 1);
+        if (_data[1] == nullptr)
+        {
+            logger_base.error("Unable to allocate %ld memory to load audio file %s.", (long)size, (const char *)_audio_file.c_str());
+            _ok = false;
+            return 1;
+        }
         memset(_data[1], 0x00, size);
 	}
 	else
