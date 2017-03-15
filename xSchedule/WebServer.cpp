@@ -72,7 +72,7 @@ bool CheckLoggedIn(HttpConnection& connection)
     {
         wxArrayString li = wxSplit(*it, '|');
         wxDateTime lastused;
-        lastused.ParseISOCombined(li[2]);
+        lastused.ParseISOCombined(li[1]);
         if (wxDateTime::Now() - lastused > __loginTimeout * 60000)
         {
             logger_base.debug("Security: Removing ip %s due to timout.", (const char *)li[0].c_str());
