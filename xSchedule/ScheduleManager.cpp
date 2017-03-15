@@ -1995,6 +1995,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
 				"\",\"time\":\"" + wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +
                 "\",\"ip\":\"" + ip +
                 "\",\"reference\":\"" + reference +
+                "\",\"autooutputtolights\":\"" + (_manualOTL ? "false" : "true") +
                 "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\"}";
             //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             //logger_base.info("%s", (const char*)data.c_str());
