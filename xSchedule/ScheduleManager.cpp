@@ -1905,7 +1905,8 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
         {
             data = "{\"status\":\"idle\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") +
                 "\",\"volume\":\"" + wxString::Format(wxT("%i"), GetVolume()) +
-                "\",\"ip\":\"" + ip +
+				"\",\"brightness\":\"" + wxString::Format(wxT("%i"), GetBrightness()) +
+				"\",\"ip\":\"" + ip +
                 "\",\"reference\":\"" + reference +
                 "\",\"time\":\""+ wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +"\"}";
         }
@@ -1955,7 +1956,8 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"version\":\"" + xlights_version_string +
                 "\",\"queuelength\":\"" + wxString::Format(wxT("%i"), (long)_queuedSongs->GetSteps().size()) +
                 "\",\"volume\":\"" + wxString::Format(wxT("%i"), GetVolume()) +
-                "\",\"time\":\"" + wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +
+                "\",\"brightness\":\"" + wxString::Format(wxT("%i"), GetBrightness()) +
+				"\",\"time\":\"" + wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +
                 "\",\"ip\":\"" + ip +
                 "\",\"reference\":\"" + reference +
                 "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\"}";

@@ -55,20 +55,20 @@ function updateNavStatus() {
 
   }
 
-  // if (playingStatus['brightness'] == "0") {
-  //   $('#brightnessLevel').attr('class', "btn btn-danger glyphicon glyphicon-flash");
-  //   $('#brightnessLevel').html("");
-  // } else if (playingStatus['volume'] > "0") {
-  //   //display test
-  //   if (playingStatus['brightness'] == 100) {
-  //     $('#brightnessLevel').attr('class', "btn btn-default glyphicon glyphicon-flash");
-  //     $('#brightnessLevel').html("");
-  //   } else {
-  //     $('#brightnessLevel').attr('class', "btn btn-default glyphicon glyphicon-flash");
-  //     $('#brightnessLevel').html((0 + playingStatus['brightness']).slice(-2));
-  //   }
-  //
-  // }
+  if (playingStatus['brightness'] == "0") {
+    $('#brightnessLevel').attr('class', "btn btn-danger glyphicon glyphicon-flash");
+    $('#brightnessLevel').html("");
+  } else if (playingStatus['volume'] > "0") {
+    //display test
+    if (playingStatus['brightness'] == 100) {
+      $('#brightnessLevel').attr('class', "btn btn-default glyphicon glyphicon-flash");
+      $('#brightnessLevel').html("");
+    } else {
+      $('#brightnessLevel').attr('class', "btn btn-default glyphicon glyphicon-flash");
+      $('#brightnessLevel').html((0 + playingStatus['brightness']).slice(-2));
+    }
+
+  }
 
   //output to lights
   if (playingStatus['outputtolights'] == 'false') {
