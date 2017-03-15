@@ -11,6 +11,7 @@ socket.addEventListener('message', function(event) {
   if (response.score == undefined && response.highscore == undefined) {
     if (response.status != undefined) {
       playingStatus = response;
+      updateNavStatus();
     }
 
     if (response.result == 'failed') {
@@ -18,9 +19,9 @@ socket.addEventListener('message', function(event) {
     }
   }
 
+  //Run Fuction if refrence is set
   if (response.reference != "" && response.reference != undefined) {
     var fun = response.reference;
-    //console.log(response.reference);
     var fn = window[fun];
     if (typeof fn === "function") {
       fn(response);

@@ -7,12 +7,15 @@ $(document).ready(function() {
     }
   }, 1000);
 
-
   loadUISettings();
   navLoadPlaylists();
   navLoadPlugins();
   checkLogInStatus();
   loadXyzzyData();
+
+  //temp
+  smartBrightness();
+  smartVolume();
 
   //Add Hover effect to menus
   jQuery('ul.nav li.dropdown').hover(function() {
@@ -20,7 +23,6 @@ $(document).ready(function() {
   }, function() {
     jQuery(this).find('.dropdown-menu').stop(true, true).delay(200).fadeOut();
   });
-
 
   // if mobile
   if (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)) {
@@ -33,8 +35,7 @@ $(document).ready(function() {
 
 });
 //global status
-var playingStatus =
-  `{status: "unknown"}`;
+var playingStatus = `{status: "unknown"}`;
 
 function updateStatus() {
   $.ajax({
@@ -79,13 +80,13 @@ function loadUISettings() {
       if (response.result == 'failed' && response.message == '') {
         var defaultSettings =
           `{
-        "webName":"xLights Scheduler",
-        "webColor":"#e74c3c",
-        "notificationLevel":"1",
-        "home":[true, false],
-        "playlists":[true, true],
-        "settings":[true, true]
-        }`;
+      "webName":"xLights Scheduler",
+      "webColor":"#e74c3c",
+      "notificationLevel":"1",
+      "home":[true, false],
+      "playlists":[true, true],
+      "settings":[true, true]
+      }`;
         storeKey('uiSettings', defaultSettings, '10');
         notification("Loaded Default Settings", "info", "0");
         uiSettings = JSON.parse(defaultSettings);
@@ -220,61 +221,6 @@ function findPercent(length, left) {
   return Math.round(percent) + "%";
 }
 
-function updateNavStatus() {
-  checkLogInStatus();
-
-  if (playingStatus.status == 'idle') {
-
-    $('#random').attr('disabled', 'disabled');
-    $('#steplooping').attr('disabled', 'disabled');
-    $('#playlistlooping').attr('disabled', 'disabled');
-  } else {
-    $('#random').removeAttr("disabled");
-    $('#steplooping').removeAttr("disabled");
-    $('#playlistlooping').removeAttr("disabled");
-
-    if (playingStatus['random'] == "false") {
-      $('#random').attr('class',
-        "btn btn-default glyphicon glyphicon-random");
-    } else if (playingStatus['random'] == "true") {
-      $('#random').attr('class',
-        "btn btn-info glyphicon glyphicon-random");
-    }
-    if (playingStatus['steplooping'] == "false") {
-      $('#steplooping').attr('class',
-        "btn btn-default glyphicon glyphicon-repeat");
-    } else if (playingStatus['steplooping'] == "true") {
-      $('#steplooping').attr('class',
-        "btn btn-info glyphicon glyphicon-repeat");
-    }
-    if (playingStatus['playlistlooping'] == "false") {
-      $('#playlistlooping').attr('class',
-        "btn btn-default glyphicon glyphicon-refresh");
-    } else if (playingStatus['playlistlooping'] == "true") {
-      $('#playlistlooping').attr('class',
-        "btn btn-info glyphicon glyphicon-refresh");
-
-    }
-  }
-
-  if (playingStatus['volume'] == "0") {
-    $('#volumeMute').attr('class',
-      "btn btn-danger glyphicon glyphicon-volume-off");
-  } else if (playingStatus['volume'] > "0") {
-    $('#volumeMute').attr('class', "btn btn-default glyphicon glyphicon-volume-up");
-  }
-
-  //output to lights
-  if (playingStatus['outputtolights'] == 'false') {
-    $('#outputtolights').attr('class',
-      "btn btn-danger glyphicon glyphicon-eye-close");
-  } else if (playingStatus['outputtolights'] == 'true') {
-    $('#outputtolights').attr('class',
-      "btn btn-success glyphicon glyphicon-eye-open");
-  }
-
-
-}
 
 function storeKey(key, value, notificationLevel) {
   // written by cp16net so blame him.
@@ -332,7 +278,6 @@ function findPercent(length, left) {
   var percent = (secLength - secLeft) / secLength * 100;
   return Math.round(percent) + "%";
 }
-
 
 //Upercase First Letter of string
 function jsUcfirst(string) {

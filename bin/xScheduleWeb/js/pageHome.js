@@ -30,6 +30,8 @@ function populateSideBar() {
     if (uiSettings.home[1] == true) {
       $('#sideBar2').load('inc/sidebarPlayerStatus.html');
     }
+  } else {
+    console.log("No Sidebar =");
   }
 }
 
