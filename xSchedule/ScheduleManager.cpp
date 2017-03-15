@@ -1301,13 +1301,25 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             {
                 auto rs = GetRunningSchedule();
                 if (rs != nullptr)
+                {
                     rs->Reset();
+                    wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
+                    wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event2);
+                }
             }
             else if (command == "Restart named schedule")
             {
                 auto rs = GetRunningSchedule(DecodeSchedule(parameters));
                 if (rs != nullptr)
+                {
                     rs->Reset();
+                    wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
+                    wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event2);
+                }
             }
             else if (command == "Restart playlist schedules")
             {
@@ -1327,6 +1339,10 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         }
                     }
                 }
+                wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                wxPostEvent(wxGetApp().GetTopWindow(), event);
+                wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                wxPostEvent(wxGetApp().GetTopWindow(), event2);
             }
             else if (command == "PressButton")
             {
