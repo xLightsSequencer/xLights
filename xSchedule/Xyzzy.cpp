@@ -320,6 +320,10 @@ void Xyzzy::Initialise(const std::string& parameters, std::string& result, const
 
     wxCommandEvent event(EVT_XYZZY);
     wxPostEvent(wxGetApp().GetTopWindow(), event);
+
+    wxCommandEvent event2(EVT_XYZZYEVENT);
+    event2.SetString("initialised");
+    wxPostEvent(wxGetApp().GetTopWindow(), event2);
 }
 
 void Xyzzy::Close(std::string& result, const std::string& reference)
@@ -408,6 +412,9 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
                     GetScore() + "\",\"r\":\"" +
                     reference + "\",\"next\":\"" +
                     GetNextPiece() + "\"}";
+                wxCommandEvent event(EVT_XYZZYEVENT);
+                event.SetString("movedleft");
+                wxPostEvent(wxGetApp().GetTopWindow(), event);
             }
             else
             {
@@ -433,6 +440,9 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
                     GetScore() + "\",\"r\":\"" +
                     reference + "\",\"next\":\"" +
                     GetNextPiece() + "\"}";
+                wxCommandEvent event(EVT_XYZZYEVENT);
+                event.SetString("movedright");
+                wxPostEvent(wxGetApp().GetTopWindow(), event);
             }
             else
             {
@@ -458,6 +468,9 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
                     GetScore() + "\",\"r\":\"" +
                     reference + "\",\"next\":\"" +
                     GetNextPiece() + "\"}";
+                wxCommandEvent event(EVT_XYZZYEVENT);
+                event.SetString("spun");
+                wxPostEvent(wxGetApp().GetTopWindow(), event);
             }
             else
             {
@@ -481,6 +494,9 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
                 GetScore() + "\",\"r\":\"" +
                 reference + "\",\"next\":\"" +
                 GetNextPiece() + "\"}";
+            wxCommandEvent event(EVT_XYZZYEVENT);
+            event.SetString("dropped");
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
         }
         else
         {
@@ -499,6 +515,9 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
                 "\",\"highscore\":\"" + GetHighScore() +
                 "\",\"highscoreplayer\":\"" + GetHighScorePlayer() +
                 "\"}";
+            wxCommandEvent event(EVT_XYZZYEVENT);
+            event.SetString("gamestopped");
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
         }
         else
         {
@@ -545,12 +564,18 @@ bool Xyzzy::Action(const std::string& command, const std::string& parameters, st
                 GetScore() + "\",\"r\":\"" +
                 reference + "\",\"next\":\"" +
                 GetNextPiece() + "\"}";
+            wxCommandEvent event(EVT_XYZZYEVENT);
+            event.SetString("gamestarted");
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
         }
     }
     else if (command == "reset") // reset to pristine state
     {
         Reset();
         result = "{\"result\":\"ok\",\"r\":\""+reference+"\"}";
+        wxCommandEvent event(EVT_XYZZYEVENT);
+        event.SetString("gamereset");
+        wxPostEvent(wxGetApp().GetTopWindow(), event);
     }
     else
     {
@@ -647,6 +672,9 @@ void Xyzzy::Drop()
         {
             SaveHighScore();
             _gameRunning = false;
+            wxCommandEvent event(EVT_XYZZYEVENT);
+            event.SetString("gameover");
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
             return;
         }
     }
@@ -1030,10 +1058,17 @@ bool Xyzzy::AdvanceGame()
         {
             _currentPiece->MoveDown();
             _lastUpdatedMovement = wxGetUTCTimeMillis();
+            wxCommandEvent event(EVT_XYZZYEVENT);
+            event.SetString("piecemoved");
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
         }
         else
         {
             logger_base.debug("Xyzzy piece landed.");
+
+            wxCommandEvent event(EVT_XYZZYEVENT);
+            event.SetString("piecelanded");
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
 
             auto loc = _currentPiece->DrawPoints();
             for (auto it = loc.begin(); it != loc.end(); ++it)
@@ -1097,6 +1132,10 @@ void Xyzzy::CheckFullRow()
         {
             _dropSpeed = MINDROPSPEED;
         }
+
+        wxCommandEvent event(EVT_XYZZYEVENT);
+        event.SetString("rowcomplete");
+        wxPostEvent(wxGetApp().GetTopWindow(), event);
     }
 
     switch (fullcount)

@@ -267,6 +267,7 @@ wxDEFINE_EVENT(EVT_RUNACTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOCHECKSCHEDULE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_XYZZY, wxCommandEvent);
+wxDEFINE_EVENT(EVT_XYZZYEVENT, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     //(*EventTable(xScheduleFrame)
@@ -277,6 +278,7 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_SCHEDULECHANGED, xScheduleFrame::ScheduleChange)
     EVT_COMMAND(wxID_ANY, EVT_DOCHECKSCHEDULE, xScheduleFrame::DoCheckSchedule)
     EVT_COMMAND(wxID_ANY, EVT_XYZZY, xScheduleFrame::DoXyzzy)
+    EVT_COMMAND(wxID_ANY, EVT_XYZZYEVENT, xScheduleFrame::DoXyzzyEvent)
     END_EVENT_TABLE()
 
 xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, const std::string& playlist, wxWindowID id)
@@ -495,6 +497,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_SCHEDULECHANGED, (wxObjectEventFunction)&xScheduleFrame::ScheduleChange);
     Connect(wxID_ANY, EVT_DOCHECKSCHEDULE, (wxObjectEventFunction)&xScheduleFrame::DoCheckSchedule);
     Connect(wxID_ANY, EVT_XYZZY, (wxObjectEventFunction)&xScheduleFrame::DoXyzzy);
+    Connect(wxID_ANY, EVT_XYZZYEVENT, (wxObjectEventFunction)&xScheduleFrame::DoXyzzyEvent);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
     wxIconBundle icons;
@@ -2262,5 +2265,14 @@ void xScheduleFrame::DoXyzzy(wxCommandEvent& event)
     if (__schedule->IsXyzzy())
     {
         SendStatus();
+    }
+}
+
+void xScheduleFrame::DoXyzzyEvent(wxCommandEvent& event)
+{
+    if (_webServer != nullptr && __schedule->IsXyzzy())
+    {
+        std::string result = "{\"xyzzyevent\":\"" + event.GetString().ToStdString() + "\"}";
+        _webServer->SendMessageToAllWebSockets(result);
     }
 }

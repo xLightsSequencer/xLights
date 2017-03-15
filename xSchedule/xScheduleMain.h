@@ -45,6 +45,7 @@ wxDECLARE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DOCHECKSCHEDULE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_XYZZY, wxCommandEvent);
+wxDECLARE_EVENT(EVT_XYZZYEVENT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_RUNACTION, wxCommandEvent);
 
 class xScheduleFrame : public wxFrame
@@ -164,6 +165,7 @@ public:
         void ScheduleChange(wxCommandEvent& event);
         void DoCheckSchedule(wxCommandEvent& event);
         void DoXyzzy(wxCommandEvent& event);
+        void DoXyzzyEvent(wxCommandEvent& event);
 
         //(*Identifiers(xScheduleFrame)
         static const long ID_BITMAPBUTTON1;
