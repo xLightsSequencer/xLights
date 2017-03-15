@@ -24,6 +24,14 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_RunBackground" member="yes">
+					<label>Run background playlist when not running sequence</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_Sync" member="yes">
 					<label>Use ArtNet/E1.31 Synchronisation Protocols</label>
 				</object>

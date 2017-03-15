@@ -14,6 +14,7 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
     _advancedMode = node->GetAttribute("AdvancedMode", "FALSE") == "TRUE";
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
+    _sendBackgroundWhenNotRunning = node->GetAttribute("SendBackgroundWhenNotRunning", "FALSE") == "TRUE";
 #ifdef __WXMSW__
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
 #else
@@ -78,6 +79,7 @@ ScheduleOptions::ScheduleOptions()
     _lastSavedChangeCount = 0;
     _sync = false;
     _sendOffWhenNotRunning = false;
+    _sendBackgroundWhenNotRunning = false;
     _advancedMode = false;
 }
 
@@ -120,6 +122,11 @@ wxXmlNode* ScheduleOptions::Save()
     if (IsSendOffWhenNotRunning())
     {
         res->AddAttribute("SendOffWhenNotRunning", "TRUE");
+    }
+
+    if (IsSendBackgroundWhenNotRunning())
+    {
+        res->AddAttribute("SendBackgroundWhenNotRunning", "TRUE");
     }
 
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));

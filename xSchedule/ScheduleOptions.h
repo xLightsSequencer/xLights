@@ -19,6 +19,7 @@ class ScheduleOptions
     int _changeCount;
     int _lastSavedChangeCount;
     bool _sendOffWhenNotRunning;
+    bool _sendBackgroundWhenNotRunning;
     bool _webAPIOnly;
     int _port;
     std::string _wwwRoot;
@@ -47,6 +48,8 @@ class ScheduleOptions
         void SetSync(bool sync) { if (_sync != sync) { _sync = sync; _changeCount++; } }
         void SetSendOffWhenNotRunning(bool send) { if (_sendOffWhenNotRunning != send) { _sendOffWhenNotRunning = send; _changeCount++; } }
         bool IsSendOffWhenNotRunning() const { return _sendOffWhenNotRunning; }
+        void SetSendBackgroundWhenNotRunning(bool send) { if (_sendBackgroundWhenNotRunning != send) { _sendBackgroundWhenNotRunning = send; _changeCount++; } }
+        bool IsSendBackgroundWhenNotRunning() const { return _sendBackgroundWhenNotRunning; }
         std::list<Projector*> GetProjectors() const;
         std::vector<UserButton*> GetButtons() const;
         Projector* GetProjector(const std::string& projector);

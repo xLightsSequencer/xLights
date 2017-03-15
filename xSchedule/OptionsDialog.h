@@ -36,6 +36,7 @@ class OptionsDialog: public wxDialog
 		//(*Declarations(OptionsDialog)
 		wxSpinCtrl* SpinCtrl_WebServerPort;
 		wxTextCtrl* TextCtrl_wwwRoot;
+		wxCheckBox* CheckBox_RunBackground;
 		wxButton* Button_ButtonDelete;
 		wxButton* Button_Ok;
 		wxStaticText* StaticText2;
@@ -65,6 +66,7 @@ class OptionsDialog: public wxDialog
 		//(*Identifiers(OptionsDialog)
 		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX3;
+		static const long ID_CHECKBOX5;
 		static const long ID_CHECKBOX2;
 		static const long ID_STATICTEXT3;
 		static const long ID_SPINCTRL1;

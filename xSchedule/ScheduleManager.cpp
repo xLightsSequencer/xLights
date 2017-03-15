@@ -446,12 +446,6 @@ void ScheduleManager::Frame(bool outputframe)
                 (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
             }
 
-            auto vm = GetOptions()->GetVirtualMatrices();
-            for (auto it = vm->begin(); it != vm->end(); ++it)
-            {
-                (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
-            }
-
             if (outputframe && _brightness < 100)
             {
                 if (_brightness != _lastBrightness)
@@ -466,6 +460,12 @@ void ScheduleManager::Frame(bool outputframe)
                     *pb = _brightnessArray[*pb];
                     pb++;
                 }
+            }
+
+            auto vm = GetOptions()->GetVirtualMatrices();
+            for (auto it = vm->begin(); it != vm->end(); ++it)
+            {
+                (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
             }
 
             _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
@@ -488,41 +488,57 @@ void ScheduleManager::Frame(bool outputframe)
     {
         if (_scheduleOptions->IsSendOffWhenNotRunning())
         {
-            _outputManager->StartFrame(0);
-            _outputManager->AllOff();
-
-            if (_backgroundPlayList != nullptr)
+            if (outputframe)
             {
-                if (!_backgroundPlayList->IsRunning())
+                _outputManager->StartFrame(0);
+                _outputManager->AllOff();
+
+                if (_backgroundPlayList != nullptr && _scheduleOptions->IsSendBackgroundWhenNotRunning())
                 {
-                    _backgroundPlayList->Start(true);
-                }
-                _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
-            }
+                    if (!_backgroundPlayList->IsRunning())
+                    {
+                        _backgroundPlayList->Start(true);
+                    }
+                    _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
 
-            // apply any output processing
-            for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
-            {
-                (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
-            }
-
-            if (outputframe && _brightness < 100)
-            {
-                if (_brightness != _lastBrightness)
-                {
-                    _lastBrightness = _brightness;
-                    CreateBrightnessArray();
+                    // apply any overlay data
+                    for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
+                    {
+                        (*it)->Set(_buffer, _outputManager->GetTotalChannels());
+                    }
                 }
 
-                wxByte* pb = _buffer;
-                for (int i = 0; i < _outputManager->GetTotalChannels(); ++i)
+                // apply any output processing
+                for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
                 {
-                    *pb = _brightnessArray[*pb];
-                    pb++;
+                    (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
                 }
-            }
 
-            _outputManager->EndFrame();
+                if (outputframe && _brightness < 100)
+                {
+                    if (_brightness != _lastBrightness)
+                    {
+                        _lastBrightness = _brightness;
+                        CreateBrightnessArray();
+                    }
+
+                    wxByte* pb = _buffer;
+                    for (int i = 0; i < _outputManager->GetTotalChannels(); ++i)
+                    {
+                        *pb = _brightnessArray[*pb];
+                        pb++;
+                    }
+                }
+
+                auto vm = GetOptions()->GetVirtualMatrices();
+                for (auto it = vm->begin(); it != vm->end(); ++it)
+                {
+                    (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
+                }
+
+                _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
+                _outputManager->EndFrame();
+            }
         }
     }
 }
