@@ -91,6 +91,13 @@ bool HttpServer::Stop()
 {
 	if (!_server) return false;
 
+    // close all open connections
+    for (auto it = _connections.begin(); it != _connections.end(); ++it)
+    {
+        it->second->Close();
+    }
+
+    _server->Notify(false);
 	_server->Close();
 	delete _server;
     _server = nullptr;
