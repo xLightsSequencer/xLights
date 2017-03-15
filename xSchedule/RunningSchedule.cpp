@@ -42,4 +42,8 @@ void RunningSchedule::Reset()
         _playlist->Stop();
         _playlist->StartSuspended(_schedule->GetLoop(), _schedule->GetRandom(), _schedule->GetLoops());
     }
+    if (_playlist->IsPaused())
+    {
+        _playlist->TogglePause();
+    }
 }

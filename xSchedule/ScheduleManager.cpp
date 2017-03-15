@@ -2083,7 +2083,7 @@ bool ScheduleManager::ToggleCurrentPlayListPause(std::string& msg)
     PlayList* p = GetRunningPlayList();
     if (p != nullptr)
     {
-        p->Pause();
+        p->TogglePause();
     }
     else
     {

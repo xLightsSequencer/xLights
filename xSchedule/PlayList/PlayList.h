@@ -112,7 +112,7 @@ public:
     bool IsSuspended() const;
     void Stop();
     void StopAtEndOfCurrentStep() { _stopAtEndOfCurrentStep = true; }
-    void Pause();
+    void TogglePause();
     void RemoveAllSteps();
     bool IsPaused() const;
     bool JumpToNextStep();

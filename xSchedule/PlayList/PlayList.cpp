@@ -589,7 +589,7 @@ bool PlayList::IsSuspended() const
     return (_suspendTime != zero);
 }
 
-void PlayList::Pause()
+void PlayList::TogglePause()
 {
     if (_currentStep == nullptr) return;
 
