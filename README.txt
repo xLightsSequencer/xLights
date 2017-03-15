@@ -30,6 +30,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Enhance schedule api to allow playlists, steps, items, schedules and buttons to be identified by id
    -- enh (keith)   All multiple model delete on layout tab. Only prompt to confirm if sequence is open with effects on that model
    -- enh (keith)   Add support for xschedule web API using web sockets
+   -- enh (keith)   Let user decide if background playlist should play if nothing else is playing
+   -- enh (billy)   Enhance scheduler web interface. More functionality. More responsive.
 2017.6  Feb 27, 2017
    -- bug (dkulp)   Fix xScheduler logging on OSX
    -- enh (keith)   Add duration treatments to glediator effect
