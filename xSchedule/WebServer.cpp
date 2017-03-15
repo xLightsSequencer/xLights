@@ -38,6 +38,23 @@ void RemoveFromValid(HttpConnection& connection)
     }
 }
 
+void UpdateValid(HttpConnection& connection)
+{
+    if (__password == "") return; // no password ... always logged in
+
+    for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it)
+    {
+        wxArrayString li = wxSplit(*it, '|');
+
+        if (li[0] == connection.Address().IPAddress())
+        {
+            li[1] = wxDateTime::Now().FormatISOCombined();
+            *it = li[0] + "|" + li[1];
+            return;
+        }
+    }
+}
+
 void AddToValid(HttpConnection& connection)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -602,7 +619,14 @@ void WebServer::SendMessageToAllWebSockets(const std::string& message)
         if ((*it).second->IsWebSocket())
         {
             WebSocketMessage wsm(message);
-            (*it).second->SendMessage(wsm);
+            if (it->second->SendMessage(wsm))
+            {
+                UpdateValid(*it->second);
+            }
+            else
+            {
+                RemoveFromValid(*it->second);
+            }
         }
     }
 }
