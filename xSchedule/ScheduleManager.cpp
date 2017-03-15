@@ -1309,6 +1309,25 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 if (rs != nullptr)
                     rs->Reset();
             }
+            else if (command == "Restart playlist schedules")
+            {
+                auto plname = DecodePlayList(parameters);
+                auto pl = GetPlayList(plname);
+                if (pl != nullptr)
+                {
+                    for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
+                    {
+                        if ((*it)->GetPlayList()->GetId() == pl->GetId())
+                        {
+                            if (!(*it)->GetPlayList()->IsRunning())
+                            {
+                                // need to restart this one
+                                (*it)->Reset();
+                            }
+                        }
+                    }
+                }
+            }
             else if (command == "PressButton")
             {
                 UserButton* b = _scheduleOptions->GetButton(DecodeButton(parameters));
