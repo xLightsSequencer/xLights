@@ -77,9 +77,13 @@ function loadUISettings() {
     type: "GET",
     url: '/xScheduleStash?Command=Retrieve&Key=uiSettings',
     success: function(response) {
-      if (response.result == 'failed' && response.message == '') {
-        var defaultSettings =
-          `{
+
+      if (response.result == "not logged in") {
+        window.location.href = "login.html";
+      } else {
+        if (response.result == 'failed' && response.message == '') {
+          var defaultSettings =
+            `{
       "webName":"xLights Scheduler",
       "webColor":"#e74c3c",
       "notificationLevel":"1",
@@ -87,19 +91,22 @@ function loadUISettings() {
       "playlists":[true, true],
       "settings":[true, true]
       }`;
-        storeKey('uiSettings', defaultSettings, '10');
-        notification("Loaded Default Settings", "info", "0");
-        uiSettings = JSON.parse(defaultSettings);
-        if (getQueryVariable("plugin") == false) {
-          populateSideBar();
+          storeKey('uiSettings', defaultSettings, '10');
+          notification("Loaded Default Settings", "info", "0");
+          uiSettings = JSON.parse(defaultSettings);
+          if (getQueryVariable("plugin") == false) {
+            populateSideBar();
+          }
+        } else {
+          if (getQueryVariable("plugin") == false) {
+            populateSideBar();
+          }
+          uiSettings = JSON.parse(response);
         }
-      } else {
-        if (getQueryVariable("plugin") == false) {
-          populateSideBar();
-        }
-        uiSettings = JSON.parse(response);
+        populateUI();
       }
-      populateUI();
+
+
     },
     error: function(response) {},
   });
@@ -166,17 +173,24 @@ function navLoadPlugins() {
 }
 
 function logout() {
-  $.ajax({
-    url: '/xScheduleLogin?Credential=logout',
-    dataType: "json",
-    success: function(response) {
-      notification('Logged Out', 'success', '2');
 
-    },
-    error: function(error) {
-      console.log("ERROR: " + error);
-    }
-  });
+  if (socket.readyState <= '1') {
+    socket.send('{"Type":"Login","Credential":"Log Out"}');
+  } else {
+
+    $.ajax({
+      url: '/xScheduleLogin?Credential=logout',
+      dataType: "json",
+      success: function(response) {
+        console.log(response);
+        notification('Logged Out', 'success', '2');
+
+      },
+      error: function(error) {
+        console.log("ERROR: " + error);
+      }
+    });
+  }
 }
 
 function runCommand(name, param) {

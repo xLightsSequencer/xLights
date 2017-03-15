@@ -35,6 +35,7 @@ function loginSubmit() {
       } else if (response.result == "ok") {
         var message = "<h5>Logging In</h5>";
         $("#error").html(message);
+        window.location.href = 'login.html';
       }
     },
     error: function(error) {

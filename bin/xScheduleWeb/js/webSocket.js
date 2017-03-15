@@ -32,6 +32,9 @@ socket.addEventListener('message', function(event) {
   if (response.result == 'not logged in') {
     window.location.href = "login.html";
   }
+  if (response.result == 'failed' && response.message == 'Login failed.') {
+    window.location.href = "login.html";
+  }
 });
 
 socket.onclose = function(e) {

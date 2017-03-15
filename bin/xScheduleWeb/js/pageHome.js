@@ -113,7 +113,7 @@ function dashboardLoadStatus() {
           $('#currentStep').html(awaitingSchedule);
 
           if (response.start == "NOW!") {
-            var restartButton = `<hr><p><b>Looks like your schedule should be running, please restart!</b></p><button onclick="runCommand('Restart named schedule', 'id:` + response.playlistid + `')" class="btn btn-warning glyphicon glyphicon-triangle-right" title='Back' type="button">Restart</button>`;
+            var restartButton = `<hr><p><b>Looks like your schedule should be running, please restart!</b></p><button onclick="runCommand('Restart playlist schedules','id:` + response.playlistid + `')" class="btn btn-warning glyphicon glyphicon-triangle-right" title='Back' type="button">Restart</button>`;
             $("#controlButtonContainer").html(restartButton);
             console.log("Button Loaded");
           }
