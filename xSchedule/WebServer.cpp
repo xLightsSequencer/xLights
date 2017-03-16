@@ -352,6 +352,24 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
             logger_base.info("    data = '' : '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
         }
     }
+    else if (wxString(command).Lower() == "retrievejson")
+    {
+        std::string msg = "";
+        if (xScheduleFrame::GetScheduleManager()->RetrieveData(key, data, msg))
+        {
+            logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
+            result = "{\"reference\":\"" + reference +
+                     "\",\"key\":\"" + key + "\",\"value\":[" + data + "]}";
+        }
+        else
+        {
+            result = "{\"result\":\"failed\",\"stash\":\"" +
+                command + "\",\"reference\":\"" +
+                reference + "\",\"message\":\"" +
+                msg + "\"}";
+            logger_base.info("    data = '' : '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
+        }
+    }
     else
     {
         result = "{\"result\":\"failed\",\"stash\":\""+
