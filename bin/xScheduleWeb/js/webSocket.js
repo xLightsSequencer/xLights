@@ -38,7 +38,7 @@ socket.addEventListener('message', function(event) {
 });
 
 socket.onclose = function(e) {
-  console.log('Socket Disconnected!');
+  notification('Web Socket: Disconnected "' + e + '"', 'danger', '0');
 };
 
 //
@@ -55,6 +55,5 @@ socket.onclose = function(e) {
 // });
 
 function test(response) {
-  console.log("Test function worked!");
-  console.log(response);
+  notification('Test Function: "' + response + '"', 'success', '0');
 }

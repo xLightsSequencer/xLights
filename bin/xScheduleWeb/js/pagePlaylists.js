@@ -16,6 +16,11 @@ function populateSideBar() {
     if (uiSettings.playlists[1] == true) {
       $('#sideBar2').load('inc/sidebarPlayerStatus.html');
     }
+  } else {
+    sleep(100),
+      function() {
+        populateSideBar();
+      }
   }
 }
 

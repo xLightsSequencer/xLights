@@ -7,7 +7,6 @@ $(document).ready(function() {
     }
   }, 1000);
 
-  loadUISettings();
   navLoadPlaylists();
   navLoadPlugins();
   checkLogInStatus();
@@ -84,13 +83,14 @@ function loadUISettings() {
         if (response.result == 'failed' && response.message == '') {
           var defaultSettings =
             `{
-      "webName":"xLights Scheduler",
-      "webColor":"#e74c3c",
-      "notificationLevel":"1",
-      "home":[true, false],
-      "playlists":[true, true],
-      "settings":[true, true]
-      }`;
+            "webName":"xLights Scheduler",
+            "webColor":"#e74c3c",
+            "notificationLevel":"1",
+            "home":[true, false],
+            "playlists":[true, true],
+            "settings":[true, true],
+            "navbuttons":[true, true, true, true, true, true, true]
+          }`;
           storeKey('uiSettings', defaultSettings, '10');
           notification("Loaded Default Settings", "info", "0");
           uiSettings = JSON.parse(defaultSettings);
@@ -173,7 +173,6 @@ function navLoadPlugins() {
 }
 
 function logout() {
-
   if (socket.readyState <= '1') {
     socket.send('{"Type":"Login","Credential":"Log Out"}');
   } else {
@@ -193,15 +192,23 @@ function logout() {
   }
 }
 
-function runCommand(name, param) {
+function runCommand(name, param, reference) {
 
   //if websocket if open use that
 
   if (socket.readyState <= '1') {
     if (param == undefined) {
-      socket.send('{"Type":"Command","Command":"' + name + '","Parameters":""}');
+      if (reference == undefined) {
+        socket.send('{"Type":"Command","Command":"' + name + '"}');
+      } else {
+        socket.send('{"Type":"Command","Command":"' + name + '","Reference":"' + reference + '"}');
+      }
     } else {
-      socket.send('{"Type":"Command","Command":"' + name + '","Parameters":"' + param + '"}');
+      if (reference == undefined) {
+        socket.send('{"Type":"Command","Command":"' + name + '","Parameters":"' + param + '"}');
+      } else {
+        socket.send('{"Type":"Command","Command":"' + name + '","Parameters":"' + param + '", "Reference":"' + reference + '"}');
+      }
     }
   } else {
 

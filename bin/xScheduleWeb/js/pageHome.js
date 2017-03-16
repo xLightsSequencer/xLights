@@ -31,7 +31,10 @@ function populateSideBar() {
       $('#sideBar2').load('inc/sidebarPlayerStatus.html');
     }
   } else {
-    console.log("No Sidebar =");
+    //research this
+    sleep(0).then(function() {
+      populateSideBar();
+    });
   }
 }
 
@@ -47,7 +50,10 @@ function checkForUpdate() {
       populateTableIdle();
       $("#controlButtonContainer").html("");
     } else if (playingStatus.status == 'playing') {
-      populateTablePlaying();
+
+      if (oldPlayingStatus.status != 'paused') {
+        populateTablePlaying();
+      }
 
       var toggleButtons =
         `<div class="span6 text-center">
@@ -60,6 +66,9 @@ function checkForUpdate() {
 
 
     } else if (playingStatus.status == 'paused') {
+      if ($("#playlistItems").html() == undefined) {
+        populateTablePlaying();
+      }
       var toggleButtons =
         `<div class="span6 text-center">
       <button onclick="runCommand('Prior step in current playlist')" class="btn btn-default glyphicon glyphicon-backward" title='Back' type="button"></button>
