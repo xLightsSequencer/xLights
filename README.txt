@@ -31,6 +31,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   All multiple model delete on layout tab. Only prompt to confirm if sequence is open with effects on that model
    -- enh (keith)   Add support for xschedule web API using web sockets
    -- enh (keith)   Let user decide if background playlist should play if nothing else is playing
+   -- enh (keith)   Add spatial color curve to shimmer effect
+   -- enh (keith)   Add new implementation of shimmer effect algorithm which is more controllable and predicatable. The old algorithm is also available.
    -- enh (billy)   Enhance scheduler web interface. More functionality. More responsive.
 2017.6  Feb 27, 2017
    -- bug (dkulp)   Fix xScheduler logging on OSX

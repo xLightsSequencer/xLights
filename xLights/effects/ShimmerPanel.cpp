@@ -30,6 +30,7 @@ const long ShimmerPanel::ID_BITMAPBUTTON24 = wxNewId();
 const long ShimmerPanel::ID_STATICTEXT69 = wxNewId();
 const long ShimmerPanel::ID_CHECKBOX_Shimmer_Use_All_Colors = wxNewId();
 const long ShimmerPanel::ID_BITMAPBUTTON_ShimmerUseAllColors = wxNewId();
+const long ShimmerPanel::ID_CHECKBOX_PRE_2017_7 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ShimmerPanel,wxPanel)
@@ -68,7 +69,7 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
 	FlexGridSizer56->Add(StaticText65, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
-	Slider_Shimmer_Cycles = new wxSlider(this, IDD_SLIDER_Shimmer_Cycles, 10, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Shimmer_Cycles"));
+	Slider_Shimmer_Cycles = new wxSlider(this, IDD_SLIDER_Shimmer_Cycles, 10, 0, 6000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Shimmer_Cycles"));
 	FlexGridSizer2->Add(Slider_Shimmer_Cycles, 1, wxALL|wxEXPAND, 5);
 	BitmapButton_Shimmer_CyclesVC = new ValueCurveButton(this, ID_VALUECURVE_Shimmer_Cycles, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shimmer_Cycles"));
 	FlexGridSizer2->Add(BitmapButton_Shimmer_CyclesVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -90,6 +91,12 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
 	BitmapButton_Shimmer_Use_All_Colors->SetMinSize(wxSize(13,13));
 	BitmapButton_Shimmer_Use_All_Colors->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer56->Add(BitmapButton_Shimmer_Use_All_Colors, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer56->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_PRE_2017_7 = new wxCheckBox(this, ID_CHECKBOX_PRE_2017_7, _("Pre v2017.7 Shimmer"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_PRE_2017_7"));
+	CheckBox_PRE_2017_7->SetValue(false);
+	FlexGridSizer56->Add(CheckBox_PRE_2017_7, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer56->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer56->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer56);
 	FlexGridSizer56->Fit(this);
 	FlexGridSizer56->SetSizeHints(this);
@@ -104,11 +111,12 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON24,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShimmerPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_ShimmerUseAllColors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShimmerPanel::OnLockButtonClick);
 	//*)
-    SetName("ID_PANEL_SHIMMER");
+
+    wxWindowBase::SetName("ID_PANEL_SHIMMER");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShimmerPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Shimmer_CyclesVC->GetValue()->SetLimits(0, 300);
+    BitmapButton_Shimmer_CyclesVC->GetValue()->SetLimits(0, 6000);
     BitmapButton_Shimmer_CyclesVC->GetValue()->SetDivisor(10);
     BitmapButton_Shimmer_Duty_FactorVC->GetValue()->SetLimits(1, 100);
 }

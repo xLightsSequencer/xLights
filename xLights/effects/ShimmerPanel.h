@@ -29,6 +29,7 @@ class ShimmerPanel: public wxPanel
 		wxStaticText* StaticText67;
 		wxCheckBox* CheckBox_Shimmer_Use_All_Colors;
 		ValueCurveButton* BitmapButton_Shimmer_Duty_FactorVC;
+		wxCheckBox* CheckBox_PRE_2017_7;
 		ValueCurveButton* BitmapButton_Shimmer_CyclesVC;
 		wxStaticText* StaticText66;
 		wxBitmapButton* BitmapButton_Shimmer_Duty_Factor;
@@ -50,6 +51,7 @@ class ShimmerPanel: public wxPanel
 		static const long ID_STATICTEXT69;
 		static const long ID_CHECKBOX_Shimmer_Use_All_Colors;
 		static const long ID_BITMAPBUTTON_ShimmerUseAllColors;
+		static const long ID_CHECKBOX_PRE_2017_7;
 		//*)
 
 	public:

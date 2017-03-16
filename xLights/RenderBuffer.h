@@ -436,7 +436,7 @@ public:
 
     HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2);
     float GetEffectTimeIntervalPosition();
-    float GetEffectTimeIntervalPosition(float cycles);
+    double GetEffectTimeIntervalPosition(double cycles);
 
     bool _onlyOnMain;
     PathDrawingContext * GetPathDrawingContext();

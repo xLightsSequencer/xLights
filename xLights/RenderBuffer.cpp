@@ -940,14 +940,18 @@ void RenderBuffer::ClearTempBuf()
         tempbuf[i].Set(0, 0, 0, 0);
     }
 }
-float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) {
+double RenderBuffer::GetEffectTimeIntervalPosition(double cycles) {
     if (curEffEndPer == curEffStartPer) {
         return 0.0f;
     }
-    float retval = (float)(curPeriod-curEffStartPer)/(float)(curEffEndPer-curEffStartPer);
-    retval *= cycles;
-    while (retval > 1.0) {
-        retval -= 1.0;
+    double retval = (double)((curPeriod-curEffStartPer) * cycles)/(double)(curEffEndPer-curEffStartPer);
+    if (retval == (double)((int)retval) && retval != 0.0)
+    {
+        retval = 1.0;
+    }
+    else
+    {
+        retval -= (int)retval;
     }
     return retval;
 }
