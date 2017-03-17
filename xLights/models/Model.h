@@ -289,6 +289,8 @@ public:
     void SetRight(ModelPreview* preview,int x);
     void SetHcenterOffset(float offset);
     void SetVcenterOffset(float offset);
+    void SetWidth(ModelPreview* preview, int w);
+    void SetHeight(ModelPreview* preview, int h);
 
     int GetTop(ModelPreview* preview);
     int GetBottom(ModelPreview* preview);
@@ -296,7 +298,9 @@ public:
     int GetRight(ModelPreview* preview);
     float GetHcenterOffset();
     float GetVcenterOffset();
-
+    int GetWidth(ModelPreview* preview);
+    int GetHeight(ModelPreview* preview);
+    
     bool GetIsLtoR() const {return IsLtoR;}
     bool GetIsBtoT() const {return isBotToTop;}
 

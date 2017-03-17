@@ -73,6 +73,10 @@ public:
     virtual void SetLeft(int i) = 0;
     virtual void SetRight(int i) = 0;
     virtual void SetBottom(int i) = 0;
+    virtual void SetMWidth(int w) = 0;
+    virtual void SetMHeight(int h) = 0;
+    virtual int GetMWidth() const = 0;
+    virtual int GetMHeight() const = 0;
 
     void SetRenderSize(float NewWi, float NewHt) {
         RenderHt=NewHt;
@@ -164,6 +168,10 @@ public:
     virtual void SetLeft(int i) override;
     virtual void SetRight(int i) override;
     virtual void SetBottom(int i) override;
+    virtual void SetMWidth(int w) override;
+    virtual void SetMHeight(int h) override;
+    virtual int GetMWidth() const override;
+    virtual int GetMHeight() const override;
 
     virtual float GetScaleX() const {
         return PreviewScaleX;
@@ -171,6 +179,16 @@ public:
 
     virtual float GetScaleY() const {
         return PreviewScaleY;
+    }
+
+    void SetScaleX(float scaleX)
+    {
+        PreviewScaleX = scaleX;
+    }
+
+    void SetScaleY(float scaleY)
+    {
+        PreviewScaleY = scaleY;
     }
 
 private:
@@ -241,6 +259,10 @@ public:
     virtual void SetLeft(int i) override;
     virtual void SetRight(int i) override;
     virtual void SetBottom(int i) override;
+    virtual void SetMWidth(int w) override;
+    virtual void SetMHeight(int h) override;
+    virtual int GetMWidth() const override;
+    virtual int GetMHeight() const override;
 
     virtual float GetYShear() const {return 0.0;}
     void SetYMinMax(float min, float max) {
@@ -286,6 +308,10 @@ public:
     float GetHeight() const {
         return height;
     }
+    virtual void SetMWidth(int w) override;
+    virtual void SetMHeight(int h) override;
+    virtual int GetMWidth() const override;
+    virtual int GetMHeight() const override;
     void SetModelHandleHeight(bool b) {
         modelHandlesHeight = b;
     }
@@ -361,6 +387,10 @@ public:
     virtual void SetLeft(int i) override;
     virtual void SetRight(int i) override;
     virtual void SetBottom(int i) override;
+    virtual void SetMWidth(int w) override;
+    virtual void SetMHeight(int h) override;
+    virtual int GetMWidth() const override;
+    virtual int GetMHeight() const override;
 
     virtual float GetYShear() const {return 0.0;}
 

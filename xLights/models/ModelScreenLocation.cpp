@@ -418,6 +418,24 @@ int BoxedScreenLocation::GetBottom() const {
     return centery-(RenderHt*scaley/2);
 }
 
+int BoxedScreenLocation::GetMWidth() const {
+    return previewW*PreviewScaleX;
+}
+
+int BoxedScreenLocation::GetMHeight() const {
+    return previewH*PreviewScaleY;
+}
+
+void BoxedScreenLocation::SetMWidth(int w)
+{
+    PreviewScaleX = (float)w / (float)previewW;
+}
+
+void BoxedScreenLocation::SetMHeight(int h)
+{
+    PreviewScaleY = (float)h / (float)previewH;
+}
+
 void BoxedScreenLocation::SetLeft(int x) {
     float screenCenterX = previewW*offsetXpct;
     float newCenterX = screenCenterX + (x-mMinScreenX);
@@ -768,11 +786,23 @@ int TwoPointScreenLocation::GetTop() const {
     float y2i = y2 * previewH;
     return std::max(std::round(y1i), std::round(y2i));
 }
+
 int TwoPointScreenLocation::GetLeft() const {
     float x1i = x1 * previewW;
     float x2i = x2 * previewW;
     return std::min(std::round(x1i), std::round(x2i));
 }
+
+int TwoPointScreenLocation::GetMWidth() const
+{
+    return std::abs((x1 - x2) * previewW);
+}
+
+int TwoPointScreenLocation::GetMHeight() const
+{
+    return std::abs((y1 - y2) * previewH);
+}
+
 int TwoPointScreenLocation::GetRight() const {
     float x1i = x1 * previewW;
     float x2i = x2 * previewW;
@@ -819,6 +849,31 @@ void TwoPointScreenLocation::SetRight(int i) {
         x1 -= diff;
     }
 }
+
+void TwoPointScreenLocation::SetMWidth(int w)
+{
+    if (x1 > x2)
+    {
+        x1 = x2 + (float)w / previewW;
+    }
+    else
+    {
+        x2 = x1 + (float)w / previewW;
+    }
+}
+
+void TwoPointScreenLocation::SetMHeight(int h)
+{
+    if (y1 > y2)
+    {
+        y1 = y2 + (float)h / previewH;
+    }
+    else
+    {
+        y2 = y1 + (float)h / previewH;
+    }
+}
+
 void TwoPointScreenLocation::SetBottom(int i) {
     float newbot = (float)i / (float)previewH;
     if (y1 < y2) {
@@ -977,6 +1032,25 @@ bool ThreePointScreenLocation::HitTest(int sx,int sy) const {
 
     float y = v.y;
     return (v.x >= -1 && v.x <= (RenderWi+1) && y >= min && y <= max);
+}
+
+void ThreePointScreenLocation::SetMWidth(int w)
+{
+    TwoPointScreenLocation::SetMWidth(w);
+}
+void ThreePointScreenLocation::SetMHeight(int h)
+{
+    SetHeight((float)h / RenderHt);
+    //TwoPointScreenLocation::SetMHeight(h);
+}
+int ThreePointScreenLocation::GetMWidth() const
+{
+    return TwoPointScreenLocation::GetMWidth();
+}
+int ThreePointScreenLocation::GetMHeight() const
+{
+    return GetHeight() * RenderHt;
+    //return TwoPointScreenLocation::GetMHeight();
 }
 
 void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
@@ -1731,6 +1805,59 @@ int PolyPointScreenLocation::GetLeft() const {
     }
     return leftx;
 }
+
+int PolyPointScreenLocation::GetMHeight() const
+{
+    int maxy = 0;
+    int miny = 0xFFFF;
+
+    for (int i = 0; i < num_points; ++i) {
+        int y = std::round(mPos[i].y * previewH);
+        if (y > maxy) maxy = y;
+        if (y < miny) miny = y;
+    }
+
+    return maxy - miny;
+}
+
+int PolyPointScreenLocation::GetMWidth() const
+{
+    int maxx = 0;
+    int minx = 0xFFFF;
+
+    for (int i = 0; i < num_points; ++i) {
+        int x = std::round(mPos[i].x * previewW);
+        if (x > maxx) maxx = x;
+        if (x < minx) minx = x;
+    }
+
+    return maxx - minx;
+}
+
+void PolyPointScreenLocation::SetMWidth(int w)
+{
+    int currw = GetMWidth();
+    float scale = w / currw;
+
+    for (int i = 1; i < num_points; ++i)
+    {
+        float diff = mPos[i].x - mPos[0].x;
+        mPos[i].x = mPos[0].x + diff * scale;
+    }
+}
+
+void PolyPointScreenLocation::SetMHeight(int h)
+{
+    int currh = GetMHeight();
+    float scale = h / currh;
+
+    for (int i = 1; i < num_points; ++i)
+    {
+        float diff = mPos[i].y - mPos[0].y;
+        mPos[i].y = mPos[0].y + diff * scale;
+    }
+}
+
 int PolyPointScreenLocation::GetRight() const {
     int rightx = std::round(mPos[0].x * previewH);
     for(int i = 1; i < num_points; ++i ) {

@@ -2453,6 +2453,33 @@ int Model::GetTop(ModelPreview* preview) {
     return GetModelScreenLocation().GetTop();
 }
 
+int Model::GetWidth(ModelPreview* preview) {
+    SetMinMaxModelScreenCoordinates(preview);
+    return GetModelScreenLocation().GetMWidth();
+}
+
+int Model::GetHeight(ModelPreview* preview) {
+    SetMinMaxModelScreenCoordinates(preview);
+    return GetModelScreenLocation().GetMHeight();
+}
+
+void Model::SetWidth(ModelPreview* preview, int w) {
+    SetMinMaxModelScreenCoordinates(preview);
+    GetModelScreenLocation().SetMWidth(w);
+    IncrementChangeCount();
+}
+
+void Model::SetHeight(ModelPreview* preview, int h) {
+    SetMinMaxModelScreenCoordinates(preview);
+    GetModelScreenLocation().SetMHeight(h);
+
+    // this is necessary for three point models
+    GetModelScreenLocation().Write(ModelXml);
+    SetFromXml(ModelXml);
+
+    IncrementChangeCount();
+}
+
 int Model::GetBottom(ModelPreview* preview) {
     SetMinMaxModelScreenCoordinates(preview);
     return GetModelScreenLocation().GetBottom();

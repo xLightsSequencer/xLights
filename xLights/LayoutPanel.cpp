@@ -61,8 +61,12 @@ END_EVENT_TABLE()
 
 const long LayoutPanel::ID_TREELISTVIEW_MODELS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
+const long LayoutPanel::ID_PREVIEW_RESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL = wxNewId();
+const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEWIDTH = wxNewId();
+const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEHEIGHT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_RESIZE_SAMESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_TOP = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_BOTTOM = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_LEFT = wxNewId();
@@ -1596,14 +1600,22 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnuAlign->Append(ID_PREVIEW_ALIGN_RIGHT,"Right");
         mnuAlign->Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
         mnuAlign->Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
-        mnuAlign->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
+        mnuAlign->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
         mnuDistribute->Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
         mnuDistribute->Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
-        mnuDistribute->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
+        mnuDistribute->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
-        mnu.Append(ID_PREVIEW_ALIGN, 	        "Align", mnuAlign,"");
-        mnu.Append(ID_PREVIEW_DISTRIBUTE,"Distribute", mnuDistribute,"");
+        wxMenu* mnuResize = new wxMenu();
+        mnuResize->Append(ID_PREVIEW_RESIZE_SAMEWIDTH, "Match Width");
+        mnuResize->Append(ID_PREVIEW_RESIZE_SAMEHEIGHT, "Match Height");
+        mnuResize->Append(ID_PREVIEW_RESIZE_SAMESIZE, "Match Size");
+        mnuResize->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
+
+        mnu.Append(ID_PREVIEW_ALIGN, "Align", mnuAlign, "");
+        mnu.Append(ID_PREVIEW_DISTRIBUTE, "Distribute", mnuDistribute, "");
+        mnu.Append(ID_PREVIEW_RESIZE, "Resize", mnuResize, "");
+
         mnu.AppendSeparator();
     }
     if (selectedModelCnt > 0) {
@@ -1647,7 +1659,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnu.Append(ID_PREVIEW_DELETE_ACTIVE,"Delete this Preview");
     }
 
-    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
     PopupMenu(&mnu);
     modelPreview->SetFocus();
 }
@@ -1678,6 +1690,18 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     else if (event.GetId() == ID_PREVIEW_ALIGN_V_CENTER)
     {
         PreviewModelAlignVCenter();
+    }
+    else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEWIDTH)
+    {
+        PreviewModelResize(true, false);
+    }
+    else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEHEIGHT)
+    {
+        PreviewModelResize(false, true);
+    }
+    else if (event.GetId() == ID_PREVIEW_RESIZE_SAMESIZE)
+    {
+        PreviewModelResize(true, true);
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT)
     {
@@ -1803,6 +1827,39 @@ void LayoutPanel::PreviewModelAlignLeft()
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
             modelPreview->GetModels()[i]->SetLeft(modelPreview,left);
+        }
+    }
+    UpdatePreview();
+}
+
+void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
+{
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex<0)
+        return;
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
+
+    if (sameWidth)
+    {
+        int width = modelPreview->GetModels()[selectedindex]->GetWidth(modelPreview);
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+        {
+            if (modelPreview->GetModels()[i]->GroupSelected)
+            {
+                modelPreview->GetModels()[i]->SetWidth(modelPreview, width);
+            }
+        }
+    }
+
+    if (sameHeight)
+    {
+        int height = modelPreview->GetModels()[selectedindex]->GetHeight(modelPreview);
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+        {
+            if (modelPreview->GetModels()[i]->GroupSelected)
+            {
+                modelPreview->GetModels()[i]->SetHeight(modelPreview, height);
+            }
         }
     }
     UpdatePreview();
@@ -2680,7 +2737,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
         mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
     }
-    mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, NULL, this);
+    mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
     PopupMenu(&mnuContext);
 }
 

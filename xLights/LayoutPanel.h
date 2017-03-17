@@ -87,6 +87,10 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_DISTRIBUTE;
         static const long ID_PREVIEW_H_DISTRIBUTE;
         static const long ID_PREVIEW_V_DISTRIBUTE;
+        static const long ID_PREVIEW_RESIZE;
+        static const long ID_PREVIEW_RESIZE_SAMEWIDTH;
+        static const long ID_PREVIEW_RESIZE_SAMEHEIGHT;
+        static const long ID_PREVIEW_RESIZE_SAMESIZE;
         static const long ID_PREVIEW_DELETE_ACTIVE;
         static const long ID_PREVIEW_MODEL_ADDPOINT;
         static const long ID_PREVIEW_MODEL_DELETEPOINT;
@@ -163,8 +167,8 @@ class LayoutPanel: public wxPanel
         void PreviewModelAlignRight();
         void PreviewModelAlignHCenter();
         void PreviewModelAlignVCenter();
+        void PreviewModelResize(bool sameWidth, bool sameHeight);
         Model *CreateNewModel(const std::string &type);
-
 
         bool m_dragging;
         bool m_creating_bound_rect;
