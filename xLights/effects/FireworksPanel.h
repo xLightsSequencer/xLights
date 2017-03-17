@@ -4,6 +4,7 @@
 //(*Headers(FireworksPanel)
 #include <wx/panel.h>
 class wxCheckBox;
+class wxTextCtrl;
 class wxStaticText;
 class wxSlider;
 class wxBitmapButton;
@@ -31,19 +32,24 @@ class FireworksPanel: public wxPanel
 		wxBitmapButton* BitmapButton_FireworksCount;
 		wxSlider* Slider_Fireworks_Fade;
 		wxStaticText* StaticText1;
+		wxTextCtrl* TextCtrl_Fireworks_Count;
 		wxBitmapButton* BitmapButton1;
 		wxStaticText* StaticText94;
 		wxCheckBox* CheckBox_Fireworks_UseMusic;
 		wxBitmapButton* BitmapButton_FireworksVelocity;
 		wxSlider* Slider_Fireworks_Num_Explosions;
+		wxTextCtrl* TextCtrl_Fireworks_Explosions;
 		wxStaticText* StaticText91;
+		wxTextCtrl* TextCtrl_Fireworks_Velocity;
 		wxStaticText* StaticText93;
 		wxStaticText* StaticText95;
 		wxCheckBox* CheckBox_FireTiming;
 		wxBitmapButton* BitmapButton_FireworksFade;
 		wxSlider* Slider_Fireworks_Count;
 		wxBitmapButton* BitmapButton_FireworksNumberExplosions;
+		wxTextCtrl* TextCtrl_Fireworks_Sensitivity;
 		wxBitmapButton* BitmapButton_Fireworks_UseMusic;
+		wxTextCtrl* TextCtrl_Fireworks_Fade;
 		//*)
 
 	protected:
@@ -51,20 +57,25 @@ class FireworksPanel: public wxPanel
 		//(*Identifiers(FireworksPanel)
 		static const long ID_STATICTEXT95;
 		static const long ID_SLIDER_Fireworks_Explosions;
+		static const long IDD_TEXTCTRL_Fireworks_Explosions;
 		static const long ID_BITMAPBUTTON_SLIDER_Fireworks_Number_Explosions;
 		static const long ID_STATICTEXT92;
 		static const long ID_SLIDER_Fireworks_Count;
+		static const long IDD_TEXTCTRL_Fireworks_Count;
 		static const long ID_BITMAPBUTTON_SLIDER_Fireworks_Count;
 		static const long ID_STATICTEXT94;
 		static const long ID_SLIDER_Fireworks_Velocity;
+		static const long IDD_TEXTCTRL_Fireworks_Velocity;
 		static const long ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity;
 		static const long ID_STATICTEXT96;
 		static const long ID_SLIDER_Fireworks_Fade;
+		static const long IDD_TEXTCTRL_Fireworks_Fade;
 		static const long ID_BITMAPBUTTON_SLIDER_Fireworks_Fade;
 		static const long ID_CHECKBOX_Fireworks_UseMusic;
 		static const long ID_BITMAPBUTTON_Fireworks_UseMusic;
 		static const long ID_STATICTEXT1;
 		static const long ID_SLIDER_Fireworks_Sensitivity;
+		static const long IDD_TEXTCTRL_Fireworks_Sensitivity;
 		static const long ID_BITMAPBUTTON_Fireworks_Sensitivity;
 		static const long ID_CHECKBOX_FIRETIMING;
 		static const long ID_BITMAPBUTTON_FIRETIMING;

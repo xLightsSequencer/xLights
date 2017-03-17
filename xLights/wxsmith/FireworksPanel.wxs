@@ -3,7 +3,7 @@
 	<object class="wxPanel" name="FireworksPanel">
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer73" member="no">
-			<cols>3</cols>
+			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT95" variable="StaticText94" member="yes">
@@ -18,8 +18,20 @@
 					<value>16</value>
 					<min>1</min>
 					<max>50</max>
+					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Explosions" variable="TextCtrl_Fireworks_Explosions" member="yes">
+					<value>16</value>
+					<maxlength>2</maxlength>
+					<size>40,-1</size>
+					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -47,8 +59,20 @@
 				<object class="wxSlider" name="ID_SLIDER_Fireworks_Count" variable="Slider_Fireworks_Count" member="yes">
 					<value>50</value>
 					<min>1</min>
+					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Count" variable="TextCtrl_Fireworks_Count" member="yes">
+					<value>50</value>
+					<maxlength>3</maxlength>
+					<size>40,-1</size>
+					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -77,8 +101,20 @@
 					<value>2</value>
 					<min>1</min>
 					<max>10</max>
+					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Velocity" variable="TextCtrl_Fireworks_Velocity" member="yes">
+					<value>2</value>
+					<maxlength>2</maxlength>
+					<size>40,-1</size>
+					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -106,8 +142,20 @@
 				<object class="wxSlider" name="ID_SLIDER_Fireworks_Fade" variable="Slider_Fireworks_Fade" member="yes">
 					<value>50</value>
 					<min>1</min>
+					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Fade" variable="TextCtrl_Fireworks_Fade" member="yes">
+					<value>50</value>
+					<maxlength>3</maxlength>
+					<size>40,-1</size>
+					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -137,6 +185,11 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Fireworks_UseMusic" variable="BitmapButton_Fireworks_UseMusic" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
@@ -160,8 +213,20 @@
 			<object class="sizeritem">
 				<object class="wxSlider" name="ID_SLIDER_Fireworks_Sensitivity" variable="Slider_Fireworks_Sensitivity" member="yes">
 					<value>50</value>
+					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Sensitivity" variable="TextCtrl_Fireworks_Sensitivity" member="yes">
+					<value>50</value>
+					<maxlength>3</maxlength>
+					<size>40,-1</size>
+					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -190,6 +255,11 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_FIRETIMING" variable="BitmapButton1" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
@@ -213,6 +283,11 @@
 			<object class="sizeritem">
 				<object class="wxChoice" name="ID_CHOICE_FIRETIMINGTRACK" variable="Choice_TimingTrack" member="yes" />
 				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
