@@ -89,7 +89,7 @@ function updateSettings() {
   };
   //Save settings, Update UI
   storeKey('uiSettings', JSON.stringify(updatedSettings));
-  uiSettings = JSON.parse(updatedSettings);
+  uiSettings = updatedSettings;
   populateUI();
   populateSideBar();
 
