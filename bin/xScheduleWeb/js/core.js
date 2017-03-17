@@ -7,14 +7,12 @@ $(document).ready(function() {
     }
   }, 1000);
 
+  loadUISettings();
   navLoadPlaylists();
   navLoadPlugins();
   checkLogInStatus();
   loadXyzzyData();
 
-  //temp
-  smartBrightness();
-  smartVolume();
 
   //Add Hover effect to menus
   jQuery('ul.nav li.dropdown').hover(function() {
@@ -117,7 +115,33 @@ function populateUI() {
   $('#nav').css("background-color", uiSettings.webColor);
   $('#nav').css("border-color", uiSettings.webColor);
   document.title = uiSettings.webName;
+  $('#toggleButtonContainer').html("");
+  //Nav Buttons
+  if (uiSettings.navbuttons[5] == true)
+    $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle current playlist random')" id="random" title="Randomize Playlist" class="btn btn-default glyphicon glyphicon-random" disabled></button>`);
+  if (uiSettings.navbuttons[4] == true)
+    $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle loop current step')" id="steplooping" title="Loop Current Step" class="btn btn-default glyphicon glyphicon-repeat" disabled></button>`);
+  if (uiSettings.navbuttons[3] == true)
+    $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle current playlist loop')" id="playlistlooping" title="Loop Playlist" class="btn btn-default glyphicon glyphicon-refresh " disabled></button>`);
+  if (uiSettings.navbuttons[0] == true) {
+    $('#toggleButtonContainer').append(`<button id="volumeMute" title="Volume Control" class="btn btn-default glyphicon glyphicon-volume-off"></button>`);
+    smartVolume();
+  }
+  if (uiSettings.navbuttons[1] == true) {
+    $('#toggleButtonContainer').append(`<button id="brightnessLevel" title="Adjust Brightness" class="btn btn-default glyphicon glyphicon-flash"></button>`);
+    smartBrightness();
+  }
+  if (uiSettings.navbuttons[2] == true)
+    $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle output to lights') class="btn btn-danger glyphicon glyphicon-eye-open" id="outputtolights" title="Toggle Ouput to lights" type="button"></button>`);
+  if (uiSettings.navbuttons[6] == true)
+    $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle mute')" class="btn btn-danger glyphicon glyphicon-eye-open" id="toggleMute"  title="Toggle Mute " type="button"></button>`);
+
+  //help button
+  $('#toggleButtonContainer').append(`<button class="btn btn-info glyphicon glyphicon-info-sign" type="button" title="Click for assistance" data-toggle="modal" data-target="#help"></button>`);
+  //Populate Button State
+  updateNavStatus();
 }
+
 
 function checkLogInStatus() {
   if (playingStatus.status == 'unknown') {

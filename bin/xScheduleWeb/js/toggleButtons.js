@@ -36,8 +36,21 @@ function updateNavStatus() {
     } else if (playingStatus['playlistlooping'] == "true") {
       $('#playlistlooping').attr('class',
         "btn btn-info glyphicon glyphicon-refresh");
-
     }
+  }
+
+  if (playingStatus['volume'] == "0") {
+    $('#toggleMute').attr('class', "btn btn-danger glyphicon glyphicon-volume-off");
+    $('#toggleMute').html("");
+  } else if (playingStatus['volume'] > "0") {
+    if (playingStatus['volume'] == 100) {
+      $('#toggleMute').attr('class', "btn btn-success glyphicon glyphicon-volume-up");
+      $('#toggleMute').html("");
+    } else {
+      $('#toggleMute').attr('class', "btn btn-success glyphicon glyphicon-volume-down");
+      $('#toggleMute').html((0 + playingStatus['volume']).slice(-2));
+    }
+
   }
 
   if (playingStatus['volume'] == "0") {
@@ -46,10 +59,10 @@ function updateNavStatus() {
   } else if (playingStatus['volume'] > "0") {
     //display test
     if (playingStatus['volume'] == 100) {
-      $('#volumeMute').attr('class', "btn btn-default glyphicon glyphicon-volume-up");
+      $('#volumeMute').attr('class', "btn btn-success glyphicon glyphicon-volume-up");
       $('#volumeMute').html("");
     } else {
-      $('#volumeMute').attr('class', "btn btn-default glyphicon glyphicon-volume-down");
+      $('#volumeMute').attr('class', "btn btn-success glyphicon glyphicon-volume-down");
       $('#volumeMute').html((0 + playingStatus['volume']).slice(-2));
     }
 
@@ -58,7 +71,7 @@ function updateNavStatus() {
   if (playingStatus['brightness'] == "0") {
     $('#brightnessLevel').attr('class', "btn btn-danger glyphicon glyphicon-flash");
     $('#brightnessLevel').html("");
-  } else if (playingStatus['volume'] > "0") {
+  } else if (playingStatus['brightness'] > "0") {
     //display test
     if (playingStatus['brightness'] == 100) {
       $('#brightnessLevel').attr('class', "btn btn-default glyphicon glyphicon-flash");

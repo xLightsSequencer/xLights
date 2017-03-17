@@ -1,6 +1,15 @@
 $(document).ready(function() {
   loadSettings();
   populateSideBar();
+
+  $("#toggleMuteSetting").mouseup(function() {
+    if ($("#smartVolumeSetting").prop("checked") == true)
+      $("#smartVolumeSetting").prop("checked", false);
+  });
+  $("#smartVolumeSetting").mouseup(function() {
+    if ($("#toggleMuteSetting").prop("checked") == true)
+      $("#toggleMuteSetting").prop("checked", false);
+  });
 });
 
 function populateSideBar() {
@@ -14,7 +23,7 @@ function populateSideBar() {
   } else {
     sleep(100),
       function() {
-        populateSideBar()
+        populateSideBar();
       }
   }
 }
@@ -29,26 +38,31 @@ $(document).keypress(function(e) {
 
 function loadSettings() {
   if (uiSettings != undefined) {
-    $('#webName').val(uiSettings.webName);
-    $('#webColor').val(uiSettings.webColor);
-    $('#notificationLevel').val(uiSettings.notificationLevel);
+    $('#webNameSetting').val(uiSettings.webName);
+    $('#webColorSetting').val(uiSettings.webColor);
+    $('#notificationLevelSetting').val(uiSettings.notificationLevel);
     //home
-    $("#homeNav").prop("checked", uiSettings.home[0]);
-    $("#homeStatus").prop("checked", uiSettings.home[1]);
+    $("#homeNavSetting").prop("checked", uiSettings.home[0]);
+    $("#homeStatusSetting").prop("checked", uiSettings.home[1]);
     //playlists
-    $("#playlistNav").prop("checked", uiSettings.playlists[0]);
-    $("#playlistStatus").prop("checked", uiSettings.playlists[1]);
+    $("#playlistNavSetting").prop("checked", uiSettings.playlists[0]);
+    $("#playlistStatusSetting").prop("checked", uiSettings.playlists[1]);
     //settings
-    $("#settingsNav").prop("checked", uiSettings.settings[0]);
-    $("#settingsStatus").prop("checked", uiSettings.settings[1]);
+    $("#settingsNavSetting").prop("checked", uiSettings.settings[0]);
+    $("#settingsStatusSetting").prop("checked", uiSettings.settings[1]);
     //nav buttons
-    $("#smartVolume").prop("checked", uiSettings.navbuttons[0]);
-    $("#smartBrightness").prop("checked", uiSettings.navbuttons[1]);
-    $("#outputToLights").prop("checked", uiSettings.navbuttons[2]);
-    $("#repeatPlaylist").prop("checked", uiSettings.navbuttons[3]);
-    $("#repeatSteps").prop("checked", uiSettings.navbuttons[4]);
-    $("#toggleRandom").prop("checked", uiSettings.navbuttons[5]);
-    $("#toggleMute").prop("checked", uiSettings.navbuttons[6]);
+    $("#smartVolumeSetting").prop("checked", uiSettings.navbuttons[0]);
+    $("#smartBrightnessSetting").prop("checked", uiSettings.navbuttons[1]);
+    $("#outputToLightsSetting").prop("checked", uiSettings.navbuttons[2]);
+    $("#repeatPlaylistSetting").prop("checked", uiSettings.navbuttons[3]);
+    $("#repeatStepsSetting").prop("checked", uiSettings.navbuttons[4]);
+    $("#toggleRandomSetting").prop("checked", uiSettings.navbuttons[5]);
+    $("#toggleMuteSetting").prop("checked", uiSettings.navbuttons[6]);
+  } else {
+    sleep(100),
+      function() {
+        loadSettings();
+      }
   }
 }
 
@@ -57,17 +71,20 @@ function updateSettings() {
 
   var updatedSettings =
     `{
-    "webName":"` + $('#webName').val() + `",
-    "webColor":"` + $('#webColor').val() + `",
-    "notificationLevel":"` + $('#notificationLevel').val() + `",
-    "home":[` + $("#homeNav").prop("checked") + `, ` + $("#homeStatus").prop("checked") + `],
-    "playlists":[` + $("#playlistNav").prop("checked") + `, ` + $("#playlistStatus").prop("checked") + `],
-    "settings":[` + $("#settingsNav").prop("checked") + `, ` + $("#settingsStatus").prop("checked") + `],
-    "navbuttons":[` + $("#smartVolume").prop("checked") + `,` + $("#smartBrightness").prop("checked") + `,` + $("#outputToLights").prop("checked") +
-    `,` + $("#repeatPlaylist").prop("checked") + `,` + $("#repeatStep").prop("checked") + `,` + $("#toggleRandom").prop("checked") + `,` + $("#toggleMute").prop("checked") + `]
+    "webName":"` + $('#webNameSetting').val() + `",
+    "webColor":"` + $('#webColorSetting').val() + `",
+    "notificationLevel":"` + $('#notificationLevelSetting').val() + `",
+    "home":[` + $("#homeNavSetting").prop("checked") + `, ` + $("#homeStatusSetting").prop("checked") + `],
+    "playlists":[` + $("#playlistNavSetting").prop("checked") + `, ` + $("#playlistStatusSetting").prop("checked") + `],
+    "settings":[` + $("#settingsNavSetting").prop("checked") + `, ` + $("#settingsStatusSetting").prop("checked") + `],
+    "navbuttons":[` + $("#smartVolumeSetting").prop("checked") + `,` + $("#smartBrightnessSetting").prop("checked") + `,` + $("#outputToLightsSetting").prop("checked") +
+    `,` + $("#repeatPlaylistSetting").prop("checked") + `,` + $("#repeatStepsSetting").prop("checked") + `,` + $("#toggleRandomSetting").prop("checked") + `,` + $("#toggleMuteSetting").prop("checked") + `]
     }`;
-
+  //Save settings, Update UI
   updatedSettings.replace(/(\r\n|\n|\r)/gm, " ");
   storeKey('uiSettings', updatedSettings);
-  loadUISettings();
+  uiSettings = JSON.parse(updatedSettings);
+  populateUI();
+  populateSideBar();
+
 }
