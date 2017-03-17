@@ -70,7 +70,7 @@ class PixelBufferClass
 private:
     class LayerInfo {
     public:
-        LayerInfo(xLightsFrame *frame, bool onlyOnMain) : buffer(frame, onlyOnMain) {
+        LayerInfo(xLightsFrame *frame) : buffer(frame) {
 			blur = 0;
             rotation = 0.0f;
             rotations = 0;
@@ -196,7 +196,6 @@ private:
     const Model *model;
     Model *zbModel;
     SingleLineModel *ssModel;
-    bool onlyOnMain;
     xLightsFrame *frame;
 public:
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
@@ -206,7 +205,7 @@ public:
     int GetNodeCount() const;
     int GetChanCountPerNode() const;
 
-    PixelBufferClass(xLightsFrame *f, bool onlyOnMainThread);
+    PixelBufferClass(xLightsFrame *f);
     virtual ~PixelBufferClass();
 
     const std::string &GetModelName() const

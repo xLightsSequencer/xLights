@@ -32,6 +32,110 @@
 #include "xLightsXmlFile.h"
 
 
+template <class CTX>
+class ContextPool {
+public:
+    
+    ContextPool(std::function<CTX* ()> alloc): allocator(alloc) {
+    }
+    ~ContextPool() {
+        while (!contexts.empty()) {
+            CTX *ret = contexts.front();
+            delete ret;
+            contexts.pop();
+        }
+    }
+    
+    CTX *GetContext() {
+        std::unique_lock<std::mutex> locker(lock);
+        if (contexts.empty()) {
+            return allocator();
+        }
+        CTX *ret = contexts.front();
+        contexts.pop();
+        return ret;
+    }
+    void ReleaseContext(CTX *pctx) {
+        std::unique_lock<std::mutex> locker(lock);
+        contexts.push(pctx);
+    }
+    
+private:
+    std::mutex lock;
+    std::queue<CTX*> contexts;
+    std::function<CTX* ()> allocator;
+};
+
+
+static ContextPool<TextDrawingContext> *TEXT_CONTEXT_POOL = nullptr;
+static ContextPool<PathDrawingContext> *PATH_CONTEXT_POOL = nullptr;
+
+void DrawingContext::Initialize(wxWindow *parent) {
+    if (TEXT_CONTEXT_POOL == nullptr) {
+        TEXT_CONTEXT_POOL = new ContextPool<TextDrawingContext>([parent]() {
+            std::mutex mtx;
+            std::condition_variable signal;
+            std::unique_lock<std::mutex> lck(mtx);
+            TextDrawingContext *tdc;
+            parent->CallAfter([&mtx, &signal, &tdc]() {
+                std::unique_lock<std::mutex> lck(mtx);
+                tdc = new TextDrawingContext(10, 10 ,false);
+                signal.notify_all();
+            });
+            signal.wait(lck);
+            return tdc;
+        });
+    }
+    if (PATH_CONTEXT_POOL == nullptr) {
+        PATH_CONTEXT_POOL = new ContextPool<PathDrawingContext>([parent]() {
+            std::mutex mtx;
+            std::condition_variable signal;
+            std::unique_lock<std::mutex> lck(mtx);
+            PathDrawingContext *tdc;
+            parent->CallAfter([&mtx, &signal, &tdc]() {
+                std::unique_lock<std::mutex> lck(mtx);
+                tdc = new PathDrawingContext(10, 10 ,false);
+                signal.notify_all();
+            });
+            signal.wait(lck);
+            return tdc;
+        });
+    }
+}
+void DrawingContext::CleanUp() {
+    if (TEXT_CONTEXT_POOL != nullptr) {
+        delete TEXT_CONTEXT_POOL;
+        TEXT_CONTEXT_POOL = nullptr;
+    }
+    if (PATH_CONTEXT_POOL != nullptr) {
+        delete PATH_CONTEXT_POOL;
+        PATH_CONTEXT_POOL = nullptr;
+    }
+}
+
+
+PathDrawingContext* PathDrawingContext::GetContext() {
+    if (PATH_CONTEXT_POOL != nullptr) {
+        return PATH_CONTEXT_POOL->GetContext();
+    }
+    return nullptr;
+}
+void PathDrawingContext::ReleaseContext(PathDrawingContext* pdc) {
+    if (PATH_CONTEXT_POOL != nullptr) {
+        return PATH_CONTEXT_POOL->ReleaseContext(pdc);
+    }
+}
+TextDrawingContext* TextDrawingContext::GetContext() {
+    if (TEXT_CONTEXT_POOL != nullptr) {
+        return TEXT_CONTEXT_POOL->GetContext();
+    }
+    return nullptr;
+}
+void TextDrawingContext::ReleaseContext(TextDrawingContext* pdc) {
+    if (TEXT_CONTEXT_POOL != nullptr) {
+        return TEXT_CONTEXT_POOL->ReleaseContext(pdc);
+    }
+}
 
 
 #ifdef __WXMSW__
@@ -398,14 +502,12 @@ void TextDrawingContext::GetTextExtent(const wxString &msg, double *width, doubl
     }
 }
 
-RenderBuffer::RenderBuffer(xLightsFrame *f, bool b) : frame(f)
+RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
 {
-    _onlyOnMain = false;
     frameTimeInMs = 50;
     _textDrawingContext = nullptr;
     _pathDrawingContext = nullptr;
     tempInt = tempInt2 = 0;
-    onlyOnMain = b;
     isTransformed = false;
 }
 
@@ -413,10 +515,10 @@ RenderBuffer::~RenderBuffer()
 {
     //dtor
     if (_textDrawingContext != nullptr) {
-        delete _textDrawingContext;
+        TextDrawingContext::ReleaseContext(_textDrawingContext);
     }
     if (_pathDrawingContext != nullptr) {
-        delete _pathDrawingContext;
+        PathDrawingContext::ReleaseContext(_pathDrawingContext);
     }
     for (std::map<int, EffectRenderCache*>::iterator i = infoCache.begin(); i != infoCache.end(); i++) {
         delete i->second;
@@ -427,7 +529,8 @@ PathDrawingContext * RenderBuffer::GetPathDrawingContext()
 {
     if (_pathDrawingContext == nullptr)
     {
-        _pathDrawingContext = new PathDrawingContext(BufferWi, BufferHt, _onlyOnMain);
+        _pathDrawingContext = PathDrawingContext::GetContext();
+        _pathDrawingContext->ResetSize(BufferWi, BufferHt);
     }
 
     return _pathDrawingContext; 
@@ -437,7 +540,8 @@ TextDrawingContext * RenderBuffer::GetTextDrawingContext()
 {
     if (_textDrawingContext == nullptr)
     {
-        _textDrawingContext = new TextDrawingContext(BufferWi, BufferHt, _onlyOnMain);
+        _textDrawingContext = TextDrawingContext::GetContext();
+        _textDrawingContext->ResetSize(BufferWi, BufferHt);
     }
 
     return _textDrawingContext;
@@ -445,17 +549,10 @@ TextDrawingContext * RenderBuffer::GetTextDrawingContext()
 
 void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform)
 {
-    _onlyOnMain = onlyOnMain;
-    if (_pathDrawingContext == nullptr) {
-        // change to just in time creation
-        //_pathDrawingContext = new PathDrawingContext(newBufferWi, newBufferHt, onlyOnMain);
-    } else if (BufferHt != newBufferHt || BufferWi != newBufferWi) {
+    if (_pathDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {
         _pathDrawingContext->ResetSize(newBufferWi, newBufferHt);
     }
-    if (_textDrawingContext == nullptr) {
-        // change to just in time creation
-        //_textDrawingContext = new TextDrawingContext(newBufferWi, newBufferHt, onlyOnMain);
-    } else if (BufferHt != newBufferHt || BufferWi != newBufferWi) {
+    if (_textDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {
         _textDrawingContext->ResetSize(newBufferWi, newBufferHt);
     }
     BufferHt=newBufferHt;
@@ -940,18 +1037,15 @@ void RenderBuffer::ClearTempBuf()
         tempbuf[i].Set(0, 0, 0, 0);
     }
 }
-double RenderBuffer::GetEffectTimeIntervalPosition(double cycles) {
+float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) {
     if (curEffEndPer == curEffStartPer) {
         return 0.0f;
     }
-    double retval = (double)((curPeriod-curEffStartPer) * cycles)/(double)(curEffEndPer-curEffStartPer);
-    if (retval == (double)((int)retval) && retval != 0.0)
-    {
-        retval = 1.0;
-    }
-    else
-    {
-        retval -= (int)retval;
+    float retval = (float)(curPeriod-curEffStartPer);
+    retval *= cycles;
+    retval /= ((float)(curEffEndPer-curEffStartPer));
+    while (retval > 1.0f) {
+        retval -= 1.0f;
     }
     return retval;
 }
@@ -1051,7 +1145,6 @@ double RenderBuffer::calcAccel(double ratio, double accel)
 // create a copy of the buffer suitable only for copying out pixel data
 RenderBuffer::RenderBuffer(RenderBuffer& buffer)
 {
-    _onlyOnMain = buffer._onlyOnMain;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
 

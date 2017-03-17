@@ -12,7 +12,7 @@ class TreeModel : public MatrixModel
     
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsXlightsModel() override { return true; }
-        void ExportXlightsModel();
+        virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
     protected:

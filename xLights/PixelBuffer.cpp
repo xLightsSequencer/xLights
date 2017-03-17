@@ -40,12 +40,11 @@
 #define M_PI_2 1.57079632679489661923
 #endif
 
-PixelBufferClass::PixelBufferClass(xLightsFrame *f, bool b) : frame(f)
+PixelBufferClass::PixelBufferClass(xLightsFrame *f) : frame(f)
 {
     numLayers = 0;
     zbModel = nullptr;
     ssModel = nullptr;
-    onlyOnMain = b;
 }
 
 PixelBufferClass::~PixelBufferClass()
@@ -79,7 +78,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
 
     for (int x = 0; x < numLayers; x++)
     {
-        layers[x] = new LayerInfo(frame, onlyOnMain);
+        layers[x] = new LayerInfo(frame);
         layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
         model->InitRenderBufferNodes("Default", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
         layers[x]->bufferType = "Default";
@@ -105,7 +104,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
 void PixelBufferClass::InitPerModelBuffers(const ModelGroup &model, int layer) {
     for (auto it = model.Models().begin(); it != model.Models().end(); it++) {
         Model *m = *it;
-        RenderBuffer *buf = new RenderBuffer(frame, false);
+        RenderBuffer *buf = new RenderBuffer(frame);
         m->InitRenderBufferNodes("Default", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
         layers[layer]->modelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));

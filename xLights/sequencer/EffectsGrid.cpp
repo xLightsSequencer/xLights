@@ -3080,7 +3080,7 @@ void EffectsGrid::DrawEffects()
             if (mGridNodeValues && ri->nodeIndex != -1) {
                 std::vector<xlColor> colors;
                 std::vector<double> xs;
-                PixelBufferClass ncls(xlights, true);
+                PixelBufferClass ncls(xlights);
                 StrandElement *se = dynamic_cast<StrandElement*>(ri->element);
                 ncls.InitNodeBuffer(*xlights->GetModel(ri->element->GetModelName()), se->GetStrand(), ri->nodeIndex, seqData->FrameTime());
                 xlColor lastColor;

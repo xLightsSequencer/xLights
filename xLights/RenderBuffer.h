@@ -81,10 +81,13 @@ class SequenceElements;
 
 
 class DrawingContext {
-public:
+protected:
     DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha);
     virtual ~DrawingContext();
 
+public:
+    static void Initialize(wxWindow *parent);
+    static void CleanUp();
 
     void ResetSize(int BufferWi, int BufferHt);
     virtual void Clear();
@@ -103,6 +106,9 @@ public:
     PathDrawingContext(int BufferWi, int BufferHt, bool allowShared);
     virtual ~PathDrawingContext();
 
+    static PathDrawingContext* GetContext();
+    static void ReleaseContext(PathDrawingContext* pdc);
+    
     virtual void Clear() override;
 
     void SetPen(wxPen& pen);
@@ -116,6 +122,9 @@ class TextDrawingContext : public DrawingContext {
 public:
     TextDrawingContext(int BufferWi, int BufferHt, bool allowShared);
     virtual ~TextDrawingContext();
+    
+    static TextDrawingContext* GetContext();
+    static void ReleaseContext(TextDrawingContext* pdc);
 
     virtual void Clear() override;
     virtual bool AllowAlphaChannel() override;
@@ -378,7 +387,7 @@ public:
 
 class /*NCCDLLEXPORT*/ RenderBuffer {
 public:
-    RenderBuffer(xLightsFrame *frame, bool onlyOnMain);
+    RenderBuffer(xLightsFrame *frame);
     ~RenderBuffer();
     RenderBuffer(RenderBuffer& buffer);
     void InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform);
@@ -436,9 +445,8 @@ public:
 
     HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2);
     float GetEffectTimeIntervalPosition();
-    double GetEffectTimeIntervalPosition(double cycles);
+    float GetEffectTimeIntervalPosition(float cycles);
 
-    bool _onlyOnMain;
     PathDrawingContext * GetPathDrawingContext();
     TextDrawingContext * GetTextDrawingContext();
 
@@ -481,7 +489,6 @@ public:
     std::vector<NodeBaseClassPtr> Nodes;
 
 private:
-    bool onlyOnMain;
     PathDrawingContext *_pathDrawingContext;
     TextDrawingContext *_textDrawingContext;
 };

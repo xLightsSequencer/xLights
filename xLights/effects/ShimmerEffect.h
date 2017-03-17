@@ -14,7 +14,7 @@ class ShimmerEffect : public RenderableEffect
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) override { return true; }
 protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
-        virtual bool needToAdjustSettings(const std::string& version);
+        virtual bool needToAdjustSettings(const std::string& version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect) override;
 private:
 };

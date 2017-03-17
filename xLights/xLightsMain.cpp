@@ -1405,6 +1405,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
 	SetAudioControls();
 
+    DrawingContext::Initialize(this);
+    
     logger_base.debug("xLightsFrame construction complete.");
 }
 
@@ -1413,6 +1415,7 @@ xLightsFrame::~xLightsFrame()
     Timer_AutoSave.Stop();
     EffectSettingsTimer.Stop();
     Timer1.Stop();
+    DrawingContext::CleanUp();
 
     selectedEffect = nullptr;
 
