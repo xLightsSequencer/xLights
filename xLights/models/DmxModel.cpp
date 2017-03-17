@@ -94,7 +94,6 @@ public:
 
         glm::vec4 position = glm::vec4(glm::vec3(x_,y_,z_), 1.0);
 
-        glm::mat4 projMatrix = glm::perspective(45.0f, 1.0f, 1.0f, 25.0f);
         glm::mat4 rotationMatrixPan = glm::rotate(glm::mat4(1.0f), pan_angle, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 rotationMatrixTilt = glm::rotate(glm::mat4(1.0f), tilt_angle, glm::vec3(0.0f, 0.0f, 1.0f));
         glm::mat4 rotationMatrixNod = glm::rotate(glm::mat4(1.0f), nod_angle, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -972,7 +971,7 @@ int DmxModel::GetChannelValue( int channel )
 
 void DmxModel::DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
 {
-    float angle, pan_angle, pan_angle_raw, tilt_angle, nod_angle, jaw_pos, eye_x, eye_y;
+    float pan_angle, pan_angle_raw, tilt_angle, nod_angle, jaw_pos, eye_x, eye_y;
     float jaw_range_of_motion = -4.0;
     float eye_range_of_motion = 3.8;
     int channel_value;

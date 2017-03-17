@@ -3476,20 +3476,6 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
     }
 }
 
-static int GetTrackNumber(const std::vector< VSAFile::vsaTrackRecord > &tracks, const std::string &channel)
-{
-    int track_number = -1;
-
-    for( int i = 0; i < tracks.size(); ++i ) {
-        if( tracks[i].name == channel ) {
-            track_number = i;
-            break;
-        }
-    }
-
-    return track_number;
-}
-
 void xLightsFrame::ImportVsa(const wxFileName &filename) {
 
     wxStopWatch sw; // start a stopwatch timer

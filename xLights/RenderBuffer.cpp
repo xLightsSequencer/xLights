@@ -1044,8 +1044,9 @@ float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) {
     float retval = (float)(curPeriod-curEffStartPer);
     retval *= cycles;
     retval /= ((float)(curEffEndPer-curEffStartPer));
-    while (retval > 1.0f) {
-        retval -= 1.0f;
+    if (retval > 1.0f) {
+        float i;
+        retval = std::modf(retval, &i);
     }
     return retval;
 }
