@@ -21,16 +21,19 @@ $(document).ready(function() {
     jQuery(this).find('.dropdown-menu').stop(true, true).delay(200).fadeOut();
   });
 
+
   // if mobile
   if (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)) {
     $('#toggleButtonContainer').attr('class',
       'col-md-5 text-center nav-buttons');
     $('#nutcrackerLogo').attr('height',
       '30px');
+    isMobile = true;
 
   }
 
 });
+var isMobile;
 //global status
 var playingStatus = `{status: "unknown"}`;
 
@@ -117,16 +120,16 @@ function populateUI() {
     $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle loop current step')" id="steplooping" title="Loop Current Step" class="btn btn-default glyphicon glyphicon-repeat" disabled></button>`);
   if (uiSettings.navbuttons[3] == true)
     $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle current playlist loop')" id="playlistlooping" title="Loop Playlist" class="btn btn-default glyphicon glyphicon-refresh " disabled></button>`);
-  if (uiSettings.navbuttons[0] == true) {
+  if (uiSettings.navbuttons[0] == true && isMobile != true) {
     $('#toggleButtonContainer').append(`<button id="volumeMute" title="Volume Control" class="btn btn-default glyphicon glyphicon-volume-off"></button>`);
     smartVolume();
   }
-  if (uiSettings.navbuttons[1] == true) {
+  if (uiSettings.navbuttons[1] == true && isMobile != true) {
     $('#toggleButtonContainer').append(`<button id="brightnessLevel" title="Adjust Brightness" class="btn btn-default glyphicon glyphicon-flash"></button>`);
     smartBrightness();
   }
   if (uiSettings.navbuttons[2] == true)
-    $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle output to lights') class="btn btn-danger glyphicon glyphicon-eye-open" id="outputtolights" title="Toggle Ouput to lights" type="button"></button>`);
+    $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle output to lights')"" class="btn btn-danger glyphicon glyphicon-eye-open" id="outputtolights" title="Toggle Ouput to lights" type="button"></button>`);
   if (uiSettings.navbuttons[6] == true)
     $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle mute')" class="btn btn-danger glyphicon glyphicon-eye-open" id="toggleMute"  title="Toggle Mute " type="button"></button>`);
 
