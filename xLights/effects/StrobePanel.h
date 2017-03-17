@@ -4,6 +4,7 @@
 //(*Headers(StrobePanel)
 #include <wx/panel.h>
 class wxCheckBox;
+class wxTextCtrl;
 class wxStaticText;
 class wxSlider;
 class wxBitmapButton;
@@ -25,9 +26,12 @@ class StrobePanel: public wxPanel
 		wxSlider* Slider_Strobe_Type;
 		wxBitmapButton* BitmapButton_Strobe_Type;
 		wxBitmapButton* BitmapButton_Strobe_Music;
+		wxTextCtrl* TextCtrl_Strobe_Duration;
+		wxTextCtrl* TextCtrl_Strobe_Type;
 		wxStaticText* StaticText112;
 		wxBitmapButton* BitmapButton_NumberStrobes;
 		wxSlider* Slider_Number_Strobes;
+		wxTextCtrl* TextCtrl_Number_Strobes;
 		wxSlider* Slider_Strobe_Duration;
 		//*)
 
@@ -36,12 +40,15 @@ class StrobePanel: public wxPanel
 		//(*Identifiers(StrobePanel)
 		static const long ID_STATICTEXT112;
 		static const long ID_SLIDER_Number_Strobes;
+		static const long IDD_TEXTCTRL_Number_Strobes;
 		static const long ID_BITMAPBUTTON49;
 		static const long ID_STATICTEXT113;
 		static const long ID_SLIDER_Strobe_Duration;
+		static const long IDD_TEXTCTRL_Strobe_Duration;
 		static const long ID_BITMAPBUTTON51;
 		static const long ID_STATICTEXT114;
 		static const long ID_SLIDER_Strobe_Type;
+		static const long IDD_TEXTCTRL_Strobe_Type;
 		static const long ID_BITMAPBUTTON50;
 		static const long ID_CHECKBOX_Strobe_Music;
 		static const long ID_BITMAPBUTTON_Strobe_Music;
