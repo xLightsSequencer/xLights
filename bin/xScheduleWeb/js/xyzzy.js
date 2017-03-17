@@ -36,7 +36,10 @@ function openXyzzy() {
 }
 
 function startXyzzy() {
-
+  $('body').addClass('disableSelection');
+  // if mobile {
+  //   $('body').addClass('disableSelection');
+  // }
   xyzzyName = $('#xyzzyName')[0].value;
   xyzzyMatrix = $('#matrixList')[0].value;
 
@@ -146,12 +149,13 @@ function xyzzyCommand(c, p) {
 function xyzzyDraw(step) {
   var step1 =
     `<h2 id="highscoreName"></h2>
-    <h4 id="highscore"></h4>
+    <h4 id="highscore"></h4><hr>
     <label>Select Matrix</label>
     <select class="form-control" id="matrixList">
     </select>
+    <br />
     <lable>Enter Name:</lable>
-    <input id="xyzzyName" type="text" class="form-control">
+    <input id="xyzzyName" type="text" class="form-control"> <br />
     <button data-dismiss="modal" aria-label="Close" onclick="startXyzzy($('#xyzzyName').value)" class="btn btn-success">Play</button>`;
 
   var step2 =

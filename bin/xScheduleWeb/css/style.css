@@ -68,6 +68,9 @@ body{
 .navbar-default .navbar-link:hover {
   color: #ffbbbc;
 }
+.xyzzy-container{
+  height: 95vh;
+}
 
 /* Custom */
 .main-color-bg{
@@ -84,6 +87,7 @@ body{
 -ms-user-select: none;
 user-select: none;
 outline: 0;
+height: 95vh;
 }
 
 /*xyxxy icons */
