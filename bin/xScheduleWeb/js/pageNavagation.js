@@ -8,6 +8,7 @@ window.addEventListener('popstate', function(event) {
   console.log("navagated");
   updateCurrentPage();
 })
+var currentPage;
 
 function updateCurrentPage() {
   var currentPageArgs = getQueryVariable("args");
@@ -15,12 +16,13 @@ function updateCurrentPage() {
     var currentPageArgs = "";
   }
   if (getQueryVariable("page") != false) {
-    var currentPage = getQueryVariable("page");
+    currentPage = getQueryVariable("page");
     updatePage('page', currentPage, currentPageArgs);
   } else if (getQueryVariable("plugin") != false) {
-    var currentPage = getQueryVariable("plugin");
+    currentPage = getQueryVariable("plugin");
     updatePage('plugin', currentPage, currentPageArgs);
   } else {
+    currentPage = 'home';
     updatePage('page', 'home');
   }
 }

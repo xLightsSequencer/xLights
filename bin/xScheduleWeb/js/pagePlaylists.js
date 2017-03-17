@@ -8,22 +8,6 @@ $(document).ready(function() {
 
 });
 
-function populateSideBar() {
-  if (uiSettings != undefined) {
-    if (uiSettings.playlists[0] == true) {
-      $('#sideBar1').load('inc/sidebarNav.html');
-    }
-    if (uiSettings.playlists[1] == true) {
-      $('#sideBar2').load('inc/sidebarPlayerStatus.html');
-    }
-  } else {
-    sleep(100),
-      function() {
-        populateSideBar();
-      }
-  }
-}
-
 function playlistsLoadPlaylists() {
   $.ajax({
     url: '/xScheduleQuery?Query=GetPlayLists&Parameters=',

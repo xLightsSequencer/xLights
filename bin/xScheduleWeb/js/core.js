@@ -46,27 +46,6 @@ function updateStatus() {
 
 var availableMatrices;
 var xyzzyHighScore;
-
-function loadXyzzyData() {
-  //matrix
-  $.ajax({
-    type: "GET",
-    url: '/xScheduleQuery?Query=GetMatrices',
-    success: function(response) {
-      availableMatrices = response;
-    }
-  });
-
-  $.ajax({
-    type: "GET",
-    url: '/xyzzy?c=initialise',
-    success: function(response) {
-      xyzzyHighScore = JSON.parse('{"highscoreplayer":"' + response.highscoreplayer + '","highscore":' + response.highscore + '}');
-    }
-
-  });
-}
-
 var uiSettings;
 
 function loadUISettings() {
@@ -79,19 +58,26 @@ function loadUISettings() {
         window.location.href = "login.html";
       } else {
         if (response.result == 'failed' && response.message == '') {
-          var defaultSettings =
-            `{
-            "webName":"xLights Scheduler",
-            "webColor":"#e74c3c",
-            "notificationLevel":"1",
-            "home":[true, false],
-            "playlists":[true, true],
-            "settings":[true, true],
-            "navbuttons":[true, true, true, true, true, true, true]
-          }`;
-          storeKey('uiSettings', defaultSettings, '10');
+          var defaultSettings = {
+            "webName": "xLights Scheduler",
+            "webColor": "#e74c3c",
+            "notificationLevel": "1",
+            "pages": [{
+              "page": "home",
+              "values": [true, false]
+            }, {
+              "page": "playlists",
+              "values": [true, true]
+            }, {
+              "page": "settings",
+              "values": [true, true]
+            }],
+            "navbuttons": [true, true, true, true, true, true, true]
+          };
+
+          storeKey('uiSettings', JSON.stringify(defaultSettings), '10');
           notification("Loaded Default Settings", "info", "0");
-          uiSettings = JSON.parse(defaultSettings);
+          uiSettings = defaultSettings;
           if (getQueryVariable("plugin") == false) {
             populateSideBar();
           }
@@ -108,6 +94,14 @@ function loadUISettings() {
     },
     error: function(response) {},
   });
+}
+
+function getPage(settings, pageName) {
+  for (var page in settings.pages) {
+    if (settings.pages[page].page == pageName) {
+      return settings.pages[page];
+    }
+  }
 }
 
 function populateUI() {
@@ -140,6 +134,7 @@ function populateUI() {
   $('#toggleButtonContainer').append(`<button class="btn btn-info glyphicon glyphicon-info-sign" type="button" title="Click for assistance" data-toggle="modal" data-target="#help"></button>`);
   //Populate Button State
   updateNavStatus();
+  populateSideBar();
 }
 
 
@@ -314,6 +309,26 @@ function notification(message, color, priority) {
       type: color
     });
   }
+}
+
+function loadXyzzyData() {
+  //matrix
+  $.ajax({
+    type: "GET",
+    url: '/xScheduleQuery?Query=GetMatrices',
+    success: function(response) {
+      availableMatrices = response;
+    }
+  });
+
+  $.ajax({
+    type: "GET",
+    url: '/xyzzy?c=initialise',
+    success: function(response) {
+      xyzzyHighScore = JSON.parse('{"highscoreplayer":"' + response.highscoreplayer + '","highscore":' + response.highscore + '}');
+    }
+
+  });
 }
 
 function findPercent(length, left) {

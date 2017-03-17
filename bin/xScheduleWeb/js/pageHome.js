@@ -17,26 +17,7 @@ $(document).ready(function() {
   }
   populateSideBar();
 
-
 });
-
-
-
-function populateSideBar() {
-  if (uiSettings != undefined) {
-    if (uiSettings.home[0] == true) {
-      $('#sideBar1').load('inc/sidebarNav.html');
-    }
-    if (uiSettings.home[1] == true) {
-      $('#sideBar2').load('inc/sidebarPlayerStatus.html');
-    }
-  } else {
-    //research this
-    sleep(0).then(function() {
-      populateSideBar();
-    });
-  }
-}
 
 var oldPlayingStatus = '';
 

@@ -184,10 +184,7 @@ function xyzzyDraw(step) {
   } else if (step == "step3") {
     $("#xyzzyContainer").html(step3);
   }
-  $('#xyzzySelectionDisable').disableSelection();
-
 }
-
 
 // konami
 
