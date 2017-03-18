@@ -24,6 +24,12 @@ function populateSideBar() {
       `;
       $('#sideBar2').html(sidebar2);
     }
+    //if no sidebar, remove it
+    if (getPage(uiSettings, currentPage).values[0] == false && getPage(uiSettings, currentPage).values[1] == false) {
+      $('#sidebarContainer').visibility = false;
+      $('#mainContainer').css("width", "100%");
+    }
+
   } else {
     sleep(100),
       function() {
