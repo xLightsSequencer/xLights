@@ -1,9 +1,15 @@
 $(document).ready(function() {
-
-  window.setInterval(function() {
+  var i = "0";
+  var AJAXTimer = window.setInterval(function() {
     if (socket.readyState > '1') {
       updateStatus();
       updateNavStatus();
+    }
+    if (socket.readyState < '2') {
+      i = i++;
+      if (i = '3') {
+        clearInterval(AJAXTimer);
+      }
     }
   }, 1000);
 
@@ -51,7 +57,7 @@ var availableMatrices;
 var xyzzyHighScore;
 var uiSettings;
 
-function loadUISettings() {
+function loadUISettings(resetToDefault) {
   $.ajax({
     type: "GET",
     url: '/xScheduleStash?Command=Retrieve&Key=uiSettings',
@@ -60,7 +66,7 @@ function loadUISettings() {
       if (response.result == "not logged in") {
         window.location.href = "login.html";
       } else {
-        if (response.result == 'failed' && response.message == '') {
+        if (response.result == 'failed' && response.message == '' || resetToDefault == true) {
           var defaultSettings = {
             "webName": "xLights Scheduler",
             "webColor": "#e74c3c",
@@ -75,15 +81,26 @@ function loadUISettings() {
               "page": "settings",
               "values": [true, true]
             }],
-            "navbuttons": [true, true, true, true, true, true, true]
+            "navbuttons": [{
+              "random": true,
+              "steplooping": false,
+              "playlistlooping": true,
+              "volumeMute": true,
+              "brightnessLevel": false,
+              "outputtolights": true,
+              "toggleMute": false
+            }]
           };
 
           storeKey('uiSettings', JSON.stringify(defaultSettings), '10');
           notification("Loaded Default Settings", "info", "0");
           uiSettings = defaultSettings;
-          if (getQueryVariable("plugin") == false) {
+          if (getQueryVariable("plugin") == false)
             populateSideBar();
-          }
+
+          if (currentPage == 'settings')
+            loadSettings();
+          window.scrollTo(0, 0);
         } else {
           if (getQueryVariable("plugin") == false) {
             populateSideBar();
@@ -107,6 +124,15 @@ function getPage(settings, pageName) {
   }
 }
 
+// function getToggleButton(settings, buttonName) {
+//   for (var page in settings.navbuttons) {
+//     if (settings.navbuttons[page].page == pageName) {
+//       return settings.navbuttons[page];
+//     }
+//   }
+// }
+
+
 function populateUI() {
   $('#headerName').html(uiSettings.webName);
   $('#nav').css("background-color", uiSettings.webColor);
@@ -114,23 +140,23 @@ function populateUI() {
   document.title = uiSettings.webName;
   $('#toggleButtonContainer').html("");
   //Nav Buttons
-  if (uiSettings.navbuttons[5] == true)
+  if (uiSettings.navbuttons[0].random == true)
     $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle current playlist random')" id="random" title="Randomize Playlist" class="btn btn-default glyphicon glyphicon-random" disabled></button>`);
-  if (uiSettings.navbuttons[4] == true)
+  if (uiSettings.navbuttons[0].steplooping == true)
     $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle loop current step')" id="steplooping" title="Loop Current Step" class="btn btn-default glyphicon glyphicon-repeat" disabled></button>`);
-  if (uiSettings.navbuttons[3] == true)
+  if (uiSettings.navbuttons[0].playlistlooping == true)
     $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle current playlist loop')" id="playlistlooping" title="Loop Playlist" class="btn btn-default glyphicon glyphicon-refresh " disabled></button>`);
-  if (uiSettings.navbuttons[0] == true && isMobile != true) {
+  if (uiSettings.navbuttons[0].volumeMute == true && isMobile != true) {
     $('#toggleButtonContainer').append(`<button id="volumeMute" title="Volume Control" class="btn btn-default glyphicon glyphicon-volume-off"></button>`);
     smartVolume();
   }
-  if (uiSettings.navbuttons[1] == true && isMobile != true) {
+  if (uiSettings.navbuttons[0].brightnessLevel == true && isMobile != true) {
     $('#toggleButtonContainer').append(`<button id="brightnessLevel" title="Adjust Brightness" class="btn btn-default glyphicon glyphicon-flash"></button>`);
     smartBrightness();
   }
-  if (uiSettings.navbuttons[2] == true)
+  if (uiSettings.navbuttons[0].outputtolights == true)
     $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle output to lights')"" class="btn btn-danger glyphicon glyphicon-eye-open" id="outputtolights" title="Toggle Ouput to lights" type="button"></button>`);
-  if (uiSettings.navbuttons[6] == true)
+  if (uiSettings.navbuttons[0].toggleMute == true)
     $('#toggleButtonContainer').append(`<button onclick="runCommand('Toggle mute')" class="btn btn-danger glyphicon glyphicon-eye-open" id="toggleMute"  title="Toggle Mute " type="button"></button>`);
 
   //help button
