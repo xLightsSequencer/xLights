@@ -14,6 +14,7 @@
 #include "../../include/fireworks-32.xpm"
 #include "../../include/fireworks-48.xpm"
 #include "../../include/fireworks-64.xpm"
+#include "../UtilFunctions.h"
 
 FireworksEffect::FireworksEffect(int id) : RenderableEffect(id, "Fireworks", fireworks_16, fireworks_24, fireworks_32, fireworks_48, fireworks_64)
 {
@@ -229,7 +230,7 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             double start = -1;
             if (!useMusic)
             {
-                start = buffer.curEffStartPer + buffer.rand01() * (buffer.curEffEndPer - buffer.curEffStartPer);
+                start = buffer.curEffStartPer + rand01() * (buffer.curEffEndPer - buffer.curEffStartPer);
             }
             x25=(int)buffer.BufferWi*0.25;
             x75=(int)buffer.BufferWi*0.75;

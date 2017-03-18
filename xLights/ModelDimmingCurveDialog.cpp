@@ -5,6 +5,7 @@
 #include <wx/button.h>
 #include <wx/string.h>
 #include <wx/intl.h>
+#include "UtilFunctions.h"
 //*)
 
 //(*IdInit(ModelDimmingCurveDialog)
@@ -367,9 +368,9 @@ void ModelDimmingCurveDialog::Init(std::map<std::string, std::map<std::string,st
             RGBGreenFilePicker->SetPath(dimmingInfo["green"]["filename"]);
             RGBBlueFilePicker->SetPath(dimmingInfo["blue"]["filename"]);
             
-            redDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(xLightsXmlFile::FixFile("",RGBRedFilePicker->GetPath())), 0);
-            greenDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(xLightsXmlFile::FixFile("", RGBGreenFilePicker->GetPath())), 0);
-            blueDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(xLightsXmlFile::FixFile("", RGBBlueFilePicker->GetPath())), 0);
+            redDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(FixFile("",RGBRedFilePicker->GetPath())), 0);
+            greenDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(FixFile("", RGBGreenFilePicker->GetPath())), 0);
+            blueDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(FixFile("", RGBBlueFilePicker->GetPath())), 0);
         } else {
             DimmingTypeChoice->SetSelection(2);
             RGBRedGammaTextCtrl->ChangeValue(dimmingInfo["red"]["gamma"]);
@@ -450,9 +451,9 @@ void ModelDimmingCurveDialog::OnRGBTextCtrlText(wxCommandEvent& event)
 
 void ModelDimmingCurveDialog::OnRGBFilePickerFileChanged(wxFileDirPickerEvent& event)
 {
-    redDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(xLightsXmlFile::FixFile("",RGBRedFilePicker->GetPath())), 0);
-    greenDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(xLightsXmlFile::FixFile("", RGBGreenFilePicker->GetPath())), 0);
-    blueDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(xLightsXmlFile::FixFile("", RGBBlueFilePicker->GetPath())), 0);
+    redDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(FixFile("",RGBRedFilePicker->GetPath())), 0);
+    greenDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(FixFile("", RGBGreenFilePicker->GetPath())), 0);
+    blueDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(FixFile("", RGBBlueFilePicker->GetPath())), 0);
 }
 
 void ModelDimmingCurveDialog::OnSingleFilePickerFileChanged(wxFileDirPickerEvent& event)

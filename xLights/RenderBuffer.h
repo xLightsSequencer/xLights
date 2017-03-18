@@ -430,7 +430,6 @@ public:
     static float sin(float rad);
     static float cos(float rad);
 
-    double rand01();
     double calcAccel(double ratio, double accel);
 
     uint8_t ChannelBlend(uint8_t c1, uint8_t c2, float ratio);

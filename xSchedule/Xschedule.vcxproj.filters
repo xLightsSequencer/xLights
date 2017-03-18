@@ -127,6 +127,8 @@
     <ClCompile Include="Blend.cpp" />
     <ClCompile Include="wxJSON\jsonreader.cpp" />
     <ClCompile Include="wxJSON\jsonval.cpp" />
+    <ClCompile Include="..\xLights\UtilFunctions.cpp" />
+    <ClCompile Include="..\xLights\SequenceData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -236,6 +238,7 @@
     <ClInclude Include="Blend.h" />
     <ClInclude Include="wxJSON\jsonreader.h" />
     <ClInclude Include="wxJSON\jsonval.h" />
+    <ClInclude Include="..\xLights\UtilFunctions.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

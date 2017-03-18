@@ -13,6 +13,7 @@
 #include "RenardOutput.h"
 #include "OpenPixelNetOutput.h"
 #include "OpenDMXOutput.h"
+#include "../UtilFunctions.h"
 
 #pragma region Constructors and Destructors
 Output::Output(Output* output)
@@ -55,10 +56,10 @@ Output::Output(wxXmlNode* node)
     _ok = true;
 
     _enabled = (node->GetAttribute("Enabled", "Yes") == "Yes");
-    _description = Output::UnXmlSafe(node->GetAttribute("Description").ToStdString());
+    _description = UnXmlSafe(node->GetAttribute("Description").ToStdString());
     _dirty = false;
     _channels = wxAtoi(node->GetAttribute("MaxChannels"));
-    std::string controller = Output::UnXmlSafe(node->GetAttribute("Controller").ToStdString());
+    std::string controller = UnXmlSafe(node->GetAttribute("Controller").ToStdString());
     if (controller != "")
     {
         _controller = Controller::GetController(controller);
@@ -99,12 +100,12 @@ void Output::Save(wxXmlNode* node)
 
     if (_description != "")
     {
-        node->AddAttribute("Description", Output::XmlSafe(_description));
+        node->AddAttribute("Description", XmlSafe(_description));
     }
 
     if (_controller != nullptr)
     {
-        node->AddAttribute("Controller", Output::XmlSafe(_controller->GetId()));
+        node->AddAttribute("Controller", XmlSafe(_controller->GetId()));
     }
 
     node->AddAttribute("MaxChannels", wxString::Format("%d", _channels));
@@ -169,61 +170,6 @@ Output* Output::Create(wxXmlNode* node)
 
     logger_base.warn("Unknown network type %s ignored.", (const char *)type.c_str());
     return nullptr;
-}
-
-std::string Output::XmlSafe(const std::string& s)
-{
-    std::string res = "";
-    for (auto c = s.begin(); c != s.end(); c++)
-    {
-        if ((int)(*c) < 32)
-        {
-            res += wxString::Format("&#%d;", (int)(*c)).ToStdString();
-        }
-        else if (*c == '&')
-        {
-            res += "&amp;";
-        }
-        else if (*c == '<')
-        {
-            res += "&lt;";
-        }
-        else if (*c == '>')
-        {
-            res += "&gt;";
-        }
-        else if (*c == '\'')
-        {
-            res += "&apos;";
-        }
-        else if (*c == '\"')
-        {
-            res += "&quot;";
-        }
-        else
-        {
-            res += (*c);
-        }
-    }
-
-    return res;
-}
-
-std::string Output::UnXmlSafe(const std::string& s)
-{
-    wxString res = s;
-
-    for (int i = 0; i< 32; ++i)
-    {
-        wxString ss = wxString::Format("&#%d;", i);
-        res.Replace(ss, wxString::Format("%c", i));
-    }
-    res.Replace("&lt;", "<");
-    res.Replace("&gt;", ">");
-    res.Replace("&apos;", "'");
-    res.Replace("&quot;", "\"");
-    res.Replace("&amp;", "&");
-    return res.ToStdString();
 }
 #pragma endregion Static Functions
 

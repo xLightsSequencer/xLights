@@ -65,8 +65,6 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Static Functions
-    static std::string XmlSafe(const std::string& s);
-    static std::string UnXmlSafe(const std::string& s);
     static Output* Create(wxXmlNode* node);
     static std::list<Output*> Discover() { return std::list<Output*>(); } // Discovers controllers supporting this protocol
     #pragma endregion Static Functions

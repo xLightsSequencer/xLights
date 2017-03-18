@@ -15,6 +15,7 @@
 #include "../../include/video-32.xpm"
 #include "../../include/video-48.xpm"
 #include "../../include/video-64.xpm"
+#include "../UtilFunctions.h"
 
 VideoEffect::VideoEffect(int id) : RenderableEffect(id, "Video", video_16, video_24, video_32, video_48, video_64)
 {
@@ -105,7 +106,7 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect)
     {
         if (!wxFile::Exists(file))
         {
-            settings["E_FILEPICKERCTRL_Video_Filename"] = xLightsXmlFile::FixFile("", file);
+            settings["E_FILEPICKERCTRL_Video_Filename"] = FixFile("", file);
         }
     }
 

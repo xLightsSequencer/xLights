@@ -322,7 +322,6 @@ class TestDialog: public wxDialog
 		void GetCheckedItems(wxArrayInt& chArray);
 		void GetCheckedItems(wxArrayInt& chArray, char col);
 		void OnTimer(long curtime);
-		double Rand01() { return (double)rand() / (double)RAND_MAX; };
 		void TestButtonsOff();
 		wxCheckBoxState RollUpAll(wxTreeListItem start);
 		void CascadeModelDoesNotExist();

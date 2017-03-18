@@ -11,6 +11,7 @@
 #include "SaveChangesDialog.h"
 #include "ConvertLogDialog.h"
 #include "xLightsVersion.h"
+#include "UtilFunctions.h"
 
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
@@ -1262,8 +1263,6 @@ std::string FindHLSStrandName(const std::string &ccrName, int node, const std::v
     }
     return "";
 }
-int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
-
 
 bool EndsWith(const std::string &fullString, const std::string &ending) {
     if (fullString.length() >= ending.length()) {

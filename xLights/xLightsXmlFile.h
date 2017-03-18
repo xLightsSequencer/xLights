@@ -20,9 +20,6 @@ class xLightsXmlFile : public wxFileName
         xLightsXmlFile(const wxFileName &filename);
         virtual ~xLightsXmlFile();
 
-        static wxString UnXmlSafe(wxString s);
-        static wxString XmlSafe(wxString s);
-
         enum HEADER_INFO_TYPES
         {
             AUTHOR,
@@ -66,9 +63,6 @@ class xLightsXmlFile : public wxFileName
         void SetSequenceDurationMS(int length);
         void SetSequenceDuration(const wxString& length);
         void SetSequenceDuration(double length);
-
-		static wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse = false);
-		static wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir);
 
         const wxString &GetSequenceTiming() const { return seq_timing; }
 		void SetSequenceTiming(const wxString& timing);

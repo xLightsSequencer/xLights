@@ -30,7 +30,7 @@
 #include "sequencer/Effect.h"
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
-
+#include "UtilFunctions.h"
 
 template <class CTX>
 class ContextPool {
@@ -136,7 +136,6 @@ void TextDrawingContext::ReleaseContext(TextDrawingContext* pdc) {
         return TEXT_CONTEXT_POOL->ReleaseContext(pdc);
     }
 }
-
 
 #ifdef __WXMSW__
 #define USE_GRAPHICS_CONTEXT_FOR_TEXT 0
@@ -579,12 +578,6 @@ void RenderBuffer::SetPalette(xlColorVector& newcolors, xlColorCurveVector& newc
 size_t RenderBuffer::GetColorCount()
 {
     return palette.Size();
-}
-
-// return a random number between 0 and 1 inclusive
-double RenderBuffer::rand01()
-{
-    return (double)rand()/(double)RAND_MAX;
 }
 
 class SinTable {

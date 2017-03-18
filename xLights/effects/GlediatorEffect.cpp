@@ -16,6 +16,7 @@
 #include "../../include/glediator-16.xpm"
 #include "../../include/glediator-64.xpm"
 #include <log4cpp/Category.hh>
+#include "../UtilFunctions.h"
 
 GlediatorReader::GlediatorReader(const std::string& filename, const wxSize& size)
 {
@@ -50,7 +51,7 @@ void GlediatorReader::GetFrame(size_t frame, char* buffer, size_t size)
     {
         // invalid sized buffer ... so fill it with red
         // or illegal frame
-        for (int i = 0; i < size; i++)
+        for (size_t i = 0; i < size; i++)
         {
             if (i%3 == 0)
             {
@@ -142,7 +143,7 @@ void GlediatorEffect::adjustSettings(const std::string &version, Effect *effect)
     {
         if (!wxFile::Exists(file))
         {
-            settings["E_FILEPICKERCTRL_Glediator_Filename"] = xLightsXmlFile::FixFile("", file);
+            settings["E_FILEPICKERCTRL_Glediator_Filename"] = FixFile("", file);
         }
     }
 }
@@ -261,7 +262,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         }
         else
         {
-            int bufsize = _glediatorReader->GetBufferSize();
+            size_t bufsize = _glediatorReader->GetBufferSize();
             char *frameBuffer = new char[bufsize];
 
             if (frameBuffer != nullptr)

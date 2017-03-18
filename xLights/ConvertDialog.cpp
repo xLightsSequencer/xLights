@@ -24,6 +24,7 @@
 #include "outputs/Output.h"
 
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 //(*IdInit(ConvertDialog)
 const long ConvertDialog::ID_STATICTEXT2 = wxNewId();
@@ -324,7 +325,7 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
 
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "EventValues");
-    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, _parent->base64_encode());
+    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, base64_encode(SeqData));
 
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Audio");
@@ -920,7 +921,7 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
                         if (carryOver.size() > 0) {
                             NodeValue.insert(0, carryOver);
                         }
-                        int i = _parent->base64_decode(NodeValue, VixSeqData);
+                        int i = base64_decode(NodeValue, VixSeqData);
                         if (i != 0) {
                             int start = NodeValue.size() - i - 1;
                             carryOver = NodeValue.substr(start, start + i);
@@ -1403,12 +1404,6 @@ static void mapLORInfo(const LORInfo &info, std::vector< std::vector<int> > *uni
     {
         (*unitSizes)[info.network][unit - 1] = info.circuit;
     }
-}
-
-// return a random number between 0 and 1 inclusive
-double rand01()
-{
-    return (double)rand() / (double)RAND_MAX;
 }
 
 void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)

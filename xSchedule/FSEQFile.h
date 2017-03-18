@@ -29,7 +29,6 @@ class FSEQFile
 
         static int ReadInt16(wxFile* fh);
         static int ReadInt32(wxFile* fh);
-        static std::string FixFile(const std::string& ShowDir, const std::string& file, bool recurse = false);
         static std::string GrabAudioFilename(const std::string& fseqFilename);
 
         FSEQFile();

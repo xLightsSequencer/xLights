@@ -915,6 +915,9 @@
     <ClCompile Include="xLightsVersion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UtilFunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1764,6 +1767,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="effects\GIFImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UtilFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -13,6 +13,7 @@
 #include "../../include/meteors-32.xpm"
 #include "../../include/meteors-48.xpm"
 #include "../../include/meteors-64.xpm"
+#include "../UtilFunctions.h"
 
 MeteorsEffect::MeteorsEffect(int id) : RenderableEffect(id, "Meteors", meteors_16, meteors_24, meteors_32, meteors_48, meteors_64)
 {
@@ -575,7 +576,7 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, 
             } else if (buffer.BufferWi==1) {
                 angle=double(rand() % 2) * M_PI - (M_PI/2.0);
             } else {
-                angle=buffer.rand01()*2.0*M_PI;
+                angle=rand01()*2.0*M_PI;
             }
             m.dx=buffer.cos(angle);
             m.dy=buffer.sin(angle);
@@ -721,7 +722,7 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
             } else if (buffer.BufferWi==1) {
                 angle=double(rand() % 2) * M_PI - (M_PI/2.0);
             } else {
-                angle=buffer.rand01()*2.0*M_PI;
+                angle=rand01()*2.0*M_PI;
             }
             m.dx=buffer.cos(angle);
             m.dy=buffer.sin(angle);

@@ -11,6 +11,7 @@
 //(*InternalHeaders(FPPConnectDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "UtilFunctions.h"
 //*)
 
 //(*IdInit(FPPConnectDialog)
@@ -616,7 +617,7 @@ bool FPPConnectDialog::USBUpload()
 
         if (!cancelled && media != "")
         {
-            media = xLightsXmlFile::FixFile("", media);
+            media = FixFile("", media);
             wxFileName fnmedia(media);
             cancelled = CopyFile(std::string(media), std::string(tgtdir + "/music/" + fnmedia.GetName() + "." + fnmedia.GetExt()), false, progress, mid, end);
         }

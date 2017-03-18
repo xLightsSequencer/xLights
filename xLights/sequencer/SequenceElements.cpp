@@ -12,6 +12,7 @@
 #include "../effects/RenderableEffect.h"
 #include "../models/SubModel.h"
 #include "../models/ModelGroup.h"
+#include "../UtilFunctions.h"
 
 static const std::string STR_EMPTY("");
 static const std::string STR_NAME("name");
@@ -610,11 +611,11 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
 
 				if (settings.find("E_FILEPICKER_Pictures_Filename") != std::string::npos)
 				{
-					settings = xLightsXmlFile::FixEffectFileParameter("E_FILEPICKER_Pictures_Filename", settings, "");
+					settings = FixEffectFileParameter("E_FILEPICKER_Pictures_Filename", settings, "");
 				}
 				else if (settings.find("E_FILEPICKER_Glediator_Filename") != std::string::npos)
 				{
-					settings = xLightsXmlFile::FixEffectFileParameter("E_FILEPICKER_Glediator_Filename", settings, "");
+					settings = FixEffectFileParameter("E_FILEPICKER_Glediator_Filename", settings, "");
 				}
 
                 wxString tmp;
@@ -700,11 +701,11 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                {
 				   if (elementNode->GetNodeContent().Find("E_FILEPICKER_Pictures_Filename") >= 0)
 				   {
-					   elementNode->SetContent(xml_file.FixEffectFileParameter("E_FILEPICKER_Pictures_Filename", elementNode->GetNodeContent(), ShowDir));
+					   elementNode->SetContent(FixEffectFileParameter("E_FILEPICKER_Pictures_Filename", elementNode->GetNodeContent(), ShowDir));
 				   }
 				   else if (elementNode->GetNodeContent().Find("E_TEXTCTRL_Glediator_Filename") >= 0)
 				   {
-					   elementNode->SetContent(xml_file.FixEffectFileParameter("E_TEXTCTRL_Glediator_Filename", elementNode->GetNodeContent(), ShowDir));
+					   elementNode->SetContent(FixEffectFileParameter("E_TEXTCTRL_Glediator_Filename", elementNode->GetNodeContent(), ShowDir));
 				   }
 
                    effectStrings.push_back(elementNode->GetNodeContent().ToStdString());
@@ -849,12 +850,12 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
         for(size_t m=0;m<model.size();m++)
         {
             std::string modelName = model[m].ToStdString();
-            Model *model = xframe->AllModels[modelName];
-            if (model != nullptr) {
-                if (model->GetDisplayAs() == "SubModel") {
-                    model = (dynamic_cast<SubModel*>(model))->GetParent();
+            Model *model1 = xframe->AllModels[modelName];
+            if (model1 != nullptr) {
+                if (model1->GetDisplayAs() == "SubModel") {
+                    model1 = (dynamic_cast<SubModel*>(model1))->GetParent();
                 }
-                if(!ElementExists(model->GetName()))
+                if(!ElementExists(model1->GetName()))
                 {
                    Element* elem = AddElement(modelName,"model",visible,false,false,false);
                    elem->AddEffectLayer();

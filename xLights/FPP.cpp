@@ -9,6 +9,7 @@
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string& user, const std::string& password)
 {
@@ -278,7 +279,7 @@ bool FPP::UploadSequence(std::string file, wxWindow* parent)
 
     if (!cancelled && media != "")
     {
-        media = xLightsXmlFile::FixFile("", media);
+        media = FixFile("", media);
         wxFileName fnmedia(media);
         cancelled = _ftp.UploadFile(media.ToStdString(), "/home/fpp/media/music", fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), false, true, parent);
     }

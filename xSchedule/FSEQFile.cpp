@@ -2,6 +2,7 @@
 #include <wx/file.h>
 #include <log4cpp/Category.hh>
 #include <wx/filename.h>
+#include "../xLights/UtilFunctions.h"
 
 FSEQFile::FSEQFile()
 {
@@ -133,7 +134,7 @@ void FSEQFile::Load(const std::string& filename)
                     ReadInt16(_fh); // mf
                     _fh->Read(buf, mediafilenamelength);
                     _audiofilename = std::string(buf);
-                    _audiofilename = FSEQFile::FixFile("", _audiofilename);
+                    _audiofilename = FixFile("", _audiofilename);
                     free(buf);
                 }
             }
@@ -178,96 +179,5 @@ void FSEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
     {
         Blend(buffer, buffersize, _frameBuffer, _channelsPerFrame, applyMethod, offset);
     }
-}
-
-std::string FSEQFile::FixFile(const std::string& ShowDir, const std::string& file, bool recurse)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // This is cheating ... saves me from having every call know the showdir as long as an early one passes it in
-    static wxString RememberShowDir;
-    wxString sd;
-
-        if (ShowDir == "")
-        {
-            sd = RememberShowDir;
-        }
-        else
-        {
-            if (!recurse)
-            {
-                if (wxString(ShowDir).Lower() != wxString(RememberShowDir).Lower())
-                {
-                    RememberShowDir = ShowDir;
-                }
-            }
-            sd = ShowDir;
-        }
-
-    if (file == "")
-    {
-        return file;
-    }
-
-    if (wxFileExists(file))
-    {
-        return file;
-    }
-
-    logger_base.debug("    Looking for file %s ... not found.", (const char *)file.c_str());
-
-#ifndef __WXMSW__
-    wxFileName fnUnix(file, wxPATH_UNIX);
-    wxFileName fn3(sd, fnUnix.GetFullName());
-    if (fn3.Exists()) {
-        return fn3.GetFullPath().ToStdString();
-    }
-#endif
-    wxFileName fnWin(file, wxPATH_WIN);
-    wxFileName fn4(sd, fnWin.GetFullName());
-    if (fn4.Exists()) {
-        return fn4.GetFullPath().ToStdString();
-    }
-
-    wxString sdlc = sd;
-    sdlc.LowerCase();
-    wxString flc = file;
-    flc.LowerCase();
-
-    wxString path;
-    wxString fname;
-    wxString ext;
-    wxFileName::SplitPath(sd, &path, &fname, &ext);
-    //wxArrayString parts = wxSplit(path, '\\', 0);
-    if (fname == "")
-    {
-        // no subdirectory
-        return file;
-    }
-
-    wxString showfolder = fname;
-    wxString sflc = showfolder;
-    sflc.LowerCase();
-
-    if (flc.Contains(sflc))
-    {
-        wxString f(file);
-        int offset = flc.Find(sflc) + showfolder.Length();
-        std::string relative = (sd + f.SubString(offset, f.Length())).ToStdString();
-
-        if (wxFileExists(relative))
-        {
-            logger_base.debug("File location fixed: %s -> %s.", (const char *)f.c_str(), (const char *)relative.c_str());
-            return relative;
-        }
-    }
-#ifndef __WXMSW__
-    if (ShowDir == "" && fnUnix.GetDirCount() > 0) {
-        return FixFile((sd + "/" + fnUnix.GetDirs().Last()).ToStdString() , file, true);
-    }
-#endif
-    if (ShowDir == "" && fnWin.GetDirCount() > 0) {
-        return FixFile((sd + "\\" + fnWin.GetDirs().Last()).ToStdString(), file, true);
-    }
-    return file;
 }
 

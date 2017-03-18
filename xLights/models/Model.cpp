@@ -26,6 +26,7 @@
 #include <wx/sstream.h>
 
 #include "SubModel.h"
+#include "../UtilFunctions.h"
 
 const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Preview", "Single Line"};
 
@@ -564,7 +565,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         ModelXml->DeleteAttribute("Description");
         if (description != "")
         {
-            ModelXml->AddAttribute("Description", xLightsXmlFile::XmlSafe(description));
+            ModelXml->AddAttribute("Description", XmlSafe(description));
         }
         IncrementChangeCount();
         return 2;
@@ -746,7 +747,7 @@ void Model::ParseFaceInfo(wxXmlNode *f, std::map<std::string, std::map<std::stri
         {
             if (att->GetName().Left(5) == "Mouth" || att->GetName().Left(4) == "Eyes")
             {
-                faceInfo[name][att->GetName().ToStdString()] = xLightsXmlFile::FixFile("", att->GetValue());
+                faceInfo[name][att->GetName().ToStdString()] = FixFile("", att->GetValue());
             }
             else
             {
@@ -1124,7 +1125,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     SingleNode=HasSingleNode(StringType);
     SingleChannel=HasSingleChannel(StringType);
     rgbOrder = SingleNode ? "RGB" : StringType.substr(0, 3);
-    description = xLightsXmlFile::UnXmlSafe(ModelNode->GetAttribute("Description").ToStdString());
+    description = UnXmlSafe(ModelNode->GetAttribute("Description").ToStdString());
 
     tempstr=ModelNode->GetAttribute("parm1");
     tempstr.ToLong(&parm1);

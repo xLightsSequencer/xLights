@@ -18,6 +18,7 @@
 #include "xLightsXmlFile.h"
 #include "outputs/TestPreset.h"
 #include "outputs/Output.h"
+#include "UtilFunctions.h"
 
 //
 //
@@ -1909,7 +1910,7 @@ void TestDialog::OnTimer(long curtime)
 				TwinkleState.Clear();
 				for (i = 0; i < chArray.Count(); i++)
 				{
-					TestSeqIdx = static_cast<int>(Rand01()*(double)_twinkleRatio);
+					TestSeqIdx = static_cast<int>(rand01()*(double)_twinkleRatio);
 					TwinkleState.Add(TestSeqIdx == 0 ? -1 : 1);
 				}
 			}
@@ -1928,13 +1929,13 @@ void TestDialog::OnTimer(long curtime)
 				else if (TwinkleState[i] == -1)
 				{
 					// was background, now highlight for random period
-					TwinkleState[i] = static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime();
+					TwinkleState[i] = static_cast<int>(rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime();
                     _outputManager->SetOneChannel(chArray[i]-1, FgIntensity);
 				}
 				else
 				{
 					// was on, now go to bg color for random period
-					TwinkleState[i] = -static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime() * ((double)_twinkleRatio - 1.0);
+					TwinkleState[i] = -static_cast<int>(rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime() * ((double)_twinkleRatio - 1.0);
                     _outputManager->SetOneChannel(chArray[i]-1, BgIntensity);
 				}
 			}
@@ -2015,7 +2016,7 @@ void TestDialog::OnTimer(long curtime)
 				TwinkleState.Clear();
 				for (i = 0; i < chArray.Count() - 2; i += 3)
 				{
-					TestSeqIdx = static_cast<int>(Rand01()*(double)_twinkleRatio);
+					TestSeqIdx = static_cast<int>(rand01()*(double)_twinkleRatio);
 					TwinkleState.Add(TestSeqIdx == 0 ? -1 : 1);
 				}
 			}
@@ -2034,7 +2035,7 @@ void TestDialog::OnTimer(long curtime)
 				else if (TwinkleState[i] == -1)
 				{
 					// was background, now highlight for random period
-					TwinkleState[i] = static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime();
+					TwinkleState[i] = static_cast<int>(rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime();
 					TestSeqIdx = i * 3;
                     _outputManager->SetOneChannel(chArray[TestSeqIdx]-1, FgColor[0]);
                     _outputManager->SetOneChannel(chArray[TestSeqIdx + 1]-1, FgColor[1]);
@@ -2043,7 +2044,7 @@ void TestDialog::OnTimer(long curtime)
 				else
 				{
 					// was on, now go to bg color for random period
-					TwinkleState[i] = -static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime() * ((double)_twinkleRatio - 1.0);
+					TwinkleState[i] = -static_cast<int>(rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime() * ((double)_twinkleRatio - 1.0);
 					TestSeqIdx = i * 3;
                     _outputManager->SetOneChannel(chArray[TestSeqIdx]-1, BgColor[0]);
                     _outputManager->SetOneChannel(chArray[TestSeqIdx + 1]-1, BgColor[1]);

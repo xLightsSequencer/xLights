@@ -657,6 +657,8 @@
 		<Unit filename="TimingPanel.h" />
 		<Unit filename="TopEffectsPanel.cpp" />
 		<Unit filename="TopEffectsPanel.h" />
+		<Unit filename="UtilFunctions.cpp" />
+		<Unit filename="UtilFunctions.h" />
 		<Unit filename="VAMPPluginDialog.cpp" />
 		<Unit filename="VAMPPluginDialog.h" />
 		<Unit filename="VSAFile.cpp" />

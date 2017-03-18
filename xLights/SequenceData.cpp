@@ -10,22 +10,13 @@
 #include "SequenceData.h"
 #include <wx/wx.h>
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 const unsigned char FrameData::constzero = 0;
 
-
-
-static unsigned int rountTo4(unsigned int i)  {
-    int remainder = i % 4;
-    if (remainder == 0) {
-        return i;
-    }
-    return i + 4 - remainder;
-}
-
 SequenceData::SequenceData() {
-    data = NULL;
-    invalidData = NULL;
+    data = nullptr;
+    invalidData = nullptr;
     numFrames = 0;
     numChannels = 0;
     bytesPerFrame = 0;
@@ -33,22 +24,22 @@ SequenceData::SequenceData() {
 }
 
 SequenceData::~SequenceData() {
-    if (data != NULL) {
+    if (data != nullptr) {
         free(data);
     }
-    if (invalidData != NULL) {
+    if (invalidData != nullptr) {
         free(invalidData);
     }
 }
 
 void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime) {
-    if (data != NULL) {
+    if (data != nullptr) {
         free(data);
-        data = NULL;
+        data = nullptr;
     }
-    if (invalidData != NULL) {
+    if (invalidData != nullptr) {
         free(invalidData);
-        invalidData = NULL;
+        invalidData = nullptr;
     }
     this->numChannels = numChannels;
     this->numFrames = numFrames;

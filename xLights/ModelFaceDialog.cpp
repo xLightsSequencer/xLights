@@ -28,6 +28,7 @@
 #include "../include/REST.xpm"
 #include "../include/U.xpm"
 #include "../include/WQ.xpm"
+#include "UtilFunctions.h"
 
 #define CHANNEL_COL 0
 #define COLOR_COL 1
@@ -337,7 +338,7 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
 		{
 			if (it->first.substr(0, 5) == "Mouth" || it->first.substr(0, 4) == "Eyes")
 			{
-				it->second = xLightsXmlFile::FixFile("", it->second);
+				it->second = FixFile("", it->second);
 			}
 		}
 

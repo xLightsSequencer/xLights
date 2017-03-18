@@ -1502,12 +1502,6 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
     wxMessageBox(XLIGHTS_LICENSE, hdg);
 }
 
-// return a random number between 0 and 1 inclusive
-double xLightsFrame::rand01()
-{
-    return static_cast<double>(rand())/ static_cast<double>(RAND_MAX);
-}
-
 void xLightsFrame::SetPlayMode(play_modes newmode)
 {
     switch (newmode)

@@ -801,7 +801,6 @@ private:
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
     void DoAltBackup(bool prompt = true);
     void SetPlayMode(play_modes newmode);
-    static double rand01();
     bool EnableOutputs();
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);
@@ -870,8 +869,6 @@ public:
     void WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      HLS *.hlsnc
     void WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LOR *.lcb
     void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int cpn);  //      LSP UserPatterns.xml
-    wxString base64_encode();
-    int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
     void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = NULL);
     void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg); // = NULL);
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq

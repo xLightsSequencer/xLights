@@ -11,6 +11,7 @@
 #include "../../include/life-32.xpm"
 #include "../../include/life-48.xpm"
 #include "../../include/life-64.xpm"
+#include "../UtilFunctions.h"
 
 LifeEffect::LifeEffect(int id) : RenderableEffect(id, "Life", life_16, life_24, life_32, life_48, life_48)
 {
@@ -97,7 +98,7 @@ void LifeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         {
             x=rand() % BufferWi;
             y=rand() % BufferHt;
-            buffer.GetMultiColorBlend(buffer.rand01(),false,color);
+            buffer.GetMultiColorBlend(rand01(),false,color);
             buffer.SetTempPixel(x,y,color);
         }
     }
@@ -136,7 +137,7 @@ void LifeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     }
                     else if (!isLive && cnt == 3)
                     {
-                        buffer.GetMultiColorBlend(buffer.rand01(),false,color);
+                        buffer.GetMultiColorBlend(rand01(),false,color);
                         buffer.SetPixel(x,y,color);
                     }
                     break;
@@ -148,7 +149,7 @@ void LifeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     }
                     else if (!isLive && (cnt == 3 || cnt == 5))
                     {
-                        buffer.GetMultiColorBlend(buffer.rand01(),false,color);
+                        buffer.GetMultiColorBlend(rand01(),false,color);
                         buffer.SetPixel(x,y,color);
                     }
                     break;
@@ -160,7 +161,7 @@ void LifeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     }
                     else if (!isLive && (cnt == 3 || cnt == 5 || cnt == 7))
                     {
-                        buffer.GetMultiColorBlend(buffer.rand01(),false,color);
+                        buffer.GetMultiColorBlend(rand01(),false,color);
                         buffer.SetPixel(x,y,color);
                     }
                     break;
@@ -172,7 +173,7 @@ void LifeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     }
                     else if (!isLive && (cnt == 3 || cnt == 7 || cnt == 8))
                     {
-                        buffer.GetMultiColorBlend(buffer.rand01(),false,color);
+                        buffer.GetMultiColorBlend(rand01(),false,color);
                         buffer.SetPixel(x,y,color);
                     }
                     break;
@@ -184,7 +185,7 @@ void LifeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     }
                     else if (!isLive && (cnt == 2 || cnt >= 5))
                     {
-                        buffer.GetMultiColorBlend(buffer.rand01(),false,color);
+                        buffer.GetMultiColorBlend(rand01(),false,color);
                         buffer.SetPixel(x,y,color);
                     }
                     break;

@@ -5,6 +5,7 @@
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
+#include "UtilFunctions.h"
 
 #ifndef FPP
 
@@ -108,19 +109,6 @@ FileConverter::FileConverter()
     //ctor
 }
 
-static double rand01()
-{
-    return (double)rand()/(double)RAND_MAX;
-}
-
-static unsigned int rountTo4(unsigned int i)  {
-    int remainder = i % 4;
-    if (remainder == 0) {
-        return i;
-    }
-    return i + 4 - remainder;
-}
-
 static wxString FromAscii(const char *val) {
     return wxString::FromAscii(val);
 }
@@ -163,71 +151,6 @@ static void ClearLastPeriod( SequenceData& seq_data)
     {
         seq_data[LastPer][ch] = 0;
     }
-}
-
-static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-static inline bool is_base64(unsigned char c)
-{
-    return (isalnum(c) || (c == '+') || (c == '/'));
-}
-
-//returns number of chars at the end that couldn't be decoded
-static int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data)
-{
-    size_t in_len = encoded_string.size();
-    int i = 0;
-    int j = 0;
-    int in_ = 0;
-    unsigned char char_array_4[4], char_array_3[3];
-
-    while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_]))
-    {
-        char_array_4[i++] = encoded_string[in_];
-        in_++;
-        if (i ==4)
-        {
-            for (i = 0; i <4; i++)
-            {
-                char_array_4[i] = base64_chars.find(char_array_4[i]);
-            }
-
-            char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-            char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-            char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-            for (i = 0; (i < 3); i++)
-            {
-                data.resize(data.size() + 1);
-                data[data.size() - 1] = char_array_3[i];
-            }
-            i = 0;
-        }
-    }
-
-    if (i && encoded_string[in_] == '=')
-    {
-        for (j = i; j <4; j++)
-        {
-            char_array_4[j] = 0;
-        }
-
-        for (j = 0; j <4; j++)
-        {
-            char_array_4[j] = base64_chars.find(char_array_4[j]);
-        }
-
-        char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-        char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-        char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-        for (j = 0; (j < i - 1); j++)
-        {
-            data.resize(data.size() + 1);
-            data[data.size() - 1] = char_array_3[j];
-        }
-    }
-    return i;
 }
 
 class LORInfo

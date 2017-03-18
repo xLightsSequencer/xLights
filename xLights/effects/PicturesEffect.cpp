@@ -23,6 +23,7 @@
 #include "../../include/pictures-32.xpm"
 #include "../../include/pictures-48.xpm"
 #include "../../include/pictures-64.xpm"
+#include "../UtilFunctions.h"
 
 #define wrdebug(...)
 
@@ -107,7 +108,7 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect)
     {
         if (!wxFile::Exists(file))
         {
-            settings["E_FILEPICKER_Pictures_Filename"] = xLightsXmlFile::FixFile("", file);
+            settings["E_FILEPICKER_Pictures_Filename"] = FixFile("", file);
         }
     }
 
@@ -777,7 +778,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         {
             for(int y=0; y<BufferHt; y++)
             {
-                if( buffer.rand01() > 0.5 )
+                if(rand01() > 0.5)
                 {
                     buffer.GetPixel(x,y, color);
                     if( color != xlBLACK ) {

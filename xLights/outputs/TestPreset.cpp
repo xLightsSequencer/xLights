@@ -3,6 +3,7 @@
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
 #include "Output.h"
+#include "../UtilFunctions.h"
 
 #pragma region Constructors and Destructors
 TestPreset::TestPreset(const std::string& name)
@@ -12,7 +13,7 @@ TestPreset::TestPreset(const std::string& name)
 
 TestPreset::TestPreset(wxXmlNode* node)
 {
-	_name = Output::UnXmlSafe(node->GetAttribute("name", "").ToStdString());
+	_name = UnXmlSafe(node->GetAttribute("name", "").ToStdString());
 	
 	for (wxXmlNode* e = node->GetChildren(); e != nullptr; e = e->GetNext())
 	{
@@ -32,7 +33,7 @@ TestPreset::TestPreset(wxXmlNode* node)
 wxXmlNode* TestPreset::Save()
 {
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "testpreset");
-    node->AddAttribute("name", Output::XmlSafe(_name));
+    node->AddAttribute("name", XmlSafe(_name));
 
     _channels.sort();
 

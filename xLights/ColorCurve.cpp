@@ -9,6 +9,7 @@
 #include <wx/colourdata.h>
 #include <wx/colordlg.h>
 #include <wx/graphics.h>
+#include "UtilFunctions.h"
 #if wxUSE_GRAPHICS_CONTEXT == 0
 #error Please refer to README.windows to make necessary changes to wxWidgets setup.h file.
 #error You will also need to rebuild wxWidgets once the change is made.
@@ -185,11 +186,6 @@ ccSortableColorPoint* ColorCurve::GetPointAt(float offset)
     return nullptr;
 }
 
-double CCrand01()
-{
-    return (double)rand() / (double)RAND_MAX;
-}
-
 xlColor ColorCurve::GetValueAt(float offset) const
 {
     if (_type == "Gradient")
@@ -301,15 +297,15 @@ xlColor ColorCurve::GetValueAt(float offset) const
         // handle black & white differently
         if (c1.Red() == c1.Green() && c1.Green() == c1.Blue() && c2.Red() == c2.Green() && c2.Green() == c2.Blue())
         {
-            double r = CCrand01();
+            double r = rand01();
             return xlColor(r * std::abs((float)c1.Red() - (float)c2.Red()) + std::min(c1.Red(), c2.Red()),
                            r * std::abs((float)c1.Green() - (float)c2.Green()) + std::min(c1.Green(), c2.Green()),
                            r * std::abs((float)c1.Blue() - (float)c2.Blue()) + std::min(c1.Blue(), c2.Blue()));
         }
 
-        return xlColor(CCrand01() * std::abs((float)c1.Red() - (float)c2.Red()) + std::min(c1.Red(), c2.Red()),
-                       CCrand01() * std::abs((float)c1.Green() - (float)c2.Green()) + std::min(c1.Green(), c2.Green()),
-                       CCrand01() * std::abs((float)c1.Blue() - (float)c2.Blue()) + std::min(c1.Blue(), c2.Blue()));
+        return xlColor(rand01() * std::abs((float)c1.Red() - (float)c2.Red()) + std::min(c1.Red(), c2.Red()),
+                       rand01() * std::abs((float)c1.Green() - (float)c2.Green()) + std::min(c1.Green(), c2.Green()),
+                       rand01() * std::abs((float)c1.Blue() - (float)c2.Blue()) + std::min(c1.Blue(), c2.Blue()));
     }
 
     return xlBLACK;

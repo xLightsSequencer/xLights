@@ -6,6 +6,7 @@
 //(*InternalHeaders(EffectTreeDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "UtilFunctions.h"
 //*)
 
 //(*IdInit(EffectTreeDialog)
@@ -668,48 +669,9 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
-wxString XmlSafe(wxString s)
-{
-    wxString res = "";
-    for (auto c = s.begin(); c != s.end(); c++)
-    {
-        if ((int)(*c) < 32)
-        {
-            //res += wxString::Format("&#x%x;", (int)(*c));
-            res += wxString::Format("&#%d;", (int)(*c));
-        }
-        else if (*c == '&')
-        {
-            res += "&amp;";
-        }
-        else if (*c == '<')
-        {
-            res += "&lt;";
-        }
-        else if (*c == '>')
-        {
-            res += "&gt;";
-        }
-        else if (*c == '\'')
-        {
-            res += "&apos;";
-        }
-        else if (*c == '\"')
-        {
-            res += "&quot;";
-        }
-        else
-        {
-            res += (*c);
-        }
-    }
-
-    return res;
-}
-
 void EffectTreeDialog::WriteEffect(wxFile& f, wxXmlNode* n)
 {
-    f.Write("<effect name=\"" + StripLayers(n->GetAttribute("name")) + "\" settings=\""+XmlSafe(n->GetAttribute("settings"))
+    f.Write("<effect name=\"" + StripLayers(n->GetAttribute("name")) + "\" settings=\""+XmlSafe(n->GetAttribute("settings").ToStdString())
             +"\" version=\""+n->GetAttribute("version")
             +"\" xLightsVersion=\""+n->GetAttribute("xLightsVersion", "4.0")
             +"\" />\n");

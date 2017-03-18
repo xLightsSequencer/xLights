@@ -10,6 +10,7 @@
 #include "BufferPanel.h"
 #include "LayoutPanel.h"
 #include "osxMacUtils.h"
+#include "UtilFunctions.h"
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 {
@@ -163,10 +164,10 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
     SetPreviewSize(previewWidth,previewHeight);
 
-    mBackgroundImage = xLightsXmlFile::FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage",""));
+    mBackgroundImage = FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage",""));
     ObtainAccessToURL(mBackgroundImage.ToStdString());
     if (mBackgroundImage != "" && (!wxFileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage))) {
-        wxString fn = xLightsXmlFile::FixFile(mediaDirectory, GetXmlSetting("backgroundImage",""));
+        wxString fn = FixFile(mediaDirectory, GetXmlSetting("backgroundImage",""));
         ObtainAccessToURL(fn.ToStdString());
         if (wxFileExists(fn) && wxIsReadable(mBackgroundImage)) {
             mBackgroundImage = fn;
