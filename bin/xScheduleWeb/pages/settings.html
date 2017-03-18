@@ -30,85 +30,93 @@
                         <option value='3'>ALL</option>
                     </select>
                     </div>
+
                     <div class="form-group">
                       <label>Navagation Control Buttons:</label><br />
                       <label class="text-danger">SMART buttons disabled on mobile due to screen resolution</label><br />
-                      <div class="row">
-                        <div class="col-xs-6 col-md-4">
-                            <input type="checkbox" class="form-check-input" id="smartBrightnessSetting"> Smart Brightness <br />
-                            <input type="checkbox" class="form-check-input" id="toggleRandomSetting"> Toggle Randomize Playlist <br />
-                            <input type="checkbox" class="form-check-input" id="outputToLightsSetting"> Toggle Output To Lights
-                        </div>
-                        <div class="col-xs-6 col-md-4">
-                            <input type="checkbox" class="form-check-input" id="repeatPlaylistSetting"> Toggle Repeat Playlist <br />
-                            <input type="checkbox" class="form-check-input" id="repeatStepsSetting"> Toggle Repeat Current Step
-                          </lable>
-                        </div>
-                        <div class="col-xs-6 col-md-4">
-                            <label>Volume: (Only One)</label><br />
-                            <input type="checkbox" class="form-check-input" id="smartVolumeSetting"> Smart Volume <br />
-                            <input type="checkbox" class="form-check-input" id="toggleMuteSetting"> Toggle Mute
-                        </div>
-                      </div>
+                      <table class="table table-striped table-hover  table-bordered">
+                        <thead>
+                          <tr>
+                            <th class="col-md-8">Button</th>
+                            <th class="col-md-5">Options</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <th class="col-md-8">Smart Brightness</th>
+                            <th class="col-md-5"><input type="checkbox" class="form-check-input" id="smartBrightnessSetting"></th>                          </tr>
+                          <tr>
+                            <th class="col-md-8">Toggle Randomize Playlist</th>
+                            <th class="col-md-5"><input type="checkbox" class="form-check-input" id="toggleRandomSetting"></th>
+                          </tr>
+                          <tr>
+                            <th class="col-md-8">Toggle Output To Lights</th>
+                            <th class="col-md-5"><input type="checkbox" class="form-check-input" id="outputToLightsSetting"></th>
+                          </tr>
+                          <tr>
+                            <th class="col-md-8">Toggle Repeat Playlist</th>
+                            <th class="col-md-5"><input type="checkbox" class="form-check-input" id="repeatPlaylistSetting"></th>
+                          </tr>
+                          <tr>
+                            <th class="col-md-8">Toggle Repeat Current Step</th>
+                            <th class="col-md-5"><input type="checkbox" class="form-check-input" id="repeatStepsSetting"></th>
+                          </tr>
+                          <tr>
+                            <th class="col-md-8">Smart Volume</th>
+                            <th class="col-md-5"><input type="checkbox" class="form-check-input" id="smartVolumeSetting"></th>
+                          </tr>
+                          <tr>
+                            <th class="col-md-8">Toggle Mute</th>
+                            <th class="col-md-5"><input type="checkbox" class="form-check-input" id="toggleMuteSetting"></th>
+                          </tr>
+                        </tbody>
+                      </table>
+
                     </div>
                   </ul>
                     <legend>Page Settings</legend>
-                    <ul>
-                        <fieldset class="form-group">
-                          <legend>Home</legend>
-                          <div class="form-check">
-                            <label class="form-check-label">
-                              <input type="checkbox" class="form-check-input" name="optionsRadios" id="homeNavSetting" value="option1">
-                              Nav SideBar
-                            </label>
-                          </div>
-                          <div class="form-check">
-                          <label class="form-check-label">
-                              <input type="checkbox" class="form-check-input" name="optionsRadios" id="homeStatusSetting" value="option2">
-                              Player Status SideBar
-                            </label>
-                          </div>
-                        </fieldset>
+                      <ul>
+                      <div class="form-group">
 
-                        <fieldset class="form-group">
-                          <legend>Playlist</legend>
-                          <div class="form-check">
-                            <label class="form-check-label">
-                              <input type="checkbox" class="form-check-input" name="optionsRadios" id="playlistNavSetting" value="option1">
-                              Nav Side Bar
-                            </label>
-                          </div>
-                          <div class="form-check">
-                          <label class="form-check-label">
-                              <input type="checkbox" class="form-check-input" name="optionsRadios" id="playlistStatusSetting" value="option2">
-                              Player Status Side Bar
-                            </label>
-                          </div>
-                        </fieldset>
-
-                        <fieldset class="form-group">
-                          <legend>Settings</legend>
-                          <div class="form-check">
-                            <label class="form-check-label">
-                              <input type="checkbox" class="form-check-input" name="optionsRadios" id="settingsNavSetting" value="option1">
-                              Nav Side Bar
-                            </label>
-                          </div>
-                          <div class="form-check">
-                          <label class="form-check-label">
-                              <input type="checkbox" class="form-check-input" name="optionsRadios" id="settingsStatusSetting" value="option2">
-                              Player Status Side Bar
-                            </label>
-                          </div>
-                        </fieldset>
-
-                    <button onClick="updateSettings()" class="btn btn-primary">Submit</button>
-                    <button onClick="loadUISettings(true); " class="btn btn-warning">Reset to default</button>
+                          <label>Page Sidebar Settings:</label><br />
+                          <table class="table table-striped table-hover  table-bordered">
+                          <thead>
+                            <tr>
+                              <th class="col-md-8">Page</th>
+                              <th class="col-md-5">Navigation Sidebar</th>
+                              <th class="col-md-5">Player Status Sidebar</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <th class="col-md-8">Homepage</th>
+                              <th class="col-md-5"><input type="checkbox" class="form-check-input" name="optionsRadios" id="homeNavSetting" value="option1"> Enable Navigation</th>
+                              <th class="col-md-5"><input type="checkbox" class="form-check-input" name="optionsRadios" id="homeStatusSetting" value="option2"> Enable Player Status</th>
+                            </tr>
+                            <tr>
+                              <th class="col-md-8">Playlists</th>
+                              <th class="col-md-5"><input type="checkbox" class="form-check-input" name="optionsRadios" id="playlistsNavSetting" value="option1"> Enable Navigation</th>
+                              <th class="col-md-5"><input type="checkbox" class="form-check-input" name="optionsRadios" id="playlistsSetting" value="option2"> Enable Player Status</th>
+                            </tr>
+                            <tr>
+                              <th class="col-md-8">Settings</th>
+                              <th class="col-md-5"><input type="checkbox" class="form-check-input" name="optionsRadios" id="settingsNavSetting" value="option1"> Enable Navigation</th>
+                              <th class="col-md-5"><input type="checkbox" class="form-check-input" name="optionsRadios" id="settingsStatusSetting" value="option2"> Enable Player Status</th>
+                            </tr>
+                          </tbody>
+                          </table>
+                        <div class="pull-right">
+                          <button onClick="updateSettings()" class="btn btn-primary">Submit</button>
+                          <button onClick="loadUISettings(true); " class="btn btn-warning">Reset to default</button>
+                        </div>
                 </div>
+              </ul>
               </div>
+            </div>
           </div>
         </div>
       </div>
+    </div>
     </section>
 
     <!-- Help -->
