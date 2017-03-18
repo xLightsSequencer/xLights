@@ -15,10 +15,10 @@ function updateCurrentPage() {
   if (getQueryVariable("args") == false) {
     var currentPageArgs = "";
   }
-  if (getQueryVariable("page") != false) {
+  if (getQueryVariable("page") == true) {
     currentPage = getQueryVariable("page");
     updatePage('page', currentPage, currentPageArgs);
-  } else if (getQueryVariable("plugin") != false) {
+  } else if (getQueryVariable("plugin") == true) {
     currentPage = getQueryVariable("plugin");
     updatePage('plugin', currentPage, currentPageArgs);
   } else {
@@ -34,6 +34,7 @@ function updatePage(type, pageName, args) {
   $('#playlists').attr('class', "dropdown");
   $('#plugins').attr('class', "dropdown");
   $('#settings').attr('class', "");
+  currentPage = pageName;
 
   if (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)) {
     $('#navbar').collapse('hide');

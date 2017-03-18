@@ -29,8 +29,8 @@ function loadSettings() {
     $("#homeNavSetting").prop("checked", getPage(uiSettings, "home").values[0]);
     $("#homeStatusSetting").prop("checked", getPage(uiSettings, "home").values[1]);
     //playlists
-    $("#playlistNavSetting").prop("checked", getPage(uiSettings, "playlists").values[0]);
-    $("#playlistStatusSetting").prop("checked", getPage(uiSettings, "playlists").values[1]);
+    $("#playlistsNavSetting").prop("checked", getPage(uiSettings, "playlists").values[0]);
+    $("#playlistsStatusSetting").prop("checked", getPage(uiSettings, "playlists").values[1]);
     //settings
     $("#settingsNavSetting").prop("checked", getPage(uiSettings, "settings").values[0]);
     $("#settingsStatusSetting").prop("checked", getPage(uiSettings, "settings").values[1]);
@@ -67,8 +67,8 @@ function updateSettings() {
     }, {
       "page": "playlists",
       "values": [
-        $("#playlistNavSetting").prop("checked"),
-        $("#playlistStatusSetting").prop("checked")
+        $("#playlistsNavSetting").prop("checked"),
+        $("#playlistsStatusSetting").prop("checked")
       ]
     }, {
       "page": "settings",
