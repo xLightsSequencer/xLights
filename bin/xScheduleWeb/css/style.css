@@ -151,74 +151,14 @@ height: 95vh;
  *
  * Color swatches and associated values for our grayscale and brand colors.
  */
+ .bigButtons{
+   position: relative;
+   width: 23%;
+   /*min-width: 165px;*/
+   height: 0;
+   padding-bottom: 20%;
+ }
 
-.color-swatches {
-  margin: 0 -5px;
-  overflow: hidden; /* clearfix */
-  display: flex;
-  overflow-y: auto;
-}
-.color-swatch {
-  min-width: 48%;
-  height: 150px;
-  margin: 5px 5px;
-  border-radius: 3px;
-  flex: 2;
-
-}
-
-@media (min-width: 768px) {
-  .color-swatch {
-    min-width: 24.2%;
-    width: 300px;
-    height: 300px;
-  }
-}
-/* Framework colors */
-.color-swatches .gray-darker {
- background-color: #222;
-}
-.color-swatches .gray-dark {
- background-color: #333;
-}
-.color-swatches .gray {
- background-color: #555;
-}
-.color-swatches .gray-light {
- background-color: #999;
-}
-.color-swatches .gray-lighter {
- background-color: #eee;
-}
-.color-swatches .brand-primary {
- background-color: #337ab7;
-}
-.color-swatches .brand-success {
- background-color: #5cb85c;
-}
-.color-swatches .brand-warning {
- background-color: #f0ad4e;
-}
-.color-swatches .brand-danger {
- background-color: #d9534f;
-}
-.color-swatches .brand-info {
- background-color: #5bc0de;
-}
-
-/* Docs colors */
-.color-swatches .bs-purple {
- background-color: #563d7c;
-}
-.color-swatches .bs-purple-light {
- background-color: #c7bfd3;
-}
-.color-swatches .bs-purple-lighter {
- background-color: #e5e1ea;
-}
-.color-swatches .bs-gray {
- background-color: #f9f9f9;
-}
 
 
 /* Header */
