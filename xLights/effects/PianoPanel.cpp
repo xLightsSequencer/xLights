@@ -143,9 +143,10 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_Piano_XOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
 	//*)
 
-    wxWindowBase::SetName("ID_PANEL_PIANO");
+    SetName("ID_PANEL_PIANO");
 
-    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&PianoPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&PianoPanel::OnVCChanged, nullptr, this);
+    
     // Set value curve limits
     BitmapButton_Piano_ScaleVC->GetValue()->SetLimits(0, 100);
 

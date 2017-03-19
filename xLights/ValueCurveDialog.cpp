@@ -36,7 +36,7 @@ ValueCurvePanel::ValueCurvePanel(wxWindow* parent, wxWindowID id, const wxPoint 
     Connect(wxEVT_MOTION, (wxObjectEventFunction)&ValueCurvePanel::mouseMoved, 0, this);
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&ValueCurvePanel::Paint, 0, this);
     Connect(wxEVT_MOUSE_CAPTURE_LOST, (wxObjectEventFunction)&ValueCurvePanel::mouseCaptureLost, 0, this);
-    wxWindowBase::SetBackgroundStyle(wxBG_STYLE_PAINT);
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
     _grabbedPoint = -1;
 }
 
@@ -211,8 +211,8 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     _vcp->SetValue(_vc);
     _vcp->SetType(_vc->GetType());
     FlexGridSizer4->Add(_vcp, 1, wxALL | wxEXPAND, 2);
-    wxWindowBase::Layout();
-    wxWindowBase::Fit();
+    Layout();
+    Fit();
 
     _backup = *_vc;
 
@@ -1116,8 +1116,8 @@ void ValueCurveDialog::PopulatePresets()
     }
 
     PresetSizer->Layout();
-    wxWindow::Layout();
-    //wxWindow::Fit();
+    Layout();
+    //Fit();
 }
 
 void ValueCurveDialog::LoadXVC(ValueCurve* vc, const wxString& filename)

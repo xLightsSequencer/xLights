@@ -158,7 +158,8 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_Fireworks_Sensitivity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_FIRETIMING,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
 	//*)
-    wxWindowBase::SetName("ID_PANEL_FIREWORKS");
+    
+    SetName("ID_PANEL_FIREWORKS");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FireworksPanel::OnVCChanged, 0, this);
     ValidateWindow();

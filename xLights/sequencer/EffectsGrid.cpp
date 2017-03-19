@@ -86,7 +86,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mTimeline = nullptr;
     magSinceLast = 0.0f;
 
-    wxWindowBase::SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+    SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
     mEffectColor = new xlColor(192,192,192);
     mGridlineColor = new xlColor(40,40,40);
@@ -101,7 +101,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mWordColor = new xlColor(255, 218, 145);
     mPhonemeColor = new xlColor(255, 181, 218);
 
-    wxWindow::SetDropTarget(new EffectDropTarget(this));
+    SetDropTarget(new EffectDropTarget(this));
     playArgs = new EventPlayEffectArgs();
     mSequenceElements = nullptr;
     xlights = nullptr;

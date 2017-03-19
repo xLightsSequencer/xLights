@@ -190,7 +190,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
     LoadButtons();
 
     SetSize(800, 700);
-    wxWindowBase::Layout();
+    Layout();
 
     int namew = 150;
     int hotkeyw = 70;

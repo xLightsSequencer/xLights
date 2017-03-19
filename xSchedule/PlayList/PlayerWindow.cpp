@@ -18,7 +18,7 @@ PlayerWindow::PlayerWindow(wxWindow* parent, bool topMost, wxImageResizeQuality 
 #endif
     _dragging = false;
 
-    wxWindow *wind = wxWindow::FindFocus();
+    wxWindow *wind = FindFocus();
 
     if (topMost)
     {

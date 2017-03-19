@@ -76,7 +76,7 @@ public:
     TimeDisplayControl(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                        const wxSize &size=wxDefaultSize, long style=0)
     : xlGLCanvas(parent, id, pos, size, style, "TimeDisplay", true) {
-        wxWindowBase::SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
         time = "Time: 00:00:00";
         selected = "";
         fps = "";
@@ -230,7 +230,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     keyBindings.LoadDefaults();
     mCanUndo = false;
     mPasteByCell = false;
-    wxWindowBase::SetName("MainSequencer");
+    SetName("MainSequencer");
     touchBarSupport.Init(this);
 }
 

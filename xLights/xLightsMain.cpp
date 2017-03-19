@@ -1086,7 +1086,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     SetIcons(icons);
     logger_base.debug("IconBundle creation done.");
 
-    wxWindowBase::SetName("xLights");
+    SetName("xLights");
     wxPersistenceManager::Get().RegisterAndRestore(this);
     logger_base.debug("Window Location Restored.");
 

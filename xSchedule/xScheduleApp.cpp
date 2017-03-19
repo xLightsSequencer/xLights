@@ -500,7 +500,7 @@ bool xScheduleApp::OnInit()
         _checker = nullptr;
 
         // WOuld be nice to switch focuse here to the existing instance ... but that doesnt work ... this only sees windows in this process
-        //wxWindow* x = wxWindow::FindWindowByLabel(_("xLights Scheduler"));
+        //wxWindow* x = FindWindowByLabel(_("xLights Scheduler"));
 
         wxMessageBox("Another instance of xSchedule is already running. A second instance not allowed. Exiting.");
 

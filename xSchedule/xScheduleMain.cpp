@@ -698,7 +698,7 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu(wxTreeEvent& event)
     {
         if (IsPlayList(treeitem))
         {
-            wxMenuItem* editadv = mnu.Append(ID_MNU_EDITADV, "Edit Advanced");
+            editadv = mnu.Append(ID_MNU_EDITADV, "Edit Advanced");
         }
     }
 

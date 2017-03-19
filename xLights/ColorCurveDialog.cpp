@@ -37,11 +37,11 @@ ColorCurvePanel::ColorCurvePanel(ColorCurve* cc, wxWindow* parent, wxWindowID id
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&ColorCurvePanel::Paint, 0, this);
     Connect(wxEVT_MOUSE_CAPTURE_LOST, (wxObjectEventFunction)&ColorCurvePanel::mouseCaptureLost, 0, this);
     Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&ColorCurvePanel::mouseLeftDClick, 0, this);
-    wxWindowBase::SetBackgroundStyle(wxBG_STYLE_PAINT);
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
     _grabbedPoint = -1;
     _startPoint = -1;
 
-    wxWindow::Refresh();
+    Refresh();
 }
 
 void ColorCurvePanel::Select(float x)
@@ -147,8 +147,8 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     _ccp->SetType(_cc->GetType());
     FlexGridSizer6->Add(_ccp, 1, wxALL | wxEXPAND, 2);
     wxTopLevelWindowBase::SetMinSize(wxSize(600, 400));
-    wxWindow::Layout();
-    wxWindow::Fit();
+    Layout();
+    Fit();
 
     _backup = *_cc;
 
@@ -249,7 +249,7 @@ void ColorCurveDialog::PopulatePresets()
     }
 
     PresetSizer->Layout();
-    wxWindow::Layout();
+    Layout();
 }
 
 ColorCurveDialog::~ColorCurveDialog()

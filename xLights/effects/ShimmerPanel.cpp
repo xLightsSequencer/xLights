@@ -112,9 +112,9 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_ShimmerUseAllColors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShimmerPanel::OnLockButtonClick);
 	//*)
 
-    wxWindowBase::SetName("ID_PANEL_SHIMMER");
+    SetName("ID_PANEL_SHIMMER");
 
-    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShimmerPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShimmerPanel::OnVCChanged, nullptr, this);
 
     BitmapButton_Shimmer_CyclesVC->GetValue()->SetLimits(0, 6000);
     BitmapButton_Shimmer_CyclesVC->GetValue()->SetDivisor(10);

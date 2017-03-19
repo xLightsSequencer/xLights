@@ -335,7 +335,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 
     if (_filename != "")
     {
-        wxWindow::SetLabel(wxWindow::GetLabel() + " - " + _filename.GetFullName());
+        SetLabel(GetLabel() + " - " + _filename.GetFullName());
     }
 
     _dirty = false;
