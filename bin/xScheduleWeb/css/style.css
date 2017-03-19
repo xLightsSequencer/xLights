@@ -153,11 +153,17 @@ height: 95vh;
  */
  .bigButtons{
    position: relative;
+   vertical-align: text-center;
    width: 23%;
    /*min-width: 165px;*/
    height: 0;
    padding-bottom: 20%;
+   margin-right: 3px;
+   margin-bottom: 3px;
  }
+ @media bigButtons and (max-width: 500px) {
+   min-width: 48%;
+}
 
 
 
