@@ -12,6 +12,8 @@
 		1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24FB1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp */; };
 		1E3E25061E3716CF001D48E3 /* PlayListItemTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E25021E3716CF001D48E3 /* PlayListItemTest.cpp */; };
 		1E3E25071E3716CF001D48E3 /* PlayListItemTestPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E25041E3716CF001D48E3 /* PlayListItemTestPanel.cpp */; };
+		3D585F2A1E7E50A200A3F84F /* jsonreader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F281E7E50A200A3F84F /* jsonreader.cpp */; };
+		3D585F2B1E7E50A200A3F84F /* jsonval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F291E7E50A200A3F84F /* jsonval.cpp */; };
 		6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */; };
 		6701999F1CE5A03200AE9B7E /* RenderProgressDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */; };
 		6703513C1DB1108500CCABD7 /* FPPConnectDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6703513A1DB1108500CCABD7 /* FPPConnectDialog.cpp */; };
@@ -553,6 +555,8 @@
 		1E3E25031E3716CF001D48E3 /* PlayListItemTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemTest.h; path = PlayList/PlayListItemTest.h; sourceTree = "<group>"; };
 		1E3E25041E3716CF001D48E3 /* PlayListItemTestPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemTestPanel.cpp; path = PlayList/PlayListItemTestPanel.cpp; sourceTree = "<group>"; };
 		1E3E25051E3716CF001D48E3 /* PlayListItemTestPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemTestPanel.h; path = PlayList/PlayListItemTestPanel.h; sourceTree = "<group>"; };
+		3D585F281E7E50A200A3F84F /* jsonreader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jsonreader.cpp; path = xSchedule/wxJSON/jsonreader.cpp; sourceTree = "<group>"; };
+		3D585F291E7E50A200A3F84F /* jsonval.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jsonval.cpp; path = xSchedule/wxJSON/jsonval.cpp; sourceTree = "<group>"; };
 		6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PixelAppearanceDlg.cpp; sourceTree = "<group>"; };
 		6700FD951AD8075400084A71 /* PixelAppearanceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelAppearanceDlg.h; sourceTree = "<group>"; };
 		6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderProgressDialog.cpp; sourceTree = "<group>"; };
@@ -1858,6 +1862,8 @@
 		67E7086417B51AB400A22034 = {
 			isa = PBXGroup;
 			children = (
+				3D585F281E7E50A200A3F84F /* jsonreader.cpp */,
+				3D585F291E7E50A200A3F84F /* jsonval.cpp */,
 				6733CF041E60659E00B97F60 /* xschedule.mac.properties */,
 				67D2B04B1D54CCA4006D324F /* colorcurves */,
 				67AA379D1C7E3703001D2377 /* SDL2.framework */,
@@ -2859,6 +2865,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D585F2A1E7E50A200A3F84F /* jsonreader.cpp in Sources */,
+				3D585F2B1E7E50A200A3F84F /* jsonval.cpp in Sources */,
 				67BCD1571E6DB06800F99935 /* GIFImage.cpp in Sources */,
 				67BCD1561E6DB03E00F99935 /* xLightsVersion.cpp in Sources */,
 				6723D3911E3946ED00355C72 /* xlMacUtils.mm in Sources */,
