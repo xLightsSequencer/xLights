@@ -69,7 +69,7 @@ function loadUISettings(resetToDefault) {
         if (response.result == 'failed' && response.message == '' || resetToDefault == true) {
           var defaultSettings = {
             "webName": "xLights Scheduler",
-            "webColor": "#e74c3c",
+            "webColor": "#004800",
             "notificationLevel": "1",
             "pages": [{
               "page": "home",
