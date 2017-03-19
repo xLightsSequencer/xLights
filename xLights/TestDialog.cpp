@@ -615,17 +615,17 @@ TestDialog::TestDialog(wxWindow* parent, OutputManager* outputManager, wxFileNam
 	CascadeModelDoesNotExist();
 	DeactivateNotClickableModels();
 
-	if (TreeListCtrl_Channels->GetFirstChild(_controllers) == NULL)
+	if (TreeListCtrl_Channels->GetFirstChild(_controllers) == nullptr)
 	{
 		TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(_controllers);
 		tc->DoesNotExist();
 	}
-	if (TreeListCtrl_Channels->GetFirstChild(_models) == NULL)
+	if (TreeListCtrl_Channels->GetFirstChild(_models) == nullptr)
 	{
 		TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(_models);
 		tc->DoesNotExist();
 	}
-	if (TreeListCtrl_Channels->GetFirstChild(_modelGroups) == NULL)
+	if (TreeListCtrl_Channels->GetFirstChild(_modelGroups) == nullptr)
 	{
 		TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(_modelGroups);
 		tc->DoesNotExist();
@@ -2222,7 +2222,6 @@ void TestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 	else
 	{
         Timer1.Stop();
-        _outputManager->AllOff();
         wxTimerEvent ev;
         OnTimer1Trigger(ev);
         _outputManager->StopOutput();

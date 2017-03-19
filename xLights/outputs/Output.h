@@ -15,6 +15,7 @@ class OutputManager;
 // These are used to identify each output type
 #define OUTPUT_E131 "E131"
 #define OUTPUT_ARTNET "ArtNet"
+#define OUTPUT_DDP "DDP"
 #define OUTPUT_DMX "DMX"
 #define OUTPUT_NULL "NULL"
 #define OUTPUT_PIXELNET "Pixelnet"

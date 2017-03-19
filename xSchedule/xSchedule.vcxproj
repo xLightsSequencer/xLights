@@ -166,6 +166,8 @@
     <ClCompile Include="..\xLights\outputs\ArtNetDialog.cpp" />
     <ClCompile Include="..\xLights\outputs\ArtNetOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\Controller.cpp" />
+    <ClCompile Include="..\xLights\outputs\DDPDialog.cpp" />
+    <ClCompile Include="..\xLights\outputs\DDPOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\DMXOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\E131Dialog.cpp" />
     <ClCompile Include="..\xLights\outputs\E131Output.cpp" />
@@ -292,6 +294,8 @@
     <ClInclude Include="..\xLights\effects\GIFImage.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
     <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\DDPDialog.h" />
+    <ClInclude Include="..\xLights\outputs\DDPOutput.h" />
     <ClInclude Include="..\xLights\outputs\DLightOutput.h" />
     <ClInclude Include="..\xLights\outputs\DMXOutput.h" />
     <ClInclude Include="..\xLights\outputs\E131Output.h" />

@@ -187,6 +187,8 @@
     <ClCompile Include="DrawGLUtils.cpp" />
     <ClCompile Include="DrawGLUtils21.cpp" />
     <ClCompile Include="DrawGLUtils31.cpp" />
+    <ClCompile Include="outputs\DDPDialog.cpp" />
+    <ClCompile Include="outputs\DDPOutput.cpp" />
     <ClCompile Include="outputs\E131Dialog.cpp" />
     <ClCompile Include="EffectAssist.cpp" />
     <ClCompile Include="EffectIconPanel.cpp" />
@@ -476,6 +478,8 @@
     <ClInclude Include="DimmingCurvePanel.h" />
     <ClInclude Include="DisplayElementsPanel.h" />
     <ClInclude Include="DrawGLUtils.h" />
+    <ClInclude Include="outputs\DDPDialog.h" />
+    <ClInclude Include="outputs\DDPOutput.h" />
     <ClInclude Include="outputs\E131Dialog.h" />
     <ClInclude Include="EffectAssist.h" />
     <ClInclude Include="EffectIconPanel.h" />

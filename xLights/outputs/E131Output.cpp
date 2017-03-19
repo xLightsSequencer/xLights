@@ -16,7 +16,6 @@ E131Output::E131Output(wxXmlNode* node) : IPOutput(node)
     memset(_data, 0, sizeof(_data));
 }
 
-
 E131Output::E131Output() : IPOutput()
 {
     _channels = 510;
@@ -75,7 +74,6 @@ void E131Output::SendSync(int syncUniverse)
 
     if (!initialised)
     {
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("Initialising e131 Sync.");
 
         initialised = true;

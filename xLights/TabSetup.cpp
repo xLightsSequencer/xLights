@@ -26,6 +26,7 @@
 #include "outputs/NullOutput.h"
 #include "outputs/E131Output.h"
 #include "outputs/ArtNetOutput.h"
+#include "outputs/DDPOutput.h"
 #include "outputs/DMXOutput.h"
 
 // Process Setup Panel Events
@@ -36,6 +37,7 @@ const long xLightsFrame::ID_NETWORK_ADDUSB = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDE131 = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDARTNET = wxNewId();
+const long xLightsFrame::ID_NETWORK_ADDDDP = wxNewId();
 const long xLightsFrame::ID_NETWORK_BEIPADDR = wxNewId();
 const long xLightsFrame::ID_NETWORK_BECHANNELS = wxNewId();
 const long xLightsFrame::ID_NETWORK_BEDESCRIPTION = wxNewId();
@@ -868,6 +870,11 @@ void xLightsFrame::OnButtonArtNETClick(wxCommandEvent& event)
     SetupArtNet(nullptr);
 }
 
+void xLightsFrame::OnButton_DDPClick(wxCommandEvent& event)
+{
+    SetupDDP(nullptr);
+}
+
 void xLightsFrame::OnButtonAddNullClick(wxCommandEvent& event)
 {
     SetupNullOutput(nullptr);
@@ -929,6 +936,26 @@ void xLightsFrame::SetupArtNet(Output* e, int after)
         if (e != artnet)
         {
             _outputManager.DeleteOutput(artnet);
+        }
+    }
+}
+
+void xLightsFrame::SetupDDP(Output* e, int after)
+{
+    Output* ddp = e;
+    if (ddp == nullptr) ddp = new DDPOutput();
+    _outputManager.AddOutput(ddp, after);
+
+    if (ddp->Configure(this, &_outputManager) != nullptr)
+    {
+        NetworkChange();
+        UpdateNetworkList(true);
+    }
+    else
+    {
+        if (e != ddp)
+        {
+            _outputManager.DeleteOutput(ddp);
         }
     }
 }
@@ -1093,6 +1120,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     mnuAdd->Append(ID_NETWORK_ADDNULL, "NULL")->Enable(selcnt == 1);
     mnuAdd->Append(ID_NETWORK_ADDE131, "E1.31")->Enable(selcnt == 1);
     mnuAdd->Append(ID_NETWORK_ADDARTNET, "ArtNET")->Enable(selcnt == 1);
+    mnuAdd->Append(ID_NETWORK_ADDDDP, "DDP")->Enable(selcnt == 1);
     mnuAdd->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
     wxMenu* mnuUploadController = new wxMenu();

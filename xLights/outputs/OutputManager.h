@@ -91,6 +91,7 @@ public:
     void SetForceFromIP(const std::string& forceFromIP);
     bool UseE131() const;
     bool UseArtnet() const;
+    bool UseDDP() const;
     #pragma endregion Packet Sync
 
     #pragma region Data Setting

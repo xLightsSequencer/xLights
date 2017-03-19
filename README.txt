@@ -35,6 +35,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Add model size matching to layout panel model right click menu
    -- bug (keith)   Add missing text controls to fireworks and strobe effect settings.
    -- enh (keith)   Add new implementation of shimmer effect algorithm which is more controllable and predicatable. The old algorithm is also available.
+   -- enh (keith)   Add support for the DDP protocol http://www.3waylabs.com/ddp/ - a very light weigtht ethernet protocol
    -- enh (billy)   Enhance scheduler web interface. More functionality. More responsive.
 2017.6  Feb 27, 2017
    -- bug (dkulp)   Fix xScheduler logging on OSX

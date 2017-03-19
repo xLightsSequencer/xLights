@@ -468,6 +468,7 @@ private:
     void OnMenuItem_xScheduleSelected(wxCommandEvent& event);
     void OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event);
     void OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event);
+    void OnButton_DDPClick(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -524,6 +525,7 @@ private:
     static const long ID_BUTTON_ADD_E131;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
+    static const long ID_BUTTON_DDP;
     static const long ID_BUTTON_NETWORK_CHANGE;
     static const long ID_BUTTON_NETWORK_DELETE;
     static const long ID_BUTTON_NETWORK_DELETE_ALL;
@@ -662,6 +664,7 @@ private:
     wxMenuItem* MenuItem33;
     wxMenuItem* MenuItemLoadEditPerspective;
     wxMenuItem* MenuItemGridNodeValuesOff;
+    wxButton* Button_DDP;
     wxMenuItem* MenuItem40;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
     wxMenu* ToolIconSizeMenu;
@@ -821,6 +824,7 @@ private:
     void SetupDongle(Output* e, int after = -1);
     void SetupE131(Output* e, int after = -1);
     void SetupArtNet(Output* e, int after = -1);
+    void SetupDDP(Output* e, int after = -1);
     void SetupNullOutput(Output* e, int after = -1);
     bool SaveNetworksFile();
     void NetworkChange();
@@ -1170,6 +1174,7 @@ private:
     static const long ID_NETWORK_ADDNULL;
     static const long ID_NETWORK_ADDE131;
     static const long ID_NETWORK_ADDARTNET;
+    static const long ID_NETWORK_ADDDDP;
     static const long ID_NETWORK_BEIPADDR;
     static const long ID_NETWORK_BECHANNELS;
     static const long ID_NETWORK_BEDESCRIPTION;

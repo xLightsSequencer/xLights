@@ -129,6 +129,8 @@
     <ClCompile Include="wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\SequenceData.cpp" />
+    <ClCompile Include="..\xLights\outputs\DDPOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\DDPDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -239,6 +241,8 @@
     <ClInclude Include="wxJSON\jsonreader.h" />
     <ClInclude Include="wxJSON\jsonval.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
+    <ClInclude Include="..\xLights\outputs\DDPOutput.h" />
+    <ClInclude Include="..\xLights\outputs\DDPDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

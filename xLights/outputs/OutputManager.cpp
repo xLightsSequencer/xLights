@@ -7,6 +7,7 @@
 
 #include "E131Output.h"
 #include "ArtNetOutput.h"
+#include "DDPOutput.h"
 #include "TestPreset.h"
 #include <wx/msgdlg.h>
 
@@ -108,11 +109,21 @@ bool OutputManager::Discover()
 {
     bool found = false;
     auto artnet = ArtNetOutput::Discover();
+    auto ddp = DDPOutput::Discover();
     auto e131 = E131Output::Discover();
 
     auto outputs = GetAllOutputs("");
 
     for (auto it =  artnet.begin(); it != artnet.end(); ++it)
+    {
+        if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
+        {
+            _outputs.push_back(*it);
+            found = true;
+        }
+    }
+
+    for (auto it = ddp.begin(); it != ddp.end(); ++it)
     {
         if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
         {
@@ -633,6 +644,11 @@ void OutputManager::EndFrame()
         {
             ArtNetOutput::SendSync();
         }
+
+        if (UseDDP())
+        {
+            DDPOutput::SendSync();
+        }
     }
     _outputCriticalSection.Leave();
 }
@@ -749,6 +765,19 @@ bool OutputManager::UseArtnet() const
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
         if ((*it)->GetType() == OUTPUT_ARTNET)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool OutputManager::UseDDP() const
+{
+    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    {
+        if ((*it)->GetType() == OUTPUT_DDP)
         {
             return true;
         }

@@ -918,6 +918,12 @@
     <ClCompile Include="UtilFunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="outputs\DDPDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\DDPOutput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1770,6 +1776,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UtilFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\DDPDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\DDPOutput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

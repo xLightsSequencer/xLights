@@ -937,6 +937,10 @@
 		<Unit filename="outputs/ArtNetOutput.h" />
 		<Unit filename="outputs/Controller.cpp" />
 		<Unit filename="outputs/Controller.h" />
+		<Unit filename="outputs/DDPDialog.cpp" />
+		<Unit filename="outputs/DDPDialog.h" />
+		<Unit filename="outputs/DDPOutput.cpp" />
+		<Unit filename="outputs/DDPOutput.h" />
 		<Unit filename="outputs/DLightOutput.h" />
 		<Unit filename="outputs/DMXOutput.cpp" />
 		<Unit filename="outputs/DMXOutput.h" />
@@ -1067,6 +1071,7 @@
 		<Unit filename="wxsmith/CurrentPreviewModels.wxs" />
 		<Unit filename="wxsmith/CurtainPanel.wxs" />
 		<Unit filename="wxsmith/CustomModelDialog.wxs" />
+		<Unit filename="wxsmith/DDPDialog.wxs" />
 		<Unit filename="wxsmith/DMXPanel.wxs" />
 		<Unit filename="wxsmith/DisplayElementsPanel.wxs" />
 		<Unit filename="wxsmith/EffectAssist.wxs" />
@@ -1289,6 +1294,7 @@
 					<wxDialog wxs="wxsmith/SevenSegmentDialog.wxs" src="SevenSegmentDialog.cpp" hdr="SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/WiringDialog.wxs" src="WiringDialog.cpp" hdr="WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ArtNetDialog.wxs" src="outputs/ArtNetDialog.cpp" hdr="outputs/ArtNetDialog.h" fwddecl="0" i18n="1" name="ArtNetDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/DDPDialog.wxs" src="outputs/DDPDialog.cpp" hdr="outputs/DDPDialog.h" fwddecl="0" i18n="1" name="DDPDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="FPPConnectDialog.cpp" hdr="FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ControllerConnectionDialog.wxs" src="ControllerConnectionDialog.cpp" hdr="ControllerConnectionDialog.h" fwddecl="0" i18n="1" name="ControllerConnectionDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BufferSizeDialog.wxs" src="BufferSizeDialog.cpp" hdr="BufferSizeDialog.h" fwddecl="0" i18n="1" name="BufferSizeDialog" language="CPP" />
