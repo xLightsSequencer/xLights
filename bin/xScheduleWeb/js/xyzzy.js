@@ -115,8 +115,8 @@ function updateXyzzy(response) {
     //update high score
     xyzzyHighScore = JSON.parse('{"highscoreplayer":"' + response.highscoreplayer + '","highscore":' + response.highscore + '}');
   }
-  //stop if game closed
-  if ($('body').attr('class') != "modal-open") {
+  // stop if game closed
+  if ($('body').hasClass("modal-open")) {
     xyzzyCommand('close');
     xyzzyStatus = "0";
     clearInterval(timer);
