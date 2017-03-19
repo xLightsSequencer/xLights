@@ -16,6 +16,7 @@
 		3D585F2B1E7E50A200A3F84F /* jsonval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F291E7E50A200A3F84F /* jsonval.cpp */; };
 		3D585F2D1E7E524400A3F84F /* UtilFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */; };
 		3D585F2F1E7E52F800A3F84F /* SequenceData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F2E1E7E52F700A3F84F /* SequenceData.cpp */; };
+		3D585F311E7E541400A3F84F /* UtilFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F301E7E541400A3F84F /* UtilFunctions.cpp */; };
 		6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */; };
 		6701999F1CE5A03200AE9B7E /* RenderProgressDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */; };
 		6703513C1DB1108500CCABD7 /* FPPConnectDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6703513A1DB1108500CCABD7 /* FPPConnectDialog.cpp */; };
@@ -561,6 +562,7 @@
 		3D585F291E7E50A200A3F84F /* jsonval.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jsonval.cpp; path = xSchedule/wxJSON/jsonval.cpp; sourceTree = "<group>"; };
 		3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = UtilFunctions.cpp; path = xLights/UtilFunctions.cpp; sourceTree = "<group>"; };
 		3D585F2E1E7E52F700A3F84F /* SequenceData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SequenceData.cpp; path = xLights/SequenceData.cpp; sourceTree = "<group>"; };
+		3D585F301E7E541400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = UtilFunctions.cpp; path = xLights/UtilFunctions.cpp; sourceTree = "<group>"; };
 		6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PixelAppearanceDlg.cpp; sourceTree = "<group>"; };
 		6700FD951AD8075400084A71 /* PixelAppearanceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelAppearanceDlg.h; sourceTree = "<group>"; };
 		6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderProgressDialog.cpp; sourceTree = "<group>"; };
@@ -1866,6 +1868,7 @@
 		67E7086417B51AB400A22034 = {
 			isa = PBXGroup;
 			children = (
+				3D585F301E7E541400A3F84F /* UtilFunctions.cpp */,
 				3D585F2E1E7E52F700A3F84F /* SequenceData.cpp */,
 				3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */,
 				3D585F281E7E50A200A3F84F /* jsonreader.cpp */,
@@ -2570,6 +2573,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D585F311E7E541400A3F84F /* UtilFunctions.cpp in Sources */,
 				670C82881C45C48B000AA5D8 /* StarModel.cpp in Sources */,
 				67B2CF8E1C39D98A003C17CA /* WavePanel.cpp in Sources */,
 				674ACA7C1C5ADE4000B54B32 /* Node.cpp in Sources */,
