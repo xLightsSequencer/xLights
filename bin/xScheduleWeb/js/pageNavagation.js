@@ -15,10 +15,10 @@ function updateCurrentPage() {
   if (getQueryVariable("args") == false) {
     var currentPageArgs = "";
   }
-  if (getQueryVariable("page") == true) {
+  if (getQueryVariable("page") != false) {
     currentPage = getQueryVariable("page");
     updatePage('page', currentPage, currentPageArgs);
-  } else if (getQueryVariable("plugin") == true) {
+  } else if (getQueryVariable("plugin") != false) {
     currentPage = getQueryVariable("plugin");
     updatePage('plugin', currentPage, currentPageArgs);
   } else {
