@@ -30,7 +30,7 @@ PlayerWindow::PlayerWindow(wxWindow* parent, bool topMost, wxImageResizeQuality 
     }
     SetClientSize(size);
     Move(pos);
-    wxWindow::Show();
+    Show();
 
     Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&PlayerWindow::OnMouseLeftDown, 0, this);
     Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&PlayerWindow::OnMouseLeftUp, 0, this);
