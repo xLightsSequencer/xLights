@@ -204,6 +204,13 @@ height: 95vh;
 }
 
 /* Footer */
+.footer-box{
+  bottom: 0;
+  height: 100px;
+  left: 0;
+  position: absolute;
+  width: 100%;
+}
 #footer{
   background:#333333;
   color:#ffffff;
