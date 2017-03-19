@@ -2,6 +2,9 @@ $(document).ready(function() {
   loadSettings();
   populateSideBar();
 
+
+        $('#webColorSetting').colorpicker();
+
   $("#toggleMuteSetting").mouseup(function() {
     if ($("#smartVolumeSetting").prop("checked") == true)
       $("#smartVolumeSetting").prop("checked", false);

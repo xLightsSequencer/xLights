@@ -16,8 +16,8 @@ body{
 }
 
 .navbar-default {
-  background-color: #e74c3c;
-  border-color: #c0392b;
+  background-color: #fff;
+  border-color: #fff;
 }
 .navbar-default .navbar-brand {
   color: #ecf0f1;
@@ -34,19 +34,19 @@ body{
 }
 .navbar-default .navbar-nav > li > a:hover,
 .navbar-default .navbar-nav > li > a:focus {
-  color: #ffbbbc;
+  color: rgba(0, 0, 0, .5);
 }
 .navbar-default .navbar-nav > .active > a,
 .navbar-default .navbar-nav > .active > a:hover,
 .navbar-default .navbar-nav > .active > a:focus {
-  color: #ffbbbc;
-  background-color: #c0392b;
+  color: #fff;
+  background-color: rgba(0, 0, 0, .5);
 }
 .navbar-default .navbar-nav > .open > a,
 .navbar-default .navbar-nav > .open > a:hover,
 .navbar-default .navbar-nav > .open > a:focus {
-  color: #ffbbbc;
-  background-color: #c0392b;
+  color: #fff;
+  background-color: rgba(0, 0, 0, .5);
 }
 .navbar-default .navbar-toggle {
   border-color: #c0392b;
@@ -74,8 +74,8 @@ body{
 
 /* Custom */
 .main-color-bg{
-  background-color: #e74c3c !important;
-  border-color: #c0392b !important;
+  background-color: #004800 !important;
+  border-color: #004800 !important;
   color:#ffffff !important;
 }
 
@@ -169,7 +169,7 @@ height: 95vh;
 
 /* Header */
 #header{
-  background:#333333;
+  background:#2e2e2e;
   color:#ffffff;
   padding-bottom: 10px;
   margin-bottom: 15px;
@@ -212,7 +212,7 @@ height: 95vh;
   width: 100%;
 }
 #footer{
-  background:#333333;
+  background:#2e2e2e;
   color:#ffffff;
   text-align:center;
   padding:30px;
