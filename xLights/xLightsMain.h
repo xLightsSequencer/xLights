@@ -884,6 +884,8 @@ private:
                                 SeqDataType *dataBuf, int startAddr, int modelSize); //Falcon Pi sub sequence .eseq
     void WriteVideoModelFile(const wxString& filename, long numChans, long numPeriods,
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed); //.avi file
+    void WriteMinleonNECModelFile(const wxString& filename, long numChans, long numPeriods,
+        SeqDataType *dataBuf, int startAddr, int modelSize, Model* model); //.bin file
 
     JobPool jobPool;
 

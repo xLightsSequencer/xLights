@@ -29,6 +29,7 @@
 								<item>Falcon, *.fseq</item>
 								<item>Compressed Video, *.avi</item>
 								<item>Uncompressed Video, *.avi</item>
+								<item>Minleon Network Effects Controller, *.bin</item>
 							</content>
 							<selection>0</selection>
 							<handler function="OnChoiceFormatSelect" entry="EVT_CHOICE" />

@@ -51,6 +51,7 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent, const std::string& model, wxW
     ChoiceFormat->Append(_("Falcon, *.fseq"));
     ChoiceFormat->Append(_("Compressed Video, *.avi"));
     ChoiceFormat->Append(_("Uncompressed Video, *.avi"));
+    ChoiceFormat->Append(_("Minleon Network Effects Controller, *.bin"));
     FlexGridSizer2->Add(ChoiceFormat, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("File name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -95,6 +96,7 @@ void SeqExportDialog::ModelExportTypes(bool isgroup)
     {
         ChoiceFormat->Delete(ChoiceFormat->FindString(_("Compressed Video, *.avi")));
         ChoiceFormat->Delete(ChoiceFormat->FindString(_("Uncompressed Video, *.avi")));
+        ChoiceFormat->Delete(ChoiceFormat->FindString(_("Minleon Network Effects Controller, *.bin")));
     }
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("LOR. *.lms or *.las")));
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("Vixen, Vixen sequence file *.vix")));
@@ -174,6 +176,10 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
     else if (fmt == "Compressed Video, *.avi" || fmt == "Uncompressed Video, *.avi")
     {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "Video (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+    }
+    else if (fmt == "Minleon Network Effects Controller, *.bin")
+    {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "Minleon Networks Effects Controller (*.bin)|*.bin", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
     }
 
     ValidateWindow();

@@ -1270,6 +1270,13 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             fullpath = oName.GetFullPath();
             WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), false);
         }
+        else if (Out3 == "Min")
+        {
+            int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+            oName.SetExt(_("bin"));
+            fullpath = oName.GetFullPath();
+            WriteMinleonNECModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model));
+        }
         SetStatusText(_("Finished writing model: ") + fullpath + wxString::Format(" in %ld ms ", sw.Time()));
 
         delete data;

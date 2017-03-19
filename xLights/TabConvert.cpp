@@ -972,6 +972,57 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     logger_base.debug("Model video written successfully.");
 }
 
+void FRAMECLASS WriteMinleonNECModelFile(const wxString& filename, long numChans, long numPeriods,
+    SeqDataType *dataBuf, int startAddr, int modelSize, Model* model)
+{
+    // this writes out at the sequence frame rate ... this may be a problem as samples I have seen seem to use 30fps
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Writing model Minleon Network Effects Controller File.");
+
+    wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
+
+    int width;
+    int height;
+    model->GetBufferSize("Default", "None", width, height);
+
+    wxFile f;
+    if (!f.Create(filename, true))
+    {
+        ConversionError(wxString("Unable to create file: ") + filename);
+        return;
+    }
+
+    logger_base.debug("   Model dimensions %dx%d => %ld channels %ld frames %ld.", width, height, (long)width * (long)height * 3, numChans, numPeriods);
+
+    unsigned char header[512];
+    memset(header, 0x00, sizeof(header));
+
+    header[0] = 0xCC;
+    header[1] = 0x33;
+    header[5] = 0x01;
+    header[8] = 0x9C;
+    header[9] = 0x40;
+    header[11] = 0x03;
+    header[16] = 0x55;
+    header[17] = 0x21;
+    header[19] = 0x21;
+    header[20] = (numChans & 0xFF00) >> 8;
+    header[21] = (numChans & 0x00FF);
+    header[22] = 0x0A;
+    header[25] = 0x64;
+    header[26] = 0xFF;
+
+    f.Write(header, sizeof(header));
+    for (int i = 0; i < numPeriods; ++i)
+    {
+        f.Write(&(*dataBuf)[i][0], numChans);
+    }
+    f.Close();
+
+    logger_base.debug("Model Minleon Network Effects Controller file written successfully.");
+}
+
 void FRAMECLASS ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg)
 {
     ConvertParameters read_params(FileName,                                     // input filename
