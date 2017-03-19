@@ -187,7 +187,10 @@ bool Xyzzy::Frame(wxByte* buffer, size_t size, bool outputframe)
         {
             for (int y = 0; y < BOARDHEIGHT; y++)
             {
-                DrawPixel(x, y, __colours[_board[y*BOARDWIDTH + x]], buffer, size);
+                if (_board[y*BOARDWIDTH + x] != 0xFF)
+                {
+                    DrawPixel(x, y, __colours[_board[y*BOARDWIDTH + x]], buffer, size);
+                }
             }
         }
 
