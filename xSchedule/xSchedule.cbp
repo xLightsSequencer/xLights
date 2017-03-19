@@ -246,6 +246,10 @@
 		<Unit filename="../xLights/outputs/ArtNetOutput.h" />
 		<Unit filename="../xLights/outputs/Controller.cpp" />
 		<Unit filename="../xLights/outputs/Controller.h" />
+		<Unit filename="../xLights/outputs/DDPDialog.cpp" />
+		<Unit filename="../xLights/outputs/DDPDialog.h" />
+		<Unit filename="../xLights/outputs/DDPOutput.cpp" />
+		<Unit filename="../xLights/outputs/DDPOutput.h" />
 		<Unit filename="../xLights/outputs/DLightOutput.h" />
 		<Unit filename="../xLights/outputs/DMXOutput.cpp" />
 		<Unit filename="../xLights/outputs/DMXOutput.h" />
