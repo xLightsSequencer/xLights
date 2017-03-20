@@ -68,9 +68,6 @@ body{
 .navbar-default .navbar-link:hover {
   color: #ffbbbc;
 }
-.xyzzy-container{
-  height: 95vh;
-}
 
 /* Custom */
 .main-color-bg{
@@ -90,67 +87,6 @@ outline: 0;
 height: 95vh;
 }
 
-/*xyxxy icons */
-.xyzzy {
-    position: relative;
-    top: 1px;
-    display: inline-block;
-    font-style: normal;
-    font-weight: normal;
-    line-height: 1;
-    float: left;
-    display: block; /* This is required */
-}
-
-.xyzzy.xyzzy-0 {
-  background-image:url("../img/xyzzy/I.png");
-  background-position: center center;
-  height: 64px;
-  width: 64px;
-}
-.xyzzy.xyzzy-2 {
-  background-image:url("../img/xyzzy/J.png");
-  background-position: center center;
-  height: 64px;
-  width: 64px;
-}
-.xyzzy.xyzzy-1 {
-  background-image:url("../img/xyzzy/L.png");
-  background-position: center center;
-  height: 64px;
-  width: 64px;
-}
-.xyzzy.xyzzy-5 {
-  background-image:url("../img/xyzzy/O.png");
-  background-position: center center;
-  height: 64px;
-  width: 64px;
-}
-.xyzzy.xyzzy-3 {
-  background-image:url("../img/xyzzy/S.png");
-  background-position: center center;
-  height: 64px;
-  width: 64px;
-}
-.xyzzy.xyzzy-6 {
-  background-image:url("../img/xyzzy/T.png");
-  background-position: center center;
-  height: 64px;
-  width: 64px;
-}
-.xyzzy.xyzzy-4 {
-  background-image:url("../img/xyzzy/Z.png");
-  background-position: center center;
-  height: 64px;
-  width: 64px;
-}
-
-
-/*
- * Color swatches
- *
- * Color swatches and associated values for our grayscale and brand colors.
- */
  .bigButtons{
    position: relative;
    vertical-align: text-center;

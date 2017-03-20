@@ -7,6 +7,28 @@ var xyzzyMatrix;
 // Playing WS = "3"
 // gameover = "4"
 
+//Start
+var soundStart = document.createElement('audio');
+soundStart.setAttribute('src', 'img/xyzzy/start.wav');
+
+//success
+var soundSuccess = document.createElement('audio');
+soundSuccess.setAttribute('src', 'img/xyzzy/success.wav');
+
+//move
+var soundMove = document.createElement('audio');
+soundMove.setAttribute('src', 'img/xyzzy/move.wav');
+
+//drop
+var soundDrop = document.createElement('audio');
+soundDrop.setAttribute('src', 'img/xyzzy/drop.mp3');
+//drop
+var soundSpin = document.createElement('audio');
+soundSpin.setAttribute('src', 'img/xyzzy/Spin.wav');
+
+//GameOver
+var soundGameOver = document.createElement('audio');
+soundGameOver.setAttribute('src', 'img/xyzzy/gameover.wav');
 
 function openXyzzy() {
   //CHECK FOR ALREADY STARTED GAME!!
@@ -77,6 +99,26 @@ socket.addEventListener('message', function(event) {
   if (xyzzyStatus == '3') {
     updateXyzzy(response);
   }
+  if (response.xyzzyevent != undefined){
+
+    if (response.xyzzyevent == 'initialised'){
+      soundStart.play();
+    }
+
+    if (response.xyzzyevent == 'rowcomplete'){
+      soundSuccess.play();
+    }
+    if (response.xyzzyevent == 'movedleft' || response.xyzzyevent == 'movedright' || response.xyzzyevent == 'piecelanded'){
+      soundMove.play();
+    }
+    if (response.xyzzyevent == 'dropped'){
+      soundDrop.play();
+    }
+    if (response.xyzzyevent == 'spun'){
+      soundSpin.play();
+    }
+
+  }
 });
 
 
@@ -100,7 +142,7 @@ function updateXyzzy(response) {
     //update Score
     //update next peice
     console.log(response.next);
-    $("#xyzzyNext").html('<span class="xyzzy xyzzy-' + response.next + '"></span>');
+    $('#xyzzyNext').attr('src', 'img/xyzzy/'+response.next+'.png');
     $("#xyzzyCurrentScore").html("Your Score: " + response.score);
 
   } else if (response.result == 'gameover') {
@@ -116,11 +158,11 @@ function updateXyzzy(response) {
     xyzzyHighScore = JSON.parse('{"highscoreplayer":"' + response.highscoreplayer + '","highscore":' + response.highscore + '}');
   }
   // stop if game closed
-  if ($('body').hasClass("modal-open")) {
-    xyzzyCommand('close');
-    xyzzyStatus = "0";
-    clearInterval(timer);
-  }
+  // if ($('body').hasClass("modal-open")) {
+  //   xyzzyCommand('close');
+  //   xyzzyStatus = "0";
+  //   clearInterval(timer);
+  // }
 }
 
 function xyzzyCommand(c, p) {
@@ -161,8 +203,10 @@ function xyzzyDraw(step) {
   var step2 =
     `<h2 id="xyzzyPlayerName"></h2>
     <h4 id="xyzzyCurrentScore">Your Score: 320</h4>
-    <button id="xyzzyNext" class="btn btn-default tetrisL btn-xyzzy"></button>
-    <br/><br/><br/>
+    <div class="col-md-3>
+      <a href="#" class="thumbnail"><img id="xyzzyNext" src="img/xyzzy/I.png"></a>
+    </div>
+    <br/>
     <button onclick="xyzzyCommand('s')" class="btn btn-default glyphicon glyphicon-arrow-up btn-xyzzy"></button>
     <br />
     <button onclick="xyzzyCommand('l')" class="btn btn-default glyphicon glyphicon-arrow-left btn-xyzzy"></button>
@@ -186,6 +230,7 @@ function xyzzyDraw(step) {
   } else if (step == "step2") {
     $("#xyzzyContainer").html(step2);
   } else if (step == "step3") {
+    soundGameOver.play();
     $("#xyzzyContainer").html(step3);
   }
 }
