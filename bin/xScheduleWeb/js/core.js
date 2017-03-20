@@ -136,7 +136,6 @@ function getPage(settings, pageName) {
 function populateUI() {
   $('#headerName').html(uiSettings.webName);
   $('#nav').css("background-color", uiSettings.webColor);
-  $('#nav').css("border-color", uiSettings.webColor);
   document.title = uiSettings.webName;
   $('#toggleButtonContainer').html("");
   //Nav Buttons

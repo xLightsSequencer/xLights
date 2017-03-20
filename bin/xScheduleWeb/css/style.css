@@ -17,7 +17,7 @@ body{
 
 .navbar-default {
   background-color: #fff;
-  border-color: #fff;
+  border-color: rgba(0, 0, 0, .5);
 }
 .navbar-default .navbar-brand {
   color: #ecf0f1;
