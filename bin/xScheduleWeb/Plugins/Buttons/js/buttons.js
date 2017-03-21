@@ -22,7 +22,7 @@ function loadButtonsData(){
 function populateButtons(response){
   console.log(response);
   for (var i = 0; i < response.buttons.length; i++) {
-    var button = `<button onclick="runCommand('PressButton', 'id:`+response.buttons[i].id+`')" class="btn btn-default bigButtons">`+response.buttons[i].label+`</button>`;
+    var button = `<button onclick="runCommand('PressButton', 'id:`+response.buttons[i].id+`')" class="btn btn-default bigButtons"><wbr>`+response.buttons[i].label+`</wbr></button>`;
     $('#buttonContainer').append(button);
   }
 }

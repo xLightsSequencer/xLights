@@ -94,18 +94,20 @@ height: 95vh;
 
  .bigButtons{
    position: relative;
-   vertical-align: text-center;
-   width: 23%;
+   width: 49%;
    /*min-width: 165px;*/
    height: 0;
-   padding-bottom: 20%;
+   padding-bottom: 26%;
+   padding-top: 24%;
    margin-right: 3px;
    margin-bottom: 3px;
+   word-break: break-all;
  }
  @media bigButtons and (max-width: 500px) {
    min-width: 48%;
 }
-
+.navbar-default .navbar-brand{
+  color: #fff;}
 
 
 /* Header */
