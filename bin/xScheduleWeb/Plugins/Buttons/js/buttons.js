@@ -22,7 +22,22 @@ function loadButtonsData(){
 function populateButtons(response){
   console.log(response);
   for (var i = 0; i < response.buttons.length; i++) {
-    var button = `<button onclick="runCommand('PressButton', 'id:`+response.buttons[i].id+`')" class="btn btn-default bigButtons"><wbr>`+response.buttons[i].label+`</wbr></button>`;
+
+    if (response.buttons[i].color == "default"){
+      var color = "btn-default";
+    }else if (response.buttons[i].color == "blue"){
+      var color = "btn-primary";
+    }else if (response.buttons[i].color == "green"){
+      var color = "btn-success";
+    }else if (response.buttons[i].color == "cyan"){
+      var color = "btn-info";
+    }else if (response.buttons[i].color == "orange"){
+      var color = "btn-warning";
+    }else if (response.buttons[i].color == "red"){
+      var color = "btn-danger";
+    }
+
+    var button = `<button onclick="runCommand('PressButton', 'id:`+response.buttons[i].id+`')" class="btn `+color+` bigButtons"><wbr>`+response.buttons[i].label+`</wbr></button>`;
     $('#buttonContainer').append(button);
   }
 }
