@@ -20,9 +20,4 @@
       <PLITest Mode="Alternate" StartChannel="1" Channels="18000" Value1="0" Value2="255" Duration="60000" FrameDuration="500" Delay="0" Name=""/>
     </PlayListStep>
   </PlayList>
-  <PlayList Name="Text">
-    <PlayListStep Name="">
-      <PLIText ApplyMethod="0" Colour="green" Duration="10000" Font="0;-16;0;0;0;400;0;0;0;0;0;0;2;48;Courier New" Format="" Text="This is a test" Matrix="Matrix" Movement="Right to Left" Orientation="Vertical Up" Type="Normal" Speed="10" X="0" Y="0" Delay="0" Name="Test" Priority="1"/>
-    </PlayListStep>
-  </PlayList>
 </xSchedule>
