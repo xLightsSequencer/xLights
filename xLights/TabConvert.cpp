@@ -1004,9 +1004,21 @@ void FRAMECLASS WriteMinleonNECModelFile(const wxString& filename, long numChans
     header[8] = 0x9C;
     header[9] = 0x40;
     header[11] = 0x03;
-    header[16] = 0x55;
-    header[17] = 0x21;
-    header[19] = 0x21;
+    auto framems = SeqData.FrameTime();
+    if (framems == 0x21) // 30 fps
+    {
+        header[16] = 0x55; // I dont know what this value represents but it seems to be present in the samples I have seen
+    }
+    else if (framems == 0x19) // 40 fps
+    {
+        header[16] = 0xA4; // I dont know what this value represents but it seems to be present in the samples I have seen
+    }
+    else
+    {
+        // leave it as zero ... particularly for 20fps
+    }
+    header[17] = framems & 0xFF;
+    header[19] = framems & 0xFF; // some times this value is one less than the one above but i dont know why
     header[20] = (numChans & 0xFF00) >> 8;
     header[21] = (numChans & 0x00FF);
     header[22] = 0x0A;
@@ -1014,6 +1026,14 @@ void FRAMECLASS WriteMinleonNECModelFile(const wxString& filename, long numChans
     header[26] = 0xFF;
 
     f.Write(header, sizeof(header));
+
+    // every sample i have seen has one extra zero frame at the front ... so adding it
+    wxByte zero = 0x00;
+    for(int i = 0; i < numChans; i++)
+    {
+        f.Write(&zero, sizeof(zero));
+    }
+
     for (int i = 0; i < numPeriods; ++i)
     {
         f.Write(&(*dataBuf)[i][0], numChans);
