@@ -35,6 +35,8 @@ class DDPOutput : public IPOutput
     wxByte _sequenceNum;
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram;
+    int _channelsPerPacket;
+    wxByte* _fulldata;
 
     // These are used for DDP sync
     static bool __initialised;
@@ -52,12 +54,16 @@ public:
     static void SendSync();
     #pragma endregion  Static Functions
 
+    virtual wxXmlNode* Save() override;
+
     #pragma region Getters and Setters
+    int GetChannelsPerPacket() const { return _channelsPerPacket; }
+    void SetChannelsPerPacket(int cpp) { _channelsPerPacket = cpp; }
     virtual std::string GetType() const override { return OUTPUT_DDP; }
     virtual std::string GetLongDescription() const override;
     virtual std::string GetChannelMapping(long ch) const override;
-    virtual int GetMaxChannels() const override { return 1440; }
-    virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= 1440; }
+    virtual int GetMaxChannels() const override { return 1000000; }
+    virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
     #pragma endregion Getters and Setters
 
     #pragma region Start and Stop

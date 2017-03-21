@@ -14,6 +14,8 @@ bool DDPOutput::__initialised = false;
 #pragma region Constructors and Destructors
 DDPOutput::DDPOutput(wxXmlNode* node) : IPOutput(node)
 {
+    _fulldata = nullptr;
+    _channelsPerPacket = wxAtoi(node->GetAttribute("ChannelsPerPacket"));
     _sequenceNum = 0;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
@@ -21,6 +23,8 @@ DDPOutput::DDPOutput(wxXmlNode* node) : IPOutput(node)
 
 DDPOutput::DDPOutput() : IPOutput()
 {
+    _fulldata = nullptr;
+    _channelsPerPacket = 512;
     _channels = 512;
     _sequenceNum = 0;
     _datagram = nullptr;
@@ -30,6 +34,7 @@ DDPOutput::DDPOutput() : IPOutput()
 DDPOutput::~DDPOutput()
 {
     if (_datagram != nullptr) delete _datagram;
+    if (_fulldata != nullptr) delete _fulldata;
 }
 #pragma endregion Constructors and Destructors
 
@@ -97,12 +102,31 @@ void DDPOutput::SendSync()
 }
 #pragma endregion Static Functions
 
+wxXmlNode* DDPOutput::Save()
+{
+    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+    node->AddAttribute("ChannelsPerPacket", wxString::Format("%i", _channelsPerPacket));
+    IPOutput::Save(node);
+
+    return node;
+}
+
 #pragma region Start and Stop
 bool DDPOutput::Open()
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!_enabled) return true;
+
+    if (_fulldata != nullptr) delete _fulldata;
+    _fulldata = (wxByte*)malloc(_channels);
+    if (_fulldata == nullptr)
+    {
+        logger_base.error("Problem allocating %ld memory for DDP output '%s'.", _channels, (const char *)_description.c_str());
+        _ok = false;
+        return false;
+    }
+    AllOff();
 
     _ok = IPOutput::Open();
 
@@ -160,19 +184,47 @@ void DDPOutput::EndFrame()
     if (changed || SkipCount > 10)
     {
 #endif
-        if (__initialised)
+        long index = 0;
+        long tosend = _channels;
+
+        while (tosend > 0)
         {
-            _data[0] = DDP_FLAGS1_VER1;
+            long thissend = (tosend < _channelsPerPacket) ? tosend : _channelsPerPacket;
+
+            if (__initialised)
+            {
+                _data[0] = DDP_FLAGS1_VER1;
+            }
+            else
+            {
+                if (tosend == thissend)
+                {
+                    _data[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_PUSH;
+                }
+                else
+                {
+                    _data[0] = DDP_FLAGS1_VER1;
+                }
+            }
+
+            _data[1] = (_data[1] & 0xF0) + _sequenceNum;
+            
+            _data[4] = (index & 0xFF000000) >> 24;
+            _data[5] = (index & 0xFF0000) >> 16;
+            _data[6] = (index & 0xFF00) >> 8;
+            _data[7] = (index & 0xFF);
+
+            _data[8] = (thissend & 0xFF00) >> 8;
+            _data[9] = thissend & 0x00FF;
+
+            memcpy(&_data[10], _fulldata + index, thissend);
+
+            _datagram->SendTo(_remoteAddr, &_data[0], DDP_PACKET_LEN - (1440 - thissend));
+            _sequenceNum = _sequenceNum == 15 ? 1 : _sequenceNum + 1;
+
+            tosend -= thissend;
+            index += thissend;
         }
-        else
-        {
-            _data[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_PUSH;
-        }
-        _data[1] = (_data[1] & 0xF0) + _sequenceNum;
-        _data[8] = (_channels & 0xFF00) >> 8;
-        _data[9] = _channels & 0x00FF;
-        _datagram->SendTo(_remoteAddr, _data, DDP_PACKET_LEN - (1440 - _channels));
-        _sequenceNum = _sequenceNum == 15 ? 1 : _sequenceNum + 1;
 #ifdef USECHANGEDETECTION
         _skipCount = 0;
         changed = false;
@@ -191,9 +243,9 @@ void DDPOutput::SetOneChannel(long channel, unsigned char data)
     wxASSERT(channel < _channels);
 
 #ifdef USECHANGEDETECTION
-    if (_data[channel + DDP_PACKET_HEADERLEN] != data) {
+    if (*(_fulldata + channel) != data) {
 #endif
-        _data[channel + DDP_PACKET_HEADERLEN] = data;
+        *(_fulldata + channel) = data;
 #ifdef USECHANGEDETECTION
         _changed = true;
     }
@@ -210,7 +262,7 @@ void DDPOutput::SetManyChannels(long channel, unsigned char data[], long size)
     long chs = std::min(size, _channels - channel);
 #endif
 
-    memcpy(&_data[channel + DDP_PACKET_HEADERLEN], data, chs);
+    memcpy(_fulldata + channel, data, chs);
 
 #ifdef USECHANGEDETECTION
     _changed = true;
@@ -219,7 +271,7 @@ void DDPOutput::SetManyChannels(long channel, unsigned char data[], long size)
 
 void DDPOutput::AllOff()
 {
-    memset(&_data[DDP_PACKET_HEADERLEN], 0x00, _channels);
+    memset(_fulldata, 0x00, _channels);
 #ifdef USECHANGEDETECTION
     _changed = true;
 #endif

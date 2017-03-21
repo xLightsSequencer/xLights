@@ -25,6 +25,7 @@ class DDPDialog: public wxDialog
 		virtual ~DDPDialog();
 
 		//(*Declarations(DDPDialog)
+		wxSpinCtrl* SpinCtrl_ChannelsPerPacket;
 		wxStaticText* StaticText2;
 		wxTextCtrl* TextCtrlIPAddress;
 		wxStaticText* StaticText1;
@@ -33,6 +34,7 @@ class DDPDialog: public wxDialog
 		wxButton* ButtonCancel;
 		wxStaticText* StaticText7;
 		wxButton* ButtonOk;
+		wxStaticText* StaticText4;
 		wxSpinCtrl* SpinCtrlChannels;
 		//*)
 
@@ -44,6 +46,8 @@ class DDPDialog: public wxDialog
 		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT7;
 		static const long ID_SPINCTRL4;
+		static const long ID_STATICTEXT4;
+		static const long ID_SPINCTRL_ChannelsPerPacket;
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL2;
 		static const long ID_BUTTON1;

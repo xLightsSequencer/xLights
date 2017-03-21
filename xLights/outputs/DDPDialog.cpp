@@ -15,6 +15,8 @@ const long DDPDialog::ID_STATICTEXT2 = wxNewId();
 const long DDPDialog::ID_TEXTCTRL1 = wxNewId();
 const long DDPDialog::ID_STATICTEXT7 = wxNewId();
 const long DDPDialog::ID_SPINCTRL4 = wxNewId();
+const long DDPDialog::ID_STATICTEXT4 = wxNewId();
+const long DDPDialog::ID_SPINCTRL_ChannelsPerPacket = wxNewId();
 const long DDPDialog::ID_STATICTEXT3 = wxNewId();
 const long DDPDialog::ID_TEXTCTRL2 = wxNewId();
 const long DDPDialog::ID_BUTTON1 = wxNewId();
@@ -56,9 +58,14 @@ DDPDialog::DDPDialog(wxWindow* parent, DDPOutput* DDP, OutputManager* outputMana
 	FlexGridSizer4->AddGrowableCol(1);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Last Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer4->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrlChannels = new wxSpinCtrl(this, ID_SPINCTRL4, _T("512"), wxDefaultPosition, wxDefaultSize, 0, 1, 1440, 512, _T("ID_SPINCTRL4"));
+	SpinCtrlChannels = new wxSpinCtrl(this, ID_SPINCTRL4, _T("512"), wxDefaultPosition, wxDefaultSize, 0, 1, 1000000, 512, _T("ID_SPINCTRL4"));
 	SpinCtrlChannels->SetValue(_T("512"));
 	FlexGridSizer4->Add(SpinCtrlChannels, 1, wxALL|wxEXPAND, 5);
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Channels per packet"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer4->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_ChannelsPerPacket = new wxSpinCtrl(this, ID_SPINCTRL_ChannelsPerPacket, _T("512"), wxDefaultPosition, wxDefaultSize, 0, 1, 1440, 512, _T("ID_SPINCTRL_ChannelsPerPacket"));
+	SpinCtrl_ChannelsPerPacket->SetValue(_T("512"));
+	FlexGridSizer4->Add(SpinCtrl_ChannelsPerPacket, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Description"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer4->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrlDescription = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
@@ -82,6 +89,7 @@ DDPDialog::DDPDialog(wxWindow* parent, DDPOutput* DDP, OutputManager* outputMana
     wxASSERT(DDP != nullptr);
 
     SpinCtrlChannels->SetValue(DDP->GetChannels());
+    SpinCtrl_ChannelsPerPacket->SetValue(DDP->GetChannelsPerPacket());
     TextCtrlDescription->SetValue(DDP->GetDescription());
     TextCtrlIPAddress->SetValue(DDP->GetIP());
 
@@ -106,6 +114,7 @@ void DDPDialog::OnButtonOkClick(wxCommandEvent& event)
 {
     _DDP->SetIP(TextCtrlIPAddress->GetValue().ToStdString());
     _DDP->SetChannels(SpinCtrlChannels->GetValue());
+    _DDP->SetChannelsPerPacket(SpinCtrl_ChannelsPerPacket->GetValue());
     _DDP->SetDescription(TextCtrlDescription->GetValue().ToStdString());
 
     EndDialog(wxID_OK);
