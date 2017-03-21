@@ -54,13 +54,14 @@ void ScheduleOptions::AddProjector(const std::string& name, const std::string& i
     _projectors.push_back(p);
 }
 
-void ScheduleOptions::AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey)
+void ScheduleOptions::AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color)
 {
     UserButton* b = new UserButton();
     b->SetLabel(label);
     b->SetCommand(command);
     b->SetParameters(parms);
     b->SetHotkey(hotkey);
+    b->SetColor(color);
     _buttons.push_back(b);
 }
 
@@ -219,7 +220,10 @@ std::string ScheduleOptions::GetButtonsJSON(const CommandManager &cmdMgr, const 
                     res += ",";
                 }
                 first = false;
-                res += "{\"label\":\"" + (*it)->GetLabel() + "\",\"id\":\"" + wxString::Format("%i", (*it)->GetId()).ToStdString() + "\"}";
+                res += "{\"label\":\"" + 
+                    (*it)->GetLabel() + "\",\"color\":\"" +
+                    (*it)->GetColorName() + "\",\"id\":\"" +
+                    wxString::Format("%i", (*it)->GetId()).ToStdString() + "\"}";
             }
         }
     }

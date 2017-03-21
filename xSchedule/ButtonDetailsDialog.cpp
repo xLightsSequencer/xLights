@@ -16,6 +16,8 @@ const long ButtonDetailsDialog::ID_STATICTEXT3 = wxNewId();
 const long ButtonDetailsDialog::ID_TEXTCTRL2 = wxNewId();
 const long ButtonDetailsDialog::ID_STATICTEXT4 = wxNewId();
 const long ButtonDetailsDialog::ID_CHOICE2 = wxNewId();
+const long ButtonDetailsDialog::ID_STATICTEXT5 = wxNewId();
+const long ButtonDetailsDialog::ID_CHOICE3 = wxNewId();
 const long ButtonDetailsDialog::ID_BUTTON1 = wxNewId();
 const long ButtonDetailsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -25,7 +27,7 @@ BEGIN_EVENT_TABLE(ButtonDetailsDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, std::string& command, std::string& parameter, char& hotkey, wxWindowID id,const wxPoint& pos,const wxSize& size) : _label(label), _command(command), _parameter(parameter), _hotkey(hotkey)
+ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, std::string& command, std::string& color, std::string& parameter, char& hotkey, wxWindowID id,const wxPoint& pos,const wxSize& size) : _label(label), _command(command), _parameter(parameter), _hotkey(hotkey), _color(color)
 {
 	//(*Initialize(ButtonDetailsDialog)
 	wxFlexGridSizer* FlexGridSizer2;
@@ -52,6 +54,16 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, s
 	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Hotkey = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
 	FlexGridSizer1->Add(Choice_Hotkey, 1, wxALL|wxEXPAND, 5);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Web Color"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	FlexGridSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice1 = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
+	Choice1->SetSelection( Choice1->Append(_("default")) );
+	Choice1->Append(_("red"));
+	Choice1->Append(_("blue"));
+	Choice1->Append(_("green"));
+	Choice1->Append(_("cyan"));
+	Choice1->Append(_("orange"));
+	FlexGridSizer1->Add(Choice1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -117,6 +129,8 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, s
         }
     }
 
+    Choice1->SetStringSelection(_color);
+
     ValidateWindow();
 }
 
@@ -132,6 +146,7 @@ void ButtonDetailsDialog::OnButton_OkClick(wxCommandEvent& event)
     _label = TextCtrl_Label->GetValue();
     _parameter = TextCtrl_Parameters->GetValue();
     _command = Choice_Command->GetStringSelection();
+    _color = Choice1->GetStringSelection();
     if (Choice_Hotkey->GetStringSelection() == "")
     {
         _hotkey = '~';

@@ -107,7 +107,7 @@ public:
         xScheduleFrame(wxWindow* parent, const std::string& showdir = "", const std::string& playlist = "", wxWindowID id = -1);
         virtual ~xScheduleFrame();
         void CreateDebugReport(wxDebugReportCompress *report);
-        void CreateButton(const std::string& label);
+        void CreateButton(const std::string& label, const wxColor& c);
         void SetTempMessage(const std::string& msg);
 
     private:

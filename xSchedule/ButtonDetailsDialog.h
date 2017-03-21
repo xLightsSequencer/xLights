@@ -19,9 +19,10 @@ class ButtonDetailsDialog: public wxDialog
         std::string& _label;
         std::string& _parameter;
         std::string& _command;
+        std::string& _color;
         char& _hotkey;
 
-		ButtonDetailsDialog(wxWindow* parent, std::string& label, std::string& command, std::string& parameter, char& hotkey, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ButtonDetailsDialog(wxWindow* parent, std::string& label, std::string& command, std::string& color, std::string& parameter, char& hotkey, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ButtonDetailsDialog();
 
 		//(*Declarations(ButtonDetailsDialog)
@@ -32,9 +33,11 @@ class ButtonDetailsDialog: public wxDialog
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Parameters;
+		wxStaticText* StaticText5;
 		wxButton* Button_Cancel;
 		wxTextCtrl* TextCtrl_Label;
 		wxStaticText* StaticText4;
+		wxChoice* Choice1;
 		//*)
 
 	protected:
@@ -48,6 +51,8 @@ class ButtonDetailsDialog: public wxDialog
 		static const long ID_TEXTCTRL2;
 		static const long ID_STATICTEXT4;
 		static const long ID_CHOICE2;
+		static const long ID_STATICTEXT5;
+		static const long ID_CHOICE3;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

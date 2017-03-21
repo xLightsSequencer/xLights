@@ -16,6 +16,7 @@ class UserButton
 	char _hotkey;
 	int _changeCount;
 	int _lastSavedChangeCount;
+    std::string _color;
 
     void Load(wxXmlNode* node);
 
@@ -35,6 +36,9 @@ class UserButton
 		std::string GetLabel() const { return _label; }
         std::string GetCommand() const { return _command; }
         std::string GetParameters() const { return _parameters; }
+        std::string GetColorName() const { return _color; }
+        wxColor GetColor() const;
+        void SetColor(const std::string& color) { if (_color != color) { _color = color; _changeCount++; } }
         char GetHotkey() const { return _hotkey; }
 };
 

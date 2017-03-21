@@ -1187,9 +1187,13 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void xScheduleFrame::CreateButton(const std::string& label)
+void xScheduleFrame::CreateButton(const std::string& label, const wxColor& c)
 {
     wxButton* b = new wxButton(Panel1, ID_BUTTON_USER, label);
+    //if (c != *wxBLACK)
+    //{
+    //    b->SetBackgroundColour(c);
+    //}
     FlexGridSizer4->Add(b, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
     Connect(ID_BUTTON_USER, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_UserClick);
 }
@@ -1209,11 +1213,11 @@ void xScheduleFrame::CreateButtons()
     // create some default buttons
     if (bs.size() == 0)
     {
-        __schedule->GetOptions()->AddButton("Play Selected", "Play selected playlist", "", '~');
-        __schedule->GetOptions()->AddButton("Stop All", "Stop all now", "", '~');
-        __schedule->GetOptions()->AddButton("Next Step", "Next step in current playlist", "", '~');
-        __schedule->GetOptions()->AddButton("End Gracefully", "Jump to play once at end at end of current step and then stop", "", '~');
-        __schedule->GetOptions()->AddButton("Add 10 Mins To Schedule", "Add to the current schedule n minutes", "10", '~');
+        __schedule->GetOptions()->AddButton("Play Selected", "Play selected playlist", "", '~', "green");
+        __schedule->GetOptions()->AddButton("Stop All", "Stop all now", "", '~', "red");
+        __schedule->GetOptions()->AddButton("Next Step", "Next step in current playlist", "", '~', "default");
+        __schedule->GetOptions()->AddButton("End Gracefully", "Jump to play once at end at end of current step and then stop", "", '~', "red");
+        __schedule->GetOptions()->AddButton("Add 10 Mins To Schedule", "Add to the current schedule n minutes", "10", '~', "default");
 
         bs = __schedule->GetOptions()->GetButtons();
     }
@@ -1228,7 +1232,7 @@ void xScheduleFrame::CreateButtons()
         // only show not hidden buttons
         if (!wxString((*it)->GetLabel()).StartsWith("HIDE_"))
         {
-            CreateButton((*it)->GetLabel());
+            CreateButton((*it)->GetLabel(), (*it)->GetColor());
         }
     }
 

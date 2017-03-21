@@ -172,6 +172,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
     ListView_Buttons->AppendColumn("Command");
     ListView_Buttons->AppendColumn("Parameters");
     ListView_Buttons->AppendColumn("Hotkey");
+    ListView_Buttons->AppendColumn("Web Color");
 
     CheckBox_SendOffWhenNotRunning->SetValue(options->IsSendOffWhenNotRunning());
     CheckBox_RunBackground->SetValue(options->IsSendBackgroundWhenNotRunning());
@@ -195,11 +196,13 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
     int namew = 150;
     int hotkeyw = 70;
     int w, h;
+    int colorw = 150;
     ListView_Buttons->GetSize(&w, &h);
     ListView_Buttons->SetColumnWidth(0, namew);
-    ListView_Buttons->SetColumnWidth(1, (w - namew - hotkeyw - 1) / 2);
-    ListView_Buttons->SetColumnWidth(2, (w - namew - hotkeyw - 1) / 2);
+    ListView_Buttons->SetColumnWidth(1, (w - -colorw - namew - hotkeyw - 1) / 2);
+    ListView_Buttons->SetColumnWidth(2, (w - - colorw - namew - hotkeyw - 1) / 2);
     ListView_Buttons->SetColumnWidth(3, 45);
+    ListView_Buttons->SetColumnWidth(4, colorw);
     ListView_Projectors->SetColumnWidth(0, namew);
     ListView_Projectors->SetColumnWidth(1, (w - namew - 1) / 2);
     ListView_Projectors->SetColumnWidth(2, (w - namew - 1) / 2);
@@ -242,6 +245,7 @@ void OptionsDialog::LoadButtons()
         {
             ListView_Buttons->SetItem(i, 3, (*it)->GetHotkey());
         }
+        ListView_Buttons->SetItem(i, 4, (*it)->GetColorName());
         i++;
     }
 }
@@ -284,7 +288,8 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
         _options->AddButton(ListView_Buttons->GetItemText(i, 0).ToStdString(), 
                             ListView_Buttons->GetItemText(i, 1).ToStdString(), 
                             ListView_Buttons->GetItemText(i, 2).ToStdString(), 
-                            hotkey);
+                            hotkey,
+                            ListView_Buttons->GetItemText(i, 4).ToStdString());
     }
 
     EndDialog(wxID_OK);
@@ -356,9 +361,10 @@ void OptionsDialog::OnButton_ButtonAddClick(wxCommandEvent& event)
     std::string label = "";
     std::string command = "";
     std::string parameter = "";
+    std::string color = "default";
     char hotkey = '~';
 
-    ButtonDetailsDialog dlg(this, label, command, parameter, hotkey);
+    ButtonDetailsDialog dlg(this, label, command, color, parameter, hotkey);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -367,6 +373,7 @@ void OptionsDialog::OnButton_ButtonAddClick(wxCommandEvent& event)
         ListView_Buttons->SetItem(row, 1, command);
         ListView_Buttons->SetItem(row, 2, parameter);
         ListView_Buttons->SetItem(row, 3, hotkey);
+        ListView_Buttons->SetItem(row, 4, color);
     }
 
     ValidateWindow();
@@ -391,8 +398,9 @@ void OptionsDialog::EditButton(int row)
     {
         hotkey = ListView_Buttons->GetItemText(row, 3)[0];
     }
+    std::string color = ListView_Buttons->GetItemText(row, 4).ToStdString();
 
-    ButtonDetailsDialog dlg(this, label, command, parameter, hotkey);
+    ButtonDetailsDialog dlg(this, label, command, color, parameter, hotkey);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -400,6 +408,7 @@ void OptionsDialog::EditButton(int row)
         ListView_Buttons->SetItem(row, 1, command);
         ListView_Buttons->SetItem(row, 2, parameter);
         ListView_Buttons->SetItem(row, 3, hotkey);
+        ListView_Buttons->SetItem(row, 4, color);
     }
 
     ValidateWindow();
@@ -496,6 +505,7 @@ void OptionsDialog::OnButtonsDragEnd(wxMouseEvent& event)
                 std::string command = ListView_Buttons->GetItemText(dragitem, 1).ToStdString();
                 std::string parameters = ListView_Buttons->GetItemText(dragitem, 2).ToStdString();
                 std::string hotkey = ListView_Buttons->GetItemText(dragitem, 3).ToStdString();
+                std::string color = ListView_Buttons->GetItemText(dragitem, 4).ToStdString();
 
                 ListView_Buttons->DeleteItem(dragitem);
 
@@ -505,6 +515,7 @@ void OptionsDialog::OnButtonsDragEnd(wxMouseEvent& event)
                 ListView_Buttons->SetItem(dropitem + 1, 1, command);
                 ListView_Buttons->SetItem(dropitem + 1, 2, parameters);
                 ListView_Buttons->SetItem(dropitem + 1, 3, hotkey);
+                ListView_Buttons->SetItem(dropitem + 1, 4, color);
 
                 ListView_Buttons->EnsureVisible(dropitem + 1);
 
