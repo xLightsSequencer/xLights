@@ -278,7 +278,13 @@ size_t MatrixMapper::Map(int x, int y) const
     }
 
     // make sure the value is within the range expected ... until i know my code is right
-    wxASSERT(loc >= _startChannel && loc < _startChannel + GetChannels());
+    if (loc < _startChannel || loc >= _startChannel + GetChannels())
+    {
+        // location out of range ... this can happen if the user tampers with the matrix while it is in use
+        // force it to a valid value
+        loc = _startChannel;
+        wxASSERT(false);
+    }
 
     return loc;
 }

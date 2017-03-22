@@ -29,23 +29,23 @@ private:
 #pragma region xlTimerTimer
 xLightsTimer::xLightsTimer()
 {
-    _t = NULL;
+    _t = nullptr;
     pending = false;
 }
 xLightsTimer::~xLightsTimer()
 {
-    if (_t != NULL)
+    if (_t != nullptr)
     {
         _t->Stop();
-        _t = NULL; // while it may not exit immediately it will exit and kill itself
+        _t = nullptr; // while it may not exit immediately it will exit and kill itself
     }
 }
 void xLightsTimer::Stop()
 {
-    if (_t != NULL)
+    if (_t != nullptr)
     {
         _t->Stop();
-        _t = NULL; // while it may not exit immediately it will exit and kill itself
+        _t = nullptr; // while it may not exit immediately it will exit and kill itself
     }
 }
 bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*/)
@@ -127,5 +127,6 @@ xLightsTimer::~xLightsTimer() {}
 void xLightsTimer::Stop() {wxTimer::Stop();}
 bool xLightsTimer::Start(int time, bool oneShot) {return wxTimer::Start(time, oneShot);};
 void xLightsTimer::Notify() {wxTimer::Notify();}
+void xLightsTimer::GetInterval() const { return wxTimer::GetInterval(); }
 void xLightsTimer::DoSendTimer() {};
 #endif
