@@ -127,6 +127,6 @@ xLightsTimer::~xLightsTimer() {}
 void xLightsTimer::Stop() {wxTimer::Stop();}
 bool xLightsTimer::Start(int time, bool oneShot) {return wxTimer::Start(time, oneShot);};
 void xLightsTimer::Notify() {wxTimer::Notify();}
-void xLightsTimer::GetInterval() const { return wxTimer::GetInterval(); }
+int xLightsTimer::GetInterval() const { return wxTimer::GetInterval(); }
 void xLightsTimer::DoSendTimer() {};
 #endif
