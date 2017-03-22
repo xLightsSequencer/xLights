@@ -1064,14 +1064,20 @@ bool Xyzzy::AdvanceGame()
             wxCommandEvent event(EVT_XYZZYEVENT);
             event.SetString("piecemoved");
             wxPostEvent(wxGetApp().GetTopWindow(), event);
+
+            // check a move ahead to see if we will land
+            if (!TestMoveDown())
+            {
+                // THIS MAY BE WRONG!!!! THERE IS A CHANCE THE USER COULD MOVE THE PIECE AFTER THIS AND NOT LAND
+                // BUT TO PROVIDE THE BEST EXPERIENCE THIS SEEMS THE BEST APPROACH
+                wxCommandEvent event2(EVT_XYZZYEVENT);
+                event2.SetString("piecelanded");
+                wxPostEvent(wxGetApp().GetTopWindow(), event2);
+            }
         }
         else
         {
             logger_base.debug("Xyzzy piece landed.");
-
-            wxCommandEvent event(EVT_XYZZYEVENT);
-            event.SetString("piecelanded");
-            wxPostEvent(wxGetApp().GetTopWindow(), event);
 
             auto loc = _currentPiece->DrawPoints();
             for (auto it = loc.begin(); it != loc.end(); ++it)

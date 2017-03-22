@@ -68,8 +68,6 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHECKBOX3;
 		static const long ID_CHECKBOX5;
 		static const long ID_CHECKBOX2;
-		static const long ID_STATICTEXT3;
-		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT1;
 		static const long ID_LISTVIEW2;
 		static const long ID_BUTTON4;
@@ -80,6 +78,8 @@ class OptionsDialog: public wxDialog
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON6;
 		static const long ID_BUTTON7;
+		static const long ID_STATICTEXT3;
+		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT4;
 		static const long ID_TEXTCTRL1;
 		static const long ID_CHECKBOX1;

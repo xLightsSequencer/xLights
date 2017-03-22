@@ -30,8 +30,7 @@ void fill_audio(void *udata, Uint8 *stream, int len)
 
     for (auto it = media.begin(); it != media.end(); ++it)
     {
-
-        if ((*it)->_audio_len == 0)		/*  Only  play  if  we  have  data  left  */
+        if ((*it)->_audio_len == 0 || (*it)->_paused)		/*  Only  play  if  we  have  data  left and not paused */
         {
             // no data left
         }
@@ -259,6 +258,7 @@ AudioData::AudioData()
     _original_pos = nullptr;
     _lengthMS = 0;
     _trackSize = 0;
+    _paused = false;
 }
 
 int AudioData::Tell()
@@ -308,6 +308,7 @@ int SDL::AddAudio(Uint64 len, Uint8* buffer, int volume, int rate, int tracksize
     ad->_original_pos = buffer;
     ad->_lengthMS = lengthMS;
     ad->_trackSize = tracksize;
+    ad->_paused = false;
 
     {
         std::unique_lock<std::mutex> locker(_audio_Lock);
@@ -337,6 +338,14 @@ void SDL::RemoveAudio(int id)
     if (toremove == nullptr) return;
     _audioData.remove(toremove);
     delete toremove;
+}
+
+void SDL::Pause(int id, bool pause)
+{
+    std::unique_lock<std::mutex> locker(_audio_Lock);
+    auto topause = GetData(id);
+    if (topause != nullptr)
+        topause->Pause(pause);
 }
 
 void SDL::SetRate(float rate)
@@ -418,7 +427,8 @@ void AudioManager::Seek(int pos)
 
 void AudioManager::Pause()
 {
-    __sdl.Pause();
+    __sdl.Pause(_sdlid, true);
+    //__sdl.Pause();
 	_media_state = MEDIAPLAYINGSTATE::PAUSED;
 }
 
@@ -431,11 +441,13 @@ void AudioManager::Play(int posms, int lenms)
 
     __sdl.SeekAndLimitPlayLength(_sdlid, posms, lenms);
     __sdl.Play();
+    __sdl.Pause(_sdlid, false);
     _media_state = MEDIAPLAYINGSTATE::PLAYING;
 }
 
 void AudioManager::Play()
 {
+    __sdl.Pause(_sdlid, false);
     __sdl.Play();
 	_media_state = MEDIAPLAYINGSTATE::PLAYING;
 }

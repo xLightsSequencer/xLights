@@ -16,6 +16,7 @@ public:
     xlTimerThread(int interval, bool oneshot, wxTimer* timer);
     void Stop();
     void SetFudgeFactor(int ff);
+    int GetInterval() const { return _interval; }
 private:
     std::atomic<bool> _stop;
     bool _oneshot;
@@ -51,7 +52,7 @@ bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*
 {
     Stop();
     _t = new xlTimerThread(time, oneShot, this);
-    if (_t == NULL) return false;
+    if (_t == nullptr) return false;
     _t->Create();
     _t->SetPriority(WXTHREAD_DEFAULT_PRIORITY + 1); // run it with slightly higher priority to ensure events are generated in a timely manner
     _t->Run();
@@ -70,6 +71,15 @@ void xLightsTimer::DoSendTimer() {
 void xLightsTimer::Notify() {
     pending = true;
     CallAfter(&xLightsTimer::DoSendTimer);
+}
+
+int xLightsTimer::GetInterval() const
+{
+    if (_t != nullptr)
+    {
+        return _t->GetInterval();
+    }
+    return -1;
 }
 
 

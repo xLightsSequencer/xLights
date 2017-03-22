@@ -19,6 +19,7 @@ public:
     virtual bool Start(int time = -1, bool oneShot = wxTIMER_CONTINUOUS);
     virtual void Notify();
     virtual void DoSendTimer();
+    int GetInterval() const;
 };
 
 #endif

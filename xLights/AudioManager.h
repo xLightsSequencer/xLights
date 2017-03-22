@@ -103,6 +103,7 @@ class AudioData
         int _savedpos;
         int _trackSize;
         int _lengthMS;
+        bool _paused;
         AudioData();
         ~AudioData() {}
         int Tell();
@@ -110,6 +111,7 @@ class AudioData
         void SavePos();
         void RestorePos();
         void SeekAndLimitPlayLength(int pos, int len);
+        void Pause(bool pause) { _paused = pause; }
 };
 
 class SDL
@@ -143,6 +145,7 @@ public:
     void SetGlobalVolume(int volume);
     int GetGlobalVolume() const;
     void SeekAndLimitPlayLength(int id, int pos, int len);
+    void Pause(int id, bool pause);
 };
 
 class AudioManager
