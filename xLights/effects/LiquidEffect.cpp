@@ -96,6 +96,7 @@ void LiquidEffect::SetDefaultParameters(Model *cls) {
 
     tp->BitmapButton_X1->SetActive(false);
     tp->BitmapButton_Y1->SetActive(false);
+    tp->BitmapButton_Size->SetActive(false);
     tp->BitmapButton_Velocity1->SetActive(false);
     tp->BitmapButton_Direction1->SetActive(false);
     tp->BitmapButton_Flow1->SetActive(false);

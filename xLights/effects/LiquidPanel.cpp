@@ -561,19 +561,19 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
     BitmapButton_X1->GetValue()->SetLimits(0, 100);
     BitmapButton_Y1->GetValue()->SetLimits(0, 100);
 
-        BitmapButton_Direction2->GetValue()->SetLimits(0, 360);
+    BitmapButton_Direction2->GetValue()->SetLimits(0, 360);
     BitmapButton_Flow2->GetValue()->SetLimits(0, 1000);
     BitmapButton_Velocity2->GetValue()->SetLimits(0, 1000);
     BitmapButton_X2->GetValue()->SetLimits(0, 100);
     BitmapButton_Y2->GetValue()->SetLimits(0, 100);
 
-        BitmapButton_Direction3->GetValue()->SetLimits(0, 360);
+    BitmapButton_Direction3->GetValue()->SetLimits(0, 360);
     BitmapButton_Flow3->GetValue()->SetLimits(0, 1000);
     BitmapButton_Velocity3->GetValue()->SetLimits(0, 1000);
     BitmapButton_X3->GetValue()->SetLimits(0, 100);
     BitmapButton_Y3->GetValue()->SetLimits(0, 100);
 
-        BitmapButton_Direction4->GetValue()->SetLimits(0, 360);
+    BitmapButton_Direction4->GetValue()->SetLimits(0, 360);
     BitmapButton_Flow4->GetValue()->SetLimits(0, 1000);
     BitmapButton_Velocity4->GetValue()->SetLimits(0, 1000);
     BitmapButton_X4->GetValue()->SetLimits(0, 100);

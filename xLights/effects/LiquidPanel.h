@@ -90,6 +90,7 @@ class LiquidPanel: public wxPanel
 		ValueCurveButton* BitmapButton_Direction1;
 		wxTextCtrl* TextCtrl_Flow4;
 		wxTextCtrl* TextCtrl_Velocity3;
+		ValueCurveButton* BitmapButton_Size;
 		wxTextCtrl* TextCtrl_Flow2;
 		wxTextCtrl* TextCtrl_Y1;
 		wxCheckBox* CheckBox_TopBarrier;
