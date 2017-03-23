@@ -845,6 +845,8 @@ private:
 
     void OnProgressBarDoubleClick(wxMouseEvent& event);
     std::list<RenderProgressInfo *>renderProgressInfo;
+    std::queue<RenderEvent*> mainThreadRenderEvents;
+    std::mutex renderEventLock;
 
     wxString mediaFilename;
     wxString showDirectory;
@@ -910,6 +912,7 @@ public:
     bool RenderEffectFromMap(Effect *effect, int layer, int period, const SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false, RenderEvent *event = NULL);
+    void RenderMainThreadEffects();
     void RenderEffectOnMainThread(RenderEvent *evt);
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false);
     void Render(std::list<Model*> models, Model *restrictToModel,

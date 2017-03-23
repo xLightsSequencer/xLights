@@ -424,11 +424,9 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer &buffer, int ColorScheme,
 //icicle drip effect, based on RenderMeteorsVertical: -DJ
 void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed)
 {
-    double swirl_phase;
     bool want_bkg = (Length < 0);
     if (want_bkg) Length = -Length; //kludge; too lazy to add another parameter ;)
 
-    MeteorClass m;
     HSVValue hsv,hsv0,hsv1;
     buffer.palette.GetHSV(0,hsv0);
     buffer.palette.GetHSV(1,hsv1);
@@ -436,9 +434,14 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int 
     int TailLength=(buffer.BufferHt < 10) ? Length / 10 : buffer.BufferHt * Length / 100;
     if (TailLength < 1) TailLength=1;
     MeteorsRenderCache *cache = GetCache(buffer, id);
+    if (buffer.needToInit) {
+        buffer.needToInit = false;
+        cache->meteors.clear();
+    }
 
     // create new meteors
 
+    MeteorClass m;
     for(int i=0; i<buffer.BufferWi; i++)
     {
         if (rand() % 200 < Count) {
@@ -466,15 +469,14 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int 
     if (want_bkg)
     {
         xlColor c(100, 100, 255); //light blue
-        buffer.Color2HSV(c, m.hsv);
-        //        m.hue = 240;
+        // HSV hsv = c;
         //        m.hsv.saturation = 0.5;
         //        m.hsv.value = 1.0;
-
+        //c = m.hsv;
         int ystaggered[] = {0, 5, 1, 2, 4};
         for (int x = 0; x < buffer.BufferWi; x += 3)
             for (int y = 0; y < buffer.BufferHt; y += 3)
-                buffer.SetPixel(x, y + ystaggered[(x/3) % numents(ystaggered)], m.hsv);
+                buffer.SetPixel(x, y + ystaggered[(x/3) % numents(ystaggered)], c);
     }
 
     int x,y,dx,n=0;
@@ -502,8 +504,8 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int 
 
             // we adjust x axis with some sine function if swirl1 or swirl2
             // swirling more than 25% of the buffer width doesn't look good
-            swirl_phase=double(it->y)/5.0+double(n)/100.0;
-            dx=int(double(SwirlIntensity*buffer.BufferWi)/80.0*buffer.sin(swirl_phase));
+            float swirl_phase=float(it->y)/5.0f+float(n)/100.0f;
+            dx=int(float(SwirlIntensity*buffer.BufferWi)/80.0f*buffer.sin(swirl_phase));
 
             x=it->x+dx;
             y=it->y+ph;

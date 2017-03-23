@@ -49,6 +49,7 @@ public:
     CTX *GetContext() {
         std::unique_lock<std::mutex> locker(lock);
         if (contexts.empty()) {
+            lock.unlock();
             return allocator();
         }
         CTX *ret = contexts.front();
@@ -73,32 +74,40 @@ static ContextPool<PathDrawingContext> *PATH_CONTEXT_POOL = nullptr;
 void DrawingContext::Initialize(wxWindow *parent) {
     if (TEXT_CONTEXT_POOL == nullptr) {
         TEXT_CONTEXT_POOL = new ContextPool<TextDrawingContext>([parent]() {
-            std::mutex mtx;
-            std::condition_variable signal;
-            std::unique_lock<std::mutex> lck(mtx);
-            TextDrawingContext *tdc;
-            parent->CallAfter([&mtx, &signal, &tdc]() {
+            if (wxThread::IsMain()) {
+                return new TextDrawingContext(10, 10 ,false);
+            } else {
+                std::mutex mtx;
+                std::condition_variable signal;
                 std::unique_lock<std::mutex> lck(mtx);
-                tdc = new TextDrawingContext(10, 10 ,false);
-                signal.notify_all();
-            });
-            signal.wait(lck);
-            return tdc;
+                TextDrawingContext *tdc;
+                parent->CallAfter([&mtx, &signal, &tdc]() {
+                    std::unique_lock<std::mutex> lck(mtx);
+                    tdc = new TextDrawingContext(10, 10 ,false);
+                    signal.notify_all();
+                });
+                signal.wait(lck);
+                return tdc;
+            }
         });
     }
     if (PATH_CONTEXT_POOL == nullptr) {
         PATH_CONTEXT_POOL = new ContextPool<PathDrawingContext>([parent]() {
-            std::mutex mtx;
-            std::condition_variable signal;
-            std::unique_lock<std::mutex> lck(mtx);
-            PathDrawingContext *tdc;
-            parent->CallAfter([&mtx, &signal, &tdc]() {
+            if (wxThread::IsMain()) {
+                return new PathDrawingContext(10, 10 ,false);
+            } else {
+                std::mutex mtx;
+                std::condition_variable signal;
                 std::unique_lock<std::mutex> lck(mtx);
-                tdc = new PathDrawingContext(10, 10 ,false);
-                signal.notify_all();
-            });
-            signal.wait(lck);
-            return tdc;
+                PathDrawingContext *tdc;
+                parent->CallAfter([&mtx, &signal, &tdc]() {
+                    std::unique_lock<std::mutex> lck(mtx);
+                    tdc = new PathDrawingContext(10, 10 ,false);
+                    signal.notify_all();
+                });
+                signal.wait(lck);
+                return tdc;
+            }
         });
     }
 }

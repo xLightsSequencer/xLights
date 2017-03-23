@@ -123,10 +123,6 @@ wxPanel *PianoEffect::CreatePanel(wxWindow *parent) {
 	return _panel;
 }
 
-bool PianoEffect::CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) {
-    return true;
-}
-
 void PianoEffect::SetDefaultParameters(Model *cls) {
     PianoPanel *pp = (PianoPanel*)panel;
     if (pp == nullptr) {

@@ -727,7 +727,20 @@ void xLightsFrame::RenderRange(RenderCommandEvent &evt) {
     RenderEffectForModel(evt.model, evt.start,  evt.end, evt.clear);
 }
 
+void xLightsFrame::RenderMainThreadEffects() {
+    std::unique_lock<std::mutex>  lock(renderEventLock);
+    while (!mainThreadRenderEvents.empty()) {
+        RenderEvent *evt = mainThreadRenderEvents.front();
+        mainThreadRenderEvents.pop();
+        lock.unlock();
+        RenderEffectOnMainThread(evt);
+        lock.lock();
+    }
+    
+}
+
 void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
+    std::unique_lock<std::mutex> lock(ev->mutex);
     ev->returnVal = RenderEffectFromMap(ev->effect,
                                         ev->layer,
                                         ev->period,
@@ -786,9 +799,11 @@ void xLightsFrame::UpdateRenderStatus() {
         return;
     }
 
+    RenderMainThreadEffects();
+
     int countModels = 0;
     int countFrames = 0;
-        for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end();) {
+    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end();) {
         
         bool done = true;
         RenderProgressInfo *rpi = *it;
@@ -1323,13 +1338,18 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 event->ResetEffectState = &resetEffectState;
                 
                 std::unique_lock<std::mutex> lock(event->mutex);
-                CallAfter(&xLightsFrame::RenderEffectOnMainThread, event);
-                if (event->signal.wait_for(lock, std::chrono::seconds(60)) == std::cv_status::no_timeout) {
+                
+                std::unique_lock<std::mutex> qlock(renderEventLock);
+                mainThreadRenderEvents.push(event);
+                qlock.unlock();
+                
+                CallAfter(&xLightsFrame::RenderMainThreadEffects);
+                if (event->signal.wait_for(lock, std::chrono::seconds(20)) == std::cv_status::no_timeout) {
                     retval = event->returnVal;
                 } else {
                     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                     logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out.", b.curPeriod, (const char *)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);
-                    printf("HELP!!!!\n");
+                    printf("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out.\n", b.curPeriod, (const char *)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);
                 }
                 if (period % 10 == 0) {
                     //constantly putting stuff on CallAfter can result in the main
