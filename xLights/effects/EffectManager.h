@@ -31,6 +31,7 @@ public:
         eff_GLEDIATOR,
         eff_LIFE,
         eff_LIGHTNING,
+		eff_LIQUID,
         eff_MARQUEE,
         eff_METEORS,
         eff_MORPH,

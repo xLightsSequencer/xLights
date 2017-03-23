@@ -18,6 +18,7 @@
 #include "GlediatorEffect.h"
 #include "LifeEffect.h"
 #include "LightningEffect.h"
+#include "LiquidEffect.h"
 #include "MarqueeEffect.h"
 #include "MeteorsEffect.h"
 #include "MorphEffect.h"
@@ -69,6 +70,7 @@ EffectManager::EffectManager()
     add(new GlediatorEffect(eff_GLEDIATOR));
     add(new LifeEffect(eff_LIFE));
     add(new LightningEffect(eff_LIGHTNING));
+    add(new LiquidEffect(eff_LIQUID));
     add(new MarqueeEffect(eff_MARQUEE));
     add(new MeteorsEffect(eff_METEORS));
     add(new MusicEffect(eff_MUSIC));

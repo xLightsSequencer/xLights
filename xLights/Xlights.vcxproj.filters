@@ -927,6 +927,12 @@
     <ClCompile Include="CustomTimingDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="effects\LiquidPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\LiquidEffect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1788,6 +1794,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CustomTimingDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\LiquidPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\LiquidEffect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

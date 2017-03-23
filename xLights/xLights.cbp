@@ -208,6 +208,7 @@
 					<Add library="../lib/windows/SDL2.lib" />
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
+					<Add library="../lib/windows/libliquidfund.a" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
@@ -267,6 +268,7 @@
 					<Add library="../lib/windows/SDL2.lib" />
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
+					<Add library="../lib/windows/libliquidfun.a" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
@@ -363,20 +365,20 @@
 				<Option compiler="gnu_gcc_64bit_compiler" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
-					<Add option="-O2" />
-					<Add option="-m64" />
+					<Add option="-march=i586" />
+					<Add option="-pedantic" />
+					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-std=gnu++14" />
 					<Add option="-fno-keep-inline-dllexport" />
-					<Add option="-static-libgcc" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
 					<Add option="-D__WXMSW__" />
 					<Add option="-DWXUSINGDLL" />
-					<Add option="-DNDEBUG" />
+					<Add option="-D__WXDEBUG__" />
 					<Add option="-D_USE_MATH_DEFINES" />
-					<Add directory="$(#wx64)/lib/gcc_dll/mswu" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
 					<Add directory="../xLights" />
@@ -384,38 +386,34 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="effects/assist" />
-					<Add directory="models/" />
 					<Add directory="ffmpeg-dev/include" />
 					<Add directory="../include" />
+					<Add directory="models/" />
 					<Add directory="support" />
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="$(#wx64)/include" />
-					<Add directory="$(#wx64)/lib/gcc_dll/mswu" />
+					<Add directory="$(#wx)/include" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 				</ResourceCompiler>
 				<Linker>
-					<Add option="-s" />
-					<Add option="-m64" />
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../bin64/xLights.map" />
-					<Add library="libwxmsw31u.a" />
-					<Add library="libwxmsw31u_gl.a" />
-					<Add library="../lib/windows64/libdbghelp.a" />
-					<Add library="../lib/windows64/libimagehlp.a" />
-					<Add library="../lib/windows64/avcodec.lib" />
-					<Add library="../lib/windows64/avformat.lib" />
-					<Add library="../lib/windows64/avutil.lib" />
-					<Add library="../lib/windows64/SDL2.lib" />
-					<Add library="../lib/windows64/swresample.lib" />
-					<Add library="../lib/windows64/swscale.lib" />
-					<Add library="../lib/windows64/liblog4cpp.a" />
-					<Add directory="$(#wx64)/lib/gcc_dll" />
+					<Add option="-Wl,-Map=../bin/xLights.map" />
+					<Add option="-Wl,--large-address-aware" />
+					<Add library="libwxmsw31ud.a" />
+					<Add library="libwxmsw31ud_gl.a" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/avcodec.lib" />
+					<Add library="../lib/windows/avformat.lib" />
+					<Add library="../lib/windows/avutil.lib" />
+					<Add library="../lib/windows/swresample.lib" />
+					<Add library="../lib/windows/SDL2.lib" />
+					<Add library="../lib/windows/swscale.lib" />
+					<Add library="../lib/windows/liblog4cpp.lib" />
+					<Add library="../lib/windows/liquidfund.lib" />
+					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
-				<ExtraCommands>
-					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
-					<Mode after="always" />
-				</ExtraCommands>
 			</Target>
 			<Target title="64bit MinGW_Debug">
 				<Option platforms="Windows;" />
@@ -753,6 +751,10 @@
 		<Unit filename="effects/LightningEffect.h" />
 		<Unit filename="effects/LightningPanel.cpp" />
 		<Unit filename="effects/LightningPanel.h" />
+		<Unit filename="effects/LiquidEffect.cpp" />
+		<Unit filename="effects/LiquidEffect.h" />
+		<Unit filename="effects/LiquidPanel.cpp" />
+		<Unit filename="effects/LiquidPanel.h" />
 		<Unit filename="effects/MarqueeEffect.cpp" />
 		<Unit filename="effects/MarqueeEffect.h" />
 		<Unit filename="effects/MarqueePanel.cpp" />
@@ -1097,6 +1099,7 @@
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
+		<Unit filename="wxsmith/LiquidPanel.wxs" />
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
 		<Unit filename="wxsmith/LyricsDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
@@ -1271,6 +1274,7 @@
 					<wxPanel wxs="wxsmith/StatePanel.wxs" src="effects/StatePanel.cpp" hdr="effects/StatePanel.h" fwddecl="1" i18n="1" name="StatePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/StrobePanel.wxs" src="effects/StrobePanel.cpp" hdr="effects/StrobePanel.h" fwddecl="1" i18n="1" name="StrobePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TendrilPanel.wxs" src="effects/TendrilPanel.cpp" hdr="effects/TendrilPanel.h" fwddecl="1" i18n="1" name="TendrilPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/LiquidPanel.wxs" src="effects/LiquidPanel.cpp" hdr="effects/LiquidPanel.h" fwddecl="1" i18n="1" name="LiquidPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TextPanel.wxs" src="effects/TextPanel.cpp" hdr="effects/TextPanel.h" fwddecl="1" i18n="1" name="TextPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TreePanel.wxs" src="effects/TreePanel.cpp" hdr="effects/TreePanel.h" fwddecl="1" i18n="1" name="TreePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TwinklePanel.wxs" src="effects/TwinklePanel.cpp" hdr="effects/TwinklePanel.h" fwddecl="1" i18n="1" name="TwinklePanel" language="CPP" />
