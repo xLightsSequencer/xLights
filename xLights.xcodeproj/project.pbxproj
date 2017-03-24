@@ -175,6 +175,7 @@
 		679DD28E1DDE493900A389E6 /* TouchBars.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679DD28D1DDE493900A389E6 /* TouchBars.cpp */; };
 		67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */; };
 		67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */; };
+		67A4E02C1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A4E02A1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp */; };
 		67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */; };
 		67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619C817B51C0F008E95BB /* EffectListDialog.cpp */; };
 		67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619CA17B51C0F008E95BB /* EffectsPanel.cpp */; };
@@ -562,19 +563,19 @@
 		1E3E25031E3716CF001D48E3 /* PlayListItemTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemTest.h; path = PlayList/PlayListItemTest.h; sourceTree = "<group>"; };
 		1E3E25041E3716CF001D48E3 /* PlayListItemTestPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemTestPanel.cpp; path = PlayList/PlayListItemTestPanel.cpp; sourceTree = "<group>"; };
 		1E3E25051E3716CF001D48E3 /* PlayListItemTestPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemTestPanel.h; path = PlayList/PlayListItemTestPanel.h; sourceTree = "<group>"; };
-		3D585F281E7E50A200A3F84F /* jsonreader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jsonreader.cpp; path = xSchedule/wxJSON/jsonreader.cpp; sourceTree = "<group>"; };
-		3D585F291E7E50A200A3F84F /* jsonval.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jsonval.cpp; path = xSchedule/wxJSON/jsonval.cpp; sourceTree = "<group>"; };
-		3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = UtilFunctions.cpp; path = xLights/UtilFunctions.cpp; sourceTree = "<group>"; };
-		3D585F2E1E7E52F700A3F84F /* SequenceData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SequenceData.cpp; path = xLights/SequenceData.cpp; sourceTree = "<group>"; };
-		3D585F301E7E541400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = UtilFunctions.cpp; path = xLights/UtilFunctions.cpp; sourceTree = "<group>"; };
+		3D585F281E7E50A200A3F84F /* jsonreader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jsonreader.cpp; path = wxJSON/jsonreader.cpp; sourceTree = "<group>"; };
+		3D585F291E7E50A200A3F84F /* jsonval.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jsonval.cpp; path = wxJSON/jsonval.cpp; sourceTree = "<group>"; };
+		3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = UtilFunctions.cpp; path = ../xLights/UtilFunctions.cpp; sourceTree = "<group>"; };
+		3D585F2E1E7E52F700A3F84F /* SequenceData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SequenceData.cpp; path = ../xLights/SequenceData.cpp; sourceTree = "<group>"; };
+		3D585F301E7E541400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UtilFunctions.cpp; sourceTree = "<group>"; };
 		3D585F321E7E8D7900A3F84F /* DDPDialog.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DDPDialog.cpp; path = xLights/outputs/DDPDialog.cpp; sourceTree = "<group>"; };
 		3D585F331E7E8D7900A3F84F /* DDPDialog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DDPDialog.h; path = xLights/outputs/DDPDialog.h; sourceTree = "<group>"; };
 		3D585F341E7E8D7900A3F84F /* DDPOutput.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DDPOutput.cpp; path = xLights/outputs/DDPOutput.cpp; sourceTree = "<group>"; };
 		3D585F351E7E8D7900A3F84F /* DDPOutput.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DDPOutput.h; path = xLights/outputs/DDPOutput.h; sourceTree = "<group>"; };
-		3D585F3A1E7E8E7D00A3F84F /* DDPDialog.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DDPDialog.cpp; path = xLights/outputs/DDPDialog.cpp; sourceTree = "<group>"; };
-		3D585F3B1E7E8E7D00A3F84F /* DDPOutput.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DDPOutput.cpp; path = xLights/outputs/DDPOutput.cpp; sourceTree = "<group>"; };
-		3D585F3E1E7E8EAD00A3F84F /* DDPDialog.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DDPDialog.cpp; path = xLights/outputs/DDPDialog.cpp; sourceTree = "<group>"; };
-		3D585F3F1E7E8EAD00A3F84F /* DDPOutput.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DDPOutput.cpp; path = xLights/outputs/DDPOutput.cpp; sourceTree = "<group>"; };
+		3D585F3A1E7E8E7D00A3F84F /* DDPDialog.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DDPDialog.cpp; path = outputs/DDPDialog.cpp; sourceTree = "<group>"; };
+		3D585F3B1E7E8E7D00A3F84F /* DDPOutput.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DDPOutput.cpp; path = outputs/DDPOutput.cpp; sourceTree = "<group>"; };
+		3D585F3E1E7E8EAD00A3F84F /* DDPDialog.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DDPDialog.cpp; path = outputs/DDPDialog.cpp; sourceTree = "<group>"; };
+		3D585F3F1E7E8EAD00A3F84F /* DDPOutput.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DDPOutput.cpp; path = outputs/DDPOutput.cpp; sourceTree = "<group>"; };
 		6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PixelAppearanceDlg.cpp; sourceTree = "<group>"; };
 		6700FD951AD8075400084A71 /* PixelAppearanceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelAppearanceDlg.h; sourceTree = "<group>"; };
 		6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderProgressDialog.cpp; sourceTree = "<group>"; };
@@ -868,6 +869,8 @@
 		67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils.cpp; sourceTree = "<group>"; };
 		67A260ED1AB71EE3006B140D /* DrawGLUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DrawGLUtils.h; sourceTree = "<group>"; };
 		67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExportModelSelect.cpp; sourceTree = "<group>"; };
+		67A4E02A1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CustomTimingDialog.cpp; sourceTree = "<group>"; };
+		67A4E02B1E85AF1E00EBFAD9 /* CustomTimingDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomTimingDialog.h; sourceTree = "<group>"; };
 		67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ChannelLayoutDialog.cpp; sourceTree = "<group>"; };
 		67A619BF17B51C0F008E95BB /* ChannelLayoutDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChannelLayoutDialog.h; sourceTree = "<group>"; };
 		67A619C817B51C0F008E95BB /* EffectListDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectListDialog.cpp; sourceTree = "<group>"; };
@@ -1800,6 +1803,10 @@
 		67B2B1F51E19478D0024F0BB /* Outputs */ = {
 			isa = PBXGroup;
 			children = (
+				3D585F3E1E7E8EAD00A3F84F /* DDPDialog.cpp */,
+				3D585F3F1E7E8EAD00A3F84F /* DDPOutput.cpp */,
+				3D585F3A1E7E8E7D00A3F84F /* DDPDialog.cpp */,
+				3D585F3B1E7E8E7D00A3F84F /* DDPOutput.cpp */,
 				67B2B1F81E1947BE0024F0BB /* ArtNetDialog.cpp */,
 				67B2B1F91E1947BE0024F0BB /* ArtNetDialog.h */,
 				67B2B1FA1E1947BE0024F0BB /* ArtNetOutput.cpp */,
@@ -1880,15 +1887,6 @@
 		67E7086417B51AB400A22034 = {
 			isa = PBXGroup;
 			children = (
-				3D585F3E1E7E8EAD00A3F84F /* DDPDialog.cpp */,
-				3D585F3F1E7E8EAD00A3F84F /* DDPOutput.cpp */,
-				3D585F3A1E7E8E7D00A3F84F /* DDPDialog.cpp */,
-				3D585F3B1E7E8E7D00A3F84F /* DDPOutput.cpp */,
-				3D585F301E7E541400A3F84F /* UtilFunctions.cpp */,
-				3D585F2E1E7E52F700A3F84F /* SequenceData.cpp */,
-				3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */,
-				3D585F281E7E50A200A3F84F /* jsonreader.cpp */,
-				3D585F291E7E50A200A3F84F /* jsonval.cpp */,
 				6733CF041E60659E00B97F60 /* xschedule.mac.properties */,
 				67D2B04B1D54CCA4006D324F /* colorcurves */,
 				67AA379D1C7E3703001D2377 /* SDL2.framework */,
@@ -1985,6 +1983,9 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				3D585F301E7E541400A3F84F /* UtilFunctions.cpp */,
+				67A4E02A1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp */,
+				67A4E02B1E85AF1E00EBFAD9 /* CustomTimingDialog.h */,
 				67BCD1531E6DAF9100F99935 /* xLightsVersion.cpp */,
 				67BCD1541E6DAF9100F99935 /* xLightsVersion.h */,
 				67E8F64E1E513B380096546A /* IPEntryDialog.cpp */,
@@ -2241,6 +2242,10 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				3D585F2E1E7E52F700A3F84F /* SequenceData.cpp */,
+				3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */,
+				3D585F281E7E50A200A3F84F /* jsonreader.cpp */,
+				3D585F291E7E50A200A3F84F /* jsonval.cpp */,
 				67BCD14D1E6DADFC00F99935 /* Blend.cpp */,
 				67BCD14E1E6DADFC00F99935 /* Blend.h */,
 				67C581361E4B95A400932DFA /* OutputProcessReverse.h */,
@@ -2673,6 +2678,7 @@
 				67B2CFE31C3A186A003C17CA /* PlasmaEffect.cpp in Sources */,
 				671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */,
 				67B2CF8F1C39D98A003C17CA /* CurtainPanel.cpp in Sources */,
+				67A4E02C1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp in Sources */,
 				67EE95B31C848A3600C62C95 /* VideoEffect.cpp in Sources */,
 				67A61A3217B51C0F008E95BB /* PaletteMgmtDialog.cpp in Sources */,
 				67B2B2301E1947BE0024F0BB /* Output.cpp in Sources */,
