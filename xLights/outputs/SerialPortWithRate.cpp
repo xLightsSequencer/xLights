@@ -46,7 +46,7 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent, SerialOutput** serial, 
     wxStaticBoxSizer* StaticBoxSizer1;
     wxFlexGridSizer* FlexGridSizer1;
 
-    Create(parent, id, _("USB Setup"), pos, size, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("USB Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Network Type (protocol)"));
     FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -56,6 +56,7 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent, SerialOutput** serial, 
     ChoiceProtocol->Append(_("LOR"));
     ChoiceProtocol->Append(_("D-Light"));
     ChoiceProtocol->Append(_("Renard"));
+    ChoiceProtocol->Append(_("OpenDMX"));
     FlexGridSizer3->Add(ChoiceProtocol, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticTextExplanation = new wxStaticText(this, ID_STATICTEXT_EXPLANATION, _("DMX controllers (or LOR or D-Light controllers in DMX mode)\nattached to an Entec DMX USB Pro, Lynx DMX dongle,\nDIYC RPM, DMXking.com, or DIY Blinky dongle.\n\nLast Channel should be 512 or less, unless you are using\na DIY Blinky dongle (in which case it can be up to 3036)."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_EXPLANATION"));
     FlexGridSizer3->Add(StaticTextExplanation, 1, wxALL|wxEXPAND, 5);
@@ -119,13 +120,6 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent, SerialOutput** serial, 
     {
         ChoicePort->Append(*it);
     }
-
-#ifndef __WXOSX__
-    // why is this not applicable to the mac?
-    ChoiceProtocol->Append(_("OpenDMX"));
-
-    // Why no PixelNet-Open?
-#endif
 
     FlexGridSizer1->Fit(this);
 

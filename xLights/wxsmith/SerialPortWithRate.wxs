@@ -19,6 +19,7 @@
 										<item>LOR</item>
 										<item>D-Light</item>
 										<item>Renard</item>
+										<item>OpenDMX</item>
 									</content>
 									<selection>0</selection>
 									<handler function="OnChoiceProtocolSelect" entry="EVT_CHOICE" />
