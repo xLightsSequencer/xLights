@@ -924,6 +924,9 @@
     <ClCompile Include="outputs\DDPOutput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CustomTimingDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1782,6 +1785,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="outputs\DDPOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CustomTimingDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

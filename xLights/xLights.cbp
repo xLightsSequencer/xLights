@@ -509,6 +509,8 @@
 		<Unit filename="CurrentPreviewModels.h" />
 		<Unit filename="CustomModelDialog.cpp" />
 		<Unit filename="CustomModelDialog.h" />
+		<Unit filename="CustomTimingDialog.cpp" />
+		<Unit filename="CustomTimingDialog.h" />
 		<Unit filename="DataLayer.cpp" />
 		<Unit filename="DataLayer.h" />
 		<Unit filename="DimmingCurve.cpp" />
@@ -1071,6 +1073,7 @@
 		<Unit filename="wxsmith/CurrentPreviewModels.wxs" />
 		<Unit filename="wxsmith/CurtainPanel.wxs" />
 		<Unit filename="wxsmith/CustomModelDialog.wxs" />
+		<Unit filename="wxsmith/CustomTimingDialog.wxs" />
 		<Unit filename="wxsmith/DDPDialog.wxs" />
 		<Unit filename="wxsmith/DMXPanel.wxs" />
 		<Unit filename="wxsmith/DisplayElementsPanel.wxs" />
@@ -1301,6 +1304,7 @@
 					<wxPanel wxs="wxsmith/ServoPanel.wxs" src="effects/ServoPanel.cpp" hdr="effects/ServoPanel.h" fwddecl="1" i18n="1" name="ServoPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/VsaImportDialog.wxs" src="VsaImportDialog.cpp" hdr="VsaImportDialog.h" fwddecl="0" i18n="1" name="VsaImportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/IPEntryDialog.wxs" src="IPEntryDialog.cpp" hdr="IPEntryDialog.h" fwddecl="0" i18n="1" name="IPEntryDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/CustomTimingDialog.wxs" src="CustomTimingDialog.cpp" hdr="CustomTimingDialog.h" fwddecl="0" i18n="1" name="CustomTimingDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

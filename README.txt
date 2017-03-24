@@ -38,6 +38,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Add support for the DDP protocol http://www.3waylabs.com/ddp/ - a very light weight ethernet protocol
    -- enh (keith)   Add model export to Minleon Network Effects Controller file which can be loaded onto SD card
    -- bug (keith)   Fix video display in xSchedule on OSX
+   -- enh (keith)   Add custom frame rates to new sequence setup
    -- enh (billy)   Enhance scheduler web interface. More functionality. More responsive.
 2017.6  Feb 27, 2017
    -- bug (dkulp)   Fix xScheduler logging on OSX

@@ -202,15 +202,8 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxChoice" name="ID_CHOICE_Xml_Seq_Timing" variable="Choice_Xml_Seq_Timing" member="yes">
-												<content>
-													<item>25 ms</item>
-													<item>50 ms</item>
-													<item>100 ms</item>
-												</content>
-												<selection>1</selection>
-												<enabled>0</enabled>
-												<handler function="OnChoice_Xml_Seq_TimingSelect" entry="EVT_CHOICE" />
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_SeqTiming" variable="TextCtrl_SeqTiming" member="yes">
+												<style>wxTE_READONLY</style>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
