@@ -1729,28 +1729,35 @@ void xScheduleFrame::UpdateStatus()
     {
         UserButton* b = __schedule->GetOptions()->GetButton((*it)->GetLabel().ToStdString());
 
-        std::string command = b->GetCommand();
-        std::string parameters = b->GetParameters();
-
-        PlayList* playlist = nullptr;
-        Schedule* schedule = nullptr;
-
-        wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
-
-        if (IsPlayList(treeitem))
+        if (b != nullptr)
         {
-            playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-        }
-        else if (IsSchedule(treeitem))
-        {
-            schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-        }
+            std::string command = b->GetCommand();
+            std::string parameters = b->GetParameters();
 
-        Command* c = __schedule->GetCommand(command);
-        std::string msg;
-        if (c != nullptr && c->IsValid(parameters, playlist, schedule, __schedule, msg, __schedule->IsQueuedPlaylistRunning()))
-        {
-            (*it)->Enable();
+            PlayList* playlist = nullptr;
+            Schedule* schedule = nullptr;
+
+            wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+
+            if (IsPlayList(treeitem))
+            {
+                playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+            }
+            else if (IsSchedule(treeitem))
+            {
+                schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+            }
+
+            Command* c = __schedule->GetCommand(command);
+            std::string msg;
+            if (c != nullptr && c->IsValid(parameters, playlist, schedule, __schedule, msg, __schedule->IsQueuedPlaylistRunning()))
+            {
+                (*it)->Enable();
+            }
+            else
+            {
+                (*it)->Enable(false);
+            }
         }
         else
         {
