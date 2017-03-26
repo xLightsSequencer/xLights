@@ -40,6 +40,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Fix video display in xSchedule on OSX
    -- enh (keith)   Add custom frame rates to new sequence setup
    -- bug (keith)   Fix triangle wave left to right not working
+   -- bug (keith)   Fix some rounding issues that was throwing video timing off when aligned to audio track.
    -- enh (billy)   Enhance scheduler web interface. More functionality. More responsive.
 2017.6  Feb 27, 2017
    -- bug (dkulp)   Fix xScheduler logging on OSX

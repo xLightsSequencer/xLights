@@ -214,7 +214,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         if (buffer.GetMedia() != nullptr)
         {
             filename = buffer.GetMedia()->FileName();
-            starttime = buffer.curEffStartPer * buffer.frameTimeInMs / 1000;
+            starttime = (double)buffer.curEffStartPer * (double)buffer.frameTimeInMs / 1000.0;
         }
     }
 
