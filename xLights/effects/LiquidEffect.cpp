@@ -7,6 +7,8 @@
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
 #include <UtilFunctions.h>
+#include <SequenceCheck.h>
+#include "../models/Model.h"
 
 #include "../../include/liquid-16.xpm"
 #include "../../include/liquid-24.xpm"
@@ -24,6 +26,22 @@ LiquidEffect::~LiquidEffect()
 
 wxPanel *LiquidEffect::CreatePanel(wxWindow *parent) {
     return new LiquidPanel(parent);
+}
+
+std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    if (media == nullptr && (settings.GetBool("E_CHECKBOX_FlowMusic1", false) ||
+        settings.GetBool("E_CHECKBOX_FlowMusic2", false) ||
+        settings.GetBool("E_CHECKBOX_FlowMusic3", false) ||
+        settings.GetBool("E_CHECKBOX_FlowMusic4", false))
+        )
+    {
+        res.push_back(wxString::Format("    WARN: Liquid effect cant change flow to music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+
+    return res;
 }
 
 void LiquidEffect::SetDefaultParameters(Model *cls) {
@@ -48,6 +66,7 @@ void LiquidEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(tp->Slider_Flow1, 100);
     SetSliderValue(tp->Slider_Size, 500);
     SetSliderValue(tp->Slider_Velocity1, 100);
+    SetCheckBoxValue(tp->CheckBox_FlowMusic1, false);
 
     SetCheckBoxValue(tp->CheckBox_Enabled2, false);
     SetSliderValue(tp->Slider_X2, 0);
@@ -55,6 +74,7 @@ void LiquidEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(tp->Slider_Direction2, 0);
     SetSliderValue(tp->Slider_Flow2, 100);
     SetSliderValue(tp->Slider_Velocity2, 100);
+    SetCheckBoxValue(tp->CheckBox_FlowMusic2, false);
 
     SetCheckBoxValue(tp->CheckBox_Enabled3, false);
     SetSliderValue(tp->Slider_X3, 50);
@@ -62,6 +82,7 @@ void LiquidEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(tp->Slider_Direction3, 90);
     SetSliderValue(tp->Slider_Flow3, 100);
     SetSliderValue(tp->Slider_Velocity3, 100);
+    SetCheckBoxValue(tp->CheckBox_FlowMusic3, false);
 
     SetCheckBoxValue(tp->CheckBox_Enabled4, false);
     SetSliderValue(tp->Slider_X4, 100);
@@ -69,12 +90,12 @@ void LiquidEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(tp->Slider_Direction4, 180);
     SetSliderValue(tp->Slider_Flow4, 100);
     SetSliderValue(tp->Slider_Velocity4, 100);
+    SetCheckBoxValue(tp->CheckBox_FlowMusic4, false);
 
     tp->BitmapButton_LifeTime->SetActive(false);
 
     tp->BitmapButton_X1->SetActive(false);
     tp->BitmapButton_Y1->SetActive(false);
-    tp->BitmapButton_Size->SetActive(false);
     tp->BitmapButton_Velocity1->SetActive(false);
     tp->BitmapButton_Direction1->SetActive(false);
     tp->BitmapButton_Flow1->SetActive(false);
@@ -117,6 +138,7 @@ void LiquidEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         GetValueCurveInt("Y1", 50, SettingsMap, oset),
         GetValueCurveInt("Velocity1", 100, SettingsMap, oset),
         GetValueCurveInt("Flow1", 100, SettingsMap, oset),
+        SettingsMap.GetBool("CHECKBOX_FlowMusic1", false),
 
         SettingsMap.GetBool("CHECKBOX_Enabled2", false),
         GetValueCurveInt("Direction2", 270, SettingsMap, oset),
@@ -124,6 +146,7 @@ void LiquidEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         GetValueCurveInt("Y2", 50, SettingsMap, oset),
         GetValueCurveInt("Velocity2", 100, SettingsMap, oset),
         GetValueCurveInt("Flow2", 100, SettingsMap, oset),
+        SettingsMap.GetBool("CHECKBOX_FlowMusic2", false),
 
         SettingsMap.GetBool("CHECKBOX_Enabled3", false),
         GetValueCurveInt("Direction3", 270, SettingsMap, oset),
@@ -131,6 +154,7 @@ void LiquidEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         GetValueCurveInt("Y3", 50, SettingsMap, oset),
         GetValueCurveInt("Velocity3", 100, SettingsMap, oset),
         GetValueCurveInt("Flow3", 100, SettingsMap, oset),
+        SettingsMap.GetBool("CHECKBOX_FlowMusic3", false),
 
         SettingsMap.GetBool("CHECKBOX_Enabled4", false),
         GetValueCurveInt("Direction4", 270, SettingsMap, oset),
@@ -138,6 +162,7 @@ void LiquidEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         GetValueCurveInt("Y4", 50, SettingsMap, oset),
         GetValueCurveInt("Velocity4", 100, SettingsMap, oset),
         GetValueCurveInt("Flow4", 100, SettingsMap, oset),
+        SettingsMap.GetBool("CHECKBOX_FlowMusic4", false),
 
         SettingsMap.Get("CHOICE_ParticleType", "Elastic")
         );
@@ -192,7 +217,7 @@ void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColo
     }
 }
 
-void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors)
+void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel)
 {
     static const float pi2 = 6.283185307f;
     float posx = (float)x * (float)width / 100.0;
@@ -203,7 +228,13 @@ void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direc
 
     float lt = lifetime / 100.0;
 
-    for (int i = 0; i < flow; i++)
+    int count = flow;
+    if (flowMusic)
+    {
+        count *= audioLevel;
+    }
+
+    for (int i = 0; i < count; i++)
     {
         b2ParticleDef pd;
         if (particleType == "Elastic")
@@ -272,7 +303,7 @@ void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direc
             float randomlt = lt + (lt * 0.2 * rand01()) - (lt *.01);
             pd.lifetime = randomlt;
         }
-        auto index = ps->CreateParticle(pd);
+        ps->CreateParticle(pd);
     }
 }
 
@@ -288,11 +319,11 @@ void LiquidEffect::CreateParticleSystem(b2World* world, int lifetime, int size)
     }
 }
 
-void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], int lifetime, const std::string& particleType, bool mixcolors, 
-    int x1, int y1, int direction1, int velocity1, int flow1,
-    int x2, int y2, int direction2, int velocity2, int flow2,
-    int x3, int y3, int direction3, int velocity3, int flow3,
-    int x4, int y4, int direction4, int velocity4, int flow4
+void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], int lifetime, const std::string& particleType, bool mixcolors,
+    int x1, int y1, int direction1, int velocity1, int flow1, bool flowMusic1,
+    int x2, int y2, int direction2, int velocity2, int flow2, bool flowMusic2,
+    int x3, int y3, int direction3, int velocity3, int flow3, bool flowMusic3,
+    int x4, int y4, int direction4, int velocity4, int flow4, bool flowMusic4
 )
 {
     // move all existing items
@@ -306,6 +337,16 @@ void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], in
     b2ParticleSystem* ps = world->GetParticleSystemList();
     if (ps != nullptr)
     {
+        float audioLevel = 0.0001f;
+        if (buffer.GetMedia() != nullptr)
+        {
+            std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            if (pf != nullptr)
+            {
+                audioLevel = *pf->begin();
+            }
+        }
+
         int j = 0;
         for (int i = 0; i < 4; i++)
         {
@@ -317,16 +358,16 @@ void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], in
                 switch (i)
                 {
                 case 0:
-                    CreateParticles(ps, x1, y1, direction1, velocity1, flow1, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors);
+                    CreateParticles(ps, x1, y1, direction1, velocity1, flow1, flowMusic1, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel);
                     break;
                 case 1:
-                    CreateParticles(ps, x2, y2, direction2, velocity2, flow2, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors);
+                    CreateParticles(ps, x2, y2, direction2, velocity2, flow2, flowMusic2, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel);
                     break;
                 case 2:
-                    CreateParticles(ps, x3, y3, direction3, velocity3, flow3, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors);
+                    CreateParticles(ps, x3, y3, direction3, velocity3, flow3, flowMusic3, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel);
                     break;
                 case 3:
-                    CreateParticles(ps, x4, y4, direction4, velocity4, flow4, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors);
+                    CreateParticles(ps, x4, y4, direction4, velocity4, flow4, flowMusic4, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel);
                     break;
                 }
                 j++;
@@ -338,10 +379,10 @@ void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], in
 void LiquidEffect::Render(RenderBuffer &buffer,
     bool top, bool bottom, bool left, bool right,
     int lifetime, bool holdcolor, bool mixcolors, int size, int warmUpFrames,
-    int direction1, int x1, int y1, int velocity1, int flow1,
-    bool enabled2, int direction2, int x2, int y2, int velocity2, int flow2,
-    bool enabled3, int direction3, int x3, int y3, int velocity3, int flow3,
-    bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4,
+    int direction1, int x1, int y1, int velocity1, int flow1, bool flowMusic1,
+    bool enabled2, int direction2, int x2, int y2, int velocity2, int flow2, bool flowMusic2,
+    bool enabled3, int direction3, int x3, int y3, int velocity3, int flow3, bool flowMusic3,
+    bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4, bool flowMusic4,
     const std::string& particleType)
 {
     bool enabled[4];
@@ -392,19 +433,19 @@ void LiquidEffect::Render(RenderBuffer &buffer,
         for (int i = 0; i < warmUpFrames; ++i)
         {
             Step(_world, buffer, enabled, lifetime, particleType, mixcolors,
-                x1, y1, direction1, velocity1, flow1,
-                x2, y2, direction2, velocity2, flow3,
-                x3, y3, direction3, velocity3, flow3,
-                x4, y4, direction4, velocity4, flow4
+                x1, y1, direction1, velocity1, flow1, flowMusic1,
+                x2, y2, direction2, velocity2, flow2, flowMusic2,
+                x3, y3, direction3, velocity3, flow3, flowMusic3,
+                x4, y4, direction4, velocity4, flow4, flowMusic4
             );
         }
     }
 
     Step(_world, buffer, enabled, lifetime, particleType, mixcolors,
-        x1, y1, direction1, velocity1, flow1,
-        x2, y2, direction2, velocity2, flow3,
-        x3, y3, direction3, velocity3, flow3,
-        x4, y4, direction4, velocity4, flow4
+        x1, y1, direction1, velocity1, flow1, flowMusic1,
+        x2, y2, direction2, velocity2, flow2, flowMusic2,
+        x3, y3, direction3, velocity3, flow3, flowMusic3,
+        x4, y4, direction4, velocity4, flow4, flowMusic4
     );
 
     // create new particles

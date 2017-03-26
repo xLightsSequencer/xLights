@@ -80,6 +80,7 @@ class LiquidPanel: public wxPanel
 		wxTextCtrl* TextCtrl_WarmUpFrames;
 		wxSlider* Slider_Direction4;
 		wxStaticText* StaticText44;
+		wxCheckBox* CheckBox_FlowMusic4;
 		wxPanel* Panel3;
 		ValueCurveButton* BitmapButton_Flow3;
 		wxStaticText* StaticText23;
@@ -89,7 +90,6 @@ class LiquidPanel: public wxPanel
 		ValueCurveButton* BitmapButton_Direction1;
 		wxTextCtrl* TextCtrl_Flow4;
 		wxTextCtrl* TextCtrl_Velocity3;
-		ValueCurveButton* BitmapButton_Size;
 		wxTextCtrl* TextCtrl_Flow2;
 		wxTextCtrl* TextCtrl_Y1;
 		wxCheckBox* CheckBox_TopBarrier;
@@ -100,6 +100,7 @@ class LiquidPanel: public wxPanel
 		wxSlider* Slider_Velocity3;
 		wxSlider* Slider_Y4;
 		wxTextCtrl* TextCtrl_Flow1;
+		wxCheckBox* CheckBox_FlowMusic2;
 		wxSlider* Slider_Flow1;
 		ValueCurveButton* BitmapButton_Y3;
 		wxSlider* Slider_Flow3;
@@ -113,6 +114,7 @@ class LiquidPanel: public wxPanel
 		wxTextCtrl* TextCtrl_Direction3;
 		ValueCurveButton* BitmapButton_Direction2;
 		wxTextCtrl* TextCtrl_X2;
+		wxCheckBox* CheckBox_FlowMusic3;
 		wxStaticText* StaticText35;
 		wxCheckBox* CheckBox_HoldColor;
 		wxTextCtrl* TextCtrl_X4;
@@ -133,6 +135,7 @@ class LiquidPanel: public wxPanel
 		ValueCurveButton* BitmapButton_Flow1;
 		wxStaticText* StaticText46;
 		ValueCurveButton* BitmapButton_X3;
+		wxCheckBox* CheckBox_FlowMusic1;
 		wxSlider* Slider_WarmUpFrames;
 		//*)
 
@@ -153,7 +156,6 @@ class LiquidPanel: public wxPanel
 		static const long ID_TEXTCTRL_LifeTime;
 		static const long ID_STATICTEXT8;
 		static const long IDD_SLIDER_Size;
-		static const long ID_VALUECURVE_Size;
 		static const long ID_TEXTCTRL_Size;
 		static const long ID_STATICTEXT9;
 		static const long IDD_SLIDER_WarmUpFrames;
@@ -178,6 +180,7 @@ class LiquidPanel: public wxPanel
 		static const long IDD_SLIDER_Flow1;
 		static const long ID_VALUECURVE_Flow1;
 		static const long ID_TEXTCTRL_Flow1;
+		static const long ID_CHECKBOX_FlowMusic1;
 		static const long ID_PANEL1;
 		static const long ID_CHECKBOX_Enabled2;
 		static const long ID_STATICTEXT22;
@@ -200,6 +203,7 @@ class LiquidPanel: public wxPanel
 		static const long IDD_SLIDER_Flow2;
 		static const long ID_VALUECURVE_Flow2;
 		static const long ID_TEXTCTRL_Flow2;
+		static const long ID_CHECKBOX_FlowMusic2;
 		static const long ID_PANEL2;
 		static const long ID_CHECKBOX_Enabled3;
 		static const long ID_STATICTEXT32;
@@ -222,6 +226,7 @@ class LiquidPanel: public wxPanel
 		static const long IDD_SLIDER_Flow3;
 		static const long ID_VALUECURVE_Flow3;
 		static const long ID_TEXTCTRL_Flow3;
+		static const long ID_CHECKBOX_FlowMusic3;
 		static const long ID_PANEL3;
 		static const long ID_CHECKBOX_Enabled4;
 		static const long ID_STATICTEXT42;
@@ -244,6 +249,7 @@ class LiquidPanel: public wxPanel
 		static const long IDD_SLIDER_Flow4;
 		static const long ID_VALUECURVE_Flow4;
 		static const long ID_TEXTCTRL_Flow4;
+		static const long ID_CHECKBOX_FlowMusic4;
 		static const long ID_PANEL4;
 		static const long ID_NOTEBOOK1;
 		//*)

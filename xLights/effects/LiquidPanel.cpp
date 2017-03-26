@@ -1,5 +1,4 @@
 #include "LiquidPanel.h"
-#include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(LiquidPanel)
@@ -34,7 +33,6 @@ const long LiquidPanel::ID_VALUECURVE_LifeTime = wxNewId();
 const long LiquidPanel::ID_TEXTCTRL_LifeTime = wxNewId();
 const long LiquidPanel::ID_STATICTEXT8 = wxNewId();
 const long LiquidPanel::IDD_SLIDER_Size = wxNewId();
-const long LiquidPanel::ID_VALUECURVE_Size = wxNewId();
 const long LiquidPanel::ID_TEXTCTRL_Size = wxNewId();
 const long LiquidPanel::ID_STATICTEXT9 = wxNewId();
 const long LiquidPanel::IDD_SLIDER_WarmUpFrames = wxNewId();
@@ -59,6 +57,7 @@ const long LiquidPanel::ID_STATICTEXT6 = wxNewId();
 const long LiquidPanel::IDD_SLIDER_Flow1 = wxNewId();
 const long LiquidPanel::ID_VALUECURVE_Flow1 = wxNewId();
 const long LiquidPanel::ID_TEXTCTRL_Flow1 = wxNewId();
+const long LiquidPanel::ID_CHECKBOX_FlowMusic1 = wxNewId();
 const long LiquidPanel::ID_PANEL1 = wxNewId();
 const long LiquidPanel::ID_CHECKBOX_Enabled2 = wxNewId();
 const long LiquidPanel::ID_STATICTEXT22 = wxNewId();
@@ -81,6 +80,7 @@ const long LiquidPanel::ID_STATICTEXT26 = wxNewId();
 const long LiquidPanel::IDD_SLIDER_Flow2 = wxNewId();
 const long LiquidPanel::ID_VALUECURVE_Flow2 = wxNewId();
 const long LiquidPanel::ID_TEXTCTRL_Flow2 = wxNewId();
+const long LiquidPanel::ID_CHECKBOX_FlowMusic2 = wxNewId();
 const long LiquidPanel::ID_PANEL2 = wxNewId();
 const long LiquidPanel::ID_CHECKBOX_Enabled3 = wxNewId();
 const long LiquidPanel::ID_STATICTEXT32 = wxNewId();
@@ -103,6 +103,7 @@ const long LiquidPanel::ID_STATICTEXT36 = wxNewId();
 const long LiquidPanel::IDD_SLIDER_Flow3 = wxNewId();
 const long LiquidPanel::ID_VALUECURVE_Flow3 = wxNewId();
 const long LiquidPanel::ID_TEXTCTRL_Flow3 = wxNewId();
+const long LiquidPanel::ID_CHECKBOX_FlowMusic3 = wxNewId();
 const long LiquidPanel::ID_PANEL3 = wxNewId();
 const long LiquidPanel::ID_CHECKBOX_Enabled4 = wxNewId();
 const long LiquidPanel::ID_STATICTEXT42 = wxNewId();
@@ -125,6 +126,7 @@ const long LiquidPanel::ID_STATICTEXT46 = wxNewId();
 const long LiquidPanel::IDD_SLIDER_Flow4 = wxNewId();
 const long LiquidPanel::ID_VALUECURVE_Flow4 = wxNewId();
 const long LiquidPanel::ID_TEXTCTRL_Flow4 = wxNewId();
+const long LiquidPanel::ID_CHECKBOX_FlowMusic4 = wxNewId();
 const long LiquidPanel::ID_PANEL4 = wxNewId();
 const long LiquidPanel::ID_NOTEBOOK1 = wxNewId();
 //*)
@@ -202,18 +204,16 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 	TextCtrl_LifeTime = new wxTextCtrl(this, ID_TEXTCTRL_LifeTime, _("1000"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_LifeTime"));
 	TextCtrl_LifeTime->SetMaxLength(4);
 	FlexGridSizer2->Add(TextCtrl_LifeTime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-	FlexGridSizer2->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Size = new wxSlider(this, IDD_SLIDER_Size, 500, 1, 10000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Size"));
-	FlexGridSizer2->Add(Slider_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Size = new ValueCurveButton(this, ID_VALUECURVE_Size, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Size"));
-	FlexGridSizer2->Add(BitmapButton_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Size = new wxTextCtrl(this, ID_TEXTCTRL_Size, _("500"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Size"));
-	TextCtrl_Size->SetMaxLength(5);
-	FlexGridSizer2->Add(TextCtrl_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer77->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer12->AddGrowableCol(1);
+	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+	FlexGridSizer12->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Size = new wxSlider(this, IDD_SLIDER_Size, 500, 1, 10000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Size"));
+	FlexGridSizer12->Add(Slider_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Size = new wxTextCtrl(this, ID_TEXTCTRL_Size, _("500"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Size"));
+	TextCtrl_Size->SetMaxLength(5);
+	FlexGridSizer12->Add(TextCtrl_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, _("Warm Up Frames"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer12->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_WarmUpFrames = new wxSlider(this, IDD_SLIDER_WarmUpFrames, 0, 0, 500, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_WarmUpFrames"));
@@ -273,6 +273,12 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 	TextCtrl_Flow1 = new wxTextCtrl(Panel1, ID_TEXTCTRL_Flow1, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Flow1"));
 	TextCtrl_Flow1->SetMaxLength(4);
 	FlexGridSizer7->Add(TextCtrl_Flow1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer7->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_FlowMusic1 = new wxCheckBox(Panel1, ID_CHECKBOX_FlowMusic1, _("Flow Matches Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FlowMusic1"));
+	CheckBox_FlowMusic1->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_FlowMusic1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer7->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer7->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	Panel1->SetSizer(FlexGridSizer6);
 	FlexGridSizer6->Fit(Panel1);
@@ -330,6 +336,12 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 	TextCtrl_Flow2 = new wxTextCtrl(Panel2, ID_TEXTCTRL_Flow2, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Flow2"));
 	TextCtrl_Flow2->SetMaxLength(4);
 	FlexGridSizer8->Add(TextCtrl_Flow2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_FlowMusic2 = new wxCheckBox(Panel2, ID_CHECKBOX_FlowMusic2, _("Flow Matches Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FlowMusic2"));
+	CheckBox_FlowMusic2->SetValue(false);
+	FlexGridSizer8->Add(CheckBox_FlowMusic2, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
 	Panel2->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Panel2);
@@ -386,6 +398,12 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 	TextCtrl_Flow3 = new wxTextCtrl(Panel3, ID_TEXTCTRL_Flow3, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel3,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Flow3"));
 	TextCtrl_Flow3->SetMaxLength(4);
 	FlexGridSizer9->Add(TextCtrl_Flow3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_FlowMusic3 = new wxCheckBox(Panel3, ID_CHECKBOX_FlowMusic3, _("Flow Matches Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FlowMusic3"));
+	CheckBox_FlowMusic3->SetValue(false);
+	FlexGridSizer9->Add(CheckBox_FlowMusic3, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer9->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
 	Panel3->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(Panel3);
@@ -442,6 +460,12 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 	TextCtrl_Flow4 = new wxTextCtrl(Panel4, ID_TEXTCTRL_Flow4, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel4,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Flow4"));
 	TextCtrl_Flow4->SetMaxLength(4);
 	FlexGridSizer10->Add(TextCtrl_Flow4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_FlowMusic4 = new wxCheckBox(Panel4, ID_CHECKBOX_FlowMusic4, _("Flow Matches Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FlowMusic4"));
+	CheckBox_FlowMusic4->SetValue(false);
+	FlexGridSizer10->Add(CheckBox_FlowMusic4, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
 	Panel4->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(Panel4);
@@ -458,8 +482,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 	Connect(IDD_SLIDER_LifeTime,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&LiquidPanel::UpdateLinkedTextCtrlVC);
 	Connect(ID_VALUECURVE_LifeTime,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
 	Connect(ID_TEXTCTRL_LifeTime,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&LiquidPanel::UpdateLinkedSlider);
-	Connect(IDD_SLIDER_Size,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&LiquidPanel::UpdateLinkedTextCtrlVC);
-	Connect(ID_VALUECURVE_Size,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
+	Connect(IDD_SLIDER_Size,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&LiquidPanel::UpdateLinkedTextCtrl);
 	Connect(ID_TEXTCTRL_Size,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&LiquidPanel::UpdateLinkedSlider);
 	Connect(IDD_SLIDER_WarmUpFrames,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&LiquidPanel::UpdateLinkedTextCtrl);
 	Connect(ID_TEXTCTRL_WarmUpFrames,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&LiquidPanel::UpdateLinkedSlider);
@@ -530,12 +553,31 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&LiquidPanel::OnVCChanged, 0, this);
 
+    BitmapButton_LifeTime->GetValue()->SetLimits(0, 1000);
+
     BitmapButton_Direction1->GetValue()->SetLimits(0, 360);
     BitmapButton_Flow1->GetValue()->SetLimits(0, 1000);
-    BitmapButton_LifeTime->GetValue()->SetLimits(0, 1000);
     BitmapButton_Velocity1->GetValue()->SetLimits(0, 1000);
     BitmapButton_X1->GetValue()->SetLimits(0, 100);
     BitmapButton_Y1->GetValue()->SetLimits(0, 100);
+
+        BitmapButton_Direction2->GetValue()->SetLimits(0, 360);
+    BitmapButton_Flow2->GetValue()->SetLimits(0, 1000);
+    BitmapButton_Velocity2->GetValue()->SetLimits(0, 1000);
+    BitmapButton_X2->GetValue()->SetLimits(0, 100);
+    BitmapButton_Y2->GetValue()->SetLimits(0, 100);
+
+        BitmapButton_Direction3->GetValue()->SetLimits(0, 360);
+    BitmapButton_Flow3->GetValue()->SetLimits(0, 1000);
+    BitmapButton_Velocity3->GetValue()->SetLimits(0, 1000);
+    BitmapButton_X3->GetValue()->SetLimits(0, 100);
+    BitmapButton_Y3->GetValue()->SetLimits(0, 100);
+
+        BitmapButton_Direction4->GetValue()->SetLimits(0, 360);
+    BitmapButton_Flow4->GetValue()->SetLimits(0, 1000);
+    BitmapButton_Velocity4->GetValue()->SetLimits(0, 1000);
+    BitmapButton_X4->GetValue()->SetLimits(0, 100);
+    BitmapButton_Y4->GetValue()->SetLimits(0, 100);
 
     ValidateWindow();
 
@@ -576,6 +618,7 @@ void LiquidPanel::ValidateWindow()
         BitmapButton_X2->Enable();
         BitmapButton_Y2->Enable();
         BitmapButton_Velocity2->Enable();
+        CheckBox_FlowMusic2->Enable();
     }
     else
     {
@@ -596,6 +639,7 @@ void LiquidPanel::ValidateWindow()
         BitmapButton_X2->Enable(false);
         BitmapButton_Y2->Enable(false);
         BitmapButton_Velocity2->Enable(false);
+        CheckBox_FlowMusic2->Enable(false);
     }
 
     if (CheckBox_Enabled3->GetValue())
@@ -617,6 +661,7 @@ void LiquidPanel::ValidateWindow()
         BitmapButton_X3->Enable();
         BitmapButton_Y3->Enable();
         BitmapButton_Velocity3->Enable();
+        CheckBox_FlowMusic3->Enable();
     }
     else
     {
@@ -637,6 +682,7 @@ void LiquidPanel::ValidateWindow()
         BitmapButton_X3->Enable(false);
         BitmapButton_Y3->Enable(false);
         BitmapButton_Velocity3->Enable(false);
+        CheckBox_FlowMusic3->Enable(false);
     }
 
     if (CheckBox_Enabled4->GetValue())
@@ -658,6 +704,7 @@ void LiquidPanel::ValidateWindow()
         BitmapButton_X4->Enable();
         BitmapButton_Y4->Enable();
         BitmapButton_Velocity4->Enable();
+        CheckBox_FlowMusic4->Enable();
     }
     else
     {
@@ -678,5 +725,6 @@ void LiquidPanel::ValidateWindow()
         BitmapButton_X4->Enable(false);
         BitmapButton_Y4->Enable(false);
         BitmapButton_Velocity4->Enable(false);
+        CheckBox_FlowMusic4->Enable(false);
     }
 }

@@ -430,6 +430,29 @@
 											<border>5</border>
 											<option>1</option>
 										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_FlowMusic1" variable="CheckBox_FlowMusic1" member="yes">
+												<label>Flow Matches Music</label>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -645,6 +668,29 @@
 												<size>25,-1d</size>
 												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_FlowMusic2" variable="CheckBox_FlowMusic2" member="yes">
+												<label>Flow Matches Music</label>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
@@ -868,6 +914,29 @@
 											<border>5</border>
 											<option>1</option>
 										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_FlowMusic3" variable="CheckBox_FlowMusic3" member="yes">
+												<label>Flow Matches Music</label>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -1084,6 +1153,29 @@
 												<size>25,-1d</size>
 												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_FlowMusic4" variable="CheckBox_FlowMusic4" member="yes">
+												<label>Flow Matches Music</label>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
