@@ -189,6 +189,16 @@ void LiquidEffect::CreateBarrier(b2World* world, float x, float y, float width, 
 
 void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColor& color, bool mixColors)
 {
+    size_t bufsiz = sizeof(size_t) * buffer.BufferWi * buffer.BufferHt;
+    size_t* red = (size_t*)malloc(bufsiz);
+    size_t* green = (size_t*)malloc(bufsiz);
+    size_t* blue = (size_t*)malloc(bufsiz);
+    size_t* count = (size_t*)malloc(bufsiz);
+    memset(red, 0x00, bufsiz);
+    memset(green, 0x00, bufsiz);
+    memset(blue, 0x00, bufsiz);
+    memset(count, 0x00, bufsiz);
+
     int32 particleCount = ps->GetParticleCount();
     if (particleCount)
     {
@@ -197,24 +207,58 @@ void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColo
 
         for (int i = 0; i < ps->GetParticleCount(); ++i)
         {
-            if (positionBuffer[i].y < -1.0f || positionBuffer[i].x < -1.0f || positionBuffer[i].x > (float)buffer.BufferWi + 1.0f)
+            int x = positionBuffer[i].x;
+            int y = positionBuffer[i].y;
+            if (y < -1 || x < -1 || x > buffer.BufferWi + 1)
             {
                 ps->DestroyParticle(i);
             }
             else
             {
-                if (mixColors && ps->GetColorBuffer())
+                if (x >= 0 && x < buffer.BufferWi && y >= 0 && y < buffer.BufferHt)
                 {
-                    auto c = colorBuffer[i].GetColor();
-                    buffer.SetPixel(positionBuffer[i].x, positionBuffer[i].y, xlColor(c.r * 255, c.g * 255, c.b * 255));
-                }
-                else
-                {
-                    buffer.SetPixel(positionBuffer[i].x, positionBuffer[i].y, color);
+                    size_t offset = buffer.BufferWi * y + x;
+                    if (mixColors && ps->GetColorBuffer())
+                    {
+                        auto c = colorBuffer[i].GetColor();
+                        *(red + offset) += c.r * 255;
+                        *(green + offset) += c.g * 255;
+                        *(blue + offset) += c.b * 255;
+                        *(count + offset) = *(count + offset) + 1;
+                    }
+                    else
+                    {
+                        *(red + offset) += color.red;
+                        *(green + offset) += color.green;
+                        *(blue + offset) += color.blue;
+                        *(count + offset) = *(count + offset) + 1;
+                    }
                 }
             }
         }
     }
+
+    for (size_t y = 0; y < buffer.BufferHt; ++y)
+    {
+        for (size_t x = 0; x < buffer.BufferWi; ++x)
+        {
+            size_t offset = (buffer.BufferWi * y + x);
+            size_t ct = *(count + offset);
+            if (ct > 0)
+            {
+                buffer.SetPixel(x, y, xlColor(
+                    *(red + offset) / ct,
+                    *(green + offset) / ct,
+                    *(blue + offset) / ct
+                ));
+            }
+        }
+    }
+
+    free(red);
+    free(green);
+    free(blue);
+    free(count);
 }
 
 void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel)
