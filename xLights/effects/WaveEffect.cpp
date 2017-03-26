@@ -106,7 +106,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     int WaveHeight = GetValueCurveInt("Wave_Height", 50, SettingsMap, oset);
     int wspeed = GetValueCurveInt("Wave_Speed", 10, SettingsMap, oset);
 
-    int WaveDirection = "Left to Right" == SettingsMap["CHOICE_Wave_Direction"] ? 1 : 0;
+    bool WaveDirection = "Left to Right" == SettingsMap["CHOICE_Wave_Direction"] ? true : false;
 
 
     WaveRenderCache *cache = (WaveRenderCache*)buffer.infoCache[id];
@@ -175,7 +175,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     hsv.value=1.0;
     hsv.hue=1.0;
     for (x=0; x<buffer.BufferWi; x++) {
-        if (WaveDirection==0)
+        if (!WaveDirection)
             degree = x * degree_per_x + state; // state causes it to move
         else
             degree = x * degree_per_x - state; // state causes it to move
@@ -203,7 +203,13 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             double waves = ((double)NumberWaves/180.0) / 5; // number of waves
             int amp = buffer.BufferHt * WaveHeight / 100;
 
-            ystart = (buffer.BufferHt - amp) / 2 + abs((int)((state / 10 + x) * waves) % (int)(2 * amp) - amp);
+            int xx = x;
+            if (WaveDirection)
+            {
+                xx = buffer.BufferWi - x - 1;
+            }
+
+            ystart = (buffer.BufferHt - amp) / 2 + abs((int)((state / 10 + xx) * waves) % (int)(2 * amp) - amp);
             if (ystart > buffer.BufferHt - 1) ystart = buffer.BufferHt - 1;
         } else if (WaveType == WAVETYPE_IVYFRACTAL) {
             int eff_x = (WaveDirection? x: buffer.BufferWi - x - 1) + buffer.BufferWi * (state / 2 / buffer.BufferWi); //effective x before wrap
