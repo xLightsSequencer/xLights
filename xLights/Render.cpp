@@ -983,7 +983,9 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
                           int startFrame, int endFrame,
                           bool progressDialog, bool clear,
                           std::function<void()>&& callback) {
-    
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (startFrame < 0) {
         startFrame = 0;
     }
@@ -1003,17 +1005,45 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
     AggregatorRenderer **aggregators = new AggregatorRenderer*[numRows];
     std::vector<std::set<int>> channelMaps(SeqData.NumChannels());
     
+    // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
+    if (jobs == nullptr)
+    {
+        logger_base.crit("xLightsFrame::Render jobs is nullptr ... this is going to crash.");
+    }
+    if (aggregators == nullptr)
+    {
+        logger_base.crit("xLightsFrame::Render aggregators is nullptr ... this is going to crash.");
+    }
+
     size_t row = 0;
     for (auto it = models.begin(); it != models.end(); it++, row++) {
         jobs[row] = nullptr;
         aggregators[row] = new AggregatorRenderer(SeqData.NumFrames());
 
         Element *rowEl = mSequenceElements.GetElement((*it)->GetName());
+
+        if (rowEl == nullptr)
+        {
+            logger_base.crit("xLightsFrame::Render rowEl is nullptr ... this is going to crash.");
+        }
+
         if (rowEl->GetType() == ELEMENT_TYPE_MODEL) {
             ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
+
+            if (me == nullptr)
+            {
+                logger_base.crit("xLightsFrame::Render me is nullptr ... this is going to crash.");
+            }
+
             bool hasEffects = HasEffects(me);
             if (hasEffects || (*it == restrictToModel && clear)) {
                 RenderJob *job = new RenderJob(me, SeqData, this, false);
+
+                if (job == nullptr)
+                {
+                    logger_base.crit("xLightsFrame::Render job is nullptr ... this is going to crash.");
+                }
+
                 job->setRenderRange(startFrame, endFrame);
                 job->SetRangeRestriction(ranges, false);
                 if (mSequenceElements.SupportsModelBlending()) {
@@ -1111,6 +1141,7 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
         }
     }
 }
+
 void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
     BuildRenderTree();
     if (renderTree.data.empty()) {

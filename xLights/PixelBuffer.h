@@ -185,7 +185,6 @@ private:
 
     void GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod);
     xlColor mixColors(const wxCoord &x, const wxCoord &y, const xlColor &c0, const xlColor &c1, int layer);
-    void SetDimmingCurve(DimmingCurve *value);
     void reset(int layers, int timing);
 	void Blur(LayerInfo* layer, float offset);
     void RotoZoom(LayerInfo* layer, float offset);

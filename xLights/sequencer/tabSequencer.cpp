@@ -1217,6 +1217,8 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 
 void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (CurrentSeqXmlFile == nullptr) {
         return;
     }
@@ -1239,7 +1241,20 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             }
 
             EffectLayer* el = selectedEffect->GetParentEffectLayer();
+
+            // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
+            if (el == nullptr)
+            {
+                logger_base.crit("OnEffectSettingsTimerTrigger el is nullptr ... this is going to crash.");
+            }
+
             Element *elem = el->GetParentElement();
+
+            // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
+            if (elem == nullptr)
+            {
+                logger_base.crit("OnEffectSettingsTimerTrigger elem is nullptr ... this is going to crash.");
+            }
 
             //check for undo capture
             if( selectedEffectName != selectedEffect->GetEffectName() )
@@ -1270,6 +1285,13 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
 
             // This ensures colour curves which can be dependent on effect settings are correct
             RenderableEffect *ef = GetEffectManager().GetEffect(selectedEffectName);
+
+            // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
+            if (ef == nullptr)
+            {
+                logger_base.crit("OnEffectSettingsTimerTrigger ef is nullptr ... this is going to crash.");
+            }
+
             colorPanel->SetSupports(ef->SupportsLinearColorCurves(selectedEffect->GetSettings()), ef->SupportsRadialColorCurves(selectedEffect->GetSettings()));
             return;
         }

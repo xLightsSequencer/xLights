@@ -567,6 +567,13 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
         {
             auto thelayer = layers[layer];
 
+            // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
+            if (thelayer == nullptr)
+            {
+                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.crit("PixelBufferClass::GetMixedColor thelayer is nullptr ... this is going to crash.");
+            }
+
             int x = thelayer->buffer.Nodes[node]->Coords[0].bufX;
             int y = thelayer->buffer.Nodes[node]->Coords[0].bufY;
 
