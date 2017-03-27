@@ -1961,6 +1961,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
 				"\",\"brightness\":\"" + wxString::Format(wxT("%i"), GetBrightness()) +
 				"\",\"ip\":\"" + ip +
                 "\",\"reference\":\"" + reference +
+                "\",\"passwordset\":\"" + (_scheduleOptions->GetPassword() == ""? "false" : "true") +
                 "\",\"time\":\""+ wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +"\"}";
         }
         else
@@ -2014,6 +2015,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"ip\":\"" + ip +
                 "\",\"reference\":\"" + reference +
                 "\",\"autooutputtolights\":\"" + (_manualOTL ? "false" : "true") +
+                "\",\"passwordset\":\"" + (_scheduleOptions->GetPassword() == "" ? "false" : "true") +
                 "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\"}";
             //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             //logger_base.info("%s", (const char*)data.c_str());
