@@ -404,7 +404,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenuItem* MenuItem4;
     wxMenuItem* MenuItem14;
     wxMenuItem* MenuItem11;
-    wxMenuItem* MenuItem29;
     wxStaticText* StaticText38;
     wxFlexGridSizer* FlexGridSizer9;
     wxMenuItem* MenuItem22;
@@ -722,8 +721,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     AudioMenu->Append(MenuItem31);
     MenuBar->Append(AudioMenu, _("&Audio"));
     Menu2 = new wxMenu();
-    MenuItem29 = new wxMenuItem(Menu2, ID_IMPORT_EFFECTS, _("Import Effects"), wxEmptyString, wxITEM_NORMAL);
-    Menu2->Append(MenuItem29);
+    MenuItem_ImportEffects = new wxMenuItem(Menu2, ID_IMPORT_EFFECTS, _("Import Effects"), wxEmptyString, wxITEM_NORMAL);
+    Menu2->Append(MenuItem_ImportEffects);
     MenuBar->Append(Menu2, _("&Import"));
     MenuSettings = new wxMenu();
     Menu_Settings_Sequence = new wxMenuItem(MenuSettings, ID_SEQ_SETTINGS, _("Sequence Settings"), wxEmptyString, wxITEM_NORMAL);
@@ -2549,6 +2548,14 @@ void xLightsFrame::CheckUnsavedChanges()
             "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
         {
             SaveEffectsFile();
+        }
+        else
+        {
+            wxFileName effectsFile;
+            effectsFile.AssignDir(CurrentDir);
+            effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
+            wxFileName fn(effectsFile.GetFullPath());
+            fn.Touch();
         }
     }
 

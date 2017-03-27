@@ -110,6 +110,7 @@ void xLightsFrame::NewSequence()
     MenuItem_File_Close_Sequence->Enable(true);
     MenuItem_PackageSequence->Enable(true);
     MenuItem_ExportEffects->Enable(true);
+    MenuItem_ImportEffects->Enable(true);
 
     unsigned int max = GetMaxNumChannels();
     if( (max > SeqData.NumChannels()) ||

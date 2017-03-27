@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add prompted recovery of unsaved changes to rgbeffects
+   -- bug (keith)   Disable import effects if no sequence is open
    -- enh (keith)   Add ability for picture effect to play GIF files with their encoded timing and loop it
    -- bug (keith)   Fix ArtNET universe 0 not saving
    -- bug (keith)   Fix Glediator effect causing field errors

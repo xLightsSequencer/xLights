@@ -65,7 +65,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     ResetEffectsXml();
     wxFileName effectsFile;
-    effectsFile.AssignDir( CurrentDir );
+    effectsFile.AssignDir(CurrentDir);
     effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
     wxString myString = "Hello";
     UnsavedRgbEffectsChanges = false;
@@ -75,12 +75,51 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         // file does not exist, so create an empty xml doc
         CreateDefaultEffectsXml();
     }
-    else if (!EffectsXml.Load( effectsFile.GetFullPath() ))
+    else
     {
-        logger_base.warn("Unable to load RGB effects file ... creating a default one.");
-        wxMessageBox(_("Unable to load RGB effects file"), _("Error"));
-        CreateDefaultEffectsXml();
+        // check if there is a autosave backup file which is newer than the file we have been asked to open
+        wxFileName fn(effectsFile.GetFullPath());
+        wxFileName xx = fn;
+        xx.SetExt("xbkp");
+        wxString asfile = xx.GetLongPath();
+
+        if (wxFile::Exists(asfile))
+        {
+            // the autosave file exists
+            wxDateTime xmltime = fn.GetModificationTime();
+            wxFileName asfn(asfile);
+            wxDateTime xbkptime = asfn.GetModificationTime();
+
+            if (xbkptime > xmltime)
+            {
+                // autosave file is newer
+                if (wxMessageBox("Autosaved rgbeffects file found which seems to be newer than your current rgbeffects file ... would you like to open that instead?", "Newer file found", wxYES_NO) == wxYES)
+                {
+                    // run a backup ... equivalent of a F10
+                    DoBackup(false, false, true);
+
+                    // delete the old xml file
+                    wxRemoveFile(effectsFile.GetFullPath());
+
+                    // rename the autosave file
+                    wxRenameFile(asfile, effectsFile.GetFullPath());
+                }
+                else
+                {
+                    // Touch the xml file to stop this prompt occuring again
+                    fn.Touch();
+                }
+            }
+        }
+
+        if (!EffectsXml.Load(effectsFile.GetFullPath()))
+        {
+            logger_base.warn("Unable to load RGB effects file ... creating a default one.");
+            wxMessageBox(_("Unable to load RGB effects file"), _("Error"));
+            CreateDefaultEffectsXml();
+        }
     }
+
     wxXmlNode* root=EffectsXml.GetRoot();
     if (root->GetName() != "xrgb")
     {
@@ -974,6 +1013,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItem_File_Close_Sequence->Enable(false);
         MenuItem_PackageSequence->Enable(false);
         MenuItem_ExportEffects->Enable(false);
+        MenuItem_ImportEffects->Enable(false);
         MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, false);
     }
     if (!enable && SeqData.NumFrames() > 0) {

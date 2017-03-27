@@ -658,6 +658,7 @@ private:
     xlAuiToolBar* OutputToolBar;
     wxMenuItem* MenuItem_VideoTutorials;
     wxButton* ButtonAddE131;
+    wxMenuItem* MenuItem_ImportEffects;
     wxMenuItem* MenuItemViewSavePerspective;
     wxButton* ButtonArtNET;
     wxMenuItem* QuitMenuItem;
