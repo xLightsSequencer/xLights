@@ -186,7 +186,7 @@
 						<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText9" member="yes">
 							<label>Warm Up Frames</label>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -203,6 +203,34 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_WarmUpFrames" variable="TextCtrl_WarmUpFrames" member="yes">
 							<value>0</value>
 							<maxlength>5</maxlength>
+							<size>25,-1d</size>
+							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText10" member="yes">
+							<label>Despeckle Threshold</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_Despeckle" variable="Slider_Despeckle" member="yes">
+							<max>4</max>
+							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Despeckle" variable="TextCtrl_Despeckle" member="yes">
+							<value>0</value>
+							<maxlength>1</maxlength>
 							<size>25,-1d</size>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>

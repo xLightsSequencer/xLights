@@ -27,12 +27,14 @@ class LiquidPanel: public wxPanel
 		virtual ~LiquidPanel();
 
 		//(*Declarations(LiquidPanel)
+		wxStaticText* StaticText10;
 		wxStaticText* StaticText22;
 		wxStaticText* StaticText9;
 		wxTextCtrl* TextCtrl_X3;
 		wxSlider* Slider_LifeTime;
 		wxStaticText* StaticText45;
 		ValueCurveButton* BitmapButton_Velocity2;
+		wxTextCtrl* TextCtrl_Despeckle;
 		wxChoice* Choice_ParticleType;
 		wxCheckBox* CheckBox_Enabled2;
 		wxSlider* Slider_Velocity2;
@@ -129,6 +131,7 @@ class LiquidPanel: public wxPanel
 		wxStaticText* StaticText36;
 		wxStaticText* StaticText4;
 		wxTextCtrl* TextCtrl_Direction1;
+		wxSlider* Slider_Despeckle;
 		wxSlider* Slider_Direction1;
 		wxCheckBox* CheckBox_Enabled4;
 		wxTextCtrl* TextCtrl_Direction2;
@@ -160,6 +163,9 @@ class LiquidPanel: public wxPanel
 		static const long ID_STATICTEXT9;
 		static const long IDD_SLIDER_WarmUpFrames;
 		static const long ID_TEXTCTRL_WarmUpFrames;
+		static const long ID_STATICTEXT10;
+		static const long IDD_SLIDER_Despeckle;
+		static const long ID_TEXTCTRL_Despeckle;
 		static const long ID_STATICTEXT2;
 		static const long IDD_SLIDER_X1;
 		static const long ID_VALUECURVE_X1;

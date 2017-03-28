@@ -28,9 +28,9 @@ class LiquidEffect : public RenderableEffect
             bool enabled2, int direction2, int x2, int y2, int velocity2, int flow2, bool flowMusic2,
             bool enabled3, int direction3, int x3, int y3, int velocity3, int flow3, bool flowMusic3,
             bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4, bool flowMusic4,
-            const std::string& particleType);
+            const std::string& particleType, int despeckle);
         void CreateBarrier(b2World* world, float x, float y, float width, float height);
-        void Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColor& color, bool mixColors);
+        void Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColor& color, bool mixColors, int despeckle);
         void CreateParticles(b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel);
         void CreateParticleSystem(b2World* world, int lifetime, int size);
         void Step(b2World* world, RenderBuffer &buffer, bool enabled[], int lifetime, const std::string& particleType, bool mixcolors,
@@ -39,6 +39,7 @@ class LiquidEffect : public RenderableEffect
             int x3, int y3, int direction3, int velocity3, int flow3, bool flowMusic3,
             int x4, int y4, int direction4, int velocity4, int flow4, bool flowMusic4
         );
+        xlColor GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y, int despeckle) const;
 };
 
 #endif // LIQUIDEFFECT_H

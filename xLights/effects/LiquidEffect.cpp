@@ -16,6 +16,8 @@
 #include "../../include/liquid-48.xpm"
 #include "../../include/liquid-64.xpm"
 
+//#define LE_INTERPOLATE
+
 LiquidEffect::LiquidEffect(int id) : RenderableEffect(id, "Liquid", liquid_16, liquid_24, liquid_32, liquid_48, liquid_64)
 {
 }
@@ -59,6 +61,7 @@ void LiquidEffect::SetDefaultParameters(Model *cls) {
     SetCheckBoxValue(tp->CheckBox_MixColors, false);
     SetChoiceValue(tp->Choice_ParticleType, "Elastic");
     SetSliderValue(tp->Slider_LifeTime, 10000);
+    SetSliderValue(tp->Slider_Despeckle, 0);
 
     SetSliderValue(tp->Slider_X1, 50);
     SetSliderValue(tp->Slider_Y1, 100);
@@ -164,8 +167,9 @@ void LiquidEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         GetValueCurveInt("Flow4", 100, SettingsMap, oset),
         SettingsMap.GetBool("CHECKBOX_FlowMusic4", false),
 
-        SettingsMap.Get("CHOICE_ParticleType", "Elastic")
-        );
+        SettingsMap.Get("CHOICE_ParticleType", "Elastic"),
+        SettingsMap.GetInt("TEXTCTRL_Despeckle", 0)
+    );
 }
 
 class LiquidRenderCache : public EffectRenderCache {
@@ -187,8 +191,9 @@ void LiquidEffect::CreateBarrier(b2World* world, float x, float y, float width, 
     groundBody->CreateFixture((b2Shape*)&groundBox, 0.0f);
 }
 
-void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColor& color, bool mixColors)
+void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColor& color, bool mixColors, int despeckle)
 {
+#ifdef LE_INTERPOLATE
     size_t bufsiz = sizeof(size_t) * buffer.BufferWi * buffer.BufferHt;
     size_t* red = (size_t*)malloc(bufsiz);
     size_t* green = (size_t*)malloc(bufsiz);
@@ -259,6 +264,97 @@ void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColo
     free(green);
     free(blue);
     free(count);
+#else
+    int32 particleCount = ps->GetParticleCount();
+    if (particleCount)
+    {
+        const b2Vec2* positionBuffer = ps->GetPositionBuffer();
+        const b2ParticleColor* colorBuffer = ps->GetColorBuffer();
+
+        for (int i = 0; i < ps->GetParticleCount(); ++i)
+        {
+            int x = positionBuffer[i].x;
+            int y = positionBuffer[i].y;
+
+            if (y < -1 || x < -1 || x > buffer.BufferWi + 1)
+            {
+                ps->DestroyParticle(i);
+            }
+            else
+            {
+                if (mixColors && ps->GetColorBuffer())
+                {
+                    auto c = colorBuffer[i].GetColor();
+                    buffer.SetPixel(positionBuffer[i].x, positionBuffer[i].y, xlColor(c.r * 255, c.g * 255, c.b * 255));
+                }
+                else
+                {
+                    buffer.SetPixel(positionBuffer[i].x, positionBuffer[i].y, color);
+                }
+            }
+        }
+    }
+#endif
+
+    if (despeckle > 0)
+    {
+        for (size_t y = 0; y < buffer.BufferHt; ++y)
+        {
+            for (size_t x = 0; x < buffer.BufferWi; ++x)
+            {
+                if (buffer.GetPixel(x, y) == xlBLACK)
+                {
+                    buffer.SetPixel(x, y, GetDespeckleColor(buffer, x, y, despeckle));
+                }
+            }
+        }
+    }
+}
+
+xlColor LiquidEffect::GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y, int despeckle) const
+{
+    int red = 0;
+    int green = 0;
+    int blue = 0;
+    int count = 0;
+
+    bool edge = (x == 0 || y == 0 || x == buffer.BufferWi - 1 || y == buffer.BufferHt - 1);
+
+    int startx = x - 1;
+    if (startx < 0) startx = 0;
+
+    int starty = y - 1;
+    if (starty < 0) starty = 0;
+
+    int endx = x + 1;
+    if (endx >= buffer.BufferWi) endx = buffer.BufferWi - 1;
+
+    int endy = y + 1;
+    if (endy >= buffer.BufferHt) endy = buffer.BufferHt - 1;
+
+    int blacks = 0;
+
+    for (int yy = starty; yy <= endy; ++yy)
+    {
+        for (int xx = startx; xx <= endx; ++xx)
+        {
+            xlColor c = buffer.GetPixel(xx, yy);
+
+            // if any surrounding pixel is also black then we return black ... we only despeckly totally surrounded pixels
+            if (c == xlBLACK)
+            {
+                blacks++;
+                if (blacks >= despeckle) return xlBLACK;
+            }
+
+            red += c.red;
+            green += c.green;
+            blue += c.blue;
+            count ++;
+        }
+    }
+
+    return xlColor(red / count, green / count, blue / count);
 }
 
 void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel)
@@ -427,7 +523,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     bool enabled2, int direction2, int x2, int y2, int velocity2, int flow2, bool flowMusic2,
     bool enabled3, int direction3, int x3, int y3, int velocity3, int flow3, bool flowMusic3,
     bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4, bool flowMusic4,
-    const std::string& particleType)
+    const std::string& particleType, int despeckle)
 {
     bool enabled[4];
     enabled[0] = true;
@@ -498,6 +594,6 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     {
          xlColor color;
         buffer.palette.GetColor(0, color);
-        Draw(buffer, ps, color, holdcolor | mixcolors);
+        Draw(buffer, ps, color, holdcolor | mixcolors, despeckle);
     }
 }
