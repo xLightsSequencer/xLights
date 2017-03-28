@@ -338,19 +338,22 @@ xlColor LiquidEffect::GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y
     {
         for (int xx = startx; xx <= endx; ++xx)
         {
-            xlColor c = buffer.GetPixel(xx, yy);
-
-            // if any surrounding pixel is also black then we return black ... we only despeckly totally surrounded pixels
-            if (c == xlBLACK)
+            if (yy != y || xx != x) // dont evaluate the pixel itself
             {
-                blacks++;
-                if (blacks >= despeckle) return xlBLACK;
-            }
+                xlColor c = buffer.GetPixel(xx, yy);
 
-            red += c.red;
-            green += c.green;
-            blue += c.blue;
-            count ++;
+                // if any surrounding pixel is also black then we return black ... we only despeckly totally surrounded pixels
+                if (c == xlBLACK)
+                {
+                    blacks++;
+                    if (blacks >= despeckle) return xlBLACK;
+                }
+
+                red += c.red;
+                green += c.green;
+                blue += c.blue;
+                count++;
+            }
         }
     }
 
