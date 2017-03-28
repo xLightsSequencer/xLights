@@ -1,0 +1,503 @@
+#include "LiquidEffect.h"
+#include "LiquidPanel.h"
+
+#include <Box2D/Box2D.h>
+#include "../sequencer/Effect.h"
+#include "../RenderBuffer.h"
+#include "../UtilClasses.h"
+#include "../AudioManager.h"
+#include <UtilFunctions.h>
+#include <SequenceCheck.h>
+#include "../models/Model.h"
+
+#include "../../include/liquid-16.xpm"
+#include "../../include/liquid-24.xpm"
+#include "../../include/liquid-32.xpm"
+#include "../../include/liquid-48.xpm"
+#include "../../include/liquid-64.xpm"
+
+LiquidEffect::LiquidEffect(int id) : RenderableEffect(id, "Liquid", liquid_16, liquid_24, liquid_32, liquid_48, liquid_64)
+{
+}
+
+LiquidEffect::~LiquidEffect()
+{
+}
+
+wxPanel *LiquidEffect::CreatePanel(wxWindow *parent) {
+    return new LiquidPanel(parent);
+}
+
+std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    if (media == nullptr && (settings.GetBool("E_CHECKBOX_FlowMusic1", false) ||
+        settings.GetBool("E_CHECKBOX_FlowMusic2", false) ||
+        settings.GetBool("E_CHECKBOX_FlowMusic3", false) ||
+        settings.GetBool("E_CHECKBOX_FlowMusic4", false))
+        )
+    {
+        res.push_back(wxString::Format("    WARN: Liquid effect cant change flow to music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+
+    return res;
+}
+
+void LiquidEffect::SetDefaultParameters(Model *cls) {
+    LiquidPanel *tp = (LiquidPanel*)panel;
+    if (tp == nullptr) {
+        return;
+    }
+
+    SetCheckBoxValue(tp->CheckBox_TopBarrier, false);
+    SetCheckBoxValue(tp->CheckBox_BottomBarrier, true);
+    SetCheckBoxValue(tp->CheckBox_LeftBarrier, false);
+    SetCheckBoxValue(tp->CheckBox_RightBarrier, false);
+
+    SetCheckBoxValue(tp->CheckBox_HoldColor, true);
+    SetCheckBoxValue(tp->CheckBox_MixColors, false);
+    SetChoiceValue(tp->Choice_ParticleType, "Elastic");
+    SetSliderValue(tp->Slider_LifeTime, 10000);
+
+    SetSliderValue(tp->Slider_X1, 50);
+    SetSliderValue(tp->Slider_Y1, 100);
+    SetSliderValue(tp->Slider_Direction1, 270);
+    SetSliderValue(tp->Slider_Flow1, 100);
+    SetSliderValue(tp->Slider_Size, 500);
+    SetSliderValue(tp->Slider_Velocity1, 100);
+    SetCheckBoxValue(tp->CheckBox_FlowMusic1, false);
+
+    SetCheckBoxValue(tp->CheckBox_Enabled2, false);
+    SetSliderValue(tp->Slider_X2, 0);
+    SetSliderValue(tp->Slider_Y2, 50);
+    SetSliderValue(tp->Slider_Direction2, 0);
+    SetSliderValue(tp->Slider_Flow2, 100);
+    SetSliderValue(tp->Slider_Velocity2, 100);
+    SetCheckBoxValue(tp->CheckBox_FlowMusic2, false);
+
+    SetCheckBoxValue(tp->CheckBox_Enabled3, false);
+    SetSliderValue(tp->Slider_X3, 50);
+    SetSliderValue(tp->Slider_Y3, 0);
+    SetSliderValue(tp->Slider_Direction3, 90);
+    SetSliderValue(tp->Slider_Flow3, 100);
+    SetSliderValue(tp->Slider_Velocity3, 100);
+    SetCheckBoxValue(tp->CheckBox_FlowMusic3, false);
+
+    SetCheckBoxValue(tp->CheckBox_Enabled4, false);
+    SetSliderValue(tp->Slider_X4, 100);
+    SetSliderValue(tp->Slider_Y4, 50);
+    SetSliderValue(tp->Slider_Direction4, 180);
+    SetSliderValue(tp->Slider_Flow4, 100);
+    SetSliderValue(tp->Slider_Velocity4, 100);
+    SetCheckBoxValue(tp->CheckBox_FlowMusic4, false);
+
+    tp->BitmapButton_LifeTime->SetActive(false);
+
+    tp->BitmapButton_X1->SetActive(false);
+    tp->BitmapButton_Y1->SetActive(false);
+    tp->BitmapButton_Velocity1->SetActive(false);
+    tp->BitmapButton_Direction1->SetActive(false);
+    tp->BitmapButton_Flow1->SetActive(false);
+
+    tp->BitmapButton_X2->SetActive(false);
+    tp->BitmapButton_Y2->SetActive(false);
+    tp->BitmapButton_Velocity2->SetActive(false);
+    tp->BitmapButton_Direction2->SetActive(false);
+    tp->BitmapButton_Flow2->SetActive(false);
+
+    tp->BitmapButton_X3->SetActive(false);
+    tp->BitmapButton_Y3->SetActive(false);
+    tp->BitmapButton_Velocity3->SetActive(false);
+    tp->BitmapButton_Direction3->SetActive(false);
+    tp->BitmapButton_Flow3->SetActive(false);
+
+    tp->BitmapButton_X4->SetActive(false);
+    tp->BitmapButton_Y4->SetActive(false);
+    tp->BitmapButton_Velocity4->SetActive(false);
+    tp->BitmapButton_Direction4->SetActive(false);
+    tp->BitmapButton_Flow4->SetActive(false);
+}
+
+void LiquidEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    Render(buffer,
+        SettingsMap.GetBool("CHECKBOX_TopBarrier", false),
+        SettingsMap.GetBool("CHECKBOX_BottomBarrier", false),
+        SettingsMap.GetBool("CHECKBOX_LeftBarrier", false),
+        SettingsMap.GetBool("CHECKBOX_RightBarrier", false),
+
+        GetValueCurveInt("LifeTime", 1000, SettingsMap, oset),
+        SettingsMap.GetBool("CHECKBOX_HoldColor", true),
+        SettingsMap.GetBool("CHECKBOX_MixColors", false),
+        GetValueCurveInt("Size", 500, SettingsMap, oset),
+        SettingsMap.GetInt("TEXTCTRL_WarmUpFrames", 0),
+
+        GetValueCurveInt("Direction1", 270, SettingsMap, oset),
+        GetValueCurveInt("X1", 50, SettingsMap, oset),
+        GetValueCurveInt("Y1", 50, SettingsMap, oset),
+        GetValueCurveInt("Velocity1", 100, SettingsMap, oset),
+        GetValueCurveInt("Flow1", 100, SettingsMap, oset),
+        SettingsMap.GetBool("CHECKBOX_FlowMusic1", false),
+
+        SettingsMap.GetBool("CHECKBOX_Enabled2", false),
+        GetValueCurveInt("Direction2", 270, SettingsMap, oset),
+        GetValueCurveInt("X2", 50, SettingsMap, oset),
+        GetValueCurveInt("Y2", 50, SettingsMap, oset),
+        GetValueCurveInt("Velocity2", 100, SettingsMap, oset),
+        GetValueCurveInt("Flow2", 100, SettingsMap, oset),
+        SettingsMap.GetBool("CHECKBOX_FlowMusic2", false),
+
+        SettingsMap.GetBool("CHECKBOX_Enabled3", false),
+        GetValueCurveInt("Direction3", 270, SettingsMap, oset),
+        GetValueCurveInt("X3", 50, SettingsMap, oset),
+        GetValueCurveInt("Y3", 50, SettingsMap, oset),
+        GetValueCurveInt("Velocity3", 100, SettingsMap, oset),
+        GetValueCurveInt("Flow3", 100, SettingsMap, oset),
+        SettingsMap.GetBool("CHECKBOX_FlowMusic3", false),
+
+        SettingsMap.GetBool("CHECKBOX_Enabled4", false),
+        GetValueCurveInt("Direction4", 270, SettingsMap, oset),
+        GetValueCurveInt("X4", 50, SettingsMap, oset),
+        GetValueCurveInt("Y4", 50, SettingsMap, oset),
+        GetValueCurveInt("Velocity4", 100, SettingsMap, oset),
+        GetValueCurveInt("Flow4", 100, SettingsMap, oset),
+        SettingsMap.GetBool("CHECKBOX_FlowMusic4", false),
+
+        SettingsMap.Get("CHOICE_ParticleType", "Elastic")
+        );
+}
+
+class LiquidRenderCache : public EffectRenderCache {
+public:
+    LiquidRenderCache() { _world = nullptr; };
+    virtual ~LiquidRenderCache() {
+        if (_world != nullptr) delete _world;
+	};
+    b2World* _world;
+};
+
+void LiquidEffect::CreateBarrier(b2World* world, float x, float y, float width, float height)
+{
+    b2BodyDef groundBodyDef;
+    groundBodyDef.position.Set(x, y);
+    b2Body* groundBody = world->CreateBody(&groundBodyDef);
+    b2PolygonShape groundBox;
+    groundBox.SetAsBox(width / 2.0f, height / 2.0f);
+    groundBody->CreateFixture((b2Shape*)&groundBox, 0.0f);
+}
+
+void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColor& color, bool mixColors)
+{
+    size_t bufsiz = sizeof(size_t) * buffer.BufferWi * buffer.BufferHt;
+    size_t* red = (size_t*)malloc(bufsiz);
+    size_t* green = (size_t*)malloc(bufsiz);
+    size_t* blue = (size_t*)malloc(bufsiz);
+    size_t* count = (size_t*)malloc(bufsiz);
+    memset(red, 0x00, bufsiz);
+    memset(green, 0x00, bufsiz);
+    memset(blue, 0x00, bufsiz);
+    memset(count, 0x00, bufsiz);
+
+    int32 particleCount = ps->GetParticleCount();
+    if (particleCount)
+    {
+        const b2Vec2* positionBuffer = ps->GetPositionBuffer();
+        const b2ParticleColor* colorBuffer = ps->GetColorBuffer();
+
+        for (int i = 0; i < ps->GetParticleCount(); ++i)
+        {
+            int x = positionBuffer[i].x;
+            int y = positionBuffer[i].y;
+            if (y < -1 || x < -1 || x > buffer.BufferWi + 1)
+            {
+                ps->DestroyParticle(i);
+            }
+            else
+            {
+                if (x >= 0 && x < buffer.BufferWi && y >= 0 && y < buffer.BufferHt)
+                {
+                    size_t offset = buffer.BufferWi * y + x;
+                    if (mixColors && ps->GetColorBuffer())
+                    {
+                        auto c = colorBuffer[i].GetColor();
+                        *(red + offset) += c.r * 255;
+                        *(green + offset) += c.g * 255;
+                        *(blue + offset) += c.b * 255;
+                        *(count + offset) = *(count + offset) + 1;
+                    }
+                    else
+                    {
+                        *(red + offset) += color.red;
+                        *(green + offset) += color.green;
+                        *(blue + offset) += color.blue;
+                        *(count + offset) = *(count + offset) + 1;
+                    }
+                }
+            }
+        }
+    }
+
+    for (size_t y = 0; y < buffer.BufferHt; ++y)
+    {
+        for (size_t x = 0; x < buffer.BufferWi; ++x)
+        {
+            size_t offset = (buffer.BufferWi * y + x);
+            size_t ct = *(count + offset);
+            if (ct > 0)
+            {
+                buffer.SetPixel(x, y, xlColor(
+                    *(red + offset) / ct,
+                    *(green + offset) / ct,
+                    *(blue + offset) / ct
+                ));
+            }
+        }
+    }
+
+    free(red);
+    free(green);
+    free(blue);
+    free(count);
+}
+
+void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel)
+{
+    static const float pi2 = 6.283185307f;
+    float posx = (float)x * (float)width / 100.0;
+    float posy = (float)y * (float)height / 100.0;
+
+    float velx = (float)velocity * 10.0 * RenderBuffer::cos(pi2 * (float)direction / 360.0);
+    float vely = (float)velocity * 10.0 * RenderBuffer::sin(pi2 * (float)direction / 360.0);
+
+    float lt = lifetime / 100.0;
+
+    int count = flow;
+    if (flowMusic)
+    {
+        count *= audioLevel;
+    }
+
+    for (int i = 0; i < count; i++)
+    {
+        b2ParticleDef pd;
+        if (particleType == "Elastic")
+        {
+            pd.flags = b2_elasticParticle;
+        }
+        else if (particleType == "Powder")
+        {
+            pd.flags = b2_powderParticle;
+        }
+        else if (particleType == "Tensile")
+        {
+            pd.flags = b2_tensileParticle;
+        }
+        else if (particleType == "Spring")
+        {
+            pd.flags = b2_springParticle;
+        }
+        else if (particleType == "Viscous")
+        {
+            pd.flags = b2_viscousParticle;
+        }
+        else if (particleType == "Static Pressure")
+        {
+            pd.flags = b2_staticPressureParticle;
+        }
+        else if (particleType == "Water")
+        {
+            pd.flags = b2_waterParticle;
+        }
+        else if (particleType == "Reactive")
+        {
+            pd.flags = b2_reactiveParticle;
+        }
+        else if (particleType == "Repulsive")
+        {
+            pd.flags = b2_repulsiveParticle;
+        }
+
+        if (mixcolors)
+        {
+            pd.flags |= b2_colorMixingParticle;
+        }
+
+        pd.color.Set(c.Red(), c.Green(), c.Blue(), 255);
+
+        // Randomly pick a position within the emitter's radius.
+        const float32 angle = rand01() * 2.0f * b2_pi;
+
+        // Distance from the center of the circle.
+        const float32 distance = rand01();
+        b2Vec2 positionOnUnitCircle(RenderBuffer::sin(angle), RenderBuffer::cos(angle));
+
+        // Initial position.
+        pd.position.Set(
+            posx + positionOnUnitCircle.x * distance * 0.5,
+            posy + positionOnUnitCircle.y * distance * 0.5);
+
+        // Send it flying
+        pd.velocity.x = velx;
+        pd.velocity.y = vely;
+
+        // give it a lifetime
+        if (lifetime > 0)
+        {
+            float randomlt = lt + (lt * 0.2 * rand01()) - (lt *.01);
+            pd.lifetime = randomlt;
+        }
+        ps->CreateParticle(pd);
+    }
+}
+
+void LiquidEffect::CreateParticleSystem(b2World* world, int lifetime, int size)
+{
+    b2ParticleSystemDef particleSystemDef;
+    auto particleSystem = world->CreateParticleSystem(&particleSystemDef);
+    particleSystem->SetRadius((float)size / 1000.0f);
+    particleSystem->SetMaxParticleCount(100000);
+    if (lifetime > 0)
+    {
+        particleSystem->SetDestructionByAge(true);
+    }
+}
+
+void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], int lifetime, const std::string& particleType, bool mixcolors,
+    int x1, int y1, int direction1, int velocity1, int flow1, bool flowMusic1,
+    int x2, int y2, int direction2, int velocity2, int flow2, bool flowMusic2,
+    int x3, int y3, int direction3, int velocity3, int flow3, bool flowMusic3,
+    int x4, int y4, int direction4, int velocity4, int flow4, bool flowMusic4
+)
+{
+    // move all existing items
+    float32 timeStep = (float)buffer.frameTimeInMs / 1000.0;
+    int32 velocityIterations = 6;
+    int32 positionIterations = 2;
+    int32 particleIterations = 3;
+    world->Step(timeStep, velocityIterations, positionIterations, particleIterations);
+
+    // create new particles
+    b2ParticleSystem* ps = world->GetParticleSystemList();
+    if (ps != nullptr)
+    {
+        float audioLevel = 0.0001f;
+        if (buffer.GetMedia() != nullptr)
+        {
+            std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            if (pf != nullptr)
+            {
+                audioLevel = *pf->begin();
+            }
+        }
+
+        int j = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            if (enabled[i])
+            {
+                xlColor color;
+                buffer.palette.GetColor(j % buffer.GetColorCount(), color);
+
+                switch (i)
+                {
+                case 0:
+                    CreateParticles(ps, x1, y1, direction1, velocity1, flow1, flowMusic1, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel);
+                    break;
+                case 1:
+                    CreateParticles(ps, x2, y2, direction2, velocity2, flow2, flowMusic2, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel);
+                    break;
+                case 2:
+                    CreateParticles(ps, x3, y3, direction3, velocity3, flow3, flowMusic3, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel);
+                    break;
+                case 3:
+                    CreateParticles(ps, x4, y4, direction4, velocity4, flow4, flowMusic4, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel);
+                    break;
+                }
+                j++;
+            }
+        }
+    }
+}
+
+void LiquidEffect::Render(RenderBuffer &buffer,
+    bool top, bool bottom, bool left, bool right,
+    int lifetime, bool holdcolor, bool mixcolors, int size, int warmUpFrames,
+    int direction1, int x1, int y1, int velocity1, int flow1, bool flowMusic1,
+    bool enabled2, int direction2, int x2, int y2, int velocity2, int flow2, bool flowMusic2,
+    bool enabled3, int direction3, int x3, int y3, int velocity3, int flow3, bool flowMusic3,
+    bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4, bool flowMusic4,
+    const std::string& particleType)
+{
+    bool enabled[4];
+    enabled[0] = true;
+    enabled[1] = enabled2;
+    enabled[2] = enabled3;
+    enabled[3] = enabled4;
+
+    LiquidRenderCache *cache = (LiquidRenderCache*)buffer.infoCache[id];
+    if (cache == nullptr) {
+        cache = new LiquidRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+    b2World*& _world = cache->_world;
+
+    if (buffer.needToInit)
+    {
+        buffer.needToInit = false;
+
+        if (_world != nullptr)
+        {
+            delete _world;
+            _world = nullptr;
+        }
+
+        b2Vec2 gravity(0.0f, -10.0f);
+        _world = new b2World(gravity);
+
+        if (bottom)
+        {
+            CreateBarrier(_world, (float)buffer.BufferWi / 2.0, -1.0f, (float)buffer.BufferWi, 0.001f);
+        }
+        if (top)
+        {
+            CreateBarrier(_world, (float)buffer.BufferWi / 2.0, buffer.BufferHt + 1.0f, (float)buffer.BufferWi, 0.001f);
+        }
+        if (left)
+        {
+            CreateBarrier(_world, -1.0f, (float)buffer.BufferHt / 2.0f, 0.001f, (float)buffer.BufferHt);
+        }
+        if (right)
+        {
+            CreateBarrier(_world, (float)buffer.BufferWi + 1.0f, (float)buffer.BufferHt / 2.0f, 0.001f, (float)buffer.BufferHt);
+        }
+
+        CreateParticleSystem(_world, lifetime, size);
+
+        for (int i = 0; i < warmUpFrames; ++i)
+        {
+            Step(_world, buffer, enabled, lifetime, particleType, mixcolors,
+                x1, y1, direction1, velocity1, flow1, flowMusic1,
+                x2, y2, direction2, velocity2, flow2, flowMusic2,
+                x3, y3, direction3, velocity3, flow3, flowMusic3,
+                x4, y4, direction4, velocity4, flow4, flowMusic4
+            );
+        }
+    }
+
+    Step(_world, buffer, enabled, lifetime, particleType, mixcolors,
+        x1, y1, direction1, velocity1, flow1, flowMusic1,
+        x2, y2, direction2, velocity2, flow2, flowMusic2,
+        x3, y3, direction3, velocity3, flow3, flowMusic3,
+        x4, y4, direction4, velocity4, flow4, flowMusic4
+    );
+
+    // create new particles
+    b2ParticleSystem* ps = _world->GetParticleSystemList();
+    if (ps != nullptr)
+    {
+         xlColor color;
+        buffer.palette.GetColor(0, color);
+        Draw(buffer, ps, color, holdcolor | mixcolors);
+    }
+}

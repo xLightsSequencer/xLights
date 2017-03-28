@@ -17,8 +17,6 @@ class FireworksEffect : public RenderableEffect
 protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
         void SetPanelTimingTracks();
-
-    private:
 };
 
 #endif // FIREWORKSEFFECT_H

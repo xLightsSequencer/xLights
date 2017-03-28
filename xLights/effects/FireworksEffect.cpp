@@ -106,7 +106,7 @@ private:
 
 class FireworksRenderCache : public EffectRenderCache {
 public:
-    FireworksRenderCache() : fireworkBursts(maxFlakes), sincelasttriggered(0) {};
+    FireworksRenderCache() : fireworkBursts(maxFlakes), sincelasttriggered(0), next(0) {};
     virtual ~FireworksRenderCache() {};
     int next;
     int sincelasttriggered;
