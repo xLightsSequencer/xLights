@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.7  Mar 28, 2017
    -- enh (keith)   Add prompted recovery of unsaved changes to rgbeffects
    -- bug (keith)   Disable import effects if no sequence is open
    -- enh (keith)   Add liquid effect
