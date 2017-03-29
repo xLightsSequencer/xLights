@@ -78,6 +78,10 @@ PlayList& PlayList::operator=(PlayList& playlist)
 
 PlayList::PlayList(const PlayList& playlist, bool newid)
 {
+    // logging to try to catch a scheduler crash
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Copying playlist %s steps %d.", (const char*)playlist.GetName().c_str(), playlist.GetSteps().size());
+
     _commandAtEndOfCurrentStep = "";
     _commandParametersAtEndOfCurrentStep = "";
     _forceNextStep = "";
@@ -104,17 +108,11 @@ PlayList::PlayList(const PlayList& playlist, bool newid)
     {
         _id = playlist._id;
     }
+
     for (auto it = playlist._steps.begin(); it != playlist._steps.end(); ++it)
     {
         _steps.push_back(new PlayListStep(**it));
     }
-    //for (auto it = playlist._schedules.begin(); it != playlist._schedules.end(); ++it)
-    //{
-    //    _schedules.push_back(new Schedule(**it));
-    //}
-
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    //logger_base.info("Playlist copy made %s 0x%lx.", (const char*)GetName().c_str(), this);
 }
 
 PlayList::PlayList()
@@ -801,10 +799,15 @@ PlayListStep* PlayList::GetRandomStep()
     {
         int selected = rand() % _steps.size();
         auto it = _steps.begin();
-        std::advance(it, selected);
+
+        for (int i = 0; i < selected && it != _steps.end(); i++)
+        {
+            ++it;
+        }
 
         // we dont want the same step so try again or a step that isnt meant to be random
-        if ((*it)->GetId() == _currentStep->GetId() || 
+        if (it == _steps.end() ||
+            (_currentStep != nullptr && (*it)->GetId() == _currentStep->GetId()) || 
             (*it)->GetExcludeFromRandom() ||
             (_firstOnlyOnce && (*it)->GetId() == _steps.front()->GetId()) ||
             (_lastOnlyOnce && (*it)->GetId() == _steps.back()->GetId())

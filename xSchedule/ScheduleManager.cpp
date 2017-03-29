@@ -558,6 +558,11 @@ bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, 
     bool result = true;
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (playlist == nullptr)
+    {
+        logger_base.info("Error PlayPlayList called with null playlist.");
+        return false;
+    }
     logger_base.info("Playing playlist %s.", (const char*)playlist->GetNameNoTime().c_str());
 
     if (_immediatePlay != nullptr)
@@ -567,7 +572,7 @@ bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, 
         _immediatePlay = nullptr;
     }
 
-    if (_queuedSongs->IsRunning())
+    if (_queuedSongs != nullptr && _queuedSongs->IsRunning())
     {
         logger_base.info("Suspending queued playlist so immediate can play.");
         _queuedSongs->Suspend(true);
@@ -3576,7 +3581,7 @@ void ScheduleManager::StartFSEQ(const std::string fseq)
         }
     }
 
-    if (pls != nullptr)
+    if (pl != nullptr && pls != nullptr)
     {
         logger_base.debug("... Starting %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
 
