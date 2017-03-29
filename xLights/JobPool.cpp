@@ -96,15 +96,32 @@ void JobPoolWorker::Stop()
 
 void JobPoolWorker::Start()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static const unsigned int stackSize = 1024*128;
-    Create(stackSize);
+    auto rc = Create(stackSize);
+
+    switch(rc)
+    {
+    case wxTHREAD_NO_ERROR:
+        break;
+    case wxTHREAD_NO_RESOURCE:
+        logger_base.error("Insufficient resources to create worker thread.");
+        break;
+    case wxTHREAD_NOT_RUNNING:
+        logger_base.error("The worker thread is already running.");
+        break;
+    default:
+        logger_base.error("worker thread start returned unexpected result %d.", rc);
+        break;
+    }
+
     Run();
 }
 
 Job *JobPoolWorker::GetJob()
 {
     std::unique_lock<std::mutex> mutLock(*lock);
-    Job *req(NULL);
+    Job *req(nullptr);
     if (queue->empty()) {
         idleThreads++;
         long timeout = 100;
@@ -138,7 +155,7 @@ void* JobPoolWorker::Entry()
             if (job->DeleteWhenComplete()) {
                 delete job;
             }
-            job = NULL;
+            job = nullptr;
             std::unique_lock<std::mutex> mutLock(*lock);
             inFlight--;
         } else {
@@ -150,18 +167,18 @@ void* JobPoolWorker::Entry()
     }
     std::unique_lock<std::mutex> mutLock(*lock);
     numThreads--;
-    return NULL;
+    return nullptr;
 }
 
 void JobPoolWorker::ProcessJob(Job *job)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
     if (job) {
-		logger_base.debug("Starting job on background thread.");
+		logger_jobpool.debug("Starting job on background thread.");
 		currentJob = job;
         job->Process();
         currentJob = nullptr;
-		logger_base.debug("Job on background thread done.");
+		logger_jobpool.debug("Job on background thread done.");
 	}
 }
 
@@ -207,7 +224,7 @@ void JobPool::PushJob(Job *job)
 
 void JobPool::Start(size_t poolSize)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
     if (poolSize > 250) {
         poolSize = 250;
     }
@@ -217,7 +234,7 @@ void JobPool::Start(size_t poolSize)
     maxNumThreads = poolSize;
     idleThreads = 0;
     numThreads = 0;
-    logger_base.info("Background thread pool started with %d threads", maxNumThreads);
+    logger_jobpool.info("Background thread pool started with %d threads", maxNumThreads);
 }
 
 void JobPool::Stop()
