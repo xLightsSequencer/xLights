@@ -516,7 +516,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         chindex=circuit-1;
                         network--;
                         network += lorUnitSizes.size();
-                        curchannel = params._outputManager->GetAbsoluteChannel(network,chindex);
+                        curchannel = params._outputManager->GetAbsoluteChannel(network,chindex) - 1;
                     }
                     else if (Left(deviceType, 3) == "LOR")
                     {
@@ -526,7 +526,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                             chindex += lorUnitSizes[network][z];
                         }
                         chindex += circuit-1;
-                        curchannel = params._outputManager->GetAbsoluteChannel(network,chindex);
+                        curchannel = params._outputManager->GetAbsoluteChannel(network,chindex) - 1;
                     } else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
                         curchannel = -1;
                     } else {
