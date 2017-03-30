@@ -23,7 +23,7 @@ CFLAGS_LINUX_DEBUG =  -Wall -g -std=gnu++14 `wx-config --version=3.1 --cflags` `
 RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
 LIBDIR_LINUX_DEBUG = $(LIBDIR)
-LIB_LINUX_DEBUG = $(LIB)../lib/linux/libliquidfun-`uname -p`.a
+LIB_LINUX_DEBUG = $(LIB)../lib/linux/libliquidfun.a
 LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -rdynamic $(LDFLAGS)
 OBJDIR_LINUX_DEBUG = .objs_debug
 DEP_LINUX_DEBUG = 
@@ -34,7 +34,7 @@ CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -std=gnu++14 -Wall `wx-config --version=3.1
 RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 LIBDIR_LINUX_RELEASE = $(LIBDIR)
-LIB_LINUX_RELEASE = $(LIB)../lib/linux/libliquidfun-`uname -p`.a
+LIB_LINUX_RELEASE = $(LIB)../lib/linux/libliquidfun.a
 LDFLAGS_LINUX_RELEASE =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -rdynamic $(LDFLAGS)
 OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 

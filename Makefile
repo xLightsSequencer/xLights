@@ -19,7 +19,7 @@ SUBDIRS         = xLights xSchedule
 
 .NOTPARALLEL:
 
-all: wxwidgets31 cbp2make makefile subdirs
+all: wxwidgets31 cbp2make linkliquid makefile subdirs
 
 #############################################################################
 
@@ -30,6 +30,11 @@ $(SUBDIRS): FORCE
 
 
 #############################################################################
+
+linkliquid:
+	if test ! -e lib/linux/libliquidfun.a; \
+		then ln -s libliquidfun.a.`uname -p` lib/linux/libliquidfun.a; \
+	fi
 
 wxwidgets31: FORCE
 	if test "`wx-config --release`" != "3.1"; \

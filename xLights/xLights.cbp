@@ -314,7 +314,7 @@
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
-					<Add library="../lib/linux/libliquidfun-`uname -p`.a" />
+					<Add library="../lib/linux/libliquidfun.a" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Release">
@@ -356,7 +356,7 @@
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
-					<Add library="../lib/linux/libliquidfun-`uname -p`.a" />
+					<Add library="../lib/linux/libliquidfun.a" />
 				</Linker>
 			</Target>
 			<Target title="64bit  MinGW_Release">
