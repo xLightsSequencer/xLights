@@ -164,6 +164,7 @@
 				<Compiler>
 					<Add option="-march=i586" />
 					<Add option="-pedantic" />
+					<Add option="-m32" />
 					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
@@ -193,6 +194,7 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 				</ResourceCompiler>
 				<Linker>
+					<Add option="-m32" />
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
@@ -223,6 +225,7 @@
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 					<Add option="-pedantic" />
+					<Add option="-m32" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
@@ -253,6 +256,7 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-m32" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add option="-Wl,--large-address-aware" />
@@ -367,8 +371,8 @@
 				<Option compiler="gnu_gcc_64bit_compiler" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
-					<Add option="-march=i586" />
 					<Add option="-pedantic" />
+					<Add option="-m64" />
 					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
@@ -398,12 +402,12 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 				</ResourceCompiler>
 				<Linker>
+					<Add option="-m64" />
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
-					<Add option="-Wl,--large-address-aware" />
-					<Add library="libwxmsw31ud.a" />
-					<Add library="libwxmsw31ud_gl.a" />
+					<Add library="libwxmsw31u.a" />
+					<Add library="libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/ImageHlp.Lib" />
 					<Add library="../lib/windows/avcodec.lib" />
