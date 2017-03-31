@@ -363,6 +363,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 	CheckBox_Enabled3->SetValue(false);
 	FlexGridSizer4->Add(CheckBox_Enabled3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer9 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer9->AddGrowableCol(1);
 	StaticText32 = new wxStaticText(Panel3, ID_STATICTEXT32, _("X"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT32"));
 	FlexGridSizer9->Add(StaticText32, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_X3 = new wxSlider(Panel3, IDD_SLIDER_X3, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_X3"));
@@ -425,6 +426,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 	CheckBox_Enabled4->SetValue(false);
 	FlexGridSizer5->Add(CheckBox_Enabled4, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer10 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer10->AddGrowableCol(1);
 	StaticText42 = new wxStaticText(Panel4, ID_STATICTEXT42, _("X"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT42"));
 	FlexGridSizer10->Add(StaticText42, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_X4 = new wxSlider(Panel4, IDD_SLIDER_X4, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_X4"));

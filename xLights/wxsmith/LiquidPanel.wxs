@@ -740,6 +740,7 @@
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 										<cols>4</cols>
+										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT32" variable="StaticText32" member="yes">
 												<label>X</label>
@@ -982,6 +983,7 @@
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
 										<cols>4</cols>
+										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT42" variable="StaticText42" member="yes">
 												<label>X</label>
