@@ -3,17 +3,18 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(LightningPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(LightningPanel)
@@ -48,6 +49,8 @@ const long LightningPanel::ID_STATICTEXT73 = wxNewId();
 const long LightningPanel::ID_SLIDER_Lightning_BOTY = wxNewId();
 const long LightningPanel::IDD_TEXTCTRL_Lightning_BOTY = wxNewId();
 const long LightningPanel::ID_BITMAPBUTTON52 = wxNewId();
+const long LightningPanel::ID_STATICTEXT1 = wxNewId();
+const long LightningPanel::ID_CHOICE_Lightning_Direction = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(LightningPanel,wxPanel)
@@ -58,13 +61,13 @@ END_EVENT_TABLE()
 LightningPanel::LightningPanel(wxWindow* parent)
 {
 	//(*Initialize(LightningPanel)
-	wxFlexGridSizer* FlexGridSizer140;
-	wxFlexGridSizer* FlexGridSizer4;
-	wxTextCtrl* TextCtrl_Number_Bolts;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxTextCtrl* TextCtrl_Number_Segments;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxTextCtrl* TextCtrl_Number_Segments;
+	wxTextCtrl* TextCtrl_Number_Bolts;
+	wxFlexGridSizer* FlexGridSizer140;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer140 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -161,6 +164,12 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	BitmapButton28->SetMinSize(wxSize(13,13));
 	BitmapButton28->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer140->Add(BitmapButton28, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer140->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CHOICE_Lightning_Direction = new wxChoice(this, ID_CHOICE_Lightning_Direction, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Lightning_Direction"));
+	CHOICE_Lightning_Direction->SetSelection( CHOICE_Lightning_Direction->Append(_("Up")) );
+	CHOICE_Lightning_Direction->Append(_("Down"));
+	FlexGridSizer140->Add(CHOICE_Lightning_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer140);
 	FlexGridSizer140->Fit(this);
 	FlexGridSizer140->SetSizeHints(this);
