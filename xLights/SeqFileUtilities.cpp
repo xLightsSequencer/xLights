@@ -2963,7 +2963,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         std::string settings = "E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,"
                             "E_SLIDER_PicturesXC=0"
                             ",E_SLIDER_PicturesYC=0"
-                            ",E_CHECKBOX_Pictures_ScaleToFit=1"
+                            ",E_CHOICE_Scaling=Scale To Fit"
                             ",E_SLIDER_Pictures_StartScale=100"
                             ",E_SLIDER_Pictures_EndScale=100"
                             ",E_CHECKBOX_Pictures_PixelOffsets=1"
@@ -3133,7 +3133,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         std::string settings = "E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,"
                             "E_SLIDER_PicturesXC=" + wxString::Format("%d", x).ToStdString()
                             + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y).ToStdString()
-                            + ",E_CHECKBOX_Pictures_ScaleToFit=0"
+                            + ",E_CHOICE_Scaling=No Scaling"
                             + ",E_SLIDER_Pictures_StartScale=100"
                             + ",E_SLIDER_Pictures_EndScale=100"
                             + ",E_CHECKBOX_Pictures_PixelOffsets=1"
@@ -3156,7 +3156,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y - (int)round((double)starty*imgInfo.scaleY)).ToStdString()
                             + ",E_SLIDER_PicturesEndXC=" + wxString::Format("%d", x + (int)round((double)endx*imgInfo.scaleX)).ToStdString()
                             + ",E_SLIDER_PicturesEndYC=" + wxString::Format("%d", y - (int)round((double)endy*imgInfo.scaleY)).ToStdString()
-                            + ",E_CHECKBOX_Pictures_ScaleToFit=0"
+                            + ",E_CHOICE_Scaling=No Scaling"
                             + ",E_SLIDER_Pictures_StartScale=100"
                             + ",E_SLIDER_Pictures_EndScale=100"
                             + ",E_TEXTCTRL_Pictures_Speed=1.0"

@@ -117,7 +117,7 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect)
         if (settings["E_CHOICE_Pictures_Direction"] == "scaled")
         {
             settings["E_CHOICE_Pictures_Direction"] = "none";
-            settings["E_CHECKBOX_Pictures_ScaleToFit"] = "1";
+            settings["E_CHOICE_Scaling"] = "Scale To Fit";
         }
         settings["E_SLIDER_Pictures_StartScale"] = "100";
         settings["E_SLIDER_Pictures_EndScale"] = "100";
