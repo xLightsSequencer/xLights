@@ -206,6 +206,7 @@ CommandManager::CommandManager()
     PARMTYPE s[] = { PARMTYPE::STRING };
     PARMTYPE ss[] = { PARMTYPE::STRING, PARMTYPE::STRING };
     PARMTYPE sss[] = { PARMTYPE::STRING, PARMTYPE::STRING, PARMTYPE::STRING };
+    PARMTYPE iiss[] = { PARMTYPE::INTEGER, PARMTYPE::INTEGER, PARMTYPE::STRING, PARMTYPE::STRING };
     PARMTYPE sch[] = { PARMTYPE::SCHEDULE };
     PARMTYPE c[] = { PARMTYPE::COMMAND };
     PARMTYPE plstit[] = { PARMTYPE::PLAYLIST, PARMTYPE::STEP, PARMTYPE::ITEM };
@@ -259,6 +260,7 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Bring to foreground", 0, {}, false, false, false, false, true, true, false, false)); // this is useful from the web UI to force the scheduler into the foreground on the PC
     _commands.push_back(new Command("Set current text", 3, sss, false, false, true, false, true, true, false, true)); // <text name>,<text>, <properties>
     _commands.push_back(new Command("Set pixels", 3, sss, false, false, true, false, true, true, false, true)); // <set channels name>,<base64 encoded data>, <properties>
+    _commands.push_back(new Command("Set pixel range", 4, iiss, false, false, true, false, true, true, false, true)); // <startchannel>,<channels>,<color>,<blendmode>
     _commands.push_back(new Command("Run process", 3, plstit, false, false, false, false, true, true, true, false));
 }
 

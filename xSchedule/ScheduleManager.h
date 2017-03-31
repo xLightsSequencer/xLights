@@ -38,9 +38,12 @@ class PixelData
 
 public:
     PixelData(size_t startChannel, const std::string& data, APPLYMETHOD blendMode);
+    PixelData(size_t startChannel, size_t channels, const wxColor& c, APPLYMETHOD blendMode);
     virtual ~PixelData();
     void Set(wxByte* buffer, size_t size);
+    void SetColor(const wxColor& c, APPLYMETHOD blendMode);
     void SetData(const std::string& data, APPLYMETHOD blendMode);
+    long GetSize() const { return _size; }
     size_t GetStartChannel() const { return _startChannel; }
 };
 

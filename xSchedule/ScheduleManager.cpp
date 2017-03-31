@@ -1580,6 +1580,49 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     _overlayData.push_back(p);
                 }
             }
+            else if (command == "Set pixel range")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                if (split.size() < 4)
+                {
+                    result = false;
+                    msg = "Set pixel range did not get all the parameters '" + parameter + "'";
+                }
+                else
+                {
+                    size_t sc = wxAtol(split[0]);
+                    size_t ch = wxAtol(split[1]);
+                    wxColor c(split[2]);
+                    APPLYMETHOD blendMode = APPLYMETHOD::METHOD_OVERWRITE;
+                    blendMode = EncodeBlendMode(split[3].ToStdString());
+
+                    PixelData * p = nullptr;
+                    for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
+                    {
+                        if ((*it)->GetStartChannel() == sc && (*it)->GetSize() == ch)
+                        {
+                            p = *it;
+                            if (ch == 0)
+                            {
+                                _overlayData.remove(p);
+                            }
+                            else
+                            {
+                                p->SetColor(c, blendMode);
+                            }
+                            break;
+                        }
+                    }
+
+                    if (p == nullptr)
+                    {
+                        p = new PixelData(sc, ch, c, blendMode);
+                        _overlayData.push_back(p);
+                    }
+                }
+            }
             else if (command == "Play specified playlist step n times")
             {
                 wxString parameter = parameters;
@@ -3173,6 +3216,39 @@ PixelData::PixelData(size_t startChannel, const std::string& data, APPLYMETHOD b
     _blendMode = blendMode;
 
     ExtractData(data);
+}
+
+PixelData::PixelData(size_t startChannel, size_t channels, const wxColor& c, APPLYMETHOD blendMode)
+{
+    _startChannel = startChannel;
+    _blendMode = blendMode;
+    _size = channels;
+    _data = (wxByte*)malloc(_size);
+
+    SetColor(c, blendMode);
+}
+
+void PixelData::SetColor(const wxColor& c, APPLYMETHOD blendMode)
+{
+    _blendMode = blendMode;
+    long size3 = (_size / 3) * 3;
+
+    for (long i = 0; i < size3; i += 3)
+    {
+        _data[i] = c.Red();
+        _data[i+1] = c.Green();
+        _data[i+2] = c.Blue();
+    }
+
+    // handle weird channel counts
+    if (_size > size3)
+    {
+        _data[size3] = c.Red();
+        if (_size > size3 + 1)
+        {
+            _data[size3+1] = c.Green();
+        }
+    }
 }
 
 PixelData::~PixelData()
