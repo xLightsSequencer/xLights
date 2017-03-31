@@ -285,6 +285,7 @@ public:
     PerspectiveId perspectives[10];
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile(bool backup = false);
+    void SaveModelsFile();
     void MarkEffectsFileDirty(bool modelStructureChange);
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int section = 0);

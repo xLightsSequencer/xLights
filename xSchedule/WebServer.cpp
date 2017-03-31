@@ -317,22 +317,32 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
     {
         logger_base.info("    data = '%s'.", (const char *)data.c_str());
 
-        // now store it in a file
-        std::string msg = "";
-        if (xScheduleFrame::GetScheduleManager()->StoreData(key, data, msg))
+        if (key == "GetModels")
         {
-#ifdef DETAILED_LOGGING
-            logger_base.info("    Time %ld.", sw.Time());
-#endif
-            result = "{\"result\":\"ok\",\"reference\":\""+reference+"\",\"stash\":\""+command+"\"}";
+            result = "{\"result\":\"failed\",\"stash\":\"" +
+                command + "\",\"reference\":\"" +
+                reference + "\",\"message\":\"Unable to store under key 'GetModels'. This is a reserved key.\"}";
+            logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
         }
         else
         {
-            result = "{\"result\":\"failed\",\"stash\":\""+
-                command + "\",\"reference\":\"" +
-                reference+"\",\"message\":\"" +
-                msg + "\"}";
-            logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
+            // now store it in a file
+            std::string msg = "";
+            if (xScheduleFrame::GetScheduleManager()->StoreData(key, data, msg))
+            {
+#ifdef DETAILED_LOGGING
+                logger_base.info("    Time %ld.", sw.Time());
+#endif
+                result = "{\"result\":\"ok\",\"reference\":\"" + reference + "\",\"stash\":\"" + command + "\"}";
+            }
+            else
+            {
+                result = "{\"result\":\"failed\",\"stash\":\"" +
+                    command + "\",\"reference\":\"" +
+                    reference + "\",\"message\":\"" +
+                    msg + "\"}";
+                logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
+            }
         }
     }
     else if (wxString(command).Lower() == "retrieve")

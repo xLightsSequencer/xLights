@@ -454,6 +454,62 @@ void xLightsFrame::OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event)
     }
 }
 
+void xLightsFrame::SaveModelsFile()
+{
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::string filename = CurrentDir.ToStdString() + "/xScheduleData/GetModels.dat";
+
+    if (!wxDir::Exists(CurrentDir + "/xScheduleData"))
+    {
+        wxDir sd(CurrentDir);
+        sd.Make(CurrentDir + "/xScheduleData");
+    }
+
+    wxFile modelsJSON;
+    if (!modelsJSON.Create(filename, true) || !modelsJSON.IsOpened())
+    {
+        logger_base.error("Unable to create file: %s.", (const char *)filename.c_str());
+        return;
+    }
+
+    modelsJSON.Write("{\"models\":[");
+
+    bool first = true;
+    for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
+    {
+        if (!first)
+        {
+            modelsJSON.Write(",");
+            first = false;
+        }
+
+        Model* model = m->second;
+        if (model->GetDisplayAs() == "ModelGroup")
+        {
+            // Dont export model groups ... they arent useful
+
+            //ModelGroup* mg = static_cast<ModelGroup*>(model);
+            //modelsJSON.Write("{\"name\":\"" + mg->name +
+            //    "\",\"type\":\"" + mg->GetDisplayAs() +
+            //    "\",\"startchannel\":\"" + wxString::Format("%i", mg->NodeStartChannel(0) + 1) +
+            //    "\",\"channels\":\"" + wxString::Format("%i", mg->GetChanCount()) +
+            //    "\",\"stringtype\":\"\"}");
+        }
+        else
+        {
+            int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+            modelsJSON.Write("{\"name\":\""+model->name+
+                              "\",\"type\":\""+model->GetDisplayAs()+
+                              "\",\"startchannel\":\""+wxString::Format("%i", ch)+
+                              "\",\"channels\":\""+ wxString::Format("%i", model->GetChanCount()) +
+                              "\",\"stringtype\":\""+ model->GetStringType() +"\"}");
+        }
+    }
+
+    modelsJSON.Write("]}");
+}
 
 // returns true on success
 bool xLightsFrame::SaveEffectsFile(bool backup)
@@ -490,6 +546,9 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     {
         UnsavedRgbEffectsChanges = false;
     }
+
+    SaveModelsFile();
+
     return true;
 }
 
