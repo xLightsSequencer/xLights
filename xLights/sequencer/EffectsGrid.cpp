@@ -2198,6 +2198,8 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
     if (mPartialCellSelected || OneCellSelected()) {
         if( ((number_of_timings + number_of_effects) > 1) || row_paste )  // multi-effect paste or row_paste
         {
+            std::set<std::string> modelsToRender;
+            
             wxArrayString eff1data = wxSplit(all_efdata[1], '\t');
             if (eff1data.size() < 7) {
                 return;
@@ -2318,14 +2320,10 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                             xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
                         }
                         mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
-                        if (!is_timing_effect && !ef->GetPaletteMap().empty() ) {
-                            sendRenderEvent(el->GetParentElement()->GetModelName(),
-                                new_start_time,
-                                new_end_time, true);
-                        }
                     }
                 }
             }
+            sendRenderEvent("", -1, -1, true);
             mPartialCellSelected = false;
         }
         else

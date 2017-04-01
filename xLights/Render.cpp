@@ -724,7 +724,12 @@ void xLightsFrame::RenderRange(RenderCommandEvent &evt) {
     if (evt.deleted) {
         selectedEffect = 0;
     }
-    RenderEffectForModel(evt.model, evt.start,  evt.end, evt.clear);
+    if (evt.model == "") {
+        //render all dirty models
+        RenderDirtyModels();
+    } else {
+        RenderEffectForModel(evt.model, evt.start,  evt.end, evt.clear);
+    }
 }
 
 void xLightsFrame::RenderMainThreadEffects() {
@@ -1143,6 +1148,60 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
     }
 }
 
+static void addModels(std::list<Model*> &models, const std::list<Model *> &toAdd) {
+    for (auto it = toAdd.begin(); it != toAdd.end(); it++) {
+        bool add = true;
+        for (auto it2 = models.begin(); it2 != models.end() && add; it2++) {
+            if (*it2 == *it) {
+                add = false;
+            }
+        }
+        if (add) {
+            models.push_back(*it);
+        }
+    }
+}
+
+void xLightsFrame::RenderDirtyModels() {
+    BuildRenderTree();
+    if (renderTree.data.empty()) {
+        //nothing to do....
+        return;
+    }
+    const int numRows = mSequenceElements.GetElementCount();
+    if (numRows == 0) {
+        return;
+    }
+    int startms = 9999999;
+    int endms = -1;
+    std::list<Model *> models;
+    for (int x = 0; x < numRows; x++) {
+        if (mSequenceElements.GetElement(x)->GetType() != ELEMENT_TYPE_TIMING) {
+            int st, ed;
+            mSequenceElements.GetElement(x)->GetDirtyRange(st, ed);
+            if (st != -1) {
+                startms = std::min(startms, st);
+                endms = std::max(endms, ed);
+                
+                for (auto it = renderTree.data.begin(); it != renderTree.data.end(); it++) {
+                    if ((*it)->model->GetName() == mSequenceElements.GetElement(x)->GetModelName()) {
+                        addModels(models, (*it)->renderOrder);
+                    }
+                }
+            }
+        }
+    }
+    int startframe = startms / SeqData.FrameTime() - 1;
+    if (startframe < 0) {
+        startframe = 0;
+    }
+    int endframe = endms / SeqData.FrameTime() + 1;
+    if (endframe >= SeqData.NumFrames()) {
+        endframe = SeqData.NumFrames() - 1;
+    }
+    Render(models, nullptr, startframe, endframe, false, true, [] {});
+}
+
 void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
     BuildRenderTree();
     if (renderTree.data.empty()) {
@@ -1166,7 +1225,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
             }
         }
     }
-    Render(models, nullptr, 0, SeqData.NumFrames() - 1, true, false, std::move(callback));
+    Render(models, nullptr, 0, SeqData.NumFrames() - 1, false, false, std::move(callback));
 }
 
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {

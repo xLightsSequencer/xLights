@@ -917,6 +917,7 @@ public:
     void RenderMainThreadEffects();
     void RenderEffectOnMainThread(RenderEvent *evt);
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false);
+    void RenderDirtyModels();
     void Render(std::list<Model*> models, Model *restrictToModel,
                 int startFrame, int endFrame,
                 bool progressDialog, bool clear,
