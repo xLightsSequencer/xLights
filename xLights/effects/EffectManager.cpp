@@ -4,6 +4,7 @@
 #include "OnEffect.h"
 #include "BarsEffect.h"
 #include "ButterflyEffect.h"
+#include "CandleEffect.h"
 #include "CirclesEffect.h"
 #include "ColorWashEffect.h"
 #include "CurtainEffect.h"
@@ -56,6 +57,7 @@ EffectManager::EffectManager()
     add(new OnEffect(eff_ON));
     add(new BarsEffect(eff_BARS));
     add(new ButterflyEffect(eff_BUTTERFLY));
+    add(new CandleEffect(eff_CANDLE));
     add(new CirclesEffect(eff_CIRCLES));
     add(new ColorWashEffect(eff_COLORWASH));
     add(new CurtainEffect(eff_CURTAIN));

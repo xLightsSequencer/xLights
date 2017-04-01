@@ -695,6 +695,10 @@
 		<Unit filename="effects/ButterflyEffect.h" />
 		<Unit filename="effects/ButterflyPanel.cpp" />
 		<Unit filename="effects/ButterflyPanel.h" />
+		<Unit filename="effects/CandleEffect.cpp" />
+		<Unit filename="effects/CandleEffect.h" />
+		<Unit filename="effects/CandlePanel.cpp" />
+		<Unit filename="effects/CandlePanel.h" />
 		<Unit filename="effects/CirclesEffect.cpp" />
 		<Unit filename="effects/CirclesEffect.h" />
 		<Unit filename="effects/CirclesPanel.cpp" />
@@ -1071,6 +1075,7 @@
 		<Unit filename="wxsmith/BufferPanel.wxs" />
 		<Unit filename="wxsmith/BufferSizeDialog.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
+		<Unit filename="wxsmith/CandlePanel.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
@@ -1247,6 +1252,7 @@
 					<wxPanel wxs="wxsmith/BarsPanel.wxs" src="effects/BarsPanel.cpp" hdr="effects/BarsPanel.h" fwddecl="1" i18n="1" name="BarsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/OffPanel.wxs" src="effects/OffPanel.cpp" hdr="effects/OffPanel.h" fwddecl="1" i18n="1" name="OffPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ButterflyPanel.wxs" src="effects/ButterflyPanel.cpp" hdr="effects/ButterflyPanel.h" fwddecl="1" i18n="1" name="ButterflyPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/CandlePanel.wxs" src="effects/CandlePanel.cpp" hdr="effects/CandlePanel.h" fwddecl="1" i18n="1" name="CandlePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CirclesPanel.wxs" src="effects/CirclesPanel.cpp" hdr="effects/CirclesPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ColorWashPanel.wxs" src="effects/ColorWashPanel.cpp" hdr="effects/ColorWashPanel.h" fwddecl="1" i18n="1" name="ColorWashPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CurtainPanel.wxs" src="effects/CurtainPanel.cpp" hdr="effects/CurtainPanel.h" fwddecl="1" i18n="1" name="CurtainPanel" language="CPP" />

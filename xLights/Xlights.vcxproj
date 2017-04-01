@@ -161,6 +161,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CustomTimingDialog.cpp" />
+    <ClCompile Include="effects\CandleEffect.cpp" />
+    <ClCompile Include="effects\CandlePanel.cpp" />
     <ClCompile Include="effects\GIFImage.cpp" />
     <ClCompile Include="effects\LiquidEffect.cpp" />
     <ClCompile Include="effects\LiquidPanel.cpp" />
@@ -458,6 +460,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CustomTimingDialog.h" />
+    <ClInclude Include="effects\CandleEffect.h" />
+    <ClInclude Include="effects\CandlePanel.h" />
     <ClInclude Include="effects\GIFImage.h" />
     <ClInclude Include="effects\LiquidEffect.h" />
     <ClInclude Include="effects\LiquidPanel.h" />

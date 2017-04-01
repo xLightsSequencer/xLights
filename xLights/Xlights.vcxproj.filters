@@ -933,6 +933,12 @@
     <ClCompile Include="effects\LiquidEffect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="effects\CandleEffect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\CandlePanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1800,6 +1806,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="effects\LiquidEffect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\CandleEffect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\CandlePanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

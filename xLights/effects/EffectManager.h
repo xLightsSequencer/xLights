@@ -17,6 +17,7 @@ public:
         eff_ON,
         eff_BARS,
         eff_BUTTERFLY,
+        eff_CANDLE,
         eff_CIRCLES,
         eff_COLORWASH,
         eff_CURTAIN,
