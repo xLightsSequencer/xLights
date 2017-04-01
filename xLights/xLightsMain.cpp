@@ -1409,6 +1409,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
 	SetAudioControls();
 
+#ifdef __WXOSX_MAC__
+    // we remove this on OSX because xSchedule is not simple to locate ... at least I dont know how to do it
+    MenuItem_xSchedule->GetMenu()->Remove(MenuItem_xSchedule->GetId());
+#endif
+
     DrawingContext::Initialize(this);
 
     logger_base.debug("xLightsFrame construction complete.");
