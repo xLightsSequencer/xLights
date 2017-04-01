@@ -40,9 +40,7 @@ OnPanel::OnPanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer95;
 	wxStaticText* StaticText174;
 	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer96;
 	wxStaticText* StaticText114;
-	wxStaticText* StaticText73;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText113;
 	wxFlexGridSizer* FlexGridSizer18;
@@ -53,10 +51,6 @@ OnPanel::OnPanel(wxWindow* parent)
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer92 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer92->AddGrowableCol(0);
-	FlexGridSizer96 = new wxFlexGridSizer(0, 1, 0, 0);
-	StaticText73 = new wxStaticText(this, wxID_ANY, _("This Effect turns every pixel on."), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	FlexGridSizer96->Add(StaticText73, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer92->Add(FlexGridSizer96, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer93 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer93->AddGrowableCol(0);
 	FlexGridSizer95 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -67,7 +61,7 @@ OnPanel::OnPanel(wxWindow* parent)
 	FlexGridSizer1->AddGrowableCol(0);
 	SliderStart = new wxSlider(this, IDD_SLIDER_Eff_On_Start, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Eff_On_Start"));
 	FlexGridSizer1->Add(SliderStart, 1, wxALL|wxEXPAND, 2);
-	TextCtrlStart = new wxTextCtrl(this, ID_TEXTCTRL_Eff_On_Start, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Eff_On_Start"));
+	TextCtrlStart = new wxTextCtrl(this, ID_TEXTCTRL_Eff_On_Start, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Eff_On_Start"));
 	FlexGridSizer1->Add(TextCtrlStart, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer95->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	StaticText114 = new wxStaticText(this, wxID_ANY, _("End Intensity"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -76,7 +70,7 @@ OnPanel::OnPanel(wxWindow* parent)
 	FlexGridSizer2->AddGrowableCol(0);
 	SliderEnd = new wxSlider(this, IDD_SLIDER_Eff_On_End, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Eff_On_End"));
 	FlexGridSizer2->Add(SliderEnd, 1, wxALL|wxEXPAND, 2);
-	TextCtrlEnd = new wxTextCtrl(this, ID_TEXTCTRL_Eff_On_End, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Eff_On_End"));
+	TextCtrlEnd = new wxTextCtrl(this, ID_TEXTCTRL_Eff_On_End, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Eff_On_End"));
 	FlexGridSizer2->Add(TextCtrlEnd, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer95->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	StaticText137 = new wxStaticText(this, wxID_ANY, _("Transparency"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -87,7 +81,7 @@ OnPanel::OnPanel(wxWindow* parent)
 	FlexGridSizer18->Add(Slider_On_Transparency, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_On_Transparency = new ValueCurveButton(this, ID_VALUECURVE_On_Transparency, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_On_Transparency"));
 	FlexGridSizer18->Add(BitmapButton_On_Transparency, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	TextCtrlOnTransparency = new wxTextCtrl(this, ID_TEXTCTRL_On_Transparency, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_On_Transparency"));
+	TextCtrlOnTransparency = new wxTextCtrl(this, ID_TEXTCTRL_On_Transparency, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_On_Transparency"));
 	TextCtrlOnTransparency->SetMaxLength(3);
 	FlexGridSizer18->Add(TextCtrlOnTransparency, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer95->Add(FlexGridSizer18, 1, wxALL|wxEXPAND, 0);
@@ -95,10 +89,10 @@ OnPanel::OnPanel(wxWindow* parent)
 	FlexGridSizer95->Add(StaticText174, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	SliderCycles = new wxSlider(this, IDD_SLIDER_On_Cycles, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_On_Cycles"));
+	SliderCycles = new wxSlider(this, IDD_SLIDER_On_Cycles, 10, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_On_Cycles"));
 	FlexGridSizer3->Add(SliderCycles, 1, wxALL|wxEXPAND, 2);
-	TextCtrlCycles = new wxTextCtrl(this, ID_TEXTCTRL_On_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_On_Cycles"));
-	TextCtrlCycles->SetMaxLength(4);
+	TextCtrlCycles = new wxTextCtrl(this, ID_TEXTCTRL_On_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_On_Cycles"));
+	TextCtrlCycles->SetMaxLength(5);
 	FlexGridSizer3->Add(TextCtrlCycles, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer95->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer93->Add(FlexGridSizer95, 1, wxALL|wxEXPAND, 2);
@@ -120,7 +114,7 @@ OnPanel::OnPanel(wxWindow* parent)
 	Connect(IDD_SLIDER_On_Cycles,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&OnPanel::UpdateLinkedTextCtrlFloat);
 	Connect(ID_TEXTCTRL_On_Cycles,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&OnPanel::UpdateLinkedSliderFloat);
 	//*)
-    
+
     SetName("ID_PANEL_ON");
 }
 
