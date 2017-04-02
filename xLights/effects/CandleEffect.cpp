@@ -8,11 +8,11 @@
 #include "../models/Model.h"
 #include "../SequenceCheck.h"
 
-#include "../../include/Candle-16.xpm"
-#include "../../include/Candle-24.xpm"
-#include "../../include/Candle-32.xpm"
-#include "../../include/Candle-48.xpm"
-#include "../../include/Candle-64.xpm"
+#include "../../include/candle-16.xpm"
+#include "../../include/candle-24.xpm"
+#include "../../include/candle-32.xpm"
+#include "../../include/candle-48.xpm"
+#include "../../include/candle-64.xpm"
 #include <UtilFunctions.h>
 
 CandleEffect::CandleEffect(int id) : RenderableEffect(id, "Candle", candle_16, candle_24, candle_32, candle_48, candle_64)

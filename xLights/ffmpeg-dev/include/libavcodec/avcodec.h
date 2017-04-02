@@ -1492,7 +1492,7 @@ typedef struct AVPacket {
      * for Matroska subtitles, whose duration values could overflow when the
      * duration field was still an int.
      */
-    attribute_deprecated
+    /*  attribute_deprecated  */
     int64_t convergence_duration;
 #endif
 } AVPacket;

@@ -319,6 +319,8 @@
 		67BCD1571E6DB06800F99935 /* GIFImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BCD1501E6DAF4900F99935 /* GIFImage.cpp */; };
 		67BE75131CAC2EB200D7BA82 /* IciclesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */; };
 		67C0EEE31C755ABE002FE25E /* MatrixModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */; };
+		67C115641E9071E900B06690 /* CandleEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C115601E9071E900B06690 /* CandleEffect.cpp */; };
+		67C115651E9071E900B06690 /* CandlePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C115621E9071E900B06690 /* CandlePanel.cpp */; };
 		67C5814B1E4B95A400932DFA /* ColourOrderDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581381E4B95A400932DFA /* ColourOrderDialog.cpp */; };
 		67C5814C1E4B95A400932DFA /* MatrixDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581391E4B95A400932DFA /* MatrixDialog.cpp */; };
 		67C5814D1E4B95A400932DFA /* VirtualMatrixDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C5813A1E4B95A400932DFA /* VirtualMatrixDialog.cpp */; };
@@ -1135,6 +1137,10 @@
 		67BE75121CAC2EB200D7BA82 /* IciclesModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IciclesModel.h; path = models/IciclesModel.h; sourceTree = "<group>"; };
 		67C0EEE11C755ABE002FE25E /* MatrixModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MatrixModel.h; path = models/MatrixModel.h; sourceTree = "<group>"; };
 		67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MatrixModel.cpp; path = models/MatrixModel.cpp; sourceTree = "<group>"; };
+		67C115601E9071E900B06690 /* CandleEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CandleEffect.cpp; path = effects/CandleEffect.cpp; sourceTree = "<group>"; };
+		67C115611E9071E900B06690 /* CandleEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CandleEffect.h; path = effects/CandleEffect.h; sourceTree = "<group>"; };
+		67C115621E9071E900B06690 /* CandlePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CandlePanel.cpp; path = effects/CandlePanel.cpp; sourceTree = "<group>"; };
+		67C115631E9071E900B06690 /* CandlePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CandlePanel.h; path = effects/CandlePanel.h; sourceTree = "<group>"; };
 		67C581361E4B95A400932DFA /* OutputProcessReverse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputProcessReverse.h; sourceTree = "<group>"; };
 		67C581371E4B95A400932DFA /* OutputProcessColourOrder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputProcessColourOrder.h; sourceTree = "<group>"; };
 		67C581381E4B95A400932DFA /* ColourOrderDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColourOrderDialog.cpp; sourceTree = "<group>"; };
@@ -1607,6 +1613,10 @@
 		679BD3281C37552D000539FE /* Effects */ = {
 			isa = PBXGroup;
 			children = (
+				67C115601E9071E900B06690 /* CandleEffect.cpp */,
+				67C115611E9071E900B06690 /* CandleEffect.h */,
+				67C115621E9071E900B06690 /* CandlePanel.cpp */,
+				67C115631E9071E900B06690 /* CandlePanel.h */,
 				675D40471E896AFD0033C950 /* LiquidEffect.cpp */,
 				675D40481E896AFD0033C950 /* LiquidEffect.h */,
 				675D40491E896AFD0033C950 /* LiquidPanel.cpp */,
@@ -2734,6 +2744,7 @@
 				67B2B2381E1947BE0024F0BB /* SerialOutput.cpp in Sources */,
 				67B2CF8A1C39D98A003C17CA /* StrobePanel.cpp in Sources */,
 				6761F5F81C4EA041009780DA /* xlGridCanvasMorph.cpp in Sources */,
+				67C115641E9071E900B06690 /* CandleEffect.cpp in Sources */,
 				67653D5C1CA589830026A30B /* ModelScreenLocation.cpp in Sources */,
 				679BD33A1C37555C000539FE /* OffEffect.cpp in Sources */,
 				67447D991C6664900095CDB5 /* WindowFrameModel.cpp in Sources */,
@@ -2772,6 +2783,7 @@
 				67BCD1521E6DAF4900F99935 /* GIFImage.cpp in Sources */,
 				671859E31D61FFF5008F52AA /* SevenSegmentDialog.cpp in Sources */,
 				67B2B22E1E1947BE0024F0BB /* OpenDMXOutput.cpp in Sources */,
+				67C115651E9071E900B06690 /* CandlePanel.cpp in Sources */,
 				6761F5F61C4EA041009780DA /* PicturesAssistPanel.cpp in Sources */,
 				672E62B11C4D2FCF006A4966 /* TendrilPanel.cpp in Sources */,
 				67B2CF821C39D98A003C17CA /* RipplePanel.cpp in Sources */,

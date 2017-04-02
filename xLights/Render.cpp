@@ -1148,8 +1148,30 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
     }
 }
 
-static void addModels(std::list<Model*> &models, const std::list<Model *> &toAdd) {
+static void addModelsUpTo(std::list<Model*> &models, const std::list<Model *> &toAdd, Model *upTo) {
     for (auto it = toAdd.begin(); it != toAdd.end(); it++) {
+        bool add = true;
+        for (auto it2 = models.begin(); it2 != models.end() && add; it2++) {
+            if (*it2 == *it) {
+                add = false;
+            }
+        }
+        if (add) {
+            models.push_back(*it);
+        }
+        if (upTo == *it) {
+            return;
+        }
+    }
+}
+
+static void addModelsFrom(std::list<Model*> &models, const std::list<Model *> &toAdd, Model *from) {
+    bool found = false;
+    for (auto it = toAdd.begin(); it != toAdd.end(); it++) {
+        if (!found && from != *it) {
+            continue;
+        }
+        found = true;
         bool add = true;
         for (auto it2 = models.begin(); it2 != models.end() && add; it2++) {
             if (*it2 == *it) {
@@ -1185,9 +1207,16 @@ void xLightsFrame::RenderDirtyModels() {
                 
                 for (auto it = renderTree.data.begin(); it != renderTree.data.end(); it++) {
                     if ((*it)->model->GetName() == mSequenceElements.GetElement(x)->GetModelName()) {
-                        addModels(models, (*it)->renderOrder);
+                        addModelsUpTo(models, (*it)->renderOrder, (*it)->model);
                     }
                 }
+            }
+        }
+    }
+    for (auto x = models.begin(); x != models.end(); x++) {
+        for (auto it = renderTree.data.begin(); it != renderTree.data.end(); it++) {
+            if ((*it)->model == *x) {
+                addModelsFrom(models, (*it)->renderOrder, (*it)->model);
             }
         }
     }
@@ -1198,6 +1227,9 @@ void xLightsFrame::RenderDirtyModels() {
     int endframe = endms / SeqData.FrameTime() + 1;
     if (endframe >= SeqData.NumFrames()) {
         endframe = SeqData.NumFrames() - 1;
+    }
+    if (endframe < startframe) {
+        return;
     }
     Render(models, nullptr, startframe, endframe, false, true, [] {});
 }
