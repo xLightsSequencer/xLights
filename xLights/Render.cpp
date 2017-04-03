@@ -1029,54 +1029,56 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
 
         if (rowEl == nullptr)
         {
-            logger_base.crit("xLightsFrame::Render rowEl is nullptr ... this is going to crash.");
+            //logger_base.crit("xLightsFrame::Render rowEl is nullptr ... this is going to crash looking for '%s'.", (const char *)(*it)->GetName().c_str());
         }
+        else
+        {
+            if (rowEl->GetType() == ELEMENT_TYPE_MODEL) {
+                ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
 
-        if (rowEl->GetType() == ELEMENT_TYPE_MODEL) {
-            ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
-
-            if (me == nullptr)
-            {
-                logger_base.crit("xLightsFrame::Render me is nullptr ... this is going to crash.");
-            }
-
-            bool hasEffects = HasEffects(me);
-            if (hasEffects || (*it == restrictToModel && clear)) {
-                RenderJob *job = new RenderJob(me, SeqData, this, false);
-
-                if (job == nullptr)
+                if (me == nullptr)
                 {
-                    logger_base.crit("xLightsFrame::Render job is nullptr ... this is going to crash.");
+                    logger_base.crit("xLightsFrame::Render me is nullptr ... this is going to crash.");
                 }
 
-                job->setRenderRange(startFrame, endFrame);
-                job->SetRangeRestriction(ranges, false);
-                if (mSequenceElements.SupportsModelBlending()) {
-                    job->SetModelBlending();
-                }
-                PixelBufferClass *buffer = job->getBuffer();
-                if (buffer == nullptr) {
-                    delete job;
-                    continue;
-                }
-                
-                jobs[row] = job;
-                aggregators[row]->addNext(job);
-                size_t cn = buffer->GetChanCountPerNode();
-                for (int node = 0; node < buffer->GetNodeCount(); ++node) {
-                    int start = buffer->NodeStartChannel(node);
-                    for (int c = 0; c < cn; ++c) {
-                        int cnum = start + c;
-                        if (cnum < SeqData.NumChannels()) {
-                            for (auto i = channelMaps[cnum].begin(); i != channelMaps[cnum].end(); ++i) {
-                                int idx = *i;
-                                if (idx != row) {
-                                    if (jobs[idx]->addNext(aggregators[row])) {
-                                        aggregators[row]->incNumAggregated();
+                bool hasEffects = HasEffects(me);
+                if (hasEffects || (*it == restrictToModel && clear)) {
+                    RenderJob *job = new RenderJob(me, SeqData, this, false);
+
+                    if (job == nullptr)
+                    {
+                        logger_base.crit("xLightsFrame::Render job is nullptr ... this is going to crash.");
+                    }
+
+                    job->setRenderRange(startFrame, endFrame);
+                    job->SetRangeRestriction(ranges, false);
+                    if (mSequenceElements.SupportsModelBlending()) {
+                        job->SetModelBlending();
+                    }
+                    PixelBufferClass *buffer = job->getBuffer();
+                    if (buffer == nullptr) {
+                        delete job;
+                        continue;
+                    }
+
+                    jobs[row] = job;
+                    aggregators[row]->addNext(job);
+                    size_t cn = buffer->GetChanCountPerNode();
+                    for (int node = 0; node < buffer->GetNodeCount(); ++node) {
+                        int start = buffer->NodeStartChannel(node);
+                        for (int c = 0; c < cn; ++c) {
+                            int cnum = start + c;
+                            if (cnum < SeqData.NumChannels()) {
+                                for (auto i = channelMaps[cnum].begin(); i != channelMaps[cnum].end(); ++i) {
+                                    int idx = *i;
+                                    if (idx != row) {
+                                        if (jobs[idx]->addNext(aggregators[row])) {
+                                            aggregators[row]->incNumAggregated();
+                                        }
                                     }
                                 }
+                                channelMaps[cnum].insert(row);
                             }
-                            channelMaps[cnum].insert(row);
                         }
                     }
                 }
