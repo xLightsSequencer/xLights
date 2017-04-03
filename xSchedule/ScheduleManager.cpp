@@ -106,7 +106,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
         logger_base.error("Problem loading xml file %s.", (const char *)(showDir + "/" + GetScheduleFile()).c_str());
     }
 
-    if (backgroundPlayList != "")
+    if (backgroundPlayList != "" && GetPlayList(backgroundPlayList) != nullptr)
     {
         _backgroundPlayList = new PlayList(*GetPlayList(backgroundPlayList));
     }

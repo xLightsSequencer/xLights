@@ -105,7 +105,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
         {
             log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Unknown effect: " + name + ". Not loaded. " + GetParentElement()->GetModelName());
-            return NULL;
+            return nullptr;
         }
     }
     Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);

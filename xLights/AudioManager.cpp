@@ -1004,7 +1004,6 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
     // Grab the lock so we can safely access the frame data
     std::shared_lock<std::shared_timed_mutex> lock(_mutex);
 
-
 	// if the frame data has not been prepared
 	if (!_frameDataPrepared)
 	{
@@ -1028,12 +1027,18 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
     }
 
 	// now we can grab the data we need
-	std::list<float>* rc = NULL;
+	std::list<float>* rc = nullptr;
 	try
 	{
 		if (frame < (int)_frameData.size())
 		{
 			std::vector<std::list<float>>* framedata = &_frameData[frame];
+
+            if (framedata == nullptr)
+            {
+                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.crit("AudioManager::GetFrameData framedata is nullptr ... this is going to crash.");
+            }
 
 			switch (fdt)
 			{
