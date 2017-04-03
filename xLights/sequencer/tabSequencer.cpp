@@ -1285,14 +1285,15 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
 
             // This ensures colour curves which can be dependent on effect settings are correct
             RenderableEffect *ef = GetEffectManager().GetEffect(selectedEffectName);
-
-            // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
-            if (ef == nullptr)
+            if (ef != nullptr)
             {
-                logger_base.crit("OnEffectSettingsTimerTrigger ef is nullptr ... this is going to crash.");
+                colorPanel->SetSupports(ef->SupportsLinearColorCurves(selectedEffect->GetSettings()), ef->SupportsRadialColorCurves(selectedEffect->GetSettings()));
             }
+            //else
+            //{
+            //    logger_base.crit("OnEffectSettingsTimerTrigger ef is nullptr ... this is going to crash: was looking for '%s'.", (const char *)selectedEffectName.c_str());
+            //}
 
-            colorPanel->SetSupports(ef->SupportsLinearColorCurves(selectedEffect->GetSettings()), ef->SupportsRadialColorCurves(selectedEffect->GetSettings()));
             return;
         }
     }
