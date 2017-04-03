@@ -161,10 +161,18 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
     logger_base.info("      _videoStream->avg_frame_rate.den: %d", _videoStream->avg_frame_rate.den);
     logger_base.info("      DTS per sec: %d", _dtspersec);
     logger_base.info("      _videoStream->nb_frames: %d", _videoStream->nb_frames);
+    logger_base.info("      _frames: %d", _frames);
     logger_base.info("      Source size: %dx%d", _codecContext->width, _codecContext->height);
     logger_base.info("      Source coded size: %dx%d", _codecContext->coded_width, _codecContext->coded_height);
     logger_base.info("      Output size: %dx%d", _width, _height);
-    logger_base.info("      Frame ms %d", _lengthMS / _frames);
+    if (_frames != 0)
+    {
+        logger_base.info("      Frame ms %d", _lengthMS / _frames);
+    }
+    else
+    {
+        logger_base.warn("      Frame ms <unknown as _frames is 0>");
+    }
 }
 
 static int64_t MStoDTS(int ms, int dtspersec)
