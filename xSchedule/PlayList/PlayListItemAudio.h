@@ -43,7 +43,7 @@ public:
     void SetAudioFile(const std::string& audioFile);
     virtual bool ControlsTiming() const override { return _controlsTimingCache || _audioManager != nullptr; }
     virtual size_t GetPositionMS() const override;
-    virtual bool Done() const override { return GetPositionMS() >= GetDurationMS(); }
+    virtual bool Done() const override { return GetPositionMS() >= GetDurationMS() - GetFrameMS(); }
     virtual std::string GetSyncItemMedia() const override { return GetAudioFile(); }
     static bool IsAudio(const std::string& ext);
     virtual std::string GetTitle() const override;

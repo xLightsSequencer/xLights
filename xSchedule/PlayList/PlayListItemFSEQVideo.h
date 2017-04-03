@@ -72,7 +72,7 @@ public:
     virtual bool ControlsTiming() const override { return _controlsTimingCache || _audioManager != nullptr; }
     virtual size_t GetPositionMS() const override;
     virtual size_t GetFrameMS() const override { return _msPerFrame; }
-    virtual bool Done() const override { return GetPositionMS() >= GetDurationMS(); }
+    virtual bool Done() const override { return GetPositionMS() >= GetDurationMS() - GetFrameMS(); }
     virtual std::string GetSyncItemFSEQ() const override { return GetFSEQFileName(); }
     virtual std::string GetSyncItemMedia() const override { return GetAudioFilename(); }
     virtual std::string GetTitle() const override;

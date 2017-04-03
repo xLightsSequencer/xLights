@@ -22,7 +22,6 @@ class FSEQFile
     wxByte _gamma;
     wxByte _colourEncoding;
     size_t _frame0Offset;
-    size_t _currentFrame;
     wxByte* _frameBuffer;
 
     public:

@@ -18,7 +18,6 @@ FSEQFile::FSEQFile()
     _colourEncoding = 0;
     _gamma = 255;
     _frame0Offset = 0;
-    _currentFrame = 0;
     _ok = false;
 }
 
@@ -36,7 +35,6 @@ FSEQFile::FSEQFile(const std::string& filename)
     _colourEncoding = 0;
     _gamma = 255;
     _frame0Offset = 0;
-    _currentFrame = 0;
     _ok = true;
     Load(filename);
 }
@@ -138,7 +136,6 @@ void FSEQFile::Load(const std::string& filename)
                     free(buf);
                 }
             }
-            _currentFrame = 0;
             _frameBuffer = (wxByte*)malloc(_channelsPerFrame);
 
             logger_base.info("FSEQ file %s opened.", (const char *)filename.c_str());
@@ -161,15 +158,14 @@ void FSEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
 {
     if (frame >= _frames) return; // cant read past end of file
 
-    if (frame != _currentFrame)
+    if (_fh->Tell() != _frame0Offset + _channelsPerFrame * frame)
     {
         // we need to seek to our frame
-        _fh->Seek(_frame0Offset + _channelsPerFrame * frame);
+        _fh->Seek(_frame0Offset + _channelsPerFrame * frame, wxFromStart);
     }
-
+    
     // read in the frame from disk
     _fh->Read(_frameBuffer, _channelsPerFrame);
-    _currentFrame = frame + 1;
 
     if (channels > 0)
     {

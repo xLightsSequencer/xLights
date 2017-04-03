@@ -12,7 +12,6 @@ ESEQFile::ESEQFile()
     _fh = nullptr;
     _frameBuffer = nullptr;
     _frame0Offset = 0;
-    _currentFrame = 0;
     _ok = false;
 }
 
@@ -25,7 +24,6 @@ ESEQFile::ESEQFile(const std::string& filename)
     _fh = nullptr;
     _frameBuffer = nullptr;
     _frame0Offset = 0;
-    _currentFrame = 0;
     _ok = true;
     Load(filename);
 }
@@ -115,7 +113,6 @@ void ESEQFile::Load(const std::string& filename)
             _offset = ReadInt32(_fh);
             ReadInt32(_fh); // model size
             //_frames = ReadInt32(_fh);
-            _currentFrame = 0;
             _frameBuffer = (wxByte*)malloc(_channelsPerFrame);
 
             wxFileName fn(filename);
@@ -140,15 +137,14 @@ void ESEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
 {
     if (frame >= _frames) return; // cant read past end of file
 
-    if (frame != _currentFrame)
+    if (_fh->Tell() != _frame0Offset + _channelsPerFrame * frame)
     {
         // we need to seek to our frame
-        _fh->Seek(_frame0Offset + _channelsPerFrame * frame);
+        _fh->Seek(_frame0Offset + _channelsPerFrame * frame, wxFromStart);
     }
 
     // read in the frame from disk
     _fh->Read(_frameBuffer, _channelsPerFrame);
-    _currentFrame = frame + 1;
 
     Blend(buffer, buffersize, _frameBuffer, _channelsPerFrame, applyMethod, _offset);
 }

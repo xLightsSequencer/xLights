@@ -15,7 +15,6 @@ class ESEQFile
     wxFile* _fh;
     wxByte* _frameBuffer;
     size_t _frame0Offset;
-    size_t _currentFrame;
     bool _ok;
 
     public:

@@ -319,7 +319,7 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size, bool outputframe)
     }
     else
     {
-        return frameMS >= GetLengthMS();
+        return frameMS >= GetLengthMS() - GetFrameMS();
     }
 }
 

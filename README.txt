@@ -11,10 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Fix excessive rendering when pasting effects
    -- enh (cjd)     Add direction setting for lightning effect. Fixes #830
    -- enh (keith)   Add candle effect
    -- bug (keith)   Fix superstar import picture scaling
    -- bug (keith)   Fix LMS import into data layer off by 1 channel error
+   -- bug (keith)   Fix blanking between steps in scheduler
 2017.7  Mar 28, 2017
    -- enh (keith)   Add prompted recovery of unsaved changes to rgbeffects
    -- bug (keith)   Disable import effects if no sequence is open
