@@ -1259,7 +1259,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
             }
         }
     }
-    Render(models, nullptr, 0, SeqData.NumFrames() - 1, false, false, std::move(callback));
+    Render(models, nullptr, 0, SeqData.NumFrames() - 1, true, false, std::move(callback));
 }
 
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
