@@ -32,13 +32,14 @@ class VUMeterEffect : public RenderableEffect
         void RenderIntensityWaveFrame(RenderBuffer &buffer, int bars);
 		void RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark);
 		void RenderLevelShapeFrame(RenderBuffer &buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars);
-		void DrawBox(RenderBuffer& buffer, int startx, int endx, int starty, int endy, xlColor& color1);
+        void RenderTimingEventPulseFrame(RenderBuffer &buffer, int fadeframes, std::string timingtrack, float& lastsize);
+        void DrawBox(RenderBuffer& buffer, int startx, int endx, int starty, int endy, xlColor& color1);
         void DrawCircle(RenderBuffer& buffer, int x, int y, float radius, xlColor& color1);
         void DrawStar(RenderBuffer& buffer, int x, int y, float radius, xlColor& color1, int points);
         void DrawDiamond(RenderBuffer& buffer, int centerx, int centery, int size, xlColor& color1);
         void RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote);
         void RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int _startNote, int _endNote);
-        void RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallframes, std::string timingtrack, float& lastval);
+        void RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallframes, std::string timingtrack, float& lastval, bool useAudioLevel);
 };
 
 #endif // VUMETEREFFECT_H

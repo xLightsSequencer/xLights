@@ -52,8 +52,10 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
     if (timing == "" &&
         (type == "Timing Event Spike" ||
          type == "Timing Event Sweep" ||
-         type == "Timing Event Color" ||
-         type == "Timing Event Jump"))
+            type == "Timing Event Color" ||
+            type == "Timing Event Pulse" ||
+            type == "Timing Event Jump 100" ||
+            type == "Timing Event Jump"))
     {
         res.push_back(wxString::Format("    ERR: VU Meter effect '%s' needs a timing track. Model '%s', Start %s", type, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
@@ -226,6 +228,14 @@ int VUMeterEffect::DecodeType(std::string type)
     {
         return 16;
     }
+    else if (type == "Timing Event Pulse")
+    {
+        return 17;
+    }
+    else if (type == "Timing Event Jump 100")
+    {
+        return 18;
+    }
 
 	// default type is volume bars
 	return 2;
@@ -315,7 +325,13 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             RenderNoteLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote);
             break;
         case 16:
-            RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize);
+            RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, true);
+            break;
+        case 17:
+            RenderTimingEventPulseFrame(buffer, usebars, timingtrack, _lastsize);
+            break;
+        case 18:
+            RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, false);
             break;
         }
 	}
@@ -1402,7 +1418,7 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 	}
 }
 
-void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallframes, std::string timingtrack, float& lastsize)
+void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallframes, std::string timingtrack, float& lastsize, bool useAudioLevel)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -1436,13 +1452,20 @@ void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallfra
 
             if (effectPresent)
             {
-                float f = 0.0;
-                std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-                if (pf != nullptr)
+                if (useAudioLevel)
                 {
-                    f = *pf->begin();
+                    float f = 0.0;
+                    std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+                    if (pf != nullptr)
+                    {
+                        f = *pf->begin();
+                    }
+                    lastsize = f;
                 }
-                lastsize = f;
+                else
+                {
+                    lastsize = 1.0;
+                }
             }
         }
 
@@ -1463,6 +1486,60 @@ void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallfra
             {
                 lastsize = 0;
             }
+        }
+    }
+}
+
+void VUMeterEffect::RenderTimingEventPulseFrame(RenderBuffer &buffer, int fadeframes, std::string timingtrack, float& lastsize)
+{
+    if (timingtrack != "")
+    {
+        Element* t = nullptr;
+        for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+        {
+            Element* e = mSequenceElements->GetElement(i);
+            if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING
+                && e->GetName() == timingtrack)
+            {
+                t = e;
+                break;
+            }
+        }
+
+        if (t != nullptr)
+        {
+            EffectLayer* el = t->GetEffectLayer(0);
+            int ms = buffer.curPeriod*buffer.frameTimeInMs;
+            bool effectPresent = false;
+            for (int j = 0; j < el->GetEffectCount(); j++)
+            {
+                if (el->GetEffect(j)->GetStartTimeMS() == ms)
+                {
+                    effectPresent = true;
+                    break;
+                }
+            }
+
+            if (effectPresent)
+            {
+                lastsize = fadeframes;
+            }
+        }
+
+        if (lastsize > 0)
+        {
+            xlColor color;
+            buffer.palette.GetColor(0, color);
+            color.alpha = lastsize * 255 / fadeframes;
+            for (int y = 0; y < buffer.BufferHt * lastsize; y++)
+            {
+                for (int x = 0; x < buffer.BufferWi; x++)
+                {
+                    buffer.SetPixel(x, y, color);
+                }
+            }
+
+            lastsize--;
         }
     }
 }

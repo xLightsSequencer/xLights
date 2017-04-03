@@ -100,16 +100,18 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Choice_VUMeter_Type->Append(_("Spectrogram"));
 	Choice_VUMeter_Type->Append(_("Volume Bars"));
 	Choice_VUMeter_Type->SetSelection( Choice_VUMeter_Type->Append(_("Waveform")) );
-	Choice_VUMeter_Type->Append(_("Timing Event Spike"));
-	Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
 	Choice_VUMeter_Type->Append(_("On"));
-	Choice_VUMeter_Type->Append(_("Pulse"));
+	Choice_VUMeter_Type->Append(_("Color On"));
 	Choice_VUMeter_Type->Append(_("Intensity Wave"));
+	Choice_VUMeter_Type->Append(_("Pulse"));
 	Choice_VUMeter_Type->Append(_("Level Pulse"));
 	Choice_VUMeter_Type->Append(_("Level Shape"));
-	Choice_VUMeter_Type->Append(_("Color On"));
+	Choice_VUMeter_Type->Append(_("Timing Event Spike"));
+	Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
 	Choice_VUMeter_Type->Append(_("Timing Event Color"));
 	Choice_VUMeter_Type->Append(_("Timing Event Jump"));
+	Choice_VUMeter_Type->Append(_("Timing Event Jump 100"));
+	Choice_VUMeter_Type->Append(_("Timing Event Pulse"));
 	Choice_VUMeter_Type->Append(_("Note On"));
 	Choice_VUMeter_Type->Append(_("Note Level Pulse"));
 	FlexGridSizer31->Add(Choice_VUMeter_Type, 1, wxALL|wxEXPAND, 2);
@@ -265,6 +267,8 @@ void VUMeterPanel::ValidateWindow()
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Sweep" ||
         Choice_VUMeter_Type->GetStringSelection() == "Pulse" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Pulse" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Jump 100" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Jump")
     {
         Choice_VUMeter_TimingTrack->Enable();
