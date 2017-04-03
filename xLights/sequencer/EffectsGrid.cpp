@@ -553,6 +553,8 @@ bool EffectsGrid::AdjustDropLocations(int x, EffectLayer* el)
 
 bool EffectsGrid::DragOver(int x, int y)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (mSequenceElements == nullptr) {
         return false;
     }
@@ -582,6 +584,11 @@ bool EffectsGrid::DragOver(int x, int y)
             if(selectedTimingIndex >= 0)
             {
                 EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(selectedTimingIndex);
+                if (tel == nullptr)
+                {
+                    logger_base.crit("EffectsGrid::DragOver tel is nullptr ... this is going to crash.");
+                }
+
                 int timingIndex = 0;
                 if(tel->HitTestEffectByTime(time, timingIndex))
                 {
@@ -721,7 +728,14 @@ int MapHitLocationToEffectSelection(HitLocation location) {
 }
 
 Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType) {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
+
+    if (effectLayer == nullptr)
+    {
+        logger_base.crit("EffectsGrid::GetEffectAtRowAndTime effectLayer is nullptr ... this is going to crash.");
+    }
 
     Effect *eff = nullptr;
     selectionType = HitLocation::NONE;
@@ -1090,6 +1104,8 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
 
 void EffectsGrid::CheckForPartialCell(int x_pos)
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     mPartialCellSelected = false;
     // make sure a valid row and column is selected
     if( mRangeStartCol >= 0 && mRangeStartRow >= 0 )
@@ -1099,6 +1115,11 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
         {
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
             EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mRangeStartRow - mSequenceElements->GetFirstVisibleModelRow());
+
+            if (el == nullptr)
+            {
+                logger_base.crit("EffectsGrid::CheckForPartialCell el is nullptr ... this is going to crash.");
+            }
 
             int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(x_pos);
             int effectIndex = 0;
@@ -2245,6 +2266,11 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             }
             if( paste_by_cell && !row_paste)
             {
+                if (tel == nullptr)
+                {
+                    logger_base.crit("EffectsGrid::Paste tel is nullptr ... this is going to crash.");
+                }
+
                 bool found_selected_start_column = tel->HitTestEffectByTime(mDropStartTimeMS+1, selected_start_column);
                 if( !found_selected_start_column )
                 {
@@ -2772,6 +2798,8 @@ void EffectsGrid::UpdateZoomPosition(int time)
 
 void EffectsGrid::EstablishSelectionRectangle()
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     mSequenceElements->UnSelectAllEffects();
     int first_row = mSequenceElements->GetFirstVisibleModelRow();
     int row1 =  GetRow(mDragStartY) + first_row;
@@ -2794,6 +2822,12 @@ void EffectsGrid::EstablishSelectionRectangle()
     if( mSequenceElements->GetSelectedTimingRow() >= 0 )
     {
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+
+        if (tel == nullptr)
+        {
+            logger_base.crit("EffectsGrid::EstablishSelectionRectangle tel is nullptr ... this is going to crash.");
+        }
+
         int timingIndex1 = 0;
         int timingIndex2 = 0;
         if(tel->HitTestEffectByTime(startTime, timingIndex1)
@@ -2818,6 +2852,8 @@ void EffectsGrid::EstablishSelectionRectangle()
 
 void EffectsGrid::UpdateSelectionRectangle()
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     mSequenceElements->UnSelectAllEffects();
     mRangeEndRow = GetRow(mDragEndY) + mSequenceElements->GetFirstVisibleModelRow();
     if( mRangeEndRow >= mSequenceElements->GetRowInformationSize() )
@@ -2828,6 +2864,12 @@ void EffectsGrid::UpdateSelectionRectangle()
     if( mSequenceElements->GetSelectedTimingRow() >= 0 )
     {
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+
+        if (tel == nullptr)
+        {
+            logger_base.crit("EffectsGrid::UpdateSelectionRectangle tel is nullptr ... this is going to crash.");
+        }
+
         int time = mTimeline->GetAbsoluteTimeMSfromPosition(mDragEndX);
         int timingIndex = 0;
         if(tel->HitTestEffectByTime(time,timingIndex))

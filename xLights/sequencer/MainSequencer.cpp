@@ -578,6 +578,8 @@ void MainSequencer::DoRedo(wxCommandEvent& event) {
 
 
 void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     int start_column = PanelEffectGrid->GetStartColumn();
     int column_start_time = -1000;
     int number_of_timings = 0;
@@ -632,6 +634,11 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                     number_of_effects++;
                     if( column_start_time == -1000 && mSequenceElements->GetSelectedTimingRow() >= 0 )
                     {
+                        if (tel == nullptr)
+                        {
+                            logger_base.crit("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
+                        }
+
                         if( tel->HitTestEffectByTime(ef->GetStartTimeMS()+1,start_column) )
                         {
                             column_start_time = tel->GetEffect(start_column)->GetStartTimeMS();
@@ -645,6 +652,11 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                             Effect* te_end = tel->GetEffectByTime(ef->GetEndTimeMS());
                             if( te_start != nullptr && te_end != nullptr )
                             {
+                                if (tel == nullptr)
+                                {
+                                    logger_base.crit("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
+                                }
+
                                 int start_pct = ((ef->GetStartTimeMS() - te_start->GetStartTimeMS()) * 100) / (te_start->GetEndTimeMS() - te_start->GetStartTimeMS());
                                 int end_pct = ((ef->GetEndTimeMS() - te_end->GetStartTimeMS()) * 100) / (te_end->GetEndTimeMS() - te_end->GetStartTimeMS());
                                 int start_index;
@@ -723,6 +735,8 @@ void MainSequencer::Paste(bool row_paste) {
 
 void MainSequencer::InsertTimingMarkFromRange()
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     bool is_range = true;
     int x1;
     int x2;
@@ -751,6 +765,12 @@ void MainSequencer::InsertTimingMarkFromRange()
         {
             Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
             EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
+
+            if (el == nullptr)
+            {
+                logger_base.crit("MainSequencer::InsertTimingMarkFromRange el is nullptr ... this is going to crash.");
+            }
+
             int i1 = -1;
             int i2 = -1;
 
@@ -774,6 +794,12 @@ void MainSequencer::InsertTimingMarkFromRange()
             // x1 and x2 are the same. Insert from end time of timing to the left to x2
             Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
             EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
+
+            if (el == nullptr)
+            {
+                logger_base.crit("MainSequencer::InsertTimingMarkFromRange [2] el is nullptr ... this is going to crash.");
+            }
+
             int index;
             if(!el->HitTestEffectByTime(t2,index))
             {
@@ -826,6 +852,8 @@ void MainSequencer::InsertTimingMarkFromRange()
 
 void MainSequencer::SplitTimingMark()
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     int x1;
     int x2;
     if( mPlayType == PLAY_TYPE_MODEL )
@@ -844,6 +872,12 @@ void MainSequencer::SplitTimingMark()
     {
         Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
         EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
+
+        if (el == nullptr)
+        {
+            logger_base.crit("MainSequencer::SplitTimingMark el is nullptr ... this is going to crash.");
+        }
+
         int index1,index2;
         int t1 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(x1);
         int t2 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(x2);
