@@ -27,3 +27,4 @@ xLights/xLights_l4cpp.log
 .objs
 wxWidgets*
 xLights/xLights.VC.db
+lib/linux/libliquidfun.a
