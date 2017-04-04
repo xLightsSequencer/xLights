@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.8  Apr  3, 2017
    -- bug (dkulp)   Fix excessive rendering when pasting effects
    -- enh (cjd)     Add direction setting for lightning effect. Fixes #830
    -- enh (keith)   Add candle effect
