@@ -28,3 +28,4 @@ xLights/xLights_l4cpp.log
 wxWidgets*
 xLights/xLights.VC.db
 lib/linux/libliquidfun.a
+*.opensdf

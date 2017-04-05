@@ -247,7 +247,28 @@ void InitialiseLogging(bool fromMain)
             try
             {
                 log4cpp::PropertyConfigurator::configure(initFileName);
-            }
+				static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+				logger_base.info("Log4CPP config read from %s.", (const char *)initFileName.c_str());
+
+				auto categories = log4cpp::Category::getCurrentCategories();
+
+				for (auto it = categories->begin(); it != categories->end(); ++it)
+				{
+					std::string levels = "";
+
+					if ((*it)->isAlertEnabled()) levels += "ALERT ";
+					if ((*it)->isCritEnabled()) levels += "CRIT ";
+					if ((*it)->isDebugEnabled()) levels += "DEBUG ";
+					if ((*it)->isEmergEnabled()) levels += "EMERG ";
+					if ((*it)->isErrorEnabled()) levels += "ERROR ";
+					if ((*it)->isFatalEnabled()) levels += "FATAL ";
+					if ((*it)->isInfoEnabled()) levels += "INFO ";
+					if ((*it)->isNoticeEnabled()) levels += "NOTICE ";
+					if ((*it)->isWarnEnabled()) levels += "WARN ";
+
+					logger_base.info("    %s : %s", (const char *)(*it)->getName().c_str(), (const char *)levels.c_str());
+				}
+			}
             catch (log4cpp::ConfigureFailure& e) {
                 // ignore config failure ... but logging wont work
                 printf("Log issue:  %s\n", e.what());
@@ -575,7 +596,7 @@ bool xLightsApp::OnInit()
         } else if (!showDir.IsNull()) {
             mediaDir = showDir;
         }
-        for (int x = 0; x < parser.GetParamCount(); x++) {
+        for (size_t x = 0; x < parser.GetParamCount(); x++) {
             wxString sequenceFile = parser.GetParam(x);
             if (x == 0) {
                 logger_base.info("Sequence file passed on command line: %s.", (const char *)sequenceFile.c_str());
