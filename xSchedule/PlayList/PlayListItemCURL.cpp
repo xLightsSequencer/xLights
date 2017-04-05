@@ -137,6 +137,12 @@ void PlayListItemCURL::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Calling URL %s.", (const char *)url.c_str());
 
+        if (url == "")
+        {
+            logger_base.warn("URL '' invalid.", (const char *)url.c_str());
+            return;
+        }
+
         wxURI uri(url);
 
         wxHTTP http;

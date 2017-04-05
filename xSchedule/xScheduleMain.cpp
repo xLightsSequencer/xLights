@@ -1495,19 +1495,24 @@ void xScheduleFrame::UpdateStatus()
             next = p->GetNextStep(didloop);
         }
 
+        bool currenthighlighted = false;
+        bool nexthighlighted = false;
+
         if (step != nullptr)
         {
             for (int i = 0; i < ListView_Running->GetItemCount(); i++)
             {
-                if (ListView_Running->GetItemText(i, 0) == step->GetNameNoTime())
+                if (!currenthighlighted && ListView_Running->GetItemText(i, 0) == step->GetNameNoTime())
                 {
+                    currenthighlighted = true;
                     ListView_Running->SetItem(i, 2, step->GetStatus());
                     ListView_Running->SetItemBackgroundColour(i, wxColor(146,244,155));
                 }
                 else
                 {
-                    if (next != nullptr && next->GetNameNoTime() == ListView_Running->GetItemText(i,0))
+                    if (next != nullptr && !nexthighlighted && next->GetNameNoTime() == ListView_Running->GetItemText(i,0))
                     {
+                        nexthighlighted = true;
                         ListView_Running->SetItemBackgroundColour(i, wxColor(244,241,146));
                     }
                     else
