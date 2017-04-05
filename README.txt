@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   RenderAll will not render the very last frame (modifying the effect likely would)
+                    This fixes #842
+   -- bug (dkulp)   Node display extends the color in the last frame out an extra frame width
 2017.8  Apr  3, 2017
    -- bug (dkulp)   Fix excessive rendering when pasting effects
    -- enh (cjd)     Add direction setting for lightning effect. Fixes #830

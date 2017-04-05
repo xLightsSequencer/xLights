@@ -3137,7 +3137,7 @@ void EffectsGrid::DrawEffects()
                         xs.push_back(mTimeline->GetPositionFromTimeMS(timems));
                     }
                 }
-                int timems = (seqData->NumFrames() + 1) * seqData->FrameTime();
+                int timems = seqData->NumFrames() * seqData->FrameTime();
                 xs.push_back(mTimeline->GetPositionFromTimeMS(timems));
 
                 backgrounds.PreAlloc(xs.size() * 6);

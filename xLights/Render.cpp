@@ -509,7 +509,7 @@ public:
             }
         }
         if (startFrame < 0) startFrame = 0;
-        if (endFrame > seqData->NumFrames()) endFrame = seqData->NumFrames();
+        if (endFrame > seqData->NumFrames()) endFrame = seqData->NumFrames() - 1;
 
         EffectLayerInfo mainModelInfo(numLayers);
         std::map<SNPair, Effect*> nodeEffects;
@@ -528,7 +528,7 @@ public:
                 mainModelInfo.effectStates[layer] = true;
             }
 
-            for (int frame = startFrame; frame < endFrame; ++frame) {
+            for (int frame = startFrame; frame <= endFrame; ++frame) {
                 currentFrame = frame;
                 SetGenericStatus("%s: Starting frame %d", frame, true);
                 if (clearAllFrames) {
