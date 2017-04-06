@@ -288,6 +288,10 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
 void EffectsGrid::keyReleased(wxKeyEvent& event){}
 void EffectsGrid::keyPressed(wxKeyEvent& event){}
 
+void EffectsGrid::sendRenderDirtyEvent() {
+    sendRenderEvent("", -1, -1, true);
+}
+
 void EffectsGrid::sendRenderEvent(const std::string &model, int start, int end, bool clear) {
     RenderCommandEvent event(model, start, end, clear, false);
     wxPostEvent(mParent, event);
@@ -1210,6 +1214,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
                     el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
                     mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
                     Refresh(false);
+                    sendRenderDirtyEvent();
                     return;
                 }
             }
@@ -1284,6 +1289,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
             mCellRangeSelected = false;
             mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
             Refresh(false);
+            sendRenderDirtyEvent();
         }
     }
 }
@@ -1341,6 +1347,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
                     el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
                     mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
                     Refresh(false);
+                    sendRenderDirtyEvent();
                     return;
                 }
             }
@@ -1415,6 +1422,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
             }
             mCellRangeSelected = false;
             mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
+            sendRenderDirtyEvent();
             Refresh(false);
         }
     }
@@ -1480,6 +1488,7 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift)
                         mSelectedEffect->SetStartTimeMS(timing_effect->GetStartTimeMS());
                         mSelectedEffect->SetEndTimeMS(new_end_time_ms);
                         Refresh(false);
+                        sendRenderDirtyEvent();
                         return;
                     }
                     col++;
@@ -1501,12 +1510,14 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift)
                 mSelectedEffect->SetStartTimeMS(mSelectedEffect->GetStartTimeMS() + mSequenceElements->GetMinPeriod());
                 mSelectedEffect->SetEndTimeMS(mSelectedEffect->GetEndTimeMS() + mSequenceElements->GetMinPeriod());
                 Refresh(false);
+                sendRenderDirtyEvent();
             }
         }
     }
     else if( MultipleEffectsSelected() )
     {
         ResizeMoveMultipleEffectsByTime(mSequenceElements->GetMinPeriod());
+        sendRenderDirtyEvent();
         Refresh(false);
     }
 }
@@ -1577,6 +1588,7 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
                         mSelectedEffect->SetStartTimeMS(timing_effect->GetStartTimeMS());
                         mSelectedEffect->SetEndTimeMS(new_end_time_ms);
                         Refresh(false);
+                        sendRenderDirtyEvent();
                         return;
                     }
                     col--;
@@ -1600,6 +1612,7 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
                     mSelectedEffect->SetStartTimeMS(mSelectedEffect->GetStartTimeMS() - mSequenceElements->GetMinPeriod());
                     mSelectedEffect->SetEndTimeMS(mSelectedEffect->GetEndTimeMS() - mSequenceElements->GetMinPeriod());
                     Refresh(false);
+                    sendRenderDirtyEvent();
                 }
             }
         }
@@ -1608,6 +1621,7 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
     {
         ResizeMoveMultipleEffectsByTime(-1 * mSequenceElements->GetMinPeriod());
         Refresh(false);
+        sendRenderDirtyEvent();
     }
 }
 
@@ -2349,7 +2363,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                     }
                 }
             }
-            sendRenderEvent("", -1, -1, true);
+            sendRenderDirtyEvent();
             mPartialCellSelected = false;
         }
         else
@@ -2417,11 +2431,6 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                         }
                         mSequenceElements->get_undo_mgr().CreateUndoStep();
                         mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID() );
-                        if (!is_timing_effect && !ef->GetPaletteMap().empty()) {
-                            sendRenderEvent(el->GetParentElement()->GetModelName(),
-                                            mDropStartTimeMS,
-                                            mDropEndTimeMS, true);
-                        }
                         if( !is_timing_effect ) {
                             RaiseSelectedEffectChanged(ef, true);
                             mSelectedEffect = ef;
@@ -2430,6 +2439,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                         }
                     }
                 }
+                sendRenderDirtyEvent();
             }
         }
     }
@@ -2503,17 +2513,13 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                                 xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
                             }
                             mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID() );
-                            if (!ef->GetPaletteMap().empty()) {
-                                sendRenderEvent(el->GetParentElement()->GetModelName(),
-                                                start_time,
-                                                end_time, true);
-                            }
                             RaiseSelectedEffectChanged(ef, true);
                             mSelectedEffect = ef;
                          }
                     }
                 }
             }
+            sendRenderDirtyEvent();
             mCellRangeSelected = false;
         }
     }

@@ -108,6 +108,7 @@ private:
     int GetClippedPositionFromTimeMS(int ms);
 
     void sendRenderEvent(const std::string &model, int start, int end, bool clear = true);
+    void sendRenderDirtyEvent();
     void render(wxPaintEvent& evt);
     void magnify(wxMouseEvent& event);
 	void mouseMoved(wxMouseEvent& event);
