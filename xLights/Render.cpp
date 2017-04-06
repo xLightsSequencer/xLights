@@ -1240,6 +1240,12 @@ void xLightsFrame::RenderDirtyModels() {
             }
         }
     }
+    if (startms < 0) {
+        startms = 0;
+    }
+    if (endms < 0) {
+        endms = 0;
+    }
     int startframe = startms / SeqData.FrameTime() - 1;
     if (startframe < 0) {
         startframe = 0;

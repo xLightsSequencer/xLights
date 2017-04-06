@@ -292,7 +292,21 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
     int maxHi = 0;
     for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
         Model* m = modelManager[*it];
-        if (m != nullptr) {
+        ModelGroup *grp = dynamic_cast<ModelGroup*>(m);
+        if (grp != nullptr) {
+            int bw, bh;
+            bw = bh = 0;
+            models++;
+            grp->GetBufferSize(HORIZ_PER_MODELSTRAND, "None", bw, bh);
+            strands += bw;
+            total += m->GetNodeCount();
+            if (m->GetNodeCount() > maxNodes) {
+                maxNodes = m->GetNodeCount();
+            }
+            maxWid = std::max(maxWid, m->GetDefaultBufferWi());
+            maxHi = std::max(maxHi, m->GetDefaultBufferHt());
+            maxStrandLen = std::max(maxStrandLen, bh);
+        } else if (m != nullptr) {
             models++;
             strands += m->GetNumStrands();
             total += m->GetNodeCount();
@@ -332,6 +346,8 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
     }
     AdjustForTransform(transform, BufferWi, BufferHi);
 }
+
+
 void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                                        const std::string &transform,
                                        std::vector<NodeBaseClassPtr> &Nodes,
@@ -402,30 +418,52 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
         }
         for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
             Model* m = modelManager[*it];
-            if (m != nullptr) {
-                SingleLineModel slm(modelManager);
-                for (int strand = 0; strand < m->GetNumStrands(); strand++) {
-                    int slen = m->GetStrandLength(strand);
-                    slm.Reset(slen, *m, strand, -1, true);
-                    int start = Nodes.size();
-                    int x, y;
-                    slm.InitRenderBufferNodes("Default", "None", Nodes, x, y);
-                    y = 0;
-                    while (start < Nodes.size()) {
-                        for (auto it = Nodes[start]->Coords.begin(); it != Nodes[start]->Coords.end(); it++) {
-                            int newY = ((double)y * maxSL / (double)slen);
-                            if (horiz) {
-                                it->bufX = curS;
-                                it->bufY = newY;
-                            } else {
-                                it->bufX = newY;
-                                it->bufY = curS;
-                            }
+            ModelGroup *grp = dynamic_cast<ModelGroup*>(m);
+            int startBM = Nodes.size();
+            if (grp != nullptr) {
+                int bw, bh;
+                bw = bh = 0;
+                grp->InitRenderBufferNodes(type, "None", Nodes, bw, bh);
+                for (int x = startBM; x < Nodes.size(); x++) {
+                    for (auto it = Nodes[x]->Coords.begin(); it != Nodes[x]->Coords.end(); it++) {
+                        if (horiz) {
+                            it->bufX += curS;
+                        } else {
+                            it->bufY += curS;
                         }
-                        y++;
-                        start++;
                     }
-                    curS++;
+                }
+                if (horiz) {
+                    curS += bw;
+                } else {
+                    curS += bh;
+                }
+            } else if (m != nullptr) {
+                int bw, bh;
+                bw = bh = 0;
+                m->InitRenderBufferNodes(horiz ? "Horizontal Per Strand" : "Vertical Per Strand", "None", Nodes, bw, bh);
+                for (int x = startBM; x < Nodes.size(); x++) {
+                    for (auto it = Nodes[x]->Coords.begin(); it != Nodes[x]->Coords.end(); it++) {
+                        if (horiz) {
+                            it->bufX += curS;
+                        } else {
+                            it->bufY += curS;
+                        }
+                    }
+                }
+                if (horiz) {
+                    curS += bw;
+                } else {
+                    curS += bh;
+                }
+            }
+            if (m != nullptr) {
+                int endBM = Nodes.size();
+                if ((endBM - startBM) != m->GetNodeCount()) {
+                    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                    logger_base.warn("Model group '%s' had problems creating render buffer for Per Strand/Model. Problem model '%s'.",
+                                     (const char *)GetFullName().c_str(),
+                                     (const char *)m->GetFullName().c_str());
                 }
             }
         }

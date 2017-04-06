@@ -28,7 +28,17 @@
 #include "SubModel.h"
 #include "../UtilFunctions.h"
 
-const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Preview", "Single Line"};
+
+static const std::string DEFAULT("Default");
+static const std::string PER_PREVIEW("Per Preview");
+static const std::string SINGLE_LINE("Single Line");
+static const std::string VERT_PER_STRAND("Vertical Per Strand");
+static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");
+
+static const std::string PER_PREVIEW_NO_OFFSET("Per Preview No Offset");
+
+
+const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIEW, SINGLE_LINE};
 
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), ModelXml(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
@@ -1424,14 +1434,26 @@ NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t N
 
 
 void Model::GetBufferSize(const std::string &type, const std::string &transform, int &bufferWi, int &bufferHi) const {
-    if (type == "Default") {
+    if (type == DEFAULT) {
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
-    } else if (type == "Single Line") {
+    } else if (type == SINGLE_LINE) {
         bufferHi = 1;
         bufferWi = Nodes.size();
+    } else if (type == VERT_PER_STRAND) {
+        bufferHi = GetNumStrands();
+        bufferWi = 1;
+        for (int x = 0; x < bufferHi; x++) {
+            bufferWi = std::max(bufferWi, GetStrandLength(x));
+        }
+    } else if (type == HORIZ_PER_STRAND) {
+        bufferWi = GetNumStrands();
+        bufferHi = 1;
+        for (int x = 0; x < bufferWi; x++) {
+            bufferHi = std::max(bufferHi, GetStrandLength(x));
+        }
     } else {
-        //if (type == "Per Preview") {
+        //if (type == PER_PREVIEW) {
         //default is to go ahead and build the full node buffer
         std::vector<NodeBaseClassPtr> newNodes;
         InitRenderBufferNodes(type, "None", newNodes, bufferWi, bufferHi);
@@ -1504,10 +1526,10 @@ void Model::InitRenderBufferNodes(const std::string &type,
     for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
         newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
     }
-    if (type == "Default") {
+    if (type == DEFAULT) {
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
-    } else if (type == "Single Line") {
+    } else if (type == SINGLE_LINE) {
         bufferHi = 1;
         bufferWi = newNodes.size();
         int cnt = 0;
@@ -1517,7 +1539,47 @@ void Model::InitRenderBufferNodes(const std::string &type,
             }
             cnt++;
         }
-    } else if (type == "Per Preview" || type == "Per Preview No Offset") {
+    } else if (type == HORIZ_PER_STRAND) {
+        bufferWi = GetNumStrands();
+        bufferHi = 1;
+        for (int x = 0; x < bufferWi; x++) {
+            bufferHi = std::max(bufferHi, GetStrandLength(x));
+        }
+        int cnt = 0;
+        int strand = 0;
+        for (int x = 0; x < newNodes.size();) {
+            if (cnt >= GetStrandLength(strand)) {
+                strand++;
+                cnt = 0;
+            } else {
+                for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+                    SetCoords(*it2, strand, cnt);
+                }
+                cnt++;
+                x++;
+            }
+        }
+    } else if (type == VERT_PER_STRAND) {
+        bufferHi = GetNumStrands();
+        bufferWi = 1;
+        for (int x = 0; x < bufferHi; x++) {
+            bufferWi = std::max(bufferWi, GetStrandLength(x));
+        }
+        int cnt = 0;
+        int strand = 0;
+        for (int x = 0; x < newNodes.size();) {
+            if (cnt >= GetStrandLength(strand)) {
+                strand++;
+                cnt = 0;
+            } else {
+                for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+                    SetCoords(*it2, cnt, strand);
+                }
+                cnt++;
+                x++;
+            }
+        }
+    } else if (type == PER_PREVIEW || type == PER_PREVIEW_NO_OFFSET) {
         float maxX = -1000000;
         float minX = 1000000;
         float maxY = -1000000;
@@ -1548,7 +1610,7 @@ void Model::InitRenderBufferNodes(const std::string &type,
         }
         int offx = minX;
         int offy = minY;
-        bool noOff = type == "Per Preview No Offset";
+        bool noOff = type == PER_PREVIEW_NO_OFFSET;
         if (noOff) {
             offx = 0;
             offy = 0;

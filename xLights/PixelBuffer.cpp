@@ -1273,8 +1273,14 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
     if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve || inf->sparklesValueCurve != sparklesValueCurve || inf->zoomValueCurve != zoomValueCurve || inf->rotationValueCurve != rotationValueCurve || inf->rotationsValueCurve != rotationsValueCurve || inf->pivotpointxValueCurve != pivotpointxValueCurve || inf->pivotpointyValueCurve != pivotpointyValueCurve || inf->brightnessValueCurve != brightnessValueCurve || inf->hueAdjustValueCurve != hueAdjustValueCurve || inf->saturationAdjustValueCurve != saturationAdjustValueCurve || inf->valueAdjustValueCurve != valueAdjustValueCurve)
     {
+        int origNodeCount = inf->buffer.Nodes.size();
         inf->buffer.Nodes.clear();
         model->InitRenderBufferNodes(type, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+        if (origNodeCount != 0 && origNodeCount != inf->buffer.Nodes.size()) {
+            inf->buffer.Nodes.clear();
+            model->InitRenderBufferNodes(type, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+        }
+        
         ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
         ComputeValueCurve(hueAdjustValueCurve, inf->HueAdjustValueCurve);

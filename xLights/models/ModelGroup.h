@@ -27,6 +27,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+    
         virtual int GetNumStrands() const override { return 0;}
 
         bool Reset();
