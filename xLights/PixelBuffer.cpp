@@ -551,6 +551,7 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
 
 void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     unsigned short &sparkle = layers[0]->buffer.Nodes[node]->sparkle;
     int cnt = 0;
@@ -570,203 +571,210 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
             // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
             if (thelayer == nullptr)
             {
-                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.crit("PixelBufferClass::GetMixedColor thelayer is nullptr ... this is going to crash.");
             }
 
-            int x = thelayer->buffer.Nodes[node]->Coords[0].bufX;
-            int y = thelayer->buffer.Nodes[node]->Coords[0].bufY;
-
-            xlColor color;
-            if (layers[layer]->isMasked(x, y)
-                || x < 0
-                || y < 0
-                || x >= thelayer->BufferWi
-                || y >= thelayer->BufferHt
-               ) {
-                color = xlBLACK;
-                color.alpha = 0;
-            } else {
-                thelayer->buffer.GetPixel(x, y, color);
-            }
-
-            // adjust for HSV adjustments
+            if (node >= thelayer->buffer.Nodes.size())
             {
-                HSVValue hsv = color.asHSV();
-
-                float ha = 0.0;
-                if (thelayer->HueAdjustValueCurve.IsActive())
-                {
-                    ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
-                }
-                else
-                {
-                    ha = (float)thelayer->hueadjust / 100.0;
-                }
-                if (ha != 0)
-                {
-                    hsv.hue += ha;
-                    if (hsv.hue < 0)
-                    {
-                        hsv.hue += 1.0;
-                    }
-                    else if (hsv.hue > 1)
-                    {
-                        hsv.hue -= 1.0;
-                    }
-                }
-
-                float sa = 0.0;
-                if (thelayer->SaturationAdjustValueCurve.IsActive())
-                {
-                    sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
-                }
-                else
-                {
-                    sa = (float)thelayer->saturationadjust / 100.0;
-                }
-                if (sa != 0)
-                {
-                    hsv.saturation += sa;
-                    if (hsv.saturation < 0)
-                    {
-                        hsv.saturation = 0.0;
-                    }
-                    else if (hsv.saturation > 1)
-                    {
-                        hsv.saturation = 1.0;
-                    }
-                }
-
-                float va = 0.0;
-                if (thelayer->ValueAdjustValueCurve.IsActive())
-                {
-                    va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
-                }
-                else
-                {
-                    va = (float)thelayer->valueadjust / 100.0;
-                }
-                if (va != 0)
-                {
-                    hsv.value += va;
-                    if (hsv.value < 0)
-                    {
-                        hsv.value = 0.0;
-                    }
-                    else if (hsv.value > 1)
-                    {
-                        hsv.value = 1.0;
-                    }
-                }
-
-                unsigned char alpha = color.Alpha();
-                color = hsv;
-                color.alpha = alpha;
-            }
-
-            // add sparkles
-            if (color != xlBLACK &&
-                (thelayer->music_sparkle_count ||
-                 thelayer->sparkle_count > 0 ||
-                 thelayer->SparklesValueCurve.IsActive())
-                )
-            {
-                int sc = thelayer->sparkle_count;
-                if (thelayer->SparklesValueCurve.IsActive())
-                {
-                    sc = (int)thelayer->SparklesValueCurve.GetOutputValueAt(offset);
-                }
-
-                if (thelayer->music_sparkle_count &&
-                    thelayer->buffer.GetMedia() != nullptr)
-                {
-                    float f = 0.0;
-                    std::list<float>* pf = thelayer->buffer.GetMedia()->GetFrameData(thelayer->buffer.curPeriod, FRAMEDATA_HIGH, "");
-                    if (pf != nullptr)
-                    {
-                        f = *pf->begin();
-                    }
-                    sc = (int)((float)sc * f);
-                }
-                switch (sparkle % (208 - sc))
-                {
-                case 1:
-                case 7:
-                    // too dim
-                    //color.Set("#444444");
-                    break;
-                case 2:
-                case 6:
-                    color.Set(0x88, 0x88, 0x88);
-                    break;
-                case 3:
-                case 5:
-                    color.Set(0xbb, 0xbb, 0xbb);
-                    break;
-                case 4:
-                    color.Set(255, 255, 255);
-                    break;
-                }
-                sparkle++;
-            }
-            int b = 0;
-            if (thelayer->BrightnessValueCurve.IsActive())
-            {
-                b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset);
+                //logger_base.crit("PixelBufferClass::GetMixedColor thelayer->buffer.Nodes does not contain node %d as it is only %d in size ... this was going to crash.", node, thelayer->buffer.Nodes.size());
             }
             else
             {
-                b = thelayer->brightness;
-            }
-            if (b != 100 || thelayer->contrast != 0)
-            {
-                HSVValue hsv = color.asHSV();
-                hsv.value = hsv.value * ((double)b/100.0);
+                int x = thelayer->buffer.Nodes[node]->Coords[0].bufX;
+                int y = thelayer->buffer.Nodes[node]->Coords[0].bufY;
 
-                // Apply Contrast
-                if (hsv.value< 0.5)
-                {
-                    // reduce brightness when below 0.5 in the V value or increase if > 0.5
-                    hsv.value = hsv.value - (hsv.value* ((double)thelayer->contrast/100.0));
+                xlColor color;
+                if (layers[layer]->isMasked(x, y)
+                    || x < 0
+                    || y < 0
+                    || x >= thelayer->BufferWi
+                    || y >= thelayer->BufferHt
+                    ) {
+                    color = xlBLACK;
+                    color.alpha = 0;
                 }
-                else
-                {
-                    hsv.value = hsv.value + (hsv.value* ((double)thelayer->contrast/100.0));
+                else {
+                    thelayer->buffer.GetPixel(x, y, color);
                 }
 
-                if (hsv.value < 0.0) hsv.value=0.0;
-                if (hsv.value > 1.0) hsv.value=1.0;
-                unsigned char alpha = color.Alpha();
-                color = hsv;
-                color.alpha = alpha;
-            }
-
-            if (MixTypeHandlesAlpha(thelayer->mixType))
-            {
-                c = mixColors(x, y, color, c, layer);
-            }
-            else
-            {
-                if (cnt == 0 && thelayer->fadeFactor != 1.0)
+                // adjust for HSV adjustments
                 {
-                    //need to fade the first here as we're not mixing anything
                     HSVValue hsv = color.asHSV();
-                    hsv.value *= thelayer->fadeFactor;
+
+                    float ha = 0.0;
+                    if (thelayer->HueAdjustValueCurve.IsActive())
+                    {
+                        ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                    }
+                    else
+                    {
+                        ha = (float)thelayer->hueadjust / 100.0;
+                    }
+                    if (ha != 0)
+                    {
+                        hsv.hue += ha;
+                        if (hsv.hue < 0)
+                        {
+                            hsv.hue += 1.0;
+                        }
+                        else if (hsv.hue > 1)
+                        {
+                            hsv.hue -= 1.0;
+                        }
+                    }
+
+                    float sa = 0.0;
+                    if (thelayer->SaturationAdjustValueCurve.IsActive())
+                    {
+                        sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                    }
+                    else
+                    {
+                        sa = (float)thelayer->saturationadjust / 100.0;
+                    }
+                    if (sa != 0)
+                    {
+                        hsv.saturation += sa;
+                        if (hsv.saturation < 0)
+                        {
+                            hsv.saturation = 0.0;
+                        }
+                        else if (hsv.saturation > 1)
+                        {
+                            hsv.saturation = 1.0;
+                        }
+                    }
+
+                    float va = 0.0;
+                    if (thelayer->ValueAdjustValueCurve.IsActive())
+                    {
+                        va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                    }
+                    else
+                    {
+                        va = (float)thelayer->valueadjust / 100.0;
+                    }
+                    if (va != 0)
+                    {
+                        hsv.value += va;
+                        if (hsv.value < 0)
+                        {
+                            hsv.value = 0.0;
+                        }
+                        else if (hsv.value > 1)
+                        {
+                            hsv.value = 1.0;
+                        }
+                    }
+
+                    unsigned char alpha = color.Alpha();
                     color = hsv;
+                    color.alpha = alpha;
                 }
-                if (cnt > 0)
+
+                // add sparkles
+                if (color != xlBLACK &&
+                    (thelayer->music_sparkle_count ||
+                        thelayer->sparkle_count > 0 ||
+                        thelayer->SparklesValueCurve.IsActive())
+                    )
                 {
-                    //mix with layer below
+                    int sc = thelayer->sparkle_count;
+                    if (thelayer->SparklesValueCurve.IsActive())
+                    {
+                        sc = (int)thelayer->SparklesValueCurve.GetOutputValueAt(offset);
+                    }
+
+                    if (thelayer->music_sparkle_count &&
+                        thelayer->buffer.GetMedia() != nullptr)
+                    {
+                        float f = 0.0;
+                        std::list<float>* pf = thelayer->buffer.GetMedia()->GetFrameData(thelayer->buffer.curPeriod, FRAMEDATA_HIGH, "");
+                        if (pf != nullptr)
+                        {
+                            f = *pf->begin();
+                        }
+                        sc = (int)((float)sc * f);
+                    }
+                    switch (sparkle % (208 - sc))
+                    {
+                    case 1:
+                    case 7:
+                        // too dim
+                        //color.Set("#444444");
+                        break;
+                    case 2:
+                    case 6:
+                        color.Set(0x88, 0x88, 0x88);
+                        break;
+                    case 3:
+                    case 5:
+                        color.Set(0xbb, 0xbb, 0xbb);
+                        break;
+                    case 4:
+                        color.Set(255, 255, 255);
+                        break;
+                    }
+                    sparkle++;
+                }
+                int b = 0;
+                if (thelayer->BrightnessValueCurve.IsActive())
+                {
+                    b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset);
+                }
+                else
+                {
+                    b = thelayer->brightness;
+                }
+                if (b != 100 || thelayer->contrast != 0)
+                {
+                    HSVValue hsv = color.asHSV();
+                    hsv.value = hsv.value * ((double)b / 100.0);
+
+                    // Apply Contrast
+                    if (hsv.value < 0.5)
+                    {
+                        // reduce brightness when below 0.5 in the V value or increase if > 0.5
+                        hsv.value = hsv.value - (hsv.value* ((double)thelayer->contrast / 100.0));
+                    }
+                    else
+                    {
+                        hsv.value = hsv.value + (hsv.value* ((double)thelayer->contrast / 100.0));
+                    }
+
+                    if (hsv.value < 0.0) hsv.value = 0.0;
+                    if (hsv.value > 1.0) hsv.value = 1.0;
+                    unsigned char alpha = color.Alpha();
+                    color = hsv;
+                    color.alpha = alpha;
+                }
+
+                if (MixTypeHandlesAlpha(thelayer->mixType))
+                {
                     c = mixColors(x, y, color, c, layer);
                 }
                 else
                 {
-                    c = color;
+                    if (cnt == 0 && thelayer->fadeFactor != 1.0)
+                    {
+                        //need to fade the first here as we're not mixing anything
+                        HSVValue hsv = color.asHSV();
+                        hsv.value *= thelayer->fadeFactor;
+                        color = hsv;
+                    }
+                    if (cnt > 0)
+                    {
+                        //mix with layer below
+                        c = mixColors(x, y, color, c, layer);
+                    }
+                    else
+                    {
+                        c = color;
+                    }
                 }
-            }
 
-            cnt++;
+                cnt++;
+            }
         }
     }
 }
@@ -1294,7 +1302,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->pivotpointxValueCurve = pivotpointxValueCurve;
         inf->pivotpointyValueCurve = pivotpointyValueCurve;
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->bufferTransform);
-        
+
         if (type.compare(0, 9, "Per Model") == 0) {
             inf->usingModelBuffers = true;
             const ModelGroup *gp = dynamic_cast<const ModelGroup*>(model);

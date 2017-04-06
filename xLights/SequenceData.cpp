@@ -53,9 +53,9 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
         //wxASSERT((unsigned long)sz == tmp); // if this fails then we are asking for more memory than the system can address
         size_t sz = (size_t)bytesPerFrame * (size_t)numFrames;
         data = (unsigned char *)calloc(1, sz);
-        wxASSERT(data != NULL); // if this fails then we have a memory allocation error
+        wxASSERT(data != nullptr); // if this fails then we have a memory allocation error
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        if (data == NULL)
+        if (data == nullptr)
         {
             logger_base.crit("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%ld.", numFrames, numChannels, sz);
         }
