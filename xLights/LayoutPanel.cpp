@@ -763,6 +763,12 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
 
 void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullName) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (model == nullptr)
+    {
+        logger_base.crit("LayoutPanel::AddModelToTree model is null ... this is going to crash.");
+    }
+
     int end_channel = model->GetLastChannel()+1;
 
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, fullName ? model->GetFullName() : model->name,
@@ -781,7 +787,11 @@ void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool full
         for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); ++it) {
             Model *m = xlights->AllModels[*it];
 
-            if (m == grp)
+            if (m == nullptr)
+            {
+                logger_base.error("Model group %s thought it contained model. '%s' but it didnt. This would have crashed.", (const char *)grp->GetName().c_str(), (const char *)it->c_str());
+            }
+            else if (m == grp)
             {
                 // This is bad ... a model group contains itself
                 logger_base.error("Model group contains itself. '%s'", (const char *)grp->GetName().c_str());
