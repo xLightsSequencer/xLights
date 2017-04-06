@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Effects added on submodels/strands would not trigger "dirty" flag
+   -- bug (dkulp)   Render after Paste will clear data in models unaffected by paste
    -- bug (dkulp)   RenderAll will not render the very last frame (modifying the effect likely would)
                     This fixes #842
    -- bug (dkulp)   Node display extends the color in the last frame out an extra frame width

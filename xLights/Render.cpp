@@ -427,7 +427,7 @@ public:
         startFrame = start;
         endFrame = end;
     }
-    void SetRangeRestriction(const std::vector<NodeRange> &rng, bool clear) {
+    void SetRangeRestriction(const std::list<NodeRange> &rng, bool clear) {
         clearAllFrames = clear;
         rangeRestriction = rng;
     }
@@ -691,7 +691,7 @@ private:
     xLightsFrame *xLights;
     SequenceData *seqData;
     bool clearAllFrames;
-    std::vector<NodeRange> rangeRestriction;
+    std::list<NodeRange> rangeRestriction;
     bool supportsModelBlending;
     RenderEvent renderEvent;
     bool deleteWhenComplete;
@@ -764,7 +764,7 @@ public:
     RenderJob **jobs;
     AggregatorRenderer **aggregators;
     RenderProgressDialog *renderProgressDialog;
-    Model *restriction;
+    std::list<Model *> restriction;
 };
 
 static bool HasEffects(ModelElement *me) {
@@ -889,21 +889,7 @@ public:
             unsigned int start = e->NodeStartChannel(node);
             AddRange(start, start + cn - 1);
         }
-        ranges.sort();
-        auto it = ranges.begin();
-        auto it2 = ranges.begin();
-        if (it2 != ranges.end()) {
-            ++it2;
-        }
-        while (it2 != ranges.end()) {
-            if ((it->end + 1) == it2->start) {
-                it->end = it2->end;
-                it2 = ranges.erase(it2);
-            } else {
-                ++it;
-                ++it2;
-            }
-        }
+        sortRanges(ranges);
     }
     void AddRange(unsigned int start, unsigned int end) {
         if (!ranges.empty()) {
@@ -924,6 +910,31 @@ public:
             }
         }
         return false;
+    }
+    static void sortRanges(std::list<NodeRange> &ranges) {
+        ranges.sort();
+        auto it = ranges.begin();
+        auto it2 = ranges.begin();
+        if (it2 != ranges.end()) {
+            ++it2;
+        }
+        while (it2 != ranges.end()) {
+            if ((it->end + 1) == it2->start) {
+                //it2 is immediatly at the end of it
+                it->end = it2->end;
+                it2 = ranges.erase(it2);
+            } else if (it->end >= (it2->start - 1) && (it->end <= it2->end)) {
+                // it2 overlaps the end of it
+                it->end = it2->end;
+                it2 = ranges.erase(it2);
+            } else if (it2->start <= it->end && it->end >= it2->end) {
+                //it2 fully contained in it
+                it2 = ranges.erase(it2);
+            } else {
+                ++it;
+                ++it2;
+            }
+        }
     }
     
     void Add(Model *el) {
@@ -983,8 +994,7 @@ void xLightsFrame::BuildRenderTree() {
         renderTree.renderTreeChangeCount = curChangeCount;
     }
 }
-
-void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
+void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrictToModels,
                           int startFrame, int endFrame,
                           bool progressDialog, bool clear,
                           std::function<void()>&& callback) {
@@ -997,13 +1007,15 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
     if (endFrame >= SeqData.NumFrames()) {
         endFrame = SeqData.NumFrames() - 1;
     }
-    std::vector<NodeRange> ranges;
-    if (restrictToModel != nullptr) {
-        RenderTreeData data(restrictToModel);
-        ranges.reserve(data.ranges.size());
-        ranges.insert(ranges.end(), data.ranges.begin(), data.ranges.end());
-    } else {
+    std::list<NodeRange> ranges;
+    if (restrictToModels.empty()) {
         ranges.push_back(NodeRange(0, SeqData.NumChannels()));
+    } else {
+        for (auto it = restrictToModels.begin(); it != restrictToModels.end(); it++) {
+            RenderTreeData data(*it);
+            ranges.insert(ranges.end(), data.ranges.begin(), data.ranges.end());
+        }
+        RenderTreeData::sortRanges(ranges);
     }
     int numRows = models.size();
     RenderJob **jobs = new RenderJob*[numRows];
@@ -1042,7 +1054,8 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
                 }
 
                 bool hasEffects = HasEffects(me);
-                if (hasEffects || (*it == restrictToModel && clear)) {
+                bool isRestricted = std::find(restrictToModels.begin(), restrictToModels.end(), *it) != restrictToModels.end();
+                if (hasEffects || (isRestricted && clear)) {
                     RenderJob *job = new RenderJob(me, SeqData, this, false);
 
                     if (job == nullptr)
@@ -1138,7 +1151,7 @@ void xLightsFrame::Render(std::list<Model*> models, Model *restrictToModel,
         pi->endFrame = endFrame;
         pi->jobs = jobs;
         pi->renderProgressDialog = renderProgressDialog;
-        pi->restriction = restrictToModel;
+        pi->restriction = restrictToModels;
         pi->aggregators = aggregators;
 
         renderProgressInfo.push_back(pi);
@@ -1199,21 +1212,26 @@ void xLightsFrame::RenderDirtyModels() {
     int startms = 9999999;
     int endms = -1;
     std::list<Model *> models;
+    std::list<Model *> restricts;
     for (int x = 0; x < numRows; x++) {
-        if (mSequenceElements.GetElement(x)->GetType() != ELEMENT_TYPE_TIMING) {
+        Element *el = mSequenceElements.GetElement(x);
+        if (el->GetType() != ELEMENT_TYPE_TIMING) {
             int st, ed;
-            mSequenceElements.GetElement(x)->GetDirtyRange(st, ed);
+            el->GetDirtyRange(st, ed);
             if (st != -1) {
                 startms = std::min(startms, st);
                 endms = std::max(endms, ed);
-                
                 for (auto it = renderTree.data.begin(); it != renderTree.data.end(); it++) {
-                    if ((*it)->model->GetName() == mSequenceElements.GetElement(x)->GetModelName()) {
+                    if ((*it)->model->GetName() == el->GetModelName()) {
+                        restricts.push_back((*it)->model);
                         addModelsUpTo(models, (*it)->renderOrder, (*it)->model);
                     }
                 }
             }
         }
+    }
+    if (restricts.empty()) {
+        return;
     }
     for (auto x = models.begin(); x != models.end(); x++) {
         for (auto it = renderTree.data.begin(); it != renderTree.data.end(); it++) {
@@ -1233,7 +1251,7 @@ void xLightsFrame::RenderDirtyModels() {
     if (endframe < startframe) {
         return;
     }
-    Render(models, nullptr, startframe, endframe, false, true, [] {});
+    Render(models, restricts, startframe, endframe, false, true, [] {});
 }
 
 void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
@@ -1259,7 +1277,8 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
             }
         }
     }
-    Render(models, nullptr, 0, SeqData.NumFrames() - 1, true, false, std::move(callback));
+    std::list<Model*> restricts;
+    Render(models, restricts, 0, SeqData.NumFrames() - 1, true, false, std::move(callback));
 }
 
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
@@ -1279,7 +1298,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
             for (auto it2 = renderProgressInfo.begin(); it2 != renderProgressInfo.end(); ++it2) {
                 //we're going to render this model, abort whatever is rendering and accumulate the frames
                 RenderProgressInfo *rpi = (*it2);
-                if ((*it)->model == rpi->restriction) {
+                if (std::find(rpi->restriction.begin(), rpi->restriction.end(), (*it)->model) != rpi->restriction.end()) {
                     if (startframe > rpi->startFrame) {
                         startframe = rpi->startFrame;
                     }
@@ -1293,8 +1312,9 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
                     }
                 }
             }
-            
-            Render((*it)->renderOrder, (*it)->model, startframe, endframe, false, true, [] {});
+            std::list<Model *> m;
+            m.push_back((*it)->model);
+            Render((*it)->renderOrder, m, startframe, endframe, false, true, [] {});
         }
     }
 }

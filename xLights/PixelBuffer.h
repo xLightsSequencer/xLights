@@ -232,7 +232,7 @@ public:
 
     void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers);
     void SetColors(int layer, const unsigned char *fdata);    
-    void GetColors(unsigned char *fdata, const std::vector<NodeRange> &restrictRange);
+    void GetColors(unsigned char *fdata, const std::list<NodeRange> &restrictRange);
 };
 typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;
 

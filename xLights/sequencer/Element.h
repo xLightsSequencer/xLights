@@ -71,7 +71,7 @@ public:
     
     
     std::recursive_mutex &GetChangeLock() { return changeLock; }
-    void IncrementChangeCount(int startMs, int endMS);
+    virtual void IncrementChangeCount(int startMs, int endMS);
     int getChangeCount() const { return changeCount; }
     
     void GetDirtyRange(int &startMs, int &endMs) const {
@@ -159,6 +159,7 @@ public:
     virtual ElementType GetType() const override { return ELEMENT_TYPE_SUBMODEL; }
     
     virtual std::string GetFullName() const override;
+    virtual void IncrementChangeCount(int startMs, int endMS) override;
 
 protected:
     ModelElement *mParentModel;

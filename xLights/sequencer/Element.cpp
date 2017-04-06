@@ -110,6 +110,9 @@ void Element::IncrementChangeCount(int sms, int ems)
     listener->IncrementChangeCount(this);
 }
 
+void SubModelElement::IncrementChangeCount(int startMs, int endMS) {
+    GetModelElement()->IncrementChangeCount(startMs, endMS);
+}
 
 
 TimingElement::TimingElement(SequenceElements *p, const std::string &name)
