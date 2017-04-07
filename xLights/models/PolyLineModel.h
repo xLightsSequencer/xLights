@@ -16,6 +16,7 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         virtual int MapToNodeIndex(int strand, int node) const override;
 
         int GetPolyLineSize(int polyLineLayer) const {
+			if (polyLineLayer >= polyLineSizes.size()) return 0;
             return polyLineSizes[polyLineLayer];
         }
         virtual int GetNumStrands() const override;
