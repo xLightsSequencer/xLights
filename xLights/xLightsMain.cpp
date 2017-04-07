@@ -1399,6 +1399,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     // what is the worst that could happen ... all models want to run hard so we lose some efficiency while we churn between
     // threads ... a minor loss of efficiency ... I think the one thread blocks the others is more common.
     // Dan is concerned on 32 bit windows 10 will chew up too much heap memory ... so splitting the difference we get 7
+
+    // CAUTION ... if this results in a value < 20 then it will set it to 20. If > 250 then it will set it to 250 ... that is not obvious until you step into the code
     jobPool.Start(wxThread::GetCPUCount() * 7);
 
     if (!xLightsApp::sequenceFiles.IsEmpty())
