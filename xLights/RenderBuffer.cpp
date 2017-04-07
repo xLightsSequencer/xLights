@@ -36,7 +36,7 @@ template <class CTX>
 class ContextPool {
 public:
     
-    ContextPool(std::function<CTX* ()> alloc): allocator(alloc) {
+    ContextPool(std::function<CTX* ()> alloc, std::string type = ""): allocator(alloc), _type(type) {
     }
     ~ContextPool() {
         while (!contexts.empty()) {
@@ -47,14 +47,23 @@ public:
     }
     
     CTX *GetContext() {
-        std::unique_lock<std::mutex> locker(lock);
-        if (contexts.empty()) {
-            lock.unlock();
+        // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
+        bool contextsEmpty = false;
+        {
+            std::unique_lock<std::mutex> locker(lock);
+            contextsEmpty = contexts.empty();
+        }
+
+        if (contextsEmpty) {
             return allocator();
         }
-        CTX *ret = contexts.front();
-        contexts.pop();
-        return ret;
+
+        {
+            std::unique_lock<std::mutex> locker(lock);
+            CTX *ret = contexts.front();
+            contexts.pop();
+            return ret;
+        }
     }
     void ReleaseContext(CTX *pctx) {
         std::unique_lock<std::mutex> locker(lock);
@@ -65,6 +74,7 @@ private:
     std::mutex lock;
     std::queue<CTX*> contexts;
     std::function<CTX* ()> allocator;
+    std::string _type;
 };
 
 
@@ -111,6 +121,7 @@ void DrawingContext::Initialize(wxWindow *parent) {
         });
     }
 }
+
 void DrawingContext::CleanUp() {
     if (TEXT_CONTEXT_POOL != nullptr) {
         delete TEXT_CONTEXT_POOL;
@@ -241,6 +252,7 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, boo
 
 DrawingContext::~DrawingContext() {
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (gc != nullptr) {
         delete gc;
     }
@@ -257,11 +269,9 @@ DrawingContext::~DrawingContext() {
 
 
 PathDrawingContext::PathDrawingContext(int BufferWi, int BufferHt, bool allowShared)
-    : DrawingContext(BufferWi, BufferHt, allowShared, true)
-{
-}
-PathDrawingContext::~PathDrawingContext() {
-}
+    : DrawingContext(BufferWi, BufferHt, allowShared, true) {}
+
+PathDrawingContext::~PathDrawingContext() {}
 
 TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowShared)
 #ifdef __WXMSW__
@@ -272,11 +282,9 @@ TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowSha
     // Linux does text rendering on main thread so using the shared stuff is fine
     : DrawingContext(BufferWi, BufferHt, true, true)
 #endif
-{
-}
-TextDrawingContext::~TextDrawingContext() {
-}
+{}
 
+TextDrawingContext::~TextDrawingContext() {}
 
 void DrawingContext::ResetSize(int BufferWi, int BufferHt) {
     if (bitmap != nullptr) {

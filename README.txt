@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (k.mojek) Add display of video when sequencing using a video track for the audio
    -- enh (all)    Move to wxWidgets 3.1.1 on all platforms ... also codeblocks and gcc version upgrades on windows
    -- enh (keith)  Rework test dialog to better support large shows
    -- enh (keith)  Add submodels to test dialog
@@ -20,6 +21,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 				   which when triggered play one step once ... typically in response to an event. These are applied on 
 				   top of any running playlist or background playlist. Great for on demand elements in your show without 
 				   interrupting your show.
+   -- enh (keith)  Add an Id attribute to DDP/NULL and all the USB output types which can be used with the 
+				   #universe:startchannel addressing mode as a substitute for the universe ... as long as you keep the id unique
 2018.6 Feb 06, 2018
    -- enh (gil)    Add LOR event to xSchedule which should work with the Input Pup board.
    -- enh (gil)    Update LOR events to work with multiple cards on one port.
