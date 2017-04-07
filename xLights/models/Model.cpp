@@ -1547,7 +1547,7 @@ void Model::InitRenderBufferNodes(const std::string &type,
         }
         int cnt = 0;
         int strand = 0;
-        for (int x = 0; x < newNodes.size();) {
+        for (int x = firstNode; x < newNodes.size();) {
             if (cnt >= GetStrandLength(strand)) {
                 strand++;
                 cnt = 0;
@@ -1567,7 +1567,7 @@ void Model::InitRenderBufferNodes(const std::string &type,
         }
         int cnt = 0;
         int strand = 0;
-        for (int x = 0; x < newNodes.size();) {
+        for (int x = firstNode; x < newNodes.size();) {
             if (cnt >= GetStrandLength(strand)) {
                 strand++;
                 cnt = 0;
