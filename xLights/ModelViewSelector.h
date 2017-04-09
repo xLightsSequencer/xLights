@@ -16,6 +16,8 @@
 #include <vector>
 #include <string>
 
+class SequenceViewManager;
+
 class ModelViewSelector: public wxDialog
 {
 	public:
@@ -25,7 +27,7 @@ class ModelViewSelector: public wxDialog
         std::vector<std::string> ModelsToAdd;
 		std::vector<std::string> TimingsToAdd;
 
-		void SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models, wxXmlNode *modelGroups, wxXmlNode* views, int which_view = MASTER_VIEW);
+		void SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models, wxXmlNode *modelGroups, SequenceViewManager* sequenceViewManager, int which_view = MASTER_VIEW);
         void Initialize();
 
 		//(*Declarations(ModelViewSelector)
@@ -53,7 +55,7 @@ class ModelViewSelector: public wxDialog
 	private:
         SequenceElements* mSequenceElements;
         wxXmlNode* mModels;
-        wxXmlNode* mViews;
+        SequenceViewManager* _sequenceViewManager;
         wxXmlNode *mModelGroups;
         int mWhichView;
 

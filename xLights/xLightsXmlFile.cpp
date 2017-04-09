@@ -12,6 +12,7 @@
 #include "osxMacUtils.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
+#include "SequenceViewManager.h"
 
 #define string_format wxString::Format
 
@@ -2267,7 +2268,7 @@ void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayStri
 
         SequenceElements se(xLightsParent);
         se.SetFrequency(file.GetFrequency());
-        se.SetViewsNode(xLightsParent->GetViewsNode()); // This must come first before LoadSequencerFile.
+        se.SetViewsManager(xLightsParent->GetViewsManager()); // This must come first before LoadSequencerFile.
         se.LoadSequencerFile(file, xLightsParent->GetShowDirectory());
         file.AdjustEffectSettingsForVersion(se, xLightsParent);
 

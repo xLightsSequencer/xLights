@@ -385,6 +385,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     mCurrentPerpective = nullptr;
     MenuItemPreviews = nullptr;
     _renderMode = false;
+	_sequenceViewManager.SetModelManager(&AllModels);
 
     Bind(EVT_SELECTED_EFFECT_CHANGED, &xLightsFrame::SelectedEffectChanged, this);
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);

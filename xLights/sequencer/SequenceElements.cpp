@@ -13,6 +13,7 @@
 #include "../models/SubModel.h"
 #include "../models/ModelGroup.h"
 #include "../UtilFunctions.h"
+#include "../SequenceViewManager.h"
 
 static const std::string STR_EMPTY("");
 static const std::string STR_NAME("name");
@@ -170,7 +171,7 @@ Element* SequenceElements::AddElement(const std::string &name, const std::string
         IncrementChangeCount(el);
         return el;
     }
-    return NULL;
+    return nullptr;
 }
 
 Element* SequenceElements::AddElement(int index, const std::string &name,
@@ -185,7 +186,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
         IncrementChangeCount(el);
         return el;
     }
-    return NULL;
+    return nullptr;
 }
 
 size_t SequenceElements::GetElementCount(int view)
@@ -273,23 +274,12 @@ bool SequenceElements::TimingIsPartOfView(TimingElement* timing, int view)
 
 std::string SequenceElements::GetViewName(int which_view) const
 {
-    std::string view_name = "Master View";
-    int view_index = 1;
-    for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
-    {
-        if( view_index == which_view )
-        {
-            view_name = view->GetAttribute(STR_NAME);
-            break;
-        }
-        view_index++;
-    }
-    return view_name;
+	return _viewsManager->GetView(which_view)->GetName();
 }
 
-void SequenceElements::SetViewsNode(wxXmlNode* viewsNode)
+void SequenceElements::SetViewsManager(SequenceViewManager* viewsManager)
 {
-    mViewsNode = viewsNode;
+    _viewsManager = viewsManager;
 }
 
 void SequenceElements::SetModelsNode(wxXmlNode* node)
@@ -319,14 +309,8 @@ std::string SequenceElements::GetViewModels(const std::string &viewName) const
     }
     else
     {
-        for (wxXmlNode* view = mViewsNode->GetChildren(); view != NULL; view = view->GetNext())
-        {
-            if (view->GetAttribute(STR_NAME) == viewName)
-            {
-                result = view->GetAttribute("models");
-                break;
-            }
-        }
+		auto view = _viewsManager->GetView(viewName);
+		result = view->GetModelsString();
     }
     return result;
 }
@@ -367,22 +351,7 @@ Element* SequenceElements::GetElement(size_t index, int view)
 
 void SequenceElements::DeleteElement(const std::string &name)
 {
-    for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
-    {
-        wxString view_models = view->GetAttribute("models");
-        wxArrayString all_models = wxSplit(view_models, ',');
-        wxArrayString new_models;
-        for(size_t model = 0; model < all_models.size(); model++ )
-        {
-            if( all_models[model] != name )
-            {
-                new_models.push_back(all_models[model]);
-            }
-        }
-        view_models = wxJoin(new_models, ',');
-        view->DeleteAttribute("models");
-        view->AddAttribute("models", view_models);
-    }
+	_viewsManager->DeleteModel(name);
 
     // delete element pointer from all views
     for(size_t i=0;i<mAllViews.size();i++)
@@ -803,17 +772,16 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
 void SequenceElements::PrepareViews(xLightsXmlFile& xml_file) {
     // Select view and set current view models as visible
     int last_view = xml_file.GetLastView();
-    for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
+	auto views = _viewsManager->GetViews();
+    for(auto it = views.begin(); it != views.end(); ++it)
     {
-        std::string viewName = view->GetAttribute(STR_NAME).ToStdString();
-        std::string models = view->GetAttribute("models").ToStdString();
         std::vector <Element*> new_view;
         mAllViews.push_back(new_view);
         int view_index = mAllViews.size()-1;
         if( view_index == last_view )
         {
-            AddMissingModelsToSequence(models);
-            PopulateView(models, view_index);
+            AddMissingModelsToSequence((*it)->GetModelsString());
+            PopulateView((*it)->GetModelsString(), view_index);
             SetCurrentView(view_index);
         }
     }
@@ -898,10 +866,10 @@ void SequenceElements::SetTimingVisibility(const std::string& name)
 
 void SequenceElements::AddTimingToAllViews(const std::string& timing)
 {
-    for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
+	auto views = _viewsManager->GetViews();
+	for (auto it = views.begin(); it != views.end(); ++it)
     {
-        std::string name = view->GetAttribute(STR_NAME).ToStdString();
-        AddTimingToView(timing, name);
+        AddTimingToView(timing, (*it)->GetName());
     }
 }
 

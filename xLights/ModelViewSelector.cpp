@@ -3,6 +3,7 @@
 //(*InternalHeaders(ModelViewSelector)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "SequenceViewManager.h"
 //*)
 
 //(*IdInit(ModelViewSelector)
@@ -125,12 +126,12 @@ void ModelViewSelector::PopulateModelsToAdd()
 
 
 
-void ModelViewSelector::SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models,wxXmlNode* modelGroups, wxXmlNode* views, int which_view)
+void ModelViewSelector::SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models,wxXmlNode* modelGroups, SequenceViewManager* sequenceViewManager, int which_view)
 {
     mSequenceElements = elements;
     mModelGroups = modelGroups;
     mModels = models;
-    mViews = views;
+    _sequenceViewManager = sequenceViewManager;
     mWhichView = which_view;
 }
 

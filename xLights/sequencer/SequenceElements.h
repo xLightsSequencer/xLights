@@ -13,6 +13,7 @@
 #include "UndoManager.h"
 
 class xLightsXmlFile;  // forward declaration needed due to circular dependency
+class SequenceViewManager;
 
 #define CURRENT_VIEW -1
 #define MASTER_VIEW 0
@@ -123,7 +124,7 @@ class SequenceElements : public ChangeListener
         bool TimingIsPartOfView(TimingElement* timing, int view);
         std::string GetViewName(int view) const;
 
-        void SetViewsNode(wxXmlNode* viewsNode);
+        void SetViewsManager(SequenceViewManager* viewsManager);
         void SetModelsNode(wxXmlNode *modelsNode);
         std::string GetViewModels(const std::string &viewName) const;
         void SetEffectsNode(wxXmlNode* effectsNode);
@@ -193,7 +194,7 @@ class SequenceElements : public ChangeListener
 
         std::vector<EffectRange> mSelectedRanges;
         int mSelectedTimingRow;
-        wxXmlNode* mViewsNode;
+        SequenceViewManager* _viewsManager;
         wxXmlNode* mModelsNode;
         wxXmlNode* mEffectsNode;
         xLightsFrame *xframe;

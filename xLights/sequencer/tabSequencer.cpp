@@ -502,7 +502,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
     SetFrequency(xml_file.GetFrequency());
-    mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
+    mSequenceElements.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
     mSequenceElements.SetModelsNode(ModelsNode);
     mSequenceElements.SetEffectsNode(EffectsNode);
     mSequenceElements.LoadSequencerFile(xml_file, GetShowDirectory());

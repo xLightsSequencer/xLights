@@ -7,10 +7,11 @@
 #include "xLightsXmlFile.h"
 #include "effects/RenderableEffect.h"
 #include "models/ModelGroup.h"
-#include "BufferPanel.h"
+#include "SequenceViewManager.h"
 #include "LayoutPanel.h"
 #include "osxMacUtils.h"
 #include "UtilFunctions.h"
+#include "BufferPanel.h"
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 {
@@ -50,10 +51,10 @@ void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
 
 void xLightsFrame::ResetEffectsXml()
 {
+	_sequenceViewManager.Reset();
     ModelsNode=nullptr;
     EffectsNode=nullptr;
     PalettesNode=nullptr;
-    ViewsNode=nullptr;
     ModelGroupsNode=nullptr;
     LayoutGroupsNode=nullptr;
     SettingsNode=nullptr;
@@ -127,66 +128,72 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         wxMessageBox(_("Invalid RGB effects file. Press Save File button to start a new file."), _("Error"));
         CreateDefaultEffectsXml();
     }
+	wxXmlNode* viewsNode = nullptr;
     for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "models") ModelsNode=e;
         if (e->GetName() == "effects") EffectsNode=e;
         if (e->GetName() == "palettes") PalettesNode=e;
-        if (e->GetName() == "views") ViewsNode=e;
+		if (e->GetName() == "views") 
+		{
+			viewsNode = e;
+		}
         if (e->GetName() == "modelGroups") ModelGroupsNode=e;
         if (e->GetName() == "layoutGroups") LayoutGroupsNode=e;
         if (e->GetName() == "settings") SettingsNode=e;
         if (e->GetName() == "perspectives") PerspectivesNode=e;
     }
-    if (ModelsNode == 0)
+    if (ModelsNode == nullptr)
     {
         ModelsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "models" );
         root->AddChild( ModelsNode );
         UnsavedRgbEffectsChanges = true;
     }
-    if (EffectsNode == 0)
+    if (EffectsNode == nullptr)
     {
         EffectsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "effects" );
         EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
         root->AddChild( EffectsNode );
         UnsavedRgbEffectsChanges = true;
     }
-    if (PalettesNode == 0)
+    if (PalettesNode == nullptr)
     {
         PalettesNode = new wxXmlNode( wxXML_ELEMENT_NODE, "palettes" );
         root->AddChild( PalettesNode );
         UnsavedRgbEffectsChanges = true;
     }
 
-    if (ViewsNode == 0)
+    if (viewsNode == nullptr)
     {
-        ViewsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "views" );
-        root->AddChild( ViewsNode );
         UnsavedRgbEffectsChanges = true;
     }
+	else
+	{
+		_sequenceViewManager.Load(viewsNode, mSequenceElements.GetCurrentView());
+	}
 
-    if (ModelGroupsNode == 0)
+    if (ModelGroupsNode == nullptr)
     {
         ModelGroupsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "modelGroups" );
         root->AddChild( ModelGroupsNode );
         UnsavedRgbEffectsChanges = true;
     }
 
-    if (LayoutGroupsNode == 0)
+    if (LayoutGroupsNode == nullptr)
     {
         LayoutGroupsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "layoutGroups" );
         root->AddChild( LayoutGroupsNode );
         UnsavedRgbEffectsChanges = true;
     }
 
-    if (PerspectivesNode == 0)
+    if (PerspectivesNode == nullptr)
     {
         PerspectivesNode = new wxXmlNode( wxXML_ELEMENT_NODE, "perspectives" );
         root->AddChild( PerspectivesNode );
         UnsavedRgbEffectsChanges = true;
     }
 
-    if(SettingsNode==0)
+    if(SettingsNode== nullptr)
     {
         SettingsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "settings" );
         root->AddChild( SettingsNode );
@@ -387,8 +394,8 @@ void xLightsFrame::LoadEffectsFile()
     EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
 
     UpdateModelsList();
-    displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements,ModelsNode, ModelGroupsNode, ViewsNode);
-    mSequencerInitialize = FALSE;
+    displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements, ModelsNode, ModelGroupsNode, &_sequenceViewManager);
+    mSequencerInitialize = false;
     CheckForAndCreateDefaultPerpective();
     perspectivePanel->SetPerspectives(PerspectivesNode);
     LoadPerspectivesMenu(PerspectivesNode);
@@ -518,6 +525,9 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
     if (!lock.owns_lock()) return false;
 
+	// Make sure the views are up to date before we save it
+	_sequenceViewManager.Save(&EffectsXml);
+
     wxFileName effectsFile;
     effectsFile.AssignDir( CurrentDir );
     if (backup)
@@ -574,24 +584,10 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
     UnsavedRgbEffectsChanges = true;
     return internalsChanged;
 }
+
 void xLightsFrame::RenameModelInViews(const std::string old_name, const std::string& new_name)
 {
-    // renames view in the rgbeffects xml node
-    for(wxXmlNode* view=ViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
-    {
-        wxString view_models = view->GetAttribute("models");
-        wxArrayString all_models = wxSplit(view_models, ',');
-        for( int model = 0; model < all_models.size(); model++ )
-        {
-            if( all_models[model] == old_name )
-            {
-                all_models[model] = new_name;
-            }
-        }
-        view_models = wxJoin(all_models, ',');
-        view->DeleteAttribute("models");
-        view->AddAttribute("models", view_models);
-    }
+	_sequenceViewManager.RenameModel(old_name, new_name);
 }
 
 void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)

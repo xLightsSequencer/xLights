@@ -17,6 +17,7 @@
 
 class wxChoice;
 class xLightsFrame;
+class SequenceViewManager;
 
 wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
@@ -34,7 +35,7 @@ class DisplayElementsPanel: public wxPanel
         void SetSequenceElementsModelsViews(SequenceData* seq_data,
                                             SequenceElements* elements,wxXmlNode* models,
                                             wxXmlNode* modelGroups,
-                                            wxXmlNode* views);
+											SequenceViewManager* sequenceViewManager);
         void Initialize();
         void SelectView(const std::string& name);
         void MarkViewsChanged();
@@ -88,7 +89,7 @@ class DisplayElementsPanel: public wxPanel
         SequenceData* mSeqData;
         SequenceElements* mSequenceElements;
         wxXmlNode* mModels;
-        wxXmlNode* mViews;
+		SequenceViewManager* _sequenceViewManager;
         wxXmlNode* mModelGroups;
         int mNumViews;
         int mNumModels;

@@ -163,7 +163,7 @@ void DisplayElementsPanel::MarkViewsChanged()
 
 void DisplayElementsPanel::SetViewChoice(wxChoice *ch) {
     MainViewsChoice = ch;
-    MainViewsChoice->Connect(wxEVT_CHOICE, (wxObjectEventFunction)&DisplayElementsPanel::OnViewSelect, NULL, this);
+    MainViewsChoice->Connect(wxEVT_CHOICE, (wxObjectEventFunction)&DisplayElementsPanel::OnViewSelect, nullptr, this);
 }
 
 void DisplayElementsPanel::OnViewSelect(wxCommandEvent &event) {
@@ -174,13 +174,13 @@ void DisplayElementsPanel::SetSequenceElementsModelsViews(SequenceData* seq_data
                                                           SequenceElements* elements,
                                                           wxXmlNode* models,
                                                           wxXmlNode* modelGroups,
-                                                          wxXmlNode* views)
+													  	  SequenceViewManager* sequenceViewManager)
 {
     mSequenceElements = elements;
     mSeqData = seq_data;
     mModels = models;
-    mViews = views;
     mModelGroups = modelGroups;
+	_sequenceViewManager = sequenceViewManager;
 }
 
 void DisplayElementsPanel::Initialize()
@@ -269,23 +269,19 @@ void DisplayElementsPanel::PopulateViews()
 	col1.SetWidth(130);
 	ListCtrlViews->InsertColumn(1, col1);
 
-    mNumViews = 0;
-    int selected_view = 0;
-    AddViewToList("Master View", true);
-    int view_index = 1;
-    for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
-    {
-        wxString viewName = view->GetAttribute("name");
-        bool isChecked = (view_index == mSequenceElements->GetCurrentView());
-        AddViewToList(viewName, isChecked);
-        if( isChecked )
-        {
-            ListCtrlViews->SetChecked(0,false);
-            selected_view = view_index;
-        }
-        view_index++;
-    }
-    MainViewsChoice->SetSelection(selected_view);
+	mNumViews = 0;
+	auto views = _sequenceViewManager->GetViews();
+	for (auto it = views.begin(); it != views.end(); ++it)
+	{
+		bool isChecked = _sequenceViewManager->GetSelectedView() == *it;
+		AddViewToList((*it)->GetName(), isChecked);
+		if (isChecked)
+		{
+			ListCtrlViews->SetChecked(0, false);
+		}
+	}
+
+	MainViewsChoice->SetSelection(_sequenceViewManager->GetSelectedViewIndex());
 }
 
 void DisplayElementsPanel::PopulateModels()
@@ -327,29 +323,18 @@ void DisplayElementsPanel::PopulateModels()
 
     if(current_view > 0 )
     {
-        int view_index = 1;
-        for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
-        {
-            wxString viewName = view->GetAttribute("name");
-            bool isChecked = (view_index == current_view);
-            if( isChecked )
-            {
-                wxString models = view->GetAttribute("models");
-                mSequenceElements->AddMissingModelsToSequence(models.ToStdString());
-
-                if(models.length()> 0)
-                {
-                    wxArrayString model=wxSplit(models,',');
-                    for(int m=0;m<model.size();m++)
-                    {
-                        wxString modelName = model[m];
-                        Element* elem = mSequenceElements->GetElement(modelName.ToStdString());
-                        AddModelToList(elem);
-                    }
-                }
-            }
-            view_index++;
-        }
+		_sequenceViewManager->SetSelectedView(current_view);
+		SequenceView * view = _sequenceViewManager->GetSelectedView();
+		if (view != nullptr)
+		{
+			mSequenceElements->AddMissingModelsToSequence(view->GetModelsString());
+			auto models = view->GetModels();
+			for (auto it = models.begin(); it != models.end(); ++it)
+			{
+				Element* elem = mSequenceElements->GetElement(*it);
+				AddModelToList(elem);
+			}
+		}
     }
     else
     {
@@ -366,18 +351,7 @@ void DisplayElementsPanel::PopulateModels()
 
 int DisplayElementsPanel::GetViewIndex(const wxString& name)
 {
-    int view_index = 1;
-    int selected_view = 0;
-    for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
-    {
-        if( view->GetAttribute("name") == name )
-        {
-            selected_view = view_index;
-            break;
-        }
-        view_index++;
-    }
-    return selected_view;
+	return _sequenceViewManager->GetViewIndex(name.ToStdString());
 }
 
 void DisplayElementsPanel::OnLeftUp(wxMouseEvent& event)
@@ -393,10 +367,7 @@ void DisplayElementsPanel::OnButtonAddViewsClick(wxCommandEvent& event)
     if (DlgResult != wxID_OK) return;
     std::string viewName=dialog.GetValue().Trim().ToStdString();
 
-    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "view");
-    new_node->AddAttribute("name", viewName);
-    new_node->AddAttribute("models", "");
-    mViews->AddChild(new_node);
+	_sequenceViewManager->AddView(viewName);
 
     AddViewToList(viewName, true);
     mSequenceElements->AddView(viewName);
@@ -426,15 +397,7 @@ void DisplayElementsPanel::OnButtonDeleteViewClick(wxCommandEvent& event)
         {
             mSequenceElements->RemoveView(itemIndex);
             wxString name = mSequenceElements->GetViewName(itemIndex);
-            for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
-            {
-                if( view->GetAttribute("name") == name )
-                {
-                    mViews->RemoveChild(view);
-                    delete view;
-                    break;
-                }
-            }
+			_sequenceViewManager->DeleteView(name.ToStdString());
 
             ListCtrlViews->DeleteItem(itemIndex);
             mNumViews--;
@@ -454,7 +417,7 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
 {
     if (mSeqData->NumFrames() == 0) return;
     ModelViewSelector dialog(this);
-    dialog.SetSequenceElementsModelsViews(mSequenceElements,mModels,mModelGroups,mViews, mSequenceElements->GetCurrentView());
+    dialog.SetSequenceElementsModelsViews(mSequenceElements,mModels,mModelGroups,_sequenceViewManager, mSequenceElements->GetCurrentView());
     std::string type = "model";
     int current_view = mSequenceElements->GetCurrentView();
     dialog.Initialize();
@@ -467,7 +430,7 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
             for(size_t i=0;i<dialog.ModelsToAdd.size();i++)
             {
                 Element* e = mSequenceElements->AddElement(dialog.ModelsToAdd[i],type,true,false,false,false);
-				if (e != NULL)
+				if (e != nullptr)
 				{
 					e->AddEffectLayer();
 				}
@@ -475,40 +438,24 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
         }
         else
         {
-            int view_index = 1;
-            for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
+			auto view = _sequenceViewManager->GetSelectedView();
+            for(int i=0;i<dialog.ModelsToAdd.size();i++)
             {
-                std::string viewName = view->GetAttribute("name").ToStdString();
-                if( view_index == current_view )
-                {
-                    std::string models = view->GetAttribute("models").ToStdString();
-                    for(int i=0;i<dialog.ModelsToAdd.size();i++)
-                    {
-                        if( models != "" )
-                        {
-                            models += ",";
-                        }
-                        models += dialog.ModelsToAdd[i];
-                    }
-                    mSequenceElements->AddMissingModelsToSequence(models);
-                    for(int i=0;i<dialog.ModelsToAdd.size();i++)
-                    {
-                        Element* elem = mSequenceElements->GetElement(dialog.ModelsToAdd[i]);
-                        if( elem != nullptr )
-                        {
-                            elem->SetVisible(true);
-                        }
-                    }
-                    view->DeleteAttribute("models");
-                    view->AddAttribute("models", models);
-                    std::string modelsString = mSequenceElements->GetViewModels(viewName);
-                    mSequenceElements->PopulateView(modelsString, current_view);
-                    mSequenceElements->AddViewToTimings(dialog.TimingsToAdd, viewName);
-                    mSequenceElements->SetTimingVisibility(viewName);
-                    break;
-                }
-                view_index++;
+				view->AddModel(dialog.ModelsToAdd[i]);
             }
+            mSequenceElements->AddMissingModelsToSequence(view->GetModelsString());
+            for(int i=0;i<dialog.ModelsToAdd.size();i++)
+            {
+                Element* elem = mSequenceElements->GetElement(dialog.ModelsToAdd[i]);
+                if( elem != nullptr )
+                {
+                    elem->SetVisible(true);
+                }
+            }
+            std::string modelsString = mSequenceElements->GetViewModels(view->GetName());
+            mSequenceElements->PopulateView(modelsString, current_view);
+            mSequenceElements->AddViewToTimings(dialog.TimingsToAdd, view->GetName());
+            mSequenceElements->SetTimingVisibility(view->GetName());
         }
         MarkViewsChanged();
 
@@ -766,17 +713,8 @@ void DisplayElementsPanel::UpdateModelsForSelectedView()
             }
         }
 
-        for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
-        {
-            wxString name = view->GetAttribute("name");
-            if( name == viewName )
-            {
-                view->DeleteAttribute("models");
-                view->AddAttribute("models", models);
-                break;
-            }
-
-        }
+		SequenceView* view = _sequenceViewManager->GetView(viewName.ToStdString());
+		view->SetModels(models.ToStdString());
     }
     PopulateModels();
 }
