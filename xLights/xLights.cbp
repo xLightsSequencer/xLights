@@ -639,6 +639,8 @@
 		<Unit filename="SequenceCheck.h" />
 		<Unit filename="SequenceData.cpp" />
 		<Unit filename="SequenceData.h" />
+		<Unit filename="SequenceViewManager.cpp" />
+		<Unit filename="SequenceViewManager.h" />
 		<Unit filename="SevenSegmentDialog.cpp" />
 		<Unit filename="SevenSegmentDialog.h" />
 		<Unit filename="SimpleFTP.cpp" />
