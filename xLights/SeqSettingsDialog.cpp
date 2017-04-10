@@ -541,13 +541,10 @@ void SeqSettingsDialog::WizardPage3()
 	ModelsChoice = new wxChoice(Panel_Wizard, ID_CHOICE_Models, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Models"));
 	ModelsChoice->Append(_("All Models"));
 	ModelsChoice->Append(_("Empty"));
-	wxXmlNode* all_views = xLightsParent->GetViewsNode();
-    if (all_views != nullptr) {
-        for(wxXmlNode* view=all_views->GetChildren(); view!=NULL; view=view->GetNext() )
-        {
-            wxString viewName = view->GetAttribute("name");
-            ModelsChoice->Append(viewName);
-        }
+	auto views = xLightsParent->GetViewsManager()->GetViews();
+    for(auto it = views.begin(); it != views.end(); ++it)
+    {
+        ModelsChoice->Append((*it)->GetName());
     }
 	ModelsChoice->SetSelection(0);
 	GridSizerWizButtons->Add(ModelsChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);

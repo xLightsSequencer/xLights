@@ -75,6 +75,7 @@
 #include "xLightsTimer.h"
 #include "JobPool.h"
 #include <log4cpp/Category.hh>
+#include "SequenceViewManager.h"
 
 class EffectTreeDialog;
 class ConvertDialog;
@@ -978,15 +979,15 @@ protected:
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;
+	SequenceViewManager _sequenceViewManager;
     wxXmlNode* EffectsNode;
     wxXmlNode* PalettesNode;
-    wxXmlNode* ViewsNode;
     wxXmlNode* PerspectivesNode;
 public:
     wxXmlNode* ModelsNode;
     wxXmlNode* ModelGroupsNode;
     wxXmlNode* LayoutGroupsNode;
-    wxXmlNode* GetViewsNode() const {return ViewsNode;}
+    SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
 
 private:
     wxXmlNode* SettingsNode;
