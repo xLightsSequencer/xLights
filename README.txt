@@ -11,9 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.9  Apr  9, 2017
    -- bug (dkulp)   Per Model/Strand render buffer styles could crash with Groups within Groups
    -- bug (dkulp)   Effects added on submodels/strands would not trigger "dirty" flag
    -- bug (dkulp)   Render after Paste will clear data in models unaffected by paste
+   -- bug (keith)   Guard against trying to access a polyline layer that does not exist.
    -- bug (dkulp)   RenderAll will not render the very last frame (modifying the effect likely would)
                     This fixes #842
    -- bug (dkulp)   Node display extends the color in the last frame out an extra frame width
