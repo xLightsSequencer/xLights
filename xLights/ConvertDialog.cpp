@@ -13,6 +13,7 @@
 #include <map>
 #include <wx/base64.h>
 #include <wx/confbase.h>
+#include <wx/wfstream.h>
 
 //(*InternalHeaders(ConvertDialog)
 #include <wx/intl.h>
@@ -424,10 +425,10 @@ void ConvertDialog::WriteHLSFile(const wxString& filename)
 
 void ConvertDialog::WriteXLightsFile(const wxString& filename)
 {
-    wxFile f;
+    wxFile file;
     char hdr[512];
     memset(hdr, 0, 512);
-    if (!f.Create(filename, true))
+    if (!file.Create(filename, true))
     {
         _parent->ConversionError(wxString("Unable to create file: ") + filename);
         return;
@@ -443,6 +444,9 @@ void ConvertDialog::WriteXLightsFile(const wxString& filename)
     }
     int xseq_format_version = 1;
 
+    wxFileOutputStream fout(file);
+    wxBufferedOutputStream f(fout, SeqData.NumFrames() > 4096 ? SeqData.NumFrames() : 4096);
+
     sprintf(hdr, "xLights %2d %8d %8d", xseq_format_version, SeqData.NumChannels(), SeqData.NumFrames());
     strncpy(&hdr[32], mediaFilename.c_str(), 470);
     f.Write(hdr, 512);
@@ -451,7 +455,9 @@ void ConvertDialog::WriteXLightsFile(const wxString& filename)
             f.Write(&SeqData[p][x], 1);
         }
     }
+    f.Sync();
     f.Close();
+    fout.Close();
 }
 
 void ConvertDialog::WriteLSPFile(const wxString& filename)
