@@ -753,11 +753,12 @@ void DisplayElementsPanel::SelectView(const std::string& name)
         mSequenceElements->AddMissingModelsToSequence(modelsString);
         mSequenceElements->PopulateView(modelsString, selected_view);
     }
+	_sequenceViewManager->SetSelectedView(selected_view);
     mSequenceElements->SetCurrentView(selected_view);
     mSequenceElements->SetTimingVisibility(name);
     PopulateModels();
     ListCtrlViews->SetChecked(mSequenceElements->GetCurrentView(),true);
-    MainViewsChoice->SetSelection(MainViewsChoice->FindString(name));
+	MainViewsChoice->SetStringSelection(name);
     
     xlFrame->DoForceSequencerRefresh();
 }
