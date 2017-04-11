@@ -1,0 +1,1 @@
+wxInclude.exe --const --input-type=.png --output-file=PaintToolIcons.h

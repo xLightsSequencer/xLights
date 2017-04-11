@@ -1,0 +1,1 @@
+wxInclude.exe --const --input-type=.png --appendtype --output-file=Images_png.h
