@@ -942,6 +942,9 @@
     <ClCompile Include="SequenceViewManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Pixlite16.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1818,6 +1821,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SequenceViewManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Pixlite16.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

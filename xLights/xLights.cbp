@@ -611,6 +611,8 @@
 		<Unit filename="PixelAppearanceDlg.h" />
 		<Unit filename="PixelBuffer.cpp" />
 		<Unit filename="PixelBuffer.h" />
+		<Unit filename="Pixlite16.cpp" />
+		<Unit filename="Pixlite16.h" />
 		<Unit filename="PlayerFrame.h" />
 		<Unit filename="PreviewModels.cpp" />
 		<Unit filename="PreviewModels.h" />
