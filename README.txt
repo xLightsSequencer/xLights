@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add xmodel export of star models
    -- enh (keith)   Add Pixlite 16 controller configuration upload
    -- bug (dkulp)   Use buffering to write xseq files.  Fixes #845
 2017.9  Apr  9, 2017
