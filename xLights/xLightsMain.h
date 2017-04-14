@@ -471,6 +471,7 @@ private:
     void OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event);
     void OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event);
     void OnButton_DDPClick(wxCommandEvent& event);
+    void OnMenuItem_ExcludePresetsFromPackagedSequencesSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -593,6 +594,7 @@ private:
     static const long ID_MENU_BACKUP_ON_LAUNCH;
     static const long ID_ALT_BACKUPLOCATION;
     static const long ID_MNU_BACKUP;
+    static const long ID_MNU_EXCLUDEPRESETS;
     static const long ID_MENUITEM_ICON_SMALL;
     static const long ID_MENUITEM_ICON_MEDIUM;
     static const long ID_MENUITEM_ICON_LARGE;
@@ -659,6 +661,7 @@ private:
     //(*Declarations(xLightsFrame)
     xlAuiToolBar* OutputToolBar;
     wxMenuItem* MenuItem_VideoTutorials;
+    wxMenuItem* MenuItem_ExcludePresetsFromPackagedSequences;
     wxButton* ButtonAddE131;
     wxMenuItem* MenuItem_ImportEffects;
     wxMenuItem* MenuItemViewSavePerspective;
@@ -803,6 +806,7 @@ private:
     int effGridPrevX;
     int effGridPrevY;
     bool _backupSubfolders;
+    bool _excludePresetsFromPackagedSequences;
 
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
     void DoAltBackup(bool prompt = true);

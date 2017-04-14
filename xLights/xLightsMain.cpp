@@ -200,6 +200,7 @@ const long xLightsFrame::ID_BACKUP_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_MENU_BACKUP_ON_LAUNCH = wxNewId();
 const long xLightsFrame::ID_ALT_BACKUPLOCATION = wxNewId();
 const long xLightsFrame::ID_MNU_BACKUP = wxNewId();
+const long xLightsFrame::ID_MNU_EXCLUDEPRESETS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_SMALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_LARGE = wxNewId();
@@ -740,6 +741,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuSettings->Append(mAltBackupLocationMenuItem);
     MenuItem_BackupSubfolders = new wxMenuItem(MenuSettings, ID_MNU_BACKUP, _("Backup Subfolders"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_BackupSubfolders);
+    MenuItem_ExcludePresetsFromPackagedSequences = new wxMenuItem(MenuSettings, ID_MNU_EXCLUDEPRESETS, _("Exclude Presets From Packaged Sequences"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(MenuItem_ExcludePresetsFromPackagedSequences);
     ToolIconSizeMenu = new wxMenu();
     MenuItem10 = new wxMenuItem(ToolIconSizeMenu, ID_MENUITEM_ICON_SMALL, _("Small\tALT-1"), wxEmptyString, wxITEM_RADIO);
     ToolIconSizeMenu->Append(MenuItem10);
@@ -949,6 +952,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENU_BACKUP_ON_LAUNCH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupOnLaunchSelected);
     Connect(ID_ALT_BACKUPLOCATION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmAltBackupLocationMenuItemSelected);
     Connect(ID_MNU_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupSubfoldersSelected);
+    Connect(ID_MNU_EXCLUDEPRESETS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExcludePresetsFromPackagedSequencesSelected);
     Connect(ID_MENUITEM_ICON_SMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
@@ -1216,10 +1220,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     config->Read("xLightsBackupSubdirectories", &_backupSubfolders, false);
     MenuItem_BackupSubfolders->Check(_backupSubfolders);
+    logger_base.debug("Backup subdirectories: %s.", _backupSubfolders ? "true" : "false");
+
+    config->Read("xLightsExcludePresetsPkgSeq", &_excludePresetsFromPackagedSequences, false);
+    MenuItem_ExcludePresetsFromPackagedSequences->Check(_excludePresetsFromPackagedSequences);
+    logger_base.debug("Exclude Presets From Packaged Sequences: %s.", _excludePresetsFromPackagedSequences ? "true" : "false");
 
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
     logger_base.debug("Render on save: %s.", mRenderOnSave? "true" : "false");
+
     config->Read("xLightsBackupOnSave", &mBackupOnSave, false);
     mBackupOnSaveMenuItem->Check(mBackupOnSave);
     logger_base.debug("Backup on save: %s.", mBackupOnSave? "true" : "false");
@@ -1446,6 +1456,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsGridNodeValues", mGridNodeValues);
     config->Write("xLightsRenderOnSave", mRenderOnSave);
     config->Write("xLightsBackupSubdirectories", _backupSubfolders);
+    config->Write("xLightsExcludePresetsPkgSeq", _excludePresetsFromPackagedSequences);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
     config->Write("xLightse131Sync", me131Sync);
@@ -4648,6 +4659,35 @@ std::string FixFile(const std::string& showdir, const std::string& sourcefile, c
     return newfile;
 }
 
+std::string StripPresets(const std::string& sourcefile)
+{
+    std::string newfile = "";
+
+    // create a temporary file
+    newfile = wxFileName::CreateTempFileName("rgbe").ToStdString();
+
+    // read all of the existing file into memory
+    wxFile in(sourcefile);
+    wxString data;
+    in.ReadAll(&data);
+    in.Close();
+
+    int start = data.Find("<effects version=\"");
+    int end = data.Find("</effects>") + 10;
+
+    if (end >= 10)
+    {
+        data = data.substr(0, start) + "<effects version=\"0006\"/>" + data.substr(end);
+    }
+
+    // write the file out
+    wxFile out(newfile, wxFile::write);
+    out.Write(data);
+    out.Close();
+    
+    return newfile;
+}
+
 void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4723,6 +4763,20 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
     wxFileName fnRGBEffects(CurrentDir, "xlights_rgbeffects.xml");
     std::string fixfile = FixFile(CurrentDir.ToStdString(), fnRGBEffects.GetFullPath().ToStdString(), lostfiles);
+
+    if (_excludePresetsFromPackagedSequences)
+    {
+        if (fixfile == "")
+        {
+            fixfile = StripPresets(fnRGBEffects.GetFullPath().ToStdString());
+        }
+        else
+        {
+            auto oldfile = fixfile;
+            fixfile = StripPresets(fixfile);
+            wxRemoveFile(oldfile);
+        }
+    }
 
     prog.Update(25, fnRGBEffects.GetFullName());
     AddFileToZipFile(CurrentDir.ToStdString(), fnRGBEffects.GetFullPath().ToStdString(), zip, fixfile);
@@ -4885,3 +4939,8 @@ void xLightsFrame::OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event)
     ::wxLaunchDefaultBrowser("http://videos.xlights.org");
 }
 
+
+void xLightsFrame::OnMenuItem_ExcludePresetsFromPackagedSequencesSelected(wxCommandEvent& event)
+{
+    _excludePresetsFromPackagedSequences = MenuItem_ExcludePresetsFromPackagedSequences->IsChecked();
+}
