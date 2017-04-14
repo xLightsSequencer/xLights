@@ -375,6 +375,7 @@
     <ClCompile Include="PhonemeDictionary.cpp" />
     <ClCompile Include="PixelAppearanceDlg.cpp" />
     <ClCompile Include="PixelBuffer.cpp" />
+    <ClCompile Include="Pixlite16.cpp" />
     <ClCompile Include="PreviewModels.cpp" />
     <ClCompile Include="PreviewPane.cpp" />
     <ClCompile Include="RenameTextDialog.cpp" />
@@ -664,6 +665,7 @@
     <ClInclude Include="PhonemeDictionary.h" />
     <ClInclude Include="PixelAppearanceDlg.h" />
     <ClInclude Include="PixelBuffer.h" />
+    <ClInclude Include="Pixlite16.h" />
     <ClInclude Include="PreviewModels.h" />
     <ClInclude Include="PreviewPane.h" />
     <ClInclude Include="RenameTextDialog.h" />

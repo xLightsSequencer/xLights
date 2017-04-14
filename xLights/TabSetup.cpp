@@ -20,6 +20,7 @@
 #include "xLightsXmlFile.h"
 #include "FPP.h"
 #include "Falcon.h"
+#include "Pixlite16.h"
 
 // dialogs
 #include "outputs/Output.h"
@@ -54,6 +55,7 @@ const long xLightsFrame::ID_NETWORK_UCIFPPB = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOFPPB = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCIFALCON = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOFALCON = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCOPixlite16 = wxNewId();
 
 void CleanupIpAddress(wxString& IpAddr)
 {
@@ -1275,6 +1277,51 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
             }
         }
 
+        wxMenuItem* beUCOPixlite16 = mnuUCOutput->Append(ID_NETWORK_UCOPixlite16, "Pixlite 16");
+        if (!AllSelectedSupportIP())
+        {
+            beUCOPixlite16->Enable(false);
+        }
+        else
+        {
+            if (selcnt == 1)
+            {
+                beUCOPixlite16->Enable(true);
+            }
+            else
+            {
+                bool valid = true;
+                // check all are multicast or one ip address
+                wxString ip;
+
+                int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+                while (item != -1)
+                {
+                    Output* o = _outputManager.GetOutput(item);
+
+                    if (o->GetIP() == "MULTICAST")
+                    {
+                    }
+                    else if (ip != o->GetIP())
+                    {
+                        if (ip == "")
+                        {
+                            ip = o->GetIP();
+                        }
+                        else
+                        {
+                            valid = false;
+                            break;
+                        }
+                    }
+
+                    item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+                }
+                beUCOPixlite16->Enable(valid);
+            }
+        }
+
         mnuUploadController->Append(ID_NETWORK_UCOUTPUT, "Output", mnuUCOutput, "");
      
     mnu.Append(ID_NETWORK_UPLOADCONTROLLER, "Upload To Controller", mnuUploadController, "");
@@ -1362,6 +1409,10 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     else if (id == ID_NETWORK_UCOFALCON)
     {
         UploadFalconOutput();
+    }
+    else if (id == ID_NETWORK_UCOPixlite16)
+    {
+        UploadPixlite16Output();
     }
     else if (id == ID_NETWORK_BEIPADDR)
     {
@@ -1553,6 +1604,7 @@ void xLightsFrame::UploadFalconInput()
         SetCursor(wxCURSOR_ARROW);
     }
 }
+
 void xLightsFrame::UploadFalconOutput()
 {
     if (wxMessageBox("This will upload the output controller configuration for a Falcon controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
@@ -1576,6 +1628,34 @@ void xLightsFrame::UploadFalconOutput()
         if (falcon.IsConnected())
         {
             falcon.SetOutputs(&AllModels, &_outputManager, selected, this);
+        }
+        SetCursor(wxCURSOR_ARROW);
+    }
+}
+
+void xLightsFrame::UploadPixlite16Output()
+{
+    if (wxMessageBox("This will upload the output controller configuration for a Pixlite 16 controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+    {
+        SetCursor(wxCURSOR_WAIT);
+        wxString ip;
+        std::list<int> selected = GetSelectedOutputs(ip);
+
+        if (ip == "")
+        {
+            wxTextEntryDialog dlg(this, "Pixlite 16 IP Address", "IP Address", ip);
+            if (dlg.ShowModal() != wxID_OK)
+            {
+                SetCursor(wxCURSOR_ARROW);
+                return;
+            }
+            ip = dlg.GetValue();
+        }
+
+        Pixlite16 pixlite(ip.ToStdString());
+        if (pixlite.IsConnected())
+        {
+            pixlite.SetOutputs(&AllModels, &_outputManager, selected, this);
         }
         SetCursor(wxCURSOR_ARROW);
     }
