@@ -75,18 +75,19 @@ void ModelPreview::render( wxPaintEvent& event )
     }
 }
 
-void ModelPreview::Render() {
-    if (PreviewModels != NULL) {
-
+void ModelPreview::Render() 
+{
+    if (PreviewModels != nullptr) 
+    {
         bool isModelSelected = false;
-        for (int i = 0; i < PreviewModels->size(); i++) {
+        for (int i = 0; i < PreviewModels->size(); ++i) {
             if (((*PreviewModels)[i])->Selected || ((*PreviewModels)[i])->GroupSelected) {
                 isModelSelected = true;
                 break;
             }
         }
 
-        for (int i=0; i<PreviewModels->size(); i++) {
+        for (int i=0; i<PreviewModels->size(); ++i) {
 			const xlColor *color = &xlLIGHT_GREY;
 			if (((*PreviewModels)[i])->Selected) {
 				color = &xlYELLOW;
@@ -102,9 +103,10 @@ void ModelPreview::Render() {
         }
     }
 }
+
 void ModelPreview::Render(const unsigned char *data) {
     if (StartDrawing(mPointSize)) {
-        if (PreviewModels != NULL) {
+        if (PreviewModels != nullptr) {
             for (int m=0; m<PreviewModels->size(); m++) {
                 int NodeCnt=(*PreviewModels)[m]->GetNodeCount();
                 for(int n=0; n<NodeCnt; n++) {
@@ -117,8 +119,6 @@ void ModelPreview::Render(const unsigned char *data) {
         EndDrawing();
     }
 }
-
-
 
 void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
 //void ModelPreview::rightClick(wxMouseEvent& event) {}
@@ -137,7 +137,7 @@ ModelPreview::ModelPreview(wxPanel* parent, std::vector<Model*> &models, bool a,
     _model = nullptr;
 }
 ModelPreview::ModelPreview(wxPanel* parent)
-: xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(NULL), allowSelected(false), image(nullptr)
+: xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(nullptr), allowSelected(false), image(nullptr)
 {
     _model = nullptr;
     maxVertexCount = 5000;

@@ -491,22 +491,6 @@ bool xScheduleApp::OnInit()
 
     DumpConfig();
 
-    _checker = new wxSingleInstanceChecker();
-    _checker->CreateDefault();
-    if (_checker->IsAnotherRunning())
-    {
-        logger_base.info("Another instance of xSchedule is running.");
-        delete _checker; // OnExit() won't be called if we return false
-        _checker = nullptr;
-
-        // WOuld be nice to switch focuse here to the existing instance ... but that doesnt work ... this only sees windows in this process
-        //wxWindow* x = FindWindowByLabel(_("xLights Scheduler"));
-
-        wxMessageBox("Another instance of xSchedule is already running. A second instance not allowed. Exiting.");
-
-        return false;
-    }
-
     static const wxCmdLineEntryDesc cmdLineDesc[] =
     {
         { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters", wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
@@ -548,6 +532,29 @@ bool xScheduleApp::OnInit()
     default:
         wxMessageBox(_("Unrecognized command line parameters"), _("Command Line Error"));
         return false;
+    }
+
+    _checker = new wxSingleInstanceChecker();
+    if (showDir == "")
+    {
+        _checker->CreateDefault();
+        if (_checker->IsAnotherRunning())
+        {
+            logger_base.info("Another instance of xSchedule is running.");
+            delete _checker; // OnExit() won't be called if we return false
+            _checker = nullptr;
+
+            // WOuld be nice to switch focuse here to the existing instance ... but that doesnt work ... this only sees windows in this process
+            //wxWindow* x = FindWindowByLabel(_("xLights Scheduler"));
+
+            wxMessageBox("Another instance of xSchedule is already running. A second instance not allowed. Exiting.");
+
+            return false;
+        }
+    }
+    else
+    {
+        _checker->CreateDefault();
     }
 
     //(*AppInitialize
