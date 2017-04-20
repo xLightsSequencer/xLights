@@ -1,0 +1,22 @@
+
+QM Vamp Plugins
+===============
+
+To Install
+==========
+
+This package contains plugins compiled for Linux on 32-bit x86
+(Intel/AMD) systems using GNU libc v6.
+
+To install them, copy the following files:
+
+   qm-vamp-plugins.so
+   qm-vamp-plugins.cat
+   qm-vamp-plugins.n3
+
+to one of the following directories:
+
+   /usr/local/lib/vamp/
+   /usr/lib/vamp/
+   $HOME/vamp/
+
