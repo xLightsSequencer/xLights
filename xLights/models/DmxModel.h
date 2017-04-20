@@ -65,6 +65,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void Draw3DDMXBaseRight(DrawGLUtils::xlAccumulator &va, const xlColor &c, float &sx, float &sy, float &scale, float &pan_angle);
         void Draw3DDMXHead(DrawGLUtils::xlAccumulator &va, const xlColor &c, float &sx, float &sy, float &scale, float &pan_angle, float &tilt_angle);
 
+        bool style_changed;
         std::string dmx_style;
         int dmx_style_val;
         int pan_channel;
@@ -96,6 +97,8 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int eye_ud_max_limit;
         int eye_lr_min_limit;
         int eye_lr_max_limit;
+        float pan_slew_limit;
+        float tilt_slew_limit;
 
     private:
 };

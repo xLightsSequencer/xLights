@@ -1052,7 +1052,7 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
 
                 // find output based on universe number ...
                 int res = modelManager.GetOutputManager()->GetAbsoluteChannel("", returnUniverse - 1, returnChannel - 1);
-                if (res < 0) 
+                if (res < 0)
                 {
                     res = 1;
                     valid = false;
@@ -2847,6 +2847,16 @@ std::list<std::string> Model::GetFaceFiles() const
             }
         }
     }
- 
+
     return res;
+}
+
+std::vector<std::string> Model::GetModelState() const
+{
+    return modelState;
+}
+
+void Model::SaveModelState( std::vector<std::string>& state )
+{
+    modelState = state;
 }

@@ -184,6 +184,9 @@ protected:
 
     std::vector<Model *> subModels;
     void ParseSubModel(wxXmlNode *subModelNode);
+
+    std::vector<std::string> modelState;
+
 public:
     bool IsControllerConnectionValid() const;
     std::string GetProtocol() const;
@@ -247,6 +250,9 @@ public:
     void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
     virtual void InsertHandle(int after_handle);
     virtual void DeleteHandle(int handle);
+
+    std::vector<std::string> GetModelState() const;
+    void SaveModelState( std::vector<std::string>& state );
 
     bool HitTest(ModelPreview* preview,int x,int y);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);

@@ -1,4 +1,4 @@
-xLights is a show sequencer and player/scheduler designed to control 
+xLights is a show sequencer and player/scheduler designed to control
 USB/sACN(e1.31)/ArtNET(e.1.17) controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE & SS),
@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Add pan and tilt slew limits to DMX model.
+   -- bug (gil)     Fix default Skulltronix dmx model values not being saved in XML.
    -- enh (keith)   Add setting to exclude presets from packaged sequences
    -- enh (keith)   Add xmodel export of star models
    -- enh (keith)   Add Pixlite 16 controller configuration upload
