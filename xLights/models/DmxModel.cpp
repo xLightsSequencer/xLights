@@ -302,6 +302,13 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p->SetAttribute("Min", -255);
         p->SetAttribute("Max", 255);
         p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 10);
+        p->SetAttribute("Precision", 2);
+        p->SetAttribute("Step", 0.1);
+        p->SetEditor("SpinCtrl");
     }
 }
 void DmxModel::AddStyleProperties(wxPropertyGridInterface *grid) {
@@ -521,6 +528,11 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         ModelXml->AddAttribute("DmxShutterOpen", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
+    } else if ("DmxBeamLength" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxBeamLength");
+        ModelXml->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
     }
 
     return Model::OnPropertyGridChange(grid, event);
@@ -583,6 +595,7 @@ void DmxModel::InitModel() {
 	blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "0"));
 	shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
 	shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
+	beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "4.0"));
 
     dmx_style_val = DMX_STYLE_MOVING_HEAD_TOP;
     if( dmx_style == "Moving Head Side" ) {
@@ -783,7 +796,7 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
 void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
 {
     static wxStopWatch sw;
-    float angle, pan_angle, pan_angle_raw, tilt_angle, angle1, angle2, beam_length;
+    float angle, pan_angle, pan_angle_raw, tilt_angle, angle1, angle2, beam_length_displayed;
     int x1, x2, y1, y2;
     size_t NodeCount=Nodes.size();
 
@@ -849,7 +862,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         Nodes[pan_channel-1]->GetColor(color_angle);
         pan_angle = (color_angle.red / 255.0f) * pan_deg_of_rot + pan_orient;
     } else {
-        pan_angle = 0.0f;
+        pan_angle = pan_orient;
     }
 
     long ms = sw.Time();
@@ -874,7 +887,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         Nodes[tilt_channel-1]->GetColor(color_angle);
         tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
     } else {
-        tilt_angle = 0.0f;
+        tilt_angle = tilt_orient;
     }
 
     if( time_delta != 0 && old_state.size() > 0 && active ) {
@@ -929,7 +942,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     }
 
     float beam_width = 30.0f;
-    beam_length = scale * sf * 4.0f;
+    beam_length_displayed = scale * sf * beam_length;
     angle1 = angle - beam_width / 2.0f;
     angle2 = angle + beam_width / 2.0f;
     if( angle1 < 0.0f ) {
@@ -938,10 +951,10 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     if( angle2 > 360.f ) {
         angle2 -= 360.0f;
     }
-    x1 = (int)(RenderBuffer::cos(ToRadians(angle1))*beam_length);
-    y1 = (int)(RenderBuffer::sin(ToRadians(angle1))*beam_length);
-    x2 = (int)(RenderBuffer::cos(ToRadians(angle2))*beam_length);
-    y2 = (int)(RenderBuffer::sin(ToRadians(angle2))*beam_length);
+    x1 = (int)(RenderBuffer::cos(ToRadians(angle1))*beam_length_displayed);
+    y1 = (int)(RenderBuffer::sin(ToRadians(angle1))*beam_length_displayed);
+    x2 = (int)(RenderBuffer::cos(ToRadians(angle2))*beam_length_displayed);
+    y2 = (int)(RenderBuffer::sin(ToRadians(angle2))*beam_length_displayed);
 
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
@@ -1071,10 +1084,10 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         xlColor beam_color_end(beam_color);
         ApplyTransparency(beam_color_end, 100);
 
-        dmxPoint3 p1(beam_length,-5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
-        dmxPoint3 p2(beam_length,-5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
-        dmxPoint3 p3(beam_length,5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
-        dmxPoint3 p4(beam_length,5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
+        dmxPoint3 p1(beam_length_displayed,-5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
+        dmxPoint3 p2(beam_length_displayed,-5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
+        dmxPoint3 p3(beam_length_displayed,5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
+        dmxPoint3 p4(beam_length_displayed,5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
         dmxPoint3 p0(0,0,0, sx, sy, scale, pan_angle_raw, tilt_angle);
 
         while (pan_angle_raw > 360.0f ) pan_angle_raw -= 360.0f;
@@ -1863,6 +1876,7 @@ void DmxModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
             wxString bc = root->GetAttribute("DmxBlueChannel");
             wxString sc = root->GetAttribute("DmxShutterChannel");
             wxString so = root->GetAttribute("DmxShutterOpen");
+            wxString bl = root->GetAttribute("DmxBeamLimit");
 
             wxString tml = root->GetAttribute("DmxTiltMinLimit");
             wxString tmxl = root->GetAttribute("DmxTiltMaxLimit");
@@ -1914,6 +1928,7 @@ void DmxModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
             SetProperty("DmxBlueChannel", bc);
             SetProperty("DmxShutterChannel", sc);
             SetProperty("DmxShutterOpen", so);
+            SetProperty("DmxBeamLimit", bl);
 
             SetProperty("DmxTiltMinLimit", tml);
             SetProperty("DmxTiltMaxLimit", tmxl);

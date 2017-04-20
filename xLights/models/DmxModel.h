@@ -99,6 +99,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int eye_lr_max_limit;
         float pan_slew_limit;
         float tilt_slew_limit;
+        float beam_length;
 
     private:
 };
