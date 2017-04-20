@@ -86,7 +86,7 @@ install:
 	install -D -m 644 xSchedule/Assets.xcassets/AppIcon.appiconset/xschedule-9.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/32x32/apps/xschedule.png
 	install -D -m 644 xSchedule/Assets.xcassets/AppIcon.appiconset/xschedule-13.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/256x256/apps/xschedule.png
 	install -d -m 755 $(DESTDIR)/${PREFIX}/lib/vamp
-	$(foreach qmvamp, $(QMVAMP_FILES), install -D -m 644 lib/linux/qm-vamp-plugins-1.7-`uname -i`-linux/$(qmvamp) $(DESTDIR_/${PREFIX}/lib/vamp/$(share) ;)
+	$(foreach qmvamp, $(QMVAMP_FILES), install -D -m 644 lib/linux/qm-vamp-plugins-1.7-`uname -i`-linux/$(qmvamp) $(DESTDIR)/${PREFIX}/lib/vamp/$(share) ;)
 
 uninstall:
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/bin/xLights
