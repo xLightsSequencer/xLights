@@ -1,17 +1,17 @@
 =========================================================
-xLights/Nutcracker Version 4.x Windows build instructions
+xLights Windows build instructions
 =========================================================
 
-xLights/Nutcracker can be built and run on Linux, Mac OS/X, or Windows. This
+xLights can be built and run on Linux, Mac OS/X, or Windows. This
 document describes how **developers** should set up their tool chain to build
-xLights/Nutcracker on Windows.
+xLights on Windows.
 
 If you are a Windows user, installation packages are available at
 http://www.nutcracker123.com/nutcracker/releases/
 
-xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
+xLights is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights/Nutcracker is 3.0.0.  Do not use the pre-compiled
+of wxWidgets for xLights is 3.1.0.  Do not use the pre-compiled
 Windows binaries of wxWidgets, as these are for the Visual Studio IDE.
 
 We are in the process of transitioning from the MinGW compiler to the
@@ -22,7 +22,7 @@ is a work in progress.
 Instructions for MinGW
 ================================================
 
-Here are the steps to compile xLights/Nutcracker for Windows using the MinGW compiler.
+Here are the steps to compile xLights for Windows using the MinGW compiler.
 
   a) Install Code::Blocks for Windows (currently using version 16.01)
 
@@ -97,7 +97,7 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
 Instructions for MS Visual Studio C++
 =====================================
 
-Here are the steps to compile xLights/Nutcracker for Windows using the Visual Studio compiler.
+Here are the steps to compile xLights for Windows using the Visual Studio compiler.
 
   a) Install Visual Studio 2015 ... the community edition is fine
 
@@ -129,7 +129,7 @@ Here are the steps to compile xLights/Nutcracker for Windows using the Visual St
 Windows Installer
 =================
 
-    We use Inno Setup to create the setup.exe for xLights/Nutcracker
+    We use Inno Setup to create the setup.exe for xLights
     http://www.jrsoftware.org/isinfo.php
 
     You will find a xLights.iss file that is used to create the release setup.exe

@@ -5,17 +5,17 @@ NOTE: These docs need updating for build instructions for xLights
       Matt Brown for xLights.
 ------------------------------------------------------------------------------
 
-xLightscan be built and run on Linux, Mac OS/X, or Windows. This
+xLights can be built and run on Linux, Mac OS/X, or Windows. This
 document describes how **developers** should set up their tool chain to build
 xLights on Mac OS/X.
 
-xLightsis written in C++ and uses the wxWidgets library as a
+xLights is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
 of wxWidgets for xLights on OS X is 3.1.0.
 
-Unfortunately, xLights/Nutcracker cannot be compiled wxWidgets3 that is part 
+Unfortunately, xLights cannot be compiled wxWidgets3 that is part 
 of MacPorts due to that build not including the wxMediaControl widgets that 
-is required for Nutcracker.  You must build wxWidgets from source.
+is required for xLights.  You must build wxWidgets from source.
 
 
 On OS/X, compilation is done using Xcode. Code::Blocks is not used.

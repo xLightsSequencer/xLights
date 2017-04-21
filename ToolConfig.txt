@@ -1,7 +1,7 @@
-xLights/Nutcracker Version 3.x build instructions
+xLights build instructions
 ------------------------------------------------------------------------------
 
-xLights/Nutcracker can be built and run on Linux, Mac OS/X, or Windows.
+xLights can be built and run on Linux, Mac OS/X, or Windows.
 
 See README.linux, README.osx, or README.windows for specific instructions
 for each Operating System.

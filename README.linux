@@ -1,18 +1,18 @@
-xLights/Nutcracker Version 2016.x Linux build instructions
+xLights Linux build instructions
 ------------------------------------------------------------------------------
 
-xLights/Nutcracker can be built and run on Linux, Mac OS/X, or Windows. This
+xLights can be built and run on Linux, Mac OS/X, or Windows. This
 document describes how **developers** should set up their tool chain to build
-xLights/Nutcracker on Linux.
+xLights on Linux.
 Ubuntu packages are provided for users at https://code.launchpad.net/~chris-debenham/+archive/ubuntu/xlights
 
-xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
+xLights is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights/Nutcracker is v3.1.  This can be compiled from
+of wxWidgets for xLights is v3.1.  This can be compiled from
 source or installed via packages if they are available for your distribution.
 The provided makefile will download and build wxWidgets if needed - including application of a small patch from the end of this file to fix the sizing of bitmap buttons.
 Please note that wxWidgets needs to use Gtk2 rather than Gtk3 currently due to issues in some controls.
-A precompiled libliquidfun.a.`uname -p` library is included for i686 and x86_64 - for other platforms it would need to be recompiled from https://github.com/google/liquidfun
+A precompiled libliquidfun.a.`uname -p` library and QM Vamp plugins are included for i686 and x86_64 - for other platforms it would need to be recompiled from https://github.com/google/liquidfun
 
 These instructions have been tested on the following distributions:
 
@@ -46,18 +46,18 @@ Instructions for other Linux distributions will vary.
      sudo dnf install gcc-c++ gtk2-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL-devel log4cpp-devel
 
 
-  b) Get the xLights/Nutcracker source code by opening a terminal window and
+  b) Get the xLights source code by opening a terminal window and
      typing the following:
 
      git clone https://github.com/smeighan/xLights.git xLights
 
 
-xLights/Nutcracker can be built 2 ways on Linux. First, you can use the
-supplied makefile to build it. This is sufficient to get xLights/Nutcracker
+xLights can be built 2 ways on Linux. First, you can use the
+supplied makefile to build it. This is sufficient to get xLights
 running, but you will be limited in what source code modifications you can
 make.  Minor code changes or enhancements will be OK.  The second way to
-build is to install the Code::Blocks IDE and compile xLights/Nutcracker
-within the IDE. If you plan on modifying xLights/Nutcracker yourself, this
+build is to install the Code::Blocks IDE and compile xLights
+within the IDE. If you plan on modifying xLights yourself, this
 may be the easiest way to go.
 
 To build xLights using the supplied makefile proceed to step 'c'.  To build
@@ -113,7 +113,7 @@ using Code::Blocks, proceed to step 'd'.:
      and uncheck the box indicating that the file is runnable.
      Make sure you set the target to "Release Linux" before you build.
 
-That should be all you need to build xLights/Nutcracker.
+That should be all you need to build xLights.
 If you get missing decoder messages related to gstreamer, a couple of things to try are:
 - sudo apt-get install ubuntu-restricted-extras  (substitute as appropriate for other *nices)
 - install "Play it slowly"  - this app includes some gstreamer dependencies
