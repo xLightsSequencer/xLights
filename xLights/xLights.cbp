@@ -275,7 +275,6 @@
 					<Add library="../lib/windows/libliquidfun.a" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
-					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Debug">
@@ -384,7 +383,7 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-D__WXDEBUG__" />
 					<Add option="-D_USE_MATH_DEFINES" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
 					<Add directory="../xLights" />
@@ -405,20 +404,19 @@
 					<Add option="-m64" />
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../bin/xLights.map" />
-					<Add library="libwxmsw31u.a" />
-					<Add library="libwxmsw31u_gl.a" />
-					<Add library="../lib/windows/DbgHelp.Lib" />
-					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/avcodec.lib" />
-					<Add library="../lib/windows/avformat.lib" />
-					<Add library="../lib/windows/avutil.lib" />
-					<Add library="../lib/windows/swresample.lib" />
-					<Add library="../lib/windows/SDL2.lib" />
-					<Add library="../lib/windows/swscale.lib" />
-					<Add library="../lib/windows/liblog4cpp.lib" />
-					<Add library="../lib/windows/liquidfund.lib" />
-					<Add directory="$(#wx)/lib/gcc_dll" />
+					<Add option="-Wl,-Map=../bin64/xLights.map" />
+					<Add library="../lib/windows64/libwxmsw31u.a" />
+					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
+					<Add library="../lib/windows64/libDbgHelp.a" />
+					<Add library="../lib/windows64/libImageHlp.a" />
+					<Add library="../lib/windows64/avcodec.lib" />
+					<Add library="../lib/windows64/avformat.lib" />
+					<Add library="../lib/windows64/avutil.lib" />
+					<Add library="../lib/windows64/swresample.lib" />
+					<Add library="../lib/windows64/SDL2.lib" />
+					<Add library="../lib/windows64/swscale.lib" />
+					<Add library="../lib/windows64/liblog4cpp.a" />
+					<Add library="../lib/windows64/liquidfun.lib" />
 				</Linker>
 			</Target>
 			<Target title="64bit MinGW_Debug">

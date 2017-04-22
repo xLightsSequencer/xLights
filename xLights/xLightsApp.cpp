@@ -16,11 +16,11 @@
 
 //(*AppHeaders
 #include "xLightsMain.h"
-#include "xLightsVersion.h"
 #include <wx/image.h>
 //*)
 #include <wx/config.h>
 
+#include "xLightsVersion.h"
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
 #include <log4cpp/Configurator.hh>
