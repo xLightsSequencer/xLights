@@ -416,7 +416,7 @@
 					<Add library="../lib/windows64/SDL2.lib" />
 					<Add library="../lib/windows64/swscale.lib" />
 					<Add library="../lib/windows64/liblog4cpp.a" />
-					<Add library="../lib/windows64/liquidfun.lib" />
+					<Add library="../lib/windows64/libliquidfun.a" />
 				</Linker>
 			</Target>
 			<Target title="64bit MinGW_Debug">
