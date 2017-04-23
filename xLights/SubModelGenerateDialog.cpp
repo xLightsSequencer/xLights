@@ -97,14 +97,14 @@ void SubModelGenerateDialog::ValidateWindow()
 {
     if (GetType() == "Horizontal Subbuffer")
     {
-        SpinCtrl_Count->SetMax(_modelWidth);
+        SpinCtrl_Count->SetRange(2,_modelWidth);
     }
     else if (GetType() == "Vertical Subbuffer")
     {
-        SpinCtrl_Count->SetMax(_modelHeight);
+        SpinCtrl_Count->SetRange(2,_modelHeight);
     }
     else if (GetType() == "Nodes")
     {
-        SpinCtrl_Count->SetMax(_modelNodes);
+        SpinCtrl_Count->SetRange(2,_modelNodes);
     }
 }
