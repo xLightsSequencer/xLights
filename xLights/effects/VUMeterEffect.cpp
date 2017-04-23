@@ -1420,7 +1420,7 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 
 void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallframes, std::string timingtrack, float& lastsize, bool useAudioLevel)
 {
-    if (buffer.GetMedia() == nullptr) return;
+    if (useAudioLevel && buffer.GetMedia() == nullptr) return;
 
     if (timingtrack != "")
     {
