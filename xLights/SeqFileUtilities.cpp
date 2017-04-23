@@ -957,7 +957,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                                  bool allowAllModels, bool clearSrc) {
     std::map<std::string, EffectLayer *> layerMap;
     std::map<std::string, Element *>elementMap;
-    xLightsImportChannelMapDialog dlg(this, filename, false, true, false);
+    xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<EffectLayer *> mapped;
@@ -1024,7 +1024,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
 
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
     dlg.timingTracks = timingTrackNames;
-    bool ok = dlg.Init();
+    bool ok = dlg.InitImport();
 
     if (!ok || dlg.ShowModal() != wxID_OK) {
         return;
@@ -1343,7 +1343,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     int time = 0;
     int frameTime = 50;
 
-    xLightsImportChannelMapDialog dlg(this, filename, false, false, true);
+    xLightsImportChannelMapDialog dlg(this, filename, false, false, true, true);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
 
@@ -1487,7 +1487,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
 
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
 
-    dlg.Init();
+    dlg.InitImport();
 
     if (dlg.ShowModal() != wxID_OK) {
         return;
@@ -2136,9 +2136,10 @@ bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxX
     }
     return true;
 }
+
 bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filename)
 {
-    xLightsImportChannelMapDialog dlg(this, filename, true, false, true);
+    xLightsImportChannelMapDialog dlg(this, filename, true, false, true, true);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
 
@@ -2171,6 +2172,10 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                             {
                                 ccr = true;
                                 dlg.channelNames.push_back(name.substr(0, idxSP - 1) + "/" + name);
+                                if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), name.substr(0, idxSP - 1)) == dlg.ccrNames.end())
+                                {
+                                    dlg.ccrNames.push_back(name.substr(0, idxSP - 1));
+                                }
                             }
                         }
                     }
@@ -2185,7 +2190,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
     }
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
 
-    dlg.Init();
+    dlg.InitImport();
 
     if (dlg.ShowModal() != wxID_OK) {
         return false;
