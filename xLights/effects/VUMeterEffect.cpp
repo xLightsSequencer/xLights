@@ -275,10 +275,17 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 
 	// We limit bars to the width of the model in some effects
 	int usebars = bars;
-	if (usebars > buffer.BufferWi)
-	{
-		usebars = buffer.BufferWi;
-	}
+    if (nType == 16 || nType == 17 || nType == 18)
+    {
+        // dont limit
+    }
+    else
+    {
+        if (usebars > buffer.BufferWi)
+        {
+            usebars = buffer.BufferWi;
+        }
+    }
 
 	try
 	{
