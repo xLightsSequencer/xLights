@@ -17,6 +17,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Add setting to exclude presets from packaged sequences
    -- enh (keith)   Add xmodel export of star models
    -- enh (keith)   Add Pixlite 16 controller configuration upload
+   -- enh (keith)   Add submodel generation
+   -- bug (keith)   Fix issues with some VU meter effects on single line models
    -- bug (dkulp)   Use buffering to write xseq files.  Fixes #845
 2017.9  Apr  9, 2017
    -- bug (dkulp)   Per Model/Strand render buffer styles could crash with Groups within Groups

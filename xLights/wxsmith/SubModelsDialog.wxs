@@ -22,7 +22,7 @@
 							<growablerows>1</growablerows>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
-									<cols>4</cols>
+									<cols>5</cols>
 									<growablecols>1</growablecols>
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText3" member="yes">
@@ -54,6 +54,15 @@
 										<object class="wxButton" name="ID_BUTTON4" variable="DeleteButton" member="yes">
 											<label>Delete</label>
 											<handler function="OnDeleteButtonClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON5" variable="Button_Generate" member="yes">
+											<label>Generate</label>
+											<handler function="OnButton_GenerateClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>

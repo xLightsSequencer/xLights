@@ -9,8 +9,7 @@
 
 #include "models/Model.h"
 #include "SubBufferPanel.h"
-
-
+#include "SubModelGenerateDialog.h"
 
 //(*InternalHeaders(SubModelsDialog)
 #include <wx/notebook.h>
@@ -31,6 +30,7 @@ const long SubModelsDialog::ID_STATICTEXT1 = wxNewId();
 const long SubModelsDialog::ID_CHOICE3 = wxNewId();
 const long SubModelsDialog::ID_BUTTON3 = wxNewId();
 const long SubModelsDialog::ID_BUTTON4 = wxNewId();
+const long SubModelsDialog::ID_BUTTON5 = wxNewId();
 const long SubModelsDialog::ID_CHECKBOX1 = wxNewId();
 const long SubModelsDialog::ID_GRID1 = wxNewId();
 const long SubModelsDialog::ID_BUTTON1 = wxNewId();
@@ -74,7 +74,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(1);
-	FlexGridSizer7 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 5, 0, 0);
 	FlexGridSizer7->AddGrowableCol(1);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT1, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer7->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -85,6 +85,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer7->Add(AddButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	DeleteButton = new wxButton(this, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
 	FlexGridSizer7->Add(DeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Generate = new wxButton(this, ID_BUTTON5, _("Generate"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	FlexGridSizer7->Add(Button_Generate, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	TypeNotebook = new wxNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
 	Panel1 = new wxPanel(TypeNotebook, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
@@ -152,6 +154,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SubModelsDialog::OnNameChoiceSelect);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddButtonClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnDeleteButtonClick);
+	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_GenerateClick);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnLayoutCheckboxClick);
 	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridLabelLeftClick);
 	Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellSelect);
@@ -543,5 +546,83 @@ void SubModelsDialog::OnNodesGridLabelLeftClick(wxGridEvent& event)
     SelectRow(event.GetRow());
     if (event.GetRow() != -1) {
         NodesGrid->GoToCell(event.GetRow(), 0);
+    }
+}
+
+void SubModelsDialog::OnButton_GenerateClick(wxCommandEvent& event)
+{
+    SubModelGenerateDialog dialog(this, model->GetDefaultBufferWi(), model->GetDefaultBufferHt(), model->GetNodeCount());
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        int last = 0;
+        for (int i = 0; i < dialog.GetCount(); i++)
+        {
+            wxString name = wxString::Format("%s-%i", dialog.GetBaseName(), i + 1);
+
+            if (GetSubModelInfoIndex(name) != -1)
+            {
+                // this name clashes ... so I cant create it
+            }
+            else
+            {
+                SubModelInfo &sm = GetSubModelInfo(name);
+
+                sm.name = name;
+                sm.vertical = false;
+                sm.strands.clear();
+                sm.strands.push_back("");
+                NameChoice->Append(name);
+
+                if (dialog.GetType() == "Horizontal Subbuffer")
+                {
+                    float per = 100.0 / dialog.GetCount();
+                    int start = last;
+                    int end = (i + 1.0) * per;
+
+                    if (i == dialog.GetCount() - 1)
+                    {
+                        end = 100;
+                    }
+
+                    sm.isRanges = false;
+                    sm.subBuffer = wxString::Format("%ix%ix%ix%i", start, 0, end, 100);
+                    last = end + 1;
+                }
+                else if (dialog.GetType() == "Vertical Subbuffer")
+                {
+                    float per = 100.0 / dialog.GetCount();
+                    int start = last;
+                    int end = (i + 1.0) * per;
+
+                    sm.isRanges = false;
+                    sm.subBuffer = wxString::Format("%ix%ix%ix%i", 0, start, 100, end);
+                    last = end + 1;
+                }
+                else if (dialog.GetType() == "Nodes")
+                {
+                    sm.isRanges = true;
+                    float per = (float)model->GetNodeCount() / (float)dialog.GetCount();
+                    int start = last + 1;
+                    int end = (i+1) * per;
+
+                    if (i == dialog.GetCount() - 1)
+                    {
+                        end = model->GetNodeCount();
+                    }
+
+                    last = end;
+                    if (start == end)
+                    {
+                        sm.strands[0] = wxString::Format("%i", start);
+                    }
+                    else
+                    {
+                        sm.strands[0] = wxString::Format("%i-%i", start, end);
+                    }
+                }
+                Select(name);
+            }
+        }
     }
 }

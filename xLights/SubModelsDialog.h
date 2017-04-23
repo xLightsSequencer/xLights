@@ -44,6 +44,7 @@ class SubModelsDialog: public wxDialog
 		wxPanel* SubBufferPanelHolder;
 		wxFlexGridSizer* PreviewSizer;
 		wxStaticText* StaticText3;
+		wxButton* Button_Generate;
 		wxGrid* NodesGrid;
 		wxButton* AddButton;
 		wxNotebook* TypeNotebook;
@@ -59,6 +60,7 @@ class SubModelsDialog: public wxDialog
 		static const long ID_CHOICE3;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
+		static const long ID_BUTTON5;
 		static const long ID_CHECKBOX1;
 		static const long ID_GRID1;
 		static const long ID_BUTTON1;
@@ -84,6 +86,7 @@ class SubModelsDialog: public wxDialog
 		void OnNodesGridCellLeftClick(wxGridEvent& event);
 		void OnTypeNotebookPageChanged(wxBookCtrlEvent& event);
 		void OnNodesGridLabelLeftClick(wxGridEvent& event);
+		void OnButton_GenerateClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

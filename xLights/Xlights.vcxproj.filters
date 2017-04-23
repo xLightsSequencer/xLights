@@ -945,6 +945,9 @@
     <ClCompile Include="Pixlite16.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SubModelGenerateDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1824,6 +1827,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Pixlite16.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleFTP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SubModelGenerateDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

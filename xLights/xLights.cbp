@@ -651,6 +651,8 @@
 		<Unit filename="StrandNodeNamesDialog.h" />
 		<Unit filename="SubBufferPanel.cpp" />
 		<Unit filename="SubBufferPanel.h" />
+		<Unit filename="SubModelGenerateDialog.cpp" />
+		<Unit filename="SubModelGenerateDialog.h" />
 		<Unit filename="SubModelsDialog.cpp" />
 		<Unit filename="SubModelsDialog.h" />
 		<Unit filename="SuperStarImportDialog.cpp" />
@@ -1160,6 +1162,7 @@
 		<Unit filename="wxsmith/StartChannelDialog.wxs" />
 		<Unit filename="wxsmith/StatePanel.wxs" />
 		<Unit filename="wxsmith/StrobePanel.wxs" />
+		<Unit filename="wxsmith/SubModelGenerateDialog.wxs" />
 		<Unit filename="wxsmith/SubModelsDialog.wxs" />
 		<Unit filename="wxsmith/SuperStarImportDialog.wxs" />
 		<Unit filename="wxsmith/TendrilPanel.wxs" />
@@ -1323,6 +1326,7 @@
 					<wxDialog wxs="wxsmith/VsaImportDialog.wxs" src="VsaImportDialog.cpp" hdr="VsaImportDialog.h" fwddecl="0" i18n="1" name="VsaImportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/IPEntryDialog.wxs" src="IPEntryDialog.cpp" hdr="IPEntryDialog.h" fwddecl="0" i18n="1" name="IPEntryDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CustomTimingDialog.wxs" src="CustomTimingDialog.cpp" hdr="CustomTimingDialog.h" fwddecl="0" i18n="1" name="CustomTimingDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SubModelGenerateDialog.wxs" src="SubModelGenerateDialog.cpp" hdr="SubModelGenerateDialog.h" fwddecl="0" i18n="1" name="SubModelGenerateDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
