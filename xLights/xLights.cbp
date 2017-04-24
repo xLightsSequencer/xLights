@@ -372,7 +372,6 @@
 				<Compiler>
 					<Add option="-pedantic" />
 					<Add option="-m64" />
-					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-std=gnu++14" />
@@ -401,6 +400,7 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 				</ResourceCompiler>
 				<Linker>
+					<Add option="-s" />
 					<Add option="-m64" />
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
