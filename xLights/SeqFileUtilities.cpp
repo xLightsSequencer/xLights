@@ -2073,7 +2073,7 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
         palette = "C_BUTTON_Palette1=" + color1 + ",C_CHECKBOX_Palette1=1";
     }
 
-    for (wxXmlNode* ch=channel->GetChildren(); ch!=NULL; ch=ch->GetNext()) {
+    for (wxXmlNode* ch=channel->GetChildren(); ch!=nullptr; ch=ch->GetNext()) {
         if (ch->GetName() == "effect") {
             int starttime = (wxAtoi(ch->GetAttribute("startCentisecond"))) * 10;
             int endtime = (wxAtoi(ch->GetAttribute("endCentisecond"))) * 10;
@@ -2113,9 +2113,9 @@ bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxX
     wxXmlNode *rchannel = nullptr;
     wxXmlNode *gchannel = nullptr;
     wxXmlNode *bchannel = nullptr;
-    for(wxXmlNode* e=input_xml.GetRoot()->GetChildren(); e!=NULL; e=e->GetNext()) {
+    for(wxXmlNode* e=input_xml.GetRoot()->GetChildren(); e!=nullptr; e=e->GetNext()) {
         if (e->GetName() == "channels"){
-            for (wxXmlNode* chan=e->GetChildren(); chan!=NULL; chan=chan->GetNext()) {
+            for (wxXmlNode* chan=e->GetChildren(); chan!=nullptr; chan=chan->GetNext()) {
                 if ((chan->GetName() == "channel" || chan->GetName() == "rgbChannel")
                     && nm == chan->GetAttribute("name")) {
                     channel = chan;

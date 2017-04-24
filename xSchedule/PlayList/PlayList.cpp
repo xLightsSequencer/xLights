@@ -447,7 +447,15 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
             }
         }
     }
-    _currentStep->Start(-1);
+
+    if (_currentStep == nullptr)
+    {
+        logger_base.warn("Playlist %s has no steps.", (const char*)GetName().c_str());
+    }
+    else
+    {
+        _currentStep->Start(-1);
+    }
 }
 
 void PlayList::Stop()

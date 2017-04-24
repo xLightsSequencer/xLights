@@ -188,6 +188,7 @@ void DisplayElementsPanel::Initialize()
     if (mSeqData->NumFrames() == 0) return;
     PopulateViews();
     PopulateModels();
+    SelectView(mSequenceElements->GetViewName(mSequenceElements->GetCurrentView()));
     Fit();
     FitInside();
 }
