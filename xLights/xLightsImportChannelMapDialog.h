@@ -288,13 +288,9 @@ class xLightsImportChannelMapDialog: public wxDialog
     void Unmap(const wxDataViewItem& item);
     void Map(const wxDataViewItem& item, const std::string& mapping);
     void OnKeyDown(wxKeyEvent& event);
-    wxArrayString _importModels;
     void SetCCROn();
     void SetCCROff();
-    void PopulateTree(bool ccr);
-    wxArrayString _importModels;
-    wxArrayString _importCCR;
-    wxDataViewCtrl* TreeListCtrl_Mapping;
+    void PopulateAvailable(bool ccr);
 
     bool _dirty;
     wxFileName _filename;

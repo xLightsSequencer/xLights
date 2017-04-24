@@ -12,6 +12,7 @@
 #include "ConvertLogDialog.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
+#include "models/ModelGroup.h"
 
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
@@ -2137,6 +2138,58 @@ bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxX
     return true;
 }
 
+void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager)
+{
+    wxString ccrName = m->_mapping;
+
+    for (int str = 0; str < mc->GetNumStrands(); ++str)
+    {
+        StrandElement *se = model->GetStrand(str, true);
+        EffectLayer *sl = se->GetEffectLayer(0);
+
+        for (int n = 0; n < se->GetNodeLayerCount(); n++) {
+
+            EffectLayer *layer = se->GetNodeLayer(n, true);
+            wxString nm = ccrName + wxString::Format("-P%02d", (node + 1));
+            if (std::find(channelNames.begin(), channelNames.end(), nm) == channelNames.end()) {
+                nm = ccrName + wxString::Format(" p%02d", (node + 1));
+            }
+            if (std::find(channelNames.begin(), channelNames.end(), nm) == channelNames.end()) {
+                nm = ccrName + wxString::Format("-P%d", (node + 1));
+            }
+            if (std::find(channelNames.begin(), channelNames.end(), nm) == channelNames.end()) {
+                nm = ccrName + wxString::Format(" p%d", (node + 1));
+            }
+            if (std::find(channelNames.begin(), channelNames.end(), nm) == channelNames.end()) {
+                nm = ccrName + wxString::Format(" P %02d", (node + 1));
+            }
+            MapChannelInformation(effectManager,
+                layer, input_xml,
+                nm, m->_color,
+                *mc);
+            node++;
+        }
+    }
+}
+
+void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager)
+{
+    if (mc->GetDisplayAs() == "ModelGroup")
+    {
+        ModelGroup* mg = (ModelGroup*)mc;
+        int node = 0;
+        for (auto it = mg->Models().begin(); it != mg->Models().end(); ++it)
+        {
+            MapCCRModel(node, channelNames, model, m, *it, input_xml, effectManager);
+        }
+    }
+    else
+    {
+        int node = 0;
+        MapCCRModel(node, channelNames, model, m, mc, input_xml, effectManager);
+    }
+}
+
 bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filename)
 {
     xLightsImportChannelMapDialog dlg(this, filename, true, false, true, true);
@@ -2171,10 +2224,12 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                             if (i > 0)
                             {
                                 ccr = true;
-                                dlg.channelNames.push_back(name.substr(0, idxSP - 1) + "/" + name);
-                                if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), name.substr(0, idxSP - 1)) == dlg.ccrNames.end())
+                                dlg.channelNames.push_back(name);
+                                //if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), name.substr(0, idxSP - 1)) == dlg.ccrNames.end())
+                                if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), name.substr(0, idxSP)) == dlg.ccrNames.end())
                                 {
-                                    dlg.ccrNames.push_back(name.substr(0, idxSP - 1));
+                                    //dlg.ccrNames.push_back(name.substr(0, idxSP - 1));
+                                    dlg.ccrNames.push_back(name.substr(0, idxSP));
                                 }
                             }
                         }
@@ -2189,6 +2244,8 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         }
     }
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
+
+    std::sort(dlg.ccrNames.begin(), dlg.ccrNames.end());
 
     dlg.InitImport();
 
@@ -2214,14 +2271,22 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                 break;
             }
         }
+
         if (m->_mapping != "") {
             if (model == nullptr) {
                 model = AddModel(GetModel(modelName), mSequenceElements);
             }
-            MapChannelInformation(effectManager,
-                model->GetEffectLayer(0), input_xml,
-                m->_mapping,
-                m->_color, *mc);
+            if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
+            {
+                MapCCR(dlg.channelNames, model, m, mc, input_xml, effectManager);
+            }
+            else
+            {
+                MapChannelInformation(effectManager,
+                    model->GetEffectLayer(0), input_xml,
+                    m->_mapping,
+                    m->_color, *mc);
+            }
         }
 
         int str = 0;
@@ -2233,12 +2298,19 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                 if (model == nullptr) {
                     model = AddModel(GetModel(modelName), mSequenceElements);
                 }
-                SubModelElement *ste = model->GetSubModel(str);
-                if (ste != nullptr) {
-                    MapChannelInformation(effectManager,
-                        ste->GetEffectLayer(0), input_xml,
-                        s->_mapping,
-                        s->_color, *mc);
+                if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
+                {
+                    int a = 0;
+                }
+                else
+                {
+                    SubModelElement *ste = model->GetSubModel(str);
+                    if (ste != nullptr) {
+                        MapChannelInformation(effectManager,
+                            ste->GetEffectLayer(0), input_xml,
+                            s->_mapping,
+                            s->_color, *mc);
+                    }
                 }
             }
             for (size_t n = 0; n < s->GetChildCount(); n++) {

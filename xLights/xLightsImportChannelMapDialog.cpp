@@ -480,22 +480,7 @@ bool xLightsImportChannelMapDialog::InitImport() {
         growableRow++;
     }
 
-    // load the available list
-    ListCtrl_Available->AppendColumn("Available");
-    ListCtrl_Available->SetColumnWidth(0, 150);
-    int j = 0;
-
-        for (auto it = channelNames.begin(); it != channelNames.end(); ++it)
-    {
-        ListCtrl_Available->InsertItem(j, wxString(it->c_str()));
-        ListCtrl_Available->SetItemData(j, j);
-        j++;
-    }
-
-    for (auto it = ccrNames.begin(); it != ccrNames.end(); ++it)
-    {
-        _importCCR.push_back(wxString(it->c_str()));
-    }
+    PopulateAvailable(false);
 
     dataModel = new xLightsImportTreeModel();
 
@@ -541,24 +526,37 @@ bool xLightsImportChannelMapDialog::InitImport() {
     return true;
 }
 
-void xLightsImportChannelMapDialog::PopulateTree(bool ccr)
+void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
 {
-    TreeListCtrl_Mapping->Freeze();
-    TreeListCtrl_Mapping->ClearColumns();
-    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+    ListCtrl_Available->Freeze();
+    ListCtrl_Available->ClearAll();
+
+    // load the available list
+    ListCtrl_Available->AppendColumn("Available");
+    ListCtrl_Available->SetColumnWidth(0, 150);
+
     if (ccr)
     {
-        TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewChoiceRenderer(_importCCR, wxDATAVIEW_CELL_EDITABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 1, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+        int j = 0;
+        for (auto it = ccrNames.begin(); it != ccrNames.end(); ++it)
+        {
+            ListCtrl_Available->InsertItem(j, wxString(it->c_str()));
+            ListCtrl_Available->SetItemData(j, j);
+            j++;
+        }
     }
     else
     {
-        TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewChoiceRenderer(_importModels, wxDATAVIEW_CELL_EDITABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 1, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+        int j = 0;
+        for (auto it = channelNames.begin(); it != channelNames.end(); ++it)
+        {
+            ListCtrl_Available->InsertItem(j, wxString(it->c_str()));
+            ListCtrl_Available->SetItemData(j, j);
+            j++;
+        }
     }
-    if (_allowColorChoice)
-    {
-        TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Color", new ColorRenderer(), 2, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
-    }
-    TreeListCtrl_Mapping->Thaw();
+
+    ListCtrl_Available->Thaw();
 }
 
 void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
@@ -1391,10 +1389,10 @@ void xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick(wxCommandEvent&
 
 void xLightsImportChannelMapDialog::SetCCROn()
 {
-    PopulateTree(true);
+    PopulateAvailable(true);
 }
 
 void xLightsImportChannelMapDialog::SetCCROff()
 {
-    PopulateTree(false);
+    PopulateAvailable(false);
 }
