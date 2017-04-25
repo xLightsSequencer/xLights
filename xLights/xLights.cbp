@@ -370,6 +370,7 @@
 				<Option compiler="gnu_gcc_64bit_compiler" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
+					<Add option="-O2" />
 					<Add option="-pedantic" />
 					<Add option="-m64" />
 					<Add option="-pipe" />
