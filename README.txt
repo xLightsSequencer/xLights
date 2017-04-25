@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.10  Apr  25, 2017
+   -- enh (keith,gil,dan) New 64bit version of xLights released
    -- enh (gil)     Add pan and tilt slew limits to DMX model.
    -- bug (gil)     Fix default Skulltronix dmx model values not being saved in XML.
    -- enh (gil)     Add DMX model parameter to control displayed beam length
