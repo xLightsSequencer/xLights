@@ -1049,6 +1049,11 @@
 					<handler function="OnMenuItem_ExcludePresetsFromPackagedSequencesSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_EXCLUDEAUDIOPKGSEQ" variable="MenuItem_ExcludeAudioPackagedSequence" member="yes">
+					<label>Exclude Audio From Packaged Sequences</label>
+					<handler function="OnMenuItem_ExcludeAudioPackagedSequenceSelected" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
 				<object class="wxMenu" name="ID_MENUITEM4" variable="ToolIconSizeMenu" member="yes">
 					<label>Tool Icon Size</label>
 					<object class="wxMenuItem" name="ID_MENUITEM_ICON_SMALL" variable="MenuItem10" member="no">

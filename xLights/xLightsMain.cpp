@@ -201,6 +201,7 @@ const long xLightsFrame::ID_MENU_BACKUP_ON_LAUNCH = wxNewId();
 const long xLightsFrame::ID_ALT_BACKUPLOCATION = wxNewId();
 const long xLightsFrame::ID_MNU_BACKUP = wxNewId();
 const long xLightsFrame::ID_MNU_EXCLUDEPRESETS = wxNewId();
+const long xLightsFrame::ID_MNU_EXCLUDEAUDIOPKGSEQ = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_SMALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_LARGE = wxNewId();
@@ -743,6 +744,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuSettings->Append(MenuItem_BackupSubfolders);
     MenuItem_ExcludePresetsFromPackagedSequences = new wxMenuItem(MenuSettings, ID_MNU_EXCLUDEPRESETS, _("Exclude Presets From Packaged Sequences"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_ExcludePresetsFromPackagedSequences);
+    MenuItem_ExcludeAudioPackagedSequence = new wxMenuItem(MenuSettings, ID_MNU_EXCLUDEAUDIOPKGSEQ, _("Exclude Audio From Packaged Sequences"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(MenuItem_ExcludeAudioPackagedSequence);
     ToolIconSizeMenu = new wxMenu();
     MenuItem10 = new wxMenuItem(ToolIconSizeMenu, ID_MENUITEM_ICON_SMALL, _("Small\tALT-1"), wxEmptyString, wxITEM_RADIO);
     ToolIconSizeMenu->Append(MenuItem10);
@@ -953,6 +956,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_ALT_BACKUPLOCATION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmAltBackupLocationMenuItemSelected);
     Connect(ID_MNU_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupSubfoldersSelected);
     Connect(ID_MNU_EXCLUDEPRESETS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExcludePresetsFromPackagedSequencesSelected);
+    Connect(ID_MNU_EXCLUDEAUDIOPKGSEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExcludeAudioPackagedSequenceSelected);
     Connect(ID_MENUITEM_ICON_SMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
@@ -1226,6 +1230,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_ExcludePresetsFromPackagedSequences->Check(_excludePresetsFromPackagedSequences);
     logger_base.debug("Exclude Presets From Packaged Sequences: %s.", _excludePresetsFromPackagedSequences ? "true" : "false");
 
+    config->Read("xLightsExcludeAudioPkgSeq", &_excludeAudioFromPackagedSequences, false);
+    MenuItem_ExcludeAudioPackagedSequence->Check(_excludeAudioFromPackagedSequences);
+    logger_base.debug("Exclude Audio From Packaged Sequences: %s.", _excludeAudioFromPackagedSequences ? "true" : "false");
+
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
     logger_base.debug("Render on save: %s.", mRenderOnSave? "true" : "false");
@@ -1457,6 +1465,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsRenderOnSave", mRenderOnSave);
     config->Write("xLightsBackupSubdirectories", _backupSubfolders);
     config->Write("xLightsExcludePresetsPkgSeq", _excludePresetsFromPackagedSequences);
+    config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
     config->Write("xLightse131Sync", me131Sync);
@@ -1894,7 +1903,7 @@ void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString las
     wxArrayString lstd = lst.GetDirs();
     wxString newDir = lastCreatedDirectory;
 
-    for (int i = lstd.Count()+1; i < tgtd.Count(); i++)
+    for (size_t i = lstd.Count()+1; i < tgtd.Count(); i++)
     {
         wxDir dir(newDir);
         newDir += "/" + tgtd[i];
@@ -2755,7 +2764,7 @@ void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report
     http.Connect("dankulp.com");
 
     const char *bound = "--------------------------b29a7c2fe47b9481";
- 
+
     wxDateTime now = wxDateTime::Now();
     int millis = wxGetUTCTimeMillis().GetLo() % 1000;
     wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
@@ -4687,7 +4696,7 @@ std::string StripPresets(const std::string& sourcefile)
     wxFile out(newfile, wxFile::write);
     out.Write(data);
     out.Close();
-    
+
     return newfile;
 }
 
@@ -4787,17 +4796,24 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
     lostfiles.clear();
 
-    // Add the media file
-    wxFileName fnMedia(CurrentSeqXmlFile->GetMediaFile());
-    prog.Update(30, fnMedia.GetFullName());
-    lost = AddFileToZipFile(CurrentDir.ToStdString(), fnMedia.GetFullPath().ToStdString(), zip);
-    if (lost != "")
+    if (!_excludeAudioFromPackagedSequences)
     {
-        lostfiles[fnMedia.GetFullPath().ToStdString()] = lost;
+        // Add the media file
+        wxFileName fnMedia(CurrentSeqXmlFile->GetMediaFile());
+        prog.Update(30, fnMedia.GetFullName());
+        lost = AddFileToZipFile(CurrentDir.ToStdString(), fnMedia.GetFullPath().ToStdString(), zip);
+        if (lost != "")
+        {
+            lostfiles[fnMedia.GetFullPath().ToStdString()] = lost;
+        }
+        prog.Update(35, fnMedia.GetFullName());
+    }
+    else
+    {
+        prog.Update(35, "Skipping audio.");
     }
 
     // Add any iseq files
-    prog.Update(35, fnMedia.GetFullName());
     DataLayerSet& data_layers = CurrentSeqXmlFile->GetDataLayers();
     for (int j = 0; j < data_layers.GetNumLayers(); ++j)
     {
@@ -4946,4 +4962,9 @@ void xLightsFrame::OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_ExcludePresetsFromPackagedSequencesSelected(wxCommandEvent& event)
 {
     _excludePresetsFromPackagedSequences = MenuItem_ExcludePresetsFromPackagedSequences->IsChecked();
+}
+
+void xLightsFrame::OnMenuItem_ExcludeAudioPackagedSequenceSelected(wxCommandEvent& event)
+{
+    _excludeAudioFromPackagedSequences = MenuItem_ExcludeAudioPackagedSequence->IsChecked();
 }

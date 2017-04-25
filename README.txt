@@ -14,10 +14,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (gil)     Add pan and tilt slew limits to DMX model.
    -- bug (gil)     Fix default Skulltronix dmx model values not being saved in XML.
    -- enh (gil)     Add DMX model parameter to control displayed beam length
+   -- enh (gil/keith) Get windows 64 bit compiling reliably
    -- enh (keith)   Add setting to exclude presets from packaged sequences
+   -- enh (keith)   Add setting to exclude audio from packaged sequences
    -- enh (keith)   Add xmodel export of star models
    -- enh (keith)   Add Pixlite 16 controller configuration upload
    -- enh (keith)   Add submodel generation
+   -- bug (keith)   Make crash log filenames easier to read
    -- bug (keith)   Fix issues with some VU meter effects on single line models
    -- bug (dkulp)   Use buffering to write xseq files.  Fixes #845
 2017.9  Apr  9, 2017

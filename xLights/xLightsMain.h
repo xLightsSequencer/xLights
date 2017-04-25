@@ -472,6 +472,7 @@ private:
     void OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event);
     void OnButton_DDPClick(wxCommandEvent& event);
     void OnMenuItem_ExcludePresetsFromPackagedSequencesSelected(wxCommandEvent& event);
+    void OnMenuItem_ExcludeAudioPackagedSequenceSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -595,6 +596,7 @@ private:
     static const long ID_ALT_BACKUPLOCATION;
     static const long ID_MNU_BACKUP;
     static const long ID_MNU_EXCLUDEPRESETS;
+    static const long ID_MNU_EXCLUDEAUDIOPKGSEQ;
     static const long ID_MENUITEM_ICON_SMALL;
     static const long ID_MENUITEM_ICON_MEDIUM;
     static const long ID_MENUITEM_ICON_LARGE;
@@ -702,6 +704,7 @@ private:
     wxPanel* PanelPreview;
     xLightsTimer Timer1;
     wxMenuItem* MenuItem_Help_Isue_Tracker;
+    wxMenuItem* MenuItem_ExcludeAudioPackagedSequence;
     xlAuiToolBar* PlayToolBar;
     wxMenu* Menu1;
     wxFlexGridSizer* GaugeSizer;
@@ -807,6 +810,7 @@ private:
     int effGridPrevY;
     bool _backupSubfolders;
     bool _excludePresetsFromPackagedSequences;
+    bool _excludeAudioFromPackagedSequences;
 
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
     void DoAltBackup(bool prompt = true);
