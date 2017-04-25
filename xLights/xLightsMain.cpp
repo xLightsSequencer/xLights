@@ -2755,9 +2755,12 @@ void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report
     http.Connect("dankulp.com");
 
     const char *bound = "--------------------------b29a7c2fe47b9481";
-    int i = wxGetUTCTimeMillis().GetLo();
-    i &= 0xFFFFFFF;
-    wxString fn = wxString::Format("xlights-%s_%s_%s_%d.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), xlights_version_string, GetBitness(), i);
+ 
+    wxDateTime now = wxDateTime::Now();
+    int millis = wxGetUTCTimeMillis().GetLo() % 1000;
+    wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
+
+    wxString fn = wxString::Format("xlights-%s_%s_%s_%s.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), xlights_version_string, GetBitness(), ts);
     const char *ct = "Content-Type: application/octet-stream\n";
     std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
 

@@ -248,6 +248,12 @@ void InitialiseLogging(bool fromMain)
             {
                 log4cpp::PropertyConfigurator::configure(initFileName);
 				static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+                wxDateTime now = wxDateTime::Now();    
+                int millis = wxGetUTCTimeMillis().GetLo() % 1000;
+                wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
+                logger_base.info("Start Time: %s.", (const char *)ts.c_str());
+
 				logger_base.info("Log4CPP config read from %s.", (const char *)initFileName.c_str());
 
 				auto categories = log4cpp::Category::getCurrentCategories();
@@ -398,7 +404,7 @@ wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 
 #include <wx/debugrpt.h>
 
-xLightsFrame *topFrame = NULL;
+xLightsFrame *topFrame = nullptr;
 void handleCrash(void *data) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Crash handler called.");
@@ -497,13 +503,22 @@ void handleCrash(void *data) {
 	logger_base.crit(trace);
 
     report->AddText("backtrace.txt", trace, "Backtrace");
-    if (!wxThread::IsMain() && topFrame != nullptr) {
+    if (!wxThread::IsMain() && topFrame != nullptr) 
+    {
         topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report);
         wxSleep(600000);
-    } else {
+    } 
+    else if (topFrame != nullptr)
+    {
         topFrame->CreateDebugReport(report);
     }
+    else
+    {
+        // unable to create debug report
+        logger_base.crit("Unable to tell user about debug report. Crash report saved to %s.", (const char *)report->GetCompressedFileName().c_str());
+    }
 }
+
 wxString xLightsFrame::GetThreadStatusReport() {
     return jobPool.GetThreadStatus();
 }
@@ -515,7 +530,7 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
         wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
     }
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.crit("Exiting after creating debug report: " + report->GetCompressedFileName());
+    logger_base.crit("Exiting after creating debug report: %s", (const char *)report->GetCompressedFileName().c_str());
 	delete report;
 	exit(1);
 }
