@@ -496,6 +496,7 @@ void ViewsModelsPanel::Initialize()
     if (_seqData->NumFrames() == 0) return;
     PopulateViews();
     PopulateModels();
+    SelectView(_sequenceElements->GetViewName(_sequenceElements->GetCurrentView()));
     Fit();
     FitInside();
     ValidateWindow();
