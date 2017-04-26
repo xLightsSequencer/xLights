@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   "Old Style" pinwheel performance degredation since 2017.05
+   -- bug (dkulp)   ColorWash/On cycle calcs resulted in extra full on frame at end
 2017.10  Apr  25, 2017
    -- enh (keith,gil,dan) New 64bit version of xLights released
    -- enh (gil)     Add pan and tilt slew limits to DMX model.

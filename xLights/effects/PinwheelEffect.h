@@ -5,6 +5,8 @@
 
 class xlColor;
 
+
+
 class PinwheelEffect : public RenderableEffect
 {
     public:
@@ -17,8 +19,20 @@ class PinwheelEffect : public RenderableEffect
         virtual void adjustSettings(const std::string &version, Effect *effect) override;
 
     protected:
+        enum Pinwheel3DType {
+            PW_3D_NONE,
+            PW_3D,
+            PW_3D_Inverted,
+            PW_SWEEP
+        };
+
+    
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
-        virtual void Draw_arm(RenderBuffer &buffer, int base_degrees,int max_radius,int pinwheel_twist, int xc_adj, int yc_adj, int colorIdx, const std::string& pinwheel_3d, float round);
+        virtual void Draw_arm(RenderBuffer &buffer, int base_degrees,int max_radius,int pinwheel_twist, int xc_adj, int yc_adj, int colorIdx, Pinwheel3DType pinwheel_3d, float round);
+    
+        Pinwheel3DType to3dType(const std::string &pinwheel_3d);
+        void adjustColor(Pinwheel3DType pw3dType, xlColor &color, HSVValue &hsv, bool allowAlpha, float round);
+
 };
 
 #endif // PINWHEELEFFECT_H
