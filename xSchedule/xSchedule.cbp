@@ -214,6 +214,57 @@
 					<Add option="-rdynamic" />
 				</Linker>
 			</Target>
+			<Target title="64bit_MinGW_Release">
+				<Option platforms="Windows;" />
+				<Option output="../bin64/xSchedule" prefix_auto="1" extension_auto="1" />
+				<Option object_output=".objs_wr" />
+				<Option type="0" />
+				<Option compiler="gnu_gcc_64bit_compiler" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-pedantic" />
+					<Add option="-m64" />
+					<Add option="-pipe" />
+					<Add option="-mthreads" />
+					<Add option="-static-libgcc" />
+					<Add option="-std=gnu++14" />
+					<Add option="-fno-keep-inline-dllexport" />
+					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
+					<Add option="-D__GNUWIN32__" />
+					<Add option="-D__WXMSW__" />
+					<Add option="-DWXUSINGDLL" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_USE_MATH_DEFINES" />
+					<Add directory="include" />
+					<Add directory="../xSchedule" />
+					<Add directory="../xLights/ffmpeg-dev/include" />
+					<Add directory="../include" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="$(#wx)/include" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-m64" />
+					<Add option="-Wl,-Map=../bin64/xSchedule.map" />
+					<Add option="-lpthread" />
+					<Add library="../lib/windows64/libwxmsw31u.a" />
+					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
+					<Add library="../lib/windows64/avutil.lib" />
+					<Add library="../lib/windows64/avformat.lib" />
+					<Add library="../lib/windows64/avcodec.lib" />
+					<Add library="../lib/windows64/swresample.lib" />
+					<Add library="../lib/windows64/SDL2.lib" />
+					<Add library="../lib/windows64/swscale.lib" />
+					<Add library="../lib/windows64/liblog4cpp.a" />
+					<Add library="../lib/windows64/libimagehlp.a" />
+					<Add directory="lib/windows" />
+					<Add directory="../lib/windows" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-fno-strict-aliasing" />
@@ -449,6 +500,7 @@
 			<Option target="Release" />
 			<Option target="MinGW_Debug" />
 			<Option target="MinGW_Release" />
+			<Option target="64bit_MinGW_Release" />
 		</Unit>
 		<Unit filename="wxHTTPServer/connection.cpp" />
 		<Unit filename="wxHTTPServer/context.cpp" />
