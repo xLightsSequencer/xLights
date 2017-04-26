@@ -232,7 +232,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Spirals_Movement" variable="TextCtrl39" member="no">
 							<value>1.0</value>
-							<maxlength>4</maxlength>
+							<maxlength>5</maxlength>
 							<size>25,-1d</size>
 							<handler function="UpdateLinkedSliderFloat" entry="EVT_TEXT" />
 						</object>

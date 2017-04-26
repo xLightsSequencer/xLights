@@ -128,7 +128,7 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 	FlexGridSizer4->Add(BitmapButton_VCSpirals_Movement, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer129->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);
 	TextCtrl39 = new wxTextCtrl(this, ID_TEXTCTRL_Spirals_Movement, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Spirals_Movement"));
-	TextCtrl39->SetMaxLength(4);
+	TextCtrl39->SetMaxLength(5);
 	FlexGridSizer129->Add(TextCtrl39, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_SpiralsDirection = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Spirals_Direction, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Spirals_Direction"));
 	BitmapButton_SpiralsDirection->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
