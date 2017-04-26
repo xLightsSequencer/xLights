@@ -1043,14 +1043,17 @@ float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) {
     if (curEffEndPer == curEffStartPer) {
         return 0.0f;
     }
-    float retval = (float)(curPeriod-curEffStartPer);
-    retval *= cycles;
-    retval /= ((float)(curEffEndPer-curEffStartPer));
-    if (retval > 1.0f) {
-        float i;
-        retval = std::modf(retval, &i);
+    float periods = curEffEndPer-curEffStartPer +  1; //inclusive
+    float periodsPerCycle = periods / cycles;
+    if (periodsPerCycle <= 1.0) {
+        return 0.0f;
     }
-    return retval;
+    float retval = (float)(curPeriod-curEffStartPer);
+    while (retval >= periodsPerCycle) {
+        retval -= periodsPerCycle;
+    }
+    retval /= (periodsPerCycle - 1);
+    return retval > 1.0f ? 1.0f : retval;
 }
 float RenderBuffer::GetEffectTimeIntervalPosition()
 {
