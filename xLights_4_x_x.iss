@@ -31,7 +31,7 @@ UninstallDisplayIcon={pf32}\xLights.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=output
-OutputBaseFilename=xLights_Nutcracker_2017_x
+OutputBaseFilename=xLights32_2017_x
 
 
 [Tasks]
