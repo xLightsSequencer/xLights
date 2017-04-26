@@ -1122,21 +1122,25 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
 
             if (el == nullptr)
             {
-                logger_base.crit("EffectsGrid::CheckForPartialCell el is nullptr ... this is going to crash.");
+                // I have seen a log where this happened so now skipping code below - KW
+                //logger_base.crit("EffectsGrid::CheckForPartialCell el is nullptr ... this is going to crash.");
             }
+            else
+            {
 
-            int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(x_pos);
-            int effectIndex = 0;
-            if( !el->HitTestEffectByTime(startTime, effectIndex)) {
-                Effect* eff = tel->GetEffect(mRangeStartCol);
+                int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(x_pos);
+                int effectIndex = 0;
+                if (!el->HitTestEffectByTime(startTime, effectIndex)) {
+                    Effect* eff = tel->GetEffect(mRangeStartCol);
 
-                mDropStartX = mTimeline->GetPositionFromTimeMS(eff->GetStartTimeMS());
-                mDropEndX = mTimeline->GetPositionFromTimeMS(eff->GetEndTimeMS());
-                mDropStartTimeMS = eff->GetStartTimeMS();
-                mDropEndTimeMS = eff->GetEndTimeMS();
-                mDropRow = mRangeStartRow - mSequenceElements->GetFirstVisibleModelRow();
-                if( AdjustDropLocations(x_pos, el) ) {
-                    mPartialCellSelected = true;
+                    mDropStartX = mTimeline->GetPositionFromTimeMS(eff->GetStartTimeMS());
+                    mDropEndX = mTimeline->GetPositionFromTimeMS(eff->GetEndTimeMS());
+                    mDropStartTimeMS = eff->GetStartTimeMS();
+                    mDropEndTimeMS = eff->GetEndTimeMS();
+                    mDropRow = mRangeStartRow - mSequenceElements->GetFirstVisibleModelRow();
+                    if (AdjustDropLocations(x_pos, el)) {
+                        mPartialCellSelected = true;
+                    }
                 }
             }
         }
