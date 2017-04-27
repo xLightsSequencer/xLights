@@ -165,9 +165,10 @@ public:
 		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnButton_ResetClick(wxCommandEvent& event);
-        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
-        //*)
+		void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+		void OnCheckBox_ResetBufferPanelClick(wxCommandEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

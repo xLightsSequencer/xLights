@@ -31,6 +31,7 @@ class xLightsFrame;
 #include <wx/txtstrm.h>
 #include <wx/odcombo.h>
 #include "effects/EffectPanelUtils.h"
+#include <wx/config.h>
 
 #include "../include/save.xpm"
 #include "../include/delete.xpm"
@@ -353,6 +354,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_SavePaletteClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnUpdateColorClick);
 	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_DeletePaletteClick);
+	Connect(ID_CHECKBOX_ResetColorPanel,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_ResetColorPanelClick);
 	Connect(ID_SLIDER_SparkleFrequency,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedTextCtrlVC);
 	Connect(ID_VALUECURVE_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_SparkleFrequency,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::UpdateLinkedSlider);
@@ -445,6 +447,11 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
     _lastShowDir = xLightsFrame::CurrentDir;
 
     LoadAllPalettes();
+
+    wxConfigBase* config = wxConfigBase::Get();
+    bool reset;
+    config->Read("xLightsResetColorPanel", &reset, false);
+    CheckBox_ResetColorPanel->SetValue(reset);
 
     ValidateWindow();
 }
@@ -834,7 +841,7 @@ wxButton* ColorPanel::GetPaletteButton(int idx)
     return buttons[0]; //0;
 }
 
-void ColorPanel::SetDefaultSettings(bool optionbased) 
+void ColorPanel::SetDefaultSettings(bool optionbased)
 {
     if (!optionbased)
     {
@@ -1219,4 +1226,10 @@ void ColorPanel::SetSupports(bool linear, bool radial)
     }
 
     ValidateWindow();
+}
+
+void ColorPanel::OnCheckBox_ResetColorPanelClick(wxCommandEvent& event)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsResetColorPanel", CheckBox_ResetColorPanel->IsChecked());
 }

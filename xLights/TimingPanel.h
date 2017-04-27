@@ -97,15 +97,16 @@ class TimingPanel: public wxPanel
 		void UpdateLinkedTextCtrl(wxScrollEvent& event);
 		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-        void OnTransitionTypeSelect(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+		void OnTransitionTypeSelect(wxCommandEvent& event);
 		void OnEffectTimeChange(wxCommandEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
-        //*)
+		void OnVCButtonClick(wxCommandEvent& event);
+		void OnVCChanged(wxCommandEvent& event);
+		void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+		void OnCheckBox_ResetTimingPanelClick(wxCommandEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

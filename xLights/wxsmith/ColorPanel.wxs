@@ -61,6 +61,7 @@
 															<object class="sizeritem">
 																<object class="Custom" name="ID_CUSTOM1" subclass="ColourList" variable="BitmapButton_ColourChoice" member="yes">
 																	<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
+																	<style></style>
 																</object>
 																<flag>wxALL|wxEXPAND</flag>
 																<border>2</border>
@@ -125,6 +126,7 @@
 												<object class="wxCheckBox" name="ID_CHECKBOX_ResetColorPanel" variable="CheckBox_ResetColorPanel" member="yes">
 													<label>Reset panel when changing effects</label>
 													<checked>1</checked>
+													<handler function="OnCheckBox_ResetColorPanelClick" entry="EVT_CHECKBOX" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>

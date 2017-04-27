@@ -24,6 +24,7 @@
 												<object class="wxCheckBox" name="ID_CHECKBOX_ResetTimingPanel" variable="CheckBox_ResetTimingPanel" member="yes">
 													<label>Reset panel when changing effects</label>
 													<checked>1</checked>
+													<handler function="OnCheckBox_ResetTimingPanelClick" entry="EVT_CHECKBOX" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>

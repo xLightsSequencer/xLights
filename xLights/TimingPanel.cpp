@@ -1,6 +1,7 @@
 #include "TimingPanel.h"
 #include "../include/padlock16x16-blue.xpm" //-DJ
 #include <wx/msgdlg.h>
+#include <wx/config.h>
 //(*InternalHeaders(TimingPanel)
 #include <wx/bitmap.h>
 #include <wx/settings.h>
@@ -78,8 +79,8 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	CheckBox_ResetTimingPanel = new wxCheckBox(ScrolledWindowTiming, ID_CHECKBOX_ResetTimingPanel, _("Reset panel when changing effects"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ResetTimingPanel"));
 	CheckBox_ResetTimingPanel->SetValue(true);
 	FlexGridSizer2->Add(CheckBox_ResetTimingPanel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_LayerMorph = new wxCheckBox(ScrolledWindowTiming, ID_CHECKBOX_LayerMorph, _("Morph"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LayerMorph"));
 	CheckBox_LayerMorph->SetValue(false);
 	CheckBox_LayerMorph->SetToolTip(_("Gradual cross-fade from Effect1 to Effect2"));
@@ -219,6 +220,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	SetSizer(FlexGridSizer3);
 	Layout();
 
+	Connect(ID_CHECKBOX_ResetTimingPanel,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TimingPanel::OnCheckBox_ResetTimingPanelClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_LayerMorph,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
 	Connect(ID_SLIDER_EffectLayerMix,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedTextCtrl);
 	Connect(IDD_TEXTCTRL_EffectLayerMix,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedSlider);
@@ -233,6 +235,11 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Connect(IDD_TEXTCTRL_Out_Transition_Adjust,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedSlider);
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&TimingPanel::OnResize,0,this);
 	//*)
+
+    wxConfigBase* config = wxConfigBase::Get();
+    bool reset;
+    config->Read("xLightsResetTimingPanel", &reset, false);
+    CheckBox_ResetTimingPanel->SetValue(reset);
 }
 
 TimingPanel::~TimingPanel()
@@ -383,4 +390,10 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
 
 void TimingPanel::OnEffectTimeChange(wxCommandEvent& event)
 {
+}
+
+void TimingPanel::OnCheckBox_ResetTimingPanelClick(wxCommandEvent& event)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsResetTimingPanel", CheckBox_ResetTimingPanel->IsChecked());
 }

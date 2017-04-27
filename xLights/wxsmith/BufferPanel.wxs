@@ -11,6 +11,7 @@
 				<object class="wxCheckBox" name="ID_CHECKBOX_ResetBufferPanel" variable="CheckBox_ResetBufferPanel" member="yes">
 					<label>Reset panel when changing effects</label>
 					<checked>1</checked>
+					<handler function="OnCheckBox_ResetBufferPanelClick" entry="EVT_CHECKBOX" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

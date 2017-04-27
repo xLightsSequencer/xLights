@@ -15,7 +15,7 @@
 #include "../include/padlock16x16-blue.xpm" //-DJ
 #include "ValueCurveDialog.h"
 #include "SubBufferPanel.h"
-//#include "BufferTransformProperties.h"
+#include <wx/config.h>
 
 //(*IdInit(BufferPanel)
 const long BufferPanel::ID_CHECKBOX_ResetBufferPanel = wxNewId();
@@ -326,6 +326,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
+	Connect(ID_CHECKBOX_ResetBufferPanel,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&BufferPanel::OnCheckBox_ResetBufferPanelClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_BufferStyle,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
 	Connect(ID_CHOICE_BufferTransform,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BufferPanel::OnBufferTransformSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_BufferTransform,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
@@ -387,6 +388,12 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     wxSize s(10,100);
     subBufferPanel->SetMinSize(s);
     SubBufferPanelSizer->Insert(0, subBufferPanel,1, wxALL|wxEXPAND, 2);
+
+    wxConfigBase* config = wxConfigBase::Get();
+    bool reset;
+    config->Read("xLightsResetBufferPanel", &reset, false);
+    CheckBox_ResetBufferPanel->SetValue(reset);
+
     ValidateWindow();
 }
 
@@ -951,4 +958,10 @@ void BufferPanel::OnButton_ResetClick(wxCommandEvent& event)
     subBufferPanel->SetDefaults();
     subBufferPanel->Refresh();
     Refresh();
+}
+
+void BufferPanel::OnCheckBox_ResetBufferPanelClick(wxCommandEvent& event)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsResetBufferPanel", CheckBox_ResetBufferPanel->IsChecked());
 }

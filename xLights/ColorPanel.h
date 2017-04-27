@@ -173,12 +173,13 @@ public:
 		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
-        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
-        void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
+		void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+		void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_DeletePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event);
-        void UpdateTouchBarSlider(wxScrollEvent& event);
+		void UpdateTouchBarSlider(wxScrollEvent& event);
+		void OnCheckBox_ResetColorPanelClick(wxCommandEvent& event);
 		//*)
 
         void OnCCButtonClick(wxCommandEvent& event);
