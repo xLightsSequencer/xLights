@@ -13,6 +13,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- bug (dkulp)   "Old Style" pinwheel performance degredation since 2017.05
    -- bug (dkulp)   ColorWash/On cycle calcs resulted in extra full on frame at end
+   -- bug (keith)   Picture effect tile down not displaying correctly
+   -- enh (keith)   Get Vamp 64 bit working on all computers
+   -- enh (keith)   Save and recall buffer, timing and color panel reset setting
+   -- enh (keith)   Add 64 bit xSchedule for windows
 2017.10  Apr  25, 2017
    -- enh (keith,gil,dan) New 64bit version of xLights released
    -- enh (gil)     Add pan and tilt slew limits to DMX model.

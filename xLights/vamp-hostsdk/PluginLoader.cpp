@@ -338,7 +338,7 @@ PluginLoader::Impl::loadPlugin(PluginKey key,
                                float inputSampleRate, int adapterFlags)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.error("Vamp: PluginLoader: Loading plugin %s.", (const std::string*)key.c_str());
+    logger_base.debug("Vamp: PluginLoader: Loading plugin %s.", (const std::string*)key.c_str());
 
     string libname, identifier;
     if (!decomposePluginKey(key, libname, identifier)) {

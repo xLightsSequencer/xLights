@@ -708,52 +708,64 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                         break;
                     case RENDER_PICTURE_TILE_LEFT: // 21
                     {
-                        for (int renderycount = 0; renderycount < (BufferHt + imght) / imght; renderycount++)
+                        int xmult = (buffer.BufferWi + imgwidth) / imgwidth;
+                        int ymult = (buffer.BufferHt + imght) / imght;
+                        int startx = xoffset_adj - (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth;
+                        int starty = yoffset_adj - imght;
+                        for (int xx = 0; xx < xmult; ++xx)
                         {
-                            for(int renderxcount = 0; renderxcount < (BufferWi + imgwidth) / imgwidth; renderxcount++)
+                            for (int yy = 0; yy < ymult; ++yy)
                             {
-                                buffer.ProcessPixel((x + xoffset_adj + -1 * ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth)) % imgwidth + renderxcount * imgwidth,
-                                             (BufferHt - 1 - (y + 0 + yoffset_adj) % imght + renderycount * imght) % BufferHt,
-                                             c, false);
+                                buffer.ProcessPixel(xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
+                                    c, false);
                             }
                         }
                     }
                         break;
                     case RENDER_PICTURE_TILE_RIGHT: // 22
                     {
-                        for (int renderycount = 0; renderycount < (BufferHt + imght) / imght; renderycount++)
+                        int xmult = (buffer.BufferWi + imgwidth) / imgwidth;
+                        int ymult = (buffer.BufferHt + imght) / imght;
+                        int startx = xoffset_adj - imgwidth + (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth;
+                        int starty = yoffset_adj - imght;
+                        for (int xx = 0; xx < xmult; ++xx)
                         {
-                            for(int renderxcount = 0; renderxcount < (BufferWi + imgwidth) / imgwidth; renderxcount++)
+                            for (int yy = 0; yy < ymult; ++yy)
                             {
-                                buffer.ProcessPixel((x + xoffset_adj + ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth)) % imgwidth + renderxcount * imgwidth,
-                                             (BufferHt - 1 - (y + 0 + yoffset_adj) % imght + renderycount * imght) % BufferHt,
-                                             c, false);
+                                buffer.ProcessPixel(xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
+                                    c, false);
                             }
                         }
                     }
                         break;
                     case RENDER_PICTURE_TILE_DOWN: // 23
                     {
-                        for (int renderycount = 0; renderycount < (BufferHt + imght) / imght; renderycount++)
+                        int xmult = (buffer.BufferWi + imgwidth) / imgwidth;
+                        int ymult = (buffer.BufferHt + imght) / imght;
+                        int startx = xoffset_adj - imgwidth;
+                        int starty = yoffset_adj - (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght;
+                        for (int xx = 0; xx < xmult; ++xx)
                         {
-                            for(int renderxcount = 0; renderxcount < (BufferWi + imgwidth) / imgwidth; renderxcount++)
+                            for (int yy = 0; yy < ymult; ++yy)
                             {
-                                buffer.ProcessPixel((x + 0 + xoffset_adj) % imgwidth + renderxcount * imgwidth,
-                                             (BufferHt - 1 - (y + yoffset_adj + ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght)) % imght + renderycount * imght) % BufferHt,
-                                             c, false);
+                                buffer.ProcessPixel(xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
+                                    c, false);
                             }
                         }
                     }
                         break;
                     case RENDER_PICTURE_TILE_UP: // 24
                     {
-                        for (int renderycount = 0; renderycount < (BufferHt + imght) / imght; renderycount++)
+                        int xmult = (buffer.BufferWi + imgwidth) / imgwidth;
+                        int ymult = (buffer.BufferHt + imght) / imght;
+                        int startx = xoffset_adj - imgwidth;
+                        int starty = yoffset_adj - imght + (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght;
+                        for (int xx = 0; xx < xmult; ++xx)
                         {
-                            for(int renderxcount = 0; renderxcount < (BufferWi + imgwidth) / imgwidth; renderxcount++)
+                            for (int yy = 0; yy < ymult; ++yy)
                             {
-                                buffer.ProcessPixel((x + 0 + xoffset_adj) % imgwidth + renderxcount * imgwidth,
-                                             (BufferHt - 1 - (y + yoffset_adj + -1 * ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght)) % imght + renderycount * imght) % BufferHt,
-                                             c, false);
+                                buffer.ProcessPixel(xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
+                                    c, false);
                             }
                         }
                     }
