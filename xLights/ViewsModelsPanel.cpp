@@ -15,6 +15,56 @@
 #include "SequenceViewManager.h"
 #include <wx/dnd.h>
 
+wxDEFINE_EVENT(EVT_VMDROP, wxCommandEvent);
+
+class VMDropSource : public wxDropSource
+{
+    ViewsModelsPanel* _window;
+    bool _nonModels;
+    bool _models;
+
+public:
+    VMDropSource(ViewsModelsPanel* window, bool models, bool nonModels) : wxDropSource(window)
+    {
+        _window = window;
+        _nonModels = nonModels;
+        _models = models;
+    }
+    virtual bool GiveFeedback(wxDragResult effect) override
+    {
+        wxPoint point = wxGetMousePosition();
+        if (_models)
+        {
+            if (_window->ListCtrlModels->GetRect().Contains(point) ||
+                _window->ListCtrlNonModels->GetRect().Contains(point))
+            {
+                _window->SetCursor(wxCursor(wxCURSOR_HAND));
+            }
+            else
+            {
+                _window->SetCursor(wxCursor(wxCURSOR_NO_ENTRY));
+            }
+        }
+        else if (_nonModels)
+        {
+            if (_window->ListCtrlModels->GetRect().Contains(point))
+            {
+                _window->SetCursor(wxCursor(wxCURSOR_HAND));
+            }
+            else
+            {
+                _window->SetCursor(wxCursor(wxCURSOR_NO_ENTRY));
+            }
+        }
+        else
+        {
+            return false;
+        }
+
+        return true;
+    }
+};
+
 #define TIMING_IMAGE 2
 #define MODEL_IMAGE 3
 
@@ -37,6 +87,7 @@ BEGIN_EVENT_TABLE(ViewsModelsPanel,wxPanel)
 	//(*EventTable(ViewsModelsPanel)
 	//*)
     EVT_COMMAND(wxID_ANY, EVT_LISTITEM_CHECKED, ViewsModelsPanel::OnListCtrlItemCheck)
+    EVT_COMMAND(wxID_ANY, EVT_VMDROP, ViewsModelsPanel::OnDrop)
 END_EVENT_TABLE()
 
 ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size) : _xlFrame(frame)
@@ -140,7 +191,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ViewsModelsPanel::OnResize);
 	//*)
 
-    //Connect(ID_LISTCTRL_VIEWS, wxEVT_LIST_ITEM_CHECKED, (wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemCheck);
+    Connect(wxID_ANY, EVT_VMDROP, (wxObjectEventFunction)&ViewsModelsPanel::OnDrop);
 
     ListCtrlViews->SetImages((char**)eye_16, (char**)eye_16_gray);
 
@@ -158,10 +209,10 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
     _imageList->Add(wxIcon((char**)timing_16));
     _imageList->Add(wxIcon((char**)model_16));
 
-    MyTextDropTarget *mdt = new MyTextDropTarget(ListCtrlModels);
+    MyTextDropTarget *mdt = new MyTextDropTarget(this, "Model");
     ListCtrlModels->SetDropTarget(mdt);
 
-    mdt = new MyTextDropTarget(ListCtrlNonModels);
+    mdt = new MyTextDropTarget(this, "NonModel");
     ListCtrlNonModels->SetDropTarget(mdt);
 
     ValidateWindow();
@@ -902,52 +953,31 @@ void ViewsModelsPanel::OnListCtrlNonModelsItemSelect(wxListEvent& event)
 
 void ViewsModelsPanel::OnListCtrlNonModelsBeginDrag(wxListEvent& event)
 {
+    if (ListCtrlNonModels->GetSelectedItemCount() == 0) return;
+
     _dragRowModel = false;
-    _dragRowNonModel = true;	// save the start index
-    wxTextDataObject my_data("test");
-    wxDropSource dragSource(this);
+    _dragRowNonModel = true;	
+
+    wxString drag = "NonModel";
+    for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
+    {
+        if (IsItemSelected(ListCtrlNonModels, i))
+        {
+            drag += "," + ListCtrlNonModels->GetItemText(i, 1);
+        }
+    }
+
+    wxTextDataObject my_data(drag);
+    VMDropSource dragSource(this, false, true);
     dragSource.SetData(my_data);
     wxDragResult result = dragSource.DoDragDrop(wxDrag_DefaultMove);
 
-    // give visual feedback that we are doing something
-    SetCursor(wxCursor(wxCURSOR_NO_ENTRY));
-
     ValidateWindow();
-}
-
-bool ViewsModelsPanel::GiveFeedback(wxDragResult effect)
-{
-    if (_dragRowModel)
-    {
-        
-    }
-    else if (_dragRowNonModel)
-    {
-        if (ListCtrlModels->GetRect().Contains(wxGetMousePosition()))
-        {
-            SetCursor(wxCursor(wxCURSOR_HAND));
-        }
-        else
-        {
-            SetCursor(wxCursor(wxCURSOR_NO_ENTRY));
-        }
-    }
-    else
-    {
-        return false;
-    }
-
-    return true;
 }
 
 void ViewsModelsPanel::OnNonModelsDragUp(wxMouseEvent& event)
 {
     SetCursor(wxCursor(*wxSTANDARD_CURSOR));
-    // disconnect both functions
-    ListCtrlNonModels->Disconnect(wxEVT_LEFT_UP,
-        wxMouseEventHandler(ViewsModelsPanel::OnNonModelsDragUp));
-    ListCtrlNonModels->Disconnect(wxEVT_MOTION,
-        wxMouseEventHandler(ViewsModelsPanel::OnNonModelsDragMotion));
 }
 
 void ViewsModelsPanel::OnNonModelsDragMotion(wxMouseEvent& event)
@@ -988,5 +1018,59 @@ void ViewsModelsPanel::OnListCtrlViewsKeyDown(wxListEvent& event)
 
 bool MyTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
 {
-    return true;
+    long mousePos = x;
+    mousePos = mousePos << 16;
+    mousePos += y;
+    wxCommandEvent event(EVT_VMDROP);
+    event.SetString(data); // this is the dropped string
+    event.SetExtraLong(mousePos); // this is the mouse position packed into a long
+
+    wxArrayString parms = wxSplit(data, ',');
+
+    if (parms[0] == "NonModel")
+    {
+        if (_type == "Model")
+        {
+            event.SetInt(0);
+            wxPostEvent(_owner, event);
+            return true;
+        }
+    }
+    else if (parms[0] == "Model")
+    {
+        if (_type == "Model")
+        {
+            event.SetInt(1);
+            wxPostEvent(_owner, event);
+            return true;
+        }
+        else if (_type == "NonModel")
+        {
+            event.SetInt(2);
+            wxPostEvent(_owner, event);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void ViewsModelsPanel::OnDrop(wxCommandEvent& event)
+{
+    wxArrayString parms = wxSplit(event.GetString(), ',');
+    int x = event.GetExtraLong() >> 16;
+    int y = event.GetExtraLong() & 0xFFFF;
+
+    switch(event.GetInt())
+    {
+    case 0:
+        // Non model dropped into models (an add)
+        break;
+    case 1:
+        // Model dropped into models (a reorder)
+        break;
+    case 2:
+        // Model dropped into non model (a remove)
+        break;
+    }
 }

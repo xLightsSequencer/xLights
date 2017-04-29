@@ -13,25 +13,27 @@
 //*)
 
 #include "wxCheckedListCtrl.h"
+#include "SequenceData.h"
 
 class wxXmlNode;
 class SequenceElements;
-#include "SequenceData.h"
 class xLightsFrame;
 class Element;
 class wxChoice;
 class SequenceViewManager;
 
+wxDECLARE_EVENT(EVT_VMDROP, wxCommandEvent);
+
 class MyTextDropTarget : public wxTextDropTarget
 {
 public:
-    MyTextDropTarget(wxListCtrl *owner) { _owner = owner; };
+    MyTextDropTarget(wxWindow *owner, wxString type) { _owner = owner; _type = type; };
 
     virtual bool OnDropText(wxCoord x, wxCoord y,
         const wxString& data) override;
 
-    wxListCtrl *_owner;
-
+    wxWindow *_owner;
+    wxString _type;
 };
 
 class ViewsModelsPanel: public wxPanel
@@ -135,8 +137,7 @@ class ViewsModelsPanel: public wxPanel
 
         void OnNonModelsDragUp(wxMouseEvent& event);
         void OnNonModelsDragMotion(wxMouseEvent& event);
-        virtual bool GiveFeedback(wxDragResult effect);
-
+        void OnDrop(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };
