@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.11  Apr  29, 2017
+   -- enh (sean)    Include 64 bit xSchedule.exe besides 32 bit xScheduler.exe
+   -- bug (sean)    Fixed install directory for 32 bit xLights. Now files go into ../Program Files(x86)/xlights
    -- bug (dkulp)   "Old Style" pinwheel performance degredation since 2017.05
    -- bug (dkulp)   ColorWash/On cycle calcs resulted in extra full on frame at end
    -- bug (keith)   Picture effect tile down not displaying correctly

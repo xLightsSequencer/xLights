@@ -32,7 +32,7 @@ ArchitecturesInstallIn64BitMode=x64
 
 
 AppName=xLights
-AppVersion=2017.10
+AppVersion=2017.11
 DefaultDirName={pf64}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights64.ico
@@ -50,7 +50,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "D
 
 [Files]
 Source: "bin64/xLights.exe"; DestDir: "{app}"
-Source: "bin/xSchedule.exe"; DestDir: "{app}"
+Source: "bin64/xSchedule.exe"; DestDir: "{app}"
 
 Source: "C:\wxWidgets-3.1.0_64bit\lib\gcc_dll\wxmsw310u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "C:\wxWidgets-3.1.0_64bit\lib\gcc_dll\wxmsw310u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
@@ -84,7 +84,7 @@ Source: "bin/user_dictionary";     DestDir: "{app}"
 
 ; xschedule
 Source: "bin/xschedule.windows.properties";     DestDir: "{app}"
-Source: "bin/xSchedule.map";     DestDir: "{app}"
+Source: "bin64/xSchedule.map";     DestDir: "{app}"
 Source: "bin/xScheduleWeb\*.*";     DestDir: "{app}/xScheduleWeb"; Flags: replacesameversion recursesubdirs
 
 Source: "bin/gawk.exe";            DestDir: "{app}"
@@ -99,7 +99,7 @@ Source: "include\xlights64.ico";     DestDir: "{app}"
 Source: "include\xSchedule.ico";     DestDir: "{app}"
 ;mar4 Source: "include\xLights_orig.ico"; DestDir: "{app}"
 Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
-Source: "C:\Users\Sean_Dell\Documents\xLights\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
+;Source: "C:\Users\Sean_Dell\Documents\xLights\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
 ;Source: "piano/*.*"; DestDir: "{app}/piano" 
 Source: "License.txt"; DestDir: "{app}";
 Source: "README.txt";  DestDir: "{app}"; Flags: isreadme
