@@ -196,6 +196,7 @@ class ModelElement : public Element
 {
     public:
         ModelElement(SequenceElements *p, const std::string &name, bool selected);
+        ModelElement(const std::string &name);
         virtual ~ModelElement();
     
         void Init(Model &cls);

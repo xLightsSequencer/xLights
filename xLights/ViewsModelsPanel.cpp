@@ -15,6 +15,7 @@
 #include "SequenceViewManager.h"
 #include <wx/dnd.h>
 
+// This event is fired when a model is dropped between lists
 wxDEFINE_EVENT(EVT_VMDROP, wxCommandEvent);
 
 class VMDropSource : public wxDropSource
@@ -24,15 +25,21 @@ class VMDropSource : public wxDropSource
     bool _models;
 
 public:
+
     VMDropSource(ViewsModelsPanel* window, bool models, bool nonModels) : wxDropSource(window)
     {
         _window = window;
         _nonModels = nonModels;
         _models = models;
     }
+
     virtual bool GiveFeedback(wxDragResult effect) override
     {
-        wxPoint point = wxGetMousePosition();
+        int sx;
+        int sy;
+        _window->GetScreenPosition(&sx, &sy);
+        wxPoint point = wxGetMousePosition() - wxPoint(sx, sy);
+
         if (_models)
         {
             if (_window->ListCtrlModels->GetRect().Contains(point) ||
@@ -69,6 +76,7 @@ public:
 #define MODEL_IMAGE 3
 
 //(*IdInit(ViewsModelsPanel)
+const long ViewsModelsPanel::ID_STATICTEXT3 = wxNewId();
 const long ViewsModelsPanel::ID_LISTCTRL1 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON3 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON4 = wxNewId();
@@ -78,6 +86,7 @@ const long ViewsModelsPanel::ID_STATICTEXT1 = wxNewId();
 const long ViewsModelsPanel::ID_LISTCTRL_VIEWS = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON1 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON2 = wxNewId();
+const long ViewsModelsPanel::ID_STATICTEXT2 = wxNewId();
 const long ViewsModelsPanel::ID_LISTCTRL_MODELS = wxNewId();
 const long ViewsModelsPanel::ID_SCROLLEDWINDOW1 = wxNewId();
 const long ViewsModelsPanel::ID_PANEL1 = wxNewId();
@@ -115,22 +124,24 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	FlexGridSizer10 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer10->AddGrowableCol(2);
 	FlexGridSizer10->AddGrowableRow(0);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
-	FlexGridSizer2->AddGrowableRow(0);
+	FlexGridSizer2->AddGrowableRow(1);
+	StaticText3 = new wxStaticText(ScrolledWindowViewsModels, ID_STATICTEXT3, _("Available:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
 	ListCtrlNonModels = new wxListCtrl(ScrolledWindowViewsModels, ID_LISTCTRL1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL1"));
-	FlexGridSizer2->Add(ListCtrlNonModels, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(ListCtrlNonModels, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer10->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
 	Button_AddAll = new wxButton(ScrolledWindowViewsModels, ID_BUTTON3, _(">>"), wxDefaultPosition, wxSize(32,30), 0, wxDefaultValidator, _T("ID_BUTTON3"));
-	FlexGridSizer5->Add(Button_AddAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(Button_AddAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Button_AddSelected = new wxButton(ScrolledWindowViewsModels, ID_BUTTON4, _(">"), wxDefaultPosition, wxSize(32,32), 0, wxDefaultValidator, _T("ID_BUTTON4"));
-	FlexGridSizer5->Add(Button_AddSelected, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(Button_AddSelected, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Button_RemoveSelected = new wxButton(ScrolledWindowViewsModels, ID_BUTTON5, _("<"), wxDefaultPosition, wxSize(32,32), 0, wxDefaultValidator, _T("ID_BUTTON5"));
-	FlexGridSizer5->Add(Button_RemoveSelected, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(Button_RemoveSelected, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Button_RemoveAll = new wxButton(ScrolledWindowViewsModels, ID_BUTTON6, _("<<"), wxDefaultPosition, wxSize(32,32), 0, wxDefaultValidator, _T("ID_BUTTON6"));
-	FlexGridSizer5->Add(Button_RemoveAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer10->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(Button_RemoveAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer10->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(1);
@@ -141,30 +152,32 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	FlexGridSizer7->AddGrowableCol(0);
 	FlexGridSizer7->AddGrowableRow(1);
 	StaticText1 = new wxStaticText(ScrolledWindowViewsModels, ID_STATICTEXT1, _("View:"), wxDefaultPosition, wxSize(44,16), 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer7->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer7->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
 	ListCtrlViews = new wxCheckedListCtrl(ScrolledWindowViewsModels, ID_LISTCTRL_VIEWS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL, wxDefaultValidator, _T("ID_LISTCTRL_VIEWS"));
 	ListCtrlViews->SetMinSize(wxDLG_UNIT(ScrolledWindowViewsModels,wxSize(100,50)));
-	FlexGridSizer7->Add(ListCtrlViews, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer7->Add(ListCtrlViews, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
 	Button_AddView = new wxButton(ScrolledWindowViewsModels, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer8->Add(Button_AddView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(Button_AddView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Button_DeleteView = new wxButton(ScrolledWindowViewsModels, ID_BUTTON2, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-	FlexGridSizer8->Add(Button_DeleteView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer6->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8->Add(Button_DeleteView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer6->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
 	FlexGridSizer4->AddGrowableRow(0);
+	StaticText2 = new wxStaticText(ScrolledWindowViewsModels, ID_STATICTEXT2, _("Added:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
 	ListCtrlModels = new wxCheckedListCtrl(ScrolledWindowViewsModels, ID_LISTCTRL_MODELS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_MODELS"));
 	ListCtrlModels->SetMinSize(wxDLG_UNIT(ScrolledWindowViewsModels,wxSize(75,85)));
-	FlexGridSizer4->Add(ListCtrlModels, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer4->Add(ListCtrlModels, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer10->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer10->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
 	ScrolledWindowViewsModels->SetSizer(FlexGridSizer10);
 	FlexGridSizer10->Fit(ScrolledWindowViewsModels);
 	FlexGridSizer10->SetSizeHints(ScrolledWindowViewsModels);
-	FlexGridSizer9->Add(ScrolledWindowViewsModels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(ScrolledWindowViewsModels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	Panel_Sizer->SetSizer(FlexGridSizer9);
 	FlexGridSizer9->Fit(Panel_Sizer);
 	FlexGridSizer9->SetSizeHints(Panel_Sizer);
@@ -209,10 +222,10 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
     _imageList->Add(wxIcon((char**)timing_16));
     _imageList->Add(wxIcon((char**)model_16));
 
-    MyTextDropTarget *mdt = new MyTextDropTarget(this, "Model");
+    MyTextDropTarget *mdt = new MyTextDropTarget(this, ListCtrlModels, "Model");
     ListCtrlModels->SetDropTarget(mdt);
 
-    mdt = new MyTextDropTarget(this, "NonModel");
+    mdt = new MyTextDropTarget(this, ListCtrlNonModels, "NonModel");
     ListCtrlNonModels->SetDropTarget(mdt);
 
     ValidateWindow();
@@ -222,13 +235,57 @@ ViewsModelsPanel::~ViewsModelsPanel()
 {
 	//(*Destroy(ViewsModelsPanel)
 	//*)
+
+    for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
+    {
+        Element* e = (Element*)ListCtrlNonModels->GetItemData(i);
+        if (e != nullptr && e->GetType() == ELEMENT_TYPE_MODEL && e->GetSequenceElements() == nullptr)
+        {
+            delete e;
+        }
+    }
+
     delete _imageList;
 }
 
 void ViewsModelsPanel::PopulateModels()
 {
-    ListCtrlNonModels->ClearAll();
+    int topM = ListCtrlModels->GetTopItem();
+    int topN = ListCtrlNonModels->GetTopItem();
 
+    int itemSize = 0;
+    if (ListCtrlModels->GetItemCount() > 0)
+    {
+        wxRect rect;
+        ListCtrlModels->GetItemRect(0, rect);
+        itemSize = rect.GetHeight();
+    }
+    else
+    {
+        // need to add something so i can measure it
+
+        ListCtrlModels->AppendColumn("Test");
+        ListCtrlModels->InsertItem(0, "Test");
+
+        wxRect rect;
+        ListCtrlModels->GetItemRect(0, rect);
+        itemSize = rect.GetHeight();
+    }
+    wxASSERT(itemSize != 0);
+
+    int visibileM = ListCtrlModels->GetRect().GetHeight() / itemSize - 1;
+    int visibileN = ListCtrlNonModels->GetRect().GetHeight() / itemSize - 1;
+
+    for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
+    {
+        Element* e = (Element*)ListCtrlNonModels->GetItemData(i);
+        if (e != nullptr && e->GetType() == ELEMENT_TYPE_MODEL && e->GetSequenceElements() == nullptr)
+        {
+            delete e;
+        }
+    }
+
+    ListCtrlNonModels->ClearAll();
     ListCtrlNonModels->SetImageList(_imageList, wxIMAGE_LIST_SMALL);
 
     wxListItem nm0;
@@ -319,20 +376,45 @@ void ViewsModelsPanel::PopulateModels()
                 AddModelToList(elem);
             }
         }
-    }
-}
 
-int ViewsModelsPanel::GetFirstModelIndex()
-{
-    for (int i = 0; i < ListCtrlModels->GetItemCount(); i++)
-    {
-        Element* e = (Element*)ListCtrlModels->GetItemData(i);
-        if (e->GetType() == ELEMENT_TYPE_MODEL)
+        for (wxXmlNode* e = _modelGroups->GetChildren(); e != nullptr; e = e->GetNext())
         {
-            return i;
+            if (e->GetName() == "modelGroup")
+            {
+                wxString name = e->GetAttribute("name");
+                if (!_sequenceElements->ElementExists(name.ToStdString(), 0))
+                {
+                    ModelElement *me = new ModelElement(name.ToStdString());
+                    AddModelToNotList(me);
+                }
+            }
+        }
+
+        for (wxXmlNode* e = _models->GetChildren(); e != nullptr; e = e->GetNext())
+        {
+            if (e->GetName() == "model")
+            {
+                wxString name = e->GetAttribute("name");
+                if (!_sequenceElements->ElementExists(name.ToStdString(), 0))
+                {
+                    ModelElement *me = new ModelElement(name.ToStdString());
+                    AddModelToNotList(me);
+                }
+            }
         }
     }
-    return 0;
+
+    if (topM + visibileM - 1< ListCtrlModels->GetItemCount())
+    {
+        ListCtrlModels->EnsureVisible(topM + visibileM - 1);
+    }
+    ListCtrlModels->EnsureVisible(topM);
+
+    if (topN + visibileN - 1< ListCtrlNonModels->GetItemCount())
+    {
+        ListCtrlNonModels->EnsureVisible(topN + visibileN - 1);
+    }
+    ListCtrlNonModels->EnsureVisible(topN);
 }
 
 bool ViewsModelsPanel::IsModelAGroup(const std::string& modelname) const
@@ -347,8 +429,38 @@ bool ViewsModelsPanel::IsModelAGroup(const std::string& modelname) const
     return false;
 }
 
+bool ViewsModelsPanel::IsItemSelected(wxListCtrl* ctrl, int item)
+{
+    return ctrl->GetItemState(item, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
+}
+
+bool ViewsModelsPanel::DeselectItem(wxListCtrl* ctrl, int item)
+{
+    return ctrl->SetItemState(item, 0, wxLIST_STATE_SELECTED);
+}
+
 void ViewsModelsPanel::OnListView_ViewItemsBeginDrag(wxListEvent& event)
 {
+    if (ListCtrlModels->GetSelectedItemCount() == 0) return;
+
+    _dragRowModel = true;
+    _dragRowNonModel = false;
+
+    wxString drag = "Model";
+    for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        if (IsItemSelected(ListCtrlModels, i))
+        {
+            drag += "," + ListCtrlModels->GetItemText(i, 1);
+        }
+    }
+
+    wxTextDataObject my_data(drag);
+    VMDropSource dragSource(this, true, false);
+    dragSource.SetData(my_data);
+    dragSource.DoDragDrop(wxDrag_DefaultMove);
+    SetCursor(wxCURSOR_ARROW);
+
     ValidateWindow();
 }
 
@@ -368,18 +480,27 @@ void ViewsModelsPanel::OnListView_ViewItemsKeyDown(wxListEvent& event)
     ValidateWindow();
 }
 
-bool IsItemSelected(wxListCtrl* ctrl, int item)
-{
-    return ctrl->GetItemState(item, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
-}
-
 void ViewsModelsPanel::RemoveSelectedModels()
 {
     if (_seqData->NumFrames() == 0) return;
 
     if (_sequenceElements->GetCurrentView() == MASTER_VIEW)
     {
-        if (wxMessageBox("Delete all effects and layers for the selected model(s)?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES)
+        bool hasEffects = false;
+        for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+        {
+            if (IsItemSelected(ListCtrlModels, i))
+            {
+                Element* e = (Element*)ListCtrlModels->GetItemData(i);
+                if (e->HasEffects())
+                {
+                    hasEffects = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasEffects || wxMessageBox("Delete all effects and layers for the selected model(s)?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES)
         {
             for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i)
             {
@@ -422,15 +543,29 @@ void ViewsModelsPanel::RemoveSelectedModels()
     _xlFrame->DoForceSequencerRefresh();
 }
 
-void ViewsModelsPanel::AddSelectedModels()
+void ViewsModelsPanel::AddSelectedModels(int pos)
 {
     if (_seqData->NumFrames() == 0) return;
+
+    int p = pos;
 
     std::string type = "model";
     int current_view = _sequenceElements->GetCurrentView();
 
+    if (p == -1)
+    {
+        p = _sequenceElements->GetElementCount();
+    }
+    else
+    {
+        p -= GetTimingCount();
+        if (p < 0) p = 0;
+    }
+
     if (current_view == MASTER_VIEW)
     {
+        int selcnt = 0;
+
         for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
         {
             if (IsItemSelected(ListCtrlNonModels, i))
@@ -438,17 +573,19 @@ void ViewsModelsPanel::AddSelectedModels()
                 Element* ee = (Element*)ListCtrlNonModels->GetItemData(i);
                 if (ee != nullptr && ee->GetType() != ELEMENT_TYPE_TIMING)
                 {
-                    Element* e = _sequenceElements->AddElement(ListCtrlNonModels->GetItemText(i, 1).ToStdString(), type, true, false, false, false);
+                    Element* e = _sequenceElements->AddElement(p + selcnt, ListCtrlNonModels->GetItemText(i, 1).ToStdString(), type, true, false, false, false);
                     if (e != nullptr)
                     {
                         e->AddEffectLayer();
                     }
+                    selcnt++;
                 }
             }
         }
     }
     else
     {
+        int selcnt = 0;
         auto view = _sequenceViewManager->GetSelectedView();
         for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
         {
@@ -457,7 +594,8 @@ void ViewsModelsPanel::AddSelectedModels()
                 Element* ee = (Element*)ListCtrlNonModels->GetItemData(i);
                 if (ee != nullptr && ee->GetType() != ELEMENT_TYPE_TIMING)
                 {
-                    view->AddModel(ListCtrlNonModels->GetItemText(i, 1).ToStdString());
+                    view->AddModel(ListCtrlNonModels->GetItemText(i, 1).ToStdString(), p + selcnt);
+                    selcnt++;
                 }
             }
         }
@@ -547,6 +685,10 @@ void ViewsModelsPanel::Initialize()
     if (_seqData->NumFrames() == 0) return;
     PopulateViews();
     PopulateModels();
+
+    // ensure the selected view exists ... this can happen if the user creates views but doesnt save them
+    if (_sequenceViewManager->GetView(_sequenceElements->GetCurrentView()) == nullptr) _sequenceElements->SetCurrentView(0);
+
     SelectView(_sequenceElements->GetViewName(_sequenceElements->GetCurrentView()));
     Fit();
     FitInside();
@@ -616,75 +758,6 @@ void ViewsModelsPanel::UpdateModelsForSelectedView()
         view->SetModels(models.ToStdString());
     }
     PopulateModels();
-}
-
-void ViewsModelsPanel::AddTimingToList(Element* timing)
-{
-    if (timing != nullptr)
-    {
-        wxListItem li;
-        li.SetId(_numModels);
-        ListCtrlModels->InsertItem(li);
-        ListCtrlModels->SetItemPtrData(_numModels, (wxUIntPtr)timing);
-        ListCtrlModels->SetItem(_numModels, 2, timing->GetName());
-        ListCtrlModels->SetChecked(_numModels, timing->GetVisible());
-        ListCtrlModels->SetItemColumnImage(_numModels, 1, TIMING_IMAGE);
-        _numModels++;
-    }
-}
-
-void ViewsModelsPanel::AddTimingToNotList(Element* timing)
-{
-    if (timing != nullptr)
-    {
-        wxListItem li;
-        li.SetId(_numNonModels);
-        ListCtrlNonModels->InsertItem(li, 0);
-        ListCtrlNonModels->SetItemPtrData(_numNonModels, (wxUIntPtr)timing);
-        ListCtrlNonModels->SetItem(_numNonModels, 1, timing->GetName());
-
-        _numNonModels++;
-    }
-}
-
-void ViewsModelsPanel::AddModelToList(Element* model)
-{
-    if (model != nullptr)
-    {
-        wxListItem li;
-        li.SetId(_numModels);
-        ListCtrlModels->InsertItem(li);
-        ListCtrlModels->SetItemPtrData(_numModels, (wxUIntPtr)model);
-        ListCtrlModels->SetItem(_numModels, 2, model->GetName());
-        ListCtrlModels->SetChecked(_numModels, model->GetVisible());
-        // Need to solve this ... I think we only want images for groups.
-        if (IsModelAGroup(model->GetName()))
-        {
-            ListCtrlModels->SetItemColumnImage(_numModels, 1, MODEL_IMAGE);
-        }
-        _numModels++;
-    }
-}
-
-void ViewsModelsPanel::AddModelToNotList(Element* model)
-{
-    if (model != nullptr)
-    {
-        wxListItem li;
-        li.SetId(_numNonModels);
-        if (IsModelAGroup(model->GetName()))
-        {
-            ListCtrlNonModels->InsertItem(li, 1);
-        }
-        else
-        {
-            ListCtrlNonModels->InsertItem(li, -1);
-        }
-        ListCtrlNonModels->SetItemPtrData(_numNonModels, (wxUIntPtr)model);
-        ListCtrlNonModels->SetItem(_numNonModels, 1, model->GetName());
-
-        _numNonModels++;
-    }
 }
 
 #pragma region View List
@@ -769,6 +842,7 @@ void ViewsModelsPanel::OnListCtrlItemCheck(wxCommandEvent& event)
 void ViewsModelsPanel::SelectView(const std::string& view)
 {
     if (_seqData->NumFrames() == 0) return;
+
     ListCtrlViews->SetChecked(_sequenceElements->GetCurrentView(), false);
     int selected_view = GetViewIndex(view);
     if (selected_view > 0)
@@ -922,7 +996,6 @@ void ViewsModelsPanel::OnButton_DeleteViewClick(wxCommandEvent& event)
 }
 #pragma endregion
 
-
 void ViewsModelsPanel::OnResize(wxSizeEvent& event)
 {
     wxSize s = GetSize();
@@ -946,6 +1019,43 @@ void ViewsModelsPanel::OnLeftUp(wxMouseEvent& event)
     ValidateWindow();
 }
 
+#pragma region Non Models
+
+void ViewsModelsPanel::AddTimingToNotList(Element* timing)
+{
+    if (timing != nullptr)
+    {
+        wxListItem li;
+        li.SetId(_numNonModels);
+        ListCtrlNonModels->InsertItem(li, 0);
+        ListCtrlNonModels->SetItemPtrData(_numNonModels, (wxUIntPtr)timing);
+        ListCtrlNonModels->SetItem(_numNonModels, 1, timing->GetName());
+
+        _numNonModels++;
+    }
+}
+
+void ViewsModelsPanel::AddModelToNotList(Element* model)
+{
+    if (model != nullptr)
+    {
+        wxListItem li;
+        li.SetId(_numNonModels);
+        if (IsModelAGroup(model->GetName()))
+        {
+            ListCtrlNonModels->InsertItem(li, 1);
+        }
+        else
+        {
+            ListCtrlNonModels->InsertItem(li, -1);
+        }
+        ListCtrlNonModels->SetItemPtrData(_numNonModels, (wxUIntPtr)model);
+        ListCtrlNonModels->SetItem(_numNonModels, 1, model->GetName());
+
+        _numNonModels++;
+    }
+}
+
 void ViewsModelsPanel::OnListCtrlNonModelsItemSelect(wxListEvent& event)
 {
     ValidateWindow();
@@ -956,7 +1066,7 @@ void ViewsModelsPanel::OnListCtrlNonModelsBeginDrag(wxListEvent& event)
     if (ListCtrlNonModels->GetSelectedItemCount() == 0) return;
 
     _dragRowModel = false;
-    _dragRowNonModel = true;	
+    _dragRowNonModel = true;
 
     wxString drag = "NonModel";
     for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
@@ -970,32 +1080,10 @@ void ViewsModelsPanel::OnListCtrlNonModelsBeginDrag(wxListEvent& event)
     wxTextDataObject my_data(drag);
     VMDropSource dragSource(this, false, true);
     dragSource.SetData(my_data);
-    wxDragResult result = dragSource.DoDragDrop(wxDrag_DefaultMove);
+    dragSource.DoDragDrop(wxDrag_DefaultMove);
+    SetCursor(wxCURSOR_ARROW);
 
     ValidateWindow();
-}
-
-void ViewsModelsPanel::OnNonModelsDragUp(wxMouseEvent& event)
-{
-    SetCursor(wxCursor(*wxSTANDARD_CURSOR));
-}
-
-void ViewsModelsPanel::OnNonModelsDragMotion(wxMouseEvent& event)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Does source: %d,%d-%d,%d dest: %d,%d-%d,%d contain %d,%d", 
-        ListCtrlNonModels->GetPosition().x, ListCtrlNonModels->GetPosition().y, ListCtrlNonModels->GetPosition().x + ListCtrlNonModels->GetSize().GetWidth(), ListCtrlNonModels->GetPosition().y + ListCtrlNonModels->GetSize().GetHeight(),
-        ListCtrlModels->GetPosition().x, ListCtrlModels->GetPosition().y, ListCtrlModels->GetPosition().x + ListCtrlModels->GetSize().GetWidth(), ListCtrlModels->GetPosition().y + ListCtrlModels->GetSize().GetHeight(), 
-        event.GetPosition().x, event.GetPosition().y);
-    auto pos = event.GetPosition();
-    if (ListCtrlModels->GetRect().Contains(event.GetPosition()))
-    {
-        SetCursor(wxCURSOR_HAND);
-    }
-    else
-    {
-        SetCursor(wxCURSOR_NO_ENTRY);
-    }
 }
 
 void ViewsModelsPanel::OnListCtrlNonModelsKeyDown(wxListEvent& event)
@@ -1007,6 +1095,64 @@ void ViewsModelsPanel::OnListCtrlNonModelsKeyDown(wxListEvent& event)
     ValidateWindow();
 }
 
+#pragma endregion Non Models
+
+#pragma region Models
+
+int ViewsModelsPanel::GetTimingCount()
+{
+    int timings = 0;
+
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        Element* t = (Element*)ListCtrlModels->GetItemData(i);
+        if (t->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            timings++;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    return timings;
+}
+
+void ViewsModelsPanel::AddTimingToList(Element* timing)
+{
+    if (timing != nullptr)
+    {
+        wxListItem li;
+        li.SetId(_numModels);
+        ListCtrlModels->InsertItem(li);
+        ListCtrlModels->SetItemPtrData(_numModels, (wxUIntPtr)timing);
+        ListCtrlModels->SetItem(_numModels, 2, timing->GetName());
+        ListCtrlModels->SetChecked(_numModels, timing->GetVisible());
+        ListCtrlModels->SetItemColumnImage(_numModels, 1, TIMING_IMAGE);
+        _numModels++;
+    }
+}
+
+void ViewsModelsPanel::AddModelToList(Element* model)
+{
+    if (model != nullptr)
+    {
+        wxListItem li;
+        li.SetId(_numModels);
+        ListCtrlModels->InsertItem(li);
+        ListCtrlModels->SetItemPtrData(_numModels, (wxUIntPtr)model);
+        ListCtrlModels->SetItem(_numModels, 2, model->GetName());
+        ListCtrlModels->SetChecked(_numModels, model->GetVisible());
+        // Need to solve this ... I think we only want images for groups.
+        if (IsModelAGroup(model->GetName()))
+        {
+            ListCtrlModels->SetItemColumnImage(_numModels, 1, MODEL_IMAGE);
+        }
+        _numModels++;
+    }
+}
+
 void ViewsModelsPanel::OnListCtrlViewsKeyDown(wxListEvent& event)
 {
     auto key = event.GetKeyCode();
@@ -1014,6 +1160,52 @@ void ViewsModelsPanel::OnListCtrlViewsKeyDown(wxListEvent& event)
     {
         DeleteSelectedView();
     }
+}
+
+#pragma endregion Models
+
+#pragma region Drag and Drop
+
+wxDragResult MyTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
+{
+    static wxLongLong lastTime = wxGetUTCTimeMillis();
+
+    if (wxGetUTCTimeMillis() - lastTime < 300)
+    {
+        // too soon to scroll again
+    }
+    else
+    {
+        if (_type == "Model" && _list->GetItemCount() > 0)
+        {
+            wxRect rect;
+            _list->GetItemRect(0, rect);
+            int itemSize = rect.GetHeight();
+
+            if (y < 2 * itemSize)
+            {
+                // scroll up
+                if (_list->GetTopItem() > 0)
+                {
+                    lastTime = wxGetUTCTimeMillis();
+                    _list->EnsureVisible(_list->GetTopItem()-1);
+                }
+            }
+            else if (y > _list->GetRect().GetHeight() - itemSize)
+            {
+                // scroll down
+                int flags = wxLIST_HITTEST_ONITEM;
+                int lastItem = _list->HitTest(wxPoint(x, y), flags, nullptr);
+                if (lastItem >= 0 && lastItem < _list->GetItemCount())
+                {
+                    _list->EnsureVisible(lastItem+1);
+                    lastTime = wxGetUTCTimeMillis();
+                }
+            }
+        }
+    }
+
+    return wxDragMove;
 }
 
 bool MyTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
@@ -1065,12 +1257,75 @@ void ViewsModelsPanel::OnDrop(wxCommandEvent& event)
     {
     case 0:
         // Non model dropped into models (an add)
+        {
+            int flags = wxLIST_HITTEST_ONITEM;
+            long index = ListCtrlModels->HitTest(wxPoint(x, y), flags, nullptr);
+            AddSelectedModels(index);
+        }
         break;
     case 1:
         // Model dropped into models (a reorder)
+        {
+            bool itemsMoved = false;
+
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            int flags = wxLIST_HITTEST_ONITEM;
+            long index = ListCtrlModels->HitTest(wxPoint(x, y), flags, nullptr);
+
+            int selcnt = 0;
+            for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+            {
+                if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ELEMENT_TYPE_TIMING)
+                {
+                    int from = i - GetTimingCount();
+                    int to = -1;
+                    // we are moving this one
+                    itemsMoved = true;
+                    if (index == -1)
+                    {
+                        // moving to the end
+                        to = _sequenceElements->GetElementCount(_sequenceViewManager->GetSelectedViewIndex());
+                    }
+                    else
+                    {
+                        to = index + selcnt - GetTimingCount();
+                    }
+
+                    // not sure why we need to do this with the master only
+                    if (_sequenceViewManager->GetSelectedViewIndex() == 0)
+                    {
+                        from += GetTimingCount();
+                        to += GetTimingCount();
+                    }
+
+                    if (from < to)
+                    {
+                        from -= selcnt;
+                    }
+
+                    _sequenceElements->MoveSequenceElement(from, to, _sequenceViewManager->GetSelectedViewIndex());
+                    DeselectItem(ListCtrlModels, i);
+
+                    selcnt++;
+                }
+            }
+
+            if (itemsMoved)
+            {
+                MarkViewsChanged();
+                UpdateModelsForSelectedView();
+                PopulateModels();
+                _xlFrame->DoForceSequencerRefresh();
+            }
+        }
         break;
     case 2:
         // Model dropped into non model (a remove)
+        RemoveSelectedModels();
+        break;
+    default:
         break;
     }
 }
+
+#pragma endregion Drag and Drop

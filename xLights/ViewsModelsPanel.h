@@ -27,12 +27,14 @@ wxDECLARE_EVENT(EVT_VMDROP, wxCommandEvent);
 class MyTextDropTarget : public wxTextDropTarget
 {
 public:
-    MyTextDropTarget(wxWindow *owner, wxString type) { _owner = owner; _type = type; };
+    MyTextDropTarget(wxWindow *owner, wxListCtrl* list, wxString type) { _owner = owner; _list = list; _type = type; };
 
     virtual bool OnDropText(wxCoord x, wxCoord y,
         const wxString& data) override;
+    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def);
 
     wxWindow *_owner;
+    wxListCtrl* _list;
     wxString _type;
 };
 
@@ -56,7 +58,7 @@ class ViewsModelsPanel: public wxPanel
     void PopulateViews();
     void PopulateModels();
     void ValidateWindow();
-    void AddSelectedModels();
+    void AddSelectedModels(int pos = -1);
     void RemoveSelectedModels();
     void AddTimingToList(Element* element);
     void AddTimingToNotList(Element* element);
@@ -67,6 +69,9 @@ class ViewsModelsPanel: public wxPanel
     void AddViewToList(const wxString& viewName, bool isChecked);
     bool IsModelAGroup(const std::string& modelname) const;
     void DeleteSelectedView();
+    int GetTimingCount();
+    static bool IsItemSelected(wxListCtrl* ctrl, int item);
+    static bool DeselectItem(wxListCtrl* ctrl, int item);
 
 	public:
 
@@ -79,16 +84,17 @@ class ViewsModelsPanel: public wxPanel
         void SetSequenceElementsModelsViews(SequenceData* seqData, SequenceElements* sequenceElements, wxXmlNode* modelsNode, wxXmlNode* modelGroupsNode, SequenceViewManager* sequenceViewManager);
         void OnViewSelect(wxCommandEvent& event);
         void OnListCtrlItemCheck(wxCommandEvent& event);
-        int GetFirstModelIndex();
         void UpdateModelsForSelectedView();
 
 		//(*Declarations(ViewsModelsPanel)
 		wxButton* Button_AddAll;
 		wxListCtrl* ListCtrlNonModels;
 		wxButton* Button_AddSelected;
+		wxStaticText* StaticText2;
 		wxPanel* Panel_Sizer;
 		wxStaticText* StaticText1;
 		wxCheckedListCtrl* ListCtrlModels;
+		wxStaticText* StaticText3;
 		wxButton* Button_AddView;
 		wxButton* Button_DeleteView;
 		wxCheckedListCtrl* ListCtrlViews;
@@ -100,6 +106,7 @@ class ViewsModelsPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(ViewsModelsPanel)
+		static const long ID_STATICTEXT3;
 		static const long ID_LISTCTRL1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
@@ -109,6 +116,7 @@ class ViewsModelsPanel: public wxPanel
 		static const long ID_LISTCTRL_VIEWS;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
+		static const long ID_STATICTEXT2;
 		static const long ID_LISTCTRL_MODELS;
 		static const long ID_SCROLLEDWINDOW1;
 		static const long ID_PANEL1;
@@ -135,8 +143,6 @@ class ViewsModelsPanel: public wxPanel
 		void OnListCtrlViewsKeyDown(wxListEvent& event);
 		//*)
 
-        void OnNonModelsDragUp(wxMouseEvent& event);
-        void OnNonModelsDragMotion(wxMouseEvent& event);
         void OnDrop(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()

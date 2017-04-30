@@ -399,9 +399,6 @@
     <ClCompile Include="DimmingCurvePanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DisplayElementsPanel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="djdebug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -463,9 +460,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ModelPreview.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelViewSelector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NewTimingDialog.cpp">
@@ -1334,9 +1328,6 @@
     <ClInclude Include="DimmingCurvePanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DisplayElementsPanel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DrawGLUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1398,9 +1389,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ModelPreview.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelViewSelector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NewTimingDialog.h">

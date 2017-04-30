@@ -199,6 +199,12 @@ ModelElement::ModelElement(SequenceElements *l, const std::string &name, bool se
 {
 }
 
+ModelElement::ModelElement(const std::string &name)
+    : Element(nullptr, name),
+    waitCount(0)
+{
+}
+
 ModelElement::~ModelElement()
 {
     //make sure none of the render threads are rendering this model

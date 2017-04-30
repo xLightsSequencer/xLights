@@ -187,7 +187,6 @@
     <ClCompile Include="DataLayer.cpp" />
     <ClCompile Include="DimmingCurve.cpp" />
     <ClCompile Include="DimmingCurvePanel.cpp" />
-    <ClCompile Include="DisplayElementsPanel.cpp" />
     <ClCompile Include="djdebug.cpp" />
     <ClCompile Include="DrawGLUtils.cpp" />
     <ClCompile Include="DrawGLUtils21.cpp" />
@@ -346,7 +345,6 @@
     <ClCompile Include="models\WholeHouseModel.cpp" />
     <ClCompile Include="models\WindowFrameModel.cpp" />
     <ClCompile Include="models\WreathModel.cpp" />
-    <ClCompile Include="ModelViewSelector.cpp" />
     <ClCompile Include="MusicXML.cpp" />
     <ClCompile Include="NewTimingDialog.cpp" />
     <ClCompile Include="NodesGridCellEditor.cpp" />
@@ -490,7 +488,6 @@
     <ClInclude Include="DataLayer.h" />
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
-    <ClInclude Include="DisplayElementsPanel.h" />
     <ClInclude Include="DrawGLUtils.h" />
     <ClInclude Include="outputs\DDPDialog.h" />
     <ClInclude Include="outputs\DDPOutput.h" />
@@ -636,7 +633,6 @@
     <ClInclude Include="models\WholeHouseModel.h" />
     <ClInclude Include="models\WindowFrameModel.h" />
     <ClInclude Include="models\WreathModel.h" />
-    <ClInclude Include="ModelViewSelector.h" />
     <ClInclude Include="MusicXML.h" />
     <ClInclude Include="NewTimingDialog.h" />
     <ClInclude Include="NodesGridCellEditor.h" />

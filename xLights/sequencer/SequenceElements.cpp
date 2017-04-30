@@ -274,7 +274,10 @@ bool SequenceElements::TimingIsPartOfView(TimingElement* timing, int view)
 
 std::string SequenceElements::GetViewName(int which_view) const
 {
-	return _viewsManager->GetView(which_view)->GetName();
+    if (_viewsManager->GetView(which_view) != nullptr)
+	    return _viewsManager->GetView(which_view)->GetName();
+
+    return "";
 }
 
 void SequenceElements::SetViewsManager(SequenceViewManager* viewsManager)
@@ -1393,7 +1396,7 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
 {
     IncrementChangeCount(nullptr);
 
-    if(index<mAllViews[view].size() && dest<mAllViews[view].size())
+    if(index<mAllViews[view].size() > 0 && dest<mAllViews[view].size())
     {
         Element* e = mAllViews[view][index];
         mAllViews[view].erase(mAllViews[view].begin()+index);
@@ -1406,6 +1409,13 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
             mAllViews[view].insert(mAllViews[view].begin()+(dest-1),e);
         }
     }
+    else if (index<mAllViews[view].size() > 0)
+    {
+        Element* e = mAllViews[view][index];
+        mAllViews[view].erase(mAllViews[view].begin() + index);
+        mAllViews[view].push_back(e);
+    }
+
     if (view == MASTER_VIEW) {
         mMasterViewChangeCount++;
     }
