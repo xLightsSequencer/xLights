@@ -166,7 +166,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
-	FlexGridSizer4->AddGrowableRow(0);
+	FlexGridSizer4->AddGrowableRow(1);
 	StaticText2 = new wxStaticText(ScrolledWindowViewsModels, ID_STATICTEXT2, _("Added:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
 	ListCtrlModels = new wxCheckedListCtrl(ScrolledWindowViewsModels, ID_LISTCTRL_MODELS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_MODELS"));
@@ -177,7 +177,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	ScrolledWindowViewsModels->SetSizer(FlexGridSizer10);
 	FlexGridSizer10->Fit(ScrolledWindowViewsModels);
 	FlexGridSizer10->SetSizeHints(ScrolledWindowViewsModels);
-	FlexGridSizer9->Add(ScrolledWindowViewsModels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer9->Add(ScrolledWindowViewsModels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_Sizer->SetSizer(FlexGridSizer9);
 	FlexGridSizer9->Fit(Panel_Sizer);
 	FlexGridSizer9->SetSizeHints(Panel_Sizer);

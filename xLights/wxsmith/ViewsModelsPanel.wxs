@@ -165,7 +165,7 @@
 												<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 													<cols>1</cols>
 													<growablecols>0</growablecols>
-													<growablerows>0</growablerows>
+													<growablerows>1</growablerows>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
 															<label>Added:</label>
@@ -196,6 +196,7 @@
 								</object>
 							</object>
 							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
 							<option>1</option>
 						</object>
 					</object>
