@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.12  Apr  30, 2017
+   -- bug (sean)    Fix for Vamp plugins for 64 bit xLights. Web page updated to remove direct download of Vamp
 2017.11  Apr  29, 2017
    -- enh (sean)    Include 64 bit xSchedule.exe besides 32 bit xScheduler.exe
    -- bug (sean)    Fixed install directory for 32 bit xLights. Now files go into ../Program Files(x86)/xlights

@@ -32,7 +32,7 @@ ArchitecturesInstallIn64BitMode=x64
 
 
 AppName=xLights
-AppVersion=2017.11
+AppVersion=2017.12
 DefaultDirName={pf64}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights64.ico
@@ -81,6 +81,8 @@ Source: "bin/phoneme_mapping";     DestDir: "{app}"
 Source: "bin/standard_dictionary"; DestDir: "{app}"
 Source: "bin/user_dictionary";     DestDir: "{app}"
 ;
+; Vamp dll's
+Source: "bin64/Vamp/*.dll"; DestDir: "{pf64}/xLights"   ; Flags: recursesubdirs
 
 ; xschedule
 Source: "bin/xschedule.windows.properties";     DestDir: "{app}"
@@ -96,7 +98,7 @@ Source: "bin/modelxls.bat";        DestDir: "{app}"
 Source: "bin/merge_xml.awk";       DestDir: "{app}"
 Source: "bin/PathEditor.exe";      DestDir: "{app}"
 Source: "include\xlights64.ico";     DestDir: "{app}"
-Source: "include\xSchedule.ico";     DestDir: "{app}"
+Source: "include\xSchedule64.ico";     DestDir: "{app}"
 ;mar4 Source: "include\xLights_orig.ico"; DestDir: "{app}"
 Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
 ;Source: "C:\Users\Sean_Dell\Documents\xLights\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
@@ -108,7 +110,7 @@ Source: "colorcurves\*.*"; DestDir: "{app}/colorcurves"   ; Flags: replacesameve
 
 [Icons] 
 Name: "{commondesktop}\xLights64"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xLights64.ico";
-Name: "{commondesktop}\xSchedule"; Filename: "{app}\xSchedule.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule.ico";
+Name: "{commondesktop}\xSchedule"; Filename: "{app}\xSchedule.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule64.ico";
 
 
 

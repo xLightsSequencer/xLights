@@ -24,7 +24,7 @@ OutputBaseFilename=Vamp_Plugin64
 [Files]
 
 Source: "bin64/Vamp/Vamp Plugins/*.*"; DestDir: "{pf64}/Vamp Plugins"    ; Flags: recursesubdirs
-Source: "bin64/Vamp/*.dll"; DestDir: "{pf64}/xLights"   ; Flags: recursesubdirs
+
 
 ;Source: "README.txt";  DestDir: "{app}"; Flags: isreadme
 
