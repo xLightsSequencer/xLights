@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (dkulp)   Allow reverse order for SubModel node ranges (10-5 intead of 5-10). Fixes #852
 2017.12  Apr  30, 2017
    -- bug (sean)    Fix for Vamp plugins for 64 bit xLights. Web page updated to remove direct download of Vamp
 2017.11  Apr  29, 2017

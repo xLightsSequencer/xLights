@@ -40,12 +40,11 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
                 } else {
                     start = end = wxAtoi(valstr);
                 }
-                if (start > end) {
-                    start = end;
-                }
                 start--;
                 end--;
-                for (int n = start; n <= end; n++) {
+                bool done = false;
+                int n = start;
+                while (!done) {
                     if (n < p->GetNodeCount()) {
                         NodeBaseClass *node = p->Nodes[n]->clone();
                         startChannel = std::min(startChannel, node->ActChan);
@@ -59,6 +58,13 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
                         } else {
                             col++;
                         }
+                    }
+                    if (start > end) {
+                        n--;
+                        done = n < end;
+                    } else {
+                        n++;
+                        done = n > end;
                     }
                 }
             }

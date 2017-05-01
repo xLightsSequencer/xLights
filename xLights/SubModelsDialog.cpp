@@ -468,14 +468,20 @@ void SubModelsDialog::SelectRow(int r) {
             } else {
                 start = end = wxAtoi(valstr);
             }
-            if (start > end) {
-                start = end;
-            }
             start--;
             end--;
-            for (int n = start; n <= end; n++) {
+            bool done = false;
+            int n = start;
+            while (!done) {
                 if (n < model->GetNodeCount()) {
                     model->SetNodeColor(n, xlWHITE);
+                }
+                if (start > end) {
+                    n--;
+                    done = n < end;
+                } else {
+                    n++;
+                    done = n > end;
                 }
             }
         }
