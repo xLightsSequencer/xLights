@@ -98,6 +98,7 @@ class SequenceElements : public ChangeListener
         void DeleteElement(const std::string &name);
         void DeleteElementFromView(const std::string &name, int view);
         void DeleteTimingFromView(const std::string &name, int view);
+        void DeleteTimingsFromView(int view);
 
         void PopulateRowInformation();
         void PopulateVisibleRowInformation();

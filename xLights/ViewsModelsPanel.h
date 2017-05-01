@@ -14,6 +14,7 @@
 
 #include "wxCheckedListCtrl.h"
 #include "SequenceData.h"
+#include <list>
 
 class wxXmlNode;
 class SequenceElements;
@@ -54,6 +55,7 @@ class ViewsModelsPanel: public wxPanel
     wxImageList* _imageList;
     bool _dragRowModel;
     bool _dragRowNonModel;
+    std::list<std::string> _undo;
 
     void PopulateViews();
     void PopulateModels();
@@ -73,6 +75,8 @@ class ViewsModelsPanel: public wxPanel
     static bool IsItemSelected(wxListCtrl* ctrl, int item);
     static bool SelectItem(wxListCtrl* ctrl, int item, bool select);
     void ShowAllModels(bool show);
+    void HideUnusedModels();
+    void RemoveUnusedModels();
     void SelectAllModels();
     void SortModelsByName();
     void SortModelsByNameGM();
@@ -85,6 +89,9 @@ class ViewsModelsPanel: public wxPanel
     std::string GetModelType(const std::string& modelname) const;
     wxArrayString GetGroupModels(const std::string& group) const;
     wxString GetMasterViewModels() const;
+    void SaveUndo();
+    void Undo();
+    void ClearUndo();
 
     public:
 
@@ -142,6 +149,8 @@ class ViewsModelsPanel: public wxPanel
         static const long ViewsModelsPanel::ID_MODELS_HIDEALL;
         static const long ViewsModelsPanel::ID_MODELS_SHOWALL;
         static const long ViewsModelsPanel::ID_MODELS_SELECTALL;
+        static const long ViewsModelsPanel::ID_MODELS_HIDEUNUSED;
+        static const long ViewsModelsPanel::ID_MODELS_REMOVEUNUSED;
         static const long ViewsModelsPanel::ID_MODELS_SORT;
         static const long ViewsModelsPanel::ID_MODELS_SORTBYNAME;
         static const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGM;

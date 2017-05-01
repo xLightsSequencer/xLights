@@ -441,6 +441,36 @@ void SequenceElements::DeleteTimingFromView(const std::string &name, int view)
     }
 }
 
+void SequenceElements::DeleteTimingsFromView(int view)
+{
+    std::string viewName = GetViewName(view);
+    for (size_t i = 0; i < mAllViews[view].size(); i++)
+    {
+        Element *el = mAllViews[view][i];
+        if (el->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            TimingElement* te = dynamic_cast<TimingElement*>(el);
+            std::string views = te->GetViews();
+            wxArrayString all_views = wxSplit(views, ',');
+            int found = -1;
+            for (size_t j = 0; j < all_views.size(); j++)
+            {
+                if (all_views[j] == viewName)
+                {
+                    found = j;
+                    break;
+                }
+            }
+            if (found != -1)
+            {
+                all_views.erase(all_views.begin() + found);
+                views = wxJoin(all_views, ',');
+                te->SetViews(views);
+            }
+        }
+    }
+}
+
 void SequenceElements::RenameModelInViews(const std::string& old_name, const std::string& new_name)
 {
     // renames models in any views that have been loaded for a sequence

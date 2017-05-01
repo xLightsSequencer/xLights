@@ -97,6 +97,8 @@ const long ViewsModelsPanel::ID_PANEL1 = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_HIDEALL = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SHOWALL = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SELECTALL = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_HIDEUNUSED = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_REMOVEUNUSED = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORT = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYNAME = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGM = wxNewId();
@@ -256,14 +258,15 @@ ViewsModelsPanel::~ViewsModelsPanel()
 	//(*Destroy(ViewsModelsPanel)
 	//*)
 
-    for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
-    {
-        Element* e = (Element*)ListCtrlNonModels->GetItemData(i);
-        if (e != nullptr && e->GetType() == ELEMENT_TYPE_MODEL && e->GetSequenceElements() == nullptr)
-        {
-            delete e;
-        }
-    }
+    //for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
+    //{
+    //    Element* e = (Element*)ListCtrlNonModels->GetItemData(i);
+    //    if (e != nullptr && e->GetType() == ELEMENT_TYPE_MODEL && e->GetSequenceElements() == nullptr)
+    //    {
+    //        delete e;
+    //        ListCtrlNonModels->SetItemPtrData(i, (wxUIntPtr)nullptr);
+    //    }
+    //}
 
     delete _imageList;
 }
@@ -525,13 +528,17 @@ void ViewsModelsPanel::OnListView_ViewItemsItemSelect(wxListEvent& event)
 {
     ValidateWindow();
 }
-
+                                                    
 void ViewsModelsPanel::OnListView_ViewItemsKeyDown(wxListEvent& event)
 {
     auto key = event.GetKeyCode();
     if (key == WXK_LEFT || key == WXK_DELETE || key == WXK_NUMPAD_DELETE)
     {
         RemoveSelectedModels();
+    }
+    else if (key == WXK_CONTROL_Z)
+    {
+        Undo();
     }
 
     ValidateWindow();
@@ -540,6 +547,8 @@ void ViewsModelsPanel::OnListView_ViewItemsKeyDown(wxListEvent& event)
 void ViewsModelsPanel::RemoveSelectedModels()
 {
     if (_seqData->NumFrames() == 0) return;
+
+    SaveUndo();
 
     if (_sequenceElements->GetCurrentView() == MASTER_VIEW)
     {
@@ -603,6 +612,8 @@ void ViewsModelsPanel::RemoveSelectedModels()
 void ViewsModelsPanel::AddSelectedModels(int pos)
 {
     if (_seqData->NumFrames() == 0) return;
+
+    SaveUndo();
 
     int p = pos;
 
@@ -909,6 +920,11 @@ void ViewsModelsPanel::OnListCtrlItemCheck(wxCommandEvent& event)
 void ViewsModelsPanel::SelectView(const std::string& view)
 {
     if (_seqData->NumFrames() == 0) return;
+
+    if (view != _sequenceViewManager->GetSelectedView()->GetName())
+    {
+        ClearUndo();
+    }
 
     ListCtrlViews->SetChecked(_sequenceElements->GetCurrentView(), false);
     int selected_view = GetViewIndex(view);
@@ -1302,7 +1318,9 @@ void ViewsModelsPanel::OnListCtrlModelsItemRClick(wxListEvent& event)
 
     wxMenu mnu;
     mnu.Append(ID_MODELS_HIDEALL, "Hide All")->Enable(items > 0);
+    mnu.Append(ID_MODELS_HIDEUNUSED, "Hide Unused")->Enable(items > 0);
     mnu.Append(ID_MODELS_SHOWALL, "Show All")->Enable(items > 0);
+    mnu.Append(ID_MODELS_REMOVEUNUSED, "Remmove Unused")->Enable(items > 0);
     mnu.Append(ID_MODELS_SELECTALL, "Select All")->Enable(items >0);
 
     wxMenu* mnuSort = new wxMenu();
@@ -1339,6 +1357,14 @@ void ViewsModelsPanel::OnModelsPopup(wxCommandEvent &event)
     {
         SelectAllModels();
     }
+    else if (id == ID_MODELS_HIDEUNUSED)
+    {
+        HideUnusedModels();
+    }
+    else if (id == ID_MODELS_REMOVEUNUSED)
+    {
+        RemoveUnusedModels();
+    }
     else if (id == ID_MODELS_SORTBYNAME)
     {
         SortModelsByName();
@@ -1372,6 +1398,38 @@ void ViewsModelsPanel::ShowAllModels(bool show)
     _xlFrame->DoForceSequencerRefresh();
 }
 
+void ViewsModelsPanel::HideUnusedModels()
+{
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        Element* element = (Element*)ListCtrlModels->GetItemData(i);
+        if (!element->HasEffects())
+        {
+            ListCtrlModels->SetChecked(i, false);
+            ((Element*)ListCtrlModels->GetItemData(i))->SetVisible(false);
+        }
+    }
+    _xlFrame->DoForceSequencerRefresh();
+}
+
+void ViewsModelsPanel::RemoveUnusedModels()
+{
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        Element* element = (Element*)ListCtrlModels->GetItemData(i);
+        if (!element->HasEffects())
+        {
+            SelectItem(ListCtrlModels, i, true);
+        }
+        else
+        {
+            SelectItem(ListCtrlModels, i, false);
+        }
+    }
+    RemoveSelectedModels();
+    _xlFrame->DoForceSequencerRefresh();
+}
+
 void ViewsModelsPanel::SelectAllModels()
 {
     for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
@@ -1382,6 +1440,8 @@ void ViewsModelsPanel::SelectAllModels()
 
 void ViewsModelsPanel::SortModelsByName()
 {
+    SaveUndo();
+
     SequenceView* view = _sequenceViewManager->GetSelectedView();
     wxString models;
     if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
@@ -1426,12 +1486,22 @@ void ViewsModelsPanel::SetMasterViewModels(const wxArrayString& models)
 {
     for (int i = 0; i < models.size(); ++i)
     {
-        _sequenceElements->MoveSequenceElement(_sequenceElements->GetElementIndex(models[i].ToStdString(), MASTER_VIEW), i+GetTimingCount(), MASTER_VIEW);
+        int index = _sequenceElements->GetElementIndex(models[i].ToStdString(), MASTER_VIEW);
+        if (index < 0)
+        {
+            _sequenceElements->AddElement(i + GetTimingCount(), models[i].ToStdString(), "model", true, false, false, false);
+        }
+        else
+        {
+            _sequenceElements->MoveSequenceElement(index, i + GetTimingCount(), MASTER_VIEW);
+        }
     }
 }
 
 void ViewsModelsPanel::SortModelsByNameGM()
 {
+    SaveUndo();
+
     SequenceView* view = _sequenceViewManager->GetSelectedView();
 
     wxString models;    
@@ -1482,6 +1552,8 @@ void ViewsModelsPanel::SortModelsByNameGM()
 
 void ViewsModelsPanel::SortModelsByType()
 {
+    SaveUndo();
+
     SequenceView* view = _sequenceViewManager->GetSelectedView();
     wxString models;
     if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
@@ -1543,6 +1615,8 @@ void ViewsModelsPanel::SortModelsByType()
 
 void ViewsModelsPanel::SortModelsUnderThisGroup(int groupIndex)
 {
+    SaveUndo();
+
     SequenceView* view = _sequenceViewManager->GetSelectedView();
     wxString models;
     if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
@@ -1587,6 +1661,8 @@ void ViewsModelsPanel::SortModelsUnderThisGroup(int groupIndex)
 
 void ViewsModelsPanel::SortModelsBubbleUpGroups()
 {
+    SaveUndo();
+
     SequenceView* view = _sequenceViewManager->GetSelectedView();
     wxString models;
     if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
@@ -1713,6 +1789,21 @@ wxDragResult MyTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
     {
         if (_type == "Model" && _list->GetItemCount() > 0)
         {
+            int flags = wxLIST_HITTEST_ONITEM;
+            int lastItem = _list->HitTest(wxPoint(x, y), flags, nullptr);
+
+            for (int i = 0; i < _list->GetItemCount(); ++i)
+            {
+                if (i == lastItem)
+                {
+                    _list->SetItemState(lastItem, wxLIST_STATE_DROPHILITED, wxLIST_STATE_DROPHILITED);
+                }
+                else
+                {
+                    _list->SetItemState(lastItem, 0, wxLIST_STATE_DROPHILITED);
+                }
+            }
+
             wxRect rect;
             _list->GetItemRect(0, rect);
             int itemSize = rect.GetHeight();
@@ -1731,8 +1822,6 @@ wxDragResult MyTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
             else if (y > _list->GetRect().GetHeight() - itemSize)
             {
                 // scroll down
-                int flags = wxLIST_HITTEST_ONITEM;
-                int lastItem = _list->HitTest(wxPoint(x, y), flags, nullptr);
                 if (lastItem >= 0 && lastItem < _list->GetItemCount())
                 {
                     _list->EnsureVisible(lastItem+1);
@@ -1809,6 +1898,8 @@ void ViewsModelsPanel::OnDrop(wxCommandEvent& event)
     case 1:
         // Model dropped into models (a reorder)
         {
+            SaveUndo();
+
             bool itemsMoved = false;
 
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1873,3 +1964,72 @@ void ViewsModelsPanel::OnDrop(wxCommandEvent& event)
 
 #pragma endregion Drag and Drop
 
+#pragma region Undo
+
+void ViewsModelsPanel::SaveUndo()
+{
+    wxArrayString undo;
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        undo.push_back(ListCtrlModels->GetItemText(i, 2).ToStdString());
+    }
+    std::string to = wxJoin(undo, ',').ToStdString();
+    if (undo.size() > 0 && undo.back() != to)
+    {
+        _undo.push_back(to);
+    }
+}
+
+void ViewsModelsPanel::Undo()
+{
+    if (_undo.size() == 0) return;
+
+    std::string undo = _undo.back();
+    _undo.pop_back();
+
+    std::vector<std::string> timings;
+    wxArrayString models;
+
+    wxArrayString arr = wxSplit(undo, ',');
+
+    bool tim = true;
+    for (auto it = arr.begin(); it != arr.end(); ++it)
+    {
+        Element* e = _sequenceElements->GetElement(it->ToStdString());
+        if (e->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            timings.push_back(it->ToStdString());
+        }
+        else
+        {
+            models.push_back(*it);
+        }
+    }
+
+    if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
+    {
+        SetMasterViewModels(models);
+    }
+    else
+    {
+        _sequenceViewManager->GetSelectedView()->SetModels(wxJoin(models, ',').ToStdString());
+    }
+
+    _sequenceElements->DeleteTimingsFromView(_sequenceViewManager->GetSelectedViewIndex());
+    if (timings.size() > 0)
+    {
+        _sequenceElements->AddViewToTimings(timings, _sequenceViewManager->GetSelectedView()->GetName());
+    }
+
+    MarkViewsChanged();
+    PopulateModels();
+    _xlFrame->DoForceSequencerRefresh();
+}
+
+void ViewsModelsPanel::ClearUndo()
+{
+    _undo.clear();
+}
+
+#pragma endregion Undo
+ 
