@@ -86,11 +86,23 @@ const long ViewsModelsPanel::ID_STATICTEXT1 = wxNewId();
 const long ViewsModelsPanel::ID_LISTCTRL_VIEWS = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON1 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON2 = wxNewId();
+const long ViewsModelsPanel::ID_BUTTON7 = wxNewId();
+const long ViewsModelsPanel::ID_BUTTON8 = wxNewId();
 const long ViewsModelsPanel::ID_STATICTEXT2 = wxNewId();
 const long ViewsModelsPanel::ID_LISTCTRL_MODELS = wxNewId();
 const long ViewsModelsPanel::ID_SCROLLEDWINDOW1 = wxNewId();
 const long ViewsModelsPanel::ID_PANEL1 = wxNewId();
 //*)
+
+const long ViewsModelsPanel::ID_MODELS_HIDEALL = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SHOWALL = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SELECTALL = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SORT = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SORTBYNAME = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGM = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SORTBYTYPE = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SORTMODELSUNDERTHISGROUP = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_BUBBLEUPGROUPS = wxNewId();
 
 BEGIN_EVENT_TABLE(ViewsModelsPanel,wxPanel)
 	//(*EventTable(ViewsModelsPanel)
@@ -162,6 +174,10 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	FlexGridSizer8->Add(Button_AddView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Button_DeleteView = new wxButton(ScrolledWindowViewsModels, ID_BUTTON2, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer8->Add(Button_DeleteView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	ButtonRename = new wxButton(ScrolledWindowViewsModels, ID_BUTTON7, _("Rename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
+	FlexGridSizer8->Add(ButtonRename, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	ButtonClone = new wxButton(ScrolledWindowViewsModels, ID_BUTTON8, _("Clone"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
+	FlexGridSizer8->Add(ButtonClone, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer6->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -194,11 +210,15 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_RemoveSelectedClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_RemoveAllClick);
 	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemSelect);
+	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemDClick);
 	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsKeyDown);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddViewClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_DeleteViewClick);
+	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonRenameClick);
+	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonCloneClick);
 	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsBeginDrag);
 	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsItemSelect);
+	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlModelsItemRClick);
 	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsKeyDown);
 	Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&ViewsModelsPanel::OnLeftUp);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ViewsModelsPanel::OnResize);
@@ -250,6 +270,9 @@ ViewsModelsPanel::~ViewsModelsPanel()
 
 void ViewsModelsPanel::PopulateModels()
 {
+    ListCtrlModels->Freeze();
+    ListCtrlNonModels->Freeze();
+
     int topM = ListCtrlModels->GetTopItem();
     int topN = ListCtrlNonModels->GetTopItem();
 
@@ -282,6 +305,7 @@ void ViewsModelsPanel::PopulateModels()
         if (e != nullptr && e->GetType() == ELEMENT_TYPE_MODEL && e->GetSequenceElements() == nullptr)
         {
             delete e;
+            ListCtrlNonModels->SetItemPtrData(i, (wxUIntPtr)nullptr);
         }
     }
 
@@ -415,6 +439,11 @@ void ViewsModelsPanel::PopulateModels()
         ListCtrlNonModels->EnsureVisible(topN + visibileN - 1);
     }
     ListCtrlNonModels->EnsureVisible(topN);
+
+    ListCtrlModels->Thaw();
+    ListCtrlNonModels->Thaw();
+    ListCtrlModels->Refresh();
+    ListCtrlNonModels->Refresh();
 }
 
 bool ViewsModelsPanel::IsModelAGroup(const std::string& modelname) const
@@ -429,14 +458,42 @@ bool ViewsModelsPanel::IsModelAGroup(const std::string& modelname) const
     return false;
 }
 
+wxArrayString ViewsModelsPanel::GetGroupModels(const std::string& group) const
+{
+    wxArrayString res;
+
+    for (auto it = _modelGroups->GetChildren(); it != nullptr; it = it->GetNext())
+    {
+        if (it->GetName() == "modelGroup" && it->GetAttribute("name") == group)
+        {
+            res = wxSplit(it->GetAttribute("models"), ',');
+            break;
+        }
+    }
+
+    return res;
+}
+
+std::string ViewsModelsPanel::GetModelType(const std::string& modelname) const
+{
+    for (auto it = _models->GetChildren(); it != nullptr; it = it->GetNext())
+    {
+        if (it->GetAttribute("name") == modelname)
+        {
+            return it->GetAttribute("DisplayAs").ToStdString();
+        }
+    }
+    return "";
+}
+
 bool ViewsModelsPanel::IsItemSelected(wxListCtrl* ctrl, int item)
 {
     return ctrl->GetItemState(item, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
 }
 
-bool ViewsModelsPanel::DeselectItem(wxListCtrl* ctrl, int item)
+bool ViewsModelsPanel::SelectItem(wxListCtrl* ctrl, int item, bool select)
 {
-    return ctrl->SetItemState(item, 0, wxLIST_STATE_SELECTED);
+    return ctrl->SetItemState(item, select ? wxLIST_STATE_SELECTED : 0, wxLIST_STATE_SELECTED);
 }
 
 void ViewsModelsPanel::OnListView_ViewItemsBeginDrag(wxListEvent& event)
@@ -724,13 +781,23 @@ void ViewsModelsPanel::ValidateWindow()
         Button_RemoveSelected->Enable(true);
     }
 
+    if (ListCtrlViews->GetSelectedItemCount() == 0)
+    {
+        ButtonClone->Enable(false);
+    }
+    else
+    {
+        ButtonClone->Enable(true);
+    }
     if (ListCtrlViews->GetSelectedItemCount() == 0 || _sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
     {
         Button_DeleteView->Enable(false);
+        ButtonRename->Enable(false);
     }
     else
     {
         Button_DeleteView->Enable(true);
+        ButtonRename->Enable(true);
     }
 }
 
@@ -936,19 +1003,141 @@ void ViewsModelsPanel::AddViewToList(const wxString& viewName, bool isChecked)
 void ViewsModelsPanel::OnButton_AddViewClick(wxCommandEvent& event)
 {
     if (_seqData->NumFrames() == 0) return;
-    wxTextEntryDialog dialog(this, _("Enter Name for View"), _("Create View"));
-    int DlgResult = dialog.ShowModal();;
+
+    std::string viewName = "";
+    int DlgResult = wxID_OK;
+
+    do
+    {
+        wxTextEntryDialog dialog(this, _("Enter Name for View"), _("Create View"));
+        DlgResult = dialog.ShowModal();
+        viewName = dialog.GetValue().Trim().ToStdString();
+    } while (DlgResult == wxID_OK && (viewName == "" || _sequenceViewManager->GetView(viewName) != nullptr));
+
     if (DlgResult != wxID_OK) return;
-    std::string viewName = dialog.GetValue().Trim().ToStdString();
 
     _sequenceViewManager->AddView(viewName);
-
     AddViewToList(viewName, true);
     _sequenceElements->AddView(viewName);
     SelectView(viewName);
     MarkViewsChanged();
     PopulateViews();
     ValidateWindow();
+}
+
+wxString ViewsModelsPanel::GetMasterViewModels() const
+{
+    wxArrayString models;
+    for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
+    {
+        Element* elem = _sequenceElements->GetElement(i);
+        if (elem->GetType() == ELEMENT_TYPE_MODEL)
+        {
+            models.push_back(elem->GetName());
+        }
+    }
+    return wxJoin(models, ',');
+}
+
+void ViewsModelsPanel::OnButtonCloneClick(wxCommandEvent& event)
+{
+    if (_seqData->NumFrames() == 0) return;
+
+    int itemIndex = ListCtrlViews->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    std::string oldName = _sequenceElements->GetViewName(itemIndex);
+
+    std::string newName = "Copy Of " + oldName;
+    int DlgResult = wxID_OK;
+
+    do
+    {
+        wxTextEntryDialog dialog(this, _("Enter Name for View"), _("Create View"), newName);
+        DlgResult = dialog.ShowModal();
+        newName = dialog.GetValue().Trim().ToStdString();
+    } while (DlgResult == wxID_OK && (newName == "" || _sequenceViewManager->GetView(newName) != nullptr));
+
+    if (DlgResult != wxID_OK) return;
+
+    SequenceView* view = _sequenceViewManager->AddView(newName);
+    if (itemIndex == MASTER_VIEW)
+    {
+        wxArrayString models;
+        for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
+        {
+            Element* elem = _sequenceElements->GetElement(i);
+            if (elem->GetType() == ELEMENT_TYPE_MODEL)
+            {
+                models.push_back(elem->GetName());
+            }
+        }
+        view->SetModels(wxJoin(models, ',').ToStdString());
+    }
+    else
+    {
+        view->SetModels(_sequenceViewManager->GetView(oldName)->GetModelsString());
+    }
+
+    AddViewToList(newName, true);
+    _sequenceElements->AddView(newName);
+
+    std::vector<std::string> timings;
+    for (int i = 0; i < _sequenceElements->GetElementCount(itemIndex); i++)
+    {
+        Element* elem = _sequenceElements->GetElement(i);
+        if (elem->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            timings.push_back(elem->GetName());
+        }
+    }
+    _sequenceElements->AddViewToTimings(timings, view->GetName());
+    _sequenceElements->SetTimingVisibility(view->GetName());
+
+    SelectView(newName);
+    MarkViewsChanged();
+    PopulateViews();
+    ValidateWindow();
+}
+
+void ViewsModelsPanel::OnListCtrlViewsItemDClick(wxListEvent& event)
+{
+    if (_seqData->NumFrames() == 0) return;
+    if (event.GetIndex() > 0)
+    {
+        RenameView(event.GetIndex());
+    }
+}
+
+void ViewsModelsPanel::RenameView(int itemIndex)
+{
+    std::string oldName = _sequenceElements->GetViewName(itemIndex);
+
+    std::string newName = oldName;
+    int DlgResult = wxID_OK;
+
+    do
+    {
+        wxTextEntryDialog dialog(this, _("Enter Name for View"), _("Create View"), newName);
+        DlgResult = dialog.ShowModal();
+        newName = dialog.GetValue().Trim().ToStdString();
+    } while (DlgResult == wxID_OK && (newName == "" || _sequenceViewManager->GetView(newName) != nullptr));
+
+    if (DlgResult != wxID_OK || oldName == newName) return;
+
+    _sequenceViewManager->RenameView(oldName, newName);
+
+    MarkViewsChanged();
+    PopulateViews();
+    ValidateWindow();
+}
+
+void ViewsModelsPanel::OnButtonRenameClick(wxCommandEvent& event)
+{
+    if (_seqData->NumFrames() == 0) return;
+
+    int itemIndex = ListCtrlViews->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    RenameView(itemIndex);
 }
 
 void ViewsModelsPanel::DeleteSelectedView()
@@ -1099,6 +1288,349 @@ void ViewsModelsPanel::OnListCtrlNonModelsKeyDown(wxListEvent& event)
 
 #pragma region Models
 
+void ViewsModelsPanel::OnListCtrlModelsItemRClick(wxListEvent& event)
+{
+    ListCtrlModels->SetFocus();
+
+    int items = ListCtrlModels->GetItemCount();
+    int models = items - GetTimingCount();
+    bool isGroup = false;
+    if (event.GetIndex() != -1)
+    {
+        isGroup = IsModelAGroup(ListCtrlModels->GetItemText(event.GetIndex(), 2).ToStdString());
+    }
+
+    wxMenu mnu;
+    mnu.Append(ID_MODELS_HIDEALL, "Hide All")->Enable(items > 0);
+    mnu.Append(ID_MODELS_SHOWALL, "Show All")->Enable(items > 0);
+    mnu.Append(ID_MODELS_SELECTALL, "Select All")->Enable(items >0);
+
+    wxMenu* mnuSort = new wxMenu();
+
+    mnuSort->Append(ID_MODELS_SORTBYNAME, "By Name")->Enable(models > 0);
+    mnuSort->Append(ID_MODELS_SORTBYNAMEGM, "By Name But Groups At Top")->Enable(models > 0);
+    mnuSort->Append(ID_MODELS_SORTBYTYPE, "By Type")->Enable(models > 0);
+    mnuSort->Append(ID_MODELS_SORTMODELSUNDERTHISGROUP, "Models Under This Group")->Enable(isGroup);
+    mnuSort->Append(ID_MODELS_BUBBLEUPGROUPS, "Bubble Up Groups")->Enable(models > 0);
+
+    mnuSort->Connect(wxEVT_MENU, (wxObjectEventFunction)&ViewsModelsPanel::OnModelsPopup, nullptr, this);
+
+    mnu.Append(ID_MODELS_SORT, "Sort", mnuSort, "");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&ViewsModelsPanel::OnModelsPopup, nullptr, this);
+
+    PopupMenu(&mnu);
+    ListCtrlModels->SetFocus();
+}
+
+void ViewsModelsPanel::OnModelsPopup(wxCommandEvent &event)
+{
+    int id = event.GetId();
+    int item = ListCtrlModels->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    if (id == ID_MODELS_HIDEALL)
+    {
+        ShowAllModels(false);
+    }
+    else if (id == ID_MODELS_SHOWALL)
+    {
+        ShowAllModels(true);
+    }
+    else if (id == ID_MODELS_SELECTALL)
+    {
+        SelectAllModels();
+    }
+    else if (id == ID_MODELS_SORTBYNAME)
+    {
+        SortModelsByName();
+    }
+    else if (id == ID_MODELS_SORTBYNAMEGM)
+    {
+        SortModelsByNameGM();
+    }
+    else if (id == ID_MODELS_SORTBYTYPE)
+    {
+        SortModelsByType();
+    }
+    else if (id == ID_MODELS_SORTMODELSUNDERTHISGROUP)
+    {
+        SortModelsUnderThisGroup(item);
+    }
+    else if (id == ID_MODELS_BUBBLEUPGROUPS)
+    {
+        SortModelsBubbleUpGroups();
+    }
+    ValidateWindow();
+}
+
+void ViewsModelsPanel::ShowAllModels(bool show)
+{
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        ListCtrlModels->SetChecked(i, show);
+        ((Element*)ListCtrlModels->GetItemData(i))->SetVisible(show);
+    }
+    _xlFrame->DoForceSequencerRefresh();
+}
+
+void ViewsModelsPanel::SelectAllModels()
+{
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        SelectItem(ListCtrlModels, i, true);
+    }
+}
+
+void ViewsModelsPanel::SortModelsByName()
+{
+    SequenceView* view = _sequenceViewManager->GetSelectedView();
+    wxString models;
+    if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
+    {
+        models = GetMasterViewModels();
+    }
+    else
+    {
+        models = view->GetModelsString();
+    }
+
+    wxArrayString modelArray = wxSplit(models, ',');
+    modelArray.Sort();
+
+    if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
+    {
+        SetMasterViewModels(modelArray);
+    }
+    else
+    {
+        view->SetModels(wxJoin(modelArray, ',').ToStdString());
+    }
+
+    MarkViewsChanged();
+    PopulateModels();
+    _xlFrame->DoForceSequencerRefresh();
+}
+
+wxArrayString ViewsModelsPanel::MergeStringArrays(const wxArrayString& arr1, const wxArrayString& arr2)
+{
+    wxArrayString res = arr1;
+
+    for (auto it = arr2.begin(); it != arr2.end(); ++it)
+    {
+        res.push_back(*it);
+    }
+
+    return res;
+}
+
+void ViewsModelsPanel::SetMasterViewModels(const wxArrayString& models)
+{
+    for (int i = 0; i < models.size(); ++i)
+    {
+        _sequenceElements->MoveSequenceElement(_sequenceElements->GetElementIndex(models[i].ToStdString(), MASTER_VIEW), i+GetTimingCount(), MASTER_VIEW);
+    }
+}
+
+void ViewsModelsPanel::SortModelsByNameGM()
+{
+    SequenceView* view = _sequenceViewManager->GetSelectedView();
+
+    wxString models;    
+    if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
+    {
+        models = GetMasterViewModels();
+    }
+    else
+    {
+        models = view->GetModelsString();
+    }
+
+    wxArrayString modelArray = wxSplit(models, ',');
+
+    wxArrayString groups;
+    wxArrayString modelsOnly;
+
+    for (auto it = modelArray.begin(); it != modelArray.end(); ++it)
+    {
+        if (IsModelAGroup(it->ToStdString()))
+        {
+            groups.push_back(*it);
+        }
+        else
+        {
+            modelsOnly.push_back(*it);
+        }
+    }
+
+    groups.Sort();
+    modelsOnly.Sort();
+
+    modelArray = MergeStringArrays(groups, modelsOnly);
+
+    if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
+    {
+        SetMasterViewModels(modelArray);
+    }
+    else
+    {
+        view->SetModels(wxJoin(modelArray, ',').ToStdString());
+    }
+
+    MarkViewsChanged();
+    PopulateModels();
+    _xlFrame->DoForceSequencerRefresh();
+}
+
+void ViewsModelsPanel::SortModelsByType()
+{
+    SequenceView* view = _sequenceViewManager->GetSelectedView();
+    wxString models;
+    if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
+    {
+        models = GetMasterViewModels();
+    }
+    else
+    {
+        models = view->GetModelsString();
+    }
+
+    wxArrayString modelArray = wxSplit(models, ',');
+
+    wxArrayString groups;
+    std::map<std::string, wxArrayString> typeModels;
+
+    for (auto it = modelArray.begin(); it != modelArray.end(); ++it)
+    {
+        if (IsModelAGroup(it->ToStdString()))
+        {
+            groups.push_back(*it);
+        }
+        else
+        {
+            std::string type = GetModelType(it->ToStdString());
+            if (typeModels.find(type) == typeModels.end())
+            {
+                wxArrayString arr;
+                arr.push_back(*it);
+                typeModels[type] = arr;
+            }
+            else
+            {
+                typeModels[type].push_back(*it);
+            }
+        }
+    }
+
+    modelArray = groups;
+
+    for (auto it = typeModels.begin(); it != typeModels.end(); ++it)
+    {
+        modelArray = MergeStringArrays(modelArray, it->second);
+    }
+
+    if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
+    {
+        SetMasterViewModels(modelArray);
+    }
+    else
+    {
+        view->SetModels(wxJoin(modelArray, ',').ToStdString());
+    }
+
+    MarkViewsChanged();
+    PopulateModels();
+    _xlFrame->DoForceSequencerRefresh();
+}
+
+void ViewsModelsPanel::SortModelsUnderThisGroup(int groupIndex)
+{
+    SequenceView* view = _sequenceViewManager->GetSelectedView();
+    wxString models;
+    if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
+    {
+        models = GetMasterViewModels();
+    }
+    else
+    {
+        models = view->GetModelsString();
+    }
+
+    wxArrayString modelArray = wxSplit(models, ',');
+
+    std::string group = modelArray[groupIndex - GetTimingCount()].ToStdString();
+
+    wxArrayString groupModels = GetGroupModels(group);
+
+    for (auto it = groupModels.rbegin(); it != groupModels.rend(); ++it)
+    {
+        if (std::find(modelArray.begin(), modelArray.end(), *it) != modelArray.end())
+        {
+            modelArray.erase(std::find(modelArray.begin(), modelArray.end(), *it));
+            auto groupit = std::find(modelArray.begin(), modelArray.end(), group);
+            ++groupit;
+            modelArray.insert(groupit, *it);
+        }
+    }
+
+    if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
+    {
+        SetMasterViewModels(modelArray);
+    }
+    else
+    {
+        view->SetModels(wxJoin(modelArray, ',').ToStdString());
+    }
+
+    MarkViewsChanged();
+    PopulateModels();
+    _xlFrame->DoForceSequencerRefresh();
+}
+
+void ViewsModelsPanel::SortModelsBubbleUpGroups()
+{
+    SequenceView* view = _sequenceViewManager->GetSelectedView();
+    wxString models;
+    if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
+    {
+        models = GetMasterViewModels();
+    }
+    else
+    {
+        models = view->GetModelsString();
+    }
+
+    wxArrayString modelArray = wxSplit(models, ',');
+
+    wxArrayString groups;
+    wxArrayString modelsOnly;
+
+    for (auto it = modelArray.begin(); it != modelArray.end(); ++it)
+    {
+        if (IsModelAGroup(it->ToStdString()))
+        {
+            groups.push_back(*it);
+        }
+        else
+        {
+            modelsOnly.push_back(*it);
+        }
+    }
+
+    modelArray = MergeStringArrays(groups, modelsOnly);
+
+    if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
+    {
+        SetMasterViewModels(modelArray);
+    }
+    else
+    {
+        view->SetModels(wxJoin(modelArray, ',').ToStdString());
+    }
+
+    MarkViewsChanged();
+    PopulateModels();
+    _xlFrame->DoForceSequencerRefresh();
+}
+
 int ViewsModelsPanel::GetTimingCount()
 {
     int timings = 0;
@@ -1168,9 +1700,12 @@ void ViewsModelsPanel::OnListCtrlViewsKeyDown(wxListEvent& event)
 
 wxDragResult MyTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
 {
+    static int MINSCROLLDELAY = 10;
+    static int STARTSCROLLDELAY = 300;
+    static int scrollDelay = STARTSCROLLDELAY;
     static wxLongLong lastTime = wxGetUTCTimeMillis();
 
-    if (wxGetUTCTimeMillis() - lastTime < 300)
+    if (wxGetUTCTimeMillis() - lastTime < scrollDelay)
     {
         // too soon to scroll again
     }
@@ -1189,6 +1724,8 @@ wxDragResult MyTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
                 {
                     lastTime = wxGetUTCTimeMillis();
                     _list->EnsureVisible(_list->GetTopItem()-1);
+                    scrollDelay = scrollDelay / 2;
+                    if (scrollDelay < MINSCROLLDELAY) scrollDelay = MINSCROLLDELAY;
                 }
             }
             else if (y > _list->GetRect().GetHeight() - itemSize)
@@ -1200,7 +1737,13 @@ wxDragResult MyTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
                 {
                     _list->EnsureVisible(lastItem+1);
                     lastTime = wxGetUTCTimeMillis();
+                    scrollDelay = scrollDelay / 2;
+                    if (scrollDelay < MINSCROLLDELAY) scrollDelay = MINSCROLLDELAY;
                 }
+            }
+            else
+            {
+                scrollDelay = STARTSCROLLDELAY;
             }
         }
     }
@@ -1304,7 +1847,7 @@ void ViewsModelsPanel::OnDrop(wxCommandEvent& event)
                     }
 
                     _sequenceElements->MoveSequenceElement(from, to, _sequenceViewManager->GetSelectedViewIndex());
-                    DeselectItem(ListCtrlModels, i);
+                    SelectItem(ListCtrlModels, i, false);
 
                     selcnt++;
                 }
@@ -1329,3 +1872,4 @@ void ViewsModelsPanel::OnDrop(wxCommandEvent& event)
 }
 
 #pragma endregion Drag and Drop
+

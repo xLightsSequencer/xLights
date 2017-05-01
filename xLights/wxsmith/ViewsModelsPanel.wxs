@@ -122,6 +122,7 @@
 																	<minsize>100,50d</minsize>
 																	<style>wxLC_REPORT|wxLC_SINGLE_SEL</style>
 																	<handler function="OnListCtrlViewsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+																	<handler function="OnListCtrlViewsItemDClick" entry="EVT_LIST_ITEM_ACTIVATED" />
 																	<handler function="OnListCtrlViewsKeyDown" entry="EVT_LIST_KEY_DOWN" />
 																</object>
 																<flag>wxALL|wxEXPAND</flag>
@@ -153,6 +154,24 @@
 																<border>2</border>
 																<option>1</option>
 															</object>
+															<object class="sizeritem">
+																<object class="wxButton" name="ID_BUTTON7" variable="ButtonRename" member="yes">
+																	<label>Rename</label>
+																	<handler function="OnButtonRenameClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>2</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxButton" name="ID_BUTTON8" variable="ButtonClone" member="yes">
+																	<label>Clone</label>
+																	<handler function="OnButtonCloneClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>2</border>
+																<option>1</option>
+															</object>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<option>1</option>
@@ -179,6 +198,7 @@
 															<style>wxLC_REPORT</style>
 															<handler function="OnListView_ViewItemsBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 															<handler function="OnListView_ViewItemsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+															<handler function="OnListCtrlModelsItemRClick" entry="EVT_LIST_ITEM_RIGHT_CLICK" />
 															<handler function="OnListView_ViewItemsKeyDown" entry="EVT_LIST_KEY_DOWN" />
 														</object>
 														<flag>wxALL|wxEXPAND</flag>

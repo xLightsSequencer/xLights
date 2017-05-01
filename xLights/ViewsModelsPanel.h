@@ -71,9 +71,22 @@ class ViewsModelsPanel: public wxPanel
     void DeleteSelectedView();
     int GetTimingCount();
     static bool IsItemSelected(wxListCtrl* ctrl, int item);
-    static bool DeselectItem(wxListCtrl* ctrl, int item);
+    static bool SelectItem(wxListCtrl* ctrl, int item, bool select);
+    void ShowAllModels(bool show);
+    void SelectAllModels();
+    void SortModelsByName();
+    void SortModelsByNameGM();
+    void SortModelsByType();
+    void SortModelsUnderThisGroup(int groupIndex);
+    void SortModelsBubbleUpGroups();
+    void RenameView(int itemIndex);
+    wxArrayString MergeStringArrays(const wxArrayString& arr1, const wxArrayString& arr2);
+    void SetMasterViewModels(const wxArrayString& models);
+    std::string GetModelType(const std::string& modelname) const;
+    wxArrayString GetGroupModels(const std::string& group) const;
+    wxString GetMasterViewModels() const;
 
-	public:
+    public:
 
 		ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ViewsModelsPanel();
@@ -100,6 +113,8 @@ class ViewsModelsPanel: public wxPanel
 		wxCheckedListCtrl* ListCtrlViews;
 		wxButton* Button_RemoveAll;
 		wxScrolledWindow* ScrolledWindowViewsModels;
+		wxButton* ButtonClone;
+		wxButton* ButtonRename;
 		wxButton* Button_RemoveSelected;
 		//*)
 
@@ -116,11 +131,23 @@ class ViewsModelsPanel: public wxPanel
 		static const long ID_LISTCTRL_VIEWS;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
+		static const long ID_BUTTON7;
+		static const long ID_BUTTON8;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTCTRL_MODELS;
 		static const long ID_SCROLLEDWINDOW1;
 		static const long ID_PANEL1;
 		//*)
+
+        static const long ViewsModelsPanel::ID_MODELS_HIDEALL;
+        static const long ViewsModelsPanel::ID_MODELS_SHOWALL;
+        static const long ViewsModelsPanel::ID_MODELS_SELECTALL;
+        static const long ViewsModelsPanel::ID_MODELS_SORT;
+        static const long ViewsModelsPanel::ID_MODELS_SORTBYNAME;
+        static const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGM;
+        static const long ViewsModelsPanel::ID_MODELS_SORTBYTYPE;
+        static const long ViewsModelsPanel::ID_MODELS_SORTMODELSUNDERTHISGROUP;
+        static const long ViewsModelsPanel::ID_MODELS_BUBBLEUPGROUPS;
 
 	private:
 
@@ -141,9 +168,15 @@ class ViewsModelsPanel: public wxPanel
 		void OnListCtrlNonModelsBeginDrag(wxListEvent& event);
 		void OnListCtrlNonModelsKeyDown(wxListEvent& event);
 		void OnListCtrlViewsKeyDown(wxListEvent& event);
+		void OnListCtrlModelsItemRClick(wxListEvent& event);
+		void OnButtonCloneClick(wxCommandEvent& event);
+		void OnButtonRenameClick(wxCommandEvent& event);
+		void OnListCtrlViewsBeginDrag(wxListEvent& event);
+		void OnListCtrlViewsItemDClick(wxListEvent& event);
 		//*)
 
         void OnDrop(wxCommandEvent& event);
+        void OnModelsPopup(wxCommandEvent &event);
 
 		DECLARE_EVENT_TABLE()
 };

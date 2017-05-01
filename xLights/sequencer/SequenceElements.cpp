@@ -318,6 +318,20 @@ std::string SequenceElements::GetViewModels(const std::string &viewName) const
     return result;
 }
 
+int SequenceElements::GetElementIndex(const std::string &name, int view)
+{
+    for (size_t i = 0; i<mAllViews[view].size(); ++i)
+    {
+        Element *el = mAllViews[view][i];
+        if (name == el->GetFullName())
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 Element* SequenceElements::GetElement(const std::string &name)
 {
     for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
@@ -334,8 +348,7 @@ Element* SequenceElements::GetElement(const std::string &name)
                     return sme;
                 }
             }
-        }
-        
+        }        
     }
     return NULL;
 }
