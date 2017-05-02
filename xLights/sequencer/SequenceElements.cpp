@@ -274,7 +274,10 @@ bool SequenceElements::TimingIsPartOfView(TimingElement* timing, int view)
 
 std::string SequenceElements::GetViewName(int which_view) const
 {
-	return _viewsManager->GetView(which_view)->GetName();
+    if (_viewsManager->GetView(which_view) != nullptr)
+	    return _viewsManager->GetView(which_view)->GetName();
+
+    return "";
 }
 
 void SequenceElements::SetViewsManager(SequenceViewManager* viewsManager)
@@ -315,6 +318,20 @@ std::string SequenceElements::GetViewModels(const std::string &viewName) const
     return result;
 }
 
+int SequenceElements::GetElementIndex(const std::string &name, int view)
+{
+    for (size_t i = 0; i<mAllViews[view].size(); ++i)
+    {
+        Element *el = mAllViews[view][i];
+        if (name == el->GetFullName())
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 Element* SequenceElements::GetElement(const std::string &name)
 {
     for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
@@ -331,8 +348,7 @@ Element* SequenceElements::GetElement(const std::string &name)
                     return sme;
                 }
             }
-        }
-        
+        }        
     }
     return NULL;
 }
@@ -421,6 +437,36 @@ void SequenceElements::DeleteTimingFromView(const std::string &name, int view)
             all_views.erase(all_views.begin() + found);
             views = wxJoin(all_views, ',');
             elem->SetViews(views);
+        }
+    }
+}
+
+void SequenceElements::DeleteTimingsFromView(int view)
+{
+    std::string viewName = GetViewName(view);
+    for (size_t i = 0; i < mAllViews[view].size(); i++)
+    {
+        Element *el = mAllViews[view][i];
+        if (el->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            TimingElement* te = dynamic_cast<TimingElement*>(el);
+            std::string views = te->GetViews();
+            wxArrayString all_views = wxSplit(views, ',');
+            int found = -1;
+            for (size_t j = 0; j < all_views.size(); j++)
+            {
+                if (all_views[j] == viewName)
+                {
+                    found = j;
+                    break;
+                }
+            }
+            if (found != -1)
+            {
+                all_views.erase(all_views.begin() + found);
+                views = wxJoin(all_views, ',');
+                te->SetViews(views);
+            }
         }
     }
 }
@@ -1393,7 +1439,7 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
 {
     IncrementChangeCount(nullptr);
 
-    if(index<mAllViews[view].size() && dest<mAllViews[view].size())
+    if(index<mAllViews[view].size() > 0 && dest<mAllViews[view].size())
     {
         Element* e = mAllViews[view][index];
         mAllViews[view].erase(mAllViews[view].begin()+index);
@@ -1406,6 +1452,13 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
             mAllViews[view].insert(mAllViews[view].begin()+(dest-1),e);
         }
     }
+    else if (index<mAllViews[view].size() > 0)
+    {
+        Element* e = mAllViews[view][index];
+        mAllViews[view].erase(mAllViews[view].begin() + index);
+        mAllViews[view].push_back(e);
+    }
+
     if (view == MASTER_VIEW) {
         mMasterViewChangeCount++;
     }

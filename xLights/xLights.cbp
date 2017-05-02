@@ -519,8 +519,6 @@
 		<Unit filename="DimmingCurve.h" />
 		<Unit filename="DimmingCurvePanel.cpp" />
 		<Unit filename="DimmingCurvePanel.h" />
-		<Unit filename="DisplayElementsPanel.cpp" />
-		<Unit filename="DisplayElementsPanel.h" />
 		<Unit filename="DrawGLUtils.cpp" />
 		<Unit filename="DrawGLUtils.h" />
 		<Unit filename="DrawGLUtils21.cpp" />
@@ -586,8 +584,6 @@
 		<Unit filename="ModelPreview.h" />
 		<Unit filename="ModelStateDialog.cpp" />
 		<Unit filename="ModelStateDialog.h" />
-		<Unit filename="ModelViewSelector.cpp" />
-		<Unit filename="ModelViewSelector.h" />
 		<Unit filename="MusicXML.cpp" />
 		<Unit filename="MusicXML.h" />
 		<Unit filename="NetInfo.h" />
@@ -683,6 +679,8 @@
 		<Unit filename="VideoReader.h" />
 		<Unit filename="ViewsDialog.cpp" />
 		<Unit filename="ViewsDialog.h" />
+		<Unit filename="ViewsModelsPanel.cpp" />
+		<Unit filename="ViewsModelsPanel.h" />
 		<Unit filename="VsaImportDialog.cpp" />
 		<Unit filename="VsaImportDialog.h" />
 		<Unit filename="WiringDialog.cpp" />
@@ -1093,7 +1091,6 @@
 		<Unit filename="wxsmith/CustomTimingDialog.wxs" />
 		<Unit filename="wxsmith/DDPDialog.wxs" />
 		<Unit filename="wxsmith/DMXPanel.wxs" />
-		<Unit filename="wxsmith/DisplayElementsPanel.wxs" />
 		<Unit filename="wxsmith/EffectAssist.wxs" />
 		<Unit filename="wxsmith/EffectIconPanel.wxs" />
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
@@ -1124,7 +1121,6 @@
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="wxsmith/ModelGroupPanel.wxs" />
 		<Unit filename="wxsmith/ModelStateDialog.wxs" />
-		<Unit filename="wxsmith/ModelViewSelector.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
 		<Unit filename="wxsmith/MusicPanel.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
@@ -1177,6 +1173,7 @@
 		<Unit filename="wxsmith/ValueCurveDialog.wxs" />
 		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
+		<Unit filename="wxsmith/ViewsModelsPanel.wxs" />
 		<Unit filename="wxsmith/VsaImportDialog.wxs" />
 		<Unit filename="wxsmith/WavePanel.wxs" />
 		<Unit filename="wxsmith/WiringDialog.wxs" />
@@ -1236,8 +1233,6 @@
 					<wxDialog wxs="wxsmith/SeqSettingsDialog.wxs" src="SeqSettingsDialog.cpp" hdr="SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LyricsDialog.wxs" src="LyricsDialog.cpp" hdr="LyricsDialog.h" fwddecl="0" i18n="1" name="LyricsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LorConvertDialog.wxs" src="LorConvertDialog.cpp" hdr="LorConvertDialog.h" fwddecl="0" i18n="1" name="LorConvertDialog" language="CPP" />
-					<wxPanel wxs="wxsmith/DisplayElementsPanel.wxs" src="DisplayElementsPanel.cpp" hdr="DisplayElementsPanel.h" fwddecl="0" i18n="1" name="DisplayElementsPanel" language="CPP" />
-					<wxDialog wxs="wxsmith/ModelViewSelector.wxs" src="ModelViewSelector.cpp" hdr="ModelViewSelector.h" fwddecl="0" i18n="1" name="ModelViewSelector" language="CPP" />
 					<wxDialog wxs="wxsmith/PixelAppearanceDlg.wxs" src="PixelAppearanceDlg.cpp" hdr="PixelAppearanceDlg.h" fwddecl="0" i18n="1" name="PixelAppearanceDlg" language="CPP" />
 					<wxDialog wxs="wxsmith/LMSImportChannelMapDialog.wxs" src="LMSImportChannelMapDialog.cpp" hdr="LMSImportChannelMapDialog.h" fwddecl="0" i18n="1" name="LMSImportChannelMapDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/xLightsImportChannelMapDialog.wxs" src="xLightsImportChannelMapDialog.cpp" hdr="xLightsImportChannelMapDialog.h" fwddecl="0" i18n="1" name="xLightsImportChannelMapDialog" language="CPP" />
@@ -1327,6 +1322,7 @@
 					<wxDialog wxs="wxsmith/IPEntryDialog.wxs" src="IPEntryDialog.cpp" hdr="IPEntryDialog.h" fwddecl="0" i18n="1" name="IPEntryDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CustomTimingDialog.wxs" src="CustomTimingDialog.cpp" hdr="CustomTimingDialog.h" fwddecl="0" i18n="1" name="CustomTimingDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SubModelGenerateDialog.wxs" src="SubModelGenerateDialog.cpp" hdr="SubModelGenerateDialog.h" fwddecl="0" i18n="1" name="SubModelGenerateDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/ViewsModelsPanel.wxs" src="ViewsModelsPanel.cpp" hdr="ViewsModelsPanel.h" fwddecl="0" i18n="1" name="ViewsModelsPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

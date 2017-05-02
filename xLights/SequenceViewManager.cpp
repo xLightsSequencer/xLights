@@ -39,23 +39,41 @@ void SequenceView::SetModels(const std::string& models)
 	}
 }
 
-void SequenceView::AddModel(const std::string& model)
+void SequenceView::AddModel(const std::string& model, int pos)
 {
 	if (std::find(_modelNames.begin(), _modelNames.end(), model) == _modelNames.end())
 	{
-		_modelNames.push_back(model);
+        if (pos == -1)
+        {
+            _modelNames.push_back(model);
+        }
+        else
+        {
+            auto it = _modelNames.begin();
+            for (int i = 0; i < pos && it != _modelNames.end(); ++i)
+            {
+                ++it;
+            }
+            _modelNames.insert(it, model);
+        }
 	}
 }
 
-void SequenceView::AddModel(const Model* model)
+void SequenceView::AddModel(const Model* model, int pos)
 {
-	AddModel(model->GetName());
+	AddModel(model->GetName(), pos);
 }
 
 void SequenceView::MoveModelAfter(const std::string& model, const std::string& after)
 {
 	RemoveModel(model);
 	InsertModelAfter(model, after);
+}
+
+void SequenceView::MoveModelBefore(const std::string& model, const std::string& before)
+{
+    RemoveModel(model);
+    InsertModelBefore(model, before);
 }
 
 void SequenceView::InsertModelAfter(const std::string& model, const std::string& after)
@@ -73,7 +91,7 @@ void SequenceView::InsertModelAfter(const std::string& model, const std::string&
 	{
 		for (auto it = _modelNames.begin(); it != _modelNames.end(); ++it)
 		{
-			if (*it == model)
+			if (*it == after)
 			{
 				++it;
 				_modelNames.insert(it, model);
@@ -84,6 +102,33 @@ void SequenceView::InsertModelAfter(const std::string& model, const std::string&
 		// didnt find after so just add it to the end
 		AddModel(model);
 	}
+}
+
+void SequenceView::InsertModelBefore(const std::string& model, const std::string& before)
+{
+    if (ContainsModel(model))
+    {
+        RemoveModel(model);
+    }
+
+    if (before == "")
+    {
+        _modelNames.push_back(model);
+    }
+    else
+    {
+        for (auto it = _modelNames.begin(); it != _modelNames.end(); ++it)
+        {
+            if (*it == before)
+            {
+                _modelNames.insert(it, model);
+                return;
+            }
+        }
+
+        // didnt find after so just add it to the end
+        AddModel(model);
+    }
 }
 
 void SequenceView::RemoveModel(const std::string& model)

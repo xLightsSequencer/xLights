@@ -929,7 +929,7 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDia
         wxString media_filename;
         ConvertParameters conv_params(full_name.GetFullPath(),                                  // input filename
                                       new_data_layer->GetSequenceData(),                        // sequence data object
-                                      xLightsParent->GetOutputManager(),                              // global network info
+                                      xLightsParent->GetOutputManager(),                        // global network info
                                       ConvertParameters::READ_MODE_IMPORT,                      // file read mode
                                       xLightsParent,                                            // xLights main frame
                                       nullptr,
@@ -949,37 +949,37 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDia
             conv_params.channels_off_at_end = lor_dialog->CheckBoxOffAtEnd->IsChecked();
             conv_params.map_empty_channels = lor_dialog->CheckBoxMapEmptyChannels->IsChecked();
             conv_params.map_no_network_channels = lor_dialog->MapLORChannelsWithNoNetwork->IsChecked();
-            new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end | (conv_params.map_empty_channels << 1) | (conv_params.map_no_network_channels << 2) );
+            new_data_layer->SetLORConvertParams( (int)conv_params.channels_off_at_end | ((int)conv_params.map_empty_channels << 1) | ((int)conv_params.map_no_network_channels << 2) );
             FileConverter::ReadLorFile(conv_params);
         }
         else if( full_name.GetExt() == "xseq" )
         {
             conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
-            new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
+            new_data_layer->SetLORConvertParams((int)conv_params.channels_off_at_end);
             FileConverter::ReadXlightsFile(conv_params);
         }
         else if( full_name.GetExt() == "hlsIdata" )
         {
             conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
-            new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
+            new_data_layer->SetLORConvertParams((int)conv_params.channels_off_at_end);
             FileConverter::ReadHLSFile(conv_params);
         }
         else if( full_name.GetExt() == "vix" )
         {
             conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
-            new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
+            new_data_layer->SetLORConvertParams((int)conv_params.channels_off_at_end);
             FileConverter::ReadVixFile(conv_params);
         }
         else if( full_name.GetExt() == "gled" )
         {
             conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
-            new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
+            new_data_layer->SetLORConvertParams((int)conv_params.channels_off_at_end);
             FileConverter::ReadGlediatorFile(conv_params);
         }
         else if( full_name.GetExt() == "seq" )
         {
             conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
-            new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
+            new_data_layer->SetLORConvertParams((int)conv_params.channels_off_at_end);
             FileConverter::ReadConductorFile(conv_params);
         }
         else if( full_name.GetExt() == "fseq")
@@ -995,7 +995,7 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDia
         }
         if( full_name.GetExt() != "iseq" )
         {
-            FileConverter::WriteFalconPiFile( conv_params );
+            FileConverter::WriteFalconPiFile(conv_params);
         }
         TreeCtrl_Data_Layers->SetItemText(branch_data, "Data: " + data_file.GetFullPath());
         TreeCtrl_Data_Layers->SetItemText(branch_num_channels, wxString::Format("Number of Channels: %d", new_data_layer->GetNumChannels()));

@@ -24,15 +24,17 @@ public:
 	std::list<std::string> GetModels() const { return _modelNames; }
 	std::string GetName() const { return _name; }
 	void SetName(const std::string& name) { _name = name; }
-	void AddModel(const std::string& model);
-	void AddModel(const Model* model);
+	void AddModel(const std::string& model, int pos = -1);
+	void AddModel(const Model* model, int pos = -1);
 	void RemoveModel(const std::string& model);
 	void RemoveModel(const Model* model);
 	void RenameModel(const std::string& oldname, const std::string& newname);
 	bool ContainsModel(const std::string& model);
 	std::string GetModelsString() const;
-	void MoveModelAfter(const std::string& model, const std::string& after);
-	void InsertModelAfter(const std::string& model, const std::string& after);
+    void MoveModelAfter(const std::string& model, const std::string& after);
+    void MoveModelBefore(const std::string& model, const std::string& before);
+    void InsertModelAfter(const std::string& model, const std::string& after);
+    void InsertModelBefore(const std::string& model, const std::string& before);
 	void SetModels(const std::string& models);
 };
 

@@ -64,6 +64,7 @@ class SequenceElements : public ChangeListener
         Element* AddElement(const std::string &name, const std::string &type,bool visible,bool collapsed,bool active, bool selected);
         Element* AddElement(int index, const std::string &name, const std::string &type,bool visible,bool collapsed,bool active, bool selected);
         Element* GetElement(const std::string &name);
+        int GetElementIndex(const std::string &name, int view = MASTER_VIEW);
         Element* GetElement(size_t index, int view = MASTER_VIEW);
         size_t GetElementCount(int view = MASTER_VIEW);
         Row_Information_Struct* GetVisibleRowInformation(size_t index);
@@ -97,6 +98,7 @@ class SequenceElements : public ChangeListener
         void DeleteElement(const std::string &name);
         void DeleteElementFromView(const std::string &name, int view);
         void DeleteTimingFromView(const std::string &name, int view);
+        void DeleteTimingsFromView(int view);
 
         void PopulateRowInformation();
         void PopulateVisibleRowInformation();
