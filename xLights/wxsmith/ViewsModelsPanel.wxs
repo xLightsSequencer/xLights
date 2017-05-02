@@ -4,18 +4,21 @@
 		<id_arg>0</id_arg>
 		<handler function="OnLeftUp" entry="EVT_LEFT_UP" />
 		<handler function="OnResize" entry="EVT_SIZE" />
-		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+		<object class="wxFlexGridSizer" variable="MainSizer" member="yes">
 			<cols>1</cols>
+			<rows>1</rows>
 			<growablecols>0</growablecols>
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL1" variable="Panel_Sizer" member="yes">
 					<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 						<cols>1</cols>
+						<rows>1</rows>
+						<growablecols>0</growablecols>
 						<growablerows>0</growablerows>
 						<object class="sizeritem">
 							<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="ScrolledWindowViewsModels" member="yes">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
+								<object class="wxFlexGridSizer" variable="ScrollWindowSizer" member="yes">
 									<cols>3</cols>
 									<growablecols>2</growablecols>
 									<growablerows>0</growablerows>
@@ -33,13 +36,13 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListCtrlNonModels" member="yes">
+													<minsize>40,-1</minsize>
 													<style>wxLC_REPORT</style>
 													<handler function="OnListCtrlNonModelsBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 													<handler function="OnListCtrlNonModelsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
 													<handler function="OnListCtrlNonModelsKeyDown" entry="EVT_LIST_KEY_DOWN" />
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<minsize>130,-1</minsize>
 												<option>1</option>
 											</object>
 										</object>
@@ -112,14 +115,13 @@
 															<object class="sizeritem">
 																<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 																	<label>View:</label>
-																	<size>44,16</size>
 																</object>
 																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
 																<object class="wxListCtrl" name="ID_LISTCTRL_VIEWS" subclass="wxCheckedListCtrl" variable="ListCtrlViews" member="yes">
-																	<minsize>100,50d</minsize>
+																	<minsize>40,-1d</minsize>
 																	<style>wxLC_REPORT|wxLC_SINGLE_SEL</style>
 																	<handler function="OnListCtrlViewsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
 																	<handler function="OnListCtrlViewsItemDClick" entry="EVT_LIST_ITEM_ACTIVATED" />
@@ -194,7 +196,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxListCtrl" name="ID_LISTCTRL_MODELS" subclass="wxCheckedListCtrl" variable="ListCtrlModels" member="yes">
-															<minsize>75,85d</minsize>
+															<minsize>60,-1d</minsize>
 															<style>wxLC_REPORT</style>
 															<handler function="OnListView_ViewItemsBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 															<handler function="OnListView_ViewItemsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
@@ -215,14 +217,13 @@
 									</object>
 								</object>
 							</object>
-							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<flag>wxALL|wxEXPAND</flag>
 							<border>5</border>
 							<option>1</option>
 						</object>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<flag>wxEXPAND</flag>
 				<option>1</option>
 			</object>
 		</object>

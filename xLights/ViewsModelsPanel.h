@@ -32,7 +32,7 @@ public:
 
     virtual bool OnDropText(wxCoord x, wxCoord y,
         const wxString& data) override;
-    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def);
+    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
 
     wxWindow *_owner;
     wxListCtrl* _list;
@@ -110,6 +110,7 @@ class ViewsModelsPanel: public wxPanel
 		//(*Declarations(ViewsModelsPanel)
 		wxButton* Button_AddAll;
 		wxListCtrl* ListCtrlNonModels;
+		wxFlexGridSizer* MainSizer;
 		wxButton* Button_AddSelected;
 		wxStaticText* StaticText2;
 		wxPanel* Panel_Sizer;
@@ -117,6 +118,7 @@ class ViewsModelsPanel: public wxPanel
 		wxCheckedListCtrl* ListCtrlModels;
 		wxStaticText* StaticText3;
 		wxButton* Button_AddView;
+		wxFlexGridSizer* ScrollWindowSizer;
 		wxButton* Button_DeleteView;
 		wxCheckedListCtrl* ListCtrlViews;
 		wxButton* Button_RemoveAll;

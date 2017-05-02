@@ -304,8 +304,6 @@
 		67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B797171A5AE343008D5921 /* ColorPanel.cpp */; };
 		67B7971B1A5AE343008D5921 /* TimingPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B797181A5AE343008D5921 /* TimingPanel.cpp */; };
 		67B7971C1A5AE343008D5921 /* TopEffectsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */; };
-		67B845061A9C0E7500564051 /* DisplayElementsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845001A9C0E7500564051 /* DisplayElementsPanel.cpp */; };
-		67B845071A9C0E7500564051 /* ModelViewSelector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845021A9C0E7500564051 /* ModelViewSelector.cpp */; };
 		67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */; };
 		67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */; };
 		67BBF2A91E0C147D0054D264 /* BufferSizeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BBF2A71E0C147D0054D264 /* BufferSizeDialog.cpp */; };
@@ -518,6 +516,7 @@
 		67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6151A097A35003E978F /* XlightsDrawable.cpp */; };
 		67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */; };
 		67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FA9FD21C67837500FED13B /* AudioManager.cpp */; };
+		67FE98551EB8C9BF00C5E804 /* ViewsModelsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */; };
 		67FF398D1D57F54D00290DB4 /* Shapes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398B1D57F54D00290DB4 /* Shapes.cpp */; };
 		67FF398F1D57F5C000290DB4 /* MusicXML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398E1D57F5C000290DB4 /* MusicXML.cpp */; };
 		67FF39931D57F5D000290DB4 /* NoteImportDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF39911D57F5D000290DB4 /* NoteImportDialog.cpp */; };
@@ -1112,9 +1111,7 @@
 		67B797171A5AE343008D5921 /* ColorPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ColorPanel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		67B797181A5AE343008D5921 /* TimingPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = TimingPanel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TopEffectsPanel.cpp; sourceTree = "<group>"; };
-		67B845001A9C0E7500564051 /* DisplayElementsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DisplayElementsPanel.cpp; sourceTree = "<group>"; };
 		67B845011A9C0E7500564051 /* DisplayElementsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DisplayElementsPanel.h; sourceTree = "<group>"; };
-		67B845021A9C0E7500564051 /* ModelViewSelector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelViewSelector.cpp; sourceTree = "<group>"; };
 		67B845031A9C0E7500564051 /* ModelViewSelector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelViewSelector.h; sourceTree = "<group>"; };
 		67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wxCheckedListCtrl.cpp; sourceTree = "<group>"; };
 		67B845051A9C0E7500564051 /* wxCheckedListCtrl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wxCheckedListCtrl.h; sourceTree = "<group>"; };
@@ -1401,6 +1398,8 @@
 		67F7EB781AC2DA2B0023C9B2 /* xlGLCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGLCanvas.h; sourceTree = "<group>"; };
 		67FA9FD11C67837500FED13B /* AudioManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioManager.h; sourceTree = "<group>"; };
 		67FA9FD21C67837500FED13B /* AudioManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioManager.cpp; sourceTree = "<group>"; };
+		67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewsModelsPanel.cpp; sourceTree = "<group>"; };
+		67FE98541EB8C9BF00C5E804 /* ViewsModelsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewsModelsPanel.h; sourceTree = "<group>"; };
 		67FF398B1D57F54D00290DB4 /* Shapes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Shapes.cpp; path = models/Shapes.cpp; sourceTree = "<group>"; };
 		67FF398C1D57F54D00290DB4 /* Shapes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Shapes.h; path = models/Shapes.h; sourceTree = "<group>"; };
 		67FF398E1D57F5C000290DB4 /* MusicXML.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MusicXML.cpp; sourceTree = "<group>"; };
@@ -2016,6 +2015,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */,
+				67FE98541EB8C9BF00C5E804 /* ViewsModelsPanel.h */,
 				67E5B5DF1EAEDC5800735BF0 /* Pixlite16.cpp */,
 				67E5B5E01EAEDC5800735BF0 /* Pixlite16.h */,
 				67E5B5E11EAEDC5800735BF0 /* SubModelGenerateDialog.cpp */,
@@ -2056,7 +2057,6 @@
 				675878D91A89297200205A75 /* DataLayer.cpp */,
 				67D11C781BEA691900000A7F /* DimmingCurve.cpp */,
 				67D11C7B1BEA692300000A7F /* DimmingCurvePanel.cpp */,
-				67B845001A9C0E7500564051 /* DisplayElementsPanel.cpp */,
 				671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */,
 				67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */,
 				670F23651CCE664500A09765 /* DrawGLUtils21.cpp */,
@@ -2107,7 +2107,6 @@
 				670C827C1C44554E000AA5D8 /* Models */,
 				67BC8BB61D2152EC009B660F /* ModelStateDialog.cpp */,
 				67BC8BB81D2152EC009B660F /* ModelStateDialog.h */,
-				67B845021A9C0E7500564051 /* ModelViewSelector.cpp */,
 				67FF398E1D57F5C000290DB4 /* MusicXML.cpp */,
 				67FF39901D57F5D000290DB4 /* MusicXML.h */,
 				677421D91A6A8FBE0082DA5B /* NewTimingDialog.cpp */,
@@ -2644,7 +2643,6 @@
 				67B2CF8E1C39D98A003C17CA /* WavePanel.cpp in Sources */,
 				674ACA7C1C5ADE4000B54B32 /* Node.cpp in Sources */,
 				67C0EEE31C755ABE002FE25E /* MatrixModel.cpp in Sources */,
-				67B845061A9C0E7500564051 /* DisplayElementsPanel.cpp in Sources */,
 				67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */,
 				67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */,
 				67B2CFD81C3A186A003C17CA /* SpiralsEffect.cpp in Sources */,
@@ -2677,6 +2675,7 @@
 				67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */,
 				679BD3431C375D9F000539FE /* OnEffect.cpp in Sources */,
 				67B2B2261E1947BE0024F0BB /* Controller.cpp in Sources */,
+				67FE98551EB8C9BF00C5E804 /* ViewsModelsPanel.cpp in Sources */,
 				67B2CFDB1C3A186A003C17CA /* TextEffect.cpp in Sources */,
 				67B2B2321E1947BE0024F0BB /* PixelNetOutput.cpp in Sources */,
 				67B2B2331E1947BE0024F0BB /* RenardOutput.cpp in Sources */,
@@ -2703,7 +2702,6 @@
 				67B2CF711C39D98A003C17CA /* DMXPanel.cpp in Sources */,
 				677421DD1A6A8FF30082DA5B /* RenameTextDialog.cpp in Sources */,
 				6767C51A1CE7EC3B003B3F6E /* xLightsTimer.cpp in Sources */,
-				67B845071A9C0E7500564051 /* ModelViewSelector.cpp in Sources */,
 				67B2CF8B1C39D98A003C17CA /* TextPanel.cpp in Sources */,
 				67B2CF731C39D98A003C17CA /* FanPanel.cpp in Sources */,
 				675DE2681B53381800A9BB44 /* FlickerFreeBitmapButton.cpp in Sources */,

@@ -118,7 +118,6 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 {
 	//(*Initialize(ViewsModelsPanel)
 	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer9;
@@ -126,27 +125,28 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
 	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
-	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer1->AddGrowableCol(0);
-	FlexGridSizer1->AddGrowableRow(0);
+	MainSizer = new wxFlexGridSizer(1, 1, 0, 0);
+	MainSizer->AddGrowableCol(0);
+	MainSizer->AddGrowableRow(0);
 	Panel_Sizer = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer9 = new wxFlexGridSizer(1, 1, 0, 0);
+	FlexGridSizer9->AddGrowableCol(0);
 	FlexGridSizer9->AddGrowableRow(0);
 	ScrolledWindowViewsModels = new wxScrolledWindow(Panel_Sizer, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
-	FlexGridSizer10 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer10->AddGrowableCol(2);
-	FlexGridSizer10->AddGrowableRow(0);
+	ScrollWindowSizer = new wxFlexGridSizer(0, 3, 0, 0);
+	ScrollWindowSizer->AddGrowableCol(2);
+	ScrollWindowSizer->AddGrowableRow(0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(1);
 	StaticText3 = new wxStaticText(ScrolledWindowViewsModels, ID_STATICTEXT3, _("Available:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
 	ListCtrlNonModels = new wxListCtrl(ScrolledWindowViewsModels, ID_LISTCTRL1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL1"));
+	ListCtrlNonModels->SetMinSize(wxSize(40,-1));
 	FlexGridSizer2->Add(ListCtrlNonModels, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer10->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
+	ScrollWindowSizer->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
 	Button_AddAll = new wxButton(ScrolledWindowViewsModels, ID_BUTTON3, _(">>"), wxDefaultPosition, wxSize(32,30), 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	FlexGridSizer5->Add(Button_AddAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -156,7 +156,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	FlexGridSizer5->Add(Button_RemoveSelected, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Button_RemoveAll = new wxButton(ScrolledWindowViewsModels, ID_BUTTON6, _("<<"), wxDefaultPosition, wxSize(32,32), 0, wxDefaultValidator, _T("ID_BUTTON6"));
 	FlexGridSizer5->Add(Button_RemoveAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer10->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	ScrollWindowSizer->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(1);
@@ -166,10 +166,10 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer7->AddGrowableCol(0);
 	FlexGridSizer7->AddGrowableRow(1);
-	StaticText1 = new wxStaticText(ScrolledWindowViewsModels, ID_STATICTEXT1, _("View:"), wxDefaultPosition, wxSize(44,16), 0, _T("ID_STATICTEXT1"));
+	StaticText1 = new wxStaticText(ScrolledWindowViewsModels, ID_STATICTEXT1, _("View:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer7->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
 	ListCtrlViews = new wxCheckedListCtrl(ScrolledWindowViewsModels, ID_LISTCTRL_VIEWS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL, wxDefaultValidator, _T("ID_LISTCTRL_VIEWS"));
-	ListCtrlViews->SetMinSize(wxDLG_UNIT(ScrolledWindowViewsModels,wxSize(100,50)));
+	ListCtrlViews->SetMinSize(wxDLG_UNIT(ScrolledWindowViewsModels,wxSize(40,-1)));
 	FlexGridSizer7->Add(ListCtrlViews, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -189,21 +189,21 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	StaticText2 = new wxStaticText(ScrolledWindowViewsModels, ID_STATICTEXT2, _("Added:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
 	ListCtrlModels = new wxCheckedListCtrl(ScrolledWindowViewsModels, ID_LISTCTRL_MODELS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_MODELS"));
-	ListCtrlModels->SetMinSize(wxDLG_UNIT(ScrolledWindowViewsModels,wxSize(75,85)));
+	ListCtrlModels->SetMinSize(wxDLG_UNIT(ScrolledWindowViewsModels,wxSize(60,-1)));
 	FlexGridSizer4->Add(ListCtrlModels, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer10->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
-	ScrolledWindowViewsModels->SetSizer(FlexGridSizer10);
-	FlexGridSizer10->Fit(ScrolledWindowViewsModels);
-	FlexGridSizer10->SetSizeHints(ScrolledWindowViewsModels);
-	FlexGridSizer9->Add(ScrolledWindowViewsModels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ScrollWindowSizer->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
+	ScrolledWindowViewsModels->SetSizer(ScrollWindowSizer);
+	ScrollWindowSizer->Fit(ScrolledWindowViewsModels);
+	ScrollWindowSizer->SetSizeHints(ScrolledWindowViewsModels);
+	FlexGridSizer9->Add(ScrolledWindowViewsModels, 1, wxALL|wxEXPAND, 5);
 	Panel_Sizer->SetSizer(FlexGridSizer9);
 	FlexGridSizer9->Fit(Panel_Sizer);
 	FlexGridSizer9->SetSizeHints(Panel_Sizer);
-	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
+	MainSizer->Add(Panel_Sizer, 1, wxEXPAND, 0);
+	SetSizer(MainSizer);
+	MainSizer->Fit(this);
+	MainSizer->SetSizeHints(this);
 
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsBeginDrag);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsItemSelect);
@@ -320,13 +320,12 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
     nm0.SetId(0);
     nm0.SetImage(-1);
     nm0.SetText(_(""));
-    nm0.SetWidth(22);
+    nm0.SetAlign(wxLIST_FORMAT_CENTER);
     ListCtrlNonModels->InsertColumn(0, nm0);
 
     wxListItem nm1;
     nm1.SetId(1);
     nm1.SetText(_("Timing/Model"));
-    nm1.SetWidth(130);
     ListCtrlNonModels->InsertColumn(1, nm1);
 
     ListCtrlModels->ClearAll();
@@ -334,19 +333,18 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
     wxListItem col0;
     col0.SetId(0);
     col0.SetText(_(""));
-    col0.SetWidth(28);
+    col0.SetAlign(wxLIST_FORMAT_CENTER);
     ListCtrlModels->InsertColumn(0, col0);
 
     wxListItem col1;
     col1.SetId(1);
     col1.SetText(_(""));
-    col1.SetWidth(22);
+    col1.SetAlign(wxLIST_FORMAT_CENTER);
     ListCtrlModels->InsertColumn(1, col1);
 
     wxListItem col2;
     col2.SetId(2);
     col2.SetText(_("Timing/Model"));
-    col2.SetWidth(130);
     ListCtrlModels->InsertColumn(2, col2);
 
     _numModels = 0;
@@ -453,6 +451,23 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
             SelectItem(ListCtrlModels, it->ToStdString(), 2, true);
         }
     }
+
+    
+    ListCtrlNonModels->SetColumnWidth(0, wxLIST_AUTOSIZE);
+    if (ListCtrlNonModels->GetColumnWidth(0) < 22) {
+        ListCtrlNonModels->SetColumnWidth(0, 22);
+    }
+    ListCtrlNonModels->SetColumnWidth(1, wxLIST_AUTOSIZE);
+    
+    ListCtrlModels->SetColumnWidth(0, wxLIST_AUTOSIZE);
+    ListCtrlModels->SetColumnWidth(1, wxLIST_AUTOSIZE);
+    if (ListCtrlModels->GetColumnWidth(0) < 28) {
+        ListCtrlModels->SetColumnWidth(0, 28);
+    }
+    if (ListCtrlModels->GetColumnWidth(1) < 22) {
+        ListCtrlModels->SetColumnWidth(1, 22);
+    }
+    ListCtrlModels->SetColumnWidth(2, wxLIST_AUTOSIZE);
 
     ListCtrlModels->Thaw();
     ListCtrlNonModels->Thaw();
@@ -1008,12 +1023,12 @@ void ViewsModelsPanel::PopulateViews()
     col0.SetId(0);
     col0.SetText(_(""));
     col0.SetWidth(30);
+    col0.SetAlign(wxLIST_FORMAT_CENTER);
     ListCtrlViews->InsertColumn(0, col0);
 
     wxListItem col1;
     col1.SetId(1);
     col1.SetText(_("View"));
-    col1.SetWidth(130);
     ListCtrlViews->InsertColumn(1, col1);
 
     _numViews = 0;
@@ -1027,7 +1042,11 @@ void ViewsModelsPanel::PopulateViews()
             ListCtrlViews->SetChecked(0, false);
         }
     }
-
+    ListCtrlViews->SetColumnWidth(0, wxLIST_AUTOSIZE);
+    if (ListCtrlViews->GetColumnWidth(0) < 30) {
+        ListCtrlViews->SetColumnWidth(0, 30);
+    }
+    ListCtrlViews->SetColumnWidth(1, wxLIST_AUTOSIZE);
     _mainViewsChoice->SetSelection(_sequenceViewManager->GetSelectedViewIndex());
 }
 
@@ -1230,14 +1249,24 @@ void ViewsModelsPanel::OnButton_DeleteViewClick(wxCommandEvent& event)
 
 void ViewsModelsPanel::OnResize(wxSizeEvent& event)
 {
+    // a minimum size is cached deep inside someplace, reset them all
+    ListCtrlViews->SetMinSize(wxSize(-1, -1));
+    ListCtrlNonModels->SetMinSize(wxSize(-1, -1));
+    ListCtrlModels->SetMinSize(wxSize(-1, -1));
+    Panel_Sizer->SetMinSize(wxSize(-1, -1));
+    Panel_Sizer->GetSizer()->SetMinSize(-1, -1);
+    ScrolledWindowViewsModels->SetVirtualSize(-1, -1);
+    ScrolledWindowViewsModels->SetClientSize(-1, -1);
+    ScrolledWindowViewsModels->SetMinSize(wxSize(-1, -1));
+    ScrollWindowSizer->SetMinSize(wxSize(-1, -1));
+
     wxSize s = GetSize();
     Panel_Sizer->SetSize(s);
-    Panel_Sizer->SetMinSize(s);
     Panel_Sizer->SetMaxSize(s);
     Panel_Sizer->Refresh();
 
+    s -= wxSize(10, 10); //account for the border
     ScrolledWindowViewsModels->SetSize(s);
-    ScrolledWindowViewsModels->SetMinSize(s);
     ScrolledWindowViewsModels->SetMaxSize(s);
 
     ScrolledWindowViewsModels->FitInside();
