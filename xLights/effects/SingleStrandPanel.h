@@ -31,7 +31,6 @@ class SingleStrandPanel: public wxPanel
 		wxSlider* Slider_Chase_Rotations;
 		wxSlider* Slider_Skips_Advance;
 		wxBitmapButton* BitmapButton_SingleStrand_Colors;
-		wxStaticText* StaticText13;
 		wxNotebook* SingleStrandEffectType;
 		wxSlider* Slider_Number_Chases;
 		wxBitmapButton* BitmapButton_Color_Mix1;
@@ -51,7 +50,6 @@ class SingleStrandPanel: public wxPanel
 		wxBitmapButton* BitmapButton_Skips_SkipSize;
 		wxBitmapButton* BitmapButton4;
 		wxSlider* Slider_Skips_SkipSize;
-		wxStaticText* StaticText12;
 		wxBitmapButton* BitmapButton3;
 		wxStaticText* StaticText60;
 		wxBitmapButton* BitmapButton_Number_Chases;
@@ -86,10 +84,8 @@ class SingleStrandPanel: public wxPanel
 		static const long ID_STATICTEXT10;
 		static const long ID_CHOICE_Chase_Type1;
 		static const long ID_BITMAPBUTTON_CHOICE_Chase_Type1;
-		static const long ID_STATICTEXT11;
 		static const long ID_CHECKBOX_Chase_3dFade1;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1;
-		static const long ID_STATICTEXT12;
 		static const long ID_CHECKBOX_Chase_Group_All;
 		static const long ID_BITMAPBUTTON_Chase_Group_All;
 		static const long ID_PANEL3;
@@ -115,20 +111,21 @@ class SingleStrandPanel: public wxPanel
 	public:
 
 		//(*Handlers(SingleStrandPanel)
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
-    void OnLockButtonClick(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
-    //*)
+		void UpdateLinkedSliderFloat(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
+		void UpdateLinkedSlider360(wxCommandEvent& event);
+		void UpdateLinkedTextCtrl(wxScrollEvent& event);
+		void UpdateLinkedSlider(wxCommandEvent& event);
+		void OnLockButtonClick(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+		void OnVCButtonClick(wxCommandEvent& event);
+		void OnVCChanged(wxCommandEvent& event);
+		void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+		void OnCheckBox_Chase_3dFade1Click(wxCommandEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

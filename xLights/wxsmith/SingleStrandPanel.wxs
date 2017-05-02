@@ -267,17 +267,14 @@
 									<border>2</border>
 									<option>1</option>
 								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText12" member="yes">
-										<label>3d Fade</label>
-									</object>
-									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
 									<object class="wxCheckBox" name="ID_CHECKBOX_Chase_3dFade1" variable="CheckBox_Chase_3dFade1" member="yes">
-										<label>Yes</label>
+										<label>3d Fade</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -300,16 +297,15 @@
 									<border>2</border>
 									<option>1</option>
 								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText13" member="yes">
-										<label>Group All Arches</label>
-									</object>
-									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Chase_Group_All" variable="CheckBox_Chase_Group_All" member="yes" />
+									<object class="wxCheckBox" name="ID_CHECKBOX_Chase_Group_All" variable="CheckBox_Chase_Group_All" member="yes">
+										<label>Group All Arches</label>
+									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
