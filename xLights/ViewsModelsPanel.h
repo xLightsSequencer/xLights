@@ -58,7 +58,7 @@ class ViewsModelsPanel: public wxPanel
     std::list<std::string> _undo;
 
     void PopulateViews();
-    void PopulateModels();
+    void PopulateModels(const std::string& selectModels = "");
     void ValidateWindow();
     void AddSelectedModels(int pos = -1);
     void RemoveSelectedModels();
@@ -74,6 +74,7 @@ class ViewsModelsPanel: public wxPanel
     int GetTimingCount();
     static bool IsItemSelected(wxListCtrl* ctrl, int item);
     static bool SelectItem(wxListCtrl* ctrl, int item, bool select);
+    static bool SelectItem(wxListCtrl* ctrl, const std::string& itemText, int col, bool select);
     void ShowAllModels(bool show);
     void HideUnusedModels();
     void RemoveUnusedModels();
@@ -146,17 +147,18 @@ class ViewsModelsPanel: public wxPanel
 		static const long ID_PANEL1;
 		//*)
 
-        static const long ViewsModelsPanel::ID_MODELS_HIDEALL;
-        static const long ViewsModelsPanel::ID_MODELS_SHOWALL;
-        static const long ViewsModelsPanel::ID_MODELS_SELECTALL;
-        static const long ViewsModelsPanel::ID_MODELS_HIDEUNUSED;
-        static const long ViewsModelsPanel::ID_MODELS_REMOVEUNUSED;
-        static const long ViewsModelsPanel::ID_MODELS_SORT;
-        static const long ViewsModelsPanel::ID_MODELS_SORTBYNAME;
-        static const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGM;
-        static const long ViewsModelsPanel::ID_MODELS_SORTBYTYPE;
-        static const long ViewsModelsPanel::ID_MODELS_SORTMODELSUNDERTHISGROUP;
-        static const long ViewsModelsPanel::ID_MODELS_BUBBLEUPGROUPS;
+        static const long ID_MODELS_UNDO;
+        static const long ID_MODELS_HIDEALL;
+        static const long ID_MODELS_SHOWALL;
+        static const long ID_MODELS_SELECTALL;
+        static const long ID_MODELS_HIDEUNUSED;
+        static const long ID_MODELS_REMOVEUNUSED;
+        static const long ID_MODELS_SORT;
+        static const long ID_MODELS_SORTBYNAME;
+        static const long ID_MODELS_SORTBYNAMEGM;
+        static const long ID_MODELS_SORTBYTYPE;
+        static const long ID_MODELS_SORTMODELSUNDERTHISGROUP;
+        static const long ID_MODELS_BUBBLEUPGROUPS;
 
 	private:
 
@@ -180,7 +182,6 @@ class ViewsModelsPanel: public wxPanel
 		void OnListCtrlModelsItemRClick(wxListEvent& event);
 		void OnButtonCloneClick(wxCommandEvent& event);
 		void OnButtonRenameClick(wxCommandEvent& event);
-		void OnListCtrlViewsBeginDrag(wxListEvent& event);
 		void OnListCtrlViewsItemDClick(wxListEvent& event);
 		//*)
 
