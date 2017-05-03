@@ -7,6 +7,7 @@
 #include <wx/dataview.h>
 
 //(*Headers(xLightsImportChannelMapDialog)
+#include <wx/listctrl.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/checklst.h>
@@ -25,8 +26,25 @@ class SequenceElements;
 class xLightsFrame;
 class Model;
 
+wxDECLARE_EVENT(EVT_MDDROP, wxCommandEvent);
+
 class xLightsImportModelNode;
 WX_DEFINE_ARRAY_PTR(xLightsImportModelNode*, xLightsImportModelNodePtrArray);
+
+class MDTextDropTarget : public wxTextDropTarget
+{
+public:
+    MDTextDropTarget(wxWindow *owner, wxListCtrl* list, wxString type) { _owner = owner; _list = list; _tree = nullptr; _type = type; };
+    MDTextDropTarget(wxWindow *owner, wxDataViewCtrl* tree, wxString type) { _owner = owner; _list = nullptr; _tree = tree; _type = type; };
+
+    virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override;
+    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
+
+    wxWindow *_owner;
+    wxListCtrl* _list;
+    wxDataViewCtrl* _tree;
+    wxString _type;
+};
 
 class xLightsImportModelNode : wxDataViewTreeStoreNode
 {
@@ -224,6 +242,7 @@ public:
     {
         return m_children.Item(n);
     }
+    wxDataViewItem GetNthItem(unsigned int n) const;
     wxString GetModel(const wxDataViewItem &item) const;
     wxString GetStrand(const wxDataViewItem &item) const;
     wxString GetNode(const wxDataViewItem &item) const;
@@ -264,20 +283,27 @@ class xLightsImportChannelMapDialog: public wxDialog
     void OnSelectionChanged(wxDataViewEvent& event);
     void OnValueChanged(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);
+    void OnBeginDrag(wxDataViewEvent& event);
+    void Unmap(const wxDataViewItem& item);
+    void Map(const wxDataViewItem& item, const std::string& mapping);
+    void OnKeyDown(wxKeyEvent& event);
     wxArrayString _importModels;
-    wxDataViewCtrl* TreeListCtrl_Mapping;
     bool _dirty;
     wxFileName _filename;
     bool _allowTimingOffset;
     bool _allowTimingTrack;
     bool _allowColorChoice;
+    int _sortOrder;
+    wxDataViewItem _dragItem;
 
 	public:
    
 		xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~xLightsImportChannelMapDialog();
-    
+        wxDataViewItem GetNextTreeItem(const wxDataViewItem item) const;
+        wxDataViewItem GetPriorTreeItem(const wxDataViewItem item) const;
         bool Init();
+
         xLightsImportTreeModel *dataModel;
 
 		//(*Declarations(xLightsImportChannelMapDialog)
@@ -290,11 +316,13 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxStaticText* StaticText_TimeAdjust;
 		wxStaticBoxSizer* TimingTrackPanel;
 		wxFlexGridSizer* SizerMap;
+		wxListCtrl* ListCtrl_Available;
 		//*)
 
         SequenceElements *mSequenceElements;
         xLightsFrame * xlights;
-    
+        wxDataViewCtrl* TreeListCtrl_Mapping;
+
         std::vector<std::string> channelNames;
         std::map<std::string, xlColor> channelColors;
         std::vector<std::string> timingTracks;
@@ -305,6 +333,7 @@ protected:
 		//(*Identifiers(xLightsImportChannelMapDialog)
 		static const long ID_SPINCTRL1;
 		static const long ID_CHECKLISTBOX1;
+		static const long ID_LISTCTRL1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON1;
@@ -314,14 +343,19 @@ protected:
 	private:
         wxString FindTab(wxString &line);
         void AddModel(Model *model, int &cnt);
-    
+
 		//(*Handlers(xLightsImportChannelMapDialog)
 		void LoadMapping(wxCommandEvent& event);
 		void SaveMapping(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
+		void OnListCtrl_AvailableBeginDrag(wxListEvent& event);
+		void OnListCtrl_AvailableItemSelect(wxListEvent& event);
+		void OnListCtrl_AvailableColumnClick(wxListEvent& event);
 		//*)
+
+        void OnDrop(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };

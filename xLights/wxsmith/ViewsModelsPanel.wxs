@@ -36,7 +36,8 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListCtrlNonModels" member="yes">
-													<minsize>40,-1</minsize>
+													<size>150,-1</size>
+													<minsize>150,-1</minsize>
 													<style>wxLC_REPORT</style>
 													<handler function="OnListCtrlNonModelsBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 													<handler function="OnListCtrlNonModelsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />

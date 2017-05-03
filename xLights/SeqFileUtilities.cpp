@@ -964,7 +964,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     std::vector<std::string> timingTrackNames;
     std::map<std::string, TimingElement*> timingTracks;
 
-    for (auto it = elements.begin(); it != elements.end(); it++) {
+    for (auto it = elements.begin(); it != elements.end(); ++it) {
         Element *e = *it;
         if (e->GetType() == ELEMENT_TYPE_MODEL)
         {
@@ -1023,7 +1023,6 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     }
 
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
-    dlg.channelNames.insert(dlg.channelNames.begin(), "");
     dlg.timingTracks = timingTrackNames;
     bool ok = dlg.Init();
 
@@ -1487,7 +1486,6 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     int numFrames = time / frameTime;
 
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
-    dlg.channelNames.insert(dlg.channelNames.begin(), "");
 
     dlg.Init();
 
@@ -2186,7 +2184,6 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         }
     }
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
-    dlg.channelNames.insert(dlg.channelNames.begin(), "");
 
     dlg.Init();
 
@@ -2199,7 +2196,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         AdjustAllTimings(input_xml.GetRoot(), offset / 10);
     }
 
-    for (size_t i = 0; i < dlg.dataModel->GetChildCount(); i++)
+    for (size_t i = 0; i < dlg.dataModel->GetChildCount(); ++i)
     {
         xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();

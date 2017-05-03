@@ -143,8 +143,8 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	FlexGridSizer2->AddGrowableRow(1);
 	StaticText3 = new wxStaticText(ScrolledWindowViewsModels, ID_STATICTEXT3, _("Available:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
-	ListCtrlNonModels = new wxListCtrl(ScrolledWindowViewsModels, ID_LISTCTRL1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL1"));
-	ListCtrlNonModels->SetMinSize(wxSize(40,-1));
+	ListCtrlNonModels = new wxListCtrl(ScrolledWindowViewsModels, ID_LISTCTRL1, wxDefaultPosition, wxSize(150,-1), wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL1"));
+	ListCtrlNonModels->SetMinSize(wxSize(150,-1));
 	FlexGridSizer2->Add(ListCtrlNonModels, 1, wxALL|wxEXPAND, 0);
 	ScrollWindowSizer->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -451,7 +451,6 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
             SelectItem(ListCtrlModels, it->ToStdString(), 2, true);
         }
     }
-
     
     ListCtrlNonModels->SetColumnWidth(0, wxLIST_AUTOSIZE);
     if (ListCtrlNonModels->GetColumnWidth(0) < 22) {
@@ -1251,7 +1250,7 @@ void ViewsModelsPanel::OnResize(wxSizeEvent& event)
 {
     // a minimum size is cached deep inside someplace, reset them all
     ListCtrlViews->SetMinSize(wxSize(-1, -1));
-    ListCtrlNonModels->SetMinSize(wxSize(-1, -1));
+    ListCtrlNonModels->SetMinSize(wxSize(150, -1));
     ListCtrlModels->SetMinSize(wxSize(-1, -1));
     Panel_Sizer->SetMinSize(wxSize(-1, -1));
     Panel_Sizer->GetSizer()->SetMinSize(-1, -1);
@@ -1288,6 +1287,7 @@ void ViewsModelsPanel::AddTimingToNotList(Element* timing)
     {
         wxListItem li;
         li.SetId(_numNonModels);
+        li.SetText(_(""));
         ListCtrlNonModels->InsertItem(li, 0);
         ListCtrlNonModels->SetItemPtrData(_numNonModels, (wxUIntPtr)timing);
         ListCtrlNonModels->SetItem(_numNonModels, 1, timing->GetName());
@@ -1302,6 +1302,7 @@ void ViewsModelsPanel::AddModelToNotList(Element* model)
     {
         wxListItem li;
         li.SetId(_numNonModels);
+        li.SetText(_(""));
         if (IsModelAGroup(model->GetName()))
         {
             ListCtrlNonModels->InsertItem(li, 1);

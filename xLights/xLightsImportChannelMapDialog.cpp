@@ -15,6 +15,44 @@
 #include <wx/string.h>
 //*)
 
+wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
+
+class MDDropSource : public wxDropSource
+{
+    xLightsImportChannelMapDialog* _window;
+
+public:
+
+    MDDropSource(xLightsImportChannelMapDialog* window) : wxDropSource(window)
+    {
+        _window = window;
+    }
+
+    virtual bool GiveFeedback(wxDragResult effect) override
+    {
+        int sx;
+        int sy;
+        _window->GetScreenPosition(&sx, &sy);
+
+        wxRect rect = _window->TreeListCtrl_Mapping->GetItemRect(((xLightsImportTreeModel*)_window->TreeListCtrl_Mapping->GetModel())->GetNthItem(0));
+
+        wxPoint point = wxGetMousePosition() - wxPoint(sx, sy);
+        wxPoint pointTree = wxGetMousePosition() - wxPoint(sx, sy+rect.GetHeight());
+
+        if (_window->TreeListCtrl_Mapping->GetRect().Contains(pointTree) ||
+            _window->ListCtrl_Available->GetRect().Contains(point))
+        {
+            _window->SetCursor(wxCursor(wxCURSOR_HAND));
+        }
+        else
+        {
+            _window->SetCursor(wxCursor(wxCURSOR_NO_ENTRY));
+        }
+
+        return true;
+    }
+};
+
 class ColorRenderer : public wxDataViewCustomRenderer
 {
     wxColor _color;
@@ -254,6 +292,21 @@ unsigned int xLightsImportTreeModel::GetChildren(const wxDataViewItem &parent,
     return count;
 }
 
+wxDataViewItem xLightsImportTreeModel::GetNthItem(unsigned int n) const
+{
+    int count = m_children.size();
+    for (unsigned int pos = 0; pos < count; pos++)
+    {
+        if (pos == n)
+        {
+            xLightsImportModelNode *child = m_children.Item(pos);
+            return wxDataViewItem((void*)child);
+        }
+    }
+
+    return wxDataViewItem(nullptr);
+}
+
 void xLightsImportTreeModel::ClearMapping()
 {
     size_t count = m_children.size();
@@ -269,6 +322,7 @@ const long xLightsImportChannelMapDialog::ID_CHOICE = wxNewId();
 //(*IdInit(xLightsImportChannelMapDialog)
 const long xLightsImportChannelMapDialog::ID_SPINCTRL1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKLISTBOX1 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_LISTCTRL1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON4 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON1 = wxNewId();
@@ -282,10 +336,12 @@ END_EVENT_TABLE()
 
 xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _sortOrder = 0;
     _allowTimingOffset = allowTimingOffset;
     _allowTimingTrack = allowTimingTrack;
     _allowColorChoice = allowColorChoice;
     _filename = filename;
+    _dragItem = wxDataViewItem(nullptr);
 
 	//(*Initialize(xLightsImportChannelMapDialog)
 	wxButton* Button01;
@@ -307,9 +363,11 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	TimingTrackListBox = new wxCheckListBox(this, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
 	TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	Sizer->Add(TimingTrackPanel, 0, wxEXPAND, 0);
-	SizerMap = new wxFlexGridSizer(0, 1, 0, 0);
+	SizerMap = new wxFlexGridSizer(0, 2, 0, 0);
 	SizerMap->AddGrowableCol(0);
 	SizerMap->AddGrowableRow(0);
+	ListCtrl_Available = new wxListCtrl(this, ID_LISTCTRL1, wxDefaultPosition, wxSize(150,-1), wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL1"));
+	SizerMap->Add(ListCtrl_Available, 1, wxALL|wxEXPAND, 5);
 	Sizer->Add(SizerMap, 0, wxEXPAND, 0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 5, 0, 0);
 	FlexGridSizer2->AddGrowableCol(2);
@@ -327,16 +385,31 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	Sizer->Fit(this);
 	Sizer->SetSizeHints(this);
 
+	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag);
+	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
+	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_OkClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
 	//*)
 
+    ListCtrl_Available->SetSize(150, -1);
+    ListCtrl_Available->SetColumnWidth(0, wxLIST_AUTOSIZE);
+    if (ListCtrl_Available->GetColumnWidth(0) < 150)
+    {
+        ListCtrl_Available->SetColumnWidth(0, 150);
+    }
+
     if (_filename != "")
     {
         SetLabel(GetLabel() + " - " + _filename.GetFullName());
     }
+
+    Connect(wxID_ANY, EVT_MDDROP, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnDrop);
+
+    MDTextDropTarget *mdt = new MDTextDropTarget(this, ListCtrl_Available, "Remove");
+    ListCtrl_Available->SetDropTarget(mdt);
 
     _dirty = false;
 }
@@ -400,10 +473,15 @@ bool xLightsImportChannelMapDialog::Init() {
     Sizer->Fit(this);
     Sizer->SetSizeHints(this);
 
-    // load the tree
-    for (auto it = channelNames.begin(); it != channelNames.end(); it++)
+    // load the available list
+    ListCtrl_Available->AppendColumn("Available");
+    ListCtrl_Available->SetColumnWidth(0, 150);
+    int j = 0;
+    for (auto it = channelNames.begin(); it != channelNames.end(); ++it)
     {
-        _importModels.push_back(wxString(it->c_str()));
+        ListCtrl_Available->InsertItem(j, wxString(it->c_str()));
+        ListCtrl_Available->SetItemData(j, j);
+        j++;
     }
 
     dataModel = new xLightsImportTreeModel();
@@ -411,13 +489,13 @@ bool xLightsImportChannelMapDialog::Init() {
     TreeListCtrl_Mapping = new wxDataViewCtrl(this, ID_TREELISTCTRL1, wxDefaultPosition, wxDefaultSize, wxDV_HORIZ_RULES | wxDV_VERT_RULES, wxDefaultValidator);
     TreeListCtrl_Mapping->AssociateModel(dataModel);
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
-    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewChoiceRenderer(_importModels, wxDATAVIEW_CELL_EDITABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 1, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 1, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
     if (_allowColorChoice)
     {
         TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Color", new ColorRenderer(), 2, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
     }
     TreeListCtrl_Mapping->SetMinSize(wxSize(0, 300));
-    SizerMap->Add(TreeListCtrl_Mapping, 1, wxALL | wxEXPAND, 5);
+    SizerMap->Insert(0, TreeListCtrl_Mapping, 1, wxALL | wxEXPAND, 5);
     SizerMap->Layout();
     Sizer->Fit(this);
     Sizer->SetSizeHints(this);
@@ -425,35 +503,42 @@ bool xLightsImportChannelMapDialog::Init() {
     Layout();
 
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_SELECTION_CHANGED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnSelectionChanged);
-    //Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_ACTIVATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnItemActivated);
+    Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_ACTIVATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnItemActivated);
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnValueChanged);
+    Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_BEGIN_DRAG, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnBeginDrag);
+    // This does not work ... I suspect the control is not letting it through
+    //Connect(ID_TREELISTCTRL1, wxEVT_KEY_DOWN, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnKeyDown);
+
+    MDTextDropTarget* mdt = new MDTextDropTarget(this, TreeListCtrl_Mapping, "Map");
+    TreeListCtrl_Mapping->SetDropTarget(mdt);
 
     int ms = 0;
-    for (size_t i = 0; i<mSequenceElements->GetElementCount(); i++) {
+    for (size_t i = 0; i<mSequenceElements->GetElementCount(); ++i) {
         if (mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_MODEL) {
             Element* e = mSequenceElements->GetElement(i);
-            
+
             Model *m = xlights->GetModel(e->GetName());
             if (m != nullptr) {
                 AddModel(m, ms);
             }
         }
     }
-    
+
     return true;
 }
 
 void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
-    for (size_t x = 0; x < dataModel->GetChildCount(); x++) {
+
+    for (size_t x = 0; x < dataModel->GetChildCount(); ++x) {
         xLightsImportModelNode * tmp = dataModel->GetNthChild(x);
         if (tmp->_model == m->GetName()) {
             return;
         }
     }
-    
+
     xLightsImportModelNode *lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), "");
     dataModel->Insert(lastmodel, ms++);
-            
+
     for (int s = 0; s < m->GetNumSubModels(); s++) {
         Model *subModel = m->GetSubModel(s);
         xLightsImportModelNode* laststrand = nullptr;
@@ -467,7 +552,7 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         }
         lastmodel->Append(laststrand);
     }
-    
+
     for (int s = 0; s < m->GetNumStrands(); s++) {
         wxString sn = m->GetStrandName(s);
         if ("" == sn) {
@@ -511,23 +596,52 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
     }
 }
 
+void xLightsImportChannelMapDialog::OnKeyDown(wxKeyEvent& event)
+{
+    auto key = event.GetKeyCode();
+    if (key == WXK_DELETE || key == WXK_NUMPAD_DELETE)
+    {
+        if (TreeListCtrl_Mapping->GetSelectedItemsCount() > 0)
+        {
+            Unmap(TreeListCtrl_Mapping->GetSelection());
+        }
+    }
+}
+
 void xLightsImportChannelMapDialog::OnItemActivated(wxDataViewEvent& event)
 {
+    if (event.GetItem().IsOk())
+    {
+        wxVariant vvalue;
+        event.GetModel()->GetValue(vvalue, event.GetItem(), 1);
+        std::string mapped = vvalue.GetString().ToStdString();
+        if (mapped == "" && ListCtrl_Available->GetSelectedItemCount() > 0)
+        {
+            int itemIndex = ListCtrl_Available->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+            Map(event.GetItem(), ListCtrl_Available->GetItemText(itemIndex).ToStdString());
+        }
+        else
+        {
+            Unmap(event.GetItem());
+        }
+        TreeListCtrl_Mapping->Refresh();
+    }
+}
+
+void xLightsImportChannelMapDialog::Map(const wxDataViewItem& item, const std::string& mapping)
+{
+    TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
+}
+
+void xLightsImportChannelMapDialog::Unmap(const wxDataViewItem& item)
+{
+    TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(""), item, 1);
 }
 
 void xLightsImportChannelMapDialog::OnSelectionChanged(wxDataViewEvent& event)
 {
-    //if (event.GetItem().IsOk())
-    //{
-        // I am pretty sure this doesnt do anything
-        // What I am trying to do is single click activate the choice box.
-        //wxRect r = TreeListCtrl_Mapping->GetItemRect(event.GetItem(), TreeListCtrl_Mapping->GetColumn(1));
-        //TreeListCtrl_Mapping->GetColumn(1)->GetRenderer()->ActivateCell(r, dataModel, event.GetItem(), 1, nullptr);
-
-        // This also does not work and causes left behind choice boxes which then generate exceptions
-        //TreeListCtrl_Mapping->EditItem(event.GetItem(), TreeListCtrl_Mapping->GetColumn(1));
-    //}
 }
+
 void xLightsImportChannelMapDialog::OnValueChanged(wxDataViewEvent& event)
 {
     _dirty = true;
@@ -728,7 +842,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                             strandwarning = true;
                         }
                     }
-                } else 
+                } else
                 {
                     if (mni != nullptr)
                     {
@@ -868,6 +982,117 @@ void xLightsImportChannelMapDialog::OnResize(wxSizeEvent& event)
      */
 }
 
+wxDataViewItem xLightsImportChannelMapDialog::GetNextTreeItem(const wxDataViewItem item) const
+{
+    bool next = false;
+    wxDataViewItemArray models;
+    dataModel->GetChildren(wxDataViewItem(0), models);
+    for (size_t i = 0; i < models.size(); i++)
+    {
+        if (next)
+        {
+            return models[i];
+        }
+
+        if (models[i] == item)
+        {
+            // we are on this model
+            next = true;
+        }
+        else
+        {
+            if (TreeListCtrl_Mapping->IsExpanded(models[i]))
+            {
+                wxDataViewItemArray strands;
+                dataModel->GetChildren(models[i], strands);
+                for (size_t j = 0; j < strands.size(); j++)
+                {
+                    if (next)
+                    {
+                        return strands[j];
+                    }
+
+                    if (strands[j] == item)
+                    {
+                        // we are on this model
+                        next = true;
+                    }
+
+                    if (TreeListCtrl_Mapping->IsExpanded(strands[j]))
+                    {
+                        wxDataViewItemArray nodes;
+                        dataModel->GetChildren(strands[j], nodes);
+                        for (size_t k = 0; k < nodes.size(); k++)
+                        {
+                            if (next)
+                            {
+                                return nodes[k];
+                            }
+
+                            if (nodes[k] == item)
+                            {
+                                next = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return wxDataViewItem(nullptr);
+}
+
+wxDataViewItem xLightsImportChannelMapDialog::GetPriorTreeItem(const wxDataViewItem item) const
+{
+    wxDataViewItem last = wxDataViewItem(nullptr);
+
+    wxDataViewItemArray models;
+    dataModel->GetChildren(wxDataViewItem(0), models);
+    for (size_t i = 0; i < models.size(); i++)
+    {
+        if (models[i] == item)
+        {
+            // we are on this model
+            return last;
+        }
+        else
+        {
+            last = models[i];
+
+            if (TreeListCtrl_Mapping->IsExpanded(models[i]))
+            {
+                wxDataViewItemArray strands;
+                dataModel->GetChildren(models[i], strands);
+                for (size_t j = 0; j < strands.size(); j++)
+                {
+                    if (strands[j] == item)
+                    {
+                        // we are on this model
+                        return last;
+                    }
+                    last = strands[j];
+
+                    if (TreeListCtrl_Mapping->IsExpanded(strands[j]))
+                    {
+                        wxDataViewItemArray nodes;
+                        dataModel->GetChildren(strands[j], nodes);
+                        for (size_t k = 0; k < nodes.size(); k++)
+                        {
+                            if (nodes[k] == item)
+                            {
+                                return last;
+                            }
+                            last = nodes[k];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return wxDataViewItem(nullptr);
+}
+
 void xLightsImportChannelMapDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     if (_dirty)
@@ -899,3 +1124,219 @@ void xLightsImportChannelMapDialog::OnButton_CancelClick(wxCommandEvent& event)
             EndDialog(wxID_CANCEL);
     }
 }
+
+void xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect(wxListEvent& event)
+{
+}
+
+int wxCALLBACK MyCompareFunctionAsc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+{
+    wxListCtrl * pListCtrl = (wxListCtrl *)sortData;
+    wxString str1 = pListCtrl->GetItemText(item1);
+    wxString str2 = pListCtrl->GetItemText(item2);
+
+    //now compare the strings
+    return str1.Cmp(str2);
+}
+
+int wxCALLBACK MyCompareFunctionDesc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+{
+    return -1 * MyCompareFunctionAsc(item1, item2, sortData);
+}
+
+void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent& event)
+{
+    if (_sortOrder == 0)
+    {
+        _sortOrder = 1;
+        ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr) ListCtrl_Available);
+    }
+    else
+    {
+        _sortOrder = 0;
+        ListCtrl_Available->SortItems(MyCompareFunctionDesc, (wxIntPtr)ListCtrl_Available);
+    }
+}
+
+#pragma region Drag and Drop
+
+void xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag(wxListEvent& event)
+{
+    _dragItem = wxDataViewItem(nullptr);
+    if (ListCtrl_Available->GetSelectedItemCount() == 0) return;
+
+    wxString drag = "Map";
+    int itemIndex = ListCtrl_Available->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    drag += "," + ListCtrl_Available->GetItemText(itemIndex, 0);
+
+    wxTextDataObject my_data(drag);
+    MDDropSource dragSource(this);
+    dragSource.SetData(my_data);
+    dragSource.DoDragDrop(wxDrag_DefaultMove);
+    SetCursor(wxCURSOR_ARROW);
+}
+
+void xLightsImportChannelMapDialog::OnBeginDrag(wxDataViewEvent& event)
+{
+    if (event.GetItem().IsOk())
+    {
+        _dragItem = event.GetItem();
+        wxString drag = "Map";
+        wxVariant vvalue;
+        event.GetModel()->GetValue(vvalue, event.GetItem(), 1);
+        std::string mapped = vvalue.GetString().ToStdString();
+
+        if (mapped != "")
+        {
+            drag += "," + mapped;
+
+            wxTextDataObject my_data(drag);
+            MDDropSource dragSource(this);
+            dragSource.SetData(my_data);
+            dragSource.DoDragDrop(wxDrag_DefaultMove);
+        }
+        SetCursor(wxCURSOR_ARROW);
+    }
+}
+
+wxDragResult MDTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
+{
+    if (_list != nullptr) return wxDragMove;
+    if (((xLightsImportTreeModel*)_tree->GetModel())->GetChildCount() == 0) return wxDragMove;
+
+    wxRect rect = _tree->GetItemRect(((xLightsImportTreeModel*)_tree->GetModel())->GetNthItem(0));
+    y -= rect.GetHeight();
+
+    static int MINSCROLLDELAY = 10;
+    static int STARTSCROLLDELAY = 300;
+    static int scrollDelay = STARTSCROLLDELAY;
+    static wxLongLong lastTime = wxGetUTCTimeMillis();
+
+    if (wxGetUTCTimeMillis() - lastTime < scrollDelay)
+    {
+        // too soon to scroll again
+    }
+    else
+    {
+        wxDataViewItem item;
+        wxDataViewColumn* col;
+        _tree->HitTest(wxPoint(x, y), item, col);
+
+        if (item.IsOk())
+        {
+            // we are above an item
+            _tree->SetCurrentItem(item);
+
+            // get the first visible item
+            wxRect itemRect = _tree->GetItemRect(item);
+
+            if (y < itemRect.GetHeight())
+            {
+                // scroll up
+                lastTime = wxGetUTCTimeMillis();
+                wxDataViewItem prev = ((xLightsImportChannelMapDialog*)_owner)->GetPriorTreeItem(item);
+
+                if (prev.IsOk())
+                {
+                    lastTime = wxGetUTCTimeMillis();
+                    _tree->EnsureVisible(prev);
+                    scrollDelay = scrollDelay / 2;
+                    if (scrollDelay < MINSCROLLDELAY) scrollDelay = MINSCROLLDELAY;
+                }
+            }
+            else if (y > _tree->GetRect().GetTop() - itemRect.GetHeight())
+            {
+                // scroll down
+                wxDataViewItem next = ((xLightsImportChannelMapDialog*)_owner)->GetNextTreeItem(item);
+                if (next.IsOk())
+                {
+                    lastTime = wxGetUTCTimeMillis();
+                    _tree->EnsureVisible(next);
+                    scrollDelay = scrollDelay / 2;
+                    if (scrollDelay < MINSCROLLDELAY) scrollDelay = MINSCROLLDELAY;
+                }
+            }
+            else
+            {
+                // dont scroll
+                scrollDelay = STARTSCROLLDELAY;
+            }
+        }
+    }
+    return wxDragMove;
+}
+
+
+bool MDTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
+{
+    if (_tree != nullptr)
+    {
+        wxRect rect = _tree->GetItemRect(((xLightsImportTreeModel*)_tree->GetModel())->GetNthItem(0));
+        y -= rect.GetHeight();
+    }
+
+    long mousePos = x;
+    mousePos = mousePos << 16;
+    mousePos += y;
+    wxCommandEvent event(EVT_MDDROP);
+    event.SetString(data); // this is the dropped string
+    event.SetExtraLong(mousePos); // this is the mouse position packed into a long
+
+    if (_list != nullptr)
+    {
+        event.SetInt(0);
+    }
+    else
+    {
+        event.SetInt(1);
+    }
+    wxPostEvent(_owner, event);
+    return true;
+}
+
+void xLightsImportChannelMapDialog::OnDrop(wxCommandEvent& event)
+{
+    wxArrayString parms = wxSplit(event.GetString(), ',');
+    int x = event.GetExtraLong() >> 16;
+    int y = event.GetExtraLong() & 0xFFFF;
+
+    switch (event.GetInt())
+    {
+    case 0:
+        // drop on list ... so a remove
+    {
+        // if source was the tree
+        if (_dragItem.IsOk())
+        {
+            Unmap(_dragItem);
+        }
+    }
+    break;
+    case 1:
+        // drop on tree ... do a map
+    {
+        // and map the destination
+        wxDataViewItem item;
+        wxDataViewColumn* col;
+        TreeListCtrl_Mapping->HitTest(wxPoint(x, y), item, col);
+
+        if (item.IsOk() && parms.size() == 2)
+        {
+            // if source was the tree then unmap the source
+            if (_dragItem.IsOk())
+            {
+                Unmap(_dragItem);
+            }
+
+            Map(item, parms[1].ToStdString());
+        }
+    }
+    break;
+    default:
+        break;
+    }
+
+    TreeListCtrl_Mapping->Refresh();
+}
+
+#pragma endregion Drag and Drop

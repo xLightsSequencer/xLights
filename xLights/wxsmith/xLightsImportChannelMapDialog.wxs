@@ -49,9 +49,22 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="SizerMap" member="yes">
-					<cols>1</cols>
+					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<growablerows>0</growablerows>
+					<object class="sizeritem">
+						<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListCtrl_Available" member="yes">
+							<size>150,-1</size>
+							<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL</style>
+							<handler function="OnListCtrl_AvailableBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
+							<handler function="OnListCtrl_AvailableItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+							<handler function="OnListCtrl_AvailableColumnClick" entry="EVT_LIST_COL_CLICK" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<minsize>150,-1</minsize>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxEXPAND</flag>
 			</object>
