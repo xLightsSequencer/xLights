@@ -183,6 +183,7 @@ private:
     xlColor * mPhonemeColor;
 
     xlColor * mSelectionColor;
+    xlColor * mSelectFocusColor;
     wxWindow* mParent;
     TimeLine* mTimeline;
 
@@ -194,6 +195,7 @@ private:
     DrawGLUtils::xlVertexColorAccumulator timingLines;
     DrawGLUtils::xlVertexTextAccumulator texts;
     DrawGLUtils::xlVertexAccumulator selectedLines;
+    DrawGLUtils::xlVertexAccumulator selectFocusLines;
     DrawGLUtils::xlVertexColorAccumulator backgrounds;
     DrawGLUtils::xlVertexColorAccumulator textBackgrounds;
     DrawGLUtils::xlVertexColorAccumulator selectedBoxes;

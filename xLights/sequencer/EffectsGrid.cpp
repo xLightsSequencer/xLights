@@ -93,7 +93,8 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
 
     mTimingColor = new xlColor(255,255,255);
     mTimingVerticalLine = new xlColor(130,178,207);
-    mSelectionColor = new xlColor(255,0,255);
+    mSelectionColor = new xlColor(0, 255, 153);
+    mSelectFocusColor = new xlColor(255,0,255);
 
     mLabelColor = new xlColor(255,255,204);
     mLabelOutlineColor = new xlColor(103, 103, 103);
@@ -114,6 +115,7 @@ EffectsGrid::~EffectsGrid()
 	delete mTimingColor;
 	delete mTimingVerticalLine;
 	delete mSelectionColor;
+	delete mSelectFocusColor;
 }
 
 EffectLayer* EffectsGrid::FindOpenLayer(Element* elem, int startTimeMS, int endTimeMS)
@@ -2238,7 +2240,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
         if( ((number_of_timings + number_of_effects) > 1) || row_paste )  // multi-effect paste or row_paste
         {
             std::set<std::string> modelsToRender;
-            
+
             wxArrayString eff1data = wxSplit(all_efdata[1], '\t');
             if (eff1data.size() < 7) {
                 return;
@@ -3119,6 +3121,7 @@ void EffectsGrid::DrawEffects()
             }
             lines.PreAlloc(effectLayer->GetEffectCount() * 16);
             selectedLines.PreAlloc(effectLayer->GetEffectCount() * 16);
+            selectFocusLines.PreAlloc(16);
 
             DrawGLUtils::xlVertexAccumulator * linesRight;
             DrawGLUtils::xlVertexAccumulator * linesLeft;
@@ -3183,11 +3186,22 @@ void EffectsGrid::DrawEffects()
                     break;
                 }
                 // Draw Left line
-                linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                                   effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED?&lines:&selectedLines;
-                linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                                   effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?&lines:&selectedLines;
-                linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectedLines:&lines;
+                if( e == mSelectedEffect || mSelectedEffect == nullptr )
+                {
+                    linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                                       effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED?&lines:&selectFocusLines;
+                    linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                                       effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?&lines:&selectFocusLines;
+                    linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectFocusLines:&lines;
+                }
+                else
+                {
+                    linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                                       effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED?&lines:&selectedLines;
+                    linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                                       effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?&lines:&selectedLines;
+                    linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectedLines:&lines;
+                }
 
                 int drawIcon = 1;
                 if(mGridIconBackgrounds && (ri->nodeIndex == -1 || !mGridNodeValues))
@@ -3299,6 +3313,7 @@ void EffectsGrid::DrawEffects()
     }
     DrawGLUtils::Draw(lines, *mEffectColor, GL_LINES);
     DrawGLUtils::Draw(selectedLines, *mSelectionColor, GL_LINES);
+    DrawGLUtils::Draw(selectFocusLines, *mSelectFocusColor, GL_LINES);
 
     DrawGLUtils::SetLineWidth(2.0);
     DrawGLUtils::Draw(timingEffLines, xlWHITE, GL_LINES);
@@ -3321,6 +3336,7 @@ void EffectsGrid::DrawEffects()
     backgrounds.Reset();
     selectedBoxes.Reset();
     selectedLines.Reset();
+    selectFocusLines.Reset();
     lines.Reset();
 }
 
