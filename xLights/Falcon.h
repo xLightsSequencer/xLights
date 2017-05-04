@@ -19,7 +19,7 @@ class Falcon
     std::string PutURL(const std::string& url, const std::string& request, bool logresult = false);
     int DecodeStringPortProtocol(std::string protocol);
     void UploadStringPort(const std::string& request, bool final);
-    std::string BuildStringPort(const std::string& strings, int output, int protocol, int portstart, int pixels, const std::string& description, wxWindow* parent);
+    std::string BuildStringPort(const std::string& strings, int output, int protocol, int portstartchannel, int universe, int pixels, const std::string& description, wxWindow* parent);
     int DecodeSerialOutputProtocol(std::string protocol);
     void UploadSerialOutput(int output, int protocol, int portstart, wxWindow* parent);
     void ResetStringOutputs();
@@ -30,8 +30,8 @@ public:
     Falcon(const std::string& ip);
     bool IsConnected() const { return _connected; };
     ~Falcon();
-    void SetInputUniverses(const std::list<Output*>& inputs);
-    void SetInputUniverses(OutputManager* outputManager);
+    //void SetInputUniverses(const std::list<Output*>& inputs);
+    //void SetInputUniverses(OutputManager* outputManager);
     void SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
     void SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
 };

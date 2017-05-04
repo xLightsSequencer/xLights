@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (dkulp)   Allow reverse order for SubModel node ranges (10-5 intead of 5-10). Fixes #852
    -- enh (keith)   Rework sequence elements dialog box to get rid of the add window and make everything drag and 
    -- enh (keith)   Rework xlights/LOR/Vixen import mapping dialog to use drag and drop mapping
+   -- bug (keith)   Fix out of order universe handling in falcon controller upload
+   -- enh (keith)   Display model end channel in layout tab in similar format to start channel (along with absolute)
 2017.12  Apr  30, 2017
    -- bug (sean)    Fix for Vamp plugins for 64 bit xLights. Web page updated to remove direct download of Vamp
 2017.11  Apr  29, 2017

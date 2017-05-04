@@ -139,35 +139,35 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request, b
     return res.ToStdString();
 }
 
-void Falcon::SetInputUniverses(OutputManager* outputManager)
-{
-    wxString request;
-    int output = 0;
-
-    auto outputs = outputManager->GetAllOutputs(_ip);
-
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
-    {
-        int t = -1;
-        if ((*it)->GetType() == "E131")
-        {
-            t = 0;
-        }
-        else if ((*it)->GetType() == "ArtNet")
-        {
-            t = 1;
-        }
-        request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
-            output, (*it)->GetUniverse(),
-            output, (*it)->GetChannels(),
-            output, (*it)->GetStartChannel(),
-            output, t);
-        output++;
-    }
-
-    request = wxString::Format("z=%d", output) + request;
-    std::string response = PutURL("/E131.htm", request.ToStdString());
-}
+//void Falcon::SetInputUniverses(OutputManager* outputManager)
+//{
+//    wxString request;
+//    int output = 0;
+//
+//    auto outputs = outputManager->GetAllOutputs(_ip);
+//
+//    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+//    {
+//        int t = -1;
+//        if ((*it)->GetType() == "E131")
+//        {
+//            t = 0;
+//        }
+//        else if ((*it)->GetType() == "ArtNet")
+//        {
+//            t = 1;
+//        }
+//        request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
+//            output, (*it)->GetUniverse(),
+//            output, (*it)->GetChannels(),
+//            output, (*it)->GetStartChannel(),
+//            output, t);
+//        output++;
+//    }
+//
+//    request = wxString::Format("z=%d", output) + request;
+//    std::string response = PutURL("/E131.htm", request.ToStdString());
+//}
 
 void Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
 {
@@ -196,41 +196,41 @@ void Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& sel
         output++;
     }
 
-    request = wxString::Format("z=%d", output) + request;
+    request = wxString::Format("z=%d&a=1", output) + request;
     std::string response = PutURL("/E131.htm", request.ToStdString());
 }
 
-void Falcon::SetInputUniverses(const std::list<Output*>& inputs)
-{
-    wxString request;
-
-    request = wxString::Format("z=%d", inputs.size());
-
-    int output = 0;
-
-    for (auto it = inputs.begin(); it != inputs.end(); ++it)
-    {
-        int t = -1;
-
-        if ((*it)->GetType() == "E131")
-        {
-            t = 0;
-        }
-        else if ((*it)->GetType() == "ArtNet")
-        {
-            t = 1;
-        }
-
-        request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
-            output, (*it)->GetUniverse(),
-            output, (*it)->GetChannels(),
-            output, (*it)->GetStartChannel(),
-            output, t);
-        output++;
-    }
-
-    std::string response = PutURL("/E131.htm", request.ToStdString());
-}
+//void Falcon::SetInputUniverses(const std::list<Output*>& inputs)
+//{
+//    wxString request;
+//
+//    request = wxString::Format("z=%d", inputs.size());
+//
+//    int output = 0;
+//
+//    for (auto it = inputs.begin(); it != inputs.end(); ++it)
+//    {
+//        int t = -1;
+//
+//        if ((*it)->GetType() == "E131")
+//        {
+//            t = 0;
+//        }
+//        else if ((*it)->GetType() == "ArtNet")
+//        {
+//            t = 1;
+//        }
+//
+//        request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
+//            output, (*it)->GetUniverse(),
+//            output, (*it)->GetChannels(),
+//            output, (*it)->GetStartChannel(),
+//            output, t);
+//        output++;
+//    }
+//
+//    std::string response = PutURL("/E131.htm", request.ToStdString());
+//}
 
 bool compare_startchannel(const Model* first, const Model* second)
 {
@@ -385,7 +385,9 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                                 portdone[i + j] = true;
                                 count++;
                                 if (sendmessage != "") sendmessage = sendmessage + "&";
-                                sendmessage = sendmessage + BuildStringPort(strings, i + j, DecodeStringPortProtocol(*protocol), portstart + j * channelsperstring, channelsperstring / 3, first->GetName(), parent);
+                                long startChannel;
+                                Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
+                                sendmessage = sendmessage + BuildStringPort(strings, i + j, DecodeStringPortProtocol(*protocol), startChannel, output->GetUniverse(), channelsperstring / 3, first->GetName(), parent);
                                 if (count == 40)
                                 {
                                     UploadStringPort(sendmessage, false);
@@ -407,7 +409,9 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                             portdone[i] = true;
                             count++;
                             if (sendmessage != "") sendmessage = sendmessage + "&";
-                            sendmessage = sendmessage + BuildStringPort(strings, i, DecodeStringPortProtocol(*protocol), portstart, (portend - portstart + 1) / 3, first->GetName(), parent);
+                            long startChannel;
+                            Output* output = outputManager->GetOutput(portstart, startChannel);
+                            sendmessage = sendmessage + BuildStringPort(strings, i, DecodeStringPortProtocol(*protocol), startChannel, output->GetUniverse(), (portend - portstart + 1) / 3, first->GetName(), parent);
                             if (count == 40)
                             {
                                 UploadStringPort(sendmessage, false);
@@ -464,7 +468,7 @@ void Falcon::UploadStringPort(const std::string& request, bool final)
     PutURL("/StringPorts.htm", r);
 }
 
-std::string Falcon::BuildStringPort(const std::string& strings, int output, int protocol, int portstart, int pixels, const std::string& description, wxWindow* parent)
+std::string Falcon::BuildStringPort(const std::string& strings, int output, int protocol, int portstartchannel, int universe, int pixels, const std::string& description, wxWindow* parent)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int row = -1;
@@ -514,10 +518,11 @@ std::string Falcon::BuildStringPort(const std::string& strings, int output, int 
         return "";
     }
 
-    wxString request = wxString::Format("r=0&p%d=%d&t%d=%d&s%d=%d&c%d=%d&y%d=%s", 
+    wxString request = wxString::Format("r=0&p%d=%d&t%d=%d&u%d=%d&s%d=%d&c%d=%d&y%d=%s", 
                                         row, output - 1,
                                         row, protocol,
-                                        row, portstart,
+                                        row, universe,
+                                        row, portstartchannel,
                                          row, pixels, 
                                          row, wxString(description.c_str()));
     return request.ToStdString();

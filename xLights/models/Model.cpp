@@ -21,6 +21,7 @@
 #include "../SubModelsDialog.h"
 #include "../ControllerConnectionDialog.h"
 #include "../outputs/Output.h"
+#include "../outputs/IPOutput.h"
 
 #include "ModelScreenLocation.h"
 #include <wx/sstream.h>
@@ -1329,6 +1330,77 @@ bool Model::IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2) 
 // only valid for rgb nodes and dumb strings (not traditional strings)
 wxChar Model::GetChannelColorLetter(wxByte chidx) {
     return rgbOrder[chidx];
+}
+
+int CountChar(const std::string& s, char c)
+{
+    int count = 0;
+
+    for (int i = 0; i < s.size(); ++i)
+    {
+        if (s[i] == c) count++;
+    }
+
+    return count;
+}
+
+std::string Model::GetStartChannelInDisplayFormat()
+{
+    if (ModelStartChannel == "")
+    {
+        return "(1)";
+    }
+    else if (ModelStartChannel[0] == '#' || ModelStartChannel[0] == '>' || ModelStartChannel[0] == '@' || CountChar(ModelStartChannel, ':') > 0)
+    {
+        return wxString::Format("%s (%u)", ModelStartChannel, GetNumberFromChannelString(ModelStartChannel)).ToStdString();
+    }
+    else
+    {
+        return ModelStartChannel;
+    }
+}
+
+std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManager)
+{
+    unsigned int lastChannel = GetLastChannel()+1;
+
+    if (ModelStartChannel == "")
+    {
+        return "(1)";
+    }
+    else if (ModelStartChannel[0] == '#')
+    {
+        // universe:channel
+        long startChannel;
+        Output* output = outputManager->GetOutput(lastChannel, startChannel);
+
+        if (CountChar(ModelStartChannel, ':') == 1)
+        {
+            return wxString::Format("#%d:%ld (%u)", output->GetUniverse(), startChannel, lastChannel).ToStdString();
+        }
+        else
+        {
+            std::string ip = "<err>";
+            if (output->IsIpOutput())
+            {
+                ip = ((IPOutput*)output)->GetIP();
+            }
+            return wxString::Format("#%d:%s:%ld (%u)", output->GetUniverse(), ip, startChannel, lastChannel).ToStdString();
+        }
+    }
+    else if (ModelStartChannel[0] == '@' || ModelStartChannel[0] == '>' || CountChar(ModelStartChannel, ':') == 0)
+    {
+        // absolute
+        return wxString::Format("%u", lastChannel).ToStdString();
+    }
+    else
+    {
+        // output:channel
+        long startChannel;
+        Output* output = outputManager->GetOutput(lastChannel, startChannel);
+
+        return wxString::Format("%d:%ld (%u)", output->GetOutputNumber(), startChannel, lastChannel).ToStdString();
+    }
 }
 
 unsigned int Model::GetLastChannel() {

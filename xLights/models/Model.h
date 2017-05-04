@@ -20,6 +20,7 @@ class wxPropertyGridEvent;
 class ModelScreenLocation;
 class ModelManager;
 class xLightsFrame;
+class OutputManager;
 
 class NodeBaseClass;
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
@@ -63,7 +64,7 @@ public:
     const std::string &Name() const { return name;}
     const std::string &GetName() const { return name;}
     virtual std::string GetFullName() const { return name;}
-    int GetNumStrings() { return parm1; }
+    int GetNumStrings() const { return parm1; }
 
     std::string name;
     std::string description;
@@ -226,6 +227,8 @@ public:
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);
     unsigned int GetLastChannel();
+    std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
+    std::string GetStartChannelInDisplayFormat();
     unsigned int GetFirstChannel();
     unsigned int GetNumChannels();
     int GetNodeNumber(size_t nodenum);
@@ -268,7 +271,6 @@ public:
     int NodeStartChannel(size_t nodenum) const;
     const std::string &NodeType(size_t nodenum) const;
     virtual int MapToNodeIndex(int strand, int node) const;
-    int ChannelStringToNumber(std::string channel);
 
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);

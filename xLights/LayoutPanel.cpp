@@ -86,6 +86,7 @@ const long LayoutPanel::ID_PREVIEW_MODEL_DELETEPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELCURVE = wxNewId();
 
+#define CHNUMWIDTH "10000000000000"
 
 class ModelTreeData : public wxTreeItemData {
 public:
@@ -359,8 +360,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     Reset();
 
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
-    TreeListViewModels->SetColumnWidth(1, TreeListViewModels->WidthFor("1000000000000"));
-    TreeListViewModels->SetColumnWidth(2, TreeListViewModels->WidthFor("1000000000000"));
+    TreeListViewModels->SetColumnWidth(1, TreeListViewModels->WidthFor(CHNUMWIDTH));
+    TreeListViewModels->SetColumnWidth(2, TreeListViewModels->WidthFor(CHNUMWIDTH));
 
 }
 
@@ -429,12 +430,12 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style)
                        wxALIGN_LEFT,
                        wxCOL_RESIZABLE | wxCOL_SORTABLE);
     tree->AppendColumn("Start Chan",
-                       tree->WidthFor("1000000000000"),
-                       wxALIGN_CENTER,
+                       tree->WidthFor(CHNUMWIDTH),
+                       wxALIGN_LEFT,
                        wxCOL_RESIZABLE | wxCOL_SORTABLE);
     tree->AppendColumn("End Chan",
-                       tree->WidthFor("1000000000000"),
-                       wxALIGN_CENTER,
+                       tree->WidthFor(CHNUMWIDTH),
+                       wxALIGN_LEFT,
                        wxCOL_RESIZABLE | wxCOL_SORTABLE);
     return tree;
 }
@@ -687,12 +688,13 @@ void LayoutPanel::refreshModelList() {
 
         if (model != nullptr ) {
             int end_channel = model->GetLastChannel()+1;
-            wxString endStr = wxString::Format("%i", end_channel);
+            wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
             if( model->GetDisplayAs() != "ModelGroup" ) {
                 wxString cv = TreeListViewModels->GetItemText(item, Col_StartChan);
-                if (cv != model->ModelStartChannel) {
+                wxString startStr = model->GetStartChannelInDisplayFormat();
+                if (cv != startStr) {
                     data->startingChannel = model->GetNumberFromChannelString(model->ModelStartChannel);
-                    TreeListViewModels->SetItemText(item, Col_StartChan, model->ModelStartChannel);
+                    TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_EndChan);
                 if (cv != endStr) {
@@ -761,8 +763,9 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
 
 
 
-void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullName) {
+int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullName) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int width = 0;
 
     if (model == nullptr)
     {
@@ -776,9 +779,13 @@ void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool full
                                                          GetModelTreeIcon(model, true),
                                                          new ModelTreeData(model));
     if( model->GetDisplayAs() != "ModelGroup" ) {
-        TreeListViewModels->SetItemText(item, Col_StartChan, model->ModelStartChannel);
-        TreeListViewModels->SetItemText(item, Col_EndChan, wxString::Format(wxT("%i"),end_channel));
+        wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
+        wxString startStr = model->GetStartChannelInDisplayFormat();
+        TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
+        TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
+        width = std::max(TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_StartChan)), TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_EndChan)));
     }
+
     for (int x = 0; x < model->GetNumSubModels(); x++) {
         AddModelToTree(model->GetSubModel(x), &item);
     }
@@ -802,6 +809,8 @@ void LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool full
             }
         }
     }
+
+    return width;
 }
 
 void LayoutPanel::UpdateModelList(bool full_refresh) {
@@ -830,6 +839,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         UpdateModelsForPreview( currentLayoutGroup, nullptr, models, true );
     }
     if( full_refresh ) {
+        int width = 0;
+
         TreeListViewModels->Freeze();
         //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
         TreeListViewModels->SetColumnWidth(0, 10);
@@ -851,20 +862,14 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         for (auto it = models.begin(); it != models.end(); it++) {
             Model *model = *it;
             if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
-                AddModelToTree(model, &root);
+                width = std::max(width, AddModelToTree(model, &root));
             }
         }
 
-        unsigned int mc = xlights->GetMaxNumChannels();
-        wxString mcs = wxString::Format("%u", mc);
-        int sz = TreeListViewModels->WidthFor(mcs);
-        int sz2 = TreeListViewModels->WidthFor("Start Chan");
-        if (sz2 > sz) {
-            sz = sz2;
-        }
+        width = std::max(width, TreeListViewModels->WidthFor("Start Chan"));
 
-        TreeListViewModels->SetColumnWidth(2, sz);
-        TreeListViewModels->SetColumnWidth(1, sz);
+        TreeListViewModels->SetColumnWidth(2, width);
+        TreeListViewModels->SetColumnWidth(1, width);
         TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
         TreeListViewModels->Thaw();
 
