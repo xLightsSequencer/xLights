@@ -1842,9 +1842,9 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
                     all_clear = true;
                 } else {
                     if( align_end > ef->GetStartTimeMS() && align_end <= ef->GetEndTimeMS() ) {
-                        end_time_for_check = mSelectedEffect->GetStartTimeMS();
+                        end_time_for_check = std::min(mSelectedEffect->GetStartTimeMS(), ef->GetStartTimeMS());
                     } else if( align_start >= ef->GetStartTimeMS() && align_start < ef->GetEndTimeMS() ) {
-                        str_time_for_check = mSelectedEffect->GetEndTimeMS();
+                        str_time_for_check = std::max(mSelectedEffect->GetEndTimeMS(), ef->GetEndTimeMS());
                     }
                 }
 

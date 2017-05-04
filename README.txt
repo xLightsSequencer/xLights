@@ -11,8 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix bug where effect align start times or end times failed to work.
    -- enh (dkulp)   Allow reverse order for SubModel node ranges (10-5 intead of 5-10). Fixes #852
-   -- enh (keith)   Rework sequence elements dialog box to get rid of the add window and make everything drag and 
+   -- enh (keith)   Rework sequence elements dialog box to get rid of the add window and make everything drag and
    -- enh (keith)   Rework xlights/LOR/Vixen import mapping dialog to use drag and drop mapping
    -- bug (keith)   Fix out of order universe handling in falcon controller upload
    -- enh (keith)   Display model end channel in layout tab in similar format to start channel (along with absolute)
